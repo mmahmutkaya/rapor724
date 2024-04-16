@@ -1,7 +1,8 @@
 import { useState, useContext, useEffect } from 'react';
 import { StoreContext } from './store'
 import { useApp } from "./useApp";
-import { Link, NavLink } from 'react-router-dom';
+import { useNavigate, useLocation } from "react-router-dom";
+
 
 //material
 import Grid from '@mui/material/Grid';
@@ -24,11 +25,12 @@ import Drawer from '@mui/material/Drawer';
 
 export default function Sidebar({ setMobileOpen }) {
 
-
-  // const router = useRouter();
-  const router = "router"
+  const navigate = useNavigate()
+  const { pathname } = useLocation()
   const { isProject } = useContext(StoreContext)
   const { persons } = useContext(StoreContext)
+
+  console.log()
 
   return (
     <Grid container direction="column">
@@ -48,33 +50,27 @@ export default function Sidebar({ setMobileOpen }) {
             aria-labelledby="nested-list-subheader"
           >
 
-            <ListItemButton>
+            <ListItemButton onClick={() => navigate("projects")} sx={{ backgroundColor: pathname == "/projects" ? "#f0f0f1" : null }}>
               <ListItemIcon>
                 <SendIcon />
               </ListItemIcon>
-              <NavLink to='/projects' style={{ textDecoration: 'none', color: "black" }}>
-                <ListItemText primary="Projeler" />
-              </NavLink>
+              <ListItemText primary="Projeler" />
             </ListItemButton>
 
 
-            <ListItemButton>
+            <ListItemButton onClick={() => navigate("people")} sx={{ backgroundColor: pathname == "/people" ? "#f0f0f1" : null }}>
               <ListItemIcon>
                 <SendIcon />
               </ListItemIcon>
-              <NavLink to='/people' style={{ textDecoration: 'none', color: "black" }}>
-                <ListItemText primary="Kişiler" />
-              </NavLink>
+              <ListItemText primary="Kişiler" />
             </ListItemButton>
 
 
-            <ListItemButton         >
+            <ListItemButton onClick={() => navigate("companies")} sx={{ backgroundColor: pathname == "/companies" ? "#f0f0f1" : null }}>
               <ListItemIcon  >
                 <SendIcon />
               </ListItemIcon>
-              <NavLink to='/companies' style={{ textDecoration: 'none', color: "black" }}>
-                <ListItemText primary="Firmalar" />
-              </NavLink>
+              <ListItemText primary="Firmalar" />
             </ListItemButton>
 
           </List>
@@ -83,14 +79,14 @@ export default function Sidebar({ setMobileOpen }) {
 
 
 
-      {/* poz seçiminde - sidebar menüsü görünümü*/}
+      {/* proje seçiminde - sidebar menüsü görünümü*/}
       {isProject &&
         <Grid item onClick={(() => setMobileOpen(false))}>
           <List>
 
             <ListItemButton
-              onClick={() => router.push('/dashboard')}
-              sx={{ backgroundColor: router?.asPath == "/dashboard" ? "#f0f0f1" : null }}
+              onClick={() => navigate('/dashboard')}
+              sx={{ backgroundColor: pathname == "/dashboard" ? "#f0f0f1" : null }}
             >
               <ListItemIcon>
                 <SendIcon />
@@ -100,8 +96,8 @@ export default function Sidebar({ setMobileOpen }) {
 
 
             <ListItemButton
-              onClick={() => router.push('/wbs')}
-              sx={{ backgroundColor: router?.asPath == "/wbs" ? "#f0f0f1" : null }}
+              onClick={() => navigate('/wbs')}
+              sx={{ backgroundColor: pathname == "/wbs" ? "#f0f0f1" : null }}
             >
               <ListItemIcon>
                 <SendIcon />
@@ -111,8 +107,8 @@ export default function Sidebar({ setMobileOpen }) {
 
 
             <ListItemButton
-              onClick={() => router.push('/pozlar')}
-              sx={{ backgroundColor: router?.asPath == "/pozlar" ? "#f0f0f1" : null }}
+              onClick={() => navigate('/pozlar')}
+              sx={{ backgroundColor: pathname == "/pozlar" ? "#f0f0f1" : null }}
             >
               <ListItemIcon>
                 <SendIcon />
@@ -122,8 +118,8 @@ export default function Sidebar({ setMobileOpen }) {
 
 
             <ListItemButton
-              onClick={() => router.push('/lbs')}
-              sx={{ backgroundColor: router?.asPath == "/lbs" ? "#f0f0f1" : null }}
+              onClick={() => navigate('/lbs')}
+              sx={{ backgroundColor: pathname == "/lbs" ? "#f0f0f1" : null }}
             >
               <ListItemIcon>
                 <SendIcon />
@@ -133,8 +129,8 @@ export default function Sidebar({ setMobileOpen }) {
 
 
             <ListItemButton
-              onClick={() => router.push('/mahaller')}
-              sx={{ backgroundColor: router?.asPath == "/mahaller" ? "#f0f0f1" : null }}
+              onClick={() => navigate('/mahaller')}
+              sx={{ backgroundColor: pathname == "/mahaller" ? "#f0f0f1" : null }}
             >
               <ListItemIcon>
                 <SendIcon />
@@ -144,8 +140,8 @@ export default function Sidebar({ setMobileOpen }) {
 
 
             <ListItemButton
-              onClick={() => router.push('/mahallistesi')}
-              sx={{ backgroundColor: router?.asPath == "/mahallistesi" ? "#f0f0f1" : null }}
+              onClick={() => navigate('/mahallistesi')}
+              sx={{ backgroundColor: pathname == "/mahallistesi" ? "#f0f0f1" : null }}
             >
               <ListItemIcon>
                 <SendIcon />
@@ -155,8 +151,8 @@ export default function Sidebar({ setMobileOpen }) {
 
 
             <ListItemButton
-              onClick={() => router.push('/metraj')}
-              sx={{ backgroundColor: router?.asPath == "/metraj" ? "#f0f0f1" : null }}
+              onClick={() => navigate('/metraj')}
+              sx={{ backgroundColor: pathname == "/metraj" ? "#f0f0f1" : null }}
             >
               <ListItemIcon>
                 <SendIcon />
@@ -166,8 +162,8 @@ export default function Sidebar({ setMobileOpen }) {
 
 
             <ListItemButton
-              onClick={() => router.push('/raporlar')}
-              sx={{ backgroundColor: router?.asPath == "/raporlar" ? "#f0f0f1" : null }}
+              onClick={() => navigate('/raporlar')}
+              sx={{ backgroundColor: pathname == "/raporlar" ? "#f0f0f1" : null }}
             >
               <ListItemIcon>
                 <SendIcon />
@@ -176,8 +172,8 @@ export default function Sidebar({ setMobileOpen }) {
             </ListItemButton>
 
             <ListItemButton
-              onClick={() => router.push('/grid')}
-              sx={{ backgroundColor: router?.asPath == "/grid" ? "#f0f0f1" : null }}
+              onClick={() => navigate('/grid')}
+              sx={{ backgroundColor: pathname == "/grid" ? "#f0f0f1" : null }}
             >
               <ListItemIcon>
                 <SendIcon />

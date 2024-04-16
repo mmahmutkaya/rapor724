@@ -1,4 +1,5 @@
-import { useState } from 'react';
+import { useState, useContext } from 'react';
+import { StoreContext } from '../components/store'
 import { useApp } from "./useApp.js";
 
 
@@ -21,6 +22,7 @@ export default function P_FormProjectCreate({ setShow, refetch_projects }) {
 
   const [showDialogError, setShowDialogError] = useState(false)
   const [hataMesaj, setHataMesaj] = useState("")
+  const { setProjectNames } = useContext(StoreContext)
 
   const RealmApp = useApp();
 
@@ -33,11 +35,14 @@ export default function P_FormProjectCreate({ setShow, refetch_projects }) {
       const data = new FormData(event.currentTarget);
       const projectName = data.get('projectName')
 
-      const newProject = { name: projectName }
+      let newProject = { name: projectName }
 
       const resultProject = await RealmApp.currentUser.callFunction("createProject", newProject);
+      newProject._id = resultProject.insertedId
+      console.log("resultProject", resultProject)
 
-      refetch_projects()
+
+      setProjectNames(oldProjects => [...oldProjects, newProject])
       setShow("ProjectMain")
 
     } catch (err) {

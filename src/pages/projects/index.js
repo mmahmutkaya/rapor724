@@ -1,11 +1,10 @@
 
 import { useState, useEffect, useContext } from 'react';
-import { useRouter } from 'next/router';
 import { StoreContext } from '../../components/store'
 import { useApp } from "../../components/useApp";
-import { useQuery } from '@tanstack/react-query'
 import FormProjectCreate from '../../components/FormProjectCreate'
 import ProjectsHeader from '../../components/ProjectsHeader'
+import { useNavigate } from "react-router-dom";
 
 
 import Grid from '@mui/material/Grid';
@@ -21,39 +20,31 @@ import FolderIcon from '@mui/icons-material/Folder';
 
 export default function P_Projects() {
 
-  const { isProject, setIsProject } = useContext(StoreContext)
-  const [show, setShow] = useState("ProjectMain")
-
-  const router = useRouter();
 
   const RealmApp = useApp();
-  const { isLoading, isError, data: projectNames, error, refetch: refetch_projects } = useQuery({
-    queryKey: ['projectNames'],
-    // queryFn: deneme,
-    queryFn: async () => await RealmApp.currentUser.callFunction("getProjectNames"),
-    refetchOnWindowFocus: false,
-    enabled: !!RealmApp?.currentUser,
-    // staleTime: 5 * 1000, // 1000 milisecond --> 1 second
-  })
+  const navigate = useNavigate()
+
+  const { isProject, setIsProject } = useContext(StoreContext)
+  const { projectNames, setProjectNames } = useContext(StoreContext)
+  const [show, setShow] = useState("ProjectMain")
+
+
+  const projectNames_fecth = async () => {
+    if (!projectNames) {
+      const result = await RealmApp?.currentUser.callFunction("getProjectNames");
+      // const result = [{ _id: 1, name: "Proje 1" }, { _id: 2, name: "Proje 2" }]
+      setProjectNames(result)
+    }
+  }
+  projectNames_fecth()
 
 
 
-  if (isLoading) return "Loading...";
-
-  if (error) return "An error has occurred: " + error.message;
-
-
-  // const handleProjectClick = async (project) => {
-  //   // const project = await RealmApp.currentUser.callFunction("getProject")
-  //   setIsProject(project)
-  //   console.log(project)
-  //   router.push('/dashboard')
-  // }
 
   const handleProjectClick = async (prj) => {
-    const project = await RealmApp.currentUser.callFunction("getProject",{projectId:prj._id})
+    const project = await RealmApp.currentUser.callFunction("getProject", { projectId: prj._id })
     setIsProject(project)
-    router.push('/dashboard')
+    navigate('/dashboard')
   }
 
 
@@ -66,11 +57,11 @@ export default function P_Projects() {
 
       {show == "FormProjectCreate" &&
         <Grid item >
-          <FormProjectCreate setShow={setShow} refetch_projects={refetch_projects} />
+          <FormProjectCreate setShow={setShow} />
         </Grid>
       }
 
-      {show == "ProjectMain" && projectNames.empty &&
+      {show == "ProjectMain" && !projectNames?.length > 0 &&
         <Stack sx={{ width: '100%', padding: "1rem" }} spacing={2}>
           <Alert severity="info">
             Dahil olduğunuz herhangi bir proje bulunamadı, menüler yardımı ile yeni bir proje oluşturabilirsiniz.
@@ -78,16 +69,16 @@ export default function P_Projects() {
         </Stack>
       }
 
-      {show == "ProjectMain" && !projectNames.empty &&
+      {show == "ProjectMain" && projectNames?.length &&
         <Stack sx={{ width: '100%', padding: "1rem" }} spacing={0}>
 
           {
-            projectNames.map(project => (
+            projectNames.map(oneProject => (
 
               <Grid
-                key={project._id}
+                key={oneProject._id}
                 container spacing={2}
-                onClick={() => handleProjectClick(project)}
+                onClick={() => handleProjectClick(oneProject)}
                 sx={{
                   "&:hover": {
                     color: "red",
@@ -109,7 +100,7 @@ export default function P_Projects() {
 
                 <Grid item>
                   <Typography sx={{ fontWeight: "normal" }}>
-                    {project.name}
+                    {oneProject.name}
                   </Typography>
                 </Grid>
 

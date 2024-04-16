@@ -19,10 +19,15 @@ export default ({ children }) => {
     thirdColor:"#719192",
     fouthColor:"#dfcdc3"
   }
+  const [myTema, setMyTema] = useState(myTema_)
   
+
+  const [isContext] = useState(true)
   const topBarHeight = "3.5rem"
   const subHeaderHeight = "3.5rem"
   const drawerWidth = 240
+  
+  
   const [custom, setCustom] = useState()
   const [selectedLbs, setSelectedLbs] = useState()
   const [selectedWbs, setSelectedWbs] = useState()
@@ -36,15 +41,10 @@ export default ({ children }) => {
   const [pozMahalMetrajlar, setPozMahalMetrajlar] = useState()
   const [mahaller, setMahaller] = useState()
   const [mahalListesi, setMahalListesi] = useState()
-  const [isContext] = useState(true)
-  const [myTema, setMyTema] = useState(myTema_)
-
-
+  const [projectNames, setProjectNames] = useState()
 
   const store = {
-    // sharing, setSharing,
-    // help, setHelp,
-    // pairing, setPairing,
+    projectNames, setProjectNames,
     subHeaderHeight,
     topBarHeight,
     drawerWidth,
