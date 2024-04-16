@@ -1,8 +1,8 @@
 
 import { useState, useContext } from 'react';
-import { useRouter } from 'next/router';
 import { StoreContext } from '../../components/store'
 import { useApp } from "../../components/useApp";
+import { useNavigate } from 'react-router-dom';
 
 import FormWbsCreate from '../../components/FormWbsCreate'
 import FormWbsUpdate from '../../components/FormWbsUpdate'
@@ -18,18 +18,23 @@ import Stack from '@mui/material/Stack';
 
 export default function P_Wbs() {
 
+  const navigate = useNavigate()
+  const RealmApp = useApp();
+
   const { subHeaderHeight } = useContext(StoreContext)
 
-  const RealmApp = useApp();
   const { isProject, setIsProject } = useContext(StoreContext)
   const { selectedWbs, setSelectedWbs } = useContext(StoreContext)
-
-  const router = useRouter();
-  !isProject ? router.push('/projects') : null
 
   const [show, setShow] = useState()
   const [nameMode, setNameMode] = useState(false)
   const [codeMode, setCodeMode] = useState(true)
+
+  if (!isProject) {
+    return (
+      navigate('/projects')
+    )  
+  }  
 
 
   const handleSelectWbs = (wbs) => {
@@ -74,7 +79,7 @@ export default function P_Wbs() {
           </Alert>
         </Stack>
       }
- 
+
       {isProject?.wbs?.length > 0 &&
         < Stack sx={{ width: '100%', padding: "0.5rem" }} spacing={0}>
 
