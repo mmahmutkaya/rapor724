@@ -1,0 +1,308 @@
+[
+    {
+        "name": "closeWbsForPoz",
+        "private": false,
+        "disable_arg_logs": true
+    },
+    {
+        "name": "updateGroup_name",
+        "private": false,
+        "disable_arg_logs": true
+    },
+    {
+        "name": "http",
+        "private": false
+    },
+    {
+        "name": "createPoz",
+        "private": false,
+        "disable_arg_logs": true
+    },
+    {
+        "name": "closeLbsForMahal",
+        "private": false,
+        "disable_arg_logs": true
+    },
+    {
+        "name": "moveLbsRight",
+        "private": false,
+        "disable_arg_logs": true
+    },
+    {
+        "name": "getProjectWbs",
+        "private": false,
+        "disable_arg_logs": true
+    },
+    {
+        "name": "toggleMahalPoz",
+        "private": false,
+        "disable_arg_logs": true
+    },
+    {
+        "name": "auth_ConfirmationMail",
+        "private": false,
+        "disable_arg_logs": true
+    },
+    {
+        "name": "deleteWbs",
+        "private": false,
+        "disable_arg_logs": true
+    },
+    {
+        "name": "updateProjectMahalBaslik",
+        "private": false,
+        "disable_arg_logs": true
+    },
+    {
+        "name": "createCase",
+        "private": false,
+        "disable_arg_logs": true
+    },
+    {
+        "name": "auth_SendConfirmationCode",
+        "private": false
+    },
+    {
+        "name": "deletePoz",
+        "private": false,
+        "disable_arg_logs": true
+    },
+    {
+        "name": "validateEmail",
+        "private": false,
+        "disable_arg_logs": true
+    },
+    {
+        "name": "createProject",
+        "private": false,
+        "disable_arg_logs": true
+    },
+    {
+        "name": "openLbsForMahal",
+        "private": false,
+        "disable_arg_logs": true
+    },
+    {
+        "name": "moveLbsDown",
+        "private": false,
+        "disable_arg_logs": true
+    },
+    {
+        "name": "sendMail",
+        "private": false,
+        "disable_arg_logs": true
+    },
+    {
+        "name": "createMahal",
+        "private": false,
+        "disable_arg_logs": true
+    },
+    {
+        "name": "getProject",
+        "private": false,
+        "disable_arg_logs": true
+    },
+    {
+        "name": "getProjectMahaller",
+        "private": false,
+        "disable_arg_logs": true
+    },
+    {
+        "name": "updateLbs",
+        "private": false,
+        "disable_arg_logs": true
+    },
+    {
+        "name": "deleteMahal",
+        "private": false,
+        "disable_arg_logs": true
+    },
+    {
+        "name": "generateKod",
+        "private": false,
+        "disable_arg_logs": true
+    },
+    {
+        "name": "getPozMahalMetrajlar",
+        "private": false,
+        "disable_arg_logs": true
+    },
+    {
+        "name": "deleteLbs",
+        "private": false,
+        "disable_arg_logs": true
+    },
+    {
+        "name": "getProjectNames",
+        "private": false,
+        "disable_arg_logs": true
+    },
+    {
+        "name": "getProjectMetrajlar",
+        "private": false,
+        "disable_arg_logs": true
+    },
+    {
+        "name": "createPoz_copy",
+        "private": false,
+        "disable_arg_logs": true
+    },
+    {
+        "name": "moveWbsDown",
+        "private": false,
+        "disable_arg_logs": true
+    },
+    {
+        "name": "createMahalBaslik",
+        "private": false,
+        "disable_arg_logs": true
+    },
+    {
+        "name": "auth_SetCustomData",
+        "private": false,
+        "disable_arg_logs": true
+    },
+    {
+        "name": "moveLbsUp",
+        "private": false,
+        "disable_arg_logs": true
+    },
+    {
+        "name": "functions_deleteLastSpace",
+        "private": false,
+        "disable_arg_logs": true
+    },
+    {
+        "name": "updatePozBilgiler",
+        "private": false,
+        "disable_arg_logs": true
+    },
+    {
+        "name": "updateProjectPozBaslik",
+        "private": false,
+        "disable_arg_logs": true
+    },
+    {
+        "name": "moveWbsRight",
+        "private": false,
+        "disable_arg_logs": true
+    },
+    {
+        "name": "getPozMetrajlar",
+        "private": false,
+        "disable_arg_logs": true
+    },
+    {
+        "name": "0_TRIGGER_userCreate_DISABLE",
+        "private": true
+    },
+    {
+        "name": "moveWbsUp",
+        "private": false,
+        "disable_arg_logs": true
+    },
+    {
+        "name": "returnBack",
+        "private": false
+    },
+    {
+        "name": "createLbs",
+        "private": false,
+        "disable_arg_logs": true
+    },
+    {
+        "name": "getGroup",
+        "private": false,
+        "disable_arg_logs": true
+    },
+    {
+        "name": "openWbsForPoz",
+        "private": false,
+        "disable_arg_logs": true
+    },
+    {
+        "name": "getGroups",
+        "private": false,
+        "disable_arg_logs": true
+    },
+    {
+        "name": "auth_UserRegester",
+        "private": false,
+        "run_as_system": true
+    },
+    {
+        "name": "updateMetraj",
+        "private": false,
+        "disable_arg_logs": true
+    },
+    {
+        "name": "admin",
+        "private": false,
+        "disable_arg_logs": true
+    },
+    {
+        "name": "getMahalListesi",
+        "private": false,
+        "disable_arg_logs": true
+    },
+    {
+        "name": "deleteGroup",
+        "private": false,
+        "disable_arg_logs": true
+    },
+    {
+        "name": "createGroup",
+        "private": false,
+        "disable_arg_logs": true
+    },
+    {
+        "name": "createMetraj",
+        "private": false,
+        "disable_arg_logs": true
+    },
+    {
+        "name": "getProjectPozlar",
+        "private": false,
+        "disable_arg_logs": true
+    },
+    {
+        "name": "moveWbsLeft",
+        "private": false,
+        "disable_arg_logs": true
+    },
+    {
+        "name": "moveLbsLeft",
+        "private": false,
+        "disable_arg_logs": true
+    },
+    {
+        "name": "createWbs",
+        "private": false,
+        "disable_arg_logs": true
+    },
+    {
+        "name": "updateMahalBilgiler",
+        "private": false,
+        "disable_arg_logs": true
+    },
+    {
+        "name": "getProjectLbs",
+        "private": false,
+        "disable_arg_logs": true
+    },
+    {
+        "name": "createPozBaslik",
+        "private": false,
+        "disable_arg_logs": true
+    },
+    {
+        "name": "createMahal_copy",
+        "private": false,
+        "disable_arg_logs": true
+    },
+    {
+        "name": "updateWbs",
+        "private": false,
+        "disable_arg_logs": true
+    }
+]
