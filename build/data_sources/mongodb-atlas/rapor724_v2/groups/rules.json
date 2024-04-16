@@ -1,0 +1,15 @@
+{
+    "database": "rapor724_v2",
+    "collection": "groups",
+    "roles": [
+        {
+            "name": "readAndWriteAll",
+            "apply_when": {},
+            "insert": true,
+            "delete": true,
+            "search": true,
+            "read": true,
+            "write": true
+        }
+    ]
+}
