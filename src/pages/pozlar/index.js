@@ -1,6 +1,6 @@
 
 import { useState, useContext } from 'react';
-import { useRouter } from 'next/router';
+import { useNavigate } from "react-router-dom";
 import { StoreContext } from '../../components/store'
 import { useApp } from "../../components/useApp";
 import FormPozCreate from '../../components/FormPozCreate'
@@ -33,11 +33,16 @@ export default function P_Pozlar() {
   const [pozBilgiler_willBeSaved, setPozBilgiler_willBeSaved] = useState([])
   const [autoFocus, setAutoFocus] = useState({ baslikId: null, pozId: null })
 
-  const router = useRouter();
-  // !isProject ? router.push('/projects') : null
-  !isProject ? window.location.href = "/projects" : null
-
+  const navigate = useNavigate()
   const RealmApp = useApp();
+
+  if (!isProject) {
+    return (
+      navigate('/projects')
+    )  
+  }  
+
+
 
 
   const pozlar_fecth = async () => {

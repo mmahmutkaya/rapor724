@@ -1,6 +1,6 @@
 
 import { useState, useEffect, useContext } from 'react';
-import { useRouter } from 'next/router';
+import { useNavigate } from "react-router-dom";
 import { StoreContext } from '../../components/store'
 import { useApp } from "../../components/useApp";
 import { useQuery } from '@tanstack/react-query'
@@ -24,7 +24,7 @@ export default function P_Projects() {
   const { isProject, setIsProject } = useContext(StoreContext)
   const [show, setShow] = useState("ProjectMain")
 
-  const router = useRouter();
+  const navigate = useNavigate()
 
   const RealmApp = useApp();
   const { isLoading, isError, data: projectNames, error, refetch: refetch_projects } = useQuery({
@@ -47,13 +47,13 @@ export default function P_Projects() {
   //   // const project = await RealmApp.currentUser.callFunction("getProject")
   //   setIsProject(project)
   //   console.log(project)
-  //   router.push('/dashboard')
+  //   navigate('/dashboard')
   // }
 
   const handleProjectClick = async (prj) => {
     const project = await RealmApp.currentUser.callFunction("getProject",{projectId:prj._id})
     setIsProject(project)
-    router.push('/dashboard')
+    navigate('/dashboard')
   }
 
 

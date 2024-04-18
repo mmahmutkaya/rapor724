@@ -103,6 +103,8 @@ export default function MahalHeader({ setShow, editMahal, setEditMahal, saveMaha
 
   async function handleMahalBaslikDelete(mahalBaslik) {
 
+    const mahal = selectedMahalBaslik
+
     // seçili lbs yoksa durdurma, inaktif iken tuşlara basılabiliyor mesela, bu fonksiyon çalıştırılıyor, orayı iptal etmekle uğraşmak istemedim
     if (!selectedMahalBaslik) {
       console.log("alttaki satırda --return-- oldu")
@@ -182,9 +184,9 @@ export default function MahalHeader({ setShow, editMahal, setEditMahal, saveMaha
     setIsProject(isProject => {
       const isProject_ = { ...isProject }
       let guncelYatayHiza = isProject_.mahalBasliklari.find(item => item.id == selectedMahalBaslik.id).yatayHiza
-      guncelYatayHiza == "start" ? isProject_.mahalBasliklari.find(item => item.id == selectedMahalBaslik.id).yatayHiza = "center" : null
-      guncelYatayHiza == "center" ? isProject_.mahalBasliklari.find(item => item.id == selectedMahalBaslik.id).yatayHiza = "end" : null
-      guncelYatayHiza == "end" ? isProject_.mahalBasliklari.find(item => item.id == selectedMahalBaslik.id).yatayHiza = "start" : null
+      if (guncelYatayHiza == "start") isProject_.mahalBasliklari.find(item => item.id == selectedMahalBaslik.id).yatayHiza = "center"
+      if (guncelYatayHiza == "center") isProject_.mahalBasliklari.find(item => item.id == selectedMahalBaslik.id).yatayHiza = "end"
+      if (guncelYatayHiza == "end") isProject_.mahalBasliklari.find(item => item.id == selectedMahalBaslik.id).yatayHiza = "start"
       return isProject_
     })
     setWillBeUpdate_mahalBaslik(true)

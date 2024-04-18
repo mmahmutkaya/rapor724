@@ -1,6 +1,6 @@
 
 import { useState, useContext } from 'react';
-import { useRouter } from 'next/router';
+import { useNavigate } from "react-router-dom";
 import { StoreContext } from '../../components/store'
 import { useApp } from "../../components/useApp";
 import FormMahalCreate from '../../components/FormMahalCreate'
@@ -33,9 +33,9 @@ export default function P_Mahaller() {
   const [mahalBilgiler_willBeSaved, setMahalBilgiler_willBeSaved] = useState([])
   const [autoFocus, setAutoFocus] = useState({ baslikId: null, mahalId: null })
 
-  const router = useRouter();
-  // !isProject ? router.push('/projects') : null
-  !isProject ? window.location.href = "/projects" : null
+  const navigate = useNavigate()
+  // !isProject ? navigate('/projects') : null
+  if(!isProject) window.location.href = "/projects"
 
   const RealmApp = useApp();
 

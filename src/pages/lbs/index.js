@@ -1,6 +1,6 @@
 
 import { useState, useContext } from 'react';
-import { useRouter } from 'next/router';
+import { useNavigate } from "react-router-dom";
 import { StoreContext } from '../../components/store'
 import { useApp } from "../../components/useApp";
 
@@ -24,8 +24,8 @@ export default function P_Lbs() {
   const { isProject, setIsProject } = useContext(StoreContext)
   const { selectedLbs, setSelectedLbs } = useContext(StoreContext)
 
-  const router = useRouter();
-  !isProject ? router.push('/projects') : null
+  const navigate = useNavigate()
+  if(!isProject) navigate('/projects')
 
   const [show, setShow] = useState()
   const [nameMode, setNameMode] = useState(false)

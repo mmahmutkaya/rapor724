@@ -1,6 +1,6 @@
 
 import { useState, useContext } from 'react';
-import { useRouter } from 'next/router';
+import { useNavigate } from "react-router-dom";
 import { StoreContext } from '../../components/store'
 import { useApp } from "../../components/useApp";
 import FormMahalCreate from '../../components/FormMahalCreate'
@@ -43,8 +43,8 @@ export default function P_Metraj() {
 
 
 
-  const router = useRouter();
-  // !isProject ? router.push('/projects') : null
+  const navigate = useNavigate()
+  // !isProject ? navigate('/projects') : null
   !isProject ? window.location.href = "/projects" : null
 
   const RealmApp = useApp();

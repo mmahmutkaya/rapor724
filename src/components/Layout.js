@@ -264,7 +264,7 @@ export default function Layout({ window, children }) {
 
   const handleToProject = () => {
     setIsProject(null)
-    // router.push("/projects")
+    // navigate("/projects")
   };
 
 
@@ -313,7 +313,7 @@ export default function Layout({ window, children }) {
 
             <Grid item>
               <Typography
-                // onClick={() => isProject ? null : router.push('/')}
+                // onClick={() => isProject ? null : navigate('/')}
                 onClick={() => navigate("/")}
                 variant="h6"
                 noWrap

@@ -37,7 +37,7 @@ export const DialogWindow = ({ dialogCase, showDialog, setShowDialog, afterDone 
 
   const onClose = () => {
     setShowDialog(false)
-    afterDone ? afterDone() : null
+    if(afterDone) afterDone()
   }
 
 

@@ -10,7 +10,7 @@ export default function P_Dashboard() {
   const navigate = useNavigate()
 
   const { isProject } = useContext(StoreContext)
-  // !isProject ? router.push('/projects') : null
+  // !isProject ? navigate('/projects') : null
   // !isProject ? navigate('/projects') : null
 
   return (

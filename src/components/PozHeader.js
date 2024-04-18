@@ -103,6 +103,8 @@ export default function PozHeader({ setShow, editPoz, setEditPoz, savePoz }) {
 
   async function handlePozBaslikDelete(pozBaslik) {
 
+    const poz = selectedPozBaslik
+
     // seçili wbs yoksa durdurma, inaktif iken tuşlara basılabiliyor mesela, bu fonksiyon çalıştırılıyor, orayı iptal etmekle uğraşmak istemedim
     if (!selectedPozBaslik) {
       console.log("alttaki satırda --return-- oldu")
@@ -182,9 +184,9 @@ export default function PozHeader({ setShow, editPoz, setEditPoz, savePoz }) {
     setIsProject(isProject => {
       const isProject_ = { ...isProject }
       let guncelYatayHiza = isProject_.pozBasliklari.find(item => item.id == selectedPozBaslik.id).yatayHiza
-      guncelYatayHiza == "start" ? isProject_.pozBasliklari.find(item => item.id == selectedPozBaslik.id).yatayHiza = "center" : null
-      guncelYatayHiza == "center" ? isProject_.pozBasliklari.find(item => item.id == selectedPozBaslik.id).yatayHiza = "end" : null
-      guncelYatayHiza == "end" ? isProject_.pozBasliklari.find(item => item.id == selectedPozBaslik.id).yatayHiza = "start" : null
+      if (guncelYatayHiza == "start") isProject_.pozBasliklari.find(item => item.id == selectedPozBaslik.id).yatayHiza = "center"
+      if (guncelYatayHiza == "center") isProject_.pozBasliklari.find(item => item.id == selectedPozBaslik.id).yatayHiza = "end"
+      if (guncelYatayHiza == "end") isProject_.pozBasliklari.find(item => item.id == selectedPozBaslik.id).yatayHiza = "start"
       return isProject_
     })
     setWillBeUpdate_pozBaslik(true)
