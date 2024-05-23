@@ -16,17 +16,9 @@ exports = async function({_projectId, _mahalId, _pozId}){
   
   return project
   
-  const result = collection_Metrajlar.aggregate([
-    
-    {
-      $match: {
-        _projectId,
-        _pozId,
-        _mahalId
-      } 
-    }
-    
-  ])
+  const result = collection_Metrajlar.findOne(
+    {_projectId,_mahalId, _pozId}
+  )
   
   return result
   
