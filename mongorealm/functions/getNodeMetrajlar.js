@@ -13,9 +13,6 @@ exports = async function({_projectId, _mahalId, _pozId}){
   collection_Metrajlar = context.services.get("mongodb-atlas").db("rapor724_v2").collection("metrajlar")
   
   
-  return result
-  
-  
   const result = collection_Metrajlar.aggregate([
     
     {
