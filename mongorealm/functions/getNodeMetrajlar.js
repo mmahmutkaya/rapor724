@@ -1,5 +1,7 @@
 exports = async function({_projectId, _mahalId, _pozId}){
   
+  return "deneem"
+  
   const user = context.user
   const _userId = new BSON.ObjectId(user.id)
   
