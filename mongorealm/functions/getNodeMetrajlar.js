@@ -1,4 +1,6 @@
-exports = async function({_projectId, _pozId}){
+exports = async function({_projectId, _mahalId, _pozId}){
+  
+  // return {_projectId, _mahalId, _pozId}
   
   const user = context.user
   const _userId = new BSON.ObjectId(user.id)
@@ -12,16 +14,11 @@ exports = async function({_projectId, _pozId}){
 
   collection_Metrajlar = context.services.get("mongodb-atlas").db("rapor724_v2").collection("metrajlar")
   
-  const result = collection_Metrajlar.aggregate([
-    
-    {
-      $match: {
-        _projectId,
-        _pozId
-      } 
-    }
-    
-  ])
+  // return project
+  
+  const result = collection_Metrajlar.findOne(
+    {_projectId,_mahalId, _pozId}
+  )
   
   return result
   
