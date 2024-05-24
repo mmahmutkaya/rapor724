@@ -75,7 +75,7 @@ export default function P_Wbs() {
       {!isProject?.wbs?.length &&
         <Stack sx={{ width: '100%', padding: "0.5rem" }} spacing={2}>
           <Alert severity="info">
-            Menüler yardımı ile "Poz Başlığı" ekleyebilirsiniz.
+            Öncelikle Proje oluşturmanız gerekmekte
           </Alert>
         </Stack>
       }

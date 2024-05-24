@@ -264,7 +264,7 @@ export default function Layout({ window, children }) {
 
   const handleToProject = () => {
     setIsProject(null)
-    // navigate("/projects")
+    navigate("/projects")
   };
 
 
@@ -305,7 +305,7 @@ export default function Layout({ window, children }) {
                 aria-label="open drawer"
                 edge="start"
                 onClick={handleToProject}
-                sx={{ display: !isProject ? "none" : null }}
+                sx={{ display: isProject ? "block" : "none" }}
               >
                 <UndoIcon />
               </IconButton>

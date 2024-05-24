@@ -5,8 +5,6 @@ import Grid from '@mui/material/Grid';
 
 export default function P_Grid() {
 
-
-
   return (
     <Grid sx={{
       display: "grid",

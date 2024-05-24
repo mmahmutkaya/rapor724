@@ -30,8 +30,6 @@ export default function Sidebar({ setMobileOpen }) {
   const { isProject } = useContext(StoreContext)
   const { persons } = useContext(StoreContext)
 
-  console.log()
-
   return (
     <Grid container direction="column">
 
@@ -50,7 +48,9 @@ export default function Sidebar({ setMobileOpen }) {
             aria-labelledby="nested-list-subheader"
           >
 
-            <ListItemButton onClick={() => navigate("projects")} sx={{ backgroundColor: pathname == "/projects" ? "#f0f0f1" : null }}>
+            <ListItemButton
+              onClick={() => navigate("projects")}
+              sx={{ backgroundColor: pathname == "/projects" ? "#f0f0f1" : null }}>
               <ListItemIcon>
                 <SendIcon />
               </ListItemIcon>
@@ -58,7 +58,9 @@ export default function Sidebar({ setMobileOpen }) {
             </ListItemButton>
 
 
-            <ListItemButton onClick={() => navigate("people")} sx={{ backgroundColor: pathname == "/people" ? "#f0f0f1" : null }}>
+            <ListItemButton
+              onClick={() => navigate("people")}
+              sx={{ backgroundColor: pathname == "/people" ? "#f0f0f1" : null }}>
               <ListItemIcon>
                 <SendIcon />
               </ListItemIcon>
@@ -66,7 +68,9 @@ export default function Sidebar({ setMobileOpen }) {
             </ListItemButton>
 
 
-            <ListItemButton onClick={() => navigate("companies")} sx={{ backgroundColor: pathname == "/companies" ? "#f0f0f1" : null }}>
+            <ListItemButton
+              onClick={() => navigate("companies")}
+              sx={{ backgroundColor: pathname == "/companies" ? "#f0f0f1" : null }}>
               <ListItemIcon  >
                 <SendIcon />
               </ListItemIcon>

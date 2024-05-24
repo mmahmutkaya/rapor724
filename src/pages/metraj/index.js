@@ -4,7 +4,6 @@ import { useNavigate } from "react-router-dom";
 import { StoreContext } from '../../components/store'
 import { useApp } from "../../components/useApp";
 import FormMahalCreate from '../../components/FormMahalCreate'
-import FormMetrajUpdate from '../../components/FormMetrajUpdate'
 import MetrajHeader from '../../components/MetrajHeader'
 
 
@@ -24,6 +23,7 @@ export default function P_Metraj() {
   const { isProject, setIsProject } = useContext(StoreContext)
   const { custom, setCustom } = useContext(StoreContext)
   const { selectedMahal, setSelectedMahal } = useContext(StoreContext)
+  const { selectedPoz, setSelectedPoz } = useContext(StoreContext)
   const { myTema, setMyTema } = useContext(StoreContext)
   const { selectedMahalBaslik, setSelectedMahalBaslik } = useContext(StoreContext)
   const { mahaller, setMahaller } = useContext(StoreContext)
@@ -35,16 +35,13 @@ export default function P_Metraj() {
   const [editMode_Metraj, setEditMode_Metraj] = useState(false)
   const [_pozId, set_pozId] = useState()
   const [mahalBilgiler_willBeSaved, setMahalBilgiler_willBeSaved] = useState([])
-  const [autoFocus, setAutoFocus] = useState({ baslikId: null, mahalId: null })
+  const [autoFocus, setAutoFocus] = useState({ pozId: null, mahalId: null })
 
-
-
-  // https://palettes.shecodes.io/palettes/1312#palette
 
 
   const navigate = useNavigate()
   // !isProject ? navigate('/projects') : null
-  !isProject ? window.location.href = "/projects" : null
+  if (!isProject) window.location.href = "/projects"
 
   const RealmApp = useApp();
 
@@ -57,6 +54,14 @@ export default function P_Metraj() {
   pozlar_fecth()
 
 
+  const mahaller_fecth = async () => {
+    if (!mahaller) {
+      const result = await RealmApp?.currentUser.callFunction("getProjectMahaller", ({ projectId: isProject?._id }));
+      setMahaller(result)
+    }
+  }
+  mahaller_fecth()
+
 
   const mahalListesi_fecth = async () => {
     if (!mahalListesi) {
@@ -66,14 +71,6 @@ export default function P_Metraj() {
   }
   mahalListesi_fecth()
 
-
-  const mahaller_fecth = async () => {
-    if (!mahaller) {
-      const result = await RealmApp?.currentUser.callFunction("getProjectMahaller", ({ projectId: isProject?._id }));
-      setMahaller(result)
-    }
-  }
-  mahaller_fecth()
 
 
   const handleSelectMahal = (mahal) => {
@@ -123,23 +120,27 @@ export default function P_Metraj() {
     marginTop: "1rem",
     // backgroundColor: "rgba(242, 203, 150, 1)",
     // backgroundColor: "rgba(150, 236, 242 , 0.8 )",
-    backgroundColor: "rgba( 56,56,56 , 0.4 )",
+    // backgroundColor: "rgba( 56,56,56 , 0.4 )",
+    backgroundColor: "rgba( 253, 197, 123 , 0.3 )",
+    // backgroundColor: "#fdc57b",
+    // color: "white",
     borderLeft: (index && index !== 0) ? null : "solid black 1px",
     borderRight: "solid black 1px",
     borderTop: "solid black 1px",
     borderBottom: "solid black 1px"
   }));
 
+
   const TableItem = styled('div')(({ index }) => ({
-    backgroundColor: "rgba( 56,56,56 , 0.15 )",
-    borderTop: !custom?.pageMetraj_baslik ? "solid black 1px" : null,
+    // backgroundColor: "rgba( 56,56,56 , 0.15 )",
+    borderTop: !custom?.pageMetraj_baslik1 ? "solid black 1px" : null,
     borderLeft: index == 0 ? "solid black 1px" : null,
     borderRight: "solid black 1px",
     borderBottom: "solid black 1px"
   }));
 
   const TableItem2 = styled('div')(({ index }) => ({
-    backgroundColor: "rgba( 255,255,0, 0.15 )",
+    // backgroundColor: "rgba( 255,255,0, 0.15 )",
     borderLeft: index == 0 ? "solid black 1px" : null,
     borderRight: "solid black 1px",
     borderBottom: "solid black 1px"
@@ -151,6 +152,12 @@ export default function P_Metraj() {
     // borderRight: "solid black 1px",
     // borderBottom: "solid black 1px"
   }));
+
+
+
+
+
+  // FONKSİYONLAR
 
 
   const handle_selectBaslik = (oneBaslik) => {
@@ -197,6 +204,101 @@ export default function P_Metraj() {
   }
 
 
+
+
+
+
+  const handle_input_onKey = async (event) => {
+
+    let oncesi = event.target.value.toString()
+    let sonTus = event.key
+    let yeni = oncesi + sonTus
+
+    if (sonTus.split(" ").length > 1) {
+      console.log("boşluk bulundu ve durdu")
+      return event.preventDefault()
+    }
+
+    let izinliTuslar = ["Backspace", "ArrowLeft", "ArrowRight", "ArrowUp", "ArrowDown", "Escape", "Enter", "Tab", "-", "."]
+
+    if (!isNumeric(yeni) && !izinliTuslar.includes(sonTus)) {
+      console.log("izinsiz tuşlara bastı ve durdu")
+      return event.preventDefault()
+    }
+
+    if (sonTus == "-" && oncesi.split("").includes("-")) {
+      console.log("zaten varken '-' kullanımı ve durdu")
+      return event.preventDefault()
+    }
+
+
+    if (sonTus == "-" && yeni.split("")[0] !== ("-")) {
+      console.log("event", event)
+      console.log("başa gelmeyen '-' kullanımı ve durdu")
+      return event.preventDefault()
+    }
+
+
+    if (sonTus == "." && oncesi.split("").includes(".")) {
+      console.log("zaten varken '.' kullanımı ve durdu")
+      return event.preventDefault()
+    }
+
+    if (isNumeric(sonTus) && yeni.split("").includes(".") && yeni.substring(yeni.indexOf(".") + 1, yeni.length).length > 3) {
+      console.log("0 dan sonra 3 haneden fazla ve durdu")
+      return event.preventDefault()
+    }
+
+  }
+
+
+
+  const handle_input_onChange = (event, oneNode1) => {
+
+    console.log("onChange Value", event.target.value)
+
+
+    setAutoFocus({ pozId: oneNode1._pozId.toString(), mahalId: oneNode1._mahalId.toString() })
+
+    // db ye kayıt yapılmışsa bu işlemi yapsın yoksa refresh yapsın
+    const newBilgi = { mahalId: oneNode1._mahalId, pozId: oneNode1._pozId, metraj: event.target.value }
+
+    if (!isNumeric(newBilgi.metraj) && newBilgi.metraj != "-" && newBilgi.metraj.length != 0 && newBilgi.metraj != ".") {
+      return
+    }
+
+
+    setMahalListesi(mahalListesi => {
+      // if (!mahalListesi.find(item => item._id.toString() == oneMahal._id.toString()).ilaveBilgiler) {
+      //   mahalListesi.find(item => item._id.toString() == oneMahal._id.toString()).ilaveBilgiler = [newBilgi]
+      //   return mahalListesi
+      // }
+      const node = mahalListesi.find(item => item._mahalId.toString() == oneNode1._mahalId.toString() && item._pozId.toString() == oneNode1._pozId.toString())
+      if (node) {
+        mahalListesi.find(item => item._mahalId.toString() == node._mahalId.toString() && item._pozId.toString() == node._pozId.toString()).metraj = newBilgi.metraj
+        return mahalListesi
+      } else {
+        return [...mahalListesi, node]
+      }
+    })
+
+
+    // setMahalBilgiler_willBeSaved(mahalBilgiler_willBeSaved => {
+    //   let mahalBilgiler_willBeSaved_ = [...mahalBilgiler_willBeSaved]
+    //   // console.log("mevcutBilgi",mahalBilgiler_willBeSaved.find(item => item.mahalId.toString() == oneMahal._id.toString() && item.baslikId == oneBaslik.id))
+    //   if (mahalBilgiler_willBeSaved_.find(item => item.mahalId == oneMahal._id.toString() && item.baslikId == oneBaslik.id)) {
+    //     mahalBilgiler_willBeSaved_.find(item => item.mahalId == oneMahal._id.toString() && item.baslikId == oneBaslik.id).metraj = newBilgi.metraj
+    //   } else {
+    //     mahalBilgiler_willBeSaved_ = [...mahalBilgiler_willBeSaved_, { ...newBilgi }]
+    //   }
+    //   return mahalBilgiler_willBeSaved_
+    // })
+
+
+  }
+
+
+
   return (
 
     <>
@@ -209,12 +311,6 @@ export default function P_Metraj() {
         <Grid item >
           <FormMahalCreate isProject={isProject} setShow={setShow} />
         </Grid>
-      }
-
-      {show == "FormMetrajUpdate" &&
-        <Box sx={{ mt: subHeaderHeight }} >
-          <FormMetrajUpdate setShow={setShow} _pozId={_pozId} />
-        </Box>
       }
 
       {show == "Main" && (isProject?.wbs?.filter(item => item.openForPoz).length == 0 || !isProject?.wbs) &&
@@ -237,7 +333,7 @@ export default function P_Metraj() {
               gridTemplateColumns: gridTemplateColumns_,
             }}
           >
-            {/* SOL KISIM SABİT EN ÜST MAHAL BAŞLIKLARI */}
+            {/* SOL KISIM SABİT EN ÜST BAŞLIKLAR */}
             {/* HAYALET */}
             <Box sx={{ display: "none" }}>
               {count_ = isProject?.mahalBasliklari?.filter(item => item.sabit).length}
@@ -311,8 +407,8 @@ export default function P_Metraj() {
           </Grid>
 
 
-          {/* SOL KISIMDAKİ SABİT KISIMDAKİ MAHAL BAŞLIKLARI ve SAĞ DEĞİŞKEN KISIMDA DEVAM EDEN BOŞ BAŞLIK HÜCRELERİ */}
-          {/* SOL KISIMDAKİ SABİT KISIMDAKİ MAHAL BAŞLIĞI ALTINDAKİ MAHALLER ve SAĞ DEĞİŞKEN KISIMDA DEVAM EDEN BOŞ BAŞLIK HÜCRELERİ ALTINDA POZ HÜCRELERİ*/}
+          {/* SOL KISIMDAKİ (SABİT KISIMDAKİ) POZ BAŞLIKLARI ve SAĞ DEĞİŞKEN KISIMDA DEVAM EDEN BOŞ BAŞLIK HÜCRELERİ */}
+          {/* ALTINDA DA GÖRÜNÜM AÇIKSA POZLARIN MAHAL KIRILIMI*/}
           {isProject?.wbs
             .filter(item => item.openForPoz === true)
             .sort(function (a, b) {
@@ -339,7 +435,7 @@ export default function P_Metraj() {
                   }}
                 >
                   {/* SOL TARAF - SABİT MAHAL BAŞLIĞI */}
-                  <TableHeader sx={{ display: custom?.pageMetraj_baslik ? null : "none" }}>
+                  <TableHeader sx={{ display: custom?.pageMetraj_baslik1 ? "block" : "none" }}>
 
                     {/* HAYALET */}
                     <Box sx={{ display: "none" }}>
@@ -393,12 +489,12 @@ export default function P_Metraj() {
                   </TableHeader>
 
 
-                  <Bosluk sx={{ display: custom?.pageMetraj_baslik ? null : "none" }} ></Bosluk>
+                  <Bosluk sx={{ display: custom?.pageMetraj_baslik1 ? "block" : "none" }} ></Bosluk>
 
 
                   {/* SAĞ TARAF - DEĞİŞKEN MAHAL BAŞLIĞI - BOŞ */}
-                  <TableHeader sx={{ display: custom?.pageMetraj_baslik ? null : "none" }} index={0}></TableHeader>
-                  <TableHeader sx={{ display: custom?.pageMetraj_baslik ? null : "none" }} index={1}></TableHeader>
+                  <TableHeader sx={{ display: custom?.pageMetraj_baslik1 ? "block" : "none" }} index={0}></TableHeader>
+                  <TableHeader sx={{ display: custom?.pageMetraj_baslik1 ? "block" : "none" }} index={1}></TableHeader>
 
 
 
@@ -412,7 +508,7 @@ export default function P_Metraj() {
 
                   <Box>
 
-                    {/* POZLAR */}
+                    {/* POZLAR, wbs e göre filtreleniyor*/}
                     {pozlar?.filter(item => item._wbsId.toString() == oneWbs._id.toString()).map((onePoz, index) => {
 
                       onePoz.birimName = isProject.pozBirimleri.find(item => item.id == onePoz.birimId).name
@@ -423,9 +519,11 @@ export default function P_Metraj() {
                           sx={{
                             display: "grid",
                             gridTemplateColumns: gridTemplateColumns_,
-                            // mt: !custom.pageMetraj_baslik && editMode_Metraj ? "1rem" : null
+                            cursor: "pointer"
                           }}
+                          onClick={() => setSelectedPoz(onePoz)}
                         >
+
                           {
                             isProject?.pozBasliklari?.filter(item => item.sabit).map((oneBaslik, index) => {
                               return (
@@ -435,7 +533,6 @@ export default function P_Metraj() {
                                   count_={count_}
                                   sx={{
                                     // userSelect:"none",
-                                    cursor: "pointer",
                                     display: "grid",
                                     alignItems: "center",
                                     justifyItems: oneBaslik.yatayHiza,
@@ -450,19 +547,22 @@ export default function P_Metraj() {
                           <Bosluk>
                           </Bosluk>
 
+                          {/* metraj toplamının yazdığı yer */}
                           <TableItem
                             index={0}
-                            sx={{ cursor: editMode_Metraj ? "pointer" : null, display: "grid", justifyContent: "end", pr: "0.4rem" }}
-                            // onClick={editMode_Metraj ? () => setShow("FormMetrajUpdate") : null}>
-                            onClick={editMode_Metraj ? () => {
-                              set_pozId(onePoz._id)
-                              setShow("FormMetrajUpdate")
-                            } : null}
+                            sx={{ display: "grid", justifyContent: "end", pr: "0.4rem", position:"relative" }}
                           >
-                            {mahalListesi?.filter(item => item._pozId.toString() == onePoz._id.toString()).reduce((accumulator, oneNode) => (isNaN(parseFloat(oneNode.metraj)) ? accumulator + 0 : accumulator + parseFloat(oneNode.metraj)), 0)}
-                            {/* {console.log("mahalListesi", mahalListesi?.filter(item => item._pozId.toString() == onePoz._id.toString() && item.open))?.reduce((accumulator, oneNode) => (accumulator + parseFloat(oneNode.metraj)), 0)} */}
+                            {mahalListesi?.filter(item => item._pozId.toString() == onePoz._id.toString() && item.open).reduce((accumulator, oneNode) => (isNaN(parseFloat(oneNode.metraj)) ? accumulator + 0 : accumulator + parseFloat(oneNode.metraj)), 0)}
+
+                            {selectedPoz?._id.toString() == onePoz._id.toString() &&
+                              <Grid sx={{ position: "absolute", display: "grid", alignItems: "center", justifyContent: "start", width: "100%", height: "100%", pl: "0.3rem" }}>
+                                <Box sx={{ backgroundColor: "rgba(255, 0, 0, 0.5)", borderRadius: "0.5rem", height: "0.5rem", width: "0.5rem" }}> </Box>
+                              </Grid>
+                            }
                           </TableItem>
 
+
+                          {/* metraj biriminin yazdığı yer */}
                           <TableItem
                             index={1}
                             sx={{ display: "grid", justifyContent: "center" }}
@@ -471,9 +571,12 @@ export default function P_Metraj() {
                           </TableItem>
 
 
-                          {/* AYRAÇ - POZ ALTINDAKİ MAHALLER*/}
 
-                          <Box sx={{ display: editMode_Metraj ? null : "none" }}>
+                          {/* bu kodlar header da tuş kapandığı (dolayısı ile pageMetraj_baslik2 true yapılamadığı) için şu an istesek de gösterilemiyor*/}
+                          {/* opsiyonel gösterim - POZ ALTINDAKİ MAHALLER - */}
+
+                          {/* <Box sx={{ display: editMode_Metraj ? "block" : "none" }}> */}
+                          {/* <Box sx={{ display: custom?.pageMetraj_baslik2 ? "block" : "none" }}>
                             {mahalListesi?.filter(item => item._pozId.toString() == onePoz._id.toString()).map((oneNode, index) => {
 
                               { mahal = mahaller?.find(item => item._id.toString() == oneNode._mahalId.toString()) }
@@ -499,12 +602,54 @@ export default function P_Metraj() {
                                   <Bosluk>
                                   </Bosluk>
 
-                                  <TableItem2
-                                    index={0}
-                                    sx={{ display: "grid", justifyContent: "end", pr: "0.5rem" }}
-                                  >
-                                    {oneNode.metraj}
-                                  </TableItem2>
+
+                                  {editMode_Metraj &&
+                                    <TableItem2
+                                      index={0}
+                                      sx={{ display: "grid", justifyContent: "center" }}
+                                    >
+                                      <Input
+                                        autoFocus={autoFocus.mahalId == oneNode._mahalId.toString() && autoFocus.pozId == oneNode._pozId.toString()}
+                                        disableUnderline={true}
+                                        size="small"
+                                        type='text'
+                                        onKeyDown={(event) => handle_input_onKey(event)}
+                                        onChange={(event) => handle_input_onChange(event, oneNode)}
+                                        sx={{
+                                          backgroundColor: editMode_Metraj ? "rgba( 255,255,0, 0.25 )" : null,
+                                          "& input::-webkit-outer-spin-button, & input::-webkit-inner-spin-button": {
+                                            display: "none",
+                                          },
+                                          "& input[type=number]": {
+                                            MozAppearance: "textfield",
+                                          },
+                                        }}
+                                        defaultValue={oneNode.metraj}
+                                        inputProps={{
+                                          style: {
+                                            height: "1rem",
+                                            fontSize: "0.95rem",
+                                            marginTop: "0.1rem",
+                                            marginRight: "0.4rem",
+                                            paddingBottom: "0px",
+                                            marginbottom: "0px",
+                                            textAlign: "right"
+                                          },
+                                        }}
+                                      />
+
+                                    </TableItem2>
+                                  }
+
+
+                                  {!editMode_Metraj &&
+                                    <TableItem2
+                                      index={0}
+                                      sx={{ display: "grid", justifyContent: "end", pr: "0.4rem", }}
+                                    >
+                                      {oneNode.metraj}
+                                    </TableItem2>
+                                  }
 
 
                                   <TableItem2
@@ -519,7 +664,7 @@ export default function P_Metraj() {
                               )
 
                             })}
-                          </Box>
+                          </Box> */}
 
                         </Grid>
                       )

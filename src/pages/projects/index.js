@@ -73,10 +73,10 @@ export default function P_Projects() {
         <Stack sx={{ width: '100%', padding: "1rem" }} spacing={0}>
 
           {
-            projectNames.map(oneProject => (
+            projectNames.map((oneProject, index) => (
 
               <Grid
-                key={oneProject._id}
+                key={index}
                 container spacing={2}
                 onClick={() => handleProjectClick(oneProject)}
                 sx={{
@@ -105,6 +105,7 @@ export default function P_Projects() {
                 </Grid>
 
               </Grid>
+
 
             ))
           }

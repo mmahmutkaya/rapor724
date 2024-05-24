@@ -26,7 +26,7 @@ export default function P_Raporlar() {
 
   const [show, setShow] = useState("Main")
 
-  !isProject ? window.location.href = "/projects" : null
+  if(!isProject) window.location.href = "/projects"
 
   const RealmApp = useApp();
 

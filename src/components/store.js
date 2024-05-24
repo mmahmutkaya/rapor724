@@ -29,12 +29,17 @@ export default ({ children }) => {
   
   
   const [custom, setCustom] = useState()
+  
   const [selectedLbs, setSelectedLbs] = useState()
-  const [selectedWbs, setSelectedWbs] = useState()
-  const [selectedPoz, setSelectedPoz] = useState()
   const [selectedMahal, setSelectedMahal] = useState()
   const [selectedMahalBaslik, setSelectedMahalBaslik] = useState()
+  const [selectedWbs, setSelectedWbs] = useState()
+  const [selectedPoz, setSelectedPoz] = useState()
   const [selectedPozBaslik, setSelectedPozBaslik] = useState()
+  const [selectedNode, setSelectedNode] = useState()
+  const [editNodeMetraj, setEditNodeMetraj] = useState()
+  const [nodeMetrajlar, setNodeMetrajlar ] = useState()
+
   const [isProject, setIsProject] = useState()
   const [pozlar, setPozlar] = useState()
   const [mahalMetrajlar, setMahalMetrajlar] = useState()
@@ -44,25 +49,32 @@ export default ({ children }) => {
   const [projectNames, setProjectNames] = useState()
 
   const store = {
+    custom, setCustom,
+
+    selectedLbs, setSelectedLbs,
+    selectedMahal, setSelectedMahal,
+    selectedMahalBaslik, setSelectedMahalBaslik,
+    selectedWbs, setSelectedWbs,
+    selectedPoz, setSelectedPoz,
+    selectedPozBaslik, setSelectedPozBaslik,
+    selectedNode, setSelectedNode,
+    editNodeMetraj, setEditNodeMetraj,
+    nodeMetrajlar, setNodeMetrajlar,
+
+
+    isProject, setIsProject,
+    mahaller, setMahaller,
+    pozlar, setPozlar,
+    mahalMetrajlar, setMahalMetrajlar,
     projectNames, setProjectNames,
     subHeaderHeight,
     topBarHeight,
     drawerWidth,
-    selectedLbs, setSelectedLbs,
-    selectedMahal, setSelectedMahal,
-    selectedMahalBaslik, setSelectedMahalBaslik,
-    selectedPozBaslik, setSelectedPozBaslik,
-    selectedWbs, setSelectedWbs,
-    selectedPoz, setSelectedPoz,
-    isProject, setIsProject,
-    pozlar, setPozlar,
-    mahaller, setMahaller,
-    mahalMetrajlar, setMahalMetrajlar,
-    pozMahalMetrajlar, setPozMahalMetrajlar,
     mahalListesi, setMahalListesi,
     isContext,
-    custom, setCustom,
-    myTema, setMyTema
+    myTema, setMyTema,
+
+    pozMahalMetrajlar, setPozMahalMetrajlar,
   }
 
   return <StoreContext.Provider value={store}>{children}</StoreContext.Provider>

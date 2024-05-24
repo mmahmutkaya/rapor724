@@ -43,7 +43,7 @@ export default function P_MahalListesi() {
 
   const navigate = useNavigate()
   // !isProject ? navigate('/projects') : null
-  !isProject ? window.location.href = "/projects" : null
+  if(!isProject) window.location.href = "/projects"
 
   const RealmApp = useApp();
 

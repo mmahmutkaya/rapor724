@@ -39,8 +39,8 @@ export default function P_Pozlar() {
   if (!isProject) {
     return (
       navigate('/projects')
-    )  
-  }  
+    )
+  }
 
 
 
@@ -67,6 +67,7 @@ export default function P_Pozlar() {
   let count_
   let toplam
   let g_altBaslik
+  let isSecili
 
 
   const _3_fixed_width_rem = "6rem 35rem 5rem"
@@ -484,7 +485,7 @@ export default function P_Pozlar() {
                       {cOunt = wbsName.split(">").length}
                     </Box>
 
-                    {/* GÖZÜKEN KOMPONENET - sabit kısımda - wbs başlığının yazdığı yer */}
+                    {/* sol tarafta - sabit kısımda - wbs başlığının yazdığı yer */}
                     {wbsName.split(">").map((item, index) => (
 
                       <Typography key={index} component={"span"} >
@@ -511,7 +512,7 @@ export default function P_Pozlar() {
                             {g_altBaslik = pozlar?.filter(item => item._wbsId.toString() == oneWbs._id.toString()).reduce((mergeArray, { ilaveBilgiler }) => [...mergeArray, ...ilaveBilgiler], []).filter(item => item.baslikId == oneBaslik.id).reduce((toplam, oneBilgi) => toplam + Number(oneBilgi.veri), 0)}
                           </Box>
                           {/* GÖZÜKEN */}
-                          {oneBaslik.veriTuruId == "sayi" && isNumeric(g_altBaslik) &&
+                          {oneBaslik.veriTuruId == "sayi" && isNumeric(g_altBaslik) && g_altBaslik > 0 &&
                             <Box>
                               {g_altBaslik}
                             </Box>
@@ -544,7 +545,13 @@ export default function P_Pozlar() {
                             display: "grid",
                             gridTemplateColumns: gridTemplateColumns_,
                           }}
+                          onClick={() => setSelectedPoz(onePoz)}
                         >
+                          {/* HAYALET */}
+                          {<Box sx={{ display: "none" }}>
+                            {isSecili = selectedPoz?._id.toString() == onePoz._id.toString()}
+                          </Box>}
+
                           {
                             isProject?.pozBasliklari?.filter(item => item.sabit).map((oneBaslik, index) => {
                               return (
@@ -559,10 +566,19 @@ export default function P_Pozlar() {
                                     display: "grid",
                                     alignItems: "center",
                                     justifyItems: oneBaslik.yatayHiza,
+                                    position: "relative"
                                     // backgroundColor: selectedPoz?._id.toString() == onePoz._id.toString() ? "green" : null
                                   }}
                                 >
+
                                   {onePoz[oneBaslik.referans]}
+
+                                  {isSecili && oneBaslik.referans == "name" &&
+                                    <Grid sx={{ position: "absolute", display: "grid", alignItems: "center", justifyContent: "end", width: "100%", height: "100%", pr: "0.3rem" }}>
+                                      <Box sx={{ backgroundColor: "rgba(255, 0, 0, 0.5)", borderRadius: "0.5rem", height: "0.5rem", width: "0.5rem" }}> </Box>
+                                    </Grid>
+                                  }
+
                                 </TableItem>
                               )
                             })

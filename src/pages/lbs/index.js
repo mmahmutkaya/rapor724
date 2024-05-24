@@ -25,7 +25,7 @@ export default function P_Lbs() {
   const { selectedLbs, setSelectedLbs } = useContext(StoreContext)
 
   const navigate = useNavigate()
-  if(!isProject) navigate('/projects')
+  if (!isProject) navigate('/projects')
 
   const [show, setShow] = useState()
   const [nameMode, setNameMode] = useState(false)
@@ -183,7 +183,7 @@ export default function P_Lbs() {
 
                               {nameMode === null &&
                                 <Grid item sx={{ ml: "0.3rem" }}>
-                                {"(" + theLbs.codeName + ")" + " - " + theLbs.name}
+                                  {"(" + theLbs.codeName + ")" + " - " + theLbs.name}
                                 </Grid>
                               }
 
@@ -203,7 +203,8 @@ export default function P_Lbs() {
                                 sx={{
                                   ml: "0.5rem",
                                   visibility: selectedLbs?._id.toString() === theLbs._id.toString() ? "visible" : "hidden",
-                                }}>
+                                }}
+                              >
 
                                 <Grid container sx={{ alignItems: "center", justifyContent: "center", width: "100%", height: "100%" }}>
                                   <Grid item >
