@@ -19,8 +19,9 @@ exports = async function({_projectId, _mahalId, _pozId}){
   const result = collection_Metrajlar.findOne(
     {_projectId,_mahalId, _pozId}
   )
+  result.metrajlar ? result.metrajlar : null
   
-  return result
+  
   
 }
   
