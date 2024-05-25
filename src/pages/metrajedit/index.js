@@ -47,6 +47,7 @@ export default function P_MetrajEdit() {
   let pozMetraj
   let pozMahalMetraj
   let mahal
+  let metrajCesitleri = ["guncel"]
 
 
   // const [pozToplam, setPozToplam] = useState()
@@ -84,6 +85,8 @@ export default function P_MetrajEdit() {
     queryFn: () => RealmApp?.currentUser.callFunction("getNodeMetrajlar", ({ _projectId: isProject?._id, _mahalId: selectedNode?._mahalId, _pozId: selectedNode?._pozId })),
     enabled: !!RealmApp && !!selectedNode && !!editNodeMetraj
   })
+
+  // console.log("nodeMetrajlar", nodeMetrajlar)
 
   // const nodeMetrajlar_fecth = async () => {
   //   if (selectedNode && !nodeMetrajlar) {
@@ -211,7 +214,7 @@ export default function P_MetrajEdit() {
       }
 
 
-      {show == "Main" && editNodeMetraj &&
+      {show == "Main" && editNodeMetraj && nodeMetrajlar &&
 
         < Box sx={{ mt: subHeaderHeight, ml: "1rem", mr: "1rem", width: "63rem" }}>
 
@@ -256,43 +259,58 @@ export default function P_MetrajEdit() {
 
 
           {/* Metrajlar */}
-          < Grid sx={{ mb: "0.5rem", display: "grid", gridTemplateColumns: "6rem 10rem 14rem repeat(6, 5rem) 3rem", backgroundColor: "lightgray", justifyContent: "center" }}>
-            <Box sx={{ border: "1px solid black", display: "grid", alignItems: "center", textAlign: "center" }}>
-              Sıra
-            </Box>
-            <Box sx={{ border: "1px solid black", display: "grid", alignItems: "center", textAlign: "center" }}>
-              Kısa Açıklama
-            </Box>
-            <Box sx={{ border: "1px solid black", display: "grid", alignItems: "center", textAlign: "center" }}>
-              {nodeMetrajlar?._id.toString()}
-            </Box>
-            <Box sx={{ border: "1px solid black", display: "grid", alignItems: "center", textAlign: "center" }}>
-              Benzer
-            </Box>
-            <Box sx={{ border: "1px solid black", display: "grid", alignItems: "center", textAlign: "center" }}>
-              Adet
-            </Box>
-            <Box sx={{ border: "1px solid black", display: "grid", alignItems: "center", textAlign: "center" }}>
-              En
-            </Box>
-            <Box sx={{ border: "1px solid black", display: "grid", alignItems: "center", textAlign: "center" }}>
-              Boy
-            </Box>
-            <Box sx={{ border: "1px solid black", display: "grid", alignItems: "center", textAlign: "center" }}>
-              Yükseklik
-            </Box>
-            <Box sx={{ border: "1px solid black", display: "grid", alignItems: "center", textAlign: "center" }}>
-              <Box>
-                Metraj
-              </Box>
-              <Box>
-                {pozMetraj}
-              </Box>
-            </Box>
-            <Box sx={{ border: "1px solid black", display: "grid", alignItems: "end", textAlign: "center" }}>
-              {pozBirim}
-            </Box>
-          </Grid >
+
+
+
+          {metrajCesitleri.map((oneCesit, index1) => {
+
+            return (
+
+              // console.log("oneCesit", nodeMetrajlar[oneCesit])
+              Object.keys(nodeMetrajlar[oneCesit]).map((oneRow, index2) => {
+                // oneRow = console.log(oneRow.replace("row", ""))
+                oneRow = oneRow.replace("row", "")
+                console.log("oneRow", oneRow)
+
+                return (
+                  < Grid key={index1 + "-" + index2} sx={{ display: "grid", gridTemplateColumns: "6rem 10rem 14rem repeat(6, 5rem) 3rem", justifyContent: "center" }}>
+                    <Box sx={{ border: "1px solid black", display: "grid", alignItems: "center", textAlign: "center" }}>
+                      {oneRow}
+                    </Box>
+                    <Box sx={{ border: "1px solid black", display: "grid", alignItems: "center", textAlign: "center" }}>
+                      {nodeMetrajlar?.[oneCesit]["row" + oneRow].kisaAciklama}
+                    </Box>
+                    <Box sx={{ border: "1px solid black", display: "grid", alignItems: "center", textAlign: "center" }}>
+                      {nodeMetrajlar?.[oneCesit]["row" + oneRow].aciklama}
+                    </Box>
+                    <Box sx={{ border: "1px solid black", display: "grid", alignItems: "center", textAlign: "center" }}>
+                      {nodeMetrajlar?.[oneCesit]["row" + oneRow].benzer}
+                    </Box>
+                    <Box sx={{ border: "1px solid black", display: "grid", alignItems: "center", textAlign: "center" }}>
+                      {nodeMetrajlar?.[oneCesit]["row" + oneRow].adet}
+                    </Box>
+                    <Box sx={{ border: "1px solid black", display: "grid", alignItems: "center", textAlign: "center" }}>
+                      {nodeMetrajlar?.[oneCesit]["row" + oneRow].en}
+                    </Box>
+                    <Box sx={{ border: "1px solid black", display: "grid", alignItems: "center", textAlign: "center" }}>
+                      {nodeMetrajlar?.[oneCesit]["row" + oneRow].boy}
+                    </Box>
+                    <Box sx={{ border: "1px solid black", display: "grid", alignItems: "center", textAlign: "center" }}>
+                      {nodeMetrajlar?.[oneCesit]["row" + oneRow].yukseklik}
+                    </Box>
+                    <Box sx={{ border: "1px solid black", display: "grid", alignItems: "center", textAlign: "center" }}>
+                      {nodeMetrajlar?.[oneCesit]["row" + oneRow].en}
+                    </Box>
+                    <Box sx={{ border: "1px solid black", display: "grid", alignItems: "center", textAlign: "center" }}>
+                      {nodeMetrajlar?.[oneCesit]["row" + oneRow].en}
+                    </Box>
+                  </Grid >)
+
+              })
+
+            )
+          })}
+
 
 
         </Box >
