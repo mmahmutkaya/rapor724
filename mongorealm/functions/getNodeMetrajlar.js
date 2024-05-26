@@ -20,13 +20,12 @@ exports = async function ({ _projectId, _mahalId, _pozId }) {
     { _projectId, _mahalId, _pozId }
   )
 
-  if (result.metrajlar) {
-    return result.metrajlar
+  if (result.metrajSatirlari) {
+    return result.metrajSatirlari
   }
 
-  const metrajlar = {
+  const metrajSatirlari = {
     guncel: {
-      metraj: 0,
       satirlar: {
         row1: { kisaAciklama: "deneme", aciklama: "deneme uzun", benzer: 1, adet: 11, en: 111, boy: 1111, yukseklik: 11111, metraj: 0 },
         row2: { kisaAciklama: "deneme", aciklama: "deneme uzun", benzer: 2, adet: 22, en: 222, boy: 2222, yukseklik: 22222, metraj: 0 },
