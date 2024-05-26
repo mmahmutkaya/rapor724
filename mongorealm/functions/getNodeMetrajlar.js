@@ -36,7 +36,7 @@ exports = async function ({ _projectId, _mahalId, _pozId }) {
     }
   }
 
-  return metrajlar
+  return metrajSatirlari
 
 }
 
