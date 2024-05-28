@@ -4,7 +4,11 @@
     "roles": [
         {
             "name": "readAndWriteAll",
-            "apply_when": {},
+            "apply_when": {
+                "%%user.id": {
+                    "%exists": true
+                }
+            },
             "document_filters": {
                 "read": true,
                 "write": true
