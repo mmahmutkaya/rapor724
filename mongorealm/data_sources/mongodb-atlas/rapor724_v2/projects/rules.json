@@ -6,7 +6,7 @@
             "name": "readAndWriteAll",
             "apply_when": {
                 "%%user.id": {
-                    "%exists": false
+                    "%exists": true
                 }
             },
             "document_filters": {
