@@ -34,9 +34,9 @@
                 "read": {},
                 "write": {}
             },
-            "insert": true,
-            "delete": true,
-            "search": true
+            "insert": false,
+            "delete": false,
+            "search": false
         }
     ]
 }
