@@ -32,7 +32,13 @@
             },
             "insert": false,
             "delete": false,
-            "search": false
+            "search": false,
+            "fields": {
+                "cocuklar": {
+                    "read": false,
+                    "write": false
+                }
+            }
         }
     ]
 }
