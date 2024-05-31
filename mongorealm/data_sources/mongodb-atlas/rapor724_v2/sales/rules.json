@@ -3,6 +3,17 @@
     "collection": "sales",
     "roles": [
         {
+            "name": "ALL",
+            "apply_when": {},
+            "document_filters": {
+                "read": {},
+                "write": {}
+            },
+            "insert": false,
+            "delete": false,
+            "search": false
+        },
+        {
             "name": "readAndWriteAll2",
             "apply_when": {},
             "document_filters": {
@@ -26,17 +37,6 @@
                 "read": true,
                 "write": false
             }
-        },
-        {
-            "name": "ALL",
-            "apply_when": {},
-            "document_filters": {
-                "read": {},
-                "write": {}
-            },
-            "insert": false,
-            "delete": false,
-            "search": false
         }
     ]
 }
