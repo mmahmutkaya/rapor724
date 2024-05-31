@@ -3,7 +3,7 @@
     "collection": "sales",
     "roles": [
         {
-            "name": "readAndWriteAll",
+            "name": "readAndWriteAll2",
             "apply_when": {},
             "document_filters": {
                 "read": true,
