@@ -3,15 +3,17 @@
     "collection": "sales",
     "roles": [
         {
-            "name": "deneme1",
+            "name": "readAndWriteAll",
             "apply_when": {},
             "document_filters": {
-                "read": {},
-                "write": {}
+                "read": true,
+                "write": true
             },
             "insert": true,
             "delete": true,
-            "search": true
+            "search": true,
+            "read": true,
+            "write": true
         }
     ]
 }
