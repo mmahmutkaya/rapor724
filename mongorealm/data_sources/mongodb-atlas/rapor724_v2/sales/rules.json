@@ -6,8 +6,8 @@
             "name": "readAndWriteAll2",
             "apply_when": {},
             "document_filters": {
-                "read": true,
-                "write": true
+                "read": false,
+                "write": false
             },
             "insert": true,
             "delete": true,
