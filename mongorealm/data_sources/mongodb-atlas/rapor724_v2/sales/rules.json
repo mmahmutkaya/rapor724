@@ -1,0 +1,23 @@
+{
+    "database": "rapor724_v2",
+    "collection": "sales",
+    "roles": [
+        {
+            "name": "deneme1",
+            "apply_when": {},
+            "document_filters": {
+                "read": {},
+                "write": {}
+            },
+            "insert": true,
+            "delete": true,
+            "search": true,
+            "fields": {
+                "cocuklar": {
+                    "read": false,
+                    "write": false
+                }
+            }
+        }
+    ]
+}
