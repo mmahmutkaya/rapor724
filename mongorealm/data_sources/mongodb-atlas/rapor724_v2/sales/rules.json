@@ -3,20 +3,24 @@
     "collection": "sales",
     "roles": [
         {
-            "name": "cocuklar",
+            "name": "cocuklar2",
             "apply_when": {},
             "document_filters": {
                 "read": {},
                 "write": {}
             },
-            "insert": true,
-            "delete": true,
-            "search": true,
+            "insert": false,
+            "delete": false,
+            "search": false,
             "fields": {
-                "cocuklar": {
+                "cocuklar2": {
                     "read": true,
                     "write": true
                 }
+            },
+            "additional_fields": {
+                "read": true,
+                "write": true
             }
         },
         {
