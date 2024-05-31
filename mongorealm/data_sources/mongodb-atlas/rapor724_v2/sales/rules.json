@@ -11,13 +11,7 @@
             },
             "insert": true,
             "delete": true,
-            "search": true,
-            "fields": {
-                "cocuklar": {
-                    "read": false,
-                    "write": false
-                }
-            }
+            "search": true
         }
     ]
 }
