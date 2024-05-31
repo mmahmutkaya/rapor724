@@ -42,11 +42,12 @@ export default function P_MetrajEdit() {
   const [autoFocus, setAutoFocus] = useState({ pozId: null, mahalId: null })
 
 
+
   let pozBirim
   let pozMetraj
-  let nodeMetrajGuncel = 13
+  let pozMahalMetraj
   let mahal
-  let metrajCesitleri = [{ id: "guncel", name: "Güncel" }]
+  let metrajCesitleri = ["guncel"]
 
 
   // const [pozToplam, setPozToplam] = useState()
@@ -119,20 +120,26 @@ export default function P_MetrajEdit() {
 
       {pozBirim = isProject?.pozBirimleri.find(item => item.id == selectedPoz?.birimId).name}
 
-      {pozMetraj = mahalListesi.filter(item => item._pozId.toString() == selectedPoz._id.toString()).reduce((accumulator, oneNode) => (isNaN(parseFloat(oneNode.metraj?.guncel)) ? accumulator + 0 : accumulator + parseFloat(oneNode.metraj?.guncel)), 0)}
+      {pozMetraj = mahalListesi.filter(item => item._pozId.toString() == selectedPoz._id.toString()).reduce((accumulator, oneNode) => (isNaN(parseFloat(oneNode.metraj)) ? accumulator + 0 : accumulator + parseFloat(oneNode.metraj)), 0)}
       {pozMetraj = Intl.NumberFormat('tr-TR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(pozMetraj)}
 
       <Grid item >
         <MetrajEditHeader show={show} setShow={setShow} saveMahal={saveMahal} />
       </Grid>
 
+      {show == "Main" && !selectedPoz &&
+        <Stack sx={{ width: '100%', pl: "1rem", pr: "0.5rem", pt: "1rem", mt: subHeaderHeight }} spacing={2}>
+          <Alert severity="info">
+            Metraj girilmesi için poz seçmelisiniz
+          </Alert>
+        </Stack>
+      }
+
 
       {show == "Main" && !selectedPoz &&
         navigate("/metraj")
       }
 
-
-      {/* pozun mahalllerinin listelendiği ilk sayfa */}
       {show == "Main" && !editNodeMetraj &&
 
         < Box sx={{ mt: subHeaderHeight, ml: "1rem", mr: "1rem", width: "63rem" }}>
@@ -158,7 +165,7 @@ export default function P_MetrajEdit() {
                 {pozMetraj}
               </Box>
             </Box>
-            <Box sx={{ border: "1px solid black", display: "grid", alignItems: "end", justifyItems: "center" }}>
+            <Box sx={{ border: "1px solid black", display: "grid", alignItems: "center", justifyItems: "center" }}>
               {pozBirim}
             </Box>
           </Grid >
@@ -168,8 +175,7 @@ export default function P_MetrajEdit() {
             mahalListesi.filter(item => item._pozId.toString() == selectedPoz._id.toString()).map((oneNode, index) => {
 
               { mahal = mahaller.find(item => item._id.toString() == oneNode._mahalId.toString()) }
-              { nodeMetrajGuncel = oneNode?.metraj?.guncel ? oneNode?.metraj?.guncel : 0 }
-              { nodeMetrajGuncel = Intl.NumberFormat('tr-TR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(nodeMetrajGuncel) }
+              { pozMahalMetraj = Intl.NumberFormat('tr-TR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(oneNode.metraj) }
 
               return (
 
@@ -184,13 +190,13 @@ export default function P_MetrajEdit() {
                     <Box sx={{ display: "grid", gridTemplateColumns: "1fr 1rem", alignItems: "center", backgroundColor: "rgba( 253, 197, 123 , 0.6 )", border: "1px solid black", pl: "0.5rem" }}>
                       <Box>{mahal.name}</Box>
                       {selectedNode && selectedNode._mahalId.toString() == oneNode._mahalId.toString() && selectedNode._pozId.toString() == oneNode._pozId.toString() &&
-                        <Grid >
+                        <Grid sx={{}}>
                           <Box sx={{ backgroundColor: "rgba(255, 0, 0, 1)", borderRadius: "0.5rem", height: "0.5rem", width: "0.5rem" }}> </Box>
                         </Grid>
                       }
                     </Box>
                     <Box sx={{ backgroundColor: "rgba( 253, 197, 123 , 0.6 )", border: "1px solid black", display: "grid", justifyItems: "end", pr: "0.5rem" }}>
-                      {nodeMetrajGuncel > 0 ? nodeMetrajGuncel : ""}
+                      {pozMahalMetraj}
                     </Box>
                     <Box sx={{ backgroundColor: "rgba( 253, 197, 123 , 0.6 )", border: "1px solid black", display: "grid", justifyItems: "end", pr: "0.5rem" }}>
                       {pozBirim}
@@ -207,9 +213,6 @@ export default function P_MetrajEdit() {
 
       }
 
-
-
-      {/* seçili poz ve mahalin metrajlarının gösterildiği ikinci sayfa gösterim */}
 
       {show == "Main" && editNodeMetraj && nodeMetrajlar &&
 
@@ -242,7 +245,12 @@ export default function P_MetrajEdit() {
               Yükseklik
             </Box>
             <Box sx={{ border: "1px solid black", display: "grid", alignItems: "center", textAlign: "center" }}>
-              Metraj
+              <Box>
+                Metraj
+              </Box>
+              <Box>
+                {pozMetraj}
+              </Box>
             </Box>
             <Box sx={{ border: "1px solid black", display: "grid", alignItems: "end", textAlign: "center" }}>
               {pozBirim}
@@ -252,59 +260,53 @@ export default function P_MetrajEdit() {
 
           {/* Metrajlar */}
 
-          {metrajCesitleri?.map((oneCesit, index) => {
+
+
+          {metrajCesitleri.map((oneCesit, index1) => {
+
 
             return (
 
-              <Box key={index}>
-
-                <Grid sx={{ display: "grid", gridTemplateColumns: "55rem 5rem 3rem", justifyContent: "center", alignItems: "center" }}>
-                  <Box sx={{ border: "1px solid black", backgroundColor: "rgba( 253, 197, 123 , 0.6 )", display: "grid", justifyContent: "end", alignItems: "center", pr: "1rem" }}>{oneCesit.name}</Box>
-                  <Box sx={{ border: "1px solid black", backgroundColor: "rgba( 253, 197, 123 , 0.6 )", display: "grid", justifyContent: "center", alignItems: "center" }}>{nodeMetrajGuncel}</Box>
-                  <Box sx={{ border: "1px solid black", backgroundColor: "rgba( 253, 197, 123 , 0.6 )", display: "grid", justifyContent: "center", alignItems: "center" }}>{pozBirim}</Box>
-                </Grid>
-
-
-                {Object.keys(nodeMetrajlar[oneCesit.id].satirlar).map((oneRow, index) => {
-                  return (
-                    < Grid key={index} sx={{ display: "grid", gridTemplateColumns: "6rem 10rem 14rem repeat(6, 5rem) 3rem", justifyContent: "center", alignItems: "center" }}>
+              // console.log("oneCesit", nodeMetrajlar[oneCesit])
+              Object.keys(nodeMetrajlar[oneCesit]).map((oneRow, index2) => {
+                // oneRow = console.log(oneRow.replace("row", ""))
+                oneRow = oneRow.replace("row", "")
+                return (
+                    < Grid sx={{ display: "grid", gridTemplateColumns: "6rem 10rem 14rem repeat(6, 5rem) 3rem", justifyContent: "center" }}>
                       <Box sx={{ border: "1px solid black", display: "grid", alignItems: "center", textAlign: "center" }}>
-                        {oneRow.replace("row", "")}
+                        {oneRow}
                       </Box>
                       <Box sx={{ border: "1px solid black", display: "grid", alignItems: "center", textAlign: "center" }}>
-                        {nodeMetrajlar?.[oneCesit.id].satirlar[oneRow].kisaAciklama}
+                        {nodeMetrajlar?.[oneCesit]["row" + oneRow].kisaAciklama}
                       </Box>
                       <Box sx={{ border: "1px solid black", display: "grid", alignItems: "center", textAlign: "center" }}>
-                        {nodeMetrajlar?.[oneCesit.id].satirlar[oneRow].aciklama}
+                        {nodeMetrajlar?.[oneCesit]["row" + oneRow].aciklama}
                       </Box>
                       <Box sx={{ border: "1px solid black", display: "grid", alignItems: "center", textAlign: "center" }}>
-                        {nodeMetrajlar?.[oneCesit.id].satirlar[oneRow].benzer}
+                        {nodeMetrajlar?.[oneCesit]["row" + oneRow].benzer}
                       </Box>
                       <Box sx={{ border: "1px solid black", display: "grid", alignItems: "center", textAlign: "center" }}>
-                        {nodeMetrajlar?.[oneCesit.id].satirlar[oneRow].adet}
+                        {nodeMetrajlar?.[oneCesit]["row" + oneRow].adet}
                       </Box>
                       <Box sx={{ border: "1px solid black", display: "grid", alignItems: "center", textAlign: "center" }}>
-                        {nodeMetrajlar?.[oneCesit.id].satirlar[oneRow].en}
+                        {nodeMetrajlar?.[oneCesit]["row" + oneRow].en}
                       </Box>
                       <Box sx={{ border: "1px solid black", display: "grid", alignItems: "center", textAlign: "center" }}>
-                        {nodeMetrajlar?.[oneCesit.id].satirlar[oneRow].boy}
+                        {nodeMetrajlar?.[oneCesit]["row" + oneRow].boy}
                       </Box>
                       <Box sx={{ border: "1px solid black", display: "grid", alignItems: "center", textAlign: "center" }}>
-                        {nodeMetrajlar?.[oneCesit.id].satirlar[oneRow].yukseklik}
+                        {nodeMetrajlar?.[oneCesit]["row" + oneRow].yukseklik}
                       </Box>
                       <Box sx={{ border: "1px solid black", display: "grid", alignItems: "center", textAlign: "center" }}>
-                        {nodeMetrajlar?.[oneCesit.id].satirlar[oneRow].metraj}
+                        {nodeMetrajlar?.[oneCesit]["row" + oneRow].en}
                       </Box>
                       <Box sx={{ border: "1px solid black", display: "grid", alignItems: "center", textAlign: "center" }}>
-                        {pozBirim}
+                        {nodeMetrajlar?.[oneCesit]["row" + oneRow].en}
                       </Box>
                     </Grid >
-                  )
+                )
 
-                })}
-
-
-              </Box>
+              })
 
             )
 

@@ -547,21 +547,6 @@ export default function P_Metraj() {
                           <Bosluk>
                           </Bosluk>
 
-                          {/* metraj toplamının yazdığı yer */}
-                          <TableItem
-                            index={0}
-                            sx={{ display: "grid", justifyContent: "end", pr: "0.4rem", position:"relative" }}
-                          >
-                            {mahalListesi?.filter(item => item._pozId.toString() == onePoz._id.toString() && item.open).reduce((accumulator, oneNode) => (isNaN(parseFloat(oneNode.metraj)) ? accumulator + 0 : accumulator + parseFloat(oneNode.metraj)), 0)}
-
-                            {selectedPoz?._id.toString() == onePoz._id.toString() &&
-                              <Grid sx={{ position: "absolute", display: "grid", alignItems: "center", justifyContent: "start", width: "100%", height: "100%", pl: "0.3rem" }}>
-                                <Box sx={{ backgroundColor: "rgba(255, 0, 0, 0.5)", borderRadius: "0.5rem", height: "0.5rem", width: "0.5rem" }}> </Box>
-                              </Grid>
-                            }
-                          </TableItem>
-
-
                           {/* metraj biriminin yazdığı yer */}
                           <TableItem
                             index={1}
@@ -570,101 +555,13 @@ export default function P_Metraj() {
                             {onePoz.birimName}
                           </TableItem>
 
-
-
-                          {/* bu kodlar header da tuş kapandığı (dolayısı ile pageMetraj_baslik2 true yapılamadığı) için şu an istesek de gösterilemiyor*/}
-                          {/* opsiyonel gösterim - POZ ALTINDAKİ MAHALLER - */}
-
-                          {/* <Box sx={{ display: editMode_Metraj ? "block" : "none" }}> */}
-                          {/* <Box sx={{ display: custom?.pageMetraj_baslik2 ? "block" : "none" }}>
-                            {mahalListesi?.filter(item => item._pozId.toString() == onePoz._id.toString()).map((oneNode, index) => {
-
-                              { mahal = mahaller?.find(item => item._id.toString() == oneNode._mahalId.toString()) }
-
-                              return (
-                                < Box key={index} sx={{ display: "grid", gridTemplateColumns: gridTemplateColumns_ }}>
-                                  <TableItem2
-                                    index={0}
-                                    sx={{ display: "grid", justifyContent: "center" }}
-                                  >
-                                    {mahal?.kod}
-                                  </TableItem2>
-
-
-                                  <TableItem2
-                                    index={1}
-                                    sx={{ display: "grid", justifyContent: "center" }}
-                                  >
-                                    {mahal?.name}
-                                  </TableItem2>
-
-
-                                  <Bosluk>
-                                  </Bosluk>
-
-
-                                  {editMode_Metraj &&
-                                    <TableItem2
-                                      index={0}
-                                      sx={{ display: "grid", justifyContent: "center" }}
-                                    >
-                                      <Input
-                                        autoFocus={autoFocus.mahalId == oneNode._mahalId.toString() && autoFocus.pozId == oneNode._pozId.toString()}
-                                        disableUnderline={true}
-                                        size="small"
-                                        type='text'
-                                        onKeyDown={(event) => handle_input_onKey(event)}
-                                        onChange={(event) => handle_input_onChange(event, oneNode)}
-                                        sx={{
-                                          backgroundColor: editMode_Metraj ? "rgba( 255,255,0, 0.25 )" : null,
-                                          "& input::-webkit-outer-spin-button, & input::-webkit-inner-spin-button": {
-                                            display: "none",
-                                          },
-                                          "& input[type=number]": {
-                                            MozAppearance: "textfield",
-                                          },
-                                        }}
-                                        defaultValue={oneNode.metraj}
-                                        inputProps={{
-                                          style: {
-                                            height: "1rem",
-                                            fontSize: "0.95rem",
-                                            marginTop: "0.1rem",
-                                            marginRight: "0.4rem",
-                                            paddingBottom: "0px",
-                                            marginbottom: "0px",
-                                            textAlign: "right"
-                                          },
-                                        }}
-                                      />
-
-                                    </TableItem2>
-                                  }
-
-
-                                  {!editMode_Metraj &&
-                                    <TableItem2
-                                      index={0}
-                                      sx={{ display: "grid", justifyContent: "end", pr: "0.4rem", }}
-                                    >
-                                      {oneNode.metraj}
-                                    </TableItem2>
-                                  }
-
-
-                                  <TableItem2
-                                    index={1}
-                                    sx={{ display: "grid", justifyContent: "center" }}
-                                  >
-                                    {onePoz.birimName}
-                                  </TableItem2>
-
-                                </Box>
-
-                              )
-
-                            })}
-                          </Box> */}
+                          {/* metraj biriminin yazdığı yer */}
+                          <TableItem
+                            index={1}
+                            sx={{ display: "grid", justifyContent: "center" }}
+                          >
+                            {onePoz.birimName}
+                          </TableItem>
 
                         </Grid>
                       )

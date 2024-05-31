@@ -51,9 +51,6 @@ export default function P_Metraj({ show, setShow, saveMahal }) {
   const [showDialog, setShowDialog] = useState(false)
   const [dialogCase, setDialogCase] = useState("")
 
-
-
-
   let header = "Metraj"
 
 
@@ -105,6 +102,7 @@ export default function P_Metraj({ show, setShow, saveMahal }) {
           {/* sağ kısım - (tuşlar)*/}
           <Grid item xs="auto">
             <Grid container spacing={1}>
+
 
 
               {selectedPoz && !editNodeMetraj &&

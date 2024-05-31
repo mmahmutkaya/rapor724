@@ -5,6 +5,7 @@ import Layout from './components/Layout';
 import StoreProvider from './components/store'
 import { BrowserRouter } from 'react-router-dom';
 import { QueryClient, QueryClientProvider, } from '@tanstack/react-query'
+import { ReactQueryDevtools } from '@tanstack/react-query-devtools'
 
 const queryClient = new QueryClient()
 
@@ -16,6 +17,7 @@ root.render(
         <StoreProvider>
           <Layout>
             <App />
+            <ReactQueryDevtools initialIsOpen={false} />
           </Layout>
         </StoreProvider>
       </QueryClientProvider>
