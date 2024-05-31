@@ -26,6 +26,17 @@
                 "read": true,
                 "write": false
             }
+        },
+        {
+            "name": "ALL",
+            "apply_when": {},
+            "document_filters": {
+                "read": {},
+                "write": {}
+            },
+            "insert": true,
+            "delete": true,
+            "search": true
         }
     ]
 }
