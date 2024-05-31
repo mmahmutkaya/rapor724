@@ -12,8 +12,12 @@
             "insert": true,
             "delete": true,
             "search": true,
-            "read": true,
-            "write": true
+            "fields": {
+                "cocuklar": {
+                    "read": true,
+                    "write": true
+                }
+            }
         }
     ]
 }
