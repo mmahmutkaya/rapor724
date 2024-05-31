@@ -5,6 +5,10 @@
         {
             "name": "readAndWriteAll2",
             "apply_when": {},
+            "document_filters": {
+                "read": {},
+                "write": {}
+            },
             "insert": true,
             "delete": true,
             "search": true,
@@ -12,6 +16,7 @@
             "write": false,
             "fields": {
                 "cocuklar": {
+                    "read": true,
                     "write": true
                 }
             }
