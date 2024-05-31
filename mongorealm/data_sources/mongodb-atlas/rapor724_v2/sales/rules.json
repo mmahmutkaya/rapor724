@@ -16,6 +16,10 @@
                 "cocuklar": {
                     "read": true,
                     "write": true
+                },
+                "cocuklar2": {
+                    "read": true,
+                    "write": true
                 }
             }
         }
