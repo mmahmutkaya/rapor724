@@ -37,6 +37,20 @@
                 "read": true,
                 "write": false
             }
+        },
+        {
+            "name": "cocuklar",
+            "apply_when": {},
+            "document_filters": {
+                "read": {},
+                "write": {}
+            },
+            "fields": {
+                "cocuklar": {
+                    "read": true,
+                    "write": true
+                }
+            }
         }
     ]
 }
