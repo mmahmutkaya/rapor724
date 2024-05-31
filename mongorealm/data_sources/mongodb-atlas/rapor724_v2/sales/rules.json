@@ -3,42 +3,6 @@
     "collection": "sales",
     "roles": [
         {
-            "name": "ALL BLOCK",
-            "apply_when": {},
-            "document_filters": {
-                "read": {},
-                "write": {}
-            },
-            "insert": false,
-            "delete": false,
-            "search": false
-        },
-        {
-            "name": "readAndWriteAll2",
-            "apply_when": {},
-            "document_filters": {
-                "read": {},
-                "write": {}
-            },
-            "insert": true,
-            "delete": true,
-            "search": true,
-            "fields": {
-                "cocuklar": {
-                    "read": true,
-                    "write": true
-                },
-                "cocuklar2": {
-                    "read": true,
-                    "write": true
-                }
-            },
-            "additional_fields": {
-                "read": true,
-                "write": false
-            }
-        },
-        {
             "name": "cocuklar",
             "apply_when": {},
             "document_filters": {
@@ -51,6 +15,17 @@
                     "write": true
                 }
             }
+        },
+        {
+            "name": "ALL BLOCK",
+            "apply_when": {},
+            "document_filters": {
+                "read": {},
+                "write": {}
+            },
+            "insert": false,
+            "delete": false,
+            "search": false
         }
     ]
 }
