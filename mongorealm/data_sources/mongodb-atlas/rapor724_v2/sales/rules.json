@@ -5,7 +5,7 @@
         {
             "name": "readAndWriteAll2",
             "apply_when": {},
-            "insert": true,
+            "insert": false,
             "delete": true,
             "search": true,
             "read": true,
