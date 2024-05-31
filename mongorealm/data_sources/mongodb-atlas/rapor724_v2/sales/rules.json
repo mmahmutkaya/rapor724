@@ -3,7 +3,7 @@
     "collection": "sales",
     "roles": [
         {
-            "name": "ALL",
+            "name": "ALL BLOCK",
             "apply_when": {},
             "document_filters": {
                 "read": {},
