@@ -5,11 +5,16 @@
         {
             "name": "readAndWriteAll2",
             "apply_when": {},
-            "insert": false,
+            "insert": true,
             "delete": true,
             "search": true,
             "read": true,
-            "write": false
+            "write": false,
+            "fields": {
+                "cocuklar": {
+                    "write": true
+                }
+            }
         }
     ]
 }
