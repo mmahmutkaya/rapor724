@@ -21,6 +21,10 @@
                     "read": true,
                     "write": true
                 }
+            },
+            "additional_fields": {
+                "read": true,
+                "write": false
             }
         }
     ]
