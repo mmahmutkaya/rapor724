@@ -47,42 +47,26 @@ export default function P_Metraj({ show, setShow, editMode_Metraj, setEditMode_M
 
 
 
-  // const kisiler = [
-  //   {
-  //     // name: "mahmut",
-  //     cocuklar: [
-  //       {name:"asaf"},
-  //       {name:"kayra"}
-  //     ]
-  //   }
-  // ]
-
-  const kisiler = [
+  const kimler = [
     {
-      name: "mahmut",
-      cocuklar: {asaf:"kucuk", kayra:"buyuk"},
+      name: "suleyman",
     }
   ]
-  // console.log("kisiler", kisiler)
 
 
   const deneme = async () => {
     const mongo = RealmApp.currentUser.mongoClient("mongodb-atlas")
     const sales = mongo.db("rapor724_v2").collection("sales")
-
-    
-    
     // const result = await sales.deleteMany({})
-    // const result = await sales.insertMany(kisiler)
-    const result = await sales.find({})
-    console.log("result", result)
+    const result = await sales.insertMany(kimler)
+    console.log("result",result)
   }
 
-
+  
 
   const deneme2 = async () => {
     const result = await RealmApp?.currentUser.callFunction("getProjectNames");
-    console.log("result", result)
+    console.log("result",result)
     console.log("deneme")
   }
 
