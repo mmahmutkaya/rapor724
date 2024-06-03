@@ -1,4 +1,5 @@
-import { useState, useContext } from 'react';
+import { useState, useContext, useEffect } from 'react';
+import { StoreContext } from '../../components/store'
 // import { StoreContext } from "../../components/store"
 import { useNavigate } from "react-router-dom";
 // import Box from '@mui/material/Box';
@@ -15,9 +16,17 @@ const artir = function () {
 
 export default function P_Dashboard() {
 
+  const { isProject, setIsProject } = useContext(StoreContext)
+
+  useEffect(() => {
+    if (!isProject) navigate('/projects')
+  }, [isProject]);
+
   const [sayi, setSayi] = useState(50)
 
   const navigate = useNavigate()
+
+
 
   // const { isProject } = useContext(StoreContext)
   // !isProject ? navigate('/projects') : null
@@ -29,23 +38,11 @@ export default function P_Dashboard() {
   //   </Typography>
   // )
 
-
-
-
-  return (
+  {
+    isProject &&
     <>
-      {2+2 !== 4 &&
-        <>
-          goster
-        </>
-      }
-      <button onClick={() => artir()}>artır</button>
-
-      <button onClick={() => console.log(sayi)}>sayıyı göster</button>
-
-      {sayi}
-
+      {isProject.name}
     </>
-  )
+  }
 
 }

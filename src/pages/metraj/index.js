@@ -1,5 +1,5 @@
 
-import { useState, useContext } from 'react';
+import { useState, useContext, useEffect } from 'react';
 import { useNavigate } from "react-router-dom";
 import { StoreContext } from '../../components/store'
 import { useApp } from "../../components/useApp";
@@ -20,6 +20,8 @@ import InfoIcon from '@mui/icons-material/Info';
 
 export default function P_Metraj() {
 
+  const page = "metraj"
+
   const { isProject, setIsProject } = useContext(StoreContext)
   const { custom, setCustom } = useContext(StoreContext)
   const { selectedMahal, setSelectedMahal } = useContext(StoreContext)
@@ -38,10 +40,16 @@ export default function P_Metraj() {
   const [autoFocus, setAutoFocus] = useState({ pozId: null, mahalId: null })
 
 
-
   const navigate = useNavigate()
   // !isProject ? navigate('/projects') : null
-  if (!isProject) window.location.href = "/projects"
+  // if (!isProject) window.location.href = "/projects"
+
+  
+  useEffect(() => {
+    if (!isProject) navigate('/projects')
+    // // Update the document title using the browser API
+    // document.title = `You clicked ${count} times`;
+  }, [isProject]);
 
   const RealmApp = useApp();
 

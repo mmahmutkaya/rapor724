@@ -32,7 +32,6 @@ export default function P_Projects() {
   const projectNames_fecth = async () => {
     if (!projectNames) {
       const result = await RealmApp?.currentUser.callFunction("getProjectNames");
-      console.log("result",result)
       // const result = [{ _id: 1, name: "Proje 1" }, { _id: 2, name: "Proje 2" }]
       setProjectNames(result)
     }

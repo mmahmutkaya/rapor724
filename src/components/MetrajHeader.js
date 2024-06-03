@@ -54,25 +54,23 @@ export default function P_Metraj({ show, setShow, editMode_Metraj, setEditMode_M
   ]
 
 
+
   const deneme = async () => {
-    const mongo = RealmApp.currentUser.mongoClient("mongodb-atlas")
-    const sales = mongo.db("rapor724_v2").collection("sales")
-    // const result = await sales.deleteMany({})
-    const result = await sales.insertMany(kimler)
-    console.log("result",result)
+    const result = await RealmApp?.currentUser.callFunction("getProjectNames");
+    console.log("result", result)
   }
 
   
-
-  const deneme2 = async () => {
-    const result = await RealmApp?.currentUser.callFunction("getProjectNames");
-    console.log("result",result)
-    console.log("deneme")
-  }
+  // const deneme = async () => {
+  //   const collection = RealmApp.currentUser.mongoClient("mongodb-atlas").db("rapor724_v2").collection("collection")
+  //   await collection.updateOne(
+  //     { userId: RealmApp.currentUser.id }, // Query for the user object of the logged in user
+  //     { $set: { favoriteColor: "purple" } } // Set the logged in user's favorite color to purple
+  //   )
+  // }
 
 
   let header = "Metraj"
-
 
   return (
     <Paper >
