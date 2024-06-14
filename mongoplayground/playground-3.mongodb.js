@@ -28,25 +28,23 @@ const deneme = {
 
 
 
-// db.sales.updateMany(
-//     {
-//         $and: [
-//             { settings: { $exists: true } },
-//             { settings: { $type: "array" } }
-//         ]
-//     },
-//     {
-//         $unset: {
-//             "settings.$[elem].name": ""
-//         },
-//         $set: {
-//             "settings.$[elem].platform": "web"
-//         }
-//     },
-//     {
-//         arrayFilters: [{ "elem.name": "web" }],
-//         upsert: true
-//     }
-// )
-
-
+db.sales.updateMany(
+    {
+        $and: [
+            { settings: { $exists: true } },
+            { settings: { $type: "array" } }
+        ]
+    },
+    {
+        $unset: {
+            "settings.$[elem].name": ""
+        },
+        $set: {
+            "settings.$[elem].platform": "web"
+        }
+    },
+    {
+        arrayFilters: [{ "elem.name": "web" }],
+        upsert: true
+    }
+)

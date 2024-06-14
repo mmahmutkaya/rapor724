@@ -267,9 +267,39 @@ export default function PozHeader({ setShow, editPoz, setEditPoz, savePoz }) {
             <Grid container spacing={1}>
 
 
+
+              {(!selectedPozBaslik && !selectedPoz) &&
+                <Grid item>
+                  <IconButton onClick={() => setShow("EditPozBaslik")} aria-label="addWbs">
+                    <VisibilityIcon variant="contained" sx={{ color: "black" }} />
+                  </IconButton>
+                </Grid>
+              }
+
+
+              {(!selectedPozBaslik && !selectedPoz) &&
+                <Grid item>
+                  <IconButton onClick={() => setShow("FormPozBaslikCreate")} aria-label="addPozBilgi" disabled={(isProject?.wbs?.filter(item => item.openForPoz).length == 0 || !isProject?.wbs) ? true : false}>
+                    <AddCircleOutlineIcon variant="contained" sx={{ color: (isProject?.wbs?.filter(item => item.openForPoz).length == 0 || !isProject?.wbs) ? "lightgray" : "blue" }} />
+                  </IconButton>
+                </Grid>
+              }
+
+
+              {(!selectedPozBaslik && !selectedPoz) &&
+                <Grid item>
+                  <IconButton onClick={() => setShow("FormPozCreate")} aria-label="addWbs" disabled={(isProject?.wbs?.filter(item => item.openForPoz).length == 0 || !isProject?.wbs) ? true : false}>
+                    <AddCircleOutlineIcon variant="contained" color={(isProject?.wbs?.filter(item => item.openForPoz).length == 0 || !isProject?.wbs) ? " lightgray" : "success"} />
+                  </IconButton>
+                </Grid>
+              }
+
+
+
+
+
               {selectedPoz &&
                 <>
-
                   {/* seçimleri temizle */}
 
                   <Grid item >
@@ -278,8 +308,6 @@ export default function PozHeader({ setShow, editPoz, setEditPoz, savePoz }) {
                         sx={{ color: "red" }} />
                     </IconButton>
                   </Grid>
-
-
 
                   {/* ne seçili ise silme */}
 
@@ -294,6 +322,8 @@ export default function PozHeader({ setShow, editPoz, setEditPoz, savePoz }) {
 
                 </>
               }
+
+
 
 
 
@@ -400,36 +430,8 @@ export default function PozHeader({ setShow, editPoz, setEditPoz, savePoz }) {
 
 
 
-
-              {(!selectedPozBaslik && !selectedPoz) &&
-                <Grid item>
-                  <IconButton onClick={() => setShow("EditPozBaslik")} aria-label="addWbs">
-                    <VisibilityIcon variant="contained" sx={{ color: "black" }} />
-                  </IconButton>
-                </Grid>
-              }
-
-
-              {(!selectedPozBaslik && !selectedPoz) &&
-                <Grid item>
-                  <IconButton onClick={() => setShow("FormPozBaslikCreate")} aria-label="addPozBilgi" disabled={(isProject?.wbs?.filter(item => item.openForPoz).length == 0 || !isProject?.wbs) ? true : false}>
-                    <AddCircleOutlineIcon variant="contained" sx={{ color: (isProject?.wbs?.filter(item => item.openForPoz).length == 0 || !isProject?.wbs) ? "lightgray" : "blue" }} />
-                  </IconButton>
-                </Grid>
-              }
-
-
-              {(!selectedPozBaslik && !selectedPoz) &&
-                <Grid item>
-                  <IconButton onClick={() => setShow("FormPozCreate")} aria-label="addWbs" disabled={(isProject?.wbs?.filter(item => item.openForPoz).length == 0 || !isProject?.wbs) ? true : false}>
-                    <AddCircleOutlineIcon variant="contained" color={(isProject?.wbs?.filter(item => item.openForPoz).length == 0 || !isProject?.wbs) ? " lightgray" : "success"} />
-                  </IconButton>
-                </Grid>
-              }
-
-
-
             </Grid>
+
           </Grid>
 
         </Grid>

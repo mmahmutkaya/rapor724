@@ -22,13 +22,29 @@ export default function EditPozBaslik({ setShow }) {
 
   // console.log("isProject", isProject)
 
-  const handleChange = (oneBaslik) => {
+
+
+  const handleChange = async (oneBaslik) => {
+
+    const data = {
+      _projectId: isProject._id,
+      isProject_settings: "pozBasliklari",
+      platform: "web",
+      page: "pozlar",
+      toggle: "show",
+      baslikId: oneBaslik.id,
+    }
+
+    const result = await RealmApp.currentUser.callFunction("updateProject", data)
+
     setIsProject(isProject => {
       const isProject_ = { ...isProject }
       isProject_.pozBasliklari.find(item => item.id == oneBaslik.id).goster = !isProject_.pozBasliklari.find(item => item.id == oneBaslik.id).goster
       return isProject_
     })
+
   }
+
 
 
   return (
