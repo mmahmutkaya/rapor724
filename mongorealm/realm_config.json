@@ -1,8 +1,0 @@
-{
-    "app_id": "rapor724_v2-cykom",
-    "config_version": 20210101,
-    "name": "rapor724_v2",
-    "provider_region": "aws-eu-west-1",
-    "deployment_model": "LOCAL",
-    "environment": "development"
-}
