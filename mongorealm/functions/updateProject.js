@@ -35,7 +35,7 @@ exports = async function ({ _projectId, functionName, baslikId }) {
  if (functionName == "webPage_pozlar_hide") {
     result = await collection_Projects.updateOne(
       { _id: _projectId },
-      { $addToSet: { "pozBasliklari.$[oneBaslik].show": "" } },
+      { $pull: { "pozBasliklari.$[oneBaslik].show": "webPage_pozlar" } },
       { arrayFilters: [{ "oneBaslik.id": baslikId }]}
     )
   }
