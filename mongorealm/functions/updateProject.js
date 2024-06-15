@@ -1,4 +1,4 @@
-exports = async function ({ _projectId, functionName }) {
+exports = async function ({ _projectId, functionName, baslikId }) {
 
   const user = context.user
   const _userId = new BSON.ObjectId(user.id)
@@ -23,12 +23,11 @@ exports = async function ({ _projectId, functionName }) {
 
 
   let result
-  
   if (functionName == "webPage_pozlar_show") {
     result = await collection_Projects.updateOne(
       { _id: _projectId },
       { $addToSet: { "pozBasliklari.$[oneBaslik].show": "webPage_pozlar" } },
-      { arrayFilters: [{ "oneBaslik.id": pozBaslik.id }], upsert: true }
+      { arrayFilters: [{ "oneBaslik.id": baslikId }]}
     )
   }
 
