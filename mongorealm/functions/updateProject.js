@@ -22,7 +22,7 @@ exports = async function ({ _projectId, functionName, baslikId }) {
 
 
 
-  let result
+  let result = "boş"
   
   if (functionName == "webPage_pozlar_show") {
     result = await collection_Projects.updateOne(
