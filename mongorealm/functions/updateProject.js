@@ -1,16 +1,9 @@
-exports = async function ({ _projectId, pozBaslik }) {
+exports = async function ({ _projectId, functionName }) {
 
   const user = context.user
   const _userId = new BSON.ObjectId(user.id)
   const mailTeyit = user.custom_data.mailTeyit
   if (!mailTeyit) throw new Error("MONGO // updateProjectPozBaslik --  Öncelikle üyeliğinize ait mail adresinin size ait olduğunu doğrulamalısınız, tekrar giriş yapmayı deneyiniz veya bizimle iletişime geçiniz.")
-
-
-  const collection_Projects = context.services.get("mongodb-atlas").db("rapor724_v2").collection("projects")
-
-  let isProject = await collection_Projects.findOne({ _id: _projectId, members: _userId, isDeleted: false })
-  isProject = { ...isProject }
-  if (!isProject) throw new Error("MONGO // updateProjectPozBaslik // Poz başlığı eklemek istediğiniz proje sistemde bulunamadı, lütfen sayfayı yenileyiniz, sorun devam ederse Rapor7/24 ileirtibata geçiniz.")
 
 
 
@@ -20,13 +13,24 @@ exports = async function ({ _projectId, pozBaslik }) {
     throw new Error("Poz kaydı için gerekli olan  'projectId' verisinde hata tespit edildi, sayfayı yenileyiniz, sorun devam ederse Rapor7/24 ile irtibata geçiniz.")
   }
 
+  const collection_Projects = context.services.get("mongodb-atlas").db("rapor724_v2").collection("projects")
+
+  let isProject = await collection_Projects.findOne({ _id: _projectId, members: _userId, isDeleted: false })
+  isProject = { ...isProject }
+  if (!isProject) throw new Error("MONGO // updateProjectPozBaslik // Poz başlığı eklemek istediğiniz proje sistemde bulunamadı, lütfen sayfayı yenileyiniz, sorun devam ederse Rapor7/24 ileirtibata geçiniz.")
 
 
-  const result = await collection_Projects.updateOne(
-    { _id: _projectId },
-    { $set: { "pozBasliklari.$[oneBaslik]": { ...pozBaslik } } },
-    { arrayFilters: [{ "oneBaslik.id": pozBaslik.id }], upsert: true }
-  )
+
+
+  let result
+  
+  if (functionName == "webPage_pozlar_show") {
+    result = await collection_Projects.updateOne(
+      { _id: _projectId },
+      { $addToSet: { "pozBasliklari.$[oneBaslik].show": "webPage_pozlar" } },
+      { arrayFilters: [{ "oneBaslik.id": pozBaslik.id }], upsert: true }
+    )
+  }
 
   return result
 
