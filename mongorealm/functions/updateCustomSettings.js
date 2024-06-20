@@ -29,7 +29,7 @@ exports = async function ({ _projectId, functionName, baslikId }) {
     result = await collection_Users.updateOne(
       { userId: user.id },
       { $addToSet: { "settings.isProject.pozBasliklari.$[oneBaslik].show": "webPage_pozlar" } },
-      { arrayFilters: [{$and: [{ _projectId}, { "oneBaslik.id": baslikId }]}]}
+      { arrayFilters: [{$and: [{ "_projectId":_projectId}, { "oneBaslik.id": baslikId }]}]}
     )
   }
 
@@ -37,7 +37,7 @@ exports = async function ({ _projectId, functionName, baslikId }) {
     result = await collection_Users.updateOne(
       { _id: _userId },
       { $pull: { "settings.isProject.pozBasliklari.$[oneBaslik].show": "webPage_pozlar" } },
-      { arrayFilters: [{$and: [{ _projectId}, { "oneBaslik.id": baslikId }]}]}
+      { arrayFilters: [{$and: [{ "_projectId":_projectId}, { "oneBaslik.id": baslikId }]}]}
       // { arrayFilters: [{ "oneBaslik.id": baslikId }]}
     )
   }
