@@ -29,7 +29,10 @@ exports = async function ({ _projectId, functionName, baslikId }) {
     result = await collection_Users.updateOne(
       { userId: user.id },
       { $addToSet: { "customSettings.isProject.pozBasliklari.$[oneBaslik].show": "webPage_pozlar" } },
-      { arrayFilters: [{$and: [{ "oneBaslik._projectId":_projectId}, { "oneBaslik.id": baslikId }]}]}
+      {
+        arrayFilters: [{$and: [{ "oneBaslik._projectId":_projectId}, { "oneBaslik.id": baslikId }]}],
+        upsert:true
+      }
     )
   }
 
