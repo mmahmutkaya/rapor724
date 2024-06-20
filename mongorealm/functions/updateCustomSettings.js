@@ -28,7 +28,7 @@ exports = async function ({ _projectId, functionName, baslikId }) {
   if (functionName == "webPage_pozlar_show") {
     result = await collection_Users.updateOne(
       { userId: user.id },
-      { $addToSet: { "pozBasliklari.$[oneBaslik].show": "webPage_pozlar" } },
+      { $addToSet: { "customSettings.isProject.pozBasliklari.$[oneBaslik].show": "webPage_pozlar" } },
       { arrayFilters: [{$and: [{ "oneBaslik._projectId":_projectId}, { "oneBaslik.id": baslikId }]}]}
     )
   }
@@ -36,7 +36,7 @@ exports = async function ({ _projectId, functionName, baslikId }) {
  if (functionName == "webPage_pozlar_hide") {
     result = await collection_Users.updateOne(
       { _id: _userId },
-      { $pull: { "pozBasliklari.$[oneBaslik].show": "webPage_pozlar" } },
+      { $pull: { "customSettings.isProject.pozBasliklari.$[oneBaslik].show": "webPage_pozlar" } },
       { arrayFilters: [{$and: [{ "oneBaslik._projectId":_projectId}, { "oneBaslik.id": baslikId }]}]}
       // { arrayFilters: [{ "oneBaslik.id": baslikId }]}
     )
