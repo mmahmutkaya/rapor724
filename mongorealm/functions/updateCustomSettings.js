@@ -33,7 +33,7 @@ exports = async function ({ _projectId, functionName, baslikId }) {
       [
         {
           $set: {
-            customProjectSettings: { $cond: [{ $ifNull: ["$customProjectSettings", false] }, [{...data}], "başka"] }
+            customProjectSettings: { $cond: [{ $ifNull: ["$customProjectSettings", false] }, [{...data}], "null_yeni"] }
           }
         }
       ],
