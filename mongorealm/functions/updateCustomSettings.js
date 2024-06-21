@@ -30,11 +30,13 @@ exports = async function ({ _projectId, functionName, baslikId }) {
   if (functionName == "webPage_pozlar_show") {
     result = await collection_Users.updateOne(
       { userId: user.id },
-      [{
-        $set: {
-          customProjectSettings: {$cond:[{ "$eq": [ "$field", null ] },data,"başka"]}
+      [
+        {
+          $set: {
+            customProjectSettings: { $cond: [{ "$eq": ["$customProjectSettings", null] }, data, "başka"] }
+          }
         }
-      }],
+      ],
     )
   }
 
