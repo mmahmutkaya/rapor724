@@ -24,29 +24,49 @@ exports = async function ({ _projectId, functionName, baslikId }) {
 
   const collection_Users = context.services.get("mongodb-atlas").db("rapor724_v2").collection("users")
   let result = "boş"
-  
+
+
   if (functionName == "webPage_pozlar_show") {
     result = await collection_Users.updateOne(
       { userId: user.id },
       {
-        $cond:[
-          false,
-          { $addToSet: { "customSettings.isProject.pozBasliklari.$[oneBaslik].show": "webPage_pozlar" } },
-          {"customSettings.isProject.pozBasliklari":[{ "oneBaslik._projectId":_projectId,"oneBaslik.id": baslikId,"show":["webPage_pozlar"]}]}
-        ]
+        $set: {
+          $cond: [
+            true,
+            {customSettings: "webPage_pozlar"},
+            {customSettings: "webPage_pozlar_false"},
+            // { "customSettings.isProject.pozBasliklari": [{ "oneBaslik._projectId": _projectId, "oneBaslik.id": baslikId, "show": ["webPage_pozlar"] }] }
+          ]
+        }
       },
-      {
-        arrayFilters: [{$and: [{ "oneBaslik._projectId":_projectId}, { "oneBaslik.id": baslikId }]}],
-        upsert:true
-      }
     )
   }
 
- if (functionName == "webPage_pozlar_hide") {
+  // if (functionName == "webPage_pozlar_show") {
+  //   result = await collection_Users.updateOne(
+  //     { userId: user.id },
+  //     { $set:{
+
+  //       $cond:[
+  //         false,
+  //         { $addToSet: { "customSettings.isProject.pozBasliklari.$[oneBaslik].show": "webPage_pozlar" } },
+  //         {"customSettings.isProject.pozBasliklari":[{ "oneBaslik._projectId":_projectId,"oneBaslik.id": baslikId,"show":["webPage_pozlar"]}]}
+  //       ]
+
+  //     }
+  //     },
+  //     {
+  //       arrayFilters: [{$and: [{ "oneBaslik._projectId":_projectId}, { "oneBaslik.id": baslikId }]}],
+  //       upsert:true
+  //     }
+  //   )
+  // }
+
+  if (functionName == "webPage_pozlar_hide") {
     result = await collection_Users.updateOne(
       { _id: _userId },
       { $pull: { "customSettings.isProject.pozBasliklari.$[oneBaslik].show": "webPage_pozlar" } },
-      { arrayFilters: [{$and: [{ "oneBaslik._projectId":_projectId}, { "oneBaslik.id": baslikId }]}]}
+      { arrayFilters: [{ $and: [{ "oneBaslik._projectId": _projectId }, { "oneBaslik.id": baslikId }] }] }
       // { arrayFilters: [{ "oneBaslik.id": baslikId }]}
     )
   }
