@@ -25,13 +25,14 @@ exports = async function ({ _projectId, functionName, baslikId }) {
   const collection_Users = context.services.get("mongodb-atlas").db("rapor724_v2").collection("users")
   let result = "boş"
 
+  const data = { _projectId, pozBasliklari: [{ baslikId, show: ["webPage_pozlar"] }] }
 
   if (functionName == "webPage_pozlar_show") {
     result = await collection_Users.updateOne(
       { userId: user.id },
       [{
         $set: {
-          customProjectSettings: { $cond: [{ $exists: false }, [{ _projectId, pozBasliklari: [{ baslikId, show: ["webPage_pozlar"] }] }], "willbeUpdate"] }
+          customProjectSettings: "deneme"
         }
       }],
     )
