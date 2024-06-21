@@ -32,7 +32,7 @@ exports = async function ({ _projectId, functionName, baslikId }) {
       { userId: user.id },
       [{
         $set: {
-          customProjectSettings: "deneme"
+          customProjectSettings: {$cond:[{ "$eq": [ "$field", null ] },data,"başka"]}
         }
       }],
     )
