@@ -31,12 +31,7 @@ exports = async function ({ _projectId, functionName, baslikId }) {
       { userId: user.id },
       {
         $set: {
-          $cond: [
-            true,
-            {customSettings: "webPage_pozlar"},
-            {customSettings: "webPage_pozlar_false"},
-            // { "customSettings.isProject.pozBasliklari": [{ "oneBaslik._projectId": _projectId, "oneBaslik.id": baslikId, "show": ["webPage_pozlar"] }] }
-          ]
+          customProjectSettings: { $cond: [{ $exists: false }, [{ _projectId, pozBasliklari: [{baslikId,show:["webPage_pozlar"]}] }], "willbeUpdate"] }
         }
       },
     )
