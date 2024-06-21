@@ -28,7 +28,13 @@ exports = async function ({ _projectId, functionName, baslikId }) {
   if (functionName == "webPage_pozlar_show") {
     result = await collection_Users.updateOne(
       { userId: user.id },
-      { $addToSet: { "customSettings.isProject.pozBasliklari.$[oneBaslik].show": "webPage_pozlar" } },
+      {
+        $cond:[
+          false,
+          { $addToSet: { "customSettings.isProject.pozBasliklari.$[oneBaslik].show": "webPage_pozlar" } },
+          {"customSettings.isProject.pozBasliklari":[{ "oneBaslik._projectId":_projectId,"oneBaslik.id": baslikId,"show":["webPage_pozlar"]}]}
+        ]
+      },
       {
         arrayFilters: [{$and: [{ "oneBaslik._projectId":_projectId}, { "oneBaslik.id": baslikId }]}],
         upsert:true
