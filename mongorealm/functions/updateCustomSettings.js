@@ -29,11 +29,11 @@ exports = async function ({ _projectId, functionName, baslikId }) {
   if (functionName == "webPage_pozlar_show") {
     result = await collection_Users.updateOne(
       { userId: user.id },
-      {
+      [{
         $set: {
-          customProjectSettings: { $cond: [{ $exists: false }, [{ _projectId, pozBasliklari: [{baslikId,show:["webPage_pozlar"]}] }], "willbeUpdate"] }
+          customProjectSettings: { $cond: [{ $exists: false }, [{ _projectId, pozBasliklari: [{ baslikId, show: ["webPage_pozlar"] }] }], "willbeUpdate"] }
         }
-      },
+      }],
     )
   }
 
