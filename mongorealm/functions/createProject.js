@@ -61,12 +61,82 @@ exports = async function ({ name }) {
     { id: "tarih", name: "TARİH" },
   ]
 
+  
+  const veriTurleri = [
+    {
+      "id": "sayi",
+      "name": "SAYI"
+    },
+    {
+      "id": "tarih",
+      "name": "TARİH"
+    },
+    {
+      "id": "metin",
+      "name": "METİN"
+    }
+  ]
+
+  const haneSayilari = [
+    {
+      "id": "0",
+      "name": "0"
+    },
+    {
+      "id": "0,0",
+      "name": "0,0"
+    },
+    {
+      "id": "0,00",
+      "name": "0,00"
+    },
+    {
+      "id": "0,000",
+      "name": "0,000"
+    },
+    {
+      "id": "0,0000",
+      "name": "0,0000"
+    }
+  ]
+
+
+  
+  const metrajBasliklari = [
+    {
+      "id": 1,
+      "sira": 1,
+      "referans": "miktar",
+      "goster": true,
+      "sabit": false,
+      "genislik": 10,
+      "paddingInfo": "0px 1rem 0px 0px",
+      "yatayHiza": "end",
+      "name": "Miktar",
+      "veriTuruId": "metin"
+    },
+    {
+      "id": 2,
+      "sira": 2,
+      "referans": "birim",
+      "goster": true,
+      "sabit": false,
+      "genislik": 7,
+      "paddingInfo": "0px 1rem 0px 0px",
+      "yatayHiza": "center",
+      "name": "Birim",
+      "veriTuruId": "metin"
+    }
+  ]
+
 
 
   const project = {
     name,
     // wbs: [], // henüz herhangi bir başlık yok fakat yok ama bu property şimdi olmazsa ilk wbs kaydında bir hata yaşıyoruz
     // lbs: [], // henüz herhangi bir başlık yok fakat yok ama bu property şimdi olmazsa ilk wbs kaydında bir hata yaşıyoruz
+    veriTurleri,
+    haneSayilari,
     pozBasliklari,
     mahalBasliklari,
     members: [_userId],
@@ -74,6 +144,7 @@ exports = async function ({ name }) {
     pozMetrajTipleri,
     pozBirimleri,
     mahalBirimleri,
+    metrajBasliklari,
     createdBy: _userId,
     createdAt: currentTime,
     isDeleted: false
