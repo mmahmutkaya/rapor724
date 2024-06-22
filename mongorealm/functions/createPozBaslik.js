@@ -117,18 +117,19 @@ exports = async function (newPozBaslik, _projectId) {
 
   // poz create
   const currentTime = new Date()
+  
 
-  let maxId = 0
-  let maxSira = 0
-  isProject.pozBasliklari.map(item => {
-    item.id > maxId ? maxId = item.id : null
-    item.sira > maxSira ? maxSira = item.sira : null
-  })
+  // let maxId = 0
+  // let maxSira = 0
+  // isProject.pozBasliklari.map(item => {
+  //   item.id > maxId ? maxId = item.id : null
+  //   item.sira > maxSira ? maxSira = item.sira : null
+  // })
 
   // let newPozBaslik
   newPozBaslik = {
     ...newPozBaslik,
-    id: maxId + 1,
+    id: ObjectId(),
     sira: maxSira + 1,
     createdBy: _userId,
     createdAt: currentTime,
