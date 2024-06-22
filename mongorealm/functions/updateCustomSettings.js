@@ -1,11 +1,9 @@
 exports = async function ({ _projectId, functionName, baslikId }) {
-
+  
   const user = context.user
   const _userId = new BSON.ObjectId(user.id)
   const mailTeyit = user.custom_data.mailTeyit
   if (!mailTeyit) throw new Error("MONGO // updateCustomSettings --  Öncelikle üyeliğinize ait mail adresinin size ait olduğunu doğrulamalısınız, tekrar giriş yapmayı deneyiniz veya bizimle iletişime geçiniz.")
-
-
 
   // validation control - poz başlık - projeId bilgisi
   // form alanına değil - direkt ekrana uyarı veren hata - (fonksiyon da durduruluyor)
@@ -18,8 +16,6 @@ exports = async function ({ _projectId, functionName, baslikId }) {
   // let isProject = await collection_Projects.findOne({ _id: _projectId, members: _userId, isDeleted: false })
   // isProject = { ...isProject }
   // if (!isProject) throw new Error("MONGO // updateCustomSettings // Poz başlığı eklemek istediğiniz proje sistemde bulunamadı, lütfen sayfayı yenileyiniz, sorun devam ederse Rapor7/24 ileirtibata geçiniz.")
-
-
 
 
   const collection_Users = context.services.get("mongodb-atlas").db("rapor724_v2").collection("users")
