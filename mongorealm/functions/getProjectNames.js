@@ -18,10 +18,10 @@ exports = async function(){
     const projects = await collection_Projects.find({members:_userId, isDeleted:false}, {name:1}).toArray()
     if(!projects.length) return ({empty:true, message: "MONGO // getProjectNames // Dahil olduğunuz herhangi bir proje bulunamadı, menüler yardımı ile yeni bir proje oluşturabilirsiniz."})
     
-    let projects2 = JSON.parse(JSON.stringify(projects))
+    // let projects2 = JSON.parse(JSON.stringify(projects))
     
     
-    return projects2
+    return projects
     
     
     // if(project.isDelete) throw new Error("MONGO // getProjectNames // Bu proje silinmiş")
