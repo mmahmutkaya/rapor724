@@ -129,7 +129,7 @@ exports = async function (newPozBaslik, _projectId) {
   // let newPozBaslik
   newPozBaslik = {
     ...newPozBaslik,
-    id: ObjectId(),
+    id: new BSON.ObjectId(),
     sira: maxSira + 1,
     createdBy: _userId,
     createdAt: currentTime,
