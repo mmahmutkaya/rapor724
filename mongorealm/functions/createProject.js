@@ -67,6 +67,8 @@ exports = async function ({ name }) {
     name,
     // wbs: [], // henüz herhangi bir başlık yok fakat yok ama bu property şimdi olmazsa ilk wbs kaydında bir hata yaşıyoruz
     // lbs: [], // henüz herhangi bir başlık yok fakat yok ama bu property şimdi olmazsa ilk wbs kaydında bir hata yaşıyoruz
+    pozBasliklari,
+    mahalBasliklari,
     members: [_userId],
     membersA: [_userId],
     pozMetrajTipleri,
