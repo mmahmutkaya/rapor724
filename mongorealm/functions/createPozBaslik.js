@@ -120,11 +120,11 @@ exports = async function (newPozBaslik, _projectId) {
   
 
   // let maxId = 0
-  // let maxSira = 0
-  // isProject.pozBasliklari.map(item => {
-  //   item.id > maxId ? maxId = item.id : null
-  //   item.sira > maxSira ? maxSira = item.sira : null
-  // })
+  let maxSira = 0
+  isProject.pozBasliklari.map(item => {
+    // item.id > maxId ? maxId = item.id : null
+    item.sira > maxSira ? maxSira = item.sira : null
+  })
 
   // let newPozBaslik
   newPozBaslik = {
