@@ -1,4 +1,5 @@
 import { useState, useContext } from 'react';
+import { useApp } from "./useApp.js";
 import { StoreContext } from './store.js'
 import { DialogWindow } from './general/DialogWindow.js';
 
@@ -13,35 +14,64 @@ import Dialog from '@mui/material/Dialog';
 
 export default function EditPozBaslik({ setShow }) {
 
-  const { isProject, setIsProject } = useContext(StoreContext)
+  const RealmApp = useApp();
 
+  const { isProject, setIsProject } = useContext(StoreContext)
   const [showDialog, setShowDialog] = useState(false)
   const [dialogCase, setDialogCase] = useState("")
-
-  // const [checked, setChecked] = useState(true);
-
-  // console.log("isProject", isProject)
+  const [anyDataInDialog, setAnyDataInDialog] = useState(0)
 
 
-
-  const handleChange = async (oneBaslik) => {
+  const handleChange = async (oneBaslik, switchValue) => {
 
     const data = {
       _projectId: isProject._id,
-      isProject_settings: "pozBasliklari",
-      platform: "web",
-      page: "pozlar",
-      toggle: "show",
-      baslikId: oneBaslik.id,
+      functionName: "webPage_pozlar_show",
+      _baslikId: oneBaslik._id,
     }
 
-    const result = await RealmApp.currentUser.callFunction("updateProject", data)
+    console.log("oneBaslik",oneBaslik)
 
-    setIsProject(isProject => {
-      const isProject_ = { ...isProject }
-      isProject_.pozBasliklari.find(item => item.id == oneBaslik.id).goster = !isProject_.pozBasliklari.find(item => item.id == oneBaslik.id).goster
-      return isProject_
-    })
+    if (!switchValue) {
+      data.functionName = "webPage_pozlar_hide"
+    }
+
+    const result = await RealmApp.currentUser.callFunction("updateCustomSettings", data)
+
+    // clientSide tarafındaki veri güncelleme
+
+    if (switchValue) {
+      setIsProject(isProject => {
+        isProject.pozBasliklari = isProject.pozBasliklari.map(item => {
+          if (item.id == oneBaslik.id) {
+            if (Array.isArray(item.show)) {
+              item.show.push("webPage_pozlar")
+            } else {
+              item.show = ["webPage_pozlar"]
+            }
+            return item
+          } else {
+            return item
+          }
+        })
+        return isProject
+      })
+    }
+    if (!switchValue) {
+      setIsProject(isProject => {
+        isProject.pozBasliklari = isProject.pozBasliklari.map(item => {
+          if (item.id == oneBaslik.id) {
+            item.show = item.show.filter(item => item !== "webPage_pozlar")
+            return item
+          } else {
+            return item
+          }
+        })
+        return isProject
+      })
+    }
+
+    setAnyDataInDialog(prev => prev + 1)
 
   }
 
@@ -81,13 +111,15 @@ export default function EditPozBaslik({ setShow }) {
 
             {/* TABLO */}
             {isProject.pozBasliklari.filter(item => !item.sabit).map((oneBaslik, index) => {
+              let switchValue = oneBaslik.show?.find(item => item == "webPage_pozlar") ? true : false
               return (
                 <Grid key={index} sx={{ borderTop: index == 0 ? "solid 1px gray" : null, borderBottom: "solid 1px gray", display: "grid", justifyItems: "center", width: "100%", gridTemplateColumns: "5fr 2fr" }}>
                   <Box sx={{ alignSelf: "center", mb: "0.25rem", mt: "0.25rem", ml: "1rem" }}>
                     {oneBaslik.name}
                   </Box>
                   <Box sx={{ mb: "0.25rem", mt: "0.25rem", ml: "1rem" }}>
-                    <Switch checked={oneBaslik.goster} onChange={() => handleChange(oneBaslik)} />
+                    <Switch checked={switchValue} onChange={() => handleChange(oneBaslik, !switchValue)} />
+                    {/* <Switch checked={oneBaslik.goster} onChange={() => console.log("deneme1")} /> */}
                   </Box>
                 </Grid>
               )

@@ -53,8 +53,6 @@ export default function Layout({ window, children }) {
   const { drawerWidth, topBarHeight } = useContext(StoreContext)
 
   const { isProject, setIsProject } = useContext(StoreContext)
-  let header = "Rapor 7/24"
-  //   isProject?.name ? header = isProject?.name : null
 
   const [began, setBegan] = useState(false)
 
@@ -138,6 +136,8 @@ export default function Layout({ window, children }) {
   };
 
   const clickLogOut = async () => {
+    setAnchorEl(null);
+    handleMobileMenuClose();
     await RealmApp?.currentUser.logOut()
     setBegan(prev => !prev)
   }
@@ -320,7 +320,7 @@ export default function Layout({ window, children }) {
                 component="div"
                 sx={{ cursor: "pointer", display: { xs: 'none', md: 'block' } }}
               >
-                {header}
+                {isProject ? isProject.name : "Rapor7/24"}
               </Typography>
             </Grid>
 
@@ -343,11 +343,13 @@ export default function Layout({ window, children }) {
             <Grid item>
               {/* toolbardaki bildirim ikonları */}
               <Box sx={{ display: { xs: 'none', md: 'flex' } }}>
+
                 <IconButton size="large" aria-label="show 4 new mails" color="inherit">
                   <Badge badgeContent={4} color="error">
                     <MailIcon />
                   </Badge>
                 </IconButton>
+
                 <IconButton
                   size="large"
                   aria-label="show 17 new notifications"
@@ -357,6 +359,7 @@ export default function Layout({ window, children }) {
                     <NotificationsIcon />
                   </Badge>
                 </IconButton>
+
                 <IconButton
                   size="large"
                   edge="end"
@@ -368,6 +371,7 @@ export default function Layout({ window, children }) {
                 >
                   <AccountCircle />
                 </IconButton>
+
               </Box>
 
               <Box sx={{ display: { xs: 'flex', md: 'none' } }}>

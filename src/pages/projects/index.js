@@ -20,7 +20,6 @@ import FolderIcon from '@mui/icons-material/Folder';
 
 export default function P_Projects() {
 
-
   const RealmApp = useApp();
   const navigate = useNavigate()
 
@@ -32,7 +31,6 @@ export default function P_Projects() {
   const projectNames_fecth = async () => {
     if (!projectNames) {
       const result = await RealmApp?.currentUser.callFunction("getProjectNames");
-      // const result = [{ _id: 1, name: "Proje 1" }, { _id: 2, name: "Proje 2" }]
       setProjectNames(result)
     }
   }
@@ -40,10 +38,50 @@ export default function P_Projects() {
 
 
 
-
   const handleProjectClick = async (prj) => {
+
     const project = await RealmApp.currentUser.callFunction("getProject", { projectId: prj._id })
     setIsProject(project)
+
+    await RealmApp?.currentUser.refreshCustomData()
+
+
+    // const customProjectSettings = await RealmApp?.currentUser?.customData.customProjectSettings
+    // console.log("customProjectSettings", customProjectSettings)
+
+    // // console.log("prj._id",prj._id)
+    // const customProjectSettings0 = customProjectSettings[0]
+    // console.log("customProjectSettings0", customProjectSettings0)
+
+    // const bsonId = customProjectSettings0._projectId
+    // console.log("bsonId", bsonId)
+
+    // const stringId = bsonId.$oid
+    // const stringId = console.log(RealmApp.EJSON.parse(bsonId, { relaxed: false }));
+    // console.log("stringId", stringId)
+
+    // console.log("check", stringId == prj._id)
+
+    // const customProjectSettings2 = customProjectSettings.find(x => x._projectId.toString() === prj._id.toString())
+    // const customProjectSettings2 = customProjectSettings[0]._projectId.toString()
+    // console.log("customProjectSettings2",customProjectSettings2)
+
+    // setIsProject(isProject => {
+    //   const customProjectSettings = RealmApp?.currentUser?.customData.customProjectSettings.find(x => x._projectId.$oid === prj._id.toString())
+    //   console.log("customProjectSettings", customProjectSettings)
+    //   isProject.pozBasliklari = isProject.pozBasliklari.map(item => {
+    //     let obj = customProjectSettings?.pozBasliklari?.find(item2 => item2.baslikId.toString() === item.id)
+    //     console.log("obj",obj)
+    //     return (
+    //       { ...item, ...obj }
+    //     )
+    //   })
+    //   console.log("isProject", isProject)
+    //   return (
+    //     isProject
+    //   )
+    // })
+
     navigate('/dashboard')
   }
 

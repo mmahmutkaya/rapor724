@@ -1,5 +1,5 @@
 
-import { useState, useContext } from 'react';
+import { useState, useEffect, useContext } from 'react';
 import { useNavigate } from "react-router-dom";
 import { StoreContext } from '../../components/store'
 import { useApp } from "../../components/useApp";
@@ -28,22 +28,26 @@ export default function P_Pozlar() {
   const { pozlar, setPozlar } = useContext(StoreContext)
   const { drawerWidth, topBarHeight, subHeaderHeight } = useContext(StoreContext)
 
+  const [pozBasliklari, setPozBasliklari] = useState()
   const [show, setShow] = useState("Main")
   const [editPoz, setEditPoz] = useState(false)
   const [pozBilgiler_willBeSaved, setPozBilgiler_willBeSaved] = useState([])
   const [autoFocus, setAutoFocus] = useState({ baslikId: null, pozId: null })
 
   const navigate = useNavigate()
-  const RealmApp = useApp();
-
-  if (!isProject) {
-    return (
-      navigate('/projects')
-    )
-  }
+  const RealmApp = useApp()
 
 
+  useEffect(() => {
+    if (!isProject) {
+      return (
+        navigate('/projects')
+      )
+    }
+  })
 
+
+  if (isProject && !pozBasliklari) setPozBasliklari([...isProject.pozBasliklari])
 
   const pozlar_fecth = async () => {
     if (!pozlar) {
@@ -98,10 +102,10 @@ export default function P_Pozlar() {
   //   { id: 4, sira: 4, referans: "name", goster: true, sabit: false, genislik: 20, padding_M: "0px 0rem 0px 0px", yatayHiza: "center", name: "Fonksiyon", dataType: "date" },
   // ].sort((a, b) => a.sira - b.sira))
 
-  // const [basliklar, setBasliklar] = useState(isProject?.pozBasliklari?.filter(item => item.goster))
+  // const [basliklar, setBasliklar] = useState(pozBasliklari?.filter(item => item.goster))
 
 
-  let totalWidthSabit = isProject?.pozBasliklari?.filter(item => item.sabit).reduce(
+  let totalWidthSabit = pozBasliklari?.filter(item => item.sabit).reduce(
     (accumulator, oneBilgi) => accumulator + oneBilgi.genislik,
     0
   )
@@ -109,7 +113,7 @@ export default function P_Pozlar() {
   // console.log("totalWidthSabit", totalWidthSabit)
 
 
-  let totalWidthDegisken = isProject?.pozBasliklari?.filter(item => !item.sabit && item.goster).reduce(
+  let totalWidthDegisken = pozBasliklari?.filter(item => !item.sabit && item.show?.find((item2) => item2 == "webPage_pozlar")).reduce(
     (accumulator, oneBilgi) => accumulator + oneBilgi.genislik,
     0
   )
@@ -117,7 +121,7 @@ export default function P_Pozlar() {
   // console.log("totalWidthDegisken", totalWidthDegisken)
 
 
-  let totalWidth = isProject?.pozBasliklari?.reduce(
+  let totalWidth = pozBasliklari?.reduce(
     (accumulator, oneBilgi) => accumulator + oneBilgi.genislik,
     0
   )
@@ -125,15 +129,15 @@ export default function P_Pozlar() {
   // console.log("totalWidth", totalWidth)
 
 
-  let gridTemplateColumnsSabit = isProject?.pozBasliklari?.filter(item => item.sabit).reduce(
-    (ilkString, oneBilgi, index) => index != isProject?.pozBasliklari?.length ? ilkString + (oneBilgi.genislik + "rem ") : ilkString + (oneBilgi.genislik + "rem"),
+  let gridTemplateColumnsSabit = pozBasliklari?.filter(item => item.sabit).reduce(
+    (ilkString, oneBilgi, index) => index != pozBasliklari?.length ? ilkString + (oneBilgi.genislik + "rem ") : ilkString + (oneBilgi.genislik + "rem"),
     ""
   )
   // console.log("gridTemplateColumnsSabit", gridTemplateColumnsSabit)
 
 
-  let gridTemplateColumnsDegisken = isProject?.pozBasliklari?.filter(item => !item.sabit && item.goster).reduce(
-    (ilkString, oneBilgi, index) => index != isProject?.pozBasliklari?.length ? ilkString + (oneBilgi.genislik + "rem ") : ilkString + (oneBilgi.genislik + "rem"),
+  let gridTemplateColumnsDegisken = pozBasliklari?.filter(item => !item.sabit && item.show?.find((item2) => item2 == "webPage_pozlar")).reduce(
+    (ilkString, oneBilgi, index) => index != pozBasliklari?.length ? ilkString + (oneBilgi.genislik + "rem ") : ilkString + (oneBilgi.genislik + "rem"),
     ""
   )
   // console.log("gridTemplateColumnsDegisken", gridTemplateColumnsDegisken)
@@ -340,9 +344,9 @@ export default function P_Pozlar() {
           >
             {/* HAYALET */}
             <Box sx={{ display: "none" }}>
-              {count_ = isProject?.pozBasliklari?.filter(item => item.sabit).length}
+              {count_ = pozBasliklari?.filter(item => item.sabit).length}
             </Box>
-            {isProject?.pozBasliklari?.filter(item => item.sabit).map((oneBaslik, index) => {
+            {pozBasliklari?.filter(item => item.sabit).map((oneBaslik, index) => {
               return (
                 <Box
                   sx={{
@@ -372,10 +376,10 @@ export default function P_Pozlar() {
 
             {/* HAYALET KOMPONENT */}
             <Box sx={{ display: "none" }}>
-              {count_ = isProject?.pozBasliklari?.filter(item => !item.sabit && item.goster).length}
+              {count_ = pozBasliklari?.filter(item => !item.sabit && item.show?.find((item2) => item2 == "webPage_pozlar")).length}
             </Box>
             {/* GÖZÜKEN KOMPONENT */}
-            {isProject?.pozBasliklari?.filter(item => !item.sabit && item.goster).map((oneBaslik, index) => {
+            {pozBasliklari?.filter(item => !item.sabit && item.show?.find((item2) => item2 == "webPage_pozlar")).map((oneBaslik, index) => {
               return (
                 <Box
                   sx={{
@@ -503,7 +507,7 @@ export default function P_Pozlar() {
 
                   {/* burada başlık sıralamasına göre güvenerek haraket ediliyor (tüm pozBaşlıkları map'lerde) */}
                   {
-                    isProject?.pozBasliklari?.filter(item => !item.sabit && item.goster).map((oneBaslik, index) => {
+                    pozBasliklari?.filter(item => !item.sabit && item.show?.find((item2) => item2 == "webPage_pozlar")).map((oneBaslik, index) => {
                       return (
                         <TableHeader key={index} index={index} count_={count_} sx={{ display: "grid", with: "100%", justifyContent: oneBaslik.yatayHiza }}>
 
@@ -553,7 +557,7 @@ export default function P_Pozlar() {
                           </Box>}
 
                           {
-                            isProject?.pozBasliklari?.filter(item => item.sabit).map((oneBaslik, index) => {
+                            pozBasliklari?.filter(item => item.sabit).map((oneBaslik, index) => {
                               return (
                                 <TableItem
                                   key={index}
@@ -588,7 +592,7 @@ export default function P_Pozlar() {
                           </Bosluk>
 
                           {
-                            isProject?.pozBasliklari?.filter(item => !item.sabit && item.goster).map((oneBaslik, index) => {
+                            pozBasliklari?.filter(item => !item.sabit && item.show?.find((item2) => item2 == "webPage_pozlar")).map((oneBaslik, index) => {
                               return (
                                 <TableItem
                                   key={index}
