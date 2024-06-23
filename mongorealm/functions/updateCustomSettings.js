@@ -21,7 +21,7 @@ exports = async function ({ _projectId, functionName, _baslikId }) {
   const collection_Users = context.services.get("mongodb-atlas").db("rapor724_v2").collection("users")
   let result = "boş"
 
-  const data = { _projectId, pozBasliklari: [{ _baslikId, show: ["webPage_pozlar"] }] }
+  const data = { _projectId, pozBasliklari: [{ _id:_baslikId, show: ["webPage_pozlar"] }] }
 
   if (functionName == "webPage_pozlar_show") {
     result = await collection_Users.updateOne(
