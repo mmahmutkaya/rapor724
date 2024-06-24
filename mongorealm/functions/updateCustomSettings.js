@@ -82,7 +82,7 @@ exports = async function ({ _projectId, functionName, _baslikId }) {
                                 "$$oneBaslik",
                                 {
                                   $cond: [
-                                    { $eq: ["$$oneBaslik._id, _baslikId"] },
+                                    { $eq: ["$$oneBaslik._id", _baslikId] },
                                     {
                                       $filter: {
                                         input: "$$oneBaslik.show",
