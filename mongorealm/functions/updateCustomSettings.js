@@ -81,7 +81,7 @@ exports = async function ({ _projectId, functionName, _baslikId }) {
                               $mergeObjects: [
                                 "$$oneBaslik",
                                 {
-                                  show:[]
+                                  "show":[]
                                   // $cond: [
                                   //   { $eq: ["$$oneBaslik._id", _baslikId] },
                                   //   {
