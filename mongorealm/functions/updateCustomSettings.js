@@ -81,17 +81,18 @@ exports = async function ({ _projectId, functionName, _baslikId }) {
                               $mergeObjects: [
                                 "$$oneBaslik",
                                 {
-                                  $cond: [
-                                    { $eq: ["$$oneBaslik._id", _baslikId] },
-                                    {
-                                      $filter: {
-                                        input: "$$oneBaslik.show",
-                                        as: "item",
-                                        cond: { $ne: ["$$item", "webPage_pozlar"] }
-                                      }
-                                    },
-                                    {}
-                                  ]
+                                  show:[]
+                                  // $cond: [
+                                  //   { $eq: ["$$oneBaslik._id", _baslikId] },
+                                  //   {
+                                  //     $map: {
+                                  //       input: "$$oneBaslik.show",
+                                  //       as: "item",
+                                  //       in: { $ne: ["$$item", "webPage_pozlar"] }
+                                  //     }
+                                  //   },
+                                  //   {}
+                                  // ]
                                 }
                               ]
                             }
