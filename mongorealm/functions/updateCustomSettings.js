@@ -1,5 +1,5 @@
 exports = async function ({ _projectId, functionName, _baslikId }) {
-  
+
   const user = context.user
   const _userId = new BSON.ObjectId(user.id)
   const mailTeyit = user.custom_data.mailTeyit
@@ -21,7 +21,7 @@ exports = async function ({ _projectId, functionName, _baslikId }) {
   const collection_Users = context.services.get("mongodb-atlas").db("rapor724_v2").collection("users")
   let result = "boş"
 
-  const data = { _projectId, pozBasliklari: [{ _id:_baslikId, show: ["webPage_pozlar"] }] }
+  const data = { _projectId, pozBasliklari: [{ _id: _baslikId, show: ["webPage_pozlar"] }] }
 
   if (functionName == "webPage_pozlar_show") {
     result = await collection_Users.updateOne(
@@ -29,7 +29,7 @@ exports = async function ({ _projectId, functionName, _baslikId }) {
       [
         {
           $set: {
-            customProjectSettings: { $cond: [{ $ifNull: ["$customProjectSettings", false] }, [{...data}], "null_yeni"] }
+            customProjectSettings: { $cond: [{ $ifNull: ["$customProjectSettings", false] }, [{ ...data }], "null_yeni"] }
           }
         }
       ],
@@ -59,8 +59,52 @@ exports = async function ({ _projectId, functionName, _baslikId }) {
   if (functionName == "webPage_pozlar_hide") {
     result = await collection_Users.updateOne(
       { _id: _userId },
-      { $pull: { "customProjectSettings.$[oneProject].pozBasliklari.$[oneBaslik].show": "webPage_pozlar" } },
-      { arrayFilters: [{ $and: [{ "oneProject._projectId": _projectId }, { "oneBaslik._id": _baslikId }] }] }
+      [
+        {
+          $set: {
+            customProjectSettings: {
+              $map: {
+                input: "$customProjectSettings",
+                as: "oneSet",
+                in: {
+                  $mergeObjects: [
+                    $$oneSet,
+                    {
+                      $cond: [
+                        { $eq: [$$oneSet._projectId, _projectId] },
+                        {
+                          $map:
+                          {
+                            input: $$oneSet.pozBasliklari,
+                            as: "oneBaslik",
+                            in: {
+                              $mergeObjects: [
+                                $$oneBaslik,
+                                {
+                                  $cond: [
+                                    { $eq: [$$oneBaslik._id, _baslikId] },
+                                    {
+                                      $filter: {
+                                        input: "$$oneBaslik.show",
+                                        as: "item",
+                                        cond: { $ne: ["$$item", "webPage_pozlar"] }
+                                      }
+                                    }
+                                  ]
+                                }
+                              ]
+                            }
+                          }
+                        }
+                      ]
+                    }
+                  ]
+                }
+              }
+            }
+          }
+        }
+      ]
       // { arrayFilters: [{ "oneBaslik._id": _baslikId }]}
     )
   }
