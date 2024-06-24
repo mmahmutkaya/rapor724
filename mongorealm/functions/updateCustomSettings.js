@@ -68,21 +68,21 @@ exports = async function ({ _projectId, functionName, _baslikId }) {
                 as: "oneSet",
                 in: {
                   $mergeObjects: [
-                    $$oneSet,
+                    "$$oneSet",
                     {
                       $cond: [
-                        { $eq: [$$oneSet._projectId, _projectId] },
+                        { $eq: ["$$oneSet._projectId", _projectId] },
                         {
                           $map:
                           {
-                            input: $$oneSet.pozBasliklari,
+                            input: "$$oneSet.pozBasliklari",
                             as: "oneBaslik",
                             in: {
                               $mergeObjects: [
-                                $$oneBaslik,
+                                "$$oneBaslik",
                                 {
                                   $cond: [
-                                    { $eq: [$$oneBaslik._id, _baslikId] },
+                                    { $eq: ["$$oneBaslik._id", _baslikId] },
                                     {
                                       $filter: {
                                         input: "$$oneBaslik.show",
@@ -105,7 +105,6 @@ exports = async function ({ _projectId, functionName, _baslikId }) {
           }
         }
       ]
-      // { arrayFilters: [{ "oneBaslik._id": _baslikId }]}
     )
   }
 
