@@ -19,7 +19,6 @@ exports = async function ({ _projectId, functionName, _baslikId }) {
 
 
   const collection_Users = context.services.get("mongodb-atlas").db("rapor724_v2").collection("users")
-  let result = "boş"
 
   const data = { _projectId, pozBasliklari: [{ _id: _baslikId, show: ["webPage_pozlar"] }] }
 
@@ -34,45 +33,11 @@ exports = async function ({ _projectId, functionName, _baslikId }) {
         }
       ],
     )
+    return result
   }
 
-  // if (functionName == "webPage_pozlar_show") {
-  //   result = await collection_Users.updateOne(
-  //     { userId: user.id },
-  //     { $set:{
 
-  //       $cond:[
-  //         false,
-  //         { $addToSet: { "customSettings.isProject.pozBasliklari.$[oneBaslik].show": "webPage_pozlar" } },
-  //         {"customSettings.isProject.pozBasliklari":[{ "oneBaslik._projectId":_projectId,"oneBaslik.id": baslikId,"show":["webPage_pozlar"]}]}
-  //       ]
-
-  //     }
-  //     },
-  //     {
-  //       arrayFilters: [{$and: [{ "oneBaslik._projectId":_projectId}, { "oneBaslik.id": baslikId }]}],
-  //       upsert:true
-  //     }
-  //   )
-  // }
-
-
-
-  // if (functionName == "webPage_pozlar_hide") {
-  //   result = await collection_Users.updateOne({ userId: _userId.toString() },
-  //     [
-  //       {
-  //         $set: {
-  //           deneme:"burasi"
-  //         }
-  //       }
-  //     ]
-  //   )
-  //   return {result, functionName:"burasi"}
-  // }
-  
-
-   if (functionName == "webPage_pozlar_hide") {
+  if (functionName == "webPage_pozlar_hide") {
     result = await collection_Users.updateOne(
       { userId: _userId.toString() },
       [
@@ -129,38 +94,10 @@ exports = async function ({ _projectId, functionName, _baslikId }) {
         }
       ]
     )
+    return result
   }
 
-  return {result, functionName:"webPage_pozlar_hide"}
-
-
-  // newPozBaslik._id = result.insertedId
-
-  // // lbs / poz başlığı "includesPoz:true" key.value değerine sahip değilse gerekli işlemi yapıyoruz
-
-
-  // let newProject = {...isProject}
-
-  // if (!theWbs.includesPoz) {
-
-  //   await collection_Projects.updateOne(
-  //     { _id: newPozBaslik._projectId, "lbs._id": newPozBaslik._lbsId },
-  //     { $set: { "lbs.$.includesPoz": true } },
-  //   );
-
-  //   let newWbsArray = project.lbs.map(oneWbs => {
-
-  //     if (oneWbs._id.toString() === newPoz._lbsId.toString()) {
-  //       return { ...oneWbs, includesPoz: true }
-  //     } else {
-  //       return oneWbs
-  //     }
-
-  //   })
-
-  //   newProject = { ...project, lbs: newLbsArray }
-
-  // }
+  return
 
 };
 
