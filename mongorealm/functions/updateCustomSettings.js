@@ -58,18 +58,18 @@ exports = async function ({ _projectId, functionName, _baslikId }) {
 
 
 
-  if (functionName == "webPage_pozlar_hide") {
-    result = await collection_Users.updateOne({ userId: _userId.toString() },
-      [
-        {
-          $set: {
-            deneme:"burasi"
-          }
-        }
-      ]
-    )
-    return {result, functionName:"burasi"}
-  }
+  // if (functionName == "webPage_pozlar_hide") {
+  //   result = await collection_Users.updateOne({ userId: _userId.toString() },
+  //     [
+  //       {
+  //         $set: {
+  //           deneme:"burasi"
+  //         }
+  //       }
+  //     ]
+  //   )
+  //   return {result, functionName:"burasi"}
+  // }
   
 
    if (functionName == "webPage_pozlar_hide") {
