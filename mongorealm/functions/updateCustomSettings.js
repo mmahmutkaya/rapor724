@@ -56,6 +56,11 @@ exports = async function ({ _projectId, functionName, _baslikId }) {
   //   )
   // }
 
+
+   if (functionName == "webPage_pozlar_hide") {
+     return
+   }
+
    if (functionName == "webPage_pozlar_hide") {
     result = await collection_Users.updateOne(
       { _id: _userId },
@@ -115,7 +120,7 @@ exports = async function ({ _projectId, functionName, _baslikId }) {
     )
   }
 
-  return result
+  return {result, functionName:"webPage_pozlar_hide"}
 
 
   // newPozBaslik._id = result.insertedId
