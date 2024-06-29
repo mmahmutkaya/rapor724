@@ -74,7 +74,7 @@ exports = async function ({ _projectId, functionName, _baslikId }) {
 
    if (functionName == "webPage_pozlar_hide") {
     result = await collection_Users.updateOne(
-      { _id: _userId },
+      { userId: _userId.toString() },
       [
         {
           $set: {
