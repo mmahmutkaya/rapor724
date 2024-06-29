@@ -56,7 +56,7 @@ exports = async function ({ _projectId, functionName, _baslikId }) {
   //   )
   // }
 
-  if (functionName == "webPage_pozlar_hide") {
+   if (functionName == "webPage_pozlar_hide") {
     result = await collection_Users.updateOne(
       { _id: _userId },
       [
@@ -73,28 +73,32 @@ exports = async function ({ _projectId, functionName, _baslikId }) {
                       $cond: [
                         { $eq: ["$$oneSet._projectId", _projectId] },
                         {
-                          $map:
-                          {
-                            input: "$$oneSet.pozBasliklari",
-                            as: "oneBaslik",
-                            in: {
-                              $mergeObjects: [
-                                "$$oneBaslik",
-                                {
-                                  "show":[]
-                                  // $cond: [
-                                  //   { $eq: ["$$oneBaslik._id", _baslikId] },
-                                  //   {
-                                  //     $map: {
-                                  //       input: "$$oneBaslik.show",
-                                  //       as: "item",
-                                  //       in: { $ne: ["$$item", "webPage_pozlar"] }
-                                  //     }
-                                  //   },
-                                  //   {}
-                                  // ]
-                                }
-                              ]
+                          pozBasliklari: {
+                            $map: {
+                              input: "$$oneSet.pozBasliklari",
+                              as: "oneBaslik",
+                              in: {
+                                "$mergeObjects": [
+                                  "$$oneBaslik",
+                                  {
+                                    $cond: [
+                                      { $eq: ["$$oneBaslik._id", _baslikId] },
+                                      {
+                                        show: {
+                                          $filter: {
+                                            input: "$$oneBaslik.show",
+                                            as: "oneShow",
+                                            cond: {
+                                              $ne: ["$$oneShow", "webPage_pozlar"]
+                                            }
+                                          }
+                                        }
+                                      },
+                                      {}
+                                    ]
+                                  }
+                                ]
+                              }
                             }
                           }
                         },
@@ -108,7 +112,6 @@ exports = async function ({ _projectId, functionName, _baslikId }) {
           }
         }
       ]
-      // { arrayFilters: [{ "oneBaslik._id": _baslikId }]}
     )
   }
 
