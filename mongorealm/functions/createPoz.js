@@ -115,9 +115,10 @@ exports = async function (newPoz) {
 
   // wbs / poz başlığı "includesPoz:true" key.value değerine sahip değilse gerekli işlemi yapıyoruz
 
+  return {newPoz}
 
   let newProject = project
-
+  {}
   if (!theWbs.includesPoz) {
 
     await collection_Projects.updateOne(
