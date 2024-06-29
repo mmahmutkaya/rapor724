@@ -1,8 +1,5 @@
 exports = async function (newPoz) {
 
-  return {newPoz}
-
-
   const newPozError = {}
 
   // form validation - backend
