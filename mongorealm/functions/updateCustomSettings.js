@@ -37,7 +37,7 @@ exports = async function ({ _projectId, functionName, _baslikId }) {
       { userId: user.id },
       {
         $set: {
-          "customProjectSettings.$[oneSet].pozBasliklari.$[oneBaslik].show": 2,
+          "customProjectSettings.$[oneSet].pozBasliklari.$[oneBaslik].show": ["webPage_pozlar"],
         },
       },
       {
