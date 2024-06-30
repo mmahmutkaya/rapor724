@@ -1,6 +1,6 @@
 exports = async function ({ _projectId, functionName, _baslikId }) {
   const user = await context.user;
-  const user2 = {...user}
+  const user2 = { ...user };
   const _userId = new BSON.ObjectId(user.id);
   const mailTeyit = user.custom_data.mailTeyit;
   if (!mailTeyit)
@@ -31,11 +31,54 @@ exports = async function ({ _projectId, functionName, _baslikId }) {
     _projectId,
     pozBasliklari: [{ _id: _baslikId, show: ["webPage_pozlar"] }],
   };
-  
+
   if ((functionName = "webPage_pozlar_show")) {
-    let customData = user2.custom_data
-    //customData.name = "mahmut"
-    return customData;
+    result = await collection_Users.updateOne({ userId: user.id }, [
+      {
+        $set: {
+          customProjectSettings: {
+            $map: {
+              input: "$customProjectSettings",
+              as: "oneSet",
+              in: {
+                $mergeObjects: [
+                  "$$oneSet",
+                  {
+                    $cond: [
+                      { $eq: ["$$oneSet._projectId", _projectId] },
+                      {
+                        pozBasliklari: {
+                          $map: {
+                            input: "$$oneSet.pozBasliklari",
+                            as: "oneBaslik",
+                            in: {
+                              $mergeObjects: [
+                                "$$oneBaslik",
+                                {
+                                  $cond: [
+                                    { $eq: ["$$oneBaslik._id", _baslikId] },
+                                    {
+                                      show: ["webPagePoz"],
+                                    },
+                                    {},
+                                  ],
+                                },
+                              ],
+                            },
+                          },
+                        },
+                      },
+                      {},
+                    ],
+                  },
+                ],
+              },
+            },
+          },
+        },
+      },
+    ]);
+    return result;
   }
 
   if (functionName == "webPage_pozlar_hide") {
