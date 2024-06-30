@@ -34,14 +34,21 @@ exports = async function ({ _projectId, functionName, _baslikId }) {
 
   if ((functionName = "webPage_pozlar_show")) {
     const result = collection_Users.updateOne(
-      { userId: user.id },
+      {},
       {
-        $set: {
-          "customProjectSettings.$[oneSet].pozBasliklari.$[oneBaslik].show": ["webPage_pozlar"],
+        $addToSet: {
+          "customProjectSettings.$[oneSet].pozBasliklari.$[oneBaslik].show":
+            "webPage_pozlar",
         },
       },
       {
-        arrayFilters: [{ $and: [{"oneSet._projectId": {$eq: _projectId}}, {"oneBaslik._id": {$eq: _baslikId}}] }
+        arrayFilters: [
+          {
+            "oneSet._projectId": _projectId,
+          },
+          {
+            "oneBaslik._id": _baslikId,
+          },
         ],
       }
     );
