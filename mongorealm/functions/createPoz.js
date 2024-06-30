@@ -110,7 +110,6 @@ exports = async function (newPoz) {
 
   const result = await collection_Pozlar.insertOne(newPoz)
 
-  return {newPoz,result}
   newPoz._id = result.insertedId
 
   // wbs / poz başlığı "includesPoz:true" key.value değerine sahip değilse gerekli işlemi yapıyoruz
