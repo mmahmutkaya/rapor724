@@ -35,20 +35,20 @@ exports = async function (newPoz) {
   }
   
 
-  if (typeof newPoz.pozName !== "string") {
-    newPozError.pozName = "Zorunlu"
+  if (typeof newPoz.name !== "string") {
+    newPozError.name = "Zorunlu"
   }
 
-  if (typeof newPoz.pozName === "string") {
-    if (newPoz.pozName.length === 0) {
-      newPozError.pozName = "Zorunlu"
+  if (typeof newPoz.name === "string") {
+    if (newPoz.name.length === 0) {
+      newPozError.name = "Zorunlu"
     }
   }
 
-  if (typeof newPoz.pozName === "string") {
+  if (typeof newPoz.name === "string") {
     let minimumHaneSayisi = 3
-    if (newPoz.pozName.length > 0 && newPoz.pozName.length < minimumHaneSayisi) {
-      newPozError.pozName = `${minimumHaneSayisi} haneden az olamaz`
+    if (newPoz.name.length > 0 && newPoz.name.length < minimumHaneSayisi) {
+      newPozError.name = `${minimumHaneSayisi} haneden az olamaz`
     }
   }
 
@@ -77,7 +77,7 @@ exports = async function (newPoz) {
   const collection_Pozlar = context.services.get("mongodb-atlas").db("rapor724_v2").collection("pozlar")
   let pozFinded = collection_Pozlar.findOne({$or: [{'pozNo': newPoz.pozNo}, {'name': newPoz.name}]})
   if (pozFinded.name == newPoz.name) {
-    newPozError.pozName = `${pozFinded.name} isimli poz'da kullanılmış`
+    newPozError.name = `${pozFinded.name} isimli poz'da kullanılmış`
   }
   if (pozFinded.pozNo == newPoz.pozNo) {
     newPozError.pozNo = `${pozFinded.name} isimli poz'da kullanılmış`
@@ -100,7 +100,7 @@ exports = async function (newPoz) {
     _projectId: newPoz.projectId,
     _wbsId: newPoz.wbsId,
     pozNo:newPoz.pozNo,
-    name: newPoz.pozName,
+    name: newPoz.name,
     birimId: newPoz.pozBirimId,
     createdBy: _userId,
     createdAt: currentTime,
