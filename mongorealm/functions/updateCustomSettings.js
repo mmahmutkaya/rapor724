@@ -33,9 +33,9 @@ exports = async function ({ _projectId, functionName, _baslikId }) {
   };
   
   if ((functionName = "webPage_pozlar_show")) {
-    // let customData = user2
-    user2.name = "mahmut"
-    return user2;
+    let customData = user2.customData
+    //customData.name = "mahmut"
+    return customData;
   }
 
   if (functionName == "webPage_pozlar_hide") {
