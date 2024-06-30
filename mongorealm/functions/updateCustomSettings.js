@@ -32,9 +32,9 @@ exports = async function ({ _projectId, functionName, _baslikId }) {
   };
 
   if ((functionName = "webPage_pozlar_show")) {
-    customProjectData = {...user.customData}
-    customProjectData.name = "mahmut"
-    return customProjectData;
+    user2 = {...user}
+    user2.name = "mahmut"
+    return user2;
   }
 
   if (functionName == "webPage_pozlar_hide") {
