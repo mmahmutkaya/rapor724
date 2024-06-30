@@ -1,5 +1,6 @@
 exports = async function ({ _projectId, functionName, _baslikId }) {
-  const user = context.user;
+  let user = context.user;
+  user = {...user}
   const _userId = new BSON.ObjectId(user.id);
   const mailTeyit = user.custom_data.mailTeyit;
   if (!mailTeyit)
@@ -30,11 +31,11 @@ exports = async function ({ _projectId, functionName, _baslikId }) {
     _projectId,
     pozBasliklari: [{ _id: _baslikId, show: ["webPage_pozlar"] }],
   };
-
+  
   if ((functionName = "webPage_pozlar_show")) {
-    user2 = {...user}
-    user2.name = "mahmut"
-    return user2;
+    customData = user.customData
+    customData.name = "mahmut"
+    return customData;
   }
 
   if (functionName == "webPage_pozlar_hide") {
