@@ -32,25 +32,25 @@ exports = async function ({ _projectId, functionName, _baslikId }) {
     pozBasliklari: [{ _id: _baslikId, show: ["webPage_pozlar"] }],
   };
 
-  if ((functionName = "webPage_pozlar_show")) {
-    const result = collection_Users.updateOne(
-      { userId: user.id },
-      {
-        $set: {
-          "customProjectSettings.$[oneSet].pozBasliklari.$[oneBaslik].show": ["webPage_pozlar"],
-        },
-      },
-      {
-        arrayFilters: [
-          {
-            "oneSet._projectId": _projectId,
-            "oneBaslik._id": _baslikId,
-          },
-        ],
-      }
-    );
-    return result;
-  }
+  // if ((functionName = "webPage_pozlar_show")) {
+  //   const result = collection_Users.updateOne(
+  //     { userId: user.id },
+  //     {
+  //       $set: {
+  //         "customProjectSettings.$[oneSet].pozBasliklari.$[oneBaslik].show": ["webPage_pozlar"],
+  //       },
+  //     },
+  //     {
+  //       arrayFilters: [
+  //         {
+  //           "oneSet._projectId": _projectId,
+  //           "oneBaslik._id": _baslikId,
+  //         },
+  //       ],
+  //     }
+  //   );
+  //   return result;
+  // }
 
   if (functionName == "webPage_pozlar_hide") {
     result = await collection_Users.updateOne({ userId: user.id }, [
