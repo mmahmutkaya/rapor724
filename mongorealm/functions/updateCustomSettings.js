@@ -58,7 +58,7 @@ exports = async function ({ _projectId, functionName, _baslikId }) {
                                   $cond: [
                                     { $eq: ["$$oneBaslik._id", _baslikId] },
                                     {
-                                      show: ["webPagePoz"],
+                                      show: ["webPage_pozlar"],
                                     },
                                     {},
                                   ],
