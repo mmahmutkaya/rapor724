@@ -1,6 +1,6 @@
 exports = async function ({ _projectId, functionName, _baslikId }) {
-  let user = context.user;
-  user = {...user}
+  const user = context.user;
+  const user2 = {...user}
   const _userId = new BSON.ObjectId(user.id);
   const mailTeyit = user.custom_data.mailTeyit;
   if (!mailTeyit)
@@ -33,7 +33,7 @@ exports = async function ({ _projectId, functionName, _baslikId }) {
   };
   
   if ((functionName = "webPage_pozlar_show")) {
-    customData = user.customData
+    const customData = user2.customData
     customData.name = "mahmut"
     return customData;
   }
