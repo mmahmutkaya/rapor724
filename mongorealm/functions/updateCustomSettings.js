@@ -33,7 +33,7 @@ exports = async function ({ _projectId, functionName, _baslikId }) {
   };
   
   if ((functionName = "webPage_pozlar_show")) {
-    let customData = user2.customData
+    let customData = user2.custom_data
     //customData.name = "mahmut"
     return customData;
   }
