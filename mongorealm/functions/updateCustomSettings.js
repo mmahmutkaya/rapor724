@@ -32,7 +32,8 @@ exports = async function ({ _projectId, functionName, _baslikId }) {
   };
 
   if ((functionName = "webPage_pozlar_show")) {
-      return user
+    user.customData.pozbasliklari = null;
+    return user;
   }
 
   if (functionName == "webPage_pozlar_hide") {
