@@ -33,7 +33,7 @@ exports = async function ({ _projectId, functionName, _baslikId }) {
   };
 
   if ((functionName = "webPage_pozlar_show")) {
-    collection_Users.updateOne(
+    const result = collection_Users.updateOne(
       { userId: user.id },
       {
         $set: {
@@ -49,6 +49,7 @@ exports = async function ({ _projectId, functionName, _baslikId }) {
         ],
       }
     );
+    return result;
   }
 
   if (functionName == "webPage_pozlar_hide") {
