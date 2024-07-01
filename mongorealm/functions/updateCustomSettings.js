@@ -50,6 +50,7 @@ exports = async function ({ _projectId, functionName, _baslikId }) {
             "oneBaslik._id": _baslikId,
           },
         ],
+        upsert: true,
       }
     );
     return result;
