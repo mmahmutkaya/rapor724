@@ -36,7 +36,7 @@ exports = async function ({ _projectId, functionName, _baslikId }) {
     const result = collection_Users.updateOne(
       { userId: user.id },
       {
-        $addToSet: {
+        $set: {
           "customProjectSettings.$[oneSet].pozBasliklari.$[oneBaslik].show":
             "webPage_pozlar",
         },
