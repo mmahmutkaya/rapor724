@@ -127,7 +127,6 @@ export default function FormPozBaslikCreate({ setShow }) {
         return
       }
 
-
       const pozBilgi = {
         name: name,
         veriTuruId: veriTuruId,
@@ -143,7 +142,6 @@ export default function FormPozBaslikCreate({ setShow }) {
       // form verileri kontrolden geçti - db ye göndermeyi deniyoruz
       const result = await RealmApp?.currentUser?.callFunction("createPozBaslik", pozBilgi, isProject?._id);
       console.log("result", result)
-
 
 
       // form validation - backend

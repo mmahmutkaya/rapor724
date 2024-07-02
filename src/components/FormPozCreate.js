@@ -53,13 +53,13 @@ export default function FormPozCreate({ setShow }) {
 
       // formdan gelen text verilerini alma - (çoktan seçmeliler seçildiği anda useState() kısmında güncelleniyor)
       const data = new FormData(event.currentTarget);
-      const pozName = deleteLastSpace(data.get('pozName'))
+      const name = deleteLastSpace(data.get('name'))
       const pozNo = deleteLastSpace(data.get('pozNo'))
 
       const newPoz = {
         projectId: isProject?._id,
         wbsId,
-        pozName,
+        name,
         pozNo,
         pozBirimId,
       }
@@ -91,22 +91,22 @@ export default function FormPozCreate({ setShow }) {
       }
 
 
-      if (typeof newPoz.pozName !== "string") {
-        setNewPozError(prev => ({ ...prev, pozName: "Zorunlu" }))
+      if (typeof newPoz.name !== "string") {
+        setNewPozError(prev => ({ ...prev, name: "Zorunlu" }))
         isFormError = true
       }
 
-      if (typeof newPoz.pozName === "string") {
-        if (newPoz.pozName.length === 0) {
-          setNewPozError(prev => ({ ...prev, pozName: "Zorunlu" }))
+      if (typeof newPoz.name === "string") {
+        if (newPoz.name.length === 0) {
+          setNewPozError(prev => ({ ...prev, name: "Zorunlu" }))
           isFormError = true
         }
       }
 
-      if (typeof newPoz.pozName === "string") {
+      if (typeof newPoz.name === "string") {
         let minimumHaneSayisi = 3
-        if (newPoz.pozName.length > 0 && newPoz.pozName.length < minimumHaneSayisi) {
-          setNewPozError(prev => ({ ...prev, pozName: `${minimumHaneSayisi} haneden az olamaz` }))
+        if (newPoz.name.length > 0 && newPoz.name.length < minimumHaneSayisi) {
+          setNewPozError(prev => ({ ...prev, name: `${minimumHaneSayisi} haneden az olamaz` }))
           isFormError = true
         }
       }
@@ -132,8 +132,9 @@ export default function FormPozCreate({ setShow }) {
 
 
       // form verileri kontrolden geçti - db ye göndermeyi deniyoruz
+            
       const result = await RealmApp?.currentUser?.callFunction("createPoz", newPoz);
-      console.log("result", result)
+
 
       // form validation - backend
       if (result.newPozError) {
@@ -164,7 +165,7 @@ export default function FormPozCreate({ setShow }) {
 
       // eğer çifte kayıt oluyorsa form içindeki poz ismi girilen yere aşağıdaki mesaj gönderilir, fonksiyon durdurulur
       if (hataMesaj_.includes("duplicate key error")) {
-        setNewPozError(prev => ({ ...prev, pozName: "Bu poz ismi kullanılmış" }))
+        setNewPozError(prev => ({ ...prev, name: "Bu poz ismi kullanılmış" }))
         console.log("Bu poz ismi bu projede mevcut")
         return
       }
@@ -389,7 +390,7 @@ export default function FormPozCreate({ setShow }) {
             <Box
               onClick={() => setNewPozError(prevData => {
                 const newData = { ...prevData }
-                delete newData["pozName"]
+                delete newData["name"]
                 return newData
               })}
               sx={{ minWidth: 120, marginBottom: "2rem" }}
@@ -406,11 +407,11 @@ export default function FormPozCreate({ setShow }) {
                 variant="standard"
                 // InputProps={{ sx: { height:"2rem", fontSize: "1.5rem" } }}
                 margin="normal"
-                id="pozName"
-                name="pozName"
+                id="name"
+                name="name"
                 // autoFocus
-                error={newPozError.pozName ? true : false}
-                helperText={newPozError.pozName}
+                error={newPozError.name ? true : false}
+                helperText={newPozError.name}
                 // margin="dense"
                 label="Poz Adi"
                 type="text"

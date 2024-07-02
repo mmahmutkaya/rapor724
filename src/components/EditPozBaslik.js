@@ -30,20 +30,21 @@ export default function EditPozBaslik({ setShow }) {
       _baslikId: oneBaslik._id,
     }
 
-    console.log("oneBaslik",oneBaslik)
-
+    
     if (!switchValue) {
       data.functionName = "webPage_pozlar_hide"
     }
-
+    console.log("data",data)
+    
     const result = await RealmApp.currentUser.callFunction("updateCustomSettings", data)
+    console.log("result",result)
 
     // clientSide tarafındaki veri güncelleme
 
     if (switchValue) {
       setIsProject(isProject => {
         isProject.pozBasliklari = isProject.pozBasliklari.map(item => {
-          if (item.id == oneBaslik.id) {
+          if (item._id.toString() == oneBaslik._id.toString()) {
             if (Array.isArray(item.show)) {
               item.show.push("webPage_pozlar")
             } else {
@@ -60,7 +61,7 @@ export default function EditPozBaslik({ setShow }) {
     if (!switchValue) {
       setIsProject(isProject => {
         isProject.pozBasliklari = isProject.pozBasliklari.map(item => {
-          if (item.id == oneBaslik.id) {
+          if (item._id.toString() == oneBaslik._id.toString()) {
             item.show = item.show.filter(item => item !== "webPage_pozlar")
             return item
           } else {

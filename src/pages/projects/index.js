@@ -66,21 +66,29 @@ export default function P_Projects() {
     // const customProjectSettings2 = customProjectSettings[0]._projectId.toString()
     // console.log("customProjectSettings2",customProjectSettings2)
 
-    // setIsProject(isProject => {
-    //   const customProjectSettings = RealmApp?.currentUser?.customData.customProjectSettings.find(x => x._projectId.$oid === prj._id.toString())
-    //   console.log("customProjectSettings", customProjectSettings)
-    //   isProject.pozBasliklari = isProject.pozBasliklari.map(item => {
-    //     let obj = customProjectSettings?.pozBasliklari?.find(item2 => item2.baslikId.toString() === item.id)
-    //     console.log("obj",obj)
-    //     return (
-    //       { ...item, ...obj }
-    //     )
-    //   })
-    //   console.log("isProject", isProject)
-    //   return (
-    //     isProject
-    //   )
-    // })
+    setIsProject(isProject => {
+      let obj
+      const customProjectSettings = RealmApp?.currentUser?.customData.customProjectSettings?.find(x => x._projectId.$oid === prj._id.toString())
+      // console.log("customProjectSettings?.pozBasliklari", customProjectSettings?.pozBasliklari)
+      isProject.pozBasliklari = isProject.pozBasliklari.map(item => {
+        obj = customProjectSettings?.pozBasliklari?.find(x => x._id.$oid === item._id.toString())
+        if (obj) {
+          item.show = obj.show
+          // console.log("baslik userData ile güncellendi")
+          return (
+            item
+          )
+        } else {
+          // console.log("baslik userData ile güncellenMEdi")
+          return (
+            item
+          )
+        }
+      })
+      return (
+        isProject
+      )
+    })
 
     navigate('/dashboard')
   }
