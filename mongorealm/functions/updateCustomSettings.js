@@ -180,7 +180,7 @@ exports = async function ({ _projectId, functionName, _baslikId }) {
                       "$customProjectSettings",
                       [
                         {
-                          _projectId: 2,
+                          _projectId,
                           pozBasliklari: [
                             {
                               _id: _baslikId,
@@ -195,11 +195,11 @@ exports = async function ({ _projectId, functionName, _baslikId }) {
               },
               else: [
                 {
-                  _projectId: 2,
+                  _projectId,
                   pozBasliklari: [
                     {
-                      _id: 2,
-                      show: ["customProjectSettings yoksa"],
+                      _id: _baslikId,
+                      show: ["webPage_pozlar"],
                     },
                   ],
                 },
