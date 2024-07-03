@@ -32,195 +32,185 @@ exports = async function ({ _projectId, functionName, _baslikId }) {
     pozBasliklari: [{ _id: _baslikId, show: ["webPage_pozlar"] }],
   };
 
-
-    
-    if ((functionName = "webPage_pozlar_show")) {
-    const result = collection_Users.updateOne(
-      { userId: user.id },
-      [
-        {
-          "$set": {
-            "customProjectSettings": {
-              "$cond": {
-                "if": {
-                  "$and": [
-                    {
-                      "$ifNull": [
-                        "$customProjectSettings",
-                        false
-                      ]
-                    },
-                    {
-                      "$isArray": "$customProjectSettings"
-                    }
-                  ]
-                },
-                "then": {
-                  "$cond": {
-                    "if": {
-                      "$in": [
-                        _projectId,
-                        "$customProjectSettings._projectId"
-                      ]
-                    },
-                    "then": {
-                      "$map": {
-                        "input": "$customProjectSettings",
-                        "as": "oneSet",
-                        "in": {
-                          "$cond": {
-                            "if": {
-                              "$eq": [
-                                "$$oneSet._projectId",
-                                _projectId
-                              ]
-                            },
-                            "then": {
-                              "$cond": {
-                                "if": {
-                                  "$and": [
-                                    {
-                                      "$ifNull": [
-                                        "$$oneSet.pozBasliklari",
-                                        false
-                                      ]
-                                    },
-                                    {
-                                      "$isArray": "$$oneSet.pozBasliklari"
-                                    }
-                                  ]
-                                },
-                                "then": {
-                                  "$mergeObjects": [
-                                    "$$oneSet",
-                                    {
-                                      pozBasliklari: {
-                                        "$cond": {
-                                          "if": {
-                                            "$in": [
-                                              _baslikId,
-                                              "$$oneSet.pozBasliklari._id"
-                                            ]
-                                          },
-                                          "then": {
-                                            "$map": {
-                                              "input": "$$oneSet.pozBasliklari",
-                                              "as": "oneBaslik",
-                                              "in": {
-                                                "$cond": {
-                                                  "if": {
-                                                    "$eq": [
-                                                      _baslikId,
-                                                      "$$oneBaslik._id"
-                                                    ]
-                                                  },
-                                                  "then": {
-                                                    "$mergeObjects": [
-                                                      "$$oneBaslik",
-                                                      {
-                                                        show: {
-                                                          $cond:{
-                                                            if:{
-                                                              "$and": [
-                                                                {
-                                                                  "$ifNull": [
-                                                                    "$$oneBaslik.show",
-                                                                    false
-                                                                  ]
-                                                                },
-                                                                {
-                                                                  "$isArray": "$$oneBaslik.show"
-                                                                }
-                                                              ]
-                                                            },
-                                                            then:{$concatArrays:["$$oneBaslik.show",["webPage_pozlar"]]},
-                                                            else:["webPage_pozlar"]
-                                                          }
-                                                        }
-                                                      }
-                                                    ]
-                                                  },
-                                                  "else": "$$oneBaslik"
-                                                }
-                                              }
-                                            }
-                                          },
-                                          "else": {
-                                            "$concatArrays": [
-                                              [
-                                                {
-                                                  _id: _baslikId,
-                                                  show: ["webPage_pozlar"]
-                                                }
-                                              ],
-                                              "$$oneSet.pozBasliklari"
-                                            ]
-                                          }
-                                        }
-                                      }
-                                    }
-                                  ]
-                                },
-                                "else": {
-                                  "$mergeObjects": [
-                                    "$$oneSet",
-                                    {
-                                      pozBasliklari: [
-                                        {
-                                          _id: _baslikId,
-                                          show: ["webPage_pozlar"]
-                                        }
-                                      ]
-                                    }
-                                  ]
-                                }
-                              }
-                            },
-                            "else": "$$oneSet"
-                          }
-                        }
-                      }
-                    },
-                    "else": {
-                      "$concatArrays": [
-                        "$customProjectSettings",
-                        [
-                          {
-                            _projectId: 2,
-                            pozBasliklari: [
-                              {
-                                _id: _baslikId,
-                                show: ["webPage_pozlar"]
-                              }
-                            ]
-                          }
-                        ]
-                      ]
-                    }
-                  }
-                },
-                "else": [
+  if ((functionName = "webPage_pozlar_show")) {
+    const result = collection_Users.updateOne({ userId: user.id }, [
+      {
+        $set: {
+          customProjectSettings: {
+            $cond: {
+              if: {
+                $and: [
                   {
-                    "_projectId": 2,
-                    "pozBasliklari": [
-                      {
-                        "_id": 2,
-                        "show": [
-                          "customProjectSettings yoksa"
-                        ]
-                      }
-                    ]
-                  }
-                ]
-              }
-            }
-          }
-        }
-      ]
-    );
+                    $ifNull: ["$customProjectSettings", false],
+                  },
+                  {
+                    $isArray: "$customProjectSettings",
+                  },
+                ],
+              },
+              then: {
+                $cond: {
+                  if: {
+                    $in: [_projectId, "$customProjectSettings._projectId"],
+                  },
+                  then: {
+                    $map: {
+                      input: "$customProjectSettings",
+                      as: "oneSet",
+                      in: {
+                        $cond: {
+                          if: {
+                            $eq: ["$$oneSet._projectId", _projectId],
+                          },
+                          then: {
+                            $cond: {
+                              if: {
+                                $and: [
+                                  {
+                                    $ifNull: ["$$oneSet.pozBasliklari", false],
+                                  },
+                                  {
+                                    $isArray: "$$oneSet.pozBasliklari",
+                                  },
+                                ],
+                              },
+                              then: {
+                                $mergeObjects: [
+                                  "$$oneSet",
+                                  {
+                                    pozBasliklari: {
+                                      $cond: {
+                                        if: {
+                                          $in: [
+                                            _baslikId,
+                                            "$$oneSet.pozBasliklari._id",
+                                          ],
+                                        },
+                                        then: {
+                                          $map: {
+                                            input: "$$oneSet.pozBasliklari",
+                                            as: "oneBaslik",
+                                            in: {
+                                              $cond: {
+                                                if: {
+                                                  $eq: [
+                                                    _baslikId,
+                                                    "$$oneBaslik._id",
+                                                  ],
+                                                },
+                                                then: {
+                                                  $mergeObjects: [
+                                                    "$$oneBaslik",
+                                                    {
+                                                      show: {
+                                                        $cond: {
+                                                          if: {
+                                                            $and: [
+                                                              {
+                                                                $ifNull: [
+                                                                  "$$oneBaslik.show",
+                                                                  false,
+                                                                ],
+                                                              },
+                                                              {
+                                                                $isArray:
+                                                                  "$$oneBaslik.show",
+                                                              },
+                                                            ],
+                                                          },
+                                                          then: {
+                                                            $concatArrays: [
+                                                              "$$oneBaslik.show",
+                                                              [
+                                                                "webPage_pozlar",
+                                                              ],
+                                                            ],
+                                                          },
+                                                          else: [
+                                                            "webPage_pozlar",
+                                                          ],
+                                                        },
+                                                      },
+                                                    },
+                                                  ],
+                                                },
+                                                else: "$$oneBaslik",
+                                              },
+                                            },
+                                          },
+                                        },
+                                        else: {
+                                          $concatArrays: [
+                                            [
+                                              {
+                                                _id: _baslikId,
+                                                show: ["webPage_pozlar"],
+                                              },
+                                            ],
+                                            "$$oneSet.pozBasliklari",
+                                          ],
+                                        },
+                                      },
+                                    },
+                                  },
+                                ],
+                              },
+                              else: {
+                                $mergeObjects: [
+                                  "$$oneSet",
+                                  {
+                                    pozBasliklari: [
+                                      {
+                                        _id: _baslikId,
+                                        show: ["webPage_pozlar"],
+                                      },
+                                    ],
+                                  },
+                                ],
+                              },
+                            },
+                          },
+                          else: "$$oneSet",
+                        },
+                      },
+                    },
+                  },
+                  else: {
+                    $concatArrays: [
+                      "$customProjectSettings",
+                      [
+                        {
+                          _projectId: 2,
+                          pozBasliklari: [
+                            {
+                              _id: _baslikId,
+                              show: ["webPage_pozlar"],
+                            },
+                          ],
+                        },
+                      ],
+                    ],
+                  },
+                },
+              },
+              else: [
+                {
+                  _projectId: 2,
+                  pozBasliklari: [
+                    {
+                      _id: 2,
+                      show: ["customProjectSettings yoksa"],
+                    },
+                  ],
+                },
+              ],
+            },
+          },
+        },
+      },
+    ]);
     return result;
   }
-  
 
   if (functionName == "webPage_pozlar_hide") {
     result = await collection_Users.updateOne({ userId: user.id }, [
@@ -231,22 +221,26 @@ exports = async function ({ _projectId, functionName, _baslikId }) {
               input: "$customProjectSettings",
               as: "oneSet",
               in: {
-                $mergeObjects: [
-                  "$$oneSet",
-                  {
-                    $cond: [
-                      { $eq: ["$$oneSet._projectId", _projectId] },
+                $cond: {
+                  if: {
+                    $eq: ["$$oneSet._projectId", _projectId],
+                  },
+                  then: {
+                    $mergeObjects: [
+                      "$$oneSet",
                       {
                         pozBasliklari: {
                           $map: {
                             input: "$$oneSet.pozBasliklari",
                             as: "oneBaslik",
                             in: {
-                              $mergeObjects: [
-                                "$$oneBaslik",
-                                {
-                                  $cond: [
-                                    { $eq: ["$$oneBaslik._id", _baslikId] },
+                              $cond: {
+                                if: {
+                                  $eq: [_baslikId, "$$oneBaslik._id"],
+                                },
+                                then: {
+                                  $mergeObjects: [
+                                    "$$oneBaslik",
                                     {
                                       show: {
                                         $filter: {
@@ -261,18 +255,18 @@ exports = async function ({ _projectId, functionName, _baslikId }) {
                                         },
                                       },
                                     },
-                                    {},
                                   ],
                                 },
-                              ],
+                                else: "$$oneBaslik",
+                              },
                             },
                           },
                         },
                       },
-                      {},
                     ],
                   },
-                ],
+                  else: "$$oneSet",
+                },
               },
             },
           },
