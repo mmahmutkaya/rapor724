@@ -189,7 +189,7 @@ exports = async function ({ _projectId, functionName, _baslikId }) {
                             _projectId: 2,
                             pozBasliklari: [
                               {
-                                _id: _baslikd,
+                                _id: _baslikId,
                                 show: ["webPage_pozlar"]
                               }
                             ]
