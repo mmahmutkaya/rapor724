@@ -33,6 +33,7 @@ exports = async function ({ _projectId, functionName, _baslikId }) {
   };
 
 
+    
     if ((functionName = "webPage_pozlar_show")) {
     const result = collection_Users.updateOne(
       { userId: user.id },
@@ -117,7 +118,25 @@ exports = async function ({ _projectId, functionName, _baslikId }) {
                                                     "$mergeObjects": [
                                                       "$$oneBaslik",
                                                       {
-                                                        show: "olanı güncelleme"
+                                                        show: {
+                                                          $cond:{
+                                                            if:{
+                                                              "$and": [
+                                                                {
+                                                                  "$ifNull": [
+                                                                    "$$oneBaslik.show",
+                                                                    false
+                                                                  ]
+                                                                },
+                                                                {
+                                                                  "$isArray": "$$oneBaslik.show"
+                                                                }
+                                                              ]
+                                                            },
+                                                            then:{$concatArrays:["$$oneBaslik.show",["webPage_pozlar"]]},
+                                                            else:["webPage_pozlar"]
+                                                          }
+                                                        }
                                                       }
                                                     ]
                                                   },
@@ -130,8 +149,8 @@ exports = async function ({ _projectId, functionName, _baslikId }) {
                                             "$concatArrays": [
                                               [
                                                 {
-                                                  _id: 2,
-                                                  show: "pozBaslik Id yoksa"
+                                                  _id: _baslikId,
+                                                  show: ["webPage_pozlar"]
                                                 }
                                               ],
                                               "$$oneSet.pozBasliklari"
@@ -148,8 +167,8 @@ exports = async function ({ _projectId, functionName, _baslikId }) {
                                     {
                                       pozBasliklari: [
                                         {
-                                          _id: 2,
-                                          show: "pozBasliklari yoksa veya Array değilse"
+                                          _id: _baslikd,
+                                          show: ["webPage_pozlar"]
                                         }
                                       ]
                                     }
@@ -170,10 +189,8 @@ exports = async function ({ _projectId, functionName, _baslikId }) {
                             _projectId: 2,
                             pozBasliklari: [
                               {
-                                _id: 2,
-                                show: [
-                                  "projectId yoksa"
-                                ]
+                                _id: _baslikd,
+                                show: ["webPage_pozlar"]
                               }
                             ]
                           }
