@@ -223,7 +223,7 @@ exports = async function ({ _projectId, functionName, _baslikId }) {
               in: {
                 $cond: {
                   if: {
-                    $eq: ["$$oneSet._projectId", _projectId],
+                    $eq: [_projectId, "$$oneSet._projectId"],
                   },
                   then: {
                     $mergeObjects: [
