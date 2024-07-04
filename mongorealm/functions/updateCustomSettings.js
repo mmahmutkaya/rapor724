@@ -209,7 +209,7 @@ exports = async function ({ _projectId, functionName, _baslikId }) {
         },
       },
     ]);
-    return result;
+    return {result,situation:"show",functionName};
   }
 
   if (functionName == "webPage_pozlar_hide") {
@@ -273,8 +273,8 @@ exports = async function ({ _projectId, functionName, _baslikId }) {
         },
       },
     ]);
-    return result;
+    return {result,situation:"hide",functionName};
   }
 
-  return;
+  return {situation:"empty"};
 };
