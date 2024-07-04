@@ -1,4 +1,5 @@
 exports = async function ({ _projectId, functionName, _baslikId }) {
+  return functionName
   const user = await context.user;
   const user2 = { ...user };
   const _userId = new BSON.ObjectId(user.id);
