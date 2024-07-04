@@ -1,5 +1,5 @@
 exports = async function ({ _projectId, functionName, _baslikId }) {
-  return functionName
+
   const user = await context.user;
   const user2 = { ...user };
   const _userId = new BSON.ObjectId(user.id);
@@ -33,7 +33,7 @@ exports = async function ({ _projectId, functionName, _baslikId }) {
     pozBasliklari: [{ _id: _baslikId, show: ["webPage_pozlar"] }],
   };
 
-  if ((functionName = "webPage_pozlar_show")) {
+  if ((functionName == "webPage_pozlar_show")) {
     const result = collection_Users.updateOne({ userId: user.id }, [
       {
         $set: {
