@@ -32,7 +32,20 @@ exports = async function ({ _projectId, functionName, _baslikId }) {
     pozBasliklari: [{ _id: _baslikId, show: ["webPage_pozlar"] }],
   };
 
-  let deneme = "pozBasliklari";
+  
+  let updateObj
+
+  if(functionName == "webPage_pozlar_show") {
+    updateObj = {
+      _projectId,
+      _baslikId,
+      tur:"update",
+      baslikProperty:"pozBasliklari",
+      upProperty:"show",
+      upPropertyData:"webPage_pozlar",
+    }
+  }
+
 
   if (functionName == "webPage_pozlar_show") {
     const result = collection_Users.updateOne({ userId: user.id }, [
@@ -80,7 +93,7 @@ exports = async function ({ _projectId, functionName, _baslikId }) {
                                 $mergeObjects: [
                                   "$$oneSet",
                                   {
-                                    [deneme]: {
+                                    [updateObj.baslikProperty]: {
                                       $cond: {
                                         if: {
                                           $in: [
