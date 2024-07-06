@@ -32,20 +32,18 @@ exports = async function ({ _projectId, functionName, _baslikId }) {
     pozBasliklari: [{ _id: _baslikId, show: ["webPage_pozlar"] }],
   };
 
-  
-  let updateObj
+  let updateObj;
 
-  if(functionName == "webPage_pozlar_show") {
+  if (functionName == "webPage_pozlar_show") {
     updateObj = {
       _projectId,
       _baslikId,
-      tur:"update",
-      baslikProperty:"pozBasliklari",
-      upProperty:"show",
-      upPropertyData:"webPage_pozlar",
-    }
+      tur: "update",
+      baslikProperty: "pozBasliklari",
+      upProperty: "show",
+      upPropertyData: "webPage_pozlar",
+    };
   }
-
 
   if (functionName == "webPage_pozlar_show") {
     const result = collection_Users.updateOne({ userId: user.id }, [
@@ -82,10 +80,15 @@ exports = async function ({ _projectId, functionName, _baslikId }) {
                               if: {
                                 $and: [
                                   {
-                                    $ifNull: ["$$oneSet"[updateObj.baslikProperty], false],
+                                    $ifNull: [
+                                      "$$oneSet"[updateObj.baslikProperty],
+                                      false,
+                                    ],
                                   },
                                   {
-                                    $isArray: "$$oneSet"[updateObj.baslikProperty],
+                                    $isArray: "$$oneSet"[
+                                      updateObj.baslikProperty
+                                    ],
                                   },
                                 ],
                               },
@@ -98,12 +101,15 @@ exports = async function ({ _projectId, functionName, _baslikId }) {
                                         if: {
                                           $in: [
                                             _baslikId,
-                                            "$$oneSet"[updateObj.baslikProperty]._id,
+                                            "$$oneSet"[updateObj.baslikProperty]
+                                              ._id,
                                           ],
                                         },
                                         then: {
                                           $map: {
-                                            input: "$$oneSet"[updateObj.baslikProperty],
+                                            input: "$$oneSet"[
+                                              updateObj.baslikProperty
+                                            ],
                                             as: "oneBaslik",
                                             in: {
                                               $cond: {
@@ -162,7 +168,9 @@ exports = async function ({ _projectId, functionName, _baslikId }) {
                                                 show: ["webPage_pozlar"],
                                               },
                                             ],
-                                            "$$oneSet"[updateObj.baslikProperty],
+                                            "$$oneSet"[
+                                              updateObj.baslikProperty
+                                            ],
                                           ],
                                         },
                                       },
@@ -246,7 +254,7 @@ exports = async function ({ _projectId, functionName, _baslikId }) {
                       {
                         pozBasliklari: {
                           $map: {
-                            input: "$$oneSet[updateObj.baslikProperty]",
+                            input: "$$oneSet.pozBasliklari",
                             as: "oneBaslik",
                             in: {
                               $cond: {
