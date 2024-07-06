@@ -1,5 +1,4 @@
 exports = async function ({ _projectId, functionName, _baslikId }) {
-
   const user = await context.user;
   const user2 = { ...user };
   const _userId = new BSON.ObjectId(user.id);
@@ -33,7 +32,9 @@ exports = async function ({ _projectId, functionName, _baslikId }) {
     pozBasliklari: [{ _id: _baslikId, show: ["webPage_pozlar"] }],
   };
 
-  if ((functionName == "webPage_pozlar_show")) {
+  let deneme = "pozBasliklari";
+
+  if (functionName == "webPage_pozlar_show") {
     const result = collection_Users.updateOne({ userId: user.id }, [
       {
         $set: {
@@ -79,7 +80,7 @@ exports = async function ({ _projectId, functionName, _baslikId }) {
                                 $mergeObjects: [
                                   "$$oneSet",
                                   {
-                                    pozBasliklari: {
+                                    [deneme]: {
                                       $cond: {
                                         if: {
                                           $in: [
@@ -210,7 +211,7 @@ exports = async function ({ _projectId, functionName, _baslikId }) {
         },
       },
     ]);
-    return {result,situation:"show",functionName};
+    return { result, situation: "show", functionName };
   }
 
   if (functionName == "webPage_pozlar_hide") {
@@ -274,8 +275,8 @@ exports = async function ({ _projectId, functionName, _baslikId }) {
         },
       },
     ]);
-    return {result,situation:"hide",functionName};
+    return { result, situation: "hide", functionName };
   }
 
-  return {situation:"empty"};
+  return { situation: "empty" };
 };
