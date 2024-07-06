@@ -101,7 +101,7 @@ exports = async function ({ _projectId, functionName, _baslikId }) {
                                         if: {
                                           $in: [
                                             _baslikId,
-                                            "$$oneSet.pozBasliklari._id",
+                                            $$oneSet["pozBasliklari"]._id,
                                           ],
                                         },
                                         then: {
