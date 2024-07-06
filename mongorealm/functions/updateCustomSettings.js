@@ -82,10 +82,10 @@ exports = async function ({ _projectId, functionName, _baslikId }) {
                               if: {
                                 $and: [
                                   {
-                                    $ifNull: ["$$oneSet[updateObj.baslikProperty]", false],
+                                    $ifNull: ["$$oneSet"[updateObj.baslikProperty], false],
                                   },
                                   {
-                                    $isArray: "$$oneSet[updateObj.baslikProperty]",
+                                    $isArray: "$$oneSet"[updateObj.baslikProperty],
                                   },
                                 ],
                               },
@@ -98,12 +98,12 @@ exports = async function ({ _projectId, functionName, _baslikId }) {
                                         if: {
                                           $in: [
                                             _baslikId,
-                                            "$$oneSet[updateObj.baslikProperty]._id",
+                                            "$$oneSet"[updateObj.baslikProperty]._id,
                                           ],
                                         },
                                         then: {
                                           $map: {
-                                            input: "$$oneSet[updateObj.baslikProperty]",
+                                            input: "$$oneSet"[updateObj.baslikProperty],
                                             as: "oneBaslik",
                                             in: {
                                               $cond: {
@@ -162,7 +162,7 @@ exports = async function ({ _projectId, functionName, _baslikId }) {
                                                 show: ["webPage_pozlar"],
                                               },
                                             ],
-                                            "$$oneSet[updateObj.baslikProperty]",
+                                            "$$oneSet"[updateObj.baslikProperty],
                                           ],
                                         },
                                       },
