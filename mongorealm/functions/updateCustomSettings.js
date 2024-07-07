@@ -32,21 +32,20 @@ exports = async function ({ _projectId, functionName, _baslikId }) {
     pozBasliklari: [{ _id: _baslikId, show: ["webPage_pozlar"] }],
   };
 
-  
-  let updateObj
+  let updateObj;
 
-  if(functionName == "webPage_pozlar_show") {
+  if (functionName == "webPage_pozlar_show") {
     updateObj = {
       _projectId,
       _baslikId,
-      tur:"update",
-      baslikProperty:"pozBasliklari",
-      upProperty:"show",
-      upPropertyData:"webPage_pozlar",
-    }
+      tur: "update",
+      baslikProperty: "pozBasliklari",
+      upProperty: "show",
+      upPropertyData: "webPage_pozlar",
+    };
   }
 
-  let deneme = "show"
+  let deneme = "show";
 
   if (functionName == "webPage_pozlar_show") {
     const result = collection_Users.updateOne({ userId: user.id }, [
@@ -160,7 +159,9 @@ exports = async function ({ _projectId, functionName, _baslikId }) {
                                             [
                                               {
                                                 _id: _baslikId,
-                                                show: ["webPage_pozlar_(baslik_cerated_and_pushed_pozBasliklari)"],
+                                                show: [
+                                                  "webPage_pozlar_(baslik_cerated_and_pushed_pozBasliklari)",
+                                                ],
                                               },
                                             ],
                                             "$$oneSet.pozBasliklari",
@@ -178,7 +179,9 @@ exports = async function ({ _projectId, functionName, _baslikId }) {
                                     pozBasliklari: [
                                       {
                                         _id: _baslikId,
-                                        show: ["webPage_pozlar_(pozBasliklari_cretaed)"],
+                                        show: [
+                                          "webPage_pozlar_(pozBasliklari_cretaed)",
+                                        ],
                                       },
                                     ],
                                   },
@@ -200,7 +203,9 @@ exports = async function ({ _projectId, functionName, _baslikId }) {
                           pozBasliklari: [
                             {
                               _id: _baslikId,
-                              show: ["webPage_pozlar_(project_cretated_and_pushed_customSettings)"],
+                              show: [
+                                "webPage_pozlar_(project_cretated_and_pushed_customSettings)",
+                              ],
                             },
                           ],
                         },
@@ -263,9 +268,14 @@ exports = async function ({ _projectId, functionName, _baslikId }) {
                                           input: "$$oneBaslik.show",
                                           as: "oneShow",
                                           cond: {
-                                            $ne: [
-                                              "$$oneShow",
-                                              "webPage_pozlar",
+                                            $lt: [
+                                              {
+                                                $indexOfBytes: [
+                                                  "$$oneShow",
+                                                  "webPage_pozlar",
+                                                ],
+                                              },
+                                              0,
                                             ],
                                           },
                                         },
