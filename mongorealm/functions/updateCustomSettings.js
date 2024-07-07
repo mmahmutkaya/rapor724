@@ -269,9 +269,11 @@ exports = async function ({ _projectId, functionName, _baslikId }) {
                                           input: "$$oneBaslik.show",
                                           as: "oneShow",
                                           cond: {
-                                            $ne: [
-                                              "$$oneShow",
-                                              "webPage_pozlar",
+                                            $lt: [
+                                              {
+                                                $indexOfBytes: ["$$oneShow", "webPage_pozlar"],
+                                              },
+                                              0,
                                             ],
                                           },
                                         },
