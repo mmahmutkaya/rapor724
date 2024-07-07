@@ -80,15 +80,10 @@ exports = async function ({ _projectId, functionName, _baslikId }) {
                               if: {
                                 $and: [
                                   {
-                                    $ifNull: [
-                                      "$$oneSet.pozBasliklari",
-                                      false,
-                                    ],
+                                    $ifNull: ["$$oneSet.pozBasliklari", false],
                                   },
                                   {
-                                    $isArray: "$$oneSet"[
-                                      updateObj.baslikProperty
-                                    ],
+                                    $isArray: "$$oneSet.pozBasliklari",
                                   },
                                 ],
                               },
@@ -142,7 +137,7 @@ exports = async function ({ _projectId, functionName, _baslikId }) {
                                                             $concatArrays: [
                                                               "$$oneBaslik.show",
                                                               [
-                                                                "webPage_pozlar_1", 
+                                                                "webPage_pozlar_1",
                                                               ],
                                                             ],
                                                           },
@@ -271,7 +266,10 @@ exports = async function ({ _projectId, functionName, _baslikId }) {
                                           cond: {
                                             $lt: [
                                               {
-                                                $indexOfBytes: ["$$oneShow", "webPage_pozlar"],
+                                                $indexOfBytes: [
+                                                  "$$oneShow",
+                                                  "webPage_pozlar",
+                                                ],
                                               },
                                               0,
                                             ],
