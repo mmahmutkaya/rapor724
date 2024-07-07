@@ -123,26 +123,26 @@ exports = async function ({ _projectId, functionName, _baslikId }) {
                                                             $and: [
                                                               {
                                                                 $ifNull: [
-                                                                   "$$oneBaslik." + deneme,
+                                                                   "$$oneBaslik." + updateObj.upProperty,
                                                                   false,
                                                                 ],
                                                               },
                                                               {
                                                                 $isArray:
-                                                                   "$$oneBaslik." + deneme,
+                                                                   "$$oneBaslik." + updateObj.upProperty,
                                                               },
                                                             ],
                                                           },
                                                           then: {
                                                             $concatArrays: [
-                                                              "$$oneBaslik." + deneme,
+                                                              "$$oneBaslik." + updateObj.upProperty,
                                                               [
-                                                                "webPage_pozlar_(push_show_array)",
+                                                                updateObj.upPropertyData + "_(push_show_array)",
                                                               ],
                                                             ],
                                                           },
                                                           else: [
-                                                            "webPage_pozlar_(show_created_exist_baslik)",
+                                                            updateObj.upPropertyData + "_(show_created_exist_baslik)",
                                                           ],
                                                         },
                                                       },
@@ -160,7 +160,7 @@ exports = async function ({ _projectId, functionName, _baslikId }) {
                                               {
                                                 _id: _baslikId,
                                                 show: [
-                                                  "webPage_pozlar_(baslik_cerated_and_pushed_pozBasliklari)",
+                                                  updateObj.upPropertyData + "_(baslik_cerated_and_pushed_pozBasliklari)",
                                                 ],
                                               },
                                             ],
@@ -180,7 +180,7 @@ exports = async function ({ _projectId, functionName, _baslikId }) {
                                       {
                                         _id: _baslikId,
                                         show: [
-                                          "webPage_pozlar_(pozBasliklari_cretaed)",
+                                          updateObj.upPropertyData + "_(pozBasliklari_cretaed)",
                                         ],
                                       },
                                     ],
@@ -204,7 +204,7 @@ exports = async function ({ _projectId, functionName, _baslikId }) {
                             {
                               _id: _baslikId,
                               show: [
-                                "webPage_pozlar_(project_cretated_and_pushed_customSettings)",
+                                updateObj.upPropertyData + "_(project_cretated_and_pushed_customSettings)",
                               ],
                             },
                           ],
@@ -220,7 +220,7 @@ exports = async function ({ _projectId, functionName, _baslikId }) {
                   pozBasliklari: [
                     {
                       _id: _baslikId,
-                      show: ["webPage_pozlar_(customSettings_created)"],
+                      show: [updateObj.upPropertyData + "_(customSettings_created)"],
                     },
                   ],
                 },
