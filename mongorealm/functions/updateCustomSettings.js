@@ -129,7 +129,7 @@ exports = async function ({ _projectId, functionName, _baslikId }) {
                                                               },
                                                               {
                                                                 $isArray:
-                                                                  "$$oneBaslik.show",
+                                                                  "$$oneBaslik." + "show",
                                                               },
                                                             ],
                                                           },
@@ -149,7 +149,7 @@ exports = async function ({ _projectId, functionName, _baslikId }) {
                                                     },
                                                   ],
                                                 },
-                                                else: "diğer başlığı sildik",
+                                                else: "$$oneBaslik",
                                               },
                                             },
                                           },
