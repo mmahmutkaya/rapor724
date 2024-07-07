@@ -123,19 +123,19 @@ exports = async function ({ _projectId, functionName, _baslikId }) {
                                                             $and: [
                                                               {
                                                                 $ifNull: [
-                                                                  "$$oneBaslik.show",
+                                                                   "$$one" + "Baslik." + "show",
                                                                   false,
                                                                 ],
                                                               },
                                                               {
                                                                 $isArray:
-                                                                  "$$oneBaslik." + "show",
+                                                                   "$$one" + "Baslik." + "show",
                                                               },
                                                             ],
                                                           },
                                                           then: {
                                                             $concatArrays: [
-                                                              "$$oneBaslik.show",
+                                                              "$$one" + "Baslik." + "show",
                                                               [
                                                                 "webPage_pozlar_(push_show_array)",
                                                               ],
