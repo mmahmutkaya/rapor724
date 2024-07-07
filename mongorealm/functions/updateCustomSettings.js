@@ -137,7 +137,7 @@ exports = async function ({ _projectId, functionName, _baslikId }) {
                                                             $concatArrays: [
                                                               {
                                                                 $concat: [
-                                                                  "$$oneBaslik.show"
+                                                                  '"$$oneBaslik.show"'
                                                                 ],
                                                               },
                                                               [
