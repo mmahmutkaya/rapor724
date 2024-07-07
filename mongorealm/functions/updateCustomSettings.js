@@ -81,7 +81,7 @@ exports = async function ({ _projectId, functionName, _baslikId }) {
                                 $and: [
                                   {
                                     $ifNull: [
-                                      "$$oneSet"[updateObj.baslikProperty],
+                                      $$oneSet[updateObj.baslikProperty],
                                       false,
                                     ],
                                   },
@@ -142,12 +142,12 @@ exports = async function ({ _projectId, functionName, _baslikId }) {
                                                             $concatArrays: [
                                                               "$$oneBaslik.show",
                                                               [
-                                                                "webPage_pozlar1",
+                                                                "webPage_pozlar_1", 
                                                               ],
                                                             ],
                                                           },
                                                           else: [
-                                                            "webPage_pozlar2",
+                                                            "webPage_pozlar_updated",
                                                           ],
                                                         },
                                                       },
