@@ -46,6 +46,7 @@ exports = async function ({ _projectId, functionName, _baslikId }) {
     }
   }
 
+  let deneme = "show"
 
   if (functionName == "webPage_pozlar_show") {
     const result = collection_Users.updateOne({ userId: user.id }, [
@@ -135,7 +136,7 @@ exports = async function ({ _projectId, functionName, _baslikId }) {
                                                           },
                                                           then: {
                                                             $concatArrays: [
-                                                              "$$oneBaslik.show",
+                                                              "$$oneBaslik"[deneme],
                                                               [
                                                                 "webPage_pozlar_(push_show_array)",
                                                               ],
