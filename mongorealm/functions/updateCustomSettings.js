@@ -1,6 +1,6 @@
 exports = async function ({ _projectId, functionName, _baslikId }) {
   const user = await context.user;
-  const user2 = { ...user };
+
   const _userId = new BSON.ObjectId(user.id);
   const mailTeyit = user.custom_data.mailTeyit;
   if (!mailTeyit)
@@ -27,10 +27,6 @@ exports = async function ({ _projectId, functionName, _baslikId }) {
     .db("rapor724_v2")
     .collection("users");
 
-  const data = {
-    _projectId,
-    pozBasliklari: [{ _id: _baslikId, show: ["webPage_pozlar"] }],
-  };
 
   let updateObj;
 
