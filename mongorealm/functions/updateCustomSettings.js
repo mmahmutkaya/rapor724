@@ -32,18 +32,20 @@ exports = async function ({ _projectId, functionName, _baslikId }) {
     pozBasliklari: [{ _id: _baslikId, show: ["webPage_pozlar"] }],
   };
 
-  let updateObj;
+  
+  let updateObj
 
-  if (functionName == "webPage_pozlar_show") {
+  if(functionName == "webPage_pozlar_show") {
     updateObj = {
       _projectId,
       _baslikId,
-      tur: "update",
-      baslikProperty: "pozBasliklari",
-      upProperty: "show",
-      upPropertyData: "webPage_pozlar",
-    };
+      tur:"update",
+      baslikProperty:"pozBasliklari",
+      upProperty:"show",
+      upPropertyData:"webPage_pozlar",
+    }
   }
+
 
   if (functionName == "webPage_pozlar_show") {
     const result = collection_Users.updateOne({ userId: user.id }, [
@@ -101,9 +103,7 @@ exports = async function ({ _projectId, functionName, _baslikId }) {
                                         },
                                         then: {
                                           $map: {
-                                            input: "$$oneSet"[
-                                              updateObj.baslikProperty
-                                            ],
+                                            input: "$$oneSet.pozBasliklari",
                                             as: "oneBaslik",
                                             in: {
                                               $cond: {
@@ -137,12 +137,12 @@ exports = async function ({ _projectId, functionName, _baslikId }) {
                                                             $concatArrays: [
                                                               "$$oneBaslik.show",
                                                               [
-                                                                "webPage_pozlar_1",
+                                                                "webPage_pozlar",
                                                               ],
                                                             ],
                                                           },
                                                           else: [
-                                                            "webPage_pozlar_updated",
+                                                            "webPage_pozlar",
                                                           ],
                                                         },
                                                       },
@@ -159,12 +159,10 @@ exports = async function ({ _projectId, functionName, _baslikId }) {
                                             [
                                               {
                                                 _id: _baslikId,
-                                                show: ["webPage_pozlar3"],
+                                                show: ["webPage_pozlar"],
                                               },
                                             ],
-                                            "$$oneSet"[
-                                              updateObj.baslikProperty
-                                            ],
+                                            "$$oneSet.pozBasliklari",
                                           ],
                                         },
                                       },
@@ -176,10 +174,10 @@ exports = async function ({ _projectId, functionName, _baslikId }) {
                                 $mergeObjects: [
                                   "$$oneSet",
                                   {
-                                    [updateObj.baslikProperty]: [
+                                    pozBasliklari: [
                                       {
                                         _id: _baslikId,
-                                        show: ["webPage_pozlar4"],
+                                        show: ["webPage_pozlar"],
                                       },
                                     ],
                                   },
@@ -198,10 +196,10 @@ exports = async function ({ _projectId, functionName, _baslikId }) {
                       [
                         {
                           _projectId,
-                          [updateObj.baslikProperty]: [
+                          pozBasliklari: [
                             {
                               _id: _baslikId,
-                              show: ["webPage_pozlar5"],
+                              show: ["webPage_pozlar"],
                             },
                           ],
                         },
@@ -213,10 +211,10 @@ exports = async function ({ _projectId, functionName, _baslikId }) {
               else: [
                 {
                   _projectId,
-                  [updateObj.baslikProperty]: [
+                  pozBasliklari: [
                     {
                       _id: _baslikId,
-                      show: ["webPage_pozlar6"],
+                      show: ["webPage_pozlar"],
                     },
                   ],
                 },
@@ -264,14 +262,9 @@ exports = async function ({ _projectId, functionName, _baslikId }) {
                                           input: "$$oneBaslik.show",
                                           as: "oneShow",
                                           cond: {
-                                            $lt: [
-                                              {
-                                                $indexOfBytes: [
-                                                  "$$oneShow",
-                                                  "webPage_pozlar",
-                                                ],
-                                              },
-                                              0,
+                                            $ne: [
+                                              "$$oneShow",
+                                              "webPage_pozlar",
                                             ],
                                           },
                                         },
