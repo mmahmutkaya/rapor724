@@ -137,12 +137,12 @@ exports = async function ({ _projectId, functionName, _baslikId }) {
                                                             $concatArrays: [
                                                               "$$oneBaslik.show",
                                                               [
-                                                                "webPage_pozlar_(push_array)",
+                                                                "webPage_pozlar_(push_show_array)",
                                                               ],
                                                             ],
                                                           },
                                                           else: [
-                                                            "webPage_pozlar_(show_created)",
+                                                            "webPage_pozlar_(show_created_exist_baslik)",
                                                           ],
                                                         },
                                                       },
