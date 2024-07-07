@@ -142,12 +142,12 @@ exports = async function ({ _projectId, functionName, _baslikId }) {
                                                             $concatArrays: [
                                                               "$$oneBaslik.show",
                                                               [
-                                                                "webPage_pozlar",
+                                                                "webPage_pozlar1",
                                                               ],
                                                             ],
                                                           },
                                                           else: [
-                                                            "webPage_pozlar",
+                                                            "webPage_pozlar2",
                                                           ],
                                                         },
                                                       },
@@ -164,7 +164,7 @@ exports = async function ({ _projectId, functionName, _baslikId }) {
                                             [
                                               {
                                                 _id: _baslikId,
-                                                show: ["webPage_pozlar"],
+                                                show: ["webPage_pozlar3"],
                                               },
                                             ],
                                             "$$oneSet"[
@@ -184,7 +184,7 @@ exports = async function ({ _projectId, functionName, _baslikId }) {
                                     [updateObj.baslikProperty]: [
                                       {
                                         _id: _baslikId,
-                                        show: ["webPage_pozlar"],
+                                        show: ["webPage_pozlar4"],
                                       },
                                     ],
                                   },
@@ -206,7 +206,7 @@ exports = async function ({ _projectId, functionName, _baslikId }) {
                           [updateObj.baslikProperty]: [
                             {
                               _id: _baslikId,
-                              show: ["webPage_pozlar"],
+                              show: ["webPage_pozlar5"],
                             },
                           ],
                         },
@@ -221,7 +221,7 @@ exports = async function ({ _projectId, functionName, _baslikId }) {
                   [updateObj.baslikProperty]: [
                     {
                       _id: _baslikId,
-                      show: ["webPage_pozlar"],
+                      show: ["webPage_pozlar6"],
                     },
                   ],
                 },
