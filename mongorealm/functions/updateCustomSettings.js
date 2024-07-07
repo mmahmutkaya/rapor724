@@ -135,11 +135,7 @@ exports = async function ({ _projectId, functionName, _baslikId }) {
                                                           },
                                                           then: {
                                                             $concatArrays: [
-                                                              {
-                                                                $concat: [
-                                                                  '"$$oneBaslik.show"'
-                                                                ],
-                                                              },
+                                                              "$$oneBaslik.show",
                                                               [
                                                                 "webPage_pozlar_(push_show_array)",
                                                               ],
@@ -153,7 +149,7 @@ exports = async function ({ _projectId, functionName, _baslikId }) {
                                                     },
                                                   ],
                                                 },
-                                                else: "$$oneBaslik",
+                                                else: "diğer başlığı sildik",
                                               },
                                             },
                                           },
