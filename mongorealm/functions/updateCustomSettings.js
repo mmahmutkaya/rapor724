@@ -38,14 +38,11 @@ exports = async function ({ _projectId, functionName, _baslikId }) {
     updateObj = {
       _projectId,
       _baslikId,
-      tur: "update",
       baslikProperty: "pozBasliklari",
       upProperty: "show",
       upPropertyData: "webPage_pozlar",
     };
   }
-
-  let deneme = "show";
 
   if (functionName == "webPage_pozlar_show") {
     const result = collection_Users.updateOne({ userId: user.id }, [
@@ -66,7 +63,10 @@ exports = async function ({ _projectId, functionName, _baslikId }) {
               then: {
                 $cond: {
                   if: {
-                    $in: [updateObj._projectId, "$customProjectSettings._projectId"],
+                    $in: [
+                      updateObj._projectId,
+                      "$customProjectSettings._projectId",
+                    ],
                   },
                   then: {
                     $map: {
@@ -82,10 +82,14 @@ exports = async function ({ _projectId, functionName, _baslikId }) {
                               if: {
                                 $and: [
                                   {
-                                    $ifNull: ["$$oneSet." + updateObj.baslikProperty, false],
+                                    $ifNull: [
+                                      "$$oneSet." + updateObj.baslikProperty,
+                                      false,
+                                    ],
                                   },
                                   {
-                                    $isArray: "$$oneSet." + updateObj.baslikProperty,
+                                    $isArray:
+                                      "$$oneSet." + updateObj.baslikProperty,
                                   },
                                 ],
                               },
@@ -97,19 +101,23 @@ exports = async function ({ _projectId, functionName, _baslikId }) {
                                       $cond: {
                                         if: {
                                           $in: [
-                                            _baslikId,
-                                            "$$oneSet." + updateObj.baslikProperty + "._id",
+                                            updateObj._baslikId,
+                                            "$$oneSet." +
+                                              updateObj.baslikProperty +
+                                              "._id",
                                           ],
                                         },
                                         then: {
                                           $map: {
-                                            input: "$$oneSet." + updateObj.baslikProperty,
+                                            input:
+                                              "$$oneSet." +
+                                              updateObj.baslikProperty,
                                             as: "oneBaslik",
                                             in: {
                                               $cond: {
                                                 if: {
                                                   $eq: [
-                                                    _baslikId,
+                                                    updateObj._baslikId,
                                                     "$$oneBaslik._id",
                                                   ],
                                                 },
@@ -117,32 +125,37 @@ exports = async function ({ _projectId, functionName, _baslikId }) {
                                                   $mergeObjects: [
                                                     "$$oneBaslik",
                                                     {
-                                                      show: {
+                                                      [updateObj.upProperty]: {
                                                         $cond: {
                                                           if: {
                                                             $and: [
                                                               {
                                                                 $ifNull: [
-                                                                   "$$oneBaslik." + updateObj.upProperty,
+                                                                  "$$oneBaslik." +
+                                                                    updateObj.upProperty,
                                                                   false,
                                                                 ],
                                                               },
                                                               {
                                                                 $isArray:
-                                                                   "$$oneBaslik." + updateObj.upProperty,
+                                                                  "$$oneBaslik." +
+                                                                  updateObj.upProperty,
                                                               },
                                                             ],
                                                           },
                                                           then: {
                                                             $concatArrays: [
-                                                              "$$oneBaslik." + updateObj.upProperty,
+                                                              "$$oneBaslik." +
+                                                                updateObj.upProperty,
                                                               [
-                                                                updateObj.upPropertyData + "_(push_show_array)",
+                                                                updateObj.upPropertyData +
+                                                                  "_(push_to_exist_upPropertyArray)",
                                                               ],
                                                             ],
                                                           },
                                                           else: [
-                                                            updateObj.upPropertyData + "_(show_created_exist_baslik)",
+                                                            updateObj.upPropertyData +
+                                                              "_(upPropertyArray_created_exist_baslik)",
                                                           ],
                                                         },
                                                       },
@@ -158,13 +171,15 @@ exports = async function ({ _projectId, functionName, _baslikId }) {
                                           $concatArrays: [
                                             [
                                               {
-                                                _id: _baslikId,
-                                                show: [
-                                                  updateObj.upPropertyData + "_(baslik_cerated_and_pushed_pozBasliklari)",
+                                                _id: updateObj._baslikId,
+                                                [updateObj.upProperty]: [
+                                                  updateObj.upPropertyData +
+                                                    "_(baslik_cerated_and_pushed_exist_baslikArray)",
                                                 ],
                                               },
                                             ],
-                                            "$$oneSet." + updateObj.baslikProperty,
+                                            "$$oneSet." +
+                                              updateObj.baslikProperty,
                                           ],
                                         },
                                       },
@@ -178,9 +193,10 @@ exports = async function ({ _projectId, functionName, _baslikId }) {
                                   {
                                     [updateObj.baslikProperty]: [
                                       {
-                                        _id: _baslikId,
-                                        show: [
-                                          updateObj.upPropertyData + "_(pozBasliklari_cretaed)",
+                                        _id: updateObj._baslikId,
+                                        [updateObj.upProperty]: [
+                                          updateObj.upPropertyData +
+                                            "_(baslikArray_created)",
                                         ],
                                       },
                                     ],
@@ -202,9 +218,10 @@ exports = async function ({ _projectId, functionName, _baslikId }) {
                           _projectId,
                           [updateObj.baslikProperty]: [
                             {
-                              _id: _baslikId,
-                              show: [
-                                updateObj.upPropertyData + "_(project_cretated_and_pushed_customSettings)",
+                              _id: updateObj._baslikId,
+                              [updateObj.upProperty]: [
+                                updateObj.upPropertyData +
+                                  "_(project_created_and_pushed_customSettings)",
                               ],
                             },
                           ],
@@ -219,8 +236,10 @@ exports = async function ({ _projectId, functionName, _baslikId }) {
                   _projectId,
                   [updateObj.baslikProperty]: [
                     {
-                      _id: _baslikId,
-                      show: [updateObj.upPropertyData + "_(customSettings_created)"],
+                      _id: updateObj._baslikId,
+                      [updateObj.upProperty]: [
+                        updateObj.upPropertyData + "_(customSettings_created)",
+                      ],
                     },
                   ],
                 },
