@@ -81,7 +81,7 @@ exports = async function ({ _projectId, functionName, _baslikId }) {
                                 $and: [
                                   {
                                     $ifNull: [
-                                      $$oneSet[updateObj.baslikProperty],
+                                      "$$oneSet"["pozBasliklari"],
                                       false,
                                     ],
                                   },
