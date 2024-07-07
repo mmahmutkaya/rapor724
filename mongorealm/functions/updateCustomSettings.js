@@ -137,12 +137,12 @@ exports = async function ({ _projectId, functionName, _baslikId }) {
                                                             $concatArrays: [
                                                               "$$oneBaslik.show",
                                                               [
-                                                                "webPage_pozlar",
+                                                                "webPage_pozlar_(push_array)",
                                                               ],
                                                             ],
                                                           },
                                                           else: [
-                                                            "webPage_pozlar",
+                                                            "webPage_pozlar_(show_created)",
                                                           ],
                                                         },
                                                       },
@@ -159,7 +159,7 @@ exports = async function ({ _projectId, functionName, _baslikId }) {
                                             [
                                               {
                                                 _id: _baslikId,
-                                                show: ["webPage_pozlar"],
+                                                show: ["webPage_pozlar_(baslik_cerated_and_pushed_pozBasliklari)"],
                                               },
                                             ],
                                             "$$oneSet.pozBasliklari",
@@ -177,7 +177,7 @@ exports = async function ({ _projectId, functionName, _baslikId }) {
                                     pozBasliklari: [
                                       {
                                         _id: _baslikId,
-                                        show: ["webPage_pozlar"],
+                                        show: ["webPage_pozlar_(pozBasliklari_cretaed)"],
                                       },
                                     ],
                                   },
@@ -199,7 +199,7 @@ exports = async function ({ _projectId, functionName, _baslikId }) {
                           pozBasliklari: [
                             {
                               _id: _baslikId,
-                              show: ["webPage_pozlar"],
+                              show: ["webPage_pozlar_(project_cretated_and_pushed_customSettings)"],
                             },
                           ],
                         },
@@ -214,7 +214,7 @@ exports = async function ({ _projectId, functionName, _baslikId }) {
                   pozBasliklari: [
                     {
                       _id: _baslikId,
-                      show: ["webPage_pozlar"],
+                      show: ["webPage_pozlar_(customSettings_created)"],
                     },
                   ],
                 },
