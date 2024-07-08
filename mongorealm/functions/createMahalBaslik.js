@@ -128,7 +128,7 @@ exports = async function (newMahalBaslik, _projectId) {
   // let newMahalBaslik
   newMahalBaslik = {
     ...newMahalBaslik,
-    id: maxId + 1,
+    _id: new BSON.ObjectId(),
     sira: maxSira + 1,
     createdBy: _userId,
     createdAt: currentTime,
@@ -141,50 +141,13 @@ exports = async function (newMahalBaslik, _projectId) {
   }
 
 
-
-  // const mahalBasliklari = [
-  //   { id: 1, sira: 1, referans: "kod", goster: true, sabit: true, genislik: 7, paddingInfo: "0px 1rem 0px 0px", yatayHiza: "end", name: "Mahal kod", veriTuruId: "metin" },
-  //   { id: 2, sira: 2, referans: "name", goster: true, sabit: true, genislik: 20, paddingInfo: "0px 1rem 0px 0px", yatayHiza: "end", name: "Mahal İsmi", veriTuruId: "metin" },
-  // ]
-
   const result = await collection_Projects.updateOne(
     { _id: _projectId },
     { $push: { mahalBasliklari: { ...newMahalBaslik } } }
   )
 
   return newMahalBaslik
-
-
-
-  // newMahalBaslik._id = result.insertedId
-
-  // // lbs / mahal başlığı "includesMahal:true" key.value değerine sahip değilse gerekli işlemi yapıyoruz
-
-
-  // let newProject = {...isProject}
-
-  // if (!theWbs.includesMahal) {
-
-  //   await collection_Projects.updateOne(
-  //     { _id: newMahalBaslik._projectId, "lbs._id": newMahalBaslik._lbsId },
-  //     { $set: { "lbs.$.includesMahal": true } },
-  //   );
-
-  //   let newWbsArray = project.lbs.map(oneWbs => {
-
-  //     if (oneWbs._id.toString() === newMahal._lbsId.toString()) {
-  //       return { ...oneWbs, includesMahal: true }
-  //     } else {
-  //       return oneWbs
-  //     }
-
-  //   })
-
-  //   newProject = { ...project, lbs: newLbsArray }
-
-  // }
-
-  return ({ newMahal, newProject })
+  // return ({ newMahal, newProject })
 
 };
 

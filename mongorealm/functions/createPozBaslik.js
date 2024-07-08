@@ -149,9 +149,7 @@ exports = async function (newPozBaslik, _projectId) {
   )
 
   return newPozBaslik
-
-
-  return ({ newPoz, newProject })
+  // return ({ newPoz, newProject })
 
 };
 
