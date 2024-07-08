@@ -230,6 +230,8 @@ exports = async function ({
     return { result, situation: "show", functionName };
   }
 
+  
+
   if (functionName == "pullItem") {
     result = await collection_Users.updateOne({ userId: user.id }, [
       {
@@ -260,7 +262,7 @@ exports = async function ({
                                   $mergeObjects: [
                                     "$$oneBaslik",
                                     {
-                                      show: {
+                                      [propertyName]: {
                                         $filter: {
                                           input: "$$oneBaslik." + propertyName,
                                           as: "oneShow",
@@ -269,7 +271,7 @@ exports = async function ({
                                               {
                                                 $indexOfBytes: [
                                                   "$$oneShow",
-                                                  propertyName,
+                                                  propertyValue,
                                                 ],
                                               },
                                               0,
