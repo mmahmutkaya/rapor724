@@ -34,8 +34,6 @@ exports = async function ({
     .db("rapor724_v2")
     .collection("users");
 
-  let updateObj;
-
   if (functionName == "pushItem") {
     const result = collection_Users.updateOne({ userId: user.id }, [
       {
@@ -249,9 +247,9 @@ exports = async function ({
                     $mergeObjects: [
                       "$$oneSet",
                       {
-                        pozBasliklari: {
+                        [upProperty]: {
                           $map: {
-                            input: "$$oneSet.pozBasliklari",
+                            input: "$$oneSet." + upProperty,
                             as: "oneBaslik",
                             in: {
                               $cond: {
@@ -264,14 +262,14 @@ exports = async function ({
                                     {
                                       show: {
                                         $filter: {
-                                          input: "$$oneBaslik.show",
+                                          input: "$$oneBaslik." + propertyName,
                                           as: "oneShow",
                                           cond: {
                                             $lt: [
                                               {
                                                 $indexOfBytes: [
                                                   "$$oneShow",
-                                                  "webPage_pozlar",
+                                                  propertyName,
                                                 ],
                                               },
                                               0,
