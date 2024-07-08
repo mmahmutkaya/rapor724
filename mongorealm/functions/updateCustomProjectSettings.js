@@ -128,13 +128,13 @@ exports = async function ({
                                                                 propertyName,
                                                               [
                                                                 propertyValue +
-                                                                  "_(push_to_exist_upPropertyArray)",
+                                                                  "_(push_to_exist_propertyName)",
                                                               ],
                                                             ],
                                                           },
                                                           else: [
                                                             propertyValue +
-                                                              "_(upPropertyArray_created_exist_baslik)",
+                                                              "setArrayValue_propertyNameArray",
                                                           ],
                                                         },
                                                       },
