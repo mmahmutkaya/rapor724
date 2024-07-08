@@ -232,7 +232,7 @@ exports = async function ({
     return { result, situation: "show", functionName };
   }
 
-  if (functionName == "webPage_pozlar_hide") {
+  if (functionName == "pullItem") {
     result = await collection_Users.updateOne({ userId: user.id }, [
       {
         $set: {
