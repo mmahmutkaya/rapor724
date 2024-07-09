@@ -4,7 +4,7 @@ exports = async function ({
   _mahalId,
   _pozId,
   propertyName,
-  propertyValue
+  propertyValue,
 }) {
   // gelen verileri ikiye ayırabiliriz,
   // 1-form verisinden önceki ana veriler - hata varsa hata döndürülür
@@ -89,11 +89,8 @@ exports = async function ({
     .db("rapor724_v2")
     .collection("dugumler");
 
-
-  collection_Dugumler.insertOne({name:"mahmut"})
-
   if (functionName == "level1_set") {
-    let result = await collection_Dugumler.updateOne(
+    await collection_Dugumler.updateOne(
       { _projectId, _mahalId, _pozId }, // Query for the user object of the logged in user
       [
         {
@@ -107,5 +104,5 @@ exports = async function ({
     );
   }
 
-  return {ok:true}
+  return { ok: true };
 };
