@@ -102,6 +102,7 @@ exports = async function ({
         },
       ]
     );
+    return { ok: true, functionName };
   }
 
   return { ok: true };
