@@ -90,7 +90,7 @@ exports = async function ({
     .collection("dugumler");
 
   if (functionName == "level1_set") {
-    await collection_Dugumler.updateOne(
+    const result = await collection_Dugumler.updateOne(
       { _projectId, _mahalId, _pozId }, // Query for the user object of the logged in user
       [
         {
@@ -102,7 +102,7 @@ exports = async function ({
         },
       ]
     );
-    return { ok: true, situation: functionName };
+    return { ok: true, situation: functionName, result };
   }
 
   return { ok: true, situation: false };
