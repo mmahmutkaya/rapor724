@@ -182,7 +182,7 @@
         "disable_arg_logs": true
     },
     {
-        "name": "toggleMahalPoz",
+        "name": "updateDugum",
         "private": false,
         "run_as_system": true,
         "disable_arg_logs": true
