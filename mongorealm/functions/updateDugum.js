@@ -102,8 +102,8 @@ exports = async function ({
         },
       ]
     );
-    return { ok: true, functionName };
+    return { ok: true, situation: functionName };
   }
 
-  return { ok: true };
+  return { ok: true, situation: false };
 };
