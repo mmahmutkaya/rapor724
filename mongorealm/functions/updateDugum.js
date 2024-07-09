@@ -89,6 +89,9 @@ exports = async function ({
     .db("rapor724_v2")
     .collection("dugumler");
 
+
+  collection_Dugumler.insertOne({name:"mahmut"})
+
   if (functionName == "level1_set") {
     let result = await collection_Dugumler.updateOne(
       { _projectId, _mahalId, _pozId }, // Query for the user object of the logged in user
