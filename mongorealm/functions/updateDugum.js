@@ -97,7 +97,7 @@ exports = async function ({
       {
         $merge: {
           into: "newDailySales201905",
-          on: [_projectId, _mahalId, _pozId],
+          on: ["_projectId", "_mahalId", "_pozId"],
           whenMatched: [
             {
               $set: { [propertyName]: propertyValue },
