@@ -21,20 +21,18 @@ exports = async function ({
     }
   } catch (err) {
     throw new Error(
-      "MONGO // collectionDugumler --  " +
-        "MONGO // collectionDugumler -- sorguya gönderilen --projectId-- türü doğru değil, lütfen Rapor7/24 ile irtibata geçiniz."
+      "MONGO // collectionDugumler -- sorguya gönderilen --projectId-- türü doğru değil, lütfen Rapor7/24 ile irtibata geçiniz."
     );
   }
   if (typeof _projectId != "object")
     throw new Error(
-      "MONGO // collectionDugumler --  " +
-        "MONGO // collectionDugumler -- sorguya gönderilen --projectId-- türü doğru değil, lütfen Rapor7/24 ile irtibata geçiniz. "
+     "MONGO // collectionDugumler -- sorguya gönderilen --projectId-- türü doğru değil, lütfen Rapor7/24 ile irtibata geçiniz. "
     );
 
   // tip2 - (yukarıda açıklandı)
   if (!_mahalId)
     throw new Error(
-      "MONGO // collectionDugumler // Proje Id -- sorguya gönderilmemiş, lütfen Rapor7/24 ile irtibata geçiniz. "
+      "MONGO // collectionDugumler // Mahal Id -- sorguya gönderilmemiş, lütfen Rapor7/24 ile irtibata geçiniz. "
     );
   try {
     if (typeof mahalId == "string") {
@@ -42,20 +40,18 @@ exports = async function ({
     }
   } catch (err) {
     throw new Error(
-      "MONGO // collectionDugumler --  " +
-        "MONGO // collectionDugumler -- sorguya gönderilen --mahalId-- türü doğru değil, lütfen Rapor7/24 ile irtibata geçiniz."
+      "MONGO // collectionDugumler -- sorguya gönderilen --mahalId-- türü doğru değil, lütfen Rapor7/24 ile irtibata geçiniz."
     );
   }
   if (typeof _mahalId != "object")
     throw new Error(
-      "MONGO // collectionDugumler --  " +
-        "MONGO // collectionDugumler -- sorguya gönderilen --mahalId-- türü doğru değil, lütfen Rapor7/24 ile irtibata geçiniz. "
+      "MONGO // collectionDugumler -- sorguya gönderilen --mahalId-- türü doğru değil, lütfen Rapor7/24 ile irtibata geçiniz. "
     );
 
   // tip2 - (yukarıda açıklandı)
   if (!_pozId)
     throw new Error(
-      "MONGO // collectionDugumler // Proje Id -- sorguya gönderilmemiş, lütfen Rapor7/24 ile irtibata geçiniz. "
+      "MONGO // collectionDugumler // Poz Id -- sorguya gönderilmemiş, lütfen Rapor7/24 ile irtibata geçiniz. "
     );
   try {
     if (typeof pozId == "string") {
@@ -63,14 +59,12 @@ exports = async function ({
     }
   } catch (err) {
     throw new Error(
-      "MONGO // collectionDugumler --  " +
-        "MONGO // collectionDugumler -- sorguya gönderilen --pozId-- türü doğru değil, lütfen Rapor7/24 ile irtibata geçiniz."
+      "MONGO // collectionDugumler -- sorguya gönderilen --pozId-- türü doğru değil, lütfen Rapor7/24 ile irtibata geçiniz."
     );
   }
   if (typeof _pozId != "object")
     throw new Error(
-      "MONGO // collectionDugumler --  " +
-        "MONGO // collectionDugumler -- sorguya gönderilen --pozId-- türü doğru değil, lütfen Rapor7/24 ile irtibata geçiniz. "
+      "MONGO // collectionDugumler -- sorguya gönderilen --pozId-- türü doğru değil, lütfen Rapor7/24 ile irtibata geçiniz. "
     );
 
   // tip2 - (yukarıda açıklandı)
@@ -112,21 +106,21 @@ exports = async function ({
     }
   }
 
-  return {
-    functionName,
-    _projectId,
-    _mahalId,
-    _pozId,
-    propertyName,
-    propertyValue,
-  };
+  // return {
+  //   functionName,
+  //   _projectId,
+  //   _mahalId,
+  //   _pozId,
+  //   propertyName,
+  //   propertyValue,
+  // };
 
-  // if (functionName == "getMahalListesi") {
-  //   const result = await collection_Dugumler.aggregate(
-  //      [ { $match : {  _projectId, _mahalId, _pozId } } ]
-  //   );
-  //   return result;
-  // }
+  if (functionName == "getMahalListesi") {
+    const result = await collection_Dugumler.aggregate(
+       [ { $match : {  _projectId, _mahalId, _pozId } } ]
+    );
+    return result;
+  }
 
   return { ok: true, description: "herhangi bir fonksiyon içine giremedi" };
 };
