@@ -90,23 +90,23 @@ exports = async function ({
     .collection("dugumler");
 
   if (functionName == "level1_set") {
-    const result = await collection_Dugumler.updateOne({}, [
-      {
-        $match: { _projectId, _mahalId, _pozId },
-      },
-      {
-        $merge: {
-          into: "newDailySales201905",
-          on: ["_projectId", "_mahalId", "_pozId"],
-          whenMatched: [
-            {
-              $set: { [propertyName]: propertyValue },
-            },
-          ],
-          whenNotMatched: "insert",
+    const result = await collection_Dugumler.updateOne(
+      { _projectId, _mahalId, _pozId },
+      [
+        {
+          $merge: {
+            into: "newDailySales201905",
+            on: ["_projectId", "_mahalId", "_pozId"],
+            whenMatched: [
+              {
+                $set: { [propertyName]: propertyValue },
+              },
+            ],
+            whenNotMatched: "insert",
+          },
         },
-      },
-    ]);
+      ]
+    );
     return { ok: true, situation: functionName, result };
   }
 
