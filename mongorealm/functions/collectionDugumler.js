@@ -117,7 +117,7 @@ exports = async function ({
 
   if (functionName == "getMahalListesi") {
     const result = await collection_Dugumler.aggregate(
-       [ { $match : {  _projectId, _mahalId, _pozId } } ]
+       [ { $match : {  _projectId } } ]
     );
     return result;
   }
