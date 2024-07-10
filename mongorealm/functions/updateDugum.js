@@ -104,6 +104,7 @@ exports = async function ({
         _mahalId,
         _pozId,
         [propertyName]: propertyValue,
+        metrajlar:[]
       });
       return { ok: true, functionName, description: "insertOne", result };
     }
