@@ -7,7 +7,7 @@ exports = async function ({
   propertyValue,
 }) {
 
-    return BSON.ObjectId(_projectId)
+    return BSON.ObjectId.isValid(_projectId)
   // gelen verileri ikiye ayırabiliriz,
   // 1-form verisinden önceki ana veriler - hata varsa hata döndürülür
   // 2-form verileri - hata varsa form alanlarında gözükmesi için bir obje gönderilir
