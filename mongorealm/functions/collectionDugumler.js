@@ -6,15 +6,6 @@ exports = async function ({
   propertyName,
   propertyValue,
 }) {
-
-    return {
-    functionName,
-    _projectId,
-    _mahalId,
-    _pozId,
-    propertyName,
-    propertyValue,
-  };
   // gelen verileri ikiye ayırabiliriz,
   // 1-form verisinden önceki ana veriler - hata varsa hata döndürülür
   // 2-form verileri - hata varsa form alanlarında gözükmesi için bir obje gönderilir
@@ -120,6 +111,15 @@ exports = async function ({
       return { ok: "level1_set_updateOne_aggregate", result };
     }
   }
+
+  return {
+    functionName,
+    _projectId,
+    _mahalId,
+    _pozId,
+    propertyName,
+    propertyValue,
+  };
 
   // if (functionName == "getMahalListesi") {
   //   const result = await collection_Dugumler.aggregate(
