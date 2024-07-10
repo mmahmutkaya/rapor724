@@ -103,7 +103,7 @@ exports = async function ({
         _projectId,
         _mahalId,
         _pozId,
-        [propertyName]: propertValue,
+        [propertyName]: propertyValue,
       });
       return { ok: true, functionName, description: "insertOne", result };
     }
