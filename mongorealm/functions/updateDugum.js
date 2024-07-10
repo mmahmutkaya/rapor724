@@ -94,16 +94,7 @@ exports = async function ({
       { _projectId, _mahalId, _pozId },
       [
         {
-          $merge: {
-            into: "dugumler",
-            on: ["_projectId", "_mahalId", "_pozId"],
-            whenMatched: [
-              {
-                $set: { [propertyName]: propertyValue },
-              },
-            ],
-            whenNotMatched: "insert",
-          },
+          $set: { [propertyName]: propertyValue },
         },
       ]
     );
