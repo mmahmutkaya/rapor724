@@ -113,30 +113,10 @@ exports = async function ({
   }
 
   if (functionName == "getMahalListesi") {
-    let result = await collection_Dugumler.updateOne(
-      { _projectId, _mahalId, _pozId },
-      [
-        {
-          $set: { [propertyName]: propertyValue },
-        },
-      ]
-    );
-    if (!result.matchedCount) {
-      result = await collection_Dugumler.insertOne({
-        _projectId,
-        _mahalId,
-        _pozId,
-        [propertyName]: propertyValue,
-        metrajlar: [],
-      });
-      return { ok: true, functionName, description: "insertOne", result };
-    }
-    return {
-      ok: true,
-      functionName,
-      description: "updateOne_aggregate",
-      result,
-    };
+    const result = await collection_Dugumler.aggregate({
+      $match: { _projectId, _mahalId, _pozId },
+    });
+    return result;
   }
 
   return { ok: true, description: "herhangi bir fonksiyon içine giremedi" };
