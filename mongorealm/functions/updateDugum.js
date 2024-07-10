@@ -90,7 +90,7 @@ exports = async function ({
     .collection("dugumler");
 
   if (functionName == "level1_set") {
-    const result = await collection_Dugumler.updateOne(
+    let result = await collection_Dugumler.updateOne(
       { _projectId, _mahalId, _pozId },
       [
         {
@@ -98,7 +98,21 @@ exports = async function ({
         },
       ]
     );
-    return { ok: true, situation: functionName, result };
+    if (!result.matchedCount) {
+      result = await collection_Dugumler.insertOne({
+        _projectId,
+        _mahalId,
+        _pozId,
+        [propertyName]: propertValue,
+      });
+      return { ok: true, functionName, description: "insertOne", result };
+    }
+    return {
+      ok: true,
+      functionName,
+      description: "updateOne_aggregate",
+      result,
+    };
   }
 
   return { ok: true, situation: false };
