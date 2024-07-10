@@ -13,7 +13,7 @@ exports = async function ({
   // tip2 - (yukarıda açıklandı)
   if (!_projectId)
     throw new Error(
-      "MONGO // updateDugum // Proje Id -- sorguya gönderilmemiş, lütfen Rapor7/24 ile irtibata geçiniz. "
+      "MONGO // collectionDugumler // Proje Id -- sorguya gönderilmemiş, lütfen Rapor7/24 ile irtibata geçiniz. "
     );
   try {
     if (typeof _projectId == "string") {
@@ -21,20 +21,20 @@ exports = async function ({
     }
   } catch (err) {
     throw new Error(
-      "MONGO // updateDugum --  " +
-        "MONGO // updateDugum -- sorguya gönderilen --projectId-- türü doğru değil, lütfen Rapor7/24 ile irtibata geçiniz."
+      "MONGO // collectionDugumler --  " +
+        "MONGO // collectionDugumler -- sorguya gönderilen --projectId-- türü doğru değil, lütfen Rapor7/24 ile irtibata geçiniz."
     );
   }
   if (typeof _projectId != "object")
     throw new Error(
-      "MONGO // updateDugum --  " +
-        "MONGO // updateDugum -- sorguya gönderilen --projectId-- türü doğru değil, lütfen Rapor7/24 ile irtibata geçiniz. "
+      "MONGO // collectionDugumler --  " +
+        "MONGO // collectionDugumler -- sorguya gönderilen --projectId-- türü doğru değil, lütfen Rapor7/24 ile irtibata geçiniz. "
     );
 
   // tip2 - (yukarıda açıklandı)
   if (!_mahalId)
     throw new Error(
-      "MONGO // updateDugum // Proje Id -- sorguya gönderilmemiş, lütfen Rapor7/24 ile irtibata geçiniz. "
+      "MONGO // collectionDugumler // Proje Id -- sorguya gönderilmemiş, lütfen Rapor7/24 ile irtibata geçiniz. "
     );
   try {
     if (typeof mahalId == "string") {
@@ -42,20 +42,20 @@ exports = async function ({
     }
   } catch (err) {
     throw new Error(
-      "MONGO // updateDugum --  " +
-        "MONGO // updateDugum -- sorguya gönderilen --mahalId-- türü doğru değil, lütfen Rapor7/24 ile irtibata geçiniz."
+      "MONGO // collectionDugumler --  " +
+        "MONGO // collectionDugumler -- sorguya gönderilen --mahalId-- türü doğru değil, lütfen Rapor7/24 ile irtibata geçiniz."
     );
   }
   if (typeof _mahalId != "object")
     throw new Error(
-      "MONGO // updateDugum --  " +
-        "MONGO // updateDugum -- sorguya gönderilen --mahalId-- türü doğru değil, lütfen Rapor7/24 ile irtibata geçiniz. "
+      "MONGO // collectionDugumler --  " +
+        "MONGO // collectionDugumler -- sorguya gönderilen --mahalId-- türü doğru değil, lütfen Rapor7/24 ile irtibata geçiniz. "
     );
 
   // tip2 - (yukarıda açıklandı)
   if (!_pozId)
     throw new Error(
-      "MONGO // updateDugum // Proje Id -- sorguya gönderilmemiş, lütfen Rapor7/24 ile irtibata geçiniz. "
+      "MONGO // collectionDugumler // Proje Id -- sorguya gönderilmemiş, lütfen Rapor7/24 ile irtibata geçiniz. "
     );
   try {
     if (typeof pozId == "string") {
@@ -63,14 +63,14 @@ exports = async function ({
     }
   } catch (err) {
     throw new Error(
-      "MONGO // updateDugum --  " +
-        "MONGO // updateDugum -- sorguya gönderilen --pozId-- türü doğru değil, lütfen Rapor7/24 ile irtibata geçiniz."
+      "MONGO // collectionDugumler --  " +
+        "MONGO // collectionDugumler -- sorguya gönderilen --pozId-- türü doğru değil, lütfen Rapor7/24 ile irtibata geçiniz."
     );
   }
   if (typeof _pozId != "object")
     throw new Error(
-      "MONGO // updateDugum --  " +
-        "MONGO // updateDugum -- sorguya gönderilen --pozId-- türü doğru değil, lütfen Rapor7/24 ile irtibata geçiniz. "
+      "MONGO // collectionDugumler --  " +
+        "MONGO // collectionDugumler -- sorguya gönderilen --pozId-- türü doğru değil, lütfen Rapor7/24 ile irtibata geçiniz. "
     );
 
   // tip2 - (yukarıda açıklandı)
@@ -79,7 +79,7 @@ exports = async function ({
   const mailTeyit = user.custom_data.mailTeyit;
   if (!mailTeyit)
     throw new Error(
-      "MONGO // updateDugum --  Öncelikle üyeliğinize ait mail adresinin size ait olduğunu doğrulamalısınız, tekrar giriş yapmayı deneyiniz veya bizimle iletişime geçiniz."
+      "MONGO // collectionDugumler --  Öncelikle üyeliğinize ait mail adresinin size ait olduğunu doğrulamalısınız, tekrar giriş yapmayı deneyiniz veya bizimle iletişime geçiniz."
     );
 
   const currentTime = new Date();
