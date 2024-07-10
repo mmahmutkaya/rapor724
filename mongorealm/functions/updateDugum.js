@@ -90,12 +90,12 @@ exports = async function ({
     .collection("dugumler");
 
   if (functionName == "level1_set") {
-    const result = await collection_Dugumler.update(
+    const result = await collection_Dugumler.updateOne(
       { _projectId, _mahalId, _pozId },
       [
         {
           $merge: {
-            into: "newDailySales201905",
+            into: "dugumler",
             on: ["_projectId", "_mahalId", "_pozId"],
             whenMatched: [
               {
