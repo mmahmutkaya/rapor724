@@ -90,6 +90,29 @@ exports = async function ({
     .collection("dugumler");
 
   if (functionName == "level1_set") {
+    const result = await collection_Dugumler.updateOne(
+      { _projectId, _mahalId, _pozId },
+      [
+        {
+          $set: { [propertyName]: propertyValue },
+        },
+      ]
+    );
+    if (!result.matchedCount) {
+      const result = await collection_Dugumler.insertOne({
+        _projectId,
+        _mahalId,
+        _pozId,
+        [propertyName]: propertyValue,
+        metrajlar: [],
+      });
+      return { ok: "level1_set_insertOne", result };
+    } else {
+      return { ok: "level1_set_updateOne_aggregate", result };
+    }
+  }
+
+  if (functionName == "getMahalListesi") {
     let result = await collection_Dugumler.updateOne(
       { _projectId, _mahalId, _pozId },
       [
@@ -104,7 +127,7 @@ exports = async function ({
         _mahalId,
         _pozId,
         [propertyName]: propertyValue,
-        metrajlar:[]
+        metrajlar: [],
       });
       return { ok: true, functionName, description: "insertOne", result };
     }
@@ -116,5 +139,5 @@ exports = async function ({
     };
   }
 
-  return { ok: true, situation: false };
+  return { ok: true, description: "herhangi bir fonksiyon içine giremedi" };
 };
