@@ -112,12 +112,20 @@ exports = async function ({
     }
   }
 
-  if (functionName == "getMahalListesi") {
-    const result = await collection_Dugumler.aggregate({
-      $match: { _projectId, _mahalId, _pozId },
-    });
-    return result;
-  }
+  return {
+  functionName,
+  _projectId,
+  _mahalId,
+  _pozId,
+  propertyName,
+  propertyValue,
+}
+  // if (functionName == "getMahalListesi") {
+  //   const result = await collection_Dugumler.aggregate(
+  //      [ { $match : {  _projectId, _mahalId, _pozId } } ]
+  //   );
+  //   return result;
+  // }
 
   return { ok: true, description: "herhangi bir fonksiyon içine giremedi" };
 };
