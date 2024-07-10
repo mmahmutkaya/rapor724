@@ -6,6 +6,8 @@ exports = async function ({
   propertyName,
   propertyValue,
 }) {
+
+    return BSON.ObjectId(_projectId)
   // gelen verileri ikiye ayırabiliriz,
   // 1-form verisinden önceki ana veriler - hata varsa hata döndürülür
   // 2-form verileri - hata varsa form alanlarında gözükmesi için bir obje gönderilir
@@ -17,7 +19,7 @@ exports = async function ({
     );
   try {
     if (typeof _projectId == "string") {
-      _projectId = new BSON.ObjectId(projectId);
+      _projectId = new BSON.ObjectId(_projectId);
     }
   } catch (err) {
     throw new Error(
@@ -35,8 +37,8 @@ exports = async function ({
       "MONGO // collectionDugumler // Mahal Id -- sorguya gönderilmemiş, lütfen Rapor7/24 ile irtibata geçiniz. "
     );
   try {
-    if (typeof mahalId == "string") {
-      _mahalId = new BSON.ObjectId(mahalId);
+    if (typeof _mahalId == "string") {
+      _mahalId = new BSON.ObjectId(_mahalId);
     }
   } catch (err) {
     throw new Error(
@@ -54,8 +56,8 @@ exports = async function ({
       "MONGO // collectionDugumler // Poz Id -- sorguya gönderilmemiş, lütfen Rapor7/24 ile irtibata geçiniz. "
     );
   try {
-    if (typeof pozId == "string") {
-      _pozId = new BSON.ObjectId(pozId);
+    if (typeof _pozId == "string") {
+      _pozId = new BSON.ObjectId(_pozId);
     }
   } catch (err) {
     throw new Error(
