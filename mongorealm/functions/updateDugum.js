@@ -90,7 +90,7 @@ exports = async function ({
     .collection("dugumler");
 
   if (functionName == "level1_set") {
-    const result = await collection_Dugumler.updateOne(
+    const result = await collection_Dugumler.update(
       { _projectId, _mahalId, _pozId },
       [
         {
