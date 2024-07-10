@@ -100,7 +100,7 @@ exports = async function ({
           on: [_projectId, _mahalId, _pozId],
           whenMatched: [
             {
-              $set: { [propertName]: propertyValue },
+              $set: { [propertyName]: propertyValue },
             },
           ],
           whenNotMatched: "insert",
