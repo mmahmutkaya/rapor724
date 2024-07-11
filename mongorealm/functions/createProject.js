@@ -104,7 +104,7 @@ exports = async function ({ name }) {
   
   const metrajBasliklari = [
     {
-      "id": 1,
+      "id": new BSON.ObjectId(),
       "sira": 1,
       "referans": "miktar",
       "goster": true,
@@ -116,7 +116,7 @@ exports = async function ({ name }) {
       "veriTuruId": "metin"
     },
     {
-      "id": 2,
+      "id": new BSON.ObjectId(),
       "sira": 2,
       "referans": "birim",
       "goster": true,
