@@ -52,10 +52,6 @@ exports = async function (newPoz) {
     }
   }
 
-  if (typeof newPoz.pozBirimId !== "string") {
-    newPozError.pozBirimId = "Zorunlu";
-  }
-
   // verilerde hata varsa
   if (Object.keys(newPozError).length) return { newPozError };
 
@@ -83,11 +79,11 @@ exports = async function (newPoz) {
     );
   }
 
-  if (!project.pozBirimleri.find(x => x.id == newPoz.pozBirimId)) {
+  if (!project.pozBirimleri.find((x) => x.id == newPoz.pozBirimId)) {
     newPozError.pozBirimId = "Zorunlu";
   }
 
-  if (!project.pozMetrajTipleri.find(x => x.id == newPoz.pozMetrajTipId)) {
+  if (!project.pozMetrajTipleri.find((x) => x.id == newPoz.pozMetrajTipId)) {
     newPozError.pozMetrajTipId = "Zorunlu";
   }
 
@@ -131,6 +127,7 @@ exports = async function (newPoz) {
     pozNo: newPoz.pozNo,
     name: newPoz.name,
     birimId: newPoz.pozBirimId,
+    metrajTipId: newPoz.pozMetrajTipId,
     createdBy: _userId,
     createdAt: currentTime,
     ilaveBilgiler: [],
