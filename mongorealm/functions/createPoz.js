@@ -77,16 +77,17 @@ exports = async function (newPoz) {
     members: _userId,
     isDeleted: false,
   });
-  if (!project)
+  if (!project) {
     throw new Error(
       "MONGO // createPoz // Poz eklemek istediğiniz proje sistemde bulunamadı, lütfen sayfayı yenileyiniz, sorun devam ederse Rapor7/24 ileirtibata geçiniz."
     );
+  }
 
-  if (!project.pozBirimleri.find((x) => x.id == newPoz.pozBirimId)) {
+  if (!project.pozBirimleri.find(x => x.id == newPoz.pozBirimId)) {
     newPozError.pozBirimId = "Zorunlu";
   }
 
-  if (!project.pozMetrajTipleri.find((x) => x.id == newPoz.pozMetrajTipId)) {
+  if (!project.pozMetrajTipleri.find(x => x.id == newPoz.pozMetrajTipId)) {
     newPozError.pozMetrajTipId = "Zorunlu";
   }
 
