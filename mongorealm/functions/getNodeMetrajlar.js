@@ -27,11 +27,11 @@ exports = async function ({ _projectId, _mahalId, _pozId }) {
   const metrajSatirlari = {
     guncel: {
       satirlar: {
-        row1: { kisaAciklama: "deneme", aciklama: "deneme uzun", benzer: 1, adet: 11, en: 111, boy: 1111, yukseklik: 11111, metraj: 0 },
-        row2: { kisaAciklama: "deneme", aciklama: "deneme uzun", benzer: 2, adet: 22, en: 222, boy: 2222, yukseklik: 22222, metraj: 0 },
-        row3: { kisaAciklama: "deneme", aciklama: "deneme uzun", benzer: 3, adet: 33, en: 333, boy: 3333, yukseklik: 33333, metraj: 0 },
-        row4: { kisaAciklama: "deneme", aciklama: "deneme uzun", benzer: 4, adet: 44, en: 444, boy: 4444, yukseklik: 44444, metraj: 0 },
-        row5: { kisaAciklama: "deneme", aciklama: "deneme uzun", benzer: 5, adet: 55, en: 555, boy: 5555, yukseklik: 55555, metraj: 0 },
+        row1: { satirNo:1, kisaAciklama: "deneme", aciklama: "deneme uzun", benzer: 1, adet: 11, en: 111, boy: 1111, yukseklik: 11111, metraj: 0 },
+        row2: { satirNo:2, kisaAciklama: "deneme", aciklama: "deneme uzun", benzer: 2, adet: 22, en: 222, boy: 2222, yukseklik: 22222, metraj: 0 },
+        row3: { satirNo:3, kisaAciklama: "deneme", aciklama: "deneme uzun", benzer: 3, adet: 33, en: 333, boy: 3333, yukseklik: 33333, metraj: 0 },
+        row4: { satirNo:4, kisaAciklama: "deneme", aciklama: "deneme uzun", benzer: 4, adet: 44, en: 444, boy: 4444, yukseklik: 44444, metraj: 0 },
+        row5: { satirNo:5, kisaAciklama: "deneme", aciklama: "deneme uzun", benzer: 5, adet: 55, en: 555, boy: 5555, yukseklik: 55555, metraj: 0 },
       }
     }
   }
