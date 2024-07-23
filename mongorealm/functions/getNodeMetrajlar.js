@@ -27,11 +27,11 @@ exports = async function ({ _projectId, _mahalId, _pozId }) {
   const metrajSatirlari = {
     guncel: {
       satirlar: [
-         { satirNo:1, metin1: "deneme", metin2: "deneme uzun", carpan1: 1, carpan2: 11, carpan3: 111, carpan4: 1111, carpan5: 11111, carpan6: 0 },
-         { satirNo:2, metin1: "deneme", metin2: "deneme uzun", carpan1: 2, carpan2: 22, carpan3: 222, carpan4: 2222, carpan5: 22222, carpan6: 0 },
-         { satirNo:3, metin1: "deneme", metin2: "deneme uzun", carpan1: 3, carpan2: 33, carpan3: 333, carpan4: 3333, carpan5: 33333, carpan6: 0 },
-         { satirNo:4, metin1: "deneme", metin2: "deneme uzun", carpan1: 4, carpan2: 44, carpan3: 444, carpan4: 4444, carpan5: 44444, carpan6: 0 },
-         { satirNo:5, metin1: "deneme", metin2: "deneme uzun", carpan1: 5, carpan2: 55, carpan3: 555, carpan4: 5555, carpan5: 55555, carpan6: 0 },
+         { satirNo:1, metin1: "deneme", metin2: "deneme uzun", carpan1: 1, carpan2: 11, carpan3: 111, carpan4: 1111, carpan5: 11111, metraj: 0 },
+         { satirNo:2, metin1: "deneme", metin2: "deneme uzun", carpan1: 2, carpan2: 22, carpan3: 222, carpan4: 2222, carpan5: 22222, metraj: 0 },
+         { satirNo:3, metin1: "deneme", metin2: "deneme uzun", carpan1: 3, carpan2: 33, carpan3: 333, carpan4: 3333, carpan5: 33333, metraj: 0 },
+         { satirNo:4, metin1: "deneme", metin2: "deneme uzun", carpan1: 4, carpan2: 44, carpan3: 444, carpan4: 4444, carpan5: 44444, metraj: 0 },
+         { satirNo:5, metin1: "deneme", metin2: "deneme uzun", carpan1: 5, carpan2: 55, carpan3: 555, carpan4: 5555, carpan5: 55555, metraj: 0 },
       ]
     }
   }
