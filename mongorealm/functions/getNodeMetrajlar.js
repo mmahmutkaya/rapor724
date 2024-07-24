@@ -27,8 +27,8 @@ exports = async function ({ _projectId, _mahalId, _pozId }) {
   const metrajSatirlari = {
     guncel: {
       satirlar: [
-         { satirNo:1, metin1: "deneme", metin2: "deneme uzun", carpan1: 1, carpan2: 2, carpan3: 3, carpan4: 4, carpan5: 5, metraj: 0 },
-         { satirNo:2, metin1: "deneme", metin2: "deneme uzun", carpan1: 2, carpan2: 2, carpan3: 3, carpan4: 4, carpan5: 5, metraj: 0 },
+         { satirNo:1, metin1: "deneme", metin2: "deneme uzun", carpan1: 1, carpan2: 2, carpan3: 3, carpan4: 4, carpan5: 50, metraj: 0 },
+         { satirNo:2, metin1: "deneme", metin2: "deneme uzun", carpan1: 2, carpan2: 2, carpan3: 3, carpan4: 4, carpan5: 500, metraj: 0 },
          { satirNo:3, metin1: "deneme", metin2: "deneme uzun", carpan1: 3, carpan2: 2, carpan3: 3, carpan4: 4, carpan5: 5, metraj: 0 },
          { satirNo:4, metin1: "deneme", metin2: "deneme uzun", carpan1: 4, carpan2: 2, carpan3: 3, carpan4: 4, carpan5: 5, metraj: 0 },
          { satirNo:5, metin1: "deneme", metin2: "deneme uzun", carpan1: 5, carpan2: 2, carpan3: 3, carpan4: 4, carpan5: 6, metraj: 0 },
