@@ -34,8 +34,6 @@ exports = async function ({
     .db("rapor724_v2")
     .collection("users");
 
-  let updateObj;
-
   if (functionName == "pushItem") {
     const result = collection_Users.updateOne({ userId: user.id }, [
       {
@@ -130,13 +128,13 @@ exports = async function ({
                                                                 propertyName,
                                                               [
                                                                 propertyValue +
-                                                                  "_(push_to_exist_upPropertyArray)",
+                                                                  "_(push_to_exist_propertyName)",
                                                               ],
                                                             ],
                                                           },
                                                           else: [
                                                             propertyValue +
-                                                              "_(upPropertyArray_created_exist_baslik)",
+                                                              "setArrayValue_propertyNameArray",
                                                           ],
                                                         },
                                                       },
@@ -232,7 +230,9 @@ exports = async function ({
     return { result, situation: "show", functionName };
   }
 
-  if (functionName == "webPage_pozlar_hide") {
+  
+
+  if (functionName == "pullItem") {
     result = await collection_Users.updateOne({ userId: user.id }, [
       {
         $set: {
@@ -249,9 +249,9 @@ exports = async function ({
                     $mergeObjects: [
                       "$$oneSet",
                       {
-                        pozBasliklari: {
+                        [upProperty]: {
                           $map: {
-                            input: "$$oneSet.pozBasliklari",
+                            input: "$$oneSet." + upProperty,
                             as: "oneBaslik",
                             in: {
                               $cond: {
@@ -262,16 +262,16 @@ exports = async function ({
                                   $mergeObjects: [
                                     "$$oneBaslik",
                                     {
-                                      show: {
+                                      [propertyName]: {
                                         $filter: {
-                                          input: "$$oneBaslik.show",
+                                          input: "$$oneBaslik." + propertyName,
                                           as: "oneShow",
                                           cond: {
                                             $lt: [
                                               {
                                                 $indexOfBytes: [
                                                   "$$oneShow",
-                                                  "webPage_pozlar",
+                                                  propertyValue,
                                                 ],
                                               },
                                               0,
