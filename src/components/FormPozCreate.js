@@ -35,9 +35,9 @@ export default function FormPozCreate({ setShow }) {
 
   // form verilerinde kullanmak için oluşturulan useState() verileri
   // form ilk açıldığında önceden belirlenen birşeyin seçilmiş olması için alttaki satırdaki gibi yapılabiliyor
-  // const [pozTipi, setPozTipi] = useState(isProject ? isProject.pozTipleri.find(item => item.id === "direktMahalListesi") : "");
+  const [pozMetrajTipId, setPozMetrajTipId] = useState("standartMetrajSayfasi");
+  // const [pozMetrajTipi, setPozMetrajTipi] = useState(isProject ? isProject.pozMetrajTipleri.find(item => item.id === "standartMetrajSayfasi") : "");
   const [wbsId, setWbsId] = useState();
-  // const [pozTipId, setPozTipId] = useState();
   const [pozBirimId, setPozBirimId] = useState();
   const [pozBirimDisabled, setPozBirimDisabled] = useState(false);
 
@@ -62,15 +62,13 @@ export default function FormPozCreate({ setShow }) {
         name,
         pozNo,
         pozBirimId,
+        pozMetrajTipId
       }
 
-      // // veri düzeltme
-      // if (newPoz.pozTipId === "insaatDemiri") {
-      //   newPoz.pozBirimId = "ton"
-      // }
-
-      console.log("newPoz", newPoz)
-
+      // veri düzeltme
+      if (newPoz.pozMetrajTipId === "insaatDemiri") {
+        newPoz.pozBirimId = "ton"
+      }
 
       ////// form validation - frontend
 
@@ -118,8 +116,13 @@ export default function FormPozCreate({ setShow }) {
       }
       
 
-      if (typeof newPoz.pozBirimId !== "string") {
+      if (!isProject.pozBirimleri.find(x => x.id == newPoz.pozBirimId)) {
         setNewPozError(prev => ({ ...prev, pozBirimId: "Zorunlu" }))
+        isFormError = true
+      }
+
+      if (!isProject.pozMetrajTipleri.find(x => x.id == newPoz.pozMetrajTipId)) {
+        setNewPozError(prev => ({ ...prev, pozMetrajTipId: "Zorunlu" }))
         isFormError = true
       }
 
@@ -130,7 +133,8 @@ export default function FormPozCreate({ setShow }) {
         return
       }
 
-
+      console.log("newPoz",newPoz)
+      // return
       // form verileri kontrolden geçti - db ye göndermeyi deniyoruz
             
       const result = await RealmApp?.currentUser?.callFunction("createPoz", newPoz);
@@ -183,23 +187,22 @@ export default function FormPozCreate({ setShow }) {
     setWbsId(isProject.wbs.find(item => item._id.toString() === event.target.value.toString())._id);
   };
 
-  // const handleChange_pozTipId = (event) => {
+  const handleChange_pozMetrajTipId = (event) => {
 
-  //   const pozTipId = event.target.value
-  //   setPozTipId(isProject.pozTipleri.find(item => item.id === pozTipId).id);
-  //   setPozBirimDisabled(false)
+    setPozMetrajTipId(event.target.value);
+    setPozBirimDisabled(false)
 
-  //   if (pozTipId === "insaatDemiri") {
-  //     setPozBirimId("ton")
-  //     setPozBirimDisabled(true)
-  //     setNewPozError(prevData => {
-  //       const newData = { ...prevData }
-  //       delete newData["pozBirimId"]
-  //       return newData
-  //     })
-  //   }
+    if (event.target.value === "insaatDemiri") {
+      setPozBirimId("ton")
+      setPozBirimDisabled(true)
+      setNewPozError(prevData => {
+        const newData = { ...prevData }
+        delete newData["pozBirimId"]
+        return newData
+      })
+    }
 
-  // };
+  };
 
   const handleChange_pozBirimId = (event) => {
     setPozBirimId(isProject.pozBirimleri.find(item => item.id === event.target.value).id);
@@ -421,17 +424,17 @@ export default function FormPozCreate({ setShow }) {
 
 
             {/* poz Tip seçme - çoktan seçmeli*/}
-            {/* <Box
+            <Box
               onClick={() => setNewPozError(prevData => {
                 const newData = { ...prevData }
-                delete newData["pozTipId"]
+                delete newData["pozMetrajTipId"]
                 return newData
               })}
               sx={{ minWidth: 120, marginBottom: "0rem" }}
             >
               <InputLabel
-                error={newPozError.pozTipId ? true : false}
-                id="select-pozTip-label"
+                error={newPozError.pozMetrajTipId ? true : false}
+                id="select-pozMetrajTip-label"
               >
                 <Grid container justifyContent="space-between">
                   <Grid item>Metraj Tipi Seçiniz</Grid>
@@ -439,29 +442,29 @@ export default function FormPozCreate({ setShow }) {
               </InputLabel>
 
               <Select
-                error={newPozError.pozTipId ? true : false}
+                error={newPozError.pozMetrajTipId ? true : false}
                 variant="standard"
                 fullWidth
-                labelId="select-pozTip-label"
-                id="select-pozTip"
-                value={pozTipId ? pozTipId : ""}
+                labelId="select-pozMetrajTip-label"
+                id="select-pozMetrajTip"
+                value={pozMetrajTipId ? pozMetrajTipId : ""}
                 label="Poz için tip seçiniz"
-                onChange={handleChange_pozTipId}
+                onChange={handleChange_pozMetrajTipId}
                 required
-                name="pozTipId"
+                name="pozMetrajTipId"
               >
                 {
-                  isProject?.pozTipleri.map((onePozTipi, index) => (
+                  isProject?.pozMetrajTipleri.map((onePozMetrajTipi, index) => (
                     // console.log(wbs)
-                    <MenuItem key={index} value={onePozTipi.id}>
-                      {onePozTipi.name}
+                    <MenuItem key={index} value={onePozMetrajTipi.id}>
+                      {onePozMetrajTipi.name}
                     </MenuItem>
                   ))
                 }
 
               </Select>
 
-            </Box> */}
+            </Box>
 
 
 

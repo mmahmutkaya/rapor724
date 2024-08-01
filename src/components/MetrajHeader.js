@@ -25,7 +25,7 @@ import FileDownloadDoneIcon from '@mui/icons-material/FileDownloadDone';
 import EditIcon from '@mui/icons-material/Edit';
 
 
-export default function P_Metraj({ show, setShow, editMode_Metraj, setEditMode_Metraj, saveMahal }) {
+export default function P_MetrajHeader({ show, setShow, editMode_Metraj, setEditMode_Metraj, saveMahal }) {
 
   const navigate = useNavigate()
 
@@ -60,7 +60,7 @@ export default function P_Metraj({ show, setShow, editMode_Metraj, setEditMode_M
     console.log("result", result)
   }
 
-  
+
   // const deneme = async () => {
   //   const collection = RealmApp.currentUser.mongoClient("mongodb-atlas").db("rapor724_v2").collection("collection")
   //   await collection.updateOne(
@@ -124,7 +124,7 @@ export default function P_Metraj({ show, setShow, editMode_Metraj, setEditMode_M
                   deneme()
                 }} aria-label="lbsUncliced">
                   <VisibilityIcon variant="contained" sx={{
-                    color: !selectedPoz ? "yellow" : "yellow",
+                    color: !selectedPoz ? "green" : "green",
                   }} />
                 </IconButton>
               </Grid>
@@ -136,7 +136,7 @@ export default function P_Metraj({ show, setShow, editMode_Metraj, setEditMode_M
               {!editMode_Metraj &&
                 <Grid item>
                   <IconButton onClick={() => setCustom(custom => ({ ...custom, pageMetraj_baslik1: !custom?.pageMetraj_baslik1 }))} aria-label="addLbs" disabled={(isProject?.lbs?.filter(item => item.openForMahal).length == 0 || !isProject?.lbs) ? true : false}>
-                    <VisibilityIcon variant="contained" />
+                    <VisibilityIcon variant="contained" sx={{ color: "red" }} />
                   </IconButton>
                 </Grid>
               }

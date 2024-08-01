@@ -4,7 +4,7 @@ import { useNavigate } from "react-router-dom";
 
 import { useState, useContext } from 'react';
 import { StoreContext } from './store'
-import { DialogWindow } from './general/DialogWindow';
+import { DialogAlert } from './general/DialogAlert';
 
 import { useApp } from "./useApp";
 import AppBar from '@mui/material/AppBar';
@@ -25,10 +25,12 @@ import AlignHorizontalCenterOutlinedIcon from '@mui/icons-material/AlignHorizont
 import FileDownloadDoneIcon from '@mui/icons-material/FileDownloadDone';
 import EditIcon from '@mui/icons-material/Edit';
 import ReplyIcon from '@mui/icons-material/Reply';
+import TuneIcon from '@mui/icons-material/Tune';
 
 
 
-export default function P_Metraj({ show, setShow, saveMahal }) {
+
+export default function P_MetrajEditHeader({ show, setShow, saveMahal }) {
 
 
   const navigate = useNavigate()
@@ -37,6 +39,7 @@ export default function P_Metraj({ show, setShow, saveMahal }) {
   const { custom, setCustom } = useContext(StoreContext)
   const { selectedNode, setSelectedNode } = useContext(StoreContext)
   const { editNodeMetraj, setEditNodeMetraj } = useContext(StoreContext)
+  const { showNodeMetraj, setShowNodeMetraj } = useContext(StoreContext)
 
   const { isProject, setIsProject } = useContext(StoreContext)
   const { selectedPoz, setSelectedPoz } = useContext(StoreContext)
@@ -49,7 +52,7 @@ export default function P_Metraj({ show, setShow, saveMahal }) {
   const [willBeUpdate_mahalBaslik, setWillBeUpdate_mahalBaslik] = useState(false)
 
   const [showDialog, setShowDialog] = useState(false)
-  const [dialogCase, setDialogCase] = useState("")
+  const [dialogAgree, setDialogAgree] = useState(false)
 
   let header = "Metraj"
 
@@ -58,7 +61,7 @@ export default function P_Metraj({ show, setShow, saveMahal }) {
     <Paper >
 
       {showDialog &&
-        <DialogWindow dialogCase={dialogCase} showDialog={showDialog} setShowDialog={setShowDialog} />
+        <DialogAlert dialogIcon={"warning"} dialogMessage={"Yaptığınız değişiklikleri kaybedeceksiniz ?"} setShowDialog={setShowDialog} setDialogAgree={setDialogAgree} />
       }
 
       <AppBar
@@ -91,7 +94,7 @@ export default function P_Metraj({ show, setShow, saveMahal }) {
             >
               {header} {" > "}
 
-              <Typography variant="h6" fontWeight="bold" component={"span"} sx={{ color: "darkred" }}>{selectedPoz.name}</Typography>
+              <Typography variant="h6" fontWeight="bold" component={"span"} sx={{ color: "darkred" }}>{selectedPoz?.name}</Typography>
 
             </Typography>
           </Grid>
@@ -104,8 +107,7 @@ export default function P_Metraj({ show, setShow, saveMahal }) {
             <Grid container spacing={1}>
 
 
-
-              {selectedPoz && !editNodeMetraj &&
+              {selectedPoz && !selectedNode &&
                 <Grid item >
                   <IconButton onClick={() => {
                     navigate("/metraj")
@@ -118,7 +120,7 @@ export default function P_Metraj({ show, setShow, saveMahal }) {
                 </Grid>
               }
 
-              {selectedNode && !editNodeMetraj &&
+              {selectedNode && !showNodeMetraj &&
                 <Grid item >
                   <IconButton onClick={() => {
                     setSelectedNode()
@@ -130,8 +132,34 @@ export default function P_Metraj({ show, setShow, saveMahal }) {
                 </Grid>
               }
 
+              {selectedNode && !showNodeMetraj &&
+                <Grid item >
+                  <IconButton onClick={() => {
+                    setShowNodeMetraj(true)
+                  }} aria-label="lbsUncliced">
+                    <TuneIcon variant="contained" sx={{
+                      color: "green",
+                    }} />
+                  </IconButton>
+                </Grid>
+              }
 
-              {selectedNode && !editNodeMetraj &&
+
+
+
+              {showNodeMetraj && !editNodeMetraj &&
+                <Grid item >
+                  <IconButton onClick={() => {
+                    setShowNodeMetraj()
+                  }} aria-label="lbsUncliced">
+                    <ReplyIcon variant="contained" sx={{
+                      color: !selectedPoz ? "lightgray" : "red",
+                    }} />
+                  </IconButton>
+                </Grid>
+              }
+
+              {showNodeMetraj && !editNodeMetraj &&
                 <Grid item >
                   <IconButton onClick={() => {
                     setEditNodeMetraj(true)
@@ -144,24 +172,23 @@ export default function P_Metraj({ show, setShow, saveMahal }) {
               }
 
 
+
               {editNodeMetraj &&
                 <Grid item >
                   <IconButton onClick={() => {
-                    setEditNodeMetraj()
+                    setShowDialog(true)
                   }} aria-label="lbsUncliced">
-                    <ReplyIcon variant="contained" sx={{
-                      color: !selectedPoz ? "lightgray" : "red",
+                    <ClearOutlined variant="contained" sx={{
+                      color: "red",
                     }} />
                   </IconButton>
                 </Grid>
               }
 
-
-
               {editNodeMetraj &&
                 <Grid item >
                   <IconButton onClick={() => {
-                    setEditNodeMetraj()
+                    saveMahal()
                   }} aria-label="lbsUncliced">
                     <FileDownloadDoneIcon variant="contained" sx={{
                       color: "green",
@@ -169,10 +196,6 @@ export default function P_Metraj({ show, setShow, saveMahal }) {
                   </IconButton>
                 </Grid>
               }
-
-
-
-
 
             </Grid>
           </Grid>

@@ -247,170 +247,170 @@ db.sales.aggregate(
 
 
 
-// db.collection.aggregate({
-//   $match: {
-//     _id: 1
-//   }
-// },
-// {
-//   "$set": {
-//     "customProjectSettings": {
-//       "$cond": {
-//         "if": {
-//           "$and": [
-//             {
-//               "$ifNull": [
-//                 "$customProjectSettings",
-//                 false
-//               ]
-//             },
-//             {
-//               "$isArray": "$customProjectSettings"
-//             }
-//           ]
-//         },
-//         "then": {
-//           "$cond": {
-//             "if": {
-//               "$in": [
-//                 2,
-//                 "$customProjectSettings._projectId"
-//               ]
-//             },
-//             "then": {
-//               "$map": {
-//                 "input": "$customProjectSettings",
-//                 "as": "oneSet",
-//                 "in": {
-//                   "$cond": {
-//                     "if": {
-//                       "$eq": [
-//                         "$$oneSet._projectId",
-//                         2
-//                       ]
-//                     },
-//                     "then": {
-//                       "$cond": {
-//                         "if": {
-//                           "$and": [
-//                             {
-//                               "$ifNull": [
-//                                 "$$oneSet.pozBasliklari",
-//                                 false
-//                               ]
-//                             },
-//                             {
-//                               "$isArray": "$$oneSet.pozBasliklari"
-//                             }
-//                           ]
-//                         },
-//                         "then": {
-//                           "$mergeObjects": [
-//                             "$$oneSet",
-//                             {
-//                               pozBasliklari: {
-//                                 "$cond": {
-//                                   "if": {
-//                                     "$in": [
-//                                       2,
-//                                       "$$oneSet.pozBasliklari._id"
-//                                     ]
-//                                   },
-//                                   "then": {
-//                                     "$map": {
-//                                       "input": "$$oneSet.pozBasliklari",
-//                                       "as": "oneBaslik",
-//                                       "in": {
-//                                         "$cond": {
-//                                           "if": {
-//                                             "$eq": [
-//                                               2,
-//                                               "$$oneBaslik._id"
-//                                             ]
-//                                           },
-//                                           "then": {
-//                                             "$mergeObjects": [
-//                                               "$$oneBaslik",
-//                                               {
-//                                                 show: "olanı güncelleme"
-//                                               }
-//                                             ]
-//                                           },
-//                                           "else": "$$oneBaslik"
-//                                         }
-//                                       }
-//                                     }
-//                                   },
-//                                   "else": {
-//                                     "$concatArrays": [
-//                                       [
-//                                         {
-//                                           _id: 2,
-//                                           show: "pozBaslik Id yoksa"
-//                                         }
-//                                       ],
-//                                       "$$oneSet.pozBasliklari"
-//                                     ]
-//                                   }
-//                                 }
-//                               }
-//                             }
-//                           ]
-//                         },
-//                         "else": {
-//                           "$mergeObjects": [
-//                             "$$oneSet",
-//                             {
-//                               pozBasliklari: [
-//                                 {
-//                                   _id: 2,
-//                                   show: "pozBasliklari yoksa veya Array değilse"
-//                                 }
-//                               ]
-//                             }
-//                           ]
-//                         }
-//                       }
-//                     },
-//                     "else": "$$oneSet"
-//                   }
-//                 }
-//               }
-//             },
-//             "else": {
-//               "$concatArrays": [
-//                 "$customProjectSettings",
-//                 [
-//                   {
-//                     _projectId: 2,
-//                     pozBasliklari: [
-//                       {
-//                         _id: 2,
-//                         show: [
-//                           "projectId yoksa"
-//                         ]
-//                       }
-//                     ]
-//                   }
-//                 ]
-//               ]
-//             }
-//           }
-//         },
-//         "else": [
-//           {
-//             "_projectId": 2,
-//             "pozBasliklari": [
-//               {
-//                 "_id": 2,
-//                 "show": [
-//                   "customProjectSettings yoksa"
-//                 ]
-//               }
-//             ]
-//           }
-//         ]
-//       }
-//     }
-//   }
-// })
+db.collection.aggregate({
+  $match: {
+    _id: 1
+  }
+},
+{
+  "$set": {
+    "customProjectSettings": {
+      "$cond": {
+        "if": {
+          "$and": [
+            {
+              "$ifNull": [
+                "$customProjectSettings",
+                false
+              ]
+            },
+            {
+              "$isArray": "$customProjectSettings"
+            }
+          ]
+        },
+        "then": {
+          "$cond": {
+            "if": {
+              "$in": [
+                2,
+                "$customProjectSettings._projectId"
+              ]
+            },
+            "then": {
+              "$map": {
+                "input": "$customProjectSettings",
+                "as": "oneSet",
+                "in": {
+                  "$cond": {
+                    "if": {
+                      "$eq": [
+                        "$$oneSet._projectId",
+                        2
+                      ]
+                    },
+                    "then": {
+                      "$cond": {
+                        "if": {
+                          "$and": [
+                            {
+                              "$ifNull": [
+                                "$$oneSet.pozBasliklari",
+                                false
+                              ]
+                            },
+                            {
+                              "$isArray": "$$oneSet.pozBasliklari"
+                            }
+                          ]
+                        },
+                        "then": {
+                          "$mergeObjects": [
+                            "$$oneSet",
+                            {
+                              pozBasliklari: {
+                                "$cond": {
+                                  "if": {
+                                    "$in": [
+                                      2,
+                                      "$$oneSet.pozBasliklari._id"
+                                    ]
+                                  },
+                                  "then": {
+                                    "$map": {
+                                      "input": "$$oneSet.pozBasliklari",
+                                      "as": "oneBaslik",
+                                      "in": {
+                                        "$cond": {
+                                          "if": {
+                                            "$eq": [
+                                              2,
+                                              "$$oneBaslik._id"
+                                            ]
+                                          },
+                                          "then": {
+                                            "$mergeObjects": [
+                                              "$$oneBaslik",
+                                              {
+                                                show: "olanı güncelleme"
+                                              }
+                                            ]
+                                          },
+                                          "else": "$$oneBaslik"
+                                        }
+                                      }
+                                    }
+                                  },
+                                  "else": {
+                                    "$concatArrays": [
+                                      [
+                                        {
+                                          _id: 2,
+                                          show: "pozBaslik Id yoksa"
+                                        }
+                                      ],
+                                      "$$oneSet.pozBasliklari"
+                                    ]
+                                  }
+                                }
+                              }
+                            }
+                          ]
+                        },
+                        "else": {
+                          "$mergeObjects": [
+                            "$$oneSet",
+                            {
+                              pozBasliklari: [
+                                {
+                                  _id: 2,
+                                  show: "pozBasliklari yoksa veya Array değilse"
+                                }
+                              ]
+                            }
+                          ]
+                        }
+                      }
+                    },
+                    "else": "$$oneSet"
+                  }
+                }
+              }
+            },
+            "else": {
+              "$concatArrays": [
+                "$customProjectSettings",
+                [
+                  {
+                    _projectId: 2,
+                    pozBasliklari: [
+                      {
+                        _id: 2,
+                        show: [
+                          "projectId yoksa"
+                        ]
+                      }
+                    ]
+                  }
+                ]
+              ]
+            }
+          }
+        },
+        "else": [
+          {
+            "_projectId": 2,
+            "pozBasliklari": [
+              {
+                "_id": 2,
+                "show": [
+                  "customProjectSettings yoksa"
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    }
+  }
+})

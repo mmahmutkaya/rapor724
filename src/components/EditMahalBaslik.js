@@ -1,44 +1,78 @@
-import { useApp } from "./useApp.js";
 import { useState, useContext } from 'react';
+import { useApp } from "./useApp.js";
 import { StoreContext } from './store.js'
-import deleteLastSpace from '../functions/deleteLastSpace.js';
 import { DialogWindow } from './general/DialogWindow.js';
 
 
 //mui
 import Box from '@mui/material/Box';
 import Grid from '@mui/material/Grid';
-import Button from '@mui/material/Button';
-import TextField from '@mui/material/TextField';
-import InputLabel from '@mui/material/InputLabel';
 import Switch from '@mui/material/Switch';
 import Dialog from '@mui/material/Dialog';
-import DialogTitle from '@mui/material/DialogTitle';
-import DialogContent from '@mui/material/DialogContent';
-import DialogContentText from '@mui/material/DialogContentText';
-import MenuItem from '@mui/material/MenuItem';
 
 
 
-// export default function FormMahalCreate({ setShow, isProject, refetch_mahaller }) {
 export default function EditMahalBaslik({ setShow }) {
 
-  const { isProject, setIsProject } = useContext(StoreContext)
+  const RealmApp = useApp();
 
+  const { isProject, setIsProject } = useContext(StoreContext)
   const [showDialog, setShowDialog] = useState(false)
   const [dialogCase, setDialogCase] = useState("")
+  const [anyDataInDialog, setAnyDataInDialog] = useState(0)
 
-  // const [checked, setChecked] = useState(true);
 
-  // console.log("isProject", isProject)
+  const handleChange = async (oneBaslik, switchValue) => {
 
-  const handleChange = (oneBaslik) => {
-    setIsProject(isProject => {
-      const isProject_ = { ...isProject }
-      isProject_.mahalBasliklari.find(item => item.id == oneBaslik.id).goster = !isProject_.mahalBasliklari.find(item => item.id == oneBaslik.id).goster
-      return isProject_
-    })
+
+    const updateData = {
+      functionName: switchValue ? "pushItem" : "pullItem",
+      upProperty: "mahalBasliklari",
+      propertyName: "show",
+      propertyValue: "webPage_mahaller",
+      _projectId: isProject._id,
+      _baslikId: oneBaslik._id
+    }
+
+    const result = await RealmApp.currentUser.callFunction("updateCustomProjectSettings", updateData)
+
+    // clientSide tarafındaki veri güncelleme
+
+    if (switchValue) {
+      setIsProject(isProject => {
+        isProject.mahalBasliklari = isProject.mahalBasliklari.map(item => {
+          if (item._id.toString() == oneBaslik._id.toString()) {
+            if (Array.isArray(item.show)) {
+              item.show.push("webPage_mahaller")
+            } else {
+              item.show = ["webPage_mahaller"]
+            }
+            return item
+          } else {
+            return item
+          }
+        })
+        return isProject
+      })
+    }
+    if (!switchValue) {
+      setIsProject(isProject => {
+        isProject.mahalBasliklari = isProject.mahalBasliklari.map(item => {
+          if (item._id.toString() == oneBaslik._id.toString()) {
+            item.show = item.show.filter(item => item.indexOf("webPage_mahaller"))
+            return item
+          } else {
+            return item
+          }
+        })
+        return isProject
+      })
+    }
+
+    setAnyDataInDialog(prev => prev + 1)
+
   }
+
 
 
   return (
@@ -59,30 +93,42 @@ export default function EditMahalBaslik({ setShow }) {
           Mahal Başlık Görünüm Ayarları
         </Box> */}
 
-        {/* TABLO BAŞLIK */}
-        <Grid sx={{ display: "grid", justifyItems: "center", gridTemplateColumns: "5fr 2fr", fontWeight: "bold" }}>
-          <Box sx={{ mb: "1rem", ml: "1rem" }}>
-            Başlık Adı
-          </Box>
-          <Box sx={{ mb: "1rem", ml: "1rem" }}>
-            Göster / Gizle
-          </Box>
-        </Grid>
+        {isProject.mahalBasliklari.find(item => !item.sabit) ?
 
-        {/* TABLO */}
-        {isProject.mahalBasliklari.filter(item => !item.sabit).map((oneBaslik, index) => {
-          return (
-            <Grid key={index} sx={{ borderTop: index == 0 ? "solid 1px gray" : null, borderBottom: "solid 1px gray", display: "grid", justifyItems: "center", width: "100%", gridTemplateColumns: "5fr 2fr" }}>
-              <Box sx={{ alignSelf: "center", mb: "0.25rem", mt: "0.25rem", ml: "1rem" }}>
-                {oneBaslik.name}
+          <>
+            {/* TABLO BAŞLIK */}
+            <Grid sx={{ display: "grid", justifyItems: "center", gridTemplateColumns: "5fr 2fr", fontWeight: "bold" }}>
+              <Box sx={{ mb: "1rem", ml: "1rem" }}>
+                Başlık Adı
               </Box>
-              <Box sx={{ mb: "0.25rem", mt: "0.25rem", ml: "1rem" }}>
-                <Switch checked={oneBaslik.goster} onChange={() => handleChange(oneBaslik)} />
+              <Box sx={{ mb: "1rem", ml: "1rem" }}>
+                Göster / Gizle
               </Box>
             </Grid>
-          )
-        })}
 
+
+            {/* TABLO */}
+            {isProject.mahalBasliklari.filter(item => !item.sabit).map((oneBaslik, index) => {
+              let switchValue = oneBaslik.show?.find(item => item.indexOf("webPage_mahaller") > -1) ? true : false
+              return (
+                <Grid key={index} sx={{ borderTop: index == 0 ? "solid 1px gray" : null, borderBottom: "solid 1px gray", display: "grid", justifyItems: "center", width: "100%", gridTemplateColumns: "5fr 2fr" }}>
+                  <Box sx={{ alignSelf: "center", mb: "0.25rem", mt: "0.25rem", ml: "1rem" }}>
+                    {oneBaslik.name}
+                  </Box>
+                  <Box sx={{ mb: "0.25rem", mt: "0.25rem", ml: "1rem" }}>
+                    <Switch checked={switchValue} onChange={() => handleChange(oneBaslik, !switchValue)} />
+                    {/* <Switch checked={oneBaslik.goster} onChange={() => console.log("deneme1")} /> */}
+                  </Box>
+                </Grid>
+              )
+            })}
+
+          </>
+          :
+          <Box>
+            Gösterebileceğiniz herhangi bir ilave mahal bilgisi bulamadı
+          </Box>
+        }
       </Dialog>
     </ >
   );

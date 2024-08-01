@@ -24,20 +24,16 @@ export default function EditPozBaslik({ setShow }) {
 
   const handleChange = async (oneBaslik, switchValue) => {
 
-    const data = {
+    const updateData = {
+      functionName: switchValue ? "pushItem" : "pullItem",
+      upProperty: "pozBasliklari",
+      propertyName:"show",
+      propertyValue:"webPage_pozlar",
       _projectId: isProject._id,
-      functionName: "webPage_pozlar_show",
-      _baslikId: oneBaslik._id,
+      _baslikId: oneBaslik._id
     }
 
-    
-    if (!switchValue) {
-      data.functionName = "webPage_pozlar_hide"
-    }
-    console.log("data",data)
-    
-    const result = await RealmApp.currentUser.callFunction("updateCustomSettings", data)
-    console.log("result",result)
+    await RealmApp.currentUser.callFunction("updateCustomProjectSettings", updateData)
 
     // clientSide tarafındaki veri güncelleme
 
@@ -62,7 +58,7 @@ export default function EditPozBaslik({ setShow }) {
       setIsProject(isProject => {
         isProject.pozBasliklari = isProject.pozBasliklari.map(item => {
           if (item._id.toString() == oneBaslik._id.toString()) {
-            item.show = item.show.filter(item => item !== "webPage_pozlar")
+            item.show = item.show.filter(item => item.indexOf("webPage_pozlar"))
             return item
           } else {
             return item
@@ -112,7 +108,7 @@ export default function EditPozBaslik({ setShow }) {
 
             {/* TABLO */}
             {isProject.pozBasliklari.filter(item => !item.sabit).map((oneBaslik, index) => {
-              let switchValue = oneBaslik.show?.find(item => item == "webPage_pozlar") ? true : false
+              let switchValue = oneBaslik.show?.find(item => item.indexOf("webPage_pozlar") > -1) ? true : false
               return (
                 <Grid key={index} sx={{ borderTop: index == 0 ? "solid 1px gray" : null, borderBottom: "solid 1px gray", display: "grid", justifyItems: "center", width: "100%", gridTemplateColumns: "5fr 2fr" }}>
                   <Box sx={{ alignSelf: "center", mb: "0.25rem", mt: "0.25rem", ml: "1rem" }}>

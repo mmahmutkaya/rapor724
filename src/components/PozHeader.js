@@ -36,13 +36,13 @@ export default function PozHeader({ setShow, editPoz, setEditPoz, savePoz }) {
   const { selectedPoz, setSelectedPoz } = useContext(StoreContext)
   const { selectedPozBaslik, setSelectedPozBaslik } = useContext(StoreContext)
 
-  const [willBeUpdate_pozBaslik, setWillBeUpdate_pozBaslik] = useState(false)
+  const [willBeUpdate_mahalBaslik, setWillBeUpdate_mahalBaslik] = useState(false)
 
   const [showDialog, setShowDialog] = useState(false)
   const [dialogCase, setDialogCase] = useState("")
 
 
-  async function handlePozDelete(poz) {
+  async function handlePozDelete(mahal) {
 
     // seçili wbs yoksa durdurma, inaktif iken tuşlara basılabiliyor mesela, bu fonksiyon çalıştırılıyor, orayı iptal etmekle uğraşmak istemedim
     if (!selectedPoz) {
@@ -52,19 +52,19 @@ export default function PozHeader({ setShow, editPoz, setEditPoz, savePoz }) {
 
     // bu kontrol backend de ayrıca yapılıyor
     if (selectedPoz.includesPoz) {
-      throw new Error("Bu poz metraj içerdiği için silinemez, öncelikle metrajları silmelisiniz.")
+      throw new Error("Bu mahal metraj içerdiği için silinemez, öncelikle metrajları silmelisiniz.")
     }
 
     try {
-      const result = await RealmApp.currentUser.callFunction("deletePoz", { pozId: poz._id });
+      const result = await RealmApp.currentUser.callFunction("deletePoz", { mahalId: mahal._id });
 
       if (result.deletedCount) {
 
         // const oldPozlar = queryClient.getQueryData(["pozlar"])
-        // const newPozlar = oldPozlar.filter(item => item._id.toString() !== poz._id.toString())
+        // const newPozlar = oldPozlar.filter(item => item._id.toString() !== mahal._id.toString())
         // queryClient.setQueryData(["pozlar"], newPozlar)
 
-        setPozlar(oldPozlar => oldPozlar.filter(item => item._id.toString() !== poz._id.toString()))
+        setPozlar(oldPozlar => oldPozlar.filter(item => item._id.toString() !== mahal._id.toString()))
 
       }
 
@@ -72,7 +72,7 @@ export default function PozHeader({ setShow, editPoz, setEditPoz, savePoz }) {
 
         let oldProject = JSON.parse(JSON.stringify(isProject))
 
-        oldProject.wbs.find(item => item._id.toString() === poz._wbsId.toString()).includesPoz = false
+        oldProject.wbs.find(item => item._id.toString() === mahal._wbsId.toString()).includesPoz = false
 
         setIsProject(oldProject)
 
@@ -90,7 +90,7 @@ export default function PozHeader({ setShow, editPoz, setEditPoz, savePoz }) {
       }
 
       if (hataMesaj_.includes("Poz eklemeye açık başlıklar silinemez")) {
-        hataMesaj_ = "Poz eklemeye açık başlıklar silinemez, öncelikle poz eklemeye kapatınız."
+        hataMesaj_ = "Poz eklemeye açık başlıklar silinemez, öncelikle mahal eklemeye kapatınız."
       }
 
       setSelectedPoz()
@@ -101,9 +101,9 @@ export default function PozHeader({ setShow, editPoz, setEditPoz, savePoz }) {
 
 
 
-  async function handlePozBaslikDelete(pozBaslik) {
+  async function handlePozBaslikDelete(mahalBaslik) {
 
-    const poz = selectedPozBaslik
+    const mahal = selectedPozBaslik
 
     // seçili wbs yoksa durdurma, inaktif iken tuşlara basılabiliyor mesela, bu fonksiyon çalıştırılıyor, orayı iptal etmekle uğraşmak istemedim
     if (!selectedPozBaslik) {
@@ -111,18 +111,18 @@ export default function PozHeader({ setShow, editPoz, setEditPoz, savePoz }) {
       return
     }
 
-    return { "silinecekPozBaslik": pozBaslik }
+    return { "silinecekPozBaslik": mahalBaslik }
 
     try {
-      const result = await RealmApp.currentUser.callFunction("deletePozBaslik", { pozId: poz._id });
+      const result = await RealmApp.currentUser.callFunction("deletePozBaslik", { mahalId: mahal._id });
 
       if (result.deletedCount) {
 
         // const oldPozlar = queryClient.getQueryData(["pozlar"])
-        // const newPozlar = oldPozlar.filter(item => item._id.toString() !== poz._id.toString())
+        // const newPozlar = oldPozlar.filter(item => item._id.toString() !== mahal._id.toString())
         // queryClient.setQueryData(["pozlar"], newPozlar)
 
-        setPozlar(oldPozlar => oldPozlar.filter(item => item._id.toString() !== poz._id.toString()))
+        setPozlar(oldPozlar => oldPozlar.filter(item => item._id.toString() !== mahal._id.toString()))
 
       }
 
@@ -130,7 +130,7 @@ export default function PozHeader({ setShow, editPoz, setEditPoz, savePoz }) {
 
         let oldProject = JSON.parse(JSON.stringify(isProject))
 
-        oldProject.wbs.find(item => item._id.toString() === poz._wbsId.toString()).includesPoz = false
+        oldProject.wbs.find(item => item._id.toString() === mahal._wbsId.toString()).includesPoz = false
 
         setIsProject(oldProject)
 
@@ -148,7 +148,7 @@ export default function PozHeader({ setShow, editPoz, setEditPoz, savePoz }) {
       }
 
       if (hataMesaj_.includes("Poz eklemeye açık başlıklar silinemez")) {
-        hataMesaj_ = "Poz eklemeye açık başlıklar silinemez, öncelikle poz eklemeye kapatınız."
+        hataMesaj_ = "Poz eklemeye açık başlıklar silinemez, öncelikle mahal eklemeye kapatınız."
       }
 
       setSelectedPoz()
@@ -162,20 +162,20 @@ export default function PozHeader({ setShow, editPoz, setEditPoz, savePoz }) {
   const handle_BaslikGenislet = () => {
     setIsProject(isProject => {
       const isProject_ = { ...isProject }
-      isProject_.pozBasliklari.find(item => item.id == selectedPozBaslik.id).genislik = isProject_.pozBasliklari.find(item => item.id == selectedPozBaslik.id).genislik + 0.5
+      isProject_.mahalBasliklari.find(item => item.id == selectedPozBaslik.id).genislik = isProject_.mahalBasliklari.find(item => item.id == selectedPozBaslik.id).genislik + 0.5
       return isProject_
     })
-    setWillBeUpdate_pozBaslik(true)
+    setWillBeUpdate_mahalBaslik(true)
   }
 
 
   const handle_BaslikDaralt = () => {
     setIsProject(isProject => {
       const isProject_ = { ...isProject }
-      isProject_.pozBasliklari.find(item => item.id == selectedPozBaslik.id).genislik = isProject_.pozBasliklari.find(item => item.id == selectedPozBaslik.id).genislik - 0.5
+      isProject_.mahalBasliklari.find(item => item.id == selectedPozBaslik.id).genislik = isProject_.mahalBasliklari.find(item => item.id == selectedPozBaslik.id).genislik - 0.5
       return isProject_
     })
-    setWillBeUpdate_pozBaslik(true)
+    setWillBeUpdate_mahalBaslik(true)
   }
 
 
@@ -183,23 +183,23 @@ export default function PozHeader({ setShow, editPoz, setEditPoz, savePoz }) {
   const handle_YatayHiza = () => {
     setIsProject(isProject => {
       const isProject_ = { ...isProject }
-      let guncelYatayHiza = isProject_.pozBasliklari.find(item => item.id == selectedPozBaslik.id).yatayHiza
-      if (guncelYatayHiza == "start") isProject_.pozBasliklari.find(item => item.id == selectedPozBaslik.id).yatayHiza = "center"
-      if (guncelYatayHiza == "center") isProject_.pozBasliklari.find(item => item.id == selectedPozBaslik.id).yatayHiza = "end"
-      if (guncelYatayHiza == "end") isProject_.pozBasliklari.find(item => item.id == selectedPozBaslik.id).yatayHiza = "start"
+      let guncelYatayHiza = isProject_.mahalBasliklari.find(item => item.id == selectedPozBaslik.id).yatayHiza
+      if (guncelYatayHiza == "start") isProject_.mahalBasliklari.find(item => item.id == selectedPozBaslik.id).yatayHiza = "center"
+      if (guncelYatayHiza == "center") isProject_.mahalBasliklari.find(item => item.id == selectedPozBaslik.id).yatayHiza = "end"
+      if (guncelYatayHiza == "end") isProject_.mahalBasliklari.find(item => item.id == selectedPozBaslik.id).yatayHiza = "start"
       return isProject_
     })
-    setWillBeUpdate_pozBaslik(true)
+    setWillBeUpdate_mahalBaslik(true)
   }
 
 
   const unSelectPozBaslik = async () => {
-    if (willBeUpdate_pozBaslik) {
-      let pozBaslik = isProject.pozBasliklari.find(item => item.id == selectedPozBaslik.id)
-      console.log("pozBaslik", pozBaslik)
-      const result = await RealmApp?.currentUser.callFunction("updateProjectPozBaslik", ({ _projectId: isProject._id, pozBaslik }));
+    if (willBeUpdate_mahalBaslik) {
+      let mahalBaslik = isProject.mahalBasliklari.find(item => item.id == selectedPozBaslik.id)
+      console.log("mahalBaslik", mahalBaslik)
+      const result = await RealmApp?.currentUser.callFunction("updateProjectPozBaslik", ({ _projectId: isProject._id, mahalBaslik }));
       console.log("result", result)
-      setWillBeUpdate_pozBaslik(false)
+      setWillBeUpdate_mahalBaslik(false)
     }
     setSelectedPozBaslik(false)
   }
@@ -266,31 +266,10 @@ export default function PozHeader({ setShow, editPoz, setEditPoz, savePoz }) {
           <Grid item xs="auto">
             <Grid container spacing={1}>
 
-              {(!selectedPozBaslik && !selectedPoz) &&
-                <>
-                  <Grid item>
-                    <IconButton onClick={() => setShow("EditPozBaslik")} aria-label="addWbs">
-                      <VisibilityIcon variant="contained" sx={{ color: "black" }} />
-                    </IconButton>
-                  </Grid>
-
-                  <Grid item>
-                    <IconButton onClick={() => setShow("FormPozBaslikCreate")} aria-label="addPozBilgi" disabled={(isProject?.wbs?.filter(item => item.openForPoz).length == 0 || !isProject?.wbs) ? true : false}>
-                      <AddCircleOutlineIcon variant="contained" sx={{ color: (isProject?.wbs?.filter(item => item.openForPoz).length == 0 || !isProject?.wbs) ? "lightgray" : "blue" }} />
-                    </IconButton>
-                  </Grid>
-
-                  <Grid item>
-                    <IconButton onClick={() => setShow("FormPozCreate")} aria-label="addWbs" disabled={(isProject?.wbs?.filter(item => item.openForPoz).length == 0 || !isProject?.wbs) ? true : false}>
-                      <AddCircleOutlineIcon variant="contained" color={(isProject?.wbs?.filter(item => item.openForPoz).length == 0 || !isProject?.wbs) ? " lightgray" : "success"} />
-                    </IconButton>
-                  </Grid>
-                </>
-              }
-
 
               {selectedPoz &&
                 <>
+
                   {/* seçimleri temizle */}
 
                   <Grid item >
@@ -299,6 +278,8 @@ export default function PozHeader({ setShow, editPoz, setEditPoz, savePoz }) {
                         sx={{ color: "red" }} />
                     </IconButton>
                   </Grid>
+
+
 
                   {/* ne seçili ise silme */}
 
@@ -313,8 +294,6 @@ export default function PozHeader({ setShow, editPoz, setEditPoz, savePoz }) {
 
                 </>
               }
-
-
 
 
 
@@ -402,7 +381,7 @@ export default function PozHeader({ setShow, editPoz, setEditPoz, savePoz }) {
                   <Grid item >
                     <IconButton
                       onClick={() => {
-                        setWillBeUpdate_pozBaslik([])
+                        setWillBeUpdate_mahalBaslik([])
                         setSelectedPozBaslik(false)
                         setEditPoz(false)
                       }}
@@ -421,8 +400,36 @@ export default function PozHeader({ setShow, editPoz, setEditPoz, savePoz }) {
 
 
 
-            </Grid>
 
+              {(!selectedPozBaslik && !selectedPoz) &&
+                <Grid item>
+                  <IconButton onClick={() => setShow("EditPozBaslik")} aria-label="addWbs">
+                    <VisibilityIcon variant="contained" sx={{ color: "black" }} />
+                  </IconButton>
+                </Grid>
+              }
+
+
+              {(!selectedPozBaslik && !selectedPoz) &&
+                <Grid item>
+                  <IconButton onClick={() => setShow("FormPozBaslikCreate")} aria-label="addPozBilgi" disabled={(isProject?.wbs?.filter(item => item.openForPoz).length == 0 || !isProject?.wbs) ? true : false}>
+                    <AddCircleOutlineIcon variant="contained" sx={{ color: (isProject?.wbs?.filter(item => item.openForPoz).length == 0 || !isProject?.wbs) ? "lightgray" : "blue" }} />
+                  </IconButton>
+                </Grid>
+              }
+
+
+              {(!selectedPozBaslik && !selectedPoz) &&
+                <Grid item>
+                  <IconButton onClick={() => setShow("FormPozCreate")} aria-label="addWbs" disabled={(isProject?.wbs?.filter(item => item.openForPoz).length == 0 || !isProject?.wbs) ? true : false}>
+                    <AddCircleOutlineIcon variant="contained" color={(isProject?.wbs?.filter(item => item.openForPoz).length == 0 || !isProject?.wbs) ? " lightgray" : "success"} />
+                  </IconButton>
+                </Grid>
+              }
+
+
+
+            </Grid>
           </Grid>
 
         </Grid>

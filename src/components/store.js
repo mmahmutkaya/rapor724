@@ -38,6 +38,7 @@ export default ({ children }) => {
   const [selectedPozBaslik, setSelectedPozBaslik] = useState()
   const [selectedNode, setSelectedNode] = useState()
   const [editNodeMetraj, setEditNodeMetraj] = useState()
+  const [showNodeMetraj, setShowNodeMetraj] = useState()
   const [nodeMetrajlar, setNodeMetrajlar ] = useState()
 
   const [isProject, setIsProject] = useState()
@@ -59,6 +60,7 @@ export default ({ children }) => {
     selectedPozBaslik, setSelectedPozBaslik,
     selectedNode, setSelectedNode,
     editNodeMetraj, setEditNodeMetraj,
+    showNodeMetraj, setShowNodeMetraj,
     nodeMetrajlar, setNodeMetrajlar,
 
 

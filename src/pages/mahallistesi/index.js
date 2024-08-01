@@ -43,7 +43,7 @@ export default function P_MahalListesi() {
 
   const navigate = useNavigate()
   // !isProject ? navigate('/projects') : null
-  if(!isProject) window.location.href = "/projects"
+  if (!isProject) window.location.href = "/projects"
 
   const RealmApp = useApp();
 
@@ -66,12 +66,13 @@ export default function P_MahalListesi() {
 
   const mahalListesi_fecth = async () => {
     if (!mahalListesi) {
-      const result = await RealmApp?.currentUser.callFunction("getMahalListesi", ({ projectId: isProject?._id }));
+      const result = await RealmApp?.currentUser.callFunction("collectionDugumler", ({ functionName: "getMahalListesi", _projectId: isProject?._id }));
       setMahalListesi(result)
-      console.log("result_mahalListesi", result)
+      // console.log("result_mahalListesi", result)
     }
   }
   mahalListesi_fecth()
+  // console.log("mahalListesi",mahalListesi)
 
 
 
@@ -289,13 +290,14 @@ export default function P_MahalListesi() {
   }
 
 
-  const toggleMahalPoz = async ({ _mahalId, _pozId, open }) => {
-
-    const resultMahalPoz = await RealmApp?.currentUser.callFunction("toggleMahalPoz", ({ _projectId: isProject?._id, _mahalId, _pozId, open }));
+  const toggleMahalPoz = async ({ _mahalId, _pozId, switchValue }) => {
+    const result = await RealmApp?.currentUser.callFunction("collectionDugumler", ({ functionName: "level1_set", _projectId: isProject?._id, _mahalId, _pozId, propertyName: "openMetraj", propertyValue: switchValue }));
+    console.log("result", result)
     setMahalListesi(mahalListesi => {
+      // öncelikle array içinde ilgili obje varsa kaldırıyoruz sonra true ise ekliyoruz
       mahalListesi = mahalListesi.filter(item => !(item._mahalId.toString() == _mahalId.toString() && item._pozId == _pozId.toString()))
-      if (open) {
-        mahalListesi = [...mahalListesi, { ...resultMahalPoz }]
+      if (switchValue) {
+        mahalListesi = [...mahalListesi, { _mahalId, _pozId, openMetraj:switchValue }]
       } else {
         return mahalListesi
       }
@@ -527,7 +529,7 @@ export default function P_MahalListesi() {
 
 
 
-                  {/* 1 SIRA MAHAL BAŞLIKLARI BİTİNCE  ALTINDAKİ MAHAL SATIRLARI - ONU DA YUKARIDAKİNE UYDURAN BİR GRİD ÖLÇÜLERİ İLE BAĞIMSIZ OLARAK YÖNETİYORUZ*/}
+                  {/* YUKARIDA YAZILAN MAHAL BAŞLIĞI ALTINDAKİ MAHAL SATIRLARI - ONU DA YUKARIDAKİNE UYDURAN BİR GRİD ÖLÇÜLERİ İLE BAĞIMSIZ OLARAK YÖNETİYORUZ*/}
 
                   {/* HAYALET */}
                   {<Box sx={{ display: "none" }}>
@@ -575,13 +577,13 @@ export default function P_MahalListesi() {
                           {pozlar?.map((onePoz, index) => {
                             { nodeMahal = mahalListesi?.find((item) => item._mahalId.toString() == oneMahal._id.toString() && item._pozId.toString() == onePoz._id.toString()) }
 
-                            return nodeMahal?.open ?
+                            return nodeMahal?.openMetraj ?
 
                               <TableItem
                                 key={index}
                                 index={index}
                                 count_={count_}
-                                onClick={editMode_MahalListesi ? () => toggleMahalPoz({ _mahalId: oneMahal._id, _pozId: onePoz._id, open: false }) : null}
+                                onClick={editMode_MahalListesi ? () => toggleMahalPoz({ _mahalId: oneMahal._id, _pozId: onePoz._id, switchValue: false }) : null}
                                 sx={{
                                   cursor: editMode_MahalListesi ? "pointer" : null,
                                   display: "grid",
@@ -601,7 +603,7 @@ export default function P_MahalListesi() {
                                 key={index}
                                 index={index}
                                 count_={count_}
-                                onClick={editMode_MahalListesi ? () => toggleMahalPoz({ _mahalId: oneMahal._id, _pozId: onePoz._id, open: true }) : null}
+                                onClick={editMode_MahalListesi ? () => toggleMahalPoz({ _mahalId: oneMahal._id, _pozId: onePoz._id, switchValue: true }) : null}
                                 sx={{
                                   cursor: editMode_MahalListesi ? "pointer" : null,
                                   display: "grid",

@@ -103,11 +103,12 @@ export default function P_Mahaller() {
   // console.log("totalWidthSabit", totalWidthSabit)
 
 
-  let totalWidthDegisken = isProject?.mahalBasliklari?.filter(item => !item.sabit && item.goster).reduce(
+  let totalWidthDegisken = isProject?.mahalBasliklari?.filter(item => !item.sabit && item.show?.find(item => item.indexOf("webPage_mahaller") > -1)).reduce(
     (accumulator, oneBilgi) => accumulator + oneBilgi.genislik,
     0
   )
   totalWidthDegisken = totalWidthDegisken + 'rem'
+  // console.log("isProject?.mahalBasliklari", isProject?.mahalBasliklari)
   // console.log("totalWidthDegisken", totalWidthDegisken)
 
 
@@ -126,7 +127,7 @@ export default function P_Mahaller() {
   // console.log("gridTemplateColumnsSabit", gridTemplateColumnsSabit)
 
 
-  let gridTemplateColumnsDegisken = isProject?.mahalBasliklari?.filter(item => !item.sabit && item.goster).reduce(
+  let gridTemplateColumnsDegisken = isProject?.mahalBasliklari?.filter(item => !item.sabit && item.show?.find(item => item.indexOf("webPage_mahaller") > -1)).reduce(
     (ilkString, oneBilgi, index) => index != isProject?.mahalBasliklari?.length ? ilkString + (oneBilgi.genislik + "rem ") : ilkString + (oneBilgi.genislik + "rem"),
     ""
   )
@@ -284,6 +285,11 @@ export default function P_Mahaller() {
   }
 
 
+  const handle_selectMahal = ()=>{
+    console.log("deneme22")
+  }
+
+
 
   return (
 
@@ -365,10 +371,10 @@ export default function P_Mahaller() {
 
             {/* HAYALET KOMPONENT */}
             <Box sx={{ display: "none" }}>
-              {count_ = isProject?.mahalBasliklari?.filter(item => !item.sabit && item.goster).length}
+              {count_ = isProject?.mahalBasliklari?.filter(item => !item.sabit && item.show?.find(item => item.indexOf("webPage_mahaller") > -1)).length}
             </Box>
             {/* GÖZÜKEN KOMPONENT */}
-            {isProject?.mahalBasliklari?.filter(item => !item.sabit && item.goster).map((oneBaslik, index) => {
+            {isProject?.mahalBasliklari?.filter(item => !item.sabit && item.show?.find(item => item.indexOf("webPage_mahaller") > -1)).map((oneBaslik, index) => {
               return (
                 <Box
                   sx={{
@@ -496,7 +502,7 @@ export default function P_Mahaller() {
 
                   {/* burada başlık sıralamasına göre güvenerek haraket ediliyor (tüm mahalBaşlıkları map'lerde) */}
                   {
-                    isProject?.mahalBasliklari?.filter(item => !item.sabit && item.goster).map((oneBaslik, index) => {
+                    isProject?.mahalBasliklari?.filter(item => !item.sabit && item.show?.find(item => item.indexOf("webPage_mahaller") > -1)).map((oneBaslik, index) => {
                       return (
                         <TableHeader key={index} index={index} count_={count_} sx={{ display: "grid", with: "100%", justifyContent: oneBaslik.yatayHiza }}>
 
@@ -546,7 +552,7 @@ export default function P_Mahaller() {
                                   key={index}
                                   index={index}
                                   count_={count_}
-                                  // onDoubleClick={() => handle_selectMahal(oneBaslik, oneMahal)}
+                                  onClick={() => handle_selectMahal(oneBaslik, oneMahal)}
                                   sx={{
                                     // userSelect:"none",
                                     cursor: "pointer",
@@ -566,7 +572,7 @@ export default function P_Mahaller() {
                           </Bosluk>
 
                           {
-                            isProject?.mahalBasliklari?.filter(item => !item.sabit && item.goster).map((oneBaslik, index) => {
+                            isProject?.mahalBasliklari?.filter(item => !item.sabit && item.show?.find(item => item.indexOf("webPage_mahaller") > -1)).map((oneBaslik, index) => {
                               return (
                                 <TableItem
                                   key={index}

@@ -70,6 +70,7 @@ export default function P_Projects() {
       let obj
       const customProjectSettings = RealmApp?.currentUser?.customData.customProjectSettings?.find(x => x._projectId.$oid === prj._id.toString())
       // console.log("customProjectSettings?.pozBasliklari", customProjectSettings?.pozBasliklari)
+
       isProject.pozBasliklari = isProject.pozBasliklari.map(item => {
         obj = customProjectSettings?.pozBasliklari?.find(x => x._id.$oid === item._id.toString())
         if (obj) {
@@ -85,6 +86,23 @@ export default function P_Projects() {
           )
         }
       })
+
+      isProject.mahalBasliklari = isProject.mahalBasliklari.map(item => {
+        obj = customProjectSettings?.mahalBasliklari?.find(x => x._id.$oid === item._id.toString())
+        if (obj) {
+          item.show = obj.show
+          // console.log("baslik userData ile güncellendi")
+          return (
+            item
+          )
+        } else {
+          // console.log("baslik userData ile güncellenMEdi")
+          return (
+            item
+          )
+        }
+      })
+
       return (
         isProject
       )

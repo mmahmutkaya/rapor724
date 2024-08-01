@@ -44,7 +44,7 @@ export default function P_Metraj() {
   // !isProject ? navigate('/projects') : null
   // if (!isProject) window.location.href = "/projects"
 
-  
+
   useEffect(() => {
     if (!isProject) navigate('/projects')
     // // Update the document title using the browser API
@@ -73,7 +73,7 @@ export default function P_Metraj() {
 
   const mahalListesi_fecth = async () => {
     if (!mahalListesi) {
-      const result = await RealmApp?.currentUser.callFunction("getMahalListesi", ({ projectId: isProject?._id }));
+      const result = await RealmApp?.currentUser.callFunction("collectionDugumler", ({ functionName: "getMahalListesi", _projectId: isProject?._id }));
       setMahalListesi(result)
     }
   }
@@ -109,10 +109,12 @@ export default function P_Metraj() {
     ""
   )
 
-  let totalWidthDegisken = isProject?.metrajBasliklari?.filter(item => !item.sabit && item.goster).reduce(
+  let totalWidthDegisken = isProject?.metrajBasliklari?.filter(item => !item.sabit).reduce(
     (accumulator, oneBilgi) => accumulator + oneBilgi.genislik,
     0
   ) + 'rem'
+  // console.log("isProject?.metrajBasliklari?", isProject?.metrajBasliklari)
+  // console.log("totalWidthDegisken", totalWidthDegisken)
 
   let gridTemplateColumnsDegisken = isProject?.metrajBasliklari?.filter(item => !item.sabit && item.goster).reduce(
     (ilkString, item, index) => index != isProject?.mahalBasliklari?.length ? ilkString + (item.genislik + "rem ") : ilkString + (item.genislik + "rem"),
@@ -163,17 +165,11 @@ export default function P_Metraj() {
 
 
 
-
-
   // FONKSİYONLAR
-
-
   const handle_selectBaslik = (oneBaslik) => {
     setSelectedMahalBaslik(oneBaslik)
     setSelectedMahal()
   }
-
-
 
 
   // bir string değerinin numerik olup olmadığının kontrolü
@@ -184,7 +180,6 @@ export default function P_Metraj() {
     return !isNaN(str) && // use type coercion to parse the _entirety_ of the string (`parseFloat` alone does not do this)...
       !isNaN(parseFloat(str)) // ...and ensure strings of whitespace fail
   }
-
 
 
   const saveMahal = async () => {
@@ -365,7 +360,7 @@ export default function P_Metraj() {
                   onClick={() => handle_selectBaslik(oneBaslik)}
                   key={index}
                 >
-                  {oneBaslik.name}
+                  {oneBaslik?.name}
                 </Box>
               )
             })}
@@ -381,7 +376,7 @@ export default function P_Metraj() {
               {count_ = pozlar?.length}
             </Box>
             {/* GÖZÜKEN KOMPONENT */}
-            {isProject?.metrajBasliklari?.filter(item => !item.sabit && item.goster).map((oneBaslik, index) => {
+            {isProject?.metrajBasliklari?.filter(item => !item.sabit).map((oneBaslik, index) => {
               return (
                 <Box
                   sx={{
@@ -405,7 +400,7 @@ export default function P_Metraj() {
                   </Box> */}
 
                   <Box sx={{ display: "grid", justifyContent: "center" }}>
-                    {oneBaslik.name}
+                    {oneBaslik?.name}
                   </Box>
 
                 </Box>
@@ -501,11 +496,25 @@ export default function P_Metraj() {
 
 
                   {/* SAĞ TARAF - DEĞİŞKEN MAHAL BAŞLIĞI - BOŞ */}
-                  <TableHeader sx={{ display: custom?.pageMetraj_baslik1 ? "block" : "none" }} index={0}></TableHeader>
-                  <TableHeader sx={{ display: custom?.pageMetraj_baslik1 ? "block" : "none" }} index={1}></TableHeader>
-
-
-
+                  {
+                    isProject?.metrajBasliklari?.filter(item => !item.sabit).map((oneBaslik, index) => {
+                      return (
+                        <TableHeader
+                          key={index}
+                          index={index}
+                          count_={count_}
+                          sx={{
+                            // userSelect:"none",
+                            display: custom?.pageMetraj_baslik1 ? "block" : "none",
+                            alignItems: "center",
+                            justifyItems: oneBaslik.yatayHiza,
+                          }}
+                        >
+                          
+                        </TableHeader>
+                      )
+                    })
+                  }
 
                   {/* 1 SIRA POZ BAŞLIKLARI BİTİNCE  ALTINDAKİ POZ SATIRLARI - BURADA VERDİĞİMİZ GRİD BOYUTLARI YUKARIDAKİ BAŞLIK İLE UYUMLU OLURSA TABLO OLUŞUR YOKSA SATURLAR ŞAŞIRIR*/}
 
@@ -544,6 +553,7 @@ export default function P_Metraj() {
                                     display: "grid",
                                     alignItems: "center",
                                     justifyItems: oneBaslik.yatayHiza,
+                                    backgroundColor: selectedPoz?._id.toString() == onePoz._id.toString() ? "yellow" : null
                                   }}
                                 >
                                   {onePoz[oneBaslik.referans]}
@@ -555,21 +565,27 @@ export default function P_Metraj() {
                           <Bosluk>
                           </Bosluk>
 
-                          {/* metraj biriminin yazdığı yer */}
-                          <TableItem
-                            index={1}
-                            sx={{ display: "grid", justifyContent: "center" }}
-                          >
-                            {onePoz.birimName}
-                          </TableItem>
 
-                          {/* metraj biriminin yazdığı yer */}
-                          <TableItem
-                            index={1}
-                            sx={{ display: "grid", justifyContent: "center" }}
-                          >
-                            {onePoz.birimName}
-                          </TableItem>
+                          {
+                            isProject?.metrajBasliklari?.filter(item => !item.sabit).map((oneBaslik, index) => {
+                              return (
+                                <TableItem
+                                  key={index}
+                                  index={index}
+                                  count_={count_}
+                                  sx={{
+                                    // userSelect:"none",
+                                    display: "grid",
+                                    alignItems: "center",
+                                    justifyItems: oneBaslik.yatayHiza,
+                                    backgroundColor: selectedPoz?._id.toString() == onePoz._id.toString() ? "yellow" : null
+                                  }}
+                                >
+                                  {onePoz[oneBaslik.referans]}
+                                </TableItem>
+                              )
+                            })
+                          }
 
                         </Grid>
                       )
