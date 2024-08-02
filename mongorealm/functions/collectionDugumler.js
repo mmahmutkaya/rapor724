@@ -101,13 +101,17 @@ exports = async function ({
 
   if (functionName == "getNodeMetrajlar") {
     
-    const result = await collection_Dugumler.aggregate([
-      { $match: { _projectId, _mahalId, _pozId } },
-    ]);
+    // const result = await collection_Dugumler.aggregate([
+    //   { $match: { _projectId, _mahalId, _pozId } },
+    // ]);
 
-    const {metrajSatirlari} = result
+   const result = await collection_Dugumler.findOne(
+      { _projectId, _mahalId, _pozId }
+    );
+
+    // const {metrajSatirlari} = result
     
-    return metrajSatirlari
+    return result.metrajSatirlari
     // if (result.metrajSatirlari) {
     //   return result.metrajSatirlari
     // }
