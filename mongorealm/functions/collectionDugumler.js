@@ -105,7 +105,7 @@ exports = async function ({
       { $match: { _projectId, _mahalId, _pozId } },
     ]);
     
-      return result.metrajSatirlari
+      return result
     // if (result.metrajSatirlari) {
     //   return result.metrajSatirlari
     // }
