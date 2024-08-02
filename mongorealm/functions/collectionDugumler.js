@@ -51,6 +51,33 @@ exports = async function ({
     return result;
   }
 
+
+  if (functionName == "getNodeMetrajlar") {
+    
+    const result = await collection_Dugumler.aggregate([
+      { $match: { _projectId, _mahalId, _pozId } },
+    ]);
+    
+    if (result.metrajSatirlari) {
+      return result.metrajSatirlari
+    }
+    
+    const metrajSatirlari = {
+      guncel: {
+        satirlar: [
+           { satirNo:1, metin1: "", metin2: "", carpan1:"" , carpan2: "", carpan3: "", carpan4: "", carpan5: "", metraj: "" },
+           { satirNo:2, metin1: "", metin2: "", carpan1: "", carpan2: "", carpan3: "", carpan4: "", carpan5: "", metraj: "" },
+           { satirNo:3, metin1: "", metin2: "", carpan1:"" , carpan2: "", carpan3: "", carpan4: "", carpan5: "", metraj: "" },
+           { satirNo:4, metin1: "", metin2: "", carpan1: "", carpan2: "", carpan3: "", carpan4: "", carpan5: "", metraj: "" },
+           { satirNo:5, metin1: "", metin2: "", carpan1: "", carpan2: "", carpan3: "", carpan4: "", carpan5: "", metraj: "" },
+        ]
+      }
+    }
+    
+    return metrajSatirlari;
+  }
+
+
   // tip2 - (yukarıda açıklandı)
   if (!_mahalId)
     throw new Error(
