@@ -44,6 +44,58 @@ exports = async function ({
       "MONGO // collectionDugumler -- sorguya gönderilen --projectId-- türü doğru değil, lütfen Rapor7/24 ile irtibata geçiniz. "
     );
 
+
+
+
+  
+
+
+  // // tip2 - (yukarıda açıklandı)
+  // if (!_mahalId)
+  //   throw new Error(
+  //     "MONGO // collectionDugumler // Mahal Id -- sorguya gönderilmemiş, lütfen Rapor7/24 ile irtibata geçiniz. "
+  //   );
+  // try {
+  //   if (typeof _mahalId == "string") {
+  //     _mahalId = new BSON.ObjectId(_mahalId);
+  //   }
+  // } catch (err) {
+  //   throw new Error(
+  //     "MONGO // collectionDugumler -- sorguya gönderilen --mahalId-- türü doğru değil, lütfen Rapor7/24 ile irtibata geçiniz."
+  //   );
+  // }
+  // if (typeof _mahalId != "object")
+  //   throw new Error(
+  //     "MONGO // collectionDugumler -- sorguya gönderilen --mahalId-- türü doğru değil, lütfen Rapor7/24 ile irtibata geçiniz. "
+  //   );
+
+  // // tip2 - (yukarıda açıklandı)
+  // if (!_pozId)
+  //   throw new Error(
+  //     "MONGO // collectionDugumler // Poz Id -- sorguya gönderilmemiş, lütfen Rapor7/24 ile irtibata geçiniz. "
+  //   );
+  // try {
+  //   if (typeof _pozId == "string") {
+  //     _pozId = new BSON.ObjectId(_pozId);
+  //   }
+  // } catch (err) {
+  //   throw new Error(
+  //     "MONGO // collectionDugumler -- sorguya gönderilen --pozId-- türü doğru değil, lütfen Rapor7/24 ile irtibata geçiniz."
+  //   );
+  // }
+  // if (typeof _pozId != "object")
+  //   throw new Error(
+  //     "MONGO // collectionDugumler -- sorguya gönderilen --pozId-- türü doğru değil, lütfen Rapor7/24 ile irtibata geçiniz. "
+  //   );
+
+
+
+
+
+
+
+  
+
   if (functionName == "getMahalListesi") {
     const result = await collection_Dugumler.aggregate([
       { $match: { _projectId } },
