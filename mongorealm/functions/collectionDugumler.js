@@ -109,26 +109,23 @@ exports = async function ({
       { _projectId, _mahalId, _pozId }
     );
 
-    // const {metrajSatirlari} = result
+    if (result.metrajSatirlari) {
+      return result.metrajSatirlari
+    }
     
-    return result.metrajSatirlari
-    // if (result.metrajSatirlari) {
-    //   return result.metrajSatirlari
-    // }
+    const metrajSatirlari = {
+      guncel: {
+        satirlar: [
+           { satirNo:1, metin1: "a", metin2: "", carpan1:"" , carpan2: "", carpan3: "", carpan4: "", carpan5: "", metraj: "" },
+           { satirNo:2, metin1: "", metin2: "", carpan1: "", carpan2: "", carpan3: "", carpan4: "", carpan5: "", metraj: "" },
+           { satirNo:3, metin1: "", metin2: "", carpan1:"" , carpan2: "", carpan3: "", carpan4: "", carpan5: "", metraj: "" },
+           { satirNo:4, metin1: "", metin2: "", carpan1: "", carpan2: "", carpan3: "", carpan4: "", carpan5: "", metraj: "" },
+           { satirNo:5, metin1: "", metin2: "", carpan1: "", carpan2: "", carpan3: "", carpan4: "", carpan5: "", metraj: "" },
+        ]
+      }
+    }
     
-    // const metrajSatirlari = {
-    //   guncel: {
-    //     satirlar: [
-    //        { satirNo:1, metin1: "a", metin2: "", carpan1:"" , carpan2: "", carpan3: "", carpan4: "", carpan5: "", metraj: "" },
-    //        { satirNo:2, metin1: "", metin2: "", carpan1: "", carpan2: "", carpan3: "", carpan4: "", carpan5: "", metraj: "" },
-    //        { satirNo:3, metin1: "", metin2: "", carpan1:"" , carpan2: "", carpan3: "", carpan4: "", carpan5: "", metraj: "" },
-    //        { satirNo:4, metin1: "", metin2: "", carpan1: "", carpan2: "", carpan3: "", carpan4: "", carpan5: "", metraj: "" },
-    //        { satirNo:5, metin1: "", metin2: "", carpan1: "", carpan2: "", carpan3: "", carpan4: "", carpan5: "", metraj: "" },
-    //     ]
-    //   }
-    // }
-    
-    // return metrajSatirlari;
+    return metrajSatirlari;
   }
 
 
