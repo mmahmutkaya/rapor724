@@ -101,11 +101,11 @@ exports = async function ({
 
   if (functionName == "getNodeMetrajlar") {
     
-    const result = await collection_Dugumler.aggregate([
+    const {metrajSatirlari} = await collection_Dugumler.aggregate([
       { $match: { _projectId, _mahalId, _pozId } },
     ]);
     
-      return result.metrajSatirlari
+      return metrajSatirlari
     // if (result.metrajSatirlari) {
     //   return result.metrajSatirlari
     // }
