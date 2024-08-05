@@ -134,7 +134,7 @@ exports = async function ({
       { $match: { _projectId, _mahalId, _pozId } },
     ]);
 
-    return result[0]
+    return result
     
     let hazirlananMetrajlar
     let userMetraj
