@@ -151,7 +151,7 @@ exports = async function ({
     ]
     
     if(isHazirlananMetrajlarExist) {
-      await collection_Dugumler.aggregate( { _projectId, _mahalId, _pozId },[
+      await collection_Dugumler.updateOne( { _projectId, _mahalId, _pozId },[
         {$set:{"hazirlananMetrajlar":{
           $map: {
             input: "$hazirlananMetrajlar",
@@ -172,7 +172,7 @@ exports = async function ({
     }
     
     if(!isHazirlananMetrajlarExist) {
-      await collection_Dugumler.aggregate({ _projectId, _mahalId, _pozId },[
+      await collection_Dugumler.updateOne({ _projectId, _mahalId, _pozId },[
         {$set:{"hazirlananMetrajlar":[userMetraj]}}
       ])
     }
