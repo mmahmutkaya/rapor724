@@ -130,14 +130,14 @@ exports = async function ({
 
   if (functionName == "getUserMetraj") {
   
-    const result = await collection_Dugumler.aggregate([
+    const result = collection_Dugumler.aggregate([
       { $match: { _projectId, _mahalId, _pozId } },
     ]);
 
-    let result2 = await {...result}
+    let result2 = {...result}
     let hazirlananMetrajlar
     let userMetraj
-    if(await result2.hasOwnProperty("hazirlananMetrajlar") == true){
+    if(result2.hasOwnProperty("hazirlananMetrajlar") == true){
       hazirlananMetrajlar = true
       userMetraj = result2.hazirlananMetrajlar.find(x => x._userId === _userId)
       if(userMetraj){
