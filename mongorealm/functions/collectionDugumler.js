@@ -128,30 +128,32 @@ exports = async function ({
   }
 
 
-   if (functionName == "getUserMetraj") {
-    
+  if (functionName == "getUserMetraj") {
+  
     const result = await collection_Dugumler.aggregate([
       { $match: { _projectId, _mahalId, _pozId } },
     ]);
-
+    
     if(result.hazirlananMetrajlar){
       let userMetraj = result.hazirlananMetrajlar.find(x => x._userId === _userId)
       if(userMetraj){
         return userMetraj
       }
-      userMetraj = {
-        _userId,
-        satirlar: [
-          { satirNo:1, metin1: "a", metin2: "", carpan1:"" , carpan2: "", carpan3: "", carpan4: "", carpan5: "", metraj: "" },
-          { satirNo:2, metin1: "", metin2: "", carpan1: "", carpan2: "", carpan3: "", carpan4: "", carpan5: "", metraj: "" },
-          { satirNo:3, metin1: "", metin2: "", carpan1:"" , carpan2: "", carpan3: "", carpan4: "", carpan5: "", metraj: "" },
-          { satirNo:4, metin1: "", metin2: "", carpan1: "", carpan2: "", carpan3: "", carpan4: "", carpan5: "", metraj: "" },
-          { satirNo:5, metin1: "", metin2: "", carpan1: "", carpan2: "", carpan3: "", carpan4: "", carpan5: "", metraj: "" }
-        ]
-      }
-      return userMetraj
     }
-   }
+    
+    let userMetraj = {
+      _userId,
+      satirlar: [
+        { satirNo:1, metin1: "a", metin2: "", carpan1:"" , carpan2: "", carpan3: "", carpan4: "", carpan5: "", metraj: "" },
+        { satirNo:2, metin1: "", metin2: "", carpan1: "", carpan2: "", carpan3: "", carpan4: "", carpan5: "", metraj: "" },
+        { satirNo:3, metin1: "", metin2: "", carpan1:"" , carpan2: "", carpan3: "", carpan4: "", carpan5: "", metraj: "" },
+        { satirNo:4, metin1: "", metin2: "", carpan1: "", carpan2: "", carpan3: "", carpan4: "", carpan5: "", metraj: "" },
+        { satirNo:5, metin1: "", metin2: "", carpan1: "", carpan2: "", carpan3: "", carpan4: "", carpan5: "", metraj: "" }
+      ]
+    }
+    return userMetraj
+  
+  }
 
 
 
