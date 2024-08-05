@@ -134,12 +134,12 @@ exports = async function ({
       { $match: { _projectId, _mahalId, _pozId } },
     ]);
 
-
+    let result2 = {...result}
     let hazirlananMetrajlar
     let userMetraj
-    if(result.hasOwnProperty("hazirlananMetrajlar")){
+    if(result2.hasOwnProperty("hazirlananMetrajlar")){
       hazirlananMetrajlar = true
-      userMetraj = result.hazirlananMetrajlar.find(x => x._userId === _userId)
+      userMetraj = result2.hazirlananMetrajlar.find(x => x._userId === _userId)
       if(userMetraj){
         return userMetraj
       }
