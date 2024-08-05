@@ -132,9 +132,9 @@ exports = async function ({
   
     const result = await collection_Dugumler.aggregate([
       { $match: { _projectId, _mahalId, _pozId } },
-    ])[0];
+    ]);
 
-    return result
+    return result[0]
     
     let hazirlananMetrajlar
     let userMetraj
