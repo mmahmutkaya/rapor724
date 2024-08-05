@@ -134,7 +134,7 @@ exports = async function ({
       { $match: { _projectId, _mahalId, _pozId } },
     ]);
 
-    let isHazirlananMetrajlarExist
+    let isHazirlananMetrajlarExist = false
     if(result.hazirlananMetrajlar){
       isHazirlananMetrajlarExist = true
       let userMetraj = result.hazirlananMetrajlar.find(x => x._userId === _userId)
