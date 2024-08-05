@@ -164,7 +164,7 @@ exports = async function ({
       ])
     }
     
-    if(!hazirlananMetrajlarExist && !userMetraj) {
+    if(!hazirlananMetrajlar && !userMetraj) {
       await collection_Dugumler.updateOne({ _projectId, _mahalId, _pozId },[
         {$set:{"hazirlananMetrajlar":[newUserMetraj]}}
       ])
