@@ -134,14 +134,16 @@ exports = async function ({
       { $match: { _projectId, _mahalId, _pozId } },
     ]);
 
-    let isHazirlananMetrajlarExist = false
+    let hazirlananMetrajlar
+    let userMetraj
     if(result.hazirlananMetrajlar){
-      isHazirlananMetrajlarExist = true
-      let userMetraj = result.hazirlananMetrajlar.find(x => x._userId === _userId)
+      hazirlananMetrajlar = true
+      userMetraj = result.hazirlananMetrajlar.find(x => x._userId === _userId)
       if(userMetraj){
         return userMetraj
       }
     }
+    
     let satirlar = [
       { satirNo:1, metin1: "a", metin2: "", carpan1:"" , carpan2: "", carpan3: "", carpan4: "", carpan5: "", metraj: "" },
       { satirNo:2, metin1: "", metin2: "", carpan1: "", carpan2: "", carpan3: "", carpan4: "", carpan5: "", metraj: "" },
@@ -150,34 +152,25 @@ exports = async function ({
       { satirNo:5, metin1: "", metin2: "", carpan1: "", carpan2: "", carpan3: "", carpan4: "", carpan5: "", metraj: "" }
     ]
     
-    if(isHazirlananMetrajlarExist) {
+    newUserMetraj = {
+      _userId,
+      satirlar
+    }
+    if(hazirlananMetrajlar && !userMetraj) {
       await collection_Dugumler.updateOne( { _projectId, _mahalId, _pozId },[
         {$set:{"hazirlananMetrajlar":{
-          $map: {
-            input: "$hazirlananMetrajlar",
-            as: "oneMetraj",
-            in: { $cond: {
-              if: {"$eq":["oneMetraj._userId",_userId]},
-              then: {"$mergeObjects": ["$$oneMetraj",{satirlar}]},
-              else: "$$oneMetraj"
-            }}
-          }
+          $concatArrays:["$hazirlananMetrajlar",newUserMetraj]
         }}}
       ])
     }
     
-    let userMetraj = {
-      _userId,
-      satirlar
-    }
-    
-    if(!isHazirlananMetrajlarExist) {
+    if(!isHazirlananMetrajlarExist && !userMetraj) {
       await collection_Dugumler.updateOne({ _projectId, _mahalId, _pozId },[
-        {$set:{"hazirlananMetrajlar":[userMetraj]}}
+        {$set:{"hazirlananMetrajlar":[newUserMetraj]}}
       ])
     }
     
-    return userMetraj
+    return newUserMetraj
   
   }
 
