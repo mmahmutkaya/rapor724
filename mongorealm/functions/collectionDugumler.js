@@ -137,7 +137,7 @@ exports = async function ({
     let result2 = {...result}
     let hazirlananMetrajlar
     let userMetraj
-    if(result2.hasOwnProperty("hazirlananMetrajlar")){
+    if(result2.hasOwnProperty("hazirlananMetrajlar") == true){
       hazirlananMetrajlar = true
       userMetraj = result2.hazirlananMetrajlar.find(x => x._userId === _userId)
       if(userMetraj){
