@@ -133,24 +133,50 @@ exports = async function ({
     const result = await collection_Dugumler.aggregate([
       { $match: { _projectId, _mahalId, _pozId } },
     ]);
-    
+
+    let isHazirlananMetrajlarExist
     if(result.hazirlananMetrajlar){
+      isHazirlananMetrajlarExist = true
       let userMetraj = result.hazirlananMetrajlar.find(x => x._userId === _userId)
       if(userMetraj){
         return userMetraj
       }
     }
+    let satirlar = [
+      { satirNo:1, metin1: "a", metin2: "", carpan1:"" , carpan2: "", carpan3: "", carpan4: "", carpan5: "", metraj: "" },
+      { satirNo:2, metin1: "", metin2: "", carpan1: "", carpan2: "", carpan3: "", carpan4: "", carpan5: "", metraj: "" },
+      { satirNo:3, metin1: "", metin2: "", carpan1:"" , carpan2: "", carpan3: "", carpan4: "", carpan5: "", metraj: "" },
+      { satirNo:4, metin1: "", metin2: "", carpan1: "", carpan2: "", carpan3: "", carpan4: "", carpan5: "", metraj: "" },
+      { satirNo:5, metin1: "", metin2: "", carpan1: "", carpan2: "", carpan3: "", carpan4: "", carpan5: "", metraj: "" }
+    ]
+    
+    if(isHazirlananMetrajlarExist) {
+      collection_Dugumler.aggregate({ $match: { _projectId, _mahalId, _pozId } },[
+        {$set:{"hazirlananMetrajlar":{
+          $map: {
+            input: "$hazirlananMetrajlar",
+            as: "oneMetraj",
+            in: { $cond: {
+              if: {"$eq":["oneMetraj._userId",_userId]},
+              then: {"$mergeObjects": ["$$oneMetraj",{satirlar}]},
+              else: "$$oneMetraj"
+            }}
+          }
+        }}}
+      ])
+    }
     
     let userMetraj = {
       _userId,
-      satirlar: [
-        { satirNo:1, metin1: "a", metin2: "", carpan1:"" , carpan2: "", carpan3: "", carpan4: "", carpan5: "", metraj: "" },
-        { satirNo:2, metin1: "", metin2: "", carpan1: "", carpan2: "", carpan3: "", carpan4: "", carpan5: "", metraj: "" },
-        { satirNo:3, metin1: "", metin2: "", carpan1:"" , carpan2: "", carpan3: "", carpan4: "", carpan5: "", metraj: "" },
-        { satirNo:4, metin1: "", metin2: "", carpan1: "", carpan2: "", carpan3: "", carpan4: "", carpan5: "", metraj: "" },
-        { satirNo:5, metin1: "", metin2: "", carpan1: "", carpan2: "", carpan3: "", carpan4: "", carpan5: "", metraj: "" }
-      ]
+      satirlar
     }
+    
+    if(!isHazirlananMetrajlarExist) {
+      collection_Dugumler.aggregate({ $match: { _projectId, _mahalId, _pozId } },[
+        {$set:{"hazirlananMetrajlar":[userMetraj]}}
+      ])
+    }
+    
     return userMetraj
   
   }
