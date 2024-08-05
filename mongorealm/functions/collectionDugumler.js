@@ -124,17 +124,56 @@ exports = async function ({
         ]
       }
     }
-    
-    return metrajSatirlari;
+     return metrajSatirlari;
   }
 
 
-  if (functionName == "level1_set") {
+   if (functionName == "getUserMetrajlar") {
+    
+    const result = await collection_Dugumler.aggregate([
+      { $match: { _projectId, _mahalId, _pozId } },
+    ]);
+
+   // const result = await collection_Dugumler.findOne(
+   //    { _projectId, _mahalId, _pozId }
+   //  );
+
+    if (result.metrajSatirlari) {
+      return result.metrajSatirlari
+    }
+    
+    const metrajSatirlari = {
+      guncel: {
+        satirlar: [
+           { satirNo:1, metin1: "a", metin2: "", carpan1:"" , carpan2: "", carpan3: "", carpan4: "", carpan5: "", metraj: "" },
+           { satirNo:2, metin1: "", metin2: "", carpan1: "", carpan2: "", carpan3: "", carpan4: "", carpan5: "", metraj: "" },
+           { satirNo:3, metin1: "", metin2: "", carpan1:"" , carpan2: "", carpan3: "", carpan4: "", carpan5: "", metraj: "" },
+           { satirNo:4, metin1: "", metin2: "", carpan1: "", carpan2: "", carpan3: "", carpan4: "", carpan5: "", metraj: "" },
+           { satirNo:5, metin1: "", metin2: "", carpan1: "", carpan2: "", carpan3: "", carpan4: "", carpan5: "", metraj: "" },
+        ]
+      }
+    }
+     return metrajSatirlari;
+  }
+
+
+
+  if (functionName == "hazirlananMetrajlar") {
     const result = await collection_Dugumler.updateOne(
       { _projectId, _mahalId, _pozId },
       [
         {
-          $set: { [propertyName]: propertyValue },
+          $set: { "hazirlananMetrajlar": {
+            $map: {
+              input: "$hazirlananMetrajlar",
+              as: "oneMetraj",
+              in: { $cond: {
+                if: {"$eq":["oneMetraj._userId",_userId]},
+                then: {"$mergeObjects": ["$$oneMetraj",{satirlar: propertValue}]},
+                else: "$$oneMetraj"
+              }}
+            }
+          }},
         },
       ]
     );
