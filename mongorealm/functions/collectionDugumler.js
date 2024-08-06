@@ -141,12 +141,12 @@ exports = async function ({
     let userMetraj
     if(result.hazirlananMetrajlar){
       hazirlananMetrajlar = true
-      userMetraj = result.hazirlananMetrajlar.find(x => x._userId === _userId)
+      userMetraj = result.hazirlananMetrajlar.find(x => x._userId == _userId)
       if(userMetraj){
         return userMetraj
       }
     }
-    return {result,hazirlananMetrajlar,userMetraj}
+    return {result,hazirlananMetrajlar,userMetraj,_userId}
     
     let satirlar = [
       { satirNo:1, metin1: "a", metin2: "", carpan1:"" , carpan2: "", carpan3: "", carpan4: "", carpan5: "", metraj: "" },
