@@ -134,9 +134,9 @@ exports = async function ({
     //   { $match: { _projectId, _mahalId, _pozId } },
     // ]);
 
-    let result = collection_Dugumler.findOne({ _projectId, _mahalId, _pozId })
-
-    return result
+    let result2 = collection_Dugumler.findOne({ _projectId, _mahalId, _pozId })
+    
+    let result = {...result2}
     let hazirlananMetrajlar
     let userMetraj
     if(result.hazirlananMetrajlar){
@@ -146,7 +146,7 @@ exports = async function ({
         return userMetraj
       }
     }
-    return {hazirlananMetrajlar,userMetraj}
+    return {result,hazirlananMetrajlar,userMetraj}
     
     let satirlar = [
       { satirNo:1, metin1: "a", metin2: "", carpan1:"" , carpan2: "", carpan3: "", carpan4: "", carpan5: "", metraj: "" },
