@@ -191,7 +191,7 @@ exports = async function ({
               as: "oneMetraj",
               in: { $cond: {
                 if: {"$eq":["oneMetraj._userId",_userId]},
-                then: {"$mergeObjects": ["$$oneMetraj",{satirlar: propertValue}]},
+                then: {"$mergeObjects": ["$$oneMetraj",{satirlar: propertyValue}]},
                 else: "$$oneMetraj"
               }}
             }
