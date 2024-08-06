@@ -135,7 +135,7 @@ exports = async function ({
       { $project: { hazirlananMetrajlar: 1, _id: 0 } }
     ]);
 
-    return {ok:"'getHazirlananMetrajlar' çalıştı", hazirlananMetrajlar:result};
+    return result;
   }
 
 
