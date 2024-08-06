@@ -134,8 +134,12 @@ exports = async function ({
       { $match: { _projectId, _mahalId, _pozId } },
     ]);
 
-    result = result.toString()
-    return result
+    let result2
+    result = result.map(x => {
+      if(!result2) result2 = x
+      return x
+    })
+    return result2
     
     let hazirlananMetrajlar
     let userMetraj
