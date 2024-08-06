@@ -128,6 +128,18 @@ exports = async function ({
   }
 
 
+  if (functionName == "getHazirlananMetrajlar") {
+    
+    const result = await collection_Dugumler.aggregate([
+      { $match: { _projectId, _mahalId, _pozId } },
+      { $project: { hazirlananMetrajlar: 1, _id: 0 } }
+    ]);
+
+    return {ok:"'getHazirlananMetrajlar' çalıştı", hazirlananMetrajlar};
+  }
+
+
+
   if (functionName == "getUserMetraj") {
 
     // aggregate array dönüş veriyor, içindeki tek objeyi alamadım bir türlü, o yüzden findOne kullandım aşağıda
@@ -199,19 +211,9 @@ exports = async function ({
         },
       ]
     );
-    return {ok:"ne oldu acaba",result}
-    // if (!result.matchedCount) {
-    //   const result = await collection_Dugumler.insertOne({
-    //     _projectId,
-    //     _mahalId,
-    //     _pozId,
-    //     [propertyName]: propertyValue,
-    //   });
-    //   return { ok: "level1_set_insertOne", result };
-    // } else {
-    //   return { ok: "level1_set_updateOne_aggregate", result };
-    // }
+    return {ok:"'setUserMetraj' çalıştı.",result}
   }
+  
 
   return { ok: true, description: "herhangi bir fonksiyon içine giremedi" };
 };
