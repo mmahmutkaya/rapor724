@@ -134,7 +134,7 @@ exports = async function ({
       { $match: { _projectId, _mahalId, _pozId } },
     ]);
 
-    result = result[0]
+    result = result.toString()
     return result
     
     let hazirlananMetrajlar
