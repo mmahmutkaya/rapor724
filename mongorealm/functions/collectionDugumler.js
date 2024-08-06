@@ -141,7 +141,7 @@ exports = async function ({
     let userMetraj
     if(result.hazirlananMetrajlar){
       hazirlananMetrajlar = true
-      userMetraj = await result.hazirlananMetrajlar.find(x => x._userId.toString() == _userId.toString())
+      userMetraj = result.hazirlananMetrajlar.find(x => x._userId.toString() == _userId.toString())
       if(userMetraj){
         return userMetraj
       }
