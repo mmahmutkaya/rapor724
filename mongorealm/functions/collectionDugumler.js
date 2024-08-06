@@ -129,7 +129,8 @@ exports = async function ({
 
 
   if (functionName == "getUserMetraj") {
-  
+
+    // aggregate array dönüş veriyor, içindeki tek objeyi alamadım bir türlü, o yüzden findOne kullandım aşağıda
     // let result = collection_Dugumler.aggregate([
     //   { $match: { _projectId, _mahalId, _pozId } },
     // ]);
@@ -179,7 +180,7 @@ exports = async function ({
 
 
 
-  if (functionName == "hazirlananMetrajlar") {
+  if (functionName == "setUserMetraj") {
     const result = await collection_Dugumler.updateOne(
       { _projectId, _mahalId, _pozId },
       [
@@ -198,17 +199,18 @@ exports = async function ({
         },
       ]
     );
-    if (!result.matchedCount) {
-      const result = await collection_Dugumler.insertOne({
-        _projectId,
-        _mahalId,
-        _pozId,
-        [propertyName]: propertyValue,
-      });
-      return { ok: "level1_set_insertOne", result };
-    } else {
-      return { ok: "level1_set_updateOne_aggregate", result };
-    }
+    return result
+    // if (!result.matchedCount) {
+    //   const result = await collection_Dugumler.insertOne({
+    //     _projectId,
+    //     _mahalId,
+    //     _pozId,
+    //     [propertyName]: propertyValue,
+    //   });
+    //   return { ok: "level1_set_insertOne", result };
+    // } else {
+    //   return { ok: "level1_set_updateOne_aggregate", result };
+    // }
   }
 
   return { ok: true, description: "herhangi bir fonksiyon içine giremedi" };
