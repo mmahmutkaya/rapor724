@@ -134,12 +134,13 @@ exports = async function ({
       { $match: { _projectId, _mahalId, _pozId } },
     ]);
 
+    let resul1
     let result2 = [...result]
     // result = result.map(x => {
     //   if(!result2) result2 = x
     //   return x
     // })
-    return JSON.stringify(result2)
+    return {result,result1:JSON.stringify(result2),result2}
     
     let hazirlananMetrajlar
     let userMetraj
