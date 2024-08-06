@@ -136,6 +136,7 @@ exports = async function ({
 
     let result = collection_Dugumler.findOne({ _projectId, _mahalId, _pozId })
 
+    return result
     let hazirlananMetrajlar
     let userMetraj
     if(result.hazirlananMetrajlar){
