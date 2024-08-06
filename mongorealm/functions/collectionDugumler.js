@@ -130,17 +130,12 @@ exports = async function ({
 
   if (functionName == "getUserMetraj") {
   
-    let result = collection_Dugumler.aggregate([
-      { $match: { _projectId, _mahalId, _pozId } },
-    ]);
+    // let result = collection_Dugumler.aggregate([
+    //   { $match: { _projectId, _mahalId, _pozId } },
+    // ]);
 
-    let result2 = Object.assign({}, result)
-    // result = result.map(x => {
-    //   if(!result2) result2 = x
-    //   return x
-    // })
-    return {result,result2}
-    
+    let result = collection_Dugumler.findOne({ _projectId, _mahalId, _pozId })
+
     let hazirlananMetrajlar
     let userMetraj
     if(result.hazirlananMetrajlar){
