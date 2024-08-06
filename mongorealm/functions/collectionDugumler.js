@@ -190,7 +190,7 @@ exports = async function ({
               input: "$hazirlananMetrajlar",
               as: "oneMetraj",
               in: { $cond: {
-                if: {"$eq":["oneMetraj._userId",_userId.toString()]},
+                if: {"$eq":["$$oneMetraj._userId",_userId]},
                 then: {"$mergeObjects": ["$$oneMetraj",{satirlar: propertyValue}]},
                 else: "$$oneMetraj"
               }}
