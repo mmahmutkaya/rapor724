@@ -146,8 +146,7 @@ exports = async function ({
         return userMetraj
       }
     }
-    return {result,hazirlananMetrajlar,userMetraj,_userId}
-    
+        
     let satirlar = [
       { satirNo:1, metin1: "a", metin2: "", carpan1:"" , carpan2: "", carpan3: "", carpan4: "", carpan5: "", metraj: "" },
       { satirNo:2, metin1: "", metin2: "", carpan1: "", carpan2: "", carpan3: "", carpan4: "", carpan5: "", metraj: "" },
