@@ -134,7 +134,7 @@ exports = async function ({
     //   { $match: { _projectId, _mahalId, _pozId } },
     // ]);
 
-    let result2 = collection_Dugumler.findOne({ _projectId, _mahalId, _pozId })
+    let result2 = await collection_Dugumler.findOne({ _projectId, _mahalId, _pozId })
     
     let result = {...result2}
     let hazirlananMetrajlar
