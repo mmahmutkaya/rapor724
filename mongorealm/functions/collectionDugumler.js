@@ -130,7 +130,7 @@ exports = async function ({
 
   if (functionName == "getUserMetraj") {
   
-    let result = await collection_Dugumler.aggregate([
+    let result = collection_Dugumler.aggregate([
       { $match: { _projectId, _mahalId, _pozId } },
     ]);
 
