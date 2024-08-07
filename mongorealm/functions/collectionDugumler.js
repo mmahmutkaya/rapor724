@@ -214,6 +214,25 @@ exports = async function ({
     );
     return {ok:"'setUserMetraj' çalıştı.",result2}
   }
+
+  
+  if (functionName == "toggle_openMetraj") {
+    const result = await collection_Dugumler.updateOne(
+      { _projectId, _mahalId, _pozId },
+      [
+        {
+          $set: { ["openMetraj"]: {
+            $cond: {
+              if: {"$eq":["$openMetraj",true]},
+              then: false,
+              else: true
+            }
+          }},
+        },
+      ]
+    );
+    return {ok:"'setUserMetraj' çalıştı.",result2}
+  }
   
 
   return { ok: true, description: "herhangi bir fonksiyon içine giremedi" };
