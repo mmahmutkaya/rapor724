@@ -135,7 +135,8 @@ exports = async function ({
       { $project: { hazirlananMetrajlar: 1, _id: 0 } }
     ]);
 
-    return result;
+    const {hazirlananMetrajlar} = result.hazirlananMetrajlar[0].hazirlananMetrajlar
+    return hazirlananMetrajlar;
   }
 
 
@@ -211,7 +212,7 @@ exports = async function ({
         },
       ]
     );
-    return {ok:"'setUserMetraj' çalıştı.",result}
+    return {ok:"'setUserMetraj' çalıştı.",result2}
   }
   
 
