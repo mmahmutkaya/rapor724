@@ -217,6 +217,7 @@ exports = async function ({
 
   
   if (functionName == "toggle_openMetraj") {
+    
     const result = await collection_Dugumler.updateOne(
       { _projectId, _mahalId, _pozId },
       [
@@ -228,10 +229,26 @@ exports = async function ({
               else: true
             }
           }},
-        },
+        }
       ]
-    );
-    return {ok:"'setUserMetraj' çalıştı.",result}
+    )
+    
+    if(result.matchedCount) {
+      return {ok:"'toggle_openMetraj' - toggle - çalıştı.",result}
+    }
+
+    const dugumObject = {
+      _projectId,
+      _mahalId,
+      _pozId,
+      openMetraj:true,
+      onaylananMetrajlar:[],
+      hazirlananMetrajlar:[],
+      createdBy:_userId,      
+    }
+    const result2 = await collection_Dugumler.insertOne(dugumObject)    
+    return {ok:"'toggle_openMetraj' - yeniObject - çalıştı.",result2}
+    
   }
   
 
