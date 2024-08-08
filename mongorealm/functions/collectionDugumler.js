@@ -231,7 +231,7 @@ exports = async function ({
         },
       ]
     );
-    return {ok:"'setUserMetraj' çalıştı.",result2}
+    return {ok:"'setUserMetraj' çalıştı.",result}
   }
   
 
