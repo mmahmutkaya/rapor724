@@ -99,35 +99,36 @@ exports = async function ({
   }
 
 
-  if (functionName == "getNodeMetrajlar") {
+  // if (functionName == "getNodeMetrajlar") {
     
-    // const result = await collection_Dugumler.aggregate([
-    //   { $match: { _projectId, _mahalId, _pozId } },
-    // ]);
+  //   // const result = await collection_Dugumler.aggregate([
+  //   //   { $match: { _projectId, _mahalId, _pozId } },
+  //   // ]);
 
-   const result = await collection_Dugumler.findOne(
-      { _projectId, _mahalId, _pozId }
-    );
+  //  const result = await collection_Dugumler.findOne(
+  //     { _projectId, _mahalId, _pozId }
+  //   );
 
-    if (result.metrajSatirlari) {
-      return result.metrajSatirlari
-    }
+  //   if (result.metrajSatirlari) {
+  //     return result.metrajSatirlari
+  //   }
     
-    const metrajSatirlari = {
-      guncel: {
-        satirlar: [
-           { satirNo:1, metin1: "a", metin2: "", carpan1:"" , carpan2: "", carpan3: "", carpan4: "", carpan5: "", metraj: "" },
-           { satirNo:2, metin1: "", metin2: "", carpan1: "", carpan2: "", carpan3: "", carpan4: "", carpan5: "", metraj: "" },
-           { satirNo:3, metin1: "", metin2: "", carpan1:"" , carpan2: "", carpan3: "", carpan4: "", carpan5: "", metraj: "" },
-           { satirNo:4, metin1: "", metin2: "", carpan1: "", carpan2: "", carpan3: "", carpan4: "", carpan5: "", metraj: "" },
-           { satirNo:5, metin1: "", metin2: "", carpan1: "", carpan2: "", carpan3: "", carpan4: "", carpan5: "", metraj: "" },
-        ]
-      }
-    }
-     return metrajSatirlari;
-  }
+  //   const metrajSatirlari = {
+  //     guncel: {
+  //       satirlar: [
+  //          { satirNo:1, metin1: "a", metin2: "", carpan1:"" , carpan2: "", carpan3: "", carpan4: "", carpan5: "", metraj: "" },
+  //          { satirNo:2, metin1: "", metin2: "", carpan1: "", carpan2: "", carpan3: "", carpan4: "", carpan5: "", metraj: "" },
+  //          { satirNo:3, metin1: "", metin2: "", carpan1:"" , carpan2: "", carpan3: "", carpan4: "", carpan5: "", metraj: "" },
+  //          { satirNo:4, metin1: "", metin2: "", carpan1: "", carpan2: "", carpan3: "", carpan4: "", carpan5: "", metraj: "" },
+  //          { satirNo:5, metin1: "", metin2: "", carpan1: "", carpan2: "", carpan3: "", carpan4: "", carpan5: "", metraj: "" },
+  //       ]
+  //     }
+  //   }
+  //    return metrajSatirlari;
+  // }
 
 
+  
   if (functionName == "getHazirlananMetrajlar") {
 
    const result = await collection_Dugumler.aggregate([
@@ -140,57 +141,58 @@ exports = async function ({
     return result
   }
 
-
-
-  if (functionName == "getUserMetraj") {
-
-    // aggregate array dönüş veriyor, içindeki tek objeyi alamadım bir türlü, o yüzden findOne kullandım aşağıda
-    // let result = collection_Dugumler.aggregate([
-    //   { $match: { _projectId, _mahalId, _pozId } },
-    // ]);
-
-    let result2 = await collection_Dugumler.findOne({ _projectId, _mahalId, _pozId })
-    
-    let result = {...result2}
-    let hazirlananMetrajlar
-    let userMetraj
-    if(result.hazirlananMetrajlar){
-      hazirlananMetrajlar = true
-      userMetraj = result.hazirlananMetrajlar.find(x => x._userId.toString() == _userId.toString())
-      if(userMetraj){
-        return userMetraj
-      }
-    }
-        
-    let satirlar = [
-      { satirNo:1, metin1: "a", metin2: "", carpan1:"" , carpan2: "", carpan3: "", carpan4: "", carpan5: "", metraj: "" },
-      { satirNo:2, metin1: "", metin2: "", carpan1: "", carpan2: "", carpan3: "", carpan4: "", carpan5: "", metraj: "" },
-      { satirNo:3, metin1: "", metin2: "", carpan1:"" , carpan2: "", carpan3: "", carpan4: "", carpan5: "", metraj: "" },
-      { satirNo:4, metin1: "", metin2: "", carpan1: "", carpan2: "", carpan3: "", carpan4: "", carpan5: "", metraj: "" },
-      { satirNo:5, metin1: "", metin2: "", carpan1: "", carpan2: "", carpan3: "", carpan4: "", carpan5: "", metraj: "" }
-    ]
-    
-    newUserMetraj = {
-      _userId,
-      satirlar
-    }
-    if(hazirlananMetrajlar && !userMetraj) {
-      await collection_Dugumler.updateOne( { _projectId, _mahalId, _pozId },[
-        {$set:{"hazirlananMetrajlar":{
-          $concatArrays:["$hazirlananMetrajlar",[newUserMetraj]]
-        }}}
-      ])
-    }
-    
-    if(!hazirlananMetrajlar && !userMetraj) {
-      await collection_Dugumler.updateOne({ _projectId, _mahalId, _pozId },[
-        {$set:{"hazirlananMetrajlar":[newUserMetraj]}}
-      ])
-    }
-    
-    return newUserMetraj
   
-  }
+
+
+  // if (functionName == "getUserMetraj") {
+
+  //   // aggregate array dönüş veriyor, içindeki tek objeyi alamadım bir türlü, o yüzden findOne kullandım aşağıda
+  //   // let result = collection_Dugumler.aggregate([
+  //   //   { $match: { _projectId, _mahalId, _pozId } },
+  //   // ]);
+
+  //   let result2 = await collection_Dugumler.findOne({ _projectId, _mahalId, _pozId })
+    
+  //   let result = {...result2}
+  //   let hazirlananMetrajlar
+  //   let userMetraj
+  //   if(result.hazirlananMetrajlar){
+  //     hazirlananMetrajlar = true
+  //     userMetraj = result.hazirlananMetrajlar.find(x => x._userId.toString() == _userId.toString())
+  //     if(userMetraj){
+  //       return userMetraj
+  //     }
+  //   }
+        
+  //   let satirlar = [
+  //     { satirNo:1, metin1: "a", metin2: "", carpan1:"" , carpan2: "", carpan3: "", carpan4: "", carpan5: "", metraj: "" },
+  //     { satirNo:2, metin1: "", metin2: "", carpan1: "", carpan2: "", carpan3: "", carpan4: "", carpan5: "", metraj: "" },
+  //     { satirNo:3, metin1: "", metin2: "", carpan1:"" , carpan2: "", carpan3: "", carpan4: "", carpan5: "", metraj: "" },
+  //     { satirNo:4, metin1: "", metin2: "", carpan1: "", carpan2: "", carpan3: "", carpan4: "", carpan5: "", metraj: "" },
+  //     { satirNo:5, metin1: "", metin2: "", carpan1: "", carpan2: "", carpan3: "", carpan4: "", carpan5: "", metraj: "" }
+  //   ]
+    
+  //   newUserMetraj = {
+  //     _userId,
+  //     satirlar
+  //   }
+  //   if(hazirlananMetrajlar && !userMetraj) {
+  //     await collection_Dugumler.updateOne( { _projectId, _mahalId, _pozId },[
+  //       {$set:{"hazirlananMetrajlar":{
+  //         $concatArrays:["$hazirlananMetrajlar",[newUserMetraj]]
+  //       }}}
+  //     ])
+  //   }
+    
+  //   if(!hazirlananMetrajlar && !userMetraj) {
+  //     await collection_Dugumler.updateOne({ _projectId, _mahalId, _pozId },[
+  //       {$set:{"hazirlananMetrajlar":[newUserMetraj]}}
+  //     ])
+  //   }
+    
+  //   return newUserMetraj
+  
+  // }
 
 
 
@@ -213,7 +215,7 @@ exports = async function ({
                   else: "$$oneMetraj"
                 }}
               }},
-              else:[{_userId,satirlar:propertyValue}]
+              else:{$concatArrays:["$hazirlananMetrajlar",[{_userId,satirlar:propertyValue}]]}
             }
           }},
         },
