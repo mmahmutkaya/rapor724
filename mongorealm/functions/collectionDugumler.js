@@ -194,20 +194,26 @@ exports = async function ({
 
 
 
+
+
   if (functionName == "setUserMetraj") {
     const result = await collection_Dugumler.updateOne(
       { _projectId, _mahalId, _pozId },
       [
         {
           $set: { "hazirlananMetrajlar": {
-            $map: {
-              input: "$hazirlananMetrajlar",
-              as: "oneMetraj",
-              in: { $cond: {
-                if: {"$eq":["$$oneMetraj._userId",_userId]},
-                then: {"$mergeObjects": ["$$oneMetraj",{satirlar: propertyValue}]},
-                else: "$$oneMetraj"
-              }}
+            $cond:{
+              if:{$in:[_userId,"$hazirlananMetrajlar._userId"]},
+              then:{$map: {
+                input: "$hazirlananMetrajlar",
+                as: "oneMetraj",
+                in: { $cond: {
+                  if: {"$eq":["$$oneMetraj._userId",_userId]},
+                  then: {"$mergeObjects": ["$$oneMetraj",{satirlar: propertyValue}]},
+                  else: "$$oneMetraj"
+                }}
+              }},
+              else:[{_userId,satirlar:propertyValue}]
             }
           }},
         },
