@@ -135,8 +135,9 @@ exports = async function ({
       { $project: { hazirlananMetrajlar: 1, _id: 0 } }
     ]);
 
-    const {hazirlananMetrajlar} = result.hazirlananMetrajlar[0].hazirlananMetrajlar
-    return hazirlananMetrajlar;
+    // const {hazirlananMetrajlar} = result.hazirlananMetrajlar[0].hazirlananMetrajlar
+    // return hazirlananMetrajlar;
+    return result
   }
 
 
