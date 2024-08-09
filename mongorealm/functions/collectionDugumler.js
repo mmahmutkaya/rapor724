@@ -129,6 +129,8 @@ exports = async function ({
 
 
   if (functionName == "getHazirlananMetrajlar") {
+
+    return {_projectId, _mahalId, _pozId }
     
     const result = await collection_Dugumler.aggregate([
       { $match: { _projectId, _mahalId, _pozId } },
