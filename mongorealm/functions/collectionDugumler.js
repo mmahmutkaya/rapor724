@@ -133,7 +133,7 @@ exports = async function ({
 
    let message = "ilk"
     
-   const result = await collection_Dugumler.aggregate([
+   const result = collection_Dugumler.aggregate([
       { $match: { _projectId, _mahalId, _pozId } },
       { $project: { hazirlananMetrajlar: 1, _id: 0 } }
     ]);
