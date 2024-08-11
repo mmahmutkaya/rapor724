@@ -130,15 +130,19 @@ exports = async function ({
 
   
   if (functionName == "getHazirlananMetrajlar") {
-
+    
    const result = await collection_Dugumler.aggregate([
       { $match: { _projectId, _mahalId, _pozId } },
       { $project: { hazirlananMetrajlar: 1, _id: 0 } }
     ]);
 
-    // const {hazirlananMetrajlar} = result.hazirlananMetrajlar[0].hazirlananMetrajlar
-    // return hazirlananMetrajlar;
-    return result
+    if(result[0].hazirlananMetrajlar) {
+      const result2 = result.hazirlananMetrajlar[0].hazirlananMetrajlar
+      return result2
+    } else {
+      result
+    }
+    
   }
 
   
