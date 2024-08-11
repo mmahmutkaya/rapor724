@@ -137,8 +137,8 @@ exports = async function ({
     ]);
 
     if(typeof result == "object" ) {
-      if(result[0].hazirlananMetrajlar){
-        return result[0].hazirlananMetrajlar
+      if(result[0]){
+        return result[0]
       }
     }
 
