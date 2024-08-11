@@ -138,8 +138,8 @@ exports = async function ({
       { $project: { hazirlananMetrajlar: 1, _id: 0 } }
     ]);
 
-    if(typeof result == "object" ) {
-      message:message + "object olduğu doğru imiş aslında"
+    if(result) {
+      message:message + "result var"
       if(result[0]){
         return {message:"oldu",result:result[0]}
       }
