@@ -130,6 +130,8 @@ exports = async function ({
 
   
   if (functionName == "getHazirlananMetrajlar") {
+
+   let message = "ilk"
     
    const result = await collection_Dugumler.aggregate([
       { $match: { _projectId, _mahalId, _pozId } },
@@ -137,12 +139,13 @@ exports = async function ({
     ]);
 
     if(typeof result == "object" ) {
+      message:message + "object olduğu doğru imiş aslında"
       if(result[0]){
         return {message:"oldu",result:result[0]}
       }
     }
 
-    return {message:"olmadı", result}
+    return {message, result}
     
   }
 
