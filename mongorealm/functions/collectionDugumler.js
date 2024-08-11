@@ -138,11 +138,11 @@ exports = async function ({
 
     if(typeof result == "object" ) {
       if(result[0]){
-        return result[0]
+        return {message:"oldu",result:result[0]}
       }
     }
 
-    return result
+    return {message:"olmadı", result}
     
   }
 
