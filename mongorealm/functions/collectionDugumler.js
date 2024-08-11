@@ -136,12 +136,13 @@ exports = async function ({
       { $project: { hazirlananMetrajlar: 1, _id: 0 } }
     ]);
 
-    if(result[0].hazirlananMetrajlar) {
-      const result2 = result.hazirlananMetrajlar[0].hazirlananMetrajlar
-      return result2
-    } else {
-      result
+    if(typeof result == "object" ) {
+      if(result[0].hazirlananMetrajlar){
+        return result[0].hazirlananMetrajlar
+      }
     }
+
+    return result
     
   }
 
