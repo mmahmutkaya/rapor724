@@ -200,7 +200,6 @@ exports = async function ({
 
     let satirlar = propertyValue.map(oneRow => {
       
-      let isMinha
       
       if (oneRow.carpan1 == "" && oneRow.carpan2 == "" && oneRow.carpan3 == "" && oneRow.carpan4 == "" && oneRow.carpan5 == "") {
         oneRow["metraj"] = ""
@@ -215,15 +214,18 @@ exports = async function ({
         (oneRow.carpan5 == "" ? 1 : oneRow.carpan5)
       )
       
-      if (isMinha) {
-        return value * -1
-      }
-      
-      return ikiHane(value)
+      let isMinha
       isMinha = oneRow["metin1"].includes("minha") || oneRow["metin1"].includes("MİNHA") || oneRow["metin2"].includes("minha") || oneRow["metin2"].includes("MİNHA") ? true : false
       
-      x.metraj = ""
-    
+      
+      if (isMinha) {
+        oneRow["metraj"] = value * -1
+        return oneRow
+      } else {
+        oneRow["metraj"] = value
+        return oneRow
+      }
+        
     })
   
     const result = await collection_Dugumler.updateOne(
@@ -249,6 +251,7 @@ exports = async function ({
         ]
       );
       return {ok:"'setUserMetraj' çalıştı.",result}
+    
   }
 
   
