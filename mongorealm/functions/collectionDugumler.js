@@ -141,8 +141,6 @@ exports = async function ({
   }
 
   
-
-
   // if (functionName == "getUserMetraj") {
 
   //   // aggregate array dönüş veriyor, içindeki tek objeyi alamadım bir türlü, o yüzden findOne kullandım aşağıda
@@ -194,12 +192,11 @@ exports = async function ({
   // }
 
 
-
-
   if (functionName == "setUserMetraj") {
 
+    let metraj = 0
+
     let satirlar = propertyValue.map(oneRow => {
-      
       
       if (oneRow.carpan1 == "" && oneRow.carpan2 == "" && oneRow.carpan3 == "" && oneRow.carpan4 == "" && oneRow.carpan5 == "") {
         oneRow["metraj"] = ""
@@ -213,16 +210,19 @@ exports = async function ({
         (oneRow.carpan4 == "" ? 1 : oneRow.carpan4) *
         (oneRow.carpan5 == "" ? 1 : oneRow.carpan5)
       )
-      
+
+
       let isMinha
       isMinha = oneRow["metin1"].includes("minha") || oneRow["metin1"].includes("MİNHA") || oneRow["metin2"].includes("minha") || oneRow["metin2"].includes("MİNHA") ? true : false
       
       
       if (isMinha) {
         oneRow["metraj"] = value * -1
+        metraj = metraj + (value * -1)
         return oneRow
       } else {
         oneRow["metraj"] = value
+        metraj = metraj + value
         return oneRow
       }
         
@@ -240,7 +240,7 @@ exports = async function ({
                 as: "oneMetraj",
                   in: { $cond: {
                     if: {"$eq":["$$oneMetraj._userId",_userId]},
-                    then: {"$mergeObjects": ["$$oneMetraj",{satirlar}]},
+                    then: {"$mergeObjects": ["$$oneMetraj",{satirlar, metraj}]},
                     else: "$$oneMetraj"
                   }}
                 }},
