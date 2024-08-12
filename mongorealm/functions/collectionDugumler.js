@@ -196,8 +196,36 @@ exports = async function ({
 
 
 
-
   if (functionName == "setUserMetraj") {
+
+    let satirlar = propertyValue.map(oneRow => {
+      
+      let isMinha
+      
+      if (oneRow.carpan1 == "" && oneRow.carpan2 == "" && oneRow.carpan3 == "" && oneRow.carpan4 == "" && oneRow.carpan5 == "") {
+        oneRow["metraj"] = ""
+        return oneRow
+      }
+    
+      const value = (
+        (oneRow.carpan1 == "" ? 1 : oneRow.carpan1) *
+        (oneRow.carpan2 == "" ? 1 : oneRow.carpan2) *
+        (oneRow.carpan3 == "" ? 1 : oneRow.carpan3) *
+        (oneRow.carpan4 == "" ? 1 : oneRow.carpan4) *
+        (oneRow.carpan5 == "" ? 1 : oneRow.carpan5)
+      )
+      
+      if (isMinha) {
+        return value * -1
+      }
+      
+      return ikiHane(value)
+      isMinha = oneRow["metin1"].includes("minha") || oneRow["metin1"].includes("MİNHA") || oneRow["metin2"].includes("minha") || oneRow["metin2"].includes("MİNHA") ? true : false
+      
+      x.metraj = ""
+    
+    })
+  
     const result = await collection_Dugumler.updateOne(
       { _projectId, _mahalId, _pozId },
       [
@@ -208,19 +236,19 @@ exports = async function ({
               then:{$map: {
                 input: "$hazirlananMetrajlar",
                 as: "oneMetraj",
-                in: { $cond: {
-                  if: {"$eq":["$$oneMetraj._userId",_userId]},
-                  then: {"$mergeObjects": ["$$oneMetraj",{satirlar: propertyValue}]},
-                  else: "$$oneMetraj"
-                }}
-              }},
-              else:{$concatArrays:["$hazirlananMetrajlar",[{_userId,satirlar:propertyValue}]]}
-            }
-          }},
-        },
-      ]
-    );
-    return {ok:"'setUserMetraj' çalıştı.",result}
+                  in: { $cond: {
+                    if: {"$eq":["$$oneMetraj._userId",_userId]},
+                    then: {"$mergeObjects": ["$$oneMetraj",{satirlar}]},
+                    else: "$$oneMetraj"
+                  }}
+                }},
+                else:{$concatArrays:["$hazirlananMetrajlar",[{_userId,satirlar:propertyValue}]]}
+              }
+            }},
+          },
+        ]
+      );
+      return {ok:"'setUserMetraj' çalıştı.",result}
   }
 
   
