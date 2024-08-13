@@ -244,19 +244,19 @@ exports = async function ({
               then:{$map: {
                 input: "$hazirlananMetrajlar",
                 as: "oneMetraj",
-                  in: { $cond: {
-                    if: {"$eq":["$$oneMetraj._userId",_userId]},
-                    then: {"$mergeObjects": ["$$oneMetraj",{satirlar, metraj}]},
-                    else: "$$oneMetraj"
-                  }}
-                }},
-                else:{$concatArrays:["$hazirlananMetrajlar",[{_userId,satirlar:propertyValue}]]}
-              }
-            }},
-          },
-        ]
-      );
-      return {ok:"'setUserMetraj' çalıştı.",result}
+                in: { $cond: {
+                  if: {"$eq":["$$oneMetraj._userId",_userId]},
+                  then: {"$mergeObjects": ["$$oneMetraj",{satirlar, metraj}]},
+                  else: "$$oneMetraj"
+                }}
+              }},
+              else:{$concatArrays:["$hazirlananMetrajlar",[{_userId,satirlar:propertyValue}]]}
+            }
+          }},
+        },
+      ]
+    );
+    return {ok:"'setUserMetraj' çalıştı.",result}
     
   }
 
