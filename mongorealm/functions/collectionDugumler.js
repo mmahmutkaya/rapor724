@@ -196,13 +196,19 @@ exports = async function ({
 
     let metraj = 0
 
+    //  sorgu ile birlikte gönderilen metraj satırlarına müdahaleler
     let satirlar = propertyValue.map(oneRow => {
-      
+
+      // guncelleme zamanını verelim
+      oneRow["sonGuncelleme"] = currentTime
+
+      // bütün çarpan degerler boş ise satır metrajı da boş olsun 
       if (oneRow.carpan1 == "" && oneRow.carpan2 == "" && oneRow.carpan3 == "" && oneRow.carpan4 == "" && oneRow.carpan5 == "") {
         oneRow["metraj"] = ""
         return oneRow
       }
-    
+
+      // buraya geldik madem - her biri birbiri ile çarpılsın (boş hücreler sonucu değiştirmesin diye 1 olsun) 
       const value = (
         (oneRow.carpan1 == "" ? 1 : oneRow.carpan1) *
         (oneRow.carpan2 == "" ? 1 : oneRow.carpan2) *
@@ -215,7 +221,7 @@ exports = async function ({
       let isMinha
       isMinha = oneRow["metin1"].includes("minha") || oneRow["metin1"].includes("MİNHA") || oneRow["metin2"].includes("minha") || oneRow["metin2"].includes("MİNHA") ? true : false
       
-      
+      // minha ise sonuç eksi deger olsun 
       if (isMinha) {
         oneRow["metraj"] = value * -1
         metraj = metraj + (value * -1)
