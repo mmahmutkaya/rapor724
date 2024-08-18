@@ -129,7 +129,7 @@ exports = async function ({
 
 
   
-  if (functionName == "getMetrajlar") {
+  if (functionName == "getDugumMetraj") {
    
    const result = collection_Dugumler.aggregate([
       { $match: { _projectId, _mahalId, _pozId } },
