@@ -192,7 +192,7 @@ exports = async function ({
   // }
 
 
-  if (functionName == "setUserMetraj") {
+  if (functionName == "updateUserMetraj") {
 
     let metraj = 0
 
