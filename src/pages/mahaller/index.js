@@ -76,25 +76,6 @@ export default function P_Mahaller() {
   const one_mahal_width = 10
 
 
-  // let basliklar = [
-  //   { id: 1, isim: "No" },
-  //   { id: 2, isim: "İsim" },
-  //   { id: 3, isim: "bosluk" },
-  //   { id: 3, isim: "Tarif" },
-  //   { id: 4, isim: "Ölçü" },
-  // ]
-
-  /* padding - top | right | bottom | left */
-  // const [basliklar, setBasliklar] = useState([
-  //   { id: 1, sira: 1, referans: "kod", goster: true, sabit: true, genislik: 7, padding_M: "0px 1rem 0px 0px", yatayHiza: "end", name: "Mahal No", dataType: "number" },
-  //   { id: 2, sira: 2, referans: "name", goster: true, sabit: true, genislik: 20, padding_M: "0px 1rem 0px 0px", yatayHiza: "end", name: "Mahal İsmi", dataType: "string" },
-  //   { id: 3, sira: 3, referans: "name", goster: true, sabit: false, genislik: 15, padding_M: "0px 0rem 0px 0px", yatayHiza: "center", name: "Zemin Alan", dataType: "date" },
-  //   { id: 4, sira: 4, referans: "name", goster: true, sabit: false, genislik: 20, padding_M: "0px 0rem 0px 0px", yatayHiza: "center", name: "Fonksiyon", dataType: "date" },
-  // ].sort((a, b) => a.sira - b.sira))
-
-  // const [basliklar, setBasliklar] = useState(isProject?.mahalBasliklari?.filter(item => item.goster))
-
-
   let totalWidthSabit = isProject?.mahalBasliklari?.filter(item => item.sabit).reduce(
     (accumulator, oneBilgi) => accumulator + oneBilgi.genislik,
     0

@@ -17,7 +17,7 @@ root.render(
         <StoreProvider>
           <Layout>
             <App />
-            <ReactQueryDevtools initialIsOpen={false} />
+            <ReactQueryDevtools name="Tanilama_React_Query" initialIsOpen={false} />
           </Layout>
         </StoreProvider>
       </QueryClientProvider>

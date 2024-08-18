@@ -443,6 +443,7 @@ export default function Layout({ window, children }) {
       {/* index page -- main */}
       <Box
         component="main"
+        name="Tanimalama_Main" 
         sx={{ flexGrow: 1, width: { md: `calc(100% - ${drawerWidth}px)` }, mt: topBarHeight }}
       >
         {/* ToolBar koymamızın sebebi --> AppBAr kadar aşağı margin olması için dolgu */}
@@ -450,6 +451,7 @@ export default function Layout({ window, children }) {
         {/* <Toolbar variant='dense'></Toolbar> */}
         {children}
       </Box>
+      
 
       {/* <Box
         component="main"
@@ -490,11 +492,11 @@ export default function Layout({ window, children }) {
   );
 }
 
-Layout.propTypes = {
-  /**
-   * Injected by the documentation to work in an iframe.
-   * You won't need it on your project.
-   */
-  window: PropTypes.func,
-};
+// Layout.propTypes = {
+//   /**
+//    * Injected by the documentation to work in an iframe.
+//    * You won't need it on your project.
+//    */
+//   window: PropTypes.func,
+// };
 

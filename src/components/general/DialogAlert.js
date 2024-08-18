@@ -15,9 +15,8 @@ import WarningIcon from '@mui/icons-material/Warning';
 import InfoIcon from '@mui/icons-material/Info';
 
 
-export const DialogAlert = ({ dialogIcon, dialogMessage, setDialogAgree, setShowDialog }) => {
-
-  const [open, setOpen] = useState(false);
+// export const DialogAlert = ({ dialogIcon, dialogMessage, setShowDialog, saveMetraj_ToDb }) => {
+export const DialogAlert = ({ dialogIcon, dialogMessage, approveDialog, cancelDialog }) => {
 
   const DilogIcon = () => {
     switch (dialogIcon) {
@@ -32,17 +31,24 @@ export const DialogAlert = ({ dialogIcon, dialogMessage, setDialogAgree, setShow
     }
   }
 
-  const onClose = () => {
-    setShowDialog(false)
-  }
+  // const cancelDialog = () => {
+  //   setShowDialog(false)
+  // }
+
+  // const approveDialog = () => {
+  //   setShowDialog(false)
+  //   saveMetraj_ToDb(false)
+  // }
+
+  
 
   return (
     <div>
 
       <Dialog
-        PaperProps={{ sx: { position: "fixed", top: "10rem", p:"0.5rem",  } }}
+        PaperProps={{ sx: { position: "fixed", top: "10rem", p: "0.5rem", } }}
         open={true}
-        onClose={onClose}
+        onClose={() => cancelDialog()}
       >
         {/* <DialogTitle>Subscribe</DialogTitle> */}
 
@@ -50,13 +56,13 @@ export const DialogAlert = ({ dialogIcon, dialogMessage, setDialogAgree, setShow
 
           <DilogIcon />
 
-          <DialogContentText sx={{mt:"0.5rem"}}>
+          <DialogContentText sx={{ mt: "0.5rem" }}>
             {dialogMessage}
           </DialogContentText>
 
           <DialogActions>
-            <Button onClick={() => setShowDialog(false)}>İptal</Button>
-            <Button onClick={() => setDialogAgree(true)}> Onayla </Button>
+            <Button onClick={() => cancelDialog()}>İptal</Button>
+            <Button onClick={() => approveDialog()}> Onayla </Button>
           </DialogActions>
 
         </DialogContent>

@@ -15,10 +15,13 @@ import Stack from '@mui/material/Stack';
 import { Button, TextField, Typography } from '@mui/material';
 import Box from '@mui/material/Box';
 import InfoIcon from '@mui/icons-material/Info';
+import { useQuery, useQueryClient, useMutation } from '@tanstack/react-query'
 
 
 
 export default function P_Metraj() {
+
+  const RealmApp = useApp();
 
   const page = "metraj"
 
@@ -28,10 +31,10 @@ export default function P_Metraj() {
   const { selectedPoz, setSelectedPoz } = useContext(StoreContext)
   const { myTema, setMyTema } = useContext(StoreContext)
   const { selectedMahalBaslik, setSelectedMahalBaslik } = useContext(StoreContext)
-  const { mahaller, setMahaller } = useContext(StoreContext)
-  const { mahalListesi, setMahalListesi } = useContext(StoreContext)
-  const { pozlar, setPozlar } = useContext(StoreContext)
+  // const { mahaller, setMahaller } = useContext(StoreContext)
+  // const { pozlar, setPozlar } = useContext(StoreContext)
   const { drawerWidth, topBarHeight, subHeaderHeight } = useContext(StoreContext)
+  // const { mahalListesi, setMahalListesi } = useContext(StoreContext)
 
   const [show, setShow] = useState("Main")
   const [editMode_Metraj, setEditMode_Metraj] = useState(false)
@@ -51,40 +54,35 @@ export default function P_Metraj() {
     // document.title = `You clicked ${count} times`;
   }, [isProject]);
 
-  const RealmApp = useApp();
 
-  const pozlar_fecth = async () => {
-    if (!pozlar) {
-      const result = await RealmApp?.currentUser.callFunction("getProjectPozlar", ({ projectId: isProject?._id }));
-      setPozlar(result)
-    }
-  }
-  pozlar_fecth()
-
-
-  const mahaller_fecth = async () => {
-    if (!mahaller) {
-      const result = await RealmApp?.currentUser.callFunction("getProjectMahaller", ({ projectId: isProject?._id }));
-      setMahaller(result)
-    }
-  }
-  mahaller_fecth()
+  // const pozlar_fecth = async () => {
+  //   if (!pozlar) {
+  //     const result = await RealmApp?.currentUser.callFunction("getProjectPozlar", ({ projectId: isProject?._id }));
+  //     setPozlar(result)
+  //   }
+  // }
+  // pozlar_fecth()
 
 
-  const mahalListesi_fecth = async () => {
-    if (!mahalListesi) {
-      const result = await RealmApp?.currentUser.callFunction("collectionDugumler", ({ functionName: "getMahalListesi", _projectId: isProject?._id }));
-      setMahalListesi(result)
-    }
-  }
-  mahalListesi_fecth()
+  const { data: pozlar } = useQuery({
+    queryKey: ['pozlar', isProject?._id.toString()],
+    queryFn: () => RealmApp?.currentUser.callFunction("getProjectPozlar", ({ projectId: isProject?._id })),
+    enabled: !!RealmApp && !!isProject
+  })
 
 
+  const { data: mahaller } = useQuery({
+    queryKey: ['mahaller', isProject?._id.toString()],
+    queryFn: () => RealmApp?.currentUser.callFunction("getProjectMahaller", ({ projectId: isProject?._id })),
+    enabled: !!RealmApp && !!isProject
+  })
 
-  const handleSelectMahal = (mahal) => {
-    setSelectedMahal(mahal)
-    setSelectedMahalBaslik(false)
-  }
+
+  const { data: mahalListesi } = useQuery({
+    queryKey: ['mahalListesi', isProject?._id.toString()],
+    queryFn: () => RealmApp?.currentUser.callFunction("collectionDugumler", ({ functionName: "getMahalListesi", _projectId: isProject?._id })),
+    enabled: !!RealmApp && !!isProject
+  })
 
 
   // aşağıda kullanılıyor
@@ -172,142 +170,13 @@ export default function P_Metraj() {
   }
 
 
-  // bir string değerinin numerik olup olmadığının kontrolü
-  function isNumeric(str) {
-    if (str) {
-      str.toString()
-    }
-    return !isNaN(str) && // use type coercion to parse the _entirety_ of the string (`parseFloat` alone does not do this)...
-      !isNaN(parseFloat(str)) // ...and ensure strings of whitespace fail
-  }
-
-
-  const saveMahal = async () => {
-    // setMahalBilgiler_willBeSaved([])
-    const result = await RealmApp?.currentUser.callFunction("updateMahalBilgiler", { _projectId: isProject?._id, mahalBilgiler_willBeSaved });
-    setSelectedMahalBaslik(false)
-  }
-
-  const data = {
-    type: "current",
-    row1: {
-      desc1: "KISA",
-      desc2: "UZUN"
-    }
-  }
-
-
-
-  const updateMetraj = async ({ _pozId }) => {
-
-    const result = await RealmApp?.currentUser.callFunction("updateMetraj", { _projectId: isProject?._id, _pozId });
-    return (
-      console.log("result", { _projectId: isProject?._id, _pozId, data })
-    )
-  }
-
-
-
-
-
-
-  const handle_input_onKey = async (event) => {
-
-    let oncesi = event.target.value.toString()
-    let sonTus = event.key
-    let yeni = oncesi + sonTus
-
-    if (sonTus.split(" ").length > 1) {
-      console.log("boşluk bulundu ve durdu")
-      return event.preventDefault()
-    }
-
-    let izinliTuslar = ["Backspace", "ArrowLeft", "ArrowRight", "ArrowUp", "ArrowDown", "Escape", "Enter", "Tab", "-", "."]
-
-    if (!isNumeric(yeni) && !izinliTuslar.includes(sonTus)) {
-      console.log("izinsiz tuşlara bastı ve durdu")
-      return event.preventDefault()
-    }
-
-    if (sonTus == "-" && oncesi.split("").includes("-")) {
-      console.log("zaten varken '-' kullanımı ve durdu")
-      return event.preventDefault()
-    }
-
-
-    if (sonTus == "-" && yeni.split("")[0] !== ("-")) {
-      console.log("event", event)
-      console.log("başa gelmeyen '-' kullanımı ve durdu")
-      return event.preventDefault()
-    }
-
-
-    if (sonTus == "." && oncesi.split("").includes(".")) {
-      console.log("zaten varken '.' kullanımı ve durdu")
-      return event.preventDefault()
-    }
-
-    if (isNumeric(sonTus) && yeni.split("").includes(".") && yeni.substring(yeni.indexOf(".") + 1, yeni.length).length > 3) {
-      console.log("0 dan sonra 3 haneden fazla ve durdu")
-      return event.preventDefault()
-    }
-
-  }
-
-
-
-  const handle_input_onChange = (event, oneNode1) => {
-
-    console.log("onChange Value", event.target.value)
-
-
-    setAutoFocus({ pozId: oneNode1._pozId.toString(), mahalId: oneNode1._mahalId.toString() })
-
-    // db ye kayıt yapılmışsa bu işlemi yapsın yoksa refresh yapsın
-    const newBilgi = { mahalId: oneNode1._mahalId, pozId: oneNode1._pozId, metraj: event.target.value }
-
-    if (!isNumeric(newBilgi.metraj) && newBilgi.metraj != "-" && newBilgi.metraj.length != 0 && newBilgi.metraj != ".") {
-      return
-    }
-
-
-    setMahalListesi(mahalListesi => {
-      // if (!mahalListesi.find(item => item._id.toString() == oneMahal._id.toString()).ilaveBilgiler) {
-      //   mahalListesi.find(item => item._id.toString() == oneMahal._id.toString()).ilaveBilgiler = [newBilgi]
-      //   return mahalListesi
-      // }
-      const node = mahalListesi.find(item => item._mahalId.toString() == oneNode1._mahalId.toString() && item._pozId.toString() == oneNode1._pozId.toString())
-      if (node) {
-        mahalListesi.find(item => item._mahalId.toString() == node._mahalId.toString() && item._pozId.toString() == node._pozId.toString()).metraj = newBilgi.metraj
-        return mahalListesi
-      } else {
-        return [...mahalListesi, node]
-      }
-    })
-
-
-    // setMahalBilgiler_willBeSaved(mahalBilgiler_willBeSaved => {
-    //   let mahalBilgiler_willBeSaved_ = [...mahalBilgiler_willBeSaved]
-    //   // console.log("mevcutBilgi",mahalBilgiler_willBeSaved.find(item => item.mahalId.toString() == oneMahal._id.toString() && item.baslikId == oneBaslik.id))
-    //   if (mahalBilgiler_willBeSaved_.find(item => item.mahalId == oneMahal._id.toString() && item.baslikId == oneBaslik.id)) {
-    //     mahalBilgiler_willBeSaved_.find(item => item.mahalId == oneMahal._id.toString() && item.baslikId == oneBaslik.id).metraj = newBilgi.metraj
-    //   } else {
-    //     mahalBilgiler_willBeSaved_ = [...mahalBilgiler_willBeSaved_, { ...newBilgi }]
-    //   }
-    //   return mahalBilgiler_willBeSaved_
-    // })
-
-
-  }
-
-
 
   return (
 
     <>
 
       <Grid item >
-        <MetrajHeader show={show} setShow={setShow} editMode_Metraj={editMode_Metraj} setEditMode_Metraj={setEditMode_Metraj} saveMahal={saveMahal} />
+        <MetrajHeader />
       </Grid>
 
       {show == "FormMahalCreate" &&
@@ -328,12 +197,13 @@ export default function P_Metraj() {
 
         <Box sx={{ mt: subHeaderHeight, pt: "1rem", pl: "1rem", pr: "1rem" }}>
 
+
           {/* EN ÜST BAŞLIK ÜST SATIRI */}
           <Grid
             sx={{
               // pb: "1rem",
               display: "grid",
-              gridTemplateColumns: gridTemplateColumns_,
+              gridTemplateColumns: gridTemplateColumns_
             }}
           >
             {/* SOL KISIM SABİT EN ÜST BAŞLIKLAR */}
@@ -395,9 +265,6 @@ export default function P_Metraj() {
                   onClick={() => handle_selectBaslik(oneBaslik)}
                   key={index}
                 >
-                  {/* <Box sx={{ display: "grid", justifyContent: "center" }}>
-                    {index}
-                  </Box> */}
 
                   <Box sx={{ display: "grid", justifyContent: "center" }}>
                     {oneBaslik?.name}
@@ -408,6 +275,7 @@ export default function P_Metraj() {
             })}
 
           </Grid>
+
 
 
           {/* SOL KISIMDAKİ (SABİT KISIMDAKİ) POZ BAŞLIKLARI ve SAĞ DEĞİŞKEN KISIMDA DEVAM EDEN BOŞ BAŞLIK HÜCRELERİ */}
@@ -510,7 +378,7 @@ export default function P_Metraj() {
                             justifyItems: oneBaslik.yatayHiza,
                           }}
                         >
-                          
+
                         </TableHeader>
                       )
                     })
@@ -529,6 +397,9 @@ export default function P_Metraj() {
                     {pozlar?.filter(item => item._wbsId.toString() == oneWbs._id.toString()).map((onePoz, index) => {
 
                       onePoz.birimName = isProject.pozBirimleri.find(item => item.id == onePoz.birimId).name
+                      let isAnyMahal_for_poz
+
+                      isAnyMahal_for_poz = mahalListesi?.find(x => x._pozId.toString() == onePoz._id.toString() && x.openMetraj) !== undefined
 
                       return (
                         <Grid
@@ -536,9 +407,9 @@ export default function P_Metraj() {
                           sx={{
                             display: "grid",
                             gridTemplateColumns: gridTemplateColumns_,
-                            cursor: "pointer"
+                            cursor: isAnyMahal_for_poz ? "pointer" : "not-allowed"
                           }}
-                          onClick={() => setSelectedPoz(onePoz)}
+                          onClick={isAnyMahal_for_poz ? () => { setSelectedPoz(onePoz) } : null}
                         >
 
                           {
@@ -553,7 +424,7 @@ export default function P_Metraj() {
                                     display: "grid",
                                     alignItems: "center",
                                     justifyItems: oneBaslik.yatayHiza,
-                                    backgroundColor: selectedPoz?._id.toString() == onePoz._id.toString() ? "yellow" : null
+                                    backgroundColor: isAnyMahal_for_poz ? selectedPoz?._id.toString() == onePoz._id.toString() ? "yellow" : null : "lightgray"
                                   }}
                                 >
                                   {onePoz[oneBaslik.referans]}
@@ -578,7 +449,7 @@ export default function P_Metraj() {
                                     display: "grid",
                                     alignItems: "center",
                                     justifyItems: oneBaslik.yatayHiza,
-                                    backgroundColor: selectedPoz?._id.toString() == onePoz._id.toString() ? "yellow" : null
+                                    backgroundColor: isAnyMahal_for_poz ? selectedPoz?._id.toString() == onePoz._id.toString() ? "yellow" : null : "lightgray"
                                   }}
                                 >
                                   {onePoz[oneBaslik.referans]}

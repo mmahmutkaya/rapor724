@@ -6,6 +6,7 @@ import { useApp } from "../../components/useApp";
 import FormMahalCreate from '../../components/FormMahalCreate'
 import FormMahalBaslikCreate from '../../components/FormMahalBaslikCreate'
 import MahalListesiHeader from '../../components/MahalListesiHeader'
+import { useGetMahaller, useGetMahalListesi, useToggleOpenMetrajDugum, useGetPozlar } from '../../hooks/useMongo';
 
 
 import { styled } from '@mui/system';
@@ -21,24 +22,18 @@ import InfoIcon from '@mui/icons-material/Info';
 
 export default function P_MahalListesi() {
 
+
   const { isProject, setIsProject } = useContext(StoreContext)
   const { selectedMahal, setSelectedMahal } = useContext(StoreContext)
   const { myTema, setMyTema } = useContext(StoreContext)
   const { selectedMahalBaslik, setSelectedMahalBaslik } = useContext(StoreContext)
-  const { mahaller, setMahaller } = useContext(StoreContext)
-  const { mahalListesi, setMahalListesi } = useContext(StoreContext)
-  const { pozlar, setPozlar } = useContext(StoreContext)
   const { drawerWidth, topBarHeight, subHeaderHeight } = useContext(StoreContext)
+
 
   const [show, setShow] = useState("Main")
   const [editMode_MahalListesi, setEditMode_MahalListesi] = useState(false)
   const [mahalBilgiler_willBeSaved, setMahalBilgiler_willBeSaved] = useState([])
   const [autoFocus, setAutoFocus] = useState({ baslikId: null, mahalId: null })
-
-
-
-  // https://palettes.shecodes.io/palettes/1312#palette
-
 
 
   const navigate = useNavigate()
@@ -47,33 +42,15 @@ export default function P_MahalListesi() {
 
   const RealmApp = useApp();
 
-  const mahaller_fecth = async () => {
-    if (!mahaller) {
-      const result = await RealmApp?.currentUser.callFunction("getProjectMahaller", ({ projectId: isProject?._id }));
-      setMahaller(result)
-    }
-  }
-  mahaller_fecth()
-
-  const pozlar_fecth = async () => {
-    if (!pozlar) {
-      const result = await RealmApp?.currentUser.callFunction("getProjectPozlar", ({ projectId: isProject?._id }));
-      setPozlar(result)
-    }
-  }
-  pozlar_fecth()
 
 
-  const mahalListesi_fecth = async () => {
-    if (!mahalListesi) {
-      const result = await RealmApp?.currentUser.callFunction("collectionDugumler", ({ functionName: "getMahalListesi", _projectId: isProject?._id }));
-      setMahalListesi(result)
-      // console.log("result_mahalListesi", result)
-    }
-  }
-  mahalListesi_fecth()
-  // console.log("mahalListesi",mahalListesi)
+  const { data: pozlar } = useGetPozlar()
 
+  const { data: mahaller } = useGetMahaller()
+
+  const { data: mahalListesi } = useGetMahalListesi()
+
+  const { mutate: toggleMahalPoz } = useToggleOpenMetrajDugum()
 
 
   const handleSelectMahal = (mahal) => {
@@ -85,7 +62,7 @@ export default function P_MahalListesi() {
   // aşağıda kullanılıyor
   let lbsCode = ""
   let lbsName = ""
-  let nodeMahal
+  let theDugum
   let cOunt = 0
   let count_
   let toplam
@@ -102,25 +79,6 @@ export default function P_MahalListesi() {
   const one_bosluk_width = 2
 
   const one_mahal_width = 10
-
-
-  // let basliklar = [
-  //   { id: 1, isim: "No" },
-  //   { id: 2, isim: "İsim" },
-  //   { id: 3, isim: "bosluk" },
-  //   { id: 3, isim: "Tarif" },
-  //   { id: 4, isim: "Ölçü" },
-  // ]
-
-  /* padding - top | right | bottom | left */
-  // const [basliklar, setBasliklar] = useState([
-  //   { id: 1, sira: 1, referans: "kod", goster: true, sabit: true, genislik: 7, padding_M: "0px 1rem 0px 0px", yatayHiza: "end", name: "Mahal No", dataType: "number" },
-  //   { id: 2, sira: 2, referans: "name", goster: true, sabit: true, genislik: 20, padding_M: "0px 1rem 0px 0px", yatayHiza: "end", name: "Mahal İsmi", dataType: "string" },
-  //   { id: 3, sira: 3, referans: "name", goster: true, sabit: false, genislik: 15, padding_M: "0px 0rem 0px 0px", yatayHiza: "center", name: "Zemin Alan", dataType: "date" },
-  //   { id: 4, sira: 4, referans: "name", goster: true, sabit: false, genislik: 20, padding_M: "0px 0rem 0px 0px", yatayHiza: "center", name: "Fonksiyon", dataType: "date" },
-  // ].sort((a, b) => a.sira - b.sira))
-
-  // const [basliklar, setBasliklar] = useState(isProject?.mahalBasliklari?.filter(item => item.goster))
 
 
   let totalWidthSabit = isProject?.mahalBasliklari?.filter(item => item.sabit).reduce(
@@ -172,7 +130,7 @@ export default function P_MahalListesi() {
     borderLeft: index == 0 ? "solid black 1px" : null,
     borderRight: "solid black 1px",
     borderBottom: "solid black 1px"
-  }));
+  }))
 
   const Bosluk = styled('div')(() => ({
     // backgroundColor: "lightblue"
@@ -197,111 +155,6 @@ export default function P_MahalListesi() {
     }
     return !isNaN(str) && // use type coercion to parse the _entirety_ of the string (`parseFloat` alone does not do this)...
       !isNaN(parseFloat(str)) // ...and ensure strings of whitespace fail
-  }
-
-
-
-  const handle_input_onKey = async (event, oneBaslik) => {
-
-    let oncesi = event.target.value.toString()
-    let sonTus = event.key
-    let yeni = oncesi + sonTus
-
-    // sayı 
-    if (oneBaslik.veriTuruId === "sayi") {
-
-      if (sonTus.split(" ").length > 1) {
-        console.log("boşluk bulundu ve durdu")
-        return event.preventDefault()
-      }
-
-      let izinliTuslar = ["Backspace", "ArrowLeft", "ArrowRight", "ArrowUp", "ArrowDown", "Escape", "Enter", "Tab", "-", "."]
-
-      if (!isNumeric(yeni) && !izinliTuslar.includes(sonTus)) {
-        console.log("izinsiz tuşlara bastı ve durdu")
-        return event.preventDefault()
-      }
-
-      if (sonTus == "-" && oncesi.split("").includes("-")) {
-        console.log("zaten varken '-' kullanımı ve durdu")
-        return event.preventDefault()
-      }
-
-
-      if (sonTus == "-" && yeni.split("")[0] !== ("-")) {
-        console.log("event", event)
-        console.log("başa gelmeyen '-' kullanımı ve durdu")
-        return event.preventDefault()
-      }
-
-
-      if (sonTus == "." && oncesi.split("").includes(".")) {
-        console.log("zaten varken '.' kullanımı ve durdu")
-        return event.preventDefault()
-      }
-
-      if (isNumeric(sonTus) && yeni.split("").includes(".") && yeni.substring(yeni.indexOf(".") + 1, yeni.length).length > 3) {
-        console.log("0 dan sonra 3 haneden fazla ve durdu")
-        return event.preventDefault()
-      }
-
-    }
-
-  }
-
-
-
-  const handle_input_onChange = (event, oneBaslik, oneMahal) => {
-
-    setAutoFocus({ baslikId: oneBaslik.id, mahalId: oneMahal._id.toString() })
-
-    // db ye kayıt yapılmışsa bu işlemi yapsın yoksa refresh yapsın
-    const newBilgi = { mahalId: oneMahal._id, baslikId: oneBaslik.id, veri: event.target.value }
-
-    if (oneBaslik.veriTuruId === "sayi" && !isNumeric(newBilgi.veri) && newBilgi.veri != "-" && newBilgi.veri.length != 0 && newBilgi.veri != ".") {
-      return
-    }
-
-
-    setMahaller(mahaller => {
-      // if (!mahaller.find(item => item._id.toString() == oneMahal._id.toString()).ilaveBilgiler) {
-      //   mahaller.find(item => item._id.toString() == oneMahal._id.toString()).ilaveBilgiler = [newBilgi]
-      //   return mahaller
-      // }
-      if (!mahaller.find(item => item._id.toString() == oneMahal._id.toString()).ilaveBilgiler.find(item => item.baslikId == oneBaslik.id)) {
-        mahaller.find(item => item._id.toString() == oneMahal._id.toString()).ilaveBilgiler.push(newBilgi)
-        return mahaller
-      }
-      mahaller.find(item => item._id.toString() == oneMahal._id.toString()).ilaveBilgiler.find(item => item.baslikId == oneBaslik.id).veri = newBilgi.veri
-      return mahaller
-    })
-
-
-    setMahalBilgiler_willBeSaved(mahalBilgiler_willBeSaved => {
-      let mahalBilgiler_willBeSaved_ = [...mahalBilgiler_willBeSaved]
-      if (mahalBilgiler_willBeSaved_.find(item => item.mahalId == oneMahal._id.toString() && item.baslikId == oneBaslik.id)) {
-        mahalBilgiler_willBeSaved_.find(item => item.mahalId == oneMahal._id.toString() && item.baslikId == oneBaslik.id).veri = newBilgi.veri
-      } else {
-        mahalBilgiler_willBeSaved_ = [...mahalBilgiler_willBeSaved_, { ...newBilgi }]
-      }
-      return mahalBilgiler_willBeSaved_
-    })
-
-  }
-
-
-  const toggleMahalPoz = async ({ _mahalId, _pozId, switchValue }) => {
-    const result = await RealmApp?.currentUser.callFunction("collectionDugumler", ({ functionName: "level1_set", _projectId: isProject?._id, _mahalId, _pozId, propertyName: "openMetraj", propertyValue: switchValue }));
-    console.log("result", result)
-    setMahalListesi(mahalListesi => {
-      // öncelikle array içinde ilgili obje varsa kaldırıyoruz sonra true ise ekliyoruz
-      mahalListesi = mahalListesi.filter(item => !(item._mahalId.toString() == _mahalId.toString() && item._pozId == _pozId.toString()))
-      if (switchValue) {
-        mahalListesi = [...mahalListesi, { _mahalId, _pozId, openMetraj:switchValue }]
-      } else {
-        return mahalListesi
-      }
-    })
   }
 
 
@@ -575,9 +428,10 @@ export default function P_MahalListesi() {
                           </Bosluk>
 
                           {pozlar?.map((onePoz, index) => {
-                            { nodeMahal = mahalListesi?.find((item) => item._mahalId.toString() == oneMahal._id.toString() && item._pozId.toString() == onePoz._id.toString()) }
 
-                            return nodeMahal?.openMetraj ?
+                            theDugum = mahalListesi?.find((item) => item._mahalId.toString() == oneMahal._id.toString() && item._pozId.toString() == onePoz._id.toString())
+
+                            return theDugum?.openMetraj ?
 
                               <TableItem
                                 key={index}
@@ -589,9 +443,7 @@ export default function P_MahalListesi() {
                                   display: "grid",
                                   alignItems: "center",
                                   justifyItems: onePoz.yatayHiza,
-                                  // backgroundColor: "rgba(150, 236, 242 ,0.4 )",
                                   backgroundColor: "rgba( 234, 193, 0 , 0.4 )",
-
                                 }}
                               >
                                 {/* {"0"} */}

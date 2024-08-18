@@ -26,13 +26,11 @@ import FileDownloadDoneIcon from '@mui/icons-material/FileDownloadDone';
 import EditIcon from '@mui/icons-material/Edit';
 import ReplyIcon from '@mui/icons-material/Reply';
 import TuneIcon from '@mui/icons-material/Tune';
-import TaskAltIcon from '@mui/icons-material/TaskAlt';
-import ForwardIcon from '@mui/icons-material/Forward';
 
 
 
 
-export default function P_MetrajEditHeader({ show, setShow, saveMetraj_ToDb, loadMetraj_ToState, setUserMetraj_state, isChanged, setIsChanged, handleMetrajOnay }) {
+export default function P_MetrajEditHeader({ show, setShow, saveMetraj_ToDb, loadMetraj_ToState }) {
 
 
   const navigate = useNavigate()
@@ -58,25 +56,11 @@ export default function P_MetrajEditHeader({ show, setShow, saveMetraj_ToDb, loa
   let header = "Metraj"
 
 
-
-  const cancelDialog = () => {
-    setShowDialog(false)
-  }
-
-  const approveDialog = () => {
-    setShowDialog(false)
-    setUserMetraj_state()
-    setIsChanged()
-    setShow("PozMahalMetrajlari")
-  }
-
-
-
   return (
     <Paper >
 
       {showDialog &&
-        <DialogAlert dialogIcon={"warning"} dialogMessage={"Yaptığınız değişiklikleri kaybedeceksiniz ?"} cancelDialog={cancelDialog} approveDialog={approveDialog} />
+        <DialogAlert dialogIcon={"warning"} dialogMessage={"Yaptığınız değişiklikleri kaybedeceksiniz ?"} setShowDialog={setShowDialog} saveMetraj_ToDb={saveMetraj_ToDb} />
       }
 
       <AppBar
@@ -122,23 +106,20 @@ export default function P_MetrajEditHeader({ show, setShow, saveMetraj_ToDb, loa
             <Grid container spacing={1}>
 
 
-
-
-              {show == "PozMahalleri" && !selectedNode &&
+              {selectedPoz && !selectedNode &&
                 <Grid item >
                   <IconButton onClick={() => {
                     navigate("/metraj")
                     setSelectedNode()
                   }} aria-label="lbsUncliced">
                     <ReplyIcon variant="contained" sx={{
-                      color: !selectedPoz ? "lightgray" : "red"
+                      color: !selectedPoz ? "lightgray" : "red",
                     }} />
                   </IconButton>
                 </Grid>
               }
 
-
-              {show == "PozMahalleri" && selectedNode &&
+              {selectedNode && !showNodeMetraj &&
                 <Grid item >
                   <IconButton onClick={() => {
                     setSelectedNode()
@@ -150,13 +131,12 @@ export default function P_MetrajEditHeader({ show, setShow, saveMetraj_ToDb, loa
                 </Grid>
               }
 
-
-              {show == "PozMahalleri" && selectedNode &&
+              {selectedNode && !showNodeMetraj &&
                 <Grid item >
                   <IconButton onClick={() => {
-                    setShow("PozMahalMetrajlari")
+                    setShowNodeMetraj(true)
                   }} aria-label="lbsUncliced">
-                    <ForwardIcon variant="contained" sx={{
+                    <TuneIcon variant="contained" sx={{
                       color: "green",
                     }} />
                   </IconButton>
@@ -166,15 +146,10 @@ export default function P_MetrajEditHeader({ show, setShow, saveMetraj_ToDb, loa
 
 
 
-
-
-
-
-
-              {show == "PozMahalMetrajlari" &&
+              {showNodeMetraj && !editNodeMetraj &&
                 <Grid item >
                   <IconButton onClick={() => {
-                    setShow("PozMahalleri")
+                    setShowNodeMetraj()
                   }} aria-label="lbsUncliced">
                     <ReplyIcon variant="contained" sx={{
                       color: !selectedPoz ? "lightgray" : "red",
@@ -183,62 +158,46 @@ export default function P_MetrajEditHeader({ show, setShow, saveMetraj_ToDb, loa
                 </Grid>
               }
 
-
-              {show == "PozMahalMetrajlari" &&
+              {showNodeMetraj && !editNodeMetraj &&
                 <Grid item >
                   <IconButton onClick={() => {
                     loadMetraj_ToState()
-                    setShow("EditMetraj")
+                    setEditNodeMetraj(true)
                   }} aria-label="lbsUncliced">
-                    <EditIcon variant="contained" />
-                  </IconButton>
-                </Grid>
-              }
-
-
-              {show == "PozMahalMetrajlari" &&
-                <Grid item >
-                  <IconButton
-                    onClick={() => {
-                      setShow("OnayMetraj")
-                    }}
-                    aria-label="lbsUncliced">
-                    <TaskAltIcon variant="contained" />
+                    <EditIcon variant="contained" sx={{
+                      color: "green",
+                    }} />
                   </IconButton>
                 </Grid>
               }
 
 
 
-              {show == "EditMetraj" &&
+              {editNodeMetraj &&
                 <Grid item >
                   <IconButton onClick={() => {
-                    if (isChanged) {
-                      setShowDialog(true)
-                    } else {
-                      setShow("PozMahalMetrajlari")
-                    }
+                    setShowDialog(true)
                   }} aria-label="lbsUncliced">
-                    <ClearOutlined variant="contained" sx={{ color: "red" }} />
+                    <ClearOutlined variant="contained" sx={{
+                      color: "red",
+                    }} />
                   </IconButton>
                 </Grid>
               }
 
-
-
-              {show == "EditMetraj" &&
+              {editNodeMetraj &&
                 <Grid item >
                   <IconButton onClick={() => {
-                    saveMetraj_ToDb()
+                    saveMetraj_ToDb(true)
                   }} aria-label="lbsUncliced">
-                    <FileDownloadDoneIcon variant="contained" />
+                    <FileDownloadDoneIcon variant="contained" sx={{
+                      color: "green",
+                    }} />
                   </IconButton>
                 </Grid>
               }
-
 
             </Grid>
-
           </Grid>
 
         </Grid>

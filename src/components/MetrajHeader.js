@@ -23,9 +23,12 @@ import AlignHorizontalRightOutlinedIcon from '@mui/icons-material/AlignHorizonta
 import AlignHorizontalCenterOutlinedIcon from '@mui/icons-material/AlignHorizontalCenterOutlined';
 import FileDownloadDoneIcon from '@mui/icons-material/FileDownloadDone';
 import EditIcon from '@mui/icons-material/Edit';
+import MenuOpenIcon from '@mui/icons-material/MenuOpen';
+import ForwardIcon from '@mui/icons-material/Forward';
 
 
-export default function P_MetrajHeader({ show, setShow, editMode_Metraj, setEditMode_Metraj, saveMahal }) {
+
+export default function P_MetrajHeader() {
 
   const navigate = useNavigate()
 
@@ -34,6 +37,7 @@ export default function P_MetrajHeader({ show, setShow, editMode_Metraj, setEdit
 
   const { isProject, setIsProject } = useContext(StoreContext)
   const { selectedPoz, setSelectedPoz } = useContext(StoreContext)
+  const { selectedNode, setSelectedNode } = useContext(StoreContext)
 
   const RealmApp = useApp();
 
@@ -53,21 +57,6 @@ export default function P_MetrajHeader({ show, setShow, editMode_Metraj, setEdit
     }
   ]
 
-
-
-  const deneme = async () => {
-    const result = await RealmApp?.currentUser.callFunction("getProjectNames");
-    console.log("result", result)
-  }
-
-
-  // const deneme = async () => {
-  //   const collection = RealmApp.currentUser.mongoClient("mongodb-atlas").db("rapor724_v2").collection("collection")
-  //   await collection.updateOne(
-  //     { userId: RealmApp.currentUser.id }, // Query for the user object of the logged in user
-  //     { $set: { favoriteColor: "purple" } } // Set the logged in user's favorite color to purple
-  //   )
-  // }
 
 
   let header = "Metraj"
@@ -99,7 +88,6 @@ export default function P_MetrajHeader({ show, setShow, editMode_Metraj, setEdit
         >
 
 
-
           {/* sol kısım (başlık) */}
           <Grid item xs>
             <Typography
@@ -113,44 +101,18 @@ export default function P_MetrajHeader({ show, setShow, editMode_Metraj, setEdit
 
 
 
-
           {/* sağ kısım - (tuşlar)*/}
           <Grid item xs="auto">
             <Grid container spacing={1}>
 
 
-              <Grid item >
-                <IconButton onClick={() => {
-                  deneme()
-                }} aria-label="lbsUncliced">
-                  <VisibilityIcon variant="contained" sx={{
-                    color: !selectedPoz ? "green" : "green",
-                  }} />
-                </IconButton>
-              </Grid>
-
-
-
-
-
-              {!editMode_Metraj &&
+              {!selectedPoz &&
                 <Grid item>
                   <IconButton onClick={() => setCustom(custom => ({ ...custom, pageMetraj_baslik1: !custom?.pageMetraj_baslik1 }))} aria-label="addLbs" disabled={(isProject?.lbs?.filter(item => item.openForMahal).length == 0 || !isProject?.lbs) ? true : false}>
-                    <VisibilityIcon variant="contained" sx={{ color: "red" }} />
+                    <VisibilityIcon variant="contained" sx={{ color: "black" }} />
                   </IconButton>
                 </Grid>
               }
-
-
-              {/* bu tuş ile pozların hangi mahallerden geldiğini görüyorduk fakat kafa karıştırır diye burda göstermeyelim oldu */}
-              {/* {!editMode_Metraj &&
-                <Grid item>
-                  <IconButton onClick={() => setCustom(custom => ({ ...custom, pageMetraj_baslik2: !custom?.pageMetraj_baslik2 }))} aria-label="addLbs" disabled={(isProject?.lbs?.filter(item => item.openForMahal).length == 0 || !isProject?.lbs) ? true : false}>
-                    <VisibilityIcon variant="contained" />
-                  </IconButton>
-                </Grid>
-              } */}
-
 
               {selectedPoz &&
                 <Grid item >
@@ -167,23 +129,14 @@ export default function P_MetrajHeader({ show, setShow, editMode_Metraj, setEdit
                 <Grid item>
                   <IconButton onClick={() => {
                     navigate("/metrajedit")
+                    setSelectedNode()
                   }}
                     aria-label="addLbs">
-                    <EditIcon variant="contained" color={!selectedPoz ? " lightgray" : "success"} />
+                    <ForwardIcon variant="contained" color={!selectedPoz ? " lightgray" : "success"} />
                   </IconButton>
                 </Grid>
               }
 
-              {/* {!selectedPoz &&
-                <Grid item>
-                  <IconButton onClick={() => setEditMode_Metraj(false)} aria-label="addLbs" disabled={(isProject?.lbs?.filter(item => item.openForMahal).length == 0 || !isProject?.lbs) ? true : false}>
-                    <FileDownloadDoneIcon variant="contained" color={(isProject?.lbs?.filter(item => item.openForMahal).length == 0 || !isProject?.lbs) ? " lightgray" : "success"} />
-                  </IconButton>
-                </Grid>
-              } */}
-
-
-              {/* updateMetraj({ _pozId: onePoz._id } */}
 
             </Grid>
           </Grid>

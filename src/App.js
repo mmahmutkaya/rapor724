@@ -30,7 +30,7 @@ function App() {
 
       <Route path='/projects' element={<P_Projects />} />
       <Route path='/people' element={<div> Kişiler  </div>} />
-      <Route path='/companies' element={<div> Firmalar  </div>} />
+      {/* <Route path='/companies' element={<div> Firmalar  </div>} /> */}
 
       {/* projects */}
       <Route path='/companies' element={<P_Companies />} />

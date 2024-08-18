@@ -11,15 +11,7 @@ import Typography from '@mui/material/Typography';
 import Grid from '@mui/material/Grid';
 import Paper from '@mui/material/Paper';
 import IconButton from '@mui/material/IconButton';
-import DeleteIcon from '@mui/icons-material/Delete';
-import AddCircleOutlineIcon from '@mui/icons-material/AddCircleOutline';
-import ClearOutlined from '@mui/icons-material/ClearOutlined';
-import UnfoldMoreIcon from '@mui/icons-material/UnfoldMore';
-import UnfoldLessIcon from '@mui/icons-material/UnfoldLess';
-import VisibilityIcon from '@mui/icons-material/Visibility';
-import AlignHorizontalLeftOutlinedIcon from '@mui/icons-material/AlignHorizontalLeftOutlined';
-import AlignHorizontalRightOutlinedIcon from '@mui/icons-material/AlignHorizontalRightOutlined';
-import AlignHorizontalCenterOutlinedIcon from '@mui/icons-material/AlignHorizontalCenterOutlined';
+
 import FileDownloadDoneIcon from '@mui/icons-material/FileDownloadDone';
 import EditIcon from '@mui/icons-material/Edit';
 
@@ -34,9 +26,7 @@ export default function MahalHeader({ setShow, editMode_MahalListesi, setEditMod
   const RealmApp = useApp();
 
   const { selectedMahal, setSelectedMahal } = useContext(StoreContext)
-  const { selectedMahalBaslik, setSelectedMahalBaslik } = useContext(StoreContext)
 
-  const [willBeUpdate_mahalBaslik, setWillBeUpdate_mahalBaslik] = useState(false)
 
   const [showDialog, setShowDialog] = useState(false)
   const [dialogCase, setDialogCase] = useState("")
@@ -171,13 +161,12 @@ export default function MahalHeader({ setShow, editMode_MahalListesi, setEditMod
                 </Grid>
               }
 
+
               {editMode_MahalListesi &&
                 <Grid item>
                   <IconButton
                     onClick={
-                      () => {
-                        setEditMode_MahalListesi(false)
-                      }
+                      () => { setEditMode_MahalListesi(false) }
                     }
                     aria-label="addLbs"
                     disabled={(isProject?.lbs?.filter(item => item.openForMahal).length == 0 || !isProject?.lbs) ? true : false}>
