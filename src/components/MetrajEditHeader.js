@@ -32,7 +32,7 @@ import ForwardIcon from '@mui/icons-material/Forward';
 
 
 
-export default function P_MetrajEditHeader({ show, setShow, saveMetraj_ToDb, loadMetraj_ToState, setUserMetraj_state, isChanged, setIsChanged, handleMetrajOnay }) {
+export default function P_MetrajEditHeader({ show, setShow, saveMetraj_ToDb, loadMetraj_ToState, setUserMetraj_state, isChanged, setIsChanged, handleMetrajOnay, loadDugumMetraj_ToState }) {
 
 
   const navigate = useNavigate()
@@ -200,13 +200,16 @@ export default function P_MetrajEditHeader({ show, setShow, saveMetraj_ToDb, loa
                 <Grid item >
                   <IconButton
                     onClick={() => {
-                      setShow("OnayMetraj")
+                      loadDugumMetraj_ToState()
+                      setShow("MetrajOnay")
                     }}
                     aria-label="lbsUncliced">
                     <TaskAltIcon variant="contained" />
                   </IconButton>
                 </Grid>
               }
+
+
 
 
 
@@ -238,14 +241,17 @@ export default function P_MetrajEditHeader({ show, setShow, saveMetraj_ToDb, loa
 
 
 
+
+
               {show == "MetrajOnay" &&
                 <Grid item >
                   <IconButton onClick={() => {
-                    if (isChanged) {
-                      setShowDialog(true)
-                    } else {
-                      setShow("PozMahalMetrajlari")
-                    }
+                    setShow("PozMahalMetrajlari")
+                    // if (isChanged) {
+                    //   setShowDialog(true)
+                    // } else {
+                    //   setShow("PozMahalMetrajlari")
+                    // }
                   }} aria-label="lbsUncliced">
                     <ClearOutlined variant="contained" sx={{ color: "red" }} />
                   </IconButton>
@@ -257,7 +263,8 @@ export default function P_MetrajEditHeader({ show, setShow, saveMetraj_ToDb, loa
               {show == "MetrajOnay" &&
                 <Grid item >
                   <IconButton onClick={() => {
-                    saveMetraj_ToDb()
+                    handleMetrajOnay()
+                    // saveMetraj_ToDb()
                   }} aria-label="lbsUncliced">
                     <FileDownloadDoneIcon variant="contained" />
                   </IconButton>
