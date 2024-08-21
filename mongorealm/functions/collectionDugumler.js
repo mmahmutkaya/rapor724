@@ -219,7 +219,7 @@ exports = async function ({
 
 
       let isMinha
-      isMinha = oneRow["metin1"].includes("minha") || oneRow["metin1"].includes("MİNHA") || oneRow["metin2"].includes("minha") || oneRow["metin2"].includes("MİNHA") ? true : false
+      isMinha = oneRow["metin1"].replace("İ", "i").toLowerCase().includes("minha") || oneRow["metin2"].replace("İ", "i").toLowerCase().includes("minha") ? true : false
       
       // minha ise sonuç eksi deger olsun 
       if (isMinha) {
