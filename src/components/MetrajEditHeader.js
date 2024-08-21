@@ -237,6 +237,36 @@ export default function P_MetrajEditHeader({ show, setShow, saveMetraj_ToDb, loa
               }
 
 
+
+              {show == "MetrajOnay" &&
+                <Grid item >
+                  <IconButton onClick={() => {
+                    if (isChanged) {
+                      setShowDialog(true)
+                    } else {
+                      setShow("PozMahalMetrajlari")
+                    }
+                  }} aria-label="lbsUncliced">
+                    <ClearOutlined variant="contained" sx={{ color: "red" }} />
+                  </IconButton>
+                </Grid>
+              }
+
+
+
+              {show == "MetrajOnay" &&
+                <Grid item >
+                  <IconButton onClick={() => {
+                    saveMetraj_ToDb()
+                  }} aria-label="lbsUncliced">
+                    <FileDownloadDoneIcon variant="contained" />
+                  </IconButton>
+                </Grid>
+              }
+
+
+
+
             </Grid>
 
           </Grid>
