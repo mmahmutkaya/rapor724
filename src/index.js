@@ -13,14 +13,14 @@ const root = ReactDOM.createRoot(document.getElementById('root'));
 root.render(
   <React.StrictMode>
     <BrowserRouter>
-      <StoreProvider>
-        <QueryClientProvider client={queryClient}>
+      <QueryClientProvider client={queryClient}>
+        <StoreProvider>
           <Layout>
             <App />
             <ReactQueryDevtools name="Tanilama_React_Query" initialIsOpen={false} />
           </Layout>
-        </QueryClientProvider>
-      </StoreProvider>
+        </StoreProvider>
+      </QueryClientProvider>
     </BrowserRouter>
   </React.StrictMode>
 );
