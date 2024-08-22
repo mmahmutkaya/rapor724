@@ -287,7 +287,7 @@ exports = async function ({
       _mahalId,
       _pozId,
       openMetraj:true,
-      onaylananMetrajlar:[],
+      onaylananMetrajlar:{metraj:0, satirlar:[]},
       hazirlananMetrajlar:[],
       createdBy:_userId,      
     }
