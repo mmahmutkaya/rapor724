@@ -94,10 +94,16 @@ exports = async function ({
 
 
   if (functionName == "getMahalListesi") {
-    const result = await collection_Dugumler.aggregate([
+    const mahalListesi = await collection_Dugumler.aggregate([
       { $match: { _projectId } },
     ]);
-    return result;
+    const mahalListesi_wbs = await collection_Dugumler.aggregate([
+       { $group : { _id : "$_wbsId" } }
+    ]);
+    const mahalListesi_lbsIds = await collection_Dugumler.aggregate([
+       { $group : { _id : "$_lbsId" } }
+    ]);    
+    return {mahalListesi, mahalListesi_wbsIds, mahalListesi_lbsIds};
   }
 
 
