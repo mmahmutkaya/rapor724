@@ -103,7 +103,8 @@ exports = async function ({
     const mahalListesi_lbsIds = await collection_Dugumler.aggregate([
        { $group : { _id : "$_lbsId" } }
     ]);    
-    return {mahalListesi, mahalListesi_wbsIds, mahalListesi_lbsIds};
+    // return {mahalListesi, mahalListesi_wbsIds, mahalListesi_lbsIds};
+    return mahalListesi
   }
 
 
