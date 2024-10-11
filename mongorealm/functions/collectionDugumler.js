@@ -3,6 +3,8 @@ exports = async function ({
   _projectId,
   _mahalId,
   _pozId,
+  _lbsId,
+  _wbsId,
   propertyName,
   propertyValue,
 }) {
@@ -286,6 +288,8 @@ exports = async function ({
       _projectId,
       _mahalId,
       _pozId,
+      _lbsId,
+      _wbsId,
       openMetraj:true,
       onaylananMetrajlar:{metraj:0, satirlar:[]},
       hazirlananMetrajlar:[],
