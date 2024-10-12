@@ -108,7 +108,7 @@ exports = async function ({
       _wbsIds.push(x._wbsId)
       _lbsIds.push(x._lbsId)
       
-      return
+      return x
     })
     
     return {list,_wbsIds,_lbsIds}
