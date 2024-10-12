@@ -104,7 +104,7 @@ exports = async function ({
     list.map(x => {
       if(!_wbsIds.find(y => y == x._wbsId)) _wbsIds.push(x._wbsId)
       if(!_lbsIds.find(y => y == x._lbsId)) _lbsIds.push(x._lbsId)
-      return
+      return x
     })
     
     return {list,_wbsIds,_lbsIds}
