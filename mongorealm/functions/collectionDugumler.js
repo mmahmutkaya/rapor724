@@ -94,24 +94,43 @@ exports = async function ({
 
 
   if (functionName == "getMahalListesi") {
-    const list = await collection_Dugumler.aggregate([
-      { $match: { _projectId } },
+    
+    // const list = await collection_Dugumler.aggregate([
+    //   { $match: { _projectId } },
+    // ]);
+    
+    const mahalListesi = await collection_Dugumler.aggregate([
+      {
+        $project: {
+           deneme: {
+              $let: {
+                 vars: {
+                  _wbsIds: { $group: {_id:$_wbsId} },
+                  _lbsIds: { $group: {_id:$_lbsId} },
+                 },
+                 in: { $multiply: [ "$$_wbsIds", "$$_lbsIds" ] }
+              }
+           }
+        }
+      }
     ]);
 
-    let _wbsIds = []
-    let _lbsIds = []
+    return mahalListesi
+
+    // let _wbsIds = []
+    // let _lbsIds = []
     
-    const deneme = list.map(x => {
-      // if(!_wbsIds.find(y => y == x._wbsId)) _wbsIds.push(x._wbsId)
-      // if(!_lbsIds.find(y => y == x._lbsId)) _lbsIds.push(x._lbsId)
+    // const deneme = list.map(x => {
+    //   // if(!_wbsIds.find(y => y == x._wbsId)) _wbsIds.push(x._wbsId)
+    //   // if(!_lbsIds.find(y => y == x._lbsId)) _lbsIds.push(x._lbsId)
       
-      _wbsIds = [..._wbsIds,x._wbsId]
-      _lbsIds = [..._lbsIds,x._lbsId]
+    //   _wbsIds = [..._wbsIds,x._wbsId]
+    //   _lbsIds = [..._lbsIds,x._lbsId]
       
-      return x
-    })
+    //   return x
+    // })
     
-    return {list,_wbsIds,_lbsIds}
+    // return {list,_wbsIds,_lbsIds}
   }
 
 
