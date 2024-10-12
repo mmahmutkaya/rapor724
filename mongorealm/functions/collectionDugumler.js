@@ -105,8 +105,8 @@ exports = async function ({
       // if(!_wbsIds.find(y => y == x._wbsId)) _wbsIds.push(x._wbsId)
       // if(!_lbsIds.find(y => y == x._lbsId)) _lbsIds.push(x._lbsId)
       
-      _wbsIds.push(x._wbsId)
-      _lbsIds.push(x._lbsId)
+      _wbsIds = [..._wbsIds,x._wbsId]
+      _lbsIds = [..._lbsIds,x._lbsId]
       
       return x
     })
