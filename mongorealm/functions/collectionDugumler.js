@@ -97,16 +97,16 @@ exports = async function ({
     const list = await collection_Dugumler.aggregate([
       { $match: { _projectId } },
     ]);
-    const wbsIds = await collection_Dugumler.aggregate([
-      { $match: { _projectId } },
-      { $group : { _id : "$_wbsId" } }
-    ]);
-    const lbsIds = await collection_Dugumler.aggregate([
-      { $match: { _projectId } },
-      { $group : { _id : "$_lbsId" } }
-    ]);    
-    // return {mahalListesi, mahalListesi_wbsIds, mahalListesi_lbsIds};
-    return {list,wbsIds,lbsIds}
+
+    let _wbsIds
+    let _lbsIds
+    
+    list.map((x) => {
+      if(!_wbsIds.find(y => y == x._wbsId)) _wbsIds.push(x._wbsId)
+      if(!_lbsIds.find(y => y == x._lbsId)) _lbsIds.push(x._lbsId)
+    })
+    
+    return {list,_wbsIds,_lbsIds}
   }
 
 
