@@ -101,7 +101,7 @@ exports = async function ({
     let _wbsIds
     let _lbsIds
     
-    list.map(x => {
+    const deneme = list.map(x => {
       if(!_wbsIds.find(y => y == x._wbsId)) _wbsIds.push(x._wbsId)
       if(!_lbsIds.find(y => y == x._lbsId)) _lbsIds.push(x._lbsId)
       return x
