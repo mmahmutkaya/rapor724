@@ -105,6 +105,7 @@ exports = async function ({
            deneme: {
               $let: {
                  vars: {
+                   list: { $match: { _projectId } },
                   _wbsIds: { $group: {_id:$_wbsId} },
                   _lbsIds: { $group: {_id:$_lbsId} },
                  },
