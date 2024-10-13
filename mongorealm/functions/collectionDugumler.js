@@ -99,12 +99,17 @@ exports = async function ({
     //   { $match: { _projectId } },
     // ]);
 
-    const list = collection_Dugumler.find({_projectId})
-
     let _wbsIds = []
     let _lbsIds = []
+    
+    const list = await collection_Dugumler.find({_projectId}).map(x => {
+      _wbsIds.push(x._wbsId)
+      _lbsIds.push(x._lbsId)
+      return x
+    })
 
-    list.map(x => _wbsIds.push(x))
+
+    // list.map(x => _wbsIds.push(x))
     
     // list.map(x => {
     //   // if(!_wbsIds.find(y => y == x._wbsId)) _wbsIds.push(x._wbsId)
