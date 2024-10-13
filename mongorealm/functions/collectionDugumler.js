@@ -97,7 +97,7 @@ exports = async function ({
     
     const list = await collection_Dugumler.aggregate([
       { $match: { _projectId } },
-    ]);
+    ]).toArray()
 
   
     // const list = await collection_Dugumler.find({_projectId}).toArray()
