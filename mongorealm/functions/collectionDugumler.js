@@ -98,25 +98,9 @@ exports = async function ({
     // const list = await collection_Dugumler.aggregate([
     //   { $match: { _projectId } },
     // ]);
-    
-    const mahalListesi = await collection_Dugumler.aggregate([
-      {
-        $project: {
-           deneme: {
-              $let: {
-                 vars: {
-                   list: { $match: { _projectId } },
-                  _wbsIds: { $group: {_id:$_wbsId} },
-                  _lbsIds: { $group: {_id:$_lbsId} },
-                 },
-                 in: { $multiply: [ "$$_wbsIds", "$$_lbsIds" ] }
-              }
-           }
-        }
-      }
-    ]);
 
-    return mahalListesi
+    const list = await collection_Dugumler.findOne({_projectId})
+    return {list}
 
     // let _wbsIds = []
     // let _lbsIds = []
