@@ -102,9 +102,9 @@ exports = async function ({
     let _wbsIds = []
     let _lbsIds = []
     
-    const list = await collection_Dugumler.find({_projectId})
+    const list2 = await collection_Dugumler.find({_projectId})
 
-    const list2 = [...list]
+    const list = [...list]
 
 
     // list.map(x => _wbsIds.push(x))
@@ -119,7 +119,7 @@ exports = async function ({
     //   return x
     // })
     
-    return {list2,_wbsIds,_lbsIds}
+    return {list,_wbsIds,_lbsIds}
   }
 
 
