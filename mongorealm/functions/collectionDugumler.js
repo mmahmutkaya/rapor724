@@ -120,7 +120,7 @@ exports = async function ({
       
     //   return x
     // })
-    
+    return mahalListesi
     return {list,_wbsIds,_lbsIds}
   }
 
