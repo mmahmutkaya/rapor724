@@ -92,6 +92,7 @@ exports = async function ({
 
 
 
+  const list2 = await collection_Dugumler.find({_projectId})
 
   if (functionName == "getMahalListesi") {
     
@@ -102,7 +103,6 @@ exports = async function ({
     let _wbsIds = []
     let _lbsIds = []
     
-    const list2 = await collection_Dugumler.find({_projectId})
 
     let list
     if(list2) list = [...list2]
