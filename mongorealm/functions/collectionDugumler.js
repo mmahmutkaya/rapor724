@@ -107,7 +107,7 @@ exports = async function ({
     let _wbsIds = 0
     let _lbsIds = 0
     
-    item.myArray.map(x => _wbsIds + x);
+    item.myArray.map(x => _wbsIds = _wbsIds + x);
 
   
     // list.map(x => {
