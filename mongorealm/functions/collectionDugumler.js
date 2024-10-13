@@ -100,14 +100,15 @@ exports = async function ({
     // ]);
 
     
-    const list = await collection_Dugumler.find({_projectId})
-    let _wbsIds = []
-    let _lbsIds = []
+    // const list = await collection_Dugumler.find({_projectId})
+    const list = await collection_Dugumler.findOne({_projectId})
+    let _wbsIds = 0
+    let _lbsIds = 0
     
-    list.map(makeList);
+    list.myArray.map(makeList);
 
     function makeList(item) {
-      return _wbsIds.push(item._wbsId);
+      return _wbsIds + item;
     }
     
     // list.map(x => {
