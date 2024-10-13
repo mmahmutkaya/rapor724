@@ -101,16 +101,16 @@ exports = async function ({
 
     
     // const list = await collection_Dugumler.find({_projectId})
-    const list = await collection_Dugumler.findOne({_projectId})
+    const item = await collection_Dugumler.findOne({_projectId})
+    const list = [item]
+    list.push(list2)
+    
     let _wbsIds = 0
     let _lbsIds = 0
     
-    list.myArray.map(makeList);
+    item.myArray.map(x => _wbsIds + x);
 
-    function makeList(item) {
-      return _wbsIds + item;
-    }
-    
+  
     // list.map(x => {
     //   // if(!_wbsIds.find(y => y == x._wbsId)) _wbsIds.push(x._wbsId)
     //   // if(!_lbsIds.find(y => y == x._lbsId)) _lbsIds.push(x._lbsId)
