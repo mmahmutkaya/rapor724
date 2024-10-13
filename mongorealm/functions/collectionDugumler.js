@@ -108,7 +108,7 @@ exports = async function ({
     let _wbsIds = []
     let _lbsIds = []
     
-    list.map(x => _wbsIds.push(x));
+    list.map(x => _wbsIds.push(x._wbsId));
 
   
     // list.map(x => {
