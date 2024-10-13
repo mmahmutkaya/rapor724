@@ -108,7 +108,7 @@ exports = async function ({
     let _wbsIds = []
     let _lbsIds = []
     
-    mahalListesi.list.map(x => _wbsIds.push(x));
+    if(mahalListesi) mahalListesi.list.map(x => _wbsIds.push(x));
 
   
     // list.map(x => {
