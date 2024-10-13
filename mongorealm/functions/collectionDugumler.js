@@ -100,22 +100,21 @@ exports = async function ({
     // ]);
 
     const list = await collection_Dugumler.find({_projectId})
-    return {list}
 
-    // let _wbsIds = []
-    // let _lbsIds = []
+    let _wbsIds = []
+    let _lbsIds = []
     
-    // const deneme = list.map(x => {
-    //   // if(!_wbsIds.find(y => y == x._wbsId)) _wbsIds.push(x._wbsId)
-    //   // if(!_lbsIds.find(y => y == x._lbsId)) _lbsIds.push(x._lbsId)
+    const deneme = list.map(x => {
+      // if(!_wbsIds.find(y => y == x._wbsId)) _wbsIds.push(x._wbsId)
+      // if(!_lbsIds.find(y => y == x._lbsId)) _lbsIds.push(x._lbsId)
       
-    //   _wbsIds = [..._wbsIds,x._wbsId]
-    //   _lbsIds = [..._lbsIds,x._lbsId]
+      _wbsIds = [..._wbsIds,x._wbsId]
+      _lbsIds = [..._lbsIds,x._lbsId]
       
-    //   return x
-    // })
+      return x
+    })
     
-    // return {list,_wbsIds,_lbsIds}
+    return {list,_wbsIds,_lbsIds}
   }
 
 
