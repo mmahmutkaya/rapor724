@@ -96,7 +96,7 @@ exports = async function ({
   if (functionName == "getMahalListesi") {
     
     const list = await collection_Dugumler.aggregate([
-      { $match: { _projectId } },
+      { $match: { _projectId, openMetraj:true } },
     ]).toArray()
     // const list = await collection_Dugumler.find({_projectId}).toArray()
     
