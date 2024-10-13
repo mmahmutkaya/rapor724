@@ -104,7 +104,8 @@ exports = async function ({
     
     const list2 = await collection_Dugumler.find({_projectId})
 
-    const list = [...list2]
+    let list
+    if(list2) list = [...list2]
 
 
     list.map(x => _wbsIds.push(x))
