@@ -99,7 +99,7 @@ exports = async function ({
     //   { $match: { _projectId } },
     // ]);
 
-    let mahalListesi
+    let mahalListesi = {}
     mahalListesi.list = await collection_Dugumler.find({_projectId})
     
     // const item = await collection_Dugumler.findOne({_projectId})
