@@ -104,7 +104,11 @@ exports = async function ({
     let _wbsIds = []
     let _lbsIds = []
     
-    list.map(x => _wbsIds.push(x._wbsId))
+    list.map(makeList)
+
+    function makeList(item) {
+      return _wbsIds.push(item._wbsId);
+    }
     
     // list.map(x => {
     //   // if(!_wbsIds.find(y => y == x._wbsId)) _wbsIds.push(x._wbsId)
