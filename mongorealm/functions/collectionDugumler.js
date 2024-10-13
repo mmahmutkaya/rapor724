@@ -103,7 +103,6 @@ exports = async function ({
     // const list = await collection_Dugumler.find({_projectId})
     const item = await collection_Dugumler.findOne({_projectId})
     const list = [item]
-    list.push(list2)
     
     let _wbsIds = 0
     let _lbsIds = 0
