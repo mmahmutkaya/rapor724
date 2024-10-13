@@ -104,7 +104,7 @@ exports = async function ({
     let _wbsIds = []
     let _lbsIds = []
     
-    list.map(makeList)
+    list.map(makeList);
 
     function makeList(item) {
       return _wbsIds.push(item._wbsId);
