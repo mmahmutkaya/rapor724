@@ -100,7 +100,7 @@ exports = async function ({
 
   const project = await collection_Projects.aggregate([
     { $match: { _id:_projectId } },
-  ]).toArray()[0]
+  ])
   
 
   if (functionName == "getMahalListesi") {
