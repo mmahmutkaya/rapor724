@@ -148,7 +148,7 @@ exports = async function ({
       }) 
     })
     
-    return {list,_wbsIds,_lbsIds,project,initialValue2}
+    return {list,_wbsIds,_lbsIds,project,initialValue2,index2}
   }
 
 
