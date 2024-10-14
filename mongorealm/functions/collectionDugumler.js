@@ -92,6 +92,7 @@ exports = async function ({
   //     "MONGO // collectionDugumler -- sorguya gönderilen --pozId-- türü doğru değil, lütfen Rapor7/24 ile irtibata geçiniz. "
   //   );
 
+  
 
   const collection_Projects = context.services
     .get("mongodb-atlas")
@@ -107,6 +108,7 @@ exports = async function ({
   project2.map((x,index) => {
     if(index == 0) project = x
   })
+
   
 
   if (functionName == "getMahalListesi") {
@@ -122,7 +124,24 @@ exports = async function ({
     list.map(x => !_wbsIds.find(y => y.toString() == x._wbsId.toString() ) && _wbsIds.push(x._wbsId));
     list.map(x => !_lbsIds.find(y => y.toString() == x._lbsId.toString() ) && _lbsIds.push(x._lbsId));
 
-    
+    _wbsIds.map(oneId => {
+      let code = project.wbs.find(x => x._id == oneId).code
+      let count = code.split(".")
+      code.split(".").reduce((initialValue,x,index) => {
+        if(index === 0) {
+          initialValue = x
+          _wbsIds = [...wbsIds, isProject.wbs.find(x => x.code === initialValue)._id]
+          return
+        }
+        if(index === count) {
+          return
+        }
+        initialValue = initialValue + "." + x
+        _wbsIds = [...wbsIds, isProject.wbs.find(x => x.code === initialValue)._id]
+        
+      })
+      
+    })
 
     return {list,_wbsIds,_lbsIds,project}
   }
