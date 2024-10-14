@@ -138,7 +138,6 @@ exports = async function ({
         }
         initialValue = initialValue + "." + x
         _wbsIds = [...wbsIds, project.wbs.find(x => x.code === initialValue)._id]
-        
       })
       
     })
