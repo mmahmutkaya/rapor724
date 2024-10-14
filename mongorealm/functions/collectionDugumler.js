@@ -142,6 +142,7 @@ exports = async function ({
         if(index === count) {
           return
         }
+        if(index === 1) index2 = "elma"
         initialValue = initialValue + "." + x
         initialValue2 = initialValue
         _wbsIds = [..._wbsIds, project.wbs.find(x => x.code === initialValue)]
