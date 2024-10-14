@@ -119,13 +119,15 @@ exports = async function ({
     // const list = await collection_Dugumler.find({_projectId}).toArray()
     
     let _wbsIds = []
-    let _lbsIds = []
-    
     list.map(x => !_wbsIds.find(y => y.toString() == x._wbsId.toString() ) && _wbsIds.push(x._wbsId));
+    
+    let _lbsIds = []
     list.map(x => !_lbsIds.find(y => y.toString() == x._lbsId.toString() ) && _lbsIds.push(x._lbsId));
 
-    let wbs = project.wbs.find(x => x._id === _wbsIds[0])
-    return wbs
+    
+    return _wbsIds[0]
+    // let wbs = project.wbs.find(x => x._id === _wbsIds[0])
+    // return wbs
   
     // _wbsIds.map(oneId => {
     //   let code = project.wbs.find(x => x._id === oneId).code
