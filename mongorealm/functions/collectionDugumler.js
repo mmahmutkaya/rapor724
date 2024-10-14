@@ -134,7 +134,7 @@ exports = async function ({
         // ilk index 1 imiş burada, teyit edilmeli
         if(index === 1) {
           initialValue = x
-          _wbsIds = [..._wbsIds, project.wbs.find(x => x.code === initialValue)._id]
+          _wbsIds = [..._wbsIds, project.wbs.find(x => x.code === initialValue)]
           return
         }
         if(index === count) {
