@@ -98,9 +98,15 @@ exports = async function ({
     .db("rapor724_v2")
     .collection("projects");
 
-  const project = await collection_Projects.aggregate([
+  const project2 = await collection_Projects.aggregate([
     { $match: { _id:_projectId } },
-  ]).toArray()[0]
+  ]).toArray()
+
+  
+  let project
+  project2.map((x,index) => {
+    if(index == 0) project = x
+  })
   
 
   if (functionName == "getMahalListesi") {
