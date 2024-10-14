@@ -126,7 +126,7 @@ exports = async function ({
 
     
     // return {a:_wbsIds[0], b:project}
-    let wbs = project.wbs.find(x => x._id === _wbsIds[0])
+    let wbs = project.wbs.find(x => x._id.toString() === _wbsIds[0].toString())
     return wbs
   
     // _wbsIds.map(oneId => {
