@@ -125,12 +125,13 @@ exports = async function ({
     list.map(x => !_lbsIds.find(y => y.toString() == x._lbsId.toString() ) && _lbsIds.push(x._lbsId));
 
     
- 
+     let initialValue2
     _wbsIds.map(oneId => {
       let code = project.wbs.find(x => x._id.toString() === oneId.toString()).code
       let count = code.split(".").length
       code.split(".").reduce((initialValue,x,index) => {
-        // ilk index 1 imiş burada, kontrol edilmeli
+        
+        // ilk index 1 imiş burada, teyit edilmeli
         if(index === 1) {
           initialValue = x
           _wbsIds = [..._wbsIds, project.wbs.find(x => x.code === initialValue)._id]
@@ -140,11 +141,12 @@ exports = async function ({
           return
         }
         initialValue = initialValue + "." + x
+        initialValue2 = initialValue
         _wbsIds = [..._wbsIds, project.wbs.find(x => x.code === initialValue)]
       }) 
     })
 
-    return {list,_wbsIds,_lbsIds,project}
+    return {list,_wbsIds,_lbsIds,project,initialValue2}
   }
 
 
