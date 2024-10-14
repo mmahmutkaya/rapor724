@@ -126,29 +126,26 @@ exports = async function ({
 
     
     let initialValue
-    let initialValue2
-    let index2
-    //
+    // nodelist içinde yer alan wbs ve lbs lerin üst node(düğüm) lerini de listemize ekliyoruz
     _wbsIds.map(oneId => {
       let code = project.wbs.find(x => x._id.toString() === oneId.toString()).code
       let count = code.split(".").length
+      
       code.split(".").map((x,index) => {
-        
         if(index === 0) {
           initialValue = x
-          _wbsIds = [..._wbsIds, project.wbs.find(x => x.code === initialValue)]
+          _wbsIds = [..._wbsIds, project.wbs.find(x => x.code === initialValue)._id]
           return
         }
         if(index + 1 === count) {
           return
         }
         initialValue = initialValue + "." + x
-        initialValue2 = initialValue
-        _wbsIds = [..._wbsIds, project.wbs.find(x => x.code === initialValue)]
+        _wbsIds = [..._wbsIds, project.wbs.find(x => x.code === initialValue)._id]
       }) 
     })
     
-    return {list,_wbsIds,_lbsIds,project,initialValue2,index2}
+    return {list,_wbsIds,_lbsIds}
   }
 
 
