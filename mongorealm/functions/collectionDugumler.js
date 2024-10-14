@@ -132,14 +132,14 @@ exports = async function ({
       code.split(".").reduce((initialValue,x,index) => {
         if(index === 0) {
           initialValue = x
-          _wbsIds = [..._wbsIds, project.wbs.find(x => x.code === initialValue)._id]
+          _wbsIds = [..._wbsIds, project.wbs.find(x => x.code === initialValue)]
           return
         }
         if(index === count) {
           return
         }
         initialValue = initialValue + "." + x
-        _wbsIds = [..._wbsIds, project.wbs.find(x => x.code === initialValue)._id]
+        _wbsIds = [..._wbsIds, project.wbs.find(x => x.code === initialValue)]
       }) 
     })
 
