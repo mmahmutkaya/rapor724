@@ -8,6 +8,8 @@ exports = async function ({
   propertyName,
   propertyValue,
 }) {
+
+   
   // tip2 - (yukarıda açıklandı)
   const user = context.user;
   const _userId = new BSON.ObjectId(user.id);
@@ -91,7 +93,15 @@ exports = async function ({
   //   );
 
 
+  const collection_Projects = context.services
+    .get("mongodb-atlas")
+    .db("rapor724_v2")
+    .collection("dugumler");
 
+  const project = await collection_Projects.aggregate([
+    { $match: { _id:_projectId } },
+  ]).toArray()[0]
+  
 
   if (functionName == "getMahalListesi") {
     
@@ -106,7 +116,7 @@ exports = async function ({
     list.map(x => !_wbsIds.find(y => y.toString() == x._wbsId.toString() ) && _wbsIds.push(x._wbsId));
     list.map(x => !_lbsIds.find(y => y.toString() == x._lbsId.toString() ) && _lbsIds.push(x._lbsId));
 
-    return {list,_wbsIds,_lbsIds}
+    return {list,_wbsIds,_lbsIds,project}
   }
 
 
