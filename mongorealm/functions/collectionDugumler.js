@@ -126,12 +126,13 @@ exports = async function ({
 
     
     let initialValue2
-    let index
+    let index2
     //
     _wbsIds.map(oneId => {
       let code = project.wbs.find(x => x._id.toString() === oneId.toString()).code
       let count = code.split(".").length
       code.split(".").reduce((initialValue,x,index) => {
+        if(!index2) index2 = index
         // ilk index 1 imiş burada, teyit edilmeli
         if(index === 1) {
           initialValue = x
