@@ -96,11 +96,11 @@ exports = async function ({
   const collection_Projects = context.services
     .get("mongodb-atlas")
     .db("rapor724_v2")
-    .collection("dugumler");
+    .collection("projects");
 
   const project = await collection_Projects.aggregate([
     { $match: { _id:_projectId } },
-  ])
+  ]).toArray()[0]
   
 
   if (functionName == "getMahalListesi") {
