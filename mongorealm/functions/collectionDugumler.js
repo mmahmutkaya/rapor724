@@ -126,22 +126,22 @@ exports = async function ({
 
     
  
-    // _wbsIds.map(oneId => {
-    //   let code = project.wbs.find(x => x._id.toString() === oneId.toString()).code
-    //   let count = code.split(".")
-    //   code.split(".").reduce((initialValue,x,index) => {
-    //     if(index === 0) {
-    //       initialValue = x
-    //       _wbsIds = [..._wbsIds, project.wbs.find(x => x.code === initialValue)._id]
-    //       return
-    //     }
-    //     if(index === count) {
-    //       return
-    //     }
-    //     initialValue = initialValue + "." + x
-    //     _wbsIds = [..._wbsIds, project.wbs.find(x => x.code === initialValue)._id]
-    //   }) 
-    // })
+    _wbsIds.map(oneId => {
+      let code = project.wbs.find(x => x._id.toString() === oneId.toString()).code
+      let count = code.split(".").length
+      code.split(".").reduce((initialValue,x,index) => {
+        if(index === 0) {
+          initialValue = x
+          _wbsIds = [..._wbsIds, project.wbs.find(x => x.code === initialValue)._id]
+          return
+        }
+        if(index === count) {
+          return
+        }
+        initialValue = initialValue + "." + x
+        _wbsIds = [..._wbsIds, project.wbs.find(x => x.code === initialValue)._id]
+      }) 
+    })
 
     return {list,_wbsIds,_lbsIds,project}
   }
