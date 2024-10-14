@@ -123,9 +123,10 @@ exports = async function ({
     
     list.map(x => !_wbsIds.find(y => y.toString() == x._wbsId.toString() ) && _wbsIds.push(x._wbsId));
     list.map(x => !_lbsIds.find(y => y.toString() == x._lbsId.toString() ) && _lbsIds.push(x._lbsId));
-
+    
+    let wbs
     _wbsIds.map(oneId => {
-      let code = project.wbs.find(x => x._id === oneId).code
+      wbs = project.wbs.find(x => x._id === oneId)
       let count = code.split(".")
       code.split(".").reduce((initialValue,x,index) => {
         if(index === 0) {
@@ -138,11 +139,10 @@ exports = async function ({
         }
         initialValue = initialValue + "." + x
         _wbsIds = [...wbsIds, project.wbs.find(x => x.code === initialValue)._id]
-      })
-      
+      }) 
     })
 
-    return {list,_wbsIds,_lbsIds,project}
+    return {list,_wbsIds,_lbsIds,project,wbs}
   }
 
 
