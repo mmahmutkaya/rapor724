@@ -106,6 +106,7 @@ exports = async function ({
   
   let project
   project2.map((x,index) => {
+    // zaten bir project var ama olsun biz yine de index ===0 mı yani ilk obje mi sorgusunu yapalım
     if(index == 0) project = x
   })
 
@@ -125,23 +126,54 @@ exports = async function ({
     list.map(x => !_lbsIds.find(y => y.toString() == x._lbsId.toString() ) && _lbsIds.push(x._lbsId));
 
     
-    let initialValue
     // nodelist içinde yer alan wbs ve lbs lerin üst node(düğüm) lerini de listemize ekliyoruz
+    let codes
+    let initialValue
     _wbsIds.map(oneId => {
       let code = project.wbs.find(x => x._id.toString() === oneId.toString()).code
-      let count = code.split(".").length
-      
-      code.split(".").map((x,index) => {
+      if(codes) codes = [...codes, code]
+      if(!codes) codes = [code]
+  
+      let codeArray = code.split(".")
+      let level = codeArray.length
+
+      codeArray.map((x,index) => {
+        // varsa üst wbs ler eklendi, zaten ekli olan ilk başlık wbs e ulaştık, ya da zaten ordan başladık (ilk wbs zaten en üst seviye wbs miş demek)
+        if(initialValue == code) {
+          return
+        }
         if(index === 0) {
           initialValue = x
           _wbsIds = [..._wbsIds, project.wbs.find(x => x.code === initialValue)._id]
           return
         }
-        if(index + 1 === count) {
+        initialValue = initialValue + "." + x
+        _wbsIds = [..._wbsIds, project.wbs.find(x => x.code === initialValue)._id]
+      }) 
+    })
+
+
+    // yukarının lbs versiyonu
+    _lbsIds.map(oneId => {
+      let code = project.lbs.find(x => x._id.toString() === oneId.toString()).code
+      if(codes) codes = [...codes, code]
+      if(!codes) codes = [code]
+  
+      let codeArray = code.split(".")
+      let level = codeArray.length
+
+      codeArray.map((x,index) => {
+        // varsa üst lbs ler eklendi, zaten ekli olan ilk başlık lbs e ulaştık, ya da zaten ordan başladık (ilk lbs zaten en üst seviye lbs miş demek)
+        if(initialValue == code) {
+          return
+        }
+        if(index === 0) {
+          initialValue = x
+          _lbsIds = [..._lbsIds, project.lbs.find(x => x.code === initialValue)._id]
           return
         }
         initialValue = initialValue + "." + x
-        _wbsIds = [..._wbsIds, project.wbs.find(x => x.code === initialValue)._id]
+        _lbsIds = [..._lbsIds, project.lbs.find(x => x.code === initialValue)._id]
       }) 
     })
     
