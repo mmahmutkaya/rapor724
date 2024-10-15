@@ -150,7 +150,7 @@ exports = async function ({
         if(x == code) {
           return
         }
-        initialValue = initialValue ? x : initialValue + "." + x
+        initialValue = initialValue ? initialValue + "." + x : x
         _wbsIds = [..._wbsIds, {_id:project.wbs.find(y => y.code === initialValue)._id, code:project.wbs.find(y => y.code === initialValue).code}]
       }) 
     })
