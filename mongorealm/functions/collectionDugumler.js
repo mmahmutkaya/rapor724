@@ -125,7 +125,7 @@ exports = async function ({
     let _wbsIds = []
     list.map(oneNode => {
       if(!_wbsIds.find( y => y._id.toString() == oneNode._wbsId.toString() )){
-        _wbsIds.push({_id:oneNode._wbsId, code:oneNode.code}) 
+        _wbsIds = [..._wbsIds, project.wbs.find(x => x._id.toString() === oneNode._wbsId.toString())]
       }
     });
     
