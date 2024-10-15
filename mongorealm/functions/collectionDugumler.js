@@ -119,18 +119,26 @@ exports = async function ({
     ]).toArray()
     // const list = await collection_Dugumler.find({_projectId}).toArray()
     
+    // let _wbsIds = []
+    // list.map(x => !_wbsIds.find(y => y.toString() == x._wbsId.toString() ) && _wbsIds.push(x._wbsId));
+    
     let _wbsIds = []
-    list.map(x => !_wbsIds.find(y => y.toString() == x._wbsId.toString() ) && _wbsIds.push(x._wbsId));
+    list.map(oneNode => {
+      if(!_wbsIds.find( y => y._id.toString() == oneNode._wbsId.toString() )){
+        _wbsIds.push({_id:oneNode._wbsId, code:oneNode.code}) 
+      }
+    });
+    
     
     let _lbsIds = []
     list.map(x => !_lbsIds.find(y => y.toString() == x._lbsId.toString() ) && _lbsIds.push(x._lbsId));
 
-    
+
     // nodelist içinde yer alan wbs ve lbs lerin üst node(düğüm) lerini de listemize ekliyoruz
     let codes
     let initialValue
-    _wbsIds.map(oneId => {
-      let code = project.wbs.find(x => x._id.toString() === oneId.toString()).code
+    _wbsIds.map(oneWbs => {
+      let code = project.wbs.find(x => x._id.toString() === oneWbs._id.toString()).code
       if(codes) codes = [...codes, code]
       if(!codes) codes = [code]
   
@@ -139,20 +147,41 @@ exports = async function ({
 
       codeArray.map((x,index) => {
         // varsa üst wbs ler eklendi, zaten ekli olan ilk başlık wbs e ulaştık, ya da zaten ordan başladık (ilk wbs zaten en üst seviye wbs miş demek)
-        if(initialValue == code) {
+        if(x == code) {
           return
         }
-        if(index === 0) {
-          initialValue = x
-          _wbsIds = [..._wbsIds, project.wbs.find(x => x.code === initialValue)._id]
-          return
-        }
-        initialValue = initialValue + "." + x
-        _wbsIds = [..._wbsIds, project.wbs.find(x => x.code === initialValue)._id]
+        initialValue = initialValue ? x : initialValue + "." + x
+        _wbsIds = [..._wbsIds, {_id:project.wbs.find(y => y.code === initialValue)._id, code:project.wbs.find(y => y.code === initialValue).code}]
       }) 
     })
 
 
+    // nodelist içinde yer alan wbs ve lbs lerin üst node(düğüm) lerini de listemize ekliyoruz
+    // let codes
+    // let initialValue
+    // wbs kısmı
+    // _wbsIds.map(oneId => {
+    //   let code = project.wbs.find(x => x._id.toString() === oneId.toString()).code
+    //   if(codes) codes = [...codes, code]
+    //   if(!codes) codes = [code]
+  
+    //   let codeArray = code.split(".")
+    //   let level = codeArray.length
+
+    //   codeArray.map((x,index) => {
+    //     // varsa üst wbs ler eklendi, zaten ekli olan ilk başlık wbs e ulaştık, ya da zaten ordan başladık (ilk wbs zaten en üst seviye wbs miş demek)
+    //     if(initialValue == code) {
+    //       return
+    //     }
+    //     if(index === 0) {
+    //       initialValue = x
+    //       _wbsIds = [..._wbsIds, project.wbs.find(x => x.code === initialValue)._id]
+    //       return
+    //     }
+    //     initialValue = initialValue + "." + x
+    //     _wbsIds = [..._wbsIds, project.wbs.find(x => x.code === initialValue)._id]
+    //   }) 
+    // })
     // yukarının lbs versiyonu
     _lbsIds.map(oneId => {
       let code = project.lbs.find(x => x._id.toString() === oneId.toString()).code
@@ -177,7 +206,7 @@ exports = async function ({
       }) 
     })
     
-    return {list,_wbsIds,_lbsIds}
+    return {list,_wbsIds,_lbsIds,codes}
   }
 
 
