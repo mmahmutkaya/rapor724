@@ -119,13 +119,15 @@ exports = async function ({
     ]).toArray()
     // const list = await collection_Dugumler.find({_projectId}).toArray()
     
+    let codes
+    
     // let _wbsIds = []
     // list.map(x => !_wbsIds.find(y => y.toString() == x._wbsId.toString() ) && _wbsIds.push(x._wbsId));
     
     let _wbsIds = []
     list.map(oneNode => {
       if(!_wbsIds.find( y => y._id.toString() == oneNode._wbsId.toString() )){
-        _wbsIds = [..._wbsIds, project.wbs.find(x => x._id.toString() === oneNode._wbsId.toString())]
+        _wbsIds = _wbsIds ? [..._wbsIds, project.wbs.find(x => x._id.toString() === oneNode._wbsId.toString())] : [project.wbs.find(x => x._id.toString() === oneNode._wbsId.toString())]
       }
     });
     
@@ -135,7 +137,7 @@ exports = async function ({
 
 
     // nodelist içinde yer alan wbs ve lbs lerin üst node(düğüm) lerini de listemize ekliyoruz
-    let codes
+    
     let initialValue
     _wbsIds.map(oneWbs => {
       let code = project.wbs.find(x => x._id.toString() === oneWbs._id.toString()).code
