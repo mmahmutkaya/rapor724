@@ -135,10 +135,8 @@ exports = async function ({
     let _lbsIds = []
     list.map(x => !_lbsIds.find(y => y.toString() == x._lbsId.toString() ) && _lbsIds.push(x._lbsId));
 
-
     // nodelist içinde yer alan wbs ve lbs lerin üst node(düğüm) lerini de listemize ekliyoruz
 
-    
     _wbsIds.map(oneWbs => {
       
       let code = project.wbs.find(x => x._id.toString() === oneWbs._id.toString()).code
