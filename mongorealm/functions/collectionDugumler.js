@@ -122,15 +122,23 @@ exports = async function ({
     // let wbsLer = []
     // list.map(x => !wbsLer.find(y => y.toString() == x._wbsId.toString() ) && wbsLer.push(x._wbsId));
     
-    let wbsLer = []
+    let wbsLer
     
     list.map(oneNode => {
-      
+
+      // wbsLer'e ilk wbs'i yerleştiriyoruz
+      if(!wbsLer) {
+        let {_id, code, name} = project.wbs.find(x => x._id.toString() === oneNode._wbsId.toString())
+        wbsLer = [{_id, code, name}]
+        return
+      }
+
+      // sonraki wbsLer'i yerleştiriyoruz
       if( !wbsLer.find( y => y._id.toString() == oneNode._wbsId.toString()) ){
         
         let {_id, code, name} = project.wbs.find(x => x._id.toString() === oneNode._wbsId.toString())
         
-        wbsLer = wbsLer.length ? [...wbsLer, {_id, code, name}] : [{_id, code, name}]
+        wbsLer = [...wbsLer, {_id, code, name}]
 
         // varsa üst seviye wbs leri de eklemeye çalışıyoruz
         let codeArray = code.split(".")
@@ -144,9 +152,8 @@ exports = async function ({
             }
           })
         }
-        
-        
       }
+      
     });
     
     
