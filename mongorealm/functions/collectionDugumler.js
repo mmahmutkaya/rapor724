@@ -126,8 +126,8 @@ exports = async function ({
     
     list.map(oneNode => {
 
-      // wbsLer'e ilk wbs'i yerleştiriyoruz
-      let code2
+      // ilk seviye wbsLer'in yerleştirilmesi
+      let code2 = ""
       if(!wbsLer) {
         let {_id, code, name} = project.wbs.find(x => x._id.toString() === oneNode._wbsId.toString())
         wbsLer = [{_id, code, name}]
