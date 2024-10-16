@@ -118,7 +118,8 @@ exports = async function ({
       { $match: { _projectId, openMetraj:true } },
     ]).toArray()
     // const list = await collection_Dugumler.find({_projectId}).toArray()
-    
+
+    let codes
     
     // let _wbsIds = []
     // list.map(x => !_wbsIds.find(y => y.toString() == x._wbsId.toString() ) && _wbsIds.push(x._wbsId));
