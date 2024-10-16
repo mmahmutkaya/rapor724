@@ -153,7 +153,8 @@ exports = async function ({
           return
         }
         _wbsIds = [..._wbsIds, {_id:project.wbs.find(y => y.code === initialValue)._id, code:project.wbs.find(y => y.code === initialValue).code}]
-      }) 
+      })
+      
     })
 
 
