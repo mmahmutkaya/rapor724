@@ -137,6 +137,7 @@ exports = async function ({
 
 
     // nodelist içinde yer alan wbs ve lbs lerin üst node(düğüm) lerini de listemize ekliyoruz
+
     
     _wbsIds.map(oneWbs => {
       let initialValue
