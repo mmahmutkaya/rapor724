@@ -140,18 +140,16 @@ exports = async function ({
 
     
     _wbsIds.map(oneWbs => {
-      let initialValue
+      
       let code = project.wbs.find(x => x._id.toString() === oneWbs._id.toString()).code
       if(codes) codes = [...codes, code]
       if(!codes) codes = [code]
   
-      let codeArray = code.split(".")
-      let level = codeArray.length
-
-      codeArray.map((x,index) => {
-        // varsa üst wbs ler eklendi, zaten ekli olan ilk başlık wbs e ulaştık, ya da zaten ordan başladık (ilk wbs zaten en üst seviye wbs miş demek)
+      let initialValue
+      code.split(".").map((x,index) => {
         initialValue = initialValue ? initialValue + "." + x : x
-        if(x == code) {
+        // varsa üst wbs ler eklendi, zaten ekli olan ilk başlık wbs e ulaştık, ya da zaten ordan başladık (ilk wbs zaten en üst seviye wbs miş demek)
+        if(initialValue == code) {
           return
         }
         _wbsIds = [..._wbsIds, {_id:project.wbs.find(y => y.code === initialValue)._id, code:project.wbs.find(y => y.code === initialValue).code}]
