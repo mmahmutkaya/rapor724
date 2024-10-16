@@ -119,11 +119,9 @@ exports = async function ({
     ]).toArray()
     // const list = await collection_Dugumler.find({_projectId}).toArray()
 
-    // let wbsLer = []
-    // list.map(x => !wbsLer.find(y => y.toString() == x._wbsId.toString() ) && wbsLer.push(x._wbsId));
-    
+ 
     let wbsLer
-    
+    //
     list.map(oneNode => {
 
       // ilk seviye wbsLer'in yerleştirilmesi
@@ -154,84 +152,45 @@ exports = async function ({
       }  
 
     });
-    
-    
-    let _lbsIds = []
-    list.map(x => !_lbsIds.find(y => y.toString() == x._lbsId.toString() ) && _lbsIds.push(x._lbsId));
 
-    // nodelist içinde yer alan wbs ve lbs lerin üst node(düğüm) lerini de listemize ekliyoruz
 
-    // wbsLer.map(oneWbs => {
+    let lbsLer
+    //
+    list.map(oneNode => {
+
+      // ilk seviye lbsLer'in yerleştirilmesi
+      let code2 = ""
+      if(!lbsLer) {
+        let {_id, code, name} = project.lbs.find(x => x._id.toString() === oneNode._lbsId.toString())
+        lbsLer = [{_id, code, name}]
+        code2 = code
+      } else {
+        if( !lbsLer.find( y => y._id.toString() == oneNode._lbsId.toString()) ){
+          let {_id, code, name} = project.lbs.find(x => x._id.toString() === oneNode._lbsId.toString())
+          lbsLer = [...lbsLer, {_id, code, name}]
+          code2 = code
+        }
+      }
       
-    //   let code = project.wbs.find(x => x._id.toString() === oneWbs._id.toString()).code
-    //   if(codes) codes = [...codes, code]
-    //   if(!codes) codes = [code]
-  
-    //   let initialValue
-    //   code.split(".").map((x,index) => {
-    //     initialValue = initialValue ? initialValue + "." + x : x
-    //     // varsa üst wbs ler eklendi, zaten ekli olan ilk başlık wbs e ulaştık, ya da zaten ordan başladık (ilk wbs zaten en üst seviye wbs miş demek)
-    //     if(initialValue == code) {
-    //       return
-    //     }
-    //     wbsLer = [...wbsLer, {_id:project.wbs.find(y => y.code === initialValue)._id, code:project.wbs.find(y => y.code === initialValue).code}]
-    //   })
-      
-    // })
+      // varsa üst seviye lbs leri de eklemeye çalışıyoruz
+      let codeArray = code2.split(".")
+      if(codeArray.length > 1) {
+        let initialCode = ""
+        codeArray.map(oneCode => {
+          initialCode = initialCode.length ? initialCode + "." + oneCode : oneCode
+          if(!lbsLer.find(x => x.code == initialCode)) {
+            let {_id, code, name} = project.lbs.find(x => x.code === initialCode)
+            lbsLer = [...lbsLer, {_id, code, name}]
+          }
+        })
+      }  
 
-
-    // nodelist içinde yer alan wbs ve lbs lerin üst node(düğüm) lerini de listemize ekliyoruz
-    // let codes
-    // let initialValue
-    // wbs kısmı
-    // wbsLer.map(oneId => {
-    //   let code = project.wbs.find(x => x._id.toString() === oneId.toString()).code
-    //   if(codes) codes = [...codes, code]
-    //   if(!codes) codes = [code]
-  
-    //   let codeArray = code.split(".")
-    //   let level = codeArray.length
-
-    //   codeArray.map((x,index) => {
-    //     // varsa üst wbs ler eklendi, zaten ekli olan ilk başlık wbs e ulaştık, ya da zaten ordan başladık (ilk wbs zaten en üst seviye wbs miş demek)
-    //     if(initialValue == code) {
-    //       return
-    //     }
-    //     if(index === 0) {
-    //       initialValue = x
-    //       wbsLer = [...wbsLer, project.wbs.find(x => x.code === initialValue)._id]
-    //       return
-    //     }
-    //     initialValue = initialValue + "." + x
-    //     wbsLer = [...wbsLer, project.wbs.find(x => x.code === initialValue)._id]
-    //   }) 
-    // })
-    // yukarının lbs versiyonu
-    // _lbsIds.map(oneId => {
-    //   let initialValue
-    //   let code = project.lbs.find(x => x._id.toString() === oneId.toString()).code
-    //   if(codes) codes = [...codes, code]
-    //   if(!codes) codes = [code]
-  
-    //   let codeArray = code.split(".")
-    //   let level = codeArray.length
-
-    //   codeArray.map((x,index) => {
-    //     // varsa üst lbs ler eklendi, zaten ekli olan ilk başlık lbs e ulaştık, ya da zaten ordan başladık (ilk lbs zaten en üst seviye lbs miş demek)
-    //     if(initialValue == code) {
-    //       return
-    //     }
-    //     if(index === 0) {
-    //       initialValue = x
-    //       _lbsIds = [..._lbsIds, project.lbs.find(x => x.code === initialValue)._id]
-    //       return
-    //     }
-    //     initialValue = initialValue + "." + x
-    //     _lbsIds = [..._lbsIds, project.lbs.find(x => x.code === initialValue)._id]
-    //   }) 
-    // })
+    });
     
-    return {list,wbsLer,_lbsIds}
+    
+    
+    
+    return {list,wbsLer,lbsLer}
   }
 
 
