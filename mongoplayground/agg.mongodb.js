@@ -1,3 +1,4 @@
+
 // Select the database to use.
 use('rapor724_v2');
 
@@ -19,16 +20,52 @@ use('rapor724_v2');
 
 
 
-db.sales.updateMany({},[
+// db.dugumler.updateMany({}, [
+//    {
+//       $set: {
+//          "onaylananMetrajlar": {
+//             "metraj": 0,
+//             "satirlar": []
+//          }
+//       }
+//    },
+// ])
+
+
+
+db.dugumler.updateMany({}, [
    {
       $set: {
-         "yemekler": [
-            {
-               "platform": "web",
-               "pages":"metraj"
 
+         "hazirlananMetrajlar": {
+            "$map": {
+               "input": "$hazirlananMetrajlar",
+               "as": "oneMetraj",
+               "in": {
+                  "$mergeObjects": [
+                     "$$oneMetraj",
+                     {
+                        satirlar: {
+                           "$map": {
+                              "input": "$$oneMetraj.satirlar",
+                              "as": "oneSatir",
+                              "in": {
+                                 "$mergeObjects": [
+                                    "$$oneSatir",
+                                    {
+                                       isApproved: false
+                                    }
+                                 ]
+                              }
+                           }
+                        }
+                     }
+                  ]
+               }
             }
-         ]
+         }
+
+
       }
    },
 ])

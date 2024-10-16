@@ -25,6 +25,7 @@ import FileDownloadDoneIcon from '@mui/icons-material/FileDownloadDone';
 import EditIcon from '@mui/icons-material/Edit';
 import MenuOpenIcon from '@mui/icons-material/MenuOpen';
 import ForwardIcon from '@mui/icons-material/Forward';
+import ReplyIcon from '@mui/icons-material/Reply';
 
 
 
@@ -38,12 +39,14 @@ export default function P_MetrajHeader() {
   const { isProject, setIsProject } = useContext(StoreContext)
   const { selectedPoz, setSelectedPoz } = useContext(StoreContext)
   const { selectedNode, setSelectedNode } = useContext(StoreContext)
+  const { pageMetraj_show, pageMetraj_setShow } = useContext(StoreContext)
+  
 
   const RealmApp = useApp();
 
   const { selectedMahal, setSelectedMahal } = useContext(StoreContext)
   const { selectedMahalBaslik, setSelectedMahalBaslik } = useContext(StoreContext)
-
+  const { subHeaderHeight } = useContext(StoreContext)
   const [willBeUpdate_mahalBaslik, setWillBeUpdate_mahalBaslik] = useState(false)
 
   const [showDialog, setShowDialog] = useState(false)
@@ -58,11 +61,8 @@ export default function P_MetrajHeader() {
   ]
 
 
-
-  let header = "Metraj"
-
   return (
-    <Paper >
+    <Paper>
 
       {showDialog &&
         <DialogWindow dialogCase={dialogCase} showDialog={showDialog} setShowDialog={setShowDialog} />
@@ -84,7 +84,7 @@ export default function P_MetrajHeader() {
           container
           justifyContent="space-between"
           alignItems="center"
-          sx={{ padding: "0.5rem 1rem", maxHeight: "5rem" }}
+          sx={{ padding: "0.5rem 1rem", height: subHeaderHeight, maxHeight: "5rem" }}
         >
 
 
@@ -95,7 +95,7 @@ export default function P_MetrajHeader() {
               variant="h6"
               fontWeight="bold"
             >
-              {header}
+              {selectedPoz ? selectedPoz.name : "Metraj"}
             </Typography>
           </Grid>
 
@@ -106,7 +106,7 @@ export default function P_MetrajHeader() {
             <Grid container spacing={1}>
 
 
-              {!selectedPoz &&
+              {pageMetraj_show == "Pozlar" && !selectedPoz &&
                 <Grid item>
                   <IconButton onClick={() => setCustom(custom => ({ ...custom, pageMetraj_baslik1: !custom?.pageMetraj_baslik1 }))} aria-label="addLbs" disabled={(isProject?.lbs?.filter(item => item.openForMahal).length == 0 || !isProject?.lbs) ? true : false}>
                     <VisibilityIcon variant="contained" sx={{ color: "black" }} />
@@ -114,9 +114,13 @@ export default function P_MetrajHeader() {
                 </Grid>
               }
 
-              {selectedPoz &&
+              {pageMetraj_show == "Pozlar" && selectedPoz &&
                 <Grid item >
-                  <IconButton onClick={() => setSelectedPoz()} aria-label="lbsUncliced">
+                  <IconButton onClick={() => {
+                    setSelectedPoz()
+                  }
+
+                  } aria-label="lbsUncliced">
                     <ClearOutlined variant="contained" sx={{
                       color: !selectedPoz ? "lightgray" : "red",
                     }} />
@@ -125,11 +129,50 @@ export default function P_MetrajHeader() {
               }
 
 
-              {selectedPoz &&
+              {pageMetraj_show == "Pozlar" && selectedPoz &&
+                <Grid item>
+                  <IconButton onClick={() => {
+                    pageMetraj_setShow("PozMahalleri")
+                    setSelectedNode()
+                  }}
+                    aria-label="addLbs">
+                    <ForwardIcon variant="contained" color={!selectedPoz ? " lightgray" : "success"} />
+                  </IconButton>
+                </Grid>
+              }
+
+
+
+
+              {pageMetraj_show == "PozMahalleri" && !selectedNode &&
+                <Grid item >
+                  <IconButton onClick={() => {
+                    pageMetraj_setShow("Pozlar")
+                    setSelectedNode()
+                  }} aria-label="lbsUncliced">
+                    <ReplyIcon variant="contained" sx={{ color: !selectedPoz ? "lightgray" : "red" }} />
+                  </IconButton>
+                </Grid>
+              }
+
+              {pageMetraj_show == "PozMahalleri" && selectedNode &&
+                <Grid item>
+                  <IconButton onClick={() => {
+                    setSelectedNode()
+                  }}
+                    aria-label="addLbs">
+                    <ClearOutlined variant="contained" sx={{
+                      color: !selectedPoz ? "lightgray" : "red",
+                    }} />
+                  </IconButton>
+                </Grid>
+              }
+
+              {pageMetraj_show == "PozMahalleri" && selectedNode &&
                 <Grid item>
                   <IconButton onClick={() => {
                     navigate("/metrajedit")
-                    setSelectedNode()
+                    // setSelectedNode()
                   }}
                     aria-label="addLbs">
                     <ForwardIcon variant="contained" color={!selectedPoz ? " lightgray" : "success"} />

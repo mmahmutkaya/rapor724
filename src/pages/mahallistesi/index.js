@@ -17,13 +17,14 @@ import Stack from '@mui/material/Stack';
 import { Button, TextField, Typography } from '@mui/material';
 import Box from '@mui/material/Box';
 import InfoIcon from '@mui/icons-material/Info';
+import { BSON } from 'realm-web';
 
 
 
 export default function P_MahalListesi() {
 
 
-  const { isProject, setIsProject } = useContext(StoreContext)
+  const { isProject, setMahalListesi_wbsIds, setMahalListesi_lbsIds } = useContext(StoreContext)
   const { selectedMahal, setSelectedMahal } = useContext(StoreContext)
   const { myTema, setMyTema } = useContext(StoreContext)
   const { selectedMahalBaslik, setSelectedMahalBaslik } = useContext(StoreContext)
@@ -41,8 +42,6 @@ export default function P_MahalListesi() {
   if (!isProject) window.location.href = "/projects"
 
   const RealmApp = useApp();
-
-
 
   const { data: pozlar } = useGetPozlar()
 
@@ -195,9 +194,18 @@ export default function P_MahalListesi() {
         </Stack>
       }
 
-      {show == "Main" && isProject?.lbs?.filter(item => item.openForMahal).length > 0 &&
+      {show == "Main" && mahalListesi && isProject?.lbs?.filter(item => item.openForMahal).length > 0 &&
 
         <Box sx={{ mt: subHeaderHeight, pt: "1rem", pl: "1rem", pr: "1rem" }}>
+
+          {console.log("mahalListesi", mahalListesi)}
+          {/* {console.log("mahalListesi.wbsIds", mahalListesi.wbsIds.map(x => x._id.toString()))} */}
+          {/* {console.log("mahalListesi", mahalListesi._wbsIds.map(x => x._id.toString()))} */}
+          {/* {
+            mahalListesi.list.map(x => {
+              console.log("deneme")
+            })
+          } */}
 
           {/* EN ÜST BAŞLIK ÜST SATIRI */}
           <Grid
@@ -429,7 +437,7 @@ export default function P_MahalListesi() {
 
                           {pozlar?.map((onePoz, index) => {
 
-                            theDugum = mahalListesi?.find((item) => item._mahalId.toString() == oneMahal._id.toString() && item._pozId.toString() == onePoz._id.toString())
+                            theDugum = mahalListesi.list?.find((item) => item._mahalId.toString() == oneMahal._id.toString() && item._pozId.toString() == onePoz._id.toString())
 
                             return theDugum?.openMetraj ?
 
@@ -437,7 +445,7 @@ export default function P_MahalListesi() {
                                 key={index}
                                 index={index}
                                 count_={count_}
-                                onClick={editMode_MahalListesi ? () => toggleMahalPoz({ _mahalId: oneMahal._id, _pozId: onePoz._id, switchValue: false }) : null}
+                                onClick={editMode_MahalListesi ? () => toggleMahalPoz({ _mahalId: oneMahal._id, _lbsId: oneMahal._lbsId, _pozId: onePoz._id, _wbsId: onePoz._wbsId, switchValue: false }) : null}
                                 sx={{
                                   cursor: editMode_MahalListesi ? "pointer" : null,
                                   display: "grid",
@@ -455,7 +463,7 @@ export default function P_MahalListesi() {
                                 key={index}
                                 index={index}
                                 count_={count_}
-                                onClick={editMode_MahalListesi ? () => toggleMahalPoz({ _mahalId: oneMahal._id, _pozId: onePoz._id, switchValue: true }) : null}
+                                onClick={editMode_MahalListesi ? () => toggleMahalPoz({_mahalId: oneMahal._id, _lbsId: oneMahal._lbsId, _pozId: onePoz._id, _wbsId: onePoz._wbsId, switchValue: true }) : null}
                                 sx={{
                                   cursor: editMode_MahalListesi ? "pointer" : null,
                                   display: "grid",

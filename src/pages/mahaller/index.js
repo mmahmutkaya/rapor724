@@ -297,6 +297,7 @@ export default function P_Mahaller() {
           <EditMahalBaslik setShow={setShow} />
         </Grid>
       }
+      
 
       {show == "Main" && (isProject?.lbs?.filter(item => item.openForMahal).length == 0 || !isProject?.lbs) &&
         <Stack sx={{ width: '100%', pl: "1rem", pr: "0.5rem", pt: "1rem", mt: subHeaderHeight }} spacing={2}>

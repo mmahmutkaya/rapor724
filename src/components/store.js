@@ -40,14 +40,19 @@ export default ({ children }) => {
   const [editNodeMetraj, setEditNodeMetraj] = useState()
   const [showNodeMetraj, setShowNodeMetraj] = useState()
   const [nodeMetrajlar, setNodeMetrajlar ] = useState()
+  const [detailMode, setDetailMode ] = useState()
 
   const [isProject, setIsProject] = useState()
+  const [mahalListesi_wbsIds, setMahalListesi_wbsIds] = useState()
+  const [mahalListesi_lbsIds, setMahalListesi_lbsIds] = useState()
   const [pozlar, setPozlar] = useState()
   const [mahalMetrajlar, setMahalMetrajlar] = useState()
   const [pozMahalMetrajlar, setPozMahalMetrajlar] = useState()
   const [mahaller, setMahaller] = useState()
   const [mahalListesi, setMahalListesi] = useState()
   const [projectNames, setProjectNames] = useState()
+  
+  const [pageMetraj_show, pageMetraj_setShow] = useState("Pozlar")
 
   const store = {
     custom, setCustom,
@@ -62,9 +67,12 @@ export default ({ children }) => {
     editNodeMetraj, setEditNodeMetraj,
     showNodeMetraj, setShowNodeMetraj,
     nodeMetrajlar, setNodeMetrajlar,
+    detailMode, setDetailMode,
 
 
     isProject, setIsProject,
+    mahalListesi_wbsIds, setMahalListesi_wbsIds,
+    mahalListesi_lbsIds, setMahalListesi_lbsIds,
     mahaller, setMahaller,
     pozlar, setPozlar,
     mahalMetrajlar, setMahalMetrajlar,
@@ -77,6 +85,8 @@ export default ({ children }) => {
     myTema, setMyTema,
 
     pozMahalMetrajlar, setPozMahalMetrajlar,
+
+    pageMetraj_show, pageMetraj_setShow
   }
 
   return <StoreContext.Provider value={store}>{children}</StoreContext.Provider>

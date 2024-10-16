@@ -44,7 +44,7 @@ export const useGetPozlar = (onSuccess, onError) => {
 }
 
 
-export const useGetMahalListesi = (onSuccess, onError) => {
+export const useGetMahalListesi = () => {
 
   const RealmApp = useApp();
   const { isProject } = useContext(StoreContext)
@@ -54,7 +54,8 @@ export const useGetMahalListesi = (onSuccess, onError) => {
     queryFn: () => RealmApp?.currentUser.callFunction("collectionDugumler", ({ functionName: "getMahalListesi", _projectId: isProject?._id })),
     enabled: !!RealmApp && !!isProject,
     refetchOnMount: false,
-    refetchOnWindowFocus: false
+    refetchOnWindowFocus: false,
+    // select: (data) => data.mahalListesi,
   })
 
 }
@@ -87,23 +88,69 @@ export const useGetDugumMetraj = ({ selectedNode }) => {
 // MUTATIONS
 
 
-export const useToggleOpenMetrajDugum = (onSuccess, onError) => {
+export const useToggleOpenMetrajDugum = () => {
 
   const RealmApp = useApp();
   const queryClient = useQueryClient()
   const { isProject } = useContext(StoreContext)
 
   const mahalListesi_optimisticUpdate = (mahalListesi, variables2) => {
-    const { _mahalId, _pozId, switchValue } = variables2
-    let mahalListesi2 = [...mahalListesi]
-    mahalListesi2 = mahalListesi2.filter(item => !(item._mahalId.toString() == _mahalId.toString() && item._pozId.toString() == _pozId.toString()))
-    mahalListesi2 = [...mahalListesi2, { _mahalId, _pozId, openMetraj: switchValue }]
-    return mahalListesi2
+
+    const { _mahalId, _pozId, _lbsId, _wbsId, switchValue } = variables2
+
+    // önce listeden çıkarıyoruz sonra yeni değeri ile ekliyoruz
+    mahalListesi.list = mahalListesi.filter(x => !(x._mahalId.toString() === _mahalId.toString() && x._pozId.toString() === _pozId.toString()))
+    mahalListesi.list = mahalListesi.list.length ? [...mahalListesi.list, { _mahalId, _pozId, _lbsId, _wbsId, openMetraj: switchValue }] : [{ _mahalId, _pozId, _lbsId, _wbsId, openMetraj: switchValue }]
+
+
+    if (switchValue) {
+
+      // ilk seviye wbsLer'in yerleştirilmesi
+      let code2 = ""
+      if (!wbsLer) {
+        let { _id, code, name } = project.wbs.find(x => x._id.toString() === oneNode._wbsId.toString())
+        wbsLer = [{ _id, code, name }]
+        code2 = code
+      } else {
+        if (!wbsLer.find(y => y._id.toString() == oneNode._wbsId.toString())) {
+          let { _id, code, name } = project.wbs.find(x => x._id.toString() === oneNode._wbsId.toString())
+          wbsLer = [...wbsLer, { _id, code, name }]
+          code2 = code
+        }
+      }
+
+      // varsa üst seviye wbs leri de eklemeye çalışıyoruz
+      let codeArray = code2.split(".")
+      if (codeArray.length > 1) {
+        let initialCode = ""
+        codeArray.map(oneCode => {
+          initialCode = initialCode.length ? initialCode + "." + oneCode : oneCode
+          if (!wbsLer.find(x => x.code == initialCode)) {
+            let { _id, code, name } = project.wbs.find(x => x.code === initialCode)
+            wbsLer = [...wbsLer, { _id, code, name }]
+          }
+        })
+      }
+
+    }
+
+    // if (!switchValue) {
+    //   mahalListesi.list = mahalListesi.list.filter(item => !(item._mahalId.toString() == _mahalId.toString() && item._pozId.toString() == _pozId.toString()))
+    //   if (!mahalListesi.list.find(x => x._wbsId.toString() == _wbsId.toString())) {
+    //     mahalListesi._wbsIds = mahalListesi._wbsIds.filter(x => x.toString() !== _wbsId.toString())
+    //   }
+    //   if (!mahalListesi.list.find(x => x._lbsId.toString() == _lbsId.toString())) {
+    //     mahalListesi._lbsIds = mahalListesi._lbsIds.filter(x => x.toString() !== _lbsId.toString())
+    //   }
+    // }
+
+    return mahalListesi
   }
 
+
   return useMutation({
-    mutationFn: ({ _mahalId, _pozId, switchValue }) => {
-      return RealmApp?.currentUser.callFunction("collectionDugumler", ({ functionName: "toggle_openMetraj", _projectId: isProject?._id, _mahalId, _pozId }))
+    mutationFn: ({ _mahalId, _pozId, _lbsId, _wbsId, switchValue }) => {
+      return RealmApp?.currentUser.callFunction("collectionDugumler", ({ functionName: "toggle_openMetraj", _projectId: isProject?._id, _mahalId, _pozId, _lbsId, _wbsId }))
     },
     // onSuccess: () => queryClient.invalidateQueries({ queryKey: ['mahalListesi', isProject?._id.toString()] })
     onSuccess: (returnData, variables2) => queryClient.setQueryData(['mahalListesi', isProject?._id.toString()], (mahallistesi) => mahalListesi_optimisticUpdate(mahallistesi, variables2))

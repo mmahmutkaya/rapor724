@@ -53,6 +53,8 @@ export default function Layout({ window, children }) {
   const { drawerWidth, topBarHeight } = useContext(StoreContext)
 
   const { isProject, setIsProject } = useContext(StoreContext)
+  const { setSelectedLbs, setSelectedMahal, setSelectedMahalBaslik, setSelectedWbs, setSelectedPoz, setSelectedPozBaslik, setSelectedNode,pageMetraj_setShow } = useContext(StoreContext)
+
 
   const [began, setBegan] = useState(false)
 
@@ -263,7 +265,15 @@ export default function Layout({ window, children }) {
 
 
   const handleToProject = () => {
-    setIsProject(null)
+    setSelectedLbs()
+    setSelectedMahal()
+    setSelectedMahalBaslik()
+    setSelectedWbs()
+    setSelectedPoz()
+    setSelectedPozBaslik()
+    setSelectedNode()
+    setIsProject()
+    pageMetraj_setShow("Pozlar")
     navigate("/projects")
   };
 
@@ -443,7 +453,7 @@ export default function Layout({ window, children }) {
       {/* index page -- main */}
       <Box
         component="main"
-        name="Tanimalama_Main" 
+        name="Tanimalama_Main"
         sx={{ flexGrow: 1, width: { md: `calc(100% - ${drawerWidth}px)` }, mt: topBarHeight }}
       >
         {/* ToolBar koymamızın sebebi --> AppBAr kadar aşağı margin olması için dolgu */}
@@ -451,7 +461,7 @@ export default function Layout({ window, children }) {
         {/* <Toolbar variant='dense'></Toolbar> */}
         {children}
       </Box>
-      
+
 
       {/* <Box
         component="main"

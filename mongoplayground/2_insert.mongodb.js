@@ -18,3 +18,6 @@ db.sales.insertMany( [
  ] )
 
 
+ db.sales.find({})
+
+

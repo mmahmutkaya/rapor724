@@ -20,12 +20,12 @@ import MenuItem from '@mui/material/MenuItem';
 import ArrowForwardIcon from '@mui/icons-material/ArrowForward';
 
 
-// export default function FormMahalCreate({ setShow, isProject, refetch_mahaller }) {
-export default function FormMahalCreate({ setShow }) {
+export default function FormMahalCreate() {
 
 
   const { isProject, setIsProject } = useContext(StoreContext)
   const { mahaller, setMahaller } = useContext(StoreContext)
+  const { pageMetraj_setShow } = useContext(StoreContext)
 
   const [showDialog, setShowDialog] = useState(false)
   const [dialogCase, setDialogCase] = useState("")
@@ -137,7 +137,7 @@ export default function FormMahalCreate({ setShow }) {
 
       setMahaller(oldMahaller => [...oldMahaller, result.newMahal])
       setIsProject(result.newProject)
-      setShow("Main")
+      pageMetraj_setShow("Pozlar")
 
     } catch (err) {
 
@@ -179,7 +179,7 @@ export default function FormMahalCreate({ setShow }) {
       <Dialog
         PaperProps={{ sx: { width: "80%", position: "fixed", top: "10rem" } }}
         open={true}
-        onClose={() => setShow("Main")}
+        onClose={() => pageMetraj_setShow("Pozlar")}
       >
         {/* <DialogTitle>Subscribe</DialogTitle> */}
         <Box component="form" onSubmit={handleSubmit} noValidate sx={{ mt: 1 }}>
@@ -380,7 +380,7 @@ export default function FormMahalCreate({ setShow }) {
           </DialogContent>
 
           <DialogActions sx={{ padding: "1.5rem" }}>
-            <Button onClick={() => setShow("Main")}>İptal</Button>
+            <Button onClick={() => pageMetraj_setShow("Pozlar")}>İptal</Button>
             <Button type="submit">Oluştur</Button>
           </DialogActions>
 
