@@ -119,7 +119,6 @@ exports = async function ({
     ]).toArray()
     // const list = await collection_Dugumler.find({_projectId}).toArray()
     
-    let codes
     
     // let _wbsIds = []
     // list.map(x => !_wbsIds.find(y => y.toString() == x._wbsId.toString() ) && _wbsIds.push(x._wbsId));
@@ -187,6 +186,7 @@ exports = async function ({
     // })
     // yukarının lbs versiyonu
     _lbsIds.map(oneId => {
+      let initialValue
       let code = project.lbs.find(x => x._id.toString() === oneId.toString()).code
       if(codes) codes = [...codes, code]
       if(!codes) codes = [code]
@@ -209,7 +209,7 @@ exports = async function ({
       }) 
     })
     
-    return {list,_wbsIds,_lbsIds,codes}
+    return {list,_wbsIds,_lbsIds}
   }
 
 
