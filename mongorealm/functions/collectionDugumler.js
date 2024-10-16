@@ -127,7 +127,7 @@ exports = async function ({
     let _wbsIds = []
     list.map(oneNode => {
       if(!_wbsIds.find( y => y._id.toString() == oneNode._wbsId.toString() )){
-        _wbsIds = _wbsIds ? [..._wbsIds, project.wbs.find(x => x._id.toString() === oneNode._wbsId.toString())] : [project.wbs.find(x => x._id.toString() === oneNode._wbsId.toString())]
+        _wbsIds = _wbsIds.length ? [..._wbsIds, project.wbs.find(x => x._id.toString() === oneNode._wbsId.toString())] : [project.wbs.find(x => x._id.toString() === oneNode._wbsId.toString())]
       }
     });
     
@@ -138,8 +138,8 @@ exports = async function ({
 
     // nodelist içinde yer alan wbs ve lbs lerin üst node(düğüm) lerini de listemize ekliyoruz
     
-    let initialValue
     _wbsIds.map(oneWbs => {
+      let initialValue
       let code = project.wbs.find(x => x._id.toString() === oneWbs._id.toString()).code
       if(codes) codes = [...codes, code]
       if(!codes) codes = [code]
@@ -149,10 +149,10 @@ exports = async function ({
 
       codeArray.map((x,index) => {
         // varsa üst wbs ler eklendi, zaten ekli olan ilk başlık wbs e ulaştık, ya da zaten ordan başladık (ilk wbs zaten en üst seviye wbs miş demek)
+        initialValue = initialValue ? initialValue + "." + x : x
         if(x == code) {
           return
         }
-        initialValue = initialValue ? initialValue + "." + x : x
         _wbsIds = [..._wbsIds, {_id:project.wbs.find(y => y.code === initialValue)._id, code:project.wbs.find(y => y.code === initialValue).code}]
       }) 
     })
