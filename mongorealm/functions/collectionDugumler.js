@@ -127,7 +127,8 @@ exports = async function ({
     let _wbsIds = []
     list.map(oneNode => {
       if(!_wbsIds.find( y => y._id.toString() == oneNode._wbsId.toString() )){
-        _wbsIds = _wbsIds.length ? [..._wbsIds, project.wbs.find(x => x._id.toString() === oneNode._wbsId.toString())] : [project.wbs.find(x => x._id.toString() === oneNode._wbsId.toString())]
+        let {_id, code} = project.wbs.find(x => x._id.toString() === oneNode._wbsId.toString())
+        _wbsIds = _wbsIds.length ? [..._wbsIds, {_id, code}] : [{_id, code}]
       }
     });
     
