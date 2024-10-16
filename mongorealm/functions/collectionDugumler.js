@@ -201,29 +201,29 @@ exports = async function ({
     //   }) 
     // })
     // yukarının lbs versiyonu
-    _lbsIds.map(oneId => {
-      let initialValue
-      let code = project.lbs.find(x => x._id.toString() === oneId.toString()).code
-      if(codes) codes = [...codes, code]
-      if(!codes) codes = [code]
+    // _lbsIds.map(oneId => {
+    //   let initialValue
+    //   let code = project.lbs.find(x => x._id.toString() === oneId.toString()).code
+    //   if(codes) codes = [...codes, code]
+    //   if(!codes) codes = [code]
   
-      let codeArray = code.split(".")
-      let level = codeArray.length
+    //   let codeArray = code.split(".")
+    //   let level = codeArray.length
 
-      codeArray.map((x,index) => {
-        // varsa üst lbs ler eklendi, zaten ekli olan ilk başlık lbs e ulaştık, ya da zaten ordan başladık (ilk lbs zaten en üst seviye lbs miş demek)
-        if(initialValue == code) {
-          return
-        }
-        if(index === 0) {
-          initialValue = x
-          _lbsIds = [..._lbsIds, project.lbs.find(x => x.code === initialValue)._id]
-          return
-        }
-        initialValue = initialValue + "." + x
-        _lbsIds = [..._lbsIds, project.lbs.find(x => x.code === initialValue)._id]
-      }) 
-    })
+    //   codeArray.map((x,index) => {
+    //     // varsa üst lbs ler eklendi, zaten ekli olan ilk başlık lbs e ulaştık, ya da zaten ordan başladık (ilk lbs zaten en üst seviye lbs miş demek)
+    //     if(initialValue == code) {
+    //       return
+    //     }
+    //     if(index === 0) {
+    //       initialValue = x
+    //       _lbsIds = [..._lbsIds, project.lbs.find(x => x.code === initialValue)._id]
+    //       return
+    //     }
+    //     initialValue = initialValue + "." + x
+    //     _lbsIds = [..._lbsIds, project.lbs.find(x => x.code === initialValue)._id]
+    //   }) 
+    // })
     
     return {list,wbsLer,_lbsIds}
   }
