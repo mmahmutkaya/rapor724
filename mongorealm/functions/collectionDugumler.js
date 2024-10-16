@@ -119,16 +119,33 @@ exports = async function ({
     ]).toArray()
     // const list = await collection_Dugumler.find({_projectId}).toArray()
 
-    let codes
+    // let wbsLer = []
+    // list.map(x => !wbsLer.find(y => y.toString() == x._wbsId.toString() ) && wbsLer.push(x._wbsId));
     
-    // let _wbsIds = []
-    // list.map(x => !_wbsIds.find(y => y.toString() == x._wbsId.toString() ) && _wbsIds.push(x._wbsId));
+    let wbsLer = []
     
-    let _wbsIds = []
     list.map(oneNode => {
-      if(!_wbsIds.find( y => y._id.toString() == oneNode._wbsId.toString() )){
-        let {_id, code} = project.wbs.find(x => x._id.toString() === oneNode._wbsId.toString())
-        _wbsIds = _wbsIds.length ? [..._wbsIds, {_id, code}] : [{_id, code}]
+      
+      if( !wbsLer.find( y => y._id.toString() == oneNode._wbsId.toString()) ){
+        
+        let {_id, code, name} = project.wbs.find(x => x._id.toString() === oneNode._wbsId.toString())
+        
+        wbsLer = wbsLer.length ? [...wbsLer, {_id, code, name}] : [{_id, code, name}]
+
+        // varsa üst seviye wbs leri de eklemeye çalışıyoruz
+        let codeArray = code.split(".")
+        if(codeArray.length > 1) {
+          let initialCode
+          codeArray.map(oneCode => {
+            initialCode = initialCode ? initialCode + "." + oneCode : oneCode
+            if(!wbsLer.find(x => x.code == initialCode)) {
+              let {_id, code, name} = project.wbs.find(x => x.code === initialCode)
+              wbsLer = [...wbsLer, {_id, code, name}]
+            }
+          })
+        }
+        
+        
       }
     });
     
@@ -138,7 +155,7 @@ exports = async function ({
 
     // nodelist içinde yer alan wbs ve lbs lerin üst node(düğüm) lerini de listemize ekliyoruz
 
-    // _wbsIds.map(oneWbs => {
+    // wbsLer.map(oneWbs => {
       
     //   let code = project.wbs.find(x => x._id.toString() === oneWbs._id.toString()).code
     //   if(codes) codes = [...codes, code]
@@ -151,7 +168,7 @@ exports = async function ({
     //     if(initialValue == code) {
     //       return
     //     }
-    //     _wbsIds = [..._wbsIds, {_id:project.wbs.find(y => y.code === initialValue)._id, code:project.wbs.find(y => y.code === initialValue).code}]
+    //     wbsLer = [...wbsLer, {_id:project.wbs.find(y => y.code === initialValue)._id, code:project.wbs.find(y => y.code === initialValue).code}]
     //   })
       
     // })
@@ -161,7 +178,7 @@ exports = async function ({
     // let codes
     // let initialValue
     // wbs kısmı
-    // _wbsIds.map(oneId => {
+    // wbsLer.map(oneId => {
     //   let code = project.wbs.find(x => x._id.toString() === oneId.toString()).code
     //   if(codes) codes = [...codes, code]
     //   if(!codes) codes = [code]
@@ -176,11 +193,11 @@ exports = async function ({
     //     }
     //     if(index === 0) {
     //       initialValue = x
-    //       _wbsIds = [..._wbsIds, project.wbs.find(x => x.code === initialValue)._id]
+    //       wbsLer = [...wbsLer, project.wbs.find(x => x.code === initialValue)._id]
     //       return
     //     }
     //     initialValue = initialValue + "." + x
-    //     _wbsIds = [..._wbsIds, project.wbs.find(x => x.code === initialValue)._id]
+    //     wbsLer = [...wbsLer, project.wbs.find(x => x.code === initialValue)._id]
     //   }) 
     // })
     // yukarının lbs versiyonu
@@ -208,7 +225,7 @@ exports = async function ({
       }) 
     })
     
-    return {list,_wbsIds,_lbsIds}
+    return {list,wbsLer,_lbsIds}
   }
 
 
