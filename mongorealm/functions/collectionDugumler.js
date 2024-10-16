@@ -127,31 +127,32 @@ exports = async function ({
     list.map(oneNode => {
 
       // wbsLer'e ilk wbs'i yerleştiriyoruz
+      let code2
       if(!wbsLer) {
         let {_id, code, name} = project.wbs.find(x => x._id.toString() === oneNode._wbsId.toString())
         wbsLer = [{_id, code, name}]
-      }
-
-      // sonraki wbsLer'i yerleştiriyoruz
-      if( !wbsLer.find( y => y._id.toString() == oneNode._wbsId.toString()) ){
-        
-        let {_id, code, name} = project.wbs.find(x => x._id.toString() === oneNode._wbsId.toString())
-        wbsLer = [...wbsLer, {_id, code, name}]
-
-        // varsa üst seviye wbs leri de eklemeye çalışıyoruz
-        let codeArray = code.split(".")
-        if(codeArray.length > 1) {
-          let initialCode = ""
-          codeArray.map(oneCode => {
-            initialCode = initialCode.length ? initialCode + "." + oneCode : oneCode
-            if(!wbsLer.find(x => x.code == initialCode)) {
-              let {_id, code, name} = project.wbs.find(x => x.code === initialCode)
-              wbsLer = [...wbsLer, {_id, code, name}]
-            }
-          })
-        }  
+        code2 = code
+      } else {
+        if( !wbsLer.find( y => y._id.toString() == oneNode._wbsId.toString()) ){
+          let {_id, code, name} = project.wbs.find(x => x._id.toString() === oneNode._wbsId.toString())
+          wbsLer = [...wbsLer, {_id, code, name}]
+          code2 = code
+        }
       }
       
+      // varsa üst seviye wbs leri de eklemeye çalışıyoruz
+      let codeArray = code2.split(".")
+      if(codeArray.length > 1) {
+        let initialCode = ""
+        codeArray.map(oneCode => {
+          initialCode = initialCode.length ? initialCode + "." + oneCode : oneCode
+          if(!wbsLer.find(x => x.code == initialCode)) {
+            let {_id, code, name} = project.wbs.find(x => x.code === initialCode)
+            wbsLer = [...wbsLer, {_id, code, name}]
+          }
+        })
+      }  
+
     });
     
     
