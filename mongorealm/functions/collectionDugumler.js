@@ -142,16 +142,18 @@ exports = async function ({
 
         // varsa üst seviye wbs leri de eklemeye çalışıyoruz
         let codeArray = code.split(".")
-        // if(codeArray.length > 1) {
-        //   let initialCode
-        //   codeArray.map(oneCode => {
-        //     initialCode = initialCode ? initialCode + "." + oneCode : oneCode
-        //     if(!wbsLer.find(x => x.code == initialCode)) {
-        //       let {_id, code, name} = project.wbs.find(x => x.code === initialCode)
-        //       wbsLer = [...wbsLer, {_id, code, name}]
-        //     }
-        //   })
-        // }
+        if(codeArray.length > 1) {
+          let initialCode
+          codeArray.map(oneCode => {
+            initialCode = initialCode ? initialCode + "." + oneCode : oneCode
+            if(!wbsLer.find(x => x.code == initialCode)) {
+              let {_id, code, name} = project.wbs.find(x => x.code === initialCode)
+              wbsLer = [...wbsLer, {_id, code, name}]
+            }
+            return
+          })
+        }
+        return
         
       }
       
