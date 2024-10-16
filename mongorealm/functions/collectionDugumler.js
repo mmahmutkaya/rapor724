@@ -130,14 +130,12 @@ exports = async function ({
       if(!wbsLer) {
         let {_id, code, name} = project.wbs.find(x => x._id.toString() === oneNode._wbsId.toString())
         wbsLer = [{_id, code, name}]
-        return
       }
 
       // sonraki wbsLer'i yerleştiriyoruz
       if( !wbsLer.find( y => y._id.toString() == oneNode._wbsId.toString()) ){
         
         let {_id, code, name} = project.wbs.find(x => x._id.toString() === oneNode._wbsId.toString())
-        
         wbsLer = [...wbsLer, {_id, code, name}]
 
         // varsa üst seviye wbs leri de eklemeye çalışıyoruz
@@ -150,11 +148,8 @@ exports = async function ({
               let {_id, code, name} = project.wbs.find(x => x.code === initialCode)
               wbsLer = [...wbsLer, {_id, code, name}]
             }
-            return
           })
-        }
-        return
-        
+        }  
       }
       
     });
