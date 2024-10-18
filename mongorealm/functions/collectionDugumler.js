@@ -5,6 +5,8 @@ exports = async function ({
   _pozId,
   _lbsId,
   _wbsId,
+  wbsCode,
+  lbsCode,
   propertyName,
   propertyValue,
 }) {
