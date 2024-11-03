@@ -77,14 +77,12 @@ exports = async function (newMahal) {
     isDeleted: false
   }
 
-  // const collection_Mahaller = context.services.get("mongodb-atlas").db("rapor724_v2").collection("mahaller")
-  const projectCollection = context.services.get("mongodb-atlas").db("rapor724_projectFiles").collection(project._id.toString())
-  const result = await projectCollection.insertOne(newMahal)
+  const rapor724_projectFiles = context.services.get("mongodb-atlas").db("rapor724_projectFiles").collection(project._id.toString())
+  const result = await rapor724_projectFiles.insertOne(newMahal)
 
   newMahal._id = result.insertedId
 
   // lbs / mahal başlığı "includesMahal:true" key.value değerine sahip değilse gerekli işlemi yapıyoruz
-
 
   let newProject = project
 
