@@ -150,9 +150,11 @@ exports = async function ({ name }) {
     isDeleted: false
   }
 
+  const _id = new BSON.ObjectId()
+
   try {
 
-    const collection_Projects = context.services.get("mongodb-atlas").db("rapor724_v2").collection("projects");
+    const collection_Projects = context.services.get("mongodb-atlas").db("projects").collection(_id.toString());
 
     const result = collection_Projects.insertOne(project)
 
