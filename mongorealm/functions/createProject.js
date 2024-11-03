@@ -44,8 +44,8 @@ exports = async function ({ name }) {
 
 
   const mahalBasliklari = [
-    { id:  new BSON.ObjectId() , sira: 1, referans: "kod", goster: true, sabit: true, genislik: 7, paddingInfo: "0px 1rem 0px 0px", yatayHiza: "end", name: "Mahal Kod", dataType: "metin" },
-    { id:  new BSON.ObjectId() , sira: 2, referans: "name", goster: true, sabit: true, genislik: 20, paddingInfo: "0px 1rem 0px 0px", yatayHiza: "end", name: "Mahal İsmi", dataType: "metin" },
+    { id:  new BSON.ObjectId() , sira: 1, referans: "kod", goster: true, sabit: true, genislik: 7, paddingInfo: "0px 1rem 0px 0px", yatayHiza: "center", name: "Mahal Kod", dataType: "metin" },
+    { id:  new BSON.ObjectId() , sira: 2, referans: "name", goster: true, sabit: true, genislik: 20, paddingInfo: "0px 1rem 0px 0px", yatayHiza: "center", name: "Mahal İsmi", dataType: "metin" },
   ]
   
 
