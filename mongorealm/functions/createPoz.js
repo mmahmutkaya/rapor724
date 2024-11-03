@@ -89,13 +89,15 @@ exports = async function (newPoz) {
 
   if (Object.keys(newPozError).length) return { newPozError };
 
-  const collection_Pozlar = context.services
+  const collection_projectFiles = context.services
     .get("mongodb-atlas")
-    .db("rapor724_v2")
-    .collection("pozlar");
-  let pozFinded = collection_Pozlar.findOne({
-    $or: [{ pozNo: newPoz.pozNo }, { name: newPoz.name }],
+    .db("rapor724_projectFiles")
+    .collection(project._id.toString());
+
+  let pozFinded = collection_projectFiles.findOne({
+    $or: [{ type:"poz", pozNo: newPoz.pozNo }, {  type:"poz", name: newPoz.name }],
   });
+
   if (pozFinded.name == newPoz.name) {
     newPozError.name = `${pozFinded.name} isimli poz'da kullanılmış`;
   }
@@ -122,6 +124,7 @@ exports = async function (newPoz) {
 
   // let newPoz
   newPoz = {
+    type:"poz",
     _projectId: newPoz.projectId,
     _wbsId: newPoz.wbsId,
     pozNo: newPoz.pozNo,
@@ -134,7 +137,7 @@ exports = async function (newPoz) {
     isDeleted: false,
   };
 
-  const result = await collection_Pozlar.insertOne(newPoz);
+  const result = await collection_projectFiles.insertOne(newPoz);
 
   newPoz._id = result.insertedId;
 
