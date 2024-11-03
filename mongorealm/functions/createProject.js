@@ -22,8 +22,8 @@ exports = async function ({ name }) {
 
   
   const pozBasliklari = [
-    { _id: new BSON.ObjectId(), platform:"web", sira: 1, referans: "pozNo", goster: true, sabit: true, genislik: 7, paddingInfo: "0px 1rem 0px 0px", yatayHiza: "end", name: "Poz No", dataType: "metin" },
-    { _id: new BSON.ObjectId(), platform:"web", sira: 2, referans: "name", goster: true, sabit: true, genislik: 20, paddingInfo: "0px 1rem 0px 0px", yatayHiza: "end", name: "Poz İsmi", dataType: "metin" },
+    { _id: new BSON.ObjectId(), platform:"web", sira: 1, referans: "pozNo", goster: true, sabit: true, genislik: 7, paddingInfo: "0px 1rem 0px 0px", yatayHiza: "center", name: "Poz No", dataType: "metin" },
+    { _id: new BSON.ObjectId(), platform:"web", sira: 2, referans: "name", goster: true, sabit: true, genislik: 20, paddingInfo: "0px 1rem 0px 0px", yatayHiza: "center", name: "Poz İsmi", dataType: "metin" },
   ]
   
   const pozBirimleri = [
