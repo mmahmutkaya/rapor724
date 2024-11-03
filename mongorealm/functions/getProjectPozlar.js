@@ -24,7 +24,7 @@ exports = async function ({ projectId }) {
 
     const collection = context.services.get("mongodb-atlas").db("rapor724_projectFiles").collection(_projectId.toString())
 
-    const pozlar = await collection.find({ type: "poz", _projectId, isDeleted: false }).toArray()
+    const pozlar = await collection.find({ type: "poz", isDeleted: false }).toArray()
 
     return pozlar
 
