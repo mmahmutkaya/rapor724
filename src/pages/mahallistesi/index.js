@@ -198,14 +198,7 @@ export default function P_MahalListesi() {
 
         <Box sx={{ mt: subHeaderHeight, pt: "1rem", pl: "1rem", pr: "1rem" }}>
 
-          {console.log("mahalListesi", mahalListesi)}
-          {/* {console.log("mahalListesi.wbsIds", mahalListesi.wbsIds.map(x => x._id.toString()))} */}
-          {/* {console.log("mahalListesi", mahalListesi._wbsIds.map(x => x._id.toString()))} */}
-          {/* {
-            mahalListesi.list.map(x => {
-              console.log("deneme")
-            })
-          } */}
+          {/* {console.log("mahalListesi", mahalListesi)} */}
 
           {/* EN ÜST BAŞLIK ÜST SATIRI */}
           <Grid
@@ -220,6 +213,7 @@ export default function P_MahalListesi() {
             <Box sx={{ display: "none" }}>
               {count_ = isProject?.mahalBasliklari?.filter(item => item.sabit).length}
             </Box>
+
             {isProject?.mahalBasliklari?.filter(item => item.sabit).map((oneBaslik, index) => {
               return (
                 <Box
@@ -253,6 +247,7 @@ export default function P_MahalListesi() {
             <Box sx={{ display: "none" }}>
               {count_ = pozlar?.length}
             </Box>
+            
             {/* GÖZÜKEN KOMPONENT */}
             {pozlar?.map((onePoz, index) => {
               return (
@@ -434,7 +429,6 @@ export default function P_MahalListesi() {
 
                           <Bosluk>
                           </Bosluk>
-
                           {pozlar?.map((onePoz, index) => {
 
                             theDugum = mahalListesi.list?.find((item) => item._mahalId.toString() == oneMahal._id.toString() && item._pozId.toString() == onePoz._id.toString())
@@ -445,7 +439,15 @@ export default function P_MahalListesi() {
                                 key={index}
                                 index={index}
                                 count_={count_}
-                                onClick={editMode_MahalListesi ? () => toggleMahalPoz({ _mahalId: oneMahal._id, _lbsId: oneMahal._lbsId, _pozId: onePoz._id, _wbsId: onePoz._wbsId, switchValue: false }) : null}
+                                onClick={editMode_MahalListesi ? () => toggleMahalPoz({
+                                  _mahalId: oneMahal._id,
+                                  _lbsId: oneMahal._lbsId,
+                                  _pozId: onePoz._id,
+                                  _wbsId: onePoz._wbsId,
+                                  wbsCode: isProject.wbs.find(x => x._id.toString() == onePoz._wbsId.toString()).code,
+                                  lbsCode: isProject.lbs.find(x => x._id.toString() == oneMahal._lbsId.toString()).code,
+                                  switchValue: false
+                                }) : null}
                                 sx={{
                                   cursor: editMode_MahalListesi ? "pointer" : null,
                                   display: "grid",
@@ -463,7 +465,15 @@ export default function P_MahalListesi() {
                                 key={index}
                                 index={index}
                                 count_={count_}
-                                onClick={editMode_MahalListesi ? () => toggleMahalPoz({_mahalId: oneMahal._id, _lbsId: oneMahal._lbsId, _pozId: onePoz._id, _wbsId: onePoz._wbsId, switchValue: true }) : null}
+                                onClick={editMode_MahalListesi ? () => toggleMahalPoz({
+                                  _mahalId: oneMahal._id,
+                                  _lbsId: oneMahal._lbsId,
+                                  _pozId: onePoz._id,
+                                  _wbsId: onePoz._wbsId,
+                                  wbsCode: isProject.wbs.find(x => x._id.toString() === onePoz._wbsId.toString()).code,
+                                  lbsCode: isProject.lbs.find(x => x._id.toString() === oneMahal._lbsId.toString()).code,
+                                  switchValue: true
+                                }) : null}
                                 sx={{
                                   cursor: editMode_MahalListesi ? "pointer" : null,
                                   display: "grid",

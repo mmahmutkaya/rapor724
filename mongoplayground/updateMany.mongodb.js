@@ -6,7 +6,7 @@ use('rapor724_v2');
 
 // const RealmApp = useApp()
 
-const metrajBasliklari = [
+const pozBasliklari = [
 	{
 		"id": new ObjectId(),
 		"sira": 1,
@@ -49,7 +49,21 @@ const metrajBasliklari = [
 db.projects.updateMany({},
 	[
 		{
-			$set: { metrajBasliklari }
+			$set: {
+				mahalBasliklari:
+				{
+					$map: {
+						input: "$mahalBasliklari",
+						as: "oneBaslik",
+						in: {
+							$mergeObjects: [
+								"$$oneBaslik",
+								{ yatayHiza: "center" }
+							]
+						}
+					}
+				}
+			}
 		}
 	]
 )

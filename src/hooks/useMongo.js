@@ -96,61 +96,100 @@ export const useToggleOpenMetrajDugum = () => {
 
   const mahalListesi_optimisticUpdate = (mahalListesi, variables2) => {
 
-    const { _mahalId, _pozId, _lbsId, _wbsId, switchValue } = variables2
-
-    // önce listeden çıkarıyoruz sonra yeni değeri ile ekliyoruz
-    mahalListesi.list = mahalListesi.filter(x => !(x._mahalId.toString() === _mahalId.toString() && x._pozId.toString() === _pozId.toString()))
-    mahalListesi.list = mahalListesi.list.length ? [...mahalListesi.list, { _mahalId, _pozId, _lbsId, _wbsId, openMetraj: switchValue }] : [{ _mahalId, _pozId, _lbsId, _wbsId, openMetraj: switchValue }]
-
+    const { _mahalId, _pozId, _lbsId, _wbsId, wbsCode, lbsCode, switchValue } = variables2
+    let list = mahalListesi.list
+    let wbsLer = mahalListesi.wbsLer
 
     if (switchValue) {
 
-      // ilk seviye wbsLer'in yerleştirilmesi
-      let code2 = ""
-      if (!wbsLer) {
-        let { _id, code, name } = project.wbs.find(x => x._id.toString() === oneNode._wbsId.toString())
-        wbsLer = [{ _id, code, name }]
-        code2 = code
-      } else {
-        if (!wbsLer.find(y => y._id.toString() == oneNode._wbsId.toString())) {
-          let { _id, code, name } = project.wbs.find(x => x._id.toString() === oneNode._wbsId.toString())
-          wbsLer = [...wbsLer, { _id, code, name }]
-          code2 = code
-        }
-      }
+      // openMetraj:false şeklinde property güncellemesi yapmıyorum çünkü backendden false olanlar dönmüyor, node sayıları backend den dönen hali aynı olsun diye
+      // backend ve frontend tutarlılığı için o sebeple listede olup olmadığına bakmıyorum, ekleyeceksek zaten yoktur, alt satırdaki filter onun için yoruma çevirildi
+      list = list.length ? [...list, { _mahalId, _pozId, _lbsId, _wbsId, wbsCode, lbsCode, openMetraj: switchValue }] : [{ _mahalId, _pozId, _lbsId, _wbsId, wbsCode, lbsCode, openMetraj: switchValue }]
+      // ilk seviye wbs'in yerleştirilmesi
 
-      // varsa üst seviye wbs leri de eklemeye çalışıyoruz
-      let codeArray = code2.split(".")
-      if (codeArray.length > 1) {
-        let initialCode = ""
-        codeArray.map(oneCode => {
-          initialCode = initialCode.length ? initialCode + "." + oneCode : oneCode
-          if (!wbsLer.find(x => x.code == initialCode)) {
-            let { _id, code, name } = project.wbs.find(x => x.code === initialCode)
+
+      // mahallistesi.wbsLer den kontrol ederek, yukarı doğru giderek, listeden çıkarıyoruz
+
+      // 
+      let wbsCode2 = JSON.parse(JSON.stringify(wbsCode))
+      let mapDurdur = false // mapDurdur true yapılırsa döngü daha da devam etmeden dursun diye
+
+      // esasen wbsCode2 döngüsü ile 
+      wbsCode.split(".").map(c => {
+
+        if (mapDurdur) {
+          return
+        }
+
+        // wbsLer boşsa herhangi bir sorgulama yapmadan yapıştır, aşağıda birdaha da boşmu diye sorgulama
+        if (!wbsLer) {
+          let { _id, code, name } = isProject.wbs.find(x => x.code === wbsCode2)
+          wbsLer = [{ _id, code, name }]
+        } else {
+          // wbsLer boş olsa bu sorgu hata verecek ama yukarıda yapıldı o sorgu, burdaysak doludur
+
+          // döngüdeki wbs mevcutsa, üst wbs'ler de mevcut demektir
+          if (wbsLer.find(x => x.code == wbsCode2)) {
+            mapDurdur = true
+            return
+          } else {
+            let { _id, code, name } = isProject.wbs.find(x => x.code === wbsCode2)
             wbsLer = [...wbsLer, { _id, code, name }]
           }
-        })
-      }
+        }
+
+        // bir sonraki döngü için wbsCode2 güncelliyoruz, bir üst seviye wbs code'una dönüştürüyoruz
+        if (wbsCode2.split(".").length > 1) wbsCode2 = wbsCode2.slice(0, wbsCode2.lastIndexOf("."))
+
+      })
 
     }
 
-    // if (!switchValue) {
-    //   mahalListesi.list = mahalListesi.list.filter(item => !(item._mahalId.toString() == _mahalId.toString() && item._pozId.toString() == _pozId.toString()))
-    //   if (!mahalListesi.list.find(x => x._wbsId.toString() == _wbsId.toString())) {
-    //     mahalListesi._wbsIds = mahalListesi._wbsIds.filter(x => x.toString() !== _wbsId.toString())
-    //   }
-    //   if (!mahalListesi.list.find(x => x._lbsId.toString() == _lbsId.toString())) {
-    //     mahalListesi._lbsIds = mahalListesi._lbsIds.filter(x => x.toString() !== _lbsId.toString())
-    //   }
-    // }
 
+
+
+    if (!switchValue) {
+
+      // list den düğümü çıkartıyoruz
+      list = list.filter(x => !(x._mahalId.toString() === _mahalId.toString() && x._pozId.toString() === _pozId.toString()))
+
+      // mahallistesi.wbsLer den seviye olarak yukarı doğru giderek, kontrol ederek, listeden çıkarıyoruz 
+      let wbsCode2 = JSON.parse(JSON.stringify(wbsCode))
+      let mapDurdur = false // mapDurdur true yapılırsa döngü daha da devam etmeden dursun diye
+
+      wbsCode.split(".").map((c, index) => {
+
+        if (mapDurdur) {
+          return
+        }
+
+        try {
+          if (list.find(x => x.wbsCode.indexOf(wbsCode2) === 0)) {
+            // bu code varsa üst kodlar da vardır döngü iptal edelim
+            mapDurdur = true
+            return
+          } else {
+            wbsLer = wbsLer.filter(x => x.code != wbsCode2)
+          }
+        } catch (error) {
+        }
+
+        // bir sonraki döngü için wbsCode2 güncelliyoruz, bir üst seviye wbs code'una dönüştürüyoruz, swicthValue true modundayken sonunda nokta yok, yapı farklı
+        if (wbsCode2.split(".").length > 1) wbsCode2 = wbsCode2.slice(0, wbsCode2.lastIndexOf("."))
+
+      })
+
+    }
+
+    mahalListesi.list = list
+    mahalListesi.wbsLer = wbsLer
     return mahalListesi
   }
 
 
   return useMutation({
-    mutationFn: ({ _mahalId, _pozId, _lbsId, _wbsId, switchValue }) => {
-      return RealmApp?.currentUser.callFunction("collectionDugumler", ({ functionName: "toggle_openMetraj", _projectId: isProject?._id, _mahalId, _pozId, _lbsId, _wbsId }))
+    mutationFn: ({ _mahalId, _pozId, _lbsId, _wbsId, wbsCode, lbsCode, switchValue }) => {
+      return RealmApp?.currentUser.callFunction("collectionDugumler", ({ functionName: "toggle_openMetraj", _projectId: isProject?._id, _mahalId, _pozId, _lbsId, _wbsId, wbsCode, lbsCode }))
     },
     // onSuccess: () => queryClient.invalidateQueries({ queryKey: ['mahalListesi', isProject?._id.toString()] })
     onSuccess: (returnData, variables2) => queryClient.setQueryData(['mahalListesi', isProject?._id.toString()], (mahallistesi) => mahalListesi_optimisticUpdate(mahallistesi, variables2))
