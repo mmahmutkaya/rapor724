@@ -132,7 +132,6 @@ exports = async function ({ name }) {
 
 
   const project = {
-    type:"info",
     name,
     // wbs: [], // henüz herhangi bir başlık yok fakat yok ama bu property şimdi olmazsa ilk wbs kaydında bir hata yaşıyoruz
     // lbs: [], // henüz herhangi bir başlık yok fakat yok ama bu property şimdi olmazsa ilk wbs kaydında bir hata yaşıyoruz
@@ -151,11 +150,9 @@ exports = async function ({ name }) {
     isDeleted: false
   }
 
-  const _id = new BSON.ObjectId()
-
   try {
 
-    const collection_Projects = context.services.get("mongodb-atlas").db("projects").collection(_id.toString());
+    const collection_Projects = context.services.get("mongodb-atlas").db("rapor724_v2").collection("projects");
 
     const result = collection_Projects.insertOne(project)
 
