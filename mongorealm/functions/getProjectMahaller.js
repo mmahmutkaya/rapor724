@@ -6,6 +6,7 @@ exports = async function({projectId}){
   if(!mailTeyit) throw new Error("MONGO // getProjectMahaller -->  Öncelikle üyeliğinize ait mail adresinin size ait olduğunu doğrulamalısınız, tekrar giriş yapmayı deneyiniz veya bizimle iletişime geçiniz.")
 
 
+
   if(!projectId) throw new Error("MONGO // getProjectMahaller -->  \"projectId\" sorguya, gönderilmemiş, lütfen Rapor7/24 ile irtibata geçiniz. ")
   let _projectId
   try {
@@ -22,9 +23,9 @@ exports = async function({projectId}){
 
   try {
     
-    const collection_Mahaller = context.services.get("mongodb-atlas").db("rapor724_v2").collection("mahaller")
+    const collection = context.services.get("mongodb-atlas").db("rapor724_projectFiles").collection(_projectId.toString())
     
-    const mahaller = await collection_Mahaller.find({_projectId, isDeleted:false}).toArray()
+    const mahaller = await collection.find({type:"mahal", isDeleted:false}).toArray()
 
     return mahaller
     
