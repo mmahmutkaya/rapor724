@@ -66,7 +66,6 @@ exports = async function (newMahal) {
 
   // let newMahal
   newMahal = {
-    type:"mahal",
     _projectId: newMahal.projectId,
     _lbsId: newMahal.lbsId,
     name: newMahal.mahalName,
@@ -77,8 +76,8 @@ exports = async function (newMahal) {
     isDeleted: false
   }
 
-  const rapor724_projectFiles = context.services.get("mongodb-atlas").db("rapor724_projectFiles").collection(project._id.toString())
-  const result = await rapor724_projectFiles.insertOne(newMahal)
+  const collection_Mahaller = context.services.get("mongodb-atlas").db("rapor724_mahaller").collection(project._id.toString())
+  const result = await collection_Mahaller.insertOne(newMahal)
 
   newMahal._id = result.insertedId
 
