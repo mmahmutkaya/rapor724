@@ -23,9 +23,9 @@ exports = async function({projectId}){
 
   try {
     
-    const collection = context.services.get("mongodb-atlas").db("rapor724_projectFiles").collection(_projectId.toString())
+    const collection = context.services.get("mongodb-atlas").db("rapor724_mahaller").collection(_projectId.toString())
     
-    const mahaller = await collection.find({type:"mahal", isDeleted:false}).toArray()
+    const mahaller = await collection.find({isDeleted:false}).toArray()
 
     return mahaller
     
