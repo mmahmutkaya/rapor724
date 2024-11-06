@@ -104,28 +104,27 @@ exports = async function ({ name }) {
   
   const metrajBasliklari = [
     {
-      "_id": new BSON.ObjectId(),
-      "sira": 1,
-      "referans": "miktar",
-      "goster": true,
-      "sabit": false,
-      "genislik": 10,
-      "paddingInfo": "0px 1rem 0px 0px",
-      "yatayHiza": "end",
-      "name": "Miktar",
-      "veriTuruId": "metin"
-    },
-    {
-      "_id": new BSON.ObjectId(),
-      "sira": 2,
-      "referans": "birim",
-      "goster": true,
-      "sabit": false,
-      "genislik": 7,
-      "paddingInfo": "0px 1rem 0px 0px",
-      "yatayHiza": "center",
-      "name": "Birim",
-      "veriTuruId": "metin"
+      _id: new BSON.ObjectId(),
+      sira: 1,
+      referans: "miktar",
+      goster: true,
+      sabit: false,
+      genislik: 10,
+      paddingInfo: "0px 1rem 0px 0px",
+      yatayHiza: "end",
+      name: "Miktar",
+      veriTuruId: "metin"
+    },    {
+      _id: new BSON.ObjectId(),
+      sira: 2,
+      referans: "birim",
+      goster: true,
+      sabit: false,
+      genislik: 7,
+      paddingInfo: "0px 1rem 0px 0px",
+      yatayHiza: "center",
+      name: "Birim",
+      veriTuruId: "metin"
     }
   ]
 
