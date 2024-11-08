@@ -11,7 +11,7 @@ exports = async function ({
   propertyValue,
 }) {
 
-   
+
   // tip2 - (yukarıda açıklandı)
   const user = context.user;
   const _userId = new BSON.ObjectId(user.id);
@@ -50,7 +50,7 @@ exports = async function ({
     .get("mongodb-atlas")
     .db("rapor724_dugumler")
     .collection(_projectId.toString());
-  
+
 
 
 
@@ -60,56 +60,56 @@ exports = async function ({
     .collection("projects");
 
   const project2 = await collection_Projects.aggregate([
-    { $match: { _id:_projectId } },
+    { $match: { _id: _projectId } },
   ]).toArray()
 
-  
+
   let project
-  project2.map((x,index) => {
+  project2.map((x, index) => {
     // zaten bir project var ama olsun biz yine de index ===0 mı yani ilk obje mi sorgusunu yapalım
-    if(index == 0) project = x
+    if (index == 0) project = x
   })
 
-  
+
 
   if (functionName == "getMahalListesi") {
-    
+
     const list = await collection_Dugumler.aggregate([
-      { $match: { openMetraj:true } },
+      { $match: { openMetraj: true } },
     ]).toArray()
     // const list = await collection_Dugumler.find({_projectId}).toArray()
 
- 
+
     let wbsLer
     //
     list.map(oneNode => {
 
       // ilk seviye wbsLer'in yerleştirilmesi
       let code2 = ""
-      if(!wbsLer) {
-        let {_id, code, name} = project.wbs.find(x => x._id.toString() === oneNode._wbsId.toString())
-        wbsLer = [{_id, code, name}]
+      if (!wbsLer) {
+        let { _id, code, name } = project.wbs.find(x => x._id.toString() === oneNode._wbsId.toString())
+        wbsLer = [{ _id, code, name }]
         code2 = code
       } else {
-        if( !wbsLer.find( y => y._id.toString() == oneNode._wbsId.toString()) ){
-          let {_id, code, name} = project.wbs.find(x => x._id.toString() === oneNode._wbsId.toString())
-          wbsLer = [...wbsLer, {_id, code, name}]
+        if (!wbsLer.find(y => y._id.toString() == oneNode._wbsId.toString())) {
+          let { _id, code, name } = project.wbs.find(x => x._id.toString() === oneNode._wbsId.toString())
+          wbsLer = [...wbsLer, { _id, code, name }]
           code2 = code
         }
       }
-      
+
       // varsa üst seviye wbs leri de eklemeye çalışıyoruz
       let codeArray = code2.split(".")
-      if(codeArray.length > 1) {
+      if (codeArray.length > 1) {
         let initialCode = ""
         codeArray.map(oneCode => {
           initialCode = initialCode.length ? initialCode + "." + oneCode : oneCode
-          if(!wbsLer.find(x => x.code == initialCode)) {
-            let {_id, code, name} = project.wbs.find(x => x.code === initialCode)
-            wbsLer = [...wbsLer, {_id, code, name}]
+          if (!wbsLer.find(x => x.code == initialCode)) {
+            let { _id, code, name } = project.wbs.find(x => x.code === initialCode)
+            wbsLer = [...wbsLer, { _id, code, name }]
           }
         })
-      }  
+      }
 
     });
 
@@ -120,50 +120,61 @@ exports = async function ({
 
       // ilk seviye lbsLer'in yerleştirilmesi
       let code2 = ""
-      if(!lbsLer) {
-        let {_id, code, name} = project.lbs.find(x => x._id.toString() === oneNode._lbsId.toString())
-        lbsLer = [{_id, code, name}]
+      if (!lbsLer) {
+        let { _id, code, name } = project.lbs.find(x => x._id.toString() === oneNode._lbsId.toString())
+        lbsLer = [{ _id, code, name }]
         code2 = code
       } else {
-        if( !lbsLer.find( y => y._id.toString() == oneNode._lbsId.toString()) ){
-          let {_id, code, name} = project.lbs.find(x => x._id.toString() === oneNode._lbsId.toString())
-          lbsLer = [...lbsLer, {_id, code, name}]
+        if (!lbsLer.find(y => y._id.toString() == oneNode._lbsId.toString())) {
+          let { _id, code, name } = project.lbs.find(x => x._id.toString() === oneNode._lbsId.toString())
+          lbsLer = [...lbsLer, { _id, code, name }]
           code2 = code
         }
       }
-      
+
       // varsa üst seviye lbs leri de eklemeye çalışıyoruz
       let codeArray = code2.split(".")
-      if(codeArray.length > 1) {
+      if (codeArray.length > 1) {
         let initialCode = ""
         codeArray.map(oneCode => {
           initialCode = initialCode.length ? initialCode + "." + oneCode : oneCode
-          if(!lbsLer.find(x => x.code == initialCode)) {
-            let {_id, code, name} = project.lbs.find(x => x.code === initialCode)
-            lbsLer = [...lbsLer, {_id, code, name}]
+          if (!lbsLer.find(x => x.code == initialCode)) {
+            let { _id, code, name } = project.lbs.find(x => x.code === initialCode)
+            lbsLer = [...lbsLer, { _id, code, name }]
           }
         })
-      }  
+      }
 
     });
-    
-    return {list,wbsLer,lbsLer}
+
+    return { list, wbsLer, lbsLer }
   }
 
 
-  
+
   if (functionName == "getDugumMetraj") {
-   
-   const result = collection_Dugumler.aggregate([
+
+    const result = collection_Dugumler.aggregate([
       { $match: { _mahalId, _pozId } },
       { $project: { onaylananMetrajlar: 1, hazirlananMetrajlar: 1, _id: 1 } }
     ]);
 
     return result
-    
+
   }
 
-  
+
+  if (functionName == "getPozlarMetraj") {
+
+    const result = collection_Dugumler.aggregate([
+      { $group : { _id : "$_pozId" } }
+    ]);
+
+    return result
+
+  }
+
+
   if (functionName == "updateUserMetraj") {
 
     let metraj = 0
@@ -192,7 +203,7 @@ exports = async function ({
 
       let isMinha
       isMinha = oneRow["metin1"].replace("İ", "i").toLowerCase().includes("minha") || oneRow["metin2"].replace("İ", "i").toLowerCase().includes("minha") ? true : false
-      
+
       // minha ise sonuç eksi deger olsun 
       if (isMinha) {
         oneRow["metraj"] = value * -1
@@ -203,55 +214,63 @@ exports = async function ({
         metraj = metraj + value
         return oneRow
       }
-        
+
     })
-  
+
     const result = await collection_Dugumler.updateOne(
       { _mahalId, _pozId },
       [
         {
-          $set: { "hazirlananMetrajlar": {
-            $cond:{
-              if:{$in:[_userId,"$hazirlananMetrajlar._userId"]},
-              then:{$map: {
-                input: "$hazirlananMetrajlar",
-                as: "oneMetraj",
-                in: { $cond: {
-                  if: {"$eq":["$$oneMetraj._userId",_userId]},
-                  then: {"$mergeObjects": ["$$oneMetraj",{satirlar, metraj}]},
-                  else: "$$oneMetraj"
-                }}
-              }},
-              else:{$concatArrays:["$hazirlananMetrajlar",[{_userId,satirlar:propertyValue}]]}
+          $set: {
+            "hazirlananMetrajlar": {
+              $cond: {
+                if: { $in: [_userId, "$hazirlananMetrajlar._userId"] },
+                then: {
+                  $map: {
+                    input: "$hazirlananMetrajlar",
+                    as: "oneMetraj",
+                    in: {
+                      $cond: {
+                        if: { "$eq": ["$$oneMetraj._userId", _userId] },
+                        then: { "$mergeObjects": ["$$oneMetraj", { satirlar, metraj }] },
+                        else: "$$oneMetraj"
+                      }
+                    }
+                  }
+                },
+                else: { $concatArrays: ["$hazirlananMetrajlar", [{ _userId, satirlar: propertyValue }]] }
+              }
             }
-          }},
+          },
         },
       ]
     );
-    return {ok:"'setUserMetraj' çalıştı.",result}
-    
+    return { ok: "'setUserMetraj' çalıştı.", result }
+
   }
 
-  
+
   if (functionName == "toggle_openMetraj") {
-    
+
     const result = await collection_Dugumler.updateOne(
       { _mahalId, _pozId },
       [
         {
-          $set: { ["openMetraj"]: {
-            $cond: {
-              if: {"$eq":["$openMetraj",true]},
-              then: false,
-              else: true
+          $set: {
+            ["openMetraj"]: {
+              $cond: {
+                if: { "$eq": ["$openMetraj", true] },
+                then: false,
+                else: true
+              }
             }
-          }},
+          },
         }
       ]
     )
-    
-    if(result.matchedCount) {
-      return {ok:"'toggle_openMetraj' - toggle - çalıştı.",result}
+
+    if (result.matchedCount) {
+      return { ok: "'toggle_openMetraj' - toggle - çalıştı.", result }
     }
 
     const dugumObject = {
@@ -261,16 +280,16 @@ exports = async function ({
       _wbsId,
       wbsCode,
       lbsCode,
-      openMetraj:true,
-      onaylananMetrajlar:{metraj:0, satirlar:[]},
-      hazirlananMetrajlar:[],
-      createdBy:_userId,      
+      openMetraj: true,
+      onaylananMetrajlar: { metraj: 0, satirlar: [] },
+      hazirlananMetrajlar: [],
+      createdBy: _userId,
     }
-    const result2 = await collection_Dugumler.insertOne(dugumObject)    
-    return {ok:"'toggle_openMetraj' - yeniObject - çalıştı.",result2}
-    
+    const result2 = await collection_Dugumler.insertOne(dugumObject)
+    return { ok: "'toggle_openMetraj' - yeniObject - çalıştı.", result2 }
+
   }
-  
+
 
   return { ok: true, description: "herhangi bir fonksiyon içine giremedi" };
 };
