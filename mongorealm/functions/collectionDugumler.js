@@ -170,7 +170,7 @@ exports = async function ({
       { $group : { _id : "$_pozId" } }
     ]);
 
-    return result
+    return "result"
 
   }
 
