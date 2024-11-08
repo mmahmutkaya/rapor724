@@ -170,7 +170,7 @@ exports = async function ({
     //   { $group : { _id : "$_pozId" } }
     // ]);
 
-   const result = collection_Dugumler.find({});
+   const result = await collection_Dugumler.find({});
 
    return result
 
