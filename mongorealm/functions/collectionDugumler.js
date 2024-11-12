@@ -160,7 +160,7 @@ exports = async function ({
       [
         {
           $set: {
-            ["metraj"]: 33
+            ["metraj"]: 22
           },
         }
       ]
