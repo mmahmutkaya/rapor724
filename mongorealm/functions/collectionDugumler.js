@@ -3,6 +3,7 @@ exports = async function ({
   _projectId,
   _mahalId,
   _pozId,
+  _dugumId,
   _lbsId,
   _wbsId,
   wbsCode,
@@ -150,6 +151,24 @@ exports = async function ({
     return { list, wbsLer, lbsLer }
   }
 
+
+
+  if (functionName == "updateMahalMetraj") {
+
+    const result = await collection_Dugumler.updateOne(
+      { },
+      [
+        {
+          $set: {
+            ["metraj"]: 33
+          },
+        }
+      ]
+    )
+
+    return result
+
+  }
 
 
   if (functionName == "getDugumMetraj") {
