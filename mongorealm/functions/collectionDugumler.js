@@ -154,20 +154,15 @@ exports = async function ({
 
 
   if (functionName == "updateMahalMetraj") {
-
     const result = await collection_Dugumler.update(
       { },
-      [
-        {
-          $set: {
-            ["metraj"]: 22
-          },
-        }
-      ]
+      {
+        $set: {
+          ["metraj"]: 22
+        },
+      }
     )
-
     return result
-
   }
 
 
