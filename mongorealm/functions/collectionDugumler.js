@@ -160,7 +160,7 @@ exports = async function ({
       return (
         {
           updateOne: {
-            filter: { _id: _dugumId },
+            filter: { _id: x._dugumId },
             update: { $set: { metraj: x.metrajValue } }
           }
         }
