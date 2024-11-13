@@ -8,6 +8,7 @@ exports = async function ({
   _wbsId,
   wbsCode,
   lbsCode,
+  mahalMetrajlar,
   propertyName,
   propertyValue,
 }) {
@@ -154,15 +155,28 @@ exports = async function ({
 
 
   if (functionName == "updateMahalMetraj") {
-    const result = await collection_Dugumler.update(
-      { },
-      {
-        $set: {
-          ["metraj"]: 22
-        },
-      }
-    )
-    return result
+
+    const bulkArray = mahalMetrajlar.map(x => {
+      return (
+        {
+          updateOne: {
+            filter: { _id: x._id },
+            update: { $set: { metraj: x.metrajValue } }
+          }
+        }
+      )
+    })
+
+    try {
+      const result = collection_Dugumler.bulkWrite(
+        bulkArray,
+        { ordered: false }
+      )
+      return result
+    } catch (error) {
+      print(error)
+    }
+
   }
 
 
@@ -181,12 +195,12 @@ exports = async function ({
   if (functionName == "getPozlarMetraj") {
 
     const result = collection_Dugumler.aggregate([
-      { $group : { _id : "$_pozId" } }
+      { $group: { _id: "$_pozId" } }
     ]);
 
-   // const result = await collection_Dugumler.find({});
+    // const result = await collection_Dugumler.find({});
 
-   return result
+    return result
 
   }
 
