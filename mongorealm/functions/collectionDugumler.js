@@ -83,74 +83,74 @@ exports = async function ({
 
     return list
 
-    let wbsLer
-    //
-    list.map(oneNode => {
+    // let wbsLer
+    // //
+    // list.map(oneNode => {
 
-      // ilk seviye wbsLer'in yerleştirilmesi
-      let code2 = ""
-      if (!wbsLer) {
-        let { _id, code, name } = project.wbs.find(x => x._id.toString() === oneNode._wbsId.toString())
-        wbsLer = [{ _id, code, name }]
-        code2 = code
-      } else {
-        if (!wbsLer.find(y => y._id.toString() == oneNode._wbsId.toString())) {
-          let { _id, code, name } = project.wbs.find(x => x._id.toString() === oneNode._wbsId.toString())
-          wbsLer = [...wbsLer, { _id, code, name }]
-          code2 = code
-        }
-      }
+    //   // ilk seviye wbsLer'in yerleştirilmesi
+    //   let code2 = ""
+    //   if (!wbsLer) {
+    //     let { _id, code, name } = project.wbs.find(x => x._id.toString() === oneNode._wbsId.toString())
+    //     wbsLer = [{ _id, code, name }]
+    //     code2 = code
+    //   } else {
+    //     if (!wbsLer.find(y => y._id.toString() == oneNode._wbsId.toString())) {
+    //       let { _id, code, name } = project.wbs.find(x => x._id.toString() === oneNode._wbsId.toString())
+    //       wbsLer = [...wbsLer, { _id, code, name }]
+    //       code2 = code
+    //     }
+    //   }
 
-      // varsa üst seviye wbs leri de eklemeye çalışıyoruz
-      let codeArray = code2.split(".")
-      if (codeArray.length > 1) {
-        let initialCode = ""
-        codeArray.map(oneCode => {
-          initialCode = initialCode.length ? initialCode + "." + oneCode : oneCode
-          if (!wbsLer.find(x => x.code == initialCode)) {
-            let { _id, code, name } = project.wbs.find(x => x.code === initialCode)
-            wbsLer = [...wbsLer, { _id, code, name }]
-          }
-        })
-      }
+    //   // varsa üst seviye wbs leri de eklemeye çalışıyoruz
+    //   let codeArray = code2.split(".")
+    //   if (codeArray.length > 1) {
+    //     let initialCode = ""
+    //     codeArray.map(oneCode => {
+    //       initialCode = initialCode.length ? initialCode + "." + oneCode : oneCode
+    //       if (!wbsLer.find(x => x.code == initialCode)) {
+    //         let { _id, code, name } = project.wbs.find(x => x.code === initialCode)
+    //         wbsLer = [...wbsLer, { _id, code, name }]
+    //       }
+    //     })
+    //   }
 
-    });
+    // });
 
 
-    let lbsLer
-    //
-    list.map(oneNode => {
+    // let lbsLer
+    // //
+    // list.map(oneNode => {
 
-      // ilk seviye lbsLer'in yerleştirilmesi
-      let code2 = ""
-      if (!lbsLer) {
-        let { _id, code, name } = project.lbs.find(x => x._id.toString() === oneNode._lbsId.toString())
-        lbsLer = [{ _id, code, name }]
-        code2 = code
-      } else {
-        if (!lbsLer.find(y => y._id.toString() == oneNode._lbsId.toString())) {
-          let { _id, code, name } = project.lbs.find(x => x._id.toString() === oneNode._lbsId.toString())
-          lbsLer = [...lbsLer, { _id, code, name }]
-          code2 = code
-        }
-      }
+    //   // ilk seviye lbsLer'in yerleştirilmesi
+    //   let code2 = ""
+    //   if (!lbsLer) {
+    //     let { _id, code, name } = project.lbs.find(x => x._id.toString() === oneNode._lbsId.toString())
+    //     lbsLer = [{ _id, code, name }]
+    //     code2 = code
+    //   } else {
+    //     if (!lbsLer.find(y => y._id.toString() == oneNode._lbsId.toString())) {
+    //       let { _id, code, name } = project.lbs.find(x => x._id.toString() === oneNode._lbsId.toString())
+    //       lbsLer = [...lbsLer, { _id, code, name }]
+    //       code2 = code
+    //     }
+    //   }
 
-      // varsa üst seviye lbs leri de eklemeye çalışıyoruz
-      let codeArray = code2.split(".")
-      if (codeArray.length > 1) {
-        let initialCode = ""
-        codeArray.map(oneCode => {
-          initialCode = initialCode.length ? initialCode + "." + oneCode : oneCode
-          if (!lbsLer.find(x => x.code == initialCode)) {
-            let { _id, code, name } = project.lbs.find(x => x.code === initialCode)
-            lbsLer = [...lbsLer, { _id, code, name }]
-          }
-        })
-      }
+    //   // varsa üst seviye lbs leri de eklemeye çalışıyoruz
+    //   let codeArray = code2.split(".")
+    //   if (codeArray.length > 1) {
+    //     let initialCode = ""
+    //     codeArray.map(oneCode => {
+    //       initialCode = initialCode.length ? initialCode + "." + oneCode : oneCode
+    //       if (!lbsLer.find(x => x.code == initialCode)) {
+    //         let { _id, code, name } = project.lbs.find(x => x.code === initialCode)
+    //         lbsLer = [...lbsLer, { _id, code, name }]
+    //       }
+    //     })
+    //   }
 
-    });
+    // });
 
-    return { list, wbsLer, lbsLer }
+    // return { list, wbsLer, lbsLer }
   }
 
 
