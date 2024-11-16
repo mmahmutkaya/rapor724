@@ -81,7 +81,7 @@ exports = async function ({
     ]).toArray()
     // const list = await collection_Dugumler.find({_projectId}).toArray()
     let mahalListesi
-    mahalListesi.list = list
+    mahalListesi = list
     return mahalListesi
 
     // let wbsLer
