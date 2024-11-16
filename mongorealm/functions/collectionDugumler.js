@@ -81,6 +81,7 @@ exports = async function ({
     ]).toArray()
     // const list = await collection_Dugumler.find({_projectId}).toArray()
 
+    return list
 
     let wbsLer
     //
