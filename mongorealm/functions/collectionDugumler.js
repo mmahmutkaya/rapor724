@@ -80,9 +80,7 @@ exports = async function ({
       { $match: { openMetraj: true } },
     ]).toArray()
     // const list = await collection_Dugumler.find({_projectId}).toArray()
-    let mahalListesi
-    mahalListesi = list
-    return mahalListesi
+
 
     // let wbsLer
     // //
@@ -151,7 +149,7 @@ exports = async function ({
 
     // });
 
-    // return { list, wbsLer, lbsLer }
+    return { list }
   }
 
 
