@@ -306,10 +306,6 @@ exports = async function ({
     const dugumObject = {
       _mahalId,
       _pozId,
-      _lbsId,
-      _wbsId,
-      wbsCode,
-      lbsCode,
       openMetraj: true,
       onaylananMetrajlar: { metraj: 0, satirlar: [] },
       hazirlananMetrajlar: [],
