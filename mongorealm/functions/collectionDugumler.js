@@ -48,9 +48,15 @@ exports = async function ({
 
 
   const currentTime = new Date();
+
   const collection_Dugumler = context.services
     .get("mongodb-atlas")
     .db("rapor724_dugumler")
+    .collection(_projectId.toString());
+
+  const collection_HazirlananMetrajSatirlari = context.services
+    .get("mongodb-atlas")
+    .db("rapor724_hazirlananMetrajSatirlari")
     .collection(_projectId.toString());
 
 
@@ -247,7 +253,7 @@ exports = async function ({
 
     })
 
-    const result = await collection_Dugumler.updateOne(
+    const result = await collection_HazirlananMetrajSatirlari.updateOne(
       { _mahalId, _pozId },
       [
         {
@@ -268,16 +274,49 @@ exports = async function ({
                     }
                   }
                 },
-                else: { $concatArrays: ["$hazirlananMetrajlar", [{ _userId, satirlar: propertyValue }]] }
+                else: { $concatArrays: ["$hazirlananMetrajlar", [{ _userId, satirlar: propertyValue, metraj }]] }
               }
             }
           },
         },
       ]
     );
-    return { ok: "'setUserMetraj' çalıştı.", result }
+
+
+    const result2 = await collection_Dugumler.updateOne(
+      { _mahalId, _pozId },
+      [
+        {
+          $set: {
+            "hazirlananMetrajlar": {
+              $cond: {
+                if: { $in: [_userId, "$hazirlananMetrajlar._userId"] },
+                then: {
+                  $map: {
+                    input: "$hazirlananMetrajlar",
+                    as: "oneMetraj",
+                    in: {
+                      $cond: {
+                        if: { "$eq": ["$$oneMetraj._userId", _userId] },
+                        then: { "$mergeObjects": ["$$oneMetraj", { metraj }] },
+                        else: "$$oneMetraj"
+                      }
+                    }
+                  }
+                },
+                else: { $concatArrays: ["$hazirlananMetrajlar", [{ _userId, metraj }]] }
+              }
+            }
+          },
+        },
+      ]
+    );
+
+    return { ok: "'setUserMetraj' çalıştı.", result, result2 }
 
   }
+
+
 
 
   if (functionName == "toggle_openMetraj") {
@@ -309,7 +348,7 @@ exports = async function ({
       openMetraj: true,
       // onaylananMetrajlar: { metraj: 0, satirlar: [] },
       metrajSatirlari: [],
-      metrajBilgileri:{},
+      metrajBilgileri: {},
       hazirlananMetrajlar: [],
       createdBy: _userId,
     }
