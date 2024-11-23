@@ -190,9 +190,9 @@ exports = async function ({
 
     const result = collection_HazirlananMetrajSatirlari.aggregate([
       { $match: { _mahalId, _pozId } }
-    ]).toArray()[0]
+    ]).toArray()
 
-    return result
+    return result[0]
 
   }
 
