@@ -186,9 +186,9 @@ exports = async function ({
   }
 
 
-  if (functionName == "useGetHazirlananMetrajSatirlari") {
+  if (functionName == "getHazirlananMetrajSatirlari") {
 
-    const result = collection_HazirlananMetrajSatirlari.aggregate([
+    const {result:satirlar} = collection_HazirlananMetrajSatirlari.aggregate([
       { $match: { _mahalId, _pozId } }
     ]);
 
