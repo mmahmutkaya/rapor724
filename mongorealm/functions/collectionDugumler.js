@@ -188,11 +188,14 @@ exports = async function ({
 
   if (functionName == "getHazirlananMetrajlar") {
 
-    const result = collection_HazirlananMetrajSatirlari.aggregate([
+    const resultArray = collection_HazirlananMetrajSatirlari.aggregate([
       { $match: { _mahalId, _pozId } }
     ]).toArray()
 
-    return result[0]
+    let result
+    resultArray.map(x => result = x)
+
+    return result
 
   }
 
