@@ -192,11 +192,10 @@ exports = async function ({
       { $match: { _mahalId, _pozId } }
     ]).toArray()
 
-    // const resultArray2 = []
-    let result
-    resultArray.map(x => result = x)
+    // let result
+    // resultArray.map(x => result = x)
 
-    return result
+    return resultArray[0]
 
   }
 
