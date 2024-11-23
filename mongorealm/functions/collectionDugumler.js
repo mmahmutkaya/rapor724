@@ -211,6 +211,9 @@ exports = async function ({
   }
 
 
+
+
+  
   if (functionName == "updateUserMetraj") {
 
     let metraj = 0
@@ -253,7 +256,8 @@ exports = async function ({
 
     })
 
-    const result = await collection_HazirlananMetrajSatirlari.updateOne(
+    let result
+    result = await collection_HazirlananMetrajSatirlari.updateOne(
       { _mahalId, _pozId },
       [
         {
@@ -274,13 +278,18 @@ exports = async function ({
                     }
                   }
                 },
-                else: { $concatArrays: ["$hazirlananMetrajlar", [{ _userId, satirlar: propertyValue, metraj }]] }
+                else: { $concatArrays: ["$hazirlananMetrajlar", [{ _userId, satirlar, metraj }]] }
               }
             }
           },
         },
       ]
     );
+
+    
+    if (!result.matchedCount) {
+      result = await collection_Dugumler.insertOne({_mahalId, _pozId, hazirlananMetrajlar:{ _userId, satirlar, metraj }})
+    }
 
 
     const result2 = await collection_Dugumler.updateOne(
