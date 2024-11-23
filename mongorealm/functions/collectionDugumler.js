@@ -259,12 +259,12 @@ exports = async function ({
       [
         {
           $set: {
-            "hazirlananMetrajlar": {
+            "satirlar": {
               $cond: {
-                if: { $in: [_userId, "$hazirlananMetrajlar._userId"] },
+                if: { $in: [_userId, "$satirlar._userId"] },
                 then: {
                   $map: {
-                    input: "$hazirlananMetrajlar",
+                    input: "$satirlar",
                     as: "oneMetraj",
                     in: {
                       $cond: {
@@ -275,7 +275,7 @@ exports = async function ({
                     }
                   }
                 },
-                else: { $concatArrays: ["$hazirlananMetrajlar", [{ _userId, satirlar, metraj }]] }
+                else: { $concatArrays: ["$satirlar", [{ _userId, satirlar, metraj }]] }
               }
             }
           },
