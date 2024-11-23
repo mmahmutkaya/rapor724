@@ -285,7 +285,7 @@ exports = async function ({
 
     
     if (!result.matchedCount) {
-      result = await collection_HazirlananMetrajSatirlari.insertOne({_mahalId, _pozId, hazirlananMetrajlar:[{ _userId, satirlar, metraj }]})
+      result = await collection_HazirlananMetrajSatirlari.insertOne({_mahalId, _pozId, satirlar:[{ _userId, satirlar, metraj }]})
     }
 
 
@@ -353,8 +353,6 @@ exports = async function ({
       _pozId,
       openMetraj: true,
       // onaylananMetrajlar: { metraj: 0, satirlar: [] },
-      metrajSatirlari: [],
-      metrajBilgileri: {},
       hazirlananMetrajlar: [],
       createdBy: _userId,
     }
