@@ -186,11 +186,10 @@ exports = async function ({
   }
 
 
-  if (functionName == "getDugumMetraj") {
+  if (functionName == "get_hazirlananMetrajSatirlari") {
 
-    const result = collection_Dugumler.aggregate([
-      { $match: { _mahalId, _pozId } },
-      { $project: { onaylananMetrajlar: 1, hazirlananMetrajlar: 1, _id: 1 } }
+    const result = collection_HazirlananMetrajSatirlari.aggregate([
+      { $match: { _mahalId, _pozId } }
     ]);
 
     return result
@@ -209,8 +208,6 @@ exports = async function ({
     return result
 
   }
-
-
 
 
   
@@ -288,7 +285,7 @@ exports = async function ({
 
     
     if (!result.matchedCount) {
-      result = await collection_Dugumler.insertOne({_mahalId, _pozId, hazirlananMetrajlar:{ _userId, satirlar, metraj }})
+      result = await collection_HazirlananMetrajSatirlari.insertOne({_mahalId, _pozId, hazirlananMetrajlar:{ _userId, satirlar, metraj }})
     }
 
 
