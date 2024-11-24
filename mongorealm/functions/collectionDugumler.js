@@ -11,6 +11,7 @@ exports = async function ({
   mahalMetrajlar,
   propertyName,
   propertyValue,
+  hazirlananMetraj
 }) {
 
 
@@ -215,7 +216,7 @@ exports = async function ({
     let metraj = 0
 
     //  sorgu ile birlikte gönderilen metraj satırlarına müdahaleler
-    let satirlar = propertyValue.map(oneRow => {
+    let satirlar = hazirlananMetraj.satirlar.map(oneRow => {
 
       // guncelleme zamanını verelim
       oneRow["sonGuncelleme"] = currentTime
