@@ -75,11 +75,11 @@ exports = async function(){
   
 
   
-  const collection = context.services.get("mongodb-atlas").db("rapor724_v2").collection("projects")
-  collection.updateMany(
-    {},
-    { $set: { pozTipleri: ["standart", "pencere", "kapi", "insaatDemiri"] } }
-  );
+  // const collection = context.services.get("mongodb-atlas").db("rapor724_v2").collection("projects")
+  // collection.updateMany(
+  //   {},
+  //   { $set: { pozTipleri: ["standart", "pencere", "kapi", "insaatDemiri"] } }
+  // );
 
 
 
@@ -172,6 +172,23 @@ exports = async function(){
   //   // { "$push": { "wbs": newWbsItem  } }
   //   // { upsert: true }
   // );
+
+  
+  context.services.get("mongodb-atlas").db("rapor724_dugumler").getCollectionNames().map(colName => {
+    context.services.get("mongodb-atlas").db("rapor724_dugumler").collection(colName).updateMany({},
+      [
+        {
+          $set: {
+            // deneme: "44"
+            // metrajSatirlari: [],
+            // metrajBilgileri:{}
+          }
+        },
+        { $unset: "deneme" }
+      ]
+    )
+  })
+
 
     
 };
