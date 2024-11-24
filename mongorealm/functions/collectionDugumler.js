@@ -54,9 +54,9 @@ exports = async function ({
     .db("rapor724_dugumler")
     .collection(_projectId.toString());
 
-  const collection_HazirlananMetrajSatirlari = context.services
+  const collection_HazirlananMetrajlar = context.services
     .get("mongodb-atlas")
-    .db("rapor724_hazirlananMetrajSatirlari")
+    .db("rapor724_hazirlananMetrajlar")
     .collection(_projectId.toString());
 
 
@@ -188,7 +188,7 @@ exports = async function ({
 
   if (functionName == "getHazirlananMetrajlar") {
 
-    const resultArray = await collection_HazirlananMetrajSatirlari.aggregate([
+    const resultArray = await collection_HazirlananMetrajlar.aggregate([
       { $match: { _mahalId, _pozId } }
     ]).toArray()
 
@@ -253,7 +253,7 @@ exports = async function ({
     })
 
     let result
-    result = await collection_HazirlananMetrajSatirlari.updateOne(
+    result = await collection_HazirlananMetrajlar.updateOne(
       { _mahalId, _pozId },
       [
         {
@@ -284,7 +284,7 @@ exports = async function ({
 
     
     if (!result.matchedCount) {
-      result = await collection_HazirlananMetrajSatirlari.insertOne({_mahalId, _pozId, satirlar:[{ _userId, satirlar, metraj }]})
+      result = await collection_HazirlananMetrajlar.insertOne({_mahalId, _pozId, satirlar:[{ _userId, satirlar, metraj }]})
     }
 
 
