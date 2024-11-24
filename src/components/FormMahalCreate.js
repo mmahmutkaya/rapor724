@@ -20,12 +20,11 @@ import MenuItem from '@mui/material/MenuItem';
 import ArrowForwardIcon from '@mui/icons-material/ArrowForward';
 
 
-export default function FormMahalCreate() {
+export default function FormMahalCreate({setShow}) {
 
 
   const { isProject, setIsProject } = useContext(StoreContext)
   const { mahaller, setMahaller } = useContext(StoreContext)
-  const { pageMetraj_setShow } = useContext(StoreContext)
 
   const [showDialog, setShowDialog] = useState(false)
   const [dialogCase, setDialogCase] = useState("")
@@ -105,7 +104,7 @@ export default function FormMahalCreate() {
         setNewMahalError(prev => ({ ...prev, mahalKod: `'${mahalFinded.name}' isimli mahalde bu kod kullanılmış` }))
         isFormError = true
       }
-      
+
 
       // form alanına uyarı veren hatalar olmuşsa burda durduralım
       if (isFormError) {
@@ -137,7 +136,7 @@ export default function FormMahalCreate() {
 
       setMahaller(oldMahaller => [...oldMahaller, result.newMahal])
       setIsProject(result.newProject)
-      pageMetraj_setShow("Pozlar")
+      setShow("Main")
 
     } catch (err) {
 
@@ -179,7 +178,10 @@ export default function FormMahalCreate() {
       <Dialog
         PaperProps={{ sx: { width: "80%", position: "fixed", top: "10rem" } }}
         open={true}
-        onClose={() => pageMetraj_setShow("Pozlar")}
+        onClose={() => {
+          console.log("deneme")
+          setShow("Main")
+        }}
       >
         {/* <DialogTitle>Subscribe</DialogTitle> */}
         <Box component="form" onSubmit={handleSubmit} noValidate sx={{ mt: 1 }}>
@@ -380,7 +382,7 @@ export default function FormMahalCreate() {
           </DialogContent>
 
           <DialogActions sx={{ padding: "1.5rem" }}>
-            <Button onClick={() => pageMetraj_setShow("Pozlar")}>İptal</Button>
+            <Button onClick={() => setShow("Main")}>İptal</Button>
             <Button type="submit">Oluştur</Button>
           </DialogActions>
 

@@ -3,299 +3,441 @@ import { useState, useContext, useEffect } from 'react';
 import { useNavigate } from "react-router-dom";
 import { StoreContext } from '../../components/store'
 import { useApp } from "../../components/useApp";
+import FormPozCreate from '../../components/FormPozCreate'
+import EditPozBaslik from '../../components/EditPozBaslik'
+import FormPozBaslikCreate from '../../components/FormPozBaslikCreate'
+import MetrajHeader from '../../components/MetrajHeader'
 
-import FormLbsCreate from '../../components/FormLbsCreate'
-import FormLbsUpdate from '../../components/FormLbsUpdate'
-import LbsHeader from '../../components/LbsHeader'
+import { useGetMahaller, useGetMahalListesi, useToggleOpenMetrajDugum, useGetPozlar, useGetPozlarMetraj } from '../../hooks/useMongo';
 
 
+import { styled } from '@mui/system';
 import Grid from '@mui/material/Grid';
-import Box from '@mui/material/Box';
+import Input from '@mui/material/Input';
 import Alert from '@mui/material/Alert';
 import Stack from '@mui/material/Stack';
+import { Button, TextField, Typography } from '@mui/material';
+import Box from '@mui/material/Box';
+import InfoIcon from '@mui/icons-material/Info';
 
 
 
-export default function P_Lbs() {
+export default function P_Metraj() {
 
-  const { subHeaderHeight } = useContext(StoreContext)
-
-  const RealmApp = useApp();
   const { isProject, setIsProject } = useContext(StoreContext)
-  const { selectedLbs, setSelectedLbs } = useContext(StoreContext)
+  const { selectedPoz, setSelectedPoz } = useContext(StoreContext)
+  const { selectedPozBaslik, setSelectedPozBaslik } = useContext(StoreContext)
+  const { pozlar, setPozlar } = useContext(StoreContext)
+  const { drawerWidth, topBarHeight, subHeaderHeight } = useContext(StoreContext)
+
+  const [show, setShow] = useState("Main")
+  const [editPoz, setEditPoz] = useState(false)
+  const [pozBilgiler_willBeSaved, setPozBilgiler_willBeSaved] = useState([])
+  const [autoFocus, setAutoFocus] = useState({ baslikId: null, pozId: null })
 
   const navigate = useNavigate()
+  // !isProject ? navigate('/projects') : null
+  if (!isProject) window.location.href = "/projects"
+
+  const RealmApp = useApp();
+
+
+  const { data: pozlarMongo } = useGetPozlar()
+  const { data: pozlarMetraj } = useGetPozlarMetraj()
 
   useEffect(() => {
-    !isProject && navigate('/projects')
-  }, [])
+    if (!pozlar) {
+      setPozlar(pozlarMongo)
+      console.log("pozlarMetraj", pozlarMetraj)
+    }
+  }, [pozlarMongo, pozlarMetraj])
 
 
-  const [show, setShow] = useState()
-  const [nameMode, setNameMode] = useState(false)
-  const [codeMode, setCodeMode] = useState(true)
 
-
-  const handleSelectLbs = (lbs) => {
-    setSelectedLbs(lbs)
+  const handleSelectPoz = (poz) => {
+    setSelectedPoz(poz)
+    setSelectedPozBaslik(false)
   }
 
-  let level
+
+
+
+
+
+  // aşağıda kullanılıyor
+  let wbsCode = ""
+  let wbsName = ""
+  let cOunt = 0
+  let count_
+  let pozArray
+  let toplam
+  let g_altBaslik
+
+
+
+  let totalWidthSabit = isProject?.pozBasliklari?.filter(item => item.sabit).reduce(
+    (accumulator, oneBilgi) => accumulator + oneBilgi.genislik,
+    0
+  )
+  totalWidthSabit = totalWidthSabit + 'rem'
+  // console.log("totalWidthSabit", totalWidthSabit)
+
+
+  let totalWidthDegisken = isProject?.metrajBasliklari?.filter(item => !item.sabit && item.goster).reduce(
+    (accumulator, oneBilgi) => accumulator + oneBilgi.genislik,
+    0
+  )
+  totalWidthDegisken = totalWidthDegisken + 'rem'
+
+
+  let totalWidth = parseFloat(totalWidthSabit) + parseFloat(totalWidthDegisken) + 'rem'
+  // console.log("totalWidth", totalWidth)
+
+
+  let gridTemplateColumnsSabit = ""
+  isProject?.pozBasliklari?.filter(item => item.sabit).map((oneBilgi) =>
+    gridTemplateColumnsSabit = gridTemplateColumnsSabit + (oneBilgi.genislik + "rem ")
+  )
+  //  son boşluk karakter silme
+  gridTemplateColumnsSabit = gridTemplateColumnsSabit.slice(0, -1)
+
+  let gridTemplateColumnsDegisken = ""
+  isProject?.metrajBasliklari?.filter(item => !item.sabit && item.goster).map((oneBilgi) =>
+    gridTemplateColumnsDegisken = gridTemplateColumnsDegisken + (oneBilgi.genislik + "rem ")
+  )
+  //  son boşluk karakter silme
+  gridTemplateColumnsDegisken = gridTemplateColumnsDegisken.slice(0, -1)
+
+
+  let gridTemplateColumns_ = gridTemplateColumnsSabit + " 2rem " + gridTemplateColumnsDegisken
+  // console.log("gridTemplateColumns_", gridTemplateColumns_)
+
+
+  const TableHeader = styled('div')(({ index }) => ({
+    marginTop: "1rem",
+    // fontWeight: "bold",
+    backgroundColor: "#FAEBD7",
+    borderLeft: (index && index !== 0) ? null : "solid black 1px",
+    borderRight: "solid black 1px",
+    borderTop: "solid black 1px",
+    borderBottom: "solid black 1px"
+  }));
+
+  const TableItem = styled('div')(({ index }) => ({
+    borderLeft: index == 0 ? "solid black 1px" : null,
+    borderRight: "solid black 1px",
+    borderBottom: "solid black 1px"
+  }));
+
+  const Bosluk = styled('div')(() => ({
+    // backgroundColor: "lightblue"
+    // borderLeft: index == 0 ? "solid black 1px" : null,
+    // borderRight: "solid black 1px",
+    // borderBottom: "solid black 1px"
+  }));
+
+
+
+  // bir string değerinin numerik olup olmadığının kontrolü
+  function isNumeric(str) {
+    if (str) {
+      str.toString()
+    }
+    return !isNaN(str) && // use type coercion to parse the _entirety_ of the string (`parseFloat` alone does not do this)...
+      !isNaN(parseFloat(str)) // ...and ensure strings of whitespace fail
+  }
+
+
+
 
   return (
-    <Grid container direction="column" spacing={0} sx={{ mt: subHeaderHeight }}>
 
-      <Grid item  >
-        <LbsHeader
-          RealmApp={RealmApp}
-          setShow={setShow}
-          nameMode={nameMode} setNameMode={setNameMode}
-          codeMode={codeMode} setCodeMode={setCodeMode}
-        />
+    <>
+
+      <Grid item >
+        <MetrajHeader setShow={setShow} />
       </Grid>
 
-      {show == "FormLbsCreate" &&
+      {show == "FormPozCreate" &&
         <Grid item >
-          <FormLbsCreate setShow={setShow} isProject={isProject} setIsProject={setIsProject} selectedLbs={selectedLbs} setSelectedLbs={setSelectedLbs} />
+          <FormPozCreate isProject={isProject} setShow={setShow} />
         </Grid>
       }
 
-      {show == "FormLbsUpdate" &&
+      {show == "FormPozBaslikCreate" &&
         <Grid item >
-          <FormLbsUpdate setShow={setShow} isProject={isProject} setIsProject={setIsProject} selectedLbs={selectedLbs} setSelectedLbs={setSelectedLbs} />
+          <FormPozBaslikCreate setShow={setShow} />
         </Grid>
       }
 
+      {show == "EditPozBaslik" &&
+        <Grid item >
+          <EditPozBaslik setShow={setShow} />
+        </Grid>
+      }
 
-      {!isProject?.lbs?.length &&
-        <Stack sx={{ width: '100%', padding: "0.5rem" }} spacing={2}>
+      {show == "Main" && (isProject?.wbs?.filter(item => item.openForPoz).length == 0 || !isProject?.wbs) &&
+        <Stack sx={{ width: '100%', pl: "1rem", pr: "0.5rem", pt: "1rem", mt: subHeaderHeight }} spacing={2}>
           <Alert severity="info">
-            Menüler yardımı ile "Mahal Başlığı" ekleyebilirsiniz.
+            Henüz hiç bir poz başlığını poz eklemeye açmamış görünüyorsunumuz. "Poz Başlıkları" menüsünden işlem yapabilirsiniz.
           </Alert>
         </Stack>
       }
 
-      {isProject?.lbs?.length > 0 &&
-        < Stack sx={{ width: '100%', padding: "0.5rem" }} spacing={0}>
 
-          <Box sx={{ display: "grid", gridTemplateColumns: "1rem 20rem" }}>
-            <Box sx={{ backgroundColor: "black", color: "white" }}>
+      {show == "Main" && isProject?.wbs?.filter(item => item.openForPoz).length > 0 &&
 
+        <Box sx={{ mt: subHeaderHeight, pt: "1rem", pl: "1rem", pr: "1rem" }}>
+
+          {/* EN ÜST BAŞLIK ÜST SATIRI */}
+          <Grid
+            sx={{
+              pb: "1rem",
+              display: "grid",
+              gridTemplateColumns: gridTemplateColumns_,
+            }}
+          >
+            {/* HAYALET */}
+            <Box sx={{ display: "none" }}>
+              {count_ = isProject?.pozBasliklari?.filter(item => item.sabit).length}
             </Box>
-            <Box sx={{ backgroundColor: "black", color: "white", borderBottom: "1px solid " + color("border") }}>
-              {isProject.name}
+            {isProject?.pozBasliklari?.filter(item => item.sabit).map((oneBaslik, index) => {
+              return (
+                <Box
+                  sx={{
+                    cursor: "pointer",
+                    backgroundColor: selectedPozBaslik?.id == oneBaslik.id ? "rgba(120, 120, 120, 0.7)" : "rgb(120, 120, 120, 0.4)",
+                    fontWeight: "bold",
+                    border: "solid black 1px",
+                    borderRight: index + 1 == count_ ? "solid black 1px" : "0px",
+                    width: "100%",
+                    display: "grid",
+                    alignItems: "center",
+                    justifyContent: oneBaslik.yatayHiza,
+                  }}
+                  key={index}
+                >
+                  {oneBaslik.name}
+                </Box>
+              )
+            })}
+
+
+            <Bosluk>
+            </Bosluk>
+
+
+            {/* HAYALET KOMPONENT */}
+            <Box sx={{ display: "none" }}>
+              {count_ = isProject?.metrajBasliklari?.filter(item => !item.sabit && item.goster).length}
             </Box>
-          </Box>
+            {/* GÖZÜKEN KOMPONENT */}
+            {isProject?.metrajBasliklari?.filter(item => !item.sabit && item.goster).map((oneBaslik, index) => {
+              return (
+                <Box
+                  sx={{
+                    cursor: "pointer",
+                    backgroundColor: selectedPozBaslik?.id == oneBaslik.id ? "rgba(120, 120, 120, 0.7)" : "rgb(120, 120, 120, 0.4)",
+                    fontWeight: "bold",
+                    border: "solid black 1px",
+                    borderRight: index + 1 == count_ ? "solid black 1px" : "0px",
+                    width: "100%",
+                    display: "grid",
+                    alignItems: "center",
+                    justifyContent: oneBaslik.yatayHiza
+                  }}
+                  key={index}
+                >
+                  <Box sx={{ display: "grid", justifyContent: oneBaslik.yatayHiza }}>
+                    {oneBaslik.name}
+                  </Box>
+                </Box>
+              )
+            })}
 
-          <Box sx={{ display: "grid", gridTemplateColumns: "1rem 1fr" }}>
+          </Grid>
 
-            <Box sx={{ backgroundColor: "black" }}>
 
-            </Box>
+          {/* POZ BAŞLIKLARI ve POZLAR */}
+          {isProject?.wbs
+            .filter(item => item.openForPoz === true)
+            .sort(function (a, b) {
+              var nums1 = a.code.split(".");
+              var nums2 = b.code.split(".");
 
-            <Box display="grid">
+              for (var i = 0; i < nums1.length; i++) {
+                if (nums2[i]) { // assuming 5..2 is invalid
+                  if (nums1[i] !== nums2[i]) {
+                    return nums1[i] - nums2[i];
+                  } // else continue
+                } else {
+                  return 1; // no second number in b
+                }
+              }
+              return -1; // was missing case b.len > a.len
+            }).map((oneWbs, index) => {
+              return (
+                <Grid
+                  key={index}
+                  sx={{
+                    display: "grid",
+                    gridTemplateColumns: totalWidthSabit + " 2rem " + gridTemplateColumnsDegisken,
+                  }}
+                >
+                  <TableHeader>
 
-              {
-                isProject.lbs
-                  .sort(function (a, b) {
-                    var nums1 = a.code.split(".");
-                    var nums2 = b.code.split(".");
+                    {/* HAYALET */}
+                    <Box sx={{ display: "none" }}>
+                      {cOunt = oneWbs.code.split(".").length}
+                    </Box>
 
-                    for (var i = 0; i < nums1.length; i++) {
-                      if (nums2[i]) { // assuming 5..2 is invalid
-                        if (nums1[i] !== nums2[i]) {
-                          return nums1[i] - nums2[i];
-                        } // else continue
-                      } else {
-                        return 1; // no second number in b
-                      }
+                    {
+                      oneWbs.code.split(".").map((codePart, index) => {
+
+                        if (index == 0 && cOunt == 1) {
+                          wbsCode = codePart
+                          wbsName = isProject?.wbs.find(item => item.code == wbsCode).name
+                        }
+
+                        if (index == 0 && cOunt !== 1) {
+                          wbsCode = codePart
+                          wbsName = isProject?.wbs.find(item => item.code == wbsCode).codeName
+                        }
+
+                        if (index !== 0 && index + 1 !== cOunt && cOunt !== 1) {
+                          wbsCode = wbsCode + "." + codePart
+                          wbsName = wbsName + " > " + isProject?.wbs.find(item => item.code == wbsCode).codeName
+                        }
+
+                        if (index !== 0 && index + 1 == cOunt && cOunt !== 1) {
+                          wbsCode = wbsCode + "." + codePart
+                          wbsName = wbsName + " > " + isProject?.wbs.find(item => item.code == wbsCode).name
+                        }
+
+                      })
                     }
-                    return -1; // was missing case b.len > a.len
-                  })
-                  .map((theLbs) => {
-
-                    // BU SCOPE TAMAMI BİR SATIRDIR (EN ÜST SEVİYE HARİÇ)
-
-                    // theLbs = { _id, code, name }
-                    level = theLbs?.code?.split(".").length
-
-                    return (
-                      <Box key={theLbs._id} sx={{
-                        display: "grid",
-                        gridTemplateColumns: (level - 1) == 0 ? "1rem " + (20 - level) + "rem" : "1rem repeat(" + (level - 1) + ", 1rem) " + (20 - level) + "rem", // baştaki poz var mı yok mu için
-                        "&:hover .hoverTheLbsLeft": {
-                          visibility: "visible",
-                        },
-
-                      }}>
-
-                        {Array.from({ length: (level - 1) > -1 ? (level - 1) : 0 }).map((_item, index) => {
-                          return (
-                            <Box sx={{ backgroundColor: color(index + 1).bg, borderLeft: "1px solid " + color("border") }}></Box>
-                          )
-                        })}
-
-                        <Box sx={{ position: "relative", backgroundColor: color(level).bg, borderLeft: "1px solid " + color("border") }}>
-
-                          {theLbs.openForMahal &&
-                            // lbs mahal eklemeye açıksa - var olan mevcut kutunun içinde beliren sarı kutu
-                            <Grid container sx={{ position: "absolute", borderRadius: "10%", backgroundColor: "#65FF00", top: "20%", left: "30%", width: "0.7rem", height: "0.7rem" }}>
-
-                              {/* mahal eklenmiş ise sarı kutunun içinde beliren siyah nokta */}
-                              {theLbs.includesMahal &&
-                                <Grid item sx={{ position: "relative", width: "100%", height: "100%" }}>
-
-                                  <Box sx={{ position: "absolute", borderRadius: "50%", backgroundColor: "red", top: "25%", left: "25%", width: "50%", height: "50%" }}>
-
-                                  </Box>
-
-                                </Grid>
-                              }
 
 
-                            </Grid>
-                          }
+                    {/* HAYALET */}
+                    <Box sx={{ display: "none" }}>
+                      {cOunt = wbsName.split(">").length}
+                    </Box>
 
-                        </Box>
+                    {/* GÖZÜKEN KOMPONENET - sabit kısımda - wbs başlığının yazdığı yer */}
+                    {wbsName.split(">").map((item, index) => (
+
+                      <Typography key={index} component={"span"} >
+                        {item}
+                        {index + 1 !== cOunt &&
+                          <Typography component={"span"} sx={{ fontWeight: "600", color: "darkred" }}>{">"}</Typography>
+                        }
+                      </Typography>
+
+                    ))}
+
+                  </TableHeader>
+
+                  <Bosluk ></Bosluk>
+
+                  {/* burada başlık sıralamasına göre güvenerek haraket ediliyor (tüm pozBaşlıkları map'lerde) */}
+                  {
+                    isProject?.metrajBasliklari?.filter(item => !item.sabit && item.goster).map((oneBaslik, index) => {
+                      return (
+                        <TableHeader key={index} index={index} count_={count_} sx={{ display: "grid", with: "100%", justifyContent: oneBaslik.yatayHiza }}>
+                        </TableHeader>
+                      )
+                    })
+                  }
 
 
-                        <Box
-                          onClick={() => handleSelectLbs(theLbs)}
+
+                  {/* HAYALET */}
+                  {<Box sx={{ display: "none" }}>
+                    {count_ = pozlar?.filter(item => item._wbsId.toString() == oneWbs._id.toString()).length}
+                  </Box>}
+
+                  <Grid
+                    key={index}
+                    sx={{
+                      display: "grid",
+                      gridTemplateColumns: totalWidth,
+                    }}
+                  >
+
+                    {/* POZLAR */}
+                    {pozlar?.filter(item => item._wbsId.toString() == oneWbs._id.toString()).map((onePoz, index) => {
+                      return (
+                        <Grid
+                          key={index}
                           sx={{
-
-                            pl: "2px",
-
-                            borderBottom: "0.5px solid " + color("border"),
-
-                            // önce hepsini bu şekilde sonra seçilmişi aşağıda değiştiriyoruz
-                            backgroundColor: color(level).bg,
-                            color: color(level).co,
-
-                            "&:hover .hoverTheLbs": {
-                              // display: "inline"
-                              visibility: "visible"
-                            },
-
-                            cursor: "pointer",
-
+                            display: "grid",
+                            gridTemplateColumns: gridTemplateColumns_,
                           }}
                         >
-
-                          <Grid container sx={{ display: "grid", gridTemplateColumns: "1fr 2rem" }}>
-
-                            {/* theLbs isminin yazılı olduğu kısım */}
-                            <Grid item>
-
-                              <Grid container sx={{ color: "#cccccc" }}>
-
-                                {codeMode === null && //kısa
-                                  <Grid item sx={{ ml: "0.2rem" }}>
-                                    {theLbs.code.split(".")[level - 1] + " - "}
-                                  </Grid>
-                                }
-
-                                {codeMode === false && //tam
-                                  <Grid item sx={{ ml: "0.2rem" }}>
-                                    {theLbs.code + " - "}
-                                  </Grid>
-                                }
-
-                                {/* codeMode === true && //yok */}
-
-                                {nameMode === null &&
-                                  <Grid item sx={{ ml: "0.3rem" }}>
-                                    {"(" + theLbs.codeName + ")" + " - " + theLbs.name}
-                                  </Grid>
-                                }
-
-                                {nameMode === false &&
-                                  <Grid item sx={{ ml: "0.3rem" }}>
-                                    {theLbs.name}
-                                  </Grid>
-                                }
-
-                                {nameMode === true &&
-                                  <Grid item sx={{ ml: "0.3rem" }}>
-                                    ({theLbs.codeName})
-                                  </Grid>
-                                }
-
-                                <Grid item className='hoverTheLbs'
+                          {
+                            isProject?.pozBasliklari?.filter(item => item.sabit).map((oneBaslik, index) => {
+                              return (
+                                <TableItem
+                                  key={index}
+                                  index={index}
+                                  count_={count_}
                                   sx={{
-                                    ml: "0.5rem",
-                                    visibility: selectedLbs?._id.toString() === theLbs._id.toString() ? "visible" : "hidden",
+                                    // userSelect:"none",
+                                    cursor: "pointer",
+                                    display: "grid",
+                                    alignItems: "center",
+                                    justifyItems: oneBaslik.yatayHiza,
+                                    // backgroundColor: selectedPoz?._id.toString() == onePoz._id.toString() ? "green" : null
                                   }}
                                 >
+                                  {onePoz[oneBaslik.referans]}
+                                </TableItem>
+                              )
+                            })
+                          }
 
-                                  <Grid container sx={{ alignItems: "center", justifyContent: "center", width: "100%", height: "100%" }}>
-                                    <Grid item >
-                                      <Box sx={{
-                                        backgroundColor: "yellow",
-                                        borderRadius: "0.5rem",
-                                        height: "0.5rem",
-                                        width: "0.5rem",
+                          <Bosluk>
+                          </Bosluk>
 
-                                      }}>
-                                      </Box>
-                                    </Grid>
-                                  </Grid>
+                          {
+                            isProject?.metrajBasliklari?.filter(item => !item.sabit && item.goster).map((oneBaslik, index) => {
+                              return (
+                                <TableItem
+                                  key={index}
+                                  index={index}
+                                  count_={count_}
+                                  sx={{
+                                    cursor: "text",
+                                    display: "grid",
+                                    alignItems: "center",
+                                    justifyItems: oneBaslik.yatayHiza,
+                                    backgroundColor: editPoz == oneBaslik.id ? "rgba(255, 255, 0, 0.5)" : null,
+                                  }}
+                                >
+                                  <Box>
+                                    deneme
+                                  </Box>
 
-                                </Grid>
+                                </TableItem>
+                              )
+                            })
+                          }
+                        </Grid>
+                      )
+                    })}
+                  </Grid>
 
-                              </Grid>
-                            </Grid>
+                </Grid>
+              )
+            })
+          }
 
-                          </Grid>
+        </Box>
 
-                        </Box>
-
-
-
-                      </Box>
-                    )
-
-                  })
-
-              }
-
-            </Box>
-
-          </Box>
-
-        </Stack>
       }
 
-    </Grid >
+    </ >
 
   )
 
-}
-
-
-
-function color(index) {
-  switch (index) {
-    case 0:
-      return { bg: "#202020", co: "#e6e6e6" }
-    case 1:
-      return { bg: "#8b0000", co: "#e6e6e6" }
-    case 2:
-      return { bg: "#330066", co: "#e6e6e6" }
-    case 3:
-      return { bg: "#005555", co: "#e6e6e6" }
-    case 4:
-      return { bg: "#737373", co: "#e6e6e6" }
-    case 5:
-      return { bg: "#8b008b", co: "#e6e6e6" }
-    case 6:
-      return { bg: "#2929bc", co: "#e6e6e6" }
-    case 7:
-      return { bg: "#267347", co: "#e6e6e6" }
-    case 8:
-      return { bg: "gray", co: "red" }
-    case "border":
-      return "gray"
-    case "font":
-      return "#e6e6e6"
-  }
 }

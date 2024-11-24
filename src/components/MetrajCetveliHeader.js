@@ -30,17 +30,18 @@ import TuneIcon from '@mui/icons-material/Tune';
 import TaskAltIcon from '@mui/icons-material/TaskAlt';
 import ForwardIcon from '@mui/icons-material/Forward';
 import SaveIcon from '@mui/icons-material/Save';
+import { useGetMahaller } from '../hooks/useMongo';
 
 
 
-export default function P_MetrajEditHeader({
+export default function P_MetrajCetveliHeader({
   show, setShow,
-  saveUserMetraj_toDb,
-  loadMetraj_ToState,
+  saveHazirlananMetraj_toDb,
+  load_hazirlananMetraj_state,
+  load_metrajlar_state,
   setUserMetraj_state,
   isChanged, setIsChanged,
   saveOnaylananMetraj_toDb,
-  loadDugumMetraj_ToState
 }) {
 
   const navigate = useNavigate()
@@ -64,11 +65,8 @@ export default function P_MetrajEditHeader({
 
   const [showDialog, setShowDialog] = useState(false)
 
-  const { data: mahaller } = useQuery({
-    queryKey: ['mahaller', isProject?._id.toString()],
-    queryFn: () => RealmApp?.currentUser.callFunction("getProjectMahaller", ({ projectId: isProject?._id })),
-    enabled: !!RealmApp && !!isProject
-  })
+
+  const { data: mahaller } = useGetMahaller()
 
 
   const cancelDialog = () => {
@@ -79,7 +77,7 @@ export default function P_MetrajEditHeader({
     setShowDialog(false)
     setUserMetraj_state()
     setIsChanged()
-    setShow("PozMahalMetrajlari")
+    setShow("DugumMetrajlari")
   }
 
 
@@ -118,9 +116,9 @@ export default function P_MetrajEditHeader({
               variant="h6"
               fontWeight="bold"
             >
-              {selectedPoz.name} {" > "}
+              {selectedPoz?.name} {" > "}
 
-              <Typography variant="h6" fontWeight="bold" component={"span"} sx={{ color: "darkred" }}>{mahaller?.find(item => item._id.toString() == selectedNode._mahalId.toString()).name}</Typography>
+              <Typography variant="h6" fontWeight="bold" component={"span"} sx={{ color: "darkred" }}>{mahaller?.find(item => item._id.toString() == selectedNode?._mahalId.toString())?.name}</Typography>
 
             </Typography>
           </Grid>
@@ -133,7 +131,7 @@ export default function P_MetrajEditHeader({
             <Grid container spacing={1}>
 
 
-              {show == "PozMahalleri" && !selectedNode &&
+              {/* {show == "PozMahalleri" && !selectedNode &&
                 <Grid item >
                   <IconButton onClick={() => {
                     navigate("/metraj")
@@ -159,14 +157,14 @@ export default function P_MetrajEditHeader({
               {show == "PozMahalleri" && selectedNode &&
                 <Grid item >
                   <IconButton onClick={() => {
-                    setShow("PozMahalMetrajlari")
+                    setShow("DugumMetrajlari")
                   }} aria-label="lbsUncliced">
                     <ForwardIcon variant="contained" sx={{
                       color: "green",
                     }} />
                   </IconButton>
                 </Grid>
-              }
+              } */}
 
 
 
@@ -176,10 +174,13 @@ export default function P_MetrajEditHeader({
 
 
 
-              {show == "PozMahalMetrajlari" &&
+              {show == "DugumMetrajlari" &&
                 <Grid item >
                   <IconButton onClick={() => {
-                    navigate("/metraj")
+                    setSelectedMahal()
+                    setSelectedPoz()
+                    setSelectedNode()
+                    navigate("/mahalmetraj")
                   }} aria-label="lbsUncliced">
                     <ReplyIcon variant="contained" sx={{ color: !selectedPoz ? "lightgray" : "red" }} />
                   </IconButton>
@@ -188,7 +189,7 @@ export default function P_MetrajEditHeader({
 
 
 
-              {show == "PozMahalMetrajlari" &&
+              {show == "DugumMetrajlari" &&
                 <Grid item >
                   <IconButton onClick={() => {
                     setDetailMode(detailMode => !detailMode)
@@ -200,10 +201,10 @@ export default function P_MetrajEditHeader({
 
 
 
-              {show == "PozMahalMetrajlari" &&
+              {show == "DugumMetrajlari" &&
                 <Grid item >
                   <IconButton onClick={() => {
-                    loadMetraj_ToState()
+                    load_hazirlananMetraj_state()
                     setShow("EditMetraj")
                   }} aria-label="lbsUncliced">
                     <EditIcon variant="contained" />
@@ -212,11 +213,11 @@ export default function P_MetrajEditHeader({
               }
 
 
-              {show == "PozMahalMetrajlari" &&
+              {show == "DugumMetrajlari" &&
                 <Grid item >
                   <IconButton
                     onClick={() => {
-                      loadDugumMetraj_ToState()
+                      load_metrajlar_state()
                       setShow("MetrajOnay")
                     }}
                     aria-label="lbsUncliced">
@@ -237,7 +238,7 @@ export default function P_MetrajEditHeader({
                     if (isChanged) {
                       setShowDialog(true)
                     } else {
-                      setShow("PozMahalMetrajlari")
+                      setShow("DugumMetrajlari")
                     }
                   }} aria-label="lbsUncliced">
                     <ClearOutlined variant="contained" sx={{ color: "red" }} />
@@ -250,7 +251,7 @@ export default function P_MetrajEditHeader({
               {show == "EditMetraj" &&
                 <Grid item >
                   <IconButton onClick={() => {
-                    saveUserMetraj_toDb()
+                    saveHazirlananMetraj_toDb()
                   }} aria-label="lbsUncliced">
                     <SaveIcon variant="contained" />
                   </IconButton>
@@ -279,11 +280,11 @@ export default function P_MetrajEditHeader({
               {show == "MetrajOnay" &&
                 <Grid item >
                   <IconButton onClick={() => {
-                    setShow("PozMahalMetrajlari")
+                    setShow("DugumMetrajlari")
                     // if (isChanged) {
                     //   setShowDialog(true)
                     // } else {
-                    //   setShow("PozMahalMetrajlari")
+                    //   setShow("DugumMetrajlari")
                     // }
                   }} aria-label="lbsUncliced">
                     <ClearOutlined variant="contained" sx={{ color: "red" }} />
@@ -297,7 +298,6 @@ export default function P_MetrajEditHeader({
                 <Grid item >
                   <IconButton onClick={() => {
                     saveOnaylananMetraj_toDb()
-                    // saveUserMetraj_toDb()
                   }} aria-label="lbsUncliced">
                     <FileDownloadDoneIcon variant="contained" />
                   </IconButton>

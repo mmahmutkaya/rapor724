@@ -155,6 +155,28 @@ export default function Sidebar({ setMobileOpen }) {
 
 
             <ListItemButton
+              onClick={() => navigate('/mahalmetraj')}
+              sx={{ backgroundColor: pathname == "/mahalmetraj" ? "#f0f0f1" : null }}
+            >
+              <ListItemIcon>
+                <SendIcon />
+              </ListItemIcon>
+              <ListItemText primary="Mahal Metraj" />
+            </ListItemButton>
+
+
+            <ListItemButton
+              onClick={() => navigate('/metrajcetveli')}
+              sx={{ backgroundColor: pathname == "/metrajcetveli" ? "#f0f0f1" : null }}
+            >
+              <ListItemIcon>
+                <SendIcon />
+              </ListItemIcon>
+              <ListItemText primary="Metraj Cetveli" />
+            </ListItemButton>
+
+
+            <ListItemButton
               onClick={() => navigate('/metraj')}
               sx={{ backgroundColor: pathname == "/metraj" ? "#f0f0f1" : null }}
             >

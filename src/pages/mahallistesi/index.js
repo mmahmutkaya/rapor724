@@ -224,6 +224,7 @@ export default function P_MahalListesi() {
                     fontWeight: "bold",
                     border: "solid black 1px",
                     borderRight: index + 1 == count_ ? "solid black 1px" : "0px",
+                    height:"3rem",
                     width: "100%",
                     display: "grid",
                     alignItems: "center",
@@ -259,6 +260,7 @@ export default function P_MahalListesi() {
                     fontWeight: "bold",
                     border: "solid black 1px",
                     borderRight: index + 1 == count_ ? "solid black 1px" : "0px",
+                    height:"3rem",
                     width: "100%",
                     display: "grid",
                     justifyContent: "center"
@@ -431,7 +433,7 @@ export default function P_MahalListesi() {
                           </Bosluk>
                           {pozlar?.map((onePoz, index) => {
 
-                            theDugum = mahalListesi.list?.find((item) => item._mahalId.toString() == oneMahal._id.toString() && item._pozId.toString() == onePoz._id.toString())
+                            let theDugum = mahalListesi.list?.find((item) => item._mahalId.toString() == oneMahal._id.toString() && item._pozId.toString() == onePoz._id.toString())
 
                             return theDugum?.openMetraj ?
 
@@ -441,11 +443,7 @@ export default function P_MahalListesi() {
                                 count_={count_}
                                 onClick={editMode_MahalListesi ? () => toggleMahalPoz({
                                   _mahalId: oneMahal._id,
-                                  _lbsId: oneMahal._lbsId,
                                   _pozId: onePoz._id,
-                                  _wbsId: onePoz._wbsId,
-                                  wbsCode: isProject.wbs.find(x => x._id.toString() == onePoz._wbsId.toString()).code,
-                                  lbsCode: isProject.lbs.find(x => x._id.toString() == oneMahal._lbsId.toString()).code,
                                   switchValue: false
                                 }) : null}
                                 sx={{
@@ -467,11 +465,7 @@ export default function P_MahalListesi() {
                                 count_={count_}
                                 onClick={editMode_MahalListesi ? () => toggleMahalPoz({
                                   _mahalId: oneMahal._id,
-                                  _lbsId: oneMahal._lbsId,
                                   _pozId: onePoz._id,
-                                  _wbsId: onePoz._wbsId,
-                                  wbsCode: isProject.wbs.find(x => x._id.toString() === onePoz._wbsId.toString()).code,
-                                  lbsCode: isProject.lbs.find(x => x._id.toString() === oneMahal._lbsId.toString()).code,
                                   switchValue: true
                                 }) : null}
                                 sx={{

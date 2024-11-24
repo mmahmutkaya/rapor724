@@ -63,19 +63,58 @@ export const useGetMahalListesi = () => {
 
 
 
-export const useGetDugumMetraj = ({ selectedNode }) => {
+export const useGetHazirlananMetrajlar = ({ selectedNode }) => {
 
   const RealmApp = useApp();
   const { isProject } = useContext(StoreContext)
 
   return useQuery({
-    queryKey: ['dugumMetraj', selectedNode?._id.toString()],
-    queryFn: () => RealmApp?.currentUser.callFunction("collectionDugumler", ({ functionName: "getDugumMetraj", _projectId: isProject?._id, _mahalId: selectedNode?._mahalId, _pozId: selectedNode?._pozId })),
+    queryKey: ['hazirlananMetrajlar', selectedNode._id.toString()],
+    queryFn: () => RealmApp?.currentUser.callFunction("collectionDugumler", ({ functionName: "getHazirlananMetrajlar", _projectId: isProject?._id, _mahalId: selectedNode?._mahalId, _pozId: selectedNode?._pozId })),
     enabled: !!RealmApp && !!isProject && !!selectedNode,
     refetchOnMount: false,
     refetchOnWindowFocus: false,
     staleTime: 5 * 60 * 1000,
-    select: (data) => data[0]
+  })
+
+}
+
+
+
+export const useGetOnaylananMetrajlar = ({ selectedNode }) => {
+
+  const RealmApp = useApp();
+  const { isProject } = useContext(StoreContext)
+
+  return useQuery({
+    queryKey: ['onaylananMetrajlar', selectedNode._id.toString()],
+    queryFn: () => RealmApp?.currentUser.callFunction("collectionDugumler", ({ functionName: "getOnaylananMetrajlar", _projectId: isProject?._id, _mahalId: selectedNode?._mahalId, _pozId: selectedNode?._pozId })),
+    enabled: !!RealmApp && !!isProject && !!selectedNode,
+    refetchOnMount: false,
+    refetchOnWindowFocus: false,
+    staleTime: 5 * 60 * 1000,
+  })
+
+}
+
+
+
+
+
+
+export const useGetPozlarMetraj = () => {
+
+  const RealmApp = useApp();
+  const { isProject } = useContext(StoreContext)
+
+  return useQuery({
+    queryKey: ['pozMetrajlar', isProject?._id.toString()],
+    queryFn: () => RealmApp?.currentUser.callFunction("collectionDugumler", ({ functionName: "getPozlarMetraj", _projectId: isProject?._id })),
+    enabled: !!RealmApp && !!isProject,
+    refetchOnMount: false,
+    refetchOnWindowFocus: false,
+    staleTime: 5 * 60 * 1000,
+    // select: (data) => data[0]
   })
 
 }
@@ -88,157 +127,357 @@ export const useGetDugumMetraj = ({ selectedNode }) => {
 // MUTATIONS
 
 
+// export const useToggleOpenMetrajDugum = () => {
+
+//   const RealmApp = useApp();
+//   const queryClient = useQueryClient()
+//   const { isProject } = useContext(StoreContext)
+
+//   const mahalListesi_optimisticUpdate = (mahalListesi, variables2) => {
+
+//     const { _mahalId, _pozId, _lbsId, _wbsId, wbsCode, lbsCode, switchValue } = variables2
+//     let list = mahalListesi.list
+//     let wbsLer = mahalListesi.wbsLer
+
+//     if (switchValue) {
+
+//       // openMetraj:false şeklinde property güncellemesi yapmıyorum çünkü backendden false olanlar dönmüyor, node sayıları backend den dönen hali aynı olsun diye
+//       // backend ve frontend tutarlılığı için o sebeple listede olup olmadığına bakmıyorum, ekleyeceksek zaten yoktur, alt satırdaki filter onun için yoruma çevirildi
+//       list = list.length ? [...list, { _mahalId, _pozId, _lbsId, _wbsId, wbsCode, lbsCode, openMetraj: switchValue }] : [{ _mahalId, _pozId, _lbsId, _wbsId, wbsCode, lbsCode, openMetraj: switchValue }]
+//       // ilk seviye wbs'in yerleştirilmesi
+
+
+//       // mahallistesi.wbsLer den kontrol ederek, yukarı doğru giderek, listeden çıkarıyoruz
+
+//       // 
+//       let wbsCode2 = JSON.parse(JSON.stringify(wbsCode))
+//       let mapDurdur = false // mapDurdur true yapılırsa döngü daha da devam etmeden dursun diye
+
+//       // esasen wbsCode2 döngüsü ile 
+//       wbsCode.split(".").map(c => {
+
+//         if (mapDurdur) {
+//           return
+//         }
+
+//         // wbsLer boşsa herhangi bir sorgulama yapmadan yapıştır, aşağıda birdaha da boşmu diye sorgulama
+//         if (!wbsLer) {
+//           let { _id, code, name } = isProject.wbs.find(x => x.code === wbsCode2)
+//           wbsLer = [{ _id, code, name }]
+//         } else {
+//           // wbsLer boş olsa bu sorgu hata verecek ama yukarıda yapıldı o sorgu, burdaysak doludur
+
+//           // döngüdeki wbs mevcutsa, üst wbs'ler de mevcut demektir
+//           if (wbsLer.find(x => x.code == wbsCode2)) {
+//             mapDurdur = true
+//             return
+//           } else {
+//             let { _id, code, name } = isProject.wbs.find(x => x.code === wbsCode2)
+//             wbsLer = [...wbsLer, { _id, code, name }]
+//           }
+//         }
+
+//         // bir sonraki döngü için wbsCode2 güncelliyoruz, bir üst seviye wbs code'una dönüştürüyoruz
+//         if (wbsCode2.split(".").length > 1) wbsCode2 = wbsCode2.slice(0, wbsCode2.lastIndexOf("."))
+
+//       })
+
+//     }
+
+
+
+
+//     if (!switchValue) {
+
+//       // list den düğümü çıkartıyoruz
+//       list = list.filter(x => !(x._mahalId.toString() === _mahalId.toString() && x._pozId.toString() === _pozId.toString()))
+
+//       // mahallistesi.wbsLer den seviye olarak yukarı doğru giderek, kontrol ederek, listeden çıkarıyoruz 
+//       let wbsCode2 = JSON.parse(JSON.stringify(wbsCode))
+//       let mapDurdur = false // mapDurdur true yapılırsa döngü daha da devam etmeden dursun diye
+
+//       wbsCode.split(".").map((c, index) => {
+
+//         if (mapDurdur) {
+//           return
+//         }
+
+//         try {
+//           if (list.find(x => x.wbsCode.indexOf(wbsCode2) === 0)) {
+//             // bu code varsa üst kodlar da vardır döngü iptal edelim
+//             mapDurdur = true
+//             return
+//           } else {
+//             wbsLer = wbsLer.filter(x => x.code != wbsCode2)
+//           }
+//         } catch (error) {
+//         }
+
+//         // bir sonraki döngü için wbsCode2 güncelliyoruz, bir üst seviye wbs code'una dönüştürüyoruz, swicthValue true modundayken sonunda nokta yok, yapı farklı
+//         if (wbsCode2.split(".").length > 1) wbsCode2 = wbsCode2.slice(0, wbsCode2.lastIndexOf("."))
+
+//       })
+
+//     }
+
+//     mahalListesi.list = list
+//     mahalListesi.wbsLer = wbsLer
+//     return mahalListesi
+//   }
+
+
+//   return useMutation({
+//     mutationFn: ({ _mahalId, _pozId, _lbsId, _wbsId, wbsCode, lbsCode, switchValue }) => {
+//       return RealmApp?.currentUser.callFunction("collectionDugumler", ({ functionName: "toggle_openMetraj", _projectId: isProject?._id, _mahalId, _pozId, _lbsId, _wbsId, wbsCode, lbsCode }))
+//     },
+//     // onSuccess: () => queryClient.invalidateQueries({ queryKey: ['mahalListesi', isProject?._id.toString()] })
+//     onSuccess: (returnData, variables2) => queryClient.setQueryData(['mahalListesi', isProject?._id.toString()], (mahallistesi) => mahalListesi_optimisticUpdate(mahallistesi, variables2))
+//   })
+
+// }
+
+
 export const useToggleOpenMetrajDugum = () => {
 
   const RealmApp = useApp();
   const queryClient = useQueryClient()
   const { isProject } = useContext(StoreContext)
 
-  const mahalListesi_optimisticUpdate = (mahalListesi, variables2) => {
 
-    const { _mahalId, _pozId, _lbsId, _wbsId, wbsCode, lbsCode, switchValue } = variables2
-    let list = mahalListesi.list
-    let wbsLer = mahalListesi.wbsLer
+  // const mahalListesi_optimisticUpdate = (mahalListesi, variables2) => {
 
-    if (switchValue) {
-
-      // openMetraj:false şeklinde property güncellemesi yapmıyorum çünkü backendden false olanlar dönmüyor, node sayıları backend den dönen hali aynı olsun diye
-      // backend ve frontend tutarlılığı için o sebeple listede olup olmadığına bakmıyorum, ekleyeceksek zaten yoktur, alt satırdaki filter onun için yoruma çevirildi
-      list = list.length ? [...list, { _mahalId, _pozId, _lbsId, _wbsId, wbsCode, lbsCode, openMetraj: switchValue }] : [{ _mahalId, _pozId, _lbsId, _wbsId, wbsCode, lbsCode, openMetraj: switchValue }]
-      // ilk seviye wbs'in yerleştirilmesi
+  //   const { _mahalId, _pozId, switchValue } = variables2
+  //   let list = mahalListesi.list
 
 
-      // mahallistesi.wbsLer den kontrol ederek, yukarı doğru giderek, listeden çıkarıyoruz
+  //   if (switchValue) {
 
-      // 
-      let wbsCode2 = JSON.parse(JSON.stringify(wbsCode))
-      let mapDurdur = false // mapDurdur true yapılırsa döngü daha da devam etmeden dursun diye
-
-      // esasen wbsCode2 döngüsü ile 
-      wbsCode.split(".").map(c => {
-
-        if (mapDurdur) {
-          return
-        }
-
-        // wbsLer boşsa herhangi bir sorgulama yapmadan yapıştır, aşağıda birdaha da boşmu diye sorgulama
-        if (!wbsLer) {
-          let { _id, code, name } = isProject.wbs.find(x => x.code === wbsCode2)
-          wbsLer = [{ _id, code, name }]
-        } else {
-          // wbsLer boş olsa bu sorgu hata verecek ama yukarıda yapıldı o sorgu, burdaysak doludur
-
-          // döngüdeki wbs mevcutsa, üst wbs'ler de mevcut demektir
-          if (wbsLer.find(x => x.code == wbsCode2)) {
-            mapDurdur = true
-            return
-          } else {
-            let { _id, code, name } = isProject.wbs.find(x => x.code === wbsCode2)
-            wbsLer = [...wbsLer, { _id, code, name }]
-          }
-        }
-
-        // bir sonraki döngü için wbsCode2 güncelliyoruz, bir üst seviye wbs code'una dönüştürüyoruz
-        if (wbsCode2.split(".").length > 1) wbsCode2 = wbsCode2.slice(0, wbsCode2.lastIndexOf("."))
-
-      })
-
-    }
+  //     // openMetraj:false şeklinde property güncellemesi yapmıyorum çünkü backendden false olanlar dönmüyor, node sayıları backend den dönen hali aynı olsun diye
+  //     // backend ve frontend tutarlılığı için o sebeple listede olup olmadığına bakmıyorum, ekleyeceksek zaten yoktur, alt satırdaki filter onun için yoruma çevirildi
+  //     list = list.length ? [...list, { _mahalId, _pozId, openMetraj: switchValue }] : [{ _mahalId, _pozId, openMetraj: switchValue }]
+  //     // ilk seviye wbs'in yerleştirilmesi
 
 
+  //     // mahallistesi.wbsLer den kontrol ederek, yukarı doğru giderek, listeden çıkarıyoruz
+
+  //     // 
+  //     // let wbsCode2 = JSON.parse(JSON.stringify(wbsCode))
+  //     // let mapDurdur = false // mapDurdur true yapılırsa döngü daha da devam etmeden dursun diye
+
+  //     // esasen wbsCode2 döngüsü ile 
+  //     // wbsCode.split(".").map(c => {
+
+  //     //   if (mapDurdur) {
+  //     //     return
+  //     //   }
+
+  //     //   // wbsLer boşsa herhangi bir sorgulama yapmadan yapıştır, aşağıda birdaha da boşmu diye sorgulama
+  //     //   if (!wbsLer) {
+  //     //     let { _id, code, name } = isProject.wbs.find(x => x.code === wbsCode2)
+  //     //     wbsLer = [{ _id, code, name }]
+  //     //   } else {
+  //     //     // wbsLer boş olsa bu sorgu hata verecek ama yukarıda yapıldı o sorgu, burdaysak doludur
+
+  //     //     // döngüdeki wbs mevcutsa, üst wbs'ler de mevcut demektir
+  //     //     if (wbsLer.find(x => x.code == wbsCode2)) {
+  //     //       mapDurdur = true
+  //     //       return
+  //     //     } else {
+  //     //       let { _id, code, name } = isProject.wbs.find(x => x.code === wbsCode2)
+  //     //       wbsLer = [...wbsLer, { _id, code, name }]
+  //     //     }
+  //     //   }
+
+  //     //   // bir sonraki döngü için wbsCode2 güncelliyoruz, bir üst seviye wbs code'una dönüştürüyoruz
+  //     //   if (wbsCode2.split(".").length > 1) wbsCode2 = wbsCode2.slice(0, wbsCode2.lastIndexOf("."))
+
+  //     // })
+
+  //   }
 
 
-    if (!switchValue) {
 
-      // list den düğümü çıkartıyoruz
-      list = list.filter(x => !(x._mahalId.toString() === _mahalId.toString() && x._pozId.toString() === _pozId.toString()))
 
-      // mahallistesi.wbsLer den seviye olarak yukarı doğru giderek, kontrol ederek, listeden çıkarıyoruz 
-      let wbsCode2 = JSON.parse(JSON.stringify(wbsCode))
-      let mapDurdur = false // mapDurdur true yapılırsa döngü daha da devam etmeden dursun diye
+  //   // if (!switchValue) {
 
-      wbsCode.split(".").map((c, index) => {
+  //   //   // list den düğümü çıkartıyoruz
+  //   //   list = list.filter(x => !(x._mahalId.toString() === _mahalId.toString() && x._pozId.toString() === _pozId.toString()))
 
-        if (mapDurdur) {
-          return
-        }
+  //   //   // mahallistesi.wbsLer den seviye olarak yukarı doğru giderek, kontrol ederek, listeden çıkarıyoruz 
+  //   //   let wbsCode2 = JSON.parse(JSON.stringify(wbsCode))
+  //   //   let mapDurdur = false // mapDurdur true yapılırsa döngü daha da devam etmeden dursun diye
 
-        try {
-          if (list.find(x => x.wbsCode.indexOf(wbsCode2) === 0)) {
-            // bu code varsa üst kodlar da vardır döngü iptal edelim
-            mapDurdur = true
-            return
-          } else {
-            wbsLer = wbsLer.filter(x => x.code != wbsCode2)
-          }
-        } catch (error) {
-        }
+  //   //   wbsCode.split(".").map((c, index) => {
 
-        // bir sonraki döngü için wbsCode2 güncelliyoruz, bir üst seviye wbs code'una dönüştürüyoruz, swicthValue true modundayken sonunda nokta yok, yapı farklı
-        if (wbsCode2.split(".").length > 1) wbsCode2 = wbsCode2.slice(0, wbsCode2.lastIndexOf("."))
+  //   //     if (mapDurdur) {
+  //   //       return
+  //   //     }
 
-      })
+  //   //     try {
+  //   //       if (list.find(x => x.wbsCode.indexOf(wbsCode2) === 0)) {
+  //   //         // bu code varsa üst kodlar da vardır döngü iptal edelim
+  //   //         mapDurdur = true
+  //   //         return
+  //   //       } else {
+  //   //         wbsLer = wbsLer.filter(x => x.code != wbsCode2)
+  //   //       }
+  //   //     } catch (error) {
+  //   //     }
 
-    }
+  //   //     // bir sonraki döngü için wbsCode2 güncelliyoruz, bir üst seviye wbs code'una dönüştürüyoruz, swicthValue true modundayken sonunda nokta yok, yapı farklı
+  //   //     if (wbsCode2.split(".").length > 1) wbsCode2 = wbsCode2.slice(0, wbsCode2.lastIndexOf("."))
 
-    mahalListesi.list = list
-    mahalListesi.wbsLer = wbsLer
-    return mahalListesi
-  }
+  //   //   })
+
+  //   // }
+
+  //   // mahalListesi.list = list
+  //   // mahalListesi.wbsLer = wbsLer
+  //   // return mahalListesi
+  // }
 
 
   return useMutation({
-    mutationFn: ({ _mahalId, _pozId, _lbsId, _wbsId, wbsCode, lbsCode, switchValue }) => {
-      return RealmApp?.currentUser.callFunction("collectionDugumler", ({ functionName: "toggle_openMetraj", _projectId: isProject?._id, _mahalId, _pozId, _lbsId, _wbsId, wbsCode, lbsCode }))
+    mutationFn: ({ _mahalId, _pozId, switchValue }) => {
+      return RealmApp?.currentUser.callFunction("collectionDugumler", ({ functionName: "toggle_openMetraj", _projectId: isProject?._id, _mahalId, _pozId }))
     },
-    // onSuccess: () => queryClient.invalidateQueries({ queryKey: ['mahalListesi', isProject?._id.toString()] })
-    onSuccess: (returnData, variables2) => queryClient.setQueryData(['mahalListesi', isProject?._id.toString()], (mahallistesi) => mahalListesi_optimisticUpdate(mahallistesi, variables2))
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['mahalListesi', isProject?._id.toString()] })
+    // onSuccess: (returnData, variables2) => queryClient.setQueryData(['mahalListesi', isProject?._id.toString()], (mahallistesi) => mahalListesi_optimisticUpdate(mahallistesi, variables2))
   })
 
 }
 
 
 
-export const useUpdateUserMetraj = (onSuccess, onError) => {
+
+
+export const useUpdateHazirlananMetrajShort = () => {
 
   const RealmApp = useApp();
   const queryClient = useQueryClient()
   const { isProject } = useContext(StoreContext)
 
-  const userMetraj_optimisticUpdate = (nodeArray_MET, variables2) => {
+  const mahalListesi_optimisticUpdate = (mahalListesi, variables) => {
 
-    const { userMetraj_state, setUserMetraj_state } = variables2
-    let nodeArray_MET2 = [...nodeArray_MET]
-    let isUpdated
-    if (nodeArray_MET2 && nodeArray_MET2[0].hazirlananMetrajlar.length > 0) {
-      nodeArray_MET2[0].hazirlananMetrajlar = nodeArray_MET2[0].hazirlananMetrajlar.map(oneMetraj => {
-        if (oneMetraj._userId.toString() == RealmApp?.currentUser.id) {
-          isUpdated = true
-          return userMetraj_state
-        } else {
-          return oneMetraj
-        }
-      })
-      // hazirlanan metrajlar içinde bu kullanıcı metrajı henüz yoksa
-      if (!isUpdated) nodeArray_MET2[0].hazirlananMetrajlar = [...nodeArray_MET2[0].hazirlananMetrajlar, userMetraj_state]
-      return nodeArray_MET2
+    const { _mahalId, _pozId, metraj, switchValue } = variables
+    let list = mahalListesi.list
 
-    } else {
+    list = list.map(x => {
+      if (x._mahalId.toString() == _mahalId.toString() && x._pozId.toString() == _pozId.toString()) {
+        x.metraj = metraj
+      }
+      return x
+    })
 
-      nodeArray_MET2 = [{ hazirlananMetrajlar: [userMetraj_state] }]
-      setUserMetraj_state()
-      return nodeArray_MET2
-    }
-
+    mahalListesi.list = list
+    return mahalListesi
   }
 
+
   return useMutation({
-    mutationFn: ({ payload, selectedNode, userMetraj_state, setUserMetraj_state }) => {
-      return RealmApp?.currentUser.callFunction("collectionDugumler", ({ functionName: "updateUserMetraj", propertyValue: payload, _projectId: isProject?._id, _mahalId: selectedNode?._mahalId, _pozId: selectedNode?._pozId }))
+    mutationFn: (mahalMetrajlar) => {
+      return RealmApp?.currentUser.callFunction("collectionDugumler", ({ functionName: "updateMahalMetraj", _projectId: isProject?._id, mahalMetrajlar }))
     },
-    // onSuccess: () => queryClient.invalidateQueries({ queryKey: ['mahalListesi', isProject?._id.toString()] })
-    onSuccess: (returnData, variables2) => queryClient.setQueryData(['dugumMetraj', variables2.selectedNode?._id.toString()], (nodeArray_MET) => userMetraj_optimisticUpdate(nodeArray_MET, variables2))
+    // onSuccess: () => queryClient.invalidateQueries({ queryKey: ["hazirlananMetraj"] })
+    // onSuccess: (returnData, variables) => queryClient.setQueryData(['mahalListesi', isProject?._id.toString()], (mahallistesi) => mahalListesi_optimisticUpdate(mahallistesi, variables))
   })
 
 }
+
+
+
+
+
+
+export const useUpdateHazirlananMetraj = () => {
+
+  const RealmApp = useApp();
+  const queryClient = useQueryClient()
+  const { isProject } = useContext(StoreContext)
+
+  // const hazirlananMetraj_optimisticUpdate = (nodeArray_MET, variables) => {
+
+  //   const { hazirlananMetraj_state, setHazirlananMetraj_state } = variables
+  //   let nodeArray_MET2 = [...nodeArray_MET]
+  //   let isUpdated
+  //   if (nodeArray_MET2 && nodeArray_MET2[0].hazirlananMetrajlar.length > 0) {
+  //     nodeArray_MET2[0].hazirlananMetrajlar = nodeArray_MET2[0].hazirlananMetrajlar.map(oneMetraj => {
+  //       if (oneMetraj._userId.toString() == RealmApp?.currentUser.id) {
+  //         isUpdated = true
+  //         return hazirlananMetraj_state
+  //       } else {
+  //         return oneMetraj
+  //       }
+  //     })
+  //     // hazirlanan metrajlar içinde bu kullanıcı metrajı henüz yoksa
+  //     if (!isUpdated) nodeArray_MET2[0].hazirlananMetrajlar = [...nodeArray_MET2[0].hazirlananMetrajlar, hazirlananMetraj_state]
+  //     return nodeArray_MET2
+
+  //   } else {
+
+  //     nodeArray_MET2 = [{ hazirlananMetrajlar: [hazirlananMetraj_state] }]
+  //     setHazirlananMetraj_state()
+  //     return nodeArray_MET2
+  //   }
+
+  // }
+
+  return useMutation({
+    mutationFn: ({ payload, selectedNode, hazirlananMetraj_state, setHazirlananMetraj_state }) => {
+      return RealmApp?.currentUser.callFunction("collectionDugumler", ({ functionName: "updateHazirlananMetraj", propertyValue: payload, _projectId: isProject?._id, _mahalId: selectedNode?._mahalId, _pozId: selectedNode?._pozId }))
+    },
+    onSuccess: ({ selectedNode }) => queryClient.invalidateQueries({ queryKey: ['hazirlananMetrajlar', selectedNode?._id.toString()] })
+    // onSuccess: (returnData, variables) => queryClient.setQueryData(['hazirlananMetraj', selectedNode._id.toString()], (nodeArray_MET) => hazirlananMetraj_optimisticUpdate(nodeArray_MET, variables))
+  })
+
+}
+
+
+
+
+
+
+export const useUpdateOnaylananMetrajlar = () => {
+
+  const RealmApp = useApp();
+  const queryClient = useQueryClient()
+  const { isProject } = useContext(StoreContext)
+
+  // const hazirlananMetraj_optimisticUpdate = (nodeArray_MET, variables) => {
+
+  //   const { hazirlananMetraj_state, setHazirlananMetraj_state } = variables
+  //   let nodeArray_MET2 = [...nodeArray_MET]
+  //   let isUpdated
+  //   if (nodeArray_MET2 && nodeArray_MET2[0].hazirlananMetrajlar.length > 0) {
+  //     nodeArray_MET2[0].hazirlananMetrajlar = nodeArray_MET2[0].hazirlananMetrajlar.map(oneMetraj => {
+  //       if (oneMetraj._userId.toString() == RealmApp?.currentUser.id) {
+  //         isUpdated = true
+  //         return hazirlananMetraj_state
+  //       } else {
+  //         return oneMetraj
+  //       }
+  //     })
+  //     // hazirlanan metrajlar içinde bu kullanıcı metrajı henüz yoksa
+  //     if (!isUpdated) nodeArray_MET2[0].hazirlananMetrajlar = [...nodeArray_MET2[0].hazirlananMetrajlar, hazirlananMetraj_state]
+  //     return nodeArray_MET2
+
+  //   } else {
+
+  //     nodeArray_MET2 = [{ hazirlananMetrajlar: [hazirlananMetraj_state] }]
+  //     setHazirlananMetraj_state()
+  //     return nodeArray_MET2
+  //   }
+
+  // }
+
+  return useMutation({
+    mutationFn: ({ payload, selectedNode, hazirlananMetraj_state, setHazirlananMetraj_state }) => {
+      return RealmApp?.currentUser.callFunction("collectionDugumler", ({ functionName: "updateOnaylananMetraj", propertyValue: payload, _projectId: isProject?._id, _mahalId: selectedNode?._mahalId, _pozId: selectedNode?._pozId }))
+    },
+    onSuccess: ({ selectedNode }) => queryClient.invalidateQueries({ queryKey: ['onaylananMetraj', selectedNode._id.toString()] })
+    // onSuccess: (returnData, variables) => queryClient.setQueryData(['hazirlananMetrajlar'], (nodeArray_MET) => hazirlananMetraj_optimisticUpdate(nodeArray_MET, variables))
+  })
+
+}
+
 

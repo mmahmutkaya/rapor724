@@ -552,7 +552,7 @@ export default function P_Pozlar() {
                                   key={index}
                                   index={index}
                                   count_={count_}
-                                  onClick={() => handle_selectPoz(oneBaslik, onePoz)}
+                                  onClick={() => handle_selectPoz({oneBaslik, onePoz})}
                                   sx={{
                                     // userSelect:"none",
                                     cursor: "pointer",
