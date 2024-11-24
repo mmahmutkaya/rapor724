@@ -210,7 +210,7 @@ exports = async function ({
 
 
   
-  if (functionName == "updateUserMetraj") {
+  if (functionName == "updateHazirlananMetraj") {
 
     let metraj = 0
 
@@ -317,7 +317,7 @@ exports = async function ({
       ]
     );
 
-    return { ok: "'setUserMetraj' çalıştı.", result, result2 }
+    return { ok: "'updateHazirlananMetraj' çalıştı.", result, result2 }
 
   }
 
