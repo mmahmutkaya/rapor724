@@ -259,18 +259,18 @@ exports = async function ({
       [
         {
           $set: {
-            "satirlar": {
+            "hazirlananMetrajlar": {
               $cond: {
-                if: { $in: [_userId, "$satirlar._userId"] },
+                if: { $in: [_userId, "$hazirlananMetrajlar._userId"] },
                 then: {
                   $map: {
-                    input: "$satirlar",
-                    as: "oneMetraj",
+                    input: "$hazirlananMetrajlar",
+                    as: "hazirlananMetraj",
                     in: {
                       $cond: {
-                        if: { "$eq": ["$$oneMetraj._userId", _userId] },
-                        then: { "$mergeObjects": ["$$oneMetraj", { satirlar, metraj }] },
-                        else: "$$oneMetraj"
+                        if: { "$eq": ["$$hazirlananMetraj._userId", _userId] },
+                        then: { "$mergeObjects": ["$$hazirlananMetraj", { satirlar, metraj }] },
+                        else: "$$hazirlananMetraj"
                       }
                     }
                   }
