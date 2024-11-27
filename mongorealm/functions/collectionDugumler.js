@@ -275,7 +275,7 @@ exports = async function ({
                     }
                   }
                 },
-                else: { $concatArrays: ["$satirlar", [{ _userId, satirlar, metraj }]] }
+                else: { $concatArrays: ["$hazirlananMetrajlar", [{ _userId, satirlar, metraj }]] }
               }
             }
           },
