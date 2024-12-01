@@ -50,23 +50,10 @@ exports = async function ({
 
   const currentTime = new Date();
 
-  const collection_Dugumler = context.services
-    .get("mongodb-atlas")
-    .db("rapor724_dugumler")
-    .collection(_projectId.toString());
+  const collection_Projects = context.services.get("mongodb-atlas").db("rapor724_v2").collection("projects");
+  const collection_Dugumler = context.services.get("mongodb-atlas").db("rapor724_dugumler").collection(_projectId.toString());
+  const collection_MetrajSatirlari = context.services.get("mongodb-atlas").db("rapor724_metrajSatirlari").collection(_projectId.toString());
 
-  const collection_HazirlananMetrajlar = context.services
-    .get("mongodb-atlas")
-    .db("rapor724_hazirlananMetrajlar")
-    .collection(_projectId.toString());
-
-
-
-
-  const collection_Projects = context.services
-    .get("mongodb-atlas")
-    .db("rapor724_v2")
-    .collection("projects");
 
   const project2 = await collection_Projects.aggregate([
     { $match: { _id: _projectId } },
@@ -80,12 +67,12 @@ exports = async function ({
   })
 
 
-
   if (functionName == "getMahalListesi") {
 
     const list = await collection_Dugumler.aggregate([
       { $match: { openMetraj: true } },
     ]).toArray()
+
     // const list = await collection_Dugumler.find({_projectId}).toArray()
 
 
@@ -161,35 +148,35 @@ exports = async function ({
 
 
 
-  if (functionName == "updateMahalMetraj") {
+  // if (functionName == "updateMahalMetraj") {
 
-    const bulkArray = mahalMetrajlar.map(x => {
-      return (
-        {
-          updateOne: {
-            filter: { _id: x._dugumId },
-            update: { $set: { metraj: x.metrajValue } }
-          }
-        }
-      )
-    })
+  //   const bulkArray = mahalMetrajlar.map(x => {
+  //     return (
+  //       {
+  //         updateOne: {
+  //           filter: { _id: x._dugumId },
+  //           update: { $set: { metraj: x.metrajValue } }
+  //         }
+  //       }
+  //     )
+  //   })
 
-    try {
-      const result = collection_Dugumler.bulkWrite(
-        bulkArray,
-        { ordered: false }
-      )
-      return result
-    } catch (error) {
-      print(error)
-    }
+  //   try {
+  //     const result = collection_Dugumler.bulkWrite(
+  //       bulkArray,
+  //       { ordered: false }
+  //     )
+  //     return result
+  //   } catch (error) {
+  //     print(error)
+  //   }
 
-  }
+  // }
 
 
   if (functionName == "getHazirlananMetrajlar") {
 
-    const resultArray = await collection_HazirlananMetrajlar.aggregate([
+    const resultArray = await collection_MetrajSatirlari.aggregate([
       { $match: { _mahalId, _pozId } }
     ]).toArray()
 
@@ -197,20 +184,20 @@ exports = async function ({
   }
 
 
-  if (functionName == "getPozlarMetraj") {
+  // if (functionName == "getPozlarMetraj") {
 
-    const result = collection_Dugumler.aggregate([
-      { $group: { _id: "$_pozId" } }
-    ]);
+  //   const result = collection_Dugumler.aggregate([
+  //     { $group: { _id: "$_pozId" } }
+  //   ]);
 
-    // const result = await collection_Dugumler.find({});
+  //   // const result = await collection_Dugumler.find({});
 
-    return result
+  //   return result
 
-  }
+  // }
 
 
-  
+
   if (functionName == "updateHazirlananMetraj") {
 
     let metraj = 0
@@ -254,7 +241,7 @@ exports = async function ({
     })
 
     let result
-    result = await collection_HazirlananMetrajlar.updateOne(
+    result = await collection_MetrajSatirlari.updateOne(
       { _mahalId, _pozId },
       [
         {
@@ -283,9 +270,9 @@ exports = async function ({
       ]
     );
 
-    
+
     if (!result.matchedCount) {
-      result = await collection_HazirlananMetrajlar.insertOne({_mahalId, _pozId, hazirlananMetrajlar:[{ _userId, satirlar, metraj }]})
+      result = await collection_MetrajSatirlari.insertOne({ _mahalId, _pozId, hazirlananMetrajlar: [{ _userId, satirlar, metraj }] })
     }
 
 
