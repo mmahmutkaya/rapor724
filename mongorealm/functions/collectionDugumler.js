@@ -186,13 +186,13 @@ exports = async function ({
 
   
 
-  if (functionName == "getOnaylananMetrajlar") {
+  if (functionName == "getOnaylananMetraj") {
 
     const resultArray = await collection_OnaylananMetrajlar.aggregate([
       { $match: { _mahalId, _pozId } }
     ]).toArray()
 
-    return resultArray[0]?.onaylananMetrajlar ? resultArray[0].onaylananMetrajlar : resultArray
+    return resultArray[0]
   }
 
 
