@@ -53,6 +53,7 @@ exports = async function ({
   const collection_Projects = context.services.get("mongodb-atlas").db("rapor724_v2").collection("projects");
   const collection_Dugumler = context.services.get("mongodb-atlas").db("rapor724_dugumler").collection(_projectId.toString());
   const collection_HazirlananMetrajlar = context.services.get("mongodb-atlas").db("rapor724_hazirlananMetrajlar").collection(_projectId.toString());
+  const collection_OnaylananMetrajlar = context.services.get("mongodb-atlas").db("rapor724_onaylananMetrajlar").collection(_projectId.toString());
 
 
   const project2 = await collection_Projects.aggregate([
@@ -182,6 +183,18 @@ exports = async function ({
 
     return resultArray[0]?.hazirlananMetrajlar ? resultArray[0].hazirlananMetrajlar : resultArray
   }
+
+  
+
+  if (functionName == "getOnaylananMetrajlar") {
+
+    const resultArray = await collection_OnaylananMetrajlar.aggregate([
+      { $match: { _mahalId, _pozId } }
+    ]).toArray()
+
+    return resultArray[0]?.onaylananMetrajlar ? resultArray[0].onaylananMetrajlar : resultArray
+  }
+
 
 
   // if (functionName == "getPozlarMetraj") {
