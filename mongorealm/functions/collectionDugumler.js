@@ -229,7 +229,7 @@ exports = async function ({
 
 
     if (!result.matchedCount) {
-      result = await collection_OnaylananMetrajlar.insertOne({ _mahalId, _pozId, onaylananMetraj: [onaylananMetraj_state] })
+      result = await collection_OnaylananMetrajlar.insertOne({ _mahalId, _pozId, onaylananMetraj: onaylananMetraj_state })
     }
 
     let result2
