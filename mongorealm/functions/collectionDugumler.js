@@ -238,8 +238,7 @@ exports = async function ({
       [
         {
           $set: {
-            "hazirlananMetrajlar": hazirlananMetrajlar_state,
-            "onaylananMetraj": onaylananMetraj_state
+            "hazirlananMetrajlar": hazirlananMetrajlar_state
           },
         },
       ]
