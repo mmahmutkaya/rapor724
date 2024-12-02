@@ -194,7 +194,7 @@ exports = async function ({
       { $match: { _mahalId, _pozId } }
     ]).toArray()
 
-    return resultArray[0]?.onaylananMetrajlar ? resultArray[0].onaylananMetrajlar : resultArray
+    return resultArray[0]?.onaylananMetraj ? resultArray[0].onaylananMetraj : resultArray
   }
 
 
