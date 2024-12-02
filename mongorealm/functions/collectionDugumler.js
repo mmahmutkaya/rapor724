@@ -266,7 +266,7 @@ exports = async function ({
       ]
     );
 
-    return { ok: "'updateHazirlananMetraj' çalıştı.", result, result2, result3 }
+    return { ok: "'updateOnaylananMetraj' çalıştı.", result, result2, result3 }
 
   }
   
