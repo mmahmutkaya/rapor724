@@ -35,12 +35,12 @@ exports = async function ({ projectId }) {
     // pozlar bulma ve metrajlar ile birleştirme
     const collection = context.services.get("mongodb-atlas").db("rapor724_pozlar").collection(_projectId.toString())
     let pozlar = await collection.find({ isDeleted: false }).toArray()
-    pozlar = pozlar.map(onePoz => {
+    let pozlar2 = pozlar.map(onePoz => {
       let metrajObj = pozlarMetraj.find(oneMetraj => oneMetraj._id == onePoz._id)
       return {...onePoz, ...metrajObj}
     })
     
-    return pozlar
+    return pozlar2
 
   } catch (err) {
 
