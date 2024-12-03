@@ -215,8 +215,6 @@ exports = async function ({
 
   if (functionName == "updateOnaylananMetraj") {
 
-    return "burada"
-
     let result
     result = await collection_OnaylananMetrajlar.updateOne(
       { _mahalId, _pozId },
