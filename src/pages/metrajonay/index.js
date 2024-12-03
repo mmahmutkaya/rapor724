@@ -1,16 +1,13 @@
 
-import { useState, useContext, useEffect } from 'react';
+import { useState, useContext } from 'react';
 import { useNavigate } from "react-router-dom";
 import { StoreContext } from '../../components/store'
 import { useApp } from "../../components/useApp";
 import FormPozCreate from '../../components/FormPozCreate'
 import EditPozBaslik from '../../components/EditPozBaslik'
 import FormPozBaslikCreate from '../../components/FormPozBaslikCreate'
-import MetrajHeader from '../../components/MetrajHeader'
-import { BSON } from "realm-web"
+import MetrajOnayHeader from '../../components/MetrajOnayHeader'
 
-import { useQuery, useQueryClient, useMutation } from '@tanstack/react-query'
-import { useGetPozlar } from '../../hooks/useMongo';
 
 import { styled } from '@mui/system';
 import Grid from '@mui/material/Grid';
@@ -20,15 +17,15 @@ import Stack from '@mui/material/Stack';
 import { Button, TextField, Typography } from '@mui/material';
 import Box from '@mui/material/Box';
 import InfoIcon from '@mui/icons-material/Info';
-import { lightBlue } from '@mui/material/colors';
 
 
 
-export default function P_Metraj() {
+export default function P_MetrajOnay() {
 
   const { isProject, setIsProject } = useContext(StoreContext)
   const { selectedPoz, setSelectedPoz } = useContext(StoreContext)
   const { selectedPozBaslik, setSelectedPozBaslik } = useContext(StoreContext)
+  const { pozlar, setPozlar } = useContext(StoreContext)
   const { drawerWidth, topBarHeight, subHeaderHeight } = useContext(StoreContext)
 
   const [show, setShow] = useState("Main")
@@ -37,14 +34,18 @@ export default function P_Metraj() {
   const [autoFocus, setAutoFocus] = useState({ baslikId: null, pozId: null })
 
   const navigate = useNavigate()
-  useEffect(() => {
-    !isProject && navigate("/projects")
-  }, [])
+  // !isProject ? navigate('/projects') : null
+  if (!isProject) window.location.href = "/projects"
 
   const RealmApp = useApp();
 
-  const { data: pozlar } = useGetPozlar()
-  pozlar && console.log("pozlar", pozlar)
+  const pozlar_fecth = async () => {
+    if (!pozlar) {
+      const result = await RealmApp?.currentUser.callFunction("getProjectPozlar", ({ projectId: isProject?._id }));
+      setPozlar(result)
+    }
+  }
+  pozlar_fecth()
 
 
   const handleSelectPoz = (poz) => {
@@ -62,6 +63,113 @@ export default function P_Metraj() {
   let toplam
   let g_altBaslik
 
+
+  const _3_fixed_width_rem = "6rem 35rem 5rem"
+  _3_fixed_width_rem.split(" ").map(item => {
+    let gecici = Number(item.replace("rem", ""))
+    toplam ? toplam = toplam + gecici : toplam = gecici
+  })
+  const total_fixed_width = toplam
+
+  const one_bosluk_width = 2
+
+  const one_poz_width = 10
+
+
+  // let basliklar = [
+  //   { id: 1, isim: "No" },
+  //   { id: 2, isim: "İsim" },
+  //   { id: 3, isim: "bosluk" },
+  //   { id: 3, isim: "Tarif" },
+  //   { id: 4, isim: "Ölçü" },
+  // ]
+
+  /* padding - top | right | bottom | left */
+  // const [basliklar, setBasliklar] = useState([
+  //   { id: 1, sira: 1, referans: "kod", goster: true, sabit: true, genislik: 7, padding_M: "0px 1rem 0px 0px", yatayHiza: "end", name: "Poz No", dataType: "number" },
+  //   { id: 2, sira: 2, referans: "name", goster: true, sabit: true, genislik: 20, padding_M: "0px 1rem 0px 0px", yatayHiza: "end", name: "Poz İsmi", dataType: "string" },
+  //   { id: 3, sira: 3, referans: "name", goster: true, sabit: false, genislik: 15, padding_M: "0px 0rem 0px 0px", yatayHiza: "center", name: "Zemin Alan", dataType: "date" },
+  //   { id: 4, sira: 4, referans: "name", goster: true, sabit: false, genislik: 20, padding_M: "0px 0rem 0px 0px", yatayHiza: "center", name: "Fonksiyon", dataType: "date" },
+  // ].sort((a, b) => a.sira - b.sira))
+
+  // const [basliklar, setBasliklar] = useState(isProject?.pozBasliklari?.filter(item => item.goster))
+
+
+
+  let pozBasliklari = isProject?.metrajOnayBasliklari?.filter(x => x.tur == "pozBasliklari")
+  //
+  let pozBasliklariGenislikler = ""
+  pozBasliklari.map(x => pozBasliklariGenislikler = pozBasliklariGenislikler + x.genislik + "rem ")
+  pozBasliklariGenislikler = pozBasliklariGenislikler.slice(0, -1)
+  // console.log("pozBasliklariGenislikler", pozBasliklariGenislikler)
+  //
+  let pozBasliklariToplamGenislik = 0
+  pozBasliklari.map(x => pozBasliklariToplamGenislik = pozBasliklariToplamGenislik + Number(x.genislik))
+  pozBasliklariToplamGenislik = pozBasliklariToplamGenislik + "rem"
+  // console.log("pozBasliklariToplamGenislik", pozBasliklariToplamGenislik)
+
+
+
+  let kisiBasliklariSablon = isProject?.metrajOnayBasliklari?.find(x => x.tur == "kisiBasliklariSablon")
+  // console.log("kisiBasliklariSablon", kisiBasliklariSablon)
+  let kisiBasliklari = isProject?.metrajYapabilenler?.map(x => { return { ...kisiBasliklariSablon, _userId: x } })
+  //
+  let kisiBasliklariGenislikler = ""
+  kisiBasliklari.map(x => kisiBasliklariGenislikler = kisiBasliklariGenislikler + x.genislik + "rem ")
+  kisiBasliklariGenislikler = kisiBasliklariGenislikler.slice(0, -1)
+  // console.log("kisiBasliklariGenislikler", kisiBasliklariGenislikler)
+  //
+  let kisiBasliklariToplamGenislik = 0
+  kisiBasliklari.map(x => kisiBasliklariToplamGenislik = kisiBasliklariToplamGenislik + Number(x.genislik))
+  kisiBasliklariToplamGenislik = kisiBasliklariToplamGenislik + "rem"
+  // console.log("kisiBasliklariToplamGenislik", kisiBasliklariToplamGenislik)
+
+
+
+
+
+
+  let totalWidthSabit = isProject?.pozBasliklari?.filter(item => item.sabit).reduce(
+    (accumulator, oneBilgi) => accumulator + oneBilgi.genislik,
+    0
+  )
+  totalWidthSabit = totalWidthSabit + 'rem'
+  // console.log("totalWidthSabit", totalWidthSabit)
+
+
+  let totalWidthDegisken = isProject?.pozBasliklari?.filter(item => !item.sabit && item.show?.find(item => item.indexOf("webPage_pozlar") > -1)).reduce(
+    (accumulator, oneBilgi) => accumulator + oneBilgi.genislik,
+    0
+  )
+  totalWidthDegisken = totalWidthDegisken + 'rem'
+  // console.log("totalWidthDegisken", totalWidthDegisken)
+  // console.log("isProject.pozBasliklari", isProject?.pozBasliklari)
+
+
+  let totalWidth = isProject?.pozBasliklari?.reduce(
+    (accumulator, oneBilgi) => accumulator + oneBilgi.genislik,
+    0
+  )
+  totalWidth = (totalWidth + 2) + 'rem'
+  // console.log("totalWidth", totalWidth)
+
+
+  let gridTemplateColumnsSabit = isProject?.pozBasliklari?.filter(item => item.sabit).reduce(
+    (ilkString, oneBilgi, index) => index != isProject?.pozBasliklari?.length ? ilkString + (oneBilgi.genislik + "rem ") : ilkString + (oneBilgi.genislik + "rem"),
+    ""
+  )
+  // console.log("gridTemplateColumnsSabit", gridTemplateColumnsSabit)
+
+
+  let gridTemplateColumnsDegisken = isProject?.pozBasliklari?.filter(item => !item.sabit && item.show?.find(item => item.indexOf("webPage_pozlar") > -1)).reduce(
+    (ilkString, oneBilgi, index) => index != isProject?.pozBasliklari?.length ? ilkString + (oneBilgi.genislik + "rem ") : ilkString + (oneBilgi.genislik + "rem"),
+    ""
+  )
+  // console.log("gridTemplateColumnsDegisken", gridTemplateColumnsDegisken)
+
+
+  let gridTemplateColumns_ = gridTemplateColumnsSabit + " 2rem " + gridTemplateColumnsDegisken
+  // console.log("gridTemplateColumns_", gridTemplateColumns_)
 
 
   const TableHeader = styled('div')(({ index }) => ({
@@ -158,45 +266,45 @@ export default function P_Metraj() {
 
 
 
-  // const handle_input_onChange = (event, oneBaslik, onePoz) => {
+  const handle_input_onChange = (event, oneBaslik, onePoz) => {
 
-  //   setAutoFocus({ baslikId: oneBaslik.id, pozId: onePoz._id.toString() })
+    setAutoFocus({ baslikId: oneBaslik.id, pozId: onePoz._id.toString() })
 
-  //   // db ye kayıt yapılmışsa bu işlemi yapsın yoksa refresh yapsın
-  //   const newBilgi = { pozId: onePoz._id, baslikId: oneBaslik.id, veri: event.target.value }
+    // db ye kayıt yapılmışsa bu işlemi yapsın yoksa refresh yapsın
+    const newBilgi = { pozId: onePoz._id, baslikId: oneBaslik.id, veri: event.target.value }
 
-  //   if (oneBaslik.veriTuruId === "sayi" && !isNumeric(newBilgi.veri) && newBilgi.veri != "-" && newBilgi.veri.length != 0 && newBilgi.veri != ".") {
-  //     return
-  //   }
-
-
-  //   setPozlar(pozlar => {
-  //     // if (!pozlar.find(item => item._id.toString() == onePoz._id.toString()).ilaveBilgiler) {
-  //     //   pozlar.find(item => item._id.toString() == onePoz._id.toString()).ilaveBilgiler = [newBilgi]
-  //     //   return pozlar
-  //     // }
-  //     if (!pozlar.find(item => item._id.toString() == onePoz._id.toString()).ilaveBilgiler.find(item => item.baslikId == oneBaslik.id)) {
-  //       pozlar.find(item => item._id.toString() == onePoz._id.toString()).ilaveBilgiler.push(newBilgi)
-  //       return pozlar
-  //     }
-  //     pozlar.find(item => item._id.toString() == onePoz._id.toString()).ilaveBilgiler.find(item => item.baslikId == oneBaslik.id).veri = newBilgi.veri
-  //     return pozlar
-  //   })
+    if (oneBaslik.veriTuruId === "sayi" && !isNumeric(newBilgi.veri) && newBilgi.veri != "-" && newBilgi.veri.length != 0 && newBilgi.veri != ".") {
+      return
+    }
 
 
-  //   setPozBilgiler_willBeSaved(pozBilgiler_willBeSaved => {
-  //     let pozBilgiler_willBeSaved_ = [...pozBilgiler_willBeSaved]
-  //     // console.log("mevcutBilgi",pozBilgiler_willBeSaved.find(item => item.pozId.toString() == onePoz._id.toString() && item.baslikId == oneBaslik.id))
-  //     if (pozBilgiler_willBeSaved_.find(item => item.pozId == onePoz._id.toString() && item.baslikId == oneBaslik.id)) {
-  //       pozBilgiler_willBeSaved_.find(item => item.pozId == onePoz._id.toString() && item.baslikId == oneBaslik.id).veri = newBilgi.veri
-  //     } else {
-  //       pozBilgiler_willBeSaved_ = [...pozBilgiler_willBeSaved_, { ...newBilgi }]
-  //     }
-  //     return pozBilgiler_willBeSaved_
-  //   })
+    setPozlar(pozlar => {
+      // if (!pozlar.find(item => item._id.toString() == onePoz._id.toString()).ilaveBilgiler) {
+      //   pozlar.find(item => item._id.toString() == onePoz._id.toString()).ilaveBilgiler = [newBilgi]
+      //   return pozlar
+      // }
+      if (!pozlar.find(item => item._id.toString() == onePoz._id.toString()).ilaveBilgiler.find(item => item.baslikId == oneBaslik.id)) {
+        pozlar.find(item => item._id.toString() == onePoz._id.toString()).ilaveBilgiler.push(newBilgi)
+        return pozlar
+      }
+      pozlar.find(item => item._id.toString() == onePoz._id.toString()).ilaveBilgiler.find(item => item.baslikId == oneBaslik.id).veri = newBilgi.veri
+      return pozlar
+    })
 
 
-  // }
+    setPozBilgiler_willBeSaved(pozBilgiler_willBeSaved => {
+      let pozBilgiler_willBeSaved_ = [...pozBilgiler_willBeSaved]
+      // console.log("mevcutBilgi",pozBilgiler_willBeSaved.find(item => item.pozId.toString() == onePoz._id.toString() && item.baslikId == oneBaslik.id))
+      if (pozBilgiler_willBeSaved_.find(item => item.pozId == onePoz._id.toString() && item.baslikId == oneBaslik.id)) {
+        pozBilgiler_willBeSaved_.find(item => item.pozId == onePoz._id.toString() && item.baslikId == oneBaslik.id).veri = newBilgi.veri
+      } else {
+        pozBilgiler_willBeSaved_ = [...pozBilgiler_willBeSaved_, { ...newBilgi }]
+      }
+      return pozBilgiler_willBeSaved_
+    })
+
+
+  }
 
   const savePoz = async () => {
     console.log("pozBilgiler_willBeSaved", pozBilgiler_willBeSaved)
@@ -216,19 +324,13 @@ export default function P_Metraj() {
   }
 
 
-  let sutunGenislikleri = "5rem 5rem 5rem 2rem 5rem"
-  let gridTemplateColumnsDegisken = "5rem 5rem"
-  let totalWidthSabit = "25rem"
-  let totalWidth = "25rem"
-
-
 
   return (
 
     <>
 
       <Grid item >
-        <MetrajHeader setShow={setShow} editPoz={editPoz} setEditPoz={setEditPoz} savePoz={savePoz} />
+        <MetrajOnayHeader setShow={setShow} editPoz={editPoz} setEditPoz={setEditPoz} savePoz={savePoz} />
       </Grid>
 
       {show == "FormPozCreate" &&
@@ -260,16 +362,96 @@ export default function P_Metraj() {
 
       {show == "Main" && isProject?.wbs?.filter(item => item.openForPoz).length > 0 &&
 
-        <Box sx={{ display: "grid", gridTemplateColumns: sutunGenislikleri, mt: subHeaderHeight, pt: "1rem", pl: "1rem", pr: "1rem" }}>
+        <Box sx={{ mt: subHeaderHeight, pt: "1rem", pl: "1rem", pr: "1rem" }}>
 
-          {/* SUTUN BAŞLIK BİLGİLERİ SATIRI */}
-          <Grid sx={{}}>
-            <Box sx={{ display: "grid", justifyContent: "center", backgroundColor: "lightGray" }}>Poz No</Box>
-            <Box sx={{ display: "grid", justifyContent: "center", backgroundColor: "lightGray" }}>Poz İsmi</Box>
-            <Box sx={{ display: "grid", justifyContent: "center", backgroundColor: "lightGray" }}>Birim</Box>
-            <Box sx={{ display: "grid", justifyContent: "center", backgroundColor: "white", color: "white" }}>.</Box>
-            <Box sx={{ display: "grid", justifyContent: "center", backgroundColor: "lightGray" }}>Miktar</Box>
+          {/* EN ÜST BAŞLIK ÜST SATIRI */}
+          <Grid
+            sx={{
+              pb: "1rem",
+              display: "grid",
+              gridTemplateColumns: gridTemplateColumns_,
+            }}
+          >
+            {/* HAYALET */}
+            <Box sx={{ display: "none" }}>
+              {count_ = isProject?.pozBasliklari?.filter(item => item.sabit).length}
+            </Box>
+            {isProject?.pozBasliklari?.filter(item => item.sabit).map((oneBaslik, index) => {
+              return (
+                <Box
+                  sx={{
+                    cursor: "pointer",
+                    backgroundColor: selectedPozBaslik?.id == oneBaslik.id ? "rgba(120, 120, 120, 0.7)" : "rgb(120, 120, 120, 0.4)",
+                    fontWeight: "bold",
+                    border: "solid black 1px",
+                    borderRight: index + 1 == count_ ? "solid black 1px" : "0px",
+                    width: "100%",
+                    display: "grid",
+                    alignItems: "center",
+                    justifyContent: oneBaslik.yatayHiza,
+                  }}
+                  onClick={() => handle_selectBaslik(oneBaslik)}
+                  key={index}
+                >
+                  {oneBaslik.name}
+                </Box>
+              )
+            })}
+
+
+            <Bosluk>
+            </Bosluk>
+
+
+            {/* HAYALET KOMPONENT */}
+            <Box sx={{ display: "none" }}>
+              {count_ = isProject?.pozBasliklari?.filter(item => !item.sabit && item.show?.find(item => item.indexOf("webPage_pozlar") > -1)).length}
+            </Box>
+            {/* GÖZÜKEN KOMPONENT */}
+            {isProject?.pozBasliklari?.filter(item => !item.sabit && item.show?.find(item => item.indexOf("webPage_pozlar") > -1)).map((oneBaslik, index) => {
+              return (
+                <Box
+                  sx={{
+                    cursor: "pointer",
+                    backgroundColor: selectedPozBaslik?.id == oneBaslik.id ? "rgba(120, 120, 120, 0.7)" : "rgb(120, 120, 120, 0.4)",
+                    fontWeight: "bold",
+                    border: "solid black 1px",
+                    borderRight: index + 1 == count_ ? "solid black 1px" : "0px",
+                    width: "100%",
+                    display: "grid",
+                    alignItems: "center",
+                    justifyContent: oneBaslik.yatayHiza
+                  }}
+                  onClick={() => handle_selectBaslik(oneBaslik)}
+                  key={index}
+                >
+                  <Box sx={{ display: "grid", justifyContent: oneBaslik.yatayHiza }}>
+                    {oneBaslik.name}
+                  </Box>
+                  <Box sx={{ display: "grid", justifyContent: oneBaslik.yatayHiza }}>
+
+                    {/* HAYALET KOMPONENT */}
+                    <Box sx={{ display: "none" }}>
+                      {g_altBaslik = pozlar?.reduce((mergeArray, { ilaveBilgiler }) => [...mergeArray, ...ilaveBilgiler], []).filter(item => item.baslikId == oneBaslik.id).reduce((toplam, oneBilgi) => toplam + parseFloat(oneBilgi.veri), 0)}
+                    </Box>
+                    {/* GÖZÜKEN KOMPONENT */}
+                    {oneBaslik.veriTuruId == "sayi" && isNumeric(g_altBaslik) &&
+                      <Box>
+                        {g_altBaslik}
+                      </Box>
+                    }
+                    {oneBaslik.veriTuruId == "sayi" && !isNumeric(g_altBaslik) &&
+                      <Box sx={{ color: selectedPozBaslik?.id == oneBaslik.id ? "rgba(120, 120, 120, 0.7)" : "rgb(120, 120, 120, 0.4)" }}>
+                        .
+                      </Box>
+                    }
+                  </Box>
+                </Box>
+              )
+            })}
+
           </Grid>
+
 
           {/* POZ BAŞLIKLARI ve POZLAR */}
           {isProject?.wbs
@@ -394,7 +576,7 @@ export default function P_Metraj() {
                           key={index}
                           sx={{
                             display: "grid",
-                            gridTemplateColumns: sutunGenislikleri,
+                            gridTemplateColumns: gridTemplateColumns_,
                           }}
                         >
                           {
@@ -455,7 +637,7 @@ export default function P_Metraj() {
                                       type='text'
                                       // onKeyDown={(evt) => ilaveYasaklilar.some(elem => evt.target.value.includes(elem)) && ilaveYasaklilar.find(item => item == evt.key) && evt.preventDefault()}
                                       onKeyDown={(event) => handle_input_onKey(event, oneBaslik)}
-                                      // onChange={(event) => handle_input_onChange(event, oneBaslik, onePoz)}
+                                      onChange={(event) => handle_input_onChange(event, oneBaslik, onePoz)}
                                       sx={{
                                         border: "none",
                                         width: "100%",

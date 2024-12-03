@@ -36,10 +36,11 @@ import { useGetMahaller } from '../hooks/useMongo';
 
 export default function P_MetrajCetveliHeader({
   show, setShow,
-  saveHazirlananMetraj_toDb,
+  save_hazirlananMetraj_toDb,
   load_hazirlananMetraj_state,
-  load_metrajlar_state,
-  setUserMetraj_state,
+  load_hazirlananVeOnaylananMetrajlar_state,
+  setHazirlananMetraj_state,
+  setOnaylananMetraj_state,
   isChanged, setIsChanged,
   saveOnaylananMetraj_toDb,
 }) {
@@ -73,9 +74,11 @@ export default function P_MetrajCetveliHeader({
     setShowDialog(false)
   }
 
+
   const approveDialog = () => {
     setShowDialog(false)
-    setUserMetraj_state()
+    setHazirlananMetraj_state()
+    setOnaylananMetraj_state()
     setIsChanged()
     setShow("DugumMetrajlari")
   }
@@ -217,7 +220,7 @@ export default function P_MetrajCetveliHeader({
                 <Grid item >
                   <IconButton
                     onClick={() => {
-                      load_metrajlar_state()
+                      load_hazirlananVeOnaylananMetrajlar_state()
                       setShow("MetrajOnay")
                     }}
                     aria-label="lbsUncliced">
@@ -251,7 +254,7 @@ export default function P_MetrajCetveliHeader({
               {show == "EditMetraj" &&
                 <Grid item >
                   <IconButton onClick={() => {
-                    saveHazirlananMetraj_toDb()
+                    save_hazirlananMetraj_toDb()
                   }} aria-label="lbsUncliced">
                     <SaveIcon variant="contained" />
                   </IconButton>
@@ -280,12 +283,11 @@ export default function P_MetrajCetveliHeader({
               {show == "MetrajOnay" &&
                 <Grid item >
                   <IconButton onClick={() => {
-                    setShow("DugumMetrajlari")
-                    // if (isChanged) {
-                    //   setShowDialog(true)
-                    // } else {
-                    //   setShow("DugumMetrajlari")
-                    // }
+                    if (isChanged) {
+                      setShowDialog(true)
+                    } else {
+                      setShow("DugumMetrajlari")
+                    }
                   }} aria-label="lbsUncliced">
                     <ClearOutlined variant="contained" sx={{ color: "red" }} />
                   </IconButton>
@@ -299,7 +301,7 @@ export default function P_MetrajCetveliHeader({
                   <IconButton onClick={() => {
                     saveOnaylananMetraj_toDb()
                   }} aria-label="lbsUncliced">
-                    <FileDownloadDoneIcon variant="contained" />
+                    <SaveIcon variant="contained" />
                   </IconButton>
                 </Grid>
               }

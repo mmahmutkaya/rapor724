@@ -497,10 +497,11 @@ export default function P_MahalMetraj() {
 
                             return <Input
                               key={oneMahal._id.toString() + onePoz._id.toString()}
+                              id={oneMahal._id.toString() + onePoz._id.toString()}
                               // autoFocus={autoFocus.baslikId == oneBaslik.id && autoFocus.mahalId == oneMahal._id.toString()}
                               // autoFocus={autoFocus.mahalId == oneMahal._id.toString()}
                               // autoFocus={true}
-                              defaultValue={theDugum?.hazirlananMetrajlar?.length ? theDugum.hazirlananMetrajlar[0].metraj : ""}
+                              defaultValue={theDugum?.onaylananMetraj ? theDugum.onaylananMetraj.metraj : ""}
                               readOnly={!theDugum}
                               disableUnderline={true}
                               size="small"

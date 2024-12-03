@@ -166,13 +166,13 @@ export default function Sidebar({ setMobileOpen }) {
 
 
             <ListItemButton
-              onClick={() => navigate('/metrajcetveli')}
-              sx={{ backgroundColor: pathname == "/metrajcetveli" ? "#f0f0f1" : null }}
+              onClick={() => navigate('/metrajonay')}
+              sx={{ backgroundColor: pathname == "/metrajonay" ? "#f0f0f1" : null }}
             >
               <ListItemIcon>
                 <SendIcon />
               </ListItemIcon>
-              <ListItemText primary="Metraj Cetveli" />
+              <ListItemText primary="Metraj Onay" />
             </ListItemButton>
 
 

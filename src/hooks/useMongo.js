@@ -69,7 +69,7 @@ export const useGetHazirlananMetrajlar = ({ selectedNode }) => {
   const { isProject } = useContext(StoreContext)
 
   return useQuery({
-    queryKey: ['hazirlananMetrajlar', selectedNode._id.toString()],
+    queryKey: ['hazirlananMetrajlar', selectedNode?._id.toString()],
     queryFn: () => RealmApp?.currentUser.callFunction("collectionDugumler", ({ functionName: "getHazirlananMetrajlar", _projectId: isProject?._id, _mahalId: selectedNode?._mahalId, _pozId: selectedNode?._pozId })),
     enabled: !!RealmApp && !!isProject && !!selectedNode,
     refetchOnMount: false,
@@ -81,14 +81,14 @@ export const useGetHazirlananMetrajlar = ({ selectedNode }) => {
 
 
 
-export const useGetOnaylananMetrajlar = ({ selectedNode }) => {
+export const useGetOnaylananMetraj = ({ selectedNode }) => {
 
   const RealmApp = useApp();
   const { isProject } = useContext(StoreContext)
 
   return useQuery({
-    queryKey: ['onaylananMetrajlar', selectedNode._id.toString()],
-    queryFn: () => RealmApp?.currentUser.callFunction("collectionDugumler", ({ functionName: "getOnaylananMetrajlar", _projectId: isProject?._id, _mahalId: selectedNode?._mahalId, _pozId: selectedNode?._pozId })),
+    queryKey: ['onaylananMetraj', selectedNode?._id.toString()],
+    queryFn: () => RealmApp?.currentUser.callFunction("collectionDugumler", ({ functionName: "getOnaylananMetraj", _projectId: isProject?._id, _mahalId: selectedNode?._mahalId, _pozId: selectedNode?._pozId })),
     enabled: !!RealmApp && !!isProject && !!selectedNode,
     refetchOnMount: false,
     refetchOnWindowFocus: false,
@@ -108,7 +108,7 @@ export const useGetPozlarMetraj = () => {
   const { isProject } = useContext(StoreContext)
 
   return useQuery({
-    queryKey: ['pozMetrajlar', isProject?._id.toString()],
+    queryKey: ['pozlarMetraj', isProject?._id.toString()],
     queryFn: () => RealmApp?.currentUser.callFunction("collectionDugumler", ({ functionName: "getPozlarMetraj", _projectId: isProject?._id })),
     enabled: !!RealmApp && !!isProject,
     refetchOnMount: false,
@@ -395,39 +395,26 @@ export const useUpdateHazirlananMetraj = () => {
   const queryClient = useQueryClient()
   const { isProject } = useContext(StoreContext)
 
-  // const hazirlananMetraj_optimisticUpdate = (nodeArray_MET, variables) => {
+  const optimisticUpdate = (hazirlananMetrajlar, variables) => {
 
-  //   const { hazirlananMetraj_state, setHazirlananMetraj_state } = variables
-  //   let nodeArray_MET2 = [...nodeArray_MET]
-  //   let isUpdated
-  //   if (nodeArray_MET2 && nodeArray_MET2[0].hazirlananMetrajlar.length > 0) {
-  //     nodeArray_MET2[0].hazirlananMetrajlar = nodeArray_MET2[0].hazirlananMetrajlar.map(oneMetraj => {
-  //       if (oneMetraj._userId.toString() == RealmApp?.currentUser.id) {
-  //         isUpdated = true
-  //         return hazirlananMetraj_state
-  //       } else {
-  //         return oneMetraj
-  //       }
-  //     })
-  //     // hazirlanan metrajlar içinde bu kullanıcı metrajı henüz yoksa
-  //     if (!isUpdated) nodeArray_MET2[0].hazirlananMetrajlar = [...nodeArray_MET2[0].hazirlananMetrajlar, hazirlananMetraj_state]
-  //     return nodeArray_MET2
+    const { hazirlananMetraj_state } = variables
 
-  //   } else {
+    hazirlananMetrajlar = hazirlananMetrajlar.filter(x => x._userId.toString() !== hazirlananMetraj_state._userId.toString())
 
-  //     nodeArray_MET2 = [{ hazirlananMetrajlar: [hazirlananMetraj_state] }]
-  //     setHazirlananMetraj_state()
-  //     return nodeArray_MET2
-  //   }
+    hazirlananMetrajlar = [...hazirlananMetrajlar, hazirlananMetraj_state]
 
-  // }
-
+    return hazirlananMetrajlar
+    
+  }
+  
   return useMutation({
-    mutationFn: ({ payload, selectedNode, hazirlananMetraj_state, setHazirlananMetraj_state }) => {
-      return RealmApp?.currentUser.callFunction("collectionDugumler", ({ functionName: "updateHazirlananMetraj", propertyValue: payload, _projectId: isProject?._id, _mahalId: selectedNode?._mahalId, _pozId: selectedNode?._pozId }))
+    mutationFn: ({ selectedNode, hazirlananMetraj_state, setHazirlananMetraj_state }) => {
+      return RealmApp?.currentUser.callFunction("collectionDugumler", ({ functionName: "updateHazirlananMetraj", hazirlananMetraj_state, _projectId: isProject?._id, _mahalId: selectedNode?._mahalId, _pozId: selectedNode?._pozId }))
     },
-    onSuccess: ({ selectedNode }) => queryClient.invalidateQueries({ queryKey: ['hazirlananMetrajlar', selectedNode?._id.toString()] })
-    // onSuccess: (returnData, variables) => queryClient.setQueryData(['hazirlananMetraj', selectedNode._id.toString()], (nodeArray_MET) => hazirlananMetraj_optimisticUpdate(nodeArray_MET, variables))
+    onSuccess: (returnData, variables) => {
+      queryClient.setQueryData(['hazirlananMetrajlar', variables.selectedNode._id.toString()], (hazirlananMetrajlar) => optimisticUpdate(hazirlananMetrajlar, variables))
+      variables.setHazirlananMetraj_state()
+    }
   })
 
 }
@@ -437,45 +424,24 @@ export const useUpdateHazirlananMetraj = () => {
 
 
 
-export const useUpdateOnaylananMetrajlar = () => {
+export const useUpdateOnaylananMetraj = () => {
 
   const RealmApp = useApp();
   const queryClient = useQueryClient()
   const { isProject } = useContext(StoreContext)
 
-  // const hazirlananMetraj_optimisticUpdate = (nodeArray_MET, variables) => {
-
-  //   const { hazirlananMetraj_state, setHazirlananMetraj_state } = variables
-  //   let nodeArray_MET2 = [...nodeArray_MET]
-  //   let isUpdated
-  //   if (nodeArray_MET2 && nodeArray_MET2[0].hazirlananMetrajlar.length > 0) {
-  //     nodeArray_MET2[0].hazirlananMetrajlar = nodeArray_MET2[0].hazirlananMetrajlar.map(oneMetraj => {
-  //       if (oneMetraj._userId.toString() == RealmApp?.currentUser.id) {
-  //         isUpdated = true
-  //         return hazirlananMetraj_state
-  //       } else {
-  //         return oneMetraj
-  //       }
-  //     })
-  //     // hazirlanan metrajlar içinde bu kullanıcı metrajı henüz yoksa
-  //     if (!isUpdated) nodeArray_MET2[0].hazirlananMetrajlar = [...nodeArray_MET2[0].hazirlananMetrajlar, hazirlananMetraj_state]
-  //     return nodeArray_MET2
-
-  //   } else {
-
-  //     nodeArray_MET2 = [{ hazirlananMetrajlar: [hazirlananMetraj_state] }]
-  //     setHazirlananMetraj_state()
-  //     return nodeArray_MET2
-  //   }
-
-  // }
-
   return useMutation({
-    mutationFn: ({ payload, selectedNode, hazirlananMetraj_state, setHazirlananMetraj_state }) => {
-      return RealmApp?.currentUser.callFunction("collectionDugumler", ({ functionName: "updateOnaylananMetraj", propertyValue: payload, _projectId: isProject?._id, _mahalId: selectedNode?._mahalId, _pozId: selectedNode?._pozId }))
+    mutationFn: ({ selectedNode, hazirlananMetrajlar_state, setHazirlananMetrajlar_state, onaylananMetraj_state, setOnaylananMetraj_state }) => {
+      return RealmApp?.currentUser.callFunction("collectionDugumler", ({ functionName: "updateOnaylananMetraj", hazirlananMetrajlar_state, onaylananMetraj_state, _projectId: isProject?._id, _mahalId: selectedNode?._mahalId, _pozId: selectedNode?._pozId }))
     },
-    onSuccess: ({ selectedNode }) => queryClient.invalidateQueries({ queryKey: ['onaylananMetraj', selectedNode._id.toString()] })
-    // onSuccess: (returnData, variables) => queryClient.setQueryData(['hazirlananMetrajlar'], (nodeArray_MET) => hazirlananMetraj_optimisticUpdate(nodeArray_MET, variables))
+    onSuccess: (returnData, variables) => {
+      // queryClient.invalidateQueries({ queryKey: ['hazirlananMetrajlar', variables.selectedNode._id.toString()] })
+      // queryClient.invalidateQueries({ queryKey: ['onaylananMetraj', variables.selectedNode._id.toString()] })
+      queryClient.setQueryData(['hazirlananMetrajlar', variables.selectedNode._id.toString()], variables.hazirlananMetrajlar_state)
+      queryClient.setQueryData(['onaylananMetraj', variables.selectedNode._id.toString()], variables.onaylananMetraj_state)
+      variables.setHazirlananMetrajlar_state()
+      variables.setOnaylananMetraj_state()
+    }
   })
 
 }

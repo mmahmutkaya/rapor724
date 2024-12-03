@@ -6,7 +6,6 @@ import { DialogWindow } from './general/DialogWindow';
 
 import { useApp } from "./useApp";
 import AppBar from '@mui/material/AppBar';
-import { useNavigate } from "react-router-dom";
 
 import Typography from '@mui/material/Typography';
 import Grid from '@mui/material/Grid';
@@ -23,46 +22,206 @@ import AlignHorizontalRightOutlinedIcon from '@mui/icons-material/AlignHorizonta
 import AlignHorizontalCenterOutlinedIcon from '@mui/icons-material/AlignHorizontalCenterOutlined';
 import FileDownloadDoneIcon from '@mui/icons-material/FileDownloadDone';
 import EditIcon from '@mui/icons-material/Edit';
-import MenuOpenIcon from '@mui/icons-material/MenuOpen';
-import ForwardIcon from '@mui/icons-material/Forward';
-import ReplyIcon from '@mui/icons-material/Reply';
 
 
-
-export default function P_MetrajHeader() {
-
-  const navigate = useNavigate()
+export default function PozHeader({ setShow, editPoz, setEditPoz, savePoz }) {
 
   const { drawerWidth, topBarHeight } = useContext(StoreContext)
-  const { custom, setCustom } = useContext(StoreContext)
 
   const { isProject, setIsProject } = useContext(StoreContext)
-  const { selectedPoz, setSelectedPoz } = useContext(StoreContext)
-  const { selectedNode, setSelectedNode } = useContext(StoreContext)
-  const { pageMetraj_show, pageMetraj_setShow } = useContext(StoreContext)
-  
+  const { setPozlar } = useContext(StoreContext)
 
   const RealmApp = useApp();
 
-  const { selectedMahal, setSelectedMahal } = useContext(StoreContext)
-  const { selectedMahalBaslik, setSelectedMahalBaslik } = useContext(StoreContext)
-  const { subHeaderHeight } = useContext(StoreContext)
+  const { selectedPoz, setSelectedPoz } = useContext(StoreContext)
+  const { selectedPozBaslik, setSelectedPozBaslik } = useContext(StoreContext)
+
   const [willBeUpdate_mahalBaslik, setWillBeUpdate_mahalBaslik] = useState(false)
 
   const [showDialog, setShowDialog] = useState(false)
   const [dialogCase, setDialogCase] = useState("")
 
 
+  async function handlePozDelete(mahal) {
 
-  const kimler = [
-    {
-      name: "suleyman",
+    // seçili wbs yoksa durdurma, inaktif iken tuşlara basılabiliyor mesela, bu fonksiyon çalıştırılıyor, orayı iptal etmekle uğraşmak istemedim
+    if (!selectedPoz) {
+      console.log("alttaki satırda --return-- oldu")
+      return
     }
-  ]
+
+    // bu kontrol backend de ayrıca yapılıyor
+    if (selectedPoz.includesPoz) {
+      throw new Error("Bu mahal metraj içerdiği için silinemez, öncelikle metrajları silmelisiniz.")
+    }
+
+    try {
+      const result = await RealmApp.currentUser.callFunction("deletePoz", { mahalId: mahal._id });
+
+      if (result.deletedCount) {
+
+        // const oldPozlar = queryClient.getQueryData(["pozlar"])
+        // const newPozlar = oldPozlar.filter(item => item._id.toString() !== mahal._id.toString())
+        // queryClient.setQueryData(["pozlar"], newPozlar)
+
+        setPozlar(oldPozlar => oldPozlar.filter(item => item._id.toString() !== mahal._id.toString()))
+
+      }
+
+      if (result.isIncludesPozFalse) {
+
+        let oldProject = JSON.parse(JSON.stringify(isProject))
+
+        oldProject.wbs.find(item => item._id.toString() === mahal._wbsId.toString()).includesPoz = false
+
+        setIsProject(oldProject)
+
+      }
+
+      setSelectedPoz()
+
+    } catch (err) {
+
+      console.log(err)
+      let hataMesaj_ = err.message ? err.message : "Beklenmedik hata, Rapor7/24 ile irtibata geçiniz.."
+
+      if (hataMesaj_.includes("Silmek istediğiniz  Wbs'in alt seviyeleri mevcut")) {
+        hataMesaj_ = "Silmek istediğiniz  Wbs'in alt seviyeleri mevcut, öncelikle onları silmelisiniz."
+      }
+
+      if (hataMesaj_.includes("Poz eklemeye açık başlıklar silinemez")) {
+        hataMesaj_ = "Poz eklemeye açık başlıklar silinemez, öncelikle mahal eklemeye kapatınız."
+      }
+
+      setSelectedPoz()
+      setDialogCase("error")
+      setShowDialog(hataMesaj_)
+    }
+  }
+
+
+
+  async function handlePozBaslikDelete(mahalBaslik) {
+
+    const mahal = selectedPozBaslik
+
+    // seçili wbs yoksa durdurma, inaktif iken tuşlara basılabiliyor mesela, bu fonksiyon çalıştırılıyor, orayı iptal etmekle uğraşmak istemedim
+    if (!selectedPozBaslik) {
+      console.log("alttaki satırda --return-- oldu")
+      return
+    }
+
+    return { "silinecekPozBaslik": mahalBaslik }
+
+    try {
+      const result = await RealmApp.currentUser.callFunction("deletePozBaslik", { mahalId: mahal._id });
+
+      if (result.deletedCount) {
+
+        // const oldPozlar = queryClient.getQueryData(["pozlar"])
+        // const newPozlar = oldPozlar.filter(item => item._id.toString() !== mahal._id.toString())
+        // queryClient.setQueryData(["pozlar"], newPozlar)
+
+        setPozlar(oldPozlar => oldPozlar.filter(item => item._id.toString() !== mahal._id.toString()))
+
+      }
+
+      if (result.isIncludesPozFalse) {
+
+        let oldProject = JSON.parse(JSON.stringify(isProject))
+
+        oldProject.wbs.find(item => item._id.toString() === mahal._wbsId.toString()).includesPoz = false
+
+        setIsProject(oldProject)
+
+      }
+
+      setSelectedPoz()
+
+    } catch (err) {
+
+      console.log(err)
+      let hataMesaj_ = err.message ? err.message : "Beklenmedik hata, Rapor7/24 ile irtibata geçiniz.."
+
+      if (hataMesaj_.includes("Silmek istediğiniz  Wbs'in alt seviyeleri mevcut")) {
+        hataMesaj_ = "Silmek istediğiniz  Wbs'in alt seviyeleri mevcut, öncelikle onları silmelisiniz."
+      }
+
+      if (hataMesaj_.includes("Poz eklemeye açık başlıklar silinemez")) {
+        hataMesaj_ = "Poz eklemeye açık başlıklar silinemez, öncelikle mahal eklemeye kapatınız."
+      }
+
+      setSelectedPoz()
+      setDialogCase("error")
+      setShowDialog(hataMesaj_)
+    }
+  }
+
+
+
+  const handle_BaslikGenislet = () => {
+    setIsProject(isProject => {
+      const isProject_ = { ...isProject }
+      isProject_.mahalBasliklari.find(item => item.id == selectedPozBaslik.id).genislik = isProject_.mahalBasliklari.find(item => item.id == selectedPozBaslik.id).genislik + 0.5
+      return isProject_
+    })
+    setWillBeUpdate_mahalBaslik(true)
+  }
+
+
+  const handle_BaslikDaralt = () => {
+    setIsProject(isProject => {
+      const isProject_ = { ...isProject }
+      isProject_.mahalBasliklari.find(item => item.id == selectedPozBaslik.id).genislik = isProject_.mahalBasliklari.find(item => item.id == selectedPozBaslik.id).genislik - 0.5
+      return isProject_
+    })
+    setWillBeUpdate_mahalBaslik(true)
+  }
+
+
+
+  const handle_YatayHiza = () => {
+    setIsProject(isProject => {
+      const isProject_ = { ...isProject }
+      let guncelYatayHiza = isProject_.mahalBasliklari.find(item => item.id == selectedPozBaslik.id).yatayHiza
+      if (guncelYatayHiza == "start") isProject_.mahalBasliklari.find(item => item.id == selectedPozBaslik.id).yatayHiza = "center"
+      if (guncelYatayHiza == "center") isProject_.mahalBasliklari.find(item => item.id == selectedPozBaslik.id).yatayHiza = "end"
+      if (guncelYatayHiza == "end") isProject_.mahalBasliklari.find(item => item.id == selectedPozBaslik.id).yatayHiza = "start"
+      return isProject_
+    })
+    setWillBeUpdate_mahalBaslik(true)
+  }
+
+
+  const unSelectPozBaslik = async () => {
+    if (willBeUpdate_mahalBaslik) {
+      let mahalBaslik = isProject.mahalBasliklari.find(item => item.id == selectedPozBaslik.id)
+      console.log("mahalBaslik", mahalBaslik)
+      const result = await RealmApp?.currentUser.callFunction("updateProjectPozBaslik", ({ _projectId: isProject._id, mahalBaslik }));
+      console.log("result", result)
+      setWillBeUpdate_mahalBaslik(false)
+    }
+    setSelectedPozBaslik(false)
+  }
+
+
+  let header = "Pozlar"
+  // isProject?.name ? header = isProject?.name : null
+
+
+
+  // const Item = styled(Paper)(({ theme }) => ({
+  //   backgroundColor: theme.palette.mode === 'dark' ? '#1A2027' : '#fff',
+  //   ...theme.typography.body2,
+  //   padding: theme.spacing(1),
+  //   textAlign: 'center',
+  //   color: theme.palette.text.secondary,
+  // }));
+
 
 
   return (
-    <Paper>
+    <Paper >
 
       {showDialog &&
         <DialogWindow dialogCase={dialogCase} showDialog={showDialog} setShowDialog={setShowDialog} />
@@ -84,8 +243,9 @@ export default function P_MetrajHeader() {
           container
           justifyContent="space-between"
           alignItems="center"
-          sx={{ padding: "0.5rem 1rem", height: subHeaderHeight, maxHeight: "5rem" }}
+          sx={{ padding: "0.5rem 1rem", maxHeight: "5rem" }}
         >
+
 
 
           {/* sol kısım (başlık) */}
@@ -95,9 +255,10 @@ export default function P_MetrajHeader() {
               variant="h6"
               fontWeight="bold"
             >
-              {selectedPoz ? selectedPoz.name : "Metraj"}
+              {header}
             </Typography>
           </Grid>
+
 
 
 
@@ -106,79 +267,166 @@ export default function P_MetrajHeader() {
             <Grid container spacing={1}>
 
 
-              {pageMetraj_show == "Pozlar" && !selectedPoz &&
+              {selectedPoz &&
+                <>
+
+                  {/* seçimleri temizle */}
+
+                  <Grid item >
+                    <IconButton onClick={() => setSelectedPoz()} aria-label="wbsUncliced">
+                      <ClearOutlined variant="contained"
+                        sx={{ color: "red" }} />
+                    </IconButton>
+                  </Grid>
+
+
+
+                  {/* ne seçili ise silme */}
+
+                  <Grid item onClick={() => handlePozDelete(selectedPoz)} sx={{ cursor: "pointer" }}>
+                    <IconButton aria-label="addPoz" disabled>
+                      <DeleteIcon
+                        // sx={{display: isProject_display}}
+                        variant="contained"
+                        sx={{ color: "red" }} />
+                    </IconButton>
+                  </Grid>
+
+                </>
+              }
+
+
+
+
+              {selectedPozBaslik && !editPoz &&
+                <>
+
+                  {/* başlığı düzenle*/}
+
+                  <Grid item >
+                    <IconButton onClick={() => unSelectPozBaslik()} aria-label="wbsUncliced">
+                      <ClearOutlined variant="contained"
+                        sx={{ color: "red" }} />
+                    </IconButton>
+                  </Grid>
+
+                  <Grid item >
+                    <IconButton onClick={() => setEditPoz(selectedPozBaslik.id)} aria-label="wbsUncliced">
+                      <EditIcon variant="contained"
+                        sx={{ color: "#3D4849" }} />
+                    </IconButton>
+                  </Grid>
+
+
+
+                  <Grid item onClick={() => handlePozBaslikDelete(selectedPozBaslik)} sx={{ cursor: "pointer" }}>
+                    <IconButton aria-label="addPoz" disabled>
+                      <DeleteIcon
+                        // sx={{display: isProject_display}}
+                        variant="contained"
+                        sx={{ color: "red" }} />
+                    </IconButton>
+                  </Grid>
+
+
+
+                  <Grid item onClick={() => handle_BaslikDaralt()} sx={{ cursor: "pointer" }}>
+                    <IconButton aria-label="addPoz" disabled>
+                      <UnfoldLessIcon
+                        variant="contained"
+                        sx={{ rotate: "90deg", fontSize: "1.4rem", mt: "0.1rem", color: "black" }} />
+                    </IconButton>
+                  </Grid>
+
+
+
+                  <Grid item onClick={() => handle_BaslikGenislet()} sx={{ cursor: "pointer" }}>
+                    <IconButton aria-label="addPoz" disabled>
+                      <UnfoldMoreIcon
+                        variant="contained"
+                        sx={{ rotate: "90deg", fontSize: "1.6rem", color: "black" }} />
+                    </IconButton>
+                  </Grid>
+
+
+                  <Grid item onClick={() => handle_YatayHiza()} sx={{ cursor: "pointer" }}>
+                    <IconButton aria-label="addPoz" disabled>
+                      {selectedPozBaslik.yatayHiza == "start" &&
+                        <AlignHorizontalLeftOutlinedIcon
+                          variant="contained"
+                          sx={{ color: "black" }} />
+                      }
+                      {selectedPozBaslik.yatayHiza == "center" &&
+                        <AlignHorizontalCenterOutlinedIcon
+                          variant="contained"
+                          sx={{ color: "black" }} />
+                      }
+                      {selectedPozBaslik.yatayHiza == "end" &&
+                        <AlignHorizontalRightOutlinedIcon
+                          variant="contained"
+                          sx={{ color: "black" }} />
+                      }
+                    </IconButton>
+                  </Grid>
+
+                </>
+
+              }
+
+
+
+
+              {selectedPozBaslik && editPoz &&
+                <>
+                  <Grid item >
+                    <IconButton
+                      onClick={() => {
+                        setWillBeUpdate_mahalBaslik([])
+                        setSelectedPozBaslik(false)
+                        setEditPoz(false)
+                      }}
+                      aria-label="wbsUncliced">
+                      <ClearOutlined variant="contained"
+                        sx={{ color: "red" }} />
+                    </IconButton>
+                  </Grid>
+                  <Grid item>
+                    <IconButton onClick={() => savePoz()} aria-label="addWbs">
+                      <FileDownloadDoneIcon variant="contained" sx={{ color: "black" }} />
+                    </IconButton>
+                  </Grid>
+                </>
+              }
+
+
+
+
+              {(!selectedPozBaslik && !selectedPoz) &&
                 <Grid item>
-                  <IconButton onClick={() => setCustom(custom => ({ ...custom, pageMetraj_baslik1: !custom?.pageMetraj_baslik1 }))} aria-label="addLbs" disabled={(isProject?.lbs?.filter(item => item.openForMahal).length == 0 || !isProject?.lbs) ? true : false}>
+                  <IconButton onClick={() => setShow("EditPozBaslik")} aria-label="addWbs">
                     <VisibilityIcon variant="contained" sx={{ color: "black" }} />
                   </IconButton>
                 </Grid>
               }
 
-              {pageMetraj_show == "Pozlar" && selectedPoz &&
-                <Grid item >
-                  <IconButton onClick={() => {
-                    setSelectedPoz()
-                  }
 
-                  } aria-label="lbsUncliced">
-                    <ClearOutlined variant="contained" sx={{
-                      color: !selectedPoz ? "lightgray" : "red",
-                    }} />
-                  </IconButton>
-                </Grid>
-              }
-
-
-              {pageMetraj_show == "Pozlar" && selectedPoz &&
+              {(!selectedPozBaslik && !selectedPoz) &&
                 <Grid item>
-                  <IconButton onClick={() => {
-                    pageMetraj_setShow("PozMahalleri")
-                    setSelectedNode()
-                  }}
-                    aria-label="addLbs">
-                    <ForwardIcon variant="contained" color={!selectedPoz ? " lightgray" : "success"} />
+                  <IconButton onClick={() => setShow("FormPozBaslikCreate")} aria-label="addPozBilgi" disabled={(isProject?.wbs?.filter(item => item.openForPoz).length == 0 || !isProject?.wbs) ? true : false}>
+                    <AddCircleOutlineIcon variant="contained" sx={{ color: (isProject?.wbs?.filter(item => item.openForPoz).length == 0 || !isProject?.wbs) ? "lightgray" : "blue" }} />
                   </IconButton>
                 </Grid>
               }
 
 
-
-
-              {pageMetraj_show == "PozMahalleri" && !selectedNode &&
-                <Grid item >
-                  <IconButton onClick={() => {
-                    pageMetraj_setShow("Pozlar")
-                    setSelectedNode()
-                  }} aria-label="lbsUncliced">
-                    <ReplyIcon variant="contained" sx={{ color: !selectedPoz ? "lightgray" : "red" }} />
-                  </IconButton>
-                </Grid>
-              }
-
-              {pageMetraj_show == "PozMahalleri" && selectedNode &&
+              {(!selectedPozBaslik && !selectedPoz) &&
                 <Grid item>
-                  <IconButton onClick={() => {
-                    setSelectedNode()
-                  }}
-                    aria-label="addLbs">
-                    <ClearOutlined variant="contained" sx={{
-                      color: !selectedPoz ? "lightgray" : "red",
-                    }} />
+                  <IconButton onClick={() => setShow("FormPozCreate")} aria-label="addWbs" disabled={(isProject?.wbs?.filter(item => item.openForPoz).length == 0 || !isProject?.wbs) ? true : false}>
+                    <AddCircleOutlineIcon variant="contained" color={(isProject?.wbs?.filter(item => item.openForPoz).length == 0 || !isProject?.wbs) ? " lightgray" : "success"} />
                   </IconButton>
                 </Grid>
               }
 
-              {pageMetraj_show == "PozMahalleri" && selectedNode &&
-                <Grid item>
-                  <IconButton onClick={() => {
-                    navigate("/metrajedit")
-                    // setSelectedNode()
-                  }}
-                    aria-label="addLbs">
-                    <ForwardIcon variant="contained" color={!selectedPoz ? " lightgray" : "success"} />
-                  </IconButton>
-                </Grid>
-              }
 
 
             </Grid>
@@ -188,6 +436,6 @@ export default function P_MetrajHeader() {
 
       </AppBar>
 
-    </Paper >
+    </Paper>
   )
 }

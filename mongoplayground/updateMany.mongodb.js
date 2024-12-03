@@ -123,10 +123,10 @@
 // })
 
 
-use('rapor724_dugumler');
-db["672bd237e537a506c714a800"].deleteMany({})
+// use('rapor724_dugumler');
+// db["672bd237e537a506c714a800"].deleteMany({})
 
-use('rapor724_hazirlananMetrajSatirlari');
+use('rapor724_hazirlananMetrajlar');
 db["672bd237e537a506c714a800"].deleteMany({})
 
 

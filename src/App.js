@@ -12,6 +12,7 @@ import P_Lbs from './pages/lbs'
 import P_Mahaller from './pages/mahaller'
 import P_MahalListesi from './pages/mahallistesi'
 import P_MahalMetraj from './pages/mahalmetraj'
+import P_MetrajOnay from './pages/metrajonay'
 import P_MetrajCetveli from './pages/metrajcetveli'
 import P_Metraj from './pages/metraj'
 import P_MetrajEdit from './pages/metrajedit'
@@ -43,6 +44,7 @@ function App() {
       <Route path='/mahaller' element={<P_Mahaller />} />
       <Route path='/mahallistesi' element={<P_MahalListesi />} />
       <Route path='/mahalmetraj' element={<P_MahalMetraj />} />
+      <Route path='/metrajonay' element={<P_MetrajOnay />} />
       <Route path='/metrajcetveli' element={<P_MetrajCetveli />} />
       <Route path='/metraj' element={<P_Metraj />} />
       <Route path='/metrajedit' element={<P_MetrajEdit />} />
