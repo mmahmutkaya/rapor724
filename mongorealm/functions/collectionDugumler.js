@@ -202,7 +202,6 @@ exports = async function ({
   if (functionName == "getPozlarMetraj") {
 
     const result = collection_Dugumler.aggregate([
-      // { $group: { _id: "$_pozId" } }
       {
         $group: { _id: "$_pozId", onaylananMetraj: { $sum: "$onaylananMetraj.metraj" } }
       }
