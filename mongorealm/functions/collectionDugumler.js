@@ -11,7 +11,9 @@ exports = async function ({
   mahalMetrajlar,
   propertyName,
   propertyValue,
-  hazirlananMetraj
+  hazirlananMetraj_state,
+  hazirlananMetrajlar_state,
+  onaylananMetraj_state
 }) {
 
 
@@ -186,28 +188,87 @@ exports = async function ({
 
   
 
-  if (functionName == "getOnaylananMetrajlar") {
+  if (functionName == "getOnaylananMetraj") {
 
     const resultArray = await collection_OnaylananMetrajlar.aggregate([
       { $match: { _mahalId, _pozId } }
     ]).toArray()
 
-    return resultArray[0]?.onaylananMetrajlar ? resultArray[0].onaylananMetrajlar : resultArray
+    return resultArray[0]?.onaylananMetraj ? resultArray[0].onaylananMetraj : resultArray
   }
 
 
 
-  // if (functionName == "getPozlarMetraj") {
+  if (functionName == "getPozlarMetraj") {
 
-  //   const result = collection_Dugumler.aggregate([
-  //     { $group: { _id: "$_pozId" } }
-  //   ]);
+    const result = collection_Dugumler.aggregate([
+      {
+        $group: { _id: "$_pozId", onaylananMetraj: { $sum: "$onaylananMetraj.metraj" } }
+      }
+    ]);
 
-  //   // const result = await collection_Dugumler.find({});
+    return result
 
-  //   return result
+  }
 
-  // }
+
+
+  if (functionName == "updateOnaylananMetraj") {
+
+    let result
+    result = await collection_OnaylananMetrajlar.updateOne(
+      { _mahalId, _pozId },
+      [
+        {
+          $set: {
+            "onaylananMetraj": onaylananMetraj_state
+          },
+        },
+      ]
+    );
+
+
+    if (!result.matchedCount) {
+      result = await collection_OnaylananMetrajlar.insertOne({ _mahalId, _pozId, onaylananMetraj: onaylananMetraj_state })
+    }
+
+    let result2
+    result2 = await collection_HazirlananMetrajlar.updateOne(
+      { _mahalId, _pozId },
+      [
+        {
+          $set: {
+            "hazirlananMetrajlar": hazirlananMetrajlar_state
+          },
+        },
+      ]
+    );
+
+    
+    let hazirlananMetrajlar_state2 = hazirlananMetrajlar_state
+    delete hazirlananMetrajlar_state2.satirlar
+    
+    let onaylananMetraj_state2 = onaylananMetraj_state
+    delete onaylananMetraj_state2.satirlar
+      
+
+
+    const result3 = await collection_Dugumler.updateOne(
+      { _mahalId, _pozId },
+      [
+        {
+          $set: {
+            "hazirlananMetrajlar": hazirlananMetrajlar_state2,
+            "onaylananMetraj": onaylananMetraj_state2
+          },
+        },
+      ]
+    );
+
+    return { ok: "'updateOnaylananMetraj' çalıştı.", result, result2, result3 }
+
+  }
+  
 
 
 
@@ -216,7 +277,7 @@ exports = async function ({
     let metraj = 0
 
     //  sorgu ile birlikte gönderilen metraj satırlarına müdahaleler
-    let satirlar = hazirlananMetraj.satirlar.map(oneRow => {
+    let satirlar = hazirlananMetraj_state.satirlar.map(oneRow => {
 
       // guncelleme zamanını verelim
       oneRow["sonGuncelleme"] = currentTime
