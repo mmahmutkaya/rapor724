@@ -36,7 +36,7 @@ exports = async function ({ projectId }) {
     const collection = context.services.get("mongodb-atlas").db("rapor724_pozlar").collection(_projectId.toString())
     let pozlar = await collection.find({ isDeleted: false }).toArray()
     let pozlar2 = pozlar.map(onePoz => {
-      let metrajObj = pozlarMetraj.find(oneMetraj => oneMetraj._id == onePoz._id)
+      let metrajObj = pozlarMetraj.find(oneMetraj => oneMetraj._id.toString() == onePoz._id.toString())
       return {...onePoz, ...metrajObj}
     })
     
