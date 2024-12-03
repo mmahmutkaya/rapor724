@@ -199,17 +199,18 @@ exports = async function ({
 
 
 
-  // if (functionName == "getPozlarMetraj") {
+  if (functionName == "getPozlarMetraj") {
 
-  //   const result = collection_Dugumler.aggregate([
-  //     { $group: { _id: "$_pozId" } }
-  //   ]);
+    const result = collection_Dugumler.aggregate([
+      // { $group: { _id: "$_pozId" } }
+      {
+        $group: { _id: "$_pozId", onaylananMetraj: { $sum: "$onaylananMetraj.metraj" } }
+      }
+    ]);
 
-  //   // const result = await collection_Dugumler.find({});
+    return result
 
-  //   return result
-
-  // }
+  }
 
 
 
