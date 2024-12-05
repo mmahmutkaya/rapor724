@@ -56,6 +56,7 @@ exports = async function ({
   const collection_Dugumler = context.services.get("mongodb-atlas").db("rapor724_dugumler").collection(_projectId.toString());
   const collection_HazirlananMetrajlar = context.services.get("mongodb-atlas").db("rapor724_hazirlananMetrajlar").collection(_projectId.toString());
   const collection_OnaylananMetrajlar = context.services.get("mongodb-atlas").db("rapor724_onaylananMetrajlar").collection(_projectId.toString());
+  const collection_Mahaller = context.services.get("mongodb-atlas").db("rapor724_mahaller").collection(_projectId.toString());
 
 
   const project2 = await collection_Projects.aggregate([
@@ -187,7 +188,7 @@ exports = async function ({
   }
 
   
-
+  
   if (functionName == "getOnaylananMetraj") {
 
     const resultArray = await collection_OnaylananMetrajlar.aggregate([
