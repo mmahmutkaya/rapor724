@@ -31,7 +31,7 @@ exports = async function ({ projectId }) {
     // ]).toArray()
     const pozlarMetraj = await collection_Dugumler.aggregate([
       {
-        $group: { _id: "$_pozId", onaylananMetraj: { $sum: "$onaylananMetraj.metraj" } }
+        $group: { _id: "$_pozId", onaylananMetraj: { $sum: "$onaylananMetraj.metraj" }, hazirlananMetrajlar:"$hazirlananMetrajlar" }
       },
       {
         $set:{ hazirlananMetrajlar: { 
