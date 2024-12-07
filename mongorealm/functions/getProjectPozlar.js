@@ -26,12 +26,11 @@ exports = async function ({ projectId }) {
     const collection_Dugumler = context.services.get("mongodb-atlas").db("rapor724_dugumler").collection(_projectId.toString())
     const pozlarMetraj = await collection_Dugumler.aggregate([
       {
-        $group: { _id: "$_pozId", onaylananMetraj: { $sum: "$onaylananMetraj.metraj" } }
+        $group: { _id: "$_pozId", onaylananMetraj: { $sum: "$onaylananMetraj.metraj" } , hazirlananMetrajlar: { $sum: "hazirlananMetrajlar.metraj" }}
       }
     ]).toArray()
 
     
-
     // pozlar bulma ve metrajlar ile birleştirme
     const collection = context.services.get("mongodb-atlas").db("rapor724_pozlar").collection(_projectId.toString())
     let pozlar = await collection.find({ isDeleted: false }).toArray()
