@@ -247,7 +247,10 @@ exports = async function ({
 
     
     let hazirlananMetrajlar_state2 = hazirlananMetrajlar_state
-    delete hazirlananMetrajlar_state2.satirlar
+    hazirlananMetrajlar_state2 = hazirlananMetrajlar_state2.map(x => {
+      delete x.satirlar
+      return x
+    })
     
     let onaylananMetraj_state2 = onaylananMetraj_state
     delete onaylananMetraj_state2.satirlar
