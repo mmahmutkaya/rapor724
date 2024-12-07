@@ -24,9 +24,25 @@ exports = async function ({ projectId }) {
 
     // pozlar metraj
     const collection_Dugumler = context.services.get("mongodb-atlas").db("rapor724_dugumler").collection(_projectId.toString())
+    // const pozlarMetraj = await collection_Dugumler.aggregate([
+    //   {
+    //     $group: { _id: "$_pozId", onaylananMetraj: { $sum: "$onaylananMetraj.metraj" } , hazirlananMetrajlar: { }}
+    //   }
+    // ]).toArray()
     const pozlarMetraj = await collection_Dugumler.aggregate([
       {
-        $group: { _id: "$_pozId", onaylananMetraj: { $sum: "$onaylananMetraj.metraj" } , hazirlananMetrajlar: { $sum: "$hazirlananMetrajlar.metraj" }}
+        $group: { _id: "$_pozId", onaylananMetraj: { $sum: "$onaylananMetraj.metraj" } , hazirlananMetrajlar: { 
+        $reduce: {
+          input: "$hazirlananMetrajlar",
+          initialValue: 0,
+          in: {
+            $add: [
+              "$$value",
+              "$$this.metraj"
+            ]
+          }
+        }
+      }}
       }
     ]).toArray()
 
