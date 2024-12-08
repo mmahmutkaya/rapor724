@@ -24,55 +24,34 @@ exports = async function ({ projectId }) {
 
     // pozlar metraj
     const collection_Dugumler = context.services.get("mongodb-atlas").db("rapor724_dugumler").collection(_projectId.toString())
-    // const pozlarMetraj = await collection_Dugumler.aggregate([
-    //   {
-    //     $group: { _id: "$_pozId", onaylananMetraj: { $sum: "$onaylananMetraj.metraj" } , hazirlananMetrajlar: { }}
-    //   }
-    // ]).toArray()
-    const pozlarMetraj = await collection_Dugumler.aggregate([
+
+    const onaylananMetrajlar = await collection_Dugumler.aggregate([
       {
-        $group: { _id: "$_pozId", onaylananMetraj: { $sum: "$onaylananMetraj.metraj" }, hazirlananMetrajlar:{ $addToSet: "$hazirlananMetrajlar.metraj" } }
-      },
-      {
-        $set:{ hazirlananMetrajlar: { 
-          $reduce: {
-            input: "$hazirlananMetrajlar",
-            initialValue: [],
-            in: {
-              "$setUnion": [
-                "$$value",
-                "$$this"
-              ]
-            }
-          }
-        }}
-      },
-      {
-        $set:{ hazirlananMetrajlar: { 
-          $reduce: {
-            input: "$hazirlananMetrajlar",
-            initialValue: 0,
-            in: {
-              "$add": [
-                "$$value",
-                "$$this"
-              ]
-            }
-          }
-        }}
+        $group: { _id: "$_pozId", onaylananMetraj: { $sum: "$onaylananMetraj.metraj" } }
       }
     ]).toArray()
+
+    const hazirlananMetrajlar = await collection_Dugumler.aggregate([
+      {
+        $unwind:"$hazirlananMetrajlar"
+      },
+      {
+        $group: { _id: {_pozId:"$_pozId", _userId:"$hazirlananMetrajlar._userId"}, hazirlananMetrajlar: { $sum: "$hazirlananMetrajlar.metraj" } }
+      }
+    ]).toArray()
+
 
     
     // pozlar bulma ve metrajlar ile birleştirme
     const collection = context.services.get("mongodb-atlas").db("rapor724_pozlar").collection(_projectId.toString())
     let pozlar = await collection.find({ isDeleted: false }).toArray()
     let pozlar2 = pozlar.map(onePoz => {
-      let metrajObj = pozlarMetraj.find(oneMetraj => oneMetraj._id.toString() == onePoz._id.toString())
+      let metrajObj = onaylananMetrajlar.find(oneMetraj => oneMetraj._id.toString() == onePoz._id.toString())
+      // let metrajObj = onaylananMetrajlar.find(oneMetraj => oneMetraj._id.toString() == onePoz._id.toString())
       return {...onePoz, ...metrajObj}
     })
     
-    return pozlar2
+    return {pozlar2,hazirlananMetrajlar}
 
   } catch (err) {
 
