@@ -36,22 +36,24 @@ exports = async function ({ projectId }) {
         $unwind:"$hazirlananMetrajlar"
       },
       {
-        $group: { _id: {_pozId:"$_pozId", _userId:"$hazirlananMetrajlar._userId"}, hazirlananMetrajlar: { $sum: "$hazirlananMetrajlar.metraj" } }
+        $group: { _id: {_pozId:"$_pozId", _userId:"$hazirlananMetrajlar._userId"}, hazirlananMetraj: { $sum: "$hazirlananMetrajlar.metraj" } }
+      },
+      {
+        $group: { _id: "$_id._pozId", hazirlananMetraj: {$push : {_userId:"$_id._userId", metraj:"$"}} }
       }
     ]).toArray()
 
 
-    
     // pozlar bulma ve metrajlar ile birleştirme
     const collection = context.services.get("mongodb-atlas").db("rapor724_pozlar").collection(_projectId.toString())
     let pozlar = await collection.find({ isDeleted: false }).toArray()
     let pozlar2 = pozlar.map(onePoz => {
-      let metrajObj = onaylananMetrajlar.find(oneMetraj => oneMetraj._id.toString() == onePoz._id.toString())
-      // let metrajObj = onaylananMetrajlar.find(oneMetraj => oneMetraj._id.toString() == onePoz._id.toString())
-      return {...onePoz, ...metrajObj}
+      let onaylananMetraj = onaylananMetrajlar.find(x => x._id.toString() == onePoz._id.toString())
+      let hazirlananMetraj = hazirlananMetrajlar.find(x => x._id.toString() == onePoz._id.toString())
+      return {...onePoz, ...onaylananMetraj, ...hazirlananMetraj}
     })
     
-    return {pozlar2,hazirlananMetrajlar}
+    return pozlar2
 
   } catch (err) {
 
