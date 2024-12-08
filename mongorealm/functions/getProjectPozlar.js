@@ -31,7 +31,21 @@ exports = async function ({ projectId }) {
     // ]).toArray()
     const pozlarMetraj = await collection_Dugumler.aggregate([
       {
-        $group: { _id: "$_pozId", onaylananMetraj: { $sum: "$onaylananMetraj.metraj" }, hazirlananMetrajlar:"$hazirlananMetrajlar" }
+        $group: { _id: "$_pozId", onaylananMetraj: { $sum: "$onaylananMetraj.metraj" }, hazirlananMetrajlar:{ $addToSet: "$hazirlananMetrajlar.metraj" } }
+      },
+      {
+        $set:{ hazirlananMetrajlar: { 
+          $reduce: {
+            input: "$hazirlananMetrajlar",
+            initialValue: [],
+            in: {
+              "$setUnion": [
+                "$$value",
+                "$$this"
+              ]
+            }
+          }
+        }}
       },
       {
         $set:{ hazirlananMetrajlar: { 
@@ -39,9 +53,9 @@ exports = async function ({ projectId }) {
             input: "$hazirlananMetrajlar",
             initialValue: 0,
             in: {
-              $add: [
+              "$add": [
                 "$$value",
-                "$$this.metraj"
+                "$$this"
               ]
             }
           }
@@ -62,7 +76,7 @@ exports = async function ({ projectId }) {
 
   } catch (err) {
 
-    throw new Error("MONGO // getprojectWbs // " + err.message)
+    throw new Error("MONGO // getProjectPozlar // " + err.message)
   }
 
 };
