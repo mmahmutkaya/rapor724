@@ -39,7 +39,7 @@ exports = async function ({ projectId }) {
         $group: { _id: {_pozId:"$_pozId", _userId:"$hazirlananMetrajlar._userId"}, hazirlananMetraj: { $sum: "$hazirlananMetrajlar.metraj" } }
       },
       {
-        $group: { _id: "$_id._pozId", hazirlananMetraj: {$push : {_userId:"$_id._userId", metraj:"$"}} }
+        $group: { _id: "$_id._pozId", hazirlananMetraj: {$push : {_userId:"$_id._userId", metraj:"$hazirlananMetraj"}} }
       }
     ]).toArray()
 
