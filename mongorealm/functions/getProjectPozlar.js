@@ -44,13 +44,24 @@ exports = async function ({ projectId }) {
     ]).toArray()
 
 
+    const aktifPozlar = await collection_Dugumler.aggregate([
+      {
+        $match :{openMetraj:true}
+      },
+      {
+        $group: { _id: "$_pozId" }
+      }
+    ]).toArray()
+
+
     // pozlar bulma ve metrajlar ile birleştirme
     const collection = context.services.get("mongodb-atlas").db("rapor724_pozlar").collection(_projectId.toString())
     let pozlar = await collection.find({ isDeleted: false }).toArray()
     let pozlar2 = pozlar.map(onePoz => {
       let onaylananMetraj = onaylananMetrajlar.find(x => x._id.toString() == onePoz._id.toString())
       let hazirlananMetrajlar2 = hazirlananMetrajlar.find(x => x._id.toString() == onePoz._id.toString())
-      return {...onePoz, ...onaylananMetraj, ...hazirlananMetrajlar2}
+      let openMetraj = aktifPozlar.find(x => x._id.toString() == onePoz._id.toString()) ? true : false
+      return {...onePoz, ...onaylananMetraj, ...hazirlananMetrajlar2, openMetraj}
     })
     
     return pozlar2
