@@ -58,6 +58,7 @@ exports = async function ({
   const collection_HazirlananMetrajlar = context.services.get("mongodb-atlas").db("rapor724_hazirlananMetrajlar").collection(_projectId.toString());
   const collection_OnaylananMetrajlar = context.services.get("mongodb-atlas").db("rapor724_onaylananMetrajlar").collection(_projectId.toString());
   const collection_Mahaller = context.services.get("mongodb-atlas").db("rapor724_mahaller").collection(_projectId.toString());
+  const collection_Pozlar = context.services.get("mongodb-atlas").db("rapor724_pozlar").collection(_projectId.toString());
 
 
   const project2 = await collection_Projects.aggregate([
@@ -188,8 +189,8 @@ exports = async function ({
     return resultArray[0]?.hazirlananMetrajlar ? resultArray[0].hazirlananMetrajlar : resultArray
   }
 
-  
-  
+
+
   if (functionName == "getOnaylananMetraj") {
 
     const resultArray = await collection_OnaylananMetrajlar.aggregate([
@@ -246,16 +247,16 @@ exports = async function ({
       ]
     );
 
-    
+
     let hazirlananMetrajlar_state2 = hazirlananMetrajlar_state
     hazirlananMetrajlar_state2 = hazirlananMetrajlar_state2.map(x => {
       delete x.satirlar
       return x
     })
-    
+
     let onaylananMetraj_state2 = onaylananMetraj_state
     delete onaylananMetraj_state2.satirlar
-      
+
 
 
     const result3 = await collection_Dugumler.updateOne(
@@ -273,7 +274,7 @@ exports = async function ({
     return { ok: "'updateOnaylananMetraj' çalıştı.", result, result2, result3 }
 
   }
-  
+
 
 
 
@@ -393,30 +394,12 @@ exports = async function ({
 
   if (functionName == "toggle_openMetraj") {
 
-    // const result = await collection_Dugumler.updateOne(
-    //   { _mahalId, _pozId },
-    //   [
-    //     {
-    //       $set: {
-    //         ["openMetraj"]: {
-    //           $cond: {
-    //             if: { "$eq": ["$openMetraj", true] },
-    //             then: false,
-    //             else: true
-    //           }
-    //         }
-    //       },
-    //     }
-    //   ]
-    // )
-
-    
     const result = await collection_Dugumler.updateOne(
       { _mahalId, _pozId },
       [
         {
           $set: {
-            ["openMetraj"]:switchValue
+            ["openMetraj"]: switchValue
           },
         }
       ]
