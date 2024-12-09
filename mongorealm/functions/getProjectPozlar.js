@@ -49,8 +49,8 @@ exports = async function ({ projectId }) {
     let pozlar = await collection.find({ isDeleted: false }).toArray()
     let pozlar2 = pozlar.map(onePoz => {
       let onaylananMetraj = onaylananMetrajlar.find(x => x._id.toString() == onePoz._id.toString())
-      let hazirlananMetrajlar = hazirlananMetrajlar.find(x => x._id.toString() == onePoz._id.toString())
-      return {...onePoz, ...onaylananMetraj, ...hazirlananMetrajlar}
+      let hazirlananMetrajlar2 = hazirlananMetrajlar.find(x => x._id.toString() == onePoz._id.toString())
+      return {...onePoz, ...onaylananMetraj, ...hazirlananMetrajlar2}
     })
     
     return pozlar2
