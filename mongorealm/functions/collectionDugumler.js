@@ -13,7 +13,8 @@ exports = async function ({
   propertyValue,
   hazirlananMetraj_state,
   hazirlananMetrajlar_state,
-  onaylananMetraj_state
+  onaylananMetraj_state,
+  switchValue
 }) {
 
 
@@ -392,18 +393,30 @@ exports = async function ({
 
   if (functionName == "toggle_openMetraj") {
 
+    // const result = await collection_Dugumler.updateOne(
+    //   { _mahalId, _pozId },
+    //   [
+    //     {
+    //       $set: {
+    //         ["openMetraj"]: {
+    //           $cond: {
+    //             if: { "$eq": ["$openMetraj", true] },
+    //             then: false,
+    //             else: true
+    //           }
+    //         }
+    //       },
+    //     }
+    //   ]
+    // )
+
+    
     const result = await collection_Dugumler.updateOne(
       { _mahalId, _pozId },
       [
         {
           $set: {
-            ["openMetraj"]: {
-              $cond: {
-                if: { "$eq": ["$openMetraj", true] },
-                then: false,
-                else: true
-              }
-            }
+            ["openMetraj"]:switchValue
           },
         }
       ]
@@ -416,7 +429,7 @@ exports = async function ({
     const dugumObject = {
       _mahalId,
       _pozId,
-      openMetraj: true,
+      openMetraj: switchValue,
       // onaylananMetrajlar: { metraj: 0, satirlar: [] },
       hazirlananMetrajlar: [],
       createdBy: _userId,
