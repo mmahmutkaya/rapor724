@@ -39,7 +39,7 @@ exports = async function ({ projectId }) {
         $group: { _id: {_pozId:"$_pozId", _userId:"$hazirlananMetrajlar._userId"}, hazirlananMetraj: { $sum: "$hazirlananMetrajlar.metraj" } }
       },
       {
-        $group: { _id: "$_id._pozId", hazirlananMetraj: {$push : {_userId:"$_id._userId", metraj:"$hazirlananMetraj"}} }
+        $group: { _id: "$_id._pozId", hazirlananMetrajlar: {$push : {_userId:"$_id._userId", metraj:"$hazirlananMetraj"}} }
       }
     ]).toArray()
 
@@ -49,8 +49,8 @@ exports = async function ({ projectId }) {
     let pozlar = await collection.find({ isDeleted: false }).toArray()
     let pozlar2 = pozlar.map(onePoz => {
       let onaylananMetraj = onaylananMetrajlar.find(x => x._id.toString() == onePoz._id.toString())
-      let hazirlananMetraj = hazirlananMetrajlar.find(x => x._id.toString() == onePoz._id.toString())
-      return {...onePoz, ...onaylananMetraj, ...hazirlananMetraj}
+      let hazirlananMetrajlar = hazirlananMetrajlar.find(x => x._id.toString() == onePoz._id.toString())
+      return {...onePoz, ...onaylananMetraj, ...hazirlananMetrajlar}
     })
     
     return pozlar2
