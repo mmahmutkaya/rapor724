@@ -422,6 +422,66 @@ exports = async function ({
 
   }
 
+  
+
+  if (functionName == "getProjectNames") {
+    try {
+
+      // pozlar metraj
+      const collection_Dugumler = context.services.get("mongodb-atlas").db("rapor724_dugumler").collection(_projectId.toString())
+
+      const onaylananMetrajlar = await collection_Dugumler.aggregate([
+        {
+          $group: { _id: "$_pozId", onaylananMetraj: { $sum: "$onaylananMetraj.metraj" } }
+        }
+      ]).toArray()
+
+      const hazirlananMetrajlar = await collection_Dugumler.aggregate([
+        {
+          $unwind: "$hazirlananMetrajlar"
+        },
+        {
+          $group: { _id: { _pozId: "$_pozId", _userId: "$hazirlananMetrajlar._userId" }, hazirlananMetraj: { $sum: "$hazirlananMetrajlar.metraj" } }
+        },
+        {
+          $group: { _id: "$_id._pozId", hazirlananMetrajlar: { $push: { _userId: "$_id._userId", metraj: "$hazirlananMetraj" } } }
+        }
+      ]).toArray()
+
+
+      const aktifPozlar = await collection_Dugumler.aggregate([
+        {
+          $match: { openMetraj: true }
+        },
+        {
+          $group: { _id: "$_pozId" }
+        }
+      ]).toArray()
+
+      
+
+      // pozlar bulma ve metrajlar ile birleştirme
+      const collection = context.services.get("mongodb-atlas").db("rapor724_pozlar").collection(_projectId.toString())
+      let pozlar = await collection.find({ isDeleted: false }).toArray()
+      let pozlar2 = pozlar.map(onePoz => {
+        let onaylananMetraj = onaylananMetrajlar.find(x => x._id.toString() == onePoz._id.toString())
+        let hazirlananMetrajlar2 = hazirlananMetrajlar.find(x => x._id.toString() == onePoz._id.toString())
+        let openMetraj = aktifPozlar.find(x => x._id.toString() == onePoz._id.toString()) ? true : false
+        let pozBirim = project.pozBirimleri.find(x => x.id == onePoz?.birimId)?.name
+        return { ...onePoz, ...onaylananMetraj, ...hazirlananMetrajlar2, openMetraj, pozBirim }
+      })
+
+      return pozlar2
+
+    } catch (err) {
+
+      throw new Error("MONGO // getProjectPozlar // " + err.message)
+    }
+
+  }
+
+
+
 
   return { ok: true, description: "herhangi bir fonksiyon içine giremedi" };
 };
