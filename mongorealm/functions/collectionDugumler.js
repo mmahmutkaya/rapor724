@@ -424,7 +424,7 @@ exports = async function ({
 
   
 
-  if (functionName == "getProjectNames") {
+  if (functionName == "getProjectPozlar") {
     try {
 
       // pozlar metraj
