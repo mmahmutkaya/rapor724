@@ -18,7 +18,7 @@
             "confirmationFunctionName": "auth_UserRegester",
             "emailConfirmationUrl": "https://stitch-statichosting-prod.s3.amazonaws.com/63e8c4a6a002d9d40d464662/618960aa6eb2961a1b45f969/index2.html?X-Amz-Algorithm=AWS4-HMAC-SHA256\u0026X-Amz-Credential=AKIAZ5A3K6VY7LDWGOX4%2F20230305%2Fus-east-1%2Fs3%2Faws4_request\u0026X-Amz-Date=20230305T121934Z\u0026X-Amz-Expires=60\u0026X-Amz-SignedHeaders=host\u0026X-Amz-Signature=751362ba562e064473cc163f2ccd208b7cdbd1426e8acbda12ce678ae204127c",
             "resetFunctionName": "auth_UserRegester",
-            "runConfirmationFunction": false,
+            "runConfirmationFunction": true,
             "runResetFunction": true
         }
     }
