@@ -1,20 +1,21 @@
-exports = async function () {
+exports = async function (email) {
   
-  const userId = context.user.id
-  const email = context.user.data.email
+  // const userId = context.user.id
+  // const email = context.user.data.email
   
 
   // // bu sorgu iptal zaten mail adresi contexten alınıyor
   // // 1 - mail adresi sorgusu
-  // const isMailValid = String(email)
-  //   .toLowerCase()
-  //   .match(
-  //     /^(([^<>()[\]\\.,;:\s@"]+(\.[^<>()[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/
-  //   );
+  
+  const isMailValid = String(email)
+    .toLowerCase()
+    .match(
+      /^(([^<>()[\]\\.,;:\s@"]+(\.[^<>()[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/
+    );
       
-  // if(!isMailValid) {
-  //   return ({ok:false, hataYeri:"MONGODB // FONK // sendMail_ConfirmationCode", hataMesaj:"payload içindeki mail adresi hatalı", payload:{email,userId} })
-  // }
+  if(!isMailValid) {
+    return ({ok:false, hataYeri:"MONGODB // FONK // sendMail_ConfirmationCode", hataMesaj:"payload içindeki mail adresi hatalı", payload:{email,userId} })
+  }
   
   
   
@@ -35,7 +36,7 @@ exports = async function () {
     
     const collection_mailConfirmationCodes = context.services.get("mongodb-atlas").db("rapor724_v2").collection("mailConfirmationCodes")
     const dbKayit = await collection_mailConfirmationCodes.updateOne(
-      { userId }, // Query for the user object of the logged in user
+      { email }, // Query for the user object of the logged in user
       { $set: { mailConfirmationKod} }, // Set the logged in user's favorite color to purple
       { upsert: true }
     );
