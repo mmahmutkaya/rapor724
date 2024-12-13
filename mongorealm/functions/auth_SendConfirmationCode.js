@@ -16,7 +16,7 @@ exports = async function (email) {
   
 
   const collection_Users = context.services.get("mongodb-atlas").db("rapor724_v2").collection("users")
-  const isUser = collection_Users.findOne({email})
+  const isUser = await collection_Users.findOne({email})
   if(isUser) {
     return "Bu email adresi sitemde kayıtlı, şifrenizi unuttuysanız yeniden oluşturabilirsiniz."
   }
