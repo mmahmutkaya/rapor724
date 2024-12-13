@@ -1,5 +1,5 @@
 
-exports = async ({ token, tokenId, username }) => {
+exports = async ({ token, tokenId, username, password}) => {
   
   
   try {
