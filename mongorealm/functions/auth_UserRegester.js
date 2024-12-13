@@ -31,7 +31,7 @@ exports = async ({ token, tokenId, username, password}) => {
   
 
   // yukarıdaki herhangi bir try catch bloğuna takılmadı
-  return {status:"success"}
+  // return {status:"success"}
 
 }
 
