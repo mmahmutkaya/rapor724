@@ -2,10 +2,7 @@ exports = async function (email) {
   
   // const userId = context.user.id
   // const email = context.user.data.email
-  
 
-  // // bu sorgu iptal zaten mail adresi contexten alınıyor
-  // // 1 - mail adresi sorgusu
   
   const isMailValid = String(email)
     .toLowerCase()
@@ -17,6 +14,13 @@ exports = async function (email) {
     return ({ok:false, hataYeri:"MONGODB // FONK // sendMail_ConfirmationCode", hataMesaj:"payload içindeki mail adresi hatalı", payload:{email} })
   }
   
+
+  const collection_Users = context.services.get("mongodb-atlas").db("rapor724_v2").collection("users")
+  const isUser = collection_Users.findOne({email})
+  if(isUser) {
+    return "Bu email adresi sitemde kayıtlı, şifrenizi unuttuysanız yeniden oluşturabilirsiniz."
+  }
+
   
   
   // kod üretme
@@ -28,7 +32,6 @@ exports = async function (email) {
   for ( var i = 0; i < length; i++ ) {
     mailConfirmationKod += characters.charAt(Math.floor(Math.random() *  charactersLength));
   }
-
 
   
   
@@ -45,10 +48,10 @@ exports = async function (email) {
     const message = "Mail Doğrulama Kodunuz - " + mailConfirmationKod
     const mailSend = await context.functions.execute("sendMail", email, subject, message)
     
-    return ({ok:true, Fonksiyon:"MONGO // FONK // setCustomData ", mesaj:"kod db ye kaydedildi ve mail adresine iletildi", dbKayit, mailSend })
+    return ({ok:true, Fonksiyon:"MONGO // FONK // auth_SendConfirmationCode ", mesaj:"kod db ye kaydedildi ve mail adresine iletildi", dbKayit, mailSend })
     
   } catch (err) {
-    return ({ok:false, hataYeri:"MONGO // FONK // setCustomData ", hataMesaj:err.message})
+    return ({ok:false, hataYeri:"MONGO // FONK // auth_SendConfirmationCode ", hataMesaj:err.message})
   }
 
 
