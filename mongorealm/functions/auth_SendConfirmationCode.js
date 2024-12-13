@@ -1,4 +1,4 @@
-exports = async function (email) {
+exports = async function ({email}) {
   
   // const userId = context.user.id
   // const email = context.user.data.email
