@@ -14,7 +14,7 @@ exports = async function (email) {
     );
       
   if(!isMailValid) {
-    return ({ok:false, hataYeri:"MONGODB // FONK // sendMail_ConfirmationCode", hataMesaj:"payload içindeki mail adresi hatalı", payload:{email,userId} })
+    return ({ok:false, hataYeri:"MONGODB // FONK // sendMail_ConfirmationCode", hataMesaj:"payload içindeki mail adresi hatalı", payload:{email} })
   }
   
   
