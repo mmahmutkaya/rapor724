@@ -10,8 +10,8 @@ exports = async function(email,konu,mesaj){
   const transporter = nodemailer.createTransport({
       service: 'gmail',
       auth: {
-          user: 'excel.edu.v1@gmail.com',
-          pass: 'bilxoukdqeypmwgk'
+          user: 'rapor724@gmail.com',
+          pass: 'maka1453'
       }
   });
   
