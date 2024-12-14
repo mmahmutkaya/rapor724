@@ -1,6 +1,8 @@
 
 exports = ({ token, tokenId, username }) => {
 
+  return {status:"success"}
+
   
   try {
     if (!context.functions.execute("validateEmail", username)) {
