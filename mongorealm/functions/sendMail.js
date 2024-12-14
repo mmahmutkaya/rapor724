@@ -7,22 +7,21 @@ exports = async function(email,konu,mesaj){
     
   const nodemailer = require('nodemailer');
 
-  var transporter = nodemailer.createTransport({
-      service: "Outlook365",
-      host: 'smtp.office365.com',
-      port: '587',
-      tls: {
-        ciphers:'SSLv3',
-        rejectUnauthorized: false 
-      },
+  const transporter = nodemailer.createTransport({
+      service: 'gmail',
       auth: {
-        user: 'mkaya@outdoorfactory.com.tr',
-        pass: 'Outdoor2022*1'
+          user: 'excel.edu.v1@gmail.com',
+          pass: 'bilxoukdqeypmwgk'
       }
   });
 
-// user: 'mkaya@outdoorfactory.com.tr',
-// pass: 'Outdoor2022*1'
+  // const transporter = nodemailer.createTransport({
+  //     service: 'gmail',
+  //     auth: {
+  //         user: 'excel.edu.v1@gmail.com',
+  //         pass: 'bilxoukdqeypmwgk'
+  //     }
+  // });
   
   const mailOptions = {
     to: email,
