@@ -7,18 +7,20 @@ exports = async function(email,konu,mesaj){
     
   const nodemailer = require('nodemailer');
 
-    var transporter = nodemailer.createTransport({
-        host: 'smtp.office365.com', // Office 365 server
-        port: 587,     // secure SMTP
-        secure: false, // false for TLS - as a boolean not string - but the default is false so just remove this completely
-        auth: {
-          user: 'mkaya@outdoorfactory.com.tr',
-          pass: 'Outdoor2022*1'
-        },
-        tls: {
-            ciphers: 'SSLv3'
-        }
-    });
+  var transporter = nodemailer.createTransport({
+    host: "smtpout.secureserver.net",
+    port: 587,
+    secureConnection: false,
+    secure: false,
+    requireTLS: true,
+    auth: {
+      user: 'mkaya@outdoorfactory.com.tr',
+      pass: 'Outdoor2022*1'
+    },
+    tls: {
+      rejectUnauthorized: false
+    }
+  });
 
 // user: 'mkaya@outdoorfactory.com.tr',
 // pass: 'Outdoor2022*1'
