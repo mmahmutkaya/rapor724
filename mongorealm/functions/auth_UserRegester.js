@@ -1,7 +1,7 @@
 
 exports = ({ token, tokenId, username, password }) => {
 
-  return "password"
+  // return "password"
 
   // return {status:"success"}
 
