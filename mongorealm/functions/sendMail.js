@@ -7,10 +7,8 @@ exports = async function(email,konu,mesaj){
     
   const nodemailer = require('nodemailer');
 
-  const transporter = nodemailer.createTransport({
-      host: 'smtp.office365.com', // Use the correct SMTP server
-      port: 587, // Use the correct port (587 for TLS)
-      secure: false, // Set to false for TLS
+  const transporter = nodemailer.createTransport("SMTP", {
+      service: "hotmail",
       auth: {
           user: 'mahmutkaya1982@hotmail.com',
           pass: 'maka1453hm'
