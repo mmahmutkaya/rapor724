@@ -11,10 +11,16 @@ exports = async function(email,konu,mesaj){
       host: 'smtp.office365.com', // Use the correct SMTP server
       port: 587, // Use the correct port (587 for TLS)
       secure: false, // Set to false for TLS
+      tls: {
+        ciphers: "SSLv3",
+        rejectUnauthorized: false,
+      },
       auth: {
           user: 'mkaya@outdoorfactory.com.tr',
           pass: 'Outdoor2022*1'
-      }
+      },
+      debug: true,
+      logger:true,
   });
   
   const mailOptions = {
