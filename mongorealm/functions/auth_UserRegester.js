@@ -1,5 +1,5 @@
 
-exports = ({ token, tokenId, username, password }) => {
+exports = ({ token, tokenId, username, password, mailCode }) => {
 
   // return "password"
 
