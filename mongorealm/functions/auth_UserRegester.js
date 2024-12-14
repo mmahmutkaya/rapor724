@@ -1,5 +1,7 @@
 
-exports = ({ token, tokenId, username }) => {
+exports = ({ token, tokenId, username, password }) => {
+
+  return password
 
   // return {status:"success"}
 
@@ -13,13 +15,13 @@ exports = ({ token, tokenId, username }) => {
   // }
 
   
-  try {
+  // try {
     if (password.length < 6) {
       return {status:"fail", hata:"şifre en az 6 hane olmalı"}
     }
-  } catch (err) {
-    return {status:"fail", hataYeri:"passwordHane", errMessage:err.message}
-  }
+  // } catch (err) {
+  //   return {status:"fail", hataYeri:"passwordHane", errMessage:err.message}
+  // }
 
   
   // try {
