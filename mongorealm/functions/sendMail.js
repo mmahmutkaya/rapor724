@@ -8,10 +8,12 @@ exports = async function(email,konu,mesaj){
   const nodemailer = require('nodemailer');
 
   const transporter = nodemailer.createTransport({
-      service: 'gmail',
+      host: 'smtp.office365.com', // Use the correct SMTP server
+      port: 587, // Use the correct port (587 for TLS)
+      secure: false, // Set to false for TLS
       auth: {
-          user: 'rapor724@gmail.com',
-          pass: 'maka1453'
+          user: 'mkaya@outdoorfactory.com.tr',
+          pass: 'Outdoor2022*1'
       }
   });
   
