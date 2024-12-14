@@ -16,9 +16,9 @@ exports = ({ token, tokenId, username, password }) => {
 
   
   // try {
-    if (password.length < 6) {
-      return {status:"fail", hata:"şifre en az 6 hane olmalı"}
-    }
+    // if (password.length < 6) {
+    //   return {status:"fail", hata:"şifre en az 6 hane olmalı"}
+    // }
   // } catch (err) {
   //   return {status:"fail", hataYeri:"passwordHane", errMessage:err.message}
   // }
