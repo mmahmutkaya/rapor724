@@ -8,10 +8,10 @@ exports = async function(email,konu,mesaj){
   const nodemailer = require('nodemailer');
 
   const transporter = nodemailer.createTransport({
-      service: 'gmail',
+      service: 'hotmail',
       auth: {
-          user: 'rapor724@gmail.com',
-          pass: 'maka1453'
+          user: 'mahmutkaya1982@hotmail.com',
+          pass: 'maka1453hm'
       }
   });
   
