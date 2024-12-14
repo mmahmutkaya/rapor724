@@ -8,12 +8,17 @@ exports = async function(email,konu,mesaj){
   const nodemailer = require('nodemailer');
 
   const transporter = nodemailer.createTransport({
-    host: 'smtp-mail.outlook.com',
-    port: '587',
+    host: "smtp-mail.outlook.com", 
+    secureConnection: false, 
+    port: 587, 
+    service: "outlook",
     auth: {
         user: 'mahmutkaya1982@hotmail.com',
         pass: 'maka1453hm'
-    }
+    },
+    tls: {
+      ciphers: "SSLv3",
+    },
   });
   
   const mailOptions = {
