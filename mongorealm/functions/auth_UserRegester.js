@@ -1,5 +1,5 @@
 
-exports = ({ token, tokenId, username, password, mailCode }) => {
+exports = async ({ token, tokenId, username, password, mailCode }) => {
 
   // return "password"
 
@@ -25,8 +25,8 @@ exports = ({ token, tokenId, username, password, mailCode }) => {
 
   
   // try {
-    const mailConfirmationKod = context.services.get("mongodb-atlas").db("rapor724_v2").collection("mailConfirmationCodes").findOne({email:username}).mailConfirmationKod
-    if(mailConfirmationKod !== "mailCode") {
+    const mailConfirmationKod = await context.services.get("mongodb-atlas").db("rapor724_v2").collection("mailConfirmationCodes").findOne({email:username}).mailConfirmationKod
+    if(mailConfirmationKod !== "831946") {
       return {status:"fail", hata:"mail adresine giden kod doğru girilmedi"}
     }
   // } catch (err) {
