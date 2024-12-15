@@ -1,18 +1,20 @@
 
-exports = async ({ token, tokenId, username, password, mailCode }) => {
+exports = async ({ token, tokenId, username }) => {
 
-  // return "password"
 
-  // return {status:"success"}
+  const validateEmail = (email) => {
+    return String(email)
+      .toLowerCase()
+      .match(
+        /^(([^<>()[\]\\.,;:\s@"]+(\.[^<>()[\]\\.,;:\s@"]+)*)|.(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/
+      );
+  };
 
-  
-  // try {
-    if (!context.functions.execute("validateEmail", username)) {
-      return {status:"fail", hata:"mail adresi hatalı"}
-    }
-  // } catch (err) {
-  //   return {status:"fail", hataYeri:"validateEmail", errMessage:err.message}
-  // }
+  if (!validateEmail(username)) {
+    return {status:"fail", hata:"mail adresi hatalı"}
+  }
+
+
 
   
   // try {
@@ -25,10 +27,10 @@ exports = async ({ token, tokenId, username, password, mailCode }) => {
 
   
   // try {
-    const mailConfirmationKod = await context.services.get("mongodb-atlas").db("rapor724_v2").collection("mailConfirmationCodes").findOne({email:username}).mailConfirmationKod
-    if(mailConfirmationKod !== "4923744") {
-      return {status:"fail", hata:"mail adresine giden kod doğru girilmedi"}
-    }
+    // const mailConfirmationKod = await context.services.get("mongodb-atlas").db("rapor724_v2").collection("mailConfirmationCodes").findOne({email:username}).mailConfirmationKod
+    // if(mailConfirmationKod !== "4923744") {
+    //   return {status:"fail", hata:"mail adresine giden kod doğru girilmedi"}
+    // }
   // } catch (err) {
   //   return {status:"fail", hataYeri:"mailConfirmationKod", errMessage:err.message}
   // }
