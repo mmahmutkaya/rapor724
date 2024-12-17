@@ -54,7 +54,7 @@ exports = async function () {
   try {
     const subject = "Rapor 7/24 - Mail Doğrulama Kodu"
     const message = "Mail Doğrulama Kodunuz - " + mailConfirmationKod
-    const resultMailSend = await context.functions.execute("sendMail", email, subject, message)
+    resultMailSend = await context.functions.execute("sendMail", email, subject, message)
   } catch (err) {
     return ({ok:false, hataYeri:"maile gidecek kodu mail atma", hataMesaj:err.message})
   }
