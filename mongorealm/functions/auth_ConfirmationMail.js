@@ -21,7 +21,7 @@ exports = async function(mailCode){
     ]
   );
 
-  return result
+  return result.modifiedCount ? "mail teyit edildi" : "mail kodu doğru girilmedi"
 
   
   // const userId = context.user.id
