@@ -18,7 +18,7 @@ exports = async function () {
 
   
   // maile gidecek kodu üretme
-  let mailConfirmationKod = '';
+  let mailConfirmationKod = ''
   try {
     let length = 6 // kod üretilecek hane sayısı
     var characters = '123456789';
