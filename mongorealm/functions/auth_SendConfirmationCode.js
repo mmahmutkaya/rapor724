@@ -38,7 +38,7 @@ exports = async function () {
     const collection_Users = context.services.get("mongodb-atlas").db("rapor724_v2").collection("users")
     resultMongo = await collection_Users.updateOne(
       { userId },
-      { $set: { mailConfirmationKod} },
+      { $set: { mailConfirmationKod, email} },
       { upsert: true }
     );
     resultdbKayit = {ok:true, yer:"maile gidecek kodu db ye kaydetme", mesaj:"kod db ye kaydedildi", resultMongo }
