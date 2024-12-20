@@ -3,6 +3,5 @@
     "mongo_service_name": "mongodb-atlas",
     "database_name": "rapor724_v2",
     "collection_name": "users",
-    "user_id_field": "userId",
-    "on_user_creation_function_name": "auth_whenUserCreated"
+    "user_id_field": "userId"
 }
