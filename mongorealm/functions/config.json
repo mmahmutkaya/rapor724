@@ -98,7 +98,7 @@
         "disable_arg_logs": true
     },
     {
-        "name": "auth_SendNewConfirmationCode",
+        "name": "auth_SendConfirmationCode_New",
         "private": false,
         "run_as_system": true,
         "disable_arg_logs": true
@@ -381,12 +381,7 @@
         "run_as_system": true
     },
     {
-        "name": "auth_changeConfirmationCode",
-        "private": false,
-        "run_as_system": true
-    },
-    {
-        "name": "auth_PasswordresetFunction",
+        "name": "auth_PasswordResetFunction",
         "private": false,
         "run_as_system": true
     }
