@@ -1,13 +1,12 @@
 
-import { useState, useContext } from 'react';
+import { useState, useContext, useEffect } from 'react';
 import { useNavigate } from "react-router-dom";
 import { StoreContext } from '../../components/store'
 import { useApp } from "../../components/useApp";
-import FormMahalCreate from '../../components/FormMahalCreate'
-import FormMahalBaslikCreate from '../../components/FormMahalBaslikCreate'
-import MahalListesiHeader from '../../components/MahalListesiHeader'
-import { useGetMahaller, useGetMahalListesi, useToggleOpenMetrajDugum, useGetPozlar } from '../../hooks/useMongo';
-
+import MetrajEditHeader from '../../components/MetrajEditHeader'
+import { useQuery, useQueryClient, useMutation } from '@tanstack/react-query'
+import { BSON } from "realm-web"
+import { useGetMahaller, useGetMahalListesi, useGetHazirlananMetrajlar, useUpdateHazirlananMetraj, useUpdateOnaylananMetraj, useGetOnaylananMetraj } from '../../hooks/useMongo';
 
 import { styled } from '@mui/system';
 import Grid from '@mui/material/Grid';
@@ -16,138 +15,311 @@ import Alert from '@mui/material/Alert';
 import Stack from '@mui/material/Stack';
 import { Button, TextField, Typography } from '@mui/material';
 import Box from '@mui/material/Box';
+import IconButton from '@mui/material/IconButton';
 import InfoIcon from '@mui/icons-material/Info';
-import { BSON } from 'realm-web';
+import Chip from '@mui/material/Chip';
+import HourglassFullSharpIcon from '@mui/icons-material/HourglassFullSharp';
+import CircleIcon from '@mui/icons-material/Circle';
+import CheckCircleIcon from '@mui/icons-material/CheckCircle';
+import CheckIcon from '@mui/icons-material/Check';
+import DoneAllIcon from '@mui/icons-material/DoneAll';
 
+export default function P_MetrajEdit() {
 
+  const queryClient = useQueryClient()
+  const RealmApp = useApp();
 
-export default function P_MahalListesi() {
-
-
-  const { isProject, setMahalListesi_wbsIds, setMahalListesi_lbsIds } = useContext(StoreContext)
+  const { isProject, setIsProject } = useContext(StoreContext)
+  const { custom, setCustom } = useContext(StoreContext)
   const { selectedMahal, setSelectedMahal } = useContext(StoreContext)
+  const { selectedPoz, setSelectedPoz } = useContext(StoreContext)
   const { myTema, setMyTema } = useContext(StoreContext)
-  const { selectedMahalBaslik, setSelectedMahalBaslik } = useContext(StoreContext)
+  const { selectedNode, setSelectedNode } = useContext(StoreContext)
   const { drawerWidth, topBarHeight, subHeaderHeight } = useContext(StoreContext)
+  const { editNodeMetraj, setEditNodeMetraj } = useContext(StoreContext)
+  const { showNodeMetraj, setShowNodeMetraj } = useContext(StoreContext)
+  const { detailMode, setDetailMode } = useContext(StoreContext)
 
 
-  const [show, setShow] = useState("Main")
-  const [editMode_MahalListesi, setEditMode_MahalListesi] = useState(false)
+  const [show, setShow] = useState("EditMetraj")
+  const [approveMode, setApproveMode] = useState()
+  const [isChanged, setIsChanged] = useState(0)
+  const [hazirlananMetraj_state, setHazirlananMetraj_state] = useState()
+  const [hazirlananMetrajlar_state, setHazirlananMetrajlar_state] = useState()
+  const [onaylananMetraj_state, setOnaylananMetraj_state] = useState()
+  const [onaylananMetrajUsers_state, setOnaylananMetrajUsers_state] = useState()
+  const [dugumMetraj_state, setDugumMetraj_state] = useState()
+  const [metraj, setMetraj] = useState()
+  const [_pozId, set_pozId] = useState()
   const [mahalBilgiler_willBeSaved, setMahalBilgiler_willBeSaved] = useState([])
-  const [autoFocus, setAutoFocus] = useState({ baslikId: null, mahalId: null })
+  const [autoFocus, setAutoFocus] = useState({ pozId: null, mahalId: null })
+  const [satirlarToplam, setSatirlarToplam] = useState()
+
+
+  let pozBirim
+  let pozMetraj
+
 
 
   const navigate = useNavigate()
-  // !isProject ? navigate('/projects') : null
-  if (!isProject) window.location.href = "/projects"
-
-  const RealmApp = useApp();
-
-  const { data: pozlar } = useGetPozlar()
-
-  const { data: mahaller } = useGetMahaller()
 
   const { data: mahalListesi } = useGetMahalListesi()
 
-  const { mutate: toggleMahalPoz } = useToggleOpenMetrajDugum()
+  const { data: hazirlananMetrajlar } = useGetHazirlananMetrajlar({ selectedNode })
+
+  const { data: onaylananMetraj } = useGetOnaylananMetraj({ selectedNode })
+  // onaylananMetraj && console.log("onaylananMetraj", onaylananMetraj)
+
+  const { mutate: updateHazirlananMetraj } = useUpdateHazirlananMetraj()
+
+  const { mutate: updateOnaylananMetraj } = useUpdateOnaylananMetraj()
 
 
-  const handleSelectMahal = (mahal) => {
-    setSelectedMahal(mahal)
-    setSelectedMahalBaslik(false)
-  }
+  useEffect(() => {
+    !isProject && navigate("/projects")
+    !selectedNode && navigate("/metrajmahaller")
+    RealmApp && hazirlananMetrajlar && load_hazirlananMetraj_state()
+    return () => {
+    }
+  }, [RealmApp, hazirlananMetrajlar])
 
 
-  // aşağıda kullanılıyor
-  let lbsCode = ""
-  let lbsName = ""
-  let theDugum
-  let cOunt = 0
-  let count_
-  let toplam
-  let g_altBaslik
+  // Edit Metraj Sayfasının Fonksiyonu
+  const load_hazirlananMetraj_state = () => {
 
+    let userharf = isProject?.metrajYapabilenler.find(x => x._userId.toString() == RealmApp?.currentUser.id)?.harf
 
-  const _3_fixed_width_rem = "6rem 35rem 5rem"
-  _3_fixed_width_rem.split(" ").map(item => {
-    let gecici = Number(item.replace("rem", ""))
-    toplam ? toplam = toplam + gecici : toplam = gecici
-  })
-  const total_fixed_width = toplam
+    if (hazirlananMetrajlar?.length > 0) {
+      let hazirlananMetraj = hazirlananMetrajlar?.find(x => x._userId.toString() == RealmApp?.currentUser.id)
 
-  const one_bosluk_width = 2
+      if (hazirlananMetraj) {
+        hazirlananMetraj = JSON.parse(JSON.stringify(hazirlananMetraj))
+        hazirlananMetraj._userId = new BSON.ObjectId(hazirlananMetraj._userId)
+        hazirlananMetraj.satirlar = hazirlananMetraj.satirlar.map(x => {
+          x.sonGuncelleme = new Date(x.sonGuncelleme)
+          return x
+        })
+        setHazirlananMetraj_state(hazirlananMetraj)
+        // console.log("backend teki usermetraj şablonu yüklendi", hazirlananMetraj)
+      } else {
+        let satirlar = [
+          { satirNo: userharf + 1, metin1: "", metin2: "", carpan1: "", carpan2: "", carpan3: "", carpan4: "", carpan5: "", metraj: "" },
+          { satirNo: userharf + 2, metin1: "", metin2: "", carpan1: "", carpan2: "", carpan3: "", carpan4: "", carpan5: "", metraj: "" },
+          { satirNo: userharf + 3, metin1: "", metin2: "", carpan1: "", carpan2: "", carpan3: "", carpan4: "", carpan5: "", metraj: "" },
+          { satirNo: userharf + 4, metin1: "", metin2: "", carpan1: "", carpan2: "", carpan3: "", carpan4: "", carpan5: "", metraj: "" },
+          { satirNo: userharf + 5, metin1: "", metin2: "", carpan1: "", carpan2: "", carpan3: "", carpan4: "", carpan5: "", metraj: "" }
+        ]
+        setHazirlananMetraj_state({ _userId: new BSON.ObjectId(RealmApp?.currentUser.id), satirlar, metraj: 0 })
+        // console.log("frontend teki usermetraj şablonu yüklendi", { _userId: new BSON.ObjectId(RealmApp?.currentUser.id), satirlar })
+      }
+    } else {
+      let satirlar = [
+        { satirNo: userharf + 1, metin1: "", metin2: "", carpan1: "", carpan2: "", carpan3: "", carpan4: "", carpan5: "", metraj: "" },
+        { satirNo: userharf + 2, metin1: "", metin2: "", carpan1: "", carpan2: "", carpan3: "", carpan4: "", carpan5: "", metraj: "" },
+        { satirNo: userharf + 3, metin1: "", metin2: "", carpan1: "", carpan2: "", carpan3: "", carpan4: "", carpan5: "", metraj: "" },
+        { satirNo: userharf + 4, metin1: "", metin2: "", carpan1: "", carpan2: "", carpan3: "", carpan4: "", carpan5: "", metraj: "" },
+        { satirNo: userharf + 5, metin1: "", metin2: "", carpan1: "", carpan2: "", carpan3: "", carpan4: "", carpan5: "", metraj: "" }
+      ]
+      setHazirlananMetraj_state({ _userId: new BSON.ObjectId(RealmApp?.currentUser.id), satirlar, metraj: 0 })
+      // console.log("frontend teki usermetraj şablonu yüklendi", { _userId: new BSON.ObjectId(RealmApp?.currentUser.id), satirlar })
+    }
 
-  const one_mahal_width = 10
-
-
-  let totalWidthSabit = isProject?.mahalBasliklari?.filter(item => item.sabit).reduce(
-    (accumulator, oneBilgi) => accumulator + oneBilgi.genislik,
-    0
-  )
-  totalWidthSabit = totalWidthSabit + 'rem'
-
-
-  let totalWidthDegisken = pozlar?.length * 10
-  totalWidthDegisken = totalWidthDegisken + 'rem'
-
-
-  let totalWidth = (parseFloat(totalWidthSabit) + 2 + parseFloat(totalWidthDegisken)) + 'rem'
-
-
-  let gridTemplateColumnsSabit = isProject?.mahalBasliklari?.filter(item => item.sabit).reduce(
-    (ilkString, oneBilgi, index) => index != isProject?.mahalBasliklari?.length ? ilkString + (oneBilgi.genislik + "rem ") : ilkString + (oneBilgi.genislik + "rem"),
-    ""
-  )
-
-
-  let gridTemplateColumnsDegisken = pozlar?.reduce(
-    (ilkString, onePoz, index) => index != pozlar?.length ? ilkString + (10 + "rem ") : ilkString + (10 + "rem"),
-    ""
-  )
-
-  let gridTemplateColumnsDegisken2 = isProject?.mahalBasliklari?.filter(item => !item.sabit && item.goster).reduce(
-    (ilkString, oneBilgi, index) => index != isProject?.mahalBasliklari?.length ? ilkString + (oneBilgi.genislik + "rem ") : ilkString + (oneBilgi.genislik + "rem"),
-    ""
-  )
-
-
-  let gridTemplateColumns_ = gridTemplateColumnsSabit + " 2rem " + gridTemplateColumnsDegisken
-
-
-  const TableHeader = styled('div')(({ index }) => ({
-    marginTop: "1rem",
-    // backgroundColor: "rgba(242, 203, 150, 1)",
-    // backgroundColor: "rgba(150, 236, 242 , 0.8 )",
-    backgroundColor: "rgba( 56,56,56 , 0.15 )",
-    borderLeft: (index && index !== 0) ? null : "solid black 1px",
-    borderRight: "solid black 1px",
-    borderTop: "solid black 1px",
-    borderBottom: "solid black 1px"
-  }));
-
-  const TableItem = styled('div')(({ index }) => ({
-    borderLeft: index == 0 ? "solid black 1px" : null,
-    borderRight: "solid black 1px",
-    borderBottom: "solid black 1px"
-  }))
-
-  const Bosluk = styled('div')(() => ({
-    // backgroundColor: "lightblue"
-    // borderLeft: index == 0 ? "solid black 1px" : null,
-    // borderRight: "solid black 1px",
-    // borderBottom: "solid black 1px"
-  }));
-
-
-  const handle_selectBaslik = (oneBaslik) => {
-    setSelectedMahalBaslik(oneBaslik)
-    setSelectedMahal()
   }
 
 
 
+  // Edit Metraj Sayfasının Fonksiyonu
+  const handle_input_onKey = async (event) => {
+    if (event.key == "e" || event.key == "E" || event.key == "+" || event.key == "-" || event.keyCode == "38" || event.keyCode == "40") {
+      // console.log("'e' - 'E' - '+' - '-' - 'up' - 'down' - kullanılmasın")
+      return event.preventDefault()
+    }
+  }
 
-  // bir string değerinin numerik olup olmadığının kontrolü
+
+
+  // Edit Metraj Sayfasının Fonksiyonu
+  const handle_input_onChange = (event, satirNo, oneProperty) => {
+
+    let hazirlananMetraj_state2 = { ...hazirlananMetraj_state }
+
+    // map ile tarayarak, state kısmındaki datanın ilgili satırını güncelliyoruz, ayrıca tüm satırların toplam metrajını, önce önceki değeri çıkartıp yeni değeri ekleyerek
+    hazirlananMetraj_state2["satirlar"] = hazirlananMetraj_state2["satirlar"].map(oneRow => {
+
+      if (oneRow.satirNo == satirNo) {
+
+        // önceki satır metrajını çıkartıyoruz, yeni değeri bulunca aşağıda ekleyeceğiz
+        hazirlananMetraj_state2["metraj"] = Number(hazirlananMetraj_state2["metraj"]) - Number(oneRow["metraj"])
+
+        oneRow[oneProperty] = event.target.value
+
+        let isMinha = oneRow["metin1"].replace("İ", "i").toLowerCase().includes("minha") || oneRow["metin2"].replace("İ", "i").toLowerCase().includes("minha") ? true : false
+
+        if (oneRow.carpan1 == "" && oneRow.carpan2 == "" && oneRow.carpan3 == "" && oneRow.carpan4 == "" && oneRow.carpan5 == "") {
+          oneRow.metraj = ""
+          // hazirlananMetraj_state2["metraj"] ı güncelleyecek bir durum yok, önceki değeri yukarıda çıkarmıştık, yenisi zaten sıfır çıktı
+          return oneRow
+        }
+
+        const oneRowMetraj = (
+          (oneRow.carpan1 == "" ? 1 : oneRow.carpan1) *
+          (oneRow.carpan2 == "" ? 1 : oneRow.carpan2) *
+          (oneRow.carpan3 == "" ? 1 : oneRow.carpan3) *
+          (oneRow.carpan4 == "" ? 1 : oneRow.carpan4) *
+          (oneRow.carpan5 == "" ? 1 : oneRow.carpan5)
+        )
+
+        if (isMinha) {
+          oneRow.metraj = oneRowMetraj * -1
+          hazirlananMetraj_state2["metraj"] = hazirlananMetraj_state2["metraj"] + Number(oneRow.metraj)
+          // metraj = oneRowMetraj > 0 ? Number(metraj) - Number(oneRowMetraj) : Number(metraj)
+          return oneRow
+        } else {
+          oneRow.metraj = oneRowMetraj
+          // metraj = Number(oneRowMetraj) > 0 ? Number(metraj) + Number(oneRowMetraj) : Number(metraj)
+          hazirlananMetraj_state2["metraj"] = hazirlananMetraj_state2["metraj"] + Number(oneRow.metraj)
+          return oneRow
+        }
+
+      }
+
+      return oneRow
+
+    })
+
+    setIsChanged(true)
+    setHazirlananMetraj_state(hazirlananMetraj_state2)
+    // alttaki kod sadece react component render yapılması için biyerde kullanılmıyor -- (sonra bunada gerek kalmadı)
+    // setMetraj(oneRow["metin1"] + oneRow["metin2"] + oneRow["carpan1"] + oneRow["carpan2"] + oneRow["carpan3"] + oneRow["carpan4"] + oneRow["carpan5"])
+  }
+
+
+  // Edit Metraj Sayfasının Fonksiyonu
+  const save_hazirlananMetraj_toDb = () => {
+    if (isChanged) updateHazirlananMetraj({ selectedNode, hazirlananMetraj_state, setHazirlananMetraj_state })
+    setIsChanged()
+    navigate('/mahallermetraj')
+  }
+
+
+
+
+
+  // Metraj Onay Sayfasının Fonksiyonu
+
+  const load_hazirlananVeOnaylananMetrajlar_state = () => {
+
+    // console.log("onaylananMetraj",onaylananMetraj)
+    // console.log("onaylananMetraj_state",onaylananMetraj_state)
+    // console.log("hazirlananMetrajlar",hazirlananMetrajlar)
+    // console.log("hazirlananMetrajlar_state",hazirlananMetrajlar_state)
+
+
+    let onaylananMetraj2 = JSON.parse(JSON.stringify(onaylananMetraj))
+    if (onaylananMetraj2?.satirlar?.length) {
+      onaylananMetraj2.satirlar = onaylananMetraj2.satirlar.map(x => {
+        x._hazirlayanId = x._hazirlayanId ? new BSON.ObjectId(x._hazirlayanId) : null
+        x._onaylayanId = x._onaylayanId ? new BSON.ObjectId(x._onaylayanId) : null
+        x.onaylanmaTarihi = x.onaylanmaTarihi ? new Date(x.onaylanmaTarihi) : null
+        x.hazirlanmaTarihi = x.hazirlanmaTarihi ? new Date(x.hazirlanmaTarihi) : null
+        return x
+      })
+      setOnaylananMetraj_state(onaylananMetraj2)
+    }
+
+
+    let hazirlananMetrajlar2 = JSON.parse(JSON.stringify(hazirlananMetrajlar))
+    if (hazirlananMetrajlar2?.length) {
+      hazirlananMetrajlar2 = hazirlananMetrajlar2.map(x => {
+        x._userId = hazirlananMetrajlar2 ? new BSON.ObjectId(x._userId) : null
+        x.satirlar = x.satirlar.map(y => {
+          y.sonGuncelleme = y.sonGuncelleme ? new Date(y.sonGuncelleme) : null
+          return y
+        })
+        return x
+      })
+      setHazirlananMetrajlar_state(hazirlananMetrajlar2)
+    }
+
+  }
+
+
+
+  // Metraj Onay Sayfasının Fonksiyonu
+  const metrajOnayla_state = ({ userId, satirNo }) => {
+
+    setIsChanged(true)
+
+    let onaylananMetraj_state2 = { ...onaylananMetraj_state }
+    let sonSatir = 0
+    if (onaylananMetraj_state2?.satirlar?.length) {
+      onaylananMetraj_state2.satirlar.map(x => {
+        if (x?.satirNo > sonSatir) sonSatir = x.satirNo
+      })
+    }
+
+    let hazirlananMetrajlar_state2 = hazirlananMetrajlar_state.map(oneHazirlanan => {
+      if (oneHazirlanan._userId.toString() === userId) {
+
+        oneHazirlanan.satirlar = oneHazirlanan.satirlar.map(oneSatir => {
+          if (oneSatir.satirNo === satirNo) {
+
+            if (!oneSatir.isApproved) {
+              oneSatir.isApproved = true
+
+              if (!oneHazirlanan.onaylananMetraj) oneHazirlanan.onaylananMetraj = 0
+              oneHazirlanan.onaylananMetraj = oneHazirlanan.onaylananMetraj + oneSatir.metraj
+
+              if (!onaylananMetraj_state2.metraj) onaylananMetraj_state2.metraj = 0
+              if (!onaylananMetraj_state2.satirlar) onaylananMetraj_state2.satirlar = []
+              onaylananMetraj_state2.metraj = onaylananMetraj_state2.metraj + Number(oneSatir.metraj)
+
+              let satirObj = {
+                ...oneSatir,
+                _hazirlayanId: oneHazirlanan._userId,
+                hazirlanmaTarihi: oneSatir.sonGuncelleme,
+                _onaylayanId: new BSON.ObjectId(RealmApp?.currentUser.id),
+                onaylanmaTarihi: new Date(),
+              }
+              delete satirObj.isApproved
+              delete satirObj.sonGuncelleme
+
+              onaylananMetraj_state2.satirlar = [...onaylananMetraj_state2.satirlar, satirObj]
+              onaylananMetraj_state2.satirlar = onaylananMetraj_state2.satirlar.sort((a, b) => a.satirNo.localeCompare(b.satirNo))
+
+            } else {
+              oneSatir.isApproved = false
+              oneHazirlanan.onaylananMetraj = Number(oneHazirlanan.onaylananMetraj) - Number(oneSatir.metraj)
+              onaylananMetraj_state2.metraj = Number(onaylananMetraj_state2.metraj) - Number(oneSatir.metraj)
+              onaylananMetraj_state2.satirlar = onaylananMetraj_state2.satirlar.filter(x => x.satirNo !== satirNo)
+            }
+          }
+          return oneSatir
+        })
+      }
+      return oneHazirlanan
+    })
+
+    setOnaylananMetraj_state(onaylananMetraj_state2)
+
+    setHazirlananMetrajlar_state(hazirlananMetrajlar_state2)
+
+  }
+
+
+
+  // Metraj Onay Sayfasının Fonksiyonu
+  const saveOnaylananMetraj_toDb = () => {
+    // if (isChanged) console.log("değişecek", { selectedNode, hazirlananMetrajlar_state, setHazirlananMetrajlar_state, onaylananMetraj_state, setOnaylananMetraj_state })
+    if (isChanged) updateOnaylananMetraj({ selectedNode, hazirlananMetrajlar_state, setHazirlananMetrajlar_state, onaylananMetraj_state, setOnaylananMetraj_state })
+    setShow("DugumMetrajlari")
+    setIsChanged()
+  }
+
+
+
+
+  // GENEL - bir string değerinin numerik olup olmadığının kontrolü
   function isNumeric(str) {
     if (str) {
       str.toString()
@@ -158,349 +330,1055 @@ export default function P_MahalListesi() {
 
 
 
-  const saveMahal = async () => {
-    // setMahalBilgiler_willBeSaved([])
-    const result = await RealmApp?.currentUser.callFunction("updateMahalBilgiler", { _projectId: isProject?._id, mahalBilgiler_willBeSaved });
-    setEditMode_MahalListesi(false)
-    setSelectedMahalBaslik(false)
+  // GENEL - bir fonksiyon, ortak kullanılıyor olabilir
+  const ikiHane = (value) => {
+    if (value != "") {
+      return new Intl.NumberFormat("de-DE", { minimumFractionDigits: 2, maximumFractionDigits: 2, }).format(value)
+    }
+    return value
   }
+
+
+
+  // GENEL - bir fonksiyon, ortak kullanılıyor olabilir
+  const metrajValue = (oneRow, oneProperty, isMinha) => {
+
+    if (oneProperty == "pozBirim") return pozBirim
+    if (oneProperty.includes("carpan")) return show !== "EditMetraj" ? ikiHane(oneRow[oneProperty]) : oneRow[oneProperty]
+    if (oneProperty == "metraj") return ikiHane(oneRow[oneProperty])
+
+    // yukarıdaki hiçbiri değilse
+    return oneRow[oneProperty]
+
+  }
+
+
+
+  pozBirim = isProject?.pozBirimleri.find(item => item.id == selectedPoz?.birimId)?.name
+  pozMetraj = mahalListesi?.list.filter(item => item._pozId.toString() == selectedPoz?._id.toString()).reduce((accumulator, oneNode) => (isNaN(parseFloat(oneNode.metraj?.guncel)) ? accumulator + 0 : accumulator + parseFloat(oneNode.metraj?.guncel)), 0)
+  pozMetraj = Intl.NumberFormat('tr-TR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(pozMetraj)
+
 
 
   return (
 
     <>
 
-      <Grid item >
-        <MahalListesiHeader setShow={setShow} editMode_MahalListesi={editMode_MahalListesi} setEditMode_MahalListesi={setEditMode_MahalListesi} saveMahal={saveMahal} />
+      <Grid name="MetrajEditHeader" item sx={{ mt: (parseFloat(subHeaderHeight) + 1) + "rem", }}>
+        <MetrajEditHeader
+          show={show} setShow={setShow}
+          save_hazirlananMetraj_toDb={save_hazirlananMetraj_toDb}
+          load_hazirlananMetraj_state={load_hazirlananMetraj_state}
+          load_hazirlananVeOnaylananMetrajlar_state={load_hazirlananVeOnaylananMetrajlar_state}
+          setHazirlananMetraj_state={setHazirlananMetraj_state}
+          setOnaylananMetraj_state={setOnaylananMetraj_state}
+          isChanged={isChanged} setIsChanged={setIsChanged}
+          saveOnaylananMetraj_toDb={saveOnaylananMetraj_toDb}
+          approveMode={approveMode}
+          setApproveMode={setApproveMode}
+        />
       </Grid>
 
-      {show == "FormMahalCreate" &&
-        <Grid item >
-          <FormMahalCreate isProject={isProject} setShow={setShow} />
-        </Grid>
-      }
 
-      {show == "FormMahalBaslikCreate" &&
-        <Grid item >
-          <FormMahalBaslikCreate setShow={setShow} />
-        </Grid>
-      }
 
-      {show == "Main" && (isProject?.lbs?.filter(item => item.openForMahal).length == 0 || !isProject?.lbs) &&
-        <Stack sx={{ width: '100%', pl: "1rem", pr: "0.5rem", pt: "1rem", mt: subHeaderHeight }} spacing={2}>
-          <Alert severity="info">
-            Henüz hiç bir mahal başlığını mahal eklemeye açmamış görünüyorsunumuz. "Mahal Başlıkları" menüsünden işlem yapabilirsiniz.
-          </Alert>
-        </Stack>
-      }
 
-      {show == "Main" && mahalListesi && isProject?.lbs?.filter(item => item.openForMahal).length > 0 &&
+      {/* PAGE -> ONAYLI VE HAZIRLANAN METRAJLARIN GÖSTERİMİ */}
+      {
+        show == "DugumMetrajlari" &&
+        < Box name="Main" sx={{ display: "grid", mt: subHeaderHeight, ml: "1rem", mr: "1rem", justifyItems: "start" }}>
 
-        <Box sx={{ mt: subHeaderHeight, pt: "1rem", pl: "1rem", pr: "1rem" }}>
 
-          {/* {console.log("mahalListesi", mahalListesi)} */}
-
-          {/* EN ÜST BAŞLIK ÜST SATIRI */}
-          <Grid
-            sx={{
-              pb: "1rem",
-              display: "grid",
-              gridTemplateColumns: gridTemplateColumns_,
-            }}
-          >
-            {/* SOL KISIM SABİT EN ÜST MAHAL BAŞLIKLARI */}
-            {/* HAYALET */}
-            <Box sx={{ display: "none" }}>
-              {count_ = isProject?.mahalBasliklari?.filter(item => item.sabit).length}
+          {/* En Üst Başlık Satırı */}
+          < Grid sx={{ mb: "0.5rem", display: "grid", gridTemplateColumns: "6rem 10rem 14rem repeat(5, 5rem) 8rem 3rem", backgroundColor: "lightgray", justifyContent: "start" }}>
+            <Box sx={{ border: "1px solid black", display: "grid", alignItems: "center", textAlign: "center" }}>
+              Sıra
+            </Box>
+            <Box sx={{ border: "1px solid black", display: "grid", alignItems: "center", textAlign: "center" }}>
+              Kısa Açıklama
+            </Box>
+            <Box sx={{ border: "1px solid black", display: "grid", alignItems: "center", textAlign: "center" }}>
+              Açıklama
+            </Box>
+            <Box sx={{ border: "1px solid black", display: "grid", alignItems: "center", textAlign: "center" }}>
+              Benzer
+            </Box>
+            <Box sx={{ border: "1px solid black", display: "grid", alignItems: "center", textAlign: "center" }}>
+              Adet
+            </Box>
+            <Box sx={{ border: "1px solid black", display: "grid", alignItems: "center", textAlign: "center" }}>
+              En
+            </Box>
+            <Box sx={{ border: "1px solid black", display: "grid", alignItems: "center", textAlign: "center" }}>
+              Boy
+            </Box>
+            <Box sx={{ border: "1px solid black", display: "grid", alignItems: "center", textAlign: "center" }}>
+              Yükseklik
+            </Box>
+            <Box sx={{ border: "1px solid black", display: "grid", alignItems: "center", textAlign: "center" }}>
+              Metraj
+            </Box>
+            <Box sx={{ border: "1px solid black", display: "grid", alignItems: "end", textAlign: "center" }}>
+              Birim
             </Box>
 
-            {isProject?.mahalBasliklari?.filter(item => item.sabit).map((oneBaslik, index) => {
-              return (
-                <Box
-                  sx={{
-                    cursor: "pointer",
-                    backgroundColor: "rgba( 56,56,56 , 0.9 )",
-                    color: "white",
-                    fontWeight: "bold",
-                    border: "solid black 1px",
-                    borderRight: index + 1 == count_ ? "solid black 1px" : "0px",
-                    height:"3rem",
-                    width: "100%",
-                    display: "grid",
-                    alignItems: "center",
-                    justifyContent: oneBaslik.yatayHiza,
-                  }}
-                  onClick={() => handle_selectBaslik(oneBaslik)}
-                  key={index}
-                >
-                  {oneBaslik.name}
-                </Box>
-              )
-            })}
+            {/* <Box sx={{ border: "none", display: "grid", alignItems: "end", textAlign: "center", backgroundColor: "white" }}>
+
+            </Box> */}
+            {/* <Box sx={{ border: "1px solid black", display: "grid", alignItems: "end", textAlign: "center" }}>
+              Tarih
+            </Box> */}
+
+          </Grid >
 
 
-            <Bosluk>
-            </Bosluk>
 
 
-            {/* SAĞ KISIM DEĞİŞKEN EN ÜST POZ BAŞLIKLARI */}
-            {/* HAYALET KOMPONENT */}
-            <Box sx={{ display: "none" }}>
-              {count_ = pozlar?.length}
+          {/* HAZIRLANAN METRAJLAR GÖSTERİMİ */}
+
+          <Typography sx={{ fontWeight: "600", mb: "0.5rem", textDecoration: 'underline' }} variant="h6" component="h5">
+            Hazırlanan Metrajlar
+          </Typography>
+
+
+
+          {/* HAZIRLANAN METRAJ YOKSA */}
+          {!hazirlananMetrajlar?.length > 0 &&
+            <Box sx={{ width: '66rem', mb: "0.5rem" }} spacing={2}>
+              <Alert severity="success" color="warning">
+                {"Henüz hazırlanmış metraj bulunmuyor, yukarıdaki 'kalem' işaretine tıklayarak metraj girişi yapabilirsiniz."}
+              </Alert>
             </Box>
-            
-            {/* GÖZÜKEN KOMPONENT */}
-            {pozlar?.map((onePoz, index) => {
+          }
+
+
+
+          {/* HAZIRLANAN METRAJ VARSA */}
+          {hazirlananMetrajlar?.length > 0 &&
+
+            hazirlananMetrajlar?.map((oneMetraj, index) => {
+
+              let isOwnUser = oneMetraj?._userId.toString() == RealmApp?.currentUser.id
+
               return (
-                <Box
-                  sx={{
-                    cursor: "pointer",
-                    backgroundColor: editMode_MahalListesi ? "rgb( 110, 16, 16 , 1)" : "rgba( 56,56,56 , 0.9 )",
-                    color: "white",
-                    fontWeight: "bold",
-                    border: "solid black 1px",
-                    borderRight: index + 1 == count_ ? "solid black 1px" : "0px",
-                    height:"3rem",
-                    width: "100%",
-                    display: "grid",
-                    justifyContent: "center"
-                  }}
-                  onClick={() => handle_selectBaslik(onePoz)}
-                  key={index}
-                >
-                  <Box sx={{ display: "grid", justifyContent: "center" }}>
-                    {index}
-                  </Box>
 
-                  <Box sx={{ display: "grid", justifyContent: "center" }}>
-                    {onePoz.name}
-                  </Box>
+                <Box key={index} sx={{ mb: "2rem" }}>
 
-                </Box>
-              )
-            })}
+                  {/* hazirlananMetraj - Başlık Satırı */}
+                  <Box>{oneMetraj?._userId.toString()}</Box>
 
-          </Grid>
-
-
-          {/* SOL KISIMDAKİ SABİT KISIMDAKİ MAHAL BAŞLIKLARI ve SAĞ DEĞİŞKEN KISIMDA DEVAM EDEN BOŞ BAŞLIK HÜCRELERİ */}
-          {/* SOL KISIMDAKİ SABİT KISIMDAKİ MAHAL BAŞLIĞI ALTINDAKİ MAHALLER ve SAĞ DEĞİŞKEN KISIMDA DEVAM EDEN BOŞ BAŞLIK HÜCRELERİ ALTINDA POZ HÜCRELERİ*/}
-          {isProject?.lbs
-            .filter(item => item.openForMahal === true)
-            .sort(function (a, b) {
-              var nums1 = a.code.split(".");
-              var nums2 = b.code.split(".");
-
-              for (var i = 0; i < nums1.length; i++) {
-                if (nums2[i]) { // assuming 5..2 is invalid
-                  if (nums1[i] !== nums2[i]) {
-                    return nums1[i] - nums2[i];
-                  } // else continue
-                } else {
-                  return 1; // no second number in b
-                }
-              }
-              return -1; // was missing case b.len > a.len
-            }).map((oneLbs, index) => {
-              return (
-                <Grid
-                  key={index}
-                  sx={{
-                    display: "grid",
-                    gridTemplateColumns: totalWidthSabit + " 2rem " + gridTemplateColumnsDegisken,
-                  }}
-                >
-                  {/* SOL TARAF - SABİT MAHAL BAŞLIĞI */}
-                  <TableHeader>
-
-                    {/* HAYALET */}
-                    <Box sx={{ display: "none" }}>
-                      {cOunt = oneLbs.code.split(".").length}
+                  {/* onaylananMetraj - Başlık Satırı */}
+                  <Grid sx={{ display: "grid", gridTemplateColumns: "55rem 8rem 3rem 1rem 4rem 1rem 7rem", justifyContent: "start", alignItems: "center" }}>
+                    <Box sx={{ border: "1px solid black", backgroundColor: "rgba(127, 255, 212, 0.4)", display: "grid", justifyContent: "end", alignItems: "center", pr: "0.5rem" }}>
+                      <Box sx={{ display: "grid", gridAutoFlow: "column", alignItems: "center", justifyContent: "center", width: "100%", height: "100%" }}>
+                        {/* <Box sx={{
+                          display: isOwnUser ? "block" : "none",
+                          mr: "0.7rem",
+                          backgroundColor: "red",
+                          borderRadius: "0.5rem",
+                          height: "0.5rem",
+                          width: "0.5rem",
+                        }}>
+                        </Box> */}
+                        <Box> Onaylanan </Box>
+                      </Box>
+                    </Box>
+                    <Box sx={{ border: "1px solid black", backgroundColor: "rgba(127, 255, 212, 0.4)", display: "grid", justifyContent: "end", alignItems: "center", pr: "0.3rem", color: oneMetraj["metraj"] < 0 ? "red" : null }}>
+                      {oneMetraj["onaylananMetraj"] ? ikiHane(oneMetraj["onaylananMetraj"]) : "0,00"}
+                    </Box>
+                    <Box sx={{ border: "1px solid black", backgroundColor: "rgba(127, 255, 212, 0.4)", display: "grid", justifyContent: "center", alignItems: "center" }}>
+                      {pozBirim}
                     </Box>
 
-                    {
-                      oneLbs.code.split(".").map((codePart, index) => {
+                    <Box sx={{ border: "none", backgroundColor: "rgba(127, 255, 212, 0.4)", display: "grid", justifyContent: "center", alignItems: "center" }}></Box>
+                    <Box sx={{ border: "1px solid black", backgroundColor: "rgba(127, 255, 212, 0.4)", display: "grid", justifyContent: "center", alignItems: "center" }}>Durum</Box>
 
-                        if (index == 0 && cOunt == 1) {
-                          lbsCode = codePart
-                          lbsName = isProject?.lbs.find(item => item.code == lbsCode).name
-                        }
 
-                        if (index == 0 && cOunt !== 1) {
-                          lbsCode = codePart
-                          lbsName = isProject?.lbs.find(item => item.code == lbsCode).codeName
-                        }
+                    {detailMode &&
+                      <>
+                        <Box sx={{ border: "none", backgroundColor: "white", display: "grid", justifyContent: "center", alignItems: "center" }}>
 
-                        if (index !== 0 && index + 1 !== cOunt && cOunt !== 1) {
-                          lbsCode = lbsCode + "." + codePart
-                          lbsName = lbsName + " > " + isProject?.lbs.find(item => item.code == lbsCode).codeName
-                        }
-
-                        if (index !== 0 && index + 1 == cOunt && cOunt !== 1) {
-                          lbsCode = lbsCode + "." + codePart
-                          lbsName = lbsName + " > " + isProject?.lbs.find(item => item.code == lbsCode).name
-                        }
-
-                      })
+                        </Box>
+                        <Box sx={{ border: "1px solid black", backgroundColor: "rgba(127, 255, 212, 0.4)", display: "grid", justifyContent: "center", alignItems: "center" }}>
+                          Tarih
+                        </Box>
+                      </>
                     }
 
+                  </Grid>
 
-                    {/* HAYALET */}
-                    <Box sx={{ display: "none" }}>
-                      {cOunt = lbsName.split(">").length}
+
+
+                  {/* hazirlananMetraj - Başlık Satırı */}
+                  <Grid sx={{ display: "grid", gridTemplateColumns: "55rem 8rem 3rem 1rem 4rem 1rem 7rem", justifyContent: "start", alignItems: "center" }}>
+                    <Box sx={{ border: "1px solid black", backgroundColor: "rgba( 253, 197, 123 , 0.6 )", display: "grid", justifyContent: "end", alignItems: "center", pr: "0.5rem" }}>
+                      <Box sx={{ display: "grid", gridAutoFlow: "column", alignItems: "center", justifyContent: "center", width: "100%", height: "100%" }}>
+                        {/* <Box sx={{
+                          display: isOwnUser ? "block" : "none",
+                          mr: "0.7rem",
+                          backgroundColor: "red",
+                          borderRadius: "0.5rem",
+                          height: "0.5rem",
+                          width: "0.5rem",
+                        }}>
+                        </Box> */}
+                        <Box> Hazırlanan </Box>
+                      </Box>
+                    </Box>
+                    <Box sx={{ border: "1px solid black", backgroundColor: "rgba( 253, 197, 123 , 0.6 )", display: "grid", justifyContent: "end", alignItems: "center", pr: "0.3rem", color: oneMetraj["metraj"] < 0 ? "red" : null }}>
+                      {ikiHane(oneMetraj["metraj"])}
+                    </Box>
+                    <Box sx={{ border: "1px solid black", backgroundColor: "rgba( 253, 197, 123 , 0.6 )", display: "grid", justifyContent: "center", alignItems: "center" }}>
+                      {pozBirim}
                     </Box>
 
-                    {/* GÖZÜKEN KOMPONENET - sabit kısımda - lbs başlığının yazdığı yer */}
-                    {lbsName.split(">").map((item, index) => (
-
-                      <Typography key={index} component={"span"} >
-                        {item}
-                        {index + 1 !== cOunt &&
-                          <Typography component={"span"} sx={{ fontWeight: "600", color: "darkred" }}>{">"}</Typography>
-                        }
-                      </Typography>
-
-                    ))}
-
-                  </TableHeader>
+                    <Box sx={{ border: "none", backgroundColor: "rgba( 253, 197, 123 , 0.6 )", display: "grid", justifyContent: "center", alignItems: "center" }}></Box>
+                    <Box sx={{ border: "1px solid black", backgroundColor: "rgba( 253, 197, 123 , 0.6 )", display: "grid", justifyContent: "center", alignItems: "center" }}>Durum</Box>
 
 
-                  <Bosluk ></Bosluk>
+                    {detailMode &&
+                      <>
+                        <Box sx={{ border: "none", backgroundColor: "white", display: "grid", justifyContent: "center", alignItems: "center" }}>
+
+                        </Box>
+                        <Box sx={{ border: "1px solid black", backgroundColor: "rgba( 253, 197, 123 , 0.6 )", display: "grid", justifyContent: "center", alignItems: "center" }}>
+                          Tarih
+                        </Box>
+                      </>
+                    }
+
+                  </Grid>
 
 
-                  {/* SAĞ TARAF - DEĞİŞKEN MAHAL BAŞLIĞI - BOŞ */}
-                  {/* burada başlık sıralamasına göre güvenerek haraket ediliyor (tüm mahalBaşlıkları map'lerde) */}
-                  {
-                    pozlar?.map((onePoz, index) => {
-                      return (
-                        <TableHeader key={index} index={index} count_={count_} sx={{ display: "grid", with: "100%", justifyContent: onePoz.yatayHiza }}>
 
-                          {onePoz.veriTuruId == "sayi" && isNumeric(g_altBaslik) &&
-                            <Box>
+                  {/* hazirlananMetraj - Metraj Satırları */}
+                  {oneMetraj?.satirlar.map((oneRow, index) => {
 
+                    return (
+                      < Grid key={index} sx={{ display: "grid", gridTemplateColumns: "6rem 10rem 14rem repeat(5, 5rem) 8rem 3rem 1rem 4rem 1rem 7rem", justifyContent: "start" }}>
+
+                        {["satirNo", "metin1", "metin2", "carpan1", "carpan2", "carpan3", "carpan4", "carpan5", "metraj", "pozBirim"].map((oneProperty, index) => {
+                          let isMinha = oneRow["metin1"].replace("İ", "i").toLowerCase().includes("minha") || oneRow["metin2"].replace("İ", "i").toLowerCase().includes("minha") ? true : false
+                          return (
+                            <Box key={index}
+                              sx={{
+                                display: "grid",
+                                justifyItems: oneProperty.includes("metin") ? "start" : oneProperty.includes("carpan") || oneProperty.includes("metraj") ? "end" : "center",
+                                color: isMinha ? "red" : null,
+                                px: "0.3rem",
+                                border: "1px solid black"
+                              }}>
+                              {metrajValue(oneRow, oneProperty, isMinha)}
                             </Box>
-                          }
-                        </TableHeader>
-                      )
-                    })
-                  }
+                          )
+                        })}
 
 
+                        <Box sx={{ border: "none" }}></Box>
 
-                  {/* YUKARIDA YAZILAN MAHAL BAŞLIĞI ALTINDAKİ MAHAL SATIRLARI - ONU DA YUKARIDAKİNE UYDURAN BİR GRİD ÖLÇÜLERİ İLE BAĞIMSIZ OLARAK YÖNETİYORUZ*/}
-
-                  {/* HAYALET */}
-                  {<Box sx={{ display: "none" }}>
-                    {count_ = mahaller?.filter(item => item._lbsId.toString() == oneLbs._id.toString()).length}
-                  </Box>}
-
-                  <Box>
-
-                    {/* MAHALLER */}
-                    {mahaller?.filter(item => item._lbsId.toString() == oneLbs._id.toString()).map((oneMahal, index) => {
-                      return (
-                        <Grid
-                          key={index}
+                        <Box
+                          onClick={() => metrajOnayla_state({ userId: oneMetraj._userId.toString(), satirNo: oneRow.satirNo })}
                           sx={{
                             display: "grid",
-                            gridTemplateColumns: gridTemplateColumns_,
+                            alignItems: "center",
+                            justifyItems: "center",
+                            px: "0.3rem",
+                            border: "1px solid black",
+                            // backgroundColor: "yellow",
+                            cursor: "pointer"
                           }}
                         >
-                          {
-                            isProject?.mahalBasliklari?.filter(item => item.sabit).map((oneBaslik, index) => {
-                              return (
-                                <TableItem
-                                  key={index}
-                                  index={index}
-                                  count_={count_}
-                                  // onDoubleClick={() => handle_selectMahal(oneBaslik, oneMahal)}
-                                  sx={{
-                                    // userSelect:"none",
-                                    cursor: "pointer",
-                                    display: "grid",
-                                    alignItems: "center",
-                                    justifyItems: oneBaslik.yatayHiza,
-                                    // backgroundColor: selectedMahal?._id.toString() == oneMahal._id.toString() ? "green" : null
-                                  }}
-                                >
-                                  {oneMahal[oneBaslik.referans]}
-                                </TableItem>
-                              )
-                            })
+                          {oneRow.isApproved &&
+                            <CheckIcon variant="contained" sx={{ color: "rgba( 0, 128, 0, 0.7 )", fontSize: "1.5rem" }} />
                           }
+                          {!oneRow.isApproved &&
+                            <HourglassFullSharpIcon variant="contained" sx={{ color: "rgba( 255,165,0, 1 )", fontSize: "0.95rem" }} />
+                          }
+                        </Box>
 
-                          <Bosluk>
-                          </Bosluk>
-                          {pozlar?.map((onePoz, index) => {
+                        {detailMode && oneRow["sonGuncelleme"] &&
+                          <>
+                            <Box sx={{ border: "none" }}></Box>
 
-                            theDugum = mahalListesi.list?.find((item) => item._mahalId.toString() == oneMahal._id.toString() && item._pozId.toString() == onePoz._id.toString())
+                            <Box
+                              sx={{
+                                display: "grid",
+                                justifyItems: "center",
+                                px: "0.3rem",
+                                border: "1px solid black"
+                              }}>
+                              {oneRow["sonGuncelleme"].getMonth() < 9 ?
+                                oneRow["sonGuncelleme"].getDate() + "." + "0" + (oneRow["sonGuncelleme"].getMonth() + 1) + "." + oneRow["sonGuncelleme"].getUTCFullYear() :
+                                oneRow["sonGuncelleme"].getDate() + "." + (oneRow["sonGuncelleme"].getMonth() + 1) + "." + oneRow["sonGuncelleme"].getUTCFullYear()
+                              }
+                              {/* {console.log("oneRow",oneRow)} */}
+                            </Box>
+                          </>
+                        }
 
-                            return theDugum?.openMetraj ?
+                      </Grid >
+                    )
+                  })}
 
-                              <TableItem
-                                key={index}
-                                index={index}
-                                count_={count_}
-                                onClick={editMode_MahalListesi ? () => toggleMahalPoz({
-                                  _mahalId: oneMahal._id,
-                                  _lbsId: oneMahal._lbsId,
-                                  _pozId: onePoz._id,
-                                  _wbsId: onePoz._wbsId,
-                                  wbsCode: isProject.wbs.find(x => x._id.toString() == onePoz._wbsId.toString()).code,
-                                  lbsCode: isProject.lbs.find(x => x._id.toString() == oneMahal._lbsId.toString()).code,
-                                  switchValue: false
-                                }) : null}
-                                sx={{
-                                  cursor: editMode_MahalListesi ? "pointer" : null,
-                                  display: "grid",
-                                  alignItems: "center",
-                                  justifyItems: onePoz.yatayHiza,
-                                  backgroundColor: "rgba( 234, 193, 0 , 0.4 )",
-                                }}
-                              >
-                                {/* {"0"} */}
-                              </TableItem>
+                </Box>
 
-                              :
-
-                              <TableItem
-                                key={index}
-                                index={index}
-                                count_={count_}
-                                onClick={editMode_MahalListesi ? () => toggleMahalPoz({
-                                  _mahalId: oneMahal._id,
-                                  _lbsId: oneMahal._lbsId,
-                                  _pozId: onePoz._id,
-                                  _wbsId: onePoz._wbsId,
-                                  wbsCode: isProject.wbs.find(x => x._id.toString() === onePoz._wbsId.toString()).code,
-                                  lbsCode: isProject.lbs.find(x => x._id.toString() === oneMahal._lbsId.toString()).code,
-                                  switchValue: true
-                                }) : null}
-                                sx={{
-                                  cursor: editMode_MahalListesi ? "pointer" : null,
-                                  display: "grid",
-                                  alignItems: "center",
-                                  justifyItems: onePoz.yatayHiza,
-                                }}
-                              >
-                                {/* {"0"} */}
-                              </TableItem>
-
-                          })}
-
-                        </Grid>
-                      )
-                    })}
-                  </Box>
-
-                </Grid>
               )
+
             })
           }
 
-        </Box>
+
+
+
+
+          {/* ONAYLI METRAJLAR BAŞLIK */}
+          <Typography sx={{ fontWeight: "600", mb: "0.5rem", textDecoration: 'underline' }} variant="h6" component="h5">
+            Onaylanan Metraj
+          </Typography>
+
+
+          {/* ONAYLI METRAJLAR YOKSA */}
+          {!onaylananMetraj?.satirlar?.length > 0 &&
+            <Box sx={{ width: '66rem', mb: "0.5rem" }} spacing={2}>
+              <Alert severity="success" color="primary">
+                {"Henüz onaylanmış metraj bulunmuyor, yukarıdaki 'onay' işaretine tıklayarak hazırlanan metrajlardan onay verebilirsiniz."}
+              </Alert>
+            </Box>
+          }
+
+
+          {/* {console.log("onaylananMetraj_state", onaylananMetraj_state)} */}
+          {/* ONAYLI METRAJLAR VARSA */}
+          {onaylananMetraj?.satirlar?.length > 0 &&
+
+            <Box sx={{ mb: "2rem" }}>
+
+              {/* hazirlananMetraj - Başlık Satırı */}
+              <Grid sx={{ display: "grid", gridTemplateColumns: "55rem 8rem 3rem 1rem 4rem 1rem 7rem", justifyContent: "start", alignItems: "center" }}>
+                <Box sx={{ border: "1px solid black", backgroundColor: "rgba(162,210,255, 0.5)", display: "grid", justifyContent: "end", alignItems: "center", pr: "1rem" }}>
+                  <Box sx={{ display: "grid", gridAutoFlow: "column", alignItems: "center", justifyContent: "center", width: "100%", height: "100%" }}>
+                    <Box sx={{
+                      // display: isOwnUser ? "block" : "none",
+                      display: "none",
+                      mr: "0.7rem",
+                      backgroundColor: "red",
+                      borderRadius: "0.5rem",
+                      height: "0.5rem",
+                      width: "0.5rem",
+                    }}>
+                    </Box>
+
+                    <Box sx={{ border: "none" }}></Box>
+
+                    {onaylananMetraj.hasOwnProperty("onaylanmaTarihi") ?
+                      <Box>
+                        {onaylananMetraj.onaylanmaTarihi.getMonth() < 9 ?
+                          onaylananMetraj.onaylanmaTarihi.getDate() + "." + "0" + (onaylananMetraj.onaylanmaTarihi.getMonth() + 1) + "." + onaylananMetraj.onaylanmaTarihi.getUTCFullYear() :
+                          onaylananMetraj.onaylanmaTarihi.getDate() + "." + (onaylananMetraj.onaylanmaTarihi.getMonth() + 1) + "." + onaylananMetraj.onaylanmaTarihi.getUTCFullYear()
+                        }
+                      </Box>
+                      :
+                      <Box sx={{ color: "rgba(127, 255, 212, 0.9)" }}>
+                        .
+                      </Box>
+                    }
+                  </Box>
+                </Box>
+                <Box sx={{ border: "1px solid black", backgroundColor: "rgba(162,210,255, 0.5)", display: "grid", justifyContent: "end", alignItems: "center", pr: "0.3rem" }}>
+                  {ikiHane(onaylananMetraj["metraj"])}
+                </Box>
+                <Box sx={{ border: "1px solid black", backgroundColor: "rgba(162,210,255, 0.5)", display: "grid", justifyContent: "center", alignItems: "center" }}>
+                  {pozBirim}
+                </Box>
+
+                <Box sx={{ border: "none", backgroundColor: "rgba(127, 255, 212, 0.4)", display: "grid", justifyContent: "center", alignItems: "center" }}></Box>
+                <Box sx={{ border: "1px solid black", backgroundColor: "rgba(162,210,255, 0.5)", display: "grid", justifyContent: "center", alignItems: "center" }}>Durum</Box>
+
+
+                {detailMode &&
+                  <>
+                    <Box sx={{ border: "none", backgroundColor: "white", display: "grid", justifyContent: "center", alignItems: "center" }}>
+
+                    </Box>
+                    <Box sx={{ border: "1px solid black", backgroundColor: "rgba(162,210,255, 0.5)", display: "grid", justifyContent: "center", alignItems: "center" }}>
+                      Tarih
+                    </Box>
+                  </>
+                }
+
+
+              </Grid>
+
+              {/* hazirlananMetraj - Metraj Satırları */}
+              {onaylananMetraj?.satirlar.map((oneRow, index) => {
+
+                let kullaniciDegisti = oneRow.satirNo.slice(1, 5) == "1" && index !== 0
+
+                return (
+                  < Grid key={index} sx={{ display: "grid", gridTemplateColumns: "6rem 10rem 14rem repeat(5, 5rem) 8rem 3rem 1rem 4rem 1rem 7rem", justifyContent: "start" }}>
+
+                    {["satirNo", "metin1", "metin2", "carpan1", "carpan2", "carpan3", "carpan4", "carpan5", "metraj", "pozBirim"].map((oneProperty, index) => {
+                      let isMinha = oneRow["metin1"].replace("İ", "i").toLowerCase().includes("minha") || oneRow["metin2"].replace("İ", "i").toLowerCase().includes("minha") ? true : false
+                      return (
+                        <Box key={index}
+                          sx={{
+                            display: "grid",
+                            justifyItems: oneProperty.includes("metin") ? "start" : oneProperty.includes("carpan") || oneProperty.includes("metraj") ? "end" : "center",
+                            color: isMinha ? "red" : null,
+                            px: "0.3rem",
+                            border: "1px solid black",
+                            borderTop: kullaniciDegisti && "9px solid rgba(162,210,255, 0.5)"
+                            // borderTop: Number(oneRow.satirNo.includes) === "1px solid black"
+                          }}>
+                          {metrajValue(oneRow, oneProperty, isMinha)}
+                        </Box>
+                      )
+                    })}
+
+                    <Box sx={{ border: "none" }}></Box>
+
+                    <Box
+                      // onClick={() => metrajOnayla_state({ userId: oneMetraj._userId.toString(), satirNo: oneRow.satirNo })}
+                      sx={{
+                        display: "grid",
+                        alignItems: "center",
+                        justifyItems: "center",
+                        px: "0.3rem",
+                        border: "1px solid black",
+                        borderTop: kullaniciDegisti && "9px solid rgba(162,210,255, 0.5)",
+                        // backgroundColor: oneRow.isApproved && "yellow",
+                        cursor: "pointer"
+                      }}
+                    >
+                      <DoneAllIcon variant="contained" sx={{ color: "rgba( 0, 128, 0, 0.7 )", fontSize: "1.5rem" }} />
+
+                    </Box>
+
+
+
+                    {detailMode &&
+                      <>
+                        {/* boşluk */}
+                        <Box sx={{ border: "none" }}></Box>
+
+                        <Box
+                          sx={{
+                            display: "grid",
+                            justifyItems: "center",
+                            px: "0.3rem",
+                            border: "1px solid black",
+                            borderTop: kullaniciDegisti && "9px solid rgba(162,210,255, 0.5)"
+                          }}>
+                          {oneRow.onaylanmaTarihi.getMonth() < 9 ?
+                            oneRow.onaylanmaTarihi.getDate() + "." + "0" + (oneRow.onaylanmaTarihi.getMonth() + 1) + "." + oneRow.onaylanmaTarihi.getUTCFullYear() :
+                            oneRow.onaylanmaTarihi.getDate() + "." + (oneRow.onaylanmaTarihi.getMonth() + 1) + "." + oneRow.onaylanmaTarihi.getUTCFullYear()
+                          }
+                        </Box>
+
+                      </>}
+
+                  </Grid >
+                )
+              })}
+
+
+            </Box>
+
+
+          }
+
+
+
+        </Box >
+
 
       }
+
+
+
+
+
+
+
+      {/* PAGE -> EDİT METRAJ*/}
+      {show == "EditMetraj" && RealmApp && isProject &&
+
+        < Box name="EditMetraj" sx={{ display: "grid", mt: subHeaderHeight, ml: "1rem", mr: "1rem", justifyItems: "start" }}>
+
+
+          {/* En Üst Başlık Satırı */}
+          < Grid sx={{ mb: "0.5rem", display: "grid", gridAutoFlow: "column", gridTemplateColumns: "6rem 10rem 14rem repeat(5, 5rem) 8rem 3rem", backgroundColor: "lightgray" }}>
+            <Box sx={{ border: "1px solid black", display: "grid", alignItems: "center", textAlign: "center" }}>
+              Sıra
+            </Box>
+            <Box sx={{ border: "1px solid black", display: "grid", alignItems: "center", textAlign: "center" }}>
+              Kısa Açıklama
+            </Box>
+            <Box sx={{ border: "1px solid black", display: "grid", alignItems: "center", textAlign: "center" }}>
+              Açıklama
+            </Box>
+            <Box sx={{ border: "1px solid black", display: "grid", alignItems: "center", textAlign: "center" }}>
+              Benzer
+            </Box>
+            <Box sx={{ border: "1px solid black", display: "grid", alignItems: "center", textAlign: "center" }}>
+              Adet
+            </Box>
+            <Box sx={{ border: "1px solid black", display: "grid", alignItems: "center", textAlign: "center" }}>
+              En
+            </Box>
+            <Box sx={{ border: "1px solid black", display: "grid", alignItems: "center", textAlign: "center" }}>
+              Boy
+            </Box>
+            <Box sx={{ border: "1px solid black", display: "grid", alignItems: "center", textAlign: "center" }}>
+              Yükseklik
+            </Box>
+            <Box sx={{ border: "1px solid black", display: "grid", alignItems: "center", textAlign: "center" }}>
+              Metraj
+            </Box>
+            <Box sx={{ border: "1px solid black", display: "grid", alignItems: "end", textAlign: "center" }}>
+              Birim
+            </Box>
+
+          </Grid >
+
+
+
+
+          <Box>
+
+            {/* Metraj Başlık Satırı */}
+            <Grid sx={{ display: "grid", gridTemplateColumns: "55rem 8rem 3rem 1rem 4rem", justifyContent: "start", alignItems: "center" }}>
+              <Box sx={{ border: "1px solid black", backgroundColor: "rgba( 253, 197, 123 , 0.6 )", display: "grid", justifyContent: "end", alignItems: "center", pr: "1rem" }}>{"name"}</Box>
+              <Box sx={{ border: "1px solid black", backgroundColor: "rgba( 253, 197, 123 , 0.6 )", display: "grid", justifyContent: "end", alignItems: "center", pr: "0.3rem", color: hazirlananMetraj_state?.metraj < 0 ? "red" : null }}>
+                {ikiHane(hazirlananMetraj_state?.metraj)}
+              </Box>
+
+              <Box sx={{ border: "1px solid black", backgroundColor: "rgba( 253, 197, 123 , 0.6 )", display: "grid", justifyContent: "center", alignItems: "center" }}>{pozBirim}</Box>
+
+              <Box sx={{ border: "none", backgroundColor: "rgba( 253, 197, 123 , 0.6 )", display: "grid", justifyContent: "center", alignItems: "center" }}></Box>
+              <Box sx={{ border: "1px solid black", backgroundColor: "rgba( 253, 197, 123 , 0.6 )", display: "grid", justifyContent: "center", alignItems: "center" }}>Durum</Box>
+
+            </Grid>
+            {/* {console.log("hazirlananMetraj_state.satirlar", hazirlananMetraj_state.satirlar)} */}
+            {hazirlananMetraj_state?.satirlar.map((oneRow, index) => {
+              return (
+                < Grid key={index} sx={{ display: "grid", gridTemplateColumns: "6rem 10rem 14rem repeat(5, 5rem) 8rem 3rem 1rem 4rem", justifyContent: "start" }}>
+
+                  {["satirNo", "metin1", "metin2", "carpan1", "carpan2", "carpan3", "carpan4", "carpan5", "metraj", "pozBirim"].map((oneProperty, index) => {
+                    let isCellEdit = oneProperty === "satirNo" || oneProperty === "pozBirim" || oneProperty === "metraj" ? false : true
+                    let isMinha = oneRow["metin1"].replace("İ", "i").toLowerCase().includes("minha") || oneRow["metin2"].replace("İ", "i").toLowerCase().includes("minha") ? true : false
+                    return (
+                      <Box key={index} sx={{ display: "grid", alignItems: "center" }}>
+
+                        <Input
+                          // autoFocus={autoFocus.baslikId == oneBaslik.id && autoFocus.mahalId == oneMahal._id.toString()}
+                          // autoFocus={autoFocus.mahalId == oneMahal._id.toString()}
+                          // autoFocus={true}
+                          autoComplete='off'
+                          id={oneRow.satirNo + oneProperty}
+                          name={oneRow.satirNo + oneProperty}
+                          readOnly={!isCellEdit || oneRow.isApproved}
+                          disableUnderline={true}
+                          size="small"
+                          type={oneProperty.includes("carpan") ? "number" : "text"}
+                          // type={"text"}
+                          // onChange={(e) => parseFloat(e.target.value).toFixed(1)}
+                          // onKeyDown={(evt) => ilaveYasaklilar.some(elem => evt.target.value.includes(elem)) && ilaveYasaklilar.find(item => item == evt.key) && evt.preventDefault()}
+                          onKeyDown={oneProperty.includes("carpan") ? (event) => handle_input_onKey(event) : null}
+                          onChange={(event) => handle_input_onChange(event, oneRow.satirNo, oneProperty)}
+                          sx={{
+                            border: "1px solid black",
+                            width: "100%",
+                            display: "grid",
+                            alignItems: "center",
+                            px: "0.3rem",
+                            backgroundColor: isCellEdit && !oneRow.isApproved ? "rgba(255,255,0, 0.3)" : null,
+                            color: isMinha ? "red" : null,
+                            // justifyItems: oneBaslik.yatayHiza,
+                            "& input::-webkit-outer-spin-button, & input::-webkit-inner-spin-button": {
+                              display: "none",
+                            },
+                            "& input[type=number]": {
+                              MozAppearance: "textfield",
+                            },
+                          }}
+                          // metrajValue={oneRow[oneProperty]}
+                          // value={metrajValue(oneRow, oneProperty, isMinha)}
+                          value={metrajValue(oneRow, oneProperty, isMinha)}
+                          inputProps={{
+                            style: {
+                              height: "0.95rem",
+                              // fontSize: "0.95rem",
+                              // marginTop: "0.1rem",
+                              // marginbottom: "0px",
+                              paddingTop: "0.25rem",
+                              // px:"0.3rem",
+                              textAlign: oneProperty.includes("carpan") || oneProperty.includes("metraj") ? "end" : oneProperty.includes("metin") ? "start" : "center"
+                            },
+                          }}
+                        />
+
+                      </Box>
+
+                    )
+
+                  })}
+
+                  <Box sx={{ border: "none" }}></Box>
+
+                  <Box
+                    sx={{
+                      // backgroundColor: oneRow.isApproved ? null : "rgba(255,255,0, 0.3)",
+                      // backgroundColor: "rgba(255,255,0, 0.3)",
+                      cursor: "pointer",
+                      display: "grid",
+                      alignItems: "center",
+                      justifyItems: "center",
+                      px: "0.3rem",
+                      border: "1px solid black"
+                    }}>
+                    {oneRow.isApproved &&
+                      <CheckIcon variant="contained" sx={{ color: "rgba( 0, 128, 0, 0.7 )", fontSize: "1.5rem" }} />
+                    }
+                    {!oneRow.isApproved &&
+                      <HourglassFullSharpIcon variant="contained" sx={{ color: "rgba( 255,165,0, 1 )", fontSize: "0.95rem" }} />
+                    }
+                  </Box>
+
+                </Grid >
+              )
+
+            })}
+
+          </Box>
+
+
+
+        </Box >
+
+      }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      {/* PAGE -> METRAJ ONAY */}
+      {
+        show == "MetrajOnay" &&
+        < Box name="Main" sx={{ display: "grid", mt: subHeaderHeight, ml: "1rem", mr: "1rem", justifyItems: "start" }}>
+
+
+          {/* En Üst Başlık Satırı */}
+          < Grid sx={{ mb: "0.5rem", display: "grid", gridTemplateColumns: "6rem 10rem 14rem repeat(5, 5rem) 8rem 3rem", backgroundColor: "lightgray", justifyContent: "start" }}>
+            <Box sx={{ border: "1px solid black", display: "grid", alignItems: "center", textAlign: "center" }}>
+              Sıra
+            </Box>
+            <Box sx={{ border: "1px solid black", display: "grid", alignItems: "center", textAlign: "center" }}>
+              Kısa Açıklama
+            </Box>
+            <Box sx={{ border: "1px solid black", display: "grid", alignItems: "center", textAlign: "center" }}>
+              Açıklama
+            </Box>
+            <Box sx={{ border: "1px solid black", display: "grid", alignItems: "center", textAlign: "center" }}>
+              Benzer
+            </Box>
+            <Box sx={{ border: "1px solid black", display: "grid", alignItems: "center", textAlign: "center" }}>
+              Adet
+            </Box>
+            <Box sx={{ border: "1px solid black", display: "grid", alignItems: "center", textAlign: "center" }}>
+              En
+            </Box>
+            <Box sx={{ border: "1px solid black", display: "grid", alignItems: "center", textAlign: "center" }}>
+              Boy
+            </Box>
+            <Box sx={{ border: "1px solid black", display: "grid", alignItems: "center", textAlign: "center" }}>
+              Yükseklik
+            </Box>
+            <Box sx={{ border: "1px solid black", display: "grid", alignItems: "center", textAlign: "center" }}>
+              Metraj
+            </Box>
+            <Box sx={{ border: "1px solid black", display: "grid", alignItems: "end", textAlign: "center" }}>
+              Birim
+            </Box>
+
+            {/* <Box sx={{ border: "none", display: "grid", alignItems: "end", textAlign: "center", backgroundColor: "white" }}>
+
+            </Box> */}
+            {/* <Box sx={{ border: "1px solid black", display: "grid", alignItems: "end", textAlign: "center" }}>
+              Tarih
+            </Box> */}
+
+          </Grid >
+
+
+
+
+          {/* HAZIRLANAN METRAJLAR GÖSTERİMİ */}
+
+          <Typography sx={{ fontWeight: "600", mb: "0.5rem", textDecoration: 'underline' }} variant="h6" component="h5">
+            Hazırlanan Metrajlar
+          </Typography>
+
+
+
+          {/* HAZIRLANAN METRAJ YOKSA */}
+          {!hazirlananMetrajlar_state?.length > 0 &&
+            <Box sx={{ width: '66rem', mb: "0.5rem" }} spacing={2}>
+              <Alert severity="success" color="warning">
+                {"Henüz hazırlanmış metraj bulunmuyor, yukarıdaki 'kalem' işaretine tıklayarak metraj girişi yapabilirsiniz."}
+              </Alert>
+            </Box>
+          }
+
+
+
+          {/* HAZIRLANAN METRAJ VARSA */}
+          {hazirlananMetrajlar_state?.length > 0 &&
+
+            hazirlananMetrajlar_state?.map((oneMetraj, index) => {
+
+              let isOwnUser = oneMetraj?._userId.toString() == RealmApp?.currentUser.id
+
+              return (
+
+                <Box key={index} sx={{ mb: "2rem" }}>
+
+                  {/* hazirlananMetraj - Başlık Satırı */}
+                  <Box>{oneMetraj?._userId.toString()}</Box>
+
+                  {/* onaylananMetraj - Başlık Satırı */}
+                  <Grid sx={{ display: "grid", gridTemplateColumns: "55rem 8rem 3rem 1rem 4rem 1rem 7rem", justifyContent: "start", alignItems: "center" }}>
+                    <Box sx={{ border: "1px solid black", backgroundColor: "rgba(127, 255, 212, 0.4)", display: "grid", justifyContent: "end", alignItems: "center", pr: "0.5rem" }}>
+                      <Box sx={{ display: "grid", gridAutoFlow: "column", alignItems: "center", justifyContent: "center", width: "100%", height: "100%" }}>
+                        {/* <Box sx={{
+                          display: isOwnUser ? "block" : "none",
+                          mr: "0.7rem",
+                          backgroundColor: "red",
+                          borderRadius: "0.5rem",
+                          height: "0.5rem",
+                          width: "0.5rem",
+                        }}>
+                        </Box> */}
+                        <Box> Onaylanan </Box>
+                      </Box>
+                    </Box>
+                    <Box sx={{ border: "1px solid black", backgroundColor: "rgba(127, 255, 212, 0.4)", display: "grid", justifyContent: "end", alignItems: "center", pr: "0.3rem", color: oneMetraj["metraj"] < 0 ? "red" : null }}>
+                      {oneMetraj["onaylananMetraj"] ? ikiHane(oneMetraj["onaylananMetraj"]) : "0,00"}
+                    </Box>
+                    <Box sx={{ border: "1px solid black", backgroundColor: "rgba(127, 255, 212, 0.4)", display: "grid", justifyContent: "center", alignItems: "center" }}>
+                      {pozBirim}
+                    </Box>
+
+                    <Box sx={{ border: "none", backgroundColor: "rgba(127, 255, 212, 0.4)", display: "grid", justifyContent: "center", alignItems: "center" }}></Box>
+                    <Box sx={{ border: "1px solid black", backgroundColor: "rgba(127, 255, 212, 0.4)", display: "grid", justifyContent: "center", alignItems: "center" }}>Durum</Box>
+
+
+                    {detailMode &&
+                      <>
+                        <Box sx={{ border: "none", backgroundColor: "white", display: "grid", justifyContent: "center", alignItems: "center" }}>
+
+                        </Box>
+                        <Box sx={{ border: "1px solid black", backgroundColor: "rgba(127, 255, 212, 0.4)", display: "grid", justifyContent: "center", alignItems: "center" }}>
+                          Tarih
+                        </Box>
+                      </>
+                    }
+
+                  </Grid>
+
+
+
+                  {/* hazirlananMetraj - Başlık Satırı */}
+                  <Grid sx={{ display: "grid", gridTemplateColumns: "55rem 8rem 3rem 1rem 4rem 1rem 7rem", justifyContent: "start", alignItems: "center" }}>
+                    <Box sx={{ border: "1px solid black", backgroundColor: "rgba( 253, 197, 123 , 0.6 )", display: "grid", justifyContent: "end", alignItems: "center", pr: "0.5rem" }}>
+                      <Box sx={{ display: "grid", gridAutoFlow: "column", alignItems: "center", justifyContent: "center", width: "100%", height: "100%" }}>
+                        {/* <Box sx={{
+                          display: isOwnUser ? "block" : "none",
+                          mr: "0.7rem",
+                          backgroundColor: "red",
+                          borderRadius: "0.5rem",
+                          height: "0.5rem",
+                          width: "0.5rem",
+                        }}>
+                        </Box> */}
+                        <Box> Hazırlanan </Box>
+                      </Box>
+                    </Box>
+                    <Box sx={{ border: "1px solid black", backgroundColor: "rgba( 253, 197, 123 , 0.6 )", display: "grid", justifyContent: "end", alignItems: "center", pr: "0.3rem", color: oneMetraj["metraj"] < 0 ? "red" : null }}>
+                      {ikiHane(oneMetraj["metraj"])}
+                    </Box>
+                    <Box sx={{ border: "1px solid black", backgroundColor: "rgba( 253, 197, 123 , 0.6 )", display: "grid", justifyContent: "center", alignItems: "center" }}>
+                      {pozBirim}
+                    </Box>
+
+                    <Box sx={{ border: "none", backgroundColor: "rgba( 253, 197, 123 , 0.6 )", display: "grid", justifyContent: "center", alignItems: "center" }}></Box>
+                    <Box sx={{ border: "1px solid black", backgroundColor: "rgba( 253, 197, 123 , 0.6 )", display: "grid", justifyContent: "center", alignItems: "center" }}>Durum</Box>
+
+
+                    {detailMode &&
+                      <>
+                        <Box sx={{ border: "none", backgroundColor: "white", display: "grid", justifyContent: "center", alignItems: "center" }}>
+
+                        </Box>
+                        <Box sx={{ border: "1px solid black", backgroundColor: "rgba( 253, 197, 123 , 0.6 )", display: "grid", justifyContent: "center", alignItems: "center" }}>
+                          Tarih
+                        </Box>
+                      </>
+                    }
+
+                  </Grid>
+
+
+
+                  {/* hazirlananMetraj - Metraj Satırları */}
+                  {oneMetraj?.satirlar.map((oneRow, index) => {
+
+                    return (
+                      < Grid key={index} sx={{ display: "grid", gridTemplateColumns: "6rem 10rem 14rem repeat(5, 5rem) 8rem 3rem 1rem 4rem 1rem 7rem", justifyContent: "start" }}>
+
+                        {["satirNo", "metin1", "metin2", "carpan1", "carpan2", "carpan3", "carpan4", "carpan5", "metraj", "pozBirim"].map((oneProperty, index) => {
+                          let isMinha = oneRow["metin1"].replace("İ", "i").toLowerCase().includes("minha") || oneRow["metin2"].replace("İ", "i").toLowerCase().includes("minha") ? true : false
+                          return (
+                            <Box key={index}
+                              sx={{
+                                display: "grid",
+                                justifyItems: oneProperty.includes("metin") ? "start" : oneProperty.includes("carpan") || oneProperty.includes("metraj") ? "end" : "center",
+                                color: isMinha ? "red" : null,
+                                px: "0.3rem",
+                                border: "1px solid black"
+                              }}>
+                              {metrajValue(oneRow, oneProperty, isMinha)}
+                            </Box>
+                          )
+                        })}
+
+
+                        <Box sx={{ border: "none" }}></Box>
+
+                        <Box
+                          onClick={() => metrajOnayla_state({ userId: oneMetraj._userId.toString(), satirNo: oneRow.satirNo })}
+                          sx={{
+                            display: "grid",
+                            alignItems: "center",
+                            justifyItems: "center",
+                            px: "0.3rem",
+                            border: "1px solid black",
+                            backgroundColor: "yellow",
+                            cursor: "pointer"
+                          }}
+                        >
+                          {oneRow.isApproved &&
+                            <CheckIcon variant="contained" sx={{ color: "rgba( 0, 128, 0, 0.7 )", fontSize: "1.5rem" }} />
+                          }
+                          {!oneRow.isApproved &&
+                            <HourglassFullSharpIcon variant="contained" sx={{ color: "rgba( 255,165,0, 1 )", fontSize: "0.95rem" }} />
+                          }
+                        </Box>
+
+                        {detailMode && oneRow["sonGuncelleme"] &&
+                          <>
+                            <Box sx={{ border: "none" }}></Box>
+
+                            <Box
+                              sx={{
+                                display: "grid",
+                                justifyItems: "center",
+                                px: "0.3rem",
+                                border: "1px solid black"
+                              }}>
+                              {oneRow["sonGuncelleme"].getMonth() < 9 ?
+                                oneRow["sonGuncelleme"].getDate() + "." + "0" + (oneRow["sonGuncelleme"].getMonth() + 1) + "." + oneRow["sonGuncelleme"].getUTCFullYear() :
+                                oneRow["sonGuncelleme"].getDate() + "." + (oneRow["sonGuncelleme"].getMonth() + 1) + "." + oneRow["sonGuncelleme"].getUTCFullYear()
+                              }
+                              {/* {console.log("oneRow",oneRow)} */}
+                            </Box>
+                          </>
+                        }
+
+                      </Grid >
+                    )
+                  })}
+
+                </Box>
+
+              )
+
+            })
+          }
+
+
+
+
+
+          {/* ONAYLI METRAJLAR BAŞLIK */}
+          <Typography sx={{ fontWeight: "600", mb: "0.5rem", textDecoration: 'underline' }} variant="h6" component="h5">
+            Onaylanan Metraj
+          </Typography>
+
+
+          {/* ONAYLI METRAJLAR YOKSA */}
+          {!onaylananMetraj_state?.satirlar?.length > 0 &&
+            <Box sx={{ width: '66rem', mb: "0.5rem" }} spacing={2}>
+              <Alert severity="success" color="primary">
+                {"Henüz onaylanmış metraj bulunmuyor, yukarıdaki 'onay' işaretine tıklayarak hazırlanan metrajlardan onay verebilirsiniz."}
+              </Alert>
+            </Box>
+          }
+
+
+          {/* {console.log("onaylananMetraj_state", onaylananMetraj_state)} */}
+          {/* ONAYLI METRAJLAR VARSA */}
+          {onaylananMetraj_state?.satirlar?.length > 0 &&
+
+            <Box sx={{ mb: "2rem" }}>
+
+              {/* hazirlananMetraj - Başlık Satırı */}
+              <Grid sx={{ display: "grid", gridTemplateColumns: "55rem 8rem 3rem 1rem 4rem 1rem 7rem", justifyContent: "start", alignItems: "center" }}>
+                <Box sx={{ border: "1px solid black", backgroundColor: "rgba(162,210,255, 0.5)", display: "grid", justifyContent: "end", alignItems: "center", pr: "1rem" }}>
+                  <Box sx={{ display: "grid", gridAutoFlow: "column", alignItems: "center", justifyContent: "center", width: "100%", height: "100%" }}>
+                    <Box sx={{
+                      // display: isOwnUser ? "block" : "none",
+                      display: "none",
+                      mr: "0.7rem",
+                      backgroundColor: "red",
+                      borderRadius: "0.5rem",
+                      height: "0.5rem",
+                      width: "0.5rem",
+                    }}>
+                    </Box>
+
+                    <Box sx={{ border: "none" }}></Box>
+
+                    {onaylananMetraj_state.hasOwnProperty("onaylanmaTarihi") ?
+                      <Box>
+                        {onaylananMetraj_state.onaylanmaTarihi.getMonth() < 9 ?
+                          onaylananMetraj_state.onaylanmaTarihi.getDate() + "." + "0" + (onaylananMetraj_state.onaylanmaTarihi.getMonth() + 1) + "." + onaylananMetraj_state.onaylanmaTarihi.getUTCFullYear() :
+                          onaylananMetraj_state.onaylanmaTarihi.getDate() + "." + (onaylananMetraj_state.onaylanmaTarihi.getMonth() + 1) + "." + onaylananMetraj_state.onaylanmaTarihi.getUTCFullYear()
+                        }
+                      </Box>
+                      :
+                      <Box sx={{ color: "rgba(127, 255, 212, 0.9)" }}>
+                        .
+                      </Box>
+                    }
+                  </Box>
+                </Box>
+                <Box sx={{ border: "1px solid black", backgroundColor: "rgba(162,210,255, 0.5)", display: "grid", justifyContent: "end", alignItems: "center", pr: "0.3rem" }}>
+                  {ikiHane(onaylananMetraj_state["metraj"])}
+                </Box>
+                <Box sx={{ border: "1px solid black", backgroundColor: "rgba(162,210,255, 0.5)", display: "grid", justifyContent: "center", alignItems: "center" }}>
+                  {pozBirim}
+                </Box>
+
+                <Box sx={{ border: "none", backgroundColor: "rgba(127, 255, 212, 0.4)", display: "grid", justifyContent: "center", alignItems: "center" }}></Box>
+                <Box sx={{ border: "1px solid black", backgroundColor: "rgba(162,210,255, 0.5)", display: "grid", justifyContent: "center", alignItems: "center" }}>Durum</Box>
+
+
+                {detailMode &&
+                  <>
+                    <Box sx={{ border: "none", backgroundColor: "white", display: "grid", justifyContent: "center", alignItems: "center" }}>
+
+                    </Box>
+                    <Box sx={{ border: "1px solid black", backgroundColor: "rgba(162,210,255, 0.5)", display: "grid", justifyContent: "center", alignItems: "center" }}>
+                      Tarih
+                    </Box>
+                  </>
+                }
+
+
+              </Grid>
+
+              {/* hazirlananMetraj - Metraj Satırları */}
+              {onaylananMetraj_state?.satirlar.map((oneRow, index) => {
+
+                let kullaniciDegisti = oneRow.satirNo.slice(1, 5) == "1" && index !== 0
+
+                return (
+                  < Grid key={index} sx={{ display: "grid", gridTemplateColumns: "6rem 10rem 14rem repeat(5, 5rem) 8rem 3rem 1rem 4rem 1rem 7rem", justifyContent: "start" }}>
+
+                    {["satirNo", "metin1", "metin2", "carpan1", "carpan2", "carpan3", "carpan4", "carpan5", "metraj", "pozBirim"].map((oneProperty, index) => {
+                      let isMinha = oneRow["metin1"].replace("İ", "i").toLowerCase().includes("minha") || oneRow["metin2"].replace("İ", "i").toLowerCase().includes("minha") ? true : false
+                      return (
+                        <Box key={index}
+                          sx={{
+                            display: "grid",
+                            justifyItems: oneProperty.includes("metin") ? "start" : oneProperty.includes("carpan") || oneProperty.includes("metraj") ? "end" : "center",
+                            color: isMinha ? "red" : null,
+                            px: "0.3rem",
+                            border: "1px solid black",
+                            borderTop: kullaniciDegisti && "9px solid rgba(162,210,255, 0.5)"
+                          }}>
+                          {metrajValue(oneRow, oneProperty, isMinha)}
+                        </Box>
+                      )
+                    })}
+
+                    <Box sx={{ border: "none" }}></Box>
+
+                    <Box
+                      // onClick={() => metrajOnayla_state({ userId: oneMetraj._userId.toString(), satirNo: oneRow.satirNo })}
+                      sx={{
+                        display: "grid",
+                        alignItems: "center",
+                        justifyItems: "center",
+                        px: "0.3rem",
+                        border: "1px solid black",
+                        borderTop: kullaniciDegisti && "9px solid rgba(162,210,255, 0.5)",
+                        cursor: "pointer"
+                      }}
+                    >
+                      <DoneAllIcon variant="contained" sx={{ color: "rgba( 0, 128, 0, 0.7 )", fontSize: "1.5rem" }} />
+
+                    </Box>
+
+
+
+                    {detailMode &&
+                      <>
+                        {/* boşluk */}
+                        <Box sx={{ border: "none" }}></Box>
+
+                        <Box
+                          sx={{
+                            display: "grid",
+                            justifyItems: "center",
+                            px: "0.3rem",
+                            border: "1px solid black",
+                            borderTop: kullaniciDegisti && "9px solid rgba(162,210,255, 0.5)"
+                          }}>
+                          {oneRow.onaylanmaTarihi.getMonth() < 9 ?
+                            oneRow.onaylanmaTarihi.getDate() + "." + "0" + (oneRow.onaylanmaTarihi.getMonth() + 1) + "." + oneRow.onaylanmaTarihi.getUTCFullYear() :
+                            oneRow.onaylanmaTarihi.getDate() + "." + (oneRow.onaylanmaTarihi.getMonth() + 1) + "." + oneRow.onaylanmaTarihi.getUTCFullYear()
+                          }
+                        </Box>
+
+                      </>}
+
+                  </Grid >
+                )
+              })}
+
+
+            </Box>
+
+
+          }
+
+
+
+        </Box >
+
+
+      }
+
 
     </ >
 

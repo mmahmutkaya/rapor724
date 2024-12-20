@@ -1,6 +1,7 @@
 import React from 'react'
 
 import { useNavigate } from "react-router-dom";
+import { useQuery } from '@tanstack/react-query'
 
 import { useState, useContext } from 'react';
 import { StoreContext } from './store'
@@ -26,12 +27,20 @@ import FileDownloadDoneIcon from '@mui/icons-material/FileDownloadDone';
 import EditIcon from '@mui/icons-material/Edit';
 import ReplyIcon from '@mui/icons-material/Reply';
 import TuneIcon from '@mui/icons-material/Tune';
+import TaskAltIcon from '@mui/icons-material/TaskAlt';
+import ForwardIcon from '@mui/icons-material/Forward';
+import SaveIcon from '@mui/icons-material/Save';
+import { useGetMahaller } from '../hooks/useMongo';
 
 
 
-
-export default function P_MetrajEditHeader({ show, setShow, saveMetraj_ToDb, loadMetraj_ToState }) {
-
+export default function P_MetrajEditHeader({
+  show, setShow,
+  save_hazirlananMetraj_toDb,
+  setHazirlananMetraj_state,
+  setOnaylananMetraj_state,
+  isChanged, setIsChanged,
+}) {
 
   const navigate = useNavigate()
 
@@ -40,6 +49,7 @@ export default function P_MetrajEditHeader({ show, setShow, saveMetraj_ToDb, loa
   const { selectedNode, setSelectedNode } = useContext(StoreContext)
   const { editNodeMetraj, setEditNodeMetraj } = useContext(StoreContext)
   const { showNodeMetraj, setShowNodeMetraj } = useContext(StoreContext)
+  const { detailMode, setDetailMode } = useContext(StoreContext)
 
   const { isProject, setIsProject } = useContext(StoreContext)
   const { selectedPoz, setSelectedPoz } = useContext(StoreContext)
@@ -53,14 +63,37 @@ export default function P_MetrajEditHeader({ show, setShow, saveMetraj_ToDb, loa
 
   const [showDialog, setShowDialog] = useState(false)
 
-  let header = "Metraj"
+
+  const { data: mahaller } = useGetMahaller()
+
+
+  const cancelDialog = () => {
+    setShowDialog(false)
+  }
+
+
+  const approveDialog = () => {
+    setShowDialog(false)
+    setHazirlananMetraj_state()
+    setIsChanged()
+    navigate("/metrajmahaller")
+  }
+
 
 
   return (
     <Paper >
 
       {showDialog &&
-        <DialogAlert dialogIcon={"warning"} dialogMessage={"Yaptığınız değişiklikleri kaybedeceksiniz ?"} setShowDialog={setShowDialog} saveMetraj_ToDb={saveMetraj_ToDb} />
+        <DialogAlert 
+        dialogIcon={"warning"} 
+        dialogMessage={"Yaptığınız değişiklikleri kaybedeceksiniz ?"} 
+        onCloseAction={cancelDialog} 
+        actionText1={"İptal"}
+        action1={cancelDialog} 
+        actionText2={"Onayla"}
+        action2={approveDialog} 
+        />
       }
 
       <AppBar
@@ -83,7 +116,6 @@ export default function P_MetrajEditHeader({ show, setShow, saveMetraj_ToDb, loa
         >
 
 
-
           {/* sol kısım (başlık) */}
           <Grid item xs>
             <Typography
@@ -91,9 +123,9 @@ export default function P_MetrajEditHeader({ show, setShow, saveMetraj_ToDb, loa
               variant="h6"
               fontWeight="bold"
             >
-              {header} {" > "}
+              {selectedPoz?.name} {" > "}
 
-              <Typography variant="h6" fontWeight="bold" component={"span"} sx={{ color: "darkred" }}>{selectedPoz?.name}</Typography>
+              <Typography variant="h6" fontWeight="bold" component={"span"} sx={{ color: "darkred" }}>{mahaller?.find(item => item._id.toString() == selectedNode?._mahalId.toString())?.name}</Typography>
 
             </Typography>
           </Grid>
@@ -106,39 +138,29 @@ export default function P_MetrajEditHeader({ show, setShow, saveMetraj_ToDb, loa
             <Grid container spacing={1}>
 
 
-              {selectedPoz && !selectedNode &&
+
+              {show == "EditMetraj" &&
                 <Grid item >
                   <IconButton onClick={() => {
-                    navigate("/metraj")
-                    setSelectedNode()
+                    if (isChanged) {
+                      setShowDialog(true)
+                    } else {
+                      navigate("/metrajmahaller")
+                    }
                   }} aria-label="lbsUncliced">
-                    <ReplyIcon variant="contained" sx={{
-                      color: !selectedPoz ? "lightgray" : "red",
-                    }} />
+                    <ClearOutlined variant="contained" sx={{ color: "red" }} />
                   </IconButton>
                 </Grid>
               }
 
-              {selectedNode && !showNodeMetraj &&
-                <Grid item >
-                  <IconButton onClick={() => {
-                    setSelectedNode()
-                  }} aria-label="lbsUncliced">
-                    <ClearOutlined variant="contained" sx={{
-                      color: !selectedNode ? "lightgray" : "red",
-                    }} />
-                  </IconButton>
-                </Grid>
-              }
 
-              {selectedNode && !showNodeMetraj &&
+
+              {show == "EditMetraj" &&
                 <Grid item >
                   <IconButton onClick={() => {
-                    setShowNodeMetraj(true)
+                    save_hazirlananMetraj_toDb()
                   }} aria-label="lbsUncliced">
-                    <TuneIcon variant="contained" sx={{
-                      color: "green",
-                    }} />
+                    <SaveIcon variant="contained" />
                   </IconButton>
                 </Grid>
               }
@@ -146,58 +168,9 @@ export default function P_MetrajEditHeader({ show, setShow, saveMetraj_ToDb, loa
 
 
 
-              {showNodeMetraj && !editNodeMetraj &&
-                <Grid item >
-                  <IconButton onClick={() => {
-                    setShowNodeMetraj()
-                  }} aria-label="lbsUncliced">
-                    <ReplyIcon variant="contained" sx={{
-                      color: !selectedPoz ? "lightgray" : "red",
-                    }} />
-                  </IconButton>
-                </Grid>
-              }
-
-              {showNodeMetraj && !editNodeMetraj &&
-                <Grid item >
-                  <IconButton onClick={() => {
-                    loadMetraj_ToState()
-                    setEditNodeMetraj(true)
-                  }} aria-label="lbsUncliced">
-                    <EditIcon variant="contained" sx={{
-                      color: "green",
-                    }} />
-                  </IconButton>
-                </Grid>
-              }
-
-
-
-              {editNodeMetraj &&
-                <Grid item >
-                  <IconButton onClick={() => {
-                    setShowDialog(true)
-                  }} aria-label="lbsUncliced">
-                    <ClearOutlined variant="contained" sx={{
-                      color: "red",
-                    }} />
-                  </IconButton>
-                </Grid>
-              }
-
-              {editNodeMetraj &&
-                <Grid item >
-                  <IconButton onClick={() => {
-                    saveMetraj_ToDb(true)
-                  }} aria-label="lbsUncliced">
-                    <FileDownloadDoneIcon variant="contained" sx={{
-                      color: "green",
-                    }} />
-                  </IconButton>
-                </Grid>
-              }
 
             </Grid>
+
           </Grid>
 
         </Grid>

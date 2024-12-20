@@ -16,7 +16,7 @@ import InfoIcon from '@mui/icons-material/Info';
 
 
 // export const DialogAlert = ({ dialogIcon, dialogMessage, setShowDialog, saveMetraj_ToDb }) => {
-export const DialogAlert = ({ dialogIcon, dialogMessage, approveDialog, cancelDialog }) => {
+export const DialogAlert = ({ dialogIcon, dialogMessage, onCloseAction, actionText1, action1, actionText2, action2 }) => {
 
   const DilogIcon = () => {
     switch (dialogIcon) {
@@ -48,7 +48,7 @@ export const DialogAlert = ({ dialogIcon, dialogMessage, approveDialog, cancelDi
       <Dialog
         PaperProps={{ sx: { position: "fixed", top: "10rem", p: "0.5rem", } }}
         open={true}
-        onClose={() => cancelDialog()}
+        onClose={() => onCloseAction()}
       >
         {/* <DialogTitle>Subscribe</DialogTitle> */}
 
@@ -61,8 +61,8 @@ export const DialogAlert = ({ dialogIcon, dialogMessage, approveDialog, cancelDi
           </DialogContentText>
 
           <DialogActions>
-            <Button onClick={() => cancelDialog()}>İptal</Button>
-            <Button onClick={() => approveDialog()}> Onayla </Button>
+            {actionText1 && <Button onClick={() => action1()}>{actionText1}</Button>}
+            {actionText2 && <Button onClick={() => action2()}> {actionText2} </Button>}
           </DialogActions>
 
         </DialogContent>

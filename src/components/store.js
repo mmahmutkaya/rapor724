@@ -29,6 +29,7 @@ export default ({ children }) => {
   
   
   const [custom, setCustom] = useState()
+  const [Layout_Show, setLayout_Show] = useState("login")
   
   const [selectedLbs, setSelectedLbs] = useState()
   const [selectedMahal, setSelectedMahal] = useState()
@@ -56,6 +57,8 @@ export default ({ children }) => {
 
   const store = {
     custom, setCustom,
+
+    Layout_Show, setLayout_Show,
 
     selectedLbs, setSelectedLbs,
     selectedMahal, setSelectedMahal,

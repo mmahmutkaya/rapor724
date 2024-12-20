@@ -1,4 +1,4 @@
-import { useState, useContext } from 'react';
+import { useState, useContext, useEffect } from 'react';
 import { StoreContext } from '../components/store'
 import PropTypes from 'prop-types';
 import { useApp } from "../components/useApp.js";
@@ -39,7 +39,10 @@ import AccountCircle from '@mui/icons-material/AccountCircle';
 import NotificationsIcon from '@mui/icons-material/Notifications';
 import MoreIcon from '@mui/icons-material/MoreVert';
 
-import SignIn from "./SignIn.js"
+import FormSignIn from "./FormSignIn.js"
+import FormSignUp from "./FormSignUp.js"
+import FormSifreYenileme from "./FormSifreYenileme.js"
+import FormMailTeyit from "./FormMailTeyit.js"
 
 
 
@@ -51,16 +54,16 @@ export default function Layout({ window, children }) {
   const navigate = useNavigate()
 
   const { drawerWidth, topBarHeight } = useContext(StoreContext)
+  const { Layout_Show, setLayout_Show } = useContext(StoreContext)
 
   const { isProject, setIsProject } = useContext(StoreContext)
-  const { setSelectedLbs, setSelectedMahal, setSelectedMahalBaslik, setSelectedWbs, setSelectedPoz, setSelectedPozBaslik, setSelectedNode,pageMetraj_setShow } = useContext(StoreContext)
+  const { setSelectedLbs, setSelectedMahal, setSelectedMahalBaslik, setSelectedWbs, setSelectedPoz, setSelectedPozBaslik, setSelectedNode, pageMetraj_setShow } = useContext(StoreContext)
 
 
   const [began, setBegan] = useState(false)
 
   const RealmApp = useApp();
 
-  const [loginFormMode, setLoginFormMode] = useState("login")
   const [isSidebar, setIsSidebar] = useState(false)
 
   const [mobileOpen, setMobileOpen] = useState(false);
@@ -71,21 +74,29 @@ export default function Layout({ window, children }) {
   const isMobileMenuOpen = Boolean(mobileMoreAnchorEl);
 
 
+
+
   if (!RealmApp) {
     return (
-      <>
-        <div>Üzgünüz, bir problem var (RealmApp yok), sayfayı yenilemeyi deneyiniz, problem devam ederse lütfen bizi bilgilendiriniz... Hata (COMPONENT:Layout - MESSAGE:RealmApp yok)</div>
-      </>
+      <div>Üzgünüz, bir problem var (RealmApp yok), sayfayı yenilemeyi deneyiniz, problem devam ederse lütfen bizi bilgilendiriniz... Hata (COMPONENT:Layout - MESSAGE:RealmApp yok)</div>
     )
   }
 
-  if (!RealmApp?.currentUser) {
+  if (!RealmApp?.currentUser && Layout_Show === "login") {
     return (
-      <>
-        {/* {loginFormMode === "login" && <FormLogin setLoginFormMode={setLoginFormMode} />} */}
-        {loginFormMode === "login" && <SignIn setLoginFormMode={setLoginFormMode} />}
-        {/* {loginFormMode === "newUser" && <FormSignUp setLoginFormMode={setLoginFormMode} />} */}
-      </>
+      <FormSignIn />
+    )
+  }
+
+  if (!RealmApp?.currentUser && Layout_Show === "newUser") {
+    return (
+      <FormSignUp />
+    )
+  }
+
+  if (!RealmApp?.currentUser && Layout_Show === "sifreYenileme") {
+    return (
+      <FormSifreYenileme />
     )
   }
 
@@ -93,23 +104,22 @@ export default function Layout({ window, children }) {
   // mongo realm bu fonksiyonu name değeri yoksa bile name:$undefined:true gibi birşey oluşturuyor sonuçta $undefined:true olarak döndürüyor
   if (!RealmApp?.currentUser?.customData?.mailTeyit) {
     return (
-      <>
-        {/* {<FormMailTeyit />} */}
-      </>
+      <FormMailTeyit />
     )
   }
 
 
-  // mongo realm bu fonksiyonu name değeri yoksa bile name:$undefined:true gibi birşey oluşturuyor sonuçta $undefined:true olarak döndürüyor
-  const isName = typeof RealmApp?.currentUser?.customData?.name === "string" && RealmApp?.currentUser?.customData?.name.length > 0
-  // const mailTeyit = typeof RealmApp?.currentUser.customData.mailTeyit === true
-  if (!isName) {
-    return (
-      <>
-        {/* {<FormProfile />} */}
-      </>
-    )
-  }
+  // // mongo realm bu fonksiyonu name değeri yoksa bile name:$undefined:true gibi birşey oluşturuyor sonuçta $undefined:true olarak döndürüyor
+  // const isName = typeof RealmApp?.currentUser?.customData?.name === "string" && RealmApp?.currentUser?.customData?.name.length > 0
+  // // const mailTeyit = typeof RealmApp?.currentUser.customData.mailTeyit === true
+  // if (!isName) {
+  //   return (
+  //     <>
+  //       kullanıcı var, adı yok
+  //       {/* {<FormProfile />} */}
+  //     </>
+  //   )
+  // }
 
 
 
@@ -334,21 +344,7 @@ export default function Layout({ window, children }) {
               </Typography>
             </Grid>
 
-            {/* <Grid item>
-              <Search>
-                <SearchIconWrapper>
-                  <SearchIcon />
-                </SearchIconWrapper>
-                <StyledInputBase
-                  placeholder="Search…"
-                  inputProps={{ 'aria-label': 'search' }}
-                />
-              </Search>
-            </Grid> */}
 
-            {/* <Grid item>
-              <Box sx={{ flexGrow: 1 }} />
-            </Grid> */}
 
             <Grid item>
               {/* toolbardaki bildirim ikonları */}

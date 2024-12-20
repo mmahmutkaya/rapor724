@@ -1,116 +1,283 @@
-import React from 'react'
-import { ErrorMessage, Formik, Field, Form } from 'formik';
-import styles from '../styles/FormMailTeyit.module.css'
+import { useEffect, useState, useContext } from 'react';
+import { StoreContext } from './store.js'
 
-import { useApp } from "../components/useApp.js";
+import * as Realm from "realm-web";
+import { useApp } from "./useApp.js";
+
+import { useNavigate } from "react-router-dom";
+
+import { DialogAlert } from './general/DialogAlert';
+
+
+// import CssBaseline from '@mui/material/CssBaseline';
+import TextField from '@mui/material/TextField';
+import FormControlLabel from '@mui/material/FormControlLabel';
+import Checkbox from '@mui/material/Checkbox';
+import Link from '@mui/material/Link';
+import Grid from '@mui/material/Grid';
+import Box from '@mui/material/Box';
+import LockOutlinedIcon from '@mui/icons-material/LockOutlined';
+import Typography from '@mui/material/Typography';
+import Container from '@mui/material/Container';
+import { createTheme, ThemeProvider } from '@mui/material/styles';
+// icons
+import Button from '@mui/material/Button';
+import Avatar from '@mui/material/Avatar';
+
+
+
+function Copyright(props) {
+  return (
+    <Typography variant="body2" color="text.secondary" align="center" {...props}>
+      {'Copyright © '}
+      <Link color="inherit" href="https://mui.com/">
+        Your Website
+      </Link>{' '}
+      {new Date().getFullYear()}
+      {'.'}
+    </Typography>
+  );
+}
+
+const theme = createTheme();
+
+
+// pagesituation 0 - mail göndermeye hazır olduğunda
+// pagesituation 1 - mail gönderme tuşuna bastıktan hemen sonra - loading
+// pagesituation 2 - sonuç hatalı gelince - error
+
+// pagesituation 3 - mail kodu gönderilmiş, code girme için hazır olduğunda
+// pagesituation 4 - mail kodu doğrulama tuşuna bastıktan hemen sonra - loading
 
 
 export default function FormMailTeyit() {
 
   const RealmApp = useApp();
+  const navigate = useNavigate()
+  const { isProject, setIsProject } = useContext(StoreContext)
+  const { Layout_Show, setLayout_Show } = useContext(StoreContext)
 
-  const email = RealmApp?.currentUser?.profile.email
+  const [pageSituation, setPageSituation] = useState(0)
 
-  async function deneme() {
-    try {
-      if (RealmApp) {
-        const result = await RealmApp.currentUser.callFunction("auth_SendConfirmationCode");
-        console.log("result", result)
-        if (!result.ok) {
-          return (
-            <>
-              <div>Üzgünüz, bir problem var, lütfen bizi bilgilendiriniz... Hata (COMPONENT:FormMailTeyit - MESSAGE:auth_SendConfirmationCode)</div>
-            </>
-          )
+  const [emailError, setEmailError] = useState()
+  const [mailCodeError, setMailCodeError] = useState()
+
+  const [email, setEmail] = useState()
+
+  useEffect(() => {
+    RealmApp?.currentUser && setEmail(RealmApp?.currentUser?._profile?.data?.email)
+  }, [RealmApp?.currentUser])
+
+
+
+
+  async function handleSubmit(event) {
+
+    event.preventDefault();
+    let isError = false
+
+    if (pageSituation == 0) {
+      try {
+
+        setPageSituation(1)
+        const resultMailSended = await RealmApp.currentUser.callFunction("auth_SendConfirmationCode")
+        console.log("resultMailSended", resultMailSended)
+        setPageSituation(3)
+        return
+
+      } catch (error) {
+        console.log("error", error)
+        console.log("mongo fonksiyon - auth_SendConfirmationCode")
+        setPageSituation(2)
+        return
+      }
+    }
+
+    if (pageSituation == 3) {
+
+      try {
+
+        const data = new FormData(event.currentTarget);
+        const mailCode = data.get('mailCode')
+
+
+        //  Password frontend kontrolü
+        if (mailCode.length < 6) {
+          setMailCodeError("En az 6 karakter kullanmalısınız") // biz kabul etsek mongodb oluşturmuyor kullanıcıyı 6 haneden az şifre ile
+          isError = true
         }
+
+        if (!mailCode.length) {
+          setMailCodeError("Mailinize gelen kodu giriniz")
+          isError = true
+        }
+
+
+
+        // yukarıda hata varsa ilgili useState değerlerini error olarak belirledik fakat henüz react render tazelenmediği için değişmediler kontrol edemiyoruz
+        // bu sebeple başlangıçta false değerine sahip isError diye bir js değişkeni oluşturduk, bu işi görmeye çalışıyoruz
+        if (isError) {
+          console.log("Hata var ve alt satırda durduruldu")
+          return
+        }
+
+        setPageSituation(4)
+        const resultConfirmation = await RealmApp.currentUser.callFunction("auth_ConfirmationMail", mailCode);
+        console.log("resultConfirmation", resultConfirmation)
+        if (resultConfirmation.includes("teyit edildi")) {
+          console.log("başarılı, navigate(0) yapılacak")
+          await RealmApp.currentUser.refreshCustomData()
+          navigate(0)
+        }
+        if (resultConfirmation.includes("mail kodu doğru girilmedi")) {
+          console.log("mail kodu doğru girilmedi")
+          setMailCodeError("Mail kodu doğru girilmedi, kontrol ediniz")
+          setPageSituation(3)
+        }
+        return
+
+      } catch (err) {
+
+        // return console.log(err)
+
+        const hataMesaj = err.message
+
+        // if (hataMesaj.includes("expected a string 'password' parameter")) {
+        //   return console.log("Şifre girmelisiniz")
+        // }
+
+        console.log(hataMesaj)
+        console.log("Giriş esnasında hata oluştu, lütfen iletişime geçiniz..")
+        return
       }
-    } catch (err) {
-      return console.log(err)
     }
   }
-  deneme()
 
 
-  async function clickMailTeyit(props) {
-
-    try {
-
-      const { kod } = props
-
-      const result = await RealmApp.currentUser.callFunction("auth_ConfirmationMail", kod);
-
-      console.log("result2", result)
-
-      if (!result.ok) {
-        return (
-          <>
-            <div>Üzgünüz, bir problem var, lütfen bizi bilgilendiriniz... Hata (COMPONENT:FormMailTeyit - MESSAGE:auth_ConfirmationMail)</div>
-          </>
-        )
+  return (
+    <>
+      {pageSituation === 2 &&
+        < DialogAlert
+          dialogIcon={"warning"}
+          dialogMessage={"Mail adresine kod gönderirken beklenmedik bir hata oluştu, sorun devam ederse bizimle irtibata geçiniz."}
+          onCloseAction={() => navigate(0)}
+        />
       }
 
-      await RealmApp.currentUser.refreshCustomData()
-      window.location.reload(false);
+      <ThemeProvider theme={theme}>
+        {/* <Grid container  > */}
+        {/* 
+        <Grid item sx={{ zIndex: "-1", }} >
+          <Image
+            src={backgroundPicture}
+            fill
+            // width={500}
+            // height={500}
 
-    } catch (err) {
+            alt="Background Image"
+          />
+        </Grid> */}
 
-      const hataMesaj = err.message
+        {/* <Grid item sx={{ border: "2px solid red", borderRadius: "25px" }}> */}
+        <Container component="main" maxWidth="xs">
+          {/* <CssBaseline /> */}
+          <Box
+            sx={{
+              marginTop: 8,
+              display: 'flex',
+              flexDirection: 'column',
+              alignItems: 'center',
+              backgroundColor: "white",
 
-      if (hataMesaj.includes("expected a string 'password' parameter")) {
-        return console.log("Şifre girmelisiniz")
-      }
+            }}
+          >
+            <Avatar sx={{ m: 1, bgcolor: 'secondary.main' }}>
+              <LockOutlinedIcon />
+            </Avatar>
+            <Typography component="h1" variant="h5">
+              Mail Adresi Doğrulama
+            </Typography>
+            <Box component="form" onSubmit={handleSubmit} noValidate sx={{ mt: 1 }}>
 
-      if (hataMesaj === "invalid username") {
-        return console.log("Email girmelisiniz")
-      }
+              {email &&
+                <TextField
+                  // onClick={() => setEmailError()}
+                  // error={emailError ? true : false}
+                  margin="normal"
+                  // required
+                  fullWidth
+                  // id="email"
+                  // label={emailError ? emailError : "Email"}
+                  // name="email"
+                  // autoComplete="email"
+                  // autoFocus
+                  disabled={true}
+                  defaultValue={email}
+                />
+              }
 
-      if (hataMesaj === "invalid username/password") {
-        return console.log("Email ve şifre uyuşmuyor")
-      }
+              <TextField
+                onKeyDown={() => setMailCodeError()}
+                error={mailCodeError ? true : false}
+                margin="normal"
+                required
+                fullWidth
+                name="mailCode"
+                label={mailCodeError ? mailCodeError : "Mail Adresinize Gelen Kodu Giriniz"}
+                type="text"
+                id="mailCode"
+                disabled={pageSituation !== 3}
+                autoComplete="off"
+              />
 
-      console.log(hataMesaj)
-      return console.log("Giriş esnasında hata oluştu, lütfen iletişime geçiniz..")
-
-      console.log(err.statusCode);
-      console.log(err.message);
-    }
-
-  }
-
-  const clickLogOut = async () => {
-    await RealmApp.currentUser.logOut()
-    window.location.reload(false);
-  }
-
-
-  const initialValues = {
-    kod: "",
-  }
+              <Typography sx={{ mt: "1rem", ml: "0.5rem", fontSize: "0.9rem", color: pageSituation >= 3 ? "#3371FF" : "white"}}>
+                *Mail gönderildi, 'spam' kutusunu da kontrol ediniz
+              </Typography>
 
 
-  if (RealmApp) {
+              {email &&
+                <Button
+                  type="submit"
+                  fullWidth
+                  variant="contained"
+                  sx={{ mt: 2, mb: 2 }}
+                  disabled={pageSituation === 1 || pageSituation === 4}
+                >
+                  {pageSituation === 0 && "Mail Adresime Kod Gönder"}
+                  {pageSituation === 1 && "Mail Gönderiliyor"}
+                  {pageSituation === 3 && "Doğrula"}
+                  {pageSituation === 4 && "Kod Doğrulanıyor"}
+                </Button>
+              }
 
-    return (
-      <div className={styles.form_container}>
-        <h1>Profil Bilgileri</h1>
-        <Formik
-          initialValues={initialValues}
-          onSubmit={clickMailTeyit}
-        >
-          <Form className={styles.form}>
+              <Grid container sx={{ display: "grid", justifyContent: "end" }}>
 
-            <label className={styles.input} htmlFor="email">{email}</label>
-            {/* <Field className={styles.input} id="email" name="namemail" placeholder={email} /> */}
+                <Grid item sx={{ display: "grid", justifyContent: "end" }}>
+                  <Link
+                    onClick={() => {
+                      RealmApp?.currentUser?.logOut()
+                      // setLayout_Show("newUser")
+                      navigate(0)
+                    }}
+                    sx={{}}
+                    href="#"
+                    variant="body2"
+                  >
+                    Çıkış
+                  </Link>
+                </Grid>
 
-            {/* <label className={styles.label} htmlFor="lastName">Soyisim</label> */}
-            <Field className={styles.input} id="kod" name="kod" placeholder={"Mail adresinize gelen kodu giriniz..."} />
+              </Grid>
 
-            <button className={styles.button1} type="submit">Kaydet</button>
-            <button className={styles.button2} onClick={clickLogOut}>Çıkış Yap</button>
-          </Form>
-        </Formik>
-      </div>
-    )
-  }
+            </Box>
+          </Box>
+          {/* <Copyright sx={{ mt: 8, mb: 4 }} /> */}
+        </Container>
+        {/* </Grid> */}
 
+        {/* </Grid> */}
+      </ThemeProvider>
+
+    </>
+  );
 }

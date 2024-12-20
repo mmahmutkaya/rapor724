@@ -89,8 +89,17 @@ export default function P_MetrajCetveliHeader({
     <Paper >
 
       {showDialog &&
-        <DialogAlert dialogIcon={"warning"} dialogMessage={"Yaptığınız değişiklikleri kaybedeceksiniz ?"} cancelDialog={cancelDialog} approveDialog={approveDialog} />
+        <DialogAlert
+          dialogIcon={"warning"}
+          dialogMessage={"Yaptığınız değişiklikleri kaybedeceksiniz ?"}
+          onCloseAction={cancelDialog}
+          actionText1={"İptal"}
+          action1={cancelDialog}
+          actionText2={"Onayla"}
+          action2={approveDialog}
+        />
       }
+
 
       <AppBar
         position="fixed"

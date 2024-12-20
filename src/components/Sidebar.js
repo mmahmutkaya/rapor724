@@ -166,24 +166,24 @@ export default function Sidebar({ setMobileOpen }) {
 
 
             <ListItemButton
-              onClick={() => navigate('/metrajonay')}
-              sx={{ backgroundColor: pathname == "/metrajonay" ? "#f0f0f1" : null }}
-            >
-              <ListItemIcon>
-                <SendIcon />
-              </ListItemIcon>
-              <ListItemText primary="Metraj Onay" />
-            </ListItemButton>
-
-
-            <ListItemButton
-              onClick={() => navigate('/metraj')}
-              sx={{ backgroundColor: pathname == "/metraj" ? "#f0f0f1" : null }}
+              onClick={() => navigate('/metrajpozlar')}
+              sx={{ backgroundColor: pathname == "/metrajpozlar" ? "#f0f0f1" : null }}
             >
               <ListItemIcon>
                 <SendIcon />
               </ListItemIcon>
               <ListItemText primary="Metraj" />
+            </ListItemButton>
+
+
+            <ListItemButton
+              onClick={() => navigate('/kisiler')}
+              sx={{ backgroundColor: pathname == "/kisiler" ? "#f0f0f1" : null }}
+            >
+              <ListItemIcon>
+                <SendIcon />
+              </ListItemIcon>
+              <ListItemText primary="Kişiler" />
             </ListItemButton>
 
 
@@ -197,15 +197,6 @@ export default function Sidebar({ setMobileOpen }) {
               <ListItemText primary="Raporlar" />
             </ListItemButton>
 
-            <ListItemButton
-              onClick={() => navigate('/grid')}
-              sx={{ backgroundColor: pathname == "/grid" ? "#f0f0f1" : null }}
-            >
-              <ListItemIcon>
-                <SendIcon />
-              </ListItemIcon>
-              <ListItemText primary="Grid" />
-            </ListItemButton>
 
           </List>
         </Grid>

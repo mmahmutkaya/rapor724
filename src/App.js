@@ -12,21 +12,17 @@ import P_Lbs from './pages/lbs'
 import P_Mahaller from './pages/mahaller'
 import P_MahalListesi from './pages/mahallistesi'
 import P_MahalMetraj from './pages/mahalmetraj'
-import P_MetrajOnay from './pages/metrajonay'
-import P_MetrajCetveli from './pages/metrajcetveli'
-import P_Metraj from './pages/metraj'
-import P_MetrajEdit from './pages/metrajedit'
+import P_MetrajPozlar from './pages/metrajpozlar'
+import P_Kisiler from './pages/kisiler'
 import P_Raporlar from './pages/raporlar'
 
+import P_MetrajMahaller from './pages/metrajmahaller'
+import P_MetrajCetveli from './pages/metrajcetveli'
+import P_MetrajEdit from './pages/metrajedit'
+import P_MetrajOnay from './pages/metrajonay'
 
 function App() {
 
-  // const { isProject } = useContext(StoreContext)
-
-  // const navigate = useNavigate()
-
-  // if(!isProject) 
-  
   return (
     <Routes>
       <Route path='/' element={<Home />} />
@@ -44,11 +40,14 @@ function App() {
       <Route path='/mahaller' element={<P_Mahaller />} />
       <Route path='/mahallistesi' element={<P_MahalListesi />} />
       <Route path='/mahalmetraj' element={<P_MahalMetraj />} />
-      <Route path='/metrajonay' element={<P_MetrajOnay />} />
-      <Route path='/metrajcetveli' element={<P_MetrajCetveli />} />
-      <Route path='/metraj' element={<P_Metraj />} />
-      <Route path='/metrajedit' element={<P_MetrajEdit />} />
+      <Route path='/metrajpozlar' element={<P_MetrajPozlar />} />
+      <Route path='/kisiler' element={<P_Kisiler />} />
       <Route path='/raporlar' element={<P_Raporlar />} />
+
+      <Route path='/metrajmahaller' element={<P_MetrajMahaller />} />
+      <Route path='/metrajcetveli' element={<P_MetrajCetveli />} />
+      <Route path='/metrajedit' element={<P_MetrajEdit />} />
+      <Route path='/metrajonay' element={<P_MetrajOnay />} />
 
     </Routes>
   );

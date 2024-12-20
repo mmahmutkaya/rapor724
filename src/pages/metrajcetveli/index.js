@@ -368,7 +368,6 @@ export default function P_MetrajCetveli() {
 
 
 
-
   pozBirim = isProject?.pozBirimleri.find(item => item.id == selectedPoz?.birimId)?.name
   pozMetraj = mahalListesi?.list.filter(item => item._pozId.toString() == selectedPoz?._id.toString()).reduce((accumulator, oneNode) => (isNaN(parseFloat(oneNode.metraj?.guncel)) ? accumulator + 0 : accumulator + parseFloat(oneNode.metraj?.guncel)), 0)
   pozMetraj = Intl.NumberFormat('tr-TR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(pozMetraj)
@@ -393,86 +392,6 @@ export default function P_MetrajCetveli() {
           setApproveMode={setApproveMode}
         />
       </Grid>
-
-
-      {/* PAGE - POZUN MAHALLERİNİN LİSTELENDİĞİ İLK SAYFA
-      {show == "PozMahalleri" &&
-
-        < Box name="Main" sx={{ ml: "1rem", mr: "1rem", width: "63rem" }}>
-
-          < Grid sx={{ mb: "0.5rem", display: "grid", gridTemplateColumns: "6rem 49rem 5rem 3rem", backgroundColor: "lightgray", justifyContent: "center" }}>
-            <Box sx={{ border: "1px solid black", display: "grid", alignItems: "center", textAlign: "center" }}>
-              <Box>
-                Mahal
-              </Box>
-              <Box>
-                Kodu
-              </Box>
-            </Box>
-            <Box sx={{ border: "1px solid black", display: "grid", alignItems: "center", justifyItems: "start", pl: "0.5rem" }}>
-              Mahal Adı
-            </Box>
-            <Box sx={{ border: "1px solid black" }}>
-              <Box sx={{ display: "grid", alignItems: "center", justifyItems: "end", pr: "0.5rem" }}>
-                Metraj
-              </Box>
-              <Box sx={{ display: "grid", alignItems: "center", justifyItems: "end", pr: "0.5rem" }}>
-                {pozMetraj}
-              </Box>
-            </Box>
-            <Box sx={{ border: "1px solid black", display: "grid", alignItems: "end", justifyItems: "center" }}>
-              {pozBirim}
-            </Box>
-          </Grid >
-
-
-          {
-            mahalListesi?.filter(item => item._pozId.toString() == selectedPoz._id.toString() && item.openMetraj).map((oneNode, index) => {
-
-              { mahal = mahaller?.find(item => item._id.toString() == oneNode._mahalId.toString()) }
-              { nodeMetrajGuncel = oneNode?.metraj?.guncel ? oneNode?.metraj?.guncel : 0 }
-              { nodeMetrajGuncel = Intl.NumberFormat('tr-TR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(nodeMetrajGuncel) }
-
-              return (
-
-                <Grid key={index}>
-
-                  <Grid onClick={() => setSelectedNode(oneNode)} sx={{ display: "grid", gridTemplateColumns: "6rem 49rem 5rem 3rem", cursor: "pointer" }}>
-
-                    <Box sx={{ backgroundColor: "rgba( 253, 197, 123 , 0.6 )", border: "1px solid black", display: "grid", justifyItems: "center" }}>
-                      {mahal?.kod}
-                    </Box>
-                    <Box sx={{ display: "grid", gridTemplateColumns: "1fr 1rem", alignItems: "center", backgroundColor: "rgba( 253, 197, 123 , 0.6 )", border: "1px solid black", pl: "0.5rem" }}>
-                      <Box>{mahal?.name}</Box>
-                      {selectedNode && selectedNode._mahalId.toString() == oneNode._mahalId.toString() && selectedNode._pozId.toString() == oneNode._pozId.toString() &&
-                        <Grid >
-                          <Box sx={{ backgroundColor: "rgba(255, 0, 0, 1)", borderRadius: "0.5rem", height: "0.5rem", width: "0.5rem" }}> </Box>
-                        </Grid>
-                      }
-                    </Box>
-                    <Box sx={{ backgroundColor: "rgba( 253, 197, 123 , 0.6 )", border: "1px solid black", display: "grid", justifyItems: "end", pr: "0.5rem" }}>
-                      {nodeMetrajGuncel > 0 ? nodeMetrajGuncel : ""}
-                    </Box>
-                    <Box sx={{ backgroundColor: "rgba( 253, 197, 123 , 0.6 )", border: "1px solid black", display: "grid", justifyItems: "end", pr: "0.5rem" }}>
-                      {pozBirim}
-                    </Box>
-                  </Grid>
-
-                </Grid>
-              )
-
-            })
-          }
-
-        </Box >
-
-      } */}
-
-      {/* < Box name="Main" sx={{ display: "grid", mt: subHeaderHeight, ml: "1rem", mr: "1rem", justifyItems: "start" }}> */}
-
-
-      {/* En Üst Başlık Satırı */}
-      {/* < Grid sx={{ mb: "0.5rem", display: "grid", gridTemplateColumns: "6rem 10rem 14rem repeat(5, 5rem) 8rem 3rem", backgroundColor: "lightgray", justifyContent: "start" }}> */}
 
 
 
@@ -530,7 +449,7 @@ export default function P_MetrajCetveli() {
 
           {/* HAZIRLANAN METRAJLAR GÖSTERİMİ */}
 
-          <Typography sx={{ fontWeight: "600", mb: "0.5rem" }} variant="h6" component="h5">
+          <Typography sx={{ fontWeight: "600", mb: "0.5rem", textDecoration: 'underline' }} variant="h6" component="h5">
             Hazırlanan Metrajlar
           </Typography>
 
@@ -726,7 +645,7 @@ export default function P_MetrajCetveli() {
 
 
           {/* ONAYLI METRAJLAR BAŞLIK */}
-          <Typography sx={{ fontWeight: "600", mb: "0.5rem" }} variant="h6" component="h5">
+          <Typography sx={{ fontWeight: "600", mb: "0.5rem", textDecoration: 'underline' }} variant="h6" component="h5">
             Onaylanan Metraj
           </Typography>
 
@@ -1118,7 +1037,7 @@ export default function P_MetrajCetveli() {
 
           {/* HAZIRLANAN METRAJLAR GÖSTERİMİ */}
 
-          <Typography sx={{ fontWeight: "600", mb: "0.5rem" }} variant="h6" component="h5">
+          <Typography sx={{ fontWeight: "600", mb: "0.5rem", textDecoration: 'underline' }} variant="h6" component="h5">
             Hazırlanan Metrajlar
           </Typography>
 
@@ -1314,7 +1233,7 @@ export default function P_MetrajCetveli() {
 
 
           {/* ONAYLI METRAJLAR BAŞLIK */}
-          <Typography sx={{ fontWeight: "600", mb: "0.5rem" }} variant="h6" component="h5">
+          <Typography sx={{ fontWeight: "600", mb: "0.5rem", textDecoration: 'underline' }} variant="h6" component="h5">
             Onaylanan Metraj
           </Typography>
 

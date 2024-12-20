@@ -33,7 +33,7 @@ export const useGetPozlar = (onSuccess, onError) => {
 
   return useQuery({
     queryKey: ['pozlar', isProject?._id.toString()],
-    queryFn: () => RealmApp?.currentUser.callFunction("getProjectPozlar", ({ projectId: isProject?._id })),
+    queryFn: () => RealmApp?.currentUser.callFunction("collectionDugumler", ({ functionName: "getProjectPozlar", _projectId: isProject?._id })),
     enabled: !!RealmApp && !!isProject,
     onSuccess,
     onError,
@@ -59,6 +59,25 @@ export const useGetMahalListesi = () => {
   })
 
 }
+
+
+// export const useGetMahaller_BirPoz = ({_pozId}) => {
+
+//   console.log("_pozId",_pozId)
+
+//   const RealmApp = useApp();
+//   const { isProject } = useContext(StoreContext)
+
+//   return useQuery({
+//     queryKey: ['mahaller_birPoz', ],
+//     queryFn: () => RealmApp?.currentUser.callFunction("collectionDugumler", ({ functionName: "getMahaller_birPoz", _projectId: isProject?._id })),
+//     enabled: !!RealmApp && !!isProject,
+//     refetchOnMount: false,
+//     refetchOnWindowFocus: false,
+//     // select: (data) => data.mahalListesi,
+//   })
+
+// }
 
 
 
@@ -339,7 +358,7 @@ export const useToggleOpenMetrajDugum = () => {
 
   return useMutation({
     mutationFn: ({ _mahalId, _pozId, switchValue }) => {
-      return RealmApp?.currentUser.callFunction("collectionDugumler", ({ functionName: "toggle_openMetraj", _projectId: isProject?._id, _mahalId, _pozId }))
+      return RealmApp?.currentUser.callFunction("collectionDugumler", ({ functionName: "toggle_openMetraj", _projectId: isProject?._id, _mahalId, _pozId, switchValue }))
     },
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ['mahalListesi', isProject?._id.toString()] })
     // onSuccess: (returnData, variables2) => queryClient.setQueryData(['mahalListesi', isProject?._id.toString()], (mahallistesi) => mahalListesi_optimisticUpdate(mahallistesi, variables2))
