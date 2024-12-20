@@ -15,7 +15,7 @@ exports = async ({ token, tokenId, username, password, currentPasswordValid }) =
     throw new Error("Mail adresi hatalı (backend)")
   }
 
-  throw new Error("Mail adresi hatalı (backend)")
+  // throw new Error("Mail adresi hatalı (backend)")
   return {status:"success", mesaj:"deneme"}
   
   
