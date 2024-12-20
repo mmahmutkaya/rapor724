@@ -4,7 +4,7 @@ exports = async function({email}){
     return "'reactPasswordResetUser' kullanıcısına ait bir fonksiyon çağırıldı, bizimle irtibata geçiniz." // bu ifadeyi değiştirme, frontend hata da kullanılıyor
   }
 
-  return {context, arg}
+  return {context, email}
   
   
   // This default function will get a value and find a document in MongoDB
