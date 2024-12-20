@@ -15,7 +15,7 @@ exports = async ({ token, tokenId, username, password }) => {
   }
 
 
-  if(password.length > 8) {
+  if(!password) {
     return {status:"fail", hata:"şifre 8 karakterden fazla olamaz"}
   }
   
