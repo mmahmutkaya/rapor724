@@ -43,7 +43,7 @@ exports = async function () {
     );
     resultdbKayit = {ok:true, yer:"maile gidecek kodu db ye kaydetme", mesaj:"kod db ye kaydedildi", resultMongo }
   } catch (err) {
-    return ({ok:false, hataYeri:"maile gidecek kodu db ye kaydetme", hataMesaj:err.message})
+    throw new Error({ok:false, hataYeri:"maile gidecek kodu db ye kaydetme", hataMesaj:err.message})
   }
 
 
