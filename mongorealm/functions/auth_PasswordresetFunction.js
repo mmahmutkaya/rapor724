@@ -1,7 +1,13 @@
 
 exports = async ({ token, tokenId, username, password, currentPasswordValid }) => {
 
+  
+  if(password == "333333") {
+    return {status:"success", ok:true, mesaj:"kullanıcı kaydedildi"}
+  }
 
+  return {status:"fail"}
+  
   // const validateEmail = (email) => {
   //   return String(email)
   //     .toLowerCase()
@@ -36,8 +42,7 @@ exports = async ({ token, tokenId, username, password, currentPasswordValid }) =
   // }
 
   
-  return {status:"success", ok:true, mesaj:"kullanıcı kaydedildi"}
-  
+    
   // // burada database e kaydedilecek ve aşağıda mail adresine gönderilecek, bu sebeple try catch dışına aldım
   // const mailTeyitKod = context.functions.execute("generateKod", 6);
   // try {
