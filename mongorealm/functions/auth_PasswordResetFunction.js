@@ -1,6 +1,10 @@
 
 exports = async ({ token, tokenId, username, password, currentPasswordValid }, {mailCode}) => {
 
+  // bu fonksiyon private yani kullanıcılar tarafından direk çağırılamıyor, aşağıdaki şekilde çağırılıyor, {email.password} sonrasındaki değişkenler isteğe bağlı ve burada istenilen şekilde değerlendiriliyorlar
+  // RealmApp.emailPasswordAuth.callResetPasswordFunction({ email, password }, { mailCode: "1234567" })
+  // return {status:"success", mesaj:"deneme"}
+
 
   let email = username
   
@@ -17,8 +21,13 @@ exports = async ({ token, tokenId, username, password, currentPasswordValid }, {
 
   
   if(mailCode !== "123456") {
-    throw new Error("mail code uyuşmuyor")
+    return
   }
+
+
+  // if(password !== "111111") {
+  //   throw new Error("mail code uyuşmuyor")
+  // }
 
   return {status:"success", mesaj:"deneme"}
   
