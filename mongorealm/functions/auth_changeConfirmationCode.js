@@ -1,10 +1,10 @@
 exports = async function({email}){
 
-  return {context, arg}
   if(context.user.data.name !== "reactPasswordResetUser") {
-    return "'reactPasswordResetUser' kullanıcı hatası, bizimle irtibata geçiniz." // bu ifadeyi değiştirme, frontend hata da kullanılıyor
+    return "'reactPasswordResetUser' kullanıcısına ait bir fonksiyon çağırıldı, bizimle irtibata geçiniz." // bu ifadeyi değiştirme, frontend hata da kullanılıyor
   }
 
+  return {context, arg}
   
   
   // This default function will get a value and find a document in MongoDB
