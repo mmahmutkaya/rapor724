@@ -3,7 +3,7 @@ exports = async ({ token, tokenId, username, password, currentPasswordValid }, {
 
   // bu fonksiyon private yani kullanıcılar tarafından direk çağırılamıyor, aşağıdaki şekilde çağırılıyor, {email.password} sonrasındaki değişkenler isteğe bağlı ve burada istenilen şekilde değerlendiriliyorlar
   // RealmApp.emailPasswordAuth.callResetPasswordFunction({ email, password }, { mailCode: "1234567" })
-  // return {status:"success", mesaj:"deneme"}
+  // return {status:"fail"} - return {status:"pending"} veya throw new Error() - haricindeki dönüşlerde email ve password sistemde otomatik olarak anında güncelleniyor, otomatikmen return {status:"success"} muamelesi görüyor yani
 
 
   let email = username
@@ -20,18 +20,17 @@ exports = async ({ token, tokenId, username, password, currentPasswordValid }, {
   // }
 
 
-  
-  if(mailCode !== "123456") {
-    throw new Error()
-    // return {status:"fail"}
-  }
-
-
-  // if(password !== "111111") {
-  //   throw new Error("mail code uyuşmuyor")
+  // const userData = context.services.get("mongodb-atlas").db("rapor724_v2").collection("users").findOne({email})
+  // if(mailCode !== userData.newMailConfirmationKod) {
+  //   return {status:"fail"}
   // }
 
-  return {status:"success", mesaj:"deneme"}
+
+  if(password !== "111111") {
+    return {status:"fail"}
+  }
+
+  return {status:"success"} //aslında gerek yok ama, yukarıda bir yere takılmamış ise otomatik bu dönüyor çünkü
   
   
   // // maile gidecek kodu üretme
