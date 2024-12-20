@@ -1,7 +1,7 @@
 exports = async function({email}){
 
   if(context.user.data.name !== "reactPasswordResetUser") {
-    throw new Error("'reactPasswordResetUser' kullanıcısına ait bir fonksiyon çağırıldı, bizimle irtibata geçiniz.") // bu ifadeyi değiştirme, frontend hata da kullanılıyor
+    throw new Error("'reactPasswordResetUser' kullanıcısına ait bir fonksiyon başka bir kullanıcı tarafından çağırıldı, lütfen bizimle irtibata geçiniz.") // bu ifadeyi değiştirme, frontend hata da kullanılıyor
   }
 
   return {context, email}
