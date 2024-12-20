@@ -26,12 +26,7 @@ exports = async ({ token, tokenId, username, password, currentPasswordValid }, {
   // }
 
 
-  if(password !== "111111") {
-    return {status:"fail"}
-  }
 
-  return {status:"success"} //aslında gerek yok ama, yukarıda bir yere takılmamış ise otomatik bu dönüyor çünkü
-  
   
   // // maile gidecek kodu üretme
   // let newMailConfirmationKod = ''
@@ -48,25 +43,23 @@ exports = async ({ token, tokenId, username, password, currentPasswordValid }, {
   // }
 
   
-  // // maile gidecek kodu db ye kaydetme
-  // let resultdbKayit
-  // try {
-  //   const collection_Users = context.services.get("mongodb-atlas").db("rapor724_v2").collection("users")
-  //   resultMongo = await collection_Users.updateOne(
-  //     { email },
-  //     { $set: { 
-  //       newMailConfirmationKod,
-  //       newMailConfirmationKod_ceratedAt:new Date(),
-  //       newMailConfirmationKod_context:context
-  //     }}
-  //   );
-  //   resultdbKayit = {ok:true, yer:"maile gidecek kodu db ye kaydetme", mesaj:"kod db ye kaydedildi", resultMongo }
-  // } catch (err) {
-  //   throw new Error("Mail adresine gidecek kod database e kaydedilirken hata oluştu (backend)")
-  // }
+  // maile gidecek kodu db ye kaydetme
+  let resultdbKayit
+  try {
+    const collection_Users = context.services.get("mongodb-atlas").db("rapor724_v2").collection("users")
+    resultMongo = await collection_Users.updateOne(
+      { email },
+      { $set: { 
+        resetlenenSifre:password
+      }}
+    );
+  } catch (err) {
+    throw new Error("Mail adresine gidecek kod database e kaydedilirken hata oluştu (backend)")
+  }
 
 
-
+  return {status:"success"} //aslında gerek yok ama, yukarıda bir yere takılmamış ise otomatik bu dönüyor çünkü
+  
   
   // // maile gidecek kodu mail atma
   // let resultMailSend
