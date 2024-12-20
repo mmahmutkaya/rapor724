@@ -19,9 +19,10 @@ exports = async ({ token, tokenId, username, password, currentPasswordValid }, {
   //   throw new Error("Mail adresi hatalı (backend2)")
   // }
 
+
   
   if(mailCode !== "123456") {
-    throw new Error("Mail adresi hatalı (backend2)")
+    throw new Error()
     // return {status:"fail"}
   }
 
