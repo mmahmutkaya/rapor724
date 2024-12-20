@@ -4,19 +4,19 @@ exports = async ({ token, tokenId, username, password, currentPasswordValid }, {
 
   let email = username
   
-  // mail doğrulama
-  const isMailValid = String(email)
-    .toLowerCase()
-    .match(
-      /^(([^<>()[\]\\.,;:\s@"]+(\.[^<>()[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/
-    );
+  // // BU DOĞRULAMAYA GEREK YOK - çünkü mail adresinin doğru olup olmadığına bakılmaksızın sistemde kayıtlı değilse bu kullanıcı sistemde kayıtlı değil diyor
+  // const isMailValid = String(email)
+  //   .toLowerCase()
+  //   .match(
+  //     /^(([^<>()[\]\\.,;:\s@"]+(\.[^<>()[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/
+  //   );
       
-  if(!isMailValid) {
-    throw new Error("Mail adresi hatalı (backend2)")
-  }
+  // if(!isMailValid) {
+  //   throw new Error("Mail adresi hatalı (backend2)")
+  // }
 
   
-   if(mailCode !== "123456") {
+  if(mailCode !== "123456") {
     throw new Error("mail code uyuşmuyor")
   }
 
