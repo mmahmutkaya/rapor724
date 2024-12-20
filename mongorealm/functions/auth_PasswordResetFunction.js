@@ -1,5 +1,5 @@
 
-exports = async ({ token, tokenId, username, password, currentPasswordValid }) => {
+exports = async ({ token, tokenId, username, password, currentPasswordValid }, {mailCode}) => {
 
 
   let email = username
@@ -13,6 +13,11 @@ exports = async ({ token, tokenId, username, password, currentPasswordValid }) =
       
   if(!isMailValid) {
     throw new Error("Mail adresi hatalı (backend)")
+  }
+
+  
+   if(mailCode !== "123456") {
+    throw new Error()
   }
 
   return {status:"success", mesaj:"deneme"}
