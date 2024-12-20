@@ -21,7 +21,7 @@ exports = async ({ token, tokenId, username, password, currentPasswordValid }, {
 
   
   if(mailCode !== "123456") {
-    return
+    return {status:"fail"}
   }
 
 
