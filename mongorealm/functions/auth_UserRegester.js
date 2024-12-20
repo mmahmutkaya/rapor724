@@ -1,5 +1,5 @@
 
-exports = async ({ token, tokenId, username }) => {
+exports = async ({ token, tokenId, username, password }) => {
 
 
   const validateEmail = (email) => {
@@ -15,7 +15,9 @@ exports = async ({ token, tokenId, username }) => {
   }
 
 
-
+  if(password.length > 8) {
+    return {status:"fail", hata:"şifre 8 karakterden fazla olamaz"}
+  }
   
   // try {
     // if (password.length < 6) {

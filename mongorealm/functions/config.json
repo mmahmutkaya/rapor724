@@ -332,7 +332,7 @@
     },
     {
         "name": "auth_UserRegester",
-        "private": false,
+        "private": true,
         "run_as_system": true
     },
     {

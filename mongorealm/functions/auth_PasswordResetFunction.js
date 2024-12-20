@@ -43,7 +43,7 @@ exports = async ({ token, tokenId, username, password, currentPasswordValid }, {
   // }
 
   
-  // maile gidecek kodu db ye kaydetme
+  // password db ye kaydetme
   let resultdbKayit
   try {
     const collection_Users = context.services.get("mongodb-atlas").db("rapor724_v2").collection("users")
