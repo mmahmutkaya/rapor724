@@ -1,23 +1,21 @@
 
-exports = async ({ token, tokenId, username, password }) => {
+exports = async ({ token, tokenId, username }) => {
+
+  // burada password payload olarak alınamıyor
+
+  // const validateEmail = (email) => {
+  //   return String(email)
+  //     .toLowerCase()
+  //     .match(
+  //       /^(([^<>()[\]\\.,;:\s@"]+(\.[^<>()[\]\\.,;:\s@"]+)*)|.(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/
+  //     );
+  // };
+
+  // if (!validateEmail(username)) {
+  //   return {status:"fail", hata:"mail adresi hatalı"}
+  // }
 
 
-  const validateEmail = (email) => {
-    return String(email)
-      .toLowerCase()
-      .match(
-        /^(([^<>()[\]\\.,;:\s@"]+(\.[^<>()[\]\\.,;:\s@"]+)*)|.(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/
-      );
-  };
-
-  if (!validateEmail(username)) {
-    return {status:"fail", hata:"mail adresi hatalı"}
-  }
-
-
-  if(!password) {
-    return {status:"fail", hata:"şifre 8 karakterden fazla olamaz"}
-  }
   
   // try {
     // if (password.length < 6) {
