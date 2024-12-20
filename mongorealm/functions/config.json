@@ -379,5 +379,10 @@
         "name": "auth_SifreGuncelle",
         "private": false,
         "run_as_system": true
+    },
+    {
+        "name": "auth_passwordReset",
+        "private": true,
+        "run_as_system": true
     }
 ]
