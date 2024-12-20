@@ -13,7 +13,8 @@ exports = async function ({
   propertyValue,
   hazirlananMetraj_state,
   hazirlananMetrajlar_state,
-  onaylananMetraj_state
+  onaylananMetraj_state,
+  switchValue
 }) {
 
 
@@ -56,6 +57,8 @@ exports = async function ({
   const collection_Dugumler = context.services.get("mongodb-atlas").db("rapor724_dugumler").collection(_projectId.toString());
   const collection_HazirlananMetrajlar = context.services.get("mongodb-atlas").db("rapor724_hazirlananMetrajlar").collection(_projectId.toString());
   const collection_OnaylananMetrajlar = context.services.get("mongodb-atlas").db("rapor724_onaylananMetrajlar").collection(_projectId.toString());
+  const collection_Mahaller = context.services.get("mongodb-atlas").db("rapor724_mahaller").collection(_projectId.toString());
+  const collection_Pozlar = context.services.get("mongodb-atlas").db("rapor724_pozlar").collection(_projectId.toString());
 
 
   const project2 = await collection_Projects.aggregate([
@@ -186,7 +189,7 @@ exports = async function ({
     return resultArray[0]?.hazirlananMetrajlar ? resultArray[0].hazirlananMetrajlar : resultArray
   }
 
-  
+
 
   if (functionName == "getOnaylananMetraj") {
 
@@ -244,13 +247,16 @@ exports = async function ({
       ]
     );
 
-    
+
     let hazirlananMetrajlar_state2 = hazirlananMetrajlar_state
-    delete hazirlananMetrajlar_state2.satirlar
-    
+    hazirlananMetrajlar_state2 = hazirlananMetrajlar_state2.map(x => {
+      delete x.satirlar
+      return x
+    })
+
     let onaylananMetraj_state2 = onaylananMetraj_state
     delete onaylananMetraj_state2.satirlar
-      
+
 
 
     const result3 = await collection_Dugumler.updateOne(
@@ -268,7 +274,7 @@ exports = async function ({
     return { ok: "'updateOnaylananMetraj' çalıştı.", result, result2, result3 }
 
   }
-  
+
 
 
 
@@ -393,13 +399,7 @@ exports = async function ({
       [
         {
           $set: {
-            ["openMetraj"]: {
-              $cond: {
-                if: { "$eq": ["$openMetraj", true] },
-                then: false,
-                else: true
-              }
-            }
+            ["openMetraj"]: switchValue
           },
         }
       ]
@@ -412,7 +412,7 @@ exports = async function ({
     const dugumObject = {
       _mahalId,
       _pozId,
-      openMetraj: true,
+      openMetraj: switchValue,
       // onaylananMetrajlar: { metraj: 0, satirlar: [] },
       hazirlananMetrajlar: [],
       createdBy: _userId,
@@ -421,6 +421,66 @@ exports = async function ({
     return { ok: "'toggle_openMetraj' - yeniObject - çalıştı.", result2 }
 
   }
+
+  
+
+  if (functionName == "getProjectPozlar") {
+    try {
+
+      // pozlar metraj
+      const collection_Dugumler = context.services.get("mongodb-atlas").db("rapor724_dugumler").collection(_projectId.toString())
+
+      const onaylananMetrajlar = await collection_Dugumler.aggregate([
+        {
+          $group: { _id: "$_pozId", onaylananMetraj: { $sum: "$onaylananMetraj.metraj" } }
+        }
+      ]).toArray()
+
+      const hazirlananMetrajlar = await collection_Dugumler.aggregate([
+        {
+          $unwind: "$hazirlananMetrajlar"
+        },
+        {
+          $group: { _id: { _pozId: "$_pozId", _userId: "$hazirlananMetrajlar._userId" }, hazirlananMetraj: { $sum: "$hazirlananMetrajlar.metraj" } }
+        },
+        {
+          $group: { _id: "$_id._pozId", hazirlananMetrajlar: { $push: { _userId: "$_id._userId", metraj: "$hazirlananMetraj" } } }
+        }
+      ]).toArray()
+
+
+      const aktifPozlar = await collection_Dugumler.aggregate([
+        {
+          $match: { openMetraj: true }
+        },
+        {
+          $group: { _id: "$_pozId" }
+        }
+      ]).toArray()
+
+      
+
+      // pozlar bulma ve metrajlar ile birleştirme
+      const collection = context.services.get("mongodb-atlas").db("rapor724_pozlar").collection(_projectId.toString())
+      let pozlar = await collection.find({ isDeleted: false }).toArray()
+      let pozlar2 = pozlar.map(onePoz => {
+        let onaylananMetraj = onaylananMetrajlar.find(x => x._id.toString() == onePoz._id.toString())
+        let hazirlananMetrajlar2 = hazirlananMetrajlar.find(x => x._id.toString() == onePoz._id.toString())
+        let openMetraj = aktifPozlar.find(x => x._id.toString() == onePoz._id.toString()) ? true : false
+        let pozBirim = project.pozBirimleri.find(x => x.id == onePoz?.birimId)?.name
+        return { ...onePoz, ...onaylananMetraj, ...hazirlananMetrajlar2, openMetraj, pozBirim }
+      })
+
+      return pozlar2
+
+    } catch (err) {
+
+      throw new Error("MONGO // getProjectPozlar // " + err.message)
+    }
+
+  }
+
+
 
 
   return { ok: true, description: "herhangi bir fonksiyon içine giremedi" };
