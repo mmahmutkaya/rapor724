@@ -4,43 +4,83 @@ exports = async function({email}){
     throw new Error("'reactPasswordResetUser' kullanıcısına ait bir fonksiyon başka bir kullanıcı tarafından çağırıldı, lütfen bizimle irtibata geçiniz.") // bu ifadeyi değiştirme, frontend hata da kullanılıyor
   }
 
-  return {context, email}
-  
-  
-  // This default function will get a value and find a document in MongoDB
-  // To see plenty more examples of what you can do with functions see: 
-  // https://www.mongodb.com/docs/atlas/app-services/functions/
 
-  // Find the name of the MongoDB service you want to use (see "Linked Data Sources" tab)
-  var serviceName = "mongodb-atlas";
 
-  // Update these to reflect your db/collection
-  var dbName = "db_name";
-  var collName = "coll_name";
 
-  // Get a collection from the context
-  var collection = context.services.get(serviceName).db(dbName).collection(collName);
-
-  var findResult;
-  try {
-    // Get a value from the context (see "Values" tab)
-    // Update this to reflect your value's name.
-    var valueName = "value_name";
-    var value = context.values.get(valueName);
-
-    // Execute a FindOne in MongoDB 
-    findResult = await collection.findOne(
-      { owner_id: context.user.id, "fieldName": value, "argField": arg},
+  // mail doğrulama
+  const isMailValid = String(email)
+    .toLowerCase()
+    .match(
+      /^(([^<>()[\]\\.,;:\s@"]+(\.[^<>()[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/
     );
-
-  } catch(err) {
-    console.log("Error occurred while executing findOne:", err.message);
-
-    return { error: err.message };
+      
+  if(!isMailValid) {
+    throw new Error("Mail adresi hatalı (backend)")
   }
 
-  // To call other named functions:
-  // var result = context.functions.execute("function_name", arg1, arg2);
 
-  return { result: findResult };
+  
+  // maile gidecek kodu üretme
+  let newMailConfirmationKod = ''
+  try {
+    let length = 6 // kod üretilecek hane sayısı
+    var characters = '123456789';
+    // var characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+    var charactersLength = characters.length;
+    for ( var i = 0; i < length; i++ ) {
+      mailConfirmationKod += characters.charAt(Math.floor(Math.random() *  charactersLength));
+    }
+  } catch (err) {
+     throw new Error("Mail adresine gidecek kod üretilirken hata oluştu (backend)")
+  }
+
+  
+  // maile gidecek kodu db ye kaydetme
+  let resultdbKayit
+  try {
+    const collection_Users = context.services.get("mongodb-atlas").db("rapor724_v2").collection("users")
+    resultMongo = await collection_Users.updateOne(
+      { email },
+      { $set: { 
+        newMailConfirmationKod,
+        newMailConfirmationKod_ceratedAt:Date.now(),
+        newMailConfirmationKod_context:context
+      }}
+    );
+    resultdbKayit = {ok:true, yer:"maile gidecek kodu db ye kaydetme", mesaj:"kod db ye kaydedildi", resultMongo }
+  } catch (err) {
+    throw new Error("Mail adresine gidecek kod database e kaydedilirken hata oluştu (backend)")
+  }
+
+
+
+  
+  // maile gidecek kodu mail atma
+  let resultMailSend
+  try {
+    const subject = "Rapor 7/24 - Mail Doğrulama Kodu"
+    const message = "Mail Doğrulama Kodunuz - " + mailConfirmationKod
+    resultMailSend = await context.functions.execute("sendMail", email, subject, message)
+  } catch (err) {
+    throw new Error("Mail adresine gidecek kod mail adresine gönderilirken hata oluştu (backend)")
+  }
+
+  
+  
+  const collection_Users = context.services.get("mongodb-atlas").db("rapor724_v2").collection("users")
+  const currentTime = new Date()
+
+  const result = await collection_Users.updateOne(
+    { email },
+    [
+      {
+        $set: {
+          "newConfirmationKod": mailConfirmationKod
+        },
+      },
+    ]
+  );
+  
+  return {resultMailSend, resultdbKayit}
+  
 };
