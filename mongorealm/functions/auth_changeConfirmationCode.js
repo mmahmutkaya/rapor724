@@ -1,10 +1,9 @@
 exports = async function({email}){
+  
 
   if(context.user.data.name !== "reactPasswordResetUser") {
     throw new Error("'reactPasswordResetUser' kullanıcısına ait bir fonksiyon başka bir kullanıcı tarafından çağırıldı, lütfen bizimle irtibata geçiniz.") // bu ifadeyi değiştirme, frontend hata da kullanılıyor
   }
-
-
 
 
   // mail doğrulama
@@ -28,7 +27,7 @@ exports = async function({email}){
     // var characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
     var charactersLength = characters.length;
     for ( var i = 0; i < length; i++ ) {
-      mailConfirmationKod += characters.charAt(Math.floor(Math.random() *  charactersLength));
+      newMailConfirmationKod += characters.charAt(Math.floor(Math.random() *  charactersLength));
     }
   } catch (err) {
      throw new Error("Mail adresine gidecek kod üretilirken hata oluştu (backend)")
@@ -43,7 +42,7 @@ exports = async function({email}){
       { email },
       { $set: { 
         newMailConfirmationKod,
-        newMailConfirmationKod_ceratedAt:Date.now(),
+        newMailConfirmationKod_ceratedAt:new Date(),
         newMailConfirmationKod_context:context
       }}
     );
@@ -59,28 +58,13 @@ exports = async function({email}){
   let resultMailSend
   try {
     const subject = "Rapor 7/24 - Mail Doğrulama Kodu"
-    const message = "Mail Doğrulama Kodunuz - " + mailConfirmationKod
+    const message = "Mail Doğrulama Kodunuz - " + newMailConfirmationKod
     resultMailSend = await context.functions.execute("sendMail", email, subject, message)
   } catch (err) {
     throw new Error("Mail adresine gidecek kod mail adresine gönderilirken hata oluştu (backend)")
   }
 
-  
-  
-  const collection_Users = context.services.get("mongodb-atlas").db("rapor724_v2").collection("users")
-  const currentTime = new Date()
-
-  const result = await collection_Users.updateOne(
-    { email },
-    [
-      {
-        $set: {
-          "newConfirmationKod": mailConfirmationKod
-        },
-      },
-    ]
-  );
-  
+    
   return {resultMailSend, resultdbKayit}
   
 };
