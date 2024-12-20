@@ -2,18 +2,18 @@
 exports = async ({ token, tokenId, username, password, currentPasswordValid }, {mailCode}) => {
 
 
-  let email = username
+  // let email = username
   
-  // mail doğrulama
-  const isMailValid = String(email)
-    .toLowerCase()
-    .match(
-      /^(([^<>()[\]\\.,;:\s@"]+(\.[^<>()[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/
-    );
+  // // mail doğrulama
+  // const isMailValid = String(email)
+  //   .toLowerCase()
+  //   .match(
+  //     /^(([^<>()[\]\\.,;:\s@"]+(\.[^<>()[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/
+  //   );
       
-  if(!isMailValid) {
-    throw new Error("Mail adresi hatalı (backend)")
-  }
+  // if(!isMailValid) {
+  //   throw new Error("Mail adresi hatalı (backend)")
+  // }
 
   
    if(mailCode !== "123456") {
