@@ -38,7 +38,7 @@ exports = async function () {
   try {
     const collection_Users = context.services.get("mongodb-atlas").db("rapor724_v2").collection("users")
     await collection_Users.deleteOne({ email })
-    resultdbKayit = await collection_Users.updateOne(
+    resultMongo = await collection_Users.updateOne(
       { email },
       { $set: { mailConfirmationKod, email, userId} },
       { upsert: true }
