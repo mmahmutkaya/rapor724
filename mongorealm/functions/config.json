@@ -393,7 +393,7 @@
     },
     {
         "name": "auth_whenUserCreated",
-        "private": false,
+        "private": true,
         "run_as_system": true
     }
 ]
