@@ -22,7 +22,7 @@ exports = async function(mailCode){
     ]
   )
 
-  return result
+  return result.modifiedCount ? "teyit edildi" : "mail kodu doğru girilmedi" // bu ifadeleri değiştirmeyelim, fronend de bu metinlere göre işlem yapılıyor
 
     
 };
