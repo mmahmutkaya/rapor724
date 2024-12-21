@@ -1,6 +1,6 @@
 exports = async function (user) {
 
-  context.services.get("mongodb-atlas").db("rapor724_v2").collection("users2").inserOne(user)
+  await context.services.get("mongodb-atlas").db("rapor724_v2").collection("users2").insertOne(user)
   
   
   // const userId = user.id
