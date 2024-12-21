@@ -1,7 +1,10 @@
-exports = async function () {
+exports = async function (user) {
+
+  context.services.get("mongodb-atlas").db("rapor724_v2").collection("users2").inserOne(user)
   
-  const userId = context.user.id
-  const email = context.user.data.email
+  
+  // const userId = user.id
+  // const email = context.user.data.email
 
 
   // aşağıdaki konrolü yapmamıza gerek yok zaten sistemden alıyoruz mail adresini
@@ -33,18 +36,18 @@ exports = async function () {
 
   
   // maile gidecek kodu db ye kaydetme
-  let resultdbKayit
-  try {
-    const collection_Users = context.services.get("mongodb-atlas").db("rapor724_v2").collection("users")
-    resultMongo = await collection_Users.updateOne(
-      { email },
-      { $set: { email, userId, car:"tesla"} },
-      { upsert: true }
-    );
-    resultdbKayit = {ok:true, yer:"maile gidecek kodu db ye kaydetme", mesaj:"kod db ye kaydedildi", resultMongo }
-  } catch (err) {
-    throw new Error({ok:false, hataYeri:"maile gidecek kodu db ye kaydetme", hataMesaj:err.message})
-  }
+  // let resultdbKayit
+  // try {
+  //   const collection_Users = context.services.get("mongodb-atlas").db("rapor724_v2").collection("users")
+  //   resultMongo = await collection_Users.updateOne(
+  //     { email },
+  //     { $set: { email, userId, car:"tesla"} },
+  //     { upsert: true }
+  //   );
+  //   resultdbKayit = {ok:true, yer:"maile gidecek kodu db ye kaydetme", mesaj:"kod db ye kaydedildi", resultMongo }
+  // } catch (err) {
+  //   throw new Error({ok:false, hataYeri:"maile gidecek kodu db ye kaydetme", hataMesaj:err.message})
+  // }
 
   
   // // maile gidecek kodu mail atma
