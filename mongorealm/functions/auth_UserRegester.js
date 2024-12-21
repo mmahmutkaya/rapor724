@@ -23,6 +23,8 @@ exports = async ({ token, tokenId, username }) => {
   if(previousUserData) {
     await collection_Users.deleteOne({ email })
   }
+
+  return {status:"success"}
   
   // buraya geldiyse kullanıcı kaydedildi, return {success:true} - demiş gibiyiz, desekte demesekte aynı
   
