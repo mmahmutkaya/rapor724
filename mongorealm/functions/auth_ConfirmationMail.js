@@ -20,7 +20,9 @@ exports = async function(mailCode){
         },
       },
     ]
-  );
+  )
+
+  return result
 
     
 };
