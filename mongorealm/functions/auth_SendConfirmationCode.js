@@ -32,11 +32,13 @@ exports = async function () {
   }
 
   
+  // bu mail adresi ile daha önce hesap oluşturulmuş ve silinmiş ise custom data verileri kalmış olabilir, varsa onlarda siliniyor bu anda
   // maile gidecek kodu db ye kaydetme
   let resultdbKayit
   try {
     const collection_Users = context.services.get("mongodb-atlas").db("rapor724_v2").collection("users")
-    resultMongo = await collection_Users.updateOne(
+    await collection_Users.deleteOne({ email })
+    resultdbKayit = await collection_Users.updateOne(
       { email },
       { $set: { mailConfirmationKod, email, userId} },
       { upsert: true }
