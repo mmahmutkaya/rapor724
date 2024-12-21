@@ -1,5 +1,9 @@
 
-exports = async function(){
+exports = async function(payload){
+
+  let email = payload
+  const previousUserData = await context.services.get("mongodb-atlas").db("rapor724_v2").collection("users").findOne({email})
+  return previousUserData
   
   
   // if(subFunction === "wbs_upload") {
@@ -174,20 +178,20 @@ exports = async function(){
   // );
 
   
-  context.services.get("mongodb-atlas").db("rapor724_dugumler").getCollectionNames().map(colName => {
-    context.services.get("mongodb-atlas").db("rapor724_dugumler").collection(colName).updateMany({},
-      [
-        {
-          $set: {
-            // deneme: "44"
-            // metrajSatirlari: [],
-            // metrajBilgileri:{}
-          }
-        },
-        { $unset: "deneme" }
-      ]
-    )
-  })
+  // context.services.get("mongodb-atlas").db("rapor724_dugumler").getCollectionNames().map(colName => {
+  //   context.services.get("mongodb-atlas").db("rapor724_dugumler").collection(colName).updateMany({},
+  //     [
+  //       {
+  //         $set: {
+  //           // deneme: "44"
+  //           // metrajSatirlari: [],
+  //           // metrajBilgileri:{}
+  //         }
+  //       },
+  //       { $unset: "deneme" }
+  //     ]
+  //   )
+  // })
 
 
     
