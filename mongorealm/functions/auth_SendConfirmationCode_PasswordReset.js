@@ -23,10 +23,10 @@ exports = async function({email}){
     const collection_Users = context.services.get("mongodb-atlas").db("rapor724_v2").collection("users")
       const user = collection_Users.findOne({email})
       if(!user) {
-        return "Bu email adresi sistemde kayıtlı değil"
+        throw new Error("Bu email adresi sistemde kayıtlı değil")
       }
   } catch (error) {
-    
+      throw new Error(error)
   }
 
  
