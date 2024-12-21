@@ -21,7 +21,7 @@ exports = async function({email}){
   // bu kullanıcı kayıtlı mı kontrol edelim, değilse hata dönderelim
   try {
     const collection_Users = context.services.get("mongodb-atlas").db("rapor724_v2").collection("users")
-      const user = collection_Users.findOne({email})
+      const user = await collection_Users.findOne({email})
       if(!user) {
         throw new Error("Bu email adresi sistemde kayıtlı değil")
       }
