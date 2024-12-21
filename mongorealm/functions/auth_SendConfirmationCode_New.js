@@ -18,7 +18,15 @@ exports = async function({email}){
   }
 
 
-  
+  // bu kullanıcı kayıtlı mı kontrol edelim, değilse hata dönderelim
+  // try {
+  //   const collection_Users = context.services.get("mongodb-atlas").db("rapor724_v2").collection("users")
+  //     collection_Users
+  // } catch (error) {
+    
+  // }
+
+ 
   // maile gidecek kodu üretme
   let newMailConfirmationKod = ''
   try {
