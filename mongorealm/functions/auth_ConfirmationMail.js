@@ -4,7 +4,7 @@ exports = async function(mailCode){
   const collection_Users = context.services.get("mongodb-atlas").db("rapor724_v2").collection("users")
   const currentTime = new Date()
 
-  
+  return context.user.custom_data.mailConfirmationKod
   if(context.user.custom_data.mailConfirmationKod == mailCode) {
     const result = await collection_Users.updateOne(
       { userId },
