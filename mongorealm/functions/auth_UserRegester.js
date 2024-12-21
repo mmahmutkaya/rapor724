@@ -19,12 +19,15 @@ exports = async ({ token, tokenId, username }) => {
   }
 
   // kullanıcının hesabını silmesi sonra yeniden oluşturması geliştirme aşamasında şu an benim tarafımdan yapıldığı için eski verilerini silmiyorum, sonrasına bakarız
-  // // bu kullanıcı hesabını daha önceden silmiş şimdi yeniden oluşturuyorsa, önceki verilerini siliyoruz
-  // const collection_Users = await context.services.get("mongodb-atlas").db("rapor724_v2").collection("users")
-  // const previousUserData = collection_Users.findOne({email})
-  // if(previousUserData) {
-  //   await collection_Users.deleteOne({ email })
-  // }
+  // bu kullanıcı hesabını daha önceden silmiş şimdi yeniden oluşturuyorsa, önceki verilerini siliyoruz
+  const collection_Users = await context.services.get("mongodb-atlas").db("rapor724_v2").collection("users")
+  const previousUserData = await collection_Users.findOne({email})
+  if(previousUserData) {
+    collection_Users.findOne(
+      {email},
+      { $unset: { userId: "" } }
+    )
+  }
 
   return {status:"success"}
   
