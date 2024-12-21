@@ -23,8 +23,8 @@ exports = async ({ token, tokenId, username }) => {
   const collection_Users = await context.services.get("mongodb-atlas").db("rapor724_v2").collection("users")
   const previousUserData = await collection_Users.findOne({email})
   if(previousUserData) {
-    collection_Users.findOne(
-      {email},
+    collection_Users.updateOne(
+      { email },
       { $unset: { userId: "" } }
     )
   }
