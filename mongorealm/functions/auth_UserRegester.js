@@ -18,12 +18,9 @@ exports = async ({ token, tokenId, username }) => {
     return {status:"fail", hata:"mail adresi hatalı"}
   }
 
-  const collection_Users = context.services.get("mongodb-atlas").db("rapor724_v2").collection("users")
-
-  try {
+  const previousUserData = await context.services.get("mongodb-atlas").db("rapor724_v2").collection("users").findOne({email})
+  if(previousUserData) {
     await collection_Users.deleteOne({ email })
-  } catch (error) {
-    
   }
   
   // buraya geldiyse kullanıcı kaydedildi, return {success:true} - demiş gibiyiz, desekte demesekte aynı
