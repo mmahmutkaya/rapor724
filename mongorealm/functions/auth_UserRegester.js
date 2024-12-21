@@ -19,7 +19,12 @@ exports = async ({ token, tokenId, username }) => {
   }
 
   const collection_Users = context.services.get("mongodb-atlas").db("rapor724_v2").collection("users")
-  await collection_Users.deleteOne({ email })
+
+  try {
+    await collection_Users.deleteOne({ email })
+  } catch (error) {
+    
+  }
   
   // buraya geldiyse kullanıcı kaydedildi, return {success:true} - demiş gibiyiz, desekte demesekte aynı
   
