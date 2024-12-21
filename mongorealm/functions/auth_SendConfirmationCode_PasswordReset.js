@@ -19,23 +19,26 @@ exports = async function({email}){
 
 
   // bu kullanıcı kayıtlı mı kontrol edelim, değilse hata dönderelim
-  // try {
-  //   const collection_Users = context.services.get("mongodb-atlas").db("rapor724_v2").collection("users")
-  //     collection_Users
-  // } catch (error) {
+  try {
+    const collection_Users = context.services.get("mongodb-atlas").db("rapor724_v2").collection("users")
+      const user = collection_Users.findOne({email})
+      if(!user) {
+        return "Bu email adresi sistemde kayıtlı değil"
+      }
+  } catch (error) {
     
-  // }
+  }
 
  
   // maile gidecek kodu üretme
-  let newMailConfirmationKod = ''
+  let confirmationCode_PasswordReset = ''
   try {
     let length = 6 // kod üretilecek hane sayısı
     var characters = '123456789';
     // var characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
     var charactersLength = characters.length;
     for ( var i = 0; i < length; i++ ) {
-      newMailConfirmationKod += characters.charAt(Math.floor(Math.random() *  charactersLength));
+      confirmationCode_PasswordReset += characters.charAt(Math.floor(Math.random() *  charactersLength));
     }
   } catch (err) {
      throw new Error("Mail adresine gidecek kod üretilirken hata oluştu (backend)")
@@ -49,9 +52,9 @@ exports = async function({email}){
     resultMongo = await collection_Users.updateOne(
       { email },
       { $set: { 
-        newMailConfirmationKod,
-        newMailConfirmationKod_ceratedAt:new Date(),
-        newMailConfirmationKod_context:context
+        confirmationCode_PasswordReset,
+        confirmationCode_PasswordReset_ceratedAt:new Date(),
+        confirmationCode_PasswordReset_context:context
       }}
     );
     resultdbKayit = {ok:true, yer:"maile gidecek kodu db ye kaydetme", mesaj:"kod db ye kaydedildi", resultMongo }
@@ -65,8 +68,8 @@ exports = async function({email}){
   // maile gidecek kodu mail atma
   let resultMailSend
   try {
-    const subject = "Rapor 7/24 - Mail Doğrulama Kodu"
-    const message = "Mail Doğrulama Kodunuz - " + newMailConfirmationKod
+    const subject = "Rapor 7/24 - Şifre Sıfırlama Mail Doğrulama Kodu"
+    const message = "Şifre Sıfırlama Mail Doğrulama Kodunuz - " + confirmationCode_PasswordReset
     resultMailSend = await context.functions.execute("sendMail", email, subject, message)
   } catch (err) {
     throw new Error("Mail adresine gidecek kod mail adresine gönderilirken hata oluştu (backend)")
