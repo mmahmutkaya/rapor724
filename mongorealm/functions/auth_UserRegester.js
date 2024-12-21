@@ -18,14 +18,17 @@ exports = async ({ token, tokenId, username }) => {
     return {status:"fail", hata:"mail adresi hatalı"}
   }
 
-  // kullanıcının hesabını silmesi sonra yeniden oluşturması geliştirme aşamasında şu an benim tarafımdan yapıldığı için eski verilerini silmiyorum, sonrasına bakarız
-  // bu kullanıcı hesabını daha önceden silmiş şimdi yeniden oluşturuyorsa, önceki verilerini siliyoruz
+  // kullanıcının hesabını silmesi sonra yeniden oluşturması geliştirme aşamasında şu an benim tarafımdan yapıldığı için 
+  // isim, soyisim, firma adı, gibi bilgilerini silmiyorum ama userId siliyorum, çünkü yeni kullanıcı hesabı oluşturursa userıd yeniden oluşturulacak, mailteyit false yapıyorum, kendime bir soru, sistemde projeye eklerken felan hep email mi kullansak bu durumda acaba? 
   const collection_Users = await context.services.get("mongodb-atlas").db("rapor724_v2").collection("users")
   const previousUserData = await collection_Users.findOne({email})
   if(previousUserData) {
     collection_Users.updateOne(
       { email },
-      { $unset: { userId: "" } }
+      { 
+        $set:{mailTeyit:false},
+        $unset: { userId: "" } 
+      }
     )
   }
 
