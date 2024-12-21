@@ -4,22 +4,51 @@ exports = async function(mailCode){
   const collection_Users = context.services.get("mongodb-atlas").db("rapor724_v2").collection("users")
   const currentTime = new Date()
 
-  const result = await collection_Users.updateOne(
-    { userId },
-    [
-      {
-        $set: {
-          "mailTeyit": {
-            $cond: {
-              if: {$eq:["$mailConfirmationKod", mailCode]},
-              then: true,
-              else: false
-            }
-          }
+  if(context.user.custom_data.$mailConfirmationKod == mailCode) {
+    await collection_Users.updateOne(
+      { userId },
+      [
+        {
+          $set: {
+            "mailTeyit": true
+          },
         },
-      },
-    ]
-  );
+      ]
+    )
+    
+  }
+
+
+  if(context.user.custom_data.$mailConfirmationKod == mailCode) {
+    await collection_Users.updateOne(
+      { userId },
+      [
+        {
+          $set: {
+            "mailTeyit": true
+          },
+        },
+      ]
+    );   
+  }
+  
+
+  // const result = await collection_Users.updateOne(
+  //   { userId },
+  //   [
+  //     {
+  //       $set: {
+  //         "mailTeyit": {
+  //           $cond: {
+  //             if: {$eq:["$mailConfirmationKod", mailCode]},
+  //             then: true,
+  //             else: false
+  //           }
+  //         }
+  //       },
+  //     },
+  //   ]
+  // );
 
   return result
 
