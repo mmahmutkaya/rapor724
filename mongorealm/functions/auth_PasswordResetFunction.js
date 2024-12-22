@@ -25,6 +25,15 @@ exports = async ({ token, tokenId, username, password, currentPasswordValid }, {
     return {status:"fail"}
   }
 
+  if(!userData.mailTeyit){
+    await context.services.get("mongodb-atlas").db("rapor724_v2").collection("users").updateOne(
+      {email},
+      [
+        { $set: { "mailTeyit": true} }
+      ]
+    )
+  }
+
 
   // if (!password.length) {
   //   return("Şifre giriniz")
