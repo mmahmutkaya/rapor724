@@ -7,7 +7,7 @@ exports = async function ({ isim, soyisim }) {
     throw new Error("Öncelikle mail adresinin sizin olduğunu teyit etmelisiniz")
   }
 
-  let errorObj = {}
+  let errorObj
 
   if (isim.length < 2) {
     errorObj.isimError = "En az 2 karakter girilmeli"
