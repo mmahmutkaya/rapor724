@@ -1,5 +1,8 @@
 exports = async function ({ isim, soyisim }) {
 
+  isim = isim.trim()
+  soyisim = soyisim.trim()
+
   if (!context.user.custom_data.mailTeyit) {
     throw new Error("Öncelikle mail adresinin sizin olduğunu teyit etmelisiniz")
   }
