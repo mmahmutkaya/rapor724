@@ -25,7 +25,7 @@ exports = async function ({ isim, soyisim }) {
   }
 
   if (errorObj) {
-    throw new Error(errorObj)
+    return errorObj
   }
 
 
