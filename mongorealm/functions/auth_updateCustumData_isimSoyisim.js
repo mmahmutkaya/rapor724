@@ -24,7 +24,7 @@ exports = async function ({ isim, soyisim }) {
     errorObj.soyisim = "Soyisim girilmeli"
   }
 
-  if (errorObj.location) {
+  if (true) {
     return errorObj
   }
 
