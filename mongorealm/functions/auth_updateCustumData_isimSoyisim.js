@@ -21,11 +21,11 @@ exports = async function ({ isim, soyisim }) {
 
 
   if (soyisim.length < 2) {
-    errorObj.soyisim = "En az 2 karakter girilmeli"
+    errorObj.soyisimError = "En az 2 karakter girilmeli"
     isError = true
   }
   if (!soyisim.length) {
-    errorObj.soyisim = "Soyisim girilmeli"
+    errorObj.soyisimError = "Soyisim girilmeli"
     isError = true
   }
 
