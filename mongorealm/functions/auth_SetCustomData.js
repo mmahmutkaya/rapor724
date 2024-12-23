@@ -1,87 +1,43 @@
-exports = async function({name, surname}){
-  
-  const userId = context.user.id
+exports = async function ({ isim, soyisim }) {
+
+  if (!context.user.custom_data.mailTeyit) {
+    throw new Error("Öncelikle mail adresinin sizin olduğunu teyit etmelisiniz")
+  }
+
+  let errorObj
+
+  if (isim.length < 2) {
+    errorObj.isimError = "En az 2 karakter girilmeli"
+  }
+  if (!isim.length) {
+    errorObj.isimError = "İsim girilmeli"
+  }
+
+
+  if (soyisim.length < 2) {
+    errorObj.soyisim = "En az 2 karakter girilmeli"
+  }
+  if (!soyisim.length) {
+    errorObj.soyisim = "Soyisim girilmeli"
+  }
+
+  if (errorObj) {
+    throw new Error(errorObj)
+  }
+
+
   const email = context.user.data.email
-  
-  const collectionUsers = context.services.get("mongodb-atlas").db("rapor724_v2").collection("users");
-  
-  
-  // ya burada bitecek
-  if (userId.length > 1 && email.length > 1 && (name.length > 1 || surname.length > 1) ) {
-  
-    try {
-      
-      const mongoSorgu = await collectionUsers.updateOne(
-        { userId }, // Query for the user object of the logged in user
-        { $set: { name, surname, email} }, // Set the logged in user's favorite color to purple
-        { upsert: true }
-      );
-    
-      return ({ok:true, Fonksiyon:"MONGO // FONK // setCustomData ", mesaj:"kayıt işlemi başarılı", mongoSorgu})
-      
-    } catch (err) {
-      return ({ok:false, hataYeri:"MONGO // FONK // setCustomData ", hataMesaj:err.message})
-    }
+  const collection_Users = context.services.get("mongodb-atlas").db("rapor724_v2").collection("users")
 
+  try {
+    const result = await collection_Users.updateOne({ email },
+      [
+        { $set: { isim, soyisim } }
+      ]
+    )
+    return result
+  } catch (error) {
+    throw new Error(error)
   }
-  
-  
-  
-  // ya burada
-  if ( userId.length > 1 && email.length > 1 ) {
-  
-    try {
-      
-      const mongoSorgu = await collectionUsers.updateOne(
-        { userId }, // Query for the user object of the logged in user
-        { $set: { name, surname, email} }, // Set the logged in user's favorite color to purple
-        { upsert: true }
-      );
-    
-      return ({ok:true, Fonksiyon:"MONGO // FONK // setCustomData ", mesaj:"kayıt işlemi başarılı", mongoSorgu})
-      
-    } catch (err) {
-      return ({ok:false, hataYeri:"MONGO // FONK // setCustomData ", hataMesaj:err.message})
-    }
 
-  }
-  
-  
-  // This default function will get a value and find a document in MongoDB
-  // To see plenty more examples of what you can do with functions see: 
-  // https://www.mongodb.com/docs/atlas/app-services/functions/
-
-  // Find the name of the MongoDB service you want to use (see "Linked Data Sources" tab)
-  // var serviceName = "mongodb_atlas";
-
-  // // Update these to reflect your db/collection
-  // var dbName = "db_name";
-  // var collName = "coll_name";
-
-  // // Get a collection from the context
-  // var collection = context.services.get(serviceName).db(dbName).collection(collName);
-
-  // var findResult;
-  // try {
-  //   // Get a value from the context (see "Values" tab)
-  //   // Update this to reflect your value's name.
-  //   var valueName = "value_name";
-  //   var value = context.values.get(valueName);
-
-  //   // Execute a FindOne in MongoDB 
-  //   findResult = await collection.findOne(
-  //     { owner_id: context.user.id, "fieldName": value, "argField": arg},
-  //   );
-
-  // } catch(err) {
-  //   console.log("Error occurred while executing findOne:", err.message);
-
-  //   return { error: err.message };
-  // }
-
-  // // To call other named functions:
-  // // var result = context.functions.execute("function_name", arg1, arg2);
-
-  // return { result: findResult };
-  
 };
