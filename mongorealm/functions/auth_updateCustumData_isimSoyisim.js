@@ -1,4 +1,4 @@
-exports = async function ({ isim, soyisim, rehber }) {
+exports = async function ({ isim, soyisim }) {
 
   isim = isim.trim()
   soyisim = soyisim.trim()
@@ -39,7 +39,7 @@ exports = async function ({ isim, soyisim, rehber }) {
   try {
     const result = await collection_Users.updateOne({ email },
       [
-        { $set: { isim, soyisim, rehber } }
+        { $set: { isim, soyisim } }
       ]
     )
     return result
