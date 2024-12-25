@@ -1,5 +1,6 @@
 exports = async function ({
   functionName,
+  baglantiTalepEmail,
   _projectId,
   _mahalId,
   _pozId,
@@ -17,15 +18,15 @@ exports = async function ({
   switchValue
 }) {
 
-
   // tip2 - (yukarıda açıklandı)
   const user = context.user;
-  const _userId = new BSON.ObjectId(user.id);
+  const _userId = new BSON.ObjectId(user.id)
+  const userEmail = context.user.data.email
+  
   const mailTeyit = user.custom_data.mailTeyit;
-  if (!mailTeyit)
-    throw new Error(
-      "MONGO // collectionDugumler --  Öncelikle üyeliğinize ait mail adresinin size ait olduğunu doğrulamalısınız, tekrar giriş yapmayı deneyiniz veya bizimle iletişime geçiniz."
-    );
+  if (!mailTeyit) {
+    throw new Error("Öncelikle üyeliğinize ait mail adresinin size ait olduğunu doğrulamalısınız, tekrar giriş yapmayı deneyiniz veya bizimle iletişime geçiniz.");
+  }
 
   // gelen verileri ikiye ayırabiliriz,
   // 1-form verisinden önceki ana veriler - hata varsa hata döndürülür
@@ -53,12 +54,14 @@ exports = async function ({
 
   const currentTime = new Date();
 
-  const collection_Projects = context.services.get("mongodb-atlas").db("rapor724_v2").collection("projects");
-  const collection_Dugumler = context.services.get("mongodb-atlas").db("rapor724_dugumler").collection(_projectId.toString());
-  const collection_HazirlananMetrajlar = context.services.get("mongodb-atlas").db("rapor724_hazirlananMetrajlar").collection(_projectId.toString());
-  const collection_OnaylananMetrajlar = context.services.get("mongodb-atlas").db("rapor724_onaylananMetrajlar").collection(_projectId.toString());
-  const collection_Mahaller = context.services.get("mongodb-atlas").db("rapor724_mahaller").collection(_projectId.toString());
-  const collection_Pozlar = context.services.get("mongodb-atlas").db("rapor724_pozlar").collection(_projectId.toString());
+  const collection_Projects = context.services.get("mongodb-atlas").db("rapor724_v2").collection("projects")
+  const collection_Dugumler = context.services.get("mongodb-atlas").db("rapor724_dugumler").collection(_projectId.toString())
+  const collection_HazirlananMetrajlar = context.services.get("mongodb-atlas").db("rapor724_hazirlananMetrajlar").collection(_projectId.toString())
+  const collection_OnaylananMetrajlar = context.services.get("mongodb-atlas").db("rapor724_onaylananMetrajlar").collection(_projectId.toString())
+  const collection_Mahaller = context.services.get("mongodb-atlas").db("rapor724_mahaller").collection(_projectId.toString())
+  const collection_Pozlar = context.services.get("mongodb-atlas").db("rapor724_pozlar").collection(_projectId.toString())
+  const collection_Users = context.services.get("mongodb-atlas").db("rapor724_v2").collection("users")
+  const collection_UserNetwork = context.services.get("mongodb-atlas").db("rapor724_v2").collection("userNetwork")
 
 
   const project2 = await collection_Projects.aggregate([
@@ -80,7 +83,6 @@ exports = async function ({
     ]).toArray()
 
     // const list = await collection_Dugumler.find({_projectId}).toArray()
-
 
     // let wbsLer
     // //
@@ -177,6 +179,14 @@ exports = async function ({
   //     print(error)
   //   }
 
+  // }
+
+
+  // if (functionName == "kisiBaglantiTalep") {
+  //   const baglantiTalepUser = await collection_Users.findOne({email:baglantiTalepEmail})
+  //   if(baglantiTalepUser) {
+  //     const result = await collection_UserNetwork.findOne({email:baglantiTalepEmail})
+  //   }
   // }
 
 
