@@ -200,7 +200,7 @@ exports = async function ({
     }
   
     if (!email.length) {
-      throw new Error({yapayMesaj:"Email adresinizi kontrol ediniz"})
+      throw new Error({yapayMesaj:"Email adresi giriniz"})
     }
 
     
