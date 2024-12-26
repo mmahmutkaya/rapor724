@@ -70,7 +70,7 @@ exports = async function ({
     }
     
 
-    try {
+    // try {
       await context.services.get("mongodb-atlas").db("userNetwork").collection(userEmail).insertOne(
         {
           _id: baglantiTalepEmail,
@@ -78,9 +78,9 @@ exports = async function ({
           status: "requestContact"
         }
       )
-    } catch (error) {
-      throw new Error({ error, MONGO_Fonksiyon: "collectionNetworkUser", hataYeri: "Kullanıcının listenize eklenmesi sırasında hata oluştu" })
-    }
+    // } catch (error) {
+    //   throw new Error({ error, MONGO_Fonksiyon: "collectionNetworkUser", hataYeri: "Kullanıcının listenize eklenmesi sırasında hata oluştu" })
+    // }
 
     
     try {
