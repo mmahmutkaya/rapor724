@@ -22,7 +22,9 @@ exports = async function ({
   const user = context.user;
   const _userId = new BSON.ObjectId(user.id)
   const userEmail = context.user.data.email
-  
+  const userIsim = user.custom_data.isim
+  const userSoyisim = user.custom_data.soyisim
+
   const mailTeyit = user.custom_data.mailTeyit;
   if (!mailTeyit) {
     throw new Error("Öncelikle üyeliğinize ait mail adresinin size ait olduğunu doğrulamalısınız, tekrar giriş yapmayı deneyiniz veya bizimle iletişime geçiniz.");
@@ -61,7 +63,7 @@ exports = async function ({
   const collection_Mahaller = context.services.get("mongodb-atlas").db("rapor724_mahaller").collection(_projectId.toString())
   const collection_Pozlar = context.services.get("mongodb-atlas").db("rapor724_pozlar").collection(_projectId.toString())
   const collection_Users = context.services.get("mongodb-atlas").db("rapor724_v2").collection("users")
-  const collection_UserNetwork = context.services.get("mongodb-atlas").db("rapor724_v2").collection("userNetwork")
+
 
 
   const project2 = await collection_Projects.aggregate([
@@ -182,12 +184,44 @@ exports = async function ({
   // }
 
 
-  // if (functionName == "kisiBaglantiTalep") {
-  //   const baglantiTalepUser = await collection_Users.findOne({email:baglantiTalepEmail})
-  //   if(baglantiTalepUser) {
-  //     const result = await collection_UserNetwork.findOne({email:baglantiTalepEmail})
-  //   }
-  // }
+  if (functionName == "kisiBaglantiTalep") {
+
+    let baglantiTalepUser
+
+    try {
+      baglantiTalepUser = await collection_Users.findOne({ email: baglantiTalepEmail })
+    } catch (err) {
+      throw new Error({ orjinalMesaj: err.message, yapayMesaj: "Kullanıcının sitemde aranması sırasında hata oluştu" })
+    }
+
+    if (!baglantiTalepUser) {
+      try {
+        let email = baglantiTalepUser
+        let subject = '${userIsim} ${userSoyisim} adlı kişi sizi Rapor7/24 sistemine davet ediyor'
+        let message = '${userIsim} ${userSoyisim} adlı kişi sizi Rapor7/24 sistemine davet ediyor, üye olmak için lütfen tıklayınız. https://rapor724-v2-cykom-zijnv.mongodbstitch.com'
+        await context.functions.execute("sendMail", email, subject, message)
+      } catch (err) {
+        throw new Error({ orjinalMesaj: err.message, yapayMesaj: "Kullanıcıya davet maili gönderilmesi sırasında hata oluştu" })
+      }
+    }
+
+    try {
+      await context.services.get("mongodb-atlas").db("userNetwork").collection(userEmail).updateOne({ email: baglantiTalepEmail },
+        { $set: { status: baglantiTalepUser ? "approvePending" : "accountPending" } }
+      )
+    } catch (error) {
+      throw new Error({ orjinalMesaj: err.message, yapayMesaj: "Kullanıcının listenize eklenmesi sırasında hata oluştu" })
+    }
+
+    try {
+      await context.services.get("mongodb-atlas").db("userNetwork").collection(baglantiTalepUser).updateOne({ email: userEmail },
+        { $set: { status: "approved" } }
+      )
+    } catch (error) {
+      throw new Error({ orjinalMesaj: err.message, yapayMesaj: "Kullanıcının listesine sizin eklenmeniz sırasında hata oluştu" })
+    }
+
+  }
 
 
   if (functionName == "getHazirlananMetrajlar") {
@@ -432,7 +466,7 @@ exports = async function ({
 
   }
 
-  
+
 
   if (functionName == "getProjectPozlar") {
     try {
@@ -468,7 +502,7 @@ exports = async function ({
         }
       ]).toArray()
 
-      
+
 
       // pozlar bulma ve metrajlar ile birleştirme
       const collection = context.services.get("mongodb-atlas").db("rapor724_pozlar").collection(_projectId.toString())
