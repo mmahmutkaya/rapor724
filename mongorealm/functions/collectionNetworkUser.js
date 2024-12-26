@@ -43,7 +43,7 @@ exports = async function ({
     try {
       baglantiTalepUser = await collection_Users.findOne({ email: baglantiTalepEmail })
     } catch (err) {
-      throw new Error({ orjinalMesaj: err.message, yapayMesaj: "Kullanıcının sitemde aranması sırasında hata oluştu" })
+      throw new Error(err.message, {yapayMesaj: "Kullanıcının sitemde aranması sırasında hata oluştu" })
     }
 
     
