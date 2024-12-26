@@ -68,6 +68,7 @@ exports = async function ({
         throw new Error({ error, MONGO_Fonksiyon: "collectionNetworkUser", hataYeri: "Kullanıcıya davet maili gönderilmesi sırasında hata oluştu." })
       }
     }
+    
 
     try {
       await context.services.get("mongodb-atlas").db("userNetwork").collection(userEmail).updateOne(
@@ -84,6 +85,7 @@ exports = async function ({
       throw new Error({ error, MONGO_Fonksiyon: "collectionNetworkUser", hataYeri: "Kullanıcının listenize eklenmesi sırasında hata oluştu" })
     }
 
+    
     try {
       await context.services.get("mongodb-atlas").db("userNetwork").collection(baglantiTalepEmail).updateOne(
         { remoteEmail: userEmail },
@@ -102,7 +104,5 @@ exports = async function ({
   }
 
 
-
-
-  return { ok: true, description: "herhangi bir fonksiyon içine giremedi" };
+  return { description: "herhangi bir fonksiyon içine giremedi" };
 };
