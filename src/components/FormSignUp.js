@@ -137,18 +137,15 @@ export default function FormSignUp() {
       console.log("error", error)
 
       if (error.message.includes("name already in use")) {
-        setEmailError("Bu mail adresi zaten kayıtlı, şifrenizi yenileyebilirsiniz.")
-        isError = true
+        setEmailError("Bu mail adresi zaten kayıtlı")
       }
 
       if (error.message.includes("failed to confirm user")) {
         setEmailError("Mail adresinizin doğruluğunu kontrol ediniz")
-        isError = true
       }
 
       if (error.message.includes("password must be between 6 and 128 characters")) {
         setPasswordError("Şireniz en az 6 karakter olmalı")
-        isError = true
       }
 
       return

@@ -3,8 +3,10 @@ import './App.css';
 // import { Routes, Route, useNavigate, useLocation} from 'react-router-dom';
 import { Routes, Route} from 'react-router-dom';
 import Home from './pages'
-import P_Companies from './pages/companies'
+
 import P_Projects from './pages/projects'
+import P_Kisiler from './pages/kisiler'
+
 import P_Dashboard from './pages/dashboard'
 import P_Wbs from './pages/wbs'
 import P_Pozlar from './pages/pozlar'
@@ -13,7 +15,7 @@ import P_Mahaller from './pages/mahaller'
 import P_MahalListesi from './pages/mahallistesi'
 import P_MahalMetraj from './pages/mahalmetraj'
 import P_MetrajPozlar from './pages/metrajpozlar'
-import P_Kisiler from './pages/kisiler'
+import P_KisilerProject from './pages/kisilerproject'
 import P_Raporlar from './pages/raporlar'
 
 import P_MetrajMahaller from './pages/metrajmahaller'
@@ -28,11 +30,9 @@ function App() {
       <Route path='/' element={<Home />} />
 
       <Route path='/projects' element={<P_Projects />} />
-      <Route path='/people' element={<div> Kişiler  </div>} />
-      {/* <Route path='/companies' element={<div> Firmalar  </div>} /> */}
+      <Route path='/kisiler' element={<P_Kisiler />} />
 
       {/* projects */}
-      <Route path='/companies' element={<P_Companies />} />
       <Route path='/dashboard' element={<P_Dashboard />} />
       <Route path='/wbs' element={<P_Wbs />} />
       <Route path='/pozlar' element={<P_Pozlar />} />
@@ -41,7 +41,7 @@ function App() {
       <Route path='/mahallistesi' element={<P_MahalListesi />} />
       <Route path='/mahalmetraj' element={<P_MahalMetraj />} />
       <Route path='/metrajpozlar' element={<P_MetrajPozlar />} />
-      <Route path='/kisiler' element={<P_Kisiler />} />
+      <Route path='/kisilerproject' element={<P_KisilerProject />} />
       <Route path='/raporlar' element={<P_Raporlar />} />
 
       <Route path='/metrajmahaller' element={<P_MetrajMahaller />} />

@@ -117,28 +117,10 @@ export default function SignIn() {
         return
       }
 
-      return console.log("Giriş işlemi başarısız, sorun devam ederse lütfen bildiriniz.")
+      setSubtextError("Kullanıcı adı veya şifre hatalı")
+      isError = true
 
     } catch (error) {
-
-      // return console.log(err)
-
-      // const hataMesaj = err.message
-
-      // if (hataMesaj.includes("expected a string 'password' parameter")) {
-      //   return console.log("Şifre girmelisiniz")
-      // }
-
-      // if (hataMesaj === "invalid username") {
-      //   return console.log("Email girmelisiniz")
-      // }
-
-      // if (hataMesaj === "invalid username/password") {
-      //   return console.log("Email ve şifre uyuşmuyor")
-      // }
-
-      // console.log(hataMesaj)
-      // return console.log("Giriş esnasında hata oluştu, lütfen iletişime geçiniz..")
 
       console.log("error.message", error.message)
 
@@ -148,7 +130,6 @@ export default function SignIn() {
       }
 
       return
-
 
     }
 

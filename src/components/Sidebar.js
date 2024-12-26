@@ -59,23 +59,14 @@ export default function Sidebar({ setMobileOpen }) {
 
 
             <ListItemButton
-              onClick={() => navigate("people")}
-              sx={{ backgroundColor: pathname == "/people" ? "#f0f0f1" : null }}>
+              onClick={() => navigate("kisiler")}
+              sx={{ backgroundColor: pathname == "/kisiler" ? "#f0f0f1" : null }}>
               <ListItemIcon>
                 <SendIcon />
               </ListItemIcon>
               <ListItemText primary="Kişiler" />
             </ListItemButton>
 
-
-            <ListItemButton
-              onClick={() => navigate("companies")}
-              sx={{ backgroundColor: pathname == "/companies" ? "#f0f0f1" : null }}>
-              <ListItemIcon  >
-                <SendIcon />
-              </ListItemIcon>
-              <ListItemText primary="Firmalar" />
-            </ListItemButton>
 
           </List>
         </Grid>
@@ -177,13 +168,13 @@ export default function Sidebar({ setMobileOpen }) {
 
 
             <ListItemButton
-              onClick={() => navigate('/kisiler')}
-              sx={{ backgroundColor: pathname == "/kisiler" ? "#f0f0f1" : null }}
+              onClick={() => navigate('/kisilerproject')}
+              sx={{ backgroundColor: pathname == "/kisilerproject" ? "#f0f0f1" : null }}
             >
               <ListItemIcon>
                 <SendIcon />
               </ListItemIcon>
-              <ListItemText primary="Kişiler" />
+              <ListItemText primary="Proje Kişileri" />
             </ListItemButton>
 
 

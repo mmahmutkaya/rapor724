@@ -4,9 +4,8 @@ import { StoreContext } from '../../components/store'
 import { useNavigate } from "react-router-dom";
 import { useApp } from "../../components/useApp";
 
-
-import FormKisiBaglanti from '../../components/FormKisiBaglanti'
-
+// 
+import FormProjectKisiOlustur from '../../components/FormProjectKisiOlustur'
 
 // MATERIAL UI
 import Box from '@mui/material/Box';
@@ -15,7 +14,8 @@ import AddCircleOutlineIcon from '@mui/icons-material/AddCircleOutline';
 
 
 
-export default function P_Kisiler() {
+
+export default function P_KisilerProject() {
 
   const RealmApp = useApp();
   const navigate = useNavigate()
@@ -26,10 +26,14 @@ export default function P_Kisiler() {
   const [show, setShow] = useState("Main")
   // isProject && console.log(isProject)
 
+  useEffect(() => {
+    !isProject && navigate("/projects")
+  }, [])
+
+
   // const sutunlar = `
   //   'mail isim soyisim title . mahalBaslik mahal pozBaslik poz metraj metrajOnay'
   // `
-
 
   const sutunAreas = sutunlar.reduce((acc, x) => {
     return (
@@ -43,6 +47,14 @@ export default function P_Kisiler() {
     )
   }, "")
 
+  // const sutunIsimler = sutunlar.reduce((acc, x) => {
+  //   return (
+  //     acc + " " + x.name.replace("_"," ").toUpperCase()
+  //   )
+  // }, "")
+
+  // console.log("sutunlar2", sutunlar2)
+  // const gridTemplateColumns = "auto auto auto auto auto auto auto auto auto auto auto"
 
 
 
@@ -61,7 +73,7 @@ export default function P_Kisiler() {
 
         {/* SOL TARAF */}
         <Box sx={{ fontSize: "1.3rem", fontWeight: "600", pl: "0.25rem" }}>
-          Bağlantı Kurulan Kişiler
+          Kişiler
         </Box>
 
 
@@ -78,11 +90,10 @@ export default function P_Kisiler() {
 
 
 
-      {/* Kişi Bağlantı Kur */}
+      {/* Kişi Create */}
       {show == "FormProjectKisiOlustur" &&
-        <FormKisiBaglanti setShow={setShow} />
+        <FormProjectKisiOlustur setShow={setShow} />
       }
-
 
 
 
@@ -202,6 +213,9 @@ let myArray = [
   { name: "Email", width: "auto" },
   { name: "İsim", width: "auto" },
   { name: "Soyisim", width: "auto" },
+  { name: "Ünvan", width: "auto" },
   { name: ".", width: "1rem" },
-  { name: "Durum", width: "auto" },
+  { name: "İş Kırılımı / Mahal Kırılımı", width: "8rem" },
+  { name: "Metraj", width: "auto" },
+  { name: "Birim_Fiyat", width: "auto" },
 ]

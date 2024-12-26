@@ -59,7 +59,6 @@ export default function FormMailTeyit() {
 
   const [pageSituation, setPageSituation] = useState(0)
 
-  const [emailError, setEmailError] = useState()
   const [mailCodeError, setMailCodeError] = useState()
 
   const [email, setEmail] = useState()
@@ -67,7 +66,6 @@ export default function FormMailTeyit() {
   useEffect(() => {
     RealmApp?.currentUser && setEmail(RealmApp?.currentUser?._profile?.data?.email)
   }, [RealmApp?.currentUser])
-
 
 
 
@@ -101,7 +99,7 @@ export default function FormMailTeyit() {
         const mailCode = data.get('mailCode')
 
 
-        //  Password frontend kontrolü
+        //  Mail code frontend kontrolü
         if (mailCode.length < 6) {
           setMailCodeError("En az 6 karakter kullanmalısınız") // biz kabul etsek mongodb oluşturmuyor kullanıcıyı 6 haneden az şifre ile
           isError = true
@@ -113,7 +111,6 @@ export default function FormMailTeyit() {
         }
 
 
-
         // yukarıda hata varsa ilgili useState değerlerini error olarak belirledik fakat henüz react render tazelenmediği için değişmediler kontrol edemiyoruz
         // bu sebeple başlangıçta false değerine sahip isError diye bir js değişkeni oluşturduk, bu işi görmeye çalışıyoruz
         if (isError) {
@@ -123,10 +120,9 @@ export default function FormMailTeyit() {
 
         setPageSituation(4)
         const resultConfirmation = await RealmApp.currentUser.callFunction("auth_ConfirmationMail", mailCode);
-        console.log("resultConfirmation", resultConfirmation)
         if (resultConfirmation.includes("teyit edildi")) {
-          console.log("başarılı, navigate(0) yapılacak")
           await RealmApp.currentUser.refreshCustomData()
+          console.log("başarılı, navigate(0) yapılacak")
           navigate(0)
         }
         if (resultConfirmation.includes("mail kodu doğru girilmedi")) {
@@ -147,7 +143,8 @@ export default function FormMailTeyit() {
         // }
 
         console.log(hataMesaj)
-        console.log("Giriş esnasında hata oluştu, lütfen iletişime geçiniz..")
+        console.log("Giriş esnasında hata oluştu, sayfayı yenileyiniz, sorun devam ederse lütfen iletişime geçiniz..")
+        setPageSituation(2)
         return
       }
     }

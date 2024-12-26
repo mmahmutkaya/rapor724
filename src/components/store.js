@@ -1,11 +1,12 @@
 import { createContext, useState } from 'react'
-import { useApp } from "./useApp.js";
+// import { useApp } from "./useApp.js";
+import * as Realm from "realm-web";
 
 export const StoreContext = createContext(null)
 
 export default ({ children }) => {
   
-  const RealmApp = useApp();
+  // const RealmApp = useApp();
 
   // const teamMembersNames = ['John', 'Mary', 'Jason', 'David']
 
@@ -43,6 +44,7 @@ export default ({ children }) => {
   const [nodeMetrajlar, setNodeMetrajlar ] = useState()
   const [detailMode, setDetailMode ] = useState()
 
+  const [RealmApp, setRealmApp] = useState(Realm.getApp("rapor724_v2-cykom"))
   const [isProject, setIsProject] = useState()
   const [mahalListesi_wbsIds, setMahalListesi_wbsIds] = useState()
   const [mahalListesi_lbsIds, setMahalListesi_lbsIds] = useState()
@@ -73,6 +75,7 @@ export default ({ children }) => {
     detailMode, setDetailMode,
 
 
+    RealmApp, setRealmApp,
     isProject, setIsProject,
     mahalListesi_wbsIds, setMahalListesi_wbsIds,
     mahalListesi_lbsIds, setMahalListesi_lbsIds,

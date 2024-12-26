@@ -1,7 +1,7 @@
 import { useState, useContext, useEffect } from 'react';
 import { StoreContext } from '../components/store'
 import PropTypes from 'prop-types';
-import { useApp } from "../components/useApp.js";
+// import { useApp } from "../components/useApp.js";
 import { useNavigate } from "react-router-dom";
 
 
@@ -43,6 +43,8 @@ import FormSignIn from "./FormSignIn.js"
 import FormSignUp from "./FormSignUp.js"
 import FormSifreYenileme from "./FormSifreYenileme.js"
 import FormMailTeyit from "./FormMailTeyit.js"
+import FormUserData from "./FormUserData.js"
+import FormProfileUpdate from "./FormProfileUpdate.js"
 
 
 
@@ -56,13 +58,18 @@ export default function Layout({ window, children }) {
   const { drawerWidth, topBarHeight } = useContext(StoreContext)
   const { Layout_Show, setLayout_Show } = useContext(StoreContext)
 
+  const { RealmApp } = useContext(StoreContext)
+  // const RealmApp = useApp();
+
   const { isProject, setIsProject } = useContext(StoreContext)
   const { setSelectedLbs, setSelectedMahal, setSelectedMahalBaslik, setSelectedWbs, setSelectedPoz, setSelectedPozBaslik, setSelectedNode, pageMetraj_setShow } = useContext(StoreContext)
 
 
+  // bu seçenekler var (başka da olabilir sen yine de bak) - Page / Dialog
+  const [show, setShow] = useState("RootPage")
+
   const [began, setBegan] = useState(false)
 
-  const RealmApp = useApp();
 
   const [isSidebar, setIsSidebar] = useState(false)
 
@@ -94,11 +101,13 @@ export default function Layout({ window, children }) {
     )
   }
 
+
   if (!RealmApp?.currentUser && Layout_Show === "sifreYenileme") {
     return (
       <FormSifreYenileme />
     )
   }
+
 
 
   // mongo realm bu fonksiyonu name değeri yoksa bile name:$undefined:true gibi birşey oluşturuyor sonuçta $undefined:true olarak döndürüyor
@@ -107,6 +116,18 @@ export default function Layout({ window, children }) {
       <FormMailTeyit />
     )
   }
+
+
+  // mongo realm bu fonksiyonu name değeri yoksa bile name:$undefined:true gibi birşey oluşturuyor sonuçta $undefined:true olarak döndürüyor
+  if (
+    !RealmApp?.currentUser?.customData?.isim ||
+    !RealmApp?.currentUser?.customData?.soyisim
+  ) {
+    return (
+      <FormUserData />
+    )
+  }
+
 
 
   // // mongo realm bu fonksiyonu name değeri yoksa bile name:$undefined:true gibi birşey oluşturuyor sonuçta $undefined:true olarak döndürüyor
@@ -120,8 +141,6 @@ export default function Layout({ window, children }) {
   //     </>
   //   )
   // }
-
-
 
 
 
@@ -139,6 +158,12 @@ export default function Layout({ window, children }) {
   };
 
   const handleMenuClose = () => {
+    setAnchorEl(null);
+    handleMobileMenuClose();
+  };
+
+  const handleProfilim = () => {
+    setShow("FormUserDataUpdate")
     setAnchorEl(null);
     handleMobileMenuClose();
   };
@@ -215,8 +240,8 @@ export default function Layout({ window, children }) {
       open={isMenuOpen}
       onClose={handleMenuClose}
     >
-      <MenuItem onClick={handleMenuClose}>Profile</MenuItem>
-      <MenuItem onClick={handleMenuClose}>My account</MenuItem>
+      <MenuItem onClick={handleProfilim}>Profilim</MenuItem>
+      {/* <MenuItem onClick={handleMenuClose}>My account</MenuItem> */}
       <MenuItem onClick={clickLogOut}>Çıkış Yap</MenuItem>
     </Menu>
   );
@@ -447,16 +472,23 @@ export default function Layout({ window, children }) {
 
 
       {/* index page -- main */}
-      <Box
-        component="main"
-        name="Tanimalama_Main"
-        sx={{ flexGrow: 1, width: { md: `calc(100% - ${drawerWidth}px)` }, mt: topBarHeight }}
-      >
-        {/* ToolBar koymamızın sebebi --> AppBAr kadar aşağı margin olması için dolgu */}
-        {/* Yukarıda mt:topBarHeight ile çözdük */}
-        {/* <Toolbar variant='dense'></Toolbar> */}
-        {children}
-      </Box>
+      {show === "FormUserDataUpdate" &&
+        <FormProfileUpdate setShow={setShow} />
+      }
+
+      {/* index page -- main */}
+      {show === "RootPage" &&
+        <Box
+          component="main"
+          name="Tanimalama_Main"
+          sx={{ flexGrow: 1, width: { md: `calc(100% - ${drawerWidth}px)` }, mt: topBarHeight }}
+        >
+          {/* ToolBar koymamızın sebebi --> AppBAr kadar aşağı margin olması için dolgu */}
+          {/* Yukarıda mt:topBarHeight ile çözdük */}
+          {/* <Toolbar variant='dense'></Toolbar> */}
+          {children}
+        </Box>
+      }
 
 
       {/* <Box

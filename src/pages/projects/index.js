@@ -20,7 +20,8 @@ import FolderIcon from '@mui/icons-material/Folder';
 
 export default function P_Projects() {
 
-  const RealmApp = useApp();
+  // const RealmApp = useApp();
+  const { RealmApp } = useContext(StoreContext)
   const navigate = useNavigate()
 
   const { isProject, setIsProject } = useContext(StoreContext)
