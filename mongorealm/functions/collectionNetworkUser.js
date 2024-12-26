@@ -1,0 +1,85 @@
+exports = async function ({
+  baglantiTalepEmail
+}) {
+
+
+
+  const user = context.user;
+  const _userId = new BSON.ObjectId(user.id)
+  const userEmail = context.user.data.email
+  const userIsim = user.custom_data.isim
+  const userSoyisim = user.custom_data.soyisim
+
+  const mailTeyit = user.custom_data.mailTeyit;
+  if (!mailTeyit) {
+    throw new Error("Öncelikle üyeliğinize ait mail adresinin size ait olduğunu doğrulamalısınız, tekrar giriş yapmayı deneyiniz veya bizimle iletişime geçiniz.");
+  }
+
+
+  if (functionName == "kisiBaglantiTalep") {
+
+    const validateEmail = (baglantiTalepEmail) => {
+      return String(email)
+        .toLowerCase()
+        .match(
+          /^(([^<>()[\]\\.,;:\s@"]+(\.[^<>()[\]\\.,;:\s@"]+)*)|.(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/
+        );
+    };
+  
+    if (!validateEmail(email)) {
+      throw new Error({yapayMesaj:"Email adresinizi kontrol ediniz"})
+    }
+  
+    if (!email.length) {
+      throw new Error({yapayMesaj:"Email adresi giriniz"})
+    }
+
+    
+    let baglantiTalepUser
+
+
+    try {
+      baglantiTalepUser = await collection_Users.findOne({ email: baglantiTalepEmail })
+    } catch (err) {
+      throw new Error({ orjinalMesaj: err.message, yapayMesaj: "Kullanıcının sitemde aranması sırasında hata oluştu" })
+    }
+
+    
+    try {
+      baglantiTalepUser = await collection_Users.findOne({ email: baglantiTalepEmail })
+    } catch (err) {
+      throw new Error({ orjinalMesaj: err.message, yapayMesaj: "Kullanıcının sitemde aranması sırasında hata oluştu" })
+    }
+
+    
+    if (!baglantiTalepUser) {
+      try {
+        let email = baglantiTalepUser
+        let subject = '${userIsim} ${userSoyisim} adlı kişi sizi Rapor7/24 sistemine davet ediyor'
+        let message = '${userIsim} ${userSoyisim} adlı kişi sizi Rapor7/24 sistemine davet ediyor, üye olmak için lütfen tıklayınız. https://rapor724-v2-cykom-zijnv.mongodbstitch.com'
+        await context.functions.execute("sendMail", email, subject, message)
+      } catch (error) {
+        throw new Error({ error, yapayMesaj: "Kullanıcıya davet maili gönderilmesi sırasında hata oluştu" })
+      }
+    }
+
+    try {
+      await context.services.get("mongodb-atlas").db("userNetwork").collection(userEmail).updateOne({ email: baglantiTalepEmail },
+        { $set: { status: baglantiTalepUser ? "approvePending" : "accountPending" } }
+      )
+    } catch (error) {
+      throw new Error({ error, yapayMesaj: "Kullanıcının listenize eklenmesi sırasında hata oluştu" })
+    }
+
+    try {
+      await context.services.get("mongodb-atlas").db("userNetwork").collection(baglantiTalepUser).updateOne({ email: userEmail },
+        { $set: { status: "approved" } }
+      )
+    } catch (error) {
+      throw new Error({ error, yapayMesaj: "Kullanıcının listesine sizin eklenmeniz sırasında hata oluştu" })
+    }
+
+  }
+
+  return { ok: true, description: "herhangi bir fonksiyon içine giremedi" };
+};
