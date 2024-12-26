@@ -22,7 +22,7 @@ exports = async function ({
 
     const collection_Users = context.services.get("mongodb-atlas").db("rapor724_v2").collection("users")
 
-    let errorObject = {isError:false}
+    let errorObject = { isError: false }
 
     const validateEmail = (email) => {
       return String(email)
@@ -72,7 +72,12 @@ exports = async function ({
     try {
       await context.services.get("mongodb-atlas").db("userNetwork").collection(userEmail).updateOne(
         { email: baglantiTalepEmail },
-        { $set: { status: baglantiTalepUser ? "pending_userApprove" : "pending_accountCreate" } },
+        {
+          $set: {
+            remoteStatus: baglantiTalepUser ? "pending_userApprove" : "pending_accountCreate",
+            status: "requestContact"
+          }
+        },
         { upsert: true }
       )
     } catch (error) {
@@ -81,8 +86,13 @@ exports = async function ({
 
     try {
       await context.services.get("mongodb-atlas").db("userNetwork").collection(baglantiTalepEmail).updateOne(
-        { email: userEmail },
-        { $set: { status: "approved" } },
+        { remoteEmail: userEmail },
+        {
+          $set: {
+            remoteStatus: "requestContact",
+            status: baglantiTalepUser ? "pending_userApprove" : "pending_accountCreate"
+          }
+        },
         { upsert: true }
       )
     } catch (error) {
