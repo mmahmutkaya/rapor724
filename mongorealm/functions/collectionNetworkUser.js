@@ -79,7 +79,8 @@ exports = async function ({
         }
       )
     } catch (error) {
-      throw new Error(error)
+      return error
+      // throw new Error(error)
       // throw new Error({ error, MONGO_Fonksiyon: "collectionNetworkUser", hataYeri: "Kullanıcının listenize eklenmesi sırasında hata oluştu" })
     }
 
