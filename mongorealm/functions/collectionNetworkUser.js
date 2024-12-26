@@ -1,4 +1,5 @@
 exports = async function ({
+  functionName,
   baglantiTalepEmail
 }) {
 
