@@ -80,7 +80,7 @@ exports = async function ({
     }
 
     try {
-      await context.services.get("mongodb-atlas").db("userNetwork").collection(baglantiTalepUser).updateOne(
+      await context.services.get("mongodb-atlas").db("userNetwork").collection(baglantiTalepEmail).updateOne(
         { email: userEmail },
         { $set: { status: "approved" } },
         { upsert: true }
