@@ -17,8 +17,13 @@ exports = async function ({
 
 
 
-  
+
   if (functionName == "kisiBaglantiTalep") {
+
+    const collection_Users = context.services.get("mongodb-atlas").db("rapor724_v2").collection("users")
+
+    let errorObject = {}
+    let isError
 
     const validateEmail = (email) => {
       return String(email)
@@ -27,33 +32,33 @@ exports = async function ({
           /^(([^<>()[\]\\.,;:\s@"]+(\.[^<>()[\]\\.,;:\s@"]+)*)|.(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/
         );
     };
-  
+
     if (!validateEmail(baglantiTalepEmail)) {
-       throw new Error(`-emailError-Email adresinizi kontrol ediniz.-emailError-`)
+      errorObject.emailError = "Email adresinizi kontrol ediniz."
+      isError = true
     }
-  
+
     if (baglantiTalepEmail === userEmail) {
-      throw new Error(`-emailError-Kendi mail adresinizi girmiş gözüküyorsunuz.-emailError-`)
+      errorObject.emailError = "Kendi mail adresinizi girmiş gözüküyorsunuz."
+      isError = true
     }
-  
-    
+
+    if (isError) {
+      return errorObject
+    }
+
+
     let baglantiTalepUser
 
 
     try {
       baglantiTalepUser = await collection_Users.findOne({ email: baglantiTalepEmail })
     } catch (error) {
-      throw new Error({ error, hataMesaj:`-hataMesaj-Kullanıcının sitemde aranması sırasında hata oluştu.-hataMesaj-` })
+      throw new Error({ error, MONGO_Fonksiyon: "collectionNetworkUser", hataYeri: `Kullanıcının sitemde aranması sırasında hata oluştu.` })
     }
 
-    
-    try {
-      baglantiTalepUser = await collection_Users.findOne({ email: baglantiTalepEmail })
-    } catch (error) {
-      throw new Error({ error, hataMesaj: "Kullanıcının sitemde aranması sırasında hata oluştu" })
-    }
 
-    
+
     if (!baglantiTalepUser) {
       try {
         let email = baglantiTalepUser
@@ -61,30 +66,34 @@ exports = async function ({
         let message = '${userIsim} ${userSoyisim} adlı kişi sizi Rapor7/24 sistemine davet ediyor, üye olmak için lütfen tıklayınız. https://rapor724-v2-cykom-zijnv.mongodbstitch.com'
         await context.functions.execute("sendMaill", email, subject, message)
       } catch (error) {
-        throw new Error({ error, hataMesaj: "mesajBasi - Kullanıcıya davet maili gönderilmesi sırasında hata oluştu - mesajSonu" })
+        throw new Error({ error, MONGO_Fonksiyon: "collectionNetworkUser", hataYeri: "Kullanıcıya davet maili gönderilmesi sırasında hata oluştu." })
       }
     }
 
     try {
-      await context.services.get("mongodb-atlas").db("userNetwork").collection(userEmail).updateOne({ email: baglantiTalepEmail },
-        { $set: { status: baglantiTalepUser ? "approvePending" : "accountPending" } }
+      await context.services.get("mongodb-atlas").db("userNetwork").collection(userEmail).updateOne(
+        { email: baglantiTalepEmail },
+        { $set: { status: baglantiTalepUser ? "pending_userApprove" : "pending_accountCreate" } },
+        { upsert: true }
       )
     } catch (error) {
-      throw new Error({ error, hataMesaj: "Kullanıcının listenize eklenmesi sırasında hata oluştu" })
+      throw new Error({ error, MONGO_Fonksiyon: "collectionNetworkUser", hataYeri: "Kullanıcının listenize eklenmesi sırasında hata oluştu" })
     }
 
     try {
-      await context.services.get("mongodb-atlas").db("userNetwork").collection(baglantiTalepUser).updateOne({ email: userEmail },
-        { $set: { status: "approved" } }
+      await context.services.get("mongodb-atlas").db("userNetwork").collection(baglantiTalepUser).updateOne(
+        { email: userEmail },
+        { $set: { status: "approved" } },
+        { upsert: true }
       )
     } catch (error) {
-      throw new Error({ error, hataMesaj: "Kullanıcının listesine sizin eklenmeniz sırasında hata oluştu" })
+      throw new Error({ error, MONGO_Fonksiyon: "collectionNetworkUser", hataYeri: "Kullanıcının listesine sizin eklenmeniz sırasında hata oluştu" })
     }
 
   }
 
 
-  
+
 
   return { ok: true, description: "herhangi bir fonksiyon içine giremedi" };
 };
