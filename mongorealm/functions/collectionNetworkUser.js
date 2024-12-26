@@ -22,8 +22,7 @@ exports = async function ({
 
     const collection_Users = context.services.get("mongodb-atlas").db("rapor724_v2").collection("users")
 
-    let errorObject = {}
-    let isError
+    let errorObject = {isError:false}
 
     const validateEmail = (email) => {
       return String(email)
@@ -35,15 +34,15 @@ exports = async function ({
 
     if (!validateEmail(baglantiTalepEmail)) {
       errorObject.emailError = "Email adresinizi kontrol ediniz."
-      isError = true
+      errorObject.isError = true
     }
 
     if (baglantiTalepEmail === userEmail) {
       errorObject.emailError = "Kendi mail adresinizi girmiş gözüküyorsunuz."
-      isError = true
+      errorObject.isError = true
     }
 
-    if (isError) {
+    if (errorObject.isError) {
       return errorObject
     }
 
