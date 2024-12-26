@@ -71,15 +71,14 @@ exports = async function ({
     
 
     try {
-      await context.services.get("mongodb-atlas").db("userNetwork").collection(userEmail).updateOne(
-        { email: baglantiTalepEmail },
+      await context.services.get("mongodb-atlas").db("userNetwork").collection(userEmail).insertOne(
+        { remoteEmail: baglantiTalepEmail },
         {
           $set: {
             remoteStatus: baglantiTalepUser ? "pending_userApprove" : "pending_accountCreate",
             status: "requestContact"
           }
-        },
-        { upsert: true }
+        }
       )
     } catch (error) {
       throw new Error({ error, MONGO_Fonksiyon: "collectionNetworkUser", hataYeri: "Kullanıcının listenize eklenmesi sırasında hata oluştu" })
@@ -87,15 +86,14 @@ exports = async function ({
 
     
     try {
-      await context.services.get("mongodb-atlas").db("userNetwork").collection(baglantiTalepEmail).updateOne(
+      await context.services.get("mongodb-atlas").db("userNetwork").collection(baglantiTalepEmail).insertOne(
         { remoteEmail: userEmail },
         {
           $set: {
             remoteStatus: "requestContact",
             status: baglantiTalepUser ? "pending_userApprove" : "pending_accountCreate"
           }
-        },
-        { upsert: true }
+        }
       )
     } catch (error) {
       throw new Error({ error, MONGO_Fonksiyon: "collectionNetworkUser", hataYeri: "Kullanıcının listesine sizin eklenmeniz sırasında hata oluştu" })
