@@ -33,7 +33,7 @@ exports = async function ({
     }
   
     if (baglantiTalepEmail === userEmail) {
-      throw new Error({MongoFonksiyon:"collectionNetworkUser", emailError:"mesajBasi - Kendi mail adresinizi girmiş gözüküyorsunuz"})
+      throw new Error(`-emailError-Kendi mail adresinizi girmiş gözüküyorsunuz.-emailError-`)
     }
   
     
@@ -43,7 +43,7 @@ exports = async function ({
     try {
       baglantiTalepUser = await collection_Users.findOne({ email: baglantiTalepEmail })
     } catch (error) {
-      throw new Error({ error, hataMesaj:"Kullanıcının sitemde aranması sırasında hata oluştu" })
+      throw new Error({ error, hataMesaj:`-hataMesaj-Kullanıcının sitemde aranması sırasında hata oluştu.-hataMesaj-` })
     }
 
     
