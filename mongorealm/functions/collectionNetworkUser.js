@@ -30,10 +30,6 @@ exports = async function ({
       throw new Error({yapayMesaj:"Email adresinizi kontrol ediniz"})
     }
   
-    if (!baglantiTalepEmail.length) {
-      throw new Error({yapayMesaj:"Email adresi giriniz"})
-    }
-
     
     let baglantiTalepUser
 
