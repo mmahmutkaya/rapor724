@@ -101,6 +101,8 @@ exports = async function ({
       throw new Error({ error, MONGO_Fonksiyon: "collectionNetworkUser", hataYeri: "Kullanıcının listesine sizin eklenmeniz sırasında hata oluştu" })
     }
 
+    return "İşlem Başarılı"
+
   }
 
 
