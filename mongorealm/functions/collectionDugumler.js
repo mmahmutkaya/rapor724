@@ -18,7 +18,8 @@ exports = async function ({
   switchValue
 }) {
 
-  // tip2 - (yukarıda açıklandı)
+
+
   const user = context.user;
   const _userId = new BSON.ObjectId(user.id)
   const userEmail = context.user.data.email
@@ -186,7 +187,25 @@ exports = async function ({
 
   if (functionName == "kisiBaglantiTalep") {
 
+    const validateEmail = (baglantiTalepEmail) => {
+      return String(email)
+        .toLowerCase()
+        .match(
+          /^(([^<>()[\]\\.,;:\s@"]+(\.[^<>()[\]\\.,;:\s@"]+)*)|.(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/
+        );
+    };
+  
+    if (!validateEmail(email)) {
+      throw new Error({yapayMesaj:"Email adresinizi kontrol ediniz"})
+    }
+  
+    if (!email.length) {
+      throw new Error({yapayMesaj:"Email adresinizi kontrol ediniz"})
+    }
+
+    
     let baglantiTalepUser
+
 
     try {
       baglantiTalepUser = await collection_Users.findOne({ email: baglantiTalepEmail })
@@ -194,6 +213,14 @@ exports = async function ({
       throw new Error({ orjinalMesaj: err.message, yapayMesaj: "Kullanıcının sitemde aranması sırasında hata oluştu" })
     }
 
+    
+    try {
+      baglantiTalepUser = await collection_Users.findOne({ email: baglantiTalepEmail })
+    } catch (err) {
+      throw new Error({ orjinalMesaj: err.message, yapayMesaj: "Kullanıcının sitemde aranması sırasında hata oluştu" })
+    }
+
+    
     if (!baglantiTalepUser) {
       try {
         let email = baglantiTalepUser
