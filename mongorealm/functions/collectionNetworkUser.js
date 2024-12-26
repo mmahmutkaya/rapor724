@@ -16,6 +16,8 @@ exports = async function ({
   }
 
 
+
+  
   if (functionName == "kisiBaglantiTalep") {
 
     const validateEmail = (email) => {
@@ -28,6 +30,10 @@ exports = async function ({
   
     if (!validateEmail(baglantiTalepEmail)) {
       throw new Error({yapayMesaj:"Email adresinizi kontrol ediniz"})
+    }
+  
+    if (baglantiTalepEmail === userEmail) {
+      throw new Error({yapayMesaj:"Kendi mail adresinizi girmiş gözüküyorsunuz"})
     }
   
     
@@ -76,6 +82,9 @@ exports = async function ({
     }
 
   }
+
+
+  
 
   return { ok: true, description: "herhangi bir fonksiyon içine giremedi" };
 };
