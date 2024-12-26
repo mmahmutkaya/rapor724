@@ -51,7 +51,7 @@ exports = async function ({
 
 
     try {
-      baglantiTalepUser = await collection_Users.findOne({ email: baglantiTalepEmaill })
+      baglantiTalepUser = await collection_Users.findOne({ email: baglantiTalepEmail })
     } catch (error) {
       throw new Error({ error, MONGO_Fonksiyon: "collectionNetworkUser", hataYeri: `Kullanıcının sitemde aranması sırasında hata oluştu.` })
     }
@@ -70,6 +70,7 @@ exports = async function ({
     }
     
 
+    let insertResult
     try {
       insertResult = await context.services.get("mongodb-atlas").db("userNetwork").collection(userEmail).insertOne(
         {
@@ -83,8 +84,9 @@ exports = async function ({
     }
 
     
+    let insertResult2
     try {
-      insertResult = await context.services.get("mongodb-atlas").db("userNetwork").collection(baglantiTalepEmail).insertOne(
+      insertResult2 = await context.services.get("mongodb-atlas").db("userNetwork").collection(baglantiTalepEmail).insertOne(
         { 
           _id: userEmail,
           remoteStatus: "requestContact",
@@ -95,7 +97,7 @@ exports = async function ({
       throw new Error({ error, MONGO_Fonksiyon: "collectionNetworkUser", hataYeri: "Kullanıcının listesine sizin eklenmeniz sırasında hata oluştu" })
     }
 
-    return "İşlem Başarılı"
+    return {ok:"İşlem Başarılı",insertResult,insertResult2}
 
   }
 
