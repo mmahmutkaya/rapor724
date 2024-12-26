@@ -4,7 +4,6 @@ exports = async function ({
 }) {
 
 
-
   const user = context.user;
   const _userId = new BSON.ObjectId(user.id)
   const userEmail = context.user.data.email
@@ -19,7 +18,7 @@ exports = async function ({
 
   if (functionName == "kisiBaglantiTalep") {
 
-    const validateEmail = (baglantiTalepEmail) => {
+    const validateEmail = (email) => {
       return String(email)
         .toLowerCase()
         .match(
@@ -27,11 +26,11 @@ exports = async function ({
         );
     };
   
-    if (!validateEmail(email)) {
+    if (!validateEmail(baglantiTalepEmail)) {
       throw new Error({yapayMesaj:"Email adresinizi kontrol ediniz"})
     }
   
-    if (!email.length) {
+    if (!baglantiTalepEmail.length) {
       throw new Error({yapayMesaj:"Email adresi giriniz"})
     }
 
