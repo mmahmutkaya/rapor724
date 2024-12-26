@@ -73,7 +73,7 @@ exports = async function ({
     try {
       await context.services.get("mongodb-atlas").db("userNetwork").collection(userEmail).insertOne(
         {
-          remoteEmail: baglantiTalepEmail,
+          _id: baglantiTalepEmail,
           remoteStatus: baglantiTalepUser ? "pending_userApprove" : "pending_accountCreate",
           status: "requestContact"
         }
@@ -86,7 +86,7 @@ exports = async function ({
     try {
       await context.services.get("mongodb-atlas").db("userNetwork").collection(baglantiTalepEmail).insertOne(
         { 
-          remoteEmail: userEmail,
+          _id: userEmail,
           remoteStatus: "requestContact",
           status: baglantiTalepUser ? "pending_userApprove" : "pending_accountCreate"
         }
