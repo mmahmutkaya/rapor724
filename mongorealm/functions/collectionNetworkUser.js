@@ -72,12 +72,10 @@ exports = async function ({
 
     try {
       await context.services.get("mongodb-atlas").db("userNetwork").collection(userEmail).insertOne(
-        { remoteEmail: baglantiTalepEmail },
         {
-          $set: {
-            remoteStatus: baglantiTalepUser ? "pending_userApprove" : "pending_accountCreate",
-            status: "requestContact"
-          }
+          remoteEmail: baglantiTalepEmail,
+          remoteStatus: baglantiTalepUser ? "pending_userApprove" : "pending_accountCreate",
+          status: "requestContact"
         }
       )
     } catch (error) {
@@ -87,12 +85,10 @@ exports = async function ({
     
     try {
       await context.services.get("mongodb-atlas").db("userNetwork").collection(baglantiTalepEmail).insertOne(
-        { remoteEmail: userEmail },
-        {
-          $set: {
-            remoteStatus: "requestContact",
-            status: baglantiTalepUser ? "pending_userApprove" : "pending_accountCreate"
-          }
+        { 
+          remoteEmail: userEmail,
+          remoteStatus: "requestContact",
+          status: baglantiTalepUser ? "pending_userApprove" : "pending_accountCreate"
         }
       )
     } catch (error) {
