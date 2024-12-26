@@ -51,7 +51,7 @@ exports = async function ({
 
 
     try {
-      baglantiTalepUser = await collection_Users.findOne({ email: baglantiTalepEmail })
+      baglantiTalepUser = await collection_Users.findOne({ email: baglantiTalepEmaill })
     } catch (error) {
       throw new Error({ error, MONGO_Fonksiyon: "collectionNetworkUser", hataYeri: `Kullanıcının sitemde aranması sırasında hata oluştu.` })
     }
