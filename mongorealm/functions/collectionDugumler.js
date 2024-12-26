@@ -200,8 +200,8 @@ exports = async function ({
         let subject = '${userIsim} ${userSoyisim} adlı kişi sizi Rapor7/24 sistemine davet ediyor'
         let message = '${userIsim} ${userSoyisim} adlı kişi sizi Rapor7/24 sistemine davet ediyor, üye olmak için lütfen tıklayınız. https://rapor724-v2-cykom-zijnv.mongodbstitch.com'
         await context.functions.execute("sendMail", email, subject, message)
-      } catch (err) {
-        throw new Error({ orjinalMesaj: err.message, yapayMesaj: "Kullanıcıya davet maili gönderilmesi sırasında hata oluştu" })
+      } catch (error) {
+        throw new Error({ error, yapayMesaj: "Kullanıcıya davet maili gönderilmesi sırasında hata oluştu" })
       }
     }
 
@@ -210,7 +210,7 @@ exports = async function ({
         { $set: { status: baglantiTalepUser ? "approvePending" : "accountPending" } }
       )
     } catch (error) {
-      throw new Error({ orjinalMesaj: err.message, yapayMesaj: "Kullanıcının listenize eklenmesi sırasında hata oluştu" })
+      throw new Error({ error, yapayMesaj: "Kullanıcının listenize eklenmesi sırasında hata oluştu" })
     }
 
     try {
@@ -218,7 +218,7 @@ exports = async function ({
         { $set: { status: "approved" } }
       )
     } catch (error) {
-      throw new Error({ orjinalMesaj: err.message, yapayMesaj: "Kullanıcının listesine sizin eklenmeniz sırasında hata oluştu" })
+      throw new Error({ error, yapayMesaj: "Kullanıcının listesine sizin eklenmeniz sırasında hata oluştu" })
     }
 
   }
