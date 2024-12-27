@@ -5,10 +5,10 @@ exports = async function ({
 
 
   const user = context.user;
-  const _userId = new BSON.ObjectId(user.id)
+  // const _userId = new BSON.ObjectId(user.id)
   const userEmail = context.user.data.email
-  const userIsim = user.custom_data.isim
-  const userSoyisim = user.custom_data.soyisim
+  // const userIsim = user.custom_data.isim
+  // const userSoyisim = user.custom_data.soyisim
 
   const mailTeyit = user.custom_data.mailTeyit;
   if (!mailTeyit) {
@@ -118,15 +118,15 @@ exports = async function ({
     }
 
     if (userNetworkIncludes && remoteUserNetworkIncludes) {
-      throw new Error({ error, MONGO_Fonksiyon: "collectionNetworkUser", hataYeri: "Bu kullanıcı ile karşılıklı zaten kayıtlısınız" })
+      throw new Error({ MONGO_Fonksiyon: "collectionNetworkUser", hataYeri: "Bu kullanıcı ile karşılıklı zaten kayıtlısınız" })
     }
 
     if (userNetworkIncludes) {
-      throw new Error({ error, MONGO_Fonksiyon: "collectionNetworkUser", hataYeri: "Bu kullanıcı sizin ağınızda zaten vardı, siz bu kullanıcının ağına kaydoldunuz." })
+      throw new Error({ MONGO_Fonksiyon: "collectionNetworkUser", hataYeri: "Bu kullanıcı sizin ağınızda zaten vardı, siz bu kullanıcının ağına kaydoldunuz." })
     }
 
     if (remoteUserNetworkIncludes) {
-      throw new Error({ error, MONGO_Fonksiyon: "collectionNetworkUser", hataYeri: "Siz bu kullanıcının ağında zaten vardınız, kullanıcı sizin ağınıza kayduldu" })
+      throw new Error({ MONGO_Fonksiyon: "collectionNetworkUser", hataYeri: "Siz bu kullanıcının ağında zaten vardınız, kullanıcı sizin ağınıza kayduldu" })
     }
 
     return "Kayıt işlemi gerçekleşti"
