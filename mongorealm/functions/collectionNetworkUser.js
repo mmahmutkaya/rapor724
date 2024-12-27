@@ -74,7 +74,7 @@ exports = async function ({
     let userNetworkIncludes
 
     try {
-      userNetworkIncludes = context.services.get("mongodb-atlas").db("userNetwork").collection(userEmail).find({ _id: baglantiTalepUser })
+      userNetworkIncludes = context.services.get("mongodb-atlas").db("userNetwork").collection(userEmail).find({ _id: baglantiTalepEmail })
     } catch (error) {
       throw new Error({ error, MONGO_Fonksiyon: "collectionNetworkUser", hataYeri: "Kaydetmek istediğiniz kullanıcı ağınızda mevcut mu diye sorgulanırken hata oluştu." })
     }
@@ -98,7 +98,7 @@ exports = async function ({
     let remoteUserNetworkIncludes
 
     try {
-      remoteUserNetworkIncludes = context.services.get("mongodb-atlas").db("userNetwork").collection(baglantiTalepUser).find({ _id: userEmail })
+      remoteUserNetworkIncludes = context.services.get("mongodb-atlas").db("userNetwork").collection(baglantiTalepEmail).find({ _id: userEmail })
     } catch (error) {
       throw new Error({ error, MONGO_Fonksiyon: "collectionNetworkUser", hataYeri: "Kaydetmek istediğiniz kullanıcının ağında siz var mısınız diye sorgulanırken hata oluştu." })
     }
