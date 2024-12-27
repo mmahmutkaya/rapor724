@@ -63,40 +63,61 @@ exports = async function ({
         let email = baglantiTalepUser
         let subject = '${userIsim} ${userSoyisim} adlı kişi sizi Rapor7/24 sistemine davet ediyor'
         let message = '${userIsim} ${userSoyisim} adlı kişi sizi Rapor7/24 sistemine davet ediyor, üye olmak için lütfen tıklayınız. https://rapor724-v2-cykom-zijnv.mongodbstitch.com'
-        await context.functions.execute("sendMaill", email, subject, message)
+        await context.functions.execute("sendMail", email, subject, message)
       } catch (error) {
         throw new Error({ error, MONGO_Fonksiyon: "collectionNetworkUser", hataYeri: "Kullanıcıya davet maili gönderilmesi sırasında hata oluştu." })
       }
     }
-    
 
+
+
+    let userNetworkIncludes
 
     try {
-      await context.services.get("mongodb-atlas").db("userNetwork").collection(userEmail).insertOne(
-        {
-          _id: baglantiTalepEmail,
-          remoteStatus: baglantiTalepUser ? "pending_userApprove" : "pending_accountCreate",
-          status: "requestContact"
-        }
-      )
+      userNetworkIncludes = context.services.get("mongodb-atlas").db("userNetwork").collection(userEmail).find({ _id: baglantiTalepUser })
     } catch (error) {
-      throw new Error({ error, MONGO_Fonksiyon: "collectionNetworkUser", hataYeri: "Kullanıcının listenize eklenmesi sırasında hata oluştu" })
+      throw new Error({ error, MONGO_Fonksiyon: "collectionNetworkUser", hataYeri: "Kaydetmek istediğiniz kullanıcı ağınızda mevcut mu diye sorgulanırken hata oluştu." })
     }
 
-    
+    if (!userNetworkIncludes) {
+      try {
+        await context.services.get("mongodb-atlas").db("userNetwork").collection(userEmail).insertOne(
+          {
+            _id: baglantiTalepEmail,
+            remoteStatus: baglantiTalepUser ? "pending_userApprove" : "pending_accountCreate",
+            status: "requestContact"
+          }
+        )
+      } catch (error) {
+        throw new Error({ error, MONGO_Fonksiyon: "collectionNetworkUser", hataYeri: "Kullanıcının listenize eklenmesi sırasında hata oluştu" })
+      }
+    }
+
+
+
+    let remoteUserNetworkIncludes
+
     try {
-      await context.services.get("mongodb-atlas").db("userNetwork").collection(baglantiTalepEmail).insertOne(
-        { 
-          _id: userEmail,
-          remoteStatus: "requestContact",
-          status: baglantiTalepUser ? "pending_userApprove" : "pending_accountCreate"
-        }
-      )
+      remoteUserNetworkIncludes = context.services.get("mongodb-atlas").db("userNetwork").collection(baglantiTalepUser).find({ _id: userEmail })
     } catch (error) {
-      throw new Error({ error, MONGO_Fonksiyon: "collectionNetworkUser", hataYeri: "Kullanıcının listesine sizin eklenmeniz sırasında hata oluştu" })
+      throw new Error({ error, MONGO_Fonksiyon: "collectionNetworkUser", hataYeri: "Kaydetmek istediğiniz kullanıcının ağında siz var mısınız diye sorgulanırken hata oluştu." })
     }
 
-    return {ok:"İşlem Başarılı",insertResult,insertResult2}
+    if (!remoteUserNetworkIncludes) {
+      try {
+        await context.services.get("mongodb-atlas").db("userNetwork").collection(baglantiTalepEmail).insertOne(
+          {
+            _id: userEmail,
+            remoteStatus: "requestContact",
+            status: baglantiTalepUser ? "pending_userApprove" : "pending_accountCreate"
+          }
+        )
+      } catch (error) {
+        throw new Error({ error, MONGO_Fonksiyon: "collectionNetworkUser", hataYeri: "Kullanıcının listesine sizin eklenmeniz sırasında hata oluştu" })
+      }
+    }
+
+    return { ok: "İşlem Başarılı", insertResult, insertResult2 }
 
   }
 
