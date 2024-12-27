@@ -117,7 +117,19 @@ exports = async function ({
       }
     }
 
-    return { ok: "İşlem Başarılı", insertResult, insertResult2 }
+    if (userNetworkIncludes && remoteUserNetworkIncludes) {
+      throw new Error({ error, MONGO_Fonksiyon: "collectionNetworkUser", hataYeri: "Bu kullanıcı ile karşılıklı zaten kayıtlısınız" })
+    }
+
+    if (userNetworkIncludes) {
+      throw new Error({ error, MONGO_Fonksiyon: "collectionNetworkUser", hataYeri: "Bu kullanıcı sizin ağınızda zaten vardı, siz bu kullanıcının ağına kaydoldunuz." })
+    }
+
+    if (remoteUserNetworkIncludes) {
+      throw new Error({ error, MONGO_Fonksiyon: "collectionNetworkUser", hataYeri: "Siz bu kullanıcının ağında zaten vardınız, kullanıcı sizin ağınıza kayduldu" })
+    }
+
+    return "Kayıt işlemi gerçekleşti"
 
   }
 
