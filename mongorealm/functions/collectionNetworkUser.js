@@ -16,8 +16,6 @@ exports = async function ({
   }
 
 
-
-
   if (functionName == "kisiBaglantiTalep") {
 
     const collection_Users = context.services.get("mongodb-atlas").db("rapor724_v2").collection("users")
