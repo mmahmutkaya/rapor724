@@ -70,9 +70,9 @@ exports = async function ({
     }
     
 
-    let insertResult
+
     try {
-      insertResult = await context.services.get("mongodb-atlas").db("userNetwork").collection(userEmail).insertOne(
+      await context.services.get("mongodb-atlas").db("userNetwork").collection(userEmail).insertOne(
         {
           _id: baglantiTalepEmail,
           remoteStatus: baglantiTalepUser ? "pending_userApprove" : "pending_accountCreate",
@@ -84,9 +84,8 @@ exports = async function ({
     }
 
     
-    let insertResult2
     try {
-      insertResult2 = await context.services.get("mongodb-atlas").db("userNetwork").collection(baglantiTalepEmail).insertOne(
+      await context.services.get("mongodb-atlas").db("userNetwork").collection(baglantiTalepEmail).insertOne(
         { 
           _id: userEmail,
           remoteStatus: "requestContact",
