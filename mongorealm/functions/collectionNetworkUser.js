@@ -12,7 +12,7 @@ exports = async function ({
 
   const mailTeyit = user.custom_data.mailTeyit;
   if (!mailTeyit) {
-    throw new Error("Öncelikle üyeliğinize ait mail adresinin size ait olduğunu doğrulamalısınız, tekrar giriş yapmayı deneyiniz veya bizimle iletişime geçiniz.");
+    throw new Error("-mesajSplit-Öncelikle üyeliğinize ait mail adresinin size ait olduğunu doğrulamalısınız, tekrar giriş yapmayı deneyiniz veya bizimle iletişime geçiniz.-mesajSplit-");
   }
 
 
