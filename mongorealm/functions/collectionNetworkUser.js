@@ -143,10 +143,10 @@ exports = async function ({
     }
 
     if (otherUserNetworkIncludes && !userNetworkIncludes) {
-      return {addUser:otherUserObj}
+      return {otherUserObj}
     }
 
-    return {addUser:otherUserObj}
+    return {otherUserObj}
 
   }
 
