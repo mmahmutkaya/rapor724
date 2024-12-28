@@ -1,6 +1,6 @@
 exports = async function ({
   functionName,
-  baglantiTalepEmail
+  otherUserEmail
 }) {
 
 
@@ -43,12 +43,12 @@ exports = async function ({
         );
     };
 
-    if (!validateEmail(baglantiTalepEmail)) {
+    if (!validateEmail(otherUserEmail)) {
       errorObject.emailError = "Email adresinizi kontrol ediniz."
       errorObject.isError = true
     }
 
-    if (baglantiTalepEmail === userEmail) {
+    if (otherUserEmail === userEmail) {
       errorObject.emailError = "Kendi mail adresinizi girmiş gözüküyorsunuz."
       errorObject.isError = true
     }
@@ -58,20 +58,20 @@ exports = async function ({
     }
 
 
-    let baglantiTalepUser
+    let otherUser
 
 
     try {
-      baglantiTalepUser = await collection_Users.findOne({ email: baglantiTalepEmail })
+      otherUser = await collection_Users.findOne({ email: otherUserEmail })
     } catch (error) {
       throw new Error({ error, MONGO_Fonksiyon: "collectionNetworkUser", hataYeri: "-mesajSplit-Kullanıcının sitemde aranması sırasında hata oluştu.-mesajSplit-" })
     }
 
 
 
-    if (!baglantiTalepUser) {
+    if (!otherUser) {
       try {
-        let email = baglantiTalepUser
+        let email = otherUser
         let subject = '${userIsim} ${userSoyisim} adlı kişi sizi Rapor7/24 sistemine davet ediyor'
         let message = '${userIsim} ${userSoyisim} adlı kişi sizi Rapor7/24 sistemine davet ediyor, üye olmak için lütfen tıklayınız. https://rapor724-v2-cykom-zijnv.mongodbstitch.com'
         await context.functions.execute("sendMail", email, subject, message)
@@ -85,7 +85,7 @@ exports = async function ({
     let userNetworkIncludes
 
     try {
-      userNetworkIncludes = await context.services.get("mongodb-atlas").db("userNetwork").collection(userEmail).findOne({ _id: baglantiTalepEmail })
+      userNetworkIncludes = await context.services.get("mongodb-atlas").db("userNetwork").collection(userEmail).findOne({ _id: otherUserEmail })
     } catch (error) {
       throw new Error({ error, MONGO_Fonksiyon: "collectionNetworkUser", hataYeri: "-mesajSplit-Kaydetmek istediğiniz kullanıcı ağınızda mevcut mu diye sorgulanırken hata oluştu.-mesajSplit-" })
     }
@@ -94,9 +94,8 @@ exports = async function ({
       try {
         await context.services.get("mongodb-atlas").db("userNetwork").collection(userEmail).insertOne(
           {
-            _id: baglantiTalepEmail,
-            remoteStatus: baglantiTalepUser ? "pending_userApprove" : "pending_accountCreate",
-            status: "requestContact"
+            _id: otherUserEmail,
+            status: otherUser ? "pending_otherUser_approve" : "pending_otherUser_account"
           }
         )
       } catch (error) {
@@ -106,21 +105,20 @@ exports = async function ({
 
 
 
-    let remoteUserNetworkIncludes
+    let otherUserNetworkIncludes
 
     try {
-      remoteUserNetworkIncludes = await context.services.get("mongodb-atlas").db("userNetwork").collection(baglantiTalepEmail).findOne({ _id: userEmail })
+      otherUserNetworkIncludes = await context.services.get("mongodb-atlas").db("userNetwork").collection(otherUserEmail).findOne({ _id: userEmail })
     } catch (error) {
       throw new Error({ error, MONGO_Fonksiyon: "collectionNetworkUser", hataYeri: "-mesajSplit-Kaydetmek istediğiniz kullanıcının ağında siz var mısınız diye sorgulanırken hata oluştu.-mesajSplit-" })
     }
 
-    if (!remoteUserNetworkIncludes) {
+    if (!otherUserNetworkIncludes) {
       try {
-        await context.services.get("mongodb-atlas").db("userNetwork").collection(baglantiTalepEmail).insertOne(
+        await context.services.get("mongodb-atlas").db("userNetwork").collection(otherUserEmail).insertOne(
           {
             _id: userEmail,
-            remoteStatus: "requestContact",
-            status: baglantiTalepUser ? "pending_userApprove" : "pending_accountCreate"
+            status: "pending_your_approve"
           }
         )
       } catch (error) {
@@ -128,8 +126,8 @@ exports = async function ({
       }
     }
 
-    if (userNetworkIncludes && remoteUserNetworkIncludes) {
-      if (userNetworkIncludes?.status?.includes("pending") || userNetworkIncludes?.remoteStatus?.includes("pending")) {
+    if (userNetworkIncludes && otherUserNetworkIncludes) {
+      if (userNetworkIncludes?.status?.includes("pending") || userNetworkIncludes?.otherStatus?.includes("pending")) {
         throw new Error({ MONGO_Fonksiyon: "collectionNetworkUser", hataYeri: "-mesajSplit-Bu kullanıcı listenizde zaten mevcut, onay bekleniyor..-mesajSplit-" })
       }
       throw new Error({ MONGO_Fonksiyon: "collectionNetworkUser", hataYeri: "-mesajSplit-Bu kullanıcı ile bağlantınız zaten mevcut.-mesajSplit-" })
@@ -139,7 +137,7 @@ exports = async function ({
       throw new Error({ MONGO_Fonksiyon: "collectionNetworkUser", hataYeri: "-mesajSplit-Bu kullanıcı sizin ağınızda zaten vardı, siz bu kullanıcının ağına kaydoldunuz.-mesajSplit-" })
     }
 
-    if (remoteUserNetworkIncludes) {
+    if (otherUserNetworkIncludes) {
       throw new Error({ MONGO_Fonksiyon: "collectionNetworkUser", hataYeri: "-mesajSplit-Siz bu kullanıcının ağında zaten vardınız, kullanıcı sizin ağınıza kayduldu-mesajSplit-" })
     }
 
