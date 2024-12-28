@@ -401,5 +401,10 @@
         "private": false,
         "run_as_system": true,
         "disable_arg_logs": true
+    },
+    {
+        "name": "auth_whenUserDeleted",
+        "private": false,
+        "run_as_system": true
     }
 ]
