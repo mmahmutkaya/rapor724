@@ -7,8 +7,8 @@ exports = async function ({
   const user = context.user;
   // const _userId = new BSON.ObjectId(user.id)
   const userEmail = context.user.data.email
-  // const userIsim = user.custom_data.isim
-  // const userSoyisim = user.custom_data.soyisim
+  const userIsim = user.custom_data.isim
+  const userSoyisim = user.custom_data.soyisim
 
   const mailTeyit = user.custom_data.mailTeyit;
   if (!mailTeyit) {
@@ -94,7 +94,9 @@ exports = async function ({
       try {
         await context.services.get("mongodb-atlas").db("userNetwork").collection(userEmail).insertOne(
           {
-            _id: otherUserEmail,
+            _id: otherUser.email,
+            isim: otherUser.isim,
+            soyisim: otherUser.soyisim,
             status: otherUser ? "pending_otherUser_approve" : "pending_otherUser_account"
           }
         )
@@ -118,6 +120,8 @@ exports = async function ({
         await context.services.get("mongodb-atlas").db("userNetwork").collection(otherUserEmail).insertOne(
           {
             _id: userEmail,
+            isim:userIsim,
+            soyisim:userSoyisim,
             status: "pending_your_approve"
           }
         )
