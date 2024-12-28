@@ -115,8 +115,8 @@ exports = async function ({
       }
     }
 
-    if (userNetworkIncludes && remoteUserNetworkIncludes) {
-      throw new Error({ MONGO_Fonksiyon: "collectionNetworkUser", hataYeri: "-mesajSplit-Bu kullanıcı ile karşılıklı zaten kayıtlısınız-mesajSplit-" })
+    if (userNetworkIncludes && remoteUserNetworkIncludes && (userNetworkIncludes.status.includes("pending") || userNetworkIncludes.remoteStatus.includes("pending"))) {
+      throw new Error({ MONGO_Fonksiyon: "collectionNetworkUser", hataYeri: "-mesajSplit-Bu kullanıcı listenizde zaten mevcut, onay bekleniyor..-mesajSplit-" })
     }
 
     if (userNetworkIncludes) {
