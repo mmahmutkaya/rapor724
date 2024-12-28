@@ -51,7 +51,7 @@ exports = async function ({
     try {
       baglantiTalepUser = await collection_Users.findOne({ email: baglantiTalepEmail })
     } catch (error) {
-      throw new Error({ error, MONGO_Fonksiyon: "collectionNetworkUser", hataYeri: `Kullanıcının sitemde aranması sırasında hata oluştu.` })
+      throw new Error({ error, MONGO_Fonksiyon: "collectionNetworkUser", hataYeri: "-mesajSplit-Kullanıcının sitemde aranması sırasında hata oluştu.-mesajSplit-" })
     }
 
 
@@ -63,7 +63,7 @@ exports = async function ({
         let message = '${userIsim} ${userSoyisim} adlı kişi sizi Rapor7/24 sistemine davet ediyor, üye olmak için lütfen tıklayınız. https://rapor724-v2-cykom-zijnv.mongodbstitch.com'
         await context.functions.execute("sendMail", email, subject, message)
       } catch (error) {
-        throw new Error({ error, MONGO_Fonksiyon: "collectionNetworkUser", hataYeri: "Kullanıcıya davet maili gönderilmesi sırasında hata oluştu." })
+        throw new Error({ error, MONGO_Fonksiyon: "collectionNetworkUser", hataYeri: "-mesajSplit-Kullanıcıya davet maili gönderilmesi sırasında hata oluştu.-mesajSplit-" })
       }
     }
 
@@ -74,7 +74,7 @@ exports = async function ({
     try {
       userNetworkIncludes = context.services.get("mongodb-atlas").db("userNetwork").collection(userEmail).find({ _id: baglantiTalepEmail })
     } catch (error) {
-      throw new Error({ error, MONGO_Fonksiyon: "collectionNetworkUser", hataYeri: "Kaydetmek istediğiniz kullanıcı ağınızda mevcut mu diye sorgulanırken hata oluştu." })
+      throw new Error({ error, MONGO_Fonksiyon: "collectionNetworkUser", hataYeri: "-mesajSplit-Kaydetmek istediğiniz kullanıcı ağınızda mevcut mu diye sorgulanırken hata oluştu.-mesajSplit-" })
     }
 
     if (!userNetworkIncludes) {
@@ -87,7 +87,7 @@ exports = async function ({
           }
         )
       } catch (error) {
-        throw new Error({ error, MONGO_Fonksiyon: "collectionNetworkUser", hataYeri: "Kullanıcının listenize eklenmesi sırasında hata oluştu" })
+        throw new Error({ error, MONGO_Fonksiyon: "collectionNetworkUser", hataYeri: "-mesajSplit-Kullanıcının listenize eklenmesi sırasında hata oluştu-mesajSplit-" })
       }
     }
 
@@ -98,7 +98,7 @@ exports = async function ({
     try {
       remoteUserNetworkIncludes = context.services.get("mongodb-atlas").db("userNetwork").collection(baglantiTalepEmail).find({ _id: userEmail })
     } catch (error) {
-      throw new Error({ error, MONGO_Fonksiyon: "collectionNetworkUser", hataYeri: "Kaydetmek istediğiniz kullanıcının ağında siz var mısınız diye sorgulanırken hata oluştu." })
+      throw new Error({ error, MONGO_Fonksiyon: "collectionNetworkUser", hataYeri: "-mesajSplit-Kaydetmek istediğiniz kullanıcının ağında siz var mısınız diye sorgulanırken hata oluştu.-mesajSplit-" })
     }
 
     if (!remoteUserNetworkIncludes) {
@@ -111,20 +111,20 @@ exports = async function ({
           }
         )
       } catch (error) {
-        throw new Error({ error, MONGO_Fonksiyon: "collectionNetworkUser", hataYeri: "Kullanıcının listesine sizin eklenmeniz sırasında hata oluştu" })
+        throw new Error({ error, MONGO_Fonksiyon: "collectionNetworkUser", hataYeri: "-mesajSplit-Kullanıcının listesine sizin eklenmeniz sırasında hata oluştu-mesajSplit-" })
       }
     }
 
     if (userNetworkIncludes && remoteUserNetworkIncludes) {
-      throw new Error({ MONGO_Fonksiyon: "collectionNetworkUser", hataYeri: "Bu kullanıcı ile karşılıklı zaten kayıtlısınız" })
+      throw new Error({ MONGO_Fonksiyon: "collectionNetworkUser", hataYeri: "-mesajSplit-Bu kullanıcı ile karşılıklı zaten kayıtlısınız-mesajSplit-" })
     }
 
     if (userNetworkIncludes) {
-      throw new Error({ MONGO_Fonksiyon: "collectionNetworkUser", hataYeri: "Bu kullanıcı sizin ağınızda zaten vardı, siz bu kullanıcının ağına kaydoldunuz." })
+      throw new Error({ MONGO_Fonksiyon: "collectionNetworkUser", hataYeri: "-mesajSplit-Bu kullanıcı sizin ağınızda zaten vardı, siz bu kullanıcının ağına kaydoldunuz.-mesajSplit-" })
     }
 
     if (remoteUserNetworkIncludes) {
-      throw new Error({ MONGO_Fonksiyon: "collectionNetworkUser", hataYeri: "Siz bu kullanıcının ağında zaten vardınız, kullanıcı sizin ağınıza kayduldu" })
+      throw new Error({ MONGO_Fonksiyon: "collectionNetworkUser", hataYeri: "-mesajSplit-Siz bu kullanıcının ağında zaten vardınız, kullanıcı sizin ağınıza kayduldu-mesajSplit-" })
     }
 
     return "Kayıt işlemi gerçekleşti"
