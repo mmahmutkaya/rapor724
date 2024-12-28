@@ -67,6 +67,13 @@ exports = async function ({
       throw new Error({ error, MONGO_Fonksiyon: "collectionNetworkUser", hataYeri: "-mesajSplit-Kullanıcının sitemde aranması sırasında hata oluştu.-mesajSplit-" })
     }
 
+    const otherUserObj = {
+      _id: otherUserEmail,
+      isim: otherUser?.isim,
+      soyisim: otherUser?.soyisim,
+      status: otherUser ? "pending_otherUser_approve" : "pending_otherUser_account"
+    }
+
 
 
     if (!otherUser) {
@@ -90,16 +97,10 @@ exports = async function ({
       throw new Error({ error, MONGO_Fonksiyon: "collectionNetworkUser", hataYeri: "-mesajSplit-Kaydetmek istediğiniz kullanıcı ağınızda mevcut mu diye sorgulanırken hata oluştu.-mesajSplit-" })
     }
 
+    
     if (!userNetworkIncludes) {
       try {
-        await context.services.get("mongodb-atlas").db("userNetwork").collection(userEmail).insertOne(
-          {
-            _id: otherUser.email,
-            isim: otherUser.isim,
-            soyisim: otherUser.soyisim,
-            status: otherUser ? "pending_otherUser_approve" : "pending_otherUser_account"
-          }
-        )
+        await context.services.get("mongodb-atlas").db("userNetwork").collection(userEmail).insertOne(otherUserObj)
       } catch (error) {
         throw new Error({ error, MONGO_Fonksiyon: "collectionNetworkUser", hataYeri: "-mesajSplit-Kullanıcının listenize eklenmesi sırasında hata oluştu-mesajSplit-" })
       }
@@ -137,15 +138,15 @@ exports = async function ({
       throw new Error({ MONGO_Fonksiyon: "collectionNetworkUser", hataYeri: "-mesajSplit-Bu kullanıcı ile bağlantınız zaten mevcut.-mesajSplit-" })
     }
 
-    if (userNetworkIncludes) {
+    if (userNetworkIncludes && !otherUserNetworkIncludes) {
       throw new Error({ MONGO_Fonksiyon: "collectionNetworkUser", hataYeri: "-mesajSplit-Bu kullanıcı sizin ağınızda zaten vardı, siz bu kullanıcının ağına kaydoldunuz.-mesajSplit-" })
     }
 
-    if (otherUserNetworkIncludes) {
-      throw new Error({ MONGO_Fonksiyon: "collectionNetworkUser", hataYeri: "-mesajSplit-Siz bu kullanıcının ağında zaten vardınız, kullanıcı sizin ağınıza kayduldu-mesajSplit-" })
+    if (otherUserNetworkIncludes && !userNetworkIncludes) {
+      return {addUser:otherUserObj}
     }
 
-    return "Kayıt işlemi gerçekleşti"
+    return {addUser:otherUserObj}
 
   }
 
