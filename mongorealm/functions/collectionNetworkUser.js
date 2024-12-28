@@ -15,6 +15,19 @@ exports = async function ({
     throw new Error("-mesajSplit-Öncelikle üyeliğinize ait mail adresinin size ait olduğunu doğrulamalısınız, tekrar giriş yapmayı deneyiniz veya bizimle iletişime geçiniz.-mesajSplit-");
   }
 
+  
+  if (functionName == "getNetworkUsers") {
+
+    try {
+      const result = context.services.get("mongodb-atlas").db("userNetwork").collection(userEmail).find({})
+      return result      
+    } catch (error) {
+      throw new Error({ error, MONGO_Fonksiyon: "collectionNetworkUser", hataYeri: "-mesajSplit-Ağınızdaki kullanıcıların sistemde aranması sırasında hata oluştu.-mesajSplit-" })
+    }
+
+  }
+
+
 
   if (functionName == "kisiBaglantiTalep") {
 
