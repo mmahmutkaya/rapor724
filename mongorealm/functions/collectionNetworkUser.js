@@ -79,8 +79,8 @@ exports = async function ({
     if (!otherUser) {
       try {
         let email = otherUserEmail
-        let subject = '${userIsim} ${userSoyisim} adlı kişi sizi Rapor7/24 sistemine davet ediyor'
-        let message = '${userIsim} ${userSoyisim} adlı kişi sizi Rapor7/24 sistemine davet ediyor, üye olmak için lütfen tıklayınız. https://rapor724-v2-cykom-zijnv.mongodbstitch.com'
+        let subject = `${userIsim} ${userSoyisim} adlı kişi sizi Rapor7/24 sistemine davet ediyor`
+        let message = `${userIsim} ${userSoyisim} adlı kişi sizi Rapor7/24 sistemine davet ediyor, üye olmak için lütfen tıklayınız. https://rapor724-v2-cykom-zijnv.mongodbstitch.com`
         await context.functions.execute("sendMail", email, subject, message)
       } catch (error) {
         throw new Error({ error, MONGO_Fonksiyon: "collectionNetworkUser", hataYeri: "-mesajSplit-Kullanıcıya davet maili gönderilmesi sırasında hata oluştu.-mesajSplit-" })
