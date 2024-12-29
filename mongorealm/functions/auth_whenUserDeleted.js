@@ -1,7 +1,7 @@
-exports = async function (user) {
+exports = async function ({ user, time }) {
   
-  const userId = user.id
-  const email = user.data.email
+  // const userId = user.id
+  // const email = user.data.email
 
 
   // aşağıdaki konrolü yapmamıza gerek yok zaten sistemden alıyoruz mail adresini
@@ -23,7 +23,7 @@ exports = async function (user) {
     const collection_Users = context.services.get("mongodb-atlas").db("rapor724_v2").collection("users")
     await collection_Users.updateOne(
       { email },
-      { $set: { isActive:false} },
+      { $set: { isActive:false}, deletedUser:user },
       { upsert: true }
     )
   } catch (err) {
