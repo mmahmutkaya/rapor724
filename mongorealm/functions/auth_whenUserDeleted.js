@@ -22,7 +22,7 @@ exports = async function ({ user, time }) {
   try {
     const collection_Users = context.services.get("mongodb-atlas").db("rapor724_v2").collection("users")
     await collection_Users.updateOne(
-      { userId },
+      { userId: userId.toString() },
       { $set: { isActive:false, deletedUser:user}},
       { upsert: true }
     )
