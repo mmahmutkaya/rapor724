@@ -67,6 +67,7 @@ exports = async function ({
       throw new Error({ error, MONGO_Fonksiyon: "collectionNetworkUser", hataYeri: "-mesajSplit-Kullanıcının sitemde aranması sırasında hata oluştu.-mesajSplit-" })
     }
 
+    
     const otherUserObj = {
       _id: otherUserEmail,
       isim: otherUser?.isim,
@@ -195,7 +196,7 @@ exports = async function ({
     //   return { otherUserObj }
     // }
 
-    // return { otherUserObj }
+    return { ok:true, otherUserObj }
 
   }
 
