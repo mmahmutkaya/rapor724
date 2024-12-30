@@ -122,7 +122,13 @@ exports = async function ({
     try {
       await context.services.get("mongodb-atlas").db("userNetwork").collection(userEmail).updateOne(
         { _id: otherUserEmail },
-        { $set: { status: "approve" } },
+        {
+          $set: {
+            status: true,
+            isim: otherUser ? otherUser.isim : "",
+            soyisim: otherUser ? otherUser.soyisim : ""
+          }
+        },
         { upsert: true }
       )
     } catch (error) {
@@ -159,7 +165,13 @@ exports = async function ({
     try {
       await context.services.get("mongodb-atlas").db("userNetwork").collection(otherUserEmail).updateOne(
         { _id: userEmail },
-        { $set: { otherStatus: "approve" } },
+        {
+          $set: {
+            otherStatus: true,
+            isim: userIsim,
+            soyisim: userSoyisim
+          }
+        },
         { upsert: true }
       )
     } catch (error) {
@@ -167,7 +179,7 @@ exports = async function ({
     }
 
 
-    
+
     // if (userNetworkIncludes && otherUserNetworkIncludes) {
     //   if (userNetworkIncludes?.status?.includes("pending") || userNetworkIncludes?.otherStatus?.includes("pending")) {
     //     throw new Error({ MONGO_Fonksiyon: "collectionNetworkUser", hataYeri: "-mesajSplit-Bu kullanıcı listenizde zaten mevcut, onay bekleniyor..-mesajSplit-" })
