@@ -72,7 +72,7 @@ exports = async function ({
       _id: otherUserEmail,
       isim: otherUser?.isim,
       soyisim: otherUser?.soyisim,
-      status: otherUser ? "pending_otherUser_approve" : "pending_otherUser_account"
+      otherStatus:true
     }
 
 
@@ -92,8 +92,8 @@ exports = async function ({
     if (!otherUser?.isActive) {
       try {
         let email = otherUserEmail
-        let subject = `${userIsim} ${userSoyisim} adlı kişi sizi Rapor7/24 sistemindeki üyeliğinizi yeniden aktif etmenizi istiyor.`
-        let message = `${userIsim} ${userSoyisim} adlı kişi sizi Rapor7/24 sistemindeki üyeliğinizi yeniden aktif etmenizi istiyor, lütfen tıklayınız. https://rapor724-v2-cykom-zijnv.mongodbstitch.com`
+        let subject = `${userIsim} ${userSoyisim}, sizi yeniden Rapor7/24 sistemine davet ediyor.`
+        let message = `${userIsim} ${userSoyisim}, sizi yeniden Rapor7/24 sistemine davet ediyor, lütfen tıklayınız. https://rapor724-v2-cykom-zijnv.mongodbstitch.com`
         await context.functions.execute("sendMail", email, subject, message)
       } catch (error) {
         throw new Error({ error, MONGO_Fonksiyon: "collectionNetworkUser", hataYeri: "-mesajSplit-Kullanıcıya davet maili gönderilmesi sırasında hata oluştu.-mesajSplit-" })
