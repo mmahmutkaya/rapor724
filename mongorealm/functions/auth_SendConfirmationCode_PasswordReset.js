@@ -48,8 +48,7 @@ exports = async function({email}){
   // maile gidecek kodu db ye kaydetme
   let resultdbKayit
   try {
-    const collection_Users = context.services.get("mongodb-atlas").db("rapor724_v2").collection("users")
-    resultMongo = await collection_Users.updateOne(
+    resultMongo = await context.services.get("mongodb-atlas").db("rapor724_v2").collection("mailConfirmationCodes").updateOne(
       { email },
       { $set: { 
         confirmationCode_PasswordReset,
