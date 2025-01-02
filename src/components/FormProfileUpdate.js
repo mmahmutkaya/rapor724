@@ -8,7 +8,11 @@ import { useNavigate } from "react-router-dom";
 //mui
 import Box from '@mui/material/Box';
 import Grid from '@mui/material/Grid';
+
 import Button from '@mui/material/Button';
+import { Button as BaseButton, buttonClasses } from '@mui/base/Button';
+import { styled } from '@mui/system';
+
 import TextField from '@mui/material/TextField';
 import Dialog from '@mui/material/Dialog';
 import DialogActions from '@mui/material/DialogActions';
@@ -30,6 +34,7 @@ export default function P_FormProfileUpdate({ setShow }) {
   const navigate = useNavigate()
 
   const [dialogAlert, setDialogAlert] = useState()
+  const [isChanged, setIsChanged] = useState(false)
 
   const [isim, setIsim] = useState(RealmApp.currentUser.customData.isim)
   const [soyisim, setSoyisim] = useState(RealmApp.currentUser.customData.soyisim)
@@ -94,6 +99,13 @@ export default function P_FormProfileUpdate({ setShow }) {
         // rehber = rehber ? true : false
 
 
+        // if (isim == RealmApp.currentUser.customData.isim &&
+        //   soyisim == RealmApp.currentUser.customData.soyisimisim
+        // ) {
+        //   setIsChanged()
+        // }
+
+
 
         if (isim.length < 2) {
           setIsimError("En az 2 karakter girmelisiniz")
@@ -129,6 +141,7 @@ export default function P_FormProfileUpdate({ setShow }) {
         setPageSituation(2)
         const result = await RealmApp.currentUser.callFunction("auth_updateCustumData_isimSoyisim", { isim, soyisim })
         await RealmApp.currentUser.refreshCustomData()
+        setIsChanged()
 
         if (result.isError) {
 
@@ -213,6 +226,15 @@ export default function P_FormProfileUpdate({ setShow }) {
             <Box>
 
               <TextField
+                variant="standard"
+                margin="normal"
+                fullWidth
+                disabled={true}
+                label={"Email"}
+                value={RealmApp.currentUser._profile.data.email}
+              />
+
+              <TextField
                 // onClick={() => setIsimError()}
                 variant="standard"
                 error={isimError ? true : false}
@@ -229,7 +251,17 @@ export default function P_FormProfileUpdate({ setShow }) {
                   sadeceHarfveBosluk(e)
                   setIsimError()
                 }}
-                onChange={(e) => setIsim(basHarflerBuyuk(e.target.value))}
+                onChange={(e) => {
+                  let isim = basHarflerBuyuk(e.target.value)
+                  setIsim(isim)
+                  if (isim == RealmApp.currentUser.customData.isim &&
+                    soyisim == RealmApp.currentUser.customData.soyisim
+                  ) {
+                    setIsChanged()
+                  } else {
+                    setIsChanged(true)
+                  }
+                }}
                 value={isim}
               />
 
@@ -249,11 +281,20 @@ export default function P_FormProfileUpdate({ setShow }) {
                   sadeceHarfveBosluk(e)
                   setSoyisimError()
                 }}
-                onChange={(e) => setSoyisim(() => e.target.value.replace("i", "İ").toUpperCase())}
+                onChange={(e) => {
+                  let soyisim = e.target.value.replace("i", "İ").toUpperCase()
+                  setSoyisim(soyisim)
+                  if (isim == RealmApp.currentUser.customData.isim &&
+                    soyisim == RealmApp.currentUser.customData.soyisim
+                  ) {
+                    setIsChanged()
+                  } else {
+                    setIsChanged(true)
+                  }
+                }}
                 autoComplete="off"
                 value={soyisim}
               />
-
 
               {/* <Box sx={{ display: "grid", gridTemplateColumns: "auto 1fr auto", alignItems: "center", mt: "1rem", borderBottom: "1px solid gray" }}>
                 <Box sx={{ color: pageSituation !== 1 && "lightgray" }}>Aramalarda Görünmeye İzin Veriyorum</Box>
@@ -290,14 +331,109 @@ export default function P_FormProfileUpdate({ setShow }) {
           </DialogContent>
 
           <DialogActions sx={{ padding: "1.5rem" }}>
-            <Button onClick={() => setShow("ProjectMain")}>İptal</Button>
-            <Button type="submit">Oluştur</Button>
+            <Button onClick={() => navigate(0)}>İptal</Button>
+            <Button disabled={!isChanged} type="submit">Güncelle</Button>
           </DialogActions>
 
         </Box>
+
+        <Box sx={{ display: "grid", justifyContent: "end" }}>
+          <ButtonDolu
+            type="submit"
+            sx={{ width: "10rem", mb: "2rem", mr: "1.5rem" }}
+            onClick={() => {
+              RealmApp.deleteUser(RealmApp.currentUser)
+              RealmApp.currentUser.refreshCustomData()
+            }}
+          >
+            Hesabımı Sil
+          </ButtonDolu>
+        </Box>
+
+
       </Dialog>
     </div >
   );
 
 
 }
+
+
+const red = {
+  50: "#FFEBEE",
+  100: "#FFCDD2",
+  200: "#EF9A9A",
+  300: "#E57373",
+  400: "#EF5350",
+  500: "#F44336",
+  600: "#E53935",
+  700: "#D32F2F",
+  800: "#C62828",
+  900: "#B71C1C",
+}
+
+
+
+const blue = {
+  200: '#99CCFF',
+  300: '#66B2FF',
+  400: '#3399FF',
+  500: '#007FFF',
+  600: '#0072E5',
+  700: '#0066CC',
+};
+
+const grey = {
+  50: '#F3F6F9',
+  100: '#E5EAF2',
+  200: '#DAE2ED',
+  300: '#C7D0DD',
+  400: '#B0B8C4',
+  500: '#9DA8B7',
+  600: '#6B7A90',
+  700: '#434D5B',
+  800: '#303740',
+  900: '#1C2025',
+};
+
+const ButtonDolu = styled(BaseButton)(
+  ({ theme }) => `
+  font-family: 'IBM Plex Sans', sans-serif;
+  font-weight: 600;
+  font-size: 0.875rem;
+  line-height: 1.5;
+  background-color: ${red[700]};
+  padding: 8px 16px;
+  border-radius: 8px;
+  color: white;
+  transition: all 150ms ease;
+  cursor: pointer;
+  border: 1px solid ${red[700]};
+  box-shadow: 0 2px 1px ${theme.palette.mode === 'dark' ? 'rgba(0, 0, 0, 0.5)' : 'rgba(45, 45, 60, 0.2)'
+    }, inset 0 1.5px 1px ${red[600]}, inset 0 -2px 1px ${red[800]};
+
+  &:hover {
+    background-color: ${red[800]};
+  }
+
+  &.${buttonClasses.active} {
+    background-color: ${red[900]};
+    box-shadow: none;
+    transform: scale(0.99);
+  }
+
+  &.${buttonClasses.focusVisible} {
+    box-shadow: 0 0 0 4px ${theme.palette.mode === 'dark' ? red[500] : red[400]};
+    outline: none;
+  }
+
+  &.${buttonClasses.disabled} {
+    background-color: ${theme.palette.mode === 'dark' ? grey[700] : grey[200]};
+    color: ${theme.palette.mode === 'dark' ? grey[200] : grey[700]};
+    border: 0;
+    cursor: default;
+    box-shadow: none;
+    transform: scale(1);
+  }
+  `,
+);

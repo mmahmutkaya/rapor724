@@ -8,10 +8,30 @@ import { useApp } from "../components/useApp"
 
 // QUERIES
 
+
+export const useGetNetworkUsers = (onSuccess, onError) => {
+
+  // const RealmApp = useApp();
+  const { RealmApp } = useContext(StoreContext)
+
+  return useQuery({
+    queryKey: ['networkUsers', RealmApp.currentUser._profile.data.email],
+    queryFn: () => RealmApp?.currentUser.callFunction("collectionNetworkUser", ({ functionName: "getNetworkUsers" })),
+    enabled: !!RealmApp,
+    onSuccess,
+    onError,
+    refetchOnMount: false,
+    refetchOnWindowFocus: false
+  })
+
+}
+
+
+
 export const useGetMahaller = (onSuccess, onError) => {
 
-  const RealmApp = useApp();
-  const { isProject } = useContext(StoreContext)
+  // const RealmApp = useApp();
+  const { isProject, RealmApp } = useContext(StoreContext)
 
   return useQuery({
     queryKey: ['mahaller', isProject?._id.toString()],
@@ -28,8 +48,8 @@ export const useGetMahaller = (onSuccess, onError) => {
 
 export const useGetPozlar = (onSuccess, onError) => {
 
-  const RealmApp = useApp();
-  const { isProject } = useContext(StoreContext)
+  // const RealmApp = useApp();
+  const { isProject, RealmApp } = useContext(StoreContext)
 
   return useQuery({
     queryKey: ['pozlar', isProject?._id.toString()],
@@ -46,8 +66,8 @@ export const useGetPozlar = (onSuccess, onError) => {
 
 export const useGetMahalListesi = () => {
 
-  const RealmApp = useApp();
-  const { isProject } = useContext(StoreContext)
+  // const RealmApp = useApp();
+  const { isProject, RealmApp } = useContext(StoreContext)
 
   return useQuery({
     queryKey: ['mahalListesi', isProject?._id.toString()],
@@ -65,8 +85,8 @@ export const useGetMahalListesi = () => {
 
 //   console.log("_pozId",_pozId)
 
-//   const RealmApp = useApp();
-//   const { isProject } = useContext(StoreContext)
+//   // const RealmApp = useApp();
+//   const { isProject,  RealmApp} = useContext(StoreContext)
 
 //   return useQuery({
 //     queryKey: ['mahaller_birPoz', ],
@@ -84,8 +104,8 @@ export const useGetMahalListesi = () => {
 
 export const useGetHazirlananMetrajlar = ({ selectedNode }) => {
 
-  const RealmApp = useApp();
-  const { isProject } = useContext(StoreContext)
+  // const RealmApp = useApp();
+  const { isProject, RealmApp } = useContext(StoreContext)
 
   return useQuery({
     queryKey: ['hazirlananMetrajlar', selectedNode?._id.toString()],
@@ -102,8 +122,8 @@ export const useGetHazirlananMetrajlar = ({ selectedNode }) => {
 
 export const useGetOnaylananMetraj = ({ selectedNode }) => {
 
-  const RealmApp = useApp();
-  const { isProject } = useContext(StoreContext)
+  // const RealmApp = useApp();
+  const { isProject, RealmApp } = useContext(StoreContext)
 
   return useQuery({
     queryKey: ['onaylananMetraj', selectedNode?._id.toString()],
@@ -123,8 +143,8 @@ export const useGetOnaylananMetraj = ({ selectedNode }) => {
 
 export const useGetPozlarMetraj = () => {
 
-  const RealmApp = useApp();
-  const { isProject } = useContext(StoreContext)
+  // const RealmApp = useApp();
+  const { isProject, RealmApp } = useContext(StoreContext)
 
   return useQuery({
     queryKey: ['pozlarMetraj', isProject?._id.toString()],
@@ -148,9 +168,9 @@ export const useGetPozlarMetraj = () => {
 
 // export const useToggleOpenMetrajDugum = () => {
 
-//   const RealmApp = useApp();
+//   // const RealmApp = useApp();
 //   const queryClient = useQueryClient()
-//   const { isProject } = useContext(StoreContext)
+//   const { isProject,  RealmApp} = useContext(StoreContext)
 
 //   const mahalListesi_optimisticUpdate = (mahalListesi, variables2) => {
 
@@ -258,9 +278,9 @@ export const useGetPozlarMetraj = () => {
 
 export const useToggleOpenMetrajDugum = () => {
 
-  const RealmApp = useApp();
+  // const RealmApp = useApp();
   const queryClient = useQueryClient()
-  const { isProject } = useContext(StoreContext)
+  const { isProject, RealmApp } = useContext(StoreContext)
 
 
   // const mahalListesi_optimisticUpdate = (mahalListesi, variables2) => {
@@ -372,9 +392,9 @@ export const useToggleOpenMetrajDugum = () => {
 
 export const useUpdateHazirlananMetrajShort = () => {
 
-  const RealmApp = useApp();
+  // const RealmApp = useApp();
   const queryClient = useQueryClient()
-  const { isProject } = useContext(StoreContext)
+  const { isProject, RealmApp } = useContext(StoreContext)
 
   const mahalListesi_optimisticUpdate = (mahalListesi, variables) => {
 
@@ -410,9 +430,9 @@ export const useUpdateHazirlananMetrajShort = () => {
 
 export const useUpdateHazirlananMetraj = () => {
 
-  const RealmApp = useApp();
+  // const RealmApp = useApp();
   const queryClient = useQueryClient()
-  const { isProject } = useContext(StoreContext)
+  const { isProject, RealmApp } = useContext(StoreContext)
 
   const optimisticUpdate = (hazirlananMetrajlar, variables) => {
 
@@ -423,9 +443,9 @@ export const useUpdateHazirlananMetraj = () => {
     hazirlananMetrajlar = [...hazirlananMetrajlar, hazirlananMetraj_state]
 
     return hazirlananMetrajlar
-    
+
   }
-  
+
   return useMutation({
     mutationFn: ({ selectedNode, hazirlananMetraj_state, setHazirlananMetraj_state }) => {
       return RealmApp?.currentUser.callFunction("collectionDugumler", ({ functionName: "updateHazirlananMetraj", hazirlananMetraj_state, _projectId: isProject?._id, _mahalId: selectedNode?._mahalId, _pozId: selectedNode?._pozId }))
@@ -445,9 +465,9 @@ export const useUpdateHazirlananMetraj = () => {
 
 export const useUpdateOnaylananMetraj = () => {
 
-  const RealmApp = useApp();
+  // const RealmApp = useApp();
   const queryClient = useQueryClient()
-  const { isProject } = useContext(StoreContext)
+  const { isProject, RealmApp } = useContext(StoreContext)
 
   return useMutation({
     mutationFn: ({ selectedNode, hazirlananMetrajlar_state, setHazirlananMetrajlar_state, onaylananMetraj_state, setOnaylananMetraj_state }) => {

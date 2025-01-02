@@ -16,7 +16,7 @@ import InfoIcon from '@mui/icons-material/Info';
 
 
 // export const DialogAlert = ({ dialogIcon, dialogMessage, setShowDialog, saveMetraj_ToDb }) => {
-export const DialogAlert = ({ dialogIcon, dialogMessage, onCloseAction, actionText1, action1, actionText2, action2 }) => {
+export const DialogAlert = ({ dialogIcon, dialogMessage, onCloseAction, actionText1, action1, actionText2, action2, detailText }) => {
 
   const DilogIcon = () => {
     switch (dialogIcon) {
@@ -31,6 +31,8 @@ export const DialogAlert = ({ dialogIcon, dialogMessage, onCloseAction, actionTe
     }
   }
 
+  const [showDetail, setShowDetail] = useState(false)
+
   // const cancelDialog = () => {
   //   setShowDialog(false)
   // }
@@ -40,13 +42,13 @@ export const DialogAlert = ({ dialogIcon, dialogMessage, onCloseAction, actionTe
   //   saveMetraj_ToDb(false)
   // }
 
-  
+
 
   return (
     <div>
 
       <Dialog
-        PaperProps={{ sx: { position: "fixed", top: "10rem", p: "0.5rem", } }}
+        PaperProps={{ sx: { position: "fixed", top: "10rem", p: "0.5rem", width: "80%" } }}
         open={true}
         onClose={() => onCloseAction()}
       >
@@ -60,10 +62,25 @@ export const DialogAlert = ({ dialogIcon, dialogMessage, onCloseAction, actionTe
             {dialogMessage}
           </DialogContentText>
 
-          <DialogActions>
-            {actionText1 && <Button onClick={() => action1()}>{actionText1}</Button>}
-            {actionText2 && <Button onClick={() => action2()}> {actionText2} </Button>}
-          </DialogActions>
+
+          {!detailText &&
+            <DialogActions>
+              {actionText1 && <Button onClick={() => action1()}>{actionText1}</Button>}
+              {actionText2 && <Button onClick={() => action2()}> {actionText2} </Button>}
+            </DialogActions>
+          }
+
+          {detailText &&
+            <DialogActions >
+              <Button onClick={() => setShowDetail(value => !value)}>{!showDetail ? "Ayrıntıları Göster" : "Ayrıntıları Gizle"}</Button>
+            </DialogActions>
+          }
+
+          {showDetail &&
+            <DialogContentText >
+              {detailText}
+            </DialogContentText>
+          }
 
         </DialogContent>
 

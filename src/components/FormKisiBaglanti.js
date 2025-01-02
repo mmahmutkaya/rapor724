@@ -19,15 +19,16 @@ import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import WarningIcon from '@mui/icons-material/Warning';
 import { Typography } from '@mui/material';
 import Checkbox from '@mui/material/Checkbox';
+import { useQueryClient } from '@tanstack/react-query'
 
 
 
-export default function P_FormProfileUpdate({ setShow }) {
+export default function P_FormKisiBaglanti({ setShow }) {
 
   // const RealmApp = useApp();
   const { RealmApp } = useContext(StoreContext)
 
-  const navigate = useNavigate()
+  const queryClient = useQueryClient()
 
   const [dialogAlert, setDialogAlert] = useState()
 
@@ -59,24 +60,29 @@ export default function P_FormProfileUpdate({ setShow }) {
         const email = data.get('email')
 
 
-        // //  Email frontend kontrolü
-        // const validateEmail = (email) => {
-        //   return String(email)
-        //     .toLowerCase()
-        //     .match(
-        //       /^(([^<>()[\]\\.,;:\s@"]+(\.[^<>()[\]\\.,;:\s@"]+)*)|.(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/
-        //     );
-        // };
+        //  Email frontend kontrolü
+        const validateEmail = (email) => {
+          return String(email)
+            .toLowerCase()
+            .match(
+              /^(([^<>()[\]\\.,;:\s@"]+(\.[^<>()[\]\\.,;:\s@"]+)*)|.(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/
+            );
+        };
 
-        // if (!validateEmail(email)) {
-        //   setEmailError("Email adresinizi kontrol ediniz")
-        //   isError = true
-        // }
+        if (!validateEmail(email)) {
+          setEmailError("Email adresinizi kontrol ediniz")
+          isError = true
+        }
 
-        // if (!email.length) {
-        //   setEmailError("Email giriniz")
-        //   isError = true
-        // }
+        if (!email.length) {
+          setEmailError("Email giriniz")
+          isError = true
+        }
+
+        if (email === RealmApp.currentUser._profile.data.email) {
+          setEmailError("Kendi mail adresinizi girmiş gözüküyorsunuz")
+          isError = true
+        }
 
 
         // useState deki bir değere bakamıyoruz, çünkü henüz render tazelenmediği için true görünmüyorlar, onun için isError diye bi değişken ile bu işi görmeye çalışıyoruz
@@ -86,50 +92,48 @@ export default function P_FormProfileUpdate({ setShow }) {
         }
 
 
-        console.log("email", email)
         // sorgu olacaksa
         setPageSituation(2)
-        await RealmApp.currentUser.callFunction("collectionDugumler", { functionName: "kisiBaglantiTalep", baglantiTalepEmail: email })
+        const result = await RealmApp.currentUser.callFunction("collectionNetworkUser", { functionName: "kisiBaglantiTalep", otherUserEmail: email })
+        console.log("result", result)
+        if (result.isError) {
+          result.emailError && setEmailError(result.emailError)
+          return
+        }
 
-        navigate(0)
+        let { otherUserObj } = result
+        if (otherUserObj) {
+          queryClient.setQueryData(['networkUsers', RealmApp.currentUser._profile.data.email], (networkUsers) => [...networkUsers, otherUserObj])
+        }
+
+        setShow("Main")
         return
 
-        // setDialogAlert({
-        //   icon: "success",
-        //   message: "Başarı ile kaydedildi",
-        //   onCloseAction: () => navigate(0)
-        //   // onCloseAction: () => setDialogAlert()
-        // })
-
-        return
 
       } catch (error) {
 
         setPageSituation(1)
+
         console.log("error", error)
 
-        if (error.message.includes("Email adresinizi kontrol ediniz")) {
-          setEmailError("Email adresinizi kontrol ediniz")
-          return
-        }
-
-        if (error.message.includes("Email adresi giriniz")) {
-          setEmailError("Email adresi giriniz")
-          return
-        }
 
         let hataMesaj
-
-        if (error.message.includes("Öncelikle mail adresinin sizin olduğunu teyit etmelisiniz")) {
-          hataMesaj = "Öncelikle mail adresinin sizin olduğunu teyit etmelisiniz, kayıt işlemi için yönlendirileceksiniz, sorun devam ederse lütfen bizimle irtibata geçiniz."
+        if (error.message.includes("-mesajSplit-")) {
+          hataMesaj = error.message.split("-mesajSplit-")[1]
         }
+
+
+        console.log("error.message", error.message)
+        console.log("hataMesaj", hataMesaj)
 
         setDialogAlert({
           icon: "warning",
-          message: hataMesaj ? hataMesaj : "Beklenmedik bir hata oluştu, sayfa yenilenecek, sorun devam ederse lütfen bizimle irtibata geçiniz.",
-          onCloseAction: () => navigate(0)
+          message: hataMesaj ? hataMesaj : "HATA - " + error.message,
+          onCloseAction: () => setDialogAlert(),
           // onCloseAction: () => setDialogAlert()
+          detailText: hataMesaj && hataMesaj.length !== error.message.length ? error.message : null
         })
+
 
       }
 
@@ -148,13 +152,14 @@ export default function P_FormProfileUpdate({ setShow }) {
           dialogIcon={dialogAlert.icon}
           dialogMessage={dialogAlert.message}
           onCloseAction={dialogAlert.onCloseAction}
+          detailText={dialogAlert.detailText}
         />
       }
 
       <Dialog
         PaperProps={{ sx: { width: "60%", position: "fixed", top: "10rem" } }}
         open={true}
-        onClose={() => setShow("RootPage")} >
+        onClose={() => setShow("Main")} >
         {/* <DialogTitle>Subscribe</DialogTitle> */}
         <Box component="form" onSubmit={handleSubmit} noValidate sx={{ mt: 1 }}>
 
@@ -162,7 +167,7 @@ export default function P_FormProfileUpdate({ setShow }) {
 
             <DialogContentText sx={{ fontWeight: "bold", paddingBottom: "1rem" }}>
               {/* <Typography sx> */}
-              Profil Bilgileri Güncelle
+              Başka Biri ile Bağlantı Kurma
               {/* </Typography> */}
             </DialogContentText>
 
@@ -190,7 +195,7 @@ export default function P_FormProfileUpdate({ setShow }) {
           </DialogContent>
 
           <DialogActions sx={{ padding: "1.5rem" }}>
-            <Button onClick={() => setShow("ProjectMain")}>İptal</Button>
+            <Button onClick={() => setShow("Main")}>İptal</Button>
             <Button type="submit">Oluştur</Button>
           </DialogActions>
 
