@@ -5,7 +5,7 @@ exports = async function (mailCode) {
 
   const dbData = await context.services.get("mongodb-atlas").db("rapor724_v2").collection("mailConfirmationCodes").find({ email })
 
-  return {dbData, mailCode}
+  return {dbData, mailCode, email}
   if (dbData.code == mailCode) {
 
     await context.services.get("mongodb-atlas").db("rapor724_v2").collection("users").updateOne(
