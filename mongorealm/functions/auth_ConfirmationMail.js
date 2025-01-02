@@ -1,6 +1,6 @@
 exports = async function (mailCode) {
 
-  const userId = context.user.id
+  // const userId = context.user.id
   const email = context.user.data.email
 
   const dbCode = await context.services.get("mongodb-atlas").db("rapor724_v2").collection("mailConfirmationCodes").find({ email }).code
