@@ -20,21 +20,22 @@ exports = async ({ token, tokenId, username, password, currentPasswordValid }, {
   // }
 
 
-  const userData = await context.services.get("mongodb-atlas").db("rapor724_v2").collection("users").findOne({email})
-  if(userData.confirmationCode_PasswordReset !== mailCode ) {
+  const dbData = await context.services.get("mongodb-atlas").db("rapor724_v2").collection("mailConfirmationCodes").findOne({ email:userEmail })
+  
+  if(dbData.code_PasswordReset !== mailCode ) {
     return {status:"fail"}
   }
 
-  if(!userData.mailTeyit){
-    await context.services.get("mongodb-atlas").db("rapor724_v2").collection("users").updateOne(
-      {email},
-      [
-        { $set: { "mailTeyit": true} }
-      ]
-    )
-  }
 
+  await context.services.get("mongodb-atlas").db("rapor724_v2").collection("users").updateOne(
+    { email:userEmail },
+    [
+      { $set: { "mailTeyit": true} }
+    ]
+  )
+  
 
+  // password ulaaşbiliyoruz güvenlik problemi gibi
   // if (!password.length) {
   //   return("Şifre giriniz")
   // }
