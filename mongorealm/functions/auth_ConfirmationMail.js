@@ -1,28 +1,22 @@
-exports = async function(mailCode){
+exports = async function (mailCode) {
 
   const userId = context.user.id
-  const collection_Users = context.services.get("mongodb-atlas").db("rapor724_v2").collection("users")
-  const currentTime = new Date()
+  const userEmail = context.user.data.email
 
- 
-  const result = await collection_Users.updateOne(
-    { userId },
-    [
-      {
-        $set: {
-          "mailTeyit": {
-            $cond: {
-              if: {$eq:["$mailConfirmationKod", mailCode]},
-              then: true,
-              else: false
-            }
-          }
-        },
-      },
-    ]
-  )
+  const dbCode = await context.services.get("mongodb-atlas").db("rapor724_v2").collection("mailConfirmationCodes").find({ email }).code
 
-  return result.modifiedCount ? "teyit edildi" : "mail kodu doğru girilmedi" // bu ifadeleri değiştirmeyelim, fronend de bu metinlere göre işlem yapılıyor
+  if (dbCode == mailCode) {
 
-    
+    await context.services.get("mongodb-atlas").db("rapor724_v2").collection("users").updateOne(
+      { userEmail },
+      [
+        { $set: { "mailTeyit": true } }
+      ]
+    )
+    return "teyit edildi"
+  }
+
+  return "mail kodu doğru girilmedi" // bu ifadeleri değiştirmeyelim, fronend de bu metinlere göre işlem yapılıyor
+
+
 };
