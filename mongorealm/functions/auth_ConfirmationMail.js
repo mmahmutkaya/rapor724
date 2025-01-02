@@ -1,14 +1,14 @@
 exports = async function (mailCode) {
 
   const userId = context.user.id
-  const userEmail = context.user.data.email
+  const email = context.user.data.email
 
   const dbCode = await context.services.get("mongodb-atlas").db("rapor724_v2").collection("mailConfirmationCodes").find({ email }).code
 
   if (dbCode == mailCode) {
 
     await context.services.get("mongodb-atlas").db("rapor724_v2").collection("users").updateOne(
-      { userEmail },
+      { email },
       [
         { $set: { "mailTeyit": true } }
       ]
