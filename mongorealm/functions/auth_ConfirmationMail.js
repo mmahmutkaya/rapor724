@@ -3,9 +3,9 @@ exports = async function (mailCode) {
   // const userId = context.user.id
   const email = context.user.data.email
 
-  const dbCode = await context.services.get("mongodb-atlas").db("rapor724_v2").collection("mailConfirmationCodes").find({ email }).code
+  const dbData = await context.services.get("mongodb-atlas").db("rapor724_v2").collection("mailConfirmationCodes").find({ email })
 
-  if (dbCode == mailCode) {
+  if (dbData.code == mailCode) {
 
     await context.services.get("mongodb-atlas").db("rapor724_v2").collection("users").updateOne(
       { email },
