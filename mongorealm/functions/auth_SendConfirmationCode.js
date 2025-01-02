@@ -35,10 +35,10 @@ exports = async function () {
   // maile gidecek kodu db ye kaydetme
   let resultdbKayit
   try {
-    const collection_Users = context.services.get("mongodb-atlas").db("rapor724_v2").collection("mailConfirmationCodes")
-    resultMongo = await collection_Users.updateOne(
+
+    resultMongo = await context.services.get("mongodb-atlas").db("rapor724_v2").collection("mailConfirmationCodes").updateOne(
       { email },
-      { $set: { code } },
+      { $set: { code:mailConfirmationKod } },
       { upsert: true }
     );
     resultdbKayit = {ok:true, yer:"maile gidecek kodu db ye kaydetme", mesaj:"kod db ye kaydedildi", resultMongo }
