@@ -20,7 +20,7 @@ exports = async ({ token, tokenId, username, password, currentPasswordValid }, {
   // }
 
 
-  const dbData = await context.services.get("mongodb-atlas").db("rapor724_v2").collection("mailConfirmationCodes").findOne({ email:userEmail })
+  const dbData = await context.services.get("mongodb-atlas").db("rapor724_v2").collection("mailConfirmationCodes").findOne({ email })
   
   if(dbData.code_PasswordReset !== mailCode ) {
     return {status:"fail"}
@@ -28,7 +28,7 @@ exports = async ({ token, tokenId, username, password, currentPasswordValid }, {
 
 
   await context.services.get("mongodb-atlas").db("rapor724_v2").collection("users").updateOne(
-    { email:userEmail },
+    { email },
     [
       { $set: { "mailTeyit": true} }
     ]
