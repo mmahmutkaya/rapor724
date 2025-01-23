@@ -156,7 +156,7 @@ exports = async function (newProject) {
 
   try {
 
-    const collection_Projects = context.services.get("mongodb-atlas").db("projects").collection(newProject._id);
+    const collection_Projects = context.services.get("mongodb-atlas").db("projects").collection(newProject._id.toString());
 
     const result = collection_Projects.insertOne(project)
 
