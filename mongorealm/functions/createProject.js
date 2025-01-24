@@ -152,20 +152,12 @@ exports = async function (newProject) {
   }
 
 
-
-
   try {
-
     const collection_Projects = context.services.get("mongodb-atlas").db("rapor724_v2").collection("projects");
-
     const result = collection_Projects.insertOne(project)
-
     return result
-
   } catch (err) {
-
     return { error: err.message };
   }
-
 };
 
