@@ -133,7 +133,7 @@ exports = async function (newProject) {
 
 
   const project = {
-    name,
+    ...newProject,
     // wbs: [], // henüz herhangi bir başlık yok fakat yok ama bu property şimdi olmazsa ilk wbs kaydında bir hata yaşıyoruz
     // lbs: [], // henüz herhangi bir başlık yok fakat yok ama bu property şimdi olmazsa ilk wbs kaydında bir hata yaşıyoruz
     veriTurleri,
@@ -156,7 +156,7 @@ exports = async function (newProject) {
 
   try {
 
-    const collection_Projects = context.services.get("mongodb-atlas").db("projects").collection(newProject._id.toString());
+    const collection_Projects = context.services.get("mongodb-atlas").db("rapor724_v2").collection("projects");
 
     const result = collection_Projects.insertOne(project)
 
