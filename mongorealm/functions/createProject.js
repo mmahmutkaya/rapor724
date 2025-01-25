@@ -143,6 +143,7 @@ exports = async function (newProject) {
     ...newProject,
     // wbs: [], // henüz herhangi bir başlık yok fakat yok ama bu property şimdi olmazsa ilk wbs kaydında bir hata yaşıyoruz
     // lbs: [], // henüz herhangi bir başlık yok fakat yok ama bu property şimdi olmazsa ilk wbs kaydında bir hata yaşıyoruz
+    metrajYapabilenler,
     veriTurleri,
     haneSayilari,
     pozBasliklari,
