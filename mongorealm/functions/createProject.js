@@ -28,6 +28,13 @@ exports = async function (newProject) {
     { _id: new BSON.ObjectId(), platform: "web", sira: 2, referans: "name", goster: true, sabit: true, genislik: 20, paddingInfo: "0px 1rem 0px 0px", yatayHiza: "center", name: "Poz İsmi", dataType: "metin" },
   ]
 
+   const metrajYapabilenler = [
+    {
+      "harf": "A",
+      _userId
+    }
+   ]
+  
   const pozBirimleri = [
     { id: "mt", name: "mt" },
     { id: "m2", name: "m2" },
