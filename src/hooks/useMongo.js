@@ -26,6 +26,23 @@ export const useGetNetworkUsers = (onSuccess, onError) => {
 
 }
 
+export const useGetProjectNames = (onSuccess, onError) => {
+
+  // const RealmApp = useApp();
+  const { RealmApp } = useContext(StoreContext)
+
+  return useQuery({
+    queryKey: ['projectNames', RealmApp.currentUser._profile.data.email],
+    queryFn: () => RealmApp?.currentUser.callFunction("getProjectNames"),
+    enabled: !!RealmApp,
+    onSuccess,
+    onError,
+    refetchOnMount: false,
+    refetchOnWindowFocus: false
+  })
+
+}
+
 
 
 export const useGetMahaller = (onSuccess, onError) => {

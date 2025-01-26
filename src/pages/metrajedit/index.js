@@ -77,7 +77,7 @@ export default function P_MetrajEdit() {
 
   useEffect(() => {
     !isProject && navigate("/projects")
-    !selectedNode && navigate("/metrajmahaller")
+    !selectedNode && navigate("/metrajpozmahaller")
     RealmApp && hazirlananMetrajlar && load_hazirlananMetraj_state()
     return () => {
     }

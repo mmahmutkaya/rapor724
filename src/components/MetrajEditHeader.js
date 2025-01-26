@@ -76,7 +76,7 @@ export default function P_MetrajEditHeader({
     setShowDialog(false)
     setHazirlananMetraj_state()
     setIsChanged()
-    navigate("/metrajmahaller")
+    navigate("/metrajpozmahaller")
   }
 
 
@@ -145,7 +145,7 @@ export default function P_MetrajEditHeader({
                     if (isChanged) {
                       setShowDialog(true)
                     } else {
-                      navigate("/metrajmahaller")
+                      navigate("/metrajpozmahaller")
                     }
                   }} aria-label="lbsUncliced">
                     <ClearOutlined variant="contained" sx={{ color: "red" }} />

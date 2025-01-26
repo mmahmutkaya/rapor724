@@ -132,52 +132,67 @@ export default function P_Kisiler() {
               <Fragment key={user._id}>
                 {basliklar.map((baslik, index2) => {
 
+                  let value = user[baslik.userProperty]
+                  if (baslik.userProperty == ".") value = "."
+                  if (baslik.userProperty == "status") value = user.status ? <div style={icon_checked}></div> : <div style={icon_waiting}></div>
+                  if (baslik.userProperty == "otherStatus") value = user.otherStatus === false ? <div style={icon_rejected}>X</div> : user.otherStatus ? <div style={icon_checked}></div> : <div style={icon_waiting}></div>
 
-                  if (baslik.userProperty == ".") {
-                    return (
-                      <div
-                        key={user._id + "-" + index2}
-                        style={index2 === 0 ? { ...stdLeft } : baslik.userProperty == "." ? { ...stdBosluk } : { ...stdNormal }}
-                      >
-                        .
-                      </div>
-                    )
-                  }
-
-
-                  if (baslik.userProperty == "status") {
-                    return (
-                      <div
-                        key={user._id + "-" + index2}
-                        style={index2 === 0 ? { ...stdLeft } : baslik.userProperty == "." ? { ...stdBosluk } : { ...stdNormal }}
-                      >
-                        {user.status ? <div style={icon_checked}></div> : <div style={icon_waiting}></div>}
-                      </div>
-                    )
-                  }
-
-
-                  if (baslik.userProperty == "otherStatus") {
-                    return (
-                      <div
-                        key={user._id + "-" + index2}
-                        style={index2 === 0 ? { ...stdLeft } : baslik.userProperty == "." ? { ...stdBosluk } : { ...stdNormal }}
-                      >
-                        {user.otherStatus === false ? <div style={icon_rejected}>X</div> : user.otherStatus ? <div style={icon_checked}></div> : <div style={icon_waiting}></div>}
-                      </div>
-                    )
-                  }
-
-
-                  // yukarıdakilerin hiçbiri değilse
                   return (
                     <div
                       key={user._id + "-" + index2}
                       style={index2 === 0 ? { ...stdLeft } : baslik.userProperty == "." ? { ...stdBosluk } : { ...stdNormal }}
                     >
-                      {user[baslik.userProperty]}
+                      {value}
                     </div>
                   )
+
+
+
+                  // if (baslik.userProperty == ".") {
+                  //   return (
+                  //     <div
+                  //       key={user._id + "-" + index2}
+                  //       style={index2 === 0 ? { ...stdLeft } : baslik.userProperty == "." ? { ...stdBosluk } : { ...stdNormal }}
+                  //     >
+                  //       .
+                  //     </div>
+                  //   )
+                  // }
+
+
+                  // if (baslik.userProperty == "status") {
+                  //   return (
+                  //     <div
+                  //       key={user._id + "-" + index2}
+                  //       style={index2 === 0 ? { ...stdLeft } : baslik.userProperty == "." ? { ...stdBosluk } : { ...stdNormal }}
+                  //     >
+                  //       {user.status ? <div style={icon_checked}></div> : <div style={icon_waiting}></div>}
+                  //     </div>
+                  //   )
+                  // }
+
+
+                  // if (baslik.userProperty == "otherStatus") {
+                  //   return (
+                  //     <div
+                  //       key={user._id + "-" + index2}
+                  //       style={index2 === 0 ? { ...stdLeft } : baslik.userProperty == "." ? { ...stdBosluk } : { ...stdNormal }}
+                  //     >
+                  //       {user.otherStatus === false ? <div style={icon_rejected}>X</div> : user.otherStatus ? <div style={icon_checked}></div> : <div style={icon_waiting}></div>}
+                  //     </div>
+                  //   )
+                  // }
+
+
+                  // // yukarıdakilerin hiçbiri değilse
+                  // return (
+                  //   <div
+                  //     key={user._id + "-" + index2}
+                  //     style={index2 === 0 ? { ...stdLeft } : baslik.userProperty == "." ? { ...stdBosluk } : { ...stdNormal }}
+                  //   >
+                  //     {user[baslik.userProperty]}
+                  //   </div>
+                  // )
 
 
                 })}
@@ -353,8 +368,8 @@ const icon_waiting = {
 
 const icon_rejected = {
   color: "red",
-  fontSize:"1.1rem",
-  fontWeight:"600"
+  fontSize: "1.1rem",
+  fontWeight: "600"
 }
 
 

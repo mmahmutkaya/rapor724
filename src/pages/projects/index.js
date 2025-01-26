@@ -5,6 +5,7 @@ import { useApp } from "../../components/useApp";
 import FormProjectCreate from '../../components/FormProjectCreate'
 import ProjectsHeader from '../../components/ProjectsHeader'
 import { useNavigate } from "react-router-dom";
+import { useGetProjectNames } from '../../hooks/useMongo';
 
 
 import Grid from '@mui/material/Grid';
@@ -12,6 +13,7 @@ import Alert from '@mui/material/Alert';
 import Stack from '@mui/material/Stack';
 import { Typography } from '@mui/material';
 import List from '@mui/material/List';
+import Box from '@mui/material/Box';
 
 import FolderIcon from '@mui/icons-material/Folder';
 
@@ -25,18 +27,10 @@ export default function P_Projects() {
   const navigate = useNavigate()
 
   const { isProject, setIsProject } = useContext(StoreContext)
-  const { projectNames, setProjectNames } = useContext(StoreContext)
   const [show, setShow] = useState("ProjectMain")
 
 
-  const projectNames_fecth = async () => {
-    if (!projectNames) {
-      const result = await RealmApp?.currentUser.callFunction("getProjectNames");
-      setProjectNames(result)
-    }
-  }
-  projectNames_fecth()
-
+  const { data: projectNames } = useGetProjectNames()
 
 
   const handleProjectClick = async (prj) => {
@@ -110,16 +104,14 @@ export default function P_Projects() {
 
 
   return (
-    <Grid container direction="column" spacing={1}>
+    <Box>
 
-      <Grid item >
-        <ProjectsHeader setShow={setShow} />
-      </Grid>
+      <ProjectsHeader setShow={setShow} />
 
       {show == "FormProjectCreate" &&
-        <Grid item >
+        <Box>
           <FormProjectCreate setShow={setShow} />
-        </Grid>
+        </Box>
       }
 
       {show == "ProjectMain" && !projectNames?.length > 0 &&
@@ -132,41 +124,38 @@ export default function P_Projects() {
 
       {show == "ProjectMain" && projectNames?.length &&
         <Stack sx={{ width: '100%', padding: "1rem" }} spacing={0}>
-
           {
             projectNames.map((oneProject, index) => (
 
-              <Grid
+              <Box
                 key={index}
-                container spacing={2}
                 onClick={() => handleProjectClick(oneProject)}
                 sx={{
+                  display: "grid",
+                  gridTemplateColumns: "auto 1fr",
                   "&:hover": {
-                    color: "red",
+                    color: "black",
+                    "& .childClass": {
+                      color: "black",
+                    }
                   },
+                  alignItems: "center",
                   padding: "0.2rem 1rem",
                   cursor: "pointer"
                 }}
               >
 
-                <Grid item>
-                  <FolderIcon
-                    sx={{
-                      // "&:hover": {
-                      //   color: "red",
-                      // },
-                      color: "#757575"
-                    }} />
-                </Grid>
+                <Box className="childClass" sx={{ pr: "1rem", color: "gray" }}>
+                  <FolderIcon />
+                </Box>
 
-                <Grid item>
-                  <Typography sx={{ fontWeight: "normal" }}>
+                <Box>
+                  <Typography>
                     {oneProject.name}
                   </Typography>
-                </Grid>
+                </Box>
 
-              </Grid>
-
+              </Box>
 
             ))
           }
@@ -175,7 +164,7 @@ export default function P_Projects() {
         </Stack>
       }
 
-    </Grid>
+    </Box>
 
   )
 

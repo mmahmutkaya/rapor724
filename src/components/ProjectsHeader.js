@@ -44,10 +44,10 @@ export default function ProjectHeader({ setShow }) {
         container
         justifyContent="space-between"
         alignItems="center"
-        sx={{ padding: "0.5rem 1rem", maxHeight:"5rem" }}
+        sx={{ padding: "0.5rem 1rem", maxHeight: "5rem" }}
       >
 
-        
+
 
         {/* sol kısım (başlık) */}
         <Grid item xs>
@@ -69,7 +69,6 @@ export default function ProjectHeader({ setShow }) {
             <Grid item>
               <IconButton onClick={() => console.log("deleted clicked")} aria-label="addWbs">
                 <DeleteIcon
-                  // sx={{display: isProject_display}}
                   variant="contained" color="error"
                 />
               </IconButton>

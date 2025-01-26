@@ -27,7 +27,7 @@ import FileDownloadDoneIcon from '@mui/icons-material/FileDownloadDone';
 import EditIcon from '@mui/icons-material/Edit';
 
 
-export default function MetrajMahallerHeader({ show, setShow }) {
+export default function MetrajPozMahallerHeader({ show, setShow }) {
 
   const { drawerWidth, topBarHeight } = useContext(StoreContext)
 

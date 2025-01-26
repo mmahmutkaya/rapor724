@@ -2,7 +2,7 @@ import { useEffect, useState, useContext } from 'react';
 import { StoreContext } from './store.js'
 
 import * as Realm from "realm-web";
-import { useApp } from "./useApp.js";
+
 
 import { useNavigate } from "react-router-dom";
 
@@ -52,14 +52,14 @@ const theme = createTheme();
 
 export default function FormMailTeyit() {
 
-  const RealmApp = useApp();
   const navigate = useNavigate()
-  const { isProject, setIsProject } = useContext(StoreContext)
+  const { RealmApp, isProject, setIsProject } = useContext(StoreContext)
   const { Layout_Show, setLayout_Show } = useContext(StoreContext)
 
   const [pageSituation, setPageSituation] = useState(0)
 
   const [mailCodeError, setMailCodeError] = useState()
+  const [detailText, setDetailText] = useState()
 
   const [email, setEmail] = useState()
 
@@ -85,6 +85,7 @@ export default function FormMailTeyit() {
 
       } catch (error) {
         console.log("error", error)
+        setDetailText(error.message)
         console.log("mongo fonksiyon - auth_SendConfirmationCode")
         setPageSituation(2)
         return
@@ -132,17 +133,10 @@ export default function FormMailTeyit() {
         }
         return
 
-      } catch (err) {
+      } catch (error) {
 
-        // return console.log(err)
-
-        const hataMesaj = err.message
-
-        // if (hataMesaj.includes("expected a string 'password' parameter")) {
-        //   return console.log("Şifre girmelisiniz")
-        // }
-
-        console.log(hataMesaj)
+        console.log("error", error)
+        setDetailText(error.message)
         console.log("Giriş esnasında hata oluştu, sayfayı yenileyiniz, sorun devam ederse lütfen iletişime geçiniz..")
         setPageSituation(2)
         return
@@ -158,6 +152,7 @@ export default function FormMailTeyit() {
           dialogIcon={"warning"}
           dialogMessage={"Mail adresine kod gönderirken beklenmedik bir hata oluştu, sorun devam ederse bizimle irtibata geçiniz."}
           onCloseAction={() => navigate(0)}
+          detailText={detailText}
         />
       }
 
@@ -227,7 +222,7 @@ export default function FormMailTeyit() {
                 autoComplete="off"
               />
 
-              <Typography sx={{ mt: "1rem", ml: "0.5rem", fontSize: "0.9rem", color: pageSituation >= 3 ? "#3371FF" : "white"}}>
+              <Typography sx={{ mt: "1rem", ml: "0.5rem", fontSize: "0.9rem", color: pageSituation >= 3 ? "#3371FF" : "white" }}>
                 *Mail gönderildi, 'spam' kutusunu da kontrol ediniz
               </Typography>
 

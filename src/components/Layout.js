@@ -240,7 +240,7 @@ export default function Layout({ window, children }) {
       open={isMenuOpen}
       onClose={handleMenuClose}
     >
-      <MenuItem onClick={handleProfilim}>Profilim</MenuItem>
+      <MenuItem onClick={handleProfilim}>{RealmApp.currentUser._profile.data.email}</MenuItem>
       {/* <MenuItem onClick={handleMenuClose}>My account</MenuItem> */}
       <MenuItem onClick={clickLogOut}>Çıkış Yap</MenuItem>
     </Menu>
