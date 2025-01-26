@@ -28,6 +28,13 @@ exports = async function (newProject) {
     { _id: new BSON.ObjectId(), platform: "web", sira: 2, referans: "name", goster: true, sabit: true, genislik: 20, paddingInfo: "0px 1rem 0px 0px", yatayHiza: "center", name: "Poz İsmi", dataType: "metin" },
   ]
 
+   const metrajYapabilenler = [
+    {
+      "harf": "A",
+      _userId
+    }
+   ]
+  
   const pozBirimleri = [
     { id: "mt", name: "mt" },
     { id: "m2", name: "m2" },
@@ -133,9 +140,10 @@ exports = async function (newProject) {
 
 
   const project = {
-    name,
+    ...newProject,
     // wbs: [], // henüz herhangi bir başlık yok fakat yok ama bu property şimdi olmazsa ilk wbs kaydında bir hata yaşıyoruz
     // lbs: [], // henüz herhangi bir başlık yok fakat yok ama bu property şimdi olmazsa ilk wbs kaydında bir hata yaşıyoruz
+    metrajYapabilenler,
     veriTurleri,
     haneSayilari,
     pozBasliklari,
@@ -152,20 +160,12 @@ exports = async function (newProject) {
   }
 
 
-
-
   try {
-
-    const collection_Projects = context.services.get("mongodb-atlas").db("projects").collection(newProject._id);
-
+    const collection_Projects = context.services.get("mongodb-atlas").db("rapor724_v2").collection("projects");
     const result = collection_Projects.insertOne(project)
-
     return result
-
   } catch (err) {
-
     return { error: err.message };
   }
-
 };
 
