@@ -5,6 +5,7 @@ import { StoreContext } from './store'
 import { DialogWindow } from './general/DialogWindow';
 
 import { useApp } from "./useApp";
+import { useNavigate } from "react-router-dom";
 import AppBar from '@mui/material/AppBar';
 
 import Typography from '@mui/material/Typography';
@@ -27,14 +28,17 @@ import FileDownloadDoneIcon from '@mui/icons-material/FileDownloadDone';
 import EditIcon from '@mui/icons-material/Edit';
 
 
-export default function MetrajPozMahallerHeader({ show, setShow }) {
+export default function MetrajPozMahallerHeader() {
+
+  const navigate = useNavigate()
 
   const { drawerWidth, topBarHeight } = useContext(StoreContext)
 
   const { isProject, setIsProject } = useContext(StoreContext)
   const { setPozlar } = useContext(StoreContext)
 
-  const RealmApp = useApp();
+  // const RealmApp = useApp();
+  const { RealmApp } = useContext(StoreContext)
 
   const { selectedPoz, setSelectedPoz } = useContext(StoreContext)
   const { selectedPozBaslik, setSelectedPozBaslik } = useContext(StoreContext)
@@ -207,11 +211,6 @@ export default function MetrajPozMahallerHeader({ show, setShow }) {
     setSelectedPozBaslik(false)
   }
 
-  const geriDon = () => {
-    setSelectedPoz()
-    setShow("Main")
-  }
-
 
 
   return (
@@ -249,8 +248,7 @@ export default function MetrajPozMahallerHeader({ show, setShow }) {
               variant="h6"
               fontWeight="bold"
             >
-              {show === "Main" && "Poz Metrajları"}
-              {show === "MahalListesi_BirPoz" && selectedPoz?.name}
+              selectedPoz?.name
             </Typography>
           </Grid>
 
@@ -261,24 +259,18 @@ export default function MetrajPozMahallerHeader({ show, setShow }) {
           <Grid item xs="auto">
             <Grid container spacing={1}>
 
-              {show === "Main" &&
-                <Grid item onClick={() => console.log("selectedPoz", selectedPoz)} sx={{ cursor: "pointer" }}>
-                  <IconButton aria-label="addPoz" disabled>
-                    <VisibilityIcon variant="contained" sx={{ color: "gray" }} />
-                  </IconButton>
-                </Grid>
-              }
+              <Grid item >
+                <IconButton onClick={() => navigate("/metrajpozlar")} aria-label="wbsUncliced">
+                  <ReplyIcon variant="contained"
+                    sx={{ color: selectedPoz ? "red" : "lightgray" }} />
+                </IconButton>
+              </Grid>
 
-
-              {show === "MahalListesi_BirPoz" &&
-                <Grid item >
-                  <IconButton onClick={() => geriDon()} aria-label="wbsUncliced">
-                    <ReplyIcon variant="contained"
-                      sx={{ color: selectedPoz ? "red" : "lightgray" }} />
-                  </IconButton>
-                </Grid>
-              }
-
+              <Grid item onClick={() => console.log("selectedPoz", selectedPoz)} sx={{ cursor: "pointer" }}>
+                <IconButton aria-label="addPoz" disabled>
+                  <VisibilityIcon variant="contained" sx={{ color: "gray" }} />
+                </IconButton>
+              </Grid>
 
 
             </Grid>
