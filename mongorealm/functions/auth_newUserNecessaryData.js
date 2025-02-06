@@ -49,7 +49,7 @@ exports = async function ({ isim, soyisim }) {
   
   const collection_Firmalar = context.services.get("mongodb-atlas").db("rapor724_v2_firmalar").collection(email)
   try {
-    const result = await collection_Firmalar.insertOne({ name:isim + soyisim, first:true })
+    const result = await collection_Firmalar.insertOne({ name:isim + " " + soyisim, first:true })
     return result
   } catch (error) {
     throw new Error(error)
