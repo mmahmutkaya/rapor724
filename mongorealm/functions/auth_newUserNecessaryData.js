@@ -34,8 +34,8 @@ exports = async function ({ isim, soyisim }) {
   }
 
   const userEmail = context.user.data.email
+  
   const collection_Users = context.services.get("mongodb-atlas").db("rapor724_v2").collection("users")
-
   try {
     const result = await collection_Users.updateOne({ email:userEmail },
       [
@@ -49,10 +49,21 @@ exports = async function ({ isim, soyisim }) {
   
   const collection_Firmalar = context.services.get("mongodb-atlas").db("rapor724_v2").collection("firmalar")
   try {
-    const result = await collection_Firmalar.insertOne({ kullanicilar:{email:userEmail,yetki:"owner"}, name:isim + " " + soyisim, first:true })
-    return result
+    const result = await collection_Firmalar.updateOne({kullanicilar:{email:userEmail,yetki:"zorunluSahsi"} },
+      [
+        { $set: { name:isim + " " + soyisim } }
+      ]
+    )
   } catch (error) {
     throw new Error(error)
   }
+
+
+  // try {
+  //   const result = await collection_Firmalar.insertOne({ kullanicilar:{email:userEmail,yetki:"sahsi"}, name:isim + " " + soyisim, first:true })
+  //   return result
+  // } catch (error) {
+  //   throw new Error(error)
+  // }
 
 };
