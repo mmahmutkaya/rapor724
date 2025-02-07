@@ -37,7 +37,7 @@ exports = async function ({ isim, soyisim }) {
   const collection_Users = context.services.get("mongodb-atlas").db("rapor724_v2").collection("users")
 
   try {
-    const result = await collection_Users.updateOne({ userEmail },
+    const result = await collection_Users.updateOne({ email:userEmail },
       [
         { $set: { isim, soyisim } }
       ]
