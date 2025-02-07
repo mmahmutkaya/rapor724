@@ -33,11 +33,11 @@ exports = async function ({ isim, soyisim }) {
     return errorObj
   }
 
-  const email = context.user.data.email
+  const userEmail = context.user.data.email
   const collection_Users = context.services.get("mongodb-atlas").db("rapor724_v2").collection("users")
 
   try {
-    const result = await collection_Users.updateOne({ email },
+    const result = await collection_Users.updateOne({ userEmail },
       [
         { $set: { isim, soyisim } }
       ]
@@ -47,9 +47,9 @@ exports = async function ({ isim, soyisim }) {
   }
 
   
-  const collection_Firmalar = context.services.get("mongodb-atlas").db("rapor724_v2_firmalar").collection(email)
+  const collection_Firmalar = context.services.get("mongodb-atlas").db("rapor724_v2").collection("firmalar")
   try {
-    const result = await collection_Firmalar.insertOne({ name:isim + " " + soyisim, first:true })
+    const result = await collection_Firmalar.insertOne({ kullanicilar:{email:userEmail,yetki:"owner"}, name:isim + " " + soyisim, first:true })
     return result
   } catch (error) {
     throw new Error(error)
