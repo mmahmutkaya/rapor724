@@ -128,7 +128,7 @@ export default function FormSifreYenileme() {
 
         // sorgu olacaksa
         setPageSituation(2)
-        const result = await RealmApp.currentUser.callFunction("auth_updateCustumData_isimSoyisim", { isim, soyisim })
+        const result = await RealmApp.currentUser.callFunction("auth_newUserNecessaryData", { isim, soyisim })
         await RealmApp.currentUser.refreshCustomData()
 
         if (result.isError) {

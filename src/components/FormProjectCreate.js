@@ -1,6 +1,7 @@
 import React, { useState, useContext, useRef, useEffect } from 'react';
 import { StoreContext } from '../components/store'
 import { useQueryClient } from '@tanstack/react-query'
+import { useGetFirmalarNames } from '../hooks/useMongo';
 
 
 //mui
@@ -36,11 +37,13 @@ export default function P_FormProjectCreate({ setShow }) {
   const [projectNameError, setShowDialogError] = useState(false)
   const [hataMesaj, setHataMesaj] = useState("")
   // const RealmApp = useApp();
-  const { RealmApp, setProjectNames } = useContext(StoreContext)
+  const { RealmApp } = useContext(StoreContext)
 
   const [dialogShow, setDialogShow] = useState(1)
   const [projeAdi, setProjeAdi] = useState("")
-  const [firmaId, setFirmaId] = useState(0)
+  const [firmaId, setFirmaId] = useState()
+
+  const { data: firmalarNames } = useGetFirmalarNames()
 
 
 
@@ -55,20 +58,12 @@ export default function P_FormProjectCreate({ setShow }) {
 
       let newProject = {
         name: projectName,
-        yetkiliKullanicilar: [
+        firmaPersonelleri: [
           {
             email: RealmApp.currentUser._profile.data.email,
-            yetki: firmaId == 0 ? "owner" : "firma"
+            yetki: "owner"
           }
-        ],
-        yetkiliFirmalar: firmaId !== 0 ?
-          [
-            {
-              firmaId: firmaId,
-              yetki: "owner"
-            }
-          ] :
-          []
+        ]
       }
 
 
@@ -100,27 +95,6 @@ export default function P_FormProjectCreate({ setShow }) {
     }
 
   }
-
-
-
-
-  const firmalar = [
-    { id: 1, name: "ADL YAPI iNŞAAT YATIRIM ORTAKLIK HAYVANCILIK MADEN RIHTIM LİMAN RESTORAN" },
-    { id: 2, name: "ADL YAPI" },
-    { id: 3, name: "ADL YAPI2" },
-    { id: 4, name: "ADL YAPI3" },
-    { id: 5, name: "ADL YAPI4" },
-    { id: 6, name: "ADL YAPI5" },
-    { id: 7, name: "ADL YAPI" },
-    { id: 8, name: "ADL YAPI" },
-    { id: 9, name: "ADL YAPI" },
-    { id: 10, name: "ADL YAPI" },
-    { id: 11, name: "ADL YAPI" },
-    { id: 12, name: "ADL YAPI" },
-    { id: 13, name: "ADL YAPI" },
-    { id: 14, name: "ADL YAPI" },
-    { id: 15, name: "ADL YAPI" },
-  ]
 
 
   return (
@@ -171,7 +145,7 @@ export default function P_FormProjectCreate({ setShow }) {
 
               <Box sx={{ display: "grid", gridTemplateColumns: "1fr 1rem", mb: "0.2rem" }}>
                 <Box sx={{ pr: "1rem" }}>
-                  {firmaId == 0 ? "Şahsi Projem" : firmalar.find(x => x.id == firmaId).name}
+                  {firmaId ? firmalarNames.find(x => x._id.toString() == firmaId).name : "Seçiniz"}
                 </Box>
                 <Box sx={{ display: "grid", alignItems: "center" }}>
                   <PlayArrowIcon sx={{ color: "gray", transform: "rotate(90deg)", fontSize: "1.3rem" }} />
@@ -212,13 +186,13 @@ export default function P_FormProjectCreate({ setShow }) {
             name="radio-buttons-group"
             onChange={(e) => setFirmaId(e.target.value)}
           >
-            <FormControlLabel value={0} control={<Radio />} label="Şahsi Projem" />
+            {/* <FormControlLabel value={0} control={<Radio />} label="Şahsi Projem" />
 
-            <Box sx={{ border: "1px solid lightgray", mb: "0.5rem" }}></Box>
+            <Box sx={{ border: "1px solid lightgray", mb: "0.5rem" }}></Box> */}
 
-            {firmalar.map((firma, index) => {
+            {firmalarNames?.map((firma, index) => {
               return (
-                <FormControlLabel key={index} value={firma.id} control={<Radio />} label={firma.name} />
+                <FormControlLabel key={index} value={firma._id.toString()} control={<Radio />} label={firma.name} />
               )
             })}
 

@@ -6,6 +6,7 @@ import Home from './pages'
 
 import P_Projects from './pages/projects'
 import P_Kisiler from './pages/kisiler'
+import P_Firmalar from './pages/firmalar'
 
 import P_Dashboard from './pages/dashboard'
 import P_Wbs from './pages/wbs'
@@ -31,6 +32,7 @@ function App() {
 
       <Route path='/projects' element={<P_Projects />} />
       <Route path='/kisiler' element={<P_Kisiler />} />
+      <Route path='/firmalar' element={<P_Firmalar/>} />
 
       {/* projects */}
       <Route path='/dashboard' element={<P_Dashboard />} />

@@ -16,6 +16,8 @@ import List from '@mui/material/List';
 import Box from '@mui/material/Box';
 
 import FolderIcon from '@mui/icons-material/Folder';
+import DeleteIcon from '@mui/icons-material/Delete';
+import AddCircleOutlineIcon from '@mui/icons-material/AddCircleOutline';
 
 
 

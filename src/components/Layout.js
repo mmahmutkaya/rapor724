@@ -43,7 +43,7 @@ import FormSignIn from "./FormSignIn.js"
 import FormSignUp from "./FormSignUp.js"
 import FormSifreYenileme from "./FormSifreYenileme.js"
 import FormMailTeyit from "./FormMailTeyit.js"
-import FormUserData from "./FormUserData.js"
+import FormNewUserNecessaryData from "./FormNewUserNecessaryData.js"
 import FormProfileUpdate from "./FormProfileUpdate.js"
 
 
@@ -124,7 +124,7 @@ export default function Layout({ window, children }) {
     !RealmApp?.currentUser?.customData?.soyisim
   ) {
     return (
-      <FormUserData />
+      <FormNewUserNecessaryData />
     )
   }
 
@@ -163,7 +163,7 @@ export default function Layout({ window, children }) {
   };
 
   const handleProfilim = () => {
-    setShow("FormUserDataUpdate")
+    setShow("FormNewUserNecessaryDataUpdate")
     setAnchorEl(null);
     handleMobileMenuClose();
   };
@@ -472,7 +472,7 @@ export default function Layout({ window, children }) {
 
 
       {/* index page -- main */}
-      {show === "FormUserDataUpdate" &&
+      {show === "FormNewUserNecessaryDataUpdate" &&
         <FormProfileUpdate setShow={setShow} />
       }
 

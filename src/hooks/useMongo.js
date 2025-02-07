@@ -44,6 +44,24 @@ export const useGetProjectNames = (onSuccess, onError) => {
 }
 
 
+export const useGetFirmalarNames = (onSuccess, onError) => {
+
+  // const RealmApp = useApp();
+  const { RealmApp } = useContext(StoreContext)
+
+  return useQuery({
+    queryKey: ['firmalarNames', RealmApp.currentUser._profile.data.email],
+    queryFn: () => RealmApp?.currentUser.callFunction("collection_firmalar", ({ functionName: "getFirmalarNames" })),
+    enabled: !!RealmApp,
+    onSuccess,
+    onError,
+    refetchOnMount: false,
+    refetchOnWindowFocus: false
+  })
+
+}
+
+
 
 export const useGetMahaller = (onSuccess, onError) => {
 

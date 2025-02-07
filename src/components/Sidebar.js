@@ -68,6 +68,16 @@ export default function Sidebar({ setMobileOpen }) {
             </ListItemButton>
 
 
+            <ListItemButton
+              onClick={() => navigate("firmalar")}
+              sx={{ backgroundColor: pathname == "/firmalar" ? "#f0f0f1" : null }}>
+              <ListItemIcon>
+                <SendIcon />
+              </ListItemIcon>
+              <ListItemText primary="Firmalar" />
+            </ListItemButton>
+
+
           </List>
         </Grid>
       }
