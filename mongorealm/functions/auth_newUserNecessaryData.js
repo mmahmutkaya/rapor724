@@ -54,6 +54,7 @@ exports = async function ({ isim, soyisim }) {
       { $set: { name: isim + " " + soyisim } },
       { upsert: true }
     )
+    return result
   } catch (error) {
     throw new Error(error)
   }
