@@ -129,7 +129,6 @@ export default function FormSifreYenileme() {
         // sorgu olacaksa
         setPageSituation(2)
         const result = await RealmApp.currentUser.callFunction("auth_newUserNecessaryData", { isim, soyisim })
-        await RealmApp.currentUser.refreshCustomData()
 
         if (result.isError) {
 
@@ -146,14 +145,10 @@ export default function FormSifreYenileme() {
           return
         }
 
-        // setDialogAlert({
-        //   icon: "success",
-        //   message: "Başarı ile kaydedildi",
-        //   onCloseAction: () => navigate(0)
-        //   // onCloseAction: () => setDialogAlert()
-        // })
+        await RealmApp.currentUser.refreshCustomData()
 
         navigate(0)
+        
         return
 
       } catch (error) {
