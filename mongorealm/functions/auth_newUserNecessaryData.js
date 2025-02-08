@@ -7,9 +7,9 @@ exports = async function ({ isim, soyisim }) {
     throw new Error("Öncelikle mail adresinin sizin olduğunu teyit etmelisiniz")
   }
 
-  let errorObj = {isError:false}
+  let errorObj = { isError: false }
 
-  
+
   if (isim.length < 2) {
     errorObj.isimError = "En az 2 karakter girilmeli"
     errorObj.isError = true
@@ -34,10 +34,10 @@ exports = async function ({ isim, soyisim }) {
   }
 
   const userEmail = context.user.data.email
-  
+
   const collection_Users = context.services.get("mongodb-atlas").db("rapor724_v2").collection("users")
   try {
-    const result = await collection_Users.updateOne({ email:userEmail },
+    const result = await collection_Users.updateOne({ email: userEmail },
       [
         { $set: { isim, soyisim } }
       ]
@@ -46,15 +46,13 @@ exports = async function ({ isim, soyisim }) {
     throw new Error(error)
   }
 
-  
+
   const collection_Firmalar = context.services.get("mongodb-atlas").db("rapor724_v2").collection("firmalar")
   try {
     const result = await collection_Firmalar.updateOne(
-      {kullanicilar:{email:userEmail,yetki:"zorunluSahsi"} },
-      [
-        { $set: { name:isim + " " + soyisim } }
-      ],
-      {upsert:true}
+      { kullanicilar: { email: userEmail, yetki: "zorunluSahsi" } },
+      { $set: { name: isim + " " + soyisim } },
+      { upsert: true }
     )
   } catch (error) {
     throw new Error(error)
