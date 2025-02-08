@@ -50,7 +50,7 @@ exports = async function ({ isim, soyisim }) {
   const collection_Firmalar = context.services.get("mongodb-atlas").db("rapor724_v2").collection("firmalar")
   try {
     const result = await collection_Firmalar.updateOne(
-      { kullanicilar: { email: userEmail, yetki: "zorunluSahsi" } },
+      { kullanicilar: { email: userEmail, yetki: "owner" } },
       { $set: { name: isim + " " + soyisim } },
       { upsert: true }
     )
