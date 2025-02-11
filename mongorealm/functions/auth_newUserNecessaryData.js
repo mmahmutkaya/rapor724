@@ -37,27 +37,28 @@ exports = async function ({ isim, soyisim }) {
 
   const collection_Users = context.services.get("mongodb-atlas").db("rapor724_v2").collection("users")
   try {
-    await collection_Users.updateOne({ email: userEmail },
+    const result = await collection_Users.updateOne({ email: userEmail },
       [
         { $set: { isim, soyisim } }
       ]
-    )
-  } catch (error) {
-    throw new Error(error)
-  }
-
-
-  const collection_Firmalar = context.services.get("mongodb-atlas").db("rapor724_v2").collection("firmalar")
-  try {
-    const result = await collection_Firmalar.updateOne(
-      { kullanicilar: { email: userEmail, yetki: "owner" } },
-      { $set: { name: isim + " " + soyisim } },
-      { upsert: true }
     )
     return result
   } catch (error) {
     throw new Error(error)
   }
+
+  // ilk firmayı oluşturmaktan vazgeçtik artık manuel 
+  // const collection_Firmalar = context.services.get("mongodb-atlas").db("rapor724_v2").collection("firmalar")
+  // try {
+  //   const result = await collection_Firmalar.updateOne(
+  //     { kullanicilar: { email: userEmail, yetki: "owner" } },
+  //     { $set: { name: isim + " " + soyisim } },
+  //     { upsert: true }
+  //   )
+  //   return result
+  // } catch (error) {
+  //   throw new Error(error)
+  // }
 
 
   // try {
