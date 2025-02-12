@@ -41,7 +41,7 @@ export default function P_FormProjectCreate({ setShow }) {
 
   const [dialogShow, setDialogShow] = useState(1)
   const [projeAdi, setProjeAdi] = useState("")
-  const [firmaId, setFirmaId] = useState()
+  const [firmaId, setFirmaId] = useState(0)
 
   const { data: firmalarNames } = useGetFirmalarNames()
 
@@ -136,7 +136,7 @@ export default function P_FormProjectCreate({ setShow }) {
               />
             </Box>
 
-            
+
 
 
             <Box onClick={() => setDialogShow(2)} sx={{ mt: "2rem", borderBottom: "1px solid gray", cursor: "pointer", "&:hover": { borderBottom: "2px solid black" } }}>
