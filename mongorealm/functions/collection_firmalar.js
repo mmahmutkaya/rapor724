@@ -18,7 +18,7 @@ exports = async function ({
     try {
       const collection_Firmalar = context.services.get("mongodb-atlas").db("rapor724_v2").collection("firmalar");
       const foundFirmalar = await collection_Firmalar.find({name:firmaName,"kullanicilar.email":userEmail}).toArray()
-      return foundFirmalar
+
       let isExist = false
       foundFirmalar.map(firma => {
         firma.kullanicilar.find(kullanici => kullanici.email == userEmail && kullanici.yetki == "owner") ? isExist = true : null
