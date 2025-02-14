@@ -2,7 +2,7 @@
 import { useState, useEffect, useContext } from 'react';
 import { StoreContext } from '../../components/store'
 import { useApp } from "../../components/useApp";
-import FormProjectCreate from '../../components/FormProjectCreate'
+import FormFirmaCreate from '../../components/FormFirmaCreate'
 // import FirmalarHeader from '../../components/FirmalarHeader'
 import { useNavigate } from "react-router-dom";
 import { useGetFirmalarNames } from '../../hooks/useMongo';
@@ -34,6 +34,8 @@ export default function P_Firmalar() {
 
 
   const { data: firmalarNames } = useGetFirmalarNames()
+
+  firmalarNames && console.log("firmalarNames",firmalarNames)
 
 
   // const handleProjectClick = async (prj) => {
@@ -108,6 +110,7 @@ export default function P_Firmalar() {
   return (
     <Box>
 
+      {/* BAŞLIK */}
       <Paper >
         <Grid
           container
@@ -141,7 +144,7 @@ export default function P_Firmalar() {
               </Grid>
 
               <Grid item>
-                <IconButton onClick={() => setShow("FormProjectCreate")} aria-label="addWbs">
+                <IconButton onClick={() => setShow("FormFirmaCreate")} aria-label="addWbs">
                   <AddCircleOutlineIcon variant="contained" color="success" />
                 </IconButton>
               </Grid>
@@ -152,21 +155,23 @@ export default function P_Firmalar() {
         </Grid>
       </Paper>
 
-      {show == "FormProjectCreate" &&
+
+
+      {show == "FormFirmaCreate" &&
         <Box>
-          <FormProjectCreate setShow={setShow} />
+          <FormFirmaCreate setShow={setShow} />
         </Box>
       }
 
       {show == "Main" && !firmalarNames?.length > 0 &&
         <Stack sx={{ width: '100%', padding: "1rem" }} spacing={2}>
           <Alert severity="info">
-            Dahil olduğunuz herhangi bir firma bulunamadı, menüler yardımı ile yeni bir proje oluşturabilirsiniz.
+            Dahil olduğunuz herhangi bir firma bulunamadı, menüler yardımı ile oluşturabilirsiniz.
           </Alert>
         </Stack>
       }
 
-      {show == "Main" && firmalarNames?.length &&
+      {show == "Main" && firmalarNames?.length > 0 &&
         <Stack sx={{ width: '100%', padding: "1rem" }} spacing={0}>
           {
             firmalarNames.map((oneProject, index) => (
