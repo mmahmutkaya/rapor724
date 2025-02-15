@@ -31,7 +31,8 @@ exports = async function ({
         let errorObject = {
           firmaNameError:"Bu isimde firmanız mevcut"
         }
-        return result.errorObject
+        let result = {errorObject}
+        return result
       }
 
       const result = await collection_Firmalar.insertOne({ name: firmaName, kullanicilar: [{ email: userEmail, yetki: "owner" }] })
