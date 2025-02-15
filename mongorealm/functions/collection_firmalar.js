@@ -28,7 +28,10 @@ exports = async function ({
         firma.kullanicilar.find(kullanici => kullanici.email == userEmail && kullanici.yetki == "owner") ? isExist = true : null
       })
       if (isExist) {
-        return "bu isimde bir firmanız zaten var"
+        let errorObject = {
+          firmaNameError:"Bu isimde firmanız mevcut"
+        }
+        return result.errorObject
       }
 
       const result = await collection_Firmalar.insertOne({ name: firmaName, kullanicilar: [{ email: userEmail, yetki: "owner" }] })
