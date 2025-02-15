@@ -41,11 +41,11 @@ exports = async function ({
 
 
 
-  if (functionName == "getFirmalarNames") {
+  if (functionName == "getFirmalarimNames") {
     try {
       const collection_Firmalar = context.services.get("mongodb-atlas").db("rapor724_v2").collection("firmalar");
-      const firmalar = await collection_Firmalar.find({ "kullanicilar.email": userEmail }, { name: 1 }).toArray();
-      return firmalar;
+      const firmalarim = await collection_Firmalar.find({ "kullanicilar.email": userEmail,"kullanicilar.yetki": "owner" }, { name: 1 }).toArray();
+      return firmalarim;
     } catch (err) {
       throw new Error("MONGO // collection_firmalar // getFirmalarNames // " + err.message);
     }
