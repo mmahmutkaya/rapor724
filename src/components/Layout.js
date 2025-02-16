@@ -48,8 +48,6 @@ import FormProfileUpdate from "./FormProfileUpdate.js"
 
 
 
-// useContext kullandım
-// const drawerWidth = 240;
 
 export default function Layout({ window, children }) {
 
@@ -58,10 +56,8 @@ export default function Layout({ window, children }) {
   const { drawerWidth, topBarHeight } = useContext(StoreContext)
   const { Layout_Show, setLayout_Show } = useContext(StoreContext)
 
-  const { RealmApp } = useContext(StoreContext)
-  // const RealmApp = useApp();
+  const { RealmApp, selectedFirma, isProject, setIsProject } = useContext(StoreContext)
 
-  const { isProject, setIsProject } = useContext(StoreContext)
   const { setSelectedLbs, setSelectedMahal, setSelectedMahalBaslik, setSelectedWbs, setSelectedPoz, setSelectedPozBaslik, setSelectedNode, pageMetraj_setShow } = useContext(StoreContext)
 
 
@@ -299,7 +295,7 @@ export default function Layout({ window, children }) {
   );
 
 
-  const handleToProject = () => {
+  const undoProject = () => {
     setSelectedLbs()
     setSelectedMahal()
     setSelectedMahalBaslik()
@@ -309,7 +305,7 @@ export default function Layout({ window, children }) {
     setSelectedNode()
     setIsProject()
     pageMetraj_setShow("Pozlar")
-    navigate("/projects")
+    navigate("/firmalarim")
   };
 
 
@@ -349,7 +345,7 @@ export default function Layout({ window, children }) {
                 color="inherit"
                 aria-label="open drawer"
                 edge="start"
-                onClick={handleToProject}
+                onClick={undoProject}
                 sx={{ display: isProject ? "block" : "none" }}
               >
                 <UndoIcon />
@@ -365,7 +361,7 @@ export default function Layout({ window, children }) {
                 component="div"
                 sx={{ cursor: "pointer", display: { xs: 'none', md: 'block' } }}
               >
-                {isProject ? isProject.name : "Rapor7/24"}
+                {selectedFirma ? selectedFirma.name : "Rapor7/24"}
               </Typography>
             </Grid>
 

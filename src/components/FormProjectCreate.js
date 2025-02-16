@@ -1,7 +1,7 @@
 import React, { useState, useContext, useRef, useEffect } from 'react';
 import { StoreContext } from '../components/store'
 import { useQueryClient } from '@tanstack/react-query'
-import { useGetFirmalarNames } from '../hooks/useMongo';
+import { useGetFirmalarimNames } from '../hooks/useMongo';
 
 
 //mui
@@ -27,9 +27,6 @@ import PlayArrowIcon from '@mui/icons-material/PlayArrow';
 
 
 
-
-
-
 export default function P_FormProjectCreate({ setShow }) {
 
   const queryClient = useQueryClient()
@@ -37,13 +34,13 @@ export default function P_FormProjectCreate({ setShow }) {
   const [projectNameError, setShowDialogError] = useState(false)
   const [hataMesaj, setHataMesaj] = useState("")
   // const RealmApp = useApp();
-  const { RealmApp } = useContext(StoreContext)
+  const { RealmApp, selectedFirma } = useContext(StoreContext)
 
   const [dialogShow, setDialogShow] = useState(1)
   const [projeAdi, setProjeAdi] = useState("")
   const [firmaId, setFirmaId] = useState(0)
 
-  const { data: firmalarNames } = useGetFirmalarNames()
+  const { data: firmalarNames } = useGetFirmalarimNames()
 
 
 
@@ -57,21 +54,18 @@ export default function P_FormProjectCreate({ setShow }) {
       const projectName = data.get('projectName')
 
       let newProject = {
-        name: projectName,
-        firmaPersonelleri: [
-          {
-            email: RealmApp.currentUser._profile.data.email,
-            yetki: "owner"
-          }
-        ]
+        firmaId:selectedFirma._id,
+        name: projectName
       }
 
-
-      const resultProject = await RealmApp.currentUser.callFunction("createProject", newProject);
-      newProject._id = resultProject.insertedId
+      const resultProject = await RealmApp.currentUser.callFunction("createProject", {projectName,firmaId:selectedFirma._id});
+      newProjectName = {
+        ...newProjectName,
+        _id: resultProject.insertedId,
+      }
       // console.log("resultProject", resultProject)
 
-      queryClient.setQueryData(['projectNames', RealmApp.currentUser._profile.data.email], (projectNames) => [...projectNames, { _id: newProject._id, name: newProject.name }])
+      queryClient.setQueryData(['projectNames', RealmApp.currentUser._profile.data.email], (projectNames) => [...projectNames, newProjectName])
       // setProjectNames(oldProjects => [...oldProjects, newProject])
       setShow("ProjectMain")
 

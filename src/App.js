@@ -4,9 +4,10 @@ import './App.css';
 import { Routes, Route} from 'react-router-dom';
 import Home from './pages'
 
-import P_Projects from './pages/projects'
-import P_Kisiler from './pages/kisiler'
-import P_Firmalar from './pages/firmalar'
+import P_Firmalarim from './pages/firmalarim'
+
+import P_FirmaProjeleri from './pages/firmaprojeleri'
+import P_FirmaKadrosu from './pages/firmakadrosu'
 
 import P_Dashboard from './pages/dashboard'
 import P_Wbs from './pages/wbs'
@@ -30,9 +31,10 @@ function App() {
     <Routes>
       <Route path='/' element={<Home />} />
 
-      <Route path='/projects' element={<P_Projects />} />
-      <Route path='/kisiler' element={<P_Kisiler />} />
-      <Route path='/firmalar' element={<P_Firmalar/>} />
+      <Route path='/firmalarim' element={<P_Firmalarim/>} />
+
+      <Route path='/firmaprojeleri' element={<P_FirmaProjeleri />} />
+      <Route path='/firmakadrosu' element={<P_FirmaKadrosu />} />
 
       {/* projects */}
       <Route path='/dashboard' element={<P_Dashboard />} />

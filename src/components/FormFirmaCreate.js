@@ -27,16 +27,13 @@ import PlayArrowIcon from '@mui/icons-material/PlayArrow';
 
 
 
-
-
-
 export default function P_FormFirmaCreate({ setShow }) {
 
   const queryClient = useQueryClient()
 
   const { RealmApp } = useContext(StoreContext)
 
-  const [firmaNameError, setFirmaNameError] = useState(false)
+  const [firmaNameError, setFirmaNameError] = useState()
 
   const [dialogShow, setDialogShow] = useState(1)
 
@@ -53,15 +50,22 @@ export default function P_FormFirmaCreate({ setShow }) {
       const result = await RealmApp.currentUser.callFunction("collection_firmalar", { functionName: "createFirma", firmaName: firmaName });
       console.log("result", result)
 
+      if (result.errorObject) {
+        setFirmaNameError(result.errorObject.firmaNameError)
+        console.log("hata ile durdu")
+        return
+      }
+
       if (result.insertedId) {
         let newFirma = {
           _id: result.insertedId,
           name: firmaName
         }
-        queryClient.setQueryData(['firmalarNames', RealmApp.currentUser._profile.data.email], (firmalarNames) => [...firmalarNames, newFirma])
+        queryClient.setQueryData(['firmalarimNames', RealmApp.currentUser._profile.data.email], (firmalarimNames) => [...firmalarimNames, newFirma])
+        setShow("Main")
+        return
       }
 
-      setShow("Main")
 
     } catch (err) {
 
@@ -114,7 +118,7 @@ export default function P_FormFirmaCreate({ setShow }) {
                 // value={firmaName}
                 // onChange={(e) => console.log(e.target.value)}
                 // onChange={(e) => setFirmaNameError(e.target.value)}
-                error={firmaNameError}
+                error={firmaNameError ? true : false}
                 helperText={firmaNameError ? firmaNameError : ""}
                 // margin="dense"
                 label="Firma Adı"

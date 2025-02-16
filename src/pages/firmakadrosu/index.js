@@ -19,7 +19,7 @@ import AddCircleOutlineIcon from '@mui/icons-material/AddCircleOutline';
 
 
 
-export default function P_Kisiler() {
+export default function P_FirmaKadrosu() {
 
   const navigate = useNavigate()
 

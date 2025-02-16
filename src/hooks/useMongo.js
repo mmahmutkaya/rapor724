@@ -26,17 +26,17 @@ export const useGetNetworkUsers = (onSuccess, onError) => {
 
 }
 
-export const useGetProjectNames = (onSuccess, onError) => {
+export const useGetProjectNames = () => {
 
-  // const RealmApp = useApp();
-  const { RealmApp } = useContext(StoreContext)
+  const { RealmApp, selectedFirma } = useContext(StoreContext)
+  let firmaId = selectedFirma?._id.toString()
 
   return useQuery({
-    queryKey: ['projectNames', RealmApp.currentUser._profile.data.email],
-    queryFn: () => RealmApp?.currentUser.callFunction("getProjectNames"),
-    enabled: !!RealmApp,
-    onSuccess,
-    onError,
+    queryKey: ['projectNames_byFirma', firmaId],
+    queryFn: () => RealmApp?.currentUser.callFunction("collection_projects", { functionName: "getFirmaProjeleri", firmaId }),
+    enabled: !!RealmApp && !!selectedFirma,
+    // onSuccess,
+    // onError,
     refetchOnMount: false,
     refetchOnWindowFocus: false
   })
@@ -44,14 +44,14 @@ export const useGetProjectNames = (onSuccess, onError) => {
 }
 
 
-export const useGetFirmalarNames = (onSuccess, onError) => {
+export const useGetFirmalarimNames = (onSuccess, onError) => {
 
   // const RealmApp = useApp();
   const { RealmApp } = useContext(StoreContext)
 
   return useQuery({
-    queryKey: ['firmalarNames', RealmApp.currentUser._profile.data.email],
-    queryFn: () => RealmApp?.currentUser.callFunction("collection_firmalar", ({ functionName: "getFirmalarNames" })),
+    queryKey: ['firmalarimNames', RealmApp.currentUser._profile.data.email],
+    queryFn: () => RealmApp?.currentUser.callFunction("collection_firmalar", ({ functionName: "getFirmalarimNames" })),
     enabled: !!RealmApp,
     onSuccess,
     onError,

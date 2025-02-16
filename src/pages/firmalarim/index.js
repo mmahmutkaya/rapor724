@@ -5,7 +5,7 @@ import { useApp } from "../../components/useApp";
 import FormFirmaCreate from '../../components/FormFirmaCreate'
 // import FirmalarHeader from '../../components/FirmalarHeader'
 import { useNavigate } from "react-router-dom";
-import { useGetFirmalarNames } from '../../hooks/useMongo';
+import { useGetFirmalarimNames } from '../../hooks/useMongo';
 
 
 import Paper from '@mui/material/Paper';
@@ -24,19 +24,23 @@ import AddCircleOutlineIcon from '@mui/icons-material/AddCircleOutline';
 
 
 
-export default function P_Firmalar() {
+export default function P_Firmalarim() {
 
   // const RealmApp = useApp();
   const { RealmApp } = useContext(StoreContext)
+  const { selectedFirma, setSelectedFirma } = useContext(StoreContext)
   const navigate = useNavigate()
 
   const [show, setShow] = useState("Main")
 
 
-  const { data: firmalarNames } = useGetFirmalarNames()
+  const { data: firmalarNames } = useGetFirmalarimNames()
 
-  firmalarNames && console.log("firmalarNames",firmalarNames)
 
+  const handleProjectClick = (oneFirma) => {
+    setSelectedFirma(oneFirma)
+    navigate("/firmaprojeleri")
+  }
 
   // const handleProjectClick = async (prj) => {
 
@@ -126,7 +130,7 @@ export default function P_Firmalar() {
               variant="h6"
               fontWeight="bold"
             >
-              Firmalar
+              Firmalarım
             </Typography>
           </Grid>
 
@@ -174,11 +178,11 @@ export default function P_Firmalar() {
       {show == "Main" && firmalarNames?.length > 0 &&
         <Stack sx={{ width: '100%', padding: "1rem" }} spacing={0}>
           {
-            firmalarNames.map((oneProject, index) => (
+            firmalarNames.map((oneFirma, index) => (
 
               <Box
                 key={index}
-                // onClick={() => handleProjectClick(oneProject)}
+                onClick={() => handleProjectClick(oneFirma)}
                 sx={{
                   display: "grid",
                   gridTemplateColumns: "auto 1fr",
@@ -200,7 +204,7 @@ export default function P_Firmalar() {
 
                 <Box>
                   <Typography>
-                    {oneProject.name}
+                    {oneFirma.name}
                   </Typography>
                 </Box>
 
