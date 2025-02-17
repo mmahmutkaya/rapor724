@@ -48,7 +48,7 @@ exports = async function ({
   if (functionName == "getFirmalarimNames") {
     try {
       const collection_Firmalar = context.services.get("mongodb-atlas").db("rapor724_v2").collection("firmalar");
-      const firmalarim = await collection_Firmalar.find({ "kullanicilar.email": userEmail,"kullanicilar.yetki": "owner" }, { name: 1 }).toArray();
+      const firmalarim = await collection_Firmalar.find({ "kadro.email": userEmail,"kadro.yetki": "owner" }, { name: 1 }).toArray();
       return firmalarim;
     } catch (err) {
       throw new Error("MONGO // collection_firmalar // getFirmalarNames // " + err.message);
