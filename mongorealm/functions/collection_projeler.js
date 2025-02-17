@@ -23,21 +23,11 @@ exports = async function ({
   if (functionName == "createFirmaProject") {
     try {
 
-      let errorObject
-      const currentTime = new Date()
-
-      if (typeof projectName != "string") {
-        return errorObject.projectName
-      }
-
-      if (projectName.length < 3) throw new Error("MONGO // createProject // Proje adı çok kısa")
-
-
+      
       const pozMetrajTipleri = [
         { id: "standartMetrajSayfasi", name: "Standart Metraj Sayfası", birimId: "" },
         { id: "insaatDemiri", name: "İnşaat Demiri", birimId: "ton" },
       ]
-
 
 
       const pozBasliklari = [
@@ -178,6 +168,28 @@ exports = async function ({
         isDeleted: false
       }
 
+
+      let errorObject = {}
+      
+      const currentTime = new Date()
+
+      if (typeof projectName != "string") {
+        errorObject.projectNameError = "Proje adı girilmemiş"
+      }
+
+      if (projectName.length < 3) {
+        errorObject.projectNameError = "Proje adı çok kısa"
+      }
+
+      const foundFirmaProjeleri = await collection_Projeler.find({"firmalar._id":_firmaId}).toArray()
+      foundFirmaProjeleri.map(proje => {
+        if(proje.name == projectName) {
+          errorObject.projectNameError = "Firmanın bu isimde projesi mevcut"
+        }
+      })
+
+      
+      if(Object.keys(errorObject).length > 0) return {errorObject}
       const result = collection_Projeler.insertOne(project)
       return result
 
