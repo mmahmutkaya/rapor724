@@ -176,7 +176,7 @@ exports = async function ({
         isDeleted: false
       }
 
-      const result = collection_Projects.insertOne(project)
+      const result = collection_Projeler.insertOne(project)
       return result
 
     } catch (err) {
