@@ -1,6 +1,6 @@
 exports = async function ({
   functionName,
-  firmaId,
+  _firmaId,
   projectName
 }) {
 
@@ -158,7 +158,7 @@ exports = async function ({
         name: projectName,
         // wbs: [], // henüz herhangi bir başlık yok fakat yok ama bu property şimdi olmazsa ilk wbs kaydında bir hata yaşıyoruz
         // lbs: [], // henüz herhangi bir başlık yok fakat yok ama bu property şimdi olmazsa ilk wbs kaydında bir hata yaşıyoruz
-        firmalar: [{ _id: firmaId, yetki:"owner" }],
+        firmalar: [{ _id: _firmaId, yetki:"owner" }],
         kadro: [{ _id: _userId, yetki:"owner" }],
         metrajYapabilenler,
         veriTurleri,
@@ -188,7 +188,7 @@ exports = async function ({
 
   if (functionName == "getFirmaProjeleriNames") {
     try {
-      const firmaProjeleriNames = await collection_Projeler.find({ ["firmalar.${firmaId}"]: userEmail, "kullanicilar.yetki": "owner" }, { name: 1 }).toArray();
+      const firmaProjeleriNames = await collection_Projeler.find({ ["firmalar.${_firmaId}"]: userEmail, "kullanicilar.yetki": "owner" }, { name: 1 }).toArray();
       return firmaProjeleriNames;
     } catch (err) {
       throw new Error("MONGO // collection_projeler // " + functionName + " // " + err.message);
