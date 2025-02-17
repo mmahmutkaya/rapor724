@@ -23,10 +23,12 @@ exports = async function ({
   if (functionName == "createFirmaProject") {
     try {
 
-
+      let errorObject
       const currentTime = new Date()
 
-      if (typeof projectName != "string") throw new Error("MONGO // createProject // Proje adı yazılmamış")
+      if (typeof projectName != "string") {
+        return errorObject.projectName
+      }
 
       if (projectName.length < 3) throw new Error("MONGO // createProject // Proje adı çok kısa")
 

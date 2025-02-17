@@ -21,6 +21,8 @@ exports = async function ({
   if (functionName == "createFirma") {
     try {
 
+      let errorObject
+
       const foundFirmalar = await collection_Firmalar.find({ name: firmaName, "kullanicilar.email": userEmail }).toArray()
 
       let isExist = false
@@ -28,13 +30,11 @@ exports = async function ({
         firma.kullanicilar.find(kullanici => kullanici.email == userEmail && kullanici.yetki == "owner") ? isExist = true : null
       })
       if (isExist) {
-        let errorObject = {
-          firmaNameError:"Bu isimde firmanız mevcut"
-        }
-        let result = {errorObject}
-        return result
+        errorObject.firmaNameError = "Bu isimde firmanız mevcut"
       }
 
+    
+      if(errorObject) return {errorObject}
       const result = await collection_Firmalar.insertOne({ name: firmaName, kullanicilar: [{ email: userEmail, yetki: "owner" }] })
       return result;
 
