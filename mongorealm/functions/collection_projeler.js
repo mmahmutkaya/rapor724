@@ -159,7 +159,7 @@ exports = async function ({
         // wbs: [], // henüz herhangi bir başlık yok fakat yok ama bu property şimdi olmazsa ilk wbs kaydında bir hata yaşıyoruz
         // lbs: [], // henüz herhangi bir başlık yok fakat yok ama bu property şimdi olmazsa ilk wbs kaydında bir hata yaşıyoruz
         firmalar: [{ _id: _firmaId, yetki:"owner" }],
-        kadro: [{ _id: _userId, yetki:"owner" }],
+        kadro: [{ email: userEmail, yetki:"owner" }],
         metrajYapabilenler,
         veriTurleri,
         haneSayilari,
@@ -188,7 +188,7 @@ exports = async function ({
 
   if (functionName == "getFirmaProjeleriNames") {
     try {
-      const firmaProjeleriNames = await collection_Projeler.find({ ["firmalar.${_firmaId}"]: userEmail, "kullanicilar.yetki": "owner" }, { name: 1 }).toArray();
+      const firmaProjeleriNames = await collection_Projeler.find({ "firmalar._id":_firmaId }, { name: 1 }).toArray();
       return firmaProjeleriNames;
     } catch (err) {
       throw new Error("MONGO // collection_projeler // " + functionName + " // " + err.message);
