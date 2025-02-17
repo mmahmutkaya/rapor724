@@ -33,84 +33,14 @@ export default function P_Firmalarim() {
 
   const [show, setShow] = useState("Main")
 
-
-  const { data: firmalarNames } = useGetFirmalarimNames()
-
+  const { data: firmaProjeleriNames } = useGetFirmalarimNames()
 
   const handleProjectClick = (oneFirma) => {
     setSelectedFirma(oneFirma)
     navigate("/firmaprojeleri")
   }
 
-  // const handleProjectClick = async (prj) => {
-
-  //   const project = await RealmApp.currentUser.callFunction("getProject", { projectId: prj._id })
-
-  //   await RealmApp?.currentUser.refreshCustomData()
-
-
-  //   // const customProjectSettings = await RealmApp?.currentUser?.customData.customProjectSettings
-  //   // console.log("customProjectSettings", customProjectSettings)
-
-  //   // // console.log("prj._id",prj._id)
-  //   // const customProjectSettings0 = customProjectSettings[0]
-  //   // console.log("customProjectSettings0", customProjectSettings0)
-
-  //   // const bsonId = customProjectSettings0._projectId
-  //   // console.log("bsonId", bsonId)
-
-  //   // const stringId = bsonId.$oid
-  //   // const stringId = console.log(RealmApp.EJSON.parse(bsonId, { relaxed: false }));
-  //   // console.log("stringId", stringId)
-
-  //   // console.log("check", stringId == prj._id)
-
-  //   // const customProjectSettings2 = customProjectSettings.find(x => x._projectId.toString() === prj._id.toString())
-  //   // const customProjectSettings2 = customProjectSettings[0]._projectId.toString()
-  //   // console.log("customProjectSettings2",customProjectSettings2)
-
-  //   setIsProject(isProject => {
-  //     let obj
-  //     const customProjectSettings = RealmApp?.currentUser?.customData.customProjectSettings?.find(x => x._projectId.$oid === prj._id.toString())
-
-
-  //     isProject.mahalBasliklari = isProject.mahalBasliklari.map(item => {
-
-  //       obj = customProjectSettings?.mahalBasliklari?.find(x => x._id.$oid === item._id.toString())
-
-  //       if (obj) {
-  //         item.show = obj.show
-  //       } else {
-  //       }
-
-  //       return (
-  //         item
-  //       )
-  //     })
-
-  //     isProject.pozBasliklari = isProject.pozBasliklari.map(item => {
-
-  //       obj = customProjectSettings?.pozBasliklari?.find(x => x._id.$oid === item._id.toString())
-
-  //       if (obj) {
-  //         item.show = obj.show
-  //       } else {
-  //       }
-
-  //       return (
-  //         item
-  //       )
-  //     })
-
-  //     return (
-  //       isProject
-  //     )
-  //   })
-
-  //   navigate('/dashboard')
-  // }
-
-
+ 
   return (
     <Box>
 
@@ -167,7 +97,7 @@ export default function P_Firmalarim() {
         </Box>
       }
 
-      {show == "Main" && !firmalarNames?.length > 0 &&
+      {show == "Main" && !firmaProjeleriNames?.length > 0 &&
         <Stack sx={{ width: '100%', padding: "1rem" }} spacing={2}>
           <Alert severity="info">
             Dahil olduğunuz herhangi bir firma bulunamadı, menüler yardımı ile oluşturabilirsiniz.
@@ -175,10 +105,10 @@ export default function P_Firmalarim() {
         </Stack>
       }
 
-      {show == "Main" && firmalarNames?.length > 0 &&
+      {show == "Main" && firmaProjeleriNames?.length > 0 &&
         <Stack sx={{ width: '100%', padding: "1rem" }} spacing={0}>
           {
-            firmalarNames.map((oneFirma, index) => (
+            firmaProjeleriNames.map((oneFirma, index) => (
 
               <Box
                 key={index}

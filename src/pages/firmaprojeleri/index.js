@@ -5,7 +5,7 @@ import { useApp } from "../../components/useApp";
 import FormProjectCreate from '../../components/FormProjectCreate'
 import ProjectsHeader from '../../components/ProjectsHeader'
 import { useNavigate } from "react-router-dom";
-import { useGetProjectNames } from '../../hooks/useMongo';
+import { useGetFirmaProjeleriNames } from '../../hooks/useMongo';
 
 
 import Grid from '@mui/material/Grid';
@@ -28,7 +28,6 @@ export default function P_FirmaProjeleri() {
   const navigate = useNavigate()
   const { RealmApp, isProject, selectedFirma, setIsProject } = useContext(StoreContext)
 
-  console.log("selectedFirma", selectedFirma)
 
 
   useEffect(() => {
@@ -39,7 +38,7 @@ export default function P_FirmaProjeleri() {
   const [show, setShow] = useState("ProjectMain")
 
 
-  const { data: projectNames } = useGetProjectNames()
+  const { data: firmaProjeleriNames } = useGetFirmaProjeleriNames()
 
 
   const handleProjectClick = async (prj) => {
@@ -123,7 +122,7 @@ export default function P_FirmaProjeleri() {
         </Box>
       }
 
-      {show == "ProjectMain" && !projectNames?.length > 0 &&
+      {show == "ProjectMain" && !firmaProjeleriNames?.length > 0 &&
         <Stack sx={{ width: '100%', padding: "1rem" }} spacing={2}>
           <Alert severity="info">
             Dahil olduğunuz herhangi bir proje bulunamadı, menüler yardımı ile yeni bir proje oluşturabilirsiniz.
@@ -131,10 +130,10 @@ export default function P_FirmaProjeleri() {
         </Stack>
       }
 
-      {show == "ProjectMain" && projectNames?.length &&
+      {show == "ProjectMain" && firmaProjeleriNames?.length > 0 &&
         <Stack sx={{ width: '100%', padding: "1rem" }} spacing={0}>
           {
-            projectNames.map((oneProject, index) => (
+            firmaProjeleriNames.map((oneProject, index) => (
 
               <Box
                 key={index}

@@ -1,7 +1,7 @@
 import React, { useState, useContext, useRef, useEffect } from 'react';
 import { StoreContext } from '../components/store'
 import { useQueryClient } from '@tanstack/react-query'
-import { useGetFirmalarimNames } from '../hooks/useMongo';
+import { useGetFirmaProjeleriNames } from '../hooks/useMongo';
 
 
 //mui
@@ -33,15 +33,13 @@ export default function P_FormProjectCreate({ setShow }) {
 
   const [projectNameError, setShowDialogError] = useState(false)
   const [hataMesaj, setHataMesaj] = useState("")
-  // const RealmApp = useApp();
   const { RealmApp, selectedFirma } = useContext(StoreContext)
 
   const [dialogShow, setDialogShow] = useState(1)
   const [projeAdi, setProjeAdi] = useState("")
   const [firmaId, setFirmaId] = useState(0)
 
-  const { data: firmalarNames } = useGetFirmalarimNames()
-
+  const { data: firmaProjeleriNames } = useGetFirmaProjeleriNames()
 
 
   async function handleSubmit(event) {
@@ -53,19 +51,17 @@ export default function P_FormProjectCreate({ setShow }) {
       const data = new FormData(event.currentTarget);
       const projectName = data.get('projectName')
 
-      let newProject = {
-        firmaId:selectedFirma._id,
+      let firmaId = selectedFirma?._id
+
+      const resultProject = await RealmApp.currentUser.callFunction("collection_projeler", { functionName: "createFirmaProject", firmaId, projectName });
+      console.log("resultProject", resultProject)
+
+      let newProjectName = {
+        _id: resultProject.insertedId,
         name: projectName
       }
 
-      const resultProject = await RealmApp.currentUser.callFunction("createProject", {projectName,firmaId:selectedFirma._id});
-      newProjectName = {
-        ...newProjectName,
-        _id: resultProject.insertedId,
-      }
-      // console.log("resultProject", resultProject)
-
-      queryClient.setQueryData(['projectNames', RealmApp.currentUser._profile.data.email], (projectNames) => [...projectNames, newProjectName])
+      queryClient.setQueryData(['firmaProjeleriNames', firmaId], (firmaProjeleriNames) => [...firmaProjeleriNames, newProjectName])
       // setProjectNames(oldProjects => [...oldProjects, newProject])
       setShow("ProjectMain")
 
@@ -121,7 +117,7 @@ export default function P_FormProjectCreate({ setShow }) {
                 value={projeAdi}
                 // onChange={(e) => console.log(e.target.value)}
                 onChange={(e) => setProjeAdi(e.target.value)}
-                error={projectNameError}
+                error={projectNameError ? true : false}
                 helperText={projectNameError ? projectNameError : ""}
                 // margin="dense"
                 label="Proje Adı"
@@ -132,30 +128,30 @@ export default function P_FormProjectCreate({ setShow }) {
 
 
 
-
-            <Box onClick={() => setDialogShow(2)} sx={{ mt: "2rem", borderBottom: "1px solid gray", cursor: "pointer", "&:hover": { borderBottom: "2px solid black" } }}>
+            {/* Bu alan özel tasarlanmış olup, tıklanınca aşağıdaki çoktan seçmeli Dialog penceresini açmaktadır.  */}
+            {/* <Box onClick={() => setDialogShow(2)} sx={{ mt: "2rem", borderBottom: "1px solid gray", cursor: "pointer", "&:hover": { borderBottom: "2px solid black" } }}>
 
               <Box sx={{ fontSize: "0.75rem", mb: "0.1rem", color: "gray" }}>
-                Proje Sahibi
+                Ait olduğu firma
               </Box>
 
               <Box sx={{ display: "grid", gridTemplateColumns: "1fr 1rem", mb: "0.2rem" }}>
                 <Box sx={{ pr: "1rem" }}>
-                  {firmaId ? firmalarNames.find(x => x._id.toString() == firmaId).name : "Seçiniz"}
+                  {firmaId ? firmaProjeleriNames.find(x => x._id.toString() == firmaId).name : "Seçiniz"}
                 </Box>
                 <Box sx={{ display: "grid", alignItems: "center" }}>
                   <PlayArrowIcon sx={{ color: "gray", transform: "rotate(90deg)", fontSize: "1.3rem" }} />
                 </Box>
               </Box>
 
-            </Box>
+            </Box> */}
 
 
           </DialogContent>
 
           <DialogActions sx={{ padding: "1.5rem" }}>
             <Button onClick={() => setShow("ProjectMain")}>İptal</Button>
-            <Button type="submit">Oluştur</Button>
+            <Button disabled={!selectedFirma} type="submit">Oluştur</Button>
           </DialogActions>
 
         </Box>
@@ -165,7 +161,7 @@ export default function P_FormProjectCreate({ setShow }) {
 
 
       {/* FİRMA SEÇİMİNDE AÇILAN PENCERE */}
-      < Dialog
+      {/* < Dialog
         PaperProps={{ sx: { width: "80%", position: "fixed", maxHeight: "40rem" } }
         }
         open={dialogShow === 2}
@@ -175,18 +171,14 @@ export default function P_FormProjectCreate({ setShow }) {
         <DialogTitle sx={{ fontWeight: "600" }}>Proje Sahibi</DialogTitle>
 
         <DialogContent dividers>
-          {/* <FormLabel id="demo-radio-buttons-group-label">Proje Yetkilisi</FormLabel> */}
           <RadioGroup
             // aria-labelledby="demo-radio-buttons-group-label"
             value={firmaId}
             name="radio-buttons-group"
             onChange={(e) => setFirmaId(e.target.value)}
           >
-            {/* <FormControlLabel value={0} control={<Radio />} label="Şahsi Projem" />
 
-            <Box sx={{ border: "1px solid lightgray", mb: "0.5rem" }}></Box> */}
-
-            {firmalarNames?.map((firma, index) => {
+            {firmaProjeleriNames?.map((firma, index) => {
               return (
                 <FormControlLabel key={index} value={firma._id.toString()} control={<Radio />} label={firma.name} />
               )
@@ -196,11 +188,10 @@ export default function P_FormProjectCreate({ setShow }) {
         </DialogContent>
 
         <DialogActions sx={{ fontWeight: "700" }}>
-          {/* <Button onClick={() => setShow("ProjectMain")}>İptal</Button> */}
           <Button onClick={() => setDialogShow(1)}>Seç</Button>
         </DialogActions>
 
-      </Dialog >
+      </Dialog > */}
 
     </div >
   );
