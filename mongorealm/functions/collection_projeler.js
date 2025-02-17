@@ -1,6 +1,6 @@
 exports = async function ({
   functionName,
-  firmaId,
+  _firmaId,
   projectName
 }) {
 
@@ -20,22 +20,14 @@ exports = async function ({
 
 
 
-  if (functionName == "createProject") {
+  if (functionName == "createFirmaProject") {
     try {
 
-
-      const currentTime = new Date()
-
-      if (typeof projectName != "string") throw new Error("MONGO // createProject // Proje adı yazılmamış")
-
-      if (projectName.length < 3) throw new Error("MONGO // createProject // Proje adı çok kısa")
-
-
+      
       const pozMetrajTipleri = [
         { id: "standartMetrajSayfasi", name: "Standart Metraj Sayfası", birimId: "" },
         { id: "insaatDemiri", name: "İnşaat Demiri", birimId: "ton" },
       ]
-
 
 
       const pozBasliklari = [
@@ -158,8 +150,8 @@ exports = async function ({
         name: projectName,
         // wbs: [], // henüz herhangi bir başlık yok fakat yok ama bu property şimdi olmazsa ilk wbs kaydında bir hata yaşıyoruz
         // lbs: [], // henüz herhangi bir başlık yok fakat yok ama bu property şimdi olmazsa ilk wbs kaydında bir hata yaşıyoruz
-        firmalar: [{ _id: firmaId }],
-        kadro: [{ _id: _userId }],
+        firmalar: [{ _id: _firmaId, yetki:"owner" }],
+        kadro: [{ email: userEmail, yetki:"owner" }],
         metrajYapabilenler,
         veriTurleri,
         haneSayilari,
@@ -176,7 +168,29 @@ exports = async function ({
         isDeleted: false
       }
 
-      const result = collection_Projects.insertOne(project)
+
+      let errorObject = {}
+      
+      const currentTime = new Date()
+
+      if (typeof projectName != "string") {
+        errorObject.projectNameError = "Proje adı girilmemiş"
+      }
+
+      if (projectName.length < 3) {
+        errorObject.projectNameError = "Proje adı çok kısa"
+      }
+
+      const foundFirmaProjeleri = await collection_Projeler.find({"firmalar._id":_firmaId}).toArray()
+      foundFirmaProjeleri.map(proje => {
+        if(proje.name == projectName) {
+          errorObject.projectNameError = "Firmanın bu isimde projesi mevcut"
+        }
+      })
+
+      
+      if(Object.keys(errorObject).length > 0) return {errorObject}
+      const result = collection_Projeler.insertOne(project)
       return result
 
     } catch (err) {
@@ -186,10 +200,10 @@ exports = async function ({
 
 
 
-  if (functionName == "getFirmaProjeleri") {
+  if (functionName == "getFirmaProjeleriNames") {
     try {
-      const firmaprojeleri = await collection_Projeler.find({ ["firmalar.${firmaId}"]: userEmail, "kullanicilar.yetki": "owner" }, { name: 1 }).toArray();
-      return firmaprojeleri;
+      const firmaProjeleriNames = await collection_Projeler.find({ "firmalar._id":_firmaId }, { name: 1 }).toArray();
+      return firmaProjeleriNames;
     } catch (err) {
       throw new Error("MONGO // collection_projeler // " + functionName + " // " + err.message);
     }
