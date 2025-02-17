@@ -23,6 +23,14 @@ exports = async function ({
 
       let errorObject = {}
 
+      if (typeof firmaName != "string") {
+        errorObject.firmaNameError = "Firma adı girilmemiş"
+      }
+
+      if (firmaName.length < 3) {
+        errorObject.firmaNameError = "Firma adı çok kısa"
+      }
+
       const foundFirmalar = await collection_Firmalar.find({ name: firmaName, "kadro.email": userEmail }).toArray()
 
       let isExist = false
