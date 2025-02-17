@@ -186,10 +186,10 @@ exports = async function ({
 
 
 
-  if (functionName == "getFirmaProjeleri") {
+  if (functionName == "getFirmaProjeleriNames") {
     try {
-      const firmaprojeleri = await collection_Projeler.find({ ["firmalar.${firmaId}"]: userEmail, "kullanicilar.yetki": "owner" }, { name: 1 }).toArray();
-      return firmaprojeleri;
+      const firmaProjeleriNames = await collection_Projeler.find({ ["firmalar.${firmaId}"]: userEmail, "kullanicilar.yetki": "owner" }, { name: 1 }).toArray();
+      return firmaProjeleriNames;
     } catch (err) {
       throw new Error("MONGO // collection_projeler // " + functionName + " // " + err.message);
     }
