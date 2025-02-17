@@ -20,7 +20,7 @@ exports = async function ({
 
 
 
-  if (functionName == "createProject") {
+  if (functionName == "createFirmaProject") {
     try {
 
 
