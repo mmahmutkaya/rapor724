@@ -21,7 +21,7 @@ exports = async function ({
   if (functionName == "createFirma") {
     try {
 
-      let errorObject
+      let errorObject = {}
 
       const foundFirmalar = await collection_Firmalar.find({ name: firmaName, "kullanicilar.email": userEmail }).toArray()
 
@@ -34,8 +34,8 @@ exports = async function ({
       }
 
     
-      if(errorObject) return {errorObject}
-      const result = await collection_Firmalar.insertOne({ name: firmaName, kullanicilar: [{ email: userEmail, yetki: "owner" }] })
+      if(Object.keys(errorObject).length > 0) return {errorObject}
+      const result = await collection_Firmalar.insertOne({ name: firmaName, kadro: [{ email: userEmail, yetki: "owner" }] })
       return result;
 
     } catch (err) {
