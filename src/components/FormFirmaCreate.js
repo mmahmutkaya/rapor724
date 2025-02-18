@@ -1,7 +1,7 @@
 import React, { useState, useContext } from 'react';
 import { StoreContext } from './store'
 import { useQueryClient } from '@tanstack/react-query'
-// import { useGetFirmalarNames } from '../hooks/useMongo';
+import { useGetFirmalarimNames } from '../hooks/useMongo';
 
 
 //mui
@@ -37,6 +37,8 @@ export default function P_FormFirmaCreate({ setShow }) {
 
   const [dialogShow, setDialogShow] = useState(1)
 
+  const { data: firmaProjeleri } = useGetFirmalarimNames()
+
 
   async function handleSubmit(event) {
 
@@ -46,6 +48,35 @@ export default function P_FormFirmaCreate({ setShow }) {
 
       const data = new FormData(event.currentTarget);
       const firmaName = data.get('firmaName')
+
+      let userEmail = RealmApp.currentUser._profile.data.email
+
+      let errorObject = {}
+
+      if (typeof firmaName != "string") {
+        !errorObject.firmaNameError && setFirmaNameError("Firma adı verisi 'yazı' türünde değil")
+      }
+
+      if (firmaName.length == 0) {
+        !errorObject.firmaNameError && setFirmaNameError("Firma adı girilmemiş")
+      }
+
+      if (firmaName.length < 3) {
+        !errorObject.firmaNameError && setFirmaNameError("Firma adı çok kısa")
+      }
+
+      let isExist = false
+      firmaProjeleri.map(firma => {
+        if(firma.personeller.find(personel => personel.email == userEmail && personel.yetki == "owner") ){
+          isExist = true
+        }
+      })
+      if (isExist) {
+        !errorObject.firmaNameError && setFirmaNameError("Bu isimde firmanız mevcut")
+      }
+
+
+      if(Object.keys(errorObject).length > 0) return
 
       const result = await RealmApp.currentUser.callFunction("collection_firmalar", { functionName: "createFirma", firmaName: firmaName });
       console.log("result", result)
@@ -94,7 +125,7 @@ export default function P_FormFirmaCreate({ setShow }) {
       <Dialog
         PaperProps={{ sx: { width: "80%", position: "fixed", top: "10rem" } }}
         open={dialogShow === 1}
-        onClose={() => setShow("ProjectMain")}
+        onClose={() => setShow("Main")}
       >
         {/* <DialogTitle>Subscribe</DialogTitle> */}
 
@@ -131,7 +162,7 @@ export default function P_FormFirmaCreate({ setShow }) {
           </DialogContent>
 
           <DialogActions sx={{ padding: "1.5rem" }}>
-            <Button onClick={() => setShow("ProjectMain")}>İptal</Button>
+            <Button onClick={() => setShow("Main")}>İptal</Button>
             <Button type="submit">Oluştur</Button>
           </DialogActions>
 

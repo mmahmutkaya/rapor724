@@ -1,7 +1,7 @@
 import React, { useState, useContext, useRef, useEffect } from 'react';
 import { StoreContext } from '../components/store'
 import { useQueryClient } from '@tanstack/react-query'
-import { useGetFirmaProjeleriNames } from '../hooks/useMongo';
+import { useGetFirmaProjeleri } from '../hooks/useMongo';
 
 
 //mui
@@ -39,7 +39,7 @@ export default function P_FormProjectCreate({ setShow }) {
   const [projeAdi, setProjeAdi] = useState("")
   const [firmaId, setFirmaId] = useState(0)
 
-  const { data: firmaProjeleriNames } = useGetFirmaProjeleriNames()
+  const { data: firmaProjeleri } = useGetFirmaProjeleri()
 
 
   async function handleSubmit(event) {
@@ -61,7 +61,7 @@ export default function P_FormProjectCreate({ setShow }) {
         name: projectName
       }
 
-      queryClient.setQueryData(['firmaProjeleriNames', firmaId], (firmaProjeleriNames) => [...firmaProjeleriNames, newProjectName])
+      queryClient.setQueryData(['firmaProjeleri', firmaId], (firmaProjeleri) => [...firmaProjeleri, newProjectName])
       // setProjectNames(oldProjects => [...oldProjects, newProject])
       setShow("ProjectMain")
 
@@ -137,7 +137,7 @@ export default function P_FormProjectCreate({ setShow }) {
 
               <Box sx={{ display: "grid", gridTemplateColumns: "1fr 1rem", mb: "0.2rem" }}>
                 <Box sx={{ pr: "1rem" }}>
-                  {firmaId ? firmaProjeleriNames.find(x => x._id.toString() == firmaId).name : "Seçiniz"}
+                  {firmaId ? firmaProjeleri.find(x => x._id.toString() == firmaId).name : "Seçiniz"}
                 </Box>
                 <Box sx={{ display: "grid", alignItems: "center" }}>
                   <PlayArrowIcon sx={{ color: "gray", transform: "rotate(90deg)", fontSize: "1.3rem" }} />
@@ -178,7 +178,7 @@ export default function P_FormProjectCreate({ setShow }) {
             onChange={(e) => setFirmaId(e.target.value)}
           >
 
-            {firmaProjeleriNames?.map((firma, index) => {
+            {firmaProjeleri?.map((firma, index) => {
               return (
                 <FormControlLabel key={index} value={firma._id.toString()} control={<Radio />} label={firma.name} />
               )
