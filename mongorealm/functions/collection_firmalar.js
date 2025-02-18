@@ -25,6 +25,10 @@ exports = async function ({
       
 
       if (typeof firmaName != "string") {
+        !errorObject.firmaNameError ? errorObject.firmaNameError = "Firma adı verisi 'yazı' türünde değil" : null
+      }
+      
+      if (firmaName.length == 0) {
         !errorObject.firmaNameError ? errorObject.firmaNameError = "Firma adı girilmemiş" : null
       }
       
