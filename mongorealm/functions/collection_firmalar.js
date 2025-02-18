@@ -41,9 +41,9 @@ exports = async function ({
       
       
       let isExist = false
-      const foundFirmalar = await collection_Firmalar.find({ name: firmaName, "kadro.email": userEmail }).toArray()
+      const foundFirmalar = await collection_Firmalar.find({ name: firmaName, "personeller.email": userEmail }).toArray()
       foundFirmalar.map(firma => {
-        firma.kadro.find(kullanici => kullanici.email == userEmail && kullanici.yetki == "owner") ? isExist = true : null
+        firma.personeller.find(personel => personel.email == userEmail && personel.yetki == "owner") ? isExist = true : null
       })
       if (isExist) {
         !errorObject.firmaNameError ? errorObject.firmaNameError = "Bu isimde firmanız mevcut" : null
@@ -53,7 +53,7 @@ exports = async function ({
       if(Object.keys(errorObject).length > 0) return {errorObject}
       
       if(Object.keys(errorObject).length > 0) return {errorObject}
-      const result = await collection_Firmalar.insertOne({ name: firmaName, kadro: [{ email: userEmail, yetki: "owner" }] })
+      const result = await collection_Firmalar.insertOne({ name: firmaName, personeller: [{ email: userEmail, yetki: "owner" }] })
       return result;
 
     } catch (err) {
@@ -65,8 +65,7 @@ exports = async function ({
 
   if (functionName == "getFirmalarimNames") {
     try {
-      const collection_Firmalar = context.services.get("mongodb-atlas").db("rapor724_v2").collection("firmalar");
-      const firmalarim = await collection_Firmalar.find({ "kadro.email": userEmail,"kadro.yetki": "owner" }, { name: 1 }).toArray();
+      const firmalarim = await collection_Firmalar.find({ "personeller.email": userEmail,"personeller.yetki": "owner" }, { name: 1 }).toArray();
       return firmalarim;
     } catch (err) {
       throw new Error("MONGO // collection_firmalar // getFirmalarNames // " + err.message);
