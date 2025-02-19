@@ -200,10 +200,10 @@ exports = async function ({
 
 
 
-  if (functionName == "getFirmaProjeleriNames") {
+  if (functionName == "getFirmaProjeleri") {
     try {
-      const firmaProjeleriNames = await collection_Projeler.find({ "firmalar._id":_firmaId }, { name: 1 }).toArray();
-      return firmaProjeleriNames;
+      const firmaProjeleri = await collection_Projeler.find({ "firmalar._id":_firmaId }, { name: 1 }).toArray();
+      return firmaProjeleri;
     } catch (err) {
       throw new Error("MONGO // collection_projeler // " + functionName + " // " + err.message);
     }
