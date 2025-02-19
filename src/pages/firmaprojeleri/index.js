@@ -39,6 +39,7 @@ export default function P_FirmaProjeleri() {
 
 
   const { data: firmaProjeleri } = useGetFirmaProjeleri()
+  // console.log("firmaProjeleri",firmaProjeleri)
 
 
   const handleProjectClick = async (prj) => {
@@ -133,7 +134,7 @@ export default function P_FirmaProjeleri() {
       {show == "ProjectMain" && firmaProjeleri?.length > 0 &&
         <Stack sx={{ width: '100%', padding: "1rem" }} spacing={0}>
           {
-            firmaProjeleri.map((oneProject, index) => (
+            firmaProjeleri?.map((oneProject, index) => (
 
               <Box
                 key={index}

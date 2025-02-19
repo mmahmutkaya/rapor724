@@ -37,7 +37,8 @@ export default function P_FormFirmaCreate({ setShow }) {
 
   const [dialogShow, setDialogShow] = useState(1)
 
-  const { data: firmaProjeleri } = useGetFirmalarimNames()
+  const { data: firmalarimNames } = useGetFirmalarimNames()
+  // console.log("firmalarimNames", firmalarimNames)
 
 
   async function handleSubmit(event) {
@@ -48,35 +49,46 @@ export default function P_FormFirmaCreate({ setShow }) {
 
       const data = new FormData(event.currentTarget);
       const firmaName = data.get('firmaName')
+      // console.log("firmaName", firmaName)
 
-      let userEmail = RealmApp.currentUser._profile.data.email
+      let isError
+      let firmaNameError
 
-      let errorObject = {}
-
-      if (typeof firmaName != "string") {
-        !errorObject.firmaNameError && setFirmaNameError("Firma adı verisi 'yazı' türünde değil")
+      if (typeof firmaName != "string" && !firmaNameError) {
+        setFirmaNameError("Firma adı verisi 'yazı' türünde değil")
+        firmaNameError = true
+        isError = true
       }
 
-      if (firmaName.length == 0) {
-        !errorObject.firmaNameError && setFirmaNameError("Firma adı girilmemiş")
+      if (firmaName.length == 0 && !firmaNameError) {
+        setFirmaNameError("Firma adı girilmemiş")
+        firmaNameError = true
+        isError = true
       }
 
-      if (firmaName.length < 3) {
-        !errorObject.firmaNameError && setFirmaNameError("Firma adı çok kısa")
-      }
-
-      let isExist = false
-      firmaProjeleri.map(firma => {
-        if(firma.personeller.find(personel => personel.email == userEmail && personel.yetki == "owner") ){
-          isExist = true
-        }
-      })
-      if (isExist) {
-        !errorObject.firmaNameError && setFirmaNameError("Bu isimde firmanız mevcut")
+      if (firmaName.length < 3 && !firmaNameError) {
+        setFirmaNameError("Firma adı çok kısa")
+        firmaNameError = true
+        isError = true
       }
 
 
-      if(Object.keys(errorObject).length > 0) return
+      if (firmalarimNames?.length > 0  && !firmaNameError) {
+        firmalarimNames.map(firma => {
+          if (firma.name == firmaName && !firmaNameError) {
+            setFirmaNameError("Bu isimde firmanız mevcut")
+            firmaNameError = true
+            isError = true
+            return
+          }
+        })
+      }
+
+      
+      if (isError) {
+        console.log("frontend de durdu alt satırda")
+        return
+      }
 
       const result = await RealmApp.currentUser.callFunction("collection_firmalar", { functionName: "createFirma", firmaName: firmaName });
       console.log("result", result)
