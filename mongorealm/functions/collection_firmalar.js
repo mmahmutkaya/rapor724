@@ -23,17 +23,16 @@ exports = async function ({
 
       let errorObject = {}
       
-
-      if (typeof firmaName != "string") {
-        !errorObject.firmaNameError ? errorObject.firmaNameError = "Firma adı verisi 'yazı' türünde değil" : null
+      if (typeof firmaName != "string" && !errorObject.firmaNameError) {
+         errorObject.firmaNameError = "Firma adı verisi 'yazı' türünde değil"
       }
       
-      if (firmaName.length == 0) {
-        !errorObject.firmaNameError ? errorObject.firmaNameError = "Firma adı girilmemiş" : null
+      if (firmaName.length == 0 && !errorObject.firmaNameError) {
+        errorObject.firmaNameError = "Firma adı girilmemiş"
       }
       
-      if (firmaName.length < 3) {
-        !errorObject.firmaNameError ? errorObject.firmaNameError = "Firma adı çok kısa" : null
+      if (firmaName.length < 3 && !errorObject.firmaNameError) {
+        errorObject.firmaNameError = "Firma adı çok kısa"
       }
       
       // ARA VALIDATE KONTROL - VALIDATE HATA VARSA BOŞUNA DEVAM EDİP AŞAĞIDAKİ SORGUYU YAPMASIN
@@ -45,8 +44,8 @@ exports = async function ({
       foundFirmalar.map(firma => {
         firma.personeller.find(personel => personel.email == userEmail && personel.yetki == "owner") ? isExist = true : null
       })
-      if (isExist) {
-        !errorObject.firmaNameError ? errorObject.firmaNameError = "Bu isimde firmanız mevcut" : null
+      if (isExist && !errorObject.firmaNameError) {
+        errorObject.firmaNameError = "Bu isimde firmanız mevcut"
       }
       
       // VALIDATE KONTROL

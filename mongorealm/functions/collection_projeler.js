@@ -22,7 +22,6 @@ exports = async function ({
 
   if (functionName == "createFirmaProject") {
     try {
-
       
       const pozMetrajTipleri = [
         { id: "standartMetrajSayfasi", name: "Standart Metraj Sayfası", birimId: "" },
@@ -171,22 +170,48 @@ exports = async function ({
 
       let errorObject = {}
       
-      const currentTime = new Date()
-
-      if (typeof projectName != "string") {
-        errorObject.projectNameError = "Proje adı girilmemiş"
+      if (typeof firmaName != "string" && !errorObject.firmaNameError) {
+        errorObject.firmaNameError = "Firma adı verisi 'yazı' türünde değil"
       }
 
-      if (projectName.length < 3) {
-        errorObject.projectNameError = "Proje adı çok kısa"
+      if (firmaName.length == 0 && !errorObject.firmaNameError) {
+        errorObject.firmaNameError = "Firma adı verisi 'yazı' türünde değil"
       }
 
-      const foundFirmaProjeleri = await collection_Projeler.find({"firmalar._id":_firmaId}).toArray()
-      foundFirmaProjeleri.map(proje => {
-        if(proje.name == projectName) {
-          errorObject.projectNameError = "Firmanın bu isimde projesi mevcut"
-        }
-      })
+      if (firmaName.length < 3 && !errorObject.firmaNameError) {
+        errorObject.firmaNameError = "Firma adı çok kısa"
+      }
+
+      // const firmalarimNames = await collection_Projeler.find({"firmalar._id":_firmaId}).toArray()
+      // if (firmalarimNames?.length > 0  && !errorObject.firmaNameError) {
+      //   firmalarimNames.map(firma => {
+      //     if (firma.name == firmaName && !errorObject.firmaNameError) {
+      //       errorObject.firmaNameError = "Bu isimde firmanız mevcut"
+      //       return
+      //     }
+      //   })
+      // }
+
+     
+
+      // let errorObject = {}
+      
+      // const currentTime = new Date()
+
+      // if (typeof projectName != "string") {
+      //   errorObject.projectNameError = "Proje adı girilmemiş"
+      // }
+
+      // if (projectName.length < 3) {
+      //   errorObject.projectNameError = "Proje adı çok kısa"
+      // }
+
+      // const foundFirmaProjeleri = await collection_Projeler.find({"firmalar._id":_firmaId}).toArray()
+      // foundFirmaProjeleri.map(proje => {
+      //   if(proje.name == projectName) {
+      //     errorObject.projectNameError = "Firmanın bu isimde projesi mevcut"
+      //   }
+      // })
 
       
       if(Object.keys(errorObject).length > 0) return {errorObject}
