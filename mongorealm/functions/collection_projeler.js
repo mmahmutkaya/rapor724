@@ -15,6 +15,8 @@ exports = async function ({
     );
   }
 
+  const currentTime = new Date()
+  
   const collection_Firmalar = context.services.get("mongodb-atlas").db("rapor724_v2").collection("firmalar");
   const collection_Projeler = context.services.get("mongodb-atlas").db("rapor724_v2").collection("projeler");
 
@@ -175,7 +177,7 @@ exports = async function ({
       }
 
       if (firmaName.length == 0 && !errorObject.firmaNameError) {
-        errorObject.firmaNameError = "Firma adı verisi 'yazı' türünde değil"
+        errorObject.firmaNameError = "Firma adı girilmemiş"
       }
 
       if (firmaName.length < 3 && !errorObject.firmaNameError) {
@@ -192,29 +194,21 @@ exports = async function ({
       //   })
       // }
 
-     
 
-      // let errorObject = {}
-      
-      // const currentTime = new Date()
 
-      // if (typeof projectName != "string") {
-      //   errorObject.projectNameError = "Proje adı girilmemiş"
-      // }
-
-      // if (projectName.length < 3) {
-      //   errorObject.projectNameError = "Proje adı çok kısa"
-      // }
-
-      // const foundFirmaProjeleri = await collection_Projeler.find({"firmalar._id":_firmaId}).toArray()
-      // foundFirmaProjeleri.map(proje => {
-      //   if(proje.name == projectName) {
-      //     errorObject.projectNameError = "Firmanın bu isimde projesi mevcut"
-      //   }
-      // })
+      const foundFirmaProjeleri = await collection_Projeler.find({"firmalar._id":_firmaId}).toArray()
+      if(foundFirmaProjeleri.length > 0 && !errorObject.firmaNameError) {
+        foundFirmaProjeleri.map(proje => {
+          if(proje.name == projeName  && !errorObject.firmaNameError) {
+            errorObject.projectNameError = "Firmanın bu isimde projesi mevcut"
+            return
+          }
+        })
+      }
 
       
       if(Object.keys(errorObject).length > 0) return {errorObject}
+      
       const result = collection_Projeler.insertOne(project)
       return result
 
