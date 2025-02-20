@@ -39,7 +39,7 @@ export default function P_FormProjectCreate({ setShow }) {
   const [projeAdi, setProjeAdi] = useState("")
   const [firmaId, setFirmaId] = useState(0)
 
-  const { data: firmaProjeleri } = useGetFirmaProjeleri()
+  const { data: firmaProjeleriNames } = useGetFirmaProjeleri()
 
 
   async function handleSubmit(event) {
@@ -52,6 +52,48 @@ export default function P_FormProjectCreate({ setShow }) {
       const projeName = data.get('projeName')
 
       let firmaId = selectedFirma?._id
+
+
+      // VALIDATE KONTROL
+      let isError
+      let projeNameError
+
+      if (typeof projeName != "string" && !projeNameError) {
+        setFirmaNameError("Firma adı verisi 'yazı' türünde değil")
+        projeNameError = true
+        isError = true
+      }
+
+      if (projeName.length == 0 && !projeNameError) {
+        setFirmaNameError("Firma adı girilmemiş")
+        projeNameError = true
+        isError = true
+      }
+
+      if (projeName.length < 3 && !projeNameError) {
+        setFirmaNameError("Firma adı çok kısa")
+        projeNameError = true
+        isError = true
+      }
+
+
+      if (firmaProjeleriNames?.length > 0 && !projeNameError) {
+        firmaProjeleriNames.map(proje => {
+          if (proje.name == projeName && !projeNameError) {
+            setProjeNameError("Firmanın bu isimde projesi mevcut")
+            projeNameError = true
+            isError = true
+          }
+        })
+      }
+
+      if (isError) {
+        console.log("frontend de durdu alt satırda")
+        return
+      }
+
+      // VALIDATE KONTROL -- SONU 
+
 
       const resultProject = await RealmApp.currentUser.callFunction("collection_projeler", { functionName: "createFirmaProject", firmaId, projeName });
       console.log("resultProject", resultProject)
@@ -151,7 +193,7 @@ export default function P_FormProjectCreate({ setShow }) {
 
           <DialogActions sx={{ padding: "1.5rem" }}>
             <Button onClick={() => setShow("ProjectMain")}>İptal</Button>
-            <Button disabled={!selectedFirma} type="submit">Oluştur</Button>
+            <Button type="submit">Oluştur</Button>
           </DialogActions>
 
         </Box>

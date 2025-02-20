@@ -52,6 +52,8 @@ export default function P_FormFirmaCreate({ setShow }) {
       const firmaName = data.get('firmaName')
       // console.log("firmaName", firmaName)
 
+
+      // VALIDATE KONTROL
       let isError
       let firmaNameError
 
@@ -80,16 +82,16 @@ export default function P_FormFirmaCreate({ setShow }) {
             setFirmaNameError("Bu isimde firmanız mevcut")
             firmaNameError = true
             isError = true
-            return
           }
         })
       }
-
 
       if (isError) {
         console.log("frontend de durdu alt satırda")
         return
       }
+
+      // VALIDATE KONTROL -- SONU 
 
       const result = await RealmApp.currentUser.callFunction("collection_firmalar", { functionName: "createFirma", firmaName: firmaName });
       console.log("result", result)
