@@ -170,6 +170,8 @@ exports = async function ({
       }
 
 
+      // VALIDATE KONTROL
+      
       let errorObject = {}
 
       if (typeof projeName != "string" && !errorObject.projeNameError) {
@@ -194,9 +196,12 @@ exports = async function ({
           }
         })
       }
-
-
+      
       if (Object.keys(errorObject).length > 0) return { errorObject }
+      
+      // VALIDATE KONTROL SONU
+      
+
 
       const result = collection_Projeler.insertOne(proje)
       return result

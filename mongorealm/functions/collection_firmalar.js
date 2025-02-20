@@ -55,7 +55,7 @@ exports = async function ({
       return result;
 
     } catch (err) {
-      throw new Error("MONGO // collection_firmalar // createFirma // " + err.message);
+      throw new Error("MONGO // collection_firmalar // " + functionName + " // " + err.message);
     }
   }
 
@@ -66,7 +66,7 @@ exports = async function ({
       const firmalarim = await collection_Firmalar.find({ "personeller.email": userEmail,"personeller.yetki": "owner" }, { name: 1 }).toArray();
       return firmalarim;
     } catch (err) {
-      throw new Error("MONGO // collection_firmalar // getFirmalarNames // " + err.message);
+      throw new Error("MONGO // collection_firmalar // " + functionName + " // " + err.message);
     }
   }
 
