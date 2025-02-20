@@ -31,7 +31,7 @@ export default function P_FormProjectCreate({ setShow }) {
 
   const queryClient = useQueryClient()
 
-  const [projectNameError, setShowDialogError] = useState(false)
+  const [projeNameError, setProjeNameError] = useState(false)
   const [hataMesaj, setHataMesaj] = useState("")
   const { RealmApp, selectedFirma } = useContext(StoreContext)
 
@@ -49,16 +49,16 @@ export default function P_FormProjectCreate({ setShow }) {
     try {
 
       const data = new FormData(event.currentTarget);
-      const projectName = data.get('projectName')
+      const projeName = data.get('projeName')
 
       let firmaId = selectedFirma?._id
 
-      const resultProject = await RealmApp.currentUser.callFunction("collection_projeler", { functionName: "createFirmaProject", firmaId, projectName });
+      const resultProject = await RealmApp.currentUser.callFunction("collection_projeler", { functionName: "createFirmaProject", firmaId, projeName });
       console.log("resultProject", resultProject)
 
       let newProjectName = {
         _id: resultProject.insertedId,
-        name: projectName
+        name: projeName
       }
 
       queryClient.setQueryData(['firmaProjeleri', firmaId], (firmaProjeleri) => [...firmaProjeleri, newProjectName])
@@ -80,7 +80,7 @@ export default function P_FormProjectCreate({ setShow }) {
       }
 
       setHataMesaj(hataMesaj_)
-      setShowDialogError(true)
+      setProjeNameError(true)
 
     }
 
@@ -108,17 +108,17 @@ export default function P_FormProjectCreate({ setShow }) {
             </DialogContentText>
 
 
-            <Box onClick={() => setShowDialogError(false)}>
+            <Box onClick={() => setProjeNameError(false)}>
               <TextField
                 variant="standard"
                 margin="normal"
-                id="projectName"
-                name="projectName"
+                id="projeName"
+                name="projeName"
                 value={projeAdi}
                 // onChange={(e) => console.log(e.target.value)}
                 onChange={(e) => setProjeAdi(e.target.value)}
-                error={projectNameError ? true : false}
-                helperText={projectNameError ? projectNameError : ""}
+                error={projeNameError ? true : false}
+                helperText={projeNameError ? projeNameError : ""}
                 // margin="dense"
                 label="Proje Adı"
                 type="text"

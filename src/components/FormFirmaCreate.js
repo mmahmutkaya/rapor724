@@ -2,6 +2,7 @@ import React, { useState, useContext } from 'react';
 import { StoreContext } from './store'
 import { useQueryClient } from '@tanstack/react-query'
 import { useGetFirmalarimNames } from '../hooks/useMongo';
+import { DialogAlert } from '../../src/components/general/DialogAlert'
 
 
 //mui
@@ -35,10 +36,10 @@ export default function P_FormFirmaCreate({ setShow }) {
 
   const [firmaNameError, setFirmaNameError] = useState()
 
+  const [dialogAlert, setDialogAlert] = useState()
   const [dialogShow, setDialogShow] = useState(1)
 
   const { data: firmalarimNames } = useGetFirmalarimNames()
-  // console.log("firmalarimNames", firmalarimNames)
 
 
   async function handleSubmit(event) {
@@ -73,7 +74,7 @@ export default function P_FormFirmaCreate({ setShow }) {
       }
 
 
-      if (firmalarimNames?.length > 0  && !firmaNameError) {
+      if (firmalarimNames?.length > 0 && !firmaNameError) {
         firmalarimNames.map(firma => {
           if (firma.name == firmaName && !firmaNameError) {
             setFirmaNameError("Bu isimde firmanız mevcut")
@@ -84,7 +85,7 @@ export default function P_FormFirmaCreate({ setShow }) {
         })
       }
 
-      
+
       if (isError) {
         console.log("frontend de durdu alt satırda")
         return
@@ -113,18 +114,12 @@ export default function P_FormFirmaCreate({ setShow }) {
     } catch (err) {
 
       console.log(err)
-      let hataMesaj_ = err?.message ? err.message : "Beklenmedik hata, Rapor7/24 ile irtibata geçiniz.."
 
-      if (hataMesaj_.includes("duplicate key error")) {
-        hataMesaj_ = "Bu firma ismi sistemde kayıtlı"
-      }
-
-      if (hataMesaj_.includes("çok kısa")) {
-        hataMesaj_ = "Bu Çok kısa"
-      }
-
-      // setHataMesaj(hataMesaj_)
-      // setDialogShow(true)
+      setDialogAlert({
+        dialogIcon: "warning",
+        dialogMessage: "Beklenmedik hata, Rapor7/24 ile irtibata geçiniz..",
+        detailText: err?.message ? err.message : null
+      })
 
     }
 
@@ -133,6 +128,15 @@ export default function P_FormFirmaCreate({ setShow }) {
 
   return (
     <div>
+
+      {dialogAlert &&
+        <DialogAlert
+          dialogIcon={dialogAlert.dialogIcon}
+          dialogMessage={dialogAlert.dialogMessage}
+          detailText={dialogAlert.detailText}
+          onCloseAction={() => setDialogAlert()}
+        />
+      }
 
       <Dialog
         PaperProps={{ sx: { width: "80%", position: "fixed", top: "10rem" } }}
