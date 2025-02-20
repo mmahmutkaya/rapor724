@@ -1,7 +1,7 @@
 exports = async function ({
   functionName,
   _firmaId,
-  projectName
+  projeName
 }) {
 
   const user = context.user;
@@ -11,12 +11,12 @@ exports = async function ({
   const mailTeyit = user.custom_data.mailTeyit;
   if (!mailTeyit) {
     throw new Error(
-      "MONGO // collection_firmalar // Öncelikle üyeliğinize ait mail adresinin size ait olduğunu doğrulamalısınız, tekrar giriş yapmayı deneyiniz veya bizimle iletişime geçiniz."
+      "MONGO // collection_projeler // Öncelikle üyeliğinize ait mail adresinin size ait olduğunu doğrulamalısınız, tekrar giriş yapmayı deneyiniz veya bizimle iletişime geçiniz."
     );
   }
 
   const currentTime = new Date()
-  
+
   const collection_Firmalar = context.services.get("mongodb-atlas").db("rapor724_v2").collection("firmalar");
   const collection_Projeler = context.services.get("mongodb-atlas").db("rapor724_v2").collection("projeler");
 
@@ -24,7 +24,7 @@ exports = async function ({
 
   if (functionName == "createFirmaProject") {
     try {
-      
+
       const pozMetrajTipleri = [
         { id: "standartMetrajSayfasi", name: "Standart Metraj Sayfası", birimId: "" },
         { id: "insaatDemiri", name: "İnşaat Demiri", birimId: "ton" },
@@ -147,12 +147,12 @@ exports = async function ({
 
 
 
-      const project = {
-        name: projectName,
+      const proje = {
+        name: projeName,
         // wbs: [], // henüz herhangi bir başlık yok fakat yok ama bu property şimdi olmazsa ilk wbs kaydında bir hata yaşıyoruz
         // lbs: [], // henüz herhangi bir başlık yok fakat yok ama bu property şimdi olmazsa ilk wbs kaydında bir hata yaşıyoruz
-        firmalar: [{ _id: _firmaId, yetki:"owner" }],
-        kadro: [{ email: userEmail, yetki:"owner" }],
+        firmalar: [{ _id: _firmaId, yetki: "owner" }],
+        kadro: [{ email: userEmail, yetki: "owner" }],
         metrajYapabilenler,
         veriTurleri,
         haneSayilari,
@@ -171,34 +171,34 @@ exports = async function ({
 
 
       let errorObject = {}
-      
-      if (typeof firmaName != "string" && !errorObject.firmaNameError) {
-        errorObject.firmaNameError = "Firma adı verisi 'yazı' türünde değil"
+
+      if (typeof projeName != "string" && !errorObject.projeNameError) {
+        errorObject.projeNameError = "Proje adı verisi 'yazı' türünde değil"
       }
 
-      if (firmaName.length == 0 && !errorObject.firmaNameError) {
-        errorObject.firmaNameError = "Firma adı girilmemiş"
+      if (projeName.length == 0 && !errorObject.projeNameError) {
+        errorObject.projeNameError = "Proje adı girilmemiş"
       }
 
-      if (firmaName.length < 3 && !errorObject.firmaNameError) {
-        errorObject.firmaNameError = "Firma adı çok kısa"
+      if (projeName.length < 3 && !errorObject.projeNameError) {
+        errorObject.projeNameError = "Proje adı çok kısa"
       }
 
 
-      const foundFirmaProjeleri = await collection_Projeler.find({"firmalar._id":_firmaId}).toArray()
-      if(foundFirmaProjeleri.length > 0 && !errorObject.firmaNameError) {
+      const foundFirmaProjeleri = await collection_Projeler.find({ "firmalar._id": _firmaId }).toArray()
+      if (foundFirmaProjeleri.length > 0 && !errorObject.projeNameError) {
         foundFirmaProjeleri.map(proje => {
-          if(proje.name == projeName  && !errorObject.firmaNameError) {
-            errorObject.projectNameError = "Firmanın bu isimde projesi mevcut"
+          if (proje.name == projeName && !errorObject.projeNameError) {
+            errorObject.projeNameError = "Firmanın bu isimde projesi mevcut"
             return
           }
         })
       }
 
-      
-      if(Object.keys(errorObject).length > 0) return {errorObject}
-      
-      const result = collection_Projeler.insertOne(project)
+
+      if (Object.keys(errorObject).length > 0) return { errorObject }
+
+      const result = collection_Projeler.insertOne(proje)
       return result
 
     } catch (err) {
@@ -210,13 +210,13 @@ exports = async function ({
 
   if (functionName == "getFirmaProjeleri") {
     try {
-      const firmaProjeleri = await collection_Projeler.find({ "firmalar._id":_firmaId }, { name: 1 }).toArray();
+      const firmaProjeleri = await collection_Projeler.find({ "firmalar._id": _firmaId }, { name: 1 }).toArray();
       return firmaProjeleri;
     } catch (err) {
       throw new Error("MONGO // collection_projeler // " + functionName + " // " + err.message);
     }
   }
 
-  return "MONGO // collection_firmalar // Herhangi bir functionName içine düşmedi"
+  return "MONGO // collection_projeler // Herhangi bir functionName içine düşmedi"
 
 };
