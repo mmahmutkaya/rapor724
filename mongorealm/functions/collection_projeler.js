@@ -184,17 +184,6 @@ exports = async function ({
         errorObject.firmaNameError = "Firma adı çok kısa"
       }
 
-      // const firmalarimNames = await collection_Projeler.find({"firmalar._id":_firmaId}).toArray()
-      // if (firmalarimNames?.length > 0  && !errorObject.firmaNameError) {
-      //   firmalarimNames.map(firma => {
-      //     if (firma.name == firmaName && !errorObject.firmaNameError) {
-      //       errorObject.firmaNameError = "Bu isimde firmanız mevcut"
-      //       return
-      //     }
-      //   })
-      // }
-
-
 
       const foundFirmaProjeleri = await collection_Projeler.find({"firmalar._id":_firmaId}).toArray()
       if(foundFirmaProjeleri.length > 0 && !errorObject.firmaNameError) {
