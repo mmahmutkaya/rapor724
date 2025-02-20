@@ -51,7 +51,6 @@ exports = async function ({
       // VALIDATE KONTROL
       if(Object.keys(errorObject).length > 0) return {errorObject}
       
-      if(Object.keys(errorObject).length > 0) return {errorObject}
       const result = await collection_Firmalar.insertOne({ name: firmaName, personeller: [{ email: userEmail, yetki: "owner" }] })
       return result;
 
