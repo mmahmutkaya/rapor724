@@ -2,7 +2,7 @@ exports = async function ({
   functionName,
   _firmaId,
   _projeId,
-  projeName
+  projectName
 }) {
 
   const user = context.user;
@@ -23,7 +23,7 @@ exports = async function ({
 
 
 
-  if (functionName == "createFirmaProject") {
+  if (functionName == "createProject") {
     try {
 
       const pozMetrajTipleri = [
