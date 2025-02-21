@@ -153,7 +153,7 @@ exports = async function ({
         // wbs: [], // henüz herhangi bir başlık yok fakat yok ama bu property şimdi olmazsa ilk wbs kaydında bir hata yaşıyoruz
         // lbs: [], // henüz herhangi bir başlık yok fakat yok ama bu property şimdi olmazsa ilk wbs kaydında bir hata yaşıyoruz
         firmalar: [{ _id: _firmaId, yetki: "owner" }],
-        kadro: [{ email: userEmail, yetki: "owner" }],
+        personeller: [{ email: userEmail, yetki: "owner" }],
         metrajYapabilenler,
         veriTurleri,
         haneSayilari,
