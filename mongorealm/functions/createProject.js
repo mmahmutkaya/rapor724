@@ -215,15 +215,15 @@ exports = async function ({
 
 
 
-  if (functionName == "getFirmaProjeleri") {
-    try {
-      const firmaprojeleri = await collection_Projects.find({ ["firmalar.${firmaId}"]: userEmail, "kullanicilar.yetki": "owner" }, { name: 1 }).toArray();
-      return firmaprojeleri;
-    } catch (err) {
-      throw new Error("MONGO // createProject // " + functionName + " // " + err.message);
-    }
-  }
+  // if (functionName == "getFirmaProjeleri") {
+  //   try {
+  //     const firmaprojeleri = await collection_Projects.find({ ["firmalar.${firmaId}"]: userEmail, "kullanicilar.yetki": "owner" }, { name: 1 }).toArray();
+  //     return firmaprojeleri;
+  //   } catch (err) {
+  //     throw new Error("MONGO // createProject // " + functionName + " // " + err.message);
+  //   }
+  // }
 
-  return "MONGO // createProject // Herhangi bir functionName içine düşmedi"
+  // return "MONGO // createProject // Herhangi bir functionName içine düşmedi"
 
 };
