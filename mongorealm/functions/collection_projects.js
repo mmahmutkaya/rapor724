@@ -149,7 +149,7 @@ exports = async function ({
 
 
       const proje = {
-        name: projeName,
+        name: projectName,
         // wbs: [], // henüz herhangi bir başlık yok fakat yok ama bu property şimdi olmazsa ilk wbs kaydında bir hata yaşıyoruz
         // lbs: [], // henüz herhangi bir başlık yok fakat yok ama bu property şimdi olmazsa ilk wbs kaydında bir hata yaşıyoruz
         firmalar: [{ _id: _firmaId, yetki: "owner" }],
@@ -175,15 +175,15 @@ exports = async function ({
       
       let errorObject = {}
 
-      if (typeof projeName != "string" && !errorObject.projeNameError) {
+      if (typeof projectName != "string" && !errorObject.projeNameError) {
         errorObject.projeNameError = "Proje adı verisi 'yazı' türünde değil"
       }
 
-      if (projeName.length == 0 && !errorObject.projeNameError) {
+      if (projectName.length == 0 && !errorObject.projeNameError) {
         errorObject.projeNameError = "Proje adı girilmemiş"
       }
 
-      if (projeName.length < 3 && !errorObject.projeNameError) {
+      if (projectName.length < 3 && !errorObject.projeNameError) {
         errorObject.projeNameError = "Proje adı çok kısa"
       }
 
@@ -191,7 +191,7 @@ exports = async function ({
       const foundFirmaProjeleri = await collection_Projects.find({ "firmalar._id": _firmaId }).toArray()
       if (foundFirmaProjeleri.length > 0 && !errorObject.projeNameError) {
         foundFirmaProjeleri.map(proje => {
-          if (proje.name == projeName && !errorObject.projeNameError) {
+          if (proje.name == projectName && !errorObject.projeNameError) {
             errorObject.projeNameError = "Firmanın bu isimde projesi mevcut"
             return
           }
