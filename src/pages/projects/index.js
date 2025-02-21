@@ -5,8 +5,7 @@ import { useApp } from "../../components/useApp";
 import FormProjectCreate from '../../components/FormProjectCreate'
 import ProjectsHeader from '../../components/ProjectsHeader'
 import { useNavigate } from "react-router-dom";
-import { useGetFirmaProjeleriNames } from '../../hooks/useMongo';
-import { DialogAlert } from '../../components/general/DialogAlert'
+import { useGetFirmaProjeleri } from '../../hooks/useMongo';
 
 
 import Grid from '@mui/material/Grid';
@@ -23,7 +22,7 @@ import AddCircleOutlineIcon from '@mui/icons-material/AddCircleOutline';
 
 
 
-export default function P_FirmaProjeleri() {
+export default function P_Projects() {
 
 
   const navigate = useNavigate()
@@ -37,35 +36,25 @@ export default function P_FirmaProjeleri() {
 
 
   const [show, setShow] = useState("Main")
-  const [dialogAlert, setDialogAlert] = useState()
 
 
-  const { data: firmaProjeleriNames } = useGetFirmaProjeleriNames()
-  // console.log("firmaProjeleriNames",firmaProjeleriNames)
+  const { data: firmaProjeleri } = useGetFirmaProjeleri()
+  // console.log("firmaProjeleri",firmaProjeleri)
 
 
   const handleProjectClick = async (oneProject) => {
 
     // const project = await RealmApp.currentUser.callFunction("getProject", { projectId: oneProject._id })
-    console.log("oneProject", oneProject)
-    const project = await RealmApp.currentUser.callFunction("collection_projeler", { functionName: "getProject", _projectId: oneProject._id })
+    const project = await RealmApp.currentUser.callFunction("collection_projeler", { functionName: "getProject", _projectId:oneProject._id });
 
-    if (!project._id) {
-      setDialogAlert({
-        dialogIcon: "warning",
-        dialogMessage: "Seçilen proje sistemde bulunamadı, sayfayı yenileyiniz, sorun devam ederse Rapor724 ile irtibata geçiniz.",
-      })
-      return
-    }
-
-    console.log("project", project)
+    
     setIsProject(project)
 
     // await RealmApp?.currentUser.refreshCustomData()
 
 
     // BURASI AKTİFDİ
-
+    
     // const customProjectSettings = await RealmApp?.currentUser?.customData.customProjectSettings
     // console.log("customProjectSettings", customProjectSettings)
 
@@ -138,15 +127,6 @@ export default function P_FirmaProjeleri() {
   return (
     <Box>
 
-      {dialogAlert &&
-        <DialogAlert
-          dialogIcon={dialogAlert.dialogIcon}
-          dialogMessage={dialogAlert.dialogMessage}
-          detailText={dialogAlert.detailText}
-          onCloseAction={() => setDialogAlert()}
-        />
-      }
-
       <ProjectsHeader setShow={setShow} />
 
       {show == "FormProjectCreate" &&
@@ -155,7 +135,7 @@ export default function P_FirmaProjeleri() {
         </Box>
       }
 
-      {show == "Main" && !firmaProjeleriNames?.length > 0 &&
+      {show == "Main" && !firmaProjeleri?.length > 0 &&
         <Stack sx={{ width: '100%', padding: "1rem" }} spacing={2}>
           <Alert severity="info">
             Dahil olduğunuz herhangi bir proje bulunamadı, menüler yardımı ile yeni bir proje oluşturabilirsiniz.
@@ -163,10 +143,10 @@ export default function P_FirmaProjeleri() {
         </Stack>
       }
 
-      {show == "Main" && firmaProjeleriNames?.length > 0 &&
+      {show == "Main" && firmaProjeleri?.length > 0 &&
         <Stack sx={{ width: '100%', padding: "1rem" }} spacing={0}>
           {
-            firmaProjeleriNames?.map((oneProject, index) => (
+            firmaProjeleri?.map((oneProject, index) => (
 
               <Box
                 key={index}

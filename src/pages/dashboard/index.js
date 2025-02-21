@@ -19,7 +19,7 @@ export default function P_Dashboard() {
   const { isProject, setIsProject } = useContext(StoreContext)
 
   useEffect(() => {
-    if (!isProject) navigate('/projects')
+    if (!isProject) navigate('/firmaprojeleri')
   }, [isProject]);
 
   const [sayi, setSayi] = useState(50)

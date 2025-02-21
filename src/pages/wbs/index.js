@@ -32,7 +32,7 @@ export default function P_Wbs() {
 
 
   useEffect(() => {
-    !isProject && navigate('/projects')
+    !isProject && navigate('/firmaprojeleri')
   }, [])
 
 
@@ -74,7 +74,7 @@ export default function P_Wbs() {
       {!isProject?.wbs?.length &&
         <Stack sx={{ width: '100%', padding: "0.5rem" }} spacing={2}>
           <Alert severity="info">
-            Öncelikle Proje oluşturmanız gerekmekte
+            Yukarıdaki "+" tuşuna basarak "Poz Başlığı" oluşturabilirsiniz.
           </Alert>
         </Stack>
       }

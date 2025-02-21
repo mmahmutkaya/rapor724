@@ -18,6 +18,8 @@ import { Typography } from '@mui/material';
 
 export default function P_FormWbsCreate({ setShow, isProject, setIsProject, selectedWbs, setSelectedWbs }) {
 
+  // console.log("isProject",isProject)
+
   // proje ve _id si yoksa wbs oluşturma formunu göstermenin bir anlamı yok, hata vererek durduruyoruz
   if (!isProject?._id) {
     throw new Error("Wbs oluşturulacak projenin database kaydı için ProjeId belirtilmemiş, sayfayı yeniden yükleyin, sorun devam ederse Rapor7/24 ile irtibata geçiniz.")

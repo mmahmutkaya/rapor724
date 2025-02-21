@@ -1,7 +1,8 @@
 import React, { useState, useContext, useRef, useEffect } from 'react';
 import { StoreContext } from '../components/store'
 import { useQueryClient } from '@tanstack/react-query'
-import { useGetFirmaProjeleri } from '../hooks/useMongo';
+import { useGetFirmaProjeleriNames } from '../hooks/useMongo';
+import { DialogAlert } from '../../src/components/general/DialogAlert'
 
 
 //mui
@@ -30,16 +31,14 @@ import PlayArrowIcon from '@mui/icons-material/PlayArrow';
 export default function P_FormProjectCreate({ setShow }) {
 
   const queryClient = useQueryClient()
-
-  const [projeNameError, setProjeNameError] = useState(false)
-  const [hataMesaj, setHataMesaj] = useState("")
   const { RealmApp, selectedFirma } = useContext(StoreContext)
 
-  const [dialogShow, setDialogShow] = useState(1)
-  const [projeAdi, setProjeAdi] = useState("")
-  const [firmaId, setFirmaId] = useState(0)
+  const [projeNameError, setProjeNameError] = useState(false)
+  const [dialogAlert, setDialogAlert] = useState()
 
-  const { data: firmaProjeleriNames } = useGetFirmaProjeleri()
+  const [projeAdi, setProjeAdi] = useState("")
+
+  const { data: firmaProjeleriNames } = useGetFirmaProjeleriNames()
 
 
   async function handleSubmit(event) {
@@ -51,7 +50,7 @@ export default function P_FormProjectCreate({ setShow }) {
       const data = new FormData(event.currentTarget);
       const projeName = data.get('projeName')
 
-      let firmaId = selectedFirma?._id
+      let _firmaId = selectedFirma?._id
 
 
       // VALIDATE KONTROL
@@ -59,19 +58,19 @@ export default function P_FormProjectCreate({ setShow }) {
       let projeNameError
 
       if (typeof projeName != "string" && !projeNameError) {
-        setFirmaNameError("Firma adı verisi 'yazı' türünde değil")
+        setProjeNameError("Proje adı verisi 'yazı' türünde değil")
         projeNameError = true
         isError = true
       }
 
       if (projeName.length == 0 && !projeNameError) {
-        setFirmaNameError("Firma adı girilmemiş")
+        setProjeNameError("Proje adı girilmemiş")
         projeNameError = true
         isError = true
       }
 
       if (projeName.length < 3 && !projeNameError) {
-        setFirmaNameError("Firma adı çok kısa")
+        setProjeNameError("Proje adı çok kısa")
         projeNameError = true
         isError = true
       }
@@ -95,34 +94,35 @@ export default function P_FormProjectCreate({ setShow }) {
       // VALIDATE KONTROL -- SONU 
 
 
-      const resultProject = await RealmApp.currentUser.callFunction("collection_projeler", { functionName: "createFirmaProject", firmaId, projeName });
-      console.log("resultProject", resultProject)
+      const result = await RealmApp.currentUser.callFunction("collection_projeler", { functionName: "createFirmaProject", _firmaId, projeName });
+      console.log("result", result)
 
-      let newProjectName = {
-        _id: resultProject.insertedId,
-        name: projeName
+
+      if (result.errorObject) {
+        setProjeNameError(result.errorObject.projeNameError)
+        console.log("backend den dönen errorObject hata ile durdu")
+        return
       }
 
-      queryClient.setQueryData(['firmaProjeleri', firmaId], (firmaProjeleri) => [...firmaProjeleri, newProjectName])
-      // setProjectNames(oldProjects => [...oldProjects, newProject])
-      setShow("ProjectMain")
+      if (result.insertedId) {
+        let newProjectName = {
+          _id: result.insertedId,
+          name: projeName
+        }
+        queryClient.setQueryData(['firmaProjeleri', _firmaId.toString()], (firmaProjeleri) => [...firmaProjeleri, newProjectName])
+        setShow("Main")
+        return
+      }
 
     } catch (err) {
 
       console.log(err)
-      // err?.message ? setHataMesaj(err.message) : setHataMesaj("Beklenmedik bir hata oluştu, lütfen Rapor7/24 ile irtibata geçiniz..")
-      let hataMesaj_ = err?.message ? err.message : "Beklenmedik hata, Rapor7/24 ile irtibata geçiniz.."
 
-      if (hataMesaj_.includes("duplicate key error")) {
-        hataMesaj_ = "Sistemde kayıtlı"
-      }
-
-      if (hataMesaj_.includes("çok kısa")) {
-        hataMesaj_ = "Çok kısa"
-      }
-
-      setHataMesaj(hataMesaj_)
-      setProjeNameError(true)
+      setDialogAlert({
+        dialogIcon: "warning",
+        dialogMessage: "Beklenmedik hata, Rapor7/24 ile irtibata geçiniz..",
+        detailText: err?.message ? err.message : null
+      })
 
     }
 
@@ -132,10 +132,19 @@ export default function P_FormProjectCreate({ setShow }) {
   return (
     <div>
 
+      {dialogAlert &&
+        <DialogAlert
+          dialogIcon={dialogAlert.dialogIcon}
+          dialogMessage={dialogAlert.dialogMessage}
+          detailText={dialogAlert.detailText}
+          onCloseAction={() => setDialogAlert()}
+        />
+      }
+
       <Dialog
         PaperProps={{ sx: { width: "80%", position: "fixed", top: "10rem" } }}
-        open={dialogShow === 1}
-        onClose={() => setShow("ProjectMain")}
+        open={true}
+        onClose={() => setShow("Main")}
       >
         {/* <DialogTitle>Subscribe</DialogTitle> */}
 
@@ -192,7 +201,7 @@ export default function P_FormProjectCreate({ setShow }) {
           </DialogContent>
 
           <DialogActions sx={{ padding: "1.5rem" }}>
-            <Button onClick={() => setShow("ProjectMain")}>İptal</Button>
+            <Button onClick={() => setShow("Main")}>İptal</Button>
             <Button type="submit">Oluştur</Button>
           </DialogActions>
 

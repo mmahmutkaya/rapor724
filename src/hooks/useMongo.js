@@ -27,14 +27,14 @@ export const useGetNetworkUsers = (onSuccess, onError) => {
 }
 
 
-export const useGetFirmaProjeleri = () => {
+export const useGetFirmaProjeleriNames = () => {
 
   const { RealmApp, selectedFirma } = useContext(StoreContext)
   let _firmaId = selectedFirma?._id
 
   return useQuery({
-    queryKey: ['firmaProjeleri', _firmaId?.toString()],
-    queryFn: () => RealmApp?.currentUser.callFunction("collection_projeler", { functionName: "getFirmaProjeleri", _firmaId }),
+    queryKey: ['firmaProjeleriNames', _firmaId?.toString()],
+    queryFn: () => RealmApp?.currentUser.callFunction("collection_projeler", { functionName: "getFirmaProjeleriNames", _firmaId }),
     enabled: !!RealmApp && !!_firmaId,
     // onSuccess,
     // onError,

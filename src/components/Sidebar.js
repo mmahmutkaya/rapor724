@@ -69,7 +69,7 @@ export default function Sidebar({ setMobileOpen }) {
 
 
       {/* proje seçiminde - sidebar menüsü görünümü*/}
-      {selectedFirma &&
+      {selectedFirma && !isProject &&
         <Grid item onClick={(() => setMobileOpen(false))}>
           <List>
 
