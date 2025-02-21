@@ -1,6 +1,7 @@
 exports = async function ({
   functionName,
   _firmaId,
+  _projeId,
   projeName
 }) {
 
@@ -213,6 +214,7 @@ exports = async function ({
 
 
 
+  
   if (functionName == "getFirmaProjeleriNames") {
     try {
       const firmaProjeleriNames = await collection_Projeler.find({ "firmalar._id": _firmaId }, { name: 1 }).toArray();
@@ -221,6 +223,20 @@ exports = async function ({
       throw new Error("MONGO // collection_projeler // " + functionName + " // " + err.message);
     }
   }
+
+
+
+    
+  if (functionName == "getProject") {
+    try {
+      const proje = await collection_Projeler.findOne({ "_id":_projectId })
+      return proje;
+    } catch (err) {
+      throw new Error("MONGO // collection_projeler // " + functionName + " // " + err.message);
+    }
+  }
+
+
 
   return "MONGO // collection_projeler // Herhangi bir functionName içine düşmedi"
 
