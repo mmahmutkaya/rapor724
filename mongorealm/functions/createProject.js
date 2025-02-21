@@ -15,7 +15,7 @@ exports = async function ({
   }
 
 
-  const collection_Projeler = context.services.get("mongodb-atlas").db("rapor724_v2").collection("projects");
+  const collection_Projects = context.services.get("mongodb-atlas").db("rapor724_v2").collection("projects");
 
 
   try {
@@ -188,7 +188,7 @@ exports = async function ({
     }
 
 
-    const foundFirmaProjeleri = await collection_Projeler.find({ "firmalar._id": _firmaId }).toArray()
+    const foundFirmaProjeleri = await collection_Projects.find({ "firmalar._id": _firmaId }).toArray()
     if (foundFirmaProjeleri.length > 0 && !errorObject.projectNameError) {
       foundFirmaProjeleri.map(project => {
         if (project.name == projectName && !errorObject.projectNameError) {
@@ -209,21 +209,21 @@ exports = async function ({
     return result
 
   } catch (err) {
-    throw new Error("MONGO // collection_projeler // " + functionName + " // " + err.message);
+    throw new Error("MONGO // createProject // " + err.message);
   }
 
 
 
 
-  // if (functionName == "getFirmaProjeleri") {
-  //   try {
-  //     const firmaprojeleri = await collection_Projeler.find({ ["firmalar.${firmaId}"]: userEmail, "kullanicilar.yetki": "owner" }, { name: 1 }).toArray();
-  //     return firmaprojeleri;
-  //   } catch (err) {
-  //     throw new Error("MONGO // collection_projeler // " + functionName + " // " + err.message);
-  //   }
-  // }
+  if (functionName == "getFirmaProjeleri") {
+    try {
+      const firmaprojeleri = await collection_Projects.find({ ["firmalar.${firmaId}"]: userEmail, "kullanicilar.yetki": "owner" }, { name: 1 }).toArray();
+      return firmaprojeleri;
+    } catch (err) {
+      throw new Error("MONGO // createProject // " + functionName + " // " + err.message);
+    }
+  }
 
-  // return "MONGO // collection_firmalar // Herhangi bir functionName içine düşmedi"
+  return "MONGO // createProject // Herhangi bir functionName içine düşmedi"
 
 };
