@@ -1,6 +1,7 @@
 exports = async function ({
   functionName,
   _firmaId,
+  _projeId,
   projeName
 }) {
 
@@ -152,7 +153,7 @@ exports = async function ({
         // wbs: [], // henüz herhangi bir başlık yok fakat yok ama bu property şimdi olmazsa ilk wbs kaydında bir hata yaşıyoruz
         // lbs: [], // henüz herhangi bir başlık yok fakat yok ama bu property şimdi olmazsa ilk wbs kaydında bir hata yaşıyoruz
         firmalar: [{ _id: _firmaId, yetki: "owner" }],
-        kadro: [{ email: userEmail, yetki: "owner" }],
+        personeller: [{ email: userEmail, yetki: "owner" }],
         metrajYapabilenler,
         veriTurleri,
         haneSayilari,
@@ -213,6 +214,7 @@ exports = async function ({
 
 
 
+  
   if (functionName == "getFirmaProjeleriNames") {
     try {
       const firmaProjeleriNames = await collection_Projeler.find({ "firmalar._id": _firmaId }, { name: 1 }).toArray();
@@ -221,6 +223,20 @@ exports = async function ({
       throw new Error("MONGO // collection_projeler // " + functionName + " // " + err.message);
     }
   }
+
+
+
+    
+  if (functionName == "getProject") {
+    try {
+      const proje = await collection_Projeler.findOne({ "_id":_projeId })
+      return proje;
+    } catch (err) {
+      throw new Error("MONGO // collection_projeler // " + functionName + " // " + err.message);
+    }
+  }
+
+
 
   return "MONGO // collection_projeler // Herhangi bir functionName içine düşmedi"
 

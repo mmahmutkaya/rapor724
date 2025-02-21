@@ -56,8 +56,8 @@ exports = async function ({ projectId, upWbsId, newWbsName, newWbsCodeName }) {
   if (!mailTeyit) throw new Error("MONGO // createWbs // Öncelikle üyeliğinize ait mail adresinin size ait olduğunu doğrulamalısınız, tekrar giriş yapmayı deneyiniz veya bizimle iletişime geçiniz.")
 
 
-  const collection_Projects = context.services.get("mongodb-atlas").db("rapor724_v2").collection("projects")
-  const project = await collection_Projects.findOne({ _id: _projectId, members: _userId, isDeleted: false })
+  const collection_Projeler = context.services.get("mongodb-atlas").db("rapor724_v2").collection("projeler")
+  const project = await collection_Projeler.findOne({ _id: _projectId, members: _userId, isDeleted: false })
 
   if (!project) throw new Error("MONGO // createWbs // ProjectId bulunamadı, lütfen sayfayı yenileyiniz, sorun devam ederse Rapor7/24 ile irtibata geçiniz.")
 
@@ -79,7 +79,7 @@ exports = async function ({ projectId, upWbsId, newWbsName, newWbsCodeName }) {
 
     try {
 
-      const resultMongo = await collection_Projects.updateOne(
+      const resultMongo = await collection_Projeler.updateOne(
         { _id: _projectId }, // Query for the user object of the logged in user
         { $set: { wbs: [newWbsItem] } }, // Set the logged in user's favorite color to purple
         // { "$push": { "wbs": newWbsItem  } }
@@ -139,7 +139,7 @@ exports = async function ({ projectId, upWbsId, newWbsName, newWbsCodeName }) {
 
     try {
 
-      await collection_Projects.updateOne(
+      await collection_Projeler.updateOne(
         { _id: _projectId }, // Query for the user object of the logged in user
         // { $set: {wbs:newWbs} }, // Set the logged in user's favorite color to purple
         { "$push": { "wbs": newWbsItem } }
@@ -212,7 +212,7 @@ exports = async function ({ projectId, upWbsId, newWbsName, newWbsCodeName }) {
 
   try {
 
-    await collection_Projects.updateOne(
+    await collection_Projeler.updateOne(
       { _id: _projectId }, // Query for the user object of the logged in user
       // { $set: {wbs:[newWbsItem]} }, // Set the logged in user's favorite color to purple
       { "$push": { "wbs": newWbsItem } }
