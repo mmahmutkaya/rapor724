@@ -32,7 +32,7 @@ export default function P_Wbs() {
 
 
   useEffect(() => {
-    !isProject && navigate('/firmaprojeleri')
+    !isProject && navigate('/projects')
   }, [])
 
 

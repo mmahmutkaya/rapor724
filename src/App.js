@@ -6,7 +6,7 @@ import Home from './pages'
 
 import P_Firmalarim from './pages/firmalarim'
 
-import P_FirmaProjeleri from './pages/firmaprojeleri'
+import P_Projects from './pages/projects'
 import P_FirmaKadrosu from './pages/firmakadrosu'
 
 import P_Dashboard from './pages/dashboard'
@@ -33,7 +33,7 @@ function App() {
 
       <Route path='/firmalarim' element={<P_Firmalarim/>} />
 
-      <Route path='/firmaprojeleri' element={<P_FirmaProjeleri />} />
+      <Route path='/projects' element={<P_Projects />} />
       <Route path='/firmakadrosu' element={<P_FirmaKadrosu />} />
 
       {/* projects */}

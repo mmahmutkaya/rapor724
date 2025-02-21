@@ -37,7 +37,7 @@ export default function P_Firmalarim() {
 
   const handleProjectClick = (oneFirma) => {
     setSelectedFirma(oneFirma)
-    navigate("/firmaprojeleri")
+    navigate("/projects")
   }
 
  

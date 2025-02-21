@@ -44,11 +44,9 @@ export default function P_FirmaProjeleri() {
   // console.log("firmaProjeleriNames",firmaProjeleriNames)
 
 
-  const handleProjectClick = async (oneProject) => {
+  const handleProjeClick = async (oneProje) => {
 
-    // const project = await RealmApp.currentUser.callFunction("getProject", { projectId: oneProject._id })
-    console.log("oneProject", oneProject)
-    const project = await RealmApp.currentUser.callFunction("collection_projeler", { functionName: "getProject", _projectId: oneProject._id })
+    const project = await RealmApp.currentUser.callFunction("collection_projeler", { functionName: "getProject", _projeId: oneProje._id })
 
     if (!project._id) {
       setDialogAlert({
@@ -69,7 +67,7 @@ export default function P_FirmaProjeleri() {
     // const customProjectSettings = await RealmApp?.currentUser?.customData.customProjectSettings
     // console.log("customProjectSettings", customProjectSettings)
 
-    // // console.log("oneProject._id",oneProject._id)
+    // // console.log("oneProje._id",oneProje._id)
     // const customProjectSettings0 = customProjectSettings[0]
     // console.log("customProjectSettings0", customProjectSettings0)
 
@@ -80,9 +78,9 @@ export default function P_FirmaProjeleri() {
     // const stringId = console.log(RealmApp.EJSON.parse(bsonId, { relaxed: false }));
     // console.log("stringId", stringId)
 
-    // console.log("check", stringId == oneProject._id)
+    // console.log("check", stringId == oneProje._id)
 
-    // const customProjectSettings2 = customProjectSettings.find(x => x._projectId.toString() === oneProject._id.toString())
+    // const customProjectSettings2 = customProjectSettings.find(x => x._projectId.toString() === oneProje._id.toString())
     // const customProjectSettings2 = customProjectSettings[0]._projectId.toString()
     // console.log("customProjectSettings2",customProjectSettings2)
 
@@ -93,7 +91,7 @@ export default function P_FirmaProjeleri() {
 
     // setIsProject(isProject => {
     //   let obj
-    //   const customProjectSettings = RealmApp?.currentUser?.customData.customProjectSettings?.find(x => x._projectId.$oid === oneProject._id.toString())
+    //   const customProjectSettings = RealmApp?.currentUser?.customData.customProjectSettings?.find(x => x._projectId.$oid === oneProje._id.toString())
 
 
     //   isProject.mahalBasliklari = isProject.mahalBasliklari.map(item => {
@@ -166,11 +164,11 @@ export default function P_FirmaProjeleri() {
       {show == "Main" && firmaProjeleriNames?.length > 0 &&
         <Stack sx={{ width: '100%', padding: "1rem" }} spacing={0}>
           {
-            firmaProjeleriNames?.map((oneProject, index) => (
+            firmaProjeleriNames?.map((oneProje, index) => (
 
               <Box
                 key={index}
-                onClick={() => handleProjectClick(oneProject)}
+                onClick={() => handleProjeClick(oneProje)}
                 sx={{
                   display: "grid",
                   gridTemplateColumns: "auto 1fr",
@@ -192,7 +190,7 @@ export default function P_FirmaProjeleri() {
 
                 <Box>
                   <Typography>
-                    {oneProject.name}
+                    {oneProje.name}
                   </Typography>
                 </Box>
 
