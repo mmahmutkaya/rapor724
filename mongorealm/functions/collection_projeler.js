@@ -170,6 +170,8 @@ exports = async function ({
       }
 
 
+      // VALIDATE KONTROL
+      
       let errorObject = {}
 
       if (typeof projeName != "string" && !errorObject.projeNameError) {
@@ -194,9 +196,12 @@ exports = async function ({
           }
         })
       }
-
-
+      
       if (Object.keys(errorObject).length > 0) return { errorObject }
+      
+      // VALIDATE KONTROL SONU
+      
+
 
       const result = collection_Projeler.insertOne(proje)
       return result
@@ -208,10 +213,10 @@ exports = async function ({
 
 
 
-  if (functionName == "getFirmaProjeleri") {
+  if (functionName == "getFirmaProjeleriNames") {
     try {
-      const firmaProjeleri = await collection_Projeler.find({ "firmalar._id": _firmaId }, { name: 1 }).toArray();
-      return firmaProjeleri;
+      const firmaProjeleriNames = await collection_Projeler.find({ "firmalar._id": _firmaId }, { name: 1 }).toArray();
+      return firmaProjeleriNames;
     } catch (err) {
       throw new Error("MONGO // collection_projeler // " + functionName + " // " + err.message);
     }
