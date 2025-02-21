@@ -12,14 +12,14 @@ exports = async function ({
   const mailTeyit = user.custom_data.mailTeyit;
   if (!mailTeyit) {
     throw new Error(
-      "MONGO // collection_projeler // Öncelikle üyeliğinize ait mail adresinin size ait olduğunu doğrulamalısınız, tekrar giriş yapmayı deneyiniz veya bizimle iletişime geçiniz."
+      "MONGO // collection_projects // Öncelikle üyeliğinize ait mail adresinin size ait olduğunu doğrulamalısınız, tekrar giriş yapmayı deneyiniz veya bizimle iletişime geçiniz."
     );
   }
 
   const currentTime = new Date()
 
   const collection_Firmalar = context.services.get("mongodb-atlas").db("rapor724_v2").collection("firmalar");
-  const collection_Projeler = context.services.get("mongodb-atlas").db("rapor724_v2").collection("projeler");
+  const collection_Projects = context.services.get("mongodb-atlas").db("rapor724_v2").collection("projects");
 
 
 
@@ -188,7 +188,7 @@ exports = async function ({
       }
 
 
-      const foundFirmaProjeleri = await collection_Projeler.find({ "firmalar._id": _firmaId }).toArray()
+      const foundFirmaProjeleri = await collection_Projects.find({ "firmalar._id": _firmaId }).toArray()
       if (foundFirmaProjeleri.length > 0 && !errorObject.projeNameError) {
         foundFirmaProjeleri.map(proje => {
           if (proje.name == projeName && !errorObject.projeNameError) {
@@ -204,23 +204,23 @@ exports = async function ({
       
 
 
-      const result = collection_Projeler.insertOne(proje)
+      const result = collection_Projects.insertOne(proje)
       return result
 
     } catch (err) {
-      throw new Error("MONGO // collection_projeler // " + functionName + " // " + err.message);
+      throw new Error("MONGO // collection_projects // " + functionName + " // " + err.message);
     }
   }
 
 
 
   
-  if (functionName == "getFirmaProjeleriNames") {
+  if (functionName == "getProjectNames_firma") {
     try {
-      const firmaProjeleriNames = await collection_Projeler.find({ "firmalar._id": _firmaId }, { name: 1 }).toArray();
-      return firmaProjeleriNames;
+      const projectNames = await collection_Projects.find({ "firmalar._id": _firmaId }, { name: 1 }).toArray();
+      return projectNames;
     } catch (err) {
-      throw new Error("MONGO // collection_projeler // " + functionName + " // " + err.message);
+      throw new Error("MONGO // collection_projects // " + functionName + " // " + err.message);
     }
   }
 
@@ -229,15 +229,15 @@ exports = async function ({
     
   if (functionName == "getProject") {
     try {
-      const proje = await collection_Projeler.findOne({ "_id":_projeId })
+      const proje = await collection_Projects.findOne({ "_id":_projeId })
       return proje;
     } catch (err) {
-      throw new Error("MONGO // collection_projeler // " + functionName + " // " + err.message);
+      throw new Error("MONGO // collection_projects // " + functionName + " // " + err.message);
     }
   }
 
 
 
-  return "MONGO // collection_projeler // Herhangi bir functionName içine düşmedi"
+  return "MONGO // collection_projects // Herhangi bir functionName içine düşmedi"
 
 };

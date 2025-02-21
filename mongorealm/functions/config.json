@@ -408,7 +408,7 @@
         "run_as_system": true
     },
     {
-        "name": "collection_projeler",
+        "name": "collection_projects",
         "private": false,
         "run_as_system": true,
         "disable_arg_logs": true
