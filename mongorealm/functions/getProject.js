@@ -9,7 +9,7 @@ exports = async function({_projectId}){
   if(!mailTeyit) throw new Error("MONGO // getProject // Öncelikle üyeliğinize ait mail adresinin size ait olduğunu doğrulamalısınız, tekrar giriş yapmayı deneyiniz veya bizimle iletişime geçiniz.")
 
   if(typeof _projectId != "object") {
-    throw new Error("MONGO // getProject // sorguya '_projeId' gönderilemedi (from backend)")
+    throw new Error("MONGO // getProject // sorguya '_projeId' gönderilemedi (kaynak backend)")
   }
  
   // proje bulma
