@@ -14,7 +14,7 @@ exports = async function({_projectId}){
  
   // proje bulma
   const collection_Projects = context.services.get("mongodb-atlas").db("rapor724_v2").collection("projects")
-  const project = await collection_Projects.findOne({_id:_projectId, "personeller":_userId, isDeleted:false})
+  const project = await collection_Projects.findOne({_id:_projectId, isDeleted:false})
   if(!project) throw new Error("MONGO // getProject // Aradığınız proje sistemde yok ya da üyesi değilsiniz.")
   return project
   
