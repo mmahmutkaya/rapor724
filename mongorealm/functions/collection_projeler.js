@@ -229,7 +229,7 @@ exports = async function ({
     
   if (functionName == "getProject") {
     try {
-      const proje = await collection_Projeler.findOne({ "_id":_projectId })
+      const proje = await collection_Projeler.findOne({ "_id":_projeId })
       return proje;
     } catch (err) {
       throw new Error("MONGO // collection_projeler // " + functionName + " // " + err.message);
