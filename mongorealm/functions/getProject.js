@@ -1,24 +1,20 @@
-exports = async function({projectId}){
+exports = async function({_projectId}){
   
   // kullanıcı
   const user = context.user
   _userId = new BSON.ObjectId(user.id)
-
+  const userEmail = context.user.data.email
   
   const mailTeyit = user.custom_data.mailTeyit
   if(!mailTeyit) throw new Error("MONGO // getProject // Öncelikle üyeliğinize ait mail adresinin size ait olduğunu doğrulamalısınız, tekrar giriş yapmayı deneyiniz veya bizimle iletişime geçiniz.")
 
-
-  let _projectId
-  try {
-    _projectId = new BSON.ObjectId(projectId)
-  } catch(err){
-    _projectId = projectId
+  if(typeof _projectId != "object") {
+    throw new Error("MONGO // getProject // sorguya '_projeId' gönderilemedi (kaynak backend)")
   }
-  
+ 
   // proje bulma
   const collection_Projects = context.services.get("mongodb-atlas").db("rapor724_v2").collection("projects")
-  const project = await collection_Projects.findOne({_id:_projectId, members:_userId, isDeleted:false})
+  const project = await collection_Projects.findOne({_id:_projectId, isDeleted:false})
   if(!project) throw new Error("MONGO // getProject // Aradığınız proje sistemde yok ya da üyesi değilsiniz.")
   return project
   
