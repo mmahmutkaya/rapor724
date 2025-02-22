@@ -35,7 +35,7 @@ export default function P_Mahaller() {
 
   const navigate = useNavigate()
   // !isProject ? navigate('/projects') : null
-  if(!isProject) window.location.href = "/projects"
+  if (!isProject) window.location.href = "/projects"
 
   const RealmApp = useApp();
 
@@ -48,11 +48,6 @@ export default function P_Mahaller() {
   }
   mahaller_fecth()
 
-
-  const handleSelectMahal = (mahal) => {
-    setSelectedMahal(mahal)
-    setSelectedMahalBaslik(false)
-  }
 
 
   // aşağıda kullanılıyor
@@ -157,7 +152,13 @@ export default function P_Mahaller() {
   const handle_selectBaslik = (oneBaslik) => {
     setSelectedMahalBaslik(oneBaslik)
     setSelectedMahal()
-    console.log("mahal baslık secildi")
+    console.log("oneBaslik", oneBaslik)
+  }
+
+  const handle_selectMahal = ({oneBaslik, oneMahal}) => {
+    setSelectedMahal(oneMahal)
+    setSelectedMahalBaslik()
+    console.log("oneMahal", oneMahal)
   }
 
 
@@ -266,10 +267,6 @@ export default function P_Mahaller() {
   }
 
 
-  const handle_selectMahal = ()=>{
-    console.log("deneme22")
-  }
-
 
 
   return (
@@ -297,7 +294,7 @@ export default function P_Mahaller() {
           <EditMahalBaslik setShow={setShow} />
         </Grid>
       }
-      
+
 
       {show == "Main" && (isProject?.lbs?.filter(item => item.openForMahal).length == 0 || !isProject?.lbs) &&
         <Stack sx={{ width: '100%', pl: "1rem", pr: "0.5rem", pt: "1rem", mt: subHeaderHeight }} spacing={2}>
@@ -315,7 +312,7 @@ export default function P_Mahaller() {
           {/* EN ÜST BAŞLIK ÜST SATIRI */}
           <Grid
             sx={{
-              pb: "1rem",
+              // pb: "1rem",
               display: "grid",
               gridTemplateColumns: gridTemplateColumns_,
             }}
@@ -534,7 +531,7 @@ export default function P_Mahaller() {
                                   key={index}
                                   index={index}
                                   count_={count_}
-                                  onClick={() => handle_selectMahal(oneBaslik, oneMahal)}
+                                  onClick={() => handle_selectMahal({oneBaslik, oneMahal})}
                                   sx={{
                                     // userSelect:"none",
                                     cursor: "pointer",

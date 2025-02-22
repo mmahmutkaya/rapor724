@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useApp } from "./useApp.js";
 import deleteLastSpace from '../functions/deleteLastSpace.js';
-import { DialogWindow } from '../components/general/DialogWindow';
+import { DialogAlert } from '../components/general/DialogAlert'
 
 
 //mui
@@ -25,8 +25,7 @@ export default function P_FormWbsCreate({ setShow, isProject, setIsProject, sele
     throw new Error("Wbs oluşturulacak projenin database kaydı için ProjeId belirtilmemiş, sayfayı yeniden yükleyin, sorun devam ederse Rapor7/24 ile irtibata geçiniz.")
   }
 
-  const [showDialog, setShowDialog] = useState(false)
-  const [dialogCase, setDialogCase] = useState("")
+  const [dialogAlert, setDialogAlert] = useState(false)
 
   const [error_for_wbsName, setError_for_wbsName] = useState(false)
   const [errorText_for_wbsName, setErrorText_for_wbsName] = useState()
@@ -68,7 +67,7 @@ export default function P_FormWbsCreate({ setShow, isProject, setIsProject, sele
         console.log("wbsCodeName", "yok -- error")
       }
 
-      if (wbsCodeName.includes(" ") ) {
+      if (wbsCodeName.includes(" ")) {
         setError_for_wbsCodeName(true);
         setErrorText_for_wbsCodeName("Boşluk kullanmayınız")
         isError = true
@@ -82,7 +81,7 @@ export default function P_FormWbsCreate({ setShow, isProject, setIsProject, sele
         console.log("bu satırın altında fonksiyon --return-- ile durduruldu")
         return
       }
-
+      
 
 
       // yukarıdaki yapılan _id kontrolü tamamsa bu veri db de kaydolmuş demektir, refetch_pozlar() yapıp db yi yormaya gerek yok
@@ -145,27 +144,22 @@ export default function P_FormWbsCreate({ setShow, isProject, setIsProject, sele
     } catch (err) {
 
       console.log(err)
-      let hataMesaj_ = err?.message ? err.message : "Beklenmedik hata, sayfayı yenileyiniz, sorun devam ederse Rapor7/24 ile irtibata geçiniz.."
-
-      let text1 = "__mesajBaslangic__"
-      let text2 = "__mesajBitis__"
-      let mesajBaslangic = hataMesaj_.includes(text1) ? hataMesaj_.indexOf(text1) + text1.length : 0
-      let mesajBitis = hataMesaj_.includes(text2) ? hataMesaj_.indexOf(text2) : hataMesaj_.length
-      // console.log(hataMesaj_.slice(mesajBaslangic + "mesajBaslangic:".length, mesajBitis))
-      hataMesaj_ = hataMesaj_.slice(mesajBaslangic, mesajBitis)
-      console.log(hataMesaj_)
 
       // eğer çifte kayıt oluyorsa form içindeki poz ismi girilen yere aşağıdaki mesaj gönderilir, fonksiyon durdurulur
       // form sayfası kapanmadan hata gösterimi
-      if (hataMesaj_.includes("duplicate key error")) {
+      if (err.message.includes("duplicate key error")) {
         setError_for_wbsName(true);
         setErrorText_for_wbsName("Aynı seviyede, aynı isimde wbs olamaz")
-        console.log("Aynı seviyede, aynı isimde wbs olamaz")
+        console.log("HATA - Aynı seviyede, aynı isimde wbs olamaz")
         return
       }
 
-      setDialogCase("error")
-      setShowDialog(hataMesaj_)
+      setDialogAlert({
+        dialogIcon: "warning",
+        dialogMessage: "Beklenmedik hata, sayfayı yenileyiniz, sorun devam ederse Rapo724 ile irtibata geçiniz.",
+        detailText: err.message,
+      })
+      return
 
     }
 
@@ -175,9 +169,16 @@ export default function P_FormWbsCreate({ setShow, isProject, setIsProject, sele
   return (
     <div>
 
-      {showDialog &&
-        <DialogWindow dialogCase={dialogCase} showDialog={showDialog} setShowDialog={setShowDialog} afterDone={callBack_m} />
+
+      {dialogAlert &&
+        <DialogAlert
+          dialogIcon={dialogAlert.dialogIcon}
+          dialogMessage={dialogAlert.dialogMessage}
+          detailText={dialogAlert.detailText}
+          onCloseAction={() => setDialogAlert()}
+        />
       }
+
 
       <Dialog
         PaperProps={{ sx: { width: "80%", position: "fixed", top: "10rem" } }}

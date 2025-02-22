@@ -5,7 +5,7 @@ import { useApp } from "../../components/useApp";
 import FormProjectCreate from '../../components/FormProjectCreate'
 import ProjectsHeader from '../../components/ProjectsHeader'
 import { useNavigate } from "react-router-dom";
-import { useGetFirmaProjeleriNames } from '../../hooks/useMongo';
+import { useGetProjectNames_firma } from '../../hooks/useMongo';
 import { DialogAlert } from '../../components/general/DialogAlert'
 
 
@@ -23,7 +23,7 @@ import AddCircleOutlineIcon from '@mui/icons-material/AddCircleOutline';
 
 
 
-export default function P_FirmaProjeleri() {
+export default function P_Projects() {
 
 
   const navigate = useNavigate()
@@ -40,96 +40,119 @@ export default function P_FirmaProjeleri() {
   const [dialogAlert, setDialogAlert] = useState()
 
 
-  const { data: firmaProjeleriNames } = useGetFirmaProjeleriNames()
-  // console.log("firmaProjeleriNames",firmaProjeleriNames)
+  const { data: projectNames_firma } = useGetProjectNames_firma()
+  // console.log("projectNames_firma",projectNames_firma)
 
 
-  const handleProjeClick = async (oneProje) => {
+  const handleProjectClick = async (oneProject) => {
 
-    const project = await RealmApp.currentUser.callFunction("collection_projeler", { functionName: "getProject", _projeId: oneProje._id })
+    try {
 
-    if (!project._id) {
+      if (typeof oneProject._id != "object") {
+        console.log("burada")
+        setDialogAlert({
+          dialogIcon: "warning",
+          dialogMessage: "Beklenmedik hata, sayfayı yenileyiniz, sorun devam ederse Rapo724 ile irtibata geçiniz.",
+          detailText: "Sorguya '_projeId' gönderilemiyor ('kaynak frontend')",
+        })
+        return
+      }
+
+      const project = await RealmApp.currentUser.callFunction("getProject", { _projectId: oneProject._id })
+
+      if (!project._id) {
+        setDialogAlert({
+          dialogIcon: "warning",
+          dialogMessage: "Seçilen proje sistemde bulunamadı, sayfayı yenileyiniz, sorun devam ederse Rapor724 ile irtibata geçiniz.",
+        })
+        return
+      }
+
+      console.log("project", project)
+      setIsProject(project)
+
+      // await RealmApp?.currentUser.refreshCustomData()
+
+
+      // BURASI AKTİFDİ
+
+      // const customProjectSettings = await RealmApp?.currentUser?.customData.customProjectSettings
+      // console.log("customProjectSettings", customProjectSettings)
+
+      // // console.log("oneProject._id",oneProject._id)
+      // const customProjectSettings0 = customProjectSettings[0]
+      // console.log("customProjectSettings0", customProjectSettings0)
+
+      // const bsonId = customProjectSettings0._projectId
+      // console.log("bsonId", bsonId)
+
+      // const stringId = bsonId.$oid
+      // const stringId = console.log(RealmApp.EJSON.parse(bsonId, { relaxed: false }));
+      // console.log("stringId", stringId)
+
+      // console.log("check", stringId == oneProject._id)
+
+      // const customProjectSettings2 = customProjectSettings.find(x => x._projectId.toString() === oneProject._id.toString())
+      // const customProjectSettings2 = customProjectSettings[0]._projectId.toString()
+      // console.log("customProjectSettings2",customProjectSettings2)
+
+
+
+
+      // BURASI AKTİFDİ
+
+      // setIsProject(isProject => {
+      //   let obj
+      //   const customProjectSettings = RealmApp?.currentUser?.customData.customProjectSettings?.find(x => x._projectId.$oid === oneProject._id.toString())
+
+
+      //   isProject.mahalBasliklari = isProject.mahalBasliklari.map(item => {
+
+      //     obj = customProjectSettings?.mahalBasliklari?.find(x => x._id.$oid === item._id.toString())
+
+      //     if (obj) {
+      //       item.show = obj.show
+      //     } else {
+      //     }
+
+      //     return (
+      //       item
+      //     )
+      //   })
+
+      //   isProject.pozBasliklari = isProject.pozBasliklari.map(item => {
+
+      //     obj = customProjectSettings?.pozBasliklari?.find(x => x._id.$oid === item._id.toString())
+
+      //     if (obj) {
+      //       item.show = obj.show
+      //     } else {
+      //     }
+
+      //     return (
+      //       item
+      //     )
+      //   })
+
+      //   return (
+      //     isProject
+      //   )
+      // })
+
+      navigate('/dashboard')
+
+    } catch (error) {
+
+      console.log("error", error)
+
       setDialogAlert({
         dialogIcon: "warning",
-        dialogMessage: "Seçilen proje sistemde bulunamadı, sayfayı yenileyiniz, sorun devam ederse Rapor724 ile irtibata geçiniz.",
+        dialogMessage: "Beklenmedik hata, sayfayı yenileyiniz, sorun devam ederse Rapo724 ile irtibata geçiniz.",
+        detailText: error.message,
       })
       return
     }
 
-    console.log("project", project)
-    setIsProject(project)
-
-    // await RealmApp?.currentUser.refreshCustomData()
-
-
-    // BURASI AKTİFDİ
-
-    // const customProjectSettings = await RealmApp?.currentUser?.customData.customProjectSettings
-    // console.log("customProjectSettings", customProjectSettings)
-
-    // // console.log("oneProje._id",oneProje._id)
-    // const customProjectSettings0 = customProjectSettings[0]
-    // console.log("customProjectSettings0", customProjectSettings0)
-
-    // const bsonId = customProjectSettings0._projectId
-    // console.log("bsonId", bsonId)
-
-    // const stringId = bsonId.$oid
-    // const stringId = console.log(RealmApp.EJSON.parse(bsonId, { relaxed: false }));
-    // console.log("stringId", stringId)
-
-    // console.log("check", stringId == oneProje._id)
-
-    // const customProjectSettings2 = customProjectSettings.find(x => x._projectId.toString() === oneProje._id.toString())
-    // const customProjectSettings2 = customProjectSettings[0]._projectId.toString()
-    // console.log("customProjectSettings2",customProjectSettings2)
-
-
-
-
-    // BURASI AKTİFDİ
-
-    // setIsProject(isProject => {
-    //   let obj
-    //   const customProjectSettings = RealmApp?.currentUser?.customData.customProjectSettings?.find(x => x._projectId.$oid === oneProje._id.toString())
-
-
-    //   isProject.mahalBasliklari = isProject.mahalBasliklari.map(item => {
-
-    //     obj = customProjectSettings?.mahalBasliklari?.find(x => x._id.$oid === item._id.toString())
-
-    //     if (obj) {
-    //       item.show = obj.show
-    //     } else {
-    //     }
-
-    //     return (
-    //       item
-    //     )
-    //   })
-
-    //   isProject.pozBasliklari = isProject.pozBasliklari.map(item => {
-
-    //     obj = customProjectSettings?.pozBasliklari?.find(x => x._id.$oid === item._id.toString())
-
-    //     if (obj) {
-    //       item.show = obj.show
-    //     } else {
-    //     }
-
-    //     return (
-    //       item
-    //     )
-    //   })
-
-    //   return (
-    //     isProject
-    //   )
-    // })
-
-
-
-    navigate('/dashboard')
   }
 
 
@@ -153,7 +176,7 @@ export default function P_FirmaProjeleri() {
         </Box>
       }
 
-      {show == "Main" && !firmaProjeleriNames?.length > 0 &&
+      {show == "Main" && !projectNames_firma?.length > 0 &&
         <Stack sx={{ width: '100%', padding: "1rem" }} spacing={2}>
           <Alert severity="info">
             Dahil olduğunuz herhangi bir proje bulunamadı, menüler yardımı ile yeni bir proje oluşturabilirsiniz.
@@ -161,14 +184,14 @@ export default function P_FirmaProjeleri() {
         </Stack>
       }
 
-      {show == "Main" && firmaProjeleriNames?.length > 0 &&
+      {show == "Main" && projectNames_firma?.length > 0 &&
         <Stack sx={{ width: '100%', padding: "1rem" }} spacing={0}>
           {
-            firmaProjeleriNames?.map((oneProje, index) => (
+            projectNames_firma?.map((oneProject, index) => (
 
               <Box
                 key={index}
-                onClick={() => handleProjeClick(oneProje)}
+                onClick={() => handleProjectClick(oneProject)}
                 sx={{
                   display: "grid",
                   gridTemplateColumns: "auto 1fr",
@@ -190,7 +213,7 @@ export default function P_FirmaProjeleri() {
 
                 <Box>
                   <Typography>
-                    {oneProje.name}
+                    {oneProject.name}
                   </Typography>
                 </Box>
 

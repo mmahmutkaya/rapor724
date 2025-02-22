@@ -1,7 +1,7 @@
 import React, { useState, useContext, useRef, useEffect } from 'react';
 import { StoreContext } from '../components/store'
 import { useQueryClient } from '@tanstack/react-query'
-import { useGetFirmaProjeleriNames } from '../hooks/useMongo';
+import { useGetProjectNames_firma } from '../hooks/useMongo';
 import { DialogAlert } from '../../src/components/general/DialogAlert'
 
 
@@ -33,12 +33,12 @@ export default function P_FormProjectCreate({ setShow }) {
   const queryClient = useQueryClient()
   const { RealmApp, selectedFirma } = useContext(StoreContext)
 
-  const [projeNameError, setProjeNameError] = useState(false)
+  const [projectNameError, setProjectNameError] = useState(false)
   const [dialogAlert, setDialogAlert] = useState()
 
-  const [projeAdi, setProjeAdi] = useState("")
+  const [projectName, setProjectName] = useState("")
 
-  const { data: firmaProjeleriNames } = useGetFirmaProjeleriNames()
+  const { data: projectNames_firma } = useGetProjectNames_firma()
 
 
   async function handleSubmit(event) {
@@ -48,39 +48,39 @@ export default function P_FormProjectCreate({ setShow }) {
     try {
 
       const data = new FormData(event.currentTarget);
-      const projeName = data.get('projeName')
+      const projectName = data.get('projectName')
 
       let _firmaId = selectedFirma?._id
 
 
       // VALIDATE KONTROL
       let isError
-      let projeNameError
+      let projectNameError
 
-      if (typeof projeName != "string" && !projeNameError) {
-        setProjeNameError("Proje adı verisi 'yazı' türünde değil")
-        projeNameError = true
+      if (typeof projectName != "string" && !projectNameError) {
+        setProjectNameError("Proje adı verisi 'yazı' türünde değil")
+        projectNameError = true
         isError = true
       }
 
-      if (projeName.length == 0 && !projeNameError) {
-        setProjeNameError("Proje adı girilmemiş")
-        projeNameError = true
+      if (projectName.length == 0 && !projectNameError) {
+        setProjectNameError("Proje adı girilmemiş")
+        projectNameError = true
         isError = true
       }
 
-      if (projeName.length < 3 && !projeNameError) {
-        setProjeNameError("Proje adı çok kısa")
-        projeNameError = true
+      if (projectName.length < 3 && !projectNameError) {
+        setProjectNameError("Proje adı çok kısa")
+        projectNameError = true
         isError = true
       }
 
 
-      if (firmaProjeleriNames?.length > 0 && !projeNameError) {
-        firmaProjeleriNames.map(proje => {
-          if (proje.name == projeName && !projeNameError) {
-            setProjeNameError("Firmanın bu isimde projesi mevcut")
-            projeNameError = true
+      if (projectNames_firma?.length > 0 && !projectNameError) {
+        projectNames_firma.map(proje => {
+          if (proje.name == projectName && !projectNameError) {
+            setProjectNameError("Firmanın bu isimde projesi mevcut")
+            projectNameError = true
             isError = true
           }
         })
@@ -94,12 +94,12 @@ export default function P_FormProjectCreate({ setShow }) {
       // VALIDATE KONTROL -- SONU 
 
 
-      const result = await RealmApp.currentUser.callFunction("collection_projeler", { functionName: "createFirmaProject", _firmaId, projeName });
+      const result = await RealmApp.currentUser.callFunction("collection_projects", { functionName: "createProject", _firmaId, projectName });
       console.log("result", result)
 
 
       if (result.errorObject) {
-        setProjeNameError(result.errorObject.projeNameError)
+        setProjectNameError(result.errorObject.projectNameError)
         console.log("backend den dönen errorObject hata ile durdu")
         return
       }
@@ -107,9 +107,9 @@ export default function P_FormProjectCreate({ setShow }) {
       if (result.insertedId) {
         let newProjectName = {
           _id: result.insertedId,
-          name: projeName
+          name: projectName
         }
-        queryClient.setQueryData(['firmaProjeleri', _firmaId.toString()], (firmaProjeleri) => [...firmaProjeleri, newProjectName])
+        queryClient.setQueryData(['projectNames_firma', _firmaId.toString()], (firmaProjeleri) => [...firmaProjeleri, newProjectName])
         setShow("Main")
         return
       }
@@ -159,17 +159,17 @@ export default function P_FormProjectCreate({ setShow }) {
             </DialogContentText>
 
 
-            <Box onClick={() => setProjeNameError(false)}>
+            <Box onClick={() => setProjectNameError(false)}>
               <TextField
                 variant="standard"
                 margin="normal"
-                id="projeName"
-                name="projeName"
-                value={projeAdi}
+                id="projectName"
+                name="projectName"
+                value={projectName}
                 // onChange={(e) => console.log(e.target.value)}
-                onChange={(e) => setProjeAdi(e.target.value)}
-                error={projeNameError ? true : false}
-                helperText={projeNameError ? projeNameError : ""}
+                onChange={(e) => setProjectName(e.target.value)}
+                error={projectNameError ? true : false}
+                helperText={projectNameError ? projectNameError : ""}
                 // margin="dense"
                 label="Proje Adı"
                 type="text"

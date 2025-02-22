@@ -27,14 +27,14 @@ export const useGetNetworkUsers = (onSuccess, onError) => {
 }
 
 
-export const useGetFirmaProjeleriNames = () => {
+export const useGetProjectNames_firma = () => {
 
   const { RealmApp, selectedFirma } = useContext(StoreContext)
   let _firmaId = selectedFirma?._id
 
   return useQuery({
-    queryKey: ['firmaProjeleriNames', _firmaId?.toString()],
-    queryFn: () => RealmApp?.currentUser.callFunction("collection_projeler", { functionName: "getFirmaProjeleriNames", _firmaId }),
+    queryKey: ['projectNames_firma', _firmaId?.toString()],
+    queryFn: () => RealmApp?.currentUser.callFunction("collection_projects", { functionName: "getProjectNames_firma", _firmaId }),
     enabled: !!RealmApp && !!_firmaId,
     // onSuccess,
     // onError,
@@ -45,23 +45,6 @@ export const useGetFirmaProjeleriNames = () => {
 }
 
 
-
-export const useGetProjectNames = () => {
-
-  const { RealmApp, selectedFirma } = useContext(StoreContext)
-  let firmaId = selectedFirma?._id.toString()
-
-  return useQuery({
-    queryKey: ['projectNames_byFirma', firmaId],
-    queryFn: () => RealmApp?.currentUser.callFunction("collection_projects", { functionName: "getFirmaProjeleri", firmaId }),
-    enabled: !!RealmApp && !!selectedFirma,
-    // onSuccess,
-    // onError,
-    refetchOnMount: false,
-    refetchOnWindowFocus: false
-  })
-
-}
 
 
 export const useGetFirmalarimNames = (onSuccess, onError) => {
