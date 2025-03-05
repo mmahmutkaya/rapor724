@@ -203,7 +203,7 @@ export default function P_MahalListesi() {
           {/* EN ÜST BAŞLIK ÜST SATIRI */}
           <Grid
             sx={{
-              pb: "1rem",
+              // pb: "1rem",
               display: "grid",
               gridTemplateColumns: gridTemplateColumns_,
             }}
