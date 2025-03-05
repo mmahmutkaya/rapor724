@@ -74,13 +74,24 @@ export default function Sidebar({ setMobileOpen }) {
           <List>
 
             <ListItemButton
-              onClick={() => navigate('/firmaprojeleri')}
-              sx={{ backgroundColor: pathname == "/firmaprojeleri" ? "#f0f0f1" : null }}
+              onClick={() => navigate('/projects')}
+              sx={{ backgroundColor: pathname == "/projects" ? "#f0f0f1" : null }}
             >
               <ListItemIcon>
                 <SendIcon />
               </ListItemIcon>
               <ListItemText primary="Projeler" />
+            </ListItemButton>
+
+
+            <ListItemButton
+              onClick={() => navigate('/firmapozlari')}
+              sx={{ backgroundColor: pathname == "/firmapozlari" ? "#f0f0f1" : null }}
+            >
+              <ListItemIcon>
+                <SendIcon />
+              </ListItemIcon>
+              <ListItemText primary="Firma Pozları" />
             </ListItemButton>
 
 
