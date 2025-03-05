@@ -128,8 +128,11 @@ exports = async function ({
 
       }
 
-      const result = await collection_Firmalar.insertOne({ name: firmaName, personeller: [newFirma] })
-      return result;
+      const resultNewFirma = await collection_Firmalar.insertOne({ name: firmaName, personeller: [newFirma] })
+
+      await context.functions.execute("createProject", { functionName: "createProject", _firmaId:resultNewFirma.insertedId, projectName:resultNewFirma.insertedId.toString() } )
+      
+      return resultNewFirma;
 
     } catch (err) {
       throw new Error("MONGO // collection_firmalar // " + functionName + " // " + err.message);
