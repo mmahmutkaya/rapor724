@@ -47,6 +47,7 @@ export default ({ children }) => {
   const [RealmApp, setRealmApp] = useState(Realm.getApp("rapor724_v2-cykom"))
   const [selectedFirma, setSelectedFirma] = useState()
   const [isProject, setIsProject] = useState()
+  const [firmaProject, setFirmaProject] = useState()
   const [mahalListesi_wbsIds, setMahalListesi_wbsIds] = useState()
   const [mahalListesi_lbsIds, setMahalListesi_lbsIds] = useState()
   const [pozlar, setPozlar] = useState()
@@ -80,6 +81,7 @@ export default ({ children }) => {
     RealmApp, setRealmApp,
     selectedFirma, setSelectedFirma,
     isProject, setIsProject,
+    firmaProject, setFirmaProject,
     mahalListesi_wbsIds, setMahalListesi_wbsIds,
     mahalListesi_lbsIds, setMahalListesi_lbsIds,
     mahaller, setMahaller,

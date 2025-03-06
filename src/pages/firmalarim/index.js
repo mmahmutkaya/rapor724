@@ -28,19 +28,23 @@ export default function P_Firmalarim() {
 
   // const RealmApp = useApp();
   const { RealmApp } = useContext(StoreContext)
-  const { selectedFirma, setSelectedFirma } = useContext(StoreContext)
+  const { setSelectedFirma, setFirmaProject } = useContext(StoreContext)
+
   const navigate = useNavigate()
 
   const [show, setShow] = useState("Main")
 
   const { data: firmaProjeleriNames } = useGetFirmalarimNames()
 
-  const handleProjectClick = (oneFirma) => {
+  const handleFirmaClick = async (oneFirma) => {
     setSelectedFirma(oneFirma)
+    const firmaProject = await RealmApp.currentUser.callFunction("getFirmaProject", { projectName: oneFirma._id.toString() })
+    console.log("firmaProject", firmaProject)
+    setFirmaProject(firmaProject)
     navigate("/projects")
   }
 
- 
+
   return (
     <Box>
 
@@ -112,7 +116,7 @@ export default function P_Firmalarim() {
 
               <Box
                 key={index}
-                onClick={() => handleProjectClick(oneFirma)}
+                onClick={() => handleFirmaClick(oneFirma)}
                 sx={{
                   display: "grid",
                   gridTemplateColumns: "auto 1fr",

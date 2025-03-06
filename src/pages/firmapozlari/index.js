@@ -1,5 +1,5 @@
 
-import { useState, useContext, useEffect } from 'react';
+import { useState, useContext } from 'react';
 import { useNavigate } from "react-router-dom";
 import { StoreContext } from '../../components/store'
 import { useApp } from "../../components/useApp";
@@ -7,7 +7,9 @@ import FormPozCreate from '../../components/FormPozCreate'
 import EditPozBaslik from '../../components/EditPozBaslik'
 import FormPozBaslikCreate from '../../components/FormPozBaslikCreate'
 import PozHeader from '../../components/PozHeader'
-import { useGetPozlar } from '../../hooks/useMongo';
+import { useGetFirmaPozlar } from '../../hooks/useMongo';
+import { useQuery, useQueryClient, useMutation } from '@tanstack/react-query'
+
 
 
 import { styled } from '@mui/system';
@@ -21,12 +23,12 @@ import InfoIcon from '@mui/icons-material/Info';
 
 
 
-export default function P_FirmaPozlari() {
+export default function P_Pozlar() {
 
-  const { selectedFirma, setSelectedFirma } = useContext(StoreContext)
-  const { isProject, setIsProject } = useContext(StoreContext)
+  const { firmaProject, setFirmaProject } = useContext(StoreContext)
   const { selectedPoz, setSelectedPoz } = useContext(StoreContext)
   const { selectedPozBaslik, setSelectedPozBaslik } = useContext(StoreContext)
+  const { selectedFirma } = useContext(StoreContext)
   // const { pozlar, setPozlar } = useContext(StoreContext)
   const { drawerWidth, topBarHeight, subHeaderHeight } = useContext(StoreContext)
 
@@ -35,19 +37,18 @@ export default function P_FirmaPozlari() {
   const [pozBilgiler_willBeSaved, setPozBilgiler_willBeSaved] = useState([])
   const [autoFocus, setAutoFocus] = useState({ baslikId: null, pozId: null })
 
-
   const navigate = useNavigate()
-  useEffect(() => {
-    !selectedFirma && navigate("/firmalarim")
-  }, [])
+  // !firmaProject ? navigate('/projects') : null
+  if (!firmaProject) window.location.href = "/projects"
 
+  const queryClient = useQueryClient()
   const RealmApp = useApp();
 
 
-  const { data: pozlar } = useGetFirmalarimNames()
+  const { data: pozlar } = useGetFirmaPozlar()
   // const pozlar_fecth = async () => {
   //   if (!pozlar) {
-  //     const result = await RealmApp?.currentUser.callFunction("getProjectPozlar", ({ projectId: isProject?._id }));
+  //     const result = await RealmApp?.currentUser.callFunction("getProjectPozlar", ({ projectId: firmaProject?._id }));
   //     setPozlar(result)
   //   }
   // }
@@ -82,8 +83,26 @@ export default function P_FirmaPozlari() {
   const one_poz_width = 10
 
 
+  // let basliklar = [
+  //   { id: 1, isim: "No" },
+  //   { id: 2, isim: "İsim" },
+  //   { id: 3, isim: "bosluk" },
+  //   { id: 3, isim: "Tarif" },
+  //   { id: 4, isim: "Ölçü" },
+  // ]
 
-  let totalWidthSabit = isProject?.pozBasliklari?.filter(item => item.sabit).reduce(
+  /* padding - top | right | bottom | left */
+  // const [basliklar, setBasliklar] = useState([
+  //   { id: 1, sira: 1, referans: "kod", goster: true, sabit: true, genislik: 7, padding_M: "0px 1rem 0px 0px", yatayHiza: "end", name: "Poz No", dataType: "number" },
+  //   { id: 2, sira: 2, referans: "name", goster: true, sabit: true, genislik: 20, padding_M: "0px 1rem 0px 0px", yatayHiza: "end", name: "Poz İsmi", dataType: "string" },
+  //   { id: 3, sira: 3, referans: "name", goster: true, sabit: false, genislik: 15, padding_M: "0px 0rem 0px 0px", yatayHiza: "center", name: "Zemin Alan", dataType: "date" },
+  //   { id: 4, sira: 4, referans: "name", goster: true, sabit: false, genislik: 20, padding_M: "0px 0rem 0px 0px", yatayHiza: "center", name: "Fonksiyon", dataType: "date" },
+  // ].sort((a, b) => a.sira - b.sira))
+
+  // const [basliklar, setBasliklar] = useState(firmaProject?.pozBasliklari?.filter(item => item.goster))
+
+
+  let totalWidthSabit = firmaProject?.pozBasliklari?.filter(item => item.sabit).reduce(
     (accumulator, oneBilgi) => accumulator + oneBilgi.genislik,
     0
   )
@@ -91,16 +110,16 @@ export default function P_FirmaPozlari() {
   // console.log("totalWidthSabit", totalWidthSabit)
 
 
-  let totalWidthDegisken = isProject?.pozBasliklari?.filter(item => !item.sabit && item.show?.find(item => item.indexOf("webPage_pozlar") > -1)).reduce(
+  let totalWidthDegisken = firmaProject?.pozBasliklari?.filter(item => !item.sabit && item.show?.find(item => item.indexOf("webPage_pozlar") > -1)).reduce(
     (accumulator, oneBilgi) => accumulator + oneBilgi.genislik,
     0
   )
   totalWidthDegisken = totalWidthDegisken + 'rem'
   // console.log("totalWidthDegisken", totalWidthDegisken)
-  // console.log("isProject.pozBasliklari", isProject?.pozBasliklari)
+  // console.log("firmaProject.pozBasliklari", firmaProject?.pozBasliklari)
 
 
-  let totalWidth = isProject?.pozBasliklari?.reduce(
+  let totalWidth = firmaProject?.pozBasliklari?.reduce(
     (accumulator, oneBilgi) => accumulator + oneBilgi.genislik,
     0
   )
@@ -108,15 +127,15 @@ export default function P_FirmaPozlari() {
   // console.log("totalWidth", totalWidth)
 
 
-  let gridTemplateColumnsSabit = isProject?.pozBasliklari?.filter(item => item.sabit).reduce(
-    (ilkString, oneBilgi, index) => index != isProject?.pozBasliklari?.length ? ilkString + (oneBilgi.genislik + "rem ") : ilkString + (oneBilgi.genislik + "rem"),
+  let gridTemplateColumnsSabit = firmaProject?.pozBasliklari?.filter(item => item.sabit).reduce(
+    (ilkString, oneBilgi, index) => index != firmaProject?.pozBasliklari?.length ? ilkString + (oneBilgi.genislik + "rem ") : ilkString + (oneBilgi.genislik + "rem"),
     ""
   )
   // console.log("gridTemplateColumnsSabit", gridTemplateColumnsSabit)
 
 
-  let gridTemplateColumnsDegisken = isProject?.pozBasliklari?.filter(item => !item.sabit && item.show?.find(item => item.indexOf("webPage_pozlar") > -1)).reduce(
-    (ilkString, oneBilgi, index) => index != isProject?.pozBasliklari?.length ? ilkString + (oneBilgi.genislik + "rem ") : ilkString + (oneBilgi.genislik + "rem"),
+  let gridTemplateColumnsDegisken = firmaProject?.pozBasliklari?.filter(item => !item.sabit && item.show?.find(item => item.indexOf("webPage_pozlar") > -1)).reduce(
+    (ilkString, oneBilgi, index) => index != firmaProject?.pozBasliklari?.length ? ilkString + (oneBilgi.genislik + "rem ") : ilkString + (oneBilgi.genislik + "rem"),
     ""
   )
   // console.log("gridTemplateColumnsDegisken", gridTemplateColumnsDegisken)
@@ -232,11 +251,8 @@ export default function P_FirmaPozlari() {
     }
 
 
-    setPozlar(pozlar => {
-      // if (!pozlar.find(item => item._id.toString() == onePoz._id.toString()).ilaveBilgiler) {
-      //   pozlar.find(item => item._id.toString() == onePoz._id.toString()).ilaveBilgiler = [newBilgi]
-      //   return pozlar
-      // }
+    queryClient.setQueryData(['firmaPozlar', selectedFirma?._id.toString()], (pozlar) => pozlar => {
+
       if (!pozlar.find(item => item._id.toString() == onePoz._id.toString()).ilaveBilgiler.find(item => item.baslikId == oneBaslik.id)) {
         pozlar.find(item => item._id.toString() == onePoz._id.toString()).ilaveBilgiler.push(newBilgi)
         return pozlar
@@ -244,6 +260,19 @@ export default function P_FirmaPozlari() {
       pozlar.find(item => item._id.toString() == onePoz._id.toString()).ilaveBilgiler.find(item => item.baslikId == oneBaslik.id).veri = newBilgi.veri
       return pozlar
     })
+
+    // setPozlar(pozlar => {
+    //   // if (!pozlar.find(item => item._id.toString() == onePoz._id.toString()).ilaveBilgiler) {
+    //   //   pozlar.find(item => item._id.toString() == onePoz._id.toString()).ilaveBilgiler = [newBilgi]
+    //   //   return pozlar
+    //   // }
+    //   if (!pozlar.find(item => item._id.toString() == onePoz._id.toString()).ilaveBilgiler.find(item => item.baslikId == oneBaslik.id)) {
+    //     pozlar.find(item => item._id.toString() == onePoz._id.toString()).ilaveBilgiler.push(newBilgi)
+    //     return pozlar
+    //   }
+    //   pozlar.find(item => item._id.toString() == onePoz._id.toString()).ilaveBilgiler.find(item => item.baslikId == oneBaslik.id).veri = newBilgi.veri
+    //   return pozlar
+    // })
 
 
     setPozBilgiler_willBeSaved(pozBilgiler_willBeSaved => {
@@ -264,7 +293,7 @@ export default function P_FirmaPozlari() {
     console.log("pozBilgiler_willBeSaved", pozBilgiler_willBeSaved)
 
     // setPozBilgiler_willBeSaved([])
-    const result = await RealmApp?.currentUser.callFunction("updatePozBilgiler", { _projectId: isProject?._id, pozBilgiler_willBeSaved });
+    const result = await RealmApp?.currentUser.callFunction("updatePozBilgiler", { _projectId: firmaProject?._id, pozBilgiler_willBeSaved });
     console.log("result", result)
 
     setEditPoz(false)
@@ -289,7 +318,7 @@ export default function P_FirmaPozlari() {
 
       {show == "FormPozCreate" &&
         <Grid item >
-          <FormPozCreate isProject={isProject} setShow={setShow} />
+          <FormPozCreate firmaProject={firmaProject} setShow={setShow} />
         </Grid>
       }
 
@@ -305,7 +334,7 @@ export default function P_FirmaPozlari() {
         </Grid>
       }
 
-      {show == "Main" && (isProject?.wbs?.filter(item => item.openForPoz).length == 0 || !isProject?.wbs) &&
+      {show == "Main" && (firmaProject?.wbs?.filter(item => item.openForPoz).length == 0 || !firmaProject?.wbs) &&
         <Stack sx={{ width: '100%', pl: "1rem", pr: "0.5rem", pt: "1rem", mt: subHeaderHeight }} spacing={2}>
           <Alert severity="info">
             Henüz hiç bir poz başlığını poz eklemeye açmamış görünüyorsunumuz. "Poz Başlıkları" menüsünden işlem yapabilirsiniz.
@@ -314,7 +343,7 @@ export default function P_FirmaPozlari() {
       }
 
 
-      {show == "Main" && isProject?.wbs?.filter(item => item.openForPoz).length > 0 &&
+      {show == "Main" && firmaProject?.wbs?.filter(item => item.openForPoz).length > 0 &&
 
         <Box sx={{ mt: subHeaderHeight, pt: "1rem", pl: "1rem", pr: "1rem" }}>
 
@@ -328,9 +357,9 @@ export default function P_FirmaPozlari() {
           >
             {/* HAYALET */}
             <Box sx={{ display: "none" }}>
-              {count_ = isProject?.pozBasliklari?.filter(item => item.sabit).length}
+              {count_ = firmaProject?.pozBasliklari?.filter(item => item.sabit).length}
             </Box>
-            {isProject?.pozBasliklari?.filter(item => item.sabit).map((oneBaslik, index) => {
+            {firmaProject?.pozBasliklari?.filter(item => item.sabit).map((oneBaslik, index) => {
               return (
                 <Box
                   sx={{
@@ -359,10 +388,10 @@ export default function P_FirmaPozlari() {
 
             {/* HAYALET KOMPONENT */}
             <Box sx={{ display: "none" }}>
-              {count_ = isProject?.pozBasliklari?.filter(item => !item.sabit && item.show?.find(item => item.indexOf("webPage_pozlar") > -1)).length}
+              {count_ = firmaProject?.pozBasliklari?.filter(item => !item.sabit && item.show?.find(item => item.indexOf("webPage_pozlar") > -1)).length}
             </Box>
             {/* GÖZÜKEN KOMPONENT */}
-            {isProject?.pozBasliklari?.filter(item => !item.sabit && item.show?.find(item => item.indexOf("webPage_pozlar") > -1)).map((oneBaslik, index) => {
+            {firmaProject?.pozBasliklari?.filter(item => !item.sabit && item.show?.find(item => item.indexOf("webPage_pozlar") > -1)).map((oneBaslik, index) => {
               return (
                 <Box
                   sx={{
@@ -408,7 +437,7 @@ export default function P_FirmaPozlari() {
 
 
           {/* POZ BAŞLIKLARI ve POZLAR */}
-          {isProject?.wbs
+          {firmaProject?.wbs
             .filter(item => item.openForPoz === true)
             .sort(function (a, b) {
               var nums1 = a.code.split(".");
@@ -445,22 +474,22 @@ export default function P_FirmaPozlari() {
 
                         if (index == 0 && cOunt == 1) {
                           wbsCode = codePart
-                          wbsName = isProject?.wbs.find(item => item.code == wbsCode).name
+                          wbsName = firmaProject?.wbs.find(item => item.code == wbsCode).name
                         }
 
                         if (index == 0 && cOunt !== 1) {
                           wbsCode = codePart
-                          wbsName = isProject?.wbs.find(item => item.code == wbsCode).codeName
+                          wbsName = firmaProject?.wbs.find(item => item.code == wbsCode).codeName
                         }
 
                         if (index !== 0 && index + 1 !== cOunt && cOunt !== 1) {
                           wbsCode = wbsCode + "." + codePart
-                          wbsName = wbsName + " > " + isProject?.wbs.find(item => item.code == wbsCode).codeName
+                          wbsName = wbsName + " > " + firmaProject?.wbs.find(item => item.code == wbsCode).codeName
                         }
 
                         if (index !== 0 && index + 1 == cOunt && cOunt !== 1) {
                           wbsCode = wbsCode + "." + codePart
-                          wbsName = wbsName + " > " + isProject?.wbs.find(item => item.code == wbsCode).name
+                          wbsName = wbsName + " > " + firmaProject?.wbs.find(item => item.code == wbsCode).name
                         }
 
                       })
@@ -490,7 +519,7 @@ export default function P_FirmaPozlari() {
 
                   {/* burada başlık sıralamasına göre güvenerek haraket ediliyor (tüm pozBaşlıkları map'lerde) */}
                   {
-                    isProject?.pozBasliklari?.filter(item => !item.sabit && item.show?.find(item => item.indexOf("webPage_pozlar") > -1)).map((oneBaslik, index) => {
+                    firmaProject?.pozBasliklari?.filter(item => !item.sabit && item.show?.find(item => item.indexOf("webPage_pozlar") > -1)).map((oneBaslik, index) => {
                       return (
                         <TableHeader key={index} index={index} count_={count_} sx={{ display: "grid", with: "100%", justifyContent: oneBaslik.yatayHiza }}>
 
@@ -534,7 +563,7 @@ export default function P_FirmaPozlari() {
                           }}
                         >
                           {
-                            isProject?.pozBasliklari?.filter(item => item.sabit).map((oneBaslik, index) => {
+                            firmaProject?.pozBasliklari?.filter(item => item.sabit).map((oneBaslik, index) => {
                               return (
                                 <TableItem
                                   key={index}
@@ -560,7 +589,7 @@ export default function P_FirmaPozlari() {
                           </Bosluk>
 
                           {
-                            isProject?.pozBasliklari?.filter(item => !item.sabit && item.show?.find(item => item.indexOf("webPage_pozlar") > -1)).map((oneBaslik, index) => {
+                            firmaProject?.pozBasliklari?.filter(item => !item.sabit && item.show?.find(item => item.indexOf("webPage_pozlar") > -1)).map((oneBaslik, index) => {
                               return (
                                 <TableItem
                                   key={index}
