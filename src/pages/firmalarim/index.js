@@ -36,11 +36,13 @@ export default function P_Firmalarim() {
 
   const { data: firmaProjeleriNames } = useGetFirmalarimNames()
 
+
   const handleFirmaClick = async (oneFirma) => {
-    setSelectedFirma(oneFirma)
-    const firmaProject = await RealmApp.currentUser.callFunction("getFirmaProject", { projectName: oneFirma._id.toString() })
-    console.log("firmaProject", firmaProject)
-    setFirmaProject(firmaProject)
+    const userFirma = await RealmApp.currentUser.callFunction("collection_firmalar", { functionName: "getUserFirma", _firmaId: oneFirma._id })
+    setSelectedFirma(userFirma)
+    // const firmaProject = await RealmApp.currentUser.callFunction("getFirmaProject", { projectName: oneFirma._id.toString() })
+    console.log("firmaProject", userFirma.project)
+    setFirmaProject(userFirma.project)
     navigate("/projects")
   }
 

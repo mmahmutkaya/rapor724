@@ -402,29 +402,28 @@ export default function PozHeader({ setShow, editPoz, setEditPoz, savePoz }) {
 
 
               {(!selectedPozBaslik && !selectedPoz) &&
-                <Grid item>
-                  <IconButton onClick={() => setShow("EditPozBaslik")} aria-label="addWbs">
-                    <VisibilityIcon variant="contained" sx={{ color: "black" }} />
-                  </IconButton>
-                </Grid>
-              }
+                <>
+                  <Grid item>
+                    <IconButton onClick={() => setShow("EditPozBaslik")} aria-label="addWbs">
+                      <VisibilityIcon variant="contained" sx={{ color: "black" }} />
+                    </IconButton>
+                  </Grid>
 
 
-              {(!selectedPozBaslik && !selectedPoz) &&
-                <Grid item>
-                  <IconButton onClick={() => setShow("FormPozBaslikCreate")} aria-label="addPozBilgi" disabled={(isProject?.wbs?.filter(item => item.openForPoz).length == 0 || !isProject?.wbs) ? true : false}>
-                    <AddCircleOutlineIcon variant="contained" sx={{ color: (isProject?.wbs?.filter(item => item.openForPoz).length == 0 || !isProject?.wbs) ? "lightgray" : "blue" }} />
-                  </IconButton>
-                </Grid>
-              }
+                  <Grid item>
+                    <IconButton onClick={() => setShow("FormPozBaslikCreate")} aria-label="addPozBilgi" disabled={(isProject?.wbs?.filter(item => item.openForPoz).length == 0 || !isProject?.wbs) ? true : false}>
+                      <AddCircleOutlineIcon variant="contained" sx={{ color: (isProject?.wbs?.filter(item => item.openForPoz).length == 0 || !isProject?.wbs) ? "lightgray" : "blue" }} />
+                    </IconButton>
+                  </Grid>
 
 
-              {(!selectedPozBaslik && !selectedPoz) &&
-                <Grid item>
-                  <IconButton onClick={() => setShow("FormPozCreate")} aria-label="addWbs" disabled={(isProject?.wbs?.filter(item => item.openForPoz).length == 0 || !isProject?.wbs) ? true : false}>
-                    <AddCircleOutlineIcon variant="contained" color={(isProject?.wbs?.filter(item => item.openForPoz).length == 0 || !isProject?.wbs) ? " lightgray" : "success"} />
-                  </IconButton>
-                </Grid>
+                  <Grid item>
+                    <IconButton onClick={() => setShow("FormPozCreate")} aria-label="addWbs" disabled={(isProject?.wbs?.filter(item => item.openForPoz).length == 0 || !isProject?.wbs) ? true : false}>
+                      <AddCircleOutlineIcon variant="contained" color={(isProject?.wbs?.filter(item => item.openForPoz).length == 0 || !isProject?.wbs) ? " lightgray" : "success"} />
+                    </IconButton>
+                  </Grid>
+
+                </>
               }
 
 

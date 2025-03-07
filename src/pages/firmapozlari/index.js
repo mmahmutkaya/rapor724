@@ -3,10 +3,10 @@ import { useState, useContext } from 'react';
 import { useNavigate } from "react-router-dom";
 import { StoreContext } from '../../components/store'
 import { useApp } from "../../components/useApp";
-import FormPozCreate from '../../components/FormPozCreate'
-import EditPozBaslik from '../../components/EditPozBaslik'
-import FormPozBaslikCreate from '../../components/FormPozBaslikCreate'
-import PozHeader from '../../components/PozHeader'
+import FormFirmaPozCreate from '../../components/FormFirmaPozCreate'
+import EditFirmaPozBaslik from '../../components/EditFirmaPozBaslik'
+import FormFirmaPozBaslikCreate from '../../components/FormFirmaPozBaslikCreate'
+import FirmaPozHeader from '../../components/FirmaPozHeader'
 import { useGetFirmaPozlar } from '../../hooks/useMongo';
 import { useQuery, useQueryClient, useMutation } from '@tanstack/react-query'
 
@@ -23,13 +23,12 @@ import InfoIcon from '@mui/icons-material/Info';
 
 
 
-export default function P_Pozlar() {
+export default function P_FirmaPozlari() {
 
   const { firmaProject, setFirmaProject } = useContext(StoreContext)
   const { selectedPoz, setSelectedPoz } = useContext(StoreContext)
   const { selectedPozBaslik, setSelectedPozBaslik } = useContext(StoreContext)
   const { selectedFirma } = useContext(StoreContext)
-  // const { pozlar, setPozlar } = useContext(StoreContext)
   const { drawerWidth, topBarHeight, subHeaderHeight } = useContext(StoreContext)
 
   const [show, setShow] = useState("Main")
@@ -46,20 +45,11 @@ export default function P_Pozlar() {
 
 
   const { data: pozlar } = useGetFirmaPozlar()
-  // const pozlar_fecth = async () => {
-  //   if (!pozlar) {
-  //     const result = await RealmApp?.currentUser.callFunction("getProjectPozlar", ({ projectId: firmaProject?._id }));
-  //     setPozlar(result)
-  //   }
-  // }
-  // pozlar_fecth()
-
 
   const handleSelectPoz = (poz) => {
     setSelectedPoz(poz)
     setSelectedPozBaslik(false)
   }
-
 
 
   // aşağıda kullanılıyor
@@ -313,24 +303,24 @@ export default function P_Pozlar() {
     <>
 
       <Grid item >
-        <PozHeader setShow={setShow} editPoz={editPoz} setEditPoz={setEditPoz} savePoz={savePoz} />
+        <FirmaPozHeader setShow={setShow} editPoz={editPoz} setEditPoz={setEditPoz} savePoz={savePoz} />
       </Grid>
 
-      {show == "FormPozCreate" &&
+      {show == "FormFirmaPozCreate" &&
         <Grid item >
-          <FormPozCreate firmaProject={firmaProject} setShow={setShow} />
+          <FormFirmaPozCreate isProject={firmaProject} setShow={setShow} />
         </Grid>
       }
 
-      {show == "FormPozBaslikCreate" &&
+      {show == "FormFirmaPozBaslikCreate" &&
         <Grid item >
-          <FormPozBaslikCreate setShow={setShow} />
+          <FormFirmaPozBaslikCreate setShow={setShow} />
         </Grid>
       }
 
-      {show == "EditPozBaslik" &&
+      {show == "EditFirmaPozBaslik" &&
         <Grid item >
-          <EditPozBaslik setShow={setShow} />
+          <EditFirmaPozBaslik setShow={setShow} />
         </Grid>
       }
 
