@@ -4,9 +4,9 @@ import { StoreContext } from '../../components/store'
 import { useApp } from "../../components/useApp";
 import { useNavigate } from 'react-router-dom';
 
-import FormWbsCreate from '../../components/FormWbsCreate'
-import FormWbsUpdate from '../../components/FormWbsUpdate'
-import WbsHeader from '../../components/WbsHeader'
+import FormFirmaWbsCreate from '../../components/FormFirmaWbsCreate'
+import FormFirmaWbsUpdate from '../../components/FormFirmaWbsUpdate'
+import FirmaWbsHeader from '../../components/FirmaWbsHeader'
 
 
 import Grid from '@mui/material/Grid';
@@ -23,7 +23,7 @@ export default function P_FirmaWbs() {
 
   const { subHeaderHeight } = useContext(StoreContext)
 
-  const { isProject, setIsProject } = useContext(StoreContext)
+  const { firmaProject, setFirmaProject } = useContext(StoreContext)
   const { selectedWbs, setSelectedWbs } = useContext(StoreContext)
 
   const [show, setShow] = useState()
@@ -32,7 +32,7 @@ export default function P_FirmaWbs() {
 
 
   useEffect(() => {
-    !isProject && navigate('/projects')
+    !firmaProject && navigate('/projects')
   }, [])
 
 
@@ -46,7 +46,7 @@ export default function P_FirmaWbs() {
     <Grid container direction="column" spacing={0} sx={{ mt: subHeaderHeight }}>
 
       <Grid item  >
-        <WbsHeader
+        <FirmaWbsHeader
           RealmApp={RealmApp}
           setShow={setShow}
           nameMode={nameMode} setNameMode={setNameMode}
@@ -58,20 +58,20 @@ export default function P_FirmaWbs() {
         <WbsMain />
       </Grid> */}
 
-      {show == "FormWbsCreate" &&
+      {show == "FormFirmaWbsCreate" &&
         <Grid item >
-          <FormWbsCreate setShow={setShow} isProject={isProject} setIsProject={setIsProject} selectedWbs={selectedWbs} setSelectedWbs={setSelectedWbs} />
+          <FormFirmaWbsCreate setShow={setShow} firmaProject={firmaProject} setFirmaProject={setFirmaProject} selectedWbs={selectedWbs} setSelectedWbs={setSelectedWbs} />
         </Grid>
       }
 
-      {show == "FormWbsUpdate" &&
+      {show == "FormFirmaWbsUpdate" &&
         <Grid item >
-          <FormWbsUpdate setShow={setShow} isProject={isProject} setIsProject={setIsProject} selectedWbs={selectedWbs} setSelectedWbs={setSelectedWbs} />
+          <FormFirmaWbsUpdate setShow={setShow} firmaProject={firmaProject} setFirmaProject={setFirmaProject} selectedWbs={selectedWbs} setSelectedWbs={setSelectedWbs} />
         </Grid>
       }
 
 
-      {!isProject?.wbs?.length &&
+      {!firmaProject?.wbs?.length &&
         <Stack sx={{ width: '100%', padding: "0.5rem" }} spacing={2}>
           <Alert severity="info">
             Yukarıdaki "+" tuşuna basarak "Poz Başlığı" oluşturabilirsiniz.
@@ -79,7 +79,7 @@ export default function P_FirmaWbs() {
         </Stack>
       }
 
-      {isProject?.wbs?.length > 0 &&
+      {firmaProject?.wbs?.length > 0 &&
         < Stack sx={{ width: '100%', padding: "0.5rem" }} spacing={0}>
 
           <Box sx={{ display: "grid", gridTemplateColumns: "1rem 1fr" }}>
@@ -87,7 +87,7 @@ export default function P_FirmaWbs() {
 
             </Box>
             <Box sx={{ backgroundColor: "black", color: "white" }}>
-              {isProject.name}
+              {firmaProject.name}
             </Box>
           </Box>
 
@@ -98,11 +98,11 @@ export default function P_FirmaWbs() {
 
             </Box>
 
-            {/* {console.log("isProject?.wbs?.length", isProject?.wbs?.length)} */}
+            {/* {console.log("firmaProject?.wbs?.length", firmaProject?.wbs?.length)} */}
             <Box display="grid">
 
               {
-                isProject.wbs.sort(function (a, b) {
+                firmaProject.wbs.sort(function (a, b) {
                   var nums1 = a.code.split(".");
                   var nums2 = b.code.split(".");
 

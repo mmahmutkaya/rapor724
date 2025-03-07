@@ -65,6 +65,25 @@ export const useGetFirmalarimNames = (onSuccess, onError) => {
 }
 
 
+export const useGetFirmam = (onSuccess, onError) => {
+
+  // const RealmApp = useApp();
+  const { RealmApp } = useContext(StoreContext)
+
+  return useQuery({
+    queryKey: ['firmam', RealmApp.currentUser._profile.data.email],
+    queryFn: () => RealmApp?.currentUser.callFunction("collection_firmalar", ({ functionName: "getFirmam" })),
+    enabled: !!RealmApp,
+    onSuccess,
+    onError,
+    refetchOnMount: false,
+    refetchOnWindowFocus: false
+  })
+
+}
+
+
+
 export const useGetMahaller = (onSuccess, onError) => {
 
   // const RealmApp = useApp();
