@@ -1,6 +1,7 @@
 exports = async function ({
   functionName,
-  firmaName
+  firmaName,
+  _firmaId
 }) {
 
   const user = context.user;
