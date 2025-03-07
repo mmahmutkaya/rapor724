@@ -52,92 +52,24 @@ exports = async function ({
       if (Object.keys(errorObject).length > 0) return { errorObject }
 
 
-      let newFirma = {
+      let userOne = {
         email: userEmail,
         yetki: "owner",
-        pozMetrajTipleri: [
-          { id: "standartMetrajSayfasi", name: "Standart Metraj Sayfası", birimId: "" },
-          { id: "insaatDemiri", name: "İnşaat Demiri", birimId: "ton" },
-        ],
-
-
-        pozBasliklari: [
-          { _id: new BSON.ObjectId(), platform: "web", sira: 1, referans: "pozNo", goster: true, sabit: true, genislik: 7, paddingInfo: "0px 1rem 0px 0px", yatayHiza: "center", name: "Poz No", dataType: "metin" },
-          { _id: new BSON.ObjectId(), platform: "web", sira: 2, referans: "name", goster: true, sabit: true, genislik: 20, paddingInfo: "0px 1rem 0px 0px", yatayHiza: "center", name: "Poz İsmi", dataType: "metin" },
-        ],
-
-        metrajYapabilenler: [
-          {
-            "harf": "A",
-            _userId
-          }
-        ],
-
-        pozBirimleri: [
-          { id: "mt", name: "mt" },
-          { id: "m2", name: "m2" },
-          { id: "m3", name: "m3" },
-          { id: "kg", name: "kg" },
-          { id: "ton", name: "ton" },
-          { id: "ad", name: "ad" },
-          { id: "set", name: "set" },
-          { id: "sa", name: "sa" },
-          { id: "gun", name: "gün" },
-          { id: "hafta", name: "hafta" },
-          { id: "ay", name: "ay" },
-          { id: "yil", name: "yıl" },
-        ],
-
-        veriTurleri: [
-          {
-            "id": "sayi",
-            "name": "SAYI"
-          },
-          {
-            "id": "tarih",
-            "name": "TARİH"
-          },
-          {
-            "id": "metin",
-            "name": "METİN"
-          }
-        ],
-
-        haneSayilari: [
-          {
-            "id": "0",
-            "name": "0"
-          },
-          {
-            "id": "0,0",
-            "name": "0,0"
-          },
-          {
-            "id": "0,00",
-            "name": "0,00"
-          },
-          {
-            "id": "0,000",
-            "name": "0,000"
-          },
-          {
-            "id": "0,0000",
-            "name": "0,0000"
-          }
-        ]
 
       }
 
-      const resultNewFirma = await collection_Firmalar.insertOne({ name: firmaName, personeller: [newFirma] })
+      const resultNewFirma = await collection_Firmalar.insertOne({ name: firmaName, personeller: [userOne] })
 
-      await context.functions.execute("createProject", { functionName: "createProject", _firmaId:resultNewFirma.insertedId, projectName:resultNewFirma.insertedId.toString() } )
-      
+      await context.functions.execute("createProject", { functionName: "createProject", _firmaId: resultNewFirma.insertedId, projectName: resultNewFirma.insertedId.toString() })
+
       return resultNewFirma;
 
     } catch (err) {
       throw new Error("MONGO // collection_firmalar // " + functionName + " // " + err.message);
     }
   }
+
+
 
 
 
@@ -149,6 +81,22 @@ exports = async function ({
       throw new Error("MONGO // collection_firmalar // " + functionName + " // " + err.message);
     }
   }
+
+  
+
+
+
+  if (functionName == "getFirma") {
+    try {
+      const firma = await collection_Firmalar.findOne({ "_id": _firmaId, "personeller.email": userEmail });
+      return firma;
+    } catch (err) {
+      throw new Error("MONGO // collection_firmalar // " + functionName + " // " + err.message);
+    }
+  }
+
+
+
 
   return "MONGO // collection_firmalar // Herhangi bir functionName içine düşmedi"
 
