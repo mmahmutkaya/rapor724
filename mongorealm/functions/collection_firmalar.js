@@ -15,6 +15,7 @@ exports = async function ({
   }
 
   const collection_Firmalar = context.services.get("mongodb-atlas").db("rapor724_v2").collection("firmalar");
+  const collection_Projects = context.services.get("mongodb-atlas").db("rapor724_v2").collection("projects");
 
 
 
@@ -88,7 +89,9 @@ exports = async function ({
 
   if (functionName == "getUserFirma") {
     try {
-      const firma = await collection_Firmalar.findOne({ "_id": _firmaId, "personeller.email": userEmail });
+      let firma = await collection_Firmalar.findOne({ "_id": _firmaId, "personeller.email": userEmail });
+      const firmaProject = await collection_Projects.findOne({name:firma.name, isDeleted:false })
+      firma.project = firmaProject          
       return firma;
     } catch (err) {
       throw new Error("MONGO // collection_firmalar // " + functionName + " // " + err.message);
