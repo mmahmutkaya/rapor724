@@ -86,7 +86,7 @@ exports = async function ({
 
 
 
-  if (functionName == "getFirma") {
+  if (functionName == "getUserFirma") {
     try {
       const firma = await collection_Firmalar.findOne({ "_id": _firmaId, "personeller.email": userEmail });
       return firma;
