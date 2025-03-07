@@ -91,7 +91,7 @@ exports = async function ({
   if (functionName == "getUserFirma") {
     try {
       let firma = await collection_Firmalar.findOne({ "_id": _firmaId, "personeller.email": userEmail });
-      const firmaProject = await collection_Projects.findOne({name:firma.name, isDeleted:false })
+      const firmaProject = await collection_Projects.findOne({name:firma._id.toString(), isDeleted:false })
       firma.project = firmaProject          
       return firma;
     } catch (err) {
