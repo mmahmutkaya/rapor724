@@ -217,7 +217,8 @@ exports = async function ({
   
   if (functionName == "getProjectNames_firma") {
     try {
-      const projectNames = await collection_Projects.find({ "firmalar._id": _firmaId }, { name: 1 }).toArray();
+      let projectNames = await collection_Projects.find({ "firmalar._id": _firmaId }, { name: 1 }).toArray()
+      projectNames = projectNames.filter(x => x.name != _firmaId.toString() )
       return projectNames;
     } catch (err) {
       throw new Error("MONGO // collection_projects // " + functionName + " // " + err.message);
