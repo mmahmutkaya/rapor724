@@ -58,7 +58,8 @@ exports = async function ({
 
 
     const collection_Firmalar = context.services.get("mongodb-atlas").db("rapor724_v2").collection("firmalar")
-    const firma = await collection_Firmalar.findOne({ _id: _firmaId, "kisiler.email": userEmail, isDeleted: false })
+    // const firma = await collection_Firmalar.findOne({ _id: _firmaId, "kisiler.email": userEmail, isDeleted: false })
+    const firma = await collection_Firmalar.findOne({})
 
 return firma
     
