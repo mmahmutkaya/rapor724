@@ -22,7 +22,7 @@ import ArrowForwardIcon from '@mui/icons-material/ArrowForward';
 
 
 // export default function FormPozCreate({ setShow, firmaProject, refetch_pozlar }) {
-export default function FormPozCreate({ setShow }) {
+export default function FormFirmaPozCreate({ setShow }) {
 
 
   const { firmaProject, setFirmaProject } = useContext(StoreContext)

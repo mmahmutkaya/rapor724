@@ -23,7 +23,7 @@ export default function P_FirmaWbs() {
 
   const { subHeaderHeight } = useContext(StoreContext)
 
-  const { firmaProject, setFirmaProject } = useContext(StoreContext)
+  const { selectedFirma } = useContext(StoreContext)
   const { selectedWbs, setSelectedWbs } = useContext(StoreContext)
 
   const [show, setShow] = useState()
@@ -32,7 +32,7 @@ export default function P_FirmaWbs() {
 
 
   useEffect(() => {
-    !firmaProject && navigate('/projects')
+    !selectedFirma && navigate('/firmalarim')
   }, [])
 
 
@@ -60,18 +60,18 @@ export default function P_FirmaWbs() {
 
       {show == "FormFirmaWbsCreate" &&
         <Grid item >
-          <FormFirmaWbsCreate setShow={setShow} firmaProject={firmaProject} setFirmaProject={setFirmaProject} selectedWbs={selectedWbs} setSelectedWbs={setSelectedWbs} />
+          <FormFirmaWbsCreate setShow={setShow} selectedWbs={selectedWbs} setSelectedWbs={setSelectedWbs} />
         </Grid>
       }
 
       {show == "FormFirmaWbsUpdate" &&
         <Grid item >
-          <FormFirmaWbsUpdate setShow={setShow} firmaProject={firmaProject} setFirmaProject={setFirmaProject} selectedWbs={selectedWbs} setSelectedWbs={setSelectedWbs} />
+          <FormFirmaWbsUpdate setShow={setShow} selectedWbs={selectedWbs} setSelectedWbs={setSelectedWbs} />
         </Grid>
       }
 
 
-      {!firmaProject?.wbs?.length &&
+      {!selectedFirma?.wbs?.length &&
         <Stack sx={{ width: '100%', padding: "0.5rem" }} spacing={2}>
           <Alert severity="info">
             Yukarıdaki "+" tuşuna basarak "Poz Başlığı" oluşturabilirsiniz.
@@ -79,7 +79,7 @@ export default function P_FirmaWbs() {
         </Stack>
       }
 
-      {firmaProject?.wbs?.length > 0 &&
+      {selectedFirma?.wbs?.length > 0 &&
         < Stack sx={{ width: '100%', padding: "0.5rem" }} spacing={0}>
 
           <Box sx={{ display: "grid", gridTemplateColumns: "1rem 1fr" }}>
@@ -87,7 +87,7 @@ export default function P_FirmaWbs() {
 
             </Box>
             <Box sx={{ backgroundColor: "black", color: "white" }}>
-              {firmaProject.name}
+              {selectedFirma.name}
             </Box>
           </Box>
 
@@ -98,11 +98,11 @@ export default function P_FirmaWbs() {
 
             </Box>
 
-            {/* {console.log("firmaProject?.wbs?.length", firmaProject?.wbs?.length)} */}
+            {/* {console.log("selectedFirma?.wbs?.length", selectedFirma?.wbs?.length)} */}
             <Box display="grid">
 
               {
-                firmaProject.wbs.sort(function (a, b) {
+                selectedFirma.wbs.sort(function (a, b) {
                   var nums1 = a.code.split(".");
                   var nums2 = b.code.split(".");
 

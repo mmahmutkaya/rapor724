@@ -34,15 +34,15 @@ export default function P_Firmalarim() {
 
   const [show, setShow] = useState("Main")
 
-  const { data: firmaProjeleriNames } = useGetFirmalarimNames()
+  const { data: firmalarimNames } = useGetFirmalarimNames()
 
 
   const handleFirmaClick = async (oneFirma) => {
     const userFirma = await RealmApp.currentUser.callFunction("collection_firmalar", { functionName: "getUserFirma", _firmaId: oneFirma._id })
     setSelectedFirma(userFirma)
     // const firmaProject = await RealmApp.currentUser.callFunction("getFirmaProject", { projectName: oneFirma._id.toString() })
-    console.log("firmaProject", userFirma.project)
-    setFirmaProject(userFirma.project)
+    // console.log("firmaProject", userFirma.project)
+    // setFirmaProject(userFirma.project)
     navigate("/projects")
   }
 
@@ -103,7 +103,7 @@ export default function P_Firmalarim() {
         </Box>
       }
 
-      {show == "Main" && !firmaProjeleriNames?.length > 0 &&
+      {show == "Main" && !firmalarimNames?.length > 0 &&
         <Stack sx={{ width: '100%', padding: "1rem" }} spacing={2}>
           <Alert severity="info">
             Dahil olduğunuz herhangi bir firma bulunamadı, menüler yardımı ile oluşturabilirsiniz.
@@ -111,10 +111,10 @@ export default function P_Firmalarim() {
         </Stack>
       }
 
-      {show == "Main" && firmaProjeleriNames?.length > 0 &&
+      {show == "Main" && firmalarimNames?.length > 0 &&
         <Stack sx={{ width: '100%', padding: "1rem" }} spacing={0}>
           {
-            firmaProjeleriNames.map((oneFirma, index) => (
+            firmalarimNames.map((oneFirma, index) => (
 
               <Box
                 key={index}

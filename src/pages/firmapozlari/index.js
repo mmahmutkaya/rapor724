@@ -1,5 +1,5 @@
 
-import { useState, useContext } from 'react';
+import { useState, useContext, useEffect} from 'react';
 import { useNavigate } from "react-router-dom";
 import { StoreContext } from '../../components/store'
 import { useApp } from "../../components/useApp";
@@ -37,8 +37,11 @@ export default function P_FirmaPozlari() {
   const [autoFocus, setAutoFocus] = useState({ baslikId: null, pozId: null })
 
   const navigate = useNavigate()
-  // !firmaProject ? navigate('/projects') : null
-  if (!firmaProject) window.location.href = "/projects"
+  useEffect(() => {
+    if (!firmaProject) navigate('/projects')
+  }, [])
+
+
 
   const queryClient = useQueryClient()
   const RealmApp = useApp();

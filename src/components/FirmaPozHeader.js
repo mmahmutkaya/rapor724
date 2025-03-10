@@ -204,6 +204,9 @@ export default function FirmaPozHeader({ setShow, editPoz, setEditPoz, savePoz }
     setSelectedPozBaslik(false)
   }
 
+  const handlePozDelete = () => {
+    console.log("deneme")
+  }
 
   let header = "Pozlar"
   // firmaProject?.name ? header = firmaProject?.name : null
@@ -401,6 +404,7 @@ export default function FirmaPozHeader({ setShow, editPoz, setEditPoz, savePoz }
                 </>
 
               }
+
 
 
 

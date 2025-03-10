@@ -1,4 +1,5 @@
-import { useState } from 'react';
+import { useState, useContext } from 'react';
+import { StoreContext } from '../components/store.js'
 import { useApp } from "./useApp.js";
 import deleteLastSpace from '../functions/deleteLastSpace.js';
 import { DialogWindow } from './general/DialogWindow.js';
@@ -16,10 +17,13 @@ import DialogContentText from '@mui/material/DialogContentText';
 import { Typography } from '@mui/material';
 
 
-export default function P_FormWbsEdit({ setShow, firmaProject, setFirmaProject, selectedWbs, setSelectedWbs }) {
+export default function P_FormWbsEdit({ setShow, selectedWbs, setSelectedWbs }) {
+
+  const { selectedFirma, setSelectedFirma } = useContext(StoreContext)
+
 
   // proje ve _id si yoksa wbs oluşturma formunu göstermenin bir anlamı yok, hata vererek durduruyoruz
-  if (!firmaProject?._id) {
+  if (!selectedFirma?._id) {
     throw new Error("Wbs oluşturulacak projenin database kaydı için ProjeId belirtilmemiş, sayfayı yeniden yükleyin, sorun devam ederse Rapor7/24 ile irtibata geçiniz.")
   }
 
@@ -87,7 +91,7 @@ export default function P_FormWbsEdit({ setShow, firmaProject, setFirmaProject, 
       // useQuery ile oluşturduğumuz pozlar cash datamızı güncelliyoruz
       // sorgudan wbs datası güncellenmiş proje dödürüp, gelen data ile aşağıda react useContext deki projeyi update ediyoruz
       const newWbsItem = {
-        projectId: firmaProject._id,
+        projectId: selectedFirma._id,
         wbsId:selectedWbs._id,
         newWbsName: wbsName,
         newWbsCodeName: wbsCodeName
@@ -129,7 +133,7 @@ export default function P_FormWbsEdit({ setShow, firmaProject, setFirmaProject, 
 
       // yukarıdaki yapılan _id kontrolü tamamsa bu veri db de kaydolmuş demektir, refetch_pozlar() yapıp db yi yormaya gerek yok
       // useQuery ile oluşturduğumuz pozlar cash datamızı güncelliyoruz
-      setFirmaProject(result.project)
+      setSelectedFirma(result.project)
 
       // sorgu işleminden önce seçilen wbs varsa, temizliyoruz, en büyük gerekçe seçilen wbs silinmiş olabilir, onunla işlem db de hata verir
       setSelectedWbs(null)
