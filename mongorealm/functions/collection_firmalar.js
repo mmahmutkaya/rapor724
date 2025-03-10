@@ -165,7 +165,7 @@ exports = async function ({
 
   if (functionName == "getFirmalarimNames") {
     try {
-      const firmalarim = await collection_Firmalar.find({ "personeller.email": userEmail, "personeller.yetki": "owner" }, { name: 1 }).toArray();
+      const firmalarim = await collection_Firmalar.find({ "kullanicilar.email": userEmail, "kullanicilar.yetki": "owner" }, { name: 1 }).toArray();
       return firmalarim;
     } catch (err) {
       throw new Error("MONGO // collection_firmalar // " + functionName + " // " + err.message);
@@ -178,7 +178,7 @@ exports = async function ({
 
   if (functionName == "getUserFirma") {
     try {
-      let firma = await collection_Firmalar.findOne({ "_id": _firmaId, "personeller.email": userEmail });
+      let firma = await collection_Firmalar.findOne({ "_id": _firmaId, "kullanicilar.email": userEmail });
       const firmaProject = await collection_Projects.findOne({ name: firma._id.toString(), isDeleted: false })
       firma.project = firmaProject
       return firma;
