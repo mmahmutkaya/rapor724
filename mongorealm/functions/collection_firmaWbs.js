@@ -2,7 +2,7 @@ exports = async function ({
   _firmaId, upWbsId, newWbsName, newWbsCodeName, functionName
 }) {
 
-return "deneme"
+
   const user = context.user
   const _userId = new BSON.ObjectId(user.id)
   const userEmail = context.user.data.email
