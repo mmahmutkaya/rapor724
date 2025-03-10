@@ -17,7 +17,7 @@ exports = async function ({
 
   const currentTime = new Date()
   const collection_Firmalar = context.services.get("mongodb-atlas").db("rapor724_v2").collection("firmalar");
-  // const collection_Projects = context.services.get("mongodb-atlas").db("rapor724_v2").collection("projects");
+  const collection_Projects = context.services.get("mongodb-atlas").db("rapor724_v2").collection("projects");
 
 
 
