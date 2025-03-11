@@ -232,7 +232,7 @@ exports = async function ({
 
   }
 
-  return "Herhangi bir fonksiyona takılmadı"
+  throw new Error("MONGO // collection_firmaWbs // " + functionName + " // " + "Herhangi bir fonksiyona takılmadı")
 
 
 };
