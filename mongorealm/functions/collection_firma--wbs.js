@@ -228,6 +228,41 @@ exports = async function ({
 
   }
 
+  
+  if (functionName == "createFirmaWbs") {
+
+    if (!_firmaId) throw new Error("MONGO // collection_firmaWbs // " + functionName + " // --Firma Id-- sorguya, gönderilmemiş, lütfen Rapor7/24 ile irtibata geçiniz. ")
+
+    try {
+      if (typeof _firmaId == "string") {
+        _firmaId = new BSON.ObjectId(_firmaId)
+      }
+    } catch (err) {
+      throw new Error("MONGO // collection_firmaWbs // " + functionName + " // -- sorguya gönderilen --_firmaId-- türü doğru değil, lütfen Rapor7/24 ile irtibata geçiniz.")
+    }
+    if (typeof _firmaId != "object") throw new Error("MONGO // collection_firmaWbs // " + functionName + " // -- sorguya gönderilen --firmaId-- türü doğru değil, lütfen Rapor7/24 ile irtibata geçiniz. ")
+
+    const errorFormObj = {}
+
+
+
+    // form veri girişlerinden en az birinde hata tespit edildiği için form objesi dönderiyoruz, formun ilgili alanlarında gösterilecek
+    // errorFormObj - aşağıda tekrar gönderiliyor
+    if (Object.keys(errorFormObj).length) return ({ errorFormObj })
+
+
+    const collection_Firmalar = context.services.get("mongodb-atlas").db("rapor724_v2").collection("firmalar")
+    const firma = await collection_Firmalar.findOne({ _id: _firmaId, "kisiler.email": userEmail, isDeleted: false })
+    if (!firma) throw new Error("MONGO // collection_firmaWbs // " + functionName + " // _firmaId ile sistemde firma bulunamadı, lütfen sayfayı yenileyiniz, sorun devam ederse Rapor7/24 ile irtibata geçiniz.")
+
+
+
+  }
+
+
+
+  
+
   throw new Error("MONGO // collection_firmaWbs // " + functionName + " // " + "Herhangi bir fonksiyona uğramadı, 'functionName' eşleşmedi ya da boş gönderildi ")
 
 
