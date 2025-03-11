@@ -1,5 +1,5 @@
 exports = async function ({
-  _firmaId, upWbsId, newWbsName, newWbsCodeName, functionName
+  _firmaId, upWbsId, newWbsName, newWbsCodeName, functionName, _wbsId
 }) {
 
 
