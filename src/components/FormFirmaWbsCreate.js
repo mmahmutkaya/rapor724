@@ -23,7 +23,7 @@ export default function P_FormWbsCreate({ setShow, selectedWbs, setSelectedWbs }
 
   // console.log("selectedFirma",selectedFirma)
 
-  // proje ve _id si yoksa wbs oluşturma formunu göstermenin bir anlamı yok, hata vererek durduruyoruz
+  // firma ve _id si yoksa wbs oluşturma formunu göstermenin bir anlamı yok, hata vererek durduruyoruz
   if (!selectedFirma?._id) {
     throw new Error("Wbs oluşturulacak firmanın database kaydı için _firmaId belirtilmemiş, sayfayı yeniden yükleyin, sorun devam ederse Rapor7/24 ile irtibata geçiniz.")
   }
@@ -84,26 +84,26 @@ export default function P_FormWbsCreate({ setShow, selectedWbs, setSelectedWbs }
         console.log("bu satırın altında fonksiyon --return-- ile durduruldu")
         return
       }
-      
+
 
 
       // yukarıdaki yapılan _id kontrolü tamamsa bu veri db de kaydolmuş demektir, refetch_pozlar() yapıp db yi yormaya gerek yok
       // useQuery ile oluşturduğumuz pozlar cash datamızı güncelliyoruz
-      // sorgudan wbs datası güncellenmiş proje dödürüp, gelen data ile aşağıda react useContext deki projeyi update ediyoruz
+      // sorgudan wbs datası güncellenmiş firma dödürüp, gelen data ile aşağıda react useContext deki firmayı update ediyoruz
       const newWbsItem = {
-        projectId: selectedFirma._id,
+        _firmaId: selectedFirma._id,
         upWbsId: selectedWbs ? selectedWbs._id : "0",
         newWbsName: wbsName,
         newWbsCodeName: wbsCodeName
       }
 
-      const resultProject = await RealmApp.currentUser.callFunction("createWbs", newWbsItem);
+      const result = await RealmApp.currentUser.callFunction("collection_firmaWbs", { functionName:"createFirmaWbs", ...newWbsItem });
 
       // eğer gönderilen form verilerinde hata varsa db den gelen form validation mesajları form içindeki ilgili alanlarda gösterilir ve fonksiyon durdurulur
       // yukarıda da frontend kontrolü yapılmıştı
-      if (resultProject.errorFormObj) {
+      if (result?.errorFormObj) {
 
-        const errorFormObj = resultProject.errorFormObj
+        const errorFormObj = result.errorFormObj
 
         console.log("errorFormObj", errorFormObj)
 
@@ -125,15 +125,15 @@ export default function P_FormWbsCreate({ setShow, selectedWbs, setSelectedWbs }
       }
 
 
-      // _id yoksa istediğimiz proje verisi değil demekki, hata ile durduruyoruz
-      if (!resultProject._id) {
-        throw new Error("db den Proje olarak beklenen verinin _id property yok, sayfayı yenileyiniz, sorun devam ederse Rapor7/24 ile irtibata geçiniz..")
+      // _id yoksa istediğimiz firma verisi değil demekki, hata ile durduruyoruz
+      if (!result?._id) {
+        throw new Error("db den Firma olarak beklenen verinin _id property yok, sayfayı yenileyiniz, sorun devam ederse Rapor7/24 ile irtibata geçiniz..")
       }
 
 
       // yukarıdaki yapılan _id kontrolü tamamsa bu veri db de kaydolmuş demektir, refetch_pozlar() yapıp db yi yormaya gerek yok
       // useQuery ile oluşturduğumuz pozlar cash datamızı güncelliyoruz
-      setSelectedFirma(resultProject)
+      setSelectedFirma(result)
 
       // sorgu işleminden önce seçilen wbs varsa, temizliyoruz, en büyük gerekçe seçilen wbs silinmiş olabilir, onunla işlem db de hata verir
       setSelectedWbs(null)

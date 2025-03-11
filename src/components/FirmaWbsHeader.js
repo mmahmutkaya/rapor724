@@ -34,7 +34,7 @@ export default function WbsHeader({ RealmApp, setShow, nameMode, setNameMode, co
   const [showDialog, setShowDialog] = useState(false)
   const [dialogCase, setDialogCase] = useState("")
 
-  const { firmaProject, setFirmaProject } = useContext(StoreContext)
+  const { selectedFirma, setSelectedFirma } = useContext(StoreContext)
   const { selectedWbs, setSelectedWbs } = useContext(StoreContext)
 
 
@@ -64,13 +64,14 @@ export default function WbsHeader({ RealmApp, setShow, nameMode, setNameMode, co
 
         // bu kontrol backend de ayrıca yapılıyor
         let text = selectedWbs.code + "."
-        if (firmaProject.wbs.find(item => item.code.indexOf(text) === 0)) {
+        if (selectedFirma.wbs.find(item => item.code.indexOf(text) === 0)) {
           // throw new Error("\"" + selectedWbs.name + "\" isimli başlığın bir veya daha fazla alt başlığı mevcut, bu sebeple direk poz eklemeye açık hale getirilemez, mevcut alt başlıklar uygun değilse, yeni bir alt başlık oluşturup, o başlığı poz eklemeye açabilirsiniz.")
           throw new Error("Alt başlığı bulunan başlıklar poz eklemeye açılamaz.")
         }
 
-        const resultProject = await RealmApp.currentUser.callFunction("openWbsForPoz", { projectId: firmaProject._id, wbsId: selectedWbs._id });
-        setFirmaProject(resultProject)
+        const resultProject = await RealmApp.currentUser.callFunction("collection_firmaWbs", { functionName:"openWbsForPoz", _firmaId: selectedFirma._id, wbsId: selectedWbs._id });
+        console.log("resultProject", resultProject)
+        setSelectedFirma(resultProject)
 
         // switch on-off gösterim durumunu güncellemesi için 
         setSelectedWbs(resultProject.wbs.find(item => item._id.toString() === selectedWbs._id.toString()))
@@ -107,8 +108,8 @@ export default function WbsHeader({ RealmApp, setShow, nameMode, setNameMode, co
           return
         }
 
-        const resultProject = await RealmApp.currentUser.callFunction("closeWbsForPoz", { projectId: firmaProject._id, wbsId: selectedWbs._id });
-        setFirmaProject(resultProject)
+        const resultProject = await RealmApp.currentUser.callFunction("collection_firmaWbs", { functionName:"closeWbsForPoz", _firmaId: selectedFirma._id, wbsId: selectedWbs._id });
+        setSelectedFirma(resultProject)
 
         // switch on-off gösterim durumunu güncellemesi için 
         setSelectedWbs(resultProject.wbs.find(item => item._id.toString() === selectedWbs._id.toString()))
@@ -241,8 +242,8 @@ export default function WbsHeader({ RealmApp, setShow, nameMode, setNameMode, co
         throw new Error("Poz eklemeye açık başlıklar silinemez, öncelikle poz eklemeye kapatınız")
       }
 
-      const resultProject = await RealmApp.currentUser.callFunction("deleteWbs", { projectId: firmaProject._id, wbsId: selectedWbs._id });
-      setFirmaProject(resultProject)
+      const resultProject = await RealmApp.currentUser.callFunction("deleteWbs", { projectId: selectedFirma._id, wbsId: selectedWbs._id });
+      setSelectedFirma(resultProject)
       setSelectedWbs(null)
 
     } catch (err) {
@@ -272,7 +273,7 @@ export default function WbsHeader({ RealmApp, setShow, nameMode, setNameMode, co
       return
     }
 
-    let _wbs = JSON.parse(JSON.stringify(firmaProject.wbs))
+    let _wbs = JSON.parse(JSON.stringify(selectedFirma.wbs))
     let _selectedWbs = JSON.parse(JSON.stringify(selectedWbs))
     let _wbs2
 
@@ -296,8 +297,8 @@ export default function WbsHeader({ RealmApp, setShow, nameMode, setNameMode, co
         // throw new Error("Zaten en üstte - f")
       }
 
-      const result = await RealmApp.currentUser.callFunction("moveWbsUp", { projectId: firmaProject._id, wbsId: selectedWbs._id });
-      setFirmaProject(result.project)
+      const result = await RealmApp.currentUser.callFunction("moveWbsUp", { projectId: selectedFirma._id, wbsId: selectedWbs._id });
+      setSelectedFirma(result.project)
       // console.log(result._selectedWbs2)
       setSelectedWbs(result.project.wbs.find(item => item._id.toString() === selectedWbs._id.toString()))
 
@@ -329,8 +330,8 @@ export default function WbsHeader({ RealmApp, setShow, nameMode, setNameMode, co
 
     try {
 
-      const result = await RealmApp.currentUser.callFunction("moveWbsDown", { projectId: firmaProject._id, wbsId: selectedWbs._id });
-      setFirmaProject(result.project)
+      const result = await RealmApp.currentUser.callFunction("moveWbsDown", { projectId: selectedFirma._id, wbsId: selectedWbs._id });
+      setSelectedFirma(result.project)
       setSelectedWbs(result.project.wbs.find(item => item._id.toString() === selectedWbs._id.toString()))
 
     } catch (err) {
@@ -360,7 +361,7 @@ export default function WbsHeader({ RealmApp, setShow, nameMode, setNameMode, co
       return
     }
 
-    let _wbs = JSON.parse(JSON.stringify(firmaProject.wbs))
+    let _wbs = JSON.parse(JSON.stringify(selectedFirma.wbs))
     let _selectedWbs = JSON.parse(JSON.stringify(selectedWbs))
     let _wbs2
 
@@ -384,8 +385,8 @@ export default function WbsHeader({ RealmApp, setShow, nameMode, setNameMode, co
       //   return
       // }
 
-      const result = await RealmApp.currentUser.callFunction("moveWbsLeft", { projectId: firmaProject._id, wbsId: selectedWbs._id });
-      setFirmaProject(result.project)
+      const result = await RealmApp.currentUser.callFunction("moveWbsLeft", { projectId: selectedFirma._id, wbsId: selectedWbs._id });
+      setSelectedFirma(result.project)
       // console.log(result._selectedWbs2)
       setSelectedWbs(result.project.wbs.find(item => item._id.toString() === selectedWbs._id.toString()))
 
@@ -422,11 +423,11 @@ export default function WbsHeader({ RealmApp, setShow, nameMode, setNameMode, co
     try {
 
       // frontenddeki verinin nasıl güncellendiğini göstermek için bıraktım, _wbs felan şu an yok 
-      // setFirmaProject({ ...firmaProject, wbs: _wbs })
+      // setSelectedFirma({ ...selectedFirma, wbs: _wbs })
       // setSelectedWbs(_wbs.find(item => item._id.toString() === selectedWbs._id.toString()))
 
-      const result = await RealmApp.currentUser.callFunction("moveWbsRight", { projectId: firmaProject._id, wbsId: selectedWbs._id });
-      setFirmaProject(result.project)
+      const result = await RealmApp.currentUser.callFunction("moveWbsRight", { projectId: selectedFirma._id, wbsId: selectedWbs._id });
+      setSelectedFirma(result.project)
       // console.log(result._selectedWbs2)
       setSelectedWbs(result.project.wbs.find(item => item._id.toString() === selectedWbs._id.toString()))
 
