@@ -11,6 +11,10 @@ exports = async function ({
 
 
 
+  return {
+    _firmaId, upWbsId, newWbsName, newWbsCodeName, functionName
+  }
+
 
 
   if (functionName == "createFirmaWbs") {
