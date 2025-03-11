@@ -232,7 +232,7 @@ exports = async function ({
 
   }
 
-  throw new Error("MONGO // collection_firmaWbs // " + functionName + " // " + "Herhangi bir fonksiyona uğramadı, ('functionName') ")
+  throw new Error("MONGO // collection_firmaWbs // " + functionName + " // " + "Herhangi bir fonksiyona uğramadı, 'functionName' eşleşmedi ya da boş gönderildi ")
 
 
 };
