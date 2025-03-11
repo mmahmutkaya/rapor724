@@ -7,25 +7,25 @@ exports = async function ({
   const _userId = new BSON.ObjectId(user.id)
   const userEmail = context.user.data.email
   const mailTeyit = user.custom_data.mailTeyit
-  if (!mailTeyit) throw new Error("MONGO // collection_firmaWbs // Öncelikle üyeliğinize ait mail adresinin size ait olduğunu doğrulamalısınız, tekrar giriş yapmayı deneyiniz veya bizimle iletişime geçiniz.")
+  if (!mailTeyit) throw new Error("MONGO // collection_firma--wbs // Öncelikle üyeliğinize ait mail adresinin size ait olduğunu doğrulamalısınız, tekrar giriş yapmayı deneyiniz veya bizimle iletişime geçiniz.")
 
 
 
   if (functionName == "createFirmaWbs") {
 
-    if (!_firmaId) throw new Error("MONGO // collection_firmaWbs // " + functionName + " // --Firma Id-- sorguya, gönderilmemiş, lütfen Rapor7/24 ile irtibata geçiniz. ")
+    if (!_firmaId) throw new Error("MONGO // collection_firma--wbs // " + functionName + " // --Firma Id-- sorguya, gönderilmemiş, lütfen Rapor7/24 ile irtibata geçiniz. ")
 
     try {
       if (typeof _firmaId == "string") {
         _firmaId = new BSON.ObjectId(_firmaId)
       }
     } catch (err) {
-      throw new Error("MONGO // collection_firmaWbs // " + functionName + " // -- sorguya gönderilen --_firmaId-- türü doğru değil, lütfen Rapor7/24 ile irtibata geçiniz.")
+      throw new Error("MONGO // collection_firma--wbs // " + functionName + " // -- sorguya gönderilen --_firmaId-- türü doğru değil, lütfen Rapor7/24 ile irtibata geçiniz.")
     }
-    if (typeof _firmaId != "object") throw new Error("MONGO // collection_firmaWbs // " + functionName + " // -- sorguya gönderilen --firmaId-- türü doğru değil, lütfen Rapor7/24 ile irtibata geçiniz. ")
+    if (typeof _firmaId != "object") throw new Error("MONGO // collection_firma--wbs // " + functionName + " // -- sorguya gönderilen --firmaId-- türü doğru değil, lütfen Rapor7/24 ile irtibata geçiniz. ")
 
 
-    if (!(upWbsId === "0" || typeof upWbsId === "object")) throw new Error("MONGO // collection_firmaWbs // " + functionName + " // --upWbsId-- sorguya, gönderilmemiş, lütfen Rapor7/24 ile irtibata geçiniz. ")
+    if (!(upWbsId === "0" || typeof upWbsId === "object")) throw new Error("MONGO // collection_firma--wbs // " + functionName + " // --upWbsId-- sorguya, gönderilmemiş, lütfen Rapor7/24 ile irtibata geçiniz. ")
 
 
 
@@ -39,15 +39,15 @@ exports = async function ({
 
 
     //form verisi -- yukarıda  "" const errorFormObj = {} ""  yazan satırdan önceki açıklamaları oku
-    typeof newWbsName != "string" && errorFormObj.newWbsName === null ? errorFormObj.newWbsName = "MONGO // collection_firmaWbs // " + functionName + " --  newWbsName -- sorguya, string formatında gönderilmemiş, lütfen Rapor7/24 ile irtibata geçiniz. " : null
+    typeof newWbsName != "string" && errorFormObj.newWbsName === null ? errorFormObj.newWbsName = "MONGO // collection_firma--wbs // " + functionName + " --  newWbsName -- sorguya, string formatında gönderilmemiş, lütfen Rapor7/24 ile irtibata geçiniz. " : null
     newWbsName = await context.functions.execute("functions_deleteLastSpace", newWbsName)
-    if (!newWbsName.length) !errorFormObj.newWbsName ? errorFormObj.newWbsName = "MONGO // collection_firmaWbs // " + functionName + " --  newWbsName -- sorguya, gönderilmemiş, lütfen Rapor7/24 ile irtibata geçiniz." : null
+    if (!newWbsName.length) !errorFormObj.newWbsName ? errorFormObj.newWbsName = "MONGO // collection_firma--wbs // " + functionName + " --  newWbsName -- sorguya, gönderilmemiş, lütfen Rapor7/24 ile irtibata geçiniz." : null
 
 
     //form verisi -- yukarıda  "" const errorFormObj = {} ""  yazan satırdan önceki açıklamaları oku
-    typeof newWbsCodeName != "string" && errorFormObj.newWbsCodeName === null ? errorFormObj.newWbsCodeName = "MONGO // collection_firmaWbs // " + functionName + " --  newWbsCodeName -- sorguya, string formatında gönderilmemiş, lütfen Rapor7/24 ile irtibata geçiniz. " : null
+    typeof newWbsCodeName != "string" && errorFormObj.newWbsCodeName === null ? errorFormObj.newWbsCodeName = "MONGO // collection_firma--wbs // " + functionName + " --  newWbsCodeName -- sorguya, string formatında gönderilmemiş, lütfen Rapor7/24 ile irtibata geçiniz. " : null
     newWbsCodeName = await context.functions.execute("functions_deleteLastSpace", newWbsCodeName)
-    !newWbsCodeName.length == 0 && errorFormObj.newWbsCodeName === null ? errorFormObj.newWbsCodeName = "MONGO // collection_firmaWbs // " + functionName + " --  newWbsCodeName -- sorguya, gönderilmemiş, lütfen Rapor7/24 ile irtibata geçiniz." : null
+    !newWbsCodeName.length == 0 && errorFormObj.newWbsCodeName === null ? errorFormObj.newWbsCodeName = "MONGO // collection_firma--wbs // " + functionName + " --  newWbsCodeName -- sorguya, gönderilmemiş, lütfen Rapor7/24 ile irtibata geçiniz." : null
 
 
     // form veri girişlerinden en az birinde hata tespit edildiği için form objesi dönderiyoruz, formun ilgili alanlarında gösterilecek
@@ -57,7 +57,7 @@ exports = async function ({
 
     const collection_Firmalar = context.services.get("mongodb-atlas").db("rapor724_v2").collection("firmalar")
     const firma = await collection_Firmalar.findOne({ _id: _firmaId, "kisiler.email": userEmail, isDeleted: false })
-    if (!firma) throw new Error("MONGO // collection_firmaWbs // " + functionName + " // _firmaId ile sistemde firma bulunamadı, lütfen sayfayı yenileyiniz, sorun devam ederse Rapor7/24 ile irtibata geçiniz.")
+    if (!firma) throw new Error("MONGO // collection_firma--wbs // " + functionName + " // _firmaId ile sistemde firma bulunamadı, lütfen sayfayı yenileyiniz, sorun devam ederse Rapor7/24 ile irtibata geçiniz.")
 
 
 
@@ -94,7 +94,7 @@ exports = async function ({
 
       } catch (err) {
 
-        throw new Error("MONGO // collection_firmaWbs // " + functionName + " // bölüm 1 " + err.message)
+        throw new Error("MONGO // collection_firma--wbs // " + functionName + " // bölüm 1 " + err.message)
       }
 
     }
@@ -150,7 +150,7 @@ exports = async function ({
 
       } catch (err) {
 
-        throw new Error("MONGO // collection_firmaWbs // " + functionName + " // " + err.message)
+        throw new Error("MONGO // collection_firma--wbs // " + functionName + " // " + err.message)
       }
 
     }
@@ -163,15 +163,15 @@ exports = async function ({
 
     let upWbs = firma.wbs.find(item => item._id.toString() == upWbsId.toString())
     if (!upWbs) {
-      throw new Error("MONGO // collection_firmaWbs // " + functionName + " // upWbsId sistemde bulunamadı, sayfayı yenileyiniz, sorun devam ederse Rapor7/24 ile irtibata geçiniz.")
+      throw new Error("MONGO // collection_firma--wbs // " + functionName + " // upWbsId sistemde bulunamadı, sayfayı yenileyiniz, sorun devam ederse Rapor7/24 ile irtibata geçiniz.")
     }
 
     if (upWbs.code?.split(".").length === 8) {
-      throw new Error("MONGO // collection_firmaWbs // " + functionName + " // Daha fazla alt başlık oluşturamazsınız.")
+      throw new Error("MONGO // collection_firma--wbs // " + functionName + " // Daha fazla alt başlık oluşturamazsınız.")
     }
 
     if (upWbs.openForPoz == true) {
-      throw new Error("MONGO // collection_firmaWbs // " + functionName + " // __mesajBaslangic__ Poz eklemeye açmış olduğunuz başlığa alt başlık ekleyemezsiniz. Bu başlık altına hiç poz eklemediyseniz bu başlığı poz eklemeye kapatarak bu işlemi gerçekleştirebilirsiniz. Bu başlık altına poz eklediyseniz, yeni bir başlık hiyerarşisi oluşturup, pozları yeni başlıklara taşıyarak bu işlemi dolaylı olarak gerçekleştirebilirsiniz. __mesajBitis__")
+      throw new Error("MONGO // collection_firma--wbs // " + functionName + " // __mesajBaslangic__ Poz eklemeye açmış olduğunuz başlığa alt başlık ekleyemezsiniz. Bu başlık altına hiç poz eklemediyseniz bu başlığı poz eklemeye kapatarak bu işlemi gerçekleştirebilirsiniz. Bu başlık altına poz eklediyseniz, yeni bir başlık hiyerarşisi oluşturup, pozları yeni başlıklara taşıyarak bu işlemi dolaylı olarak gerçekleştirebilirsiniz. __mesajBitis__")
     }
 
     let upWbsCode = upWbs.code
@@ -223,47 +223,76 @@ exports = async function ({
 
     } catch (err) {
 
-      throw new Error("MONGO // collection_firmaWbs // " + functionName + " // " + err.message)
+      throw new Error("MONGO // collection_firma--wbs // " + functionName + " // " + err.message)
     }
 
   }
 
-  
-  if (functionName == "createFirmaWbs") {
 
-    if (!_firmaId) throw new Error("MONGO // collection_firmaWbs // " + functionName + " // --Firma Id-- sorguya, gönderilmemiş, lütfen Rapor7/24 ile irtibata geçiniz. ")
+  if (functionName == "openWbsForPoz") {
+
+    if (!_firmaId) throw new Error("MONGO // collection_firma--wbs // " + functionName + " // --Firma Id-- sorguya, gönderilmemiş, lütfen Rapor7/24 ile irtibata geçiniz. ")
 
     try {
       if (typeof _firmaId == "string") {
         _firmaId = new BSON.ObjectId(_firmaId)
       }
     } catch (err) {
-      throw new Error("MONGO // collection_firmaWbs // " + functionName + " // -- sorguya gönderilen --_firmaId-- türü doğru değil, lütfen Rapor7/24 ile irtibata geçiniz.")
+      throw new Error("MONGO // collection_firma--wbs // " + functionName + " // -- sorguya gönderilen --_firmaId-- türü doğru değil, lütfen Rapor7/24 ile irtibata geçiniz.")
     }
-    if (typeof _firmaId != "object") throw new Error("MONGO // collection_firmaWbs // " + functionName + " // -- sorguya gönderilen --firmaId-- türü doğru değil, lütfen Rapor7/24 ile irtibata geçiniz. ")
-
-    const errorFormObj = {}
-
-
-
-    // form veri girişlerinden en az birinde hata tespit edildiği için form objesi dönderiyoruz, formun ilgili alanlarında gösterilecek
-    // errorFormObj - aşağıda tekrar gönderiliyor
-    if (Object.keys(errorFormObj).length) return ({ errorFormObj })
+    if (typeof _firmaId != "object") throw new Error("MONGO // collection_firma--wbs // " + functionName + " // -- sorguya gönderilen --firmaId-- türü doğru değil, lütfen Rapor7/24 ile irtibata geçiniz. ")
 
 
     const collection_Firmalar = context.services.get("mongodb-atlas").db("rapor724_v2").collection("firmalar")
     const firma = await collection_Firmalar.findOne({ _id: _firmaId, "kisiler.email": userEmail, isDeleted: false })
-    if (!firma) throw new Error("MONGO // collection_firmaWbs // " + functionName + " // _firmaId ile sistemde firma bulunamadı, lütfen sayfayı yenileyiniz, sorun devam ederse Rapor7/24 ile irtibata geçiniz.")
+    if (!firma) throw new Error("MONGO // collection_firma--wbs // " + functionName + " // _firmaId ile sistemde firma bulunamadı, lütfen sayfayı yenileyiniz, sorun devam ederse Rapor7/24 ile irtibata geçiniz.")
+
+    if (!firma.wbs) throw new Error("MONGO // collection_firma--wbs // " + functionName + " // Firmaya ait WBS bulunamadı")
+
+    let wbs = firma.wbs.find(item => item._id.toString() == wbsId.toString())
+    if (!wbs) {
+      throw new Error("MONGO // collection_firma--wbs // " + functionName + " // wbsId sistemde bulunamadı, sayfayı yenileyiniz, sorun devam ederse Rapor7/24 ile irtibata geçiniz.")
+    }
+
+    // wbsCode un alt seviyeleri mevcutsa direk poz eklenemesin
+    // burada includes kullanamayız çünkü içinde değil başında arıyoruz
+    let text = wbs.code + "."
+    if (firma.wbs.find(item => item.code.indexOf(text) === 0)) {
+      throw new Error("MONGO // collection_firma--wbs // " + functionName + " //  __mesajBaslangic__ Alt başlığı bulunan başlıklar poz eklemeye açılamaz. __mesajBitis__")
+    }
 
 
+
+    try {
+
+      const newWbsArray = firma.wbs.map(item => {
+        if (item.code === wbs.code) {
+          return { ...item, openForPoz: true }
+        } else {
+          return item
+        }
+      })
+
+      const result = await collection_Firmalar.updateOne(
+        { _id: _firmaId }, // Query for the user object of the logged in user
+        { $set: { wbs: newWbsArray } }, // Set the logged in user's favorite color to purple
+        // { "$push": { "wbs": newWbsItem  } }
+        // { upsert: true }
+      );
+
+      return { ...firma, wbs: newWbsArray }
+
+    } catch (err) {
+      return { error: err.message }
+    }
 
   }
 
 
 
-  
 
-  throw new Error("MONGO // collection_firmaWbs // " + functionName + " // " + "Herhangi bir fonksiyona uğramadı, 'functionName' eşleşmedi ya da boş gönderildi ")
+
+  throw new Error("MONGO // collection_firma--wbs // " + functionName + " // " + "Herhangi bir fonksiyona uğramadı, 'functionName' eşleşmedi ya da boş gönderildi ")
 
 
 };
