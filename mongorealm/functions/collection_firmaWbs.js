@@ -11,12 +11,6 @@ exports = async function ({
 
 
 
-  return {
-    _firmaId, upWbsId, newWbsName, newWbsCodeName, functionName
-  }
-
-
-
   if (functionName == "createFirmaWbs") {
 
     if (!_firmaId) throw new Error("MONGO // collection_firmaWbs // " + functionName + " // --Firma Id-- sorguya, gönderilmemiş, lütfen Rapor7/24 ile irtibata geçiniz. ")
@@ -60,13 +54,13 @@ exports = async function ({
     // errorFormObj - aşağıda tekrar gönderiliyor
     if (Object.keys(errorFormObj).length) return ({ errorFormObj })
 
-return "firma"
+    return "firma"
     const collection_Firmalar = context.services.get("mongodb-atlas").db("rapor724_v2").collection("firmalar")
     // const firma = await collection_Firmalar.findOne({ _id: _firmaId, "kisiler.email": userEmail, isDeleted: false })
     const firma = await collection_Firmalar.findOne({})
 
-return firma
-    
+    return firma
+
     if (!firma) throw new Error("MONGO // collection_firmaWbs // " + functionName + " // _firmaId ile sistemde firma bulunamadı, lütfen sayfayı yenileyiniz, sorun devam ederse Rapor7/24 ile irtibata geçiniz.")
 
 
@@ -238,6 +232,7 @@ return firma
 
   }
 
+  return "Herhangi bir fonksiyona takılmadı"
 
 
 };
