@@ -249,9 +249,9 @@ exports = async function ({
 
     if (!firma.wbs) throw new Error("MONGO // collection_firma--wbs // " + functionName + " // Firmaya ait WBS bulunamadı")
 
-    let wbs = firma.wbs.find(item => item._id.toString() == wbsId.toString())
+    let wbs = firma.wbs.find(item => item._id.toString() == _wbsId.toString())
     if (!wbs) {
-      throw new Error("MONGO // collection_firma--wbs // " + functionName + " // wbsId sistemde bulunamadı, sayfayı yenileyiniz, sorun devam ederse Rapor7/24 ile irtibata geçiniz.")
+      throw new Error("MONGO // collection_firma--wbs // " + functionName + " // _wbsId sistemde bulunamadı, sayfayı yenileyiniz, sorun devam ederse Rapor7/24 ile irtibata geçiniz.")
     }
 
     // wbsCode un alt seviyeleri mevcutsa direk poz eklenemesin
