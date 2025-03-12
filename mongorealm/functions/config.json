@@ -426,7 +426,7 @@
         "disable_arg_logs": true
     },
     {
-        "name": "collection_firma__wbs",
+        "name": "collection_firmalar__wbs",
         "private": false,
         "run_as_system": true,
         "disable_arg_logs": true
