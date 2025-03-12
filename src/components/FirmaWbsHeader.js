@@ -1,6 +1,6 @@
 import { useState, useContext } from 'react';
 import { StoreContext } from './store'
-import { DialogWindow } from './general/DialogWindow';
+import { DialogAlert } from './general/DialogAlert';
 
 
 
@@ -31,8 +31,7 @@ export default function WbsHeader({ RealmApp, setShow, nameMode, setNameMode, co
 
   const { drawerWidth, topBarHeight, subHeaderHeight } = useContext(StoreContext)
 
-  const [showDialog, setShowDialog] = useState(false)
-  const [dialogCase, setDialogCase] = useState("")
+  const [dialogAlert, setDialogAlert] = useState()
 
   const { selectedFirma, setSelectedFirma } = useContext(StoreContext)
   const { selectedWbs, setSelectedWbs } = useContext(StoreContext)
@@ -52,6 +51,9 @@ export default function WbsHeader({ RealmApp, setShow, nameMode, setNameMode, co
 
   async function handleSwitchForPoz(event) {
 
+    console.log(selectedWbs)
+    console.log("event.target.checked", event.target.checked)
+
     // wbs poza açık hale getirilecekse
     if (event.target.checked === true) {
 
@@ -69,7 +71,7 @@ export default function WbsHeader({ RealmApp, setShow, nameMode, setNameMode, co
           throw new Error("Alt başlığı bulunan başlıklar poz eklemeye açılamaz.")
         }
 
-        const resultProject = await RealmApp.currentUser.callFunction("collection_firmaWbs", { functionName:"openWbsForPoz", _firmaId: selectedFirma._id, wbsId: selectedWbs._id });
+        const resultProject = await RealmApp.currentUser.callFunction("collection_firmalar__wbs", { functionName: "openWbsForPoz", _firmaId: selectedFirma._id, _wbsId: selectedWbs._id });
         console.log("resultProject", resultProject)
         setSelectedFirma(resultProject)
 
@@ -81,19 +83,14 @@ export default function WbsHeader({ RealmApp, setShow, nameMode, setNameMode, co
       } catch (err) {
 
         console.log(err)
-        let hataMesaj_ = err?.message ? err.message : "Beklenmedik hata, sayfayı yenileyiniz, sorun devam ederse Rapor7/24 ile irtibata geçiniz.."
 
-        let text1 = "__mesajBaslangic__"
-        let text2 = "__mesajBitis__"
-        let mesajBaslangic = hataMesaj_.includes(text1) ? hataMesaj_.indexOf(text1) + text1.length : 0
-        let mesajBitis = hataMesaj_.includes(text2) ? hataMesaj_.indexOf(text2) : hataMesaj_.length
-        // console.log(hataMesaj_.slice(mesajBaslangic + "mesajBaslangic:".length, mesajBitis))
-        hataMesaj_ = hataMesaj_.slice(mesajBaslangic, mesajBitis)
+        setDialogAlert({
+          dialogIcon: "warning",
+          dialogMessage: "Beklenmedik hata, Rapor7/24 ile irtibata geçiniz..",
+          detailText: err?.message ? err.message : null
+        })
 
-        console.log(hataMesaj_)
-
-        setDialogCase("error")
-        setShowDialog(hataMesaj_)
+        return
       }
     }
 
@@ -108,7 +105,7 @@ export default function WbsHeader({ RealmApp, setShow, nameMode, setNameMode, co
           return
         }
 
-        const resultProject = await RealmApp.currentUser.callFunction("collection_firmaWbs", { functionName:"closeWbsForPoz", _firmaId: selectedFirma._id, wbsId: selectedWbs._id });
+        const resultProject = await RealmApp.currentUser.callFunction("collection_firmalar__wbs", { functionName: "closeWbsForPoz", _firmaId: selectedFirma._id, _wbsId: selectedWbs._id });
         setSelectedFirma(resultProject)
 
         // switch on-off gösterim durumunu güncellemesi için 
@@ -118,15 +115,16 @@ export default function WbsHeader({ RealmApp, setShow, nameMode, setNameMode, co
 
       } catch (err) {
 
-        console.log("err", err.message)
-        let hataMesaj_ = err?.message ? err.message : "Beklenmedik hata, Rapor7/24 ile irtibata geçiniz.."
+        console.log(err)
 
-        if (hataMesaj_.includes("kayıtlı pozlar mevcut")) {
-          hataMesaj_ = "\"" + selectedWbs.name + "\" isimli başlık altında kayıtlı pozlar mevcut olduğu için silinemez, öncelikle pozları silmeli ya da başka başlık altına taşımalısınız."
-        }
+        setDialogAlert({
+          dialogIcon: "warning",
+          dialogMessage: "Beklenmedik hata, Rapor7/24 ile irtibata geçiniz..",
+          detailText: err?.message ? err.message : null
+        })
 
-        setDialogCase("error")
-        setShowDialog(hataMesaj_)
+        return
+
       }
     }
 
@@ -249,18 +247,14 @@ export default function WbsHeader({ RealmApp, setShow, nameMode, setNameMode, co
     } catch (err) {
 
       console.log(err)
-      let hataMesaj_ = err.message ? err.message : "Beklenmedik hata, Rapor7/24 ile irtibata geçiniz.."
 
-      if (hataMesaj_.includes("Silmek istediğiniz  WBS'in alt seviyeleri mevcut")) {
-        hataMesaj_ = "Silmek istediğiniz  WBS'in alt seviyeleri mevcut, öncelikle onları silmelisiniz."
-      }
+      setDialogAlert({
+        dialogIcon: "warning",
+        dialogMessage: "Beklenmedik hata, Rapor7/24 ile irtibata geçiniz..",
+        detailText: err?.message ? err.message : null
+      })
 
-      if (hataMesaj_.includes("Poz eklemeye açık başlıklar silinemez")) {
-        hataMesaj_ = "Poz eklemeye açık başlıklar silinemez, öncelikle poz eklemeye kapatınız."
-      }
-
-      setDialogCase("error")
-      setShowDialog(hataMesaj_)
+      return
     }
   }
 
@@ -305,14 +299,14 @@ export default function WbsHeader({ RealmApp, setShow, nameMode, setNameMode, co
     } catch (err) {
 
       console.log(err)
-      let hataMesaj_ = err.message ? err.message : "Beklenmedik hata, Rapor7/24 ile irtibata geçiniz.."
 
-      if (hataMesaj_.includes("Zaten")) {
-        hataMesaj_ = "Zaten en üstte"
-      }
+      setDialogAlert({
+        dialogIcon: "warning",
+        dialogMessage: "Beklenmedik hata, Rapor7/24 ile irtibata geçiniz..",
+        detailText: err?.message ? err.message : null
+      })
 
-      setDialogCase("error")
-      setShowDialog(hataMesaj_)
+      return
     }
   }
 
@@ -337,15 +331,14 @@ export default function WbsHeader({ RealmApp, setShow, nameMode, setNameMode, co
     } catch (err) {
 
       console.log(err)
-      let hataMesaj_ = err.message ? err.message : "Beklenmedik hata, Rapor7/24 ile irtibata geçiniz.."
 
-      if (hataMesaj_.includes("Zaten")) {
-        return
-        hataMesaj_ = "Zaten en üstte"
-      }
+      setDialogAlert({
+        dialogIcon: "warning",
+        dialogMessage: "Beklenmedik hata, Rapor7/24 ile irtibata geçiniz..",
+        detailText: err?.message ? err.message : null
+      })
 
-      setDialogCase("error")
-      setShowDialog(hataMesaj_)
+      return
 
     }
 
@@ -378,13 +371,6 @@ export default function WbsHeader({ RealmApp, setShow, nameMode, setNameMode, co
 
       let switch1 = false
 
-      // if (!leftPart) {
-      //   setDialogCase("error")
-      //   setShowDialog("Zaten en üstte")
-      //   console.log("alttaki satırda --return-- oldu - handleMoveWbsLeft2")
-      //   return
-      // }
-
       const result = await RealmApp.currentUser.callFunction("moveWbsLeft", { projectId: selectedFirma._id, wbsId: selectedWbs._id });
       setSelectedFirma(result.project)
       // console.log(result._selectedWbs2)
@@ -392,19 +378,15 @@ export default function WbsHeader({ RealmApp, setShow, nameMode, setNameMode, co
 
     } catch (err) {
 
-      console.log("err", err)
-      let hataMesaj_ = err?.message ? err.message : "Beklenmedik hata, sayfayı yenileyiniz, sorun devam ederse Rapor7/24 ile irtibata geçiniz.."
+      console.log(err)
 
-      let text1 = "__mesajBaslangic__"
-      let text2 = "__mesajBitis__"
-      let mesajBaslangic = hataMesaj_.includes(text1) ? hataMesaj_.indexOf(text1) + text1.length : 0
-      let mesajBitis = hataMesaj_.includes(text2) ? hataMesaj_.indexOf(text2) : hataMesaj_.length
+      setDialogAlert({
+        dialogIcon: "warning",
+        dialogMessage: "Beklenmedik hata, Rapor7/24 ile irtibata geçiniz..",
+        detailText: err?.message ? err.message : null
+      })
 
-      hataMesaj_ = hataMesaj_.slice(mesajBaslangic, mesajBitis)
-      console.log("hataMesaj_", hataMesaj_)
-
-      setDialogCase("error")
-      setShowDialog(hataMesaj_)
+      return
 
     }
 
@@ -433,19 +415,15 @@ export default function WbsHeader({ RealmApp, setShow, nameMode, setNameMode, co
 
     } catch (err) {
 
-      console.log("err", err)
-      let hataMesaj_ = err?.message ? err.message : "Beklenmedik hata, sayfayı yenileyiniz, sorun devam ederse Rapor7/24 ile irtibata geçiniz.."
+      console.log(err)
 
-      let text1 = "__mesajBaslangic__"
-      let text2 = "__mesajBitis__"
-      let mesajBaslangic = hataMesaj_.includes(text1) ? hataMesaj_.indexOf(text1) + text1.length : 0
-      let mesajBitis = hataMesaj_.includes(text2) ? hataMesaj_.indexOf(text2) : hataMesaj_.length
+      setDialogAlert({
+        dialogIcon: "warning",
+        dialogMessage: "Beklenmedik hata, Rapor7/24 ile irtibata geçiniz..",
+        detailText: err?.message ? err.message : null
+      })
 
-      hataMesaj_ = hataMesaj_.slice(mesajBaslangic, mesajBitis)
-      console.log("hataMesaj_", hataMesaj_)
-
-      setDialogCase("error")
-      setShowDialog(hataMesaj_)
+      return
 
     }
 
@@ -455,9 +433,19 @@ export default function WbsHeader({ RealmApp, setShow, nameMode, setNameMode, co
   return (
     <Paper>
 
-      {showDialog &&
-        <DialogWindow dialogCase={dialogCase} showDialog={showDialog} setShowDialog={setShowDialog} />
+
+      {dialogAlert &&
+        <DialogAlert
+          dialogIcon={dialogAlert.dialogIcon}
+          dialogMessage={dialogAlert.dialogMessage}
+          detailText={dialogAlert.detailText}
+          onCloseAction={() => setDialogAlert()}
+        />
       }
+
+      {/* {showDialog &&
+        <DialogAlert dialogCase={dialogCase} showDialog={showDialog} setShowDialog={setShowDialog} />
+      } */}
 
 
       <AppBar position="fixed" sx={{ width: { md: `calc(100% - ${drawerWidth}px)` }, mt: topBarHeight, ml: { md: `${drawerWidth}px` }, backgroundColor: "white" }}>

@@ -124,7 +124,7 @@ export default function P_FirmaWbs() {
 
                   return (
                     <Box
-                      key={theWbs._id}
+                      key={theWbs._id.toString()}
                       sx={{
                         display: "grid",
                         gridTemplateColumns: (level - 1) == 0 ? "1rem 1fr" : "1rem repeat(" + (level - 1) + ", 1rem) 1fr", // baştaki poz var mı yok mu için
@@ -138,7 +138,7 @@ export default function P_FirmaWbs() {
                       {Array.from({ length: (level - 1) > -1 ? (level - 1) : 0 }).map((_item, index) => {
                         return (
                           // <Box sx={{ backgroundColor: color(index + 1).bg, borderLeft: "1px solid " + color("border") }}></Box>
-                          <Box sx={{ backgroundColor: color(index + 1).bg, borderLeft: "1px solid " + color("border") }}></Box>
+                          <Box key={index} sx={{ backgroundColor: color(index + 1).bg, borderLeft: "1px solid " + color("border") }}></Box>
                         )
                       })}
 
@@ -198,7 +198,7 @@ export default function P_FirmaWbs() {
 
                               {codeMode === null && //kısa
                                 <Grid item sx={{ ml: "0.2rem" }}>
-                                  {theWbs.code.split(".")[level -1] + " - "}
+                                  {theWbs.code.split(".")[level - 1] + " - "}
                                 </Grid>
                               }
 
