@@ -312,7 +312,7 @@ exports = async function ({
         // { upsert: true }
       );
 
-      return { ...project, wbs: newWbsArray }
+      return { ...firma, wbs: newWbsArray }
 
     } catch (err) {
       throw new Error({ error: err.message })
