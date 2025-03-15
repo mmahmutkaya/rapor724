@@ -25,11 +25,30 @@ exports = async function ({
     // property isimleri yukarıda ilk satırda frontend den gelen verileri yakalarken kullanılanlar ile aynı 
     // fonksiyon returnü olarak errorFormObj objesi döndürülüyor, frontenddeki form ekranında form verisine ait ilgili alanda bu yazı gösteriliyor
     // form ile ilişkilendirilmiş ilgili alana ait bir ke hata yazısı yazılmışsa yani null değilse üstüne yazı yazılmıyor, ilk tespit edilen hata değiştirilmmeiş oluyor
+    
     const errorFormObj = {}
 
+      // newWbsName
       if (typeof newWbsName !== "string") {
-        throw new Error("MONGO // collection_firmalar__wbs // " + functionName + " / wbs adı 'string' türünde kaydolmuyor, sayfayı yenileyiniz, sorun devam ederse Rapor724 ile iritbata geçiniz.")
-        errorObject.newWbsNameError = "Bu veri 'string' formatında kaydolmuyor"
+        throw new Error("MONGO // collection_firmalar__wbs // " + functionName + " / db ye gelen wbsName türü 'string' türünde değil, sayfayı yenileyiniz, sorun devam ederse Rapor724 ile iritbata geçiniz.")
+      }
+
+      if(newWbsName.length < 1){
+        errorObject.wbsNameError = "Boş bırakılamaz"
+      }
+    
+
+      // newWbsCodeName
+      if (typeof newWbsCodeName !== "string") {
+        throw new Error("MONGO // collection_firmalar__wbs // " + functionName + " / db ye gelen wbsCodeName türü 'string' türünde değil, sayfayı yenileyiniz, sorun devam ederse Rapor724 ile iritbata geçiniz.")
+      }
+
+      if(newWbsCodeName.length < 1){
+        errorObject.newWbsCodeName = "Boş bırakılamaz"
+      }
+
+      if (newWbsCodeName.icludes(" ")) {
+        errorObject.newWbsCodeName = "Boşluk içermemeli"
       }
 
       // ARA VALIDATE KONTROL - VALIDATE HATA VARSA BOŞUNA DEVAM EDİP AŞAĞIDAKİ SORGUYU YAPMASIN
