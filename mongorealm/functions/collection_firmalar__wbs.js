@@ -182,8 +182,8 @@ exports = async function ({
 
     firma.wbs.filter(item => item.code.indexOf(text) == 0 && item.code.split(".").length - 1 == level).map(item => {
 
-      item.name === newWbsName && !errorObject.newWbsName ? errorObject.newWbsName = "Aynı grup içinde kullanılmış" : null
-      item.codeName === newWbsCodeName && !errorObject.newWbsCodeName ? errorObject.newWbsCodeName = "Aynı grup içinde kullanılmış" : null
+      item.name === newWbsName ? errorObject.wbsNameError = "Aynı grup içinde kullanılmış" : null
+      item.codeName === newWbsCodeName ? errorObject.wbsCodeNameError = "Aynı grup içinde kullanılmış" : null
 
       // yeni eklenecek wbs son hane numarasını belirlemek için aynı seviyedeki diğer wbs son numaraları kontrol ediliyor
       number = parseInt(item.code.split(text)[1])
@@ -210,15 +210,17 @@ exports = async function ({
 
     try {
 
-      await collection_Firmalar.updateOne(
-        { _id: _firmaId }, // Query for the user object of the logged in user
-        // { $set: {wbs:[newWbsItem]} }, // Set the logged in user's favorite color to purple
-        { "$push": { "wbs": newWbsItem } }
-        // { upsert: true }
+      const result = await collection_Firmalar.updateOne(
+        { _id: _firmaId },
+        [
+          { $set: { wbs: { $concatArrays: ["$wbs", [newWbsItem]] } } }
+        ]
       );
 
-      // return newWbsItem[0].code
-      return { ...firma, wbs: [...firma.wbs, newWbsItem] }
+      let currentWbsArray = firma.wbs
+      let newWbsArray = [...currentWbsArray, newWbsItem]
+
+      return { result, wbs: newWbsArray }
 
     } catch (err) {
 
@@ -227,6 +229,7 @@ exports = async function ({
 
   }
 
+  
 
   if (functionName == "openWbsForPoz") {
 
