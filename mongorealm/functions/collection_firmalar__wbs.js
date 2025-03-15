@@ -84,8 +84,6 @@ exports = async function ({
           ]
         );
 
-        return resultMongo
-
         if (resultMongo.modifiedCount === 1) {
           // return {...firma, wbs:[...[firma.wbs], newWbsItem]} - firma.wbs null olduğu için bu hata veriyordu, aşağıda kaldırdık, düzeldi
           return { ...firma, wbs: [newWbsItem] }
