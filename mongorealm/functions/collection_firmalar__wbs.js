@@ -135,13 +135,6 @@ exports = async function ({
 
       try {
 
-        // await collection_Firmalar.updateOne(
-        //   { _id: _firmaId },
-        //   // { $set: {wbs:newWbs} }, // Set the logged in user's favorite color to purple
-        //   { "$push": { "wbs": newWbsItem } }
-        //   // { upsert: true }
-        // );       
-
         const result = await collection_Firmalar.updateOne(
           { _id: _firmaId },
           [
@@ -149,8 +142,10 @@ exports = async function ({
           ]
         );
 
-        // return newWbsItem[0].code
-        return { result, wbs: newWbsItem }
+        let currentWbsArray = firma.wbs
+        let newWbsArray = [...currentWbsArray, newWbsItem]
+
+        return { result, wbs: newWbsArray }
 
       } catch (err) {
 
