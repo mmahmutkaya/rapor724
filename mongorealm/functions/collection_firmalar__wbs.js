@@ -150,7 +150,7 @@ exports = async function ({
         );
 
         // return newWbsItem[0].code
-        return { wbs: newWbsItem }
+        return { result, wbs: newWbsItem }
 
       } catch (err) {
 
