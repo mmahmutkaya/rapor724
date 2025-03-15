@@ -65,7 +65,7 @@ exports = async function ({
     // 1/4.seçenek - yukarıda bitmemiş
     //ilk defa wbs kaydı yapılacaksa, yani henüz "firma.wbs" yoksa
     // if (!firma.wbs || firma.wbs.length === 0) {
-    if (firma.wbs.length === 0) {
+    if (!firma.wbs || firma.wbs.length === 0) {
 
       const newWbsItem = {
         _id: BSON.ObjectId(),
