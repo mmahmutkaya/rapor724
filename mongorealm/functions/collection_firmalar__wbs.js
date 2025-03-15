@@ -27,22 +27,43 @@ exports = async function ({
     // form ile ilişkilendirilmiş ilgili alana ait bir ke hata yazısı yazılmışsa yani null değilse üstüne yazı yazılmıyor, ilk tespit edilen hata değiştirilmmeiş oluyor
     const errorFormObj = {}
 
+      if (typeof newWbsName !== "string") {
+        throw new Error("MONGO // collection_firmalar__wbs // " + functionName + " / wbs adı 'string' türünde kaydolmuyor, sayfayı yenileyiniz, sorun devam ederse Rapor724 ile iritbata geçiniz.")
+        errorObject.newWbsNameError = "Bu veri 'string' formatında kaydolmuyor"
+      }
 
-    //form verisi -- yukarıda  "" const errorFormObj = {} ""  yazan satırdan önceki açıklamaları oku
-    typeof newWbsName != "string" && errorFormObj.newWbsName === null ? errorFormObj.newWbsName = "MONGO // collection_firmalar__wbs // " + functionName + " --  newWbsName -- sorguya, string formatında gönderilmemiş, lütfen Rapor7/24 ile irtibata geçiniz. " : null
-    newWbsName = await context.functions.execute("functions_deleteLastSpace", newWbsName)
-    if (!newWbsName.length) !errorFormObj.newWbsName ? errorFormObj.newWbsName = "MONGO // collection_firmalar__wbs // " + functionName + " --  newWbsName -- sorguya, gönderilmemiş, lütfen Rapor7/24 ile irtibata geçiniz." : null
-
-
-    //form verisi -- yukarıda  "" const errorFormObj = {} ""  yazan satırdan önceki açıklamaları oku
-    typeof newWbsCodeName != "string" && errorFormObj.newWbsCodeName === null ? errorFormObj.newWbsCodeName = "MONGO // collection_firmalar__wbs // " + functionName + " --  newWbsCodeName -- sorguya, string formatında gönderilmemiş, lütfen Rapor7/24 ile irtibata geçiniz. " : null
-    newWbsCodeName = await context.functions.execute("functions_deleteLastSpace", newWbsCodeName)
-    !newWbsCodeName.length == 0 && errorFormObj.newWbsCodeName === null ? errorFormObj.newWbsCodeName = "MONGO // collection_firmalar__wbs // " + functionName + " --  newWbsCodeName -- sorguya, gönderilmemiş, lütfen Rapor7/24 ile irtibata geçiniz." : null
+      // ARA VALIDATE KONTROL - VALIDATE HATA VARSA BOŞUNA DEVAM EDİP AŞAĞIDAKİ SORGUYU YAPMASIN
+      if (Object.keys(errorObject).length > 0) return { errorObject }
 
 
-    // form veri girişlerinden en az birinde hata tespit edildiği için form objesi dönderiyoruz, formun ilgili alanlarında gösterilecek
-    // errorFormObj - aşağıda tekrar gönderiliyor
-    if (Object.keys(errorFormObj).length) return ({ errorFormObj })
+      let isExist = false
+      const foundFirmalar = await collection_Firmalar.find({ name: firmaName, "kisiler.email": userEmail }).toArray()
+      foundFirmalar.map(firma => {
+        firma.kisiler.find(personel => personel.email == userEmail && personel.yetki == "owner") ? isExist = true : null
+      })
+      if (isExist && !errorObject.firmaNameError) {
+        errorObject.firmaNameError = "Bu isimde firmanız mevcut"
+      }
+
+      // VALIDATE KONTROL
+      if (Object.keys(errorObject).length > 0) return { errorObject }
+
+
+    // //form verisi -- yukarıda  "" const errorFormObj = {} ""  yazan satırdan önceki açıklamaları oku
+    // typeof newWbsName != "string" && errorFormObj.newWbsName === null ? errorFormObj.newWbsName = "MONGO // collection_firmalar__wbs // " + functionName + " --  newWbsName -- sorguya, string formatında gönderilmemiş, lütfen Rapor7/24 ile irtibata geçiniz. " : null
+    // newWbsName = await context.functions.execute("functions_deleteLastSpace", newWbsName)
+    // if (!newWbsName.length) !errorFormObj.newWbsName ? errorFormObj.newWbsName = "MONGO // collection_firmalar__wbs // " + functionName + " --  newWbsName -- sorguya, gönderilmemiş, lütfen Rapor7/24 ile irtibata geçiniz." : null
+
+
+    // //form verisi -- yukarıda  "" const errorFormObj = {} ""  yazan satırdan önceki açıklamaları oku
+    // typeof newWbsCodeName != "string" && errorFormObj.newWbsCodeName === null ? errorFormObj.newWbsCodeName = "MONGO // collection_firmalar__wbs // " + functionName + " --  newWbsCodeName -- sorguya, string formatında gönderilmemiş, lütfen Rapor7/24 ile irtibata geçiniz. " : null
+    // newWbsCodeName = await context.functions.execute("functions_deleteLastSpace", newWbsCodeName)
+    // !newWbsCodeName.length == 0 && errorFormObj.newWbsCodeName === null ? errorFormObj.newWbsCodeName = "MONGO // collection_firmalar__wbs // " + functionName + " --  newWbsCodeName -- sorguya, gönderilmemiş, lütfen Rapor7/24 ile irtibata geçiniz." : null
+
+
+    // // form veri girişlerinden en az birinde hata tespit edildiği için form objesi dönderiyoruz, formun ilgili alanlarında gösterilecek
+    // // errorFormObj - aşağıda tekrar gönderiliyor
+    // if (Object.keys(errorFormObj).length) return ({ errorFormObj })
 
 
     const collection_Firmalar = context.services.get("mongodb-atlas").db("rapor724_v2").collection("firmalar")
