@@ -19,9 +19,9 @@ exports = async function ({
 
 
     // aşağıdaki form verilerinden birinde hata tespit edilmişse
-    // alt satırda oluşturulan errorFormObj objesine form verisi ile ilişkilendirilmiş  property oluşturulup, içine yazı yazılıyor
+    // alt satırda oluşturulan errorObj objesine form verisi ile ilişkilendirilmiş  property oluşturulup, içine yazı yazılıyor
     // property isimleri yukarıda ilk satırda frontend den gelen verileri yakalarken kullanılanlar ile aynı 
-    // fonksiyon returnü olarak errorFormObj objesi döndürülüyor, frontenddeki form ekranında form verisine ait ilgili alanda bu yazı gösteriliyor
+    // fonksiyon returnü olarak errorObj objesi döndürülüyor, frontenddeki form ekranında form verisine ait ilgili alanda bu yazı gösteriliyor
     // form ile ilişkilendirilmiş ilgili alana ait bir ke hata yazısı yazılmışsa yani null değilse üstüne yazı yazılmıyor, ilk tespit edilen hata değiştirilmmeiş oluyor
 
     const errorObject = {}
@@ -108,8 +108,8 @@ exports = async function ({
 
       firma.wbs.filter(item => !item.code.includes(".")).map(item => {
 
-        item.name === newWbsName ? errorFormObj.newWbsName = "Aynı grup içinde kullanılmış" : null
-        item.codeName === newWbsCodeName ? errorFormObj.newWbsCodeName = "Aynı grup içinde kullanılmış" : null
+        item.name === newWbsName ? errorObj.newWbsName = "Aynı grup içinde kullanılmış" : null
+        item.codeName === newWbsCodeName ? errorObj.newWbsCodeName = "Aynı grup içinde kullanılmış" : null
 
         number = parseInt(item.code)
 
@@ -120,7 +120,7 @@ exports = async function ({
       })
 
       // açıklamalar yukarıda
-      if (Object.keys(errorFormObj).length) return ({ errorFormObj })
+      if (Object.keys(errorObj).length) return ({ errorObj })
 
 
       const newWbsItem = {
@@ -187,8 +187,8 @@ exports = async function ({
 
     firma.wbs.filter(item => item.code.indexOf(text) == 0 && item.code.split(".").length - 1 == level).map(item => {
 
-      item.name === newWbsName && !errorFormObj.newWbsName ? errorFormObj.newWbsName = "Aynı grup içinde kullanılmış" : null
-      item.codeName === newWbsCodeName && !errorFormObj.newWbsCodeName ? errorFormObj.newWbsCodeName = "Aynı grup içinde kullanılmış" : null
+      item.name === newWbsName && !errorObj.newWbsName ? errorObj.newWbsName = "Aynı grup içinde kullanılmış" : null
+      item.codeName === newWbsCodeName && !errorObj.newWbsCodeName ? errorObj.newWbsCodeName = "Aynı grup içinde kullanılmış" : null
 
       // yeni eklenecek wbs son hane numarasını belirlemek için aynı seviyedeki diğer wbs son numaraları kontrol ediliyor
       number = parseInt(item.code.split(text)[1])
@@ -200,8 +200,8 @@ exports = async function ({
 
 
 
-    // errorFormObj ile ilgili açıklamalar yukarıda - açıklamalar yukarıda (form validation)
-    if (Object.keys(errorFormObj).length) return ({ errorFormObj })
+    // errorObj ile ilgili açıklamalar yukarıda - açıklamalar yukarıda (form validation)
+    if (Object.keys(errorObj).length) return ({ errorObj })
 
 
     let newWbsItem = {
