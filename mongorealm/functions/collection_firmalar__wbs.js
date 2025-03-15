@@ -47,7 +47,7 @@ exports = async function ({
         errorObject.newWbsCodeName = "Boş bırakılamaz"
       }
 
-      if (newWbsCodeName.icludes(" ")) {
+      if (newWbsCodeName.includes(" ")) {
         errorObject.newWbsCodeName = "Boşluk içermemeli"
       }
 
