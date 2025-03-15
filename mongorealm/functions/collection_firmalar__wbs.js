@@ -48,7 +48,7 @@ exports = async function ({
       }
 
       if (newWbsCodeName.includes(" ")) {
-        errorObject.newWbsCodeName = "Boşluk içermemeli"
+        errorObject.wbsCodeName = "Boşluk içermemeli"
       }
 
       // ARA VALIDATE KONTROL - VALIDATE HATA VARSA BOŞUNA DEVAM EDİP AŞAĞIDAKİ SORGUYU YAPMASIN
