@@ -44,11 +44,11 @@ exports = async function ({
     }
 
     if (newWbsCodeName.length < 1) {
-      errorObject.wbsCodeName = "Boş bırakılamaz"
+      errorObject.wbsCodeNameError = "Boş bırakılamaz"
     }
 
     if (newWbsCodeName.includes(" ")) {
-      errorObject.wbsCodeName = "Boşluk içermemeli"
+      errorObject.wbsCodeNameError = "Boşluk içermemeli"
     }
 
     // ARA VALIDATE KONTROL - VALIDATE HATA VARSA BOŞUNA DEVAM EDİP AŞAĞIDAKİ SORGUYU YAPMASIN
