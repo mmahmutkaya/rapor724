@@ -64,7 +64,6 @@ exports = async function ({
 
     // 1/4.seçenek - yukarıda bitmemiş
     //ilk defa wbs kaydı yapılacaksa, yani henüz "firma.wbs" yoksa
-    // if (!firma.wbs || firma.wbs.length === 0) {
     if (!firma.wbs || firma.wbs.length === 0) {
 
       const newWbsItem = {
@@ -79,11 +78,13 @@ exports = async function ({
       try {
 
         const resultMongo = await collection_Firmalar.updateOne(
-          { _id: _firmaId }, // Query for the user object of the logged in user
-          { $set: { wbs: [newWbsItem] } }, // Set the logged in user's favorite color to purple
-          // { "$push": { "wbs": newWbsItem  } }
-          // { upsert: true }
+          { _id: _firmaId },
+          [
+            { $set: { wbs: [newWbsItem] } }
+          ]
         );
+
+        return resultMongo
 
         if (resultMongo.modifiedCount === 1) {
           // return {...firma, wbs:[...[firma.wbs], newWbsItem]} - firma.wbs null olduğu için bu hata veriyordu, aşağıda kaldırdık, düzeldi
