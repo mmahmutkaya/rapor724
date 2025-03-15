@@ -26,7 +26,7 @@ exports = async function ({
     // fonksiyon returnü olarak errorFormObj objesi döndürülüyor, frontenddeki form ekranında form verisine ait ilgili alanda bu yazı gösteriliyor
     // form ile ilişkilendirilmiş ilgili alana ait bir ke hata yazısı yazılmışsa yani null değilse üstüne yazı yazılmıyor, ilk tespit edilen hata değiştirilmmeiş oluyor
     
-    const errorFormObj = {}
+    const errorObject = {}
 
       // newWbsName
       if (typeof newWbsName !== "string") {
