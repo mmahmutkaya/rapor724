@@ -18,8 +18,6 @@ exports = async function ({
     if (!(upWbsId === "0" || typeof upWbsId === "object")) throw new Error("MONGO // collection_firmalar__wbs // " + functionName + " // --upWbsId-- sorguya, gönderilmemiş, sayfayı yenileyiniz, sorun deva ederse Rapor7/24 ile irtibata geçiniz. ")
 
 
-
-
     // aşağıdaki form verilerinden birinde hata tespit edilmişse
     // alt satırda oluşturulan errorFormObj objesine form verisi ile ilişkilendirilmiş  property oluşturulup, içine yazı yazılıyor
     // property isimleri yukarıda ilk satırda frontend den gelen verileri yakalarken kullanılanlar ile aynı 
@@ -86,10 +84,10 @@ exports = async function ({
 
         if (resultMongo.modifiedCount === 1) {
           // return {...firma, wbs:[...[firma.wbs], newWbsItem]} - firma.wbs null olduğu için bu hata veriyordu, aşağıda kaldırdık, düzeldi
-          return { ...firma, wbs: [newWbsItem] }
+          return { wbs: [newWbsItem] }
         }
 
-        // bunu göndermemesi gerekiyor diye düşünüyorum ama koymuşum önceden kaldırmadım (sonraki not)
+        // beklenen sonuç değil ama gelen sonuç frontend de yorumlansın
         return resultMongo
 
       } catch (err) {
@@ -110,9 +108,8 @@ exports = async function ({
 
       firma.wbs.filter(item => !item.code.includes(".")).map(item => {
 
-        item.name === newWbsName && !errorFormObj.newWbsName ? errorFormObj.newWbsName = "Aynı grup içinde kullanılmış" : null
-        item.codeName === newWbsCodeName && !errorFormObj.newWbsCodeName ? errorFormObj.newWbsCodeName = "Aynı grup içinde kullanılmış" : null
-
+        item.name === newWbsName ? errorFormObj.newWbsName = "Aynı grup içinde kullanılmış" : null
+        item.codeName === newWbsCodeName ? errorFormObj.newWbsCodeName = "Aynı grup içinde kullanılmış" : null
 
         number = parseInt(item.code)
 
@@ -138,15 +135,22 @@ exports = async function ({
 
       try {
 
-        await collection_Firmalar.updateOne(
-          { _id: _firmaId }, // Query for the user object of the logged in user
-          // { $set: {wbs:newWbs} }, // Set the logged in user's favorite color to purple
-          { "$push": { "wbs": newWbsItem } }
-          // { upsert: true }
+        // await collection_Firmalar.updateOne(
+        //   { _id: _firmaId },
+        //   // { $set: {wbs:newWbs} }, // Set the logged in user's favorite color to purple
+        //   { "$push": { "wbs": newWbsItem } }
+        //   // { upsert: true }
+        // );       
+
+        const result = await collection_Firmalar.updateOne(
+          { _id: _firmaId },
+          [
+            { $set: { wbs: { $concatArrays: ["$wbs", [newWbsItem]] } } }
+          ]
         );
 
         // return newWbsItem[0].code
-        return { ...firma, wbs: [...firma.wbs, newWbsItem] }
+        return { wbs: [...firma.wbs, newWbsItem] }
 
       } catch (err) {
 
