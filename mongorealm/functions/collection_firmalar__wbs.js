@@ -288,13 +288,13 @@ exports = async function ({
     if (!theWbs) throw new Error("MONGO // collection_firmalar__wbs // Sorguya gönderilen wbsId sistemde bulunamadı, sayfayı yenileyiniz, sorun devam ederse Rapor7/24 ile irtibata geçiniz.")
 
     // aşağıda pozlar collection da poz var mı diye sorgulama yapmaya gerek kalmadı
-    if (theWbs.includesPoz) throw new Error("MONGO // collection_firmalar__wbs // __mesajBaslangic__ Seçili başlık altında kayıtlı pozlar mevcut olduğu için silinemez, öncelikle pozları silmeli ya da başka başlık altına taşımalısınız. __mesajBitis__")
+    if (theWbs.includesPoz) throw new Error("MONGO // collection_firmalar__wbs // __mesajBaslangic__ Seçili başlık altında kayıtlı pozlar mevcut, öncelikle pozları silmeli ya da başka başlık altına taşımalısınız. __mesajBitis__")
 
     const collection_FirmaPozlar = context.services.get("mongodb-atlas").db("rapor724_v2_firmaPozlar").collection(_firmaId.toString())
     const poz = await collection_FirmaPozlar.findOne({ _wbsId, isDeleted: false })
 
     // wbs altına poz eklenmişse silinmesin, pozlara ulaşamayız
-    if (poz) throw new Error("MONGO // collection_firmalar__wbs // __mesajBaslangic__ Seçili başlık altında kayıtlı pozlar mevcut olduğu için silinemez, öncelikle pozları silmeli ya da başka başlık altına taşımalısınız. __mesajBitis__")
+    if (poz) throw new Error("MONGO // collection_firmalar__wbs // __mesajBaslangic__ Seçili başlık altında kayıtlı pozlar mevcut, öncelikle pozları silmeli ya da başka başlık altına taşımalısınız. __mesajBitis__")
 
 
     try {
