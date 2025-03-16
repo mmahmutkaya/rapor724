@@ -75,20 +75,14 @@ exports = async function ({
 
       try {
 
-        const resultMongo = await collection_Firmalar.updateOne(
+        const result = await collection_Firmalar.updateOne(
           { _id: _firmaId },
           [
             { $set: { wbs: [newWbsItem] } }
           ]
         );
 
-        if (resultMongo.modifiedCount === 1) {
-          // return {...firma, wbs:[...[firma.wbs], newWbsItem]} - firma.wbs null olduğu için bu hata veriyordu, aşağıda kaldırdık, düzeldi
-          return { wbs: [newWbsItem] }
-        }
-
-        // beklenen sonuç değil ama gelen sonuç frontend de yorumlansın
-        return resultMongo
+        return { result, wbs: [newWbsItem] }
 
       } catch (err) {
 
@@ -148,7 +142,7 @@ exports = async function ({
 
       } catch (err) {
 
-        throw new Error("MONGO // collection_firmalar__wbs // " + functionName + " // " + err.message)
+        throw new Error("MONGO // collection_firmalar__wbs // " + functionName + " // bölüm 2 " + err.message)
       }
 
     }
@@ -220,12 +214,12 @@ exports = async function ({
 
     } catch (err) {
 
-      throw new Error("MONGO // collection_firmalar__wbs // " + functionName + " // " + err.message)
+      throw new Error("MONGO // collection_firmalar__wbs // " + functionName + " // bölüm 3 " + err.message)
     }
 
   }
 
-  
+
 
   if (functionName == "openWbsForPoz") {
 
@@ -263,13 +257,13 @@ exports = async function ({
       })
 
       const result = await collection_Firmalar.updateOne(
-        { _id: _firmaId }, // Query for the user object of the logged in user
-        { $set: { wbs: newWbsArray } }, // Set the logged in user's favorite color to purple
-        // { "$push": { "wbs": newWbsItem  } }
-        // { upsert: true }
+        { _id: _firmaId },
+        [
+          { $set: { wbs: newWbsArray } }
+        ]
       );
 
-      return { ...firma, wbs: newWbsArray }
+      return { result, wbs: newWbsArray }
 
     } catch (err) {
       return { error: err.message }
@@ -294,13 +288,13 @@ exports = async function ({
     if (!theWbs) throw new Error("MONGO // collection_firmalar__wbs // Sorguya gönderilen wbsId sistemde bulunamadı, sayfayı yenileyiniz, sorun devam ederse Rapor7/24 ile irtibata geçiniz.")
 
     // aşağıda pozlar collection da poz var mı diye sorgulama yapmaya gerek kalmadı
-    if (theWbs.includesPoz) throw new Error("MONGO // collection_firmalar__wbs // Seçili başlık altında kayıtlı pozlar mevcut olduğu için silinemez, öncelikle pozları silmeli ya da başka başlık altına taşımalısınız.")
+    if (theWbs.includesPoz) throw new Error("MONGO // collection_firmalar__wbs // __mesajBaslangic__ Seçili başlık altında kayıtlı pozlar mevcut olduğu için silinemez, öncelikle pozları silmeli ya da başka başlık altına taşımalısınız. __mesajBitis__")
 
     const collection_FirmaPozlar = context.services.get("mongodb-atlas").db("rapor724_v2_firmaPozlar").collection(_firmaId.toString())
     const poz = await collection_FirmaPozlar.findOne({ _wbsId, isDeleted: false })
 
     // wbs altına poz eklenmişse silinmesin, pozlara ulaşamayız
-    if (poz) throw new Error("MONGO // collection_firmalar__wbs // Seçili başlık altında kayıtlı pozlar mevcut olduğu için silinemez, öncelikle pozları silmeli ya da başka başlık altına taşımalısınız.")
+    if (poz) throw new Error("MONGO // collection_firmalar__wbs // __mesajBaslangic__ Seçili başlık altında kayıtlı pozlar mevcut olduğu için silinemez, öncelikle pozları silmeli ya da başka başlık altına taşımalısınız. __mesajBitis__")
 
 
     try {
@@ -314,13 +308,13 @@ exports = async function ({
       })
 
       const result = await collection_Firmalar.updateOne(
-        { _id: _firmaId }, // Query for the user object of the logged in user
-        { $set: { wbs: newWbsArray } }, // Set the logged in user's favorite color to purple
-        // { "$push": { "wbs": newWbsItem  } }
-        // { upsert: true }
+        { _id: _firmaId },
+        [
+          { $set: { wbs: newWbsArray } }
+        ]
       );
 
-      return { ...firma, wbs: newWbsArray }
+      return { result, wbs: newWbsArray }
 
     } catch (err) {
       throw new Error({ error: err.message })
