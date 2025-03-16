@@ -60,7 +60,7 @@ exports = async function ({
 
 
 
-    // 1/4.seçenek - yukarıda bitmemiş
+    // 1/3.seçenek - yukarıda bitmemiş
     //ilk defa wbs kaydı yapılacaksa, yani henüz "firma.wbs" yoksa
     if (!firma.wbs || firma.wbs.length === 0) {
 
@@ -99,7 +99,7 @@ exports = async function ({
 
 
 
-    // 2/4.seçenek - yukarıda bitmemiş
+    // 2/3.seçenek - yukarıda bitmemiş
     // en üst düzeye kayıt yapılacaksa - aşağıdaki fonksiyonlar en üst seviyeye göre hazırlanmış 
     if (upWbsId === "0") {
 
@@ -108,8 +108,8 @@ exports = async function ({
 
       firma.wbs.filter(item => !item.code.includes(".")).map(item => {
 
-        item.name === newWbsName ? errorObject.newWbsName = "Aynı grup içinde kullanılmış" : null
-        item.codeName === newWbsCodeName ? errorObject.newWbsCodeName = "Aynı grup içinde kullanılmış" : null
+        item.name === newWbsName ? errorObject.wbsNameError = "Aynı grup içinde kullanılmış" : null
+        item.codeName === newWbsCodeName ? errorObject.wbsCodeNameError = "Aynı grup içinde kullanılmış" : null
 
         number = parseInt(item.code)
 
@@ -119,7 +119,6 @@ exports = async function ({
 
       })
 
-      // açıklamalar yukarıda
       if (Object.keys(errorObject).length) return ({ errorObject })
 
 
@@ -157,7 +156,7 @@ exports = async function ({
 
 
 
-    // 3/4.seçenek - yukarıda bitmemiş
+    // 3/3.seçenek - yukarıda bitmemiş
     // en üst düzey olmayıp mevcut wbs kaydına ekleme yapılacaksa
 
     let upWbs = firma.wbs.find(item => item._id.toString() == upWbsId.toString())
@@ -166,11 +165,11 @@ exports = async function ({
     }
 
     if (upWbs.code?.split(".").length === 8) {
-      throw new Error("MONGO // collection_firmalar__wbs // " + functionName + " // Daha fazla alt başlık oluşturamazsınız.")
+      throw new Error("MONGO // collection_firmalar__wbs // " + functionName + " // __mesajBaslangic__ Daha fazla alt başlık oluşturamazsınız. __mesajBitis__")
     }
 
     if (upWbs.openForPoz == true) {
-      throw new Error("MONGO // collection_firmalar__wbs // " + functionName + " // __mesajBaslangic__ Poz eklemeye açmış olduğunuz başlığa alt başlık ekleyemezsiniz. Bu başlık altına hiç poz eklemediyseniz bu başlığı poz eklemeye kapatarak bu işlemi gerçekleştirebilirsiniz. Bu başlık altına poz eklediyseniz, yeni bir başlık hiyerarşisi oluşturup, pozları yeni başlıklara taşıyarak bu işlemi dolaylı olarak gerçekleştirebilirsiniz. __mesajBitis__")
+      throw new Error("MONGO // collection_firmalar__wbs // " + functionName + " // __mesajBaslangic__ Poz eklemeye açmış olduğunuz başlığa alt başlık ekleyemezsiniz. __mesajBitis__")
     }
 
     let upWbsCode = upWbs.code
@@ -193,9 +192,6 @@ exports = async function ({
 
     })
 
-
-
-    // errorObject ile ilgili açıklamalar yukarıda - açıklamalar yukarıda (form validation)
     if (Object.keys(errorObject).length) return ({ errorObject })
 
 
