@@ -533,7 +533,7 @@ exports = async function ({
     if (!oneWbs) throw new Error("MONGO // collection_firmalar__wbs // " + functionName + " // Sorguya gönderilen wbsId sistemde bulunamadı, sayfayı yenileyiniz, sorun devam ederse Rapor7/24 ile irtibata geçiniz.")
 
 
-    let { wbs: _wbs } = currentWbsArray
+    let _wbs = currentWbsArray
     let _selectedWbs = oneWbs
     let _wbs2
 
