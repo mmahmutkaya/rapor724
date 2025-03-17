@@ -37,99 +37,6 @@ export default function WbsHeader({ RealmApp, setShow, nameMode, setNameMode, co
   const { selectedWbs, setSelectedWbs } = useContext(StoreContext)
 
 
-  async function handleWbsUnclicked() {
-
-    // aslında gerek yok zaten wbs yok ama olsun
-    if (!selectedWbs) {
-      console.log("alttaki satırda --return-- oldu")
-      return
-    }
-
-    setSelectedWbs()
-  }
-
-
-  async function handleSwitchForPoz(event) {
-
-    console.log(selectedWbs)
-    console.log("event.target.checked", event.target.checked)
-
-    // wbs poza açık hale getirilecekse
-    if (event.target.checked === true) {
-
-      try {
-
-        if (!selectedWbs) {
-          console.log("alttaki satırda --return-- oldu")
-          return
-        }
-
-        // bu kontrol backend de ayrıca yapılıyor
-        let text = selectedWbs.code + "."
-        if (selectedFirma.wbs.find(item => item.code.indexOf(text) === 0)) {
-          // throw new Error("\"" + selectedWbs.name + "\" isimli başlığın bir veya daha fazla alt başlığı mevcut, bu sebeple direk poz eklemeye açık hale getirilemez, mevcut alt başlıklar uygun değilse, yeni bir alt başlık oluşturup, o başlığı poz eklemeye açabilirsiniz.")
-          throw new Error("Alt başlığı bulunan başlıklar poz eklemeye açılamaz.")
-        }
-
-        const resultProject = await RealmApp.currentUser.callFunction("collection_firmalar__wbs", { functionName: "openWbsForPoz", _firmaId: selectedFirma._id, _wbsId: selectedWbs._id });
-        console.log("resultProject", resultProject)
-        setSelectedFirma(resultProject)
-
-        // switch on-off gösterim durumunu güncellemesi için 
-        setSelectedWbs(resultProject.wbs.find(item => item._id.toString() === selectedWbs._id.toString()))
-
-        return
-
-      } catch (err) {
-
-        console.log(err)
-
-        setDialogAlert({
-          dialogIcon: "warning",
-          dialogMessage: "Beklenmedik hata, Rapor7/24 ile irtibata geçiniz..",
-          detailText: err?.message ? err.message : null
-        })
-
-        return
-      }
-    }
-
-
-    // wbs poza kapalı hale getirilecekse
-    if (event.target.checked === false) {
-
-      try {
-
-        if (!selectedWbs) {
-          console.log("alttaki satırda --return-- oldu")
-          return
-        }
-
-        const resultProject = await RealmApp.currentUser.callFunction("collection_firmalar__wbs", { functionName: "closeWbsForPoz", _firmaId: selectedFirma._id, _wbsId: selectedWbs._id });
-        setSelectedFirma(resultProject)
-
-        // switch on-off gösterim durumunu güncellemesi için 
-        setSelectedWbs(resultProject.wbs.find(item => item._id.toString() === selectedWbs._id.toString()))
-
-        return
-
-      } catch (err) {
-
-        console.log(err)
-
-        setDialogAlert({
-          dialogIcon: "warning",
-          dialogMessage: "Beklenmedik hata, Rapor7/24 ile irtibata geçiniz..",
-          detailText: err?.message ? err.message : null
-        })
-
-        return
-
-      }
-    }
-
-  }
-
 
   const nameMode_name = () => {
     switch (nameMode) {
@@ -225,6 +132,128 @@ export default function WbsHeader({ RealmApp, setShow, nameMode, setNameMode, co
   }
 
 
+
+  async function handleWbsUnclicked() {
+
+    // aslında gerek yok zaten wbs yok ama olsun
+    if (!selectedWbs) {
+      console.log("alttaki satırda --return-- oldu")
+      return
+    }
+
+    setSelectedWbs()
+  }
+
+
+  async function handleSwitchForPoz(event) {
+
+    // console.log(selectedWbs)
+    // console.log("event.target.checked", event.target.checked)
+
+    // wbs poza açık hale getirilecekse
+    if (event.target.checked === true) {
+
+      try {
+
+        if (!selectedWbs) {
+          console.log("alttaki satırda --return-- oldu")
+          return
+        }
+
+        // bu kontrol backend de ayrıca yapılıyor
+        let text = selectedWbs.code + "."
+        if (selectedFirma.wbs.find(item => item.code.indexOf(text) === 0)) {
+          // throw new Error("\"" + selectedWbs.name + "\" isimli başlığın bir veya daha fazla alt başlığı mevcut, bu sebeple direk poz eklemeye açık hale getirilemez, mevcut alt başlıklar uygun değilse, yeni bir alt başlık oluşturup, o başlığı poz eklemeye açabilirsiniz.")
+          throw new Error("__mesajBaslangic__ Alt başlığı bulunan başlıklar poz eklemeye açılamaz. __mesajBitis__")
+        }
+
+        const result = await RealmApp.currentUser.callFunction("collection_firmalar__wbs", { functionName: "openWbsForPoz", _firmaId: selectedFirma._id, _wbsId: selectedWbs._id });
+
+        if (result.wbs) {
+          setSelectedFirma(firma => {
+            firma.wbs = result.wbs
+            return firma
+          })
+        }
+
+        // switch on-off gösterim durumunu güncellemesi için 
+        setSelectedWbs(result.wbs.find(item => item._id.toString() === selectedWbs._id.toString()))
+
+        return
+
+      } catch (err) {
+
+        console.log(err)
+
+        let dialogMessage = "Beklenmedik hata, sayfayı yenileyiniz, sorun devam ederse Rapor7/24 ile irtibata geçiniz.."
+        if (err.message.includes("__mesajBaslangic__") && err.message.includes("__mesajBitis__")) {
+          let mesajBaslangic = err.message.indexOf("__mesajBaslangic__") + "__mesajBaslangic__".length
+          let mesajBitis = err.message.indexOf("__mesajBitis__")
+          dialogMessage = err.message.slice(mesajBaslangic, mesajBitis)
+        }
+
+        setDialogAlert({
+          dialogIcon: "warning",
+          dialogMessage,
+          detailText: err?.message ? err.message : null
+        })
+
+        return
+
+      }
+    }
+
+
+    // wbs poza kapalı hale getirilecekse
+    if (event.target.checked === false) {
+
+      try {
+
+        if (!selectedWbs) {
+          console.log("alttaki satırda --return-- oldu")
+          return
+        }
+
+        const result = await RealmApp.currentUser.callFunction("collection_firmalar__wbs", { functionName: "closeWbsForPoz", _firmaId: selectedFirma._id, _wbsId: selectedWbs._id });
+
+        if (result.wbs) {
+          setSelectedFirma(firma => {
+            firma.wbs = result.wbs
+            return firma
+          })
+        }
+
+        // switch on-off gösterim durumunu güncellemesi için 
+        setSelectedWbs(result.wbs.find(item => item._id.toString() === selectedWbs._id.toString()))
+
+        return
+
+      } catch (err) {
+
+        console.log(err)
+
+        let dialogMessage = "Beklenmedik hata, sayfayı yenileyiniz, sorun devam ederse Rapor7/24 ile irtibata geçiniz.."
+        if (err.message.includes("__mesajBaslangic__") && err.message.includes("__mesajBitis__")) {
+          let mesajBaslangic = err.message.indexOf("__mesajBaslangic__") + "__mesajBaslangic__".length
+          let mesajBitis = err.message.indexOf("__mesajBitis__")
+          dialogMessage = err.message.slice(mesajBaslangic, mesajBitis)
+        }
+
+        setDialogAlert({
+          dialogIcon: "warning",
+          dialogMessage,
+          detailText: err?.message ? err.message : null
+        })
+
+        return
+
+      }
+    }
+
+  }
+
+
+
   async function handleWbsDelete() {
 
     // seçili wbs yoksa durdurma, inaktif iken tuşlara basılabiliyor mesela, bu fonksiyon çalıştırılıyor, orayı iptal etmekle uğraşmak istemedim
@@ -240,23 +269,40 @@ export default function WbsHeader({ RealmApp, setShow, nameMode, setNameMode, co
         throw new Error("Poz eklemeye açık başlıklar silinemez, öncelikle poz eklemeye kapatınız")
       }
 
-      const resultProject = await RealmApp.currentUser.callFunction("deleteWbs", { projectId: selectedFirma._id, wbsId: selectedWbs._id });
-      setSelectedFirma(resultProject)
-      setSelectedWbs(null)
+      const result = await RealmApp.currentUser.callFunction("collection_firmalar__wbs", { functionName: "deleteWbs", _firmaId: selectedFirma._id, _wbsId: selectedWbs._id });
+      if (result.wbs) {
+        setSelectedFirma(firma => {
+          firma.wbs = result.wbs
+          return firma
+        })
+      }
+
+      // switch on-off gösterim durumunu güncellemesi için 
+      setSelectedWbs()
+
+      return
 
     } catch (err) {
 
       console.log(err)
 
+      let dialogMessage = "Beklenmedik hata, sayfayı yenileyiniz, sorun devam ederse Rapor7/24 ile irtibata geçiniz.."
+      if (err.message.includes("__mesajBaslangic__") && err.message.includes("__mesajBitis__")) {
+        let mesajBaslangic = err.message.indexOf("__mesajBaslangic__") + "__mesajBaslangic__".length
+        let mesajBitis = err.message.indexOf("__mesajBitis__")
+        dialogMessage = err.message.slice(mesajBaslangic, mesajBitis)
+      }
+
       setDialogAlert({
         dialogIcon: "warning",
-        dialogMessage: "Beklenmedik hata, Rapor7/24 ile irtibata geçiniz..",
+        dialogMessage,
         detailText: err?.message ? err.message : null
       })
 
       return
     }
   }
+
 
 
   async function handleMoveWbsUp() {
@@ -291,18 +337,33 @@ export default function WbsHeader({ RealmApp, setShow, nameMode, setNameMode, co
         // throw new Error("Zaten en üstte - f")
       }
 
-      const result = await RealmApp.currentUser.callFunction("moveWbsUp", { projectId: selectedFirma._id, wbsId: selectedWbs._id });
-      setSelectedFirma(result.project)
-      // console.log(result._selectedWbs2)
-      setSelectedWbs(result.project.wbs.find(item => item._id.toString() === selectedWbs._id.toString()))
+      const result = await RealmApp.currentUser.callFunction("collection_firmalar__wbs", { functionName: "moveWbsUp", _firmaId: selectedFirma._id, _wbsId: selectedWbs._id });
+      if (result.wbs) {
+        setSelectedFirma(firma => {
+          firma.wbs = result.wbs
+          return firma
+        })
+      }
+
+      // switch on-off gösterim durumunu güncellemesi için 
+      setSelectedWbs(result.wbs.find(item => item._id.toString() === selectedWbs._id.toString()))
+
+      return
 
     } catch (err) {
 
       console.log(err)
 
+      let dialogMessage = "Beklenmedik hata, sayfayı yenileyiniz, sorun devam ederse Rapor7/24 ile irtibata geçiniz.."
+      if (err.message.includes("__mesajBaslangic__") && err.message.includes("__mesajBitis__")) {
+        let mesajBaslangic = err.message.indexOf("__mesajBaslangic__") + "__mesajBaslangic__".length
+        let mesajBitis = err.message.indexOf("__mesajBitis__")
+        dialogMessage = err.message.slice(mesajBaslangic, mesajBitis)
+      }
+
       setDialogAlert({
         dialogIcon: "warning",
-        dialogMessage: "Beklenmedik hata, Rapor7/24 ile irtibata geçiniz..",
+        dialogMessage,
         detailText: err?.message ? err.message : null
       })
 
@@ -310,7 +371,7 @@ export default function WbsHeader({ RealmApp, setShow, nameMode, setNameMode, co
     }
   }
 
-
+  
 
 
 

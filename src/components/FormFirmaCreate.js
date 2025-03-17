@@ -99,7 +99,7 @@ export default function P_FormFirmaCreate({ setShow }) {
 
       if (result.errorObject) {
         setFirmaNameError(result.errorObject.firmaNameError)
-        console.log("hata ile durdu")
+        console.log("backend den gelen hata ile durdu")
         return
       }
 
