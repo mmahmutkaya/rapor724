@@ -313,28 +313,21 @@ export default function WbsHeader({ RealmApp, setShow, nameMode, setNameMode, co
       return
     }
 
-    let _wbs = JSON.parse(JSON.stringify(selectedFirma.wbs))
-    let _selectedWbs = JSON.parse(JSON.stringify(selectedWbs))
-    let _wbs2
 
     try {
 
-      let leftPart
+      let _selectedWbs = JSON.parse(JSON.stringify(selectedWbs))
+
       let level
       let sortNumber
-      let longText
 
-
-      leftPart = _selectedWbs.code.substring(0, _selectedWbs.code.lastIndexOf("."))
       level = _selectedWbs?.code?.split(".").length - 1
       sortNumber = Number(_selectedWbs.code.split(".")[level])
-      longText = _selectedWbs.code
 
       // bu kontrol backend de ayrıca yapılmalı - kontrol
       if (sortNumber == 1) {
-        console.log("Zaten en üstte")
+        console.log("Zaten en üstte, db sorguya gitmedi")
         return
-        // throw new Error("Zaten en üstte - f")
       }
 
       const result = await RealmApp.currentUser.callFunction("collection_firmalar__wbs", { functionName: "moveWbsUp", _firmaId: selectedFirma._id, _wbsId: selectedWbs._id });
@@ -371,7 +364,7 @@ export default function WbsHeader({ RealmApp, setShow, nameMode, setNameMode, co
     }
   }
 
-  
+
 
 
 
@@ -383,28 +376,65 @@ export default function WbsHeader({ RealmApp, setShow, nameMode, setNameMode, co
       return
     }
 
+
     try {
 
-      const result = await RealmApp.currentUser.callFunction("moveWbsDown", { projectId: selectedFirma._id, wbsId: selectedWbs._id });
-      setSelectedFirma(result.project)
-      setSelectedWbs(result.project.wbs.find(item => item._id.toString() === selectedWbs._id.toString()))
+      let _wbs = JSON.parse(JSON.stringify(selectedFirma.wbs))
+      let _selectedWbs = JSON.parse(JSON.stringify(selectedWbs))
+
+      let level
+      let sortNumber
+      let isNecessary = false
+
+      level = _selectedWbs?.code?.split(".").length - 1
+      sortNumber = Number(_selectedWbs.code.split(".")[level])
+
+      _wbs.map(oneWbs => {
+        if (Number(oneWbs.code.split(".")[level]) > sortNumber) {
+          isNecessary = true
+        }
+      })
+
+      if (!isNecessary) {
+        console.log("Zaten en altta, db sorguya gitmedi")
+        return
+      }
+
+      const result = await RealmApp.currentUser.callFunction("collection_firmalar__wbs", { functionName: "moveWbsDown", _firmaId: selectedFirma._id, _wbsId: selectedWbs._id });
+      if (result.wbs) {
+        setSelectedFirma(firma => {
+          firma.wbs = result.wbs
+          return firma
+        })
+      }
+
+      // switch on-off gösterim durumunu güncellemesi için 
+      setSelectedWbs(result.wbs.find(item => item._id.toString() === selectedWbs._id.toString()))
+
+      return
 
     } catch (err) {
 
       console.log(err)
 
+      let dialogMessage = "Beklenmedik hata, sayfayı yenileyiniz, sorun devam ederse Rapor7/24 ile irtibata geçiniz.."
+      if (err.message.includes("__mesajBaslangic__") && err.message.includes("__mesajBitis__")) {
+        let mesajBaslangic = err.message.indexOf("__mesajBaslangic__") + "__mesajBaslangic__".length
+        let mesajBitis = err.message.indexOf("__mesajBitis__")
+        dialogMessage = err.message.slice(mesajBaslangic, mesajBitis)
+      }
+
       setDialogAlert({
         dialogIcon: "warning",
-        dialogMessage: "Beklenmedik hata, Rapor7/24 ile irtibata geçiniz..",
+        dialogMessage,
         detailText: err?.message ? err.message : null
       })
 
       return
-
     }
-
-
   }
+
+
 
 
   async function handleMoveWbsLeft() {
@@ -415,44 +445,43 @@ export default function WbsHeader({ RealmApp, setShow, nameMode, setNameMode, co
       return
     }
 
-    let _wbs = JSON.parse(JSON.stringify(selectedFirma.wbs))
-    let _selectedWbs = JSON.parse(JSON.stringify(selectedWbs))
-    let _wbs2
-
     try {
 
-      let leftPart = _selectedWbs.code.substring(0, _selectedWbs.code.lastIndexOf("."))
-      let level = _selectedWbs.code.split(".").length - 1
-      let sortNumber = Number(_selectedWbs.code.split(".")[level])
-      let longText = _selectedWbs.code
+      const result = await RealmApp.currentUser.callFunction("collection_firmalar__wbs", { functionName: "moveWbsLeft", _firmaId: selectedFirma._id, _wbsId: selectedWbs._id });
+      if (result.wbs) {
+        setSelectedFirma(firma => {
+          firma.wbs = result.wbs
+          return firma
+        })
+      }
 
-      let leftPartB = leftPart.substring(0, leftPart.lastIndexOf("."))
-      let levelB = leftPart.split(".").length - 1
-      let sortNumberB = Number(leftPart.split(".")[levelB])
+      // switch on-off gösterim durumunu güncellemesi için 
+      setSelectedWbs(result.wbs.find(item => item._id.toString() === selectedWbs._id.toString()))
 
-      let switch1 = false
-
-      const result = await RealmApp.currentUser.callFunction("moveWbsLeft", { projectId: selectedFirma._id, wbsId: selectedWbs._id });
-      setSelectedFirma(result.project)
-      // console.log(result._selectedWbs2)
-      setSelectedWbs(result.project.wbs.find(item => item._id.toString() === selectedWbs._id.toString()))
+      return
 
     } catch (err) {
 
       console.log(err)
 
+      let dialogMessage = "Beklenmedik hata, sayfayı yenileyiniz, sorun devam ederse Rapor7/24 ile irtibata geçiniz.."
+      if (err.message.includes("__mesajBaslangic__") && err.message.includes("__mesajBitis__")) {
+        let mesajBaslangic = err.message.indexOf("__mesajBaslangic__") + "__mesajBaslangic__".length
+        let mesajBitis = err.message.indexOf("__mesajBitis__")
+        dialogMessage = err.message.slice(mesajBaslangic, mesajBitis)
+      }
+
       setDialogAlert({
         dialogIcon: "warning",
-        dialogMessage: "Beklenmedik hata, Rapor7/24 ile irtibata geçiniz..",
+        dialogMessage,
         detailText: err?.message ? err.message : null
       })
 
       return
-
     }
-
-
   }
+
+
 
 
   async function handleMoveWbsRight() {
@@ -465,30 +494,41 @@ export default function WbsHeader({ RealmApp, setShow, nameMode, setNameMode, co
 
     try {
 
-      // frontenddeki verinin nasıl güncellendiğini göstermek için bıraktım, _wbs felan şu an yok 
-      // setSelectedFirma({ ...selectedFirma, wbs: _wbs })
-      // setSelectedWbs(_wbs.find(item => item._id.toString() === selectedWbs._id.toString()))
+      const result = await RealmApp.currentUser.callFunction("collection_firmalar__wbs", { functionName: "moveWbsRight", _firmaId: selectedFirma._id, _wbsId: selectedWbs._id });
+      if (result.wbs) {
+        setSelectedFirma(firma => {
+          firma.wbs = result.wbs
+          return firma
+        })
+      }
 
-      const result = await RealmApp.currentUser.callFunction("moveWbsRight", { projectId: selectedFirma._id, wbsId: selectedWbs._id });
-      setSelectedFirma(result.project)
-      // console.log(result._selectedWbs2)
-      setSelectedWbs(result.project.wbs.find(item => item._id.toString() === selectedWbs._id.toString()))
+      // switch on-off gösterim durumunu güncellemesi için 
+      setSelectedWbs(result.wbs.find(item => item._id.toString() === selectedWbs._id.toString()))
+
+      return
 
     } catch (err) {
 
       console.log(err)
 
+      let dialogMessage = "Beklenmedik hata, sayfayı yenileyiniz, sorun devam ederse Rapor7/24 ile irtibata geçiniz.."
+      if (err.message.includes("__mesajBaslangic__") && err.message.includes("__mesajBitis__")) {
+        let mesajBaslangic = err.message.indexOf("__mesajBaslangic__") + "__mesajBaslangic__".length
+        let mesajBitis = err.message.indexOf("__mesajBitis__")
+        dialogMessage = err.message.slice(mesajBaslangic, mesajBitis)
+      }
+
       setDialogAlert({
         dialogIcon: "warning",
-        dialogMessage: "Beklenmedik hata, Rapor7/24 ile irtibata geçiniz..",
+        dialogMessage,
         detailText: err?.message ? err.message : null
       })
 
       return
-
     }
-
   }
+
+
 
 
   return (
