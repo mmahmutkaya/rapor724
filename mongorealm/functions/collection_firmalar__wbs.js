@@ -901,6 +901,625 @@ exports = async function ({
 
 
 
+
+  if (functionName == "moveWbsDown") {
+
+    if (typeof _firmaId != "object") throw new Error("MONGO // collection_firmalar__wbs // " + functionName + " // -- sorguya gönderilen --firmaId-- türü doğru değil, lütfen Rapor7/24 ile irtibata geçiniz. ")
+    if (typeof _wbsId != "object") throw new Error("MONGO // collection_firmalar__wbs // " + functionName + " // -- sorguya gönderilen --_wbsId-- türü doğru değil, lütfen Rapor7/24 ile irtibata geçiniz. ")
+
+    const collection_Firmalar = context.services.get("mongodb-atlas").db("rapor724_v2").collection("firmalar")
+    const firma = await collection_Firmalar.findOne({ _id: _firmaId, "kisiler.email": userEmail, isDeleted: false })
+    if (!firma) throw new Error("MONGO // collection_firmalar__wbs // " + functionName + " // _firmaId ile sistemde firma bulunamadı, lütfen sayfayı yenileyiniz, sorun devam ederse Rapor7/24 ile irtibata geçiniz.")
+
+    let { wbs: currentWbsArray } = firma
+    if (!currentWbsArray) throw new Error("MONGO // collection_firmalar__wbs // " + functionName + " // Firmaya ait WBS bulunamadı")
+
+    let oneWbs = currentWbsArray.find(item => item._id.toString() == _wbsId.toString())
+    if (!oneWbs) throw new Error("MONGO // collection_firmalar__wbs // " + functionName + " // Sorguya gönderilen wbsId sistemde bulunamadı, sayfayı yenileyiniz, sorun devam ederse Rapor7/24 ile irtibata geçiniz.")
+
+
+    let _wbs = currentWbsArray
+    let _selectedWbs = oneWbs
+    let _wbs2
+
+
+    let leftPart
+    let level
+    let sortNumber
+    let longText
+
+    leftPart = _selectedWbs.code.substring(0, _selectedWbs.code.lastIndexOf("."))
+    level = _selectedWbs.code.split(".").length - 1
+    sortNumber = Number(_selectedWbs.code.split(".")[level])
+    longText = _selectedWbs.code
+
+    let switch1 = false
+
+
+    // taşınacak başlık en üst seviyede ise
+    if (!leftPart) {
+
+      _wbs2 = _wbs.map(item => {
+
+        let leftPart2
+        let level2
+        let longText2
+        let rightPartWithTheNumber2
+        let rightPart2
+        let theNumberText2
+        let theNumber2
+
+        longText2 = item.code
+
+
+        level2 = longText2.split(".").length - 1
+        rightPartWithTheNumber2 = longText2
+        theNumberText2 = rightPartWithTheNumber2.split(".")[0]
+        theNumber2 = parseInt(theNumberText2)
+        rightPart2 = rightPartWithTheNumber2.substring(theNumberText2.length + 1, rightPartWithTheNumber2.length)
+
+
+        // aynı seviyede bir altında varsa onu üste alma işlemi, switch kontrlün yapılıyor, altında yoksa işlem yok diye
+        if (level2 == level && theNumber2 == sortNumber + 1) {
+          let deneme = { ...item, code: (sortNumber).toString() }
+          // console.log("deneme", deneme)
+          switch1 = true
+          return deneme
+        }
+
+        // aynı seviyede bir altında varsa onun alt başlıklarını üste alma işlemi, switch kontrlüne gerek yok, zaten üst başlığında yapıldı
+        if (level2 > level && theNumber2 == sortNumber + 1) {
+          let deneme2 = { ...item, code: (sortNumber) + "." + rightPart2 }
+          // console.log("deneme2", deneme2)
+          return deneme2
+        }
+
+        // taşınacak wbs i bir alta alma işlemi, switch kontrlüne gerek yok, zaten bu var kendisi
+        if (level2 == level && theNumber2 == sortNumber) {
+          let deneme3 = { ...item, code: (sortNumber + 1).toString() }
+          // console.log("deneme3", deneme3)
+          return deneme3
+        }
+
+        // taşınacak wbs in alt başlıklarını bir alta alma işlemi, switch kontrlüne gerek yok, zaten üst başlığında yapıldı
+        if (level2 > level && theNumber2 == sortNumber) {
+          let deneme4 = { ...item, code: (sortNumber + 1) + "." + rightPart2 }
+          // console.log("deneme4", deneme4)
+          return deneme4
+        }
+
+        return item
+
+      })
+    }
+
+
+    // taşınacak başlık en üst seviyede değilse
+    if (leftPart) {
+
+      _wbs2 = _wbs.map(item => {
+
+        let leftPart2
+        let level2
+        let longText2
+        let rightPartWithTheNumber2
+        let rightPart2
+        let theNumberText2
+        let theNumber2
+
+        longText2 = item.code
+
+        if (longText2.indexOf(leftPart + ".") === 0) {
+
+          level2 = longText2.split(".").length - 1
+          rightPartWithTheNumber2 = longText2.substring(leftPart.length + 1, longText2.length)
+          theNumberText2 = rightPartWithTheNumber2.split(".")[0]
+          theNumber2 = parseInt(theNumberText2)
+          rightPart2 = rightPartWithTheNumber2.substring(theNumberText2.length + 1, rightPartWithTheNumber2.length)
+          // console.log("rightPartWithTheNumber2", rightPartWithTheNumber2)
+          // console.log("theNumber2", theNumber2)
+          // console.log("rightPart2", rightPart2)
+          // console.log("---")
+
+          // aynı seviyede bir altında varsa onu üste alma işlemi, switch kontrlün yapılıyor, altında yoksa işlem yok diye
+          if (level2 == level && theNumber2 == sortNumber + 1) {
+            let deneme = { ...item, code: leftPart + "." + (sortNumber) }
+            // console.log("deneme", deneme)
+            switch1 = true
+            return deneme
+          }
+
+          // aynı seviyede bir altında varsa onun alt başlıklarını üste alma işlemi, switch kontrlüne gerek yok, zaten üst başlığında yapıldı
+          if (level2 > level && theNumber2 == sortNumber + 1) {
+            let deneme2 = { ...item, code: leftPart + "." + (sortNumber) + "." + rightPart2 }
+            // console.log("deneme2", deneme2)
+            return deneme2
+          }
+
+          // taşınacak wbs i bir alta alma işlemi, switch kontrlüne gerek yok, zaten bu var kendisi
+          if (level2 == level && theNumber2 == sortNumber) {
+            let deneme3 = { ...item, code: leftPart + "." + (sortNumber + 1) }
+            // console.log("deneme3", deneme3)
+            return deneme3
+          }
+
+          // taşınacak wbs in alt başlıklarını bir alta alma işlemi, switch kontrlüne gerek yok, zaten üst başlığında yapıldı
+          if (level2 > level && theNumber2 == sortNumber) {
+            let deneme4 = { ...item, code: leftPart + "." + (sortNumber + 1) + "." + rightPart2 }
+            // console.log("deneme4", deneme4)
+            return deneme4
+          }
+
+        }
+
+        return item
+
+      })
+
+    }
+
+
+
+    try {
+
+      if (switch1) {
+
+        const result = await collection_Firmalar.updateOne(
+          { _id: _firmaId },
+          [
+            { $set: { wbs: _wbs2 } }
+          ]
+        );
+
+        return { result, wbs: _wbs2 }
+
+      } else {
+
+        // ya da bu döner
+        return { wbs: currentWbsArray }
+
+      }
+
+    } catch (error) {
+      throw new Error("MONGO // collection_firmalar__wbs // " + functionName + " // " + err.message)
+    }
+
+  }
+
+
+
+
+
+
+
+  if (functionName == "moveWbsLeft") {
+
+    if (typeof _firmaId != "object") throw new Error("MONGO // collection_firmalar__wbs // " + functionName + " // -- sorguya gönderilen --firmaId-- türü doğru değil, lütfen Rapor7/24 ile irtibata geçiniz. ")
+    if (typeof _wbsId != "object") throw new Error("MONGO // collection_firmalar__wbs // " + functionName + " // -- sorguya gönderilen --_wbsId-- türü doğru değil, lütfen Rapor7/24 ile irtibata geçiniz. ")
+
+    const collection_Firmalar = context.services.get("mongodb-atlas").db("rapor724_v2").collection("firmalar")
+    const firma = await collection_Firmalar.findOne({ _id: _firmaId, "kisiler.email": userEmail, isDeleted: false })
+    if (!firma) throw new Error("MONGO // collection_firmalar__wbs // " + functionName + " // _firmaId ile sistemde firma bulunamadı, lütfen sayfayı yenileyiniz, sorun devam ederse Rapor7/24 ile irtibata geçiniz.")
+
+    let { wbs: currentWbsArray } = firma
+    if (!currentWbsArray) throw new Error("MONGO // collection_firmalar__wbs // " + functionName + " // Firmaya ait WBS bulunamadı")
+
+    let oneWbs = currentWbsArray.find(item => item._id.toString() == _wbsId.toString())
+    if (!oneWbs) throw new Error("MONGO // collection_firmalar__wbs // " + functionName + " // Sorguya gönderilen wbsId sistemde bulunamadı, sayfayı yenileyiniz, sorun devam ederse Rapor7/24 ile irtibata geçiniz.")
+
+
+    let _wbs = currentWbsArray
+    let _selectedWbs = oneWbs
+    let _wbs2
+
+
+    let leftPart = _selectedWbs.code.substring(0, _selectedWbs.code.lastIndexOf("."))
+    let level = _selectedWbs.code.split(".").length - 1
+    let sortNumber = Number(_selectedWbs.code.split(".")[level])
+    let longText = _selectedWbs.code
+
+    let leftPartB = leftPart.substring(0, leftPart.lastIndexOf("."))
+    let levelB = leftPart.split(".").length - 1
+    let sortNumberB = Number(leftPart.split(".")[levelB])
+    let longTextB = leftPart
+
+    let name_Match = false
+    let codeName_Match = false
+    let codeName_Match_name
+
+    // zaten en üst seviyede ise daha fazla sola alınamaz
+    if (!leftPart) {
+      throw new Error("MONGO // moveWbsLeft // __mesajBaslangic__ zaten en üst seviyede __mesajBitis__")
+    }
+
+
+    let switch1 = false
+
+
+    _wbs2 = _wbs.map(item => {
+
+      let leftPart2
+      let level2
+      let longText2
+      let rightPartWithTheNumber2
+      let rightPart2
+      let theNumberText2
+      let theNumber2
+
+      longText2 = item.code
+
+
+
+
+
+      // taşınacağı seviyede isim benzerliği varsa - taşınacak seviye en üst ise
+      if (!leftPartB) {
+
+        let level2 = longText2.split(".").length - 1
+
+        if (level2 == 0) {
+
+          if (item.name === _selectedWbs.name) {
+            name_Match = true
+          }
+
+          if (item.codeName === _selectedWbs.codeName) {
+            codeName_Match = true
+            codeName_Match_name = item.name
+          }
+
+        }
+
+      }
+
+
+      // taşınacağı seviyede isim benzerliği varsa - taşınacak seviye en üst değil ise
+      if (leftPartB) {
+
+        let level2 = longText2.split(".").length - 1
+
+        if (longText2.indexOf(leftPartB + ".") === 0 && level2 == level - 1) {
+
+          if (item.name === _selectedWbs.name) {
+            name_Match = true
+          }
+
+          if (item.codeName === _selectedWbs.codeName) {
+            codeName_Match = true
+            codeName_Match_name = item.name
+          }
+
+        }
+
+      }
+
+
+
+      if (name_Match) {
+        throw new Error("MONGO // moveWbsLeft // __mesajBaslangic__ Taşınmak istenen seviyede --" + _selectedWbs.name + "-- ismi mevcut, aynı seviyede iki aynı başlık kullanılamaz. __mesajBitis__")
+      }
+
+      if (codeName_Match) {
+        throw new Error("MONGO // moveWbsLeft // __mesajBaslangic__ Taşınmak istenen seviyede --" + codeName_Match_name + "-- isimli başlığın kod ismi --" + _selectedWbs.codeName + "-- ve taşınmak istenen başlığın kod ismi ile aynı. Aynı seviyede iki aynı kod ismi kullanılamaz. __mesajBitis__")
+      }
+
+
+
+
+      // taşınacak başlığın kendi seviyesindekiler ve onların alt başlıkları - bu kısmın aşağısında sadece kendi ve onun alt başlıklarını ayırıyoruz ve onlara işlem yapıyoruz
+      if (longText2.indexOf(leftPart + ".") === 0) {
+
+        level2 = longText2.split(".").length - 1
+        rightPartWithTheNumber2 = longText2.substring(leftPart.length + 1, longText2.length)
+        theNumberText2 = rightPartWithTheNumber2.split(".")[0]
+        theNumber2 = parseInt(theNumberText2)
+        rightPart2 = rightPartWithTheNumber2.substring(theNumberText2.length + 1, rightPartWithTheNumber2.length)
+
+        // taşınacak başlığın kendisinin bir üst seviyeye alınması
+        if (level2 == level && theNumber2 == sortNumber) {
+          let deneme = { ...item, code: leftPartB ? leftPartB + "." + (sortNumberB + 1) : (sortNumberB + 1).toString() }
+          // console.log("deneme", deneme)
+          switch1 = true
+          return deneme
+        }
+
+        // taşınacak başlığın alt başlıklarının taşınması
+        if (longText2.indexOf(longText + ".") === 0) {
+          let rightPartWithTheNumber = longText2.substring(longText.length + 1, longText2.length)
+          let deneme = { ...item, code: leftPartB ? leftPartB + "." + (sortNumberB + 1) + "." + rightPartWithTheNumber : (sortNumberB + 1).toString() + "." + rightPartWithTheNumber }
+          switch1 = true
+          return deneme
+        }
+
+      }
+
+
+      // taşınacak başlığın kendi seviyesindeki başlıkların ve onların alt başlıklarının bir üste taşınması
+      if (longText2.indexOf(leftPart + ".") === 0) {
+        let rightPartWithTheNumber = longText2.substring(leftPart.length + 1, longText2.length)
+        let theNumberText = rightPartWithTheNumber.split(".")[0]
+        let theNumber = parseInt(theNumberText)
+        // rightPart 11.23.45 --> 23.45
+        let rightPart = rightPartWithTheNumber.substring(theNumberText.length + 1, rightPartWithTheNumber.length)
+        if (theNumber > sortNumber) {
+          return { ...item, code: rightPart ? leftPart + "." + (theNumber - 1) + "." + rightPart : leftPart + "." + (theNumber - 1) }
+        } else {
+          return item
+        }
+      }
+
+      // taşınacak başlığın taşındığı seviyedeki başlıkların ve onların alt başlıklarının bir alta taşınması - (taşınacak seviye en üst seviye ise)
+      if (!leftPartB) {
+
+        let rightPartWithTheNumber = longText2
+        let theNumberText = rightPartWithTheNumber.split(".")[0]
+        let theNumber = parseInt(theNumberText)
+        // rightPart 11.23.45 --> 23.45
+        let rightPart = rightPartWithTheNumber.substring(theNumberText.length + 1, rightPartWithTheNumber.length)
+        if (theNumber >= sortNumberB + 1) {
+          return { ...item, code: rightPart ? (theNumber + 1) + "." + rightPart : (theNumber + 1).toString() }
+        } else {
+          return item
+        }
+      }
+
+
+      // taşınacak başlığın taşındığı seviyedeki kendinden küçük kodların bir alt seviyelere taşınması - (taşınacak seviye en üst seviye değilse)
+      if (leftPartB && longText2.indexOf(leftPartB + ".") === 0) {
+
+        let rightPartWithTheNumber = longText2.substring(leftPartB.length + 1, longText2.length)
+        let theNumberText = rightPartWithTheNumber.split(".")[0]
+        let theNumber = parseInt(theNumberText)
+        // rightPart 11.23.45 --> 23.45
+        let rightPart = rightPartWithTheNumber.substring(theNumberText.length + 1, rightPartWithTheNumber.length)
+        if (theNumber >= sortNumberB + 1) {
+          return { ...item, code: rightPart ? leftPartB + "." + (theNumber + 1) + "." + rightPart : leftPartB + "." + (theNumber + 1) }
+        } else {
+          return item
+        }
+      }
+
+      return item
+
+    })
+
+
+
+    try {
+
+      if (switch1) {
+
+        const result = await collection_Firmalar.updateOne(
+          { _id: _firmaId },
+          [
+            { $set: { wbs: _wbs2 } }
+          ]
+        );
+
+        return { result, wbs: _wbs2 }
+
+      } else {
+
+        // ya da bu döner
+        return { wbs: currentWbsArray }
+
+      }
+
+    } catch (error) {
+      throw new Error("MONGO // collection_firmalar__wbs // " + functionName + " // " + err.message)
+    }
+
+  }
+
+
+
+
+
+
+
+  if (functionName == "moveWbsRight") {
+
+    if (typeof _firmaId != "object") throw new Error("MONGO // collection_firmalar__wbs // " + functionName + " // -- sorguya gönderilen --firmaId-- türü doğru değil, lütfen Rapor7/24 ile irtibata geçiniz. ")
+    if (typeof _wbsId != "object") throw new Error("MONGO // collection_firmalar__wbs // " + functionName + " // -- sorguya gönderilen --_wbsId-- türü doğru değil, lütfen Rapor7/24 ile irtibata geçiniz. ")
+
+    const collection_Firmalar = context.services.get("mongodb-atlas").db("rapor724_v2").collection("firmalar")
+    const firma = await collection_Firmalar.findOne({ _id: _firmaId, "kisiler.email": userEmail, isDeleted: false })
+    if (!firma) throw new Error("MONGO // collection_firmalar__wbs // " + functionName + " // _firmaId ile sistemde firma bulunamadı, lütfen sayfayı yenileyiniz, sorun devam ederse Rapor7/24 ile irtibata geçiniz.")
+
+    let { wbs: currentWbsArray } = firma
+    if (!currentWbsArray) throw new Error("MONGO // collection_firmalar__wbs // " + functionName + " // Firmaya ait WBS bulunamadı")
+
+    let oneWbs = currentWbsArray.find(item => item._id.toString() == _wbsId.toString())
+    if (!oneWbs) throw new Error("MONGO // collection_firmalar__wbs // " + functionName + " // Sorguya gönderilen wbsId sistemde bulunamadı, sayfayı yenileyiniz, sorun devam ederse Rapor7/24 ile irtibata geçiniz.")
+
+
+    let _wbs = currentWbsArray
+    let _selectedWbs = oneWbs
+    let _wbs2
+
+
+    let leftPart = _selectedWbs.code.substring(0, _selectedWbs.code.lastIndexOf("."))
+    let level = _selectedWbs.code.split(".").length - 1
+    let sortNumber = Number(_selectedWbs.code.split(".")[level])
+    let longText = _selectedWbs.code
+
+    let leftPartB = leftPart.substring(0, leftPart.lastIndexOf("."))
+    let levelB = leftPart.split(".").length - 1
+    let sortNumberB = Number(leftPart.split(".")[levelB])
+    let longTextB = leftPart
+
+
+    let name_Match = false
+    let codeName_Match = false
+    let codeName_Match_name
+
+    // zaten en üst seviyede ise daha fazla sağa alınamaz
+    if (sortNumber == 1) {
+      throw new Error("MONGO // moveWbsRight // __mesajBaslangic__ bu başlık zaten bir üstteki başlığın alt başlığı, daha fazla sağa alınamaz __mesajBitis__")
+    }
+
+
+    // seçilen başlığın en alt seviyede alt başlığı varsa daha fazla sağa kaydırma yapılamaz - işlem iptal
+    let maxLevel = level
+    _wbs.map(item => {
+      let leftPart2 = item.code.substring(0, item.code.lastIndexOf("."))
+      let level2 = item.code.split(".").length - 1
+      let sortNumber2 = Number(item.code.split(".")[level2])
+      let longText2 = item.code
+      if (longText2.indexOf(longText + ".") === 0 && level2 > maxLevel) {
+        maxLevel = level2
+      }
+    })
+    if (maxLevel == 7) {
+      throw new Error("MONGO // moveWbsRight // __mesajBaslangic__ maksimum seviyede alt başlık oluşturulmuş __mesajBitis__")
+    }
+
+
+    // seçilen başlığın üst başlığını tespit etme
+    let upWbs = {}
+    _wbs.map(item => {
+      let leftPart2 = item.code.substring(0, item.code.lastIndexOf("."))
+      let level2 = item.code.split(".").length - 1
+      let sortNumber2 = Number(item.code.split(".")[level2])
+      let longText2 = item.code
+      if (leftPart2 === leftPart && sortNumber2 === sortNumber - 1) {
+        upWbs = item
+      }
+    })
+
+    // isim benzerliği kontrol - taşınacak seviyede
+    _wbs.map(item => {
+      let leftPart2 = item.code.substring(0, item.code.lastIndexOf("."))
+      let level2 = item.code.split(".").length - 1
+      let sortNumber2 = Number(item.code.split(".")[level2])
+      let longText2 = item.code
+      if (leftPart2 === upWbs.code) {
+        if (item.name === _selectedWbs.name) {
+          name_Match = true
+        }
+        if (item.codeName === _selectedWbs.codeName) {
+          codeName_Match = true
+          codeName_Match_name = item.name
+        }
+      }
+    })
+
+
+    if (name_Match) {
+      throw new Error("MONGO // moveWbsRight // __mesajBaslangic__ Taşınmak istenen seviyede --" + _selectedWbs.name + "-- ismi mevcut, aynı seviyede iki aynı başlık kullanılamaz. __mesajBitis__")
+    }
+
+    if (codeName_Match) {
+      throw new Error("MONGO // moveWbsRight // __mesajBaslangic__ Taşınmak istenen seviyede --" + codeName_Match_name + "-- isimli başlığın kod ismi --" + _selectedWbs.codeName + "-- ve taşınmak istenen başlığın kod ismi ile aynı. Aynı seviyede iki aynı kod ismi kullanılamaz. __mesajBitis__")
+    }
+
+
+
+    // üst başlık poza açıksa iptal
+    if (upWbs.openForPoz) {
+      throw new Error("MONGO // moveWbsRight // __mesajBaslangic__ poza açık başlıkların alt başlığı olamaz. __mesajBitis__")
+    }
+
+    // tespit edilen üst başlığın mevcut alt başlıkları varsa en sonuncusunu bulma
+    let maxNumber = 0
+    _wbs.map(item => {
+      let leftPart2 = item.code.substring(0, item.code.lastIndexOf("."))
+      let level2 = item.code.split(".").length - 1
+      let sortNumber2 = Number(item.code.split(".")[level2])
+      let longText2 = item.code
+
+      if (longText2.indexOf((upWbs.code + ".")) === 0 && level2 === level + 1) {
+        if (maxNumber < sortNumber2) {
+          maxNumber = sortNumber2
+        }
+      }
+    })
+
+
+    // 1 artırıp newCode numaramızı bulma
+    const newCode = upWbs.code + "." + (maxNumber + 1)
+
+
+    // _wbs içinde kullanıcı tarafından seçilen başlığın kodunu değiştirerek yeni yerine taşıyoruz
+    _wbs = _wbs.map(item => {
+      if (item._id.toString() === _selectedWbs._id.toString()) {
+        return { ...item, code: newCode }
+      } else {
+        return item
+      }
+    })
+
+
+    // seçilen başlığın varsa alt başlıklarının da kodunu değiştirerek onları da beraberinde taşıyoruz
+    _wbs = _wbs.map(item => {
+      if (item.code.indexOf(_selectedWbs.code + ".") === 0) {
+        let rightPartWithTheNumber = item.code.substring(_selectedWbs.code.length + 1, item.code.length)
+        // console.log("rightPartWithTheNumber", rightPartWithTheNumber)
+        return { ...item, code: newCode + "." + rightPartWithTheNumber }
+      } else {
+        return item
+      }
+    })
+
+
+    // seçilen başlık taşındıığ için altındaki başlıkların numaralarını bir azaltıyoruz
+    _wbs = _wbs.map(item => {
+
+
+      // taşınmak istenen, seçilen başlık - en üst seviyede ise
+      if (!leftPart) {
+        let rightPartWithTheNumber = item.code
+        let theNumberText = rightPartWithTheNumber.split(".")[0]
+        let theNumber = parseInt(theNumberText)
+        // rightPart 11.23.45 --> 23.45
+        let rightPart = rightPartWithTheNumber.substring(theNumberText.length + 1, rightPartWithTheNumber.length)
+
+        if (theNumber > sortNumber) {
+          let newCode = rightPart ? (theNumber - 1) + "." + rightPart : (theNumber - 1).toString()
+          return { ...item, code: newCode }
+        }
+      }
+
+      // taşınmak istenen, seçilen başlık - en üst seviyede değilse
+      if (leftPart) {
+        let rightPartWithTheNumber = item.code.substring(leftPart.length + 1, item.code.length)
+        let theNumberText = rightPartWithTheNumber.split(".")[0]
+        let theNumber = parseInt(theNumberText)
+        // rightPart 11.23.45 --> 23.45
+        let rightPart = rightPartWithTheNumber.substring(theNumberText.length + 1, rightPartWithTheNumber.length)
+
+        if (leftPart && item.code.indexOf(leftPart + ".") === 0 && theNumber > sortNumber) {
+          let newCode = rightPart ? leftPart + "." + (theNumber - 1) + "." + rightPart : leftPart + "." + (theNumber - 1).toString()
+          return { ...item, code: newCode }
+        }
+      }
+
+      // yukarıdaki hiç bir if den dönmediyse burada değişiklik yapmadan item gönderiyoruz
+      return item
+
+
+    })
+
+    try {
+
+      const result = await collection_Firmalar.updateOne(
+        { _id: _firmaId },
+        [
+          { $set: { wbs: _wbs } }
+        ]
+      );
+
+      return { result, wbs: _wbs }
+
+    } catch (error) {
+      throw new Error("MONGO // collection_firmalar__wbs // " + functionName + " // " + err.message)
+    }
+
+  }
+
+
+
+
   throw new Error("MONGO // collection_firmalar__wbs // " + functionName + " // " + "Herhangi bir fonksiyona uğramadı, 'functionName' eşleşmedi ya da boş gönderildi ")
 
 
