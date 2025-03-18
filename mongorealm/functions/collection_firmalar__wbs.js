@@ -710,7 +710,196 @@ exports = async function ({
 
 
 
-  
+
+
+  if (functionName == "moveWbsDown") {
+
+    if (typeof _firmaId != "object") throw new Error("MONGO // collection_firmalar__wbs // " + functionName + " // -- sorguya gönderilen --firmaId-- türü doğru değil, lütfen Rapor7/24 ile irtibata geçiniz. ")
+    if (typeof _wbsId != "object") throw new Error("MONGO // collection_firmalar__wbs // " + functionName + " // -- sorguya gönderilen --_wbsId-- türü doğru değil, lütfen Rapor7/24 ile irtibata geçiniz. ")
+
+    const collection_Firmalar = context.services.get("mongodb-atlas").db("rapor724_v2").collection("firmalar")
+    const firma = await collection_Firmalar.findOne({ _id: _firmaId, "kisiler.email": userEmail, isDeleted: false })
+    if (!firma) throw new Error("MONGO // collection_firmalar__wbs // " + functionName + " // _firmaId ile sistemde firma bulunamadı, lütfen sayfayı yenileyiniz, sorun devam ederse Rapor7/24 ile irtibata geçiniz.")
+
+    let { wbs: currentWbsArray } = firma
+    if (!currentWbsArray) throw new Error("MONGO // collection_firmalar__wbs // " + functionName + " // Firmaya ait WBS bulunamadı")
+
+    let oneWbs = currentWbsArray.find(item => item._id.toString() == _wbsId.toString())
+    if (!oneWbs) throw new Error("MONGO // collection_firmalar__wbs // " + functionName + " // Sorguya gönderilen wbsId sistemde bulunamadı, sayfayı yenileyiniz, sorun devam ederse Rapor7/24 ile irtibata geçiniz.")
+
+
+    let _wbs = currentWbsArray
+    let _selectedWbs = oneWbs
+    let _wbs2
+
+
+    let leftPart
+    let level
+    let sortNumber
+    let longText
+
+    leftPart = _selectedWbs.code.substring(0, _selectedWbs.code.lastIndexOf("."))
+    level = _selectedWbs.code.split(".").length - 1
+    sortNumber = Number(_selectedWbs.code.split(".")[level])
+    longText = _selectedWbs.code
+
+    let switch1 = false
+
+
+    // taşınacak başlık en üst seviyede ise
+    if (!leftPart) {
+
+      _wbs2 = _wbs.map(item => {
+
+        let leftPart2
+        let level2
+        let longText2
+        let rightPartWithTheNumber2
+        let rightPart2
+        let theNumberText2
+        let theNumber2
+
+        longText2 = item.code
+
+
+        level2 = longText2.split(".").length - 1
+        rightPartWithTheNumber2 = longText2
+        theNumberText2 = rightPartWithTheNumber2.split(".")[0]
+        theNumber2 = parseInt(theNumberText2)
+        rightPart2 = rightPartWithTheNumber2.substring(theNumberText2.length + 1, rightPartWithTheNumber2.length)
+
+
+        // aynı seviyede bir altında varsa onu üste alma işlemi, switch kontrlün yapılıyor, altında yoksa işlem yok diye
+        if (level2 == level && theNumber2 == sortNumber + 1) {
+          let deneme = { ...item, code: (sortNumber).toString() }
+          // console.log("deneme", deneme)
+          switch1 = true
+          return deneme
+        }
+
+        // aynı seviyede bir altında varsa onun alt başlıklarını üste alma işlemi, switch kontrlüne gerek yok, zaten üst başlığında yapıldı
+        if (level2 > level && theNumber2 == sortNumber + 1) {
+          let deneme2 = { ...item, code: (sortNumber) + "." + rightPart2 }
+          // console.log("deneme2", deneme2)
+          return deneme2
+        }
+
+        // taşınacak wbs i bir alta alma işlemi, switch kontrlüne gerek yok, zaten bu var kendisi
+        if (level2 == level && theNumber2 == sortNumber) {
+          let deneme3 = { ...item, code: (sortNumber + 1).toString() }
+          // console.log("deneme3", deneme3)
+          return deneme3
+        }
+
+        // taşınacak wbs in alt başlıklarını bir alta alma işlemi, switch kontrlüne gerek yok, zaten üst başlığında yapıldı
+        if (level2 > level && theNumber2 == sortNumber) {
+          let deneme4 = { ...item, code: (sortNumber + 1) + "." + rightPart2 }
+          // console.log("deneme4", deneme4)
+          return deneme4
+        }
+
+        return item
+
+      })
+    }
+
+
+    // taşınacak başlık en üst seviyede değilse
+    if (leftPart) {
+
+      _wbs2 = _wbs.map(item => {
+
+        let leftPart2
+        let level2
+        let longText2
+        let rightPartWithTheNumber2
+        let rightPart2
+        let theNumberText2
+        let theNumber2
+
+        longText2 = item.code
+
+        if (longText2.indexOf(leftPart + ".") === 0) {
+
+          level2 = longText2.split(".").length - 1
+          rightPartWithTheNumber2 = longText2.substring(leftPart.length + 1, longText2.length)
+          theNumberText2 = rightPartWithTheNumber2.split(".")[0]
+          theNumber2 = parseInt(theNumberText2)
+          rightPart2 = rightPartWithTheNumber2.substring(theNumberText2.length + 1, rightPartWithTheNumber2.length)
+          // console.log("rightPartWithTheNumber2", rightPartWithTheNumber2)
+          // console.log("theNumber2", theNumber2)
+          // console.log("rightPart2", rightPart2)
+          // console.log("---")
+
+          // aynı seviyede bir altında varsa onu üste alma işlemi, switch kontrlün yapılıyor, altında yoksa işlem yok diye
+          if (level2 == level && theNumber2 == sortNumber + 1) {
+            let deneme = { ...item, code: leftPart + "." + (sortNumber) }
+            // console.log("deneme", deneme)
+            switch1 = true
+            return deneme
+          }
+
+          // aynı seviyede bir altında varsa onun alt başlıklarını üste alma işlemi, switch kontrlüne gerek yok, zaten üst başlığında yapıldı
+          if (level2 > level && theNumber2 == sortNumber + 1) {
+            let deneme2 = { ...item, code: leftPart + "." + (sortNumber) + "." + rightPart2 }
+            // console.log("deneme2", deneme2)
+            return deneme2
+          }
+
+          // taşınacak wbs i bir alta alma işlemi, switch kontrlüne gerek yok, zaten bu var kendisi
+          if (level2 == level && theNumber2 == sortNumber) {
+            let deneme3 = { ...item, code: leftPart + "." + (sortNumber + 1) }
+            // console.log("deneme3", deneme3)
+            return deneme3
+          }
+
+          // taşınacak wbs in alt başlıklarını bir alta alma işlemi, switch kontrlüne gerek yok, zaten üst başlığında yapıldı
+          if (level2 > level && theNumber2 == sortNumber) {
+            let deneme4 = { ...item, code: leftPart + "." + (sortNumber + 1) + "." + rightPart2 }
+            // console.log("deneme4", deneme4)
+            return deneme4
+          }
+
+        }
+
+        return item
+
+      })
+
+    }
+
+
+
+    try {
+
+      if (switch1) {
+
+        const result = await collection_Firmalar.updateOne(
+          { _id: _firmaId },
+          [
+            { $set: { wbs: _wbs2 } }
+          ]
+        );
+
+        return { result, wbs: _wbs2 }
+
+      } else {
+
+        // ya da bu döner
+        return { wbs: currentWbsArray }
+
+      }
+
+    } catch (error) {
+      throw new Error("MONGO // collection_firmalar__wbs // " + functionName + " // " + err.message)
+    }
+
+  }
+
+
+
+
+
 
   throw new Error("MONGO // collection_firmalar__wbs // " + functionName + " // " + "Herhangi bir fonksiyona uğramadı, 'functionName' eşleşmedi ya da boş gönderildi ")
 
