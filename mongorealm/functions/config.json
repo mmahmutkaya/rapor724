@@ -432,7 +432,7 @@
         "disable_arg_logs": true
     },
     {
-        "name": "collection_FirmaPozlar",
+        "name": "collection_firmaPozlar",
         "private": false,
         "run_as_system": true,
         "disable_arg_logs": true

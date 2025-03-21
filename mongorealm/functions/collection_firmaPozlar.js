@@ -85,13 +85,13 @@ exports = async function ({
       throw new Error("MONGO // collection_firmaPozlar // " + functionName + " // bölüm 1/3 " + err.message)
     }
 
-    
+
 
   }
 
 
-  
-  
+
+
   if (functionName == "getFirmaPozlar") {
 
     if (typeof _firmaId !== "object") throw new Error("MONGO // collection_firmaPozlar // " + functionName + " // -- sorguya gönderilen --firmaId-- türü doğru değil, lütfen Rapor7/24 ile irtibata geçiniz. ")
@@ -102,16 +102,16 @@ exports = async function ({
     // fonksiyon returnü olarak errorObject objesi döndürülüyor, frontenddeki form ekranında form verisine ait ilgili alanda bu yazı gösteriliyor
     // form ile ilişkilendirilmiş ilgili alana ait bir ke hata yazısı yazılmışsa yani null değilse üstüne yazı yazılmıyor, ilk tespit edilen hata değiştirilmmeiş oluyor
 
-   
+
     const collection_firmaPozlar = context.services.get("mongodb-atlas").db("rapor724_v2").collection("firmalar")
-   
+
     try {
 
-      const result = await collection_Firmalar.aggregate( [
-         {
-            $match: { _firmaId }
-         }
-      ] )
+      const result = await collection_Firmalar.aggregate([
+        {
+          $match: { _firmaId }
+        }
+      ])
 
       return { result }
 
