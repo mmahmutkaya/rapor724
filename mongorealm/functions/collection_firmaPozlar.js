@@ -107,7 +107,7 @@ exports = async function ({
 
     try {
 
-      const result = await collection_Firmalar.aggregate([
+      const result = await collection_firmaPozlar.aggregate([
         {
           $match: { _firmaId }
         }
