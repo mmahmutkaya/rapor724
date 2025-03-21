@@ -28,8 +28,7 @@ export default function FirmaPozHeader({ setShow, editPoz, setEditPoz, savePoz }
 
   const { drawerWidth, topBarHeight } = useContext(StoreContext)
 
-  const { firmaProject, setFirmaProject } = useContext(StoreContext)
-  const { setPozlar } = useContext(StoreContext)
+  const { selectedFirma, setSelectedFirma } = useContext(StoreContext)
 
   const RealmApp = useApp();
 
@@ -42,138 +41,138 @@ export default function FirmaPozHeader({ setShow, editPoz, setEditPoz, savePoz }
   const [dialogCase, setDialogCase] = useState("")
 
 
-  async function handleFirmaPozDelete(mahal) {
+  // async function handleFirmaPozDelete(mahal) {
 
-    // seçili wbs yoksa durdurma, inaktif iken tuşlara basılabiliyor mesela, bu fonksiyon çalıştırılıyor, orayı iptal etmekle uğraşmak istemedim
-    if (!selectedPoz) {
-      console.log("alttaki satırda --return-- oldu")
-      return
-    }
+  //   // seçili wbs yoksa durdurma, inaktif iken tuşlara basılabiliyor mesela, bu fonksiyon çalıştırılıyor, orayı iptal etmekle uğraşmak istemedim
+  //   if (!selectedPoz) {
+  //     console.log("alttaki satırda --return-- oldu")
+  //     return
+  //   }
 
-    // bu kontrol backend de ayrıca yapılıyor
-    if (selectedPoz.includesPoz) {
-      throw new Error("Bu mahal metraj içerdiği için silinemez, öncelikle metrajları silmelisiniz.")
-    }
+  //   // bu kontrol backend de ayrıca yapılıyor
+  //   if (selectedPoz?.includesPoz) {
+  //     throw new Error("Bu mahal metraj içerdiği için silinemez, öncelikle metrajları silmelisiniz.")
+  //   }
 
-    try {
-      const result = await RealmApp.currentUser.callFunction("deletePoz", { mahalId: mahal._id });
+  //   try {
+  //     const result = await RealmApp.currentUser.callFunction("deletePoz", { mahalId: mahal._id });
 
-      if (result.deletedCount) {
+  //     if (result.deletedCount) {
 
-        // const oldPozlar = queryClient.getQueryData(["pozlar"])
-        // const newPozlar = oldPozlar.filter(item => item._id.toString() !== mahal._id.toString())
-        // queryClient.setQueryData(["pozlar"], newPozlar)
+  //       // const oldPozlar = queryClient.getQueryData(["pozlar"])
+  //       // const newPozlar = oldPozlar.filter(item => item._id.toString() !== mahal._id.toString())
+  //       // queryClient.setQueryData(["pozlar"], newPozlar)
 
-        setPozlar(oldPozlar => oldPozlar.filter(item => item._id.toString() !== mahal._id.toString()))
+  //       setPozlar(oldPozlar => oldPozlar.filter(item => item._id.toString() !== mahal._id.toString()))
 
-      }
+  //     }
 
-      if (result.isIncludesPozFalse) {
+  //     if (result.isIncludesPozFalse) {
 
-        let oldProject = JSON.parse(JSON.stringify(firmaProject))
+  //       let oldProject = JSON.parse(JSON.stringify(selectedFirma))
 
-        oldProject.wbs.find(item => item._id.toString() === mahal._wbsId.toString()).includesPoz = false
+  //       oldProject.wbs.find(item => item._id.toString() === mahal._wbsId.toString()).includesPoz = false
 
-        setFirmaProject(oldProject)
+  //       setSelectedFirma(oldProject)
 
-      }
+  //     }
 
-      setSelectedPoz()
+  //     setSelectedPoz()
 
-    } catch (err) {
+  //   } catch (err) {
 
-      console.log(err)
-      let hataMesaj_ = err.message ? err.message : "Beklenmedik hata, Rapor7/24 ile irtibata geçiniz.."
+  //     console.log(err)
+  //     let hataMesaj_ = err.message ? err.message : "Beklenmedik hata, Rapor7/24 ile irtibata geçiniz.."
 
-      if (hataMesaj_.includes("Silmek istediğiniz  Wbs'in alt seviyeleri mevcut")) {
-        hataMesaj_ = "Silmek istediğiniz  Wbs'in alt seviyeleri mevcut, öncelikle onları silmelisiniz."
-      }
+  //     if (hataMesaj_.includes("Silmek istediğiniz  Wbs'in alt seviyeleri mevcut")) {
+  //       hataMesaj_ = "Silmek istediğiniz  Wbs'in alt seviyeleri mevcut, öncelikle onları silmelisiniz."
+  //     }
 
-      if (hataMesaj_.includes("Poz eklemeye açık başlıklar silinemez")) {
-        hataMesaj_ = "Poz eklemeye açık başlıklar silinemez, öncelikle mahal eklemeye kapatınız."
-      }
+  //     if (hataMesaj_.includes("Poz eklemeye açık başlıklar silinemez")) {
+  //       hataMesaj_ = "Poz eklemeye açık başlıklar silinemez, öncelikle mahal eklemeye kapatınız."
+  //     }
 
-      setSelectedPoz()
-      setDialogCase("error")
-      setShowDialog(hataMesaj_)
-    }
-  }
+  //     setSelectedPoz()
+  //     setDialogCase("error")
+  //     setShowDialog(hataMesaj_)
+  //   }
+  // }
 
 
 
-  async function handlePozBaslikDelete(mahalBaslik) {
+  // async function handlePozBaslikDelete(mahalBaslik) {
 
-    const mahal = selectedPozBaslik
+  //   const mahal = selectedPozBaslik
 
-    // seçili wbs yoksa durdurma, inaktif iken tuşlara basılabiliyor mesela, bu fonksiyon çalıştırılıyor, orayı iptal etmekle uğraşmak istemedim
-    if (!selectedPozBaslik) {
-      console.log("alttaki satırda --return-- oldu")
-      return
-    }
+  //   // seçili wbs yoksa durdurma, inaktif iken tuşlara basılabiliyor mesela, bu fonksiyon çalıştırılıyor, orayı iptal etmekle uğraşmak istemedim
+  //   if (!selectedPozBaslik) {
+  //     console.log("alttaki satırda --return-- oldu")
+  //     return
+  //   }
 
-    return { "silinecekPozBaslik": mahalBaslik }
+  //   return { "silinecekPozBaslik": mahalBaslik }
 
-    try {
-      const result = await RealmApp.currentUser.callFunction("deletePozBaslik", { mahalId: mahal._id });
+  //   try {
+  //     const result = await RealmApp.currentUser.callFunction("deletePozBaslik", { mahalId: mahal._id });
 
-      if (result.deletedCount) {
+  //     if (result.deletedCount) {
 
-        // const oldPozlar = queryClient.getQueryData(["pozlar"])
-        // const newPozlar = oldPozlar.filter(item => item._id.toString() !== mahal._id.toString())
-        // queryClient.setQueryData(["pozlar"], newPozlar)
+  //       // const oldPozlar = queryClient.getQueryData(["pozlar"])
+  //       // const newPozlar = oldPozlar.filter(item => item._id.toString() !== mahal._id.toString())
+  //       // queryClient.setQueryData(["pozlar"], newPozlar)
 
-        setPozlar(oldPozlar => oldPozlar.filter(item => item._id.toString() !== mahal._id.toString()))
+  //       setPozlar(oldPozlar => oldPozlar.filter(item => item._id.toString() !== mahal._id.toString()))
 
-      }
+  //     }
 
-      if (result.isIncludesPozFalse) {
+  //     if (result.isIncludesPozFalse) {
 
-        let oldProject = JSON.parse(JSON.stringify(firmaProject))
+  //       let oldProject = JSON.parse(JSON.stringify(selectedFirma))
 
-        oldProject.wbs.find(item => item._id.toString() === mahal._wbsId.toString()).includesPoz = false
+  //       oldProject.wbs.find(item => item._id.toString() === mahal._wbsId.toString()).includesPoz = false
 
-        setFirmaProject(oldProject)
+  //       setSelectedFirma(oldProject)
 
-      }
+  //     }
 
-      setSelectedPoz()
+  //     setSelectedPoz()
 
-    } catch (err) {
+  //   } catch (err) {
 
-      console.log(err)
-      let hataMesaj_ = err.message ? err.message : "Beklenmedik hata, Rapor7/24 ile irtibata geçiniz.."
+  //     console.log(err)
+  //     let hataMesaj_ = err.message ? err.message : "Beklenmedik hata, Rapor7/24 ile irtibata geçiniz.."
 
-      if (hataMesaj_.includes("Silmek istediğiniz  Wbs'in alt seviyeleri mevcut")) {
-        hataMesaj_ = "Silmek istediğiniz  Wbs'in alt seviyeleri mevcut, öncelikle onları silmelisiniz."
-      }
+  //     if (hataMesaj_.includes("Silmek istediğiniz  Wbs'in alt seviyeleri mevcut")) {
+  //       hataMesaj_ = "Silmek istediğiniz  Wbs'in alt seviyeleri mevcut, öncelikle onları silmelisiniz."
+  //     }
 
-      if (hataMesaj_.includes("Poz eklemeye açık başlıklar silinemez")) {
-        hataMesaj_ = "Poz eklemeye açık başlıklar silinemez, öncelikle mahal eklemeye kapatınız."
-      }
+  //     if (hataMesaj_.includes("Poz eklemeye açık başlıklar silinemez")) {
+  //       hataMesaj_ = "Poz eklemeye açık başlıklar silinemez, öncelikle mahal eklemeye kapatınız."
+  //     }
 
-      setSelectedPoz()
-      setDialogCase("error")
-      setShowDialog(hataMesaj_)
-    }
-  }
+  //     setSelectedPoz()
+  //     setDialogCase("error")
+  //     setShowDialog(hataMesaj_)
+  //   }
+  // }
 
 
 
   const handle_BaslikGenislet = () => {
-    setFirmaProject(firmaProject => {
-      const firmaProject_ = { ...firmaProject }
-      firmaProject_.mahalBasliklari.find(item => item.id == selectedPozBaslik.id).genislik = firmaProject_.mahalBasliklari.find(item => item.id == selectedPozBaslik.id).genislik + 0.5
-      return firmaProject_
+    setSelectedFirma(selectedFirma => {
+      const selectedFirma_ = { ...selectedFirma }
+      selectedFirma_.mahalBasliklari.find(item => item.id == selectedPozBaslik.id).genislik = selectedFirma_.mahalBasliklari.find(item => item.id == selectedPozBaslik.id).genislik + 0.5
+      return selectedFirma_
     })
     setWillBeUpdate_mahalBaslik(true)
   }
 
 
   const handle_BaslikDaralt = () => {
-    setFirmaProject(firmaProject => {
-      const firmaProject_ = { ...firmaProject }
-      firmaProject_.mahalBasliklari.find(item => item.id == selectedPozBaslik.id).genislik = firmaProject_.mahalBasliklari.find(item => item.id == selectedPozBaslik.id).genislik - 0.5
-      return firmaProject_
+    setSelectedFirma(selectedFirma => {
+      const selectedFirma_ = { ...selectedFirma }
+      selectedFirma_.mahalBasliklari.find(item => item.id == selectedPozBaslik.id).genislik = selectedFirma_.mahalBasliklari.find(item => item.id == selectedPozBaslik.id).genislik - 0.5
+      return selectedFirma_
     })
     setWillBeUpdate_mahalBaslik(true)
   }
@@ -181,13 +180,13 @@ export default function FirmaPozHeader({ setShow, editPoz, setEditPoz, savePoz }
 
 
   const handle_YatayHiza = () => {
-    setFirmaProject(firmaProject => {
-      const firmaProject_ = { ...firmaProject }
-      let guncelYatayHiza = firmaProject_.mahalBasliklari.find(item => item.id == selectedPozBaslik.id).yatayHiza
-      if (guncelYatayHiza == "start") firmaProject_.mahalBasliklari.find(item => item.id == selectedPozBaslik.id).yatayHiza = "center"
-      if (guncelYatayHiza == "center") firmaProject_.mahalBasliklari.find(item => item.id == selectedPozBaslik.id).yatayHiza = "end"
-      if (guncelYatayHiza == "end") firmaProject_.mahalBasliklari.find(item => item.id == selectedPozBaslik.id).yatayHiza = "start"
-      return firmaProject_
+    setSelectedFirma(selectedFirma => {
+      const selectedFirma_ = { ...selectedFirma }
+      let guncelYatayHiza = selectedFirma_.mahalBasliklari.find(item => item.id == selectedPozBaslik.id).yatayHiza
+      if (guncelYatayHiza == "start") selectedFirma_.mahalBasliklari.find(item => item.id == selectedPozBaslik.id).yatayHiza = "center"
+      if (guncelYatayHiza == "center") selectedFirma_.mahalBasliklari.find(item => item.id == selectedPozBaslik.id).yatayHiza = "end"
+      if (guncelYatayHiza == "end") selectedFirma_.mahalBasliklari.find(item => item.id == selectedPozBaslik.id).yatayHiza = "start"
+      return selectedFirma_
     })
     setWillBeUpdate_mahalBaslik(true)
   }
@@ -195,9 +194,9 @@ export default function FirmaPozHeader({ setShow, editPoz, setEditPoz, savePoz }
 
   const unSelectPozBaslik = async () => {
     if (willBeUpdate_mahalBaslik) {
-      let mahalBaslik = firmaProject.mahalBasliklari.find(item => item.id == selectedPozBaslik.id)
+      let mahalBaslik = selectedFirma.mahalBasliklari.find(item => item.id == selectedPozBaslik.id)
       console.log("mahalBaslik", mahalBaslik)
-      const result = await RealmApp?.currentUser.callFunction("updateProjectPozBaslik", ({ _projectId: firmaProject._id, mahalBaslik }));
+      const result = await RealmApp?.currentUser.callFunction("updateProjectPozBaslik", ({ _projectId: selectedFirma._id, mahalBaslik }));
       console.log("result", result)
       setWillBeUpdate_mahalBaslik(false)
     }
@@ -209,7 +208,7 @@ export default function FirmaPozHeader({ setShow, editPoz, setEditPoz, savePoz }
   }
 
   let header = "Pozlar"
-  // firmaProject?.name ? header = firmaProject?.name : null
+  // selectedFirma?.name ? header = selectedFirma?.name : null
 
 
 
@@ -282,15 +281,15 @@ export default function FirmaPozHeader({ setShow, editPoz, setEditPoz, savePoz }
 
 
                   <Grid item>
-                    <IconButton onClick={() => setShow("FormFirmaPozBaslikCreate")} aria-label="addPozBilgi" disabled={(firmaProject?.wbs?.filter(item => item.openForPoz).length == 0 || !firmaProject?.wbs) ? true : false}>
-                      <AddCircleOutlineIcon variant="contained" sx={{ color: (firmaProject?.wbs?.filter(item => item.openForPoz).length == 0 || !firmaProject?.wbs) ? "lightgray" : "blue" }} />
+                    <IconButton onClick={() => setShow("FormFirmaPozBaslikCreate")} aria-label="addPozBilgi" disabled={(selectedFirma?.wbs?.filter(item => item.openForPoz).length == 0 || !selectedFirma?.wbs) ? true : false}>
+                      <AddCircleOutlineIcon variant="contained" sx={{ color: (selectedFirma?.wbs?.filter(item => item.openForPoz).length == 0 || !selectedFirma?.wbs) ? "lightgray" : "blue" }} />
                     </IconButton>
                   </Grid>
 
 
                   <Grid item>
-                    <IconButton onClick={() => setShow("FormFirmaPozCreate")} aria-label="addWbs" disabled={(firmaProject?.wbs?.filter(item => item.openForPoz).length == 0 || !firmaProject?.wbs) ? true : false}>
-                      <AddCircleOutlineIcon variant="contained" color={(firmaProject?.wbs?.filter(item => item.openForPoz).length == 0 || !firmaProject?.wbs) ? " lightgray" : "success"} />
+                    <IconButton onClick={() => setShow("FormFirmaPozCreate")} aria-label="addWbs" disabled={(selectedFirma?.wbs?.filter(item => item.openForPoz).length == 0 || !selectedFirma?.wbs) ? true : false}>
+                      <AddCircleOutlineIcon variant="contained" color={(selectedFirma?.wbs?.filter(item => item.openForPoz).length == 0 || !selectedFirma?.wbs) ? " lightgray" : "success"} />
                     </IconButton>
                   </Grid>
 
@@ -318,7 +317,7 @@ export default function FirmaPozHeader({ setShow, editPoz, setEditPoz, savePoz }
                   <Grid item onClick={() => handlePozDelete(selectedPoz)} sx={{ cursor: "pointer" }}>
                     <IconButton aria-label="addPoz" disabled>
                       <DeleteIcon
-                        // sx={{display: firmaProject_display}}
+                        // sx={{display: selectedFirma_display}}
                         variant="contained"
                         sx={{ color: "red" }} />
                     </IconButton>
@@ -351,10 +350,11 @@ export default function FirmaPozHeader({ setShow, editPoz, setEditPoz, savePoz }
 
 
 
-                  <Grid item onClick={() => handlePozBaslikDelete(selectedPozBaslik)} sx={{ cursor: "pointer" }}>
+                  {/* <Grid item onClick={() => handlePozBaslikDelete(selectedPozBaslik)} sx={{ cursor: "pointer" }}> */}
+                  <Grid item onClick={() => console.log("deneme_345")} sx={{ cursor: "pointer" }}>
                     <IconButton aria-label="addPoz" disabled>
                       <DeleteIcon
-                        // sx={{display: firmaProject_display}}
+                        // sx={{display: selectedFirma_display}}
                         variant="contained"
                         sx={{ color: "red" }} />
                     </IconButton>

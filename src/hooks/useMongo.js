@@ -88,12 +88,12 @@ export const useGetMahaller = (onSuccess, onError) => {
 export const useGetFirmaPozlar = (onSuccess, onError) => {
 
   // const RealmApp = useApp();
-  const { RealmApp, selectedFirma, firmaProject } = useContext(StoreContext)
+  const { RealmApp, selectedFirma } = useContext(StoreContext)
 
   return useQuery({
     queryKey: ['firmaPozlar', selectedFirma?._id.toString()],
-    queryFn: () => RealmApp?.currentUser.callFunction("collectionDugumler", ({ functionName: "getProjectPozlar", _projectId: firmaProject?._id })),
-    enabled: !!RealmApp && !!selectedFirma && !!firmaProject,
+    queryFn: () => RealmApp?.currentUser.callFunction("collection_firmaPozlar", ({ functionName: "getFirmaPozlar", _firmaId: selectedFirma?._id })),
+    enabled: !!RealmApp && !!selectedFirma,
     onSuccess,
     onError,
     refetchOnMount: false,

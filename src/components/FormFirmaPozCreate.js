@@ -3,6 +3,7 @@ import { useState, useContext } from 'react';
 import { StoreContext } from './store.js'
 import deleteLastSpace from '../functions/deleteLastSpace.js';
 import { DialogWindow } from './general/DialogWindow.js';
+import { useGetFirmaPozlar } from '../hooks/useMongo.js';
 
 
 //mui
@@ -21,12 +22,13 @@ import ArrowForwardIcon from '@mui/icons-material/ArrowForward';
 
 
 
-// export default function FormPozCreate({ setShow, firmaProject, refetch_pozlar }) {
+// export default function FormPozCreate({ setShow, selectedFirma, refetch_pozlar }) {
 export default function FormFirmaPozCreate({ setShow }) {
 
 
-  const { firmaProject, setFirmaProject } = useContext(StoreContext)
-  const { pozlar, setPozlar } = useContext(StoreContext)
+  const { selectedFirma, setSelectedFirma } = useContext(StoreContext)
+  const { setPozlar } = useContext(StoreContext)
+  const { data: pozlar } = useGetFirmaPozlar()
 
   const [showDialog, setShowDialog] = useState(false)
   const [dialogCase, setDialogCase] = useState("")
@@ -36,7 +38,7 @@ export default function FormFirmaPozCreate({ setShow }) {
   // form verilerinde kullanmak için oluşturulan useState() verileri
   // form ilk açıldığında önceden belirlenen birşeyin seçilmiş olması için alttaki satırdaki gibi yapılabiliyor
   const [pozMetrajTipId, setPozMetrajTipId] = useState("standartMetrajSayfasi");
-  // const [pozMetrajTipi, setPozMetrajTipi] = useState(firmaProject ? firmaProject.pozMetrajTipleri.find(item => item.id === "standartMetrajSayfasi") : "");
+  // const [pozMetrajTipi, setPozMetrajTipi] = useState(selectedFirma ? selectedFirma.pozMetrajTipleri.find(item => item.id === "standartMetrajSayfasi") : "");
   const [wbsId, setWbsId] = useState();
   const [pozBirimId, setPozBirimId] = useState();
   const [pozBirimDisabled, setPozBirimDisabled] = useState(false);
@@ -57,7 +59,7 @@ export default function FormFirmaPozCreate({ setShow }) {
       const pozNo = deleteLastSpace(data.get('pozNo'))
 
       const newPoz = {
-        projectId: firmaProject?._id,
+        projectId: selectedFirma?._id,
         wbsId,
         name,
         pozNo,
@@ -116,12 +118,12 @@ export default function FormFirmaPozCreate({ setShow }) {
       }
       
 
-      if (!firmaProject.pozBirimleri.find(x => x.id == newPoz.pozBirimId)) {
+      if (!selectedFirma.pozBirimleri.find(x => x.id == newPoz.pozBirimId)) {
         setNewPozError(prev => ({ ...prev, pozBirimId: "Zorunlu" }))
         isFormError = true
       }
 
-      if (!firmaProject.pozMetrajTipleri.find(x => x.id == newPoz.pozMetrajTipId)) {
+      if (!selectedFirma.pozMetrajTipleri.find(x => x.id == newPoz.pozMetrajTipId)) {
         setNewPozError(prev => ({ ...prev, pozMetrajTipId: "Zorunlu" }))
         isFormError = true
       }
@@ -159,7 +161,7 @@ export default function FormFirmaPozCreate({ setShow }) {
       }
 
       setPozlar(oldPozlar => [...oldPozlar, result.newPoz])
-      setFirmaProject(result.newProject)
+      setSelectedFirma(result.newProject)
       setShow("Main")
 
     } catch (err) {
@@ -184,7 +186,7 @@ export default function FormFirmaPozCreate({ setShow }) {
 
   // form verilerini kullanıcıdan alıp react hafızasına yüklemek - onChange - sadece seçmeliler - yazma gibi şeyler formun submit olduğu anda yakalanıyor
   const handleChange_wbs = (event) => {
-    setWbsId(firmaProject.wbs.find(item => item._id.toString() === event.target.value.toString())._id);
+    setWbsId(selectedFirma.wbs.find(item => item._id.toString() === event.target.value.toString())._id);
   };
 
   const handleChange_pozMetrajTipId = (event) => {
@@ -205,7 +207,7 @@ export default function FormFirmaPozCreate({ setShow }) {
   };
 
   const handleChange_pozBirimId = (event) => {
-    setPozBirimId(firmaProject.pozBirimleri.find(item => item.id === event.target.value).id);
+    setPozBirimId(selectedFirma.pozBirimleri.find(item => item.id === event.target.value).id);
   };
 
 
@@ -278,7 +280,7 @@ export default function FormFirmaPozCreate({ setShow }) {
                 name="wbsId"
               >
                 {
-                  firmaProject?.wbs?.filter(item => item.openForPoz)
+                  selectedFirma?.wbs?.filter(item => item.openForPoz)
                     .sort(function (a, b) {
                       var nums1 = a.code.split(".");
                       var nums2 = b.code.split(".");
@@ -309,22 +311,22 @@ export default function FormFirmaPozCreate({ setShow }) {
 
                             if (index == 0 && cOunt == 1) {
                               wbsCode = codePart
-                              wbsName = firmaProject.wbs.find(item => item.code == wbsCode).name
+                              wbsName = selectedFirma.wbs.find(item => item.code == wbsCode).name
                             }
 
                             if (index == 0 && cOunt !== 1) {
                               wbsCode = codePart
-                              wbsName = firmaProject.wbs.find(item => item.code == wbsCode).codeName
+                              wbsName = selectedFirma.wbs.find(item => item.code == wbsCode).codeName
                             }
 
                             if (index !== 0 && index + 1 !== cOunt && cOunt !== 1) {
                               wbsCode = wbsCode + "." + codePart
-                              wbsName = wbsName + " > " + firmaProject.wbs.find(item => item.code == wbsCode).codeName
+                              wbsName = wbsName + " > " + selectedFirma.wbs.find(item => item.code == wbsCode).codeName
                             }
 
                             if (index !== 0 && index + 1 == cOunt && cOunt !== 1) {
                               wbsCode = wbsCode + "." + codePart
-                              wbsName = wbsName + " > " + firmaProject.wbs.find(item => item.code == wbsCode).name
+                              wbsName = wbsName + " > " + selectedFirma.wbs.find(item => item.code == wbsCode).name
                             }
 
                           })
@@ -454,7 +456,7 @@ export default function FormFirmaPozCreate({ setShow }) {
                 name="pozMetrajTipId"
               >
                 {
-                  firmaProject?.pozMetrajTipleri.map((onePozMetrajTipi, index) => (
+                  selectedFirma?.pozMetrajTipleri.map((onePozMetrajTipi, index) => (
                     // console.log(wbs)
                     <MenuItem key={index} value={onePozMetrajTipi.id}>
                       {onePozMetrajTipi.name}
@@ -500,7 +502,7 @@ export default function FormFirmaPozCreate({ setShow }) {
                 disabled={pozBirimDisabled}
               >
                 {
-                  firmaProject?.pozBirimleri.map((onePozBirim, index) => (
+                  selectedFirma?.pozBirimleri.map((onePozBirim, index) => (
                     <MenuItem key={index} value={onePozBirim.id}>
                       {/* {console.log(onePozBirim)} */}
                       {onePozBirim.name}
