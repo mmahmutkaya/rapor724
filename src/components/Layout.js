@@ -58,7 +58,7 @@ export default function Layout({ window, children }) {
 
   const { RealmApp, selectedFirma, isProject, setIsProject } = useContext(StoreContext)
 
-  const { setSelectedLbs, setSelectedMahal, setSelectedMahalBaslik, setSelectedWbs, setSelectedPoz, setSelectedPozBaslik, setSelectedNode, pageMetraj_setShow } = useContext(StoreContext)
+  const { setSelectedFirma, setSelectedLbs, setSelectedMahal, setSelectedMahalBaslik, setSelectedWbs, setSelectedPoz, setSelectedPozBaslik, setSelectedNode, pageMetraj_setShow } = useContext(StoreContext)
 
 
   // bu seçenekler var (başka da olabilir sen yine de bak) - Page / Dialog
@@ -295,7 +295,12 @@ export default function Layout({ window, children }) {
   );
 
 
-  const undoProject = () => {
+  const clearSelectedFirma = () => {
+    setSelectedFirma()
+    navigate("/firmalarim")
+  };
+
+  const clearSelectedProject = () => {
     setSelectedLbs()
     setSelectedMahal()
     setSelectedMahalBaslik()
@@ -305,7 +310,7 @@ export default function Layout({ window, children }) {
     setSelectedNode()
     setIsProject()
     pageMetraj_setShow("Pozlar")
-    navigate("/firmalarim")
+    navigate("/projects")
   };
 
 
@@ -340,17 +345,19 @@ export default function Layout({ window, children }) {
               </IconButton>
             </Grid>
 
+
             <Grid item>
               <IconButton
                 color="inherit"
                 aria-label="open drawer"
                 edge="start"
-                onClick={undoProject}
-                sx={{ display: isProject ? "block" : "none" }}
+                onClick={(selectedFirma && !isProject) ? () => clearSelectedFirma() : isProject ? () => clearSelectedProject() : null}
+                sx={{ display: (selectedFirma || isProject) ? "block" : "none" }}
               >
                 <UndoIcon />
               </IconButton>
             </Grid>
+
 
             <Grid item>
               <Typography
@@ -361,7 +368,7 @@ export default function Layout({ window, children }) {
                 component="div"
                 sx={{ cursor: "pointer", display: { xs: 'none', md: 'block' } }}
               >
-                {selectedFirma ? selectedFirma.name : "Rapor7/24"}
+                {isProject ? isProject.name : selectedFirma ? selectedFirma.name : "Rapor7/24"}
               </Typography>
             </Grid>
 
@@ -468,12 +475,14 @@ export default function Layout({ window, children }) {
 
 
       {/* index page -- main */}
-      {show === "FormNewUserNecessaryDataUpdate" &&
+      {
+        show === "FormNewUserNecessaryDataUpdate" &&
         <FormProfileUpdate setShow={setShow} />
       }
 
       {/* index page -- main */}
-      {show === "RootPage" &&
+      {
+        show === "RootPage" &&
         <Box
           component="main"
           name="Tanimalama_Main"
@@ -522,7 +531,7 @@ export default function Layout({ window, children }) {
       </Box> */}
 
 
-    </Box>
+    </Box >
   );
 }
 

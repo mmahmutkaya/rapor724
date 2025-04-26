@@ -30,6 +30,11 @@ export default function P_Firmalarim() {
   const { RealmApp } = useContext(StoreContext)
   const { setSelectedFirma, setFirmaProject } = useContext(StoreContext)
 
+  useEffect(() => {
+    setSelectedFirma()
+  }, []);
+
+
   const navigate = useNavigate()
 
   const [show, setShow] = useState("Main")
@@ -40,9 +45,6 @@ export default function P_Firmalarim() {
   const handleFirmaClick = async (oneFirma) => {
     const userFirma = await RealmApp.currentUser.callFunction("collection_firmalar", { functionName: "getUserFirma", _firmaId: oneFirma._id })
     setSelectedFirma(userFirma)
-    // const firmaProject = await RealmApp.currentUser.callFunction("getFirmaProject", { projectName: oneFirma._id.toString() })
-    // console.log("firmaProject", userFirma.project)
-    // setFirmaProject(userFirma.project)
     navigate("/projects")
   }
 

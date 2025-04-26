@@ -30,8 +30,8 @@ export default function P_Projects() {
   const { RealmApp, isProject, selectedFirma, setIsProject } = useContext(StoreContext)
 
 
-
   useEffect(() => {
+    setIsProject()
     if (!selectedFirma) navigate('/firmalarim')
   }, [selectedFirma]);
 
