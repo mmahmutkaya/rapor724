@@ -4,10 +4,10 @@ import { useNavigate } from "react-router-dom";
 import { StoreContext } from '../../components/store'
 import { useGetFirmaPozlar } from '../../hooks/useMongo';
 
-import FormFirmaPozCreate from '../../components/FormFirmaPozCreate'
+import FormPozCreate from '../../components/FormPozCreate'
 import EditPozBaslik from '../../components/EditPozBaslik'
 import FormPozBaslikCreate from '../../components/FormPozBaslikCreate'
-import FirmaPozlariHeader from '../../components/FirmaPozlariHeader'
+import PozHavuzuHeader from '../../components/PozHavuzuHeader'
 
 
 import { styled } from '@mui/system';
@@ -21,30 +21,29 @@ import InfoIcon from '@mui/icons-material/Info';
 
 
 
-export default function P_FirmaPozlari() {
+export default function P_PozHavuzu() {
 
   const navigate = useNavigate()
   const { data: pozlar } = useGetFirmaPozlar()
   const { selectedFirma } = useContext(StoreContext)
-  const [show, setShow] = useState("Main")
 
   useEffect(() => {
     !selectedFirma && navigate('/firmalarim')
   }, [])
 
-  // pozlar && console.log("pozlar", pozlar)
+  pozlar && console.log("pozlar", pozlar)
 
   return (
     <Box sx={{ mt: "0rem" }}>
 
       {/* BAŞLIK */}
-      <FirmaPozlariHeader show={show} setShow={setShow} />
-
-      {show == "PozCreate" && <FormFirmaPozCreate setShow={setShow} />}
+      <PozHavuzuHeader />
 
       {/* ANA SAYFA */}
       <Box>
+
         deneme
+
       </Box>
     </Box>
   )

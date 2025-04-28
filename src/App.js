@@ -13,6 +13,7 @@ import P_FirmaKadrosu from './pages/firmakadrosu'
 
 import P_Dashboard from './pages/dashboard'
 import P_Wbs from './pages/wbs'
+import P_PozHavuzu from './pages/pozhavuzu'
 import P_Pozlar from './pages/pozlar'
 import P_Lbs from './pages/lbs'
 import P_Mahaller from './pages/mahaller'
@@ -43,6 +44,7 @@ function App() {
       {/* projects */}
       <Route path='/dashboard' element={<P_Dashboard />} />
       <Route path='/wbs' element={<P_Wbs />} />
+      <Route path='/pozhavuzu' element={<P_PozHavuzu />} />
       <Route path='/pozlar' element={<P_Pozlar />} />
       <Route path='/lbs' element={<P_Lbs />} />
       <Route path='/mahaller' element={<P_Mahaller />} />

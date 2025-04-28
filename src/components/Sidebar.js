@@ -142,6 +142,17 @@ export default function Sidebar({ setMobileOpen }) {
 
 
             <ListItemButton
+              onClick={() => navigate('/pozhavuzu')}
+              sx={{ backgroundColor: pathname == "/pozhavuzu" ? "#f0f0f1" : null }}
+            >
+              <ListItemIcon>
+                <SendIcon />
+              </ListItemIcon>
+              <ListItemText primary="Poz Havuzu" />
+            </ListItemButton>
+
+
+            <ListItemButton
               onClick={() => navigate('/wbs')}
               sx={{ backgroundColor: pathname == "/wbs" ? "#f0f0f1" : null }}
             >
