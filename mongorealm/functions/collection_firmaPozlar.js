@@ -1,5 +1,5 @@
 exports = async function ({
-  functionName, _firmaId
+  functionName, _firmaId, newPoz
 }) {
 
 
@@ -12,7 +12,7 @@ exports = async function ({
 
 
   if (functionName == "createPoz") {
-    return "deneme"
+    return newPoz
   }
 
   if (functionName == "getFirmaPozlar") {
