@@ -113,7 +113,7 @@ exports = async function ({
         }
       ])
 
-      return result 
+      return {result} 
 
     } catch (err) {
 
