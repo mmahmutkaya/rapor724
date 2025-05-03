@@ -12,7 +12,7 @@ exports = async function ({
 
 
   if (functionName == "createPoz") {
-    return newPoz
+    return {newPoz}
   }
 
   if (functionName == "getFirmaPozlar") {
