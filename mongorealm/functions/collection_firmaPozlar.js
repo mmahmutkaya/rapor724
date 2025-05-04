@@ -73,30 +73,30 @@ exports = async function ({
       {
         $match: { _firmaId:newPoz.firmaId }
       }
-    ])
+    ]).toArray()
 
-    // if (pozlar?.find(x => x.name === newPoz.pozName) && !pozNameError) {
-    //   errorObject.pozNameError = `Bu poz ismi kullanılmış`
-    //   pozNameError = true
-    //   isFormError = true
-    // }
+    if (pozlar?.find(x => x.name === newPoz.pozName) && !pozNameError) {
+      errorObject.pozNameError = `Bu poz ismi kullanılmış`
+      pozNameError = true
+      isFormError = true
+    }
 
 
-    if (!pozNo && !pozNoError) {
+    if (!newPoz.pozNo && !pozNoError) {
       errorObject.pozNoError = `Zorunlu`
       pozNoError = true
       isFormError = true
     }
 
-    // let pozFinded = pozlar?.find(x => x.pozNo == newPoz.pozNo)
-    // if (pozFinded && !pozNoError) {
-    //   errorObject.pozNoError = `'${pozFinded.pozName}' isimli poz'da bu no kullanılmış`
-    //   pozNoError = true
-    //   isFormError = true
-    // }
+    let pozFinded = pozlar?.find(x => x.pozNo == newPoz.pozNo)
+    if (pozFinded && !pozNoError) {
+      errorObject.pozNoError = `'${pozFinded.pozName}' isimli poz'da bu no kullanılmış`
+      pozNoError = true
+      isFormError = true
+    }
 
 
-    if (!pozBirimId && !pozBirimIdError) {
+    if (!newPoz.pozBirimId && !pozBirimIdError) {
       errorObject.pozBirimIdError = `Zorunlu`
       pozBirimIdError = true
       isFormError = true
