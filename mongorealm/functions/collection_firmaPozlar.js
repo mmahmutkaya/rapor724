@@ -75,7 +75,7 @@ exports = async function ({
       }
     ])
 
-    if (pozlar.find(x => x.name === newPoz.pozName) && !pozNameError) {
+    if (pozlar?.find(x => x.name === newPoz.pozName) && !pozNameError) {
       errorObject.pozNameError = `Bu poz ismi kullanılmış`
       pozNameError = true
       isFormError = true
@@ -104,7 +104,7 @@ exports = async function ({
 
 
     const collection_firmalar = context.services.get("mongodb-atlas").db("rapor724_v2").collection("firmalar")
-    const selectedFirma = await collection_firmalar.find({_id:newPoz.firmaId})
+    const selectedFirma = await collection_firmalar.findOne({_id:newPoz.firmaId})
     if (!selectedFirma.pozMetrajTipleri.find(x => x.id == newPoz.pozMetrajTipId) && !pozMetrajTipIdError) {
       errorObject.pozMetrajTipIdError = `Zorunlu`
       pozMetrajTipIdError = true
