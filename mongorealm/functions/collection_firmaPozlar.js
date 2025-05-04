@@ -12,8 +12,113 @@ exports = async function ({
 
 
   if (functionName == "createPoz") {
-    throw new Error("deneme")
-    return {newPoz}
+
+    // newPoz frontend den gelen veri
+
+    // veri düzeltme
+    if (newPoz.pozMetrajTipId === "insaatDemiri") {
+      newPoz.pozBirimId = "ton"
+    }
+
+    ////// form validation - backend
+
+    let errorObject = {}
+    let isFormError = false
+    
+    let wbsIdError
+    let pozNameError
+    let pozNoError
+    let pozBirimIdError
+    let pozMetrajTipIdError
+
+    if (typeof newPoz.firmaId !== "object") {
+      // form alanına değil - direkt ekrana uyarı veren hata - (fonksiyon da durduruluyor)
+      throw new Error("Backend de gönderilen 'firmaId' verisi 'object' değil, sayfayı yenileyiniz, sorun devam ederse Rapor7/24 ile irtibata geçiniz.")
+    }
+
+    // form alanına uyarı veren hatalar
+
+    if (typeof newPoz.wbsId !== "object" && !wbsIdError) {
+      errorObject.wbsIdError = "Zorunlu"
+      wbsIdError = true
+      isFormError = true
+    }
+
+
+    if (typeof newPoz.pozName !== "string" && !pozNameError) {
+      errorObject.pozNameError = "Zorunlu"
+      pozNameError = true
+      isFormError = true
+    }
+
+    if (typeof newPoz.pozName === "string" && !pozNameError) {
+      if (newPoz.pozName.length === 0) {
+        errorObject.pozNameError = "Zorunlu"
+        pozNameError = true
+        isFormError = true
+      }
+    }
+
+    if (typeof newPoz.pozName === "string" && !pozNameError) {
+      let minimumHaneSayisi = 3
+      if (newPoz.pozName.length > 0 && newPoz.pozName.length < minimumHaneSayisi) {
+        errorObject.pozNameError = `${minimumHaneSayisi} haneden az olamaz`
+        pozNameError = true
+        isFormError = true
+      }
+    }
+
+    const collection_firmaPozlar = context.services.get("mongodb-atlas").db("rapor724_v2_firmaPozlar").collection(newPoz.firmaId.toString())
+    const pozlar = await collection_firmaPozlar.aggregate([
+      {
+        $match: { _firmaId }
+      }
+    ])
+
+    if (pozlar.find(x => x.name === newPoz.pozName) && !pozNameError) {
+      errorObject.pozNameError = `Bu poz ismi kullanılmış`
+      pozNameError = true
+      isFormError = true
+    }
+
+
+    if (!pozNo && !pozNoError) {
+      errorObject.pozNoError = `Zorunlu`
+      pozNoError = true
+      isFormError = true
+    }
+
+    let pozFinded = pozlar?.find(x => x.pozNo == newPoz.pozNo)
+    if (pozFinded && !pozNoError) {
+      errorObject.pozNoError = `'${pozFinded.pozName}' isimli poz'da bu no kullanılmış`
+      pozNoError = true
+      isFormError = true
+    }
+
+
+    if (!pozBirimId && !pozBirimIdError) {
+      errorObject.pozBirimIdError = `Zorunlu`
+      pozBirimIdError = true
+      isFormError = true
+    }
+
+
+    const collection_firmalar = context.services.get("mongodb-atlas").db("rapor724_v2").collection("firmalar")
+    const selectedFirma = await collection_firmalar.find({_id:newPoz.firmaId})
+    if (!selectedFirma.pozMetrajTipleri.find(x => x.id == newPoz.pozMetrajTipId) && !pozMetrajTipIdError) {
+      errorObject.pozMetrajTipIdError = `Zorunlu`
+      pozMetrajTipIdError = true
+      isFormError = true
+    }
+
+
+    // form alanına uyarı veren hatalar olmuşsa burda durduralım
+    if (isFormError) {
+      return errorObject
+    }
+
+    return "kayıt yapılacak"
+
   }
 
   if (functionName == "getFirmaPozlar") {
@@ -37,7 +142,7 @@ exports = async function ({
         }
       ])
 
-      return {result} 
+      return { result }
 
     } catch (err) {
 
