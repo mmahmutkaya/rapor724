@@ -12,6 +12,7 @@ exports = async function ({
 
 
   if (functionName == "createPoz") {
+    throw new Error("deneme")
     return {newPoz}
   }
 
