@@ -75,11 +75,11 @@ exports = async function ({
       }
     ])
 
-    if (pozlar?.find(x => x.name === newPoz.pozName) && !pozNameError) {
-      errorObject.pozNameError = `Bu poz ismi kullanılmış`
-      pozNameError = true
-      isFormError = true
-    }
+    // if (pozlar?.find(x => x.name === newPoz.pozName) && !pozNameError) {
+    //   errorObject.pozNameError = `Bu poz ismi kullanılmış`
+    //   pozNameError = true
+    //   isFormError = true
+    // }
 
 
     if (!pozNo && !pozNoError) {
@@ -88,12 +88,12 @@ exports = async function ({
       isFormError = true
     }
 
-    let pozFinded = pozlar?.find(x => x.pozNo == newPoz.pozNo)
-    if (pozFinded && !pozNoError) {
-      errorObject.pozNoError = `'${pozFinded.pozName}' isimli poz'da bu no kullanılmış`
-      pozNoError = true
-      isFormError = true
-    }
+    // let pozFinded = pozlar?.find(x => x.pozNo == newPoz.pozNo)
+    // if (pozFinded && !pozNoError) {
+    //   errorObject.pozNoError = `'${pozFinded.pozName}' isimli poz'da bu no kullanılmış`
+    //   pozNoError = true
+    //   isFormError = true
+    // }
 
 
     if (!pozBirimId && !pozBirimIdError) {
