@@ -114,7 +114,7 @@ exports = async function ({
 
     // form alanına uyarı veren hatalar olmuşsa burda durduralım
     if (isFormError) {
-      return errorObject
+      return {errorObject}
     }
 
     return "kayıt yapılacak"
