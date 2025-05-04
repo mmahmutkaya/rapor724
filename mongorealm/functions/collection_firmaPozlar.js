@@ -71,9 +71,11 @@ exports = async function ({
     const collection_firmaPozlar = context.services.get("mongodb-atlas").db("rapor724_v2_firmaPozlar").collection(newPoz.firmaId.toString())
     const pozlar = await collection_firmaPozlar.aggregate([
       {
-        $match: { _firmaId }
+        $match: { _firmaId:newPoz.firmaId }
       }
     ])
+
+    return pozlar
 
     if (pozlar.find(x => x.name === newPoz.pozName) && !pozNameError) {
       errorObject.pozNameError = `Bu poz ismi kullanılmış`
