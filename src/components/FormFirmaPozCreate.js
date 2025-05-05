@@ -2,7 +2,7 @@ import { useApp } from "./useApp.js";
 import { useState, useContext } from 'react';
 import { StoreContext } from './store.js'
 import deleteLastSpace from '../functions/deleteLastSpace.js';
-import { DialogWindow } from './general/DialogWindow.js';
+import { DialogAlert } from './general/DialogAlert.js';
 import { useGetFirmaPozlar } from '../hooks/useMongo.js';
 
 
@@ -23,17 +23,23 @@ import ArrowForwardIcon from '@mui/icons-material/ArrowForward';
 
 
 // export default function FormPozCreate({ setShow, selectedFirma, refetch_pozlar }) {
+
 export default function FormFirmaPozCreate({ setShow }) {
 
+  // const RealmApp = useApp();
+  const { RealmApp } = useContext(StoreContext)
 
   const { selectedFirma, setSelectedFirma } = useContext(StoreContext)
   const { setPozlar } = useContext(StoreContext)
   const { data: pozlar } = useGetFirmaPozlar()
 
-  const [showDialog, setShowDialog] = useState(false)
-  const [dialogCase, setDialogCase] = useState("")
+  const [dialogAlert, setDialogAlert] = useState()
 
-  const [newPozError, setNewPozError] = useState(false)
+  const [wbsIdError, setWbsIdError] = useState()
+  const [pozNameError, setPozNameError] = useState()
+  const [pozNoError, setPozNoError] = useState()
+  const [pozBirimIdError, setPozBirimIdError] = useState()
+  const [pozMetrajTipIdError, setPozMetrajTipIdError] = useState()
 
   // form verilerinde kullanmak için oluşturulan useState() verileri
   // form ilk açıldığında önceden belirlenen birşeyin seçilmiş olması için alttaki satırdaki gibi yapılabiliyor
@@ -42,8 +48,6 @@ export default function FormFirmaPozCreate({ setShow }) {
   const [wbsId, setWbsId] = useState();
   const [pozBirimId, setPozBirimId] = useState();
   const [pozBirimDisabled, setPozBirimDisabled] = useState(false);
-
-  const RealmApp = useApp();
 
 
   // poz oluşturma fonksiyonu
@@ -55,98 +59,132 @@ export default function FormFirmaPozCreate({ setShow }) {
 
       // formdan gelen text verilerini alma - (çoktan seçmeliler seçildiği anda useState() kısmında güncelleniyor)
       const data = new FormData(event.currentTarget);
-      const name = deleteLastSpace(data.get('name'))
+      const pozName = deleteLastSpace(data.get('pozName'))
       const pozNo = deleteLastSpace(data.get('pozNo'))
 
       const newPoz = {
-        projectId: selectedFirma?._id,
+        firmaId: selectedFirma?._id,
         wbsId,
-        name,
+        pozName,
         pozNo,
         pozBirimId,
         pozMetrajTipId
       }
 
-      // veri düzeltme
-      if (newPoz.pozMetrajTipId === "insaatDemiri") {
-        newPoz.pozBirimId = "ton"
-      }
+      // // veri düzeltme
+      // if (newPoz.pozMetrajTipId === "insaatDemiri") {
+      //   newPoz.pozBirimId = "ton"
+      // }
 
-      ////// form validation - frontend
+      // ////// form validation - frontend
 
-      let isFormError = false
-      // form alanına değil - direkt ekrana uyarı veren hata - (fonksiyon da durduruluyor)
-      if (typeof newPoz.projectId !== "object") {
-        setDialogCase("error")
-        setShowDialog("Poz kaydı için gerekli olan  'projectId' verisinde hata tespit edildi, sayfayı yenileyiniz, sorun devam ederse Rapor7/24 ile irtibata geçiniz.")
-        console.log("kayıt için gerekli olan 'projectId' verisinde hata olduğu için bu satırın altında durduruldu")
-        return
-      }
-
-      // form alanına uyarı veren hatalar
-
-      if (typeof newPoz.wbsId !== "object") {
-        setNewPozError(prev => ({ ...prev, wbsId: "Zorunlu" }))
-        isFormError = true
-      }
+      // let wbsIdError
+      // let pozNameError
+      // let pozNoError
+      // let pozBirimIdError
+      // let pozMetrajTipIdError
+      // let isFormError = false
 
 
-      if (typeof newPoz.name !== "string") {
-        setNewPozError(prev => ({ ...prev, name: "Zorunlu" }))
-        isFormError = true
-      }
+      // if (typeof newPoz.firmaId !== "object") {
 
-      if (typeof newPoz.name === "string") {
-        if (newPoz.name.length === 0) {
-          setNewPozError(prev => ({ ...prev, name: "Zorunlu" }))
-          isFormError = true
-        }
-      }
+      //   console.log("kayıt için gerekli olan 'firmaId' verisinde hata olduğu için bu satırın altında durduruldu")
 
-      if (typeof newPoz.name === "string") {
-        let minimumHaneSayisi = 3
-        if (newPoz.name.length > 0 && newPoz.name.length < minimumHaneSayisi) {
-          setNewPozError(prev => ({ ...prev, name: `${minimumHaneSayisi} haneden az olamaz` }))
-          isFormError = true
-        }
-      }
+      //   // form alanına değil - direkt ekrana uyarı veren hata - (fonksiyon da durduruluyor)
+      //   throw new Error("Poz kaydı için gerekli olan  'firmaId' verisinde hata tespit edildi, sayfayı yenileyiniz, sorun devam ederse Rapor7/24 ile irtibata geçiniz.")
 
-      let pozFinded = pozlar.find(item => item.pozNo == newPoz.pozNo)
-      if (pozFinded) {
-        setNewPozError(prev => ({ ...prev, pozNo: `'${pozFinded.name}' isimli poz'da bu no kullanılmış` }))
-        isFormError = true
-      }
-      
+      // }
 
-      if (!selectedFirma.pozBirimleri.find(x => x.id == newPoz.pozBirimId)) {
-        setNewPozError(prev => ({ ...prev, pozBirimId: "Zorunlu" }))
-        isFormError = true
-      }
+      // // form alanına uyarı veren hatalar
 
-      if (!selectedFirma.pozMetrajTipleri.find(x => x.id == newPoz.pozMetrajTipId)) {
-        setNewPozError(prev => ({ ...prev, pozMetrajTipId: "Zorunlu" }))
-        isFormError = true
-      }
+      // if (typeof newPoz.wbsId !== "object" && !wbsIdError) {
+      //   setWbsIdError("Zorunlu")
+      //   wbsIdError = true
+      //   isFormError = true
+      // }
 
 
-      // form alanına uyarı veren hatalar olmuşsa burda durduralım
-      if (isFormError) {
-        console.log("form validation - hata - frontend")
-        return
-      }
+      // if (typeof newPoz.pozName !== "string" && !pozNameError) {
+      //   setPozNameError("Zorunlu")
+      //   pozNameError = true
+      //   isFormError = true
+      // }
 
-      console.log("newPoz",newPoz)
+      // if (typeof newPoz.pozName === "string" && !pozNameError) {
+      //   if (newPoz.pozName.length === 0) {
+      //     setPozNameError("Zorunlu")
+      //     pozNameError = true
+      //     isFormError = true
+      //   }
+      // }
+
+      // if (typeof newPoz.pozName === "string" && !pozNameError) {
+      //   let minimumHaneSayisi = 3
+      //   if (newPoz.pozName.length > 0 && newPoz.pozName.length < minimumHaneSayisi) {
+      //     setPozNameError(`${minimumHaneSayisi} haneden az olamaz`)
+      //     pozNameError = true
+      //     isFormError = true
+      //   }
+      // }
+
+      // if (pozlar.find(x => x.name === newPoz.pozName) && !pozNameError) {
+      //   setPozNameError(`Bu poz ismi kullanılmış`)
+      //   pozNameError = true
+      //   isFormError = true
+      // }
+
+
+      // if (!newPoz.pozNo && !pozNoError) {
+      //   setPozNoError(`Zorunlu`)
+      //   pozNoError = true
+      //   isFormError = true
+      // }
+
+      // let pozFinded = pozlar?.find(x => x.pozNo == newPoz.pozNo)
+      // if (pozFinded && !pozNoError) {
+      //   setPozNoError(`'${pozFinded.pozName}' isimli poz'da bu no kullanılmış`)
+      //   pozNoError = true
+      //   isFormError = true
+      // }
+
+
+      // if (!newPoz.pozBirimId && !pozBirimIdError) {
+      //   setPozBirimIdError(`Zorunlu`)
+      //   pozBirimIdError = true
+      //   isFormError = true
+      // }
+
+
+      // if (!selectedFirma.pozMetrajTipleri.find(x => x.id == newPoz.pozMetrajTipId) && !pozMetrajTipIdError) {
+      //   setPozMetrajTipIdError(`Zorunlu`)
+      //   pozMetrajTipIdError = true
+      //   isFormError = true
+      // }
+
+
+      // // form alanına uyarı veren hatalar olmuşsa burda durduralım
+      // if (isFormError) {
+      //   console.log("form validation - hata - frontend")
+      //   return
+      // }
+
+      // console.log("newPoz", newPoz)
       // return
       // form verileri kontrolden geçti - db ye göndermeyi deniyoruz
-            
-      const result = await RealmApp?.currentUser?.callFunction("createPoz", newPoz);
 
+      const result = await RealmApp?.currentUser.callFunction("collection_firmaPozlar", ({ functionName: "createPoz", newPoz }))
+
+      console.log("result", result)
 
       // form validation - backend
-      if (result.newPozError) {
-        setNewPozError(result.newPozError)
-        console.log("result.newPozError", result.newPozError)
-        console.log("form validation - hata - backend")
+      if (result.errorObject) {
+        setWbsIdError(result.errorObject.wbsIdError)
+        setPozNameError(result.errorObject.pozNameError)
+        setPozNoError(result.errorObject.pozNoError)
+        setPozBirimIdError(result.errorObject.pozBirimIdError)
+        setPozMetrajTipIdError(result.errorObject.pozMetrajTipIdError)
+        console.log("result.errorObject", result.errorObject)
+        console.log("alt satırda backend den gelen hata ile durdu")
         return
       }
       console.log("form validation - hata yok - backend")
@@ -160,24 +198,19 @@ export default function FormFirmaPozCreate({ setShow }) {
         throw new Error("db den -newProject- ve onun da -_id-  property dönmedi, sayfayı yenileyiniz, sorun devam ederse Rapor7/24 ile irtibata geçiniz..")
       }
 
-      setPozlar(oldPozlar => [...oldPozlar, result.newPoz])
-      setSelectedFirma(result.newProject)
       setShow("Main")
+
+      return
 
     } catch (err) {
 
       console.log(err)
-      let hataMesaj_ = err?.message ? err.message : "Beklenmedik hata, Rapor7/24 ile irtibata geçiniz.."
 
-      // eğer çifte kayıt oluyorsa form içindeki poz ismi girilen yere aşağıdaki mesaj gönderilir, fonksiyon durdurulur
-      if (hataMesaj_.includes("duplicate key error")) {
-        setNewPozError(prev => ({ ...prev, name: "Bu poz ismi kullanılmış" }))
-        console.log("Bu poz ismi bu projede mevcut")
-        return
-      }
-
-      setDialogCase("error")
-      setShowDialog(hataMesaj_)
+      setDialogAlert({
+        dialogIcon: "warning",
+        dialogMessage: "Beklenmedik hata, Rapor7/24 ile irtibata geçiniz..",
+        detailText: err?.message ? err.message : null
+      })
 
     }
 
@@ -197,11 +230,7 @@ export default function FormFirmaPozCreate({ setShow }) {
     if (event.target.value === "insaatDemiri") {
       setPozBirimId("ton")
       setPozBirimDisabled(true)
-      setNewPozError(prevData => {
-        const newData = { ...prevData }
-        delete newData["pozBirimId"]
-        return newData
-      })
+      setPozBirimIdError()
     }
 
   };
@@ -218,9 +247,15 @@ export default function FormFirmaPozCreate({ setShow }) {
   return (
     <div>
 
-      {showDialog &&
-        <DialogWindow dialogCase={dialogCase} showDialog={showDialog} setShowDialog={setShowDialog} />
+      {dialogAlert &&
+        <DialogAlert
+          dialogIcon={dialogAlert.dialogIcon}
+          dialogMessage={dialogAlert.dialogMessage}
+          detailText={dialogAlert.detailText}
+          onCloseAction={() => setDialogAlert()}
+        />
       }
+
 
       <Dialog
         PaperProps={{ sx: { width: "80%", position: "fixed", top: "10rem" } }}
@@ -241,16 +276,12 @@ export default function FormFirmaPozCreate({ setShow }) {
 
             {/* wbs adı seçme - çoktan seçmeli - poz başlığı için*/}
             <Box
-              onClick={() => setNewPozError(prevData => {
-                const newData = { ...prevData }
-                delete newData["wbsId"]
-                return newData
-              })}
+              onClick={() => setWbsIdError()}
               sx={{ minWidth: 120, marginBottom: "0rem" }}
             >
 
               <InputLabel
-                error={newPozError.wbsId ? true : false}
+                error={wbsIdError ? true : false}
                 id="select-wbs-label"
               >
                 <Grid container justifyContent="space-between">
@@ -267,7 +298,7 @@ export default function FormFirmaPozCreate({ setShow }) {
               </InputLabel>
 
               <Select
-                error={newPozError.wbsId ? true : false}
+                error={wbsIdError ? true : false}
                 variant="standard"
                 fullWidth
                 labelId="select-wbs-label"
@@ -356,12 +387,8 @@ export default function FormFirmaPozCreate({ setShow }) {
             {/* poz numarasının yazıldığı alan */}
             {/* tıklayınca setShowDialogError(false) çalışmasının sebebi -->  error vermişse yazmaya başlamak için tıklayınca error un silinmesi*/}
             <Box
-              onClick={() => setNewPozError(prevData => {
-                const newData = { ...prevData }
-                delete newData["pozNo"]
-                return newData
-              })}
-              sx={{ minWidth: 120, marginBottom: "2rem" }}
+              onClick={() => setPozNoError()}
+              sx={{ minWidth: 120, my: "1rem" }}
             >
               <TextField
                 sx={{
@@ -378,8 +405,8 @@ export default function FormFirmaPozCreate({ setShow }) {
                 id="pozNo"
                 name="pozNo"
                 // autoFocus
-                error={newPozError.pozNo ? true : false}
-                helperText={newPozError.pozNo}
+                error={pozNoError ? true : false}
+                helperText={pozNoError}
                 // margin="dense"
                 label="Poz No"
                 type="text"
@@ -393,11 +420,7 @@ export default function FormFirmaPozCreate({ setShow }) {
             {/* poz isminin yazıldığı alan */}
             {/* tıklayınca setShowDialogError(false) çalışmasının sebebi -->  error vermişse yazmaya başlamak için tıklayınca error un silinmesi*/}
             <Box
-              onClick={() => setNewPozError(prevData => {
-                const newData = { ...prevData }
-                delete newData["name"]
-                return newData
-              })}
+              onClick={() => setPozNameError()}
               sx={{ minWidth: 120, marginBottom: "2rem" }}
             >
               <TextField
@@ -412,11 +435,11 @@ export default function FormFirmaPozCreate({ setShow }) {
                 variant="standard"
                 // InputProps={{ sx: { height:"2rem", fontSize: "1.5rem" } }}
                 margin="normal"
-                id="name"
-                name="name"
+                id="pozName"
+                name="pozName"
                 // autoFocus
-                error={newPozError.name ? true : false}
-                helperText={newPozError.name}
+                error={pozNameError ? true : false}
+                helperText={pozNameError}
                 // margin="dense"
                 label="Poz Adi"
                 type="text"
@@ -427,15 +450,11 @@ export default function FormFirmaPozCreate({ setShow }) {
 
             {/* poz Tip seçme - çoktan seçmeli*/}
             <Box
-              onClick={() => setNewPozError(prevData => {
-                const newData = { ...prevData }
-                delete newData["pozMetrajTipId"]
-                return newData
-              })}
+              onClick={() => setPozMetrajTipIdError()}
               sx={{ minWidth: 120, marginBottom: "0rem" }}
             >
               <InputLabel
-                error={newPozError.pozMetrajTipId ? true : false}
+                error={pozMetrajTipIdError ? true : false}
                 id="select-pozMetrajTip-label"
               >
                 <Grid container justifyContent="space-between">
@@ -444,7 +463,7 @@ export default function FormFirmaPozCreate({ setShow }) {
               </InputLabel>
 
               <Select
-                error={newPozError.pozMetrajTipId ? true : false}
+                error={pozMetrajTipIdError ? true : false}
                 variant="standard"
                 fullWidth
                 labelId="select-pozMetrajTip-label"
@@ -472,15 +491,11 @@ export default function FormFirmaPozCreate({ setShow }) {
 
             {/* poz biriminin seçildiği alan */}
             <Box
-              onClick={() => setNewPozError(prevData => {
-                const newData = { ...prevData }
-                delete newData["pozBirimId"]
-                return newData
-              })}
+              onClick={() => setPozBirimIdError()}
               sx={{ minWidth: 120, marginTop: "2rem" }}
             >
               <InputLabel
-                error={newPozError.pozBirimId ? true : false}
+                error={pozBirimIdError ? true : false}
                 id="select-newPozBirim-label"
               >
                 <Grid container justifyContent="space-between">
@@ -489,7 +504,7 @@ export default function FormFirmaPozCreate({ setShow }) {
               </InputLabel>
 
               <Select
-                error={newPozError.pozBirimId ? true : false}
+                error={pozBirimIdError ? true : false}
                 variant="standard"
                 fullWidth
                 labelId="select-newPozBirim-label"

@@ -93,6 +93,7 @@ export const useGetFirmaPozlar = (onSuccess, onError) => {
   return useQuery({
     queryKey: ['firmaPozlar', selectedFirma?._id.toString()],
     queryFn: () => RealmApp?.currentUser.callFunction("collection_firmaPozlar", ({ functionName: "getFirmaPozlar", _firmaId: selectedFirma?._id })),
+    select: (data) => data.result,
     enabled: !!RealmApp && !!selectedFirma,
     onSuccess,
     onError,

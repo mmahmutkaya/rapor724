@@ -66,17 +66,13 @@ export default function PozHeader({ show, setShow }) {
           <Grid container spacing={1}>
 
             <>
-
               <Grid item >
                 <IconButton onClick={() => setShow("PozCreate")} aria-label="wbsUncliced">
                   <AddCircleOutlineIcon variant="contained"
                     sx={{ color: "blue" }} />
                 </IconButton>
               </Grid>
-
-
             </>
-
 
           </Grid>
         </Grid>
