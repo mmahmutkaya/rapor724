@@ -43,9 +43,9 @@ exports = async function ({
 
 
       let isExist = false
-      const foundFirmalar = await collection_Firmalar.find({ name: firmaName, "kisiler.email": userEmail }).toArray()
+      const foundFirmalar = await collection_Firmalar.find({ name: firmaName, "yetkiliKisiler.email": userEmail }).toArray()
       foundFirmalar.map(firma => {
-        firma.kisiler.find(personel => personel.email == userEmail && personel.yetki == "owner") ? isExist = true : null
+        firma.yetkiliKisiler.find(personel => personel.email == userEmail && personel.yetki == "owner") ? isExist = true : null
       })
       if (isExist && !errorObject.firmaNameError) {
         errorObject.firmaNameError = "Bu isimde firmanız mevcut"
