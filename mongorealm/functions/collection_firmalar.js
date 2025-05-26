@@ -61,7 +61,7 @@ exports = async function ({
         name: firmaName,
         // wbs: [], // henüz herhangi bir başlık yok fakat yok ama bu property şimdi olmazsa ilk wbs kaydında bir hata yaşıyoruz
         // lbs: [], // henüz herhangi bir başlık yok fakat yok ama bu property şimdi olmazsa ilk wbs kaydında bir hata yaşıyoruz
-        kisiler: [{ email: userEmail, yetki: "owner" }],
+        yetkiliKisiler: [{ email: userEmail, yetki: "owner" }],
         createdBy: userEmail,
         createdAt: currentTime,
         isDeleted: false
@@ -82,7 +82,7 @@ exports = async function ({
 
   if (functionName == "getFirmalarimNames") {
     try {
-      const firmalarim = await collection_Firmalar.find({ "kisiler.email": userEmail, "kisiler.yetki": "owner" }, { name: 1 }).toArray();
+      const firmalarim = await collection_Firmalar.find({ "yetkiliKisiler.email": userEmail }, { name: 1 }).toArray();
       return firmalarim;
     } catch (err) {
       throw new Error("MONGO // collection_firmalar // " + functionName + " // " + err.message);
@@ -95,7 +95,7 @@ exports = async function ({
 
   if (functionName == "getUserFirma") {
     try {
-      let firma = await collection_Firmalar.findOne({ "_id": _firmaId, "kisiler.email": userEmail });
+      let firma = await collection_Firmalar.findOne({ "_id": _firmaId, "yetkiliKisiler.email": userEmail });
       const firmaProject = await collection_Projects.findOne({ name: firma._id.toString(), isDeleted: false })
       firma.project = firmaProject
       return firma;
