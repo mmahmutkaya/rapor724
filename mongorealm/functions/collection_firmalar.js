@@ -57,95 +57,12 @@ exports = async function ({
 
 
 
-
-      //  BAZI ŞABLON BİLGİLER
-      const pozMetrajTipleri = [
-        { id: "standartMetrajSayfasi", name: "Standart Metraj Sayfası", birimId: "" },
-        { id: "insaatDemiri", name: "İnşaat Demiri", birimId: "ton" },
-      ]
-
-
-      const pozBasliklari = [
-        { _id: new BSON.ObjectId(), platform: "web", sira: 1, referans: "pozNo", goster: true, sabit: true, genislik: 7, paddingInfo: "0px 1rem 0px 0px", yatayHiza: "center", name: "Poz No", dataType: "metin" },
-        { _id: new BSON.ObjectId(), platform: "web", sira: 2, referans: "name", goster: true, sabit: true, genislik: 20, paddingInfo: "0px 1rem 0px 0px", yatayHiza: "center", name: "Poz İsmi", dataType: "metin" },
-      ]
-
-      const metrajYapabilenler = [
-        {
-          "harf": "A",
-          _userId
-        }
-      ]
-
-      const pozBirimleri = [
-        { id: "mt", name: "mt" },
-        { id: "m2", name: "m2" },
-        { id: "m3", name: "m3" },
-        { id: "kg", name: "kg" },
-        { id: "ton", name: "ton" },
-        { id: "ad", name: "ad" },
-        { id: "set", name: "set" },
-        { id: "sa", name: "sa" },
-        { id: "gun", name: "gün" },
-        { id: "hafta", name: "hafta" },
-        { id: "ay", name: "ay" },
-        { id: "yil", name: "yıl" },
-      ]
-
-      const veriTurleri = [
-        {
-          "id": "sayi",
-          "name": "SAYI"
-        },
-        {
-          "id": "tarih",
-          "name": "TARİH"
-        },
-        {
-          "id": "metin",
-          "name": "METİN"
-        }
-      ]
-
-      const haneSayilari = [
-        {
-          "id": "0",
-          "name": "0"
-        },
-        {
-          "id": "0,0",
-          "name": "0,0"
-        },
-        {
-          "id": "0,00",
-          "name": "0,00"
-        },
-        {
-          "id": "0,000",
-          "name": "0,000"
-        },
-        {
-          "id": "0,0000",
-          "name": "0,0000"
-        }
-      ]
-
-      //  POZ İÇİN BİLGİLER - BİTİŞ
-      
-
       const newFirma = {
         name: firmaName,
         // wbs: [], // henüz herhangi bir başlık yok fakat yok ama bu property şimdi olmazsa ilk wbs kaydında bir hata yaşıyoruz
         // lbs: [], // henüz herhangi bir başlık yok fakat yok ama bu property şimdi olmazsa ilk wbs kaydında bir hata yaşıyoruz
-        firmalar: [{ _id: _firmaId, yetki: "owner" }],
         kisiler: [{ email: userEmail, yetki: "owner" }],
-        metrajYapabilenler,
-        veriTurleri,
-        haneSayilari,
-        pozBasliklari,
-        pozMetrajTipleri,
-        pozBirimleri,
-        createdBy: _userId,
+        createdBy: userEmail,
         createdAt: currentTime,
         isDeleted: false
       }
