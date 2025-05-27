@@ -119,7 +119,7 @@ exports = async function ({
 
     newPoz = {
       ...newPoz,
-      createdAt:date,
+      createdAt:dateNow,
       createdBy:userEmail
     }
     return {message:"kayıt yapılacak",newPoz}
