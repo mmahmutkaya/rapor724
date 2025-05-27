@@ -45,7 +45,7 @@ exports = async function ({
     }
 
 
-    if (!newPoz.pozName && !pozNameError) {
+    if (typeof newPoz.pozName !== "string" && !pozNameError) {
       errorObject.pozNameError = "Zorunlu"
       pozNameError = true
       isFormError = true
