@@ -41,25 +41,12 @@ export default function P_Projects() {
 
 
   const { data: projectNames_firma } = useGetProjectNames_firma()
-  // console.log("projectNames_firma",projectNames_firma)
 
 
   const handleProjectClick = async (oneProject) => {
 
     try {
-
-      if (typeof oneProject._id != "object") {
-        console.log("burada")
-        setDialogAlert({
-          dialogIcon: "warning",
-          dialogMessage: "Beklenmedik hata, sayfayı yenileyiniz, sorun devam ederse Rapo724 ile irtibata geçiniz.",
-          detailText: "Sorguya '_projeId' gönderilemiyor ('kaynak frontend')",
-        })
-        return
-      }
-
       const project = await RealmApp.currentUser.callFunction("getProject", { _projectId: oneProject._id })
-
       if (!project._id) {
         setDialogAlert({
           dialogIcon: "warning",
@@ -67,8 +54,7 @@ export default function P_Projects() {
         })
         return
       }
-
-      console.log("project", project)
+      
       setIsProject(project)
 
       // await RealmApp?.currentUser.refreshCustomData()

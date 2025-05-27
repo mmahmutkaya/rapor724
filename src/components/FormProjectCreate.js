@@ -95,8 +95,6 @@ export default function P_FormProjectCreate({ setShow }) {
 
 
       const result = await RealmApp.currentUser.callFunction("collection_projects", { functionName: "createProject", _firmaId, projectName });
-      console.log("result", result)
-
 
       if (result.errorObject) {
         setProjectNameError(result.errorObject.projectNameError)

@@ -6,6 +6,7 @@ import FormFirmaCreate from '../../components/FormFirmaCreate'
 // import FirmalarHeader from '../../components/FirmalarHeader'
 import { useNavigate } from "react-router-dom";
 import { useGetFirmalarimNames } from '../../hooks/useMongo';
+import { DialogAlert } from '../../components/general/DialogAlert'
 
 
 import Paper from '@mui/material/Paper';
@@ -28,7 +29,9 @@ export default function P_Firmalarim() {
 
   // const RealmApp = useApp();
   const { RealmApp } = useContext(StoreContext)
-  const { setSelectedFirma, setFirmaProject } = useContext(StoreContext)
+  const { setSelectedFirma } = useContext(StoreContext)
+
+  const [dialogAlert, setDialogAlert] = useState()
 
   useEffect(() => {
     setSelectedFirma()
@@ -43,14 +46,35 @@ export default function P_Firmalarim() {
 
 
   const handleFirmaClick = async (oneFirma) => {
-    const userFirma = await RealmApp.currentUser.callFunction("collection_firmalar", { functionName: "getUserFirma", _firmaId: oneFirma._id })
-    setSelectedFirma(userFirma)
-    navigate("/projects")
+    try {
+      const userFirma = await RealmApp.currentUser.callFunction("collection_firmalar", { functionName: "getUserFirma", _firmaId: oneFirma._id })
+      if (userFirma._id) {
+        setSelectedFirma(userFirma)
+        navigate("/projects")
+      }
+      throw new Error("Firma kaydı bulunamadı, sayfayı yenileyiniz, sorun devam ederse rapor724 ile iletişime geçiniz.")
+    } catch (err) {
+      console.log(err)
+      setDialogAlert({
+        dialogIcon: "warning",
+        dialogMessage: "Beklenmedik hata, Rapor7/24 ile irtibata geçiniz..",
+        detailText: err?.message ? err.message : null
+      })
+    }
   }
 
 
   return (
     <Box>
+
+      {dialogAlert &&
+        <DialogAlert
+          dialogIcon={dialogAlert.dialogIcon}
+          dialogMessage={dialogAlert.dialogMessage}
+          detailText={dialogAlert.detailText}
+          onCloseAction={() => setDialogAlert()}
+        />
+      }
 
       {/* BAŞLIK */}
       <Paper >

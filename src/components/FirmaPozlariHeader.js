@@ -21,7 +21,7 @@ import FileDownloadDoneIcon from '@mui/icons-material/FileDownloadDone';
 import EditIcon from '@mui/icons-material/Edit';
 
 
-export default function PozHeader({ show, setShow }) {
+export default function FirmaPozlariHeader({ show, setShow }) {
 
   const [dialogAlert, setDialogAlert] = useState()
 
