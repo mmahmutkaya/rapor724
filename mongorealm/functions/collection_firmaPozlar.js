@@ -31,21 +31,21 @@ exports = async function ({
     let pozBirimIdError
     let pozMetrajTipIdError
 
-    if (typeof newPoz.firmaId !== "object") {
+    if (!newPoz.firmaId) {
       // form alanına değil - direkt ekrana uyarı veren hata - (fonksiyon da durduruluyor)
-      throw new Error("Backend de gönderilen 'firmaId' verisi 'object' değil, sayfayı yenileyiniz, sorun devam ederse Rapor7/24 ile irtibata geçiniz.")
+      throw new Error("DB ye gönderilen sorguda 'firmaId' verisi bulunamadı, sayfayı yenileyiniz, sorun devam ederse Rapor7/24 ile irtibata geçiniz.")
     }
 
     // form alanına uyarı veren hatalar
 
-    if (typeof newPoz.wbsId !== "object" && !wbsIdError) {
+    if (!newPoz.wbsId && !wbsIdError) {
       errorObject.wbsIdError = "Zorunlu"
       wbsIdError = true
       isFormError = true
     }
 
 
-    if (typeof newPoz.pozName !== "string" && !pozNameError) {
+    if (!newPoz.pozName && !pozNameError) {
       errorObject.pozNameError = "Zorunlu"
       pozNameError = true
       isFormError = true
