@@ -71,102 +71,102 @@ export default function FormFirmaPozCreate({ setShow }) {
         pozMetrajTipId
       }
 
-      // // veri düzeltme
-      // if (newPoz.pozMetrajTipId === "insaatDemiri") {
-      //   newPoz.pozBirimId = "ton"
-      // }
+      // veri düzeltme
+      if (newPoz.pozMetrajTipId === "insaatDemiri") {
+        newPoz.pozBirimId = "ton"
+      }
 
-      // ////// form validation - frontend
+      ////// form validation - frontend
 
-      // let wbsIdError
-      // let pozNameError
-      // let pozNoError
-      // let pozBirimIdError
-      // let pozMetrajTipIdError
-      // let isFormError = false
-
-
-      // if (typeof newPoz.firmaId !== "object") {
-
-      //   console.log("kayıt için gerekli olan 'firmaId' verisinde hata olduğu için bu satırın altında durduruldu")
-
-      //   // form alanına değil - direkt ekrana uyarı veren hata - (fonksiyon da durduruluyor)
-      //   throw new Error("Poz kaydı için gerekli olan  'firmaId' verisinde hata tespit edildi, sayfayı yenileyiniz, sorun devam ederse Rapor7/24 ile irtibata geçiniz.")
-
-      // }
-
-      // // form alanına uyarı veren hatalar
-
-      // if (typeof newPoz.wbsId !== "object" && !wbsIdError) {
-      //   setWbsIdError("Zorunlu")
-      //   wbsIdError = true
-      //   isFormError = true
-      // }
+      let wbsIdError
+      let pozNameError
+      let pozNoError
+      let pozBirimIdError
+      let pozMetrajTipIdError
+      let isFormError = false
 
 
-      // if (typeof newPoz.pozName !== "string" && !pozNameError) {
-      //   setPozNameError("Zorunlu")
-      //   pozNameError = true
-      //   isFormError = true
-      // }
+      if (!newPoz.firmaId) {
 
-      // if (typeof newPoz.pozName === "string" && !pozNameError) {
-      //   if (newPoz.pozName.length === 0) {
-      //     setPozNameError("Zorunlu")
-      //     pozNameError = true
-      //     isFormError = true
-      //   }
-      // }
+        console.log("kayıt için gerekli olan 'firmaId' verisinde hata olduğu için bu satırın altında durduruldu")
 
-      // if (typeof newPoz.pozName === "string" && !pozNameError) {
-      //   let minimumHaneSayisi = 3
-      //   if (newPoz.pozName.length > 0 && newPoz.pozName.length < minimumHaneSayisi) {
-      //     setPozNameError(`${minimumHaneSayisi} haneden az olamaz`)
-      //     pozNameError = true
-      //     isFormError = true
-      //   }
-      // }
+        // form alanına değil - direkt ekrana uyarı veren hata - (fonksiyon da durduruluyor)
+        throw new Error("Poz kaydı için gerekli olan  'firmaId' verisinde hata tespit edildi, sayfayı yenileyiniz, sorun devam ederse Rapor7/24 ile irtibata geçiniz.")
 
-      // if (pozlar.find(x => x.name === newPoz.pozName) && !pozNameError) {
-      //   setPozNameError(`Bu poz ismi kullanılmış`)
-      //   pozNameError = true
-      //   isFormError = true
-      // }
+      }
+
+      // form alanına uyarı veren hatalar
+
+      if (!newPoz.wbsId && !wbsIdError) {
+        setWbsIdError("Zorunlu")
+        wbsIdError = true
+        isFormError = true
+      }
 
 
-      // if (!newPoz.pozNo && !pozNoError) {
-      //   setPozNoError(`Zorunlu`)
-      //   pozNoError = true
-      //   isFormError = true
-      // }
+      if (typeof newPoz.pozName !== "string" && !pozNameError) {
+        setPozNameError("Zorunlu")
+        pozNameError = true
+        isFormError = true
+      }
 
-      // let pozFinded = pozlar?.find(x => x.pozNo == newPoz.pozNo)
-      // if (pozFinded && !pozNoError) {
-      //   setPozNoError(`'${pozFinded.pozName}' isimli poz'da bu no kullanılmış`)
-      //   pozNoError = true
-      //   isFormError = true
-      // }
+      if (typeof newPoz.pozName === "string" && !pozNameError) {
+        if (newPoz.pozName.length === 0) {
+          setPozNameError("Zorunlu")
+          pozNameError = true
+          isFormError = true
+        }
+      }
+
+      if (typeof newPoz.pozName === "string" && !pozNameError) {
+        let minimumHaneSayisi = 3
+        if (newPoz.pozName.length > 0 && newPoz.pozName.length < minimumHaneSayisi) {
+          setPozNameError(`${minimumHaneSayisi} haneden az olamaz`)
+          pozNameError = true
+          isFormError = true
+        }
+      }
+
+      if (pozlar.find(x => x.name === newPoz.pozName) && !pozNameError) {
+        setPozNameError(`Bu poz ismi kullanılmış`)
+        pozNameError = true
+        isFormError = true
+      }
 
 
-      // if (!newPoz.pozBirimId && !pozBirimIdError) {
-      //   setPozBirimIdError(`Zorunlu`)
-      //   pozBirimIdError = true
-      //   isFormError = true
-      // }
+      if (!newPoz.pozNo && !pozNoError) {
+        setPozNoError(`Zorunlu`)
+        pozNoError = true
+        isFormError = true
+      }
+
+      let pozFinded = pozlar?.find(x => x.pozNo == newPoz.pozNo)
+      if (pozFinded && !pozNoError) {
+        setPozNoError(`'${pozFinded.pozName}' isimli poz'da bu no kullanılmış`)
+        pozNoError = true
+        isFormError = true
+      }
 
 
-      // if (!selectedFirma.pozMetrajTipleri.find(x => x.id == newPoz.pozMetrajTipId) && !pozMetrajTipIdError) {
-      //   setPozMetrajTipIdError(`Zorunlu`)
-      //   pozMetrajTipIdError = true
-      //   isFormError = true
-      // }
+      if (!newPoz.pozBirimId && !pozBirimIdError) {
+        setPozBirimIdError(`Zorunlu`)
+        pozBirimIdError = true
+        isFormError = true
+      }
 
 
-      // // form alanına uyarı veren hatalar olmuşsa burda durduralım
-      // if (isFormError) {
-      //   console.log("form validation - hata - frontend")
-      //   return
-      // }
+      if (!selectedFirma.pozMetrajTipleri.find(x => x.id == newPoz.pozMetrajTipId) && !pozMetrajTipIdError) {
+        setPozMetrajTipIdError(`Zorunlu`)
+        pozMetrajTipIdError = true
+        isFormError = true
+      }
+
+
+      // form alanına uyarı veren hatalar olmuşsa burda durduralım
+      if (isFormError) {
+        console.log("form validation - hata - frontend")
+        return
+      }
 
       // console.log("newPoz", newPoz)
       // return
@@ -244,6 +244,8 @@ export default function FormFirmaPozCreate({ setShow }) {
   let wbsCode
   let wbsName
 
+
+
   return (
     <div>
 
@@ -271,7 +273,6 @@ export default function FormFirmaPozCreate({ setShow }) {
               Poz Oluştur
               {/* </Typography> */}
             </DialogContentText>
-
 
 
             {/* wbs adı seçme - çoktan seçmeli - poz başlığı için*/}

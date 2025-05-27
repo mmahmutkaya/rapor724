@@ -1,5 +1,4 @@
 import React from 'react'
-
 import { useState, useContext, useEffect } from 'react';
 import { StoreContext } from './store'
 
@@ -22,6 +21,9 @@ import EditIcon from '@mui/icons-material/Edit';
 
 
 export default function FirmaPozlariHeader({ show, setShow }) {
+
+  const { selectedFirma } = useContext(StoreContext)
+
 
   return (
     <Paper >
@@ -53,9 +55,8 @@ export default function FirmaPozlariHeader({ show, setShow }) {
 
             <>
               <Grid item >
-                <IconButton onClick={() => setShow("PozCreate")} aria-label="wbsUncliced">
-                  <AddCircleOutlineIcon variant="contained"
-                    sx={{ color: "blue" }} />
+                <IconButton onClick={() => setShow("PozCreate")} aria-label="wbsUncliced" disabled={!selectedFirma?.wbs.find(x => x.openForPoz === true)}>
+                  <AddCircleOutlineIcon variant="contained" />
                 </IconButton>
               </Grid>
             </>

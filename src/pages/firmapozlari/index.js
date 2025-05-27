@@ -44,11 +44,21 @@ export default function P_FirmaPozlari() {
       {/* POZ OLUŞTURULACAKSA */}
       {show == "PozCreate" && <FormFirmaPozCreate setShow={setShow} />}
 
+
       {/* EĞER POZ YOKSA */}
-      {show == "Main" && !pozlar?.length > 0 &&
+      {show == "Main" && !selectedFirma?.wbs.find(x => x.openForPoz === true) &&
         <Stack sx={{ width: '100%', padding: "1rem" }} spacing={2}>
           <Alert severity="info">
-            Firma poz havuzuna henüz herhangi bir poz kaydedilmemiş, menüler yardımı ile poz oluşturmaya başlayabilirsiniz.
+            Öncelikle poz oluşturmaya açık poz başlığı oluşturmalısınız.
+          </Alert>
+        </Stack>
+      }
+
+      {/* EĞER POZ YOKSA */}
+      {show == "Main" && selectedFirma?.wbs.find(x => x.openForPoz === true) && !pozlar?.length > 0 &&
+        <Stack sx={{ width: '100%', padding: "1rem" }} spacing={2}>
+          <Alert severity="info">
+            Menüler yardımı ile poz oluşturmaya başlayabilirsiniz.
           </Alert>
         </Stack>
       }
