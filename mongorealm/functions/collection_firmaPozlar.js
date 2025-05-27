@@ -10,7 +10,10 @@ exports = async function ({
   if (!mailTeyit) throw new Error("MONGO // collection_firmaPozlar // Öncelikle üyeliğinize ait mail adresinin size ait olduğunu doğrulamalısınız, tekrar giriş yapmayı deneyiniz veya bizimle iletişime geçiniz.")
 
   const dateNow = new Date()
+  const collection_firmaPozlar = context.services.get("mongodb-atlas").db("rapor724_v2_firmaPozlar").collection(newPoz.firmaId.toString())
+  const collection_firmalar = context.services.get("mongodb-atlas").db("rapor724_v2").collection("firmalar")
 
+  
   if (functionName == "createPoz") {
 
     // newPoz frontend den gelen veri
@@ -68,10 +71,10 @@ exports = async function ({
       }
     }
 
-    const collection_firmaPozlar = context.services.get("mongodb-atlas").db("rapor724_v2_firmaPozlar").collection(newPoz.firmaId.toString())
+  
     const pozlar = await collection_firmaPozlar.aggregate([
       {
-        $match: { _firmaId:newPoz.firmaId }
+        $match: { isDeleted:false }
       }
     ]).toArray()
 
@@ -103,7 +106,6 @@ exports = async function ({
     }
 
 
-    const collection_firmalar = context.services.get("mongodb-atlas").db("rapor724_v2").collection("firmalar")
     const selectedFirma = await collection_firmalar.findOne({_id:newPoz.firmaId})
     if (!selectedFirma.pozMetrajTipleri.find(x => x.id == newPoz.pozMetrajTipId) && !pozMetrajTipIdError) {
       errorObject.pozMetrajTipIdError = `Zorunlu`
@@ -120,7 +122,8 @@ exports = async function ({
     newPoz = {
       ...newPoz,
       createdAt:dateNow,
-      createdBy:userEmail
+      createdBy:userEmail,
+      isDeleted:false
     }
     return {message:"kayıt yapılacak",newPoz}
 
@@ -128,7 +131,7 @@ exports = async function ({
 
   if (functionName == "getFirmaPozlar") {
 
-    if (typeof _firmaId !== "object") throw new Error("MONGO // collection_firmaPozlar // " + functionName + " // -- sorguya gönderilen --firmaId-- türü doğru değil, lütfen Rapor7/24 ile irtibata geçiniz. ")
+    if (!_firmaId) throw new Error("MONGO // collection_firmaPozlar // " + functionName + " // -- sorguya gönderilen --firmaId-- türü doğru değil, lütfen Rapor7/24 ile irtibata geçiniz. ")
 
     // aşağıdaki form verilerinden birinde hata tespit edilmişse
     // alt satırda oluşturulan errorObject objesine form verisi ile ilişkilendirilmiş  property oluşturulup, içine yazı yazılıyor
@@ -137,13 +140,11 @@ exports = async function ({
     // form ile ilişkilendirilmiş ilgili alana ait bir ke hata yazısı yazılmışsa yani null değilse üstüne yazı yazılmıyor, ilk tespit edilen hata değiştirilmmeiş oluyor
 
 
-    const collection_firmaPozlar = context.services.get("mongodb-atlas").db("rapor724_v2").collection("firmalar")
-
     try {
 
       const result = await collection_firmaPozlar.aggregate([
         {
-          $match: { _firmaId }
+          $match: { isDeleted:false }
         }
       ])
 
