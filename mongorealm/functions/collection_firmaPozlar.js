@@ -9,7 +9,7 @@ exports = async function ({
   const mailTeyit = user.custom_data.mailTeyit
   if (!mailTeyit) throw new Error("MONGO // collection_firmaPozlar // Öncelikle üyeliğinize ait mail adresinin size ait olduğunu doğrulamalısınız, tekrar giriş yapmayı deneyiniz veya bizimle iletişime geçiniz.")
 
-
+  const dateNow = new Date()
 
   if (functionName == "createPoz") {
 
@@ -117,7 +117,12 @@ exports = async function ({
       return {errorObject}
     }
 
-    return "kayıt yapılacak"
+    newPoz = {
+      ...newPoz,
+      createdAt:date,
+      createdBy:userEmail
+    }
+    return {message:"kayıt yapılacak",newPoz}
 
   }
 
