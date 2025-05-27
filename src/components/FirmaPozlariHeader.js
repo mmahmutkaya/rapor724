@@ -2,7 +2,7 @@ import React from 'react'
 
 import { useState, useContext, useEffect } from 'react';
 import { StoreContext } from './store'
-import { DialogAlert } from './general/DialogAlert';
+
 
 import Typography from '@mui/material/Typography';
 import Grid from '@mui/material/Grid';
@@ -23,20 +23,8 @@ import EditIcon from '@mui/icons-material/Edit';
 
 export default function FirmaPozlariHeader({ show, setShow }) {
 
-  const [dialogAlert, setDialogAlert] = useState()
-
   return (
     <Paper >
-
-      {dialogAlert &&
-        <DialogAlert
-          dialogIcon={dialogAlert.dialogIcon}
-          dialogMessage={dialogAlert.dialogMessage}
-          detailText={dialogAlert.detailText}
-          onCloseAction={() => setDialogAlert()}
-        />
-      }
-
 
       <Grid
         container
@@ -44,8 +32,6 @@ export default function FirmaPozlariHeader({ show, setShow }) {
         alignItems="center"
         sx={{ padding: "0.5rem 1rem", maxHeight: "5rem" }}
       >
-
-
 
         {/* sol kısım (başlık) */}
         <Grid item xs>

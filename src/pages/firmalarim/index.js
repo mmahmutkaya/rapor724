@@ -52,7 +52,6 @@ export default function P_Firmalarim() {
         setSelectedFirma(userFirma)
         navigate("/projects")
       }
-      throw new Error("Firma kaydı bulunamadı, sayfayı yenileyiniz, sorun devam ederse rapor724 ile iletişime geçiniz.")
     } catch (err) {
       console.log(err)
       setDialogAlert({

@@ -32,6 +32,7 @@ export default function P_FirmaPozlari() {
     !selectedFirma && navigate('/firmalarim')
   }, [])
 
+  pozlar?.length && console.log("pozlar", pozlar)
   // pozlar && console.log("pozlar", pozlar)
 
   return (
@@ -40,13 +41,24 @@ export default function P_FirmaPozlari() {
       {/* BAŞLIK */}
       <FirmaPozlariHeader show={show} setShow={setShow} />
 
+      {/* POZ OLUŞTURULACAKSA */}
       {show == "PozCreate" && <FormFirmaPozCreate setShow={setShow} />}
 
+      {/* EĞER POZ YOKSA */}
+      {show == "Main" && !pozlar?.length > 0 &&
+        <Stack sx={{ width: '100%', padding: "1rem" }} spacing={2}>
+          <Alert severity="info">
+            Firma poz havuzuna henüz herhangi bir poz kaydedilmemiş, menüler yardımı ile poz oluşturmaya başlayabilirsiniz.
+          </Alert>
+        </Stack>
+      }
+
+
       {/* ANA SAYFA */}
-      <Box>
-        deneme
-      </Box>
+
+
     </Box>
+
   )
 
 }
