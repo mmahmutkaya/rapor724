@@ -106,7 +106,7 @@ exports = async function ({
     }
 
 
-    const selectedFirma = await collection_firmalar.findOne({_id:newPoz.firmaId})
+    const selectedFirma = await collection_firmalar.findOne({_id:_firmaId})
     if (!selectedFirma.pozMetrajTipleri.find(x => x.id == newPoz.pozMetrajTipId) && !pozMetrajTipIdError) {
       errorObject.pozMetrajTipIdError = `Zorunlu`
       pozMetrajTipIdError = true
