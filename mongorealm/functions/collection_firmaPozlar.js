@@ -10,7 +10,7 @@ exports = async function ({
   if (!mailTeyit) throw new Error("MONGO // collection_firmaPozlar // Öncelikle üyeliğinize ait mail adresinin size ait olduğunu doğrulamalısınız, tekrar giriş yapmayı deneyiniz veya bizimle iletişime geçiniz.")
 
   const dateNow = new Date()
-  const collection_firmaPozlar = context.services.get("mongodb-atlas").db("rapor724_v2_firmaPozlar").collection(newPoz.firmaId.toString())
+  const collection_firmaPozlar = context.services.get("mongodb-atlas").db("rapor724_v2_firmaPozlar").collection(_firmaId.toString())
   const collection_firmalar = context.services.get("mongodb-atlas").db("rapor724_v2").collection("firmalar")
 
   
@@ -34,7 +34,7 @@ exports = async function ({
     let pozBirimIdError
     let pozMetrajTipIdError
 
-    if (!newPoz.firmaId) {
+    if (!_firmaId) {
       // form alanına değil - direkt ekrana uyarı veren hata - (fonksiyon da durduruluyor)
       throw new Error("DB ye gönderilen sorguda 'firmaId' verisi bulunamadı, sayfayı yenileyiniz, sorun devam ederse Rapor7/24 ile irtibata geçiniz.")
     }
@@ -133,7 +133,7 @@ exports = async function ({
       _id:result.insertedId
     }
     
-    return result
+    return {newPoz}
 
   }
 
