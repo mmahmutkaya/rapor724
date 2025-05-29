@@ -151,8 +151,24 @@ exports = async function ({
 
       const result = await collection_firmaPozlar.aggregate([
         {
-          $match: { isDeleted:false }
-        }
+          $project: {
+            wbsId:1,
+            pozNo:1,
+            pozName:1,
+            pozBirimId:1,
+            pozMetrajTipId:1
+          }
+        },       
+        {
+          $match: {
+            isDeleted:false
+          }
+        },
+        {
+          $project: {
+            isDeleted:0
+          }
+        }     
       ])
 
       return { result }
