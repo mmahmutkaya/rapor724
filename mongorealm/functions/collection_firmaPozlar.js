@@ -125,7 +125,10 @@ exports = async function ({
       createdBy:userEmail,
       isDeleted:false
     }
-    return {message:"kayıt yapılacak",newPoz}
+    
+    const result = collection_firmaPozlar.insertOne(newPoz)
+    
+    return result
 
   }
 
