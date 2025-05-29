@@ -127,6 +127,11 @@ exports = async function ({
     }
     
     const result = collection_firmaPozlar.insertOne(newPoz)
+
+    newPoz = {
+      ...newPoz,
+      _id:result.insertedId
+    }
     
     return result
 
