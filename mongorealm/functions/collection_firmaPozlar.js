@@ -156,7 +156,8 @@ exports = async function ({
             pozNo:1,
             pozName:1,
             pozBirimId:1,
-            pozMetrajTipId:1
+            pozMetrajTipId:1,
+            isDeleted:1
           }
         },       
         {
