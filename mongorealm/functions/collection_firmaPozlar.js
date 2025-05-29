@@ -125,7 +125,7 @@ exports = async function ({
       isDeleted:false
     }
     
-    const result = collection_firmaPozlar.insertOne(newPoz)
+    const result = await collection_firmaPozlar.insertOne(newPoz)
 
     newPoz = {
       ...newPoz,
