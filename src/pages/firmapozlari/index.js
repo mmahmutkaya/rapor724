@@ -33,7 +33,9 @@ export default function P_FirmaPozlari() {
   }, [])
 
   pozlar?.length && console.log("pozlar", pozlar)
+
   // pozlar && console.log("pozlar", pozlar)
+  // console.log("pozlar", pozlar)
 
   return (
     <Box sx={{ mt: "0rem" }}>

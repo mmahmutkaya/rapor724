@@ -66,25 +66,6 @@ export const useGetFirmalarimNames = (onSuccess, onError) => {
 
 
 
-
-export const useGetMahaller = (onSuccess, onError) => {
-
-  // const RealmApp = useApp();
-  const { isProject, RealmApp } = useContext(StoreContext)
-
-  return useQuery({
-    queryKey: ['mahaller', isProject?._id.toString()],
-    queryFn: () => RealmApp?.currentUser.callFunction("getProjectMahaller", ({ projectId: isProject?._id })),
-    enabled: !!RealmApp && !!isProject,
-    onSuccess,
-    onError,
-    refetchOnMount: false,
-    refetchOnWindowFocus: false
-  })
-
-}
-
-
 export const useGetFirmaPozlar = (onSuccess, onError) => {
 
   // const RealmApp = useApp();
@@ -102,6 +83,25 @@ export const useGetFirmaPozlar = (onSuccess, onError) => {
   })
 
 }
+
+
+
+export const useGetMahaller = (onSuccess, onError) => {
+
+  // const RealmApp = useApp();
+  const { isProject, RealmApp } = useContext(StoreContext)
+
+  return useQuery({
+    queryKey: ['mahaller', isProject?._id.toString()],
+    queryFn: () => RealmApp?.currentUser.callFunction("getProjectMahaller", ({ projectId: isProject?._id })),
+    enabled: !!RealmApp && !!isProject,
+    onSuccess,
+    onError,
+    refetchOnMount: false,
+    refetchOnWindowFocus: false
+  })  
+
+}  
 
 
 

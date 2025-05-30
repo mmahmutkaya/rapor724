@@ -4,6 +4,8 @@ import { StoreContext } from './store.js'
 import deleteLastSpace from '../functions/deleteLastSpace.js';
 import { DialogAlert } from './general/DialogAlert.js';
 import { useGetFirmaPozlar } from '../hooks/useMongo.js';
+import { useQueryClient } from '@tanstack/react-query'
+
 
 
 //mui
@@ -26,11 +28,11 @@ import ArrowForwardIcon from '@mui/icons-material/ArrowForward';
 
 export default function FormFirmaPozCreate({ setShow }) {
 
+  const queryClient = useQueryClient()
   // const RealmApp = useApp();
   const { RealmApp } = useContext(StoreContext)
 
-  const { selectedFirma, setSelectedFirma } = useContext(StoreContext)
-  const { setPozlar } = useContext(StoreContext)
+  const { selectedFirma } = useContext(StoreContext)
   const { data: pozlar } = useGetFirmaPozlar()
 
   const [dialogAlert, setDialogAlert] = useState()
@@ -53,6 +55,8 @@ export default function FormFirmaPozCreate({ setShow }) {
   // poz oluşturma fonksiyonu
   async function handleSubmit(event) {
 
+    console.log("burası çalıştı")
+
     event.preventDefault();
 
     try {
@@ -63,7 +67,6 @@ export default function FormFirmaPozCreate({ setShow }) {
       const pozNo = deleteLastSpace(data.get('pozNo'))
 
       const newPoz = {
-        firmaId: selectedFirma?._id,
         wbsId,
         pozName,
         pozNo,
@@ -85,15 +88,6 @@ export default function FormFirmaPozCreate({ setShow }) {
       let pozMetrajTipIdError
       let isFormError = false
 
-
-      if (!newPoz.firmaId) {
-
-        console.log("kayıt için gerekli olan 'firmaId' verisinde hata olduğu için bu satırın altında durduruldu")
-
-        // form alanına değil - direkt ekrana uyarı veren hata - (fonksiyon da durduruluyor)
-        throw new Error("Poz kaydı için gerekli olan  'firmaId' verisinde hata tespit edildi, sayfayı yenileyiniz, sorun devam ederse Rapor7/24 ile irtibata geçiniz.")
-
-      }
 
       // form alanına uyarı veren hatalar
 
@@ -127,7 +121,7 @@ export default function FormFirmaPozCreate({ setShow }) {
         }
       }
 
-      if (pozlar.find(x => x.name === newPoz.pozName) && !pozNameError) {
+      if (pozlar?.find(x => x.name === newPoz.pozName) && !pozNameError) {
         setPozNameError(`Bu poz ismi kullanılmış`)
         pozNameError = true
         isFormError = true
@@ -169,12 +163,13 @@ export default function FormFirmaPozCreate({ setShow }) {
       }
 
       // console.log("newPoz", newPoz)
+      // console.log("selectedFirma._id", selectedFirma._id)
       // return
       // form verileri kontrolden geçti - db ye göndermeyi deniyoruz
 
-      const result = await RealmApp?.currentUser.callFunction("collection_firmaPozlar", ({ functionName: "createPoz", newPoz }))
+      const result = await RealmApp?.currentUser.callFunction("collection_firmaPozlar", ({ functionName: "createPoz", _firmaId: selectedFirma._id, newPoz }))
 
-      console.log("result", result)
+      // console.log("result", result)
 
       // form validation - backend
       if (result.errorObject) {
@@ -194,9 +189,11 @@ export default function FormFirmaPozCreate({ setShow }) {
         throw new Error("db den -newPoz- ve onun da -_id-  property dönmedi, sayfayı yenileyiniz, sorun devam ederse Rapor7/24 ile irtibata geçiniz..")
       }
 
-      if (!result.newProject?._id) {
-        throw new Error("db den -newProject- ve onun da -_id-  property dönmedi, sayfayı yenileyiniz, sorun devam ederse Rapor7/24 ile irtibata geçiniz..")
-      }
+      console.log("pozlarr", pozlar)
+      queryClient.setQueryData(['firmaPozlar', selectedFirma?._id.toString()], (pozlar2) => {
+        console.log("pozlar2", pozlar2)
+        return [...pozlar2, newPoz]
+      })
 
       setShow("Main")
 
