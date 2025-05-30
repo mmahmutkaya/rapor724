@@ -10,7 +10,7 @@ exports = async function ({
   if (!mailTeyit) throw new Error("MONGO // collection_firmaPozlar // Öncelikle üyeliğinize ait mail adresinin size ait olduğunu doğrulamalısınız, tekrar giriş yapmayı deneyiniz veya bizimle iletişime geçiniz.")
 
   const dateNow = new Date()
-  const collection_firmaPozlar = context.services.get("mongodb-atlas").db("rapor724_v2_firmaPozlar").collection(newPoz.firmaId.toString())
+  const collection_firmaPozlar = context.services.get("mongodb-atlas").db("rapor724_v2_firmaPozlar").collection(_firmaId.toString())
   const collection_firmalar = context.services.get("mongodb-atlas").db("rapor724_v2").collection("firmalar")
 
   
@@ -34,7 +34,7 @@ exports = async function ({
     let pozBirimIdError
     let pozMetrajTipIdError
 
-    if (!newPoz.firmaId) {
+    if (!_firmaId) {
       // form alanına değil - direkt ekrana uyarı veren hata - (fonksiyon da durduruluyor)
       throw new Error("DB ye gönderilen sorguda 'firmaId' verisi bulunamadı, sayfayı yenileyiniz, sorun devam ederse Rapor7/24 ile irtibata geçiniz.")
     }
@@ -106,8 +106,7 @@ exports = async function ({
     }
 
 
-    const selectedFirma = await collection_firmalar.findOne({_id:newPoz.firmaId})
-    if (!selectedFirma.pozMetrajTipleri.find(x => x.id == newPoz.pozMetrajTipId) && !pozMetrajTipIdError) {
+    if (!newPoz.pozMetrajTipId) {
       errorObject.pozMetrajTipIdError = `Zorunlu`
       pozMetrajTipIdError = true
       isFormError = true
@@ -125,7 +124,15 @@ exports = async function ({
       createdBy:userEmail,
       isDeleted:false
     }
-    return {message:"kayıt yapılacak",newPoz}
+    
+    const result = await collection_firmaPozlar.insertOne(newPoz)
+
+    newPoz = {
+      ...newPoz,
+      _id:result.insertedId
+    }
+    
+    return {newPoz}
 
   }
 
@@ -144,8 +151,25 @@ exports = async function ({
 
       const result = await collection_firmaPozlar.aggregate([
         {
-          $match: { isDeleted:false }
-        }
+          $project: {
+            wbsId:1,
+            pozNo:1,
+            pozName:1,
+            pozBirimId:1,
+            pozMetrajTipId:1,
+            isDeleted:1
+          }
+        },       
+        {
+          $match: {
+            isDeleted:false
+          }
+        },
+        {
+          $project: {
+            isDeleted:0
+          }
+        }     
       ])
 
       return { result }
