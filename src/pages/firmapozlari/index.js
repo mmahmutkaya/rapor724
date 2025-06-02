@@ -9,7 +9,7 @@ import { StoreContext } from '../../components/store'
 import { useGetFirmaPozlar } from '../../hooks/useMongo';
 
 import FormFirmaPozCreate from '../../components/FormFirmaPozCreate'
-import EditPozBaslik from '../../components/EditPozBaslik'
+import ShowFirmaPozBaslik from '../../components/ShowFirmaPozBaslik'
 import FormPozBaslikCreate from '../../components/FormPozBaslikCreate'
 import FirmaPozlariHeader from '../../components/FirmaPozlariHeader'
 
@@ -45,9 +45,12 @@ export default function P_FirmaPozlari() {
   }, [])
 
 
-  const [col, setCol] = useState({ ...myTema.sayfalar.firmapozlari.gorulebilenKolonlar })
+  const [basliklar, setBasliklar] = useState({
+    pozAciklama: true,
+    pozVersiyon: true
+  })
 
-  const columns = useState(`5rem 15rem 5rem${col.pozAciklama ? " 1rem 10rem" : ""}${col.pozVersiyon ? " 1rem 5rem" : ""}`)
+  const columns = useState(`5rem 15rem 5rem${basliklar.pozAciklama ? " 1rem 10rem" : ""}${basliklar.pozVersiyon ? " 1rem 5rem" : ""}`)
 
 
   const enUstBaslik_css = {
@@ -96,10 +99,15 @@ export default function P_FirmaPozlari() {
     <Box sx={{ mt: "0rem" }}>
 
       {/* BAŞLIK */}
-      <FirmaPozlariHeader show={show} setShow={setShow} col={col} setCol={setCol} />
+      <FirmaPozlariHeader show={show} setShow={setShow} col={col} />
+
 
       {/* POZ OLUŞTURULACAKSA */}
       {show == "PozCreate" && <FormFirmaPozCreate setShow={setShow} />}
+
+
+      {/* BAŞLIK GÖSTER / GİZLE */}
+      {show == "ShowBaslik" && <ShowFirmaPozBaslik setShow={setShow} />}
 
 
       {/* EĞER POZ YOKSA */}
@@ -146,7 +154,7 @@ export default function P_FirmaPozlari() {
           </Box>
 
           {/* BAŞLIK - POZ BİRİM  */}
-          {col.pozAciklama &&
+          {basliklar.pozAciklama &&
             <>
               <Box sx={{ ...bosluk_css }}></Box>
               <Box sx={{ ...enUstBaslik_css }}>
@@ -156,7 +164,7 @@ export default function P_FirmaPozlari() {
           }
 
           {/* BAŞLIK - VERSİYON */}
-          {col.pozVersiyon &&
+          {basliklar.pozVersiyon &&
             <>
               <Box sx={{ ...bosluk_css }}></Box>
               <Box sx={{ ...enUstBaslik_css }}>
@@ -178,7 +186,7 @@ export default function P_FirmaPozlari() {
           </Box>
 
           {/* BAŞLIK - POZ BİRİM  */}
-          {col.pozAciklama &&
+          {basliklar.pozAciklama &&
             <>
               <Box sx={{ ...bosluk_css }}></Box>
               <Box sx={{ ...wbsBaslik_css2 }} />
@@ -186,7 +194,7 @@ export default function P_FirmaPozlari() {
           }
 
           {/* BAŞLIK - VERSİYON */}
-          {col.pozVersiyon &&
+          {basliklar.pozVersiyon &&
             <>
               <Box sx={{ ...bosluk_css }} />
               <Box sx={{ ...wbsBaslik_css2 }} />
@@ -212,7 +220,7 @@ export default function P_FirmaPozlari() {
               </Box>
 
               {/* BAŞLIK - POZ BİRİM  */}
-              {col.pozAciklama &&
+              {basliklar.pozAciklama &&
                 <>
                   <Box sx={{ ...bosluk_css }}></Box>
                   <Box sx={{ ...pozNo_css }}>
@@ -222,7 +230,7 @@ export default function P_FirmaPozlari() {
               }
 
               {/* BAŞLIK - VERSİYON */}
-              {col.pozVersiyon &&
+              {basliklar.pozVersiyon &&
                 <>
                   <Box sx={{ ...bosluk_css }} />
                   <Box sx={{ ...pozNo_css }}>

@@ -1,0 +1,126 @@
+import { useState, useContext } from 'react';
+import { useApp } from "./useApp.js";
+import { StoreContext } from './store.js'
+import { DialogAlert } from './general/DialogAlert.js';
+
+
+//mui
+import Box from '@mui/material/Box';
+import Grid from '@mui/material/Grid';
+import Switch from '@mui/material/Switch';
+import Dialog from '@mui/material/Dialog';
+
+
+
+export default function ShowFirmaPozBaslik({ setShow, col, setCol }) {
+
+  const RealmApp = useApp();
+  const [dialogAlert, setDialogAlert] = useState()
+
+
+  const handleChange = async (oneBaslik, switchValue) => {
+
+    const updateData = {
+      // functionName: switchValue ? "pushItem" : "pullItem",
+      // upProperty: "pozBasliklari",
+      // propertyName:"show",
+      // propertyValue:"webPage_pozlar",
+      // _projectId: firmaProject._id,
+      // _baslikId: oneBaslik._id
+    }
+
+
+    try {
+
+      // clientSide tarafındaki veri güncelleme
+
+      if (switchValue) {
+        // setFirmaProject(firmaProject => {
+        //   firmaProject.pozBasliklari = firmaProject.pozBasliklari.map(item => {
+        //     if (item._id.toString() == oneBaslik._id.toString()) {
+        //       if (Array.isArray(item.show)) {
+        //         item.show.push("webPage_pozlar")
+        //       } else {
+        //         item.show = ["webPage_pozlar"]
+        //       }
+        //       return item
+        //     } else {
+        //       return item
+        //     }
+        //   })
+        //   return firmaProject
+        // })
+      }
+      if (!switchValue) {
+        // setFirmaProject(firmaProject => {
+        //   firmaProject.pozBasliklari = firmaProject.pozBasliklari.map(item => {
+        //     if (item._id.toString() == oneBaslik._id.toString()) {
+        //       item.show = item.show.filter(item => item.indexOf("webPage_pozlar"))
+        //       return item
+        //     } else {
+        //       return item
+        //     }
+        //   })
+        //   return firmaProject
+        // })
+      }
+
+
+      await RealmApp.currentUser.callFunction("updateCustomProjectSettings", updateData)
+
+    } catch (err) {
+
+      console.log(err)
+
+      setDialogAlert({
+        dialogIcon: "warning",
+        dialogMessage: "Beklenmedik hata, Rapor7/24 ile irtibata geçiniz..",
+        detailText: err?.message ? err.message : null
+      })
+
+    }
+
+
+  }
+
+
+
+  return (
+
+    <>
+
+      {dialogAlert &&
+        <DialogAlert
+          dialogIcon={dialogAlert.dialogIcon}
+          dialogMessage={dialogAlert.dialogMessage}
+          detailText={dialogAlert.detailText}
+          onCloseAction={() => setDialogAlert()}
+        />
+      }
+
+      <Dialog
+        PaperProps={{ sx: { width: "30rem", position: "fixed", top: "10rem", p: "1.5rem" } }}
+        open={true}
+        onClose={() => setShow("Main")}
+      >
+
+
+        <Box sx={{ display: "grid", gridTemplateColumns: "1fr 5rem", alignItems: "center", justifyItems: "center" }}>
+          <Box>Deneme</Box>
+          <Switch checked={false} onChange={() => console.log("deneme1")} />
+        </Box>
+
+
+        {/* <Switch checked={oneBaslik.goster} onChange={() => console.log("deneme1")} /> */}
+
+        {/* <Box>
+          Herhangi bir ilave başlık oluşturulmamış
+        </Box> */}
+
+      </Dialog>
+    </ >
+  );
+
+
+
+}
