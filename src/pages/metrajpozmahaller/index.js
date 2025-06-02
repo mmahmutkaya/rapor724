@@ -72,7 +72,7 @@ export default function P_MetrajPozMahaller() {
 
 
 
-  let lbsArray = isProject?.lbs
+  let openLbsArray = isProject?.lbs
     .filter(item => item.openForMahal === true)
     .sort(function (a, b) {
       var nums1 = a.code.split(".");
@@ -188,9 +188,9 @@ export default function P_MetrajPozMahaller() {
       </Grid>
 
 
-      {!lbsArray?.length > 0 && <Box>henüz herhangi bir LBS mahal eklemeye açılmamış</Box>}
+      {!openLbsArray?.length > 0 && <Box>henüz herhangi bir LBS mahal eklemeye açılmamış</Box>}
 
-      {lbsArray?.length > 0 &&
+      {openLbsArray?.length > 0 &&
 
 
 
@@ -237,7 +237,7 @@ export default function P_MetrajPozMahaller() {
           {/* {console.log("isProject", isProject)} */}
           {/* LBS BAŞLIK BİLGİLERİ SATIRI */}
 
-          {lbsArray?.map((oneLbs, index) => {
+          {openLbsArray?.map((oneLbs, index) => {
 
             return (
               <Fragment key={index}>

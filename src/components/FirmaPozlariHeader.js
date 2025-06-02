@@ -20,7 +20,7 @@ import FileDownloadDoneIcon from '@mui/icons-material/FileDownloadDone';
 import EditIcon from '@mui/icons-material/Edit';
 
 
-export default function FirmaPozlariHeader({ show, setShow }) {
+export default function FirmaPozlariHeader({ show, setShow, col, setCol }) {
 
   const { selectedFirma } = useContext(StoreContext)
 
@@ -53,13 +53,17 @@ export default function FirmaPozlariHeader({ show, setShow }) {
         <Grid item xs="auto">
           <Grid container spacing={1}>
 
-            <>
               <Grid item >
                 <IconButton onClick={() => setShow("PozCreate")} aria-label="wbsUncliced" disabled={!selectedFirma?.wbs.find(x => x.openForPoz === true)}>
                   <AddCircleOutlineIcon variant="contained" />
                 </IconButton>
               </Grid>
-            </>
+
+              <Grid item >
+                <IconButton onClick={() => setShow("PozCreate")} aria-label="wbsUncliced" disabled={!selectedFirma?.wbs.find(x => x.openForPoz === true)}>
+                  <AddCircleOutlineIcon variant="contained" />
+                </IconButton>
+              </Grid>
 
           </Grid>
         </Grid>
