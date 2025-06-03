@@ -31,7 +31,7 @@ export default function P_FirmaPozlari() {
   const queryClient = useQueryClient()
 
   const { data: pozlar } = useGetFirmaPozlar()
-  const { myTema } = useContext(StoreContext)
+  const { RealmApp, myTema } = useContext(StoreContext)
   const { selectedFirma } = useContext(StoreContext)
 
   // console.log("selectedFirma", selectedFirma)
@@ -44,15 +44,23 @@ export default function P_FirmaPozlari() {
     !selectedFirma && navigate('/firmalarim')
   }, [])
 
+  const [basliklar, setBasliklar] = useState(RealmApp.currentUser.customData.customSettings.pages.firmapozlari.basliklar)
 
-  const [basliklar, setBasliklar] = useState([
-    { id: "pozAciklama", baslikName: "Açıklama", visible: true, show: true },
-    { id: "pozVersiyon", baslikName: "Versiyon", visible: true, show: true }
-  ])
+  if (basliklar && !basliklar.find(x => x.hasOwnProperty("baslikName"))) {
+    setBasliklar(basliklar => {
+      const basliklar2 = basliklar.map(oneBaslik => {
+        if (oneBaslik.id === "pozAciklama") oneBaslik.baslikName = "Açıklama"
+        if (oneBaslik.id === "pozVersiyon") oneBaslik.baslikName = "Versiyon"
+        return oneBaslik
+      })
+      return basliklar2
+    })
+  }
+
   const anyBaslikShow = basliklar.find(x => x.visible) ? true : false
 
   const pozAciklamaShow = basliklar.find(x => x.id === "pozAciklama").show
-  
+
   const pozVersiyonShow = basliklar.find(x => x.id === "pozVersiyon").show
 
   const columns = `5rem 15rem 5rem${pozAciklamaShow ? " 1rem 10rem" : ""}${pozVersiyonShow ? " 1rem 5rem" : ""}`

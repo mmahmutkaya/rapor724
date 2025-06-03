@@ -84,16 +84,28 @@ export default function ShowFirmaPozBaslik({ setShow, basliklar, setBasliklar })
   }
 
 
-  const baslikUpdate = (oneBaslik) => {
+  const baslikUpdate = async (oneBaslik) => {
+
     setBasliklar(basliklar => {
-      return (
-        basliklar.map(oneBaslik2 => {
-          if (oneBaslik2.id === oneBaslik.id) {
-            oneBaslik2.show = !oneBaslik.show
-            return oneBaslik2
-          }
+
+      const basliklar2 = basliklar.map(oneBaslik2 => {
+        if (oneBaslik2.id === oneBaslik.id) {
+          oneBaslik2.show = !oneBaslik.show
           return oneBaslik2
-        })
+        }
+        return oneBaslik2
+      })
+
+      const basliklar3 = basliklar2.map(x => {
+        delete x.baslikName
+        return x
+      })
+      const result = RealmApp?.currentUser.callFunction("customSettings_update", ({ functionName: "sayfaBasliklari", basliklar: basliklar3 }))
+      RealmApp?.currentUser.refreshCustomData()
+      console.log("result", result)
+      
+      return (
+        basliklar2
       )
     })
   }
