@@ -12,7 +12,7 @@ import Dialog from '@mui/material/Dialog';
 
 
 
-export default function ShowFirmaPozBaslik({ setShow, col, setCol }) {
+export default function ShowFirmaPozBaslik({ setShow, basliklar, setBasliklar }) {
 
   const RealmApp = useApp();
   const [dialogAlert, setDialogAlert] = useState()
@@ -84,6 +84,20 @@ export default function ShowFirmaPozBaslik({ setShow, col, setCol }) {
   }
 
 
+  const baslikUpdate = (oneBaslik) => {
+    setBasliklar(basliklar => {
+      return (
+        basliklar.map(oneBaslik2 => {
+          if (oneBaslik2.id === oneBaslik.id) {
+            oneBaslik2.show = !oneBaslik.show
+            return oneBaslik2
+          }
+          return oneBaslik2
+        })
+      )
+    })
+  }
+
 
   return (
 
@@ -104,11 +118,13 @@ export default function ShowFirmaPozBaslik({ setShow, col, setCol }) {
         onClose={() => setShow("Main")}
       >
 
+        {basliklar.filter(x => x.visible).map((oneBaslik, index) =>
+          <Box key={index} sx={{ display: "grid", gridTemplateColumns: "1fr 5rem", alignItems: "center", justifyItems: "center" }}>
+            <Box>{oneBaslik.baslikName}</Box>
+            <Switch checked={oneBaslik.show} onChange={() => baslikUpdate(oneBaslik)} />
+          </Box>
+        )}
 
-        <Box sx={{ display: "grid", gridTemplateColumns: "1fr 5rem", alignItems: "center", justifyItems: "center" }}>
-          <Box>Deneme</Box>
-          <Switch checked={false} onChange={() => console.log("deneme1")} />
-        </Box>
 
 
         {/* <Switch checked={oneBaslik.goster} onChange={() => console.log("deneme1")} /> */}

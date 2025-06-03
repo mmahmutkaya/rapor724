@@ -20,7 +20,7 @@ import FileDownloadDoneIcon from '@mui/icons-material/FileDownloadDone';
 import EditIcon from '@mui/icons-material/Edit';
 
 
-export default function FirmaPozlariHeader({ show, setShow }) {
+export default function FirmaPozlariHeader({ show, setShow, anyBaslikShow }) {
 
   const { selectedFirma } = useContext(StoreContext)
 
@@ -54,7 +54,7 @@ export default function FirmaPozlariHeader({ show, setShow }) {
           <Grid container spacing={1}>
 
             <Grid item >
-              <IconButton onClick={() => setShow("ShowBaslik")} aria-label="wbsUncliced" disabled={false}>
+              <IconButton onClick={() => setShow("ShowBaslik")} aria-label="wbsUncliced" disabled={!anyBaslikShow}>
                 <VisibilityIcon variant="contained" />
               </IconButton>
             </Grid>
