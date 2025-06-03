@@ -24,6 +24,7 @@ exports = async function ({
       {email:userEmail},
       {$set:{"customSettings.pages.firmapozlari.basliklar":basliklar}}
     )
+    return
   }
   
 
