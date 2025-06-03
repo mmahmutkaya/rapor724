@@ -93,7 +93,7 @@ exports = async function ({
 
     let pozFinded = pozlar?.find(x => x.pozNo === newPoz.pozNo)
     if (pozFinded && !pozNoError) {
-      errorObject.pozNoError = `'${pozFinded.pozName}' isimli poz'da bu no kullanılmış`
+      errorObject.pozNoError = `Bu poz numarası kullanılmış`
       pozNoError = true
       isFormError = true
     }
