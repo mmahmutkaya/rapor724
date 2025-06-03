@@ -436,5 +436,11 @@
         "private": false,
         "run_as_system": true,
         "disable_arg_logs": true
+    },
+    {
+        "name": "customSettings_update",
+        "private": false,
+        "run_as_system": true,
+        "disable_arg_logs": true
     }
 ]
