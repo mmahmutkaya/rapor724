@@ -19,8 +19,8 @@ exports = async function (user) {
     pages:{
       firmapozlari:{
         basliklar:[
-          { id: "pozAciklama", baslikName: "Açıklama", visible: true, show: true },
-          { id: "pozVersiyon", baslikName: "Versiyon", visible: true, show: true }
+          { id: "pozAciklama", visible: true, show: true },
+          { id: "pozVersiyon", visible: true, show: true }
         ]
       }
     }
