@@ -15,7 +15,16 @@ exports = async function (user) {
   //   return ({ok:false, hataYeri:"MONGODB // FONK // sendMail_ConfirmationCode", hataMesaj:"payload içindeki mail adresi hatalı", payload:{email} })
   // }
 
-
+  const customSettings = {
+    pages:{
+      firmapozlari:{
+        basliklar:[
+          { id: "pozAciklama", visible: true, show: true },
+          { id: "pozVersiyon", visible: true, show: true }
+        ]
+      }
+    }
+  }
     
   // user custom data için userId yi oluşturma, daha önceden bu mail adresine isim soyisim firma gibi bilgiler varsa bilgiler muhafaza edilmiş oluyor
   let resultdbKayit
@@ -23,7 +32,7 @@ exports = async function (user) {
     const collection_Users = context.services.get("mongodb-atlas").db("rapor724_v2").collection("users")
     resultMongo = await collection_Users.updateOne(
       { email },
-      { $set: { userId, isActive:true} },
+      { $set: { userId, isActive:true, customSettings } },
       { upsert: true }
     );
     resultdbKayit = {ok:true, yer:"maile gidecek kodu db ye kaydetme", mesaj:"kod db ye kaydedildi", resultMongo }
