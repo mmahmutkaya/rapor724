@@ -78,7 +78,7 @@ exports = async function ({
       }
     ]).toArray()
 
-    if (pozlar?.find(x => x.name === newPoz.pozName) && !pozNameError) {
+    if (pozlar?.find(x => x.pozName === newPoz.pozName) && !pozNameError) {
       errorObject.pozNameError = `Bu poz ismi kullanılmış`
       pozNameError = true
       isFormError = true
@@ -91,7 +91,7 @@ exports = async function ({
       isFormError = true
     }
 
-    let pozFinded = pozlar?.find(x => x.pozNo == newPoz.pozNo)
+    let pozFinded = pozlar?.find(x => x.pozNo === newPoz.pozNo)
     if (pozFinded && !pozNoError) {
       errorObject.pozNoError = `'${pozFinded.pozName}' isimli poz'da bu no kullanılmış`
       pozNoError = true
