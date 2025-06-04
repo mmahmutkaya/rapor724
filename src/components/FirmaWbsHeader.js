@@ -2,10 +2,13 @@ import { useState, useContext } from 'react';
 import { StoreContext } from './store'
 import { DialogAlert } from './general/DialogAlert';
 
+import { useNavigate } from "react-router-dom";
 
 
+import UndoIcon from '@mui/icons-material/Undo';
 import Typography from '@mui/material/Typography';
 import Grid from '@mui/material/Grid';
+import Box from '@mui/material/Box';
 import Paper from '@mui/material/Paper';
 import IconButton from '@mui/material/IconButton';
 import DeleteIcon from '@mui/icons-material/Delete';
@@ -28,6 +31,8 @@ import { styled } from '@mui/material/styles';
 
 
 export default function WbsHeader({ RealmApp, setShow, nameMode, setNameMode, codeMode, setCodeMode }) {
+
+  const navigate = useNavigate()
 
   const { drawerWidth, topBarHeight, subHeaderHeight } = useContext(StoreContext)
 
@@ -554,20 +559,34 @@ export default function WbsHeader({ RealmApp, setShow, nameMode, setNameMode, co
         <Grid
           container
           justifyContent="space-between"
-          sx={{ alignItems: "center", padding: "0rem 0.5rem", height: subHeaderHeight }}
+          sx={{ alignItems: "center", padding: "0rem 0.25rem", height: subHeaderHeight }}
         >
 
           {/* başlık sol */}
-          <Grid item  >
-            <Typography
-              sx={{ display: { xs: 'none', sm: "block" } }}
-              color={"black"}
-              variant="h5"
-              fontWeight="bold"
-            >
-              Poz Başlıkları
-            </Typography>
-          </Grid>
+          <Box sx={{ display: { xs: 'none', sm: "grid" }, gridAutoFlow: "column", alignItems: "center" }}>
+
+            {/* <Grid item>
+              <IconButton
+                aria-label="open drawer"
+                onClick={() => navigate('/firmapozlari')}
+              >
+                <UndoIcon />
+              </IconButton>
+            </Grid> */}
+
+            <Grid item  sx={{ml:"0.5rem"}}>
+              <Typography
+                color="black"
+                variant="h6"
+                noWrap
+                component="div"
+              >
+                Poz Başlıkları (WBS) 
+              </Typography>
+            </Grid>
+
+
+          </Box>
 
 
           {/* başlık sağ */}

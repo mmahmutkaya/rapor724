@@ -121,7 +121,7 @@ export default function FormFirmaPozCreate({ setShow }) {
         }
       }
 
-      if (pozlar?.find(x => x.name === newPoz.pozName) && !pozNameError) {
+      if (pozlar?.find(x => x.pozName === newPoz.pozName) && !pozNameError) {
         setPozNameError(`Bu poz ismi kullanılmış`)
         pozNameError = true
         isFormError = true
@@ -136,7 +136,7 @@ export default function FormFirmaPozCreate({ setShow }) {
 
       let pozFinded = pozlar?.find(x => x.pozNo == newPoz.pozNo)
       if (pozFinded && !pozNoError) {
-        setPozNoError(`'${pozFinded.pozName}' isimli poz'da bu no kullanılmış`)
+        setPozNoError(`Bu poz numarası kullanılmış`)
         pozNoError = true
         isFormError = true
       }

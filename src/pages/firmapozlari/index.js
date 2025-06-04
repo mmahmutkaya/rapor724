@@ -190,71 +190,92 @@ export default function P_FirmaPozlari() {
 
 
 
-        {/* WBS BAŞLIĞI */}
-        {/* <Box sx={{ display: "grid", gridTemplateColumns: columns, gridTemplateAreas: gridAreas_wbsBaslik }}> */}
-        <Box sx={{ mt: "1rem", display: "grid", gridTemplateColumns: columns }}>
-
-          <Box sx={{ ...wbsBaslik_css }}>
-            Wbs İsmi
-          </Box>
-
-          {/* BAŞLIK - POZ BİRİM  */}
-          {pozAciklamaShow &&
-            <>
-              <Box sx={{ ...bosluk_css }}></Box>
-              <Box sx={{ ...wbsBaslik_css2 }} />
-            </>
-          }
-
-          {/* BAŞLIK - VERSİYON */}
-          {pozVersiyonShow &&
-            <>
-              <Box sx={{ ...bosluk_css }} />
-              <Box sx={{ ...wbsBaslik_css2 }} />
-            </>
-          }
-
-        </Box>
 
 
-        {/* POZLAR */}
-        {pozlar?.map((onePoz, index) => {
+        {/* WBS BAŞLIĞI ve ALTINDA POZLARI*/}
+
+        {selectedFirma.wbs.filter(x => x.openForPoz).map((oneWbs, index) => {
+
           return (
-            // <Box key={index} sx={{ display: "grid", gridTemplateColumns: columns, gridTemplateAreas: gridAreas_pozSatir }}>
-            <Box key={index} sx={{ display: "grid", gridTemplateColumns: columns }}>
-              <Box sx={{ ...pozNo_css }}>
-                {onePoz.pozNo}
-              </Box>
-              <Box sx={{ ...pozNo_css, pl: "0.5rem", justifyItems: "start" }}>
-                {onePoz.pozName}
-              </Box>
-              <Box sx={{ ...pozNo_css }}>
-                {pozBirimleri.find(x => x.id === onePoz.pozBirimId).name}
+
+            <React.Fragment key={index}>
+
+              {/* WBS BAŞLIĞI */}
+              <Box sx={{ mt: "1rem", display: "grid", gridTemplateColumns: columns }}>
+
+                <Box sx={{ ...wbsBaslik_css }}>
+                  {oneWbs.name}
+                </Box>
+
+                {/* BAŞLIK - POZ BİRİM  */}
+                {pozAciklamaShow &&
+                  <>
+                    <Box sx={{ ...bosluk_css }}></Box>
+                    <Box sx={{ ...wbsBaslik_css2 }} />
+                  </>
+                }
+
+                {/* BAŞLIK - VERSİYON */}
+                {pozVersiyonShow &&
+                  <>
+                    <Box sx={{ ...bosluk_css }} />
+                    <Box sx={{ ...wbsBaslik_css2 }} />
+                  </>
+                }
+
               </Box>
 
-              {/* BAŞLIK - POZ BİRİM  */}
-              {pozAciklamaShow &&
-                <>
-                  <Box sx={{ ...bosluk_css }}></Box>
-                  <Box sx={{ ...pozNo_css }}>
-                    {onePoz.pozAciklama}
+
+              {/* WBS'İN POZLARI */}
+              {pozlar?.filter(x => x.wbsId.toString() === oneWbs._id.toString()).map((onePoz, index) => {
+                return (
+                  // <Box key={index} sx={{ display: "grid", gridTemplateColumns: columns, gridTemplateAreas: gridAreas_pozSatir }}>
+                  <Box key={index} sx={{ display: "grid", gridTemplateColumns: columns }}>
+                    <Box sx={{ ...pozNo_css }}>
+                      {onePoz.pozNo}
+                    </Box>
+                    <Box sx={{ ...pozNo_css, pl: "0.5rem", justifyItems: "start" }}>
+                      {onePoz.pozName}
+                    </Box>
+                    <Box sx={{ ...pozNo_css }}>
+                      {pozBirimleri.find(x => x.id === onePoz.pozBirimId).name}
+                    </Box>
+
+                    {/* BAŞLIK - POZ BİRİM  */}
+                    {pozAciklamaShow &&
+                      <>
+                        <Box sx={{ ...bosluk_css }}></Box>
+                        <Box sx={{ ...pozNo_css }}>
+                          {onePoz.pozAciklama}
+                        </Box>
+                      </>
+                    }
+
+                    {/* BAŞLIK - VERSİYON */}
+                    {pozVersiyonShow &&
+                      <>
+                        <Box sx={{ ...bosluk_css }} />
+                        <Box sx={{ ...pozNo_css }}>
+                          {onePoz.pozVersiyon}
+                        </Box>
+                      </>
+                    }
+
                   </Box>
-                </>
-              }
+                )
+              })}
 
-              {/* BAŞLIK - VERSİYON */}
-              {pozVersiyonShow &&
-                <>
-                  <Box sx={{ ...bosluk_css }} />
-                  <Box sx={{ ...pozNo_css }}>
-                    {onePoz.pozVersiyon}
-                  </Box>
-                </>
-              }
 
-            </Box>
+            </React.Fragment>
+
+
           )
         })}
+
+
+
+
+
 
 
       </Box>

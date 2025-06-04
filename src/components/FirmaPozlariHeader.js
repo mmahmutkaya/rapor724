@@ -1,5 +1,7 @@
 import React from 'react'
 import { useState, useContext, useEffect } from 'react';
+import { useNavigate } from "react-router-dom";
+
 import { StoreContext } from './store'
 
 
@@ -23,7 +25,7 @@ import EditIcon from '@mui/icons-material/Edit';
 export default function FirmaPozlariHeader({ show, setShow, anyBaslikShow }) {
 
   const { selectedFirma } = useContext(StoreContext)
-
+  const navigate = useNavigate()
 
   return (
     <Paper >
@@ -52,6 +54,12 @@ export default function FirmaPozlariHeader({ show, setShow, anyBaslikShow }) {
         {/* sağ kısım - (tuşlar)*/}
         <Grid item xs="auto">
           <Grid container spacing={1}>
+
+            {/* <Grid item >
+              <IconButton onClick={() => navigate('/firmawbs')} aria-label="wbsUncliced" disabled={!anyBaslikShow}>
+                <Typography sx={{ fontWeight: "600" }}> WBS</Typography >
+              </IconButton>
+            </Grid> */}
 
             <Grid item >
               <IconButton onClick={() => setShow("ShowBaslik")} aria-label="wbsUncliced" disabled={!anyBaslikShow}>
