@@ -1,5 +1,6 @@
 exports = async function ({
   functionName,
+  sayfa,
   basliklar
 }) {
   const user = await context.user;
@@ -22,80 +23,11 @@ exports = async function ({
   if (functionName == "sayfaBasliklari") {
     const result = collection_Users.updateOne(
       {email:userEmail},
-      {$set:{"customSettings.pages.firmapozlari.basliklar":basliklar}}
+      {$set:{"customSettings.pages[sayfa].basliklar":basliklar}}
     )
     return {result,basliklar}
   }
   
-
-  if (functionName == "pullItem") {
-    result = await collection_Users.updateOne({ userId: user.id }, [
-      {
-        $set: {
-          customProjectSettings: {
-            $map: {
-              input: "$customProjectSettings",
-              as: "oneSet",
-              in: {
-                $cond: {
-                  if: {
-                    $eq: [_projectId, "$$oneSet._projectId"],
-                  },
-                  then: {
-                    $mergeObjects: [
-                      "$$oneSet",
-                      {
-                        [upProperty]: {
-                          $map: {
-                            input: "$$oneSet." + upProperty,
-                            as: "oneBaslik",
-                            in: {
-                              $cond: {
-                                if: {
-                                  $eq: [_baslikId, "$$oneBaslik._id"],
-                                },
-                                then: {
-                                  $mergeObjects: [
-                                    "$$oneBaslik",
-                                    {
-                                      [propertyName]: {
-                                        $filter: {
-                                          input: "$$oneBaslik." + propertyName,
-                                          as: "oneShow",
-                                          cond: {
-                                            $lt: [
-                                              {
-                                                $indexOfBytes: [
-                                                  "$$oneShow",
-                                                  propertyValue,
-                                                ],
-                                              },
-                                              0,
-                                            ],
-                                          },
-                                        },
-                                      },
-                                    },
-                                  ],
-                                },
-                                else: "$$oneBaslik",
-                              },
-                            },
-                          },
-                        },
-                      },
-                    ],
-                  },
-                  else: "$$oneSet",
-                },
-              },
-            },
-          },
-        },
-      },
-    ]);
-    return { result, situation: "hide", functionName };
-  }
 
   return { situation: "empty" };
 };
