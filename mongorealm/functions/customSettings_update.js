@@ -23,7 +23,7 @@ exports = async function ({
   if (functionName == "sayfaBasliklari") {
     const result = collection_Users.updateOne(
       {email:userEmail},
-      {$set:{"customSettings.pages[sayfa].basliklar":basliklar}}
+      {$set:{"`customSettings.pages.${sayfa}.basliklar`":basliklar}}
     )
     return {result,basliklar}
   }
