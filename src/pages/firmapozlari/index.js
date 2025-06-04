@@ -108,6 +108,10 @@ export default function P_FirmaPozlari() {
     borderLeft: "1px solid black"
   }
 
+  let wbsCode
+  let wbsName
+  let cOunt
+
   return (
     <Box sx={{ mt: "0rem" }}>
 
@@ -194,7 +198,7 @@ export default function P_FirmaPozlari() {
 
         {/* WBS BAŞLIĞI ve ALTINDA POZLARI*/}
 
-        {selectedFirma.wbs.filter(x => x.openForPoz).map((oneWbs, index) => {
+        {selectedFirma?.wbs.filter(x => x.openForPoz).map((oneWbs, index) => {
 
           return (
 
@@ -204,8 +208,42 @@ export default function P_FirmaPozlari() {
               <Box sx={{ mt: "1rem", display: "grid", gridTemplateColumns: columns }}>
 
                 <Box sx={{ ...wbsBaslik_css }}>
-                  {oneWbs.name}
+
+                  {/* HAYALET */}
+                  <Box sx={{ display: "none" }}>
+                    {cOunt = oneWbs.code.split(".").length}
+                  </Box>
+
+                  {
+                    oneWbs.code.split(".").map((codePart, index) => {
+
+                      if (index == 0 && cOunt == 1) {
+                        wbsCode = codePart
+                        wbsName = selectedFirma?.wbs.find(item => item.code == wbsCode).name
+                      }
+
+                      if (index == 0 && cOunt !== 1) {
+                        wbsCode = codePart
+                        wbsName = selectedFirma?.wbs.find(item => item.code == wbsCode).codeName
+                      }
+
+                      if (index !== 0 && index + 1 !== cOunt && cOunt !== 1) {
+                        wbsCode = wbsCode + "." + codePart
+                        wbsName = wbsName + " > " + selectedFirma?.wbs.find(item => item.code == wbsCode).codeName
+                      }
+
+                      if (index !== 0 && index + 1 == cOunt && cOunt !== 1) {
+                        wbsCode = wbsCode + "." + codePart
+                        wbsName = wbsName + " > " + selectedFirma?.wbs.find(item => item.code == wbsCode).name
+                      }
+
+                    })
+                  }
+
+                  <Typography>{wbsName}</Typography>
+
                 </Box>
+
 
                 {/* BAŞLIK - POZ BİRİM  */}
                 {pozAciklamaShow &&
