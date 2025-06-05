@@ -54,7 +54,7 @@ exports = async function ({
       {$set:{["customSettings.pages." + sayfaName + '.basliklar.$[baslik].show']:showValue}},
       { arrayFilters: [{ 'baslik.id': baslikId }] }
     )
-    return {result,basliklar}
+    return {result}
   }
   
 
