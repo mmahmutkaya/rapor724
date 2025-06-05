@@ -5,6 +5,8 @@ exports = async function ({
 }) {
   const user = await context.user;
   const userEmail = context.user.data.email;
+
+  return {data:context.values.get("pages")}
   
   const _userId = new BSON.ObjectId(user.id);
   const mailTeyit = user.custom_data.mailTeyit;
