@@ -6,8 +6,6 @@ exports = async function ({
   const user = await context.user;
   const userEmail = context.user.data.email;
 
-  return {data:context.values.get("pages")}
-  
   const _userId = new BSON.ObjectId(user.id);
   const mailTeyit = user.custom_data.mailTeyit;
   if (!mailTeyit)
@@ -16,6 +14,14 @@ exports = async function ({
     );
 
 
+  const pages = context.values.get("pages")
+  if(!pages.find(x => x.name === page)) 
+    throw new Error(
+      "MONGO // updateCustomSettings --  Başlık güncellemesi yapmak isdeğiniz sayfa ismi mongodb atlas app context values verileri içinde mevcut değil"
+    );
+  
+
+  
   const collection_Users = context.services
     .get("mongodb-atlas")
     .db("rapor724_v2")
