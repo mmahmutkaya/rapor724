@@ -14,12 +14,6 @@ exports = async function ({
     );
 
 
-  const pages = context.values.get("pages")
-  if(pageName && !pages.find(x => x.name === pageName)) 
-    throw new Error(
-      "MONGO // updateCustomSettings --  Başlık güncellemesi yapmak isdeğiniz sayfa ismi mongodb atlas app context values verileri içinde mevcut değil"
-    );
-  
 
   
   const collection_Users = context.services
@@ -29,6 +23,19 @@ exports = async function ({
 
 
   if (functionName == "sayfaBasliklari") {
+
+    if(!pageName) {
+      throw new Error(
+        "MONGO // updateCustomSettings --  Başlık güncellemesi yapmak istediniz fakat başlık numarası göndermediniz, sayfayı yenileyiniz, sorun devam ederse lütfen iletişime geçiniz."
+      );
+    }
+  
+   if(pageName && !pages.find(x => x.name === pageName)) {
+    throw new Error(
+      "MONGO // updateCustomSettings --  Başlık güncellemesi yapmak isdeğiniz sayfa ismi mongodb atlas app context values verileri içinde mevcut değil"
+    );
+   }
+  
     const result = collection_Users.updateOne(
       {email:userEmail},
       {$set:{["customSettings.pages." + pageName + '.basliklar']:basliklar}}
