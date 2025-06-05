@@ -37,7 +37,7 @@ exports = async function ({
       );
     }
   
-   if(showValue !== true || showValue !== false) {
+   if(!(showValue === true || showValue === false)) {
       throw new Error(
         "MONGO // updateCustomSettings --  Başlık güncellemesi yapmak istediniz fakat 'showValue' göndermediniz, sayfayı yenileyiniz, sorun devam ederse lütfen iletişime geçiniz."
       );
