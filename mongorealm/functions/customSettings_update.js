@@ -1,7 +1,8 @@
 exports = async function ({
   functionName,
-  pageName,
-  basliklar
+  sayfaName,
+  baslikId,
+  showValue
 }) {
   const user = await context.user;
   const userEmail = context.user.data.email;
@@ -24,21 +25,34 @@ exports = async function ({
 
   if (functionName == "sayfaBasliklari") {
 
-    if(!pageName) {
+    if(!sayfaName) {
       throw new Error(
-        "MONGO // updateCustomSettings --  Başlık güncellemesi yapmak istediniz fakat başlık numarası göndermediniz, sayfayı yenileyiniz, sorun devam ederse lütfen iletişime geçiniz."
+        "MONGO // updateCustomSettings --  Başlık güncellemesi yapmak istediniz fakat 'sayfaName' göndermediniz, sayfayı yenileyiniz, sorun devam ederse lütfen iletişime geçiniz."
       );
     }
   
-   if(pageName && !pages.find(x => x.name === pageName)) {
+   if(!baslikId) {
+      throw new Error(
+        "MONGO // updateCustomSettings --  Başlık güncellemesi yapmak istediniz fakat 'başlıkId' göndermediniz, sayfayı yenileyiniz, sorun devam ederse lütfen iletişime geçiniz."
+      );
+    }
+  
+   if(!showValue) {
+      throw new Error(
+        "MONGO // updateCustomSettings --  Başlık güncellemesi yapmak istediniz fakat 'showValue' göndermediniz, sayfayı yenileyiniz, sorun devam ederse lütfen iletişime geçiniz."
+      );
+    }
+  
+   if(sayfaName && !pages.find(x => x.name === sayfaName)) {
     throw new Error(
       "MONGO // updateCustomSettings --  Başlık güncellemesi yapmak isdeğiniz sayfa ismi mongodb atlas app context values verileri içinde mevcut değil"
     );
    }
   
-    const result = collection_Users.updateOne(
+    const result = collection_Users.findOneAndUpdate(
       {email:userEmail},
-      {$set:{["customSettings.pages." + pageName + '.basliklar']:basliklar}}
+      {$set:{["customSettings.pages." + sayfaName + '.basliklar.$[baslik].show']:showValue}},
+      { arrayFilters: [{ 'baslik.id': baslikId }] }
     )
     return {result,basliklar}
   }
