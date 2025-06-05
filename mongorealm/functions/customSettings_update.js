@@ -42,7 +42,8 @@ exports = async function ({
         "MONGO // updateCustomSettings --  Başlık güncellemesi yapmak istediniz fakat 'showValue' göndermediniz, sayfayı yenileyiniz, sorun devam ederse lütfen iletişime geçiniz."
       );
     }
-  
+
+   const pages = context.values.get("pages")
    if(sayfaName && !pages.find(x => x.name === sayfaName)) {
     throw new Error(
       "MONGO // updateCustomSettings --  Başlık güncellemesi yapmak isdeğiniz sayfa ismi mongodb atlas app context values verileri içinde mevcut değil"
