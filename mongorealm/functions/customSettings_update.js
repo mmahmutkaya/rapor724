@@ -15,7 +15,7 @@ exports = async function ({
 
 
   const pages = context.values.get("pages")
-  if(!pages.find(x => x.name === page)) 
+  if(page && !pages.find(x => x.name === page)) 
     throw new Error(
       "MONGO // updateCustomSettings --  Başlık güncellemesi yapmak isdeğiniz sayfa ismi mongodb atlas app context values verileri içinde mevcut değil"
     );
