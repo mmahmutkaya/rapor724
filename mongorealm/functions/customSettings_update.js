@@ -50,7 +50,7 @@ exports = async function ({
     );
    }
   
-  const result = await collection_Users.findOneAndUpdate(
+  const result = await collection_Users.updateOne(
     {email:userEmail},
     {$set:{["customSettings.pages." + sayfaName + '.basliklar.$[baslik].show']:showValue}},
     { arrayFilters: [{ 'baslik.id': baslikId }] , upsert:true }
