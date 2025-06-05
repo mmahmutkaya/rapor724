@@ -1,6 +1,6 @@
 exports = async function ({
   functionName,
-  page,
+  pageName,
   basliklar
 }) {
   const user = await context.user;
@@ -15,7 +15,7 @@ exports = async function ({
 
 
   const pages = context.values.get("pages")
-  if(page && !pages.find(x => x.name === page)) 
+  if(pageName && !pages.find(x => x.name === pageName)) 
     throw new Error(
       "MONGO // updateCustomSettings --  Başlık güncellemesi yapmak isdeğiniz sayfa ismi mongodb atlas app context values verileri içinde mevcut değil"
     );
@@ -31,7 +31,7 @@ exports = async function ({
   if (functionName == "sayfaBasliklari") {
     const result = collection_Users.updateOne(
       {email:userEmail},
-      {$set:{["customSettings.pages." + page + '.basliklar']:basliklar}}
+      {$set:{["customSettings.pages." + pageName + '.basliklar']:basliklar}}
     )
     return {result,basliklar}
   }
