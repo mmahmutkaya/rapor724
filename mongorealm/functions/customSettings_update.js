@@ -1,6 +1,6 @@
 exports = async function ({
   functionName,
-  sayfa,
+  page,
   basliklar
 }) {
   const user = await context.user;
@@ -23,7 +23,7 @@ exports = async function ({
   if (functionName == "sayfaBasliklari") {
     const result = collection_Users.updateOne(
       {email:userEmail},
-      {$set:{["customSettings.pages." + "firmapozlari" + '.basliklar']:basliklar}}
+      {$set:{["customSettings.pages." + page + '.basliklar']:basliklar}}
     )
     return {result,basliklar}
   }
