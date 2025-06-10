@@ -2,7 +2,7 @@
 import { useState, useEffect, useContext } from 'react';
 import { StoreContext } from '../../components/store'
 import { useApp } from "../../components/useApp";
-import FormProjeCreate from '../../components/FormProjeCreate'
+import FormProjeCreate from '../../components/forms/FormProjeCreate.js'
 // import ProjelerHeader from '../../components/ProjelerHeader'
 import { useNavigate } from "react-router-dom";
 import { useGetProjelerNames } from '../../hooks/useMongo';
@@ -46,20 +46,21 @@ export default function P_Projeler() {
 
 
   const handleProjeClick = async (oneProje) => {
-    try {
-      const proje = await RealmApp.currentUser.callFunction("collection_projeler", { functionName: "getProje", _projeId: oneProje._id })
-      if (firma._id) {
-        setSelectedProje(firma)
-        navigate("/projeler")
-      }
-    } catch (err) {
-      console.log(err)
-      setDialogAlert({
-        dialogIcon: "warning",
-        dialogMessage: "Beklenmedik hata, Rapor7/24 ile irtibata geçiniz..",
-        detailText: err?.message ? err.message : null
-      })
-    }
+    console.log("handleProjeClick - tuşuna basıldı")
+    // try {
+    //   const proje = await RealmApp.currentUser.callFunction("collection_projeler", { functionName: "getProje", _projeId: oneProje._id })
+    //   if (proje._id) {
+    //     setSelectedProje(proje)
+    //     navigate("/projeler")
+    //   }
+    // } catch (err) {
+    //   console.log(err)
+    //   setDialogAlert({
+    //     dialogIcon: "warning",
+    //     dialogMessage: "Beklenmedik hata, Rapor7/24 ile irtibata geçiniz..",
+    //     detailText: err?.message ? err.message : null
+    //   })
+    // }
   }
 
 

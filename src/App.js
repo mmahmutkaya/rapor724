@@ -4,9 +4,10 @@ import './App.css';
 import { Routes, Route} from 'react-router-dom';
 import Home from './pages'
 
-import P_Firmalarim from './pages/firmalarim'
+import P_Firmalar from './pages/firmalar'
 
 import P_Projects from './pages/projects'
+import P_Projeler from './pages/projeler'
 import P_FirmaPozlari from './pages/firmapozlari'
 import P_FirmaWbs from './pages/firmawbs'
 import P_FirmaKadrosu from './pages/firmakadrosu'
@@ -34,7 +35,7 @@ function App() {
     <Routes>
       <Route path='/' element={<Home />} />
 
-      <Route path='/firmalarim' element={<P_Firmalarim/>} />
+      <Route path='/firmalar' element={<P_Firmalar/>} />
 
       <Route path='/projects' element={<P_Projects />} />
       <Route path='/firmawbs' element={<P_FirmaWbs />} />

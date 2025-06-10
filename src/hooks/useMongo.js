@@ -46,15 +46,15 @@ export const useGetProjectNames_firma = () => {
 
 
 
-
-export const useGetFirmalarimNames = (onSuccess, onError) => {
+// MONGO FONKSİYON - getFirmalarNames
+export const useGetFirmalarNames = (onSuccess, onError) => {
 
   // const RealmApp = useApp();
   const { RealmApp } = useContext(StoreContext)
 
   return useQuery({
-    queryKey: ['firmalarimNames', RealmApp.currentUser._profile.data.email],
-    queryFn: () => RealmApp?.currentUser.callFunction("collection_firmalar", ({ functionName: "getFirmalarimNames" })),
+    queryKey: ['firmalarNames', RealmApp.currentUser._profile.data.email],
+    queryFn: () => RealmApp?.currentUser.callFunction("getFirmalarNames"),
     enabled: !!RealmApp,
     onSuccess,
     onError,
@@ -98,9 +98,9 @@ export const useGetMahaller = (onSuccess, onError) => {
     onError,
     refetchOnMount: false,
     refetchOnWindowFocus: false
-  })  
+  })
 
-}  
+}
 
 
 

@@ -40,27 +40,15 @@ export default function Sidebar({ setMobileOpen }) {
             component="nav"
             aria-labelledby="nested-list-subheader"
           >
-
-
-            {/* <ListItemButton
-              onClick={() => navigate("kisiler")}
-              sx={{ backgroundColor: pathname == "/kisiler" ? "#f0f0f1" : null }}>
-              <ListItemIcon>
-                <SendIcon />
-              </ListItemIcon>
-              <ListItemText primary="Kişiler" />
-            </ListItemButton> */}
-
-
+            
             <ListItemButton
               onClick={() => navigate("/firmalarim")}
-              sx={{ backgroundColor: pathname == "/firmalarim" ? "#f0f0f1" : null }}>
+              sx={{ backgroundColor: pathname == "/firmalar" ? "#f0f0f1" : null }}>
               <ListItemIcon>
                 <SendIcon />
               </ListItemIcon>
-              <ListItemText primary="Firmalarim" />
+              <ListItemText primary="Firmalar" />
             </ListItemButton>
-
 
           </List>
         </Grid>

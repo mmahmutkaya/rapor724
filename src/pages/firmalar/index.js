@@ -5,7 +5,7 @@ import { useApp } from "../../components/useApp";
 import FormFirmaCreate from '../../components/FormFirmaCreate'
 // import FirmalarHeader from '../../components/FirmalarHeader'
 import { useNavigate } from "react-router-dom";
-import { useGetFirmalarimNames } from '../../hooks/useMongo';
+import { useGetFirmalarNames } from '../../hooks/useMongo';
 import { DialogAlert } from '../../components/general/DialogAlert'
 
 
@@ -25,7 +25,7 @@ import AddCircleOutlineIcon from '@mui/icons-material/AddCircleOutline';
 
 
 
-export default function P_Firmalarim() {
+export default function P_Firmalar() {
 
   // const RealmApp = useApp();
   const { RealmApp } = useContext(StoreContext)
@@ -42,7 +42,7 @@ export default function P_Firmalarim() {
 
   const [show, setShow] = useState("Main")
 
-  const { data: firmalarimNames } = useGetFirmalarimNames()
+  const { data: firmalarNames } = useGetFirmalarNames()
 
 
   const handleFirmaClick = async (oneFirma) => {
@@ -91,7 +91,7 @@ export default function P_Firmalarim() {
               variant="h6"
               fontWeight="bold"
             >
-              Firmalarım
+              Firmalar
             </Typography>
           </Grid>
 
@@ -128,7 +128,7 @@ export default function P_Firmalarim() {
         </Box>
       }
 
-      {show == "Main" && !firmalarimNames?.length > 0 &&
+      {show == "Main" && !firmalarNames?.length > 0 &&
         <Stack sx={{ width: '100%', padding: "1rem" }} spacing={2}>
           <Alert severity="info">
             Dahil olduğunuz herhangi bir firma bulunamadı, menüler yardımı ile oluşturabilirsiniz.
@@ -136,10 +136,10 @@ export default function P_Firmalarim() {
         </Stack>
       }
 
-      {show == "Main" && firmalarimNames?.length > 0 &&
+      {show == "Main" && firmalarNames?.length > 0 &&
         <Stack sx={{ width: '100%', padding: "1rem" }} spacing={0}>
           {
-            firmalarimNames.map((oneFirma, index) => (
+            firmalarNames.map((oneFirma, index) => (
 
               <Box
                 key={index}
