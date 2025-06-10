@@ -2,10 +2,10 @@
 import { useState, useEffect, useContext } from 'react';
 import { StoreContext } from '../../components/store'
 import { useApp } from "../../components/useApp";
-import FormFirmaCreate from '../../components/FormFirmaCreate'
-// import FirmalarHeader from '../../components/FirmalarHeader'
+import FormProjeCreate from '../../components/FormProjeCreate'
+// import ProjelerHeader from '../../components/ProjelerHeader'
 import { useNavigate } from "react-router-dom";
-import { useGetFirmalarimNames } from '../../hooks/useMongo';
+import { useGetProjelerNames } from '../../hooks/useMongo';
 import { DialogAlert } from '../../components/general/DialogAlert'
 
 
@@ -25,16 +25,16 @@ import AddCircleOutlineIcon from '@mui/icons-material/AddCircleOutline';
 
 
 
-export default function P_Firmalarim() {
+export default function P_Projeler() {
 
   // const RealmApp = useApp();
   const { RealmApp } = useContext(StoreContext)
-  const { setSelectedFirma } = useContext(StoreContext)
+  const { setSelectedProje } = useContext(StoreContext)
 
   const [dialogAlert, setDialogAlert] = useState()
 
   useEffect(() => {
-    setSelectedFirma()
+    setSelectedProje()
   }, []);
 
 
@@ -42,14 +42,14 @@ export default function P_Firmalarim() {
 
   const [show, setShow] = useState("Main")
 
-  const { data: firmalarimNames } = useGetFirmalarimNames()
+  const { data: projelerNames } = useGetProjelerNames()
 
 
-  const handleFirmaClick = async (oneFirma) => {
+  const handleProjeClick = async (oneProje) => {
     try {
-      const userFirma = await RealmApp.currentUser.callFunction("collection_firmalar", { functionName: "getUserFirma", _firmaId: oneFirma._id })
-      if (userFirma._id) {
-        setSelectedFirma(userFirma)
+      const proje = await RealmApp.currentUser.callFunction("collection_projeler", { functionName: "getProje", _projeId: oneProje._id })
+      if (firma._id) {
+        setSelectedProje(firma)
         navigate("/projeler")
       }
     } catch (err) {
@@ -91,7 +91,7 @@ export default function P_Firmalarim() {
               variant="h6"
               fontWeight="bold"
             >
-              Firmalarım
+              Projeler
             </Typography>
           </Grid>
 
@@ -109,7 +109,7 @@ export default function P_Firmalarim() {
               </Grid>
 
               <Grid item>
-                <IconButton onClick={() => setShow("FormFirmaCreate")} aria-label="addWbs">
+                <IconButton onClick={() => setShow("FormProjeCreate")} aria-label="addWbs">
                   <AddCircleOutlineIcon variant="contained" color="success" />
                 </IconButton>
               </Grid>
@@ -122,13 +122,13 @@ export default function P_Firmalarim() {
 
 
 
-      {show == "FormFirmaCreate" &&
+      {show == "FormProjeCreate" &&
         <Box>
-          <FormFirmaCreate setShow={setShow} />
+          <FormProjeCreate setShow={setShow} />
         </Box>
       }
 
-      {show == "Main" && !firmalarimNames?.length > 0 &&
+      {show == "Main" && !projelerNames?.length > 0 &&
         <Stack sx={{ width: '100%', padding: "1rem" }} spacing={2}>
           <Alert severity="info">
             Dahil olduğunuz herhangi bir firma bulunamadı, menüler yardımı ile oluşturabilirsiniz.
@@ -136,14 +136,14 @@ export default function P_Firmalarim() {
         </Stack>
       }
 
-      {show == "Main" && firmalarimNames?.length > 0 &&
+      {show == "Main" && projelerNames?.length > 0 &&
         <Stack sx={{ width: '100%', padding: "1rem" }} spacing={0}>
           {
-            firmalarimNames.map((oneFirma, index) => (
+            projelerNames.map((oneProje, index) => (
 
               <Box
                 key={index}
-                onClick={() => handleFirmaClick(oneFirma)}
+                onClick={() => handleProjeClick(oneProje)}
                 sx={{
                   display: "grid",
                   gridTemplateColumns: "auto 1fr",
@@ -165,7 +165,7 @@ export default function P_Firmalarim() {
 
                 <Box>
                   <Typography>
-                    {oneFirma.name}
+                    {oneProje.name}
                   </Typography>
                 </Box>
 

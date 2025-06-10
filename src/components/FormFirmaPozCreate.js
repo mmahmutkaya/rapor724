@@ -30,7 +30,7 @@ export default function FormFirmaPozCreate({ setShow }) {
 
   const queryClient = useQueryClient()
   // const RealmApp = useApp();
-  const { RealmApp } = useContext(StoreContext)
+  const { RealmApp, myTema } = useContext(StoreContext)
 
   const { selectedFirma } = useContext(StoreContext)
   const { data: pozlar } = useGetFirmaPozlar()
@@ -54,8 +54,6 @@ export default function FormFirmaPozCreate({ setShow }) {
 
   // poz oluşturma fonksiyonu
   async function handleSubmit(event) {
-
-    console.log("burası çalıştı")
 
     event.preventDefault();
 
@@ -189,9 +187,7 @@ export default function FormFirmaPozCreate({ setShow }) {
         throw new Error("db den -newPoz- ve onun da -_id-  property dönmedi, sayfayı yenileyiniz, sorun devam ederse Rapor7/24 ile irtibata geçiniz..")
       }
 
-      console.log("pozlarr", pozlar)
       queryClient.setQueryData(['firmaPozlar', selectedFirma?._id.toString()], (pozlar2) => {
-        console.log("pozlar2", pozlar2)
         return [...pozlar2, newPoz]
       })
 
@@ -361,16 +357,22 @@ export default function FormFirmaPozCreate({ setShow }) {
                           })
                         }
 
-                        {wbsName.split(">").map((item, index) => (
+                        {/* wbsName hazır aslında ama aralarındaki ok işaretini kırmızıya boyamak için */}
+                        <Box sx={{ display: "grid", gridAutoFlow: "column" }} >
 
-                          <Box key={index} component={"span"} >
-                            {item}
-                            {index + 1 !== wbsName.split(">").length &&
-                              <Box component={"span"} ml={0.1} mr={0.3}>{"--"}</Box>
-                            }
-                          </Box>
+                          {wbsName.split(">").map((item, index) => (
 
-                        ))}
+                            <Box key={index} sx={{ display: "grid", gridAutoFlow: "column" }} >
+                              {item}
+                              {index + 1 !== wbsName.split(">").length &&
+                                <Box sx={{ color: myTema.renkler.baslik2_ayrac, mx: "0.2rem" }} >{">"}</Box>
+                              }
+                            </Box>
+
+                          ))}
+
+                          {/* <Typography>{wbsName}</Typography> */}
+                        </Box>
 
                       </MenuItem>
                     ))

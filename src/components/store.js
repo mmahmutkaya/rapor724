@@ -17,7 +17,8 @@ export default ({ children }) => {
   const myTema_ = {
     renkler: {
       baslik1: "lightgray",
-      baslik2: "rgb(250, 215, 160)"
+      baslik2: "rgb(250, 215, 160)",
+      baslik2_ayrac: "#8a2424"
     },
     firstColor: "#3c4245",
     secondColor: "#5f6769",

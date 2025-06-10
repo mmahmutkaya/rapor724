@@ -6,12 +6,12 @@ import { useNavigate } from "react-router-dom";
 
 
 import { StoreContext } from '../../components/store'
-import { useGetFirmaPozlar } from '../../hooks/useMongo';
+import { useGetProjePozlar } from '../../hooks/useMongo';
 
-import FormFirmaPozCreate from '../../components/FormFirmaPozCreate'
-import ShowFirmaPozBaslik from '../../components/ShowFirmaPozBaslik'
+import FormProjePozCreate from '../../components/FormProjePozCreate'
+import ShowProjePozBaslik from '../../components/ShowProjePozBaslik'
 import FormPozBaslikCreate from '../../components/FormPozBaslikCreate'
-import FirmaPozlariHeader from '../../components/FirmaPozlariHeader'
+import ProjePozlariHeader from '../../components/ProjePozlariHeader'
 
 
 import { borderLeft, fontWeight, grid, styled } from '@mui/system';
@@ -25,26 +25,26 @@ import InfoIcon from '@mui/icons-material/Info';
 
 
 
-export default function P_FirmaPozlari() {
+export default function P_ProjePozlari() {
 
   const navigate = useNavigate()
   const queryClient = useQueryClient()
 
-  const { data: pozlar } = useGetFirmaPozlar()
+  const { data: pozlar } = useGetProjePozlar()
   const { RealmApp, myTema } = useContext(StoreContext)
-  const { selectedFirma } = useContext(StoreContext)
+  const { selectedProje } = useContext(StoreContext)
 
-  // console.log("selectedFirma", selectedFirma)
-  const pozBirimleri = selectedFirma?.pozBirimleri
+  // console.log("selectedProje", selectedProje)
+  const pozBirimleri = selectedProje?.pozBirimleri
   // console.log("pozBirimleri", pozBirimleri)
 
   const [show, setShow] = useState("Main")
 
   useEffect(() => {
-    !selectedFirma && navigate('/firmalarim')
+    !selectedProje && navigate('/projeler')
   }, [])
 
-  const [basliklar, setBasliklar] = useState(RealmApp.currentUser.customData.customSettings.pages.firmapozlari.basliklar)
+  const [basliklar, setBasliklar] = useState(RealmApp.currentUser.customData.customSettings.pages.projepozlari.basliklar)
 
   if (basliklar && !basliklar.find(x => x.hasOwnProperty("baslikName"))) {
     setBasliklar(basliklar => {
@@ -117,19 +117,19 @@ export default function P_FirmaPozlari() {
     <Box sx={{ mt: "0rem" }}>
 
       {/* BAŞLIK */}
-      <FirmaPozlariHeader show={show} setShow={setShow} anyBaslikShow={anyBaslikShow} />
+      <ProjePozlariHeader show={show} setShow={setShow} anyBaslikShow={anyBaslikShow} />
 
 
       {/* POZ OLUŞTURULACAKSA */}
-      {show == "PozCreate" && <FormFirmaPozCreate setShow={setShow} />}
+      {show == "PozCreate" && <FormProjePozCreate setShow={setShow} />}
 
 
       {/* BAŞLIK GÖSTER / GİZLE */}
-      {show == "ShowBaslik" && <ShowFirmaPozBaslik setShow={setShow} basliklar={basliklar} setBasliklar={setBasliklar} />}
+      {show == "ShowBaslik" && <ShowProjePozBaslik setShow={setShow} basliklar={basliklar} setBasliklar={setBasliklar} />}
 
 
       {/* EĞER POZ YOKSA */}
-      {show == "Main" && !selectedFirma?.wbs.find(x => x.openForPoz === true) &&
+      {show == "Main" && !selectedProje?.wbs.find(x => x.openForPoz === true) &&
         <Stack sx={{ width: '100%', m: "1rem", p: "1rem" }} spacing={2}>
           <Alert severity="info">
             Öncelikle poz oluşturmaya açık poz başlığı oluşturmalısınız.
@@ -138,7 +138,7 @@ export default function P_FirmaPozlari() {
       }
 
       {/* EĞER POZ YOKSA */}
-      {show == "Main" && selectedFirma?.wbs.find(x => x.openForPoz === true) && !pozlar?.length > 0 &&
+      {show == "Main" && selectedProje?.wbs.find(x => x.openForPoz === true) && !pozlar?.length > 0 &&
         <Stack sx={{ width: '100%', m: "1rem", p: "1rem" }} spacing={2}>
           <Alert severity="info">
             Menüler yardımı ile poz oluşturmaya başlayabilirsiniz.
@@ -199,7 +199,7 @@ export default function P_FirmaPozlari() {
 
         {/* WBS BAŞLIĞI ve ALTINDA POZLARI*/}
 
-        {selectedFirma?.wbs.filter(x => x.openForPoz).map((oneWbs, index) => {
+        {selectedProje?.wbs.filter(x => x.openForPoz).map((oneWbs, index) => {
 
           return (
 
@@ -220,22 +220,22 @@ export default function P_FirmaPozlari() {
 
                       if (index == 0 && cOunt == 1) {
                         wbsCode = codePart
-                        wbsName = selectedFirma?.wbs.find(item => item.code == wbsCode).name
+                        wbsName = selectedProje?.wbs.find(item => item.code == wbsCode).name
                       }
 
                       if (index == 0 && cOunt !== 1) {
                         wbsCode = codePart
-                        wbsName = selectedFirma?.wbs.find(item => item.code == wbsCode).codeName
+                        wbsName = selectedProje?.wbs.find(item => item.code == wbsCode).codeName
                       }
 
                       if (index !== 0 && index + 1 !== cOunt && cOunt !== 1) {
                         wbsCode = wbsCode + "." + codePart
-                        wbsName = wbsName + " > " + selectedFirma?.wbs.find(item => item.code == wbsCode).codeName
+                        wbsName = wbsName + " > " + selectedProje?.wbs.find(item => item.code == wbsCode).codeName
                       }
 
                       if (index !== 0 && index + 1 == cOunt && cOunt !== 1) {
                         wbsCode = wbsCode + "." + codePart
-                        wbsName = wbsName + " > " + selectedFirma?.wbs.find(item => item.code == wbsCode).name
+                        wbsName = wbsName + " > " + selectedProje?.wbs.find(item => item.code == wbsCode).name
                       }
 
                     })

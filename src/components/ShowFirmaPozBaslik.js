@@ -21,21 +21,26 @@ export default function ShowFirmaPozBaslik({ setShow, basliklar, setBasliklar })
   const [dialogAlert, setDialogAlert] = useState()
 
 
-  const handleChange = async (oneBaslik, switchValue) => {
-
-    const updateData = {
-      // functionName: switchValue ? "pushItem" : "pullItem",
-      // upProperty: "pozBasliklari",
-      // propertyName:"show",
-      // propertyValue:"webPage_pozlar",
-      // _projectId: firmaProject._id,
-      // _baslikId: oneBaslik._id
-    }
+  const baslikUpdate = async ({ baslikId, showValue }) => {
 
 
     try {
 
-      await RealmApp.currentUser.callFunction("updateCustomProjectSettings", updateData)
+      const basliklar2 = basliklar.map(oneBaslik => {
+        if (oneBaslik.id === baslikId) {
+          oneBaslik.show = showValue
+        }
+        return oneBaslik
+      })
+
+      // önce frontend deki veri güncelleme
+      setBasliklar(basliklar2)
+
+      // db ye gönderme işlemi
+      await RealmApp?.currentUser.callFunction("customSettings_update", ({ functionName: "sayfaBasliklari", sayfaName: "firmapozlari", baslikId, showValue }))
+      await RealmApp?.currentUser.refreshCustomData()
+
+      return
 
     } catch (err) {
 
@@ -49,38 +54,6 @@ export default function ShowFirmaPozBaslik({ setShow, basliklar, setBasliklar })
 
     }
 
-
-  }
-
-
-  const baslikUpdate = async (oneBaslik) => {
-
-    setBasliklar(basliklar => {
-
-      // setBasliklar için
-      const basliklar2 = basliklar.map(oneBaslik2 => {
-        if (oneBaslik2.id === oneBaslik.id) {
-          oneBaslik2.show = !oneBaslik.show
-          return oneBaslik2
-        }
-        return oneBaslik2
-      })
-
-      // db deki güncelleme için / veri azaltılıyor
-      const basliklar3 = basliklar2.map(x => {
-        delete x.baslikName
-        return x
-      })
-
-      // db ye gönderme işlemi
-      const result = RealmApp?.currentUser.callFunction("customSettings_update", ({ functionName: "sayfaBasliklari", page: "firmapozlari", basliklar: basliklar3 }))
-      RealmApp?.currentUser.refreshCustomData()
-
-      // sorun çıkmadı frontend deki veri güncelleme
-      return (
-        basliklar2
-      )
-    })
   }
 
 
@@ -112,7 +85,7 @@ export default function ShowFirmaPozBaslik({ setShow, basliklar, setBasliklar })
           <React.Fragment key={index}>
             <Box sx={{ display: "grid", gridTemplateColumns: "1fr 5rem", alignItems: "center" }}>
               <Box sx={{ my: "0.2rem", justifySelf: "start" }}>{oneBaslik.baslikName}</Box>
-              <Box sx={{ justifySelf: "end" }}><Switch checked={oneBaslik.show} onChange={() => baslikUpdate(oneBaslik)} /></Box>
+              <Box sx={{ justifySelf: "end" }}><Switch checked={oneBaslik.show} onChange={() => baslikUpdate({ baslikId: oneBaslik.id, showValue: !oneBaslik.show })} /></Box>
             </Box>
             <Divider></Divider>
           </React.Fragment>
