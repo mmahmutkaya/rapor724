@@ -1,0 +1,12 @@
+{
+    "name": "pages",
+    "value": [
+        {
+            "name": "firmapozlari"
+        },
+        {
+            "name": "firmawbs"
+        }
+    ],
+    "from_secret": false
+}
