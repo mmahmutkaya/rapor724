@@ -19,7 +19,7 @@ exports = async function () {
     const firmalarim = await collection_Firmalar.find({ "yetkiliKisiler.email": userEmail }, { name: 1 }).toArray();
     return firmalarim;
   } catch (err) {
-    throw new Error("MONGO // collection_firmalar // " + functionName + " // " + err.message);
+    throw new Error("MONGO // collection_firmalar // " + "getFirmalarimNames" + " // " + err.message);
   }
   
 
