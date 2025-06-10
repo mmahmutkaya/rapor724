@@ -14,8 +14,8 @@ exports = async function () {
 
   const collection_Firmalar = context.services.get("mongodb-atlas").db("rapor724_v2").collection("firmalar");
 
-  const firmalarim = await collection_Firmalar.find({ "yetkiliKisiler.email": userEmail }, { name: 1 }).toArray();
-  return firmalarim;
+  const firmalar = await collection_Firmalar.find({ "yetkiliKisiler.email": userEmail }, { name: 1 }).toArray();
+  return firmalar;
 
   
 
