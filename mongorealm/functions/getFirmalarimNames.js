@@ -1,7 +1,5 @@
 exports = async function ({
-  functionName,
-  firmaName,
-  _firmaId
+ 
 }) {
 
   const user = context.user;
@@ -19,15 +17,13 @@ exports = async function ({
   const collection_Firmalar = context.services.get("mongodb-atlas").db("rapor724_v2").collection("firmalar");
 
 
-
-  if (functionName == "getFirmalarimNames") {
-    try {
-      const firmalarim = await collection_Firmalar.find({ "yetkiliKisiler.email": userEmail }, { name: 1 }).toArray();
-      return firmalarim;
-    } catch (err) {
-      throw new Error("MONGO // collection_firmalar // " + functionName + " // " + err.message);
-    }
+  try {
+    const firmalarim = await collection_Firmalar.find({ "yetkiliKisiler.email": userEmail }, { name: 1 }).toArray();
+    return firmalarim;
+  } catch (err) {
+    throw new Error("MONGO // collection_firmalar // " + functionName + " // " + err.message);
   }
+  
 
 
   return "MONGO // collection_firmalar // Herhangi bir functionName içine düşmedi"
