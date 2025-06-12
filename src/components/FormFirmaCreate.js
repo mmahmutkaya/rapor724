@@ -1,7 +1,7 @@
 import React, { useState, useContext } from 'react';
 import { StoreContext } from './store'
 import { useQueryClient } from '@tanstack/react-query'
-import { useGetFirmalarimNames } from '../hooks/useMongo';
+import { useGetFirmalarNames_byUser } from '../hooks/useMongo';
 import { DialogAlert } from '../../src/components/general/DialogAlert'
 
 
@@ -39,7 +39,7 @@ export default function P_FormFirmaCreate({ setShow }) {
   const [dialogAlert, setDialogAlert] = useState()
   const [dialogShow, setDialogShow] = useState(1)
 
-  const { data: firmalarimNames } = useGetFirmalarimNames()
+  const { data: firmalarNames_byUser } = useGetFirmalarNames_byUser()
 
 
   async function handleSubmit(event) {
@@ -76,9 +76,9 @@ export default function P_FormFirmaCreate({ setShow }) {
       }
 
 
-      if (firmalarimNames?.length > 0 && !firmaNameError) {
-        firmalarimNames.map(firma => {
-          if (firma.name == firmaName && !firmaNameError) {
+      if (firmalarNames_byUser?.length > 0 && !firmaNameError) {
+        firmalarNames_byUser.filter(personel => personel.email == userEmail && personel.yetki == "owner").map(oneFirma => {
+          if (oneFirma.name == firmaName && !firmaNameError) {
             setFirmaNameError("Bu isimde firmanız mevcut")
             firmaNameError = true
             isError = true
@@ -86,7 +86,7 @@ export default function P_FormFirmaCreate({ setShow }) {
         })
       }
 
-      
+
       if (isError) {
         console.log("frontend de durdu alt satırda")
         return
@@ -94,7 +94,7 @@ export default function P_FormFirmaCreate({ setShow }) {
 
       // VALIDATE KONTROL -- SONU 
 
-      const result = await RealmApp.currentUser.callFunction("collection_firmalar", { functionName: "createFirma", firmaName: firmaName });
+      const result = await RealmApp.currentUser.callFunction("createFirma", { firmaName });
       console.log("result", result)
 
       if (result.errorObject) {
@@ -108,7 +108,7 @@ export default function P_FormFirmaCreate({ setShow }) {
           _id: result.insertedId,
           name: firmaName
         }
-        queryClient.setQueryData(['firmalarimNames', RealmApp.currentUser._profile.data.email], (firmalarimNames) => [...firmalarimNames, newFirma])
+        queryClient.setQueryData(['firmalarNames_byUser', RealmApp.currentUser._profile.data.email], (firmalarNames) => [...firmalarNames, newFirma])
         setShow("Main")
         return
       }

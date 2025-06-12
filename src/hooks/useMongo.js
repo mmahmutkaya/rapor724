@@ -9,6 +9,48 @@ import { useApp } from "../components/useApp"
 // QUERIES
 
 
+// MONGO FONKSİYON - getFirmalarNames
+export const useGetFirmalarNames_byUser = (onSuccess, onError) => {
+
+  // const RealmApp = useApp();
+  const { RealmApp } = useContext(StoreContext)
+
+  return useQuery({
+    queryKey: ['firmalarNames_byUser', RealmApp.currentUser._profile.data.email],
+    queryFn: () => RealmApp?.currentUser.callFunction("getFirmalarNames_byUser"),
+    enabled: !!RealmApp,
+    onSuccess,
+    onError,
+    refetchOnMount: false,
+    refetchOnWindowFocus: false
+  })
+
+}
+
+
+
+// MONGO FONKSİYON - getProjelerNames_byUser
+export const useGetProjelerNames_byUser = (onSuccess, onError) => {
+
+  // const RealmApp = useApp();
+  const { RealmApp } = useContext(StoreContext)
+
+  return useQuery({
+    queryKey: ['projelerNames_byUser', RealmApp.currentUser._profile.data.email],
+    queryFn: () => RealmApp?.currentUser.callFunction("getProjelerNames_byUser"),
+    enabled: !!RealmApp,
+    onSuccess,
+    onError,
+    refetchOnMount: false,
+    refetchOnWindowFocus: false
+  })
+
+}
+
+
+
+
+
 export const useGetNetworkUsers = (onSuccess, onError) => {
 
   // const RealmApp = useApp();
@@ -38,26 +80,6 @@ export const useGetProjectNames_firma = () => {
     enabled: !!RealmApp && !!_firmaId,
     // onSuccess,
     // onError,
-    refetchOnMount: false,
-    refetchOnWindowFocus: false
-  })
-
-}
-
-
-
-// MONGO FONKSİYON - getFirmalarNames
-export const useGetFirmalarNames = (onSuccess, onError) => {
-
-  // const RealmApp = useApp();
-  const { RealmApp } = useContext(StoreContext)
-
-  return useQuery({
-    queryKey: ['firmalarNames', RealmApp.currentUser._profile.data.email],
-    queryFn: () => RealmApp?.currentUser.callFunction("getFirmalarNames"),
-    enabled: !!RealmApp,
-    onSuccess,
-    onError,
     refetchOnMount: false,
     refetchOnWindowFocus: false
   })

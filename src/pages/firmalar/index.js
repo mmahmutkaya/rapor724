@@ -5,7 +5,7 @@ import { useApp } from "../../components/useApp";
 import FormFirmaCreate from '../../components/FormFirmaCreate'
 // import FirmalarHeader from '../../components/FirmalarHeader'
 import { useNavigate } from "react-router-dom";
-import { useGetFirmalarNames } from '../../hooks/useMongo';
+import { useGetFirmalarNames_byUser } from '../../hooks/useMongo';
 import { DialogAlert } from '../../components/general/DialogAlert'
 
 
@@ -42,7 +42,7 @@ export default function P_Firmalar() {
 
   const [show, setShow] = useState("Main")
 
-  const { data: firmalarNames } = useGetFirmalarNames()
+  const { data: firmalarNames_byUser } = useGetFirmalarNames_byUser()
 
 
   const handleFirmaClick = async (oneFirma) => {
@@ -128,7 +128,7 @@ export default function P_Firmalar() {
         </Box>
       }
 
-      {show == "Main" && !firmalarNames?.length > 0 &&
+      {show == "Main" && !firmalarNames_byUser?.length > 0 &&
         <Stack sx={{ width: '100%', padding: "1rem" }} spacing={2}>
           <Alert severity="info">
             Dahil olduğunuz herhangi bir firma bulunamadı, menüler yardımı ile oluşturabilirsiniz.
@@ -136,10 +136,10 @@ export default function P_Firmalar() {
         </Stack>
       }
 
-      {show == "Main" && firmalarNames?.length > 0 &&
+      {show == "Main" && firmalarNames_byUser?.length > 0 &&
         <Stack sx={{ width: '100%', padding: "1rem" }} spacing={0}>
           {
-            firmalarNames.map((oneFirma, index) => (
+            firmalarNames_byUser.map((oneFirma, index) => (
 
               <Box
                 key={index}

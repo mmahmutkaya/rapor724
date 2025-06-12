@@ -2,10 +2,10 @@
 import { useState, useEffect, useContext } from 'react';
 import { StoreContext } from '../../components/store'
 import { useApp } from "../../components/useApp";
-import FormProjeCreate from '../../components/forms/FormProjeCreate.js'
+import FormProjeCreate from '../../components/FormProjeCreate.js'
 // import ProjelerHeader from '../../components/ProjelerHeader'
 import { useNavigate } from "react-router-dom";
-import { useGetProjelerNames } from '../../hooks/useMongo';
+import { useGetProjelerNames_byUser } from '../../hooks/useMongo';
 import { DialogAlert } from '../../components/general/DialogAlert'
 
 
@@ -42,7 +42,7 @@ export default function P_Projeler() {
 
   const [show, setShow] = useState("Main")
 
-  const { data: projelerNames } = useGetProjelerNames()
+  const { data: projelerNames_byUser } = useGetProjelerNames_byUser()
 
 
   const handleProjeClick = async (oneProje) => {
@@ -129,7 +129,7 @@ export default function P_Projeler() {
         </Box>
       }
 
-      {show == "Main" && !projelerNames?.length > 0 &&
+      {show == "Main" && !projelerNames_byUser?.length > 0 &&
         <Stack sx={{ width: '100%', padding: "1rem" }} spacing={2}>
           <Alert severity="info">
             Dahil olduğunuz herhangi bir firma bulunamadı, menüler yardımı ile oluşturabilirsiniz.
@@ -137,10 +137,10 @@ export default function P_Projeler() {
         </Stack>
       }
 
-      {show == "Main" && projelerNames?.length > 0 &&
+      {show == "Main" && projelerNames_byUser?.length > 0 &&
         <Stack sx={{ width: '100%', padding: "1rem" }} spacing={0}>
           {
-            projelerNames.map((oneProje, index) => (
+            projelerNames_byUser.map((oneProje, index) => (
 
               <Box
                 key={index}
