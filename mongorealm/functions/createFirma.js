@@ -32,15 +32,16 @@ exports = async function ({
 
     if (firmaName.length < 3 && !errorObject.firmaNameError) {
       errorObject.firmaNameError = "Firma adı çok kısa"
+      
     }
 
     // ARA VALIDATE KONTROL - VALIDATE HATA VARSA BOŞUNA DEVAM EDİP AŞAĞIDAKİ SORGUYU YAPMASIN
     if (Object.keys(errorObject).length > 0) return { errorObject }
 
 
-    const foundFirmalar = await collection_Firmalar.find({ name: firmaName, "yetkiliKisiler.email": userEmail }).toArray()
+    const firmalar_byUser = await collection_Firmalar.find({ name: firmaName, "yetkiliKisiler.email": userEmail }).toArray()
     let isExist
-    foundFirmalar.map(firma => {
+    firmalar_byUser.map(firma => {
       firma.yetkiliKisiler.find(personel => personel.email == userEmail && personel.yetki == "owner") ? isExist = true : null
     })
     if (isExist && !errorObject.firmaNameError) {
