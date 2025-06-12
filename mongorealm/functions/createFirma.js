@@ -38,8 +38,8 @@ exports = async function ({
     if (Object.keys(errorObject).length > 0) return { errorObject }
 
 
-    let isExist = false
     const foundFirmalar = await collection_Firmalar.find({ name: firmaName, "yetkiliKisiler.email": userEmail }).toArray()
+    let isExist
     foundFirmalar.map(firma => {
       firma.yetkiliKisiler.find(personel => personel.email == userEmail && personel.yetki == "owner") ? isExist = true : null
     })
