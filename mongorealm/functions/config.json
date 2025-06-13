@@ -164,12 +164,6 @@
         "disable_arg_logs": true
     },
     {
-        "name": "createMahal_copy",
-        "private": false,
-        "run_as_system": true,
-        "disable_arg_logs": true
-    },
-    {
         "name": "deleteLbs",
         "private": false,
         "run_as_system": true,
@@ -243,12 +237,6 @@
     },
     {
         "name": "moveWbsUp",
-        "private": false,
-        "run_as_system": true,
-        "disable_arg_logs": true
-    },
-    {
-        "name": "createPoz_copy",
         "private": false,
         "run_as_system": true,
         "disable_arg_logs": true
@@ -445,6 +433,12 @@
     },
     {
         "name": "getFirmalarNames_byUser",
+        "private": false,
+        "run_as_system": true,
+        "disable_arg_logs": true
+    },
+    {
+        "name": "createFirma",
         "private": false,
         "run_as_system": true,
         "disable_arg_logs": true
