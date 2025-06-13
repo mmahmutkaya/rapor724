@@ -297,7 +297,7 @@ export default function Layout({ window, children }) {
 
   const clearSelectedFirma = () => {
     setSelectedFirma()
-    navigate("/firmalarim")
+    navigate("/firmalar")
   };
 
   const clearSelectedProject = () => {

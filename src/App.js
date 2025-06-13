@@ -36,6 +36,7 @@ function App() {
       <Route path='/' element={<Home />} />
 
       <Route path='/firmalar' element={<P_Firmalar/>} />
+      <Route path='/projeler' element={<P_Projeler/>} />
 
       <Route path='/projects' element={<P_Projects />} />
       <Route path='/firmawbs' element={<P_FirmaWbs />} />

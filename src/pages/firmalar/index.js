@@ -146,7 +146,7 @@ export default function P_Firmalar() {
                 onClick={() => handleFirmaClick(oneFirma)}
                 sx={{
                   display: "grid",
-                  gridTemplateColumns: "auto 1fr",
+                  gridTemplateColumns: "auto auto 1fr",
                   "&:hover": {
                     color: "black",
                     "& .childClass": {
@@ -163,9 +163,15 @@ export default function P_Firmalar() {
                   <FolderIcon />
                 </Box>
 
-                <Box>
+                <Box className="childClass" sx={{ pr: "1rem", color: "gray" }}>
                   <Typography>
                     {oneFirma.name}
+                  </Typography>
+                </Box>
+
+                <Box className="childClass" sx={{ pr: "1rem", color: "gray" }}>
+                  <Typography>
+                    {oneFirma.yetkiliKisiler.find(oneKisi => oneKisi.email === RealmApp.currentUser._profile.data.email && oneKisi.yetki === "owner") ? "sahip" : "diğer"}
                   </Typography>
                 </Box>
 

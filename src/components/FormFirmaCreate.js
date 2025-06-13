@@ -77,7 +77,7 @@ export default function P_FormFirmaCreate({ setShow }) {
 
 
       if (firmalarNames_byUser?.length > 0 && !firmaNameError) {
-        firmalarNames_byUser.filter(personel => personel.email == userEmail && personel.yetki == "owner").map(oneFirma => {
+        firmalarNames_byUser?.filter(oneFirma => oneFirma.yetkiliKisiler?.find(oneKisi => oneKisi.email === RealmApp.currentUser._profile.data.email && oneKisi.yetki == "owner")).map(oneFirma => {
           if (oneFirma.name == firmaName && !firmaNameError) {
             setFirmaNameError("Bu isimde firmanız mevcut")
             firmaNameError = true
@@ -95,7 +95,7 @@ export default function P_FormFirmaCreate({ setShow }) {
       // VALIDATE KONTROL -- SONU 
 
       const result = await RealmApp.currentUser.callFunction("createFirma", { firmaName });
-      console.log("result", result)
+
 
       if (result.errorObject) {
         setFirmaNameError(result.errorObject.firmaNameError)
