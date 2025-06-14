@@ -178,15 +178,12 @@ exports = async function ({
     }
 
 
-    const foundFirmaProjeleri = await collection_Projects.find({ "yetkiliFirmalar._id": _firmaId }).toArray()
-    if (foundFirmaProjeleri.length > 0 && !errorObject.projectNameError) {
-      foundFirmaProjeleri.map(project => {
-        if (project.name == projeName && !errorObject.projectNameError) {
-          errorObject.projectNameError = "Firmanın bu isimde projesi mevcut"
-          return
-        }
-      })
+    const foundFirmaProjeleri = await collection_Projects.find({ "yetkiliFirmalar._firmaId": _firmaId }).toArray()
+    const sameName = foundFirmaProjeleri.find(oneProje => oneProje.yetkiliFirmalar.find(oneFirma => oneFirma._firmaId == _firmaId && oneFirma.yetki === "owner") && oneProje.name === projeName)
+    if (sameName && !errorObject.projectNameError) {
+      errorObject.projectNameError = "Firmanın bu isimde projesi mevcut"
     }
+
 
     if (Object.keys(errorObject).length > 0) return { errorObject }
 
