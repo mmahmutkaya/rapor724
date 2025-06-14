@@ -1,6 +1,6 @@
 exports = async function ({
   _firmaId,
-  projectName
+  projeName
 }) {
 
   const user = context.user;
@@ -144,7 +144,7 @@ exports = async function ({
 
 
     const newProject = {
-      name: projectName,
+      name: projeName,
       // wbs: [], // henüz herhangi bir başlık yok fakat yok ama bu property şimdi olmazsa ilk wbs kaydında bir hata yaşıyoruz
       // lbs: [], // henüz herhangi bir başlık yok fakat yok ama bu property şimdi olmazsa ilk wbs kaydında bir hata yaşıyoruz
       yetkiliFirmalar: [{ firmaId: _firmaId, yetki: "owner" }],
@@ -165,15 +165,15 @@ exports = async function ({
 
     let errorObject = {}
 
-    if (typeof projectName != "string" && !errorObject.projectNameError) {
+    if (typeof projeName != "string" && !errorObject.projectNameError) {
       errorObject.projectNameError = "Proje adı verisi 'yazı' türünde değil"
     }
 
-    if (projectName.length == 0 && !errorObject.projectNameError) {
+    if (projeName.length == 0 && !errorObject.projectNameError) {
       errorObject.projectNameError = "Proje adı girilmemiş"
     }
 
-    if (projectName.length < 3 && !errorObject.projectNameError) {
+    if (projeName.length < 3 && !errorObject.projectNameError) {
       errorObject.projectNameError = "Proje adı çok kısa"
     }
 
@@ -181,7 +181,7 @@ exports = async function ({
     const foundFirmaProjeleri = await collection_Projects.find({ "yetkiliFirmalar._id": _firmaId }).toArray()
     if (foundFirmaProjeleri.length > 0 && !errorObject.projectNameError) {
       foundFirmaProjeleri.map(project => {
-        if (project.name == projectName && !errorObject.projectNameError) {
+        if (project.name == projeName && !errorObject.projectNameError) {
           errorObject.projectNameError = "Firmanın bu isimde projesi mevcut"
           return
         }
@@ -201,15 +201,5 @@ exports = async function ({
   }
 
 
-  // if (functionName == "getFirmaProjeleri") {
-  //   try {
-  //     const firmaprojeleri = await collection_Projects.find({ ["firmalar.${firmaId}"]: userEmail, "kullanicilar.yetki": "owner" }, { name: 1 }).toArray();
-  //     return firmaprojeleri;
-  //   } catch (err) {
-  //     throw new Error("MONGO // createProject // " + functionName + " // " + err.message);
-  //   }
-  // }
-
-  // return "MONGO // createProject // Herhangi bir functionName içine düşmedi"
 
 };
