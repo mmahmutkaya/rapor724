@@ -20,28 +20,24 @@ exports = async function ({
 
   try {
 
-
     const currentTime = new Date()
-
 
     const pozMetrajTipleri = [
       { id: "standartMetrajSayfasi", name: "Standart Metraj Sayfası", birimId: "" },
       { id: "insaatDemiri", name: "İnşaat Demiri", birimId: "ton" },
     ]
 
+    // const pozBasliklari = [
+    //   { _id: new BSON.ObjectId(), platform: "web", sira: 1, referans: "pozNo", goster: true, sabit: true, genislik: 7, paddingInfo: "0px 1rem 0px 0px", yatayHiza: "center", name: "Poz No", dataType: "metin" },
+    //   { _id: new BSON.ObjectId(), platform: "web", sira: 2, referans: "name", goster: true, sabit: true, genislik: 20, paddingInfo: "0px 1rem 0px 0px", yatayHiza: "center", name: "Poz İsmi", dataType: "metin" },
+    // ]
 
-
-    const pozBasliklari = [
-      { _id: new BSON.ObjectId(), platform: "web", sira: 1, referans: "pozNo", goster: true, sabit: true, genislik: 7, paddingInfo: "0px 1rem 0px 0px", yatayHiza: "center", name: "Poz No", dataType: "metin" },
-      { _id: new BSON.ObjectId(), platform: "web", sira: 2, referans: "name", goster: true, sabit: true, genislik: 20, paddingInfo: "0px 1rem 0px 0px", yatayHiza: "center", name: "Poz İsmi", dataType: "metin" },
-    ]
-
-    const metrajYapabilenler = [
-      {
-        "harf": "A",
-        _userId
-      }
-    ]
+    // const metrajYapabilenler = [
+    //   {
+    //     "harf": "A",
+    //     _userId
+    //   }
+    // ]
 
     const pozBirimleri = [
       { id: "mt", name: "mt" },
@@ -60,10 +56,10 @@ exports = async function ({
 
 
 
-    const mahalBasliklari = [
-      { _id: new BSON.ObjectId(), sira: 1, referans: "kod", goster: true, sabit: true, genislik: 7, paddingInfo: "0px 1rem 0px 0px", yatayHiza: "center", name: "Mahal Kod", dataType: "metin" },
-      { _id: new BSON.ObjectId(), sira: 2, referans: "name", goster: true, sabit: true, genislik: 20, paddingInfo: "0px 1rem 0px 0px", yatayHiza: "center", name: "Mahal İsmi", dataType: "metin" },
-    ]
+    // const mahalBasliklari = [
+    //   { _id: new BSON.ObjectId(), sira: 1, referans: "kod", goster: true, sabit: true, genislik: 7, paddingInfo: "0px 1rem 0px 0px", yatayHiza: "center", name: "Mahal Kod", dataType: "metin" },
+    //   { _id: new BSON.ObjectId(), sira: 2, referans: "name", goster: true, sabit: true, genislik: 20, paddingInfo: "0px 1rem 0px 0px", yatayHiza: "center", name: "Mahal İsmi", dataType: "metin" },
+    // ]
 
 
     const mahalBirimleri = [
@@ -119,51 +115,45 @@ exports = async function ({
 
 
 
-    const metrajBasliklari = [
-      {
-        _id: new BSON.ObjectId(),
-        sira: 1,
-        referans: "miktar",
-        goster: true,
-        sabit: false,
-        genislik: 10,
-        paddingInfo: "0px 1rem 0px 0px",
-        yatayHiza: "end",
-        name: "Miktar",
-        veriTuruId: "metin"
-      }, {
-        _id: new BSON.ObjectId(),
-        sira: 2,
-        referans: "birim",
-        goster: true,
-        sabit: false,
-        genislik: 7,
-        paddingInfo: "0px 1rem 0px 0px",
-        yatayHiza: "center",
-        name: "Birim",
-        veriTuruId: "metin"
-      }
-    ]
+    // const metrajBasliklari = [
+    //   {
+    //     _id: new BSON.ObjectId(),
+    //     sira: 1,
+    //     referans: "miktar",
+    //     goster: true,
+    //     sabit: false,
+    //     genislik: 10,
+    //     paddingInfo: "0px 1rem 0px 0px",
+    //     yatayHiza: "end",
+    //     name: "Miktar",
+    //     veriTuruId: "metin"
+    //   }, {
+    //     _id: new BSON.ObjectId(),
+    //     sira: 2,
+    //     referans: "birim",
+    //     goster: true,
+    //     sabit: false,
+    //     genislik: 7,
+    //     paddingInfo: "0px 1rem 0px 0px",
+    //     yatayHiza: "center",
+    //     name: "Birim",
+    //     veriTuruId: "metin"
+    //   }
+    // ]
 
 
 
-    const project = {
+    const newProject = {
       name: projectName,
       // wbs: [], // henüz herhangi bir başlık yok fakat yok ama bu property şimdi olmazsa ilk wbs kaydında bir hata yaşıyoruz
       // lbs: [], // henüz herhangi bir başlık yok fakat yok ama bu property şimdi olmazsa ilk wbs kaydında bir hata yaşıyoruz
-      firmalar: [{ _id: _firmaId, yetki: "owner" }],
-      personeller: [{ email: userEmail, yetki: "owner" }],
-      metrajYapabilenler,
+      yetkiliFirmalar: [{ firmaId: _firmaId, yetki: "owner" }],
+      yetkiliKisiler: [{ email: userEmail, yetki: "owner" }],
       veriTurleri,
       haneSayilari,
-      pozBasliklari,
-      mahalBasliklari,
-      members: [_userId],
-      membersA: [_userId],
       pozMetrajTipleri,
       pozBirimleri,
       mahalBirimleri,
-      metrajBasliklari,
       createdBy: _userId,
       createdAt: currentTime,
       isDeleted: false
@@ -188,7 +178,7 @@ exports = async function ({
     }
 
 
-    const foundFirmaProjeleri = await collection_Projects.find({ "firmalar._id": _firmaId }).toArray()
+    const foundFirmaProjeleri = await collection_Projects.find({ "yetkiliFirmalar._id": _firmaId }).toArray()
     if (foundFirmaProjeleri.length > 0 && !errorObject.projectNameError) {
       foundFirmaProjeleri.map(project => {
         if (project.name == projectName && !errorObject.projectNameError) {
@@ -203,16 +193,12 @@ exports = async function ({
     // VALIDATE KONTROL SONU
 
 
-
-
-    const result = collection_Projects.insertOne(project)
+    const result = collection_Projects.insertOne(newProject)
     return result
 
   } catch (err) {
     throw new Error("MONGO // createProject // " + err.message);
   }
-
-
 
 
   // if (functionName == "getFirmaProjeleri") {
