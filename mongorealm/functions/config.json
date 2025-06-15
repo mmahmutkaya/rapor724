@@ -420,7 +420,7 @@
         "disable_arg_logs": true
     },
     {
-        "name": "collection_firmaPozlar",
+        "name": "getFirmaPozlar",
         "private": false,
         "run_as_system": true,
         "disable_arg_logs": true
