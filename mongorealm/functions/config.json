@@ -442,5 +442,11 @@
         "private": false,
         "run_as_system": true,
         "disable_arg_logs": true
+    },
+    {
+        "name": "getProjelerNames_byUser",
+        "private": false,
+        "run_as_system": true,
+        "disable_arg_logs": true
     }
 ]
