@@ -168,7 +168,15 @@ exports = async function ({
     }
 
     const result_newProje = await collection_Projeler.insertOne(newProje)
-    newProje = {...newProje, _id:result_newProje.insertedId}
+
+    // getProjelerNames_byFirma dönüşü sağlanıyor
+    newProje = {
+      _firmaId,
+      _id:result_newProje.insertedId,
+      yetkiliKisiler: [{ email: userEmail, yetki: "owner" }],
+      yetkiliFirmalar: [{ _firmaId, yetki: "owner" }]
+    }
+    
     return newProje;
 
   } catch (err) {
