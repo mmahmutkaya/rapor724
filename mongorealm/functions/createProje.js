@@ -14,6 +14,8 @@ exports = async function ({
     );
   }
 
+
+
   const currentTime = new Date()
   const collection_Projeler = context.services.get("mongodb-atlas").db("rapor724_v2").collection("projeler")
 
@@ -21,6 +23,12 @@ exports = async function ({
 
   try {
 
+    if (!_firmaId) {
+      throw new Error(
+        "MONGO // createProje // Projenin oluşturulacağı firma sorguya gönderilmemiş, sayfayı yenileyiniz, sorun devam ederse Rapor724 ile iletişime geçiniz."
+      );
+    }
+    
     let errorObject = {}
 
     if (typeof projeName != "string" && !errorObject.projeNameError) {
@@ -146,6 +154,7 @@ exports = async function ({
 
 
     let newProje = {
+      _firmaId,
       name: projeName,
       // wbs: [], // henüz herhangi bir başlık yok fakat yok ama bu property şimdi olmazsa ilk wbs kaydında bir hata yaşıyoruz
       // lbs: [], // henüz herhangi bir başlık yok fakat yok ama bu property şimdi olmazsa ilk wbs kaydında bir hata yaşıyoruz
