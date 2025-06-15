@@ -154,7 +154,7 @@ exports = async function ({
       // lbs: [], // henüz herhangi bir başlık yok fakat yok ama bu property şimdi olmazsa ilk wbs kaydında bir hata yaşıyoruz
       pozMetrajTipleri,
       pozBirimleri,
-      "yetkililer.owners":[{email:userEmail}] ,
+      yetkiliKisiler: [{ email: userEmail, yetki: "owner" }],
       createdBy: userEmail,
       createdAt: currentTime,
       isDeleted: false
