@@ -165,7 +165,7 @@ exports = async function ({
     return resultNewFirma;
 
   } catch (err) {
-    throw new Error("MONGO // collection_firmalar // " + functionName + " // " + err.message);
+    throw new Error("MONGO // collection_firmalar // " + err.message);
   }
 
 
