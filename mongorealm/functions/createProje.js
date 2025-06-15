@@ -1,5 +1,6 @@
 exports = async function ({
-  firmaName
+  _firmaId,
+  projeName
 }) {
 
   const user = context.user;
@@ -9,29 +10,37 @@ exports = async function ({
   const mailTeyit = user.custom_data.mailTeyit;
   if (!mailTeyit) {
     throw new Error(
-      "MONGO // collection_firmalar // Öncelikle üyeliğinize ait mail adresinin size ait olduğunu doğrulamalısınız, tekrar giriş yapmayı deneyiniz veya bizimle iletişime geçiniz."
+      "MONGO // createProje // Öncelikle üyeliğinize ait mail adresinin size ait olduğunu doğrulamalısınız, tekrar giriş yapmayı deneyiniz veya bizimle iletişime geçiniz."
     );
   }
 
+
+
   const currentTime = new Date()
-  const collection_Firmalar = context.services.get("mongodb-atlas").db("rapor724_v2").collection("firmalar")
+  const collection_Projeler = context.services.get("mongodb-atlas").db("rapor724_v2").collection("projeler")
 
 
 
   try {
 
+    if (!_firmaId) {
+      throw new Error(
+        "MONGO // createProje // Projenin oluşturulacağı firma sorguya gönderilmemiş, sayfayı yenileyiniz, sorun devam ederse Rapor724 ile iletişime geçiniz."
+      );
+    }
+    
     let errorObject = {}
 
-    if (typeof firmaName != "string" && !errorObject.firmaNameError) {
-      errorObject.firmaNameError = "Firma adı verisi 'yazı' türünde değil"
+    if (typeof projeName != "string" && !errorObject.projeNameError) {
+      errorObject.projeNameError = "Proje adı verisi 'yazı' türünde değil"
     }
 
-    if (firmaName.length == 0 && !errorObject.firmaNameError) {
-      errorObject.firmaNameError = "Firma adı girilmemiş"
+    if (projeName.length == 0 && !errorObject.projeNameError) {
+      errorObject.projeNameError = "Proje adı girilmemiş"
     }
 
-    if (firmaName.length < 3 && !errorObject.firmaNameError) {
-      errorObject.firmaNameError = "Firma adı çok kısa"
+    if (projeName.length < 3 && !errorObject.projeNameError) {
+      errorObject.projeNameError = "Proje adı çok kısa"
       
     }
 
@@ -39,13 +48,9 @@ exports = async function ({
     if (Object.keys(errorObject).length > 0) return { errorObject }
 
 
-    const firmalar_byUser = await collection_Firmalar.find({ name: firmaName, "yetkiliKisiler.email": userEmail }).toArray()
-    let isExist
-    firmalar_byUser.map(firma => {
-      firma.yetkiliKisiler.find(personel => personel.email == userEmail && personel.yetki == "owner") ? isExist = true : null
-    })
-    if (isExist && !errorObject.firmaNameError) {
-      errorObject.firmaNameError = "Bu isimde firmanız mevcut"
+    const isExist = await collection_Projeler.findOne({ name: projeName, _firmaId })
+    if (isExist && !errorObject.projeNameError) {
+      errorObject.projeNameError = "Firmanın bu isimde projesi mevcut"
     }
 
     // VALIDATE KONTROL
@@ -96,76 +101,86 @@ exports = async function ({
     // ]
 
 
-    // const mahalBirimleri = [
-    //   { id: "mt", name: "mt" },
-    //   { id: "m2", name: "m2" },
-    //   { id: "m3", name: "m3" },
-    //   { id: "ad", name: "ad" },
-    //   { id: "set", name: "set" },
-    //   { id: "tl", name: "TL" },
-    //   { id: "usd", name: "USD" },
-    //   { id: "eur", name: "EUR" },
-    //   { id: "tarih", name: "TARİH" },
-    // ]
+    const mahalBirimleri = [
+      { id: "mt", name: "mt" },
+      { id: "m2", name: "m2" },
+      { id: "m3", name: "m3" },
+      { id: "ad", name: "ad" },
+      { id: "set", name: "set" },
+      { id: "tl", name: "TL" },
+      { id: "usd", name: "USD" },
+      { id: "eur", name: "EUR" },
+      { id: "tarih", name: "TARİH" },
+    ]
 
 
-    // const veriTurleri = [
-    //   {
-    //     "id": "sayi",
-    //     "name": "SAYI"
-    //   },
-    //   {
-    //     "id": "tarih",
-    //     "name": "TARİH"
-    //   },
-    //   {
-    //     "id": "metin",
-    //     "name": "METİN"
-    //   }
-    // ]
+    const veriTurleri = [
+      {
+        "id": "sayi",
+        "name": "SAYI"
+      },
+      {
+        "id": "tarih",
+        "name": "TARİH"
+      },
+      {
+        "id": "metin",
+        "name": "METİN"
+      }
+    ]
 
-    // const haneSayilari = [
-    //   {
-    //     "id": "0",
-    //     "name": "0"
-    //   },
-    //   {
-    //     "id": "0,0",
-    //     "name": "0,0"
-    //   },
-    //   {
-    //     "id": "0,00",
-    //     "name": "0,00"
-    //   },
-    //   {
-    //     "id": "0,000",
-    //     "name": "0,000"
-    //   },
-    //   {
-    //     "id": "0,0000",
-    //     "name": "0,0000"
-    //   }
-    // ]
+    const haneSayilari = [
+      {
+        "id": "0",
+        "name": "0"
+      },
+      {
+        "id": "0,0",
+        "name": "0,0"
+      },
+      {
+        "id": "0,00",
+        "name": "0,00"
+      },
+      {
+        "id": "0,000",
+        "name": "0,000"
+      },
+      {
+        "id": "0,0000",
+        "name": "0,0000"
+      }
+    ]
 
 
-    const newFirma = {
-      name: firmaName,
+    let newProje = {
+      _firmaId,
+      name: projeName,
       // wbs: [], // henüz herhangi bir başlık yok fakat yok ama bu property şimdi olmazsa ilk wbs kaydında bir hata yaşıyoruz
       // lbs: [], // henüz herhangi bir başlık yok fakat yok ama bu property şimdi olmazsa ilk wbs kaydında bir hata yaşıyoruz
       pozMetrajTipleri,
       pozBirimleri,
       yetkiliKisiler: [{ email: userEmail, yetki: "owner" }],
+      yetkiliFirmalar: [{ _firmaId, yetki: "owner" }],
       createdBy: userEmail,
       createdAt: currentTime,
       isDeleted: false
     }
 
-    const resultNewFirma = await collection_Firmalar.insertOne(newFirma)
+    const result_newProje = await collection_Projeler.insertOne(newProje)
 
-    return resultNewFirma;
+    // getProjelerNames_byFirma dönüşü sağlanıyor
+    newProje = {
+      _firmaId,
+      _id:result_newProje.insertedId,
+      yetkiliKisiler: [{ email: userEmail, yetki: "owner" }],
+      yetkiliFirmalar: [{ _firmaId, yetki: "owner" }]
+    }
+    
+    return newProje;
 
   } catch (err) {
-    throw new Error("MONGO // collection_firmalar // " + err.message);
+    throw new Error("MONGO // createProje // " + err.message);
   }
 
 

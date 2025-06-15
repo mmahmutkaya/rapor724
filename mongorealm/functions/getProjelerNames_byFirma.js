@@ -1,4 +1,4 @@
-exports = async function () {
+exports = async function ({_firmaId}) {
 
   const user = context.user;
   const _userId = new BSON.ObjectId(user.id);
@@ -14,8 +14,8 @@ exports = async function () {
 
   const collection_Projeler = context.services.get("mongodb-atlas").db("rapor724_v2").collection("projeler");
 
-  const projelerNames_byUser = await collection_Projeler.find({ "yetkiliKisiler.email": userEmail }, { name: 1, yetkiliKisiler: 1 }).toArray();
-  return projelerNames_byUser;
+  const projelerNames_byFirma = await collection_Projeler.find({ _firmaId }, { name: 1, yetkiliKisiler: 1, yetkiliFirmalar:1 }).toArray();
+  return projelerNames_byFirma;
 
   
 
