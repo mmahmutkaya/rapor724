@@ -1,7 +1,7 @@
 import React, { useState, useContext, useRef, useEffect } from 'react';
 import { StoreContext } from './store'
 import { useQueryClient } from '@tanstack/react-query'
-import { useGetProjelerNames_byUser } from '../hooks/useMongo';
+import { useGetProjelerNames_byFirma } from '../hooks/useMongo';
 import { DialogAlert } from './general/DialogAlert'
 import deleteLastSpace from '../functions/deleteLastSpace'
 
@@ -37,9 +37,8 @@ export default function P_FormProjeCreate({ setShow }) {
   const [projeNameError, setProjeNameError] = useState(false)
   const [dialogAlert, setDialogAlert] = useState()
 
-  // const [projeName, setProjeName] = useState("")
 
-  const { data: projelerNames_byUser } = useGetProjelerNames_byUser()
+  const { data: projelerNames_byFirma } = useGetProjelerNames_byFirma()
 
 
   async function handleSubmit(event) {
@@ -50,8 +49,6 @@ export default function P_FormProjeCreate({ setShow }) {
 
       const data = new FormData(event.currentTarget);
       const projeName = deleteLastSpace(data.get('projeName'))
-      console.log("projeName", projeName)
-      return
 
       let _firmaId = selectedFirma?._id
 
@@ -79,8 +76,8 @@ export default function P_FormProjeCreate({ setShow }) {
       }
 
 
-      if (projelerNames_byUser?.length > 0 && !projeNameError) {
-        projelerNames_byUser.map(proje => {
+      if (projelerNames_byFirma?.filter(oneProje => oneProje.yetkiliFirmalar).length > 0 && !projeNameError) {
+        projelerNames_byFirma.map(proje => {
           if (proje.name == projeName && !projeNameError) {
             setProjeNameError("Firmanın bu isimde projesi mevcut")
             projeNameError = true
@@ -99,20 +96,16 @@ export default function P_FormProjeCreate({ setShow }) {
       console.log(_firmaId, projeName)
 
 
-      const result = await RealmApp.currentUser.callFunction("createProject", { _firmaId, projeName });
+      const result_newProje = await RealmApp.currentUser.callFunction("createProje", { _firmaId, projeName });
 
-      if (result.errorObject) {
-        setProjeNameError(result.errorObject.projeNameError)
+      if (result_newProje.errorObject) {
+        setProjeNameError(result_newProje.errorObject.projeNameError)
         console.log("backend den dönen errorObject hata ile durdu")
         return
       }
 
-      if (result.insertedId) {
-        let newProjeName = {
-          _id: result.insertedId,
-          name: projeName
-        }
-        queryClient.setQueryData(['projelerNames_byUser', _firmaId.toString()], (firmaProjeleri) => [...firmaProjeleri, newProjeName])
+      if (result_newProje._id) {
+        queryClient.setQueryData(['projelerNames_byFirma', _firmaId.toString()], (firmaProjeleri) => [...firmaProjeleri, result_newProje])
         setShow("Main")
         return
       }

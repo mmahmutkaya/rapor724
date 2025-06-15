@@ -30,6 +30,7 @@ export default function P_FirmaPozlari() {
   const queryClient = useQueryClient()
 
   const { data: pozlar } = useGetFirmaPozlar()
+  // console.log("pozlar",pozlar)
   const { RealmApp, myTema } = useContext(StoreContext)
   const { selectedFirma } = useContext(StoreContext)
 
@@ -45,13 +46,12 @@ export default function P_FirmaPozlari() {
 
   const [basliklar, setBasliklar] = useState(RealmApp.currentUser.customData.customSettings.pages.firmapozlari.basliklar)
 
-
   // sayfadaki "visibility" tuşunun aktif olup olmamasını ayarlamak için
-  const anyBaslikShow = basliklar.find(x => x.visible) ? true : false
+  const anyBaslikShow = basliklar?.find(x => x.visible) ? true : false
 
-  const pozAciklamaShow = basliklar.find(x => x.id === "aciklama").show
+  const pozAciklamaShow = basliklar?.find(x => x.id === "aciklama").show
 
-  const pozVersiyonShow = basliklar.find(x => x.id === "versiyon").show
+  const pozVersiyonShow = basliklar?.find(x => x.id === "versiyon").show
 
   const columns = `5rem 15rem 5rem${pozAciklamaShow ? " 1rem 10rem" : ""}${pozVersiyonShow ? " 1rem 5rem" : ""}`
 
@@ -103,7 +103,7 @@ export default function P_FirmaPozlari() {
   let cOunt
 
   return (
-    <Box sx={{ mt: "0rem" }}>
+    <Box sx={{ m: "0rem" }}>
 
       {/* BAŞLIK */}
       <HeaderFirmaPozlari show={show} setShow={setShow} anyBaslikShow={anyBaslikShow} />
@@ -118,8 +118,8 @@ export default function P_FirmaPozlari() {
 
 
       {/* EĞER POZ BAŞLIĞI YOKSA */}
-      {show == "Main" && !selectedFirma?.wbs.find(x => x.openForPoz === true) &&
-        <Stack sx={{ width: '100%', m: "1rem", p: "1rem" }} spacing={2}>
+      {show == "Main" && !selectedFirma?.wbs?.find(x => x.openForPoz === true) &&
+        <Stack sx={{ width: '100%', m: "0rem", p: "1rem" }} spacing={2}>
           <Alert severity="info">
             Öncelikle poz oluşturmaya açık poz başlığı oluşturmalısınız.
           </Alert>
@@ -128,8 +128,8 @@ export default function P_FirmaPozlari() {
 
 
       {/* EĞER POZ YOKSA */}
-      {show == "Main" && selectedFirma?.wbs.find(x => x.openForPoz === true) && !pozlar?.length > 0 &&
-        <Stack sx={{ width: '100%', m: "1rem", p: "1rem" }} spacing={2}>
+      {show == "Main" && selectedFirma?.wbs?.find(x => x.openForPoz === true) && !pozlar?.length > 0 &&
+        <Stack sx={{ width: '100%', m: "0rem", p: "1rem" }} spacing={2}>
           <Alert severity="info">
             Menüler yardımı ile poz oluşturmaya başlayabilirsiniz.
           </Alert>
@@ -139,7 +139,7 @@ export default function P_FirmaPozlari() {
 
       {/* ANA SAYFA - POZLAR VARSA */}
 
-      {show == "Main" && selectedFirma?.wbs.find(x => x.openForPoz === true) && pozlar?.length > 0 &&
+      {show == "Main" && selectedFirma?.wbs?.find(x => x.openForPoz === true) && pozlar?.length > 0 &&
         <Box sx={{ m: "1rem", maxWidth: "min-content" }}>
 
 
@@ -212,22 +212,22 @@ export default function P_FirmaPozlari() {
 
                         if (index == 0 && cOunt == 1) {
                           wbsCode = codePart
-                          wbsName = selectedFirma?.wbs.find(item => item.code == wbsCode).name
+                          wbsName = selectedFirma?.wbs?.find(item => item.code == wbsCode).name
                         }
 
                         if (index == 0 && cOunt !== 1) {
                           wbsCode = codePart
-                          wbsName = selectedFirma?.wbs.find(item => item.code == wbsCode).codeName
+                          wbsName = selectedFirma?.wbs?.find(item => item.code == wbsCode).codeName
                         }
 
                         if (index !== 0 && index + 1 !== cOunt && cOunt !== 1) {
                           wbsCode = wbsCode + "." + codePart
-                          wbsName = wbsName + " > " + selectedFirma?.wbs.find(item => item.code == wbsCode).codeName
+                          wbsName = wbsName + " > " + selectedFirma?.wbs?.find(item => item.code == wbsCode).codeName
                         }
 
                         if (index !== 0 && index + 1 == cOunt && cOunt !== 1) {
                           wbsCode = wbsCode + "." + codePart
-                          wbsName = wbsName + " > " + selectedFirma?.wbs.find(item => item.code == wbsCode).name
+                          wbsName = wbsName + " > " + selectedFirma?.wbs?.find(item => item.code == wbsCode).name
                         }
 
                       })

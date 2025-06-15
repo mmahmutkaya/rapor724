@@ -47,9 +47,9 @@ export default function P_Firmalar() {
 
   const handleFirmaClick = async (oneFirma) => {
     try {
-      const userFirma = await RealmApp.currentUser.callFunction("collection_firmalar", { functionName: "getUserFirma", _firmaId: oneFirma._id })
-      if (userFirma._id) {
-        setSelectedFirma(userFirma)
+      const firma = await RealmApp.currentUser.callFunction("getFirma", { _firmaId: oneFirma._id })
+      if (firma._id) {
+        setSelectedFirma(firma)
         navigate("/projeler")
       }
     } catch (err) {

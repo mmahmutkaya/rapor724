@@ -68,7 +68,7 @@ export default function HeaderFirmaPozlari({ show, setShow, anyBaslikShow }) {
             </Grid>
 
             <Grid item >
-              <IconButton onClick={() => setShow("PozCreate")} aria-label="wbsUncliced" disabled={!selectedFirma?.wbs.find(x => x.openForPoz === true)}>
+              <IconButton onClick={() => setShow("PozCreate")} aria-label="wbsUncliced" disabled={!selectedFirma?.wbs?.find(x => x.openForPoz === true)}>
                 <AddCircleOutlineIcon variant="contained" />
               </IconButton>
             </Grid>

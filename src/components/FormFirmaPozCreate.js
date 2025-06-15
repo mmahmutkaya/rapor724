@@ -65,6 +65,7 @@ export default function FormFirmaPozCreate({ setShow }) {
       const pozNo = deleteLastSpace(data.get('pozNo'))
 
       const newPoz = {
+        _firmaId: selectedFirma._id,
         wbsId,
         pozName,
         pozNo,
@@ -156,7 +157,7 @@ export default function FormFirmaPozCreate({ setShow }) {
 
       // form alanına uyarı veren hatalar olmuşsa burda durduralım
       if (isFormError) {
-        console.log("form validation - hata - frontend")
+        // console.log("form validation - hata - frontend")
         return
       }
 
@@ -165,7 +166,7 @@ export default function FormFirmaPozCreate({ setShow }) {
       // return
       // form verileri kontrolden geçti - db ye göndermeyi deniyoruz
 
-      const result = await RealmApp?.currentUser.callFunction("collection_firmaPozlar", ({ functionName: "createPoz", _firmaId: selectedFirma._id, newPoz }))
+      const result = await RealmApp?.currentUser.callFunction("createFirmaPoz", ({ newPoz }))
 
       // console.log("result", result)
 
@@ -180,7 +181,7 @@ export default function FormFirmaPozCreate({ setShow }) {
         console.log("alt satırda backend den gelen hata ile durdu")
         return
       }
-      console.log("form validation - hata yok - backend")
+      // console.log("form validation - hata yok - backend")
 
       if (!result.newPoz?._id) {
         console.log("result", result)

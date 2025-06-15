@@ -3,7 +3,7 @@ import { useState, useEffect, useContext } from 'react';
 import { StoreContext } from '../../components/store'
 import FormProjeCreate from '../../components/FormProjeCreate'
 import { useNavigate } from "react-router-dom";
-import { useGetProjelerNames_byUser } from '../../hooks/useMongo';
+import { useGetProjelerNames_byFirma } from '../../hooks/useMongo';
 import { DialogAlert } from '../../components/general/DialogAlert'
 
 
@@ -32,34 +32,35 @@ export default function P_Projeler() {
   const [dialogAlert, setDialogAlert] = useState()
 
   const navigate = useNavigate()
-  
+
   useEffect(() => {
     setSelectedProje()
-    if(!selectedFirma) navigate("/firmalar")
+    if (!selectedFirma) navigate("/firmalar")
   }, []);
 
 
 
   const [show, setShow] = useState("Main")
 
-  const { data: projelerNames_byUser } = useGetProjelerNames_byUser()
+  const { data: projelerNames_byFirma } = useGetProjelerNames_byFirma()
 
 
   const handleProjeClick = async (oneProje) => {
-    // try {
-    //   const proje = await RealmApp.currentUser.callFunction("collection_projeler", { functionName: "getProje", _firmaId: oneProje._id })
-    //   if (proje._id) {
-    //     setSelectedProje(proje)
-    //     navigate("/projeler")
-    //   }
-    // } catch (err) {
-    //   console.log(err)
-    //   setDialogAlert({
-    //     dialogIcon: "warning",
-    //     dialogMessage: "Beklenmedik hata, Rapor7/24 ile irtibata geçiniz..",
-    //     detailText: err?.message ? err.message : null
-    //   })
-    // }
+    // console.log("oneProje", oneProje)
+    try {
+      const proje = await RealmApp.currentUser.callFunction("getProje", { _projeId: oneProje._id })
+      if (proje._id) {
+        setSelectedProje(proje)
+        navigate("/dashboard")
+      }
+    } catch (err) {
+      console.log(err)
+      setDialogAlert({
+        dialogIcon: "warning",
+        dialogMessage: "Beklenmedik hata, Rapor7/24 ile irtibata geçiniz..",
+        detailText: err?.message ? err.message : null
+      })
+    }
   }
 
 
@@ -128,7 +129,7 @@ export default function P_Projeler() {
         </Box>
       }
 
-      {show == "Main" && !projelerNames_byUser?.length > 0 &&
+      {show == "Main" && !projelerNames_byFirma?.length > 0 &&
         <Stack sx={{ width: '100%', padding: "1rem" }} spacing={2}>
           <Alert severity="info">
             Firmaya ait proje oluşturmak için menüyü kullanabilirsiniz.
@@ -136,17 +137,17 @@ export default function P_Projeler() {
         </Stack>
       }
 
-      {show == "Main" && projelerNames_byUser?.length > 0 &&
+      {show == "Main" && projelerNames_byFirma?.length > 0 &&
         <Stack sx={{ width: '100%', padding: "1rem" }} spacing={0}>
           {
-            projelerNames_byUser.map((oneProje, index) => (
+            projelerNames_byFirma.map((oneProje, index) => (
 
               <Box
                 key={index}
                 onClick={() => handleProjeClick(oneProje)}
                 sx={{
                   display: "grid",
-                  gridTemplateColumns: "auto auto 1fr",
+                  gridTemplateColumns: "auto 1fr",
                   "&:hover": {
                     color: "black",
                     "& .childClass": {
@@ -168,12 +169,12 @@ export default function P_Projeler() {
                     {oneProje.name}
                   </Typography>
                 </Box>
-
+                {/* 
                 <Box className="childClass" sx={{ pr: "1rem", color: "gray" }}>
                   <Typography>
                     {oneProje.yetkiliKisiler.find(oneKisi => oneKisi.email === RealmApp.currentUser._profile.data.email && oneKisi.yetki === "owner") ? "sahip" : "diğer"}
                   </Typography>
-                </Box>
+                </Box> */}
 
               </Box>
 

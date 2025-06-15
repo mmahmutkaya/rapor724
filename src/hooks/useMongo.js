@@ -28,16 +28,36 @@ export const useGetFirmalarNames_byUser = (onSuccess, onError) => {
 }
 
 
-
-// MONGO FONKSİYON - getProjelerNames_byUser
-export const useGetProjelerNames_byUser = (onSuccess, onError) => {
+export const useGetFirmaPozlar = (onSuccess, onError) => {
 
   // const RealmApp = useApp();
-  const { RealmApp } = useContext(StoreContext)
+  const { RealmApp, selectedFirma } = useContext(StoreContext)
 
   return useQuery({
-    queryKey: ['projelerNames_byUser', RealmApp.currentUser._profile.data.email],
-    queryFn: () => RealmApp?.currentUser.callFunction("getProjelerNames_byUser"),
+    queryKey: ['firmaPozlar', selectedFirma?._id.toString()],
+    queryFn: () => RealmApp?.currentUser.callFunction("getFirmaPozlar", ({_firmaId: selectedFirma?._id })),
+    enabled: !!RealmApp && !!selectedFirma,
+    onSuccess,
+    onError,
+    refetchOnMount: false,
+    refetchOnWindowFocus: false
+  })
+
+}
+
+
+
+
+
+// MONGO FONKSİYON - getProjelerNames_byFirma
+export const useGetProjelerNames_byFirma = (onSuccess, onError) => {
+
+  // const RealmApp = useApp();
+  const { RealmApp, selectedFirma } = useContext(StoreContext)
+
+  return useQuery({
+    queryKey: ['projelerNames_byFirma', selectedFirma?._id.toString()],
+    queryFn: () => RealmApp?.currentUser.callFunction("getProjelerNames_byFirma",{_firmaId:selectedFirma._id}),
     enabled: !!RealmApp,
     onSuccess,
     onError,
@@ -80,25 +100,6 @@ export const useGetProjectNames_firma = () => {
     enabled: !!RealmApp && !!_firmaId,
     // onSuccess,
     // onError,
-    refetchOnMount: false,
-    refetchOnWindowFocus: false
-  })
-
-}
-
-
-
-export const useGetFirmaPozlar = (onSuccess, onError) => {
-
-  // const RealmApp = useApp();
-  const { RealmApp, selectedFirma } = useContext(StoreContext)
-
-  return useQuery({
-    queryKey: ['firmaPozlar', selectedFirma?._id.toString()],
-    queryFn: () => RealmApp?.currentUser.callFunction("collection_firmaPozlar", ({ functionName: "getFirmaPozlar", _firmaId: selectedFirma?._id })),
-    enabled: !!RealmApp && !!selectedFirma,
-    onSuccess,
-    onError,
     refetchOnMount: false,
     refetchOnWindowFocus: false
   })

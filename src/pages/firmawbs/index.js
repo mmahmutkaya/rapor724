@@ -72,7 +72,7 @@ export default function P_FirmaWbs() {
 
 
       {!selectedFirma?.wbs?.length &&
-        <Stack sx={{ width: '100%', padding: "0.5rem" }} spacing={2}>
+        <Stack sx={{ width: '100%', m: "0rem", p: "1rem" }} spacing={2}>
           <Alert severity="info">
             Yukarıdaki "+" tuşuna basarak "Poz Başlığı" oluşturabilirsiniz.
           </Alert>
