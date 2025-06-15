@@ -1,5 +1,5 @@
 exports = async function ({
-  functionName, _firmaId, newPoz
+  _firmaId
 }) {
 
 
@@ -19,6 +19,7 @@ exports = async function ({
   const result = await collection_firmaPozlar.aggregate([
     {
       $project: {
+        _firmaId:1,
         wbsId:1,
         pozNo:1,
         pozName:1,
@@ -29,6 +30,7 @@ exports = async function ({
     },       
     {
       $match: {
+        _firmaId,
         isDeleted:false
       }
     },
