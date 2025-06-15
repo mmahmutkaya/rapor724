@@ -1,5 +1,4 @@
 exports = async function ({
-  _firmaId,
   newPoz
 }) {
 
@@ -21,7 +20,14 @@ exports = async function ({
     newPoz.pozBirimId = "ton"
   }
 
+  // gelen veri kontrol
+  if (!newPoz._firmaId) {
+    // form alanına değil - direkt ekrana uyarı veren hata - (fonksiyon da durduruluyor)
+    throw new Error("DB ye gönderilen sorguda 'firmaId' verisi bulunamadı, sayfayı yenileyiniz, sorun devam ederse Rapor7/24 ile irtibata geçiniz.")
+  }
+
   ////// form validation - backend
+  // form alanına uyarı veren hatalar
 
   let errorObject = {}
   let isFormError = false
@@ -32,12 +38,6 @@ exports = async function ({
   let pozBirimIdError
   let pozMetrajTipIdError
 
-  if (!_firmaId) {
-    // form alanına değil - direkt ekrana uyarı veren hata - (fonksiyon da durduruluyor)
-    throw new Error("DB ye gönderilen sorguda 'firmaId' verisi bulunamadı, sayfayı yenileyiniz, sorun devam ederse Rapor7/24 ile irtibata geçiniz.")
-  }
-
-  // form alanına uyarı veren hatalar
 
   if (!newPoz.wbsId && !wbsIdError) {
     errorObject.wbsIdError = "Zorunlu"
@@ -72,7 +72,7 @@ exports = async function ({
 
   const pozlar = await collection_firmaPozlar.aggregate([
     {
-      $match: { isDeleted:false }
+      $match: { _firmaId:newPoz._firmaId, isDeleted:false }
     }
   ]).toArray()
 
