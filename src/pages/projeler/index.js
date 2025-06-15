@@ -1,9 +1,7 @@
 
 import { useState, useEffect, useContext } from 'react';
 import { StoreContext } from '../../components/store'
-import { useApp } from "../../components/useApp";
-import FormProjeCreate from '../../components/FormProjeCreate.js'
-// import ProjelerHeader from '../../components/ProjelerHeader'
+import FormProjeCreate from '../../components/FormProjeCreate'
 import { useNavigate } from "react-router-dom";
 import { useGetProjelerNames_byUser } from '../../hooks/useMongo';
 import { DialogAlert } from '../../components/general/DialogAlert'
@@ -29,16 +27,18 @@ export default function P_Projeler() {
 
   // const RealmApp = useApp();
   const { RealmApp } = useContext(StoreContext)
-  const { setSelectedProje } = useContext(StoreContext)
+  const { selectedFirma, setSelectedProje } = useContext(StoreContext)
 
   const [dialogAlert, setDialogAlert] = useState()
 
+  const navigate = useNavigate()
+  
   useEffect(() => {
     setSelectedProje()
+    if(!selectedFirma) navigate("/firmalar")
   }, []);
 
 
-  const navigate = useNavigate()
 
   const [show, setShow] = useState("Main")
 
@@ -46,9 +46,8 @@ export default function P_Projeler() {
 
 
   const handleProjeClick = async (oneProje) => {
-    console.log("handleProjeClick - tuşuna basıldı")
     // try {
-    //   const proje = await RealmApp.currentUser.callFunction("collection_projeler", { functionName: "getProje", _projeId: oneProje._id })
+    //   const proje = await RealmApp.currentUser.callFunction("collection_projeler", { functionName: "getProje", _firmaId: oneProje._id })
     //   if (proje._id) {
     //     setSelectedProje(proje)
     //     navigate("/projeler")
@@ -132,7 +131,7 @@ export default function P_Projeler() {
       {show == "Main" && !projelerNames_byUser?.length > 0 &&
         <Stack sx={{ width: '100%', padding: "1rem" }} spacing={2}>
           <Alert severity="info">
-            Dahil olduğunuz herhangi bir firma bulunamadı, menüler yardımı ile oluşturabilirsiniz.
+            Firmaya ait proje oluşturmak için menüyü kullanabilirsiniz.
           </Alert>
         </Stack>
       }
@@ -147,7 +146,7 @@ export default function P_Projeler() {
                 onClick={() => handleProjeClick(oneProje)}
                 sx={{
                   display: "grid",
-                  gridTemplateColumns: "auto 1fr",
+                  gridTemplateColumns: "auto auto 1fr",
                   "&:hover": {
                     color: "black",
                     "& .childClass": {
@@ -164,9 +163,15 @@ export default function P_Projeler() {
                   <FolderIcon />
                 </Box>
 
-                <Box>
+                <Box className="childClass" sx={{ pr: "1rem", color: "gray" }}>
                   <Typography>
                     {oneProje.name}
+                  </Typography>
+                </Box>
+
+                <Box className="childClass" sx={{ pr: "1rem", color: "gray" }}>
+                  <Typography>
+                    {oneProje.yetkiliKisiler.find(oneKisi => oneKisi.email === RealmApp.currentUser._profile.data.email && oneKisi.yetki === "owner") ? "sahip" : "diğer"}
                   </Typography>
                 </Box>
 

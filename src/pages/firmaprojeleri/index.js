@@ -32,8 +32,8 @@ export default function P_FirmaProjeleri() {
 
 
   useEffect(() => {
-    if (!selectedFirma) navigate('/firmalarim')
-  }, [selectedFirma]);
+    if (!selectedFirma) navigate('/firmalar')
+  }, []);
 
 
   const [show, setShow] = useState("Main")

@@ -3,6 +3,7 @@ import { StoreContext } from './store'
 import { useQueryClient } from '@tanstack/react-query'
 import { useGetProjelerNames_byUser } from '../hooks/useMongo';
 import { DialogAlert } from './general/DialogAlert'
+import deleteLastSpace from '../functions/deleteLastSpace'
 
 
 //mui
@@ -36,7 +37,7 @@ export default function P_FormProjeCreate({ setShow }) {
   const [projeNameError, setProjeNameError] = useState(false)
   const [dialogAlert, setDialogAlert] = useState()
 
-  const [projeName, setProjeName] = useState("")
+  // const [projeName, setProjeName] = useState("")
 
   const { data: projelerNames_byUser } = useGetProjelerNames_byUser()
 
@@ -48,7 +49,9 @@ export default function P_FormProjeCreate({ setShow }) {
     try {
 
       const data = new FormData(event.currentTarget);
-      const projeName = data.get('projeName')
+      const projeName = deleteLastSpace(data.get('projeName'))
+      console.log("projeName", projeName)
+      return
 
       let _firmaId = selectedFirma?._id
 
@@ -91,10 +94,12 @@ export default function P_FormProjeCreate({ setShow }) {
         return
       }
 
-      // VALIDATE KONTROL -- SONU 
+      // VALIDATE KONTROL -- SONU
+
+      console.log(_firmaId, projeName)
 
 
-      const result = await RealmApp.currentUser.callFunction("collection_projects", { functionName: "createProject", _firmaId, projeName });
+      const result = await RealmApp.currentUser.callFunction("createProject", { _firmaId, projeName });
 
       if (result.errorObject) {
         setProjeNameError(result.errorObject.projeNameError)
@@ -163,9 +168,9 @@ export default function P_FormProjeCreate({ setShow }) {
                 margin="normal"
                 id="projeName"
                 name="projeName"
-                value={projeName}
+                // value={projeName}
                 // onChange={(e) => console.log(e.target.value)}
-                onChange={(e) => setProjeName(e.target.value)}
+                // onChange={(e) => setProjeName(e.target.value)}
                 error={projeNameError ? true : false}
                 helperText={projeNameError ? projeNameError : ""}
                 // margin="dense"

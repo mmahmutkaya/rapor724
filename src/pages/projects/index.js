@@ -32,7 +32,7 @@ export default function P_Projects() {
 
   useEffect(() => {
     setIsProject()
-    if (!selectedFirma) navigate('/firmalarim')
+    if (!selectedFirma) navigate('/firmalar')
   }, [selectedFirma]);
 
 

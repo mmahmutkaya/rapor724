@@ -131,24 +131,16 @@
 //   { id: "insaatDemiri", name: "İnşaat Demiri", birimId: "ton" },
 // ]
 
- const customSettings = {
-    "pages": {
-      "firmapozlari": {
-        "basliklar": [
-          {
-            "id": "pozAciklama",
-            "visible": true,
-            "show": true
-          },
-          {
-            "id": "pozVersiyon",
-            "visible": true,
-            "show": true
-          }
-        ]
-      }
+const customSettings = {
+  pages: {
+    firmapozlari: {
+      basliklar: [
+        { id: "aciklama", baslikName: "Açıklama", visible: true, show: true },
+        { id: "versiyon", baslikName: "Versiyon", visible: true, show: true }
+      ]
     }
   }
+}
 
 
 use('rapor724_v2');

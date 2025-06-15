@@ -28,7 +28,7 @@ export default function P_PozHavuzu() {
   const { selectedFirma } = useContext(StoreContext)
 
   useEffect(() => {
-    !selectedFirma && navigate('/firmalarim')
+    !selectedFirma && navigate('/firmalar')
   }, [])
 
   pozlar && console.log("pozlar", pozlar)

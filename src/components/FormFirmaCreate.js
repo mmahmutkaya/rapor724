@@ -3,6 +3,8 @@ import { StoreContext } from './store'
 import { useQueryClient } from '@tanstack/react-query'
 import { useGetFirmalarNames_byUser } from '../hooks/useMongo';
 import { DialogAlert } from '../../src/components/general/DialogAlert'
+import deleteLastSpace from '../functions/deleteLastSpace'
+
 
 
 //mui
@@ -33,11 +35,12 @@ export default function P_FormFirmaCreate({ setShow }) {
   const queryClient = useQueryClient()
 
   const { RealmApp } = useContext(StoreContext)
+  const RealmUserEmail = RealmApp.currentUser._profile.data.email
 
+  const [firmaName, setFirmaName] = useState("")
   const [firmaNameError, setFirmaNameError] = useState()
 
   const [dialogAlert, setDialogAlert] = useState()
-  const [dialogShow, setDialogShow] = useState(1)
 
   const { data: firmalarNames_byUser } = useGetFirmalarNames_byUser()
 
@@ -49,10 +52,9 @@ export default function P_FormFirmaCreate({ setShow }) {
     try {
 
       const data = new FormData(event.currentTarget);
-      const firmaName = data.get('firmaName')
-      // console.log("firmaName", firmaName)
+      setFirmaName(firmaName => deleteLastSpace(firmaName).toUpperCase())
 
-
+      
       // VALIDATE KONTROL
       let isError
       let firmaNameError
@@ -77,7 +79,7 @@ export default function P_FormFirmaCreate({ setShow }) {
 
 
       if (firmalarNames_byUser?.length > 0 && !firmaNameError) {
-        firmalarNames_byUser?.filter(oneFirma => oneFirma.yetkiliKisiler?.find(oneKisi => oneKisi.email === RealmApp.currentUser._profile.data.email && oneKisi.yetki == "owner")).map(oneFirma => {
+        firmalarNames_byUser?.filter(oneFirma => oneFirma.yetkiliKisiler?.find(oneKisi => oneKisi.email === RealmUserEmail && oneKisi.yetki == "owner")).map(oneFirma => {
           if (oneFirma.name == firmaName && !firmaNameError) {
             setFirmaNameError("Bu isimde firmanız mevcut")
             firmaNameError = true
@@ -106,9 +108,10 @@ export default function P_FormFirmaCreate({ setShow }) {
       if (result.insertedId) {
         let newFirma = {
           _id: result.insertedId,
-          name: firmaName
+          name: firmaName,
+          yetkiliKisiler: [{ email: RealmUserEmail, yetki: "owner" }]
         }
-        queryClient.setQueryData(['firmalarNames_byUser', RealmApp.currentUser._profile.data.email], (firmalarNames) => [...firmalarNames, newFirma])
+        queryClient.setQueryData(['firmalarNames_byUser', RealmUserEmail], (firmalarNames) => [...firmalarNames, newFirma])
         setShow("Main")
         return
       }
@@ -143,7 +146,7 @@ export default function P_FormFirmaCreate({ setShow }) {
 
       <Dialog
         PaperProps={{ sx: { width: "80%", position: "fixed", top: "10rem" } }}
-        open={dialogShow === 1}
+        open={true}
         onClose={() => setShow("Main")}
       >
         {/* <DialogTitle>Subscribe</DialogTitle> */}
@@ -165,7 +168,8 @@ export default function P_FormFirmaCreate({ setShow }) {
                 margin="normal"
                 id="firmaName"
                 name="firmaName"
-                // value={firmaName}
+                onChange={(e) => setFirmaName(() => e.target.value.replace("i", "İ").toUpperCase())}
+                value={firmaName}
                 // onChange={(e) => console.log(e.target.value)}
                 // onChange={(e) => setFirmaNameError(e.target.value)}
                 error={firmaNameError ? true : false}

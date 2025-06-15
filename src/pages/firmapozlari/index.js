@@ -10,8 +10,7 @@ import { useGetFirmaPozlar } from '../../hooks/useMongo';
 
 import FormFirmaPozCreate from '../../components/FormFirmaPozCreate'
 import ShowFirmaPozBaslik from '../../components/ShowFirmaPozBaslik'
-import FormPozBaslikCreate from '../../components/FormPozBaslikCreate'
-import FirmaPozlariHeader from '../../components/FirmaPozlariHeader'
+import HeaderFirmaPozlari from '../../components/HeaderFirmaPozlari'
 
 
 import { borderLeft, fontWeight, grid, styled } from '@mui/system';
@@ -41,28 +40,18 @@ export default function P_FirmaPozlari() {
   const [show, setShow] = useState("Main")
 
   useEffect(() => {
-    !selectedFirma && navigate('/firmalarim')
+    !selectedFirma && navigate('/firmalar')
   }, [])
 
   const [basliklar, setBasliklar] = useState(RealmApp.currentUser.customData.customSettings.pages.firmapozlari.basliklar)
 
-  if (basliklar && !basliklar.find(x => x.hasOwnProperty("baslikName"))) {
-    setBasliklar(basliklar => {
-      const basliklar2 = basliklar.map(oneBaslik => {
-        if (oneBaslik.id === "pozAciklama") oneBaslik.baslikName = "Açıklama"
-        if (oneBaslik.id === "pozVersiyon") oneBaslik.baslikName = "Versiyon"
-        return oneBaslik
-      })
-      return basliklar2
-    })
-  }
 
-  // başlık da yer alan visibility tuşunun aktif olup olmamasını ayarlamak için
+  // sayfadaki "visibility" tuşunun aktif olup olmamasını ayarlamak için
   const anyBaslikShow = basliklar.find(x => x.visible) ? true : false
 
-  const pozAciklamaShow = basliklar.find(x => x.id === "pozAciklama").show
+  const pozAciklamaShow = basliklar.find(x => x.id === "aciklama").show
 
-  const pozVersiyonShow = basliklar.find(x => x.id === "pozVersiyon").show
+  const pozVersiyonShow = basliklar.find(x => x.id === "versiyon").show
 
   const columns = `5rem 15rem 5rem${pozAciklamaShow ? " 1rem 10rem" : ""}${pozVersiyonShow ? " 1rem 5rem" : ""}`
 
@@ -117,7 +106,7 @@ export default function P_FirmaPozlari() {
     <Box sx={{ mt: "0rem" }}>
 
       {/* BAŞLIK */}
-      <FirmaPozlariHeader show={show} setShow={setShow} anyBaslikShow={anyBaslikShow} />
+      <HeaderFirmaPozlari show={show} setShow={setShow} anyBaslikShow={anyBaslikShow} />
 
 
       {/* POZ OLUŞTURULACAKSA */}
@@ -128,7 +117,7 @@ export default function P_FirmaPozlari() {
       {show == "ShowBaslik" && <ShowFirmaPozBaslik setShow={setShow} basliklar={basliklar} setBasliklar={setBasliklar} />}
 
 
-      {/* EĞER POZ YOKSA */}
+      {/* EĞER POZ BAŞLIĞI YOKSA */}
       {show == "Main" && !selectedFirma?.wbs.find(x => x.openForPoz === true) &&
         <Stack sx={{ width: '100%', m: "1rem", p: "1rem" }} spacing={2}>
           <Alert severity="info">
@@ -136,6 +125,7 @@ export default function P_FirmaPozlari() {
           </Alert>
         </Stack>
       }
+
 
       {/* EĞER POZ YOKSA */}
       {show == "Main" && selectedFirma?.wbs.find(x => x.openForPoz === true) && !pozlar?.length > 0 &&
@@ -148,183 +138,185 @@ export default function P_FirmaPozlari() {
 
 
       {/* ANA SAYFA - POZLAR VARSA */}
-      <Box sx={{ m: "1rem", maxWidth: "min-content" }}>
+
+      {show == "Main" && selectedFirma?.wbs.find(x => x.openForPoz === true) && pozlar?.length > 0 &&
+        <Box sx={{ m: "1rem", maxWidth: "min-content" }}>
 
 
-        {/*   EN ÜST BAŞLIK */}
-        {/* <Box sx={{ display: "grid", gridTemplateColumns: columns, gridTemplateAreas: gridAreas_enUstBaslik }}> */}
-        <Box sx={{ display: "grid", gridTemplateColumns: columns }}>
+          {/*   EN ÜST BAŞLIK */}
+          {/* <Box sx={{ display: "grid", gridTemplateColumns: columns, gridTemplateAreas: gridAreas_enUstBaslik }}> */}
+          <Box sx={{ display: "grid", gridTemplateColumns: columns }}>
 
-          {/* BAŞLIK - POZ NO */}
-          <Box sx={{ ...enUstBaslik_css }}>
-            Poz No
+            {/* BAŞLIK - POZ NO */}
+            <Box sx={{ ...enUstBaslik_css }}>
+              Poz No
+            </Box>
+
+            {/* BAŞLIK - POZ İSMİ */}
+            <Box sx={{ ...enUstBaslik_css }}>
+              Poz İsmi
+            </Box>
+
+
+            {/* BAŞLIK - POZ BİRİM  */}
+            <Box sx={{ ...enUstBaslik_css }}>
+              Birim
+            </Box>
+
+            {/* BAŞLIK - POZ BİRİM  */}
+            {pozAciklamaShow &&
+              <>
+                <Box sx={{ ...bosluk_css }}></Box>
+                <Box sx={{ ...enUstBaslik_css }}>
+                  Açıklama
+                </Box>
+              </>
+            }
+
+            {/* BAŞLIK - VERSİYON */}
+            {pozVersiyonShow &&
+              <>
+                <Box sx={{ ...bosluk_css }}></Box>
+                <Box sx={{ ...enUstBaslik_css }}>
+                  Versiyon
+                </Box>
+              </>
+            }
+
           </Box>
 
-          {/* BAŞLIK - POZ İSMİ */}
-          <Box sx={{ ...enUstBaslik_css }}>
-            Poz İsmi
-          </Box>
-
-
-          {/* BAŞLIK - POZ BİRİM  */}
-          <Box sx={{ ...enUstBaslik_css }}>
-            Birim
-          </Box>
-
-          {/* BAŞLIK - POZ BİRİM  */}
-          {pozAciklamaShow &&
-            <>
-              <Box sx={{ ...bosluk_css }}></Box>
-              <Box sx={{ ...enUstBaslik_css }}>
-                Açıklama
-              </Box>
-            </>
-          }
-
-          {/* BAŞLIK - VERSİYON */}
-          {pozVersiyonShow &&
-            <>
-              <Box sx={{ ...bosluk_css }}></Box>
-              <Box sx={{ ...enUstBaslik_css }}>
-                Versiyon
-              </Box>
-            </>
-          }
-
-        </Box>
 
 
 
 
+          {/* WBS BAŞLIĞI ve ALTINDA POZLARI*/}
 
-        {/* WBS BAŞLIĞI ve ALTINDA POZLARI*/}
+          {selectedFirma?.wbs.filter(x => x.openForPoz).map((oneWbs, index) => {
 
-        {selectedFirma?.wbs.filter(x => x.openForPoz).map((oneWbs, index) => {
+            return (
 
-          return (
+              <React.Fragment key={index}>
 
-            <React.Fragment key={index}>
+                {/* WBS BAŞLIĞI */}
+                <Box sx={{ mt: "1rem", display: "grid", gridTemplateColumns: columns }}>
 
-              {/* WBS BAŞLIĞI */}
-              <Box sx={{ mt: "1rem", display: "grid", gridTemplateColumns: columns }}>
+                  <Box sx={{ ...wbsBaslik_css }}>
 
-                <Box sx={{ ...wbsBaslik_css }}>
+                    {/* HAYALET */}
+                    <Box sx={{ display: "none" }}>
+                      {cOunt = oneWbs.code.split(".").length}
+                    </Box>
 
-                  {/* HAYALET */}
-                  <Box sx={{ display: "none" }}>
-                    {cOunt = oneWbs.code.split(".").length}
+                    {
+                      oneWbs.code.split(".").map((codePart, index) => {
+
+                        if (index == 0 && cOunt == 1) {
+                          wbsCode = codePart
+                          wbsName = selectedFirma?.wbs.find(item => item.code == wbsCode).name
+                        }
+
+                        if (index == 0 && cOunt !== 1) {
+                          wbsCode = codePart
+                          wbsName = selectedFirma?.wbs.find(item => item.code == wbsCode).codeName
+                        }
+
+                        if (index !== 0 && index + 1 !== cOunt && cOunt !== 1) {
+                          wbsCode = wbsCode + "." + codePart
+                          wbsName = wbsName + " > " + selectedFirma?.wbs.find(item => item.code == wbsCode).codeName
+                        }
+
+                        if (index !== 0 && index + 1 == cOunt && cOunt !== 1) {
+                          wbsCode = wbsCode + "." + codePart
+                          wbsName = wbsName + " > " + selectedFirma?.wbs.find(item => item.code == wbsCode).name
+                        }
+
+                      })
+                    }
+
+                    {/* wbsName hazır aslında ama aralarındaki ok işaretini kırmızıya boyamak için */}
+                    <Box sx={{ display: "grid", gridAutoFlow: "column" }} >
+
+                      {wbsName.split(">").map((item, index) => (
+
+                        <Box key={index} sx={{ display: "grid", gridAutoFlow: "column" }} >
+                          {item}
+                          {index + 1 !== wbsName.split(">").length &&
+                            <Box sx={{ color: myTema.renkler.baslik2_ayrac, mx: "0.2rem" }} >{">"}</Box>
+                          }
+                        </Box>
+
+                      ))}
+
+                      {/* <Typography>{wbsName}</Typography> */}
+                    </Box>
+
                   </Box>
 
-                  {
-                    oneWbs.code.split(".").map((codePart, index) => {
 
-                      if (index == 0 && cOunt == 1) {
-                        wbsCode = codePart
-                        wbsName = selectedFirma?.wbs.find(item => item.code == wbsCode).name
-                      }
-
-                      if (index == 0 && cOunt !== 1) {
-                        wbsCode = codePart
-                        wbsName = selectedFirma?.wbs.find(item => item.code == wbsCode).codeName
-                      }
-
-                      if (index !== 0 && index + 1 !== cOunt && cOunt !== 1) {
-                        wbsCode = wbsCode + "." + codePart
-                        wbsName = wbsName + " > " + selectedFirma?.wbs.find(item => item.code == wbsCode).codeName
-                      }
-
-                      if (index !== 0 && index + 1 == cOunt && cOunt !== 1) {
-                        wbsCode = wbsCode + "." + codePart
-                        wbsName = wbsName + " > " + selectedFirma?.wbs.find(item => item.code == wbsCode).name
-                      }
-
-                    })
+                  {/* BAŞLIK - POZ BİRİM  */}
+                  {pozAciklamaShow &&
+                    <>
+                      <Box sx={{ ...bosluk_css }}></Box>
+                      <Box sx={{ ...wbsBaslik_css2 }} />
+                    </>
                   }
 
-                  {/* wbsName hazır aslında ama aralarındaki ok işaretini kırmızıya boyamak için */}
-                  <Box sx={{ display: "grid", gridAutoFlow: "column" }} >
-
-                    {wbsName.split(">").map((item, index) => (
-
-                      <Box key={index} sx={{ display: "grid", gridAutoFlow: "column" }} >
-                        {item}
-                        {index + 1 !== wbsName.split(">").length &&
-                          <Box sx={{ color: myTema.renkler.baslik2_ayrac, mx:"0.2rem" }} >{">"}</Box>
-                        }
-                      </Box>
-
-                    ))}
-
-                    {/* <Typography>{wbsName}</Typography> */}
-                  </Box>
+                  {/* BAŞLIK - VERSİYON */}
+                  {pozVersiyonShow &&
+                    <>
+                      <Box sx={{ ...bosluk_css }} />
+                      <Box sx={{ ...wbsBaslik_css2 }} />
+                    </>
+                  }
 
                 </Box>
 
 
-                {/* BAŞLIK - POZ BİRİM  */}
-                {pozAciklamaShow &&
-                  <>
-                    <Box sx={{ ...bosluk_css }}></Box>
-                    <Box sx={{ ...wbsBaslik_css2 }} />
-                  </>
-                }
+                {/* WBS'İN POZLARI */}
+                {pozlar?.filter(x => x.wbsId.toString() === oneWbs._id.toString()).map((onePoz, index) => {
+                  return (
+                    // <Box key={index} sx={{ display: "grid", gridTemplateColumns: columns, gridTemplateAreas: gridAreas_pozSatir }}>
+                    <Box key={index} sx={{ display: "grid", gridTemplateColumns: columns }}>
+                      <Box sx={{ ...pozNo_css }}>
+                        {onePoz.pozNo}
+                      </Box>
+                      <Box sx={{ ...pozNo_css, pl: "0.5rem", justifyItems: "start" }}>
+                        {onePoz.pozName}
+                      </Box>
+                      <Box sx={{ ...pozNo_css }}>
+                        {pozBirimleri.find(x => x.id === onePoz.pozBirimId).name}
+                      </Box>
 
-                {/* BAŞLIK - VERSİYON */}
-                {pozVersiyonShow &&
-                  <>
-                    <Box sx={{ ...bosluk_css }} />
-                    <Box sx={{ ...wbsBaslik_css2 }} />
-                  </>
-                }
+                      {/* BAŞLIK - POZ BİRİM  */}
+                      {pozAciklamaShow &&
+                        <>
+                          <Box sx={{ ...bosluk_css }}></Box>
+                          <Box sx={{ ...pozNo_css }}>
+                            {onePoz.aciklama}
+                          </Box>
+                        </>
+                      }
 
-              </Box>
+                      {/* BAŞLIK - VERSİYON */}
+                      {pozVersiyonShow &&
+                        <>
+                          <Box sx={{ ...bosluk_css }} />
+                          <Box sx={{ ...pozNo_css }}>
+                            {onePoz.versiyon}
+                          </Box>
+                        </>
+                      }
 
-
-              {/* WBS'İN POZLARI */}
-              {pozlar?.filter(x => x.wbsId.toString() === oneWbs._id.toString()).map((onePoz, index) => {
-                return (
-                  // <Box key={index} sx={{ display: "grid", gridTemplateColumns: columns, gridTemplateAreas: gridAreas_pozSatir }}>
-                  <Box key={index} sx={{ display: "grid", gridTemplateColumns: columns }}>
-                    <Box sx={{ ...pozNo_css }}>
-                      {onePoz.pozNo}
                     </Box>
-                    <Box sx={{ ...pozNo_css, pl: "0.5rem", justifyItems: "start" }}>
-                      {onePoz.pozName}
-                    </Box>
-                    <Box sx={{ ...pozNo_css }}>
-                      {pozBirimleri.find(x => x.id === onePoz.pozBirimId).name}
-                    </Box>
-
-                    {/* BAŞLIK - POZ BİRİM  */}
-                    {pozAciklamaShow &&
-                      <>
-                        <Box sx={{ ...bosluk_css }}></Box>
-                        <Box sx={{ ...pozNo_css }}>
-                          {onePoz.pozAciklama}
-                        </Box>
-                      </>
-                    }
-
-                    {/* BAŞLIK - VERSİYON */}
-                    {pozVersiyonShow &&
-                      <>
-                        <Box sx={{ ...bosluk_css }} />
-                        <Box sx={{ ...pozNo_css }}>
-                          {onePoz.pozVersiyon}
-                        </Box>
-                      </>
-                    }
-
-                  </Box>
-                )
-              })}
+                  )
+                })}
 
 
-            </React.Fragment>
+              </React.Fragment>
 
 
-          )
-        })}
+            )
+          })}
 
 
 
@@ -332,8 +324,8 @@ export default function P_FirmaPozlari() {
 
 
 
-      </Box>
-
+        </Box>
+      }
 
     </Box>
 

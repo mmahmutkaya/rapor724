@@ -6,7 +6,7 @@ import { useNavigate } from 'react-router-dom';
 
 import FormFirmaWbsCreate from '../../components/FormFirmaWbsCreate'
 import FormFirmaWbsUpdate from '../../components/FormFirmaWbsUpdate'
-import FirmaWbsHeader from '../../components/FirmaWbsHeader'
+import HeaderFirmaWbs from '../../components/HeaderFirmaWbs'
 
 
 import Grid from '@mui/material/Grid';
@@ -46,7 +46,7 @@ export default function P_FirmaWbs() {
     <Grid container direction="column" spacing={0} sx={{ mt: subHeaderHeight }}>
 
       <Grid item  >
-        <FirmaWbsHeader
+        <HeaderFirmaWbs
           RealmApp={RealmApp}
           setShow={setShow}
           nameMode={nameMode} setNameMode={setNameMode}

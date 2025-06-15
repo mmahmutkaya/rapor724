@@ -22,7 +22,7 @@ import FileDownloadDoneIcon from '@mui/icons-material/FileDownloadDone';
 import EditIcon from '@mui/icons-material/Edit';
 
 
-export default function FirmaPozlariHeader({ show, setShow, anyBaslikShow }) {
+export default function HeaderFirmaPozlari({ show, setShow, anyBaslikShow }) {
 
   const { selectedFirma } = useContext(StoreContext)
   const navigate = useNavigate()
