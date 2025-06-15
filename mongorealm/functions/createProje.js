@@ -145,7 +145,7 @@ exports = async function ({
     ]
 
 
-    const newProje = {
+    let newProje = {
       name: projeName,
       // wbs: [], // henüz herhangi bir başlık yok fakat yok ama bu property şimdi olmazsa ilk wbs kaydında bir hata yaşıyoruz
       // lbs: [], // henüz herhangi bir başlık yok fakat yok ama bu property şimdi olmazsa ilk wbs kaydında bir hata yaşıyoruz
@@ -158,9 +158,9 @@ exports = async function ({
       isDeleted: false
     }
 
-    const resultNewFirma = await collection_Projeler.insertOne(newProje)
-
-    return resultNewFirma;
+    const result_newProje = await collection_Projeler.insertOne(newProje)
+    newProje = {...newProje, _id:result_newProje.insertedId}
+    return newProje;
 
   } catch (err) {
     throw new Error("MONGO // createProje // " + err.message);
