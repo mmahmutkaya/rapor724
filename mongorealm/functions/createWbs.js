@@ -57,7 +57,7 @@ exports = async function ({ projectId, upWbsId, newWbsName, newWbsCodeName }) {
 
 
   const collection_Projects = context.services.get("mongodb-atlas").db("rapor724_v2").collection("projects")
-  const project = await collection_Projects.findOne({ _id: _projectId, members: _userId, isDeleted: false })
+  const project = await collection_Projects.findOne({ _id: _projectId, isDeleted: false })
 
   if (!project) throw new Error("MONGO // createWbs // ProjectId bulunamadı, lütfen sayfayı yenileyiniz, sorun devam ederse Rapor7/24 ile irtibata geçiniz.")
 
