@@ -402,12 +402,6 @@
         "disable_arg_logs": true
     },
     {
-        "name": "collection_firmalar",
-        "private": false,
-        "run_as_system": true,
-        "disable_arg_logs": true
-    },
-    {
         "name": "getFirmaProject",
         "private": false,
         "run_as_system": true,
