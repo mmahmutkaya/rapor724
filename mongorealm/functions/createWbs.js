@@ -3,7 +3,6 @@ exports = async function ({ projectId, upWbsId, newWbsName, newWbsCodeName }) {
   // yukarıda satırda form içinde gelen verilerde hata tespit edilirse formun ilgili alanlarında gösterim yapılabilsin diye error objesi gönderilir
 
 
-
   if (!projectId) throw new Error("MONGO // createWbs // --Proje Id-- sorguya, gönderilmemiş, lütfen Rapor7/24 ile irtibata geçiniz. ")
 
 
@@ -15,9 +14,9 @@ exports = async function ({ projectId, upWbsId, newWbsName, newWbsCodeName }) {
       _projectId = projectId
     }
   } catch (err) {
-    throw new Error("MONGO // createPoz --  " + "MONGO // createPoz -- sorguya gönderilen --projectId-- türü doğru değil, lütfen Rapor7/24 ile irtibata geçiniz.")
+    throw new Error("MONGO // createWbs -- sorguya gönderilen --projectId-- türü doğru değil, lütfen Rapor7/24 ile irtibata geçiniz.")
   }
-  if (typeof _projectId != "object") throw new Error("MONGO // createPoz --  " + "MONGO // createPoz -- sorguya gönderilen --projectId-- türü doğru değil, lütfen Rapor7/24 ile irtibata geçiniz. ")
+  if (typeof _projectId != "object") throw new Error("MONGO // createWbs -- sorguya gönderilen --projectId-- türü doğru değil, lütfen Rapor7/24 ile irtibata geçiniz. ")
 
 
   if (!(upWbsId === "0" || typeof upWbsId === "object")) throw new Error("MONGO // createWbs // --upWbsId-- sorguya, gönderilmemiş, lütfen Rapor7/24 ile irtibata geçiniz. ")
@@ -34,15 +33,15 @@ exports = async function ({ projectId, upWbsId, newWbsName, newWbsCodeName }) {
 
 
   //form verisi -- yukarıda  "" const errorFormObj = {} ""  yazan satırdan önceki açıklamaları oku
-  typeof newWbsName != "string" && errorFormObj.newWbsName === null ? errorFormObj.newWbsName = "MONGO // createPoz --  newWbsName -- sorguya, string formatında gönderilmemiş, lütfen Rapor7/24 ile irtibata geçiniz. " : null
+  typeof newWbsName != "string" && errorFormObj.newWbsName === null ? errorFormObj.newWbsName = "MONGO // createWbs --  newWbsName -- sorguya, string formatında gönderilmemiş, lütfen Rapor7/24 ile irtibata geçiniz. " : null
   newWbsName = await context.functions.execute("functions_deleteLastSpace", newWbsName)
-  if (!newWbsName.length) !errorFormObj.newWbsName ? errorFormObj.newWbsName = "MONGO // createPoz --  newWbsName -- sorguya, gönderilmemiş, lütfen Rapor7/24 ile irtibata geçiniz." : null
+  if (!newWbsName.length) !errorFormObj.newWbsName ? errorFormObj.newWbsName = "MONGO // createWbs --  newWbsName -- sorguya, gönderilmemiş, lütfen Rapor7/24 ile irtibata geçiniz." : null
 
 
   //form verisi -- yukarıda  "" const errorFormObj = {} ""  yazan satırdan önceki açıklamaları oku
-  typeof newWbsCodeName != "string" && errorFormObj.newWbsCodeName === null ? errorFormObj.newWbsCodeName = "MONGO // createPoz --  newWbsCodeName -- sorguya, string formatında gönderilmemiş, lütfen Rapor7/24 ile irtibata geçiniz. " : null
+  typeof newWbsCodeName != "string" && errorFormObj.newWbsCodeName === null ? errorFormObj.newWbsCodeName = "MONGO // createWbs --  newWbsCodeName -- sorguya, string formatında gönderilmemiş, lütfen Rapor7/24 ile irtibata geçiniz. " : null
   newWbsCodeName = await context.functions.execute("functions_deleteLastSpace", newWbsCodeName)
-  !newWbsCodeName.length == 0 && errorFormObj.newWbsCodeName === null ? errorFormObj.newWbsCodeName = "MONGO // createPoz --  newWbsCodeName -- sorguya, gönderilmemiş, lütfen Rapor7/24 ile irtibata geçiniz." : null
+  !newWbsCodeName.length == 0 && errorFormObj.newWbsCodeName === null ? errorFormObj.newWbsCodeName = "MONGO // createWbs --  newWbsCodeName -- sorguya, gönderilmemiş, lütfen Rapor7/24 ile irtibata geçiniz." : null
 
 
   // form veri girişlerinden en az birinde hata tespit edildiği için form objesi dönderiyoruz, formun ilgili alanlarında gösterilecek
@@ -56,7 +55,7 @@ exports = async function ({ projectId, upWbsId, newWbsName, newWbsCodeName }) {
   if (!mailTeyit) throw new Error("MONGO // createWbs // Öncelikle üyeliğinize ait mail adresinin size ait olduğunu doğrulamalısınız, tekrar giriş yapmayı deneyiniz veya bizimle iletişime geçiniz.")
 
 
-  const collection_Projects = context.services.get("mongodb-atlas").db("rapor724_v2").collection("projects")
+  const collection_Projects = context.services.get("mongodb-atlas").db("rapor724_v2").collection("projeler")
   const project = await collection_Projects.findOne({ _id: _projectId, isDeleted: false })
 
   if (!project) throw new Error("MONGO // createWbs // ProjectId bulunamadı, lütfen sayfayı yenileyiniz, sorun devam ederse Rapor7/24 ile irtibata geçiniz.")
