@@ -51,8 +51,8 @@ export default function P_FormFirmaCreate({ setShow }) {
 
     try {
 
-      const data = new FormData(event.currentTarget);
-      setFirmaName(firmaName => deleteLastSpace(firmaName).toUpperCase())
+      // const data = new FormData(event.currentTarget);
+      // setFirmaName(firmaName => deleteLastSpace(firmaName).toUpperCase())
 
       
       // VALIDATE KONTROL
@@ -96,22 +96,17 @@ export default function P_FormFirmaCreate({ setShow }) {
 
       // VALIDATE KONTROL -- SONU 
 
-      const result = await RealmApp.currentUser.callFunction("createFirma", { firmaName });
+      const result_newFirma = await RealmApp.currentUser.callFunction("createFirma", { firmaName });
 
 
-      if (result.errorObject) {
-        setFirmaNameError(result.errorObject.firmaNameError)
+      if (result_newFirma.errorObject) {
+        setFirmaNameError(result_newFirma.errorObject.firmaNameError)
         console.log("backend den gelen hata ile durdu")
         return
       }
 
-      if (result.insertedId) {
-        let newFirma = {
-          _id: result.insertedId,
-          name: firmaName,
-          yetkiliKisiler: [{ email: RealmUserEmail, yetki: "owner" }]
-        }
-        queryClient.setQueryData(['firmalarNames_byUser', RealmUserEmail], (firmalarNames) => [...firmalarNames, newFirma])
+      if (result_newFirma._id) {
+        queryClient.setQueryData(['firmalarNames_byUser', RealmUserEmail], (firmalarNames) => [...firmalarNames, result_newFirma])
         setShow("Main")
         return
       }

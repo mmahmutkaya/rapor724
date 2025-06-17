@@ -56,7 +56,7 @@ export default function Layout({ window, children }) {
   const { drawerWidth, topBarHeight } = useContext(StoreContext)
   const { Layout_Show, setLayout_Show } = useContext(StoreContext)
 
-  const { RealmApp, selectedFirma, selectedProje, setSelectedProje} = useContext(StoreContext)
+  const { RealmApp, selectedFirma, selectedProje, setSelectedProje } = useContext(StoreContext)
 
   const { setSelectedFirma, setSelectedLbs, setSelectedMahal, setSelectedMahalBaslik, setSelectedWbs, setSelectedPoz, setSelectedPozBaslik, setSelectedNode, pageMetraj_setShow } = useContext(StoreContext)
 
@@ -359,7 +359,7 @@ export default function Layout({ window, children }) {
             </Grid>
 
 
-            <Grid item>
+            {/* <Grid item>
               <Typography
                 // onClick={() => selectedProje ? null : navigate('/')}
                 onClick={() => navigate("/")}
@@ -370,7 +370,32 @@ export default function Layout({ window, children }) {
               >
                 {selectedProje ? selectedProje.name : selectedFirma ? selectedFirma.name : "Rapor7/24"}
               </Typography>
-            </Grid>
+            </Grid> */}
+
+
+            <Box >
+
+              {!selectedFirma && !selectedProje &&
+                <Typography>
+                  Rapor7/24
+                </Typography>
+              }
+
+              {selectedFirma &&
+                <Typography sx={{ fontSize: selectedProje && "0.6rem", color: selectedProje && "lightgray" }}>
+                  {selectedFirma.name}
+                </Typography>
+              }
+
+              {selectedProje &&
+                <Typography sx={{ fontSize: "1.1rem" }}>
+                  {selectedProje.name}
+                </Typography>
+              }
+
+            </Box>
+
+
 
 
 

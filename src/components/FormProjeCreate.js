@@ -34,7 +34,10 @@ export default function P_FormProjeCreate({ setShow }) {
   const queryClient = useQueryClient()
   const { RealmApp, selectedFirma } = useContext(StoreContext)
 
+  const [projeName, setProjeName] = useState("")
+
   const [projeNameError, setProjeNameError] = useState(false)
+
   const [dialogAlert, setDialogAlert] = useState()
 
 
@@ -47,8 +50,8 @@ export default function P_FormProjeCreate({ setShow }) {
 
     try {
 
-      const data = new FormData(event.currentTarget);
-      const projeName = deleteLastSpace(data.get('projeName'))
+      // const data = new FormData(event.currentTarget);
+      // const projeName = deleteLastSpace(data.get('projeName')).toUpperCase()
 
       let _firmaId = selectedFirma?._id
 
@@ -161,9 +164,8 @@ export default function P_FormProjeCreate({ setShow }) {
                 margin="normal"
                 id="projeName"
                 name="projeName"
-                // value={projeName}
-                // onChange={(e) => console.log(e.target.value)}
-                // onChange={(e) => setProjeName(e.target.value)}
+                onChange={(e) => setProjeName(() => e.target.value.replace("i", "İ").toUpperCase())}
+                value={projeName}
                 error={projeNameError ? true : false}
                 helperText={projeNameError ? projeNameError : ""}
                 // margin="dense"
