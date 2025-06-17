@@ -27,14 +27,14 @@ export default function Sidebar({ setMobileOpen }) {
 
   const navigate = useNavigate()
   const { pathname } = useLocation()
-  const { isProject, persons, selectedFirma } = useContext(StoreContext)
+  const { selectedProje, persons, selectedFirma } = useContext(StoreContext)
 
   return (
     <Grid container direction="column">
 
 
       {/* hiçbirşey seçilmemişken - sidebar menüsü görünümü*/}
-      {!isProject && !persons && !selectedFirma &&
+      {!selectedProje && !persons && !selectedFirma &&
         <Grid item onClick={(() => setMobileOpen(false))}>
           <List
             component="nav"
@@ -57,7 +57,7 @@ export default function Sidebar({ setMobileOpen }) {
 
 
       {/* firma seçiminde - sidebar menüsü görünümü*/}
-      {selectedFirma && !isProject &&
+      {selectedFirma && !selectedProje &&
         <Grid item onClick={(() => setMobileOpen(false))}>
           <List>
 
@@ -114,7 +114,7 @@ export default function Sidebar({ setMobileOpen }) {
 
 
       {/* proje seçiminde - sidebar menüsü görünümü*/}
-      {isProject &&
+      {selectedProje &&
         <Grid item onClick={(() => setMobileOpen(false))}>
           <List>
 

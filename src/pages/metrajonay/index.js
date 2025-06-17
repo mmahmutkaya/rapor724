@@ -22,7 +22,7 @@ import InfoIcon from '@mui/icons-material/Info';
 
 export default function P_MetrajOnay() {
 
-  const { isProject, setIsProject } = useContext(StoreContext)
+  const { selectedProje, setSelectedProje } = useContext(StoreContext)
   const { selectedPoz, setSelectedPoz } = useContext(StoreContext)
   const { selectedPozBaslik, setSelectedPozBaslik } = useContext(StoreContext)
   const { pozlar, setPozlar } = useContext(StoreContext)
@@ -34,14 +34,14 @@ export default function P_MetrajOnay() {
   const [autoFocus, setAutoFocus] = useState({ baslikId: null, pozId: null })
 
   const navigate = useNavigate()
-  // !isProject ? navigate('/projects') : null
-  if (!isProject) window.location.href = "/projects"
+  // !selectedProje ? navigate('/projects') : null
+  if (!selectedProje) window.location.href = "/projects"
 
   const RealmApp = useApp();
 
   const pozlar_fecth = async () => {
     if (!pozlar) {
-      const result = await RealmApp?.currentUser.callFunction("getProjectPozlar", ({ projectId: isProject?._id }));
+      const result = await RealmApp?.currentUser.callFunction("getProjectPozlar", ({ projectId: selectedProje?._id }));
       setPozlar(result)
     }
   }
@@ -92,11 +92,11 @@ export default function P_MetrajOnay() {
   //   { id: 4, sira: 4, referans: "name", goster: true, sabit: false, genislik: 20, padding_M: "0px 0rem 0px 0px", yatayHiza: "center", name: "Fonksiyon", dataType: "date" },
   // ].sort((a, b) => a.sira - b.sira))
 
-  // const [basliklar, setBasliklar] = useState(isProject?.pozBasliklari?.filter(item => item.goster))
+  // const [basliklar, setBasliklar] = useState(selectedProje?.pozBasliklari?.filter(item => item.goster))
 
 
 
-  let pozBasliklari = isProject?.metrajOnayBasliklari?.filter(x => x.tur == "pozBasliklari")
+  let pozBasliklari = selectedProje?.metrajOnayBasliklari?.filter(x => x.tur == "pozBasliklari")
   //
   let pozBasliklariGenislikler = ""
   pozBasliklari.map(x => pozBasliklariGenislikler = pozBasliklariGenislikler + x.genislik + "rem ")
@@ -110,9 +110,9 @@ export default function P_MetrajOnay() {
 
 
 
-  let kisiBasliklariSablon = isProject?.metrajOnayBasliklari?.find(x => x.tur == "kisiBasliklariSablon")
+  let kisiBasliklariSablon = selectedProje?.metrajOnayBasliklari?.find(x => x.tur == "kisiBasliklariSablon")
   // console.log("kisiBasliklariSablon", kisiBasliklariSablon)
-  let kisiBasliklari = isProject?.metrajYapabilenler?.map(x => { return { ...kisiBasliklariSablon, _userId: x } })
+  let kisiBasliklari = selectedProje?.metrajYapabilenler?.map(x => { return { ...kisiBasliklariSablon, _userId: x } })
   //
   let kisiBasliklariGenislikler = ""
   kisiBasliklari.map(x => kisiBasliklariGenislikler = kisiBasliklariGenislikler + x.genislik + "rem ")
@@ -129,7 +129,7 @@ export default function P_MetrajOnay() {
 
 
 
-  let totalWidthSabit = isProject?.pozBasliklari?.filter(item => item.sabit).reduce(
+  let totalWidthSabit = selectedProje?.pozBasliklari?.filter(item => item.sabit).reduce(
     (accumulator, oneBilgi) => accumulator + oneBilgi.genislik,
     0
   )
@@ -137,16 +137,16 @@ export default function P_MetrajOnay() {
   // console.log("totalWidthSabit", totalWidthSabit)
 
 
-  let totalWidthDegisken = isProject?.pozBasliklari?.filter(item => !item.sabit && item.show?.find(item => item.indexOf("webPage_pozlar") > -1)).reduce(
+  let totalWidthDegisken = selectedProje?.pozBasliklari?.filter(item => !item.sabit && item.show?.find(item => item.indexOf("webPage_pozlar") > -1)).reduce(
     (accumulator, oneBilgi) => accumulator + oneBilgi.genislik,
     0
   )
   totalWidthDegisken = totalWidthDegisken + 'rem'
   // console.log("totalWidthDegisken", totalWidthDegisken)
-  // console.log("isProject.pozBasliklari", isProject?.pozBasliklari)
+  // console.log("selectedProje.pozBasliklari", selectedProje?.pozBasliklari)
 
 
-  let totalWidth = isProject?.pozBasliklari?.reduce(
+  let totalWidth = selectedProje?.pozBasliklari?.reduce(
     (accumulator, oneBilgi) => accumulator + oneBilgi.genislik,
     0
   )
@@ -154,15 +154,15 @@ export default function P_MetrajOnay() {
   // console.log("totalWidth", totalWidth)
 
 
-  let gridTemplateColumnsSabit = isProject?.pozBasliklari?.filter(item => item.sabit).reduce(
-    (ilkString, oneBilgi, index) => index != isProject?.pozBasliklari?.length ? ilkString + (oneBilgi.genislik + "rem ") : ilkString + (oneBilgi.genislik + "rem"),
+  let gridTemplateColumnsSabit = selectedProje?.pozBasliklari?.filter(item => item.sabit).reduce(
+    (ilkString, oneBilgi, index) => index != selectedProje?.pozBasliklari?.length ? ilkString + (oneBilgi.genislik + "rem ") : ilkString + (oneBilgi.genislik + "rem"),
     ""
   )
   // console.log("gridTemplateColumnsSabit", gridTemplateColumnsSabit)
 
 
-  let gridTemplateColumnsDegisken = isProject?.pozBasliklari?.filter(item => !item.sabit && item.show?.find(item => item.indexOf("webPage_pozlar") > -1)).reduce(
-    (ilkString, oneBilgi, index) => index != isProject?.pozBasliklari?.length ? ilkString + (oneBilgi.genislik + "rem ") : ilkString + (oneBilgi.genislik + "rem"),
+  let gridTemplateColumnsDegisken = selectedProje?.pozBasliklari?.filter(item => !item.sabit && item.show?.find(item => item.indexOf("webPage_pozlar") > -1)).reduce(
+    (ilkString, oneBilgi, index) => index != selectedProje?.pozBasliklari?.length ? ilkString + (oneBilgi.genislik + "rem ") : ilkString + (oneBilgi.genislik + "rem"),
     ""
   )
   // console.log("gridTemplateColumnsDegisken", gridTemplateColumnsDegisken)
@@ -310,7 +310,7 @@ export default function P_MetrajOnay() {
     console.log("pozBilgiler_willBeSaved", pozBilgiler_willBeSaved)
 
     // setPozBilgiler_willBeSaved([])
-    const result = await RealmApp?.currentUser.callFunction("updatePozBilgiler", { _projectId: isProject?._id, pozBilgiler_willBeSaved });
+    const result = await RealmApp?.currentUser.callFunction("updatePozBilgiler", { _projectId: selectedProje?._id, pozBilgiler_willBeSaved });
     console.log("result", result)
 
     setEditPoz(false)
@@ -335,7 +335,7 @@ export default function P_MetrajOnay() {
 
       {show == "FormPozCreate" &&
         <Grid item >
-          <FormPozCreate isProject={isProject} setShow={setShow} />
+          <FormPozCreate selectedProje={selectedProje} setShow={setShow} />
         </Grid>
       }
 
@@ -351,7 +351,7 @@ export default function P_MetrajOnay() {
         </Grid>
       }
 
-      {show == "Main" && (isProject?.wbs?.filter(item => item.openForPoz).length == 0 || !isProject?.wbs) &&
+      {show == "Main" && (selectedProje?.wbs?.filter(item => item.openForPoz).length == 0 || !selectedProje?.wbs) &&
         <Stack sx={{ width: '100%', pl: "1rem", pr: "0.5rem", pt: "1rem", mt: subHeaderHeight }} spacing={2}>
           <Alert severity="info">
             Henüz hiç bir poz başlığını poz eklemeye açmamış görünüyorsunumuz. "Poz Başlıkları" menüsünden işlem yapabilirsiniz.
@@ -360,7 +360,7 @@ export default function P_MetrajOnay() {
       }
 
 
-      {show == "Main" && isProject?.wbs?.filter(item => item.openForPoz).length > 0 &&
+      {show == "Main" && selectedProje?.wbs?.filter(item => item.openForPoz).length > 0 &&
 
         <Box sx={{ mt: subHeaderHeight, pt: "1rem", pl: "1rem", pr: "1rem" }}>
 
@@ -374,9 +374,9 @@ export default function P_MetrajOnay() {
           >
             {/* HAYALET */}
             <Box sx={{ display: "none" }}>
-              {count_ = isProject?.pozBasliklari?.filter(item => item.sabit).length}
+              {count_ = selectedProje?.pozBasliklari?.filter(item => item.sabit).length}
             </Box>
-            {isProject?.pozBasliklari?.filter(item => item.sabit).map((oneBaslik, index) => {
+            {selectedProje?.pozBasliklari?.filter(item => item.sabit).map((oneBaslik, index) => {
               return (
                 <Box
                   sx={{
@@ -405,10 +405,10 @@ export default function P_MetrajOnay() {
 
             {/* HAYALET KOMPONENT */}
             <Box sx={{ display: "none" }}>
-              {count_ = isProject?.pozBasliklari?.filter(item => !item.sabit && item.show?.find(item => item.indexOf("webPage_pozlar") > -1)).length}
+              {count_ = selectedProje?.pozBasliklari?.filter(item => !item.sabit && item.show?.find(item => item.indexOf("webPage_pozlar") > -1)).length}
             </Box>
             {/* GÖZÜKEN KOMPONENT */}
-            {isProject?.pozBasliklari?.filter(item => !item.sabit && item.show?.find(item => item.indexOf("webPage_pozlar") > -1)).map((oneBaslik, index) => {
+            {selectedProje?.pozBasliklari?.filter(item => !item.sabit && item.show?.find(item => item.indexOf("webPage_pozlar") > -1)).map((oneBaslik, index) => {
               return (
                 <Box
                   sx={{
@@ -454,7 +454,7 @@ export default function P_MetrajOnay() {
 
 
           {/* POZ BAŞLIKLARI ve POZLAR */}
-          {isProject?.wbs
+          {selectedProje?.wbs
             .filter(item => item.openForPoz === true)
             .sort(function (a, b) {
               var nums1 = a.code.split(".");
@@ -491,22 +491,22 @@ export default function P_MetrajOnay() {
 
                         if (index == 0 && cOunt == 1) {
                           wbsCode = codePart
-                          wbsName = isProject?.wbs.find(item => item.code == wbsCode).name
+                          wbsName = selectedProje?.wbs.find(item => item.code == wbsCode).name
                         }
 
                         if (index == 0 && cOunt !== 1) {
                           wbsCode = codePart
-                          wbsName = isProject?.wbs.find(item => item.code == wbsCode).codeName
+                          wbsName = selectedProje?.wbs.find(item => item.code == wbsCode).codeName
                         }
 
                         if (index !== 0 && index + 1 !== cOunt && cOunt !== 1) {
                           wbsCode = wbsCode + "." + codePart
-                          wbsName = wbsName + " > " + isProject?.wbs.find(item => item.code == wbsCode).codeName
+                          wbsName = wbsName + " > " + selectedProje?.wbs.find(item => item.code == wbsCode).codeName
                         }
 
                         if (index !== 0 && index + 1 == cOunt && cOunt !== 1) {
                           wbsCode = wbsCode + "." + codePart
-                          wbsName = wbsName + " > " + isProject?.wbs.find(item => item.code == wbsCode).name
+                          wbsName = wbsName + " > " + selectedProje?.wbs.find(item => item.code == wbsCode).name
                         }
 
                       })
@@ -536,7 +536,7 @@ export default function P_MetrajOnay() {
 
                   {/* burada başlık sıralamasına göre güvenerek haraket ediliyor (tüm pozBaşlıkları map'lerde) */}
                   {
-                    isProject?.pozBasliklari?.filter(item => !item.sabit && item.show?.find(item => item.indexOf("webPage_pozlar") > -1)).map((oneBaslik, index) => {
+                    selectedProje?.pozBasliklari?.filter(item => !item.sabit && item.show?.find(item => item.indexOf("webPage_pozlar") > -1)).map((oneBaslik, index) => {
                       return (
                         <TableHeader key={index} index={index} count_={count_} sx={{ display: "grid", with: "100%", justifyContent: oneBaslik.yatayHiza }}>
 
@@ -580,7 +580,7 @@ export default function P_MetrajOnay() {
                           }}
                         >
                           {
-                            isProject?.pozBasliklari?.filter(item => item.sabit).map((oneBaslik, index) => {
+                            selectedProje?.pozBasliklari?.filter(item => item.sabit).map((oneBaslik, index) => {
                               return (
                                 <TableItem
                                   key={index}
@@ -606,7 +606,7 @@ export default function P_MetrajOnay() {
                           </Bosluk>
 
                           {
-                            isProject?.pozBasliklari?.filter(item => !item.sabit && item.show?.find(item => item.indexOf("webPage_pozlar") > -1)).map((oneBaslik, index) => {
+                            selectedProje?.pozBasliklari?.filter(item => !item.sabit && item.show?.find(item => item.indexOf("webPage_pozlar") > -1)).map((oneBaslik, index) => {
                               return (
                                 <TableItem
                                   key={index}

@@ -31,7 +31,7 @@ export default function MetrajPozlarHeader({ show, setShow }) {
 
   const { drawerWidth, topBarHeight } = useContext(StoreContext)
 
-  const { isProject, setIsProject } = useContext(StoreContext)
+  const { selectedProje, setSelectedProje } = useContext(StoreContext)
   const { setPozlar } = useContext(StoreContext)
 
   const RealmApp = useApp();
@@ -73,11 +73,11 @@ export default function MetrajPozlarHeader({ show, setShow }) {
 
       if (result.isIncludesPozFalse) {
 
-        let oldProject = JSON.parse(JSON.stringify(isProject))
+        let oldProject = JSON.parse(JSON.stringify(selectedProje))
 
         oldProject.wbs.find(item => item._id.toString() === mahal._wbsId.toString()).includesPoz = false
 
-        setIsProject(oldProject)
+        setSelectedProje(oldProject)
 
       }
 
@@ -131,11 +131,11 @@ export default function MetrajPozlarHeader({ show, setShow }) {
 
       if (result.isIncludesPozFalse) {
 
-        let oldProject = JSON.parse(JSON.stringify(isProject))
+        let oldProject = JSON.parse(JSON.stringify(selectedProje))
 
         oldProject.wbs.find(item => item._id.toString() === mahal._wbsId.toString()).includesPoz = false
 
-        setIsProject(oldProject)
+        setSelectedProje(oldProject)
 
       }
 
@@ -163,20 +163,20 @@ export default function MetrajPozlarHeader({ show, setShow }) {
 
 
   const handle_BaslikGenislet = () => {
-    setIsProject(isProject => {
-      const isProject_ = { ...isProject }
-      isProject_.mahalBasliklari.find(item => item.id == selectedPozBaslik.id).genislik = isProject_.mahalBasliklari.find(item => item.id == selectedPozBaslik.id).genislik + 0.5
-      return isProject_
+    setSelectedProje(selectedProje => {
+      const selectedProje_ = { ...selectedProje }
+      selectedProje_.mahalBasliklari.find(item => item.id == selectedPozBaslik.id).genislik = selectedProje_.mahalBasliklari.find(item => item.id == selectedPozBaslik.id).genislik + 0.5
+      return selectedProje_
     })
     setWillBeUpdate_mahalBaslik(true)
   }
 
 
   const handle_BaslikDaralt = () => {
-    setIsProject(isProject => {
-      const isProject_ = { ...isProject }
-      isProject_.mahalBasliklari.find(item => item.id == selectedPozBaslik.id).genislik = isProject_.mahalBasliklari.find(item => item.id == selectedPozBaslik.id).genislik - 0.5
-      return isProject_
+    setSelectedProje(selectedProje => {
+      const selectedProje_ = { ...selectedProje }
+      selectedProje_.mahalBasliklari.find(item => item.id == selectedPozBaslik.id).genislik = selectedProje_.mahalBasliklari.find(item => item.id == selectedPozBaslik.id).genislik - 0.5
+      return selectedProje_
     })
     setWillBeUpdate_mahalBaslik(true)
   }
@@ -184,13 +184,13 @@ export default function MetrajPozlarHeader({ show, setShow }) {
 
 
   const handle_YatayHiza = () => {
-    setIsProject(isProject => {
-      const isProject_ = { ...isProject }
-      let guncelYatayHiza = isProject_.mahalBasliklari.find(item => item.id == selectedPozBaslik.id).yatayHiza
-      if (guncelYatayHiza == "start") isProject_.mahalBasliklari.find(item => item.id == selectedPozBaslik.id).yatayHiza = "center"
-      if (guncelYatayHiza == "center") isProject_.mahalBasliklari.find(item => item.id == selectedPozBaslik.id).yatayHiza = "end"
-      if (guncelYatayHiza == "end") isProject_.mahalBasliklari.find(item => item.id == selectedPozBaslik.id).yatayHiza = "start"
-      return isProject_
+    setSelectedProje(selectedProje => {
+      const selectedProje_ = { ...selectedProje }
+      let guncelYatayHiza = selectedProje_.mahalBasliklari.find(item => item.id == selectedPozBaslik.id).yatayHiza
+      if (guncelYatayHiza == "start") selectedProje_.mahalBasliklari.find(item => item.id == selectedPozBaslik.id).yatayHiza = "center"
+      if (guncelYatayHiza == "center") selectedProje_.mahalBasliklari.find(item => item.id == selectedPozBaslik.id).yatayHiza = "end"
+      if (guncelYatayHiza == "end") selectedProje_.mahalBasliklari.find(item => item.id == selectedPozBaslik.id).yatayHiza = "start"
+      return selectedProje_
     })
     setWillBeUpdate_mahalBaslik(true)
   }
@@ -198,9 +198,9 @@ export default function MetrajPozlarHeader({ show, setShow }) {
 
   const unSelectPozBaslik = async () => {
     if (willBeUpdate_mahalBaslik) {
-      let mahalBaslik = isProject.mahalBasliklari.find(item => item.id == selectedPozBaslik.id)
+      let mahalBaslik = selectedProje.mahalBasliklari.find(item => item.id == selectedPozBaslik.id)
       console.log("mahalBaslik", mahalBaslik)
-      const result = await RealmApp?.currentUser.callFunction("updateProjectPozBaslik", ({ _projectId: isProject._id, mahalBaslik }));
+      const result = await RealmApp?.currentUser.callFunction("updateProjectPozBaslik", ({ _projectId: selectedProje._id, mahalBaslik }));
       console.log("result", result)
       setWillBeUpdate_mahalBaslik(false)
     }

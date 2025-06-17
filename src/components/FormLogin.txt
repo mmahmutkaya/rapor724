@@ -10,7 +10,7 @@ import { useApp } from "./useApp.js";
 
 export default function FormLogin({ setLoginFormMode }) {
 
-  const { isProject, setIsProject } = useContext(StoreContext)
+  const { selectedProje, setSelectedProje } = useContext(StoreContext)
 
   const RealmApp = useApp();
 
@@ -27,9 +27,9 @@ export default function FormLogin({ setLoginFormMode }) {
 
         console.log("user",user)
 
-        // setIsProject(isProject => {
+        // setSelectedProje(selectedProje => {
         //   return (
-        //     isProject.pozBasliklari = isProject.pozBasliklari.map(item => {
+        //     selectedProje.pozBasliklari = selectedProje.pozBasliklari.map(item => {
         //       let obj = RealmApp.currentUser.customData.pozBasliklari.find(item2 => item2.id === item.id)
         //       return (
         //         { ...item, ...obj }

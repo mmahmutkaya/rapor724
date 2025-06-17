@@ -22,7 +22,7 @@ import InfoIcon from '@mui/icons-material/Info';
 
 export default function P_Mahaller() {
 
-  const { isProject, setIsProject } = useContext(StoreContext)
+  const { selectedProje, setSelectedProje } = useContext(StoreContext)
   const { selectedMahal, setSelectedMahal } = useContext(StoreContext)
   const { selectedMahalBaslik, setSelectedMahalBaslik } = useContext(StoreContext)
   const { mahaller, setMahaller } = useContext(StoreContext)
@@ -34,15 +34,15 @@ export default function P_Mahaller() {
   const [autoFocus, setAutoFocus] = useState({ baslikId: null, mahalId: null })
 
   const navigate = useNavigate()
-  // !isProject ? navigate('/projects') : null
-  if (!isProject) window.location.href = "/projects"
+  // !selectedProje ? navigate('/projects') : null
+  if (!selectedProje) window.location.href = "/projects"
 
   const RealmApp = useApp();
 
 
   const mahaller_fecth = async () => {
     if (!mahaller) {
-      const result = await RealmApp?.currentUser.callFunction("getProjectMahaller", ({ projectId: isProject?._id }));
+      const result = await RealmApp?.currentUser.callFunction("getProjectMahaller", ({ projectId: selectedProje?._id }));
       setMahaller(result)
     }
   }
@@ -71,7 +71,7 @@ export default function P_Mahaller() {
   const one_mahal_width = 10
 
 
-  let totalWidthSabit = isProject?.mahalBasliklari?.filter(item => item.sabit).reduce(
+  let totalWidthSabit = selectedProje?.mahalBasliklari?.filter(item => item.sabit).reduce(
     (accumulator, oneBilgi) => accumulator + oneBilgi.genislik,
     0
   )
@@ -79,16 +79,16 @@ export default function P_Mahaller() {
   // console.log("totalWidthSabit", totalWidthSabit)
 
 
-  let totalWidthDegisken = isProject?.mahalBasliklari?.filter(item => !item.sabit && item.show?.find(item => item.indexOf("webPage_mahaller") > -1)).reduce(
+  let totalWidthDegisken = selectedProje?.mahalBasliklari?.filter(item => !item.sabit && item.show?.find(item => item.indexOf("webPage_mahaller") > -1)).reduce(
     (accumulator, oneBilgi) => accumulator + oneBilgi.genislik,
     0
   )
   totalWidthDegisken = totalWidthDegisken + 'rem'
-  // console.log("isProject?.mahalBasliklari", isProject?.mahalBasliklari)
+  // console.log("selectedProje?.mahalBasliklari", selectedProje?.mahalBasliklari)
   // console.log("totalWidthDegisken", totalWidthDegisken)
 
 
-  let totalWidth = isProject?.mahalBasliklari?.reduce(
+  let totalWidth = selectedProje?.mahalBasliklari?.reduce(
     (accumulator, oneBilgi) => accumulator + oneBilgi.genislik,
     0
   )
@@ -96,15 +96,15 @@ export default function P_Mahaller() {
   // console.log("totalWidth", totalWidth)
 
 
-  let gridTemplateColumnsSabit = isProject?.mahalBasliklari?.filter(item => item.sabit).reduce(
-    (ilkString, oneBilgi, index) => index != isProject?.mahalBasliklari?.length ? ilkString + (oneBilgi.genislik + "rem ") : ilkString + (oneBilgi.genislik + "rem"),
+  let gridTemplateColumnsSabit = selectedProje?.mahalBasliklari?.filter(item => item.sabit).reduce(
+    (ilkString, oneBilgi, index) => index != selectedProje?.mahalBasliklari?.length ? ilkString + (oneBilgi.genislik + "rem ") : ilkString + (oneBilgi.genislik + "rem"),
     ""
   )
   // console.log("gridTemplateColumnsSabit", gridTemplateColumnsSabit)
 
 
-  let gridTemplateColumnsDegisken = isProject?.mahalBasliklari?.filter(item => !item.sabit && item.show?.find(item => item.indexOf("webPage_mahaller") > -1)).reduce(
-    (ilkString, oneBilgi, index) => index != isProject?.mahalBasliklari?.length ? ilkString + (oneBilgi.genislik + "rem ") : ilkString + (oneBilgi.genislik + "rem"),
+  let gridTemplateColumnsDegisken = selectedProje?.mahalBasliklari?.filter(item => !item.sabit && item.show?.find(item => item.indexOf("webPage_mahaller") > -1)).reduce(
+    (ilkString, oneBilgi, index) => index != selectedProje?.mahalBasliklari?.length ? ilkString + (oneBilgi.genislik + "rem ") : ilkString + (oneBilgi.genislik + "rem"),
     ""
   )
   // console.log("gridTemplateColumnsDegisken", gridTemplateColumnsDegisken)
@@ -258,7 +258,7 @@ export default function P_Mahaller() {
     console.log("mahalBilgiler_willBeSaved", mahalBilgiler_willBeSaved)
 
     // setMahalBilgiler_willBeSaved([])
-    const result = await RealmApp?.currentUser.callFunction("updateMahalBilgiler", { _projectId: isProject?._id, mahalBilgiler_willBeSaved });
+    const result = await RealmApp?.currentUser.callFunction("updateMahalBilgiler", { _projectId: selectedProje?._id, mahalBilgiler_willBeSaved });
     console.log("result", result)
 
     setEditMahal(false)
@@ -279,7 +279,7 @@ export default function P_Mahaller() {
 
       {show == "FormMahalCreate" &&
         <Grid item >
-          <FormMahalCreate isProject={isProject} setShow={setShow} />
+          <FormMahalCreate selectedProje={selectedProje} setShow={setShow} />
         </Grid>
       }
 
@@ -296,7 +296,7 @@ export default function P_Mahaller() {
       }
 
 
-      {show == "Main" && (isProject?.lbs?.filter(item => item.openForMahal).length == 0 || !isProject?.lbs) &&
+      {show == "Main" && (selectedProje?.lbs?.filter(item => item.openForMahal).length == 0 || !selectedProje?.lbs) &&
         <Stack sx={{ width: '100%', pl: "1rem", pr: "0.5rem", pt: "1rem", mt: subHeaderHeight }} spacing={2}>
           <Alert severity="info">
             Henüz hiç bir mahal başlığını mahal eklemeye açmamış görünüyorsunumuz. "Mahal Başlıkları" menüsünden işlem yapabilirsiniz.
@@ -305,7 +305,7 @@ export default function P_Mahaller() {
       }
 
 
-      {show == "Main" && isProject?.lbs?.filter(item => item.openForMahal).length > 0 &&
+      {show == "Main" && selectedProje?.lbs?.filter(item => item.openForMahal).length > 0 &&
 
         <Box sx={{ mt: subHeaderHeight, pt: "1rem", pl: "1rem", pr: "1rem" }}>
 
@@ -319,9 +319,9 @@ export default function P_Mahaller() {
           >
             {/* HAYALET */}
             <Box sx={{ display: "none" }}>
-              {count_ = isProject?.mahalBasliklari?.filter(item => item.sabit).length}
+              {count_ = selectedProje?.mahalBasliklari?.filter(item => item.sabit).length}
             </Box>
-            {isProject?.mahalBasliklari?.filter(item => item.sabit).map((oneBaslik, index) => {
+            {selectedProje?.mahalBasliklari?.filter(item => item.sabit).map((oneBaslik, index) => {
               return (
                 <Box
                   sx={{
@@ -350,10 +350,10 @@ export default function P_Mahaller() {
 
             {/* HAYALET KOMPONENT */}
             <Box sx={{ display: "none" }}>
-              {count_ = isProject?.mahalBasliklari?.filter(item => !item.sabit && item.show?.find(item => item.indexOf("webPage_mahaller") > -1)).length}
+              {count_ = selectedProje?.mahalBasliklari?.filter(item => !item.sabit && item.show?.find(item => item.indexOf("webPage_mahaller") > -1)).length}
             </Box>
             {/* GÖZÜKEN KOMPONENT */}
-            {isProject?.mahalBasliklari?.filter(item => !item.sabit && item.show?.find(item => item.indexOf("webPage_mahaller") > -1)).map((oneBaslik, index) => {
+            {selectedProje?.mahalBasliklari?.filter(item => !item.sabit && item.show?.find(item => item.indexOf("webPage_mahaller") > -1)).map((oneBaslik, index) => {
               return (
                 <Box
                   sx={{
@@ -399,7 +399,7 @@ export default function P_Mahaller() {
 
 
           {/* MAHAL BAŞLIKLARI ve MAHALLER */}
-          {isProject?.lbs
+          {selectedProje?.lbs
             .filter(item => item.openForMahal === true)
             .sort(function (a, b) {
               var nums1 = a.code.split(".");
@@ -436,22 +436,22 @@ export default function P_Mahaller() {
 
                         if (index == 0 && cOunt == 1) {
                           lbsCode = codePart
-                          lbsName = isProject?.lbs.find(item => item.code == lbsCode).name
+                          lbsName = selectedProje?.lbs.find(item => item.code == lbsCode).name
                         }
 
                         if (index == 0 && cOunt !== 1) {
                           lbsCode = codePart
-                          lbsName = isProject?.lbs.find(item => item.code == lbsCode).codeName
+                          lbsName = selectedProje?.lbs.find(item => item.code == lbsCode).codeName
                         }
 
                         if (index !== 0 && index + 1 !== cOunt && cOunt !== 1) {
                           lbsCode = lbsCode + "." + codePart
-                          lbsName = lbsName + " > " + isProject?.lbs.find(item => item.code == lbsCode).codeName
+                          lbsName = lbsName + " > " + selectedProje?.lbs.find(item => item.code == lbsCode).codeName
                         }
 
                         if (index !== 0 && index + 1 == cOunt && cOunt !== 1) {
                           lbsCode = lbsCode + "." + codePart
-                          lbsName = lbsName + " > " + isProject?.lbs.find(item => item.code == lbsCode).name
+                          lbsName = lbsName + " > " + selectedProje?.lbs.find(item => item.code == lbsCode).name
                         }
 
                       })
@@ -481,7 +481,7 @@ export default function P_Mahaller() {
 
                   {/* burada başlık sıralamasına göre güvenerek haraket ediliyor (tüm mahalBaşlıkları map'lerde) */}
                   {
-                    isProject?.mahalBasliklari?.filter(item => !item.sabit && item.show?.find(item => item.indexOf("webPage_mahaller") > -1)).map((oneBaslik, index) => {
+                    selectedProje?.mahalBasliklari?.filter(item => !item.sabit && item.show?.find(item => item.indexOf("webPage_mahaller") > -1)).map((oneBaslik, index) => {
                       return (
                         <TableHeader key={index} index={index} count_={count_} sx={{ display: "grid", with: "100%", justifyContent: oneBaslik.yatayHiza }}>
 
@@ -525,7 +525,7 @@ export default function P_Mahaller() {
                           }}
                         >
                           {
-                            isProject?.mahalBasliklari?.filter(item => item.sabit).map((oneBaslik, index) => {
+                            selectedProje?.mahalBasliklari?.filter(item => item.sabit).map((oneBaslik, index) => {
                               return (
                                 <TableItem
                                   key={index}
@@ -551,7 +551,7 @@ export default function P_Mahaller() {
                           </Bosluk>
 
                           {
-                            isProject?.mahalBasliklari?.filter(item => !item.sabit && item.show?.find(item => item.indexOf("webPage_mahaller") > -1)).map((oneBaslik, index) => {
+                            selectedProje?.mahalBasliklari?.filter(item => !item.sabit && item.show?.find(item => item.indexOf("webPage_mahaller") > -1)).map((oneBaslik, index) => {
                               return (
                                 <TableItem
                                   key={index}

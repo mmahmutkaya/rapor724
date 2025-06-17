@@ -19,7 +19,7 @@ import Box from '@mui/material/Box';
 
 export default function P_MetrajPozlar() {
 
-  const { isProject, setIsProject } = useContext(StoreContext)
+  const { selectedProje, setSelectedProje } = useContext(StoreContext)
   const { selectedPoz, setSelectedPoz } = useContext(StoreContext)
   const { selectedNode, setSelectedNode } = useContext(StoreContext)
   const { selectedMahal, setSelectedMahal } = useContext(StoreContext)
@@ -35,7 +35,7 @@ export default function P_MetrajPozlar() {
 
 
   useEffect(() => {
-    !isProject && navigate("/projects")
+    !selectedProje && navigate("/projects")
     return () => {
       // setSelectedPoz()
       // setMahallistesi_filtered()
@@ -49,7 +49,7 @@ export default function P_MetrajPozlar() {
 
   const { data: pozlar } = useGetPozlar()
   // pozlar && console.log("pozlar", pozlar)
-  // isProject && console.log("isProject", isProject)
+  // selectedProje && console.log("selectedProje", selectedProje)
   const { data: mahaller } = useGetMahaller()
   const { data: mahalListesi } = useGetMahalListesi()
   // pozlar && console.log("pozlar", pozlar)
@@ -71,7 +71,7 @@ export default function P_MetrajPozlar() {
   }
 
 
-  let wbsArray = isProject?.wbs
+  let wbsArray = selectedProje?.wbs
     .filter(item => item.openForPoz === true)
     .sort(function (a, b) {
       var nums1 = a.code.split(".");
@@ -90,7 +90,7 @@ export default function P_MetrajPozlar() {
     })
 
 
-  let lbsArray = isProject?.lbs
+  let lbsArray = selectedProje?.lbs
     .filter(item => item.openForMahal === true)
     .sort(function (a, b) {
       var nums1 = a.code.split(".");
@@ -120,22 +120,22 @@ export default function P_MetrajPozlar() {
 
       if (index == 0 && cOunt == 1) {
         code = codePart
-        name = isProject?.wbs.find(item => item.code == code).name
+        name = selectedProje?.wbs.find(item => item.code == code).name
       }
 
       if (index == 0 && cOunt !== 1) {
         code = codePart
-        name = isProject?.wbs.find(item => item.code == code).codeName
+        name = selectedProje?.wbs.find(item => item.code == code).codeName
       }
 
       if (index !== 0 && index + 1 !== cOunt && cOunt !== 1) {
         code = code + "." + codePart
-        name = name + " > " + isProject?.wbs.find(item => item.code == code).codeName
+        name = name + " > " + selectedProje?.wbs.find(item => item.code == code).codeName
       }
 
       if (index !== 0 && index + 1 == cOunt && cOunt !== 1) {
         code = code + "." + codePart
-        name = name + " > " + isProject?.wbs.find(item => item.code == code).name
+        name = name + " > " + selectedProje?.wbs.find(item => item.code == code).name
       }
 
     })
@@ -156,22 +156,22 @@ export default function P_MetrajPozlar() {
 
       if (index == 0 && cOunt == 1) {
         code = codePart
-        name = isProject?.lbs.find(item => item.code == code).name
+        name = selectedProje?.lbs.find(item => item.code == code).name
       }
 
       if (index == 0 && cOunt !== 1) {
         code = codePart
-        name = isProject?.lbs.find(item => item.code == code).codeName
+        name = selectedProje?.lbs.find(item => item.code == code).codeName
       }
 
       if (index !== 0 && index + 1 !== cOunt && cOunt !== 1) {
         code = code + "." + codePart
-        name = name + " > " + isProject?.lbs.find(item => item.code == code).codeName
+        name = name + " > " + selectedProje?.lbs.find(item => item.code == code).codeName
       }
 
       if (index !== 0 && index + 1 == cOunt && cOunt !== 1) {
         code = code + "." + codePart
-        name = name + " > " + isProject?.lbs.find(item => item.code == code).name
+        name = name + " > " + selectedProje?.lbs.find(item => item.code == code).name
       }
 
     })
@@ -183,13 +183,13 @@ export default function P_MetrajPozlar() {
 
   let count
 
-  let metrajyapabilen_sutunlar = isProject?.metrajYapabilenler.reduce((acc, x, index) => index == 0 ? "auto" : acc + " auto", "")
-  let users = isProject?.metrajYapabilenler.reduce((acc, x, index) => index == 0 ? "user" : acc + " user", "")
-  let hazirs = isProject?.metrajYapabilenler.reduce((acc, x, index) => index == 0 ? "hazir" : acc + " hazir", "")
+  let metrajyapabilen_sutunlar = selectedProje?.metrajYapabilenler.reduce((acc, x, index) => index == 0 ? "auto" : acc + " auto", "")
+  let users = selectedProje?.metrajYapabilenler.reduce((acc, x, index) => index == 0 ? "user" : acc + " user", "")
+  let hazirs = selectedProje?.metrajYapabilenler.reduce((acc, x, index) => index == 0 ? "hazir" : acc + " hazir", "")
 
   count = 0
   let userSirali = "user"
-  isProject?.metrajYapabilenler.map((x, index) => {
+  selectedProje?.metrajYapabilenler.map((x, index) => {
     count = count + 1
     return (
       userSirali = index == 0 ? userSirali + count : userSirali + " user" + count
@@ -199,7 +199,7 @@ export default function P_MetrajPozlar() {
 
   count = 0
   let miktarSirali = "miktar"
-  isProject?.metrajYapabilenler.map((x, index) => {
+  selectedProje?.metrajYapabilenler.map((x, index) => {
     count = count + 1
     return (
       miktarSirali = index == 0 ? miktarSirali + count : miktarSirali + " miktar" + count
@@ -221,10 +221,10 @@ export default function P_MetrajPozlar() {
     // console.log("mahalListesi", mahalListesi)
     // console.log("onePoz", onePoz)
 
-    // onePoz = { ...onePoz, pozBirim: isProject.pozBirimleri.find(x => x.id == onePoz?.birimId)?.name }
+    // onePoz = { ...onePoz, pozBirim: selectedProje.pozBirimleri.find(x => x.id == onePoz?.birimId)?.name }
 
     // setSelectedPoz(selectedPoz => {
-    //   selectedPoz = { ...selectedPoz, pozBirim: isProject.pozBirimleri.find(x => x.id == onePoz?.birimId)?.name }
+    //   selectedPoz = { ...selectedPoz, pozBirim: selectedProje.pozBirimleri.find(x => x.id == onePoz?.birimId)?.name }
     //   console.log("selectedPoz", selectedPoz)
     //   return selectedPoz
     // })
@@ -255,7 +255,7 @@ export default function P_MetrajPozlar() {
 
       {show == "FormPozCreate" &&
         <Grid item >
-          <FormPozCreate isProject={isProject} setShow={setShow} />
+          <FormPozCreate selectedProje={selectedProje} setShow={setShow} />
         </Grid>
       }
 
@@ -297,7 +297,7 @@ export default function P_MetrajPozlar() {
             <Box sx={{ mb: "0rem", fontWeight: "600", display: "grid", gridRow: "1/3", justifyContent: "center", px: "0.5rem", backgroundColor: "white", color: "white" }}>.</Box>
             <Box sx={{ mb: "0rem", fontWeight: "600", border: "1px solid black", borderBottom: "none", display: "grid", gridArea: "user", px: "0.5rem", justifyContent: "center", backgroundColor: "lightGray", textAlign: "center" }}>Hazırlanan</Box>
             {
-              isProject?.metrajYapabilenler?.map((x, index) => {
+              selectedProje?.metrajYapabilenler?.map((x, index) => {
                 return (
                   <Box key={index} sx={{ mb: "0rem", fontWeight: "600", border: "1px solid black", borderLeft: index !== 0 && "none", display: "grid", gridArea: `user${index + 1}`, px: "0.5rem", justifyContent: "center", backgroundColor: "lightGray" }}>{x._userId.toString().substr(x._userId.toString().length - 3)}</Box>
                 )
@@ -307,7 +307,7 @@ export default function P_MetrajPozlar() {
             <Box sx={{ mb: "0rem", fontWeight: "600", border: "1px solid black", display: "grid", gridArea: "onay", px: "0.5rem", justifyContent: "center", alignItems: "center", backgroundColor: "lightGray", maxWidth: "7rem", textAlign: "center" }}>Onaylanan Miktar</Box>
           </>
 
-          {/* {console.log("isProject", isProject)} */}
+          {/* {console.log("selectedProje", selectedProje)} */}
           {/* WBS BAŞLIK BİLGİLERİ SATIRI */}
 
           {wbsArray?.map((oneWbs, index) => {
@@ -320,7 +320,7 @@ export default function P_MetrajPozlar() {
                 <Box sx={{ border: "1px solid black", mt: "1rem", px: "0.5rem", display: "grid", justifyContent: "center", backgroundColor: "#FAEBD7" }}></Box>
                 <Box sx={{ mt: "1rem", display: "grid", justifyContent: "center", backgroundColor: "white", color: "white" }}>.</Box>
                 {
-                  isProject?.metrajYapabilenler?.map((x, index) => {
+                  selectedProje?.metrajYapabilenler?.map((x, index) => {
                     return (
                       <Box key={index} sx={{ border: "1px solid black", borderLeft: index !== 0 && "none", mt: "1rem", px: "0.5rem", display: "grid", justifyContent: "center", backgroundColor: "#FAEBD7" }}></Box>
                     )
@@ -339,11 +339,11 @@ export default function P_MetrajPozlar() {
                       <Box sx={{ backgroundColor: !onePoz.openMetraj && "lightgray", border: "1px solid black", borderTop: "none", px: "0.5rem", display: "grid", justifyContent: "start" }}> {onePoz.pozNo} </Box>
                       <Box onDoubleClick={() => onePoz.openMetraj && goToMahaller_birPoz(onePoz)} sx={{ backgroundColor: !onePoz.openMetraj && "lightgray", cursor: onePoz.openMetraj && "pointer", border: "1px solid black", borderTop: "none", borderLeft: "none", px: "0.5rem", display: "grid", justifyContent: "start" }}> {onePoz.name} </Box>
                       <Box sx={{ display: "grid", justifyContent: "center", backgroundColor: "white", color: "white" }}>.</Box>
-                      <Box sx={{ backgroundColor: !onePoz.openMetraj && "lightgray", border: "1px solid black", borderTop: "none", px: "0.5rem", display: "grid", justifyContent: "center" }}>{isProject.pozBirimleri.find(x => x.id == onePoz.birimId).name}</Box>
+                      <Box sx={{ backgroundColor: !onePoz.openMetraj && "lightgray", border: "1px solid black", borderTop: "none", px: "0.5rem", display: "grid", justifyContent: "center" }}>{selectedProje.pozBirimleri.find(x => x.id == onePoz.birimId).name}</Box>
                       <Box sx={{ display: "grid", justifyContent: "center", backgroundColor: "white", color: "white" }}>.</Box>
                       <>
                         {
-                          isProject?.metrajYapabilenler?.map((x, index2) => {
+                          selectedProje?.metrajYapabilenler?.map((x, index2) => {
                             return (
                               <Box key={index2} sx={{ backgroundColor: !onePoz.openMetraj && "lightgray", border: "1px solid black", borderTop: "none", borderLeft: index2 !== 0 && "none", px: "0.5rem", display: "grid", justifyContent: "center" }}> {onePoz.hazirlananMetrajlar?.find(y => y._userId.toString() === x._userId.toString())?.metraj} </Box>
                             )
@@ -351,7 +351,7 @@ export default function P_MetrajPozlar() {
                         }
                       </>
                       {/* <Box sx={{ border: "1px solid black", borderTop: "none", px: "0.5rem", display: "grid", justifyContent: "center" }}>{onePoz.hazirlananMetrajlar} </Box> */}
-                      {/* <Box sx={{ border: "1px solid black", borderTop: "none", borderLeft: "none", px: "0.5rem", display: "grid", justifyContent: "center" }}>{isProject.pozBirimleri.find(x => x.id == onePoz.birimId).name}</Box> */}
+                      {/* <Box sx={{ border: "1px solid black", borderTop: "none", borderLeft: "none", px: "0.5rem", display: "grid", justifyContent: "center" }}>{selectedProje.pozBirimleri.find(x => x.id == onePoz.birimId).name}</Box> */}
                       <Box sx={{ display: "grid", justifyContent: "center", backgroundColor: "white", color: "white" }}>.</Box>
                       <Box sx={{ backgroundColor: !onePoz.openMetraj && "lightgray", border: "1px solid black", borderTop: "none", px: "0.5rem", display: "grid", justifyContent: "center" }}> {onePoz.onaylananMetraj} </Box>
                     </Fragment>

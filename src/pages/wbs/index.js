@@ -23,7 +23,7 @@ export default function P_Wbs() {
 
   const { subHeaderHeight } = useContext(StoreContext)
 
-  const { isProject, setIsProject } = useContext(StoreContext)
+  const { selectedProje, setSelectedProje } = useContext(StoreContext)
   const { selectedWbs, setSelectedWbs } = useContext(StoreContext)
 
   const [show, setShow] = useState()
@@ -32,7 +32,7 @@ export default function P_Wbs() {
 
 
   useEffect(() => {
-    !isProject && navigate('/projects')
+    !selectedProje && navigate('/projects')
   }, [])
 
 
@@ -60,18 +60,18 @@ export default function P_Wbs() {
 
       {show == "FormWbsCreate" &&
         <Grid item >
-          <FormWbsCreate setShow={setShow} isProject={isProject} setIsProject={setIsProject} selectedWbs={selectedWbs} setSelectedWbs={setSelectedWbs} />
+          <FormWbsCreate setShow={setShow} selectedProje={selectedProje} setSelectedProje={setSelectedProje} selectedWbs={selectedWbs} setSelectedWbs={setSelectedWbs} />
         </Grid>
       }
 
       {show == "FormWbsUpdate" &&
         <Grid item >
-          <FormWbsUpdate setShow={setShow} isProject={isProject} setIsProject={setIsProject} selectedWbs={selectedWbs} setSelectedWbs={setSelectedWbs} />
+          <FormWbsUpdate setShow={setShow} selectedProje={selectedProje} setSelectedProje={setSelectedProje} selectedWbs={selectedWbs} setSelectedWbs={setSelectedWbs} />
         </Grid>
       }
 
 
-      {!isProject?.wbs?.length &&
+      {!selectedProje?.wbs?.length &&
         <Stack sx={{ width: '100%', padding: "0.5rem" }} spacing={2}>
           <Alert severity="info">
             Yukarıdaki "+" tuşuna basarak "Poz Başlığı" oluşturabilirsiniz.
@@ -79,7 +79,7 @@ export default function P_Wbs() {
         </Stack>
       }
 
-      {isProject?.wbs?.length > 0 &&
+      {selectedProje?.wbs?.length > 0 &&
         < Stack sx={{ width: '100%', padding: "0.5rem" }} spacing={0}>
 
           <Box sx={{ display: "grid", gridTemplateColumns: "1rem 1fr" }}>
@@ -87,7 +87,7 @@ export default function P_Wbs() {
 
             </Box>
             <Box sx={{ backgroundColor: "black", color: "white" }}>
-              {isProject.name}
+              {selectedProje.name}
             </Box>
           </Box>
 
@@ -98,11 +98,11 @@ export default function P_Wbs() {
 
             </Box>
 
-            {/* {console.log("isProject?.wbs?.length", isProject?.wbs?.length)} */}
+            {/* {console.log("selectedProje?.wbs?.length", selectedProje?.wbs?.length)} */}
             <Box display="grid">
 
               {
-                isProject.wbs.sort(function (a, b) {
+                selectedProje.wbs.sort(function (a, b) {
                   var nums1 = a.code.split(".");
                   var nums2 = b.code.split(".");
 

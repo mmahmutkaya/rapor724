@@ -23,14 +23,14 @@ export default function P_FirmaKadrosu() {
 
   const navigate = useNavigate()
 
-  const { isProject, setIsProject, RealmApp } = useContext(StoreContext)
+  const { selectedProje, setSelectedProje, RealmApp } = useContext(StoreContext)
   const [basliklar, setBasliklar] = useState(basliklarData)
 
   const { data: networkUsers } = useGetNetworkUsers()
   // networkUsers && console.log("networkUsers", networkUsers)
 
   const [show, setShow] = useState("Main")
-  // isProject && console.log(isProject)
+  // selectedProje && console.log(selectedProje)
 
   // const basliklar = `
   //   'mail isim soyisim title . mahalBaslik mahal pozBaslik poz metraj metrajOnay'

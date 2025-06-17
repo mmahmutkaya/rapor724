@@ -34,7 +34,7 @@ export default function LbsHeader({ RealmApp, setShow, nameMode, setNameMode, co
   const [showDialog, setShowDialog] = useState(false)
   const [dialogCase, setDialogCase] = useState("")
 
-  const { isProject, setIsProject } = useContext(StoreContext)
+  const { selectedProje, setSelectedProje } = useContext(StoreContext)
   const { selectedLbs, setSelectedLbs } = useContext(StoreContext)
 
 
@@ -64,13 +64,13 @@ export default function LbsHeader({ RealmApp, setShow, nameMode, setNameMode, co
 
         // bu kontrol backend de ayrıca yapılıyor
         let text = selectedLbs.code + "."
-        if (isProject.lbs.find(item => item.code.indexOf(text) === 0)) {
+        if (selectedProje.lbs.find(item => item.code.indexOf(text) === 0)) {
           // throw new Error("\"" + selectedLbs.name + "\" isimli başlığın bir veya daha fazla alt başlığı mevcut, bu sebeple direk mahal eklemeye açık hale getirilemez, mevcut alt başlıklar uygun değilse, yeni bir alt başlık oluşturup, o başlığı mahal eklemeye açabilirsiniz.")
           throw new Error("Alt başlığı bulunan başlıklar mahal eklemeye açılamaz.")
         }
 
-        const resultProject = await RealmApp.currentUser.callFunction("openLbsForMahal", { projectId: isProject._id, lbsId: selectedLbs._id });
-        setIsProject(resultProject)
+        const resultProject = await RealmApp.currentUser.callFunction("openLbsForMahal", { projectId: selectedProje._id, lbsId: selectedLbs._id });
+        setSelectedProje(resultProject)
 
         // switch on-off gösterim durumunu güncellemesi için 
         setSelectedLbs(resultProject.lbs.find(item => item._id.toString() === selectedLbs._id.toString()))
@@ -107,8 +107,8 @@ export default function LbsHeader({ RealmApp, setShow, nameMode, setNameMode, co
           return
         }
 
-        const resultProject = await RealmApp.currentUser.callFunction("closeLbsForMahal", { projectId: isProject._id, lbsId: selectedLbs._id });
-        setIsProject(resultProject)
+        const resultProject = await RealmApp.currentUser.callFunction("closeLbsForMahal", { projectId: selectedProje._id, lbsId: selectedLbs._id });
+        setSelectedProje(resultProject)
 
         // switch on-off gösterim durumunu güncellemesi için 
         setSelectedLbs(resultProject.lbs.find(item => item._id.toString() === selectedLbs._id.toString()))
@@ -241,8 +241,8 @@ export default function LbsHeader({ RealmApp, setShow, nameMode, setNameMode, co
         throw new Error("Mahal eklemeye açık başlıklar silinemez, öncelikle mahal eklemeye kapatınız")
       }
 
-      const resultProject = await RealmApp.currentUser.callFunction("deleteLbs", { projectId: isProject._id, lbsId: selectedLbs._id });
-      setIsProject(resultProject)
+      const resultProject = await RealmApp.currentUser.callFunction("deleteLbs", { projectId: selectedProje._id, lbsId: selectedLbs._id });
+      setSelectedProje(resultProject)
       setSelectedLbs(null)
 
     } catch (err) {
@@ -272,7 +272,7 @@ export default function LbsHeader({ RealmApp, setShow, nameMode, setNameMode, co
       return
     }
 
-    let _lbs = JSON.parse(JSON.stringify(isProject.lbs))
+    let _lbs = JSON.parse(JSON.stringify(selectedProje.lbs))
     let _selectedLbs = JSON.parse(JSON.stringify(selectedLbs))
     let _lbs2
 
@@ -296,8 +296,8 @@ export default function LbsHeader({ RealmApp, setShow, nameMode, setNameMode, co
         // throw new Error("Zaten en üstte - f")
       }
 
-      const result = await RealmApp.currentUser.callFunction("moveLbsUp", { projectId: isProject._id, lbsId: selectedLbs._id });
-      setIsProject(result.project)
+      const result = await RealmApp.currentUser.callFunction("moveLbsUp", { projectId: selectedProje._id, lbsId: selectedLbs._id });
+      setSelectedProje(result.project)
       // console.log(result._selectedLbs2)
       setSelectedLbs(result.project.lbs.find(item => item._id.toString() === selectedLbs._id.toString()))
 
@@ -329,8 +329,8 @@ export default function LbsHeader({ RealmApp, setShow, nameMode, setNameMode, co
 
     try {
 
-      const result = await RealmApp.currentUser.callFunction("moveLbsDown", { projectId: isProject._id, lbsId: selectedLbs._id });
-      setIsProject(result.project)
+      const result = await RealmApp.currentUser.callFunction("moveLbsDown", { projectId: selectedProje._id, lbsId: selectedLbs._id });
+      setSelectedProje(result.project)
       setSelectedLbs(result.project.lbs.find(item => item._id.toString() === selectedLbs._id.toString()))
 
     } catch (err) {
@@ -360,7 +360,7 @@ export default function LbsHeader({ RealmApp, setShow, nameMode, setNameMode, co
       return
     }
 
-    let _lbs = JSON.parse(JSON.stringify(isProject.lbs))
+    let _lbs = JSON.parse(JSON.stringify(selectedProje.lbs))
     let _selectedLbs = JSON.parse(JSON.stringify(selectedLbs))
     let _lbs2
 
@@ -384,8 +384,8 @@ export default function LbsHeader({ RealmApp, setShow, nameMode, setNameMode, co
         return
       }
 
-      const result = await RealmApp.currentUser.callFunction("moveLbsLeft", { projectId: isProject._id, lbsId: selectedLbs._id });
-      setIsProject(result.project)
+      const result = await RealmApp.currentUser.callFunction("moveLbsLeft", { projectId: selectedProje._id, lbsId: selectedLbs._id });
+      setSelectedProje(result.project)
       // console.log(result._selectedLbs2)
       setSelectedLbs(result.project.lbs.find(item => item._id.toString() === selectedLbs._id.toString()))
 
@@ -422,11 +422,11 @@ export default function LbsHeader({ RealmApp, setShow, nameMode, setNameMode, co
     try {
 
       // frontenddeki verinin nasıl güncellendiğini göstermek için bıraktım, _lbs felan şu an yok 
-      // setIsProject({ ...isProject, lbs: _lbs })
+      // setSelectedProje({ ...selectedProje, lbs: _lbs })
       // setSelectedLbs(_lbs.find(item => item._id.toString() === selectedLbs._id.toString()))
 
-      const result = await RealmApp.currentUser.callFunction("moveLbsRight", { projectId: isProject._id, lbsId: selectedLbs._id });
-      setIsProject(result.project)
+      const result = await RealmApp.currentUser.callFunction("moveLbsRight", { projectId: selectedProje._id, lbsId: selectedLbs._id });
+      setSelectedProje(result.project)
       // console.log(result._selectedLbs2)
       setSelectedLbs(result.project.lbs.find(item => item._id.toString() === selectedLbs._id.toString()))
 

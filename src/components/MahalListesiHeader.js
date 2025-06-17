@@ -20,7 +20,7 @@ export default function MahalHeader({ setShow, editMode_MahalListesi, setEditMod
 
   const { drawerWidth, topBarHeight } = useContext(StoreContext)
 
-  const { isProject, setIsProject } = useContext(StoreContext)
+  const { selectedProje, setSelectedProje } = useContext(StoreContext)
   const { setMahaller } = useContext(StoreContext)
 
   const RealmApp = useApp();
@@ -60,11 +60,11 @@ export default function MahalHeader({ setShow, editMode_MahalListesi, setEditMod
 
       if (result.isIncludesMahalFalse) {
 
-        let oldProject = JSON.parse(JSON.stringify(isProject))
+        let oldProject = JSON.parse(JSON.stringify(selectedProje))
 
         oldProject.lbs.find(item => item._id.toString() === mahal._lbsId.toString()).includesMahal = false
 
-        setIsProject(oldProject)
+        setSelectedProje(oldProject)
 
       }
 
@@ -92,7 +92,7 @@ export default function MahalHeader({ setShow, editMode_MahalListesi, setEditMod
 
 
   let header = "Mahaller"
-  // isProject?.name ? header = isProject?.name : null
+  // selectedProje?.name ? header = selectedProje?.name : null
 
 
 
@@ -155,8 +155,8 @@ export default function MahalHeader({ setShow, editMode_MahalListesi, setEditMod
 
               {!editMode_MahalListesi &&
                 <Grid item>
-                  <IconButton onClick={() => setEditMode_MahalListesi(true)} aria-label="addLbs" disabled={(isProject?.lbs?.filter(item => item.openForMahal).length == 0 || !isProject?.lbs) ? true : false}>
-                    <EditIcon variant="contained" color={(isProject?.lbs?.filter(item => item.openForMahal).length == 0 || !isProject?.lbs) ? " lightgray" : "success"} />
+                  <IconButton onClick={() => setEditMode_MahalListesi(true)} aria-label="addLbs" disabled={(selectedProje?.lbs?.filter(item => item.openForMahal).length == 0 || !selectedProje?.lbs) ? true : false}>
+                    <EditIcon variant="contained" color={(selectedProje?.lbs?.filter(item => item.openForMahal).length == 0 || !selectedProje?.lbs) ? " lightgray" : "success"} />
                   </IconButton>
                 </Grid>
               }
@@ -169,8 +169,8 @@ export default function MahalHeader({ setShow, editMode_MahalListesi, setEditMod
                       () => { setEditMode_MahalListesi(false) }
                     }
                     aria-label="addLbs"
-                    disabled={(isProject?.lbs?.filter(item => item.openForMahal).length == 0 || !isProject?.lbs) ? true : false}>
-                    <FileDownloadDoneIcon variant="contained" color={(isProject?.lbs?.filter(item => item.openForMahal).length == 0 || !isProject?.lbs) ? " lightgray" : "success"} />
+                    disabled={(selectedProje?.lbs?.filter(item => item.openForMahal).length == 0 || !selectedProje?.lbs) ? true : false}>
+                    <FileDownloadDoneIcon variant="contained" color={(selectedProje?.lbs?.filter(item => item.openForMahal).length == 0 || !selectedProje?.lbs) ? " lightgray" : "success"} />
                   </IconButton>
                 </Grid>
               }

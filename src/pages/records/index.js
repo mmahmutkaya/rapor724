@@ -21,7 +21,7 @@ import FolderIcon from '@mui/icons-material/Folder';
 
 export default function P_Projects() {
 
-  const { isProject, setIsProject } = useContext(StoreContext)
+  const { selectedProje, setSelectedProje } = useContext(StoreContext)
   const [show, setShow] = useState("ProjectMain")
 
   const navigate = useNavigate()
@@ -45,14 +45,14 @@ export default function P_Projects() {
 
   // const handleProjectClick = async (project) => {
   //   // const project = await RealmApp.currentUser.callFunction("getProject")
-  //   setIsProject(project)
+  //   setSelectedProje(project)
   //   console.log(project)
   //   navigate('/dashboard')
   // }
 
   const handleProjectClick = async (prj) => {
     const project = await RealmApp.currentUser.callFunction("getProject",{projectId:prj._id})
-    setIsProject(project)
+    setSelectedProje(project)
     navigate('/dashboard')
   }
 

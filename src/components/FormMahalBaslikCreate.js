@@ -20,10 +20,10 @@ import MenuItem from '@mui/material/MenuItem';
 
 
 
-// export default function FormMahalCreate({ setShow, isProject, refetch_mahaller }) {
+// export default function FormMahalCreate({ setShow, selectedProje, refetch_mahaller }) {
 export default function FormMahalBaslikCreate({ setShow }) {
 
-  const { isProject, setIsProject } = useContext(StoreContext)
+  const { selectedProje, setSelectedProje } = useContext(StoreContext)
 
   const [showDialog, setShowDialog] = useState(false)
   const [dialogCase, setDialogCase] = useState("")
@@ -34,7 +34,7 @@ export default function FormMahalBaslikCreate({ setShow }) {
   const [haneSayisiId, sethaneSayisiId] = useState("0,00")
 
   // form ilk açıldığında önceden belirlenen birşeyin seçilmiş olması için alttaki satırdaki gibi yapılabiliyor
-  // const [mahalTipi, setMahalTipi] = useState(isProject ? isProject.mahalTipleri.find(item => item.id === "direktMahalListesi") : "");
+  // const [mahalTipi, setMahalTipi] = useState(selectedProje ? selectedProje.mahalTipleri.find(item => item.id === "direktMahalListesi") : "");
 
   const RealmApp = useApp();
 
@@ -52,7 +52,7 @@ export default function FormMahalBaslikCreate({ setShow }) {
       const veriTuruId = deleteLastSpace(data.get('veriTuruId'))
       const birim = deleteLastSpace(data.get('birim'))
       const haneSayisiId = deleteLastSpace(data.get('haneSayisiId'))
-      const _projectId = isProject?._id
+      const _projectId = selectedProje?._id
 
 
       // form validation - frontend
@@ -97,7 +97,7 @@ export default function FormMahalBaslikCreate({ setShow }) {
       }
 
       if (typeof name === "string") {
-        if (isProject.mahalBasliklari.find(item => item.name == name)) {
+        if (selectedProje.mahalBasliklari.find(item => item.name == name)) {
           setErrorObj(prev => ({ ...prev, name: `Bu başlık kullanılmış` }))
           isFormError = true
           console.log(3)
@@ -145,7 +145,7 @@ export default function FormMahalBaslikCreate({ setShow }) {
 
 
       // form verileri kontrolden geçti - db ye göndermeyi deniyoruz
-      const result = await RealmApp?.currentUser?.callFunction("createMahalBaslik", mahalBilgi, isProject?._id);
+      const result = await RealmApp?.currentUser?.callFunction("createMahalBaslik", mahalBilgi, selectedProje?._id);
       console.log("result", result)
 
 
@@ -160,10 +160,10 @@ export default function FormMahalBaslikCreate({ setShow }) {
       console.log("form validation - hata yok - backend")
 
 
-      setIsProject(isProject => {
-        let isProject_ = { ...isProject }
-        isProject_.mahalBasliklari.push(result)
-        return isProject_
+      setSelectedProje(selectedProje => {
+        let selectedProje_ = { ...selectedProje }
+        selectedProje_.mahalBasliklari.push(result)
+        return selectedProje_
       })
       setShow("Main")
 
@@ -189,16 +189,16 @@ export default function FormMahalBaslikCreate({ setShow }) {
 
   const handleChange_veriTuruId = (event) => {
     console.log("event.target.value", event.target.value)
-    setveriTuruId(isProject.veriTurleri?.find(item => item.id === event.target.value).id);
+    setveriTuruId(selectedProje.veriTurleri?.find(item => item.id === event.target.value).id);
   };
 
 
   const handleChange_haneSayisiId = (event) => {
     console.log("event.target.value", event.target.value)
-    sethaneSayisiId(isProject.haneSayilari?.find(item => item.id === event.target.value).id);
+    sethaneSayisiId(selectedProje.haneSayilari?.find(item => item.id === event.target.value).id);
   };
 
-  console.log("isProject", isProject)
+  console.log("selectedProje", selectedProje)
 
   return (
     <div>
@@ -292,7 +292,7 @@ export default function FormMahalBaslikCreate({ setShow }) {
               // disabled={true}
               >
                 {
-                  isProject?.veriTurleri?.map((oneVeriTuru, index) => (
+                  selectedProje?.veriTurleri?.map((oneVeriTuru, index) => (
                     <MenuItem key={index} value={oneVeriTuru.id}>
                       {/* {console.log(oneVeriTuru)} */}
                       {oneVeriTuru.name}
@@ -374,7 +374,7 @@ export default function FormMahalBaslikCreate({ setShow }) {
               // disabled={true}
               >
                 {
-                  isProject?.haneSayilari?.map((oneHaneSayisi, index) => (
+                  selectedProje?.haneSayilari?.map((oneHaneSayisi, index) => (
                     <MenuItem key={index} value={oneHaneSayisi.id}>
                       {/* {console.log(oneHaneSayisi)} */}
                       {oneHaneSayisi.name}

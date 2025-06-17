@@ -55,7 +55,7 @@ export default function Layout({ window, children }) {
 
   const { drawerWidth, topBarHeight } = useContext(StoreContext)
 
-  const { isProject, setIsProject } = useContext(StoreContext)
+  const { selectedProje, setSelectedProje } = useContext(StoreContext)
   const { setSelectedLbs, setSelectedMahal, setSelectedMahalBaslik, setSelectedWbs, setSelectedPoz, setSelectedPozBaslik, setSelectedNode, pageMetraj_setShow } = useContext(StoreContext)
 
 
@@ -285,7 +285,7 @@ export default function Layout({ window, children }) {
     setSelectedPoz()
     setSelectedPozBaslik()
     setSelectedNode()
-    setIsProject()
+    setSelectedProje()
     pageMetraj_setShow("Pozlar")
     navigate("/projects")
   };
@@ -328,7 +328,7 @@ export default function Layout({ window, children }) {
                 aria-label="open drawer"
                 edge="start"
                 onClick={handleToProject}
-                sx={{ display: isProject ? "block" : "none" }}
+                sx={{ display: selectedProje ? "block" : "none" }}
               >
                 <UndoIcon />
               </IconButton>
@@ -336,14 +336,14 @@ export default function Layout({ window, children }) {
 
             <Grid item>
               <Typography
-                // onClick={() => isProject ? null : navigate('/')}
+                // onClick={() => selectedProje ? null : navigate('/')}
                 onClick={() => navigate("/")}
                 variant="h6"
                 noWrap
                 component="div"
                 sx={{ cursor: "pointer", display: { xs: 'none', md: 'block' } }}
               >
-                {isProject ? isProject.name : "Rapor7/24"}
+                {selectedProje ? selectedProje.name : "Rapor7/24"}
               </Typography>
             </Grid>
 

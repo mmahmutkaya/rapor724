@@ -45,7 +45,7 @@ export default function SignIn() {
 
   const RealmApp = useApp();
   const navigate = useNavigate()
-  const { isProject, setIsProject } = useContext(StoreContext)
+  const { selectedProje, setSelectedProje } = useContext(StoreContext)
   const { Layout_Show, setLayout_Show } = useContext(StoreContext)
 
   const [emailError, setEmailError] = useState()

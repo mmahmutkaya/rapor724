@@ -21,11 +21,11 @@ import ArrowForwardIcon from '@mui/icons-material/ArrowForward';
 
 
 
-// export default function FormPozCreate({ setShow, isProject, refetch_pozlar }) {
+// export default function FormPozCreate({ setShow, selectedProje, refetch_pozlar }) {
 export default function FormPozCreate({ setShow }) {
 
 
-  const { isProject, setIsProject } = useContext(StoreContext)
+  const { selectedProje, setSelectedProje } = useContext(StoreContext)
   const { pozlar, setPozlar } = useContext(StoreContext)
 
   const [showDialog, setShowDialog] = useState(false)
@@ -36,7 +36,7 @@ export default function FormPozCreate({ setShow }) {
   // form verilerinde kullanmak için oluşturulan useState() verileri
   // form ilk açıldığında önceden belirlenen birşeyin seçilmiş olması için alttaki satırdaki gibi yapılabiliyor
   const [pozMetrajTipId, setPozMetrajTipId] = useState("standartMetrajSayfasi");
-  // const [pozMetrajTipi, setPozMetrajTipi] = useState(isProject ? isProject.pozMetrajTipleri.find(item => item.id === "standartMetrajSayfasi") : "");
+  // const [pozMetrajTipi, setPozMetrajTipi] = useState(selectedProje ? selectedProje.pozMetrajTipleri.find(item => item.id === "standartMetrajSayfasi") : "");
   const [wbsId, setWbsId] = useState();
   const [pozBirimId, setPozBirimId] = useState();
   const [pozBirimDisabled, setPozBirimDisabled] = useState(false);
@@ -57,7 +57,7 @@ export default function FormPozCreate({ setShow }) {
       const pozNo = deleteLastSpace(data.get('pozNo'))
 
       const newPoz = {
-        projectId: isProject?._id,
+        projectId: selectedProje?._id,
         wbsId,
         name,
         pozNo,
@@ -116,12 +116,12 @@ export default function FormPozCreate({ setShow }) {
       }
       
 
-      if (!isProject.pozBirimleri.find(x => x.id == newPoz.pozBirimId)) {
+      if (!selectedProje.pozBirimleri.find(x => x.id == newPoz.pozBirimId)) {
         setNewPozError(prev => ({ ...prev, pozBirimId: "Zorunlu" }))
         isFormError = true
       }
 
-      if (!isProject.pozMetrajTipleri.find(x => x.id == newPoz.pozMetrajTipId)) {
+      if (!selectedProje.pozMetrajTipleri.find(x => x.id == newPoz.pozMetrajTipId)) {
         setNewPozError(prev => ({ ...prev, pozMetrajTipId: "Zorunlu" }))
         isFormError = true
       }
@@ -159,7 +159,7 @@ export default function FormPozCreate({ setShow }) {
       }
 
       setPozlar(oldPozlar => [...oldPozlar, result.newPoz])
-      setIsProject(result.newProject)
+      setSelectedProje(result.newProject)
       setShow("Main")
 
     } catch (err) {
@@ -184,7 +184,7 @@ export default function FormPozCreate({ setShow }) {
 
   // form verilerini kullanıcıdan alıp react hafızasına yüklemek - onChange - sadece seçmeliler - yazma gibi şeyler formun submit olduğu anda yakalanıyor
   const handleChange_wbs = (event) => {
-    setWbsId(isProject.wbs.find(item => item._id.toString() === event.target.value.toString())._id);
+    setWbsId(selectedProje.wbs.find(item => item._id.toString() === event.target.value.toString())._id);
   };
 
   const handleChange_pozMetrajTipId = (event) => {
@@ -205,7 +205,7 @@ export default function FormPozCreate({ setShow }) {
   };
 
   const handleChange_pozBirimId = (event) => {
-    setPozBirimId(isProject.pozBirimleri.find(item => item.id === event.target.value).id);
+    setPozBirimId(selectedProje.pozBirimleri.find(item => item.id === event.target.value).id);
   };
 
 
@@ -278,7 +278,7 @@ export default function FormPozCreate({ setShow }) {
                 name="wbsId"
               >
                 {
-                  isProject?.wbs?.filter(item => item.openForPoz)
+                  selectedProje?.wbs?.filter(item => item.openForPoz)
                     .sort(function (a, b) {
                       var nums1 = a.code.split(".");
                       var nums2 = b.code.split(".");
@@ -309,22 +309,22 @@ export default function FormPozCreate({ setShow }) {
 
                             if (index == 0 && cOunt == 1) {
                               wbsCode = codePart
-                              wbsName = isProject.wbs.find(item => item.code == wbsCode).name
+                              wbsName = selectedProje.wbs.find(item => item.code == wbsCode).name
                             }
 
                             if (index == 0 && cOunt !== 1) {
                               wbsCode = codePart
-                              wbsName = isProject.wbs.find(item => item.code == wbsCode).codeName
+                              wbsName = selectedProje.wbs.find(item => item.code == wbsCode).codeName
                             }
 
                             if (index !== 0 && index + 1 !== cOunt && cOunt !== 1) {
                               wbsCode = wbsCode + "." + codePart
-                              wbsName = wbsName + " > " + isProject.wbs.find(item => item.code == wbsCode).codeName
+                              wbsName = wbsName + " > " + selectedProje.wbs.find(item => item.code == wbsCode).codeName
                             }
 
                             if (index !== 0 && index + 1 == cOunt && cOunt !== 1) {
                               wbsCode = wbsCode + "." + codePart
-                              wbsName = wbsName + " > " + isProject.wbs.find(item => item.code == wbsCode).name
+                              wbsName = wbsName + " > " + selectedProje.wbs.find(item => item.code == wbsCode).name
                             }
 
                           })
@@ -454,7 +454,7 @@ export default function FormPozCreate({ setShow }) {
                 name="pozMetrajTipId"
               >
                 {
-                  isProject?.pozMetrajTipleri.map((onePozMetrajTipi, index) => (
+                  selectedProje?.pozMetrajTipleri.map((onePozMetrajTipi, index) => (
                     // console.log(wbs)
                     <MenuItem key={index} value={onePozMetrajTipi.id}>
                       {onePozMetrajTipi.name}
@@ -500,7 +500,7 @@ export default function FormPozCreate({ setShow }) {
                 disabled={pozBirimDisabled}
               >
                 {
-                  isProject?.pozBirimleri.map((onePozBirim, index) => (
+                  selectedProje?.pozBirimleri.map((onePozBirim, index) => (
                     <MenuItem key={index} value={onePozBirim.id}>
                       {/* {console.log(onePozBirim)} */}
                       {onePozBirim.name}

@@ -21,8 +21,6 @@ import DeleteIcon from '@mui/icons-material/Delete';
 import AddCircleOutlineIcon from '@mui/icons-material/AddCircleOutline';
 
 
-
-
 export default function P_Projeler() {
 
   // const RealmApp = useApp();

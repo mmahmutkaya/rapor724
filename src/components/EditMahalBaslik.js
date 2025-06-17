@@ -16,7 +16,7 @@ export default function EditMahalBaslik({ setShow }) {
 
   const RealmApp = useApp();
 
-  const { isProject, setIsProject } = useContext(StoreContext)
+  const { selectedProje, setSelectedProje } = useContext(StoreContext)
   const [showDialog, setShowDialog] = useState(false)
   const [dialogCase, setDialogCase] = useState("")
   const [anyDataInDialog, setAnyDataInDialog] = useState(0)
@@ -30,7 +30,7 @@ export default function EditMahalBaslik({ setShow }) {
       upProperty: "mahalBasliklari",
       propertyName: "show",
       propertyValue: "webPage_mahaller",
-      _projectId: isProject._id,
+      _projectId: selectedProje._id,
       _baslikId: oneBaslik._id
     }
 
@@ -39,8 +39,8 @@ export default function EditMahalBaslik({ setShow }) {
     // clientSide tarafındaki veri güncelleme
 
     if (switchValue) {
-      setIsProject(isProject => {
-        isProject.mahalBasliklari = isProject.mahalBasliklari.map(item => {
+      setSelectedProje(selectedProje => {
+        selectedProje.mahalBasliklari = selectedProje.mahalBasliklari.map(item => {
           if (item._id.toString() == oneBaslik._id.toString()) {
             if (Array.isArray(item.show)) {
               item.show.push("webPage_mahaller")
@@ -52,12 +52,12 @@ export default function EditMahalBaslik({ setShow }) {
             return item
           }
         })
-        return isProject
+        return selectedProje
       })
     }
     if (!switchValue) {
-      setIsProject(isProject => {
-        isProject.mahalBasliklari = isProject.mahalBasliklari.map(item => {
+      setSelectedProje(selectedProje => {
+        selectedProje.mahalBasliklari = selectedProje.mahalBasliklari.map(item => {
           if (item._id.toString() == oneBaslik._id.toString()) {
             item.show = item.show.filter(item => item.indexOf("webPage_mahaller"))
             return item
@@ -65,7 +65,7 @@ export default function EditMahalBaslik({ setShow }) {
             return item
           }
         })
-        return isProject
+        return selectedProje
       })
     }
 
@@ -93,7 +93,7 @@ export default function EditMahalBaslik({ setShow }) {
           Mahal Başlık Görünüm Ayarları
         </Box> */}
 
-        {isProject.mahalBasliklari.find(item => !item.sabit) ?
+        {selectedProje.mahalBasliklari.find(item => !item.sabit) ?
 
           <>
             {/* TABLO BAŞLIK */}
@@ -108,7 +108,7 @@ export default function EditMahalBaslik({ setShow }) {
 
 
             {/* TABLO */}
-            {isProject.mahalBasliklari.filter(item => !item.sabit).map((oneBaslik, index) => {
+            {selectedProje.mahalBasliklari.filter(item => !item.sabit).map((oneBaslik, index) => {
               let switchValue = oneBaslik.show?.find(item => item.indexOf("webPage_mahaller") > -1) ? true : false
               return (
                 <Grid key={index} sx={{ borderTop: index == 0 ? "solid 1px gray" : null, borderBottom: "solid 1px gray", display: "grid", justifyItems: "center", width: "100%", gridTemplateColumns: "5fr 2fr" }}>

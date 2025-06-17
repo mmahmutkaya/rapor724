@@ -16,10 +16,10 @@ import DialogContentText from '@mui/material/DialogContentText';
 import { Typography } from '@mui/material';
 
 
-export default function P_FormLbsEdit({ setShow, isProject, setIsProject, selectedLbs, setSelectedLbs }) {
+export default function P_FormLbsEdit({ setShow, selectedProje, setSelectedProje, selectedLbs, setSelectedLbs }) {
 
   // proje ve _id si yoksa lbs oluşturma formunu göstermenin bir anlamı yok, hata vererek durduruyoruz
-  if (!isProject?._id) {
+  if (!selectedProje?._id) {
     throw new Error("Lbs oluşturulacak projenin database kaydı için ProjeId belirtilmemiş, sayfayı yeniden yükleyin, sorun devam ederse Rapor7/24 ile irtibata geçiniz.")
   }
 
@@ -84,7 +84,7 @@ export default function P_FormLbsEdit({ setShow, isProject, setIsProject, select
 
 
       const newLbsItem = {
-        projectId: isProject._id,
+        projectId: selectedProje._id,
         lbsId:selectedLbs._id,
         newLbsName: lbsName,
         newLbsCodeName: lbsCodeName
@@ -125,7 +125,7 @@ export default function P_FormLbsEdit({ setShow, isProject, setIsProject, select
 
 
       // yukarıdaki yapılan _id kontrolü tamamsa bu veri db de kaydolmuş demektir, refetch() yapıp db yi yormaya gerek yok
-      setIsProject(result.project)
+      setSelectedProje(result.project)
 
       // sorgu işleminden önce seçilen lbs varsa, temizliyoruz, en büyük gerekçe seçilen lbs silinmiş olabilir, onunla işlem db de hata verir
       setSelectedLbs(null)

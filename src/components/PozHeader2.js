@@ -24,7 +24,7 @@ export default function PozHeader({ setShow }) {
 
   const { drawerWidth, topBarHeight } = useContext(StoreContext)
 
-  const { isProject, setIsProject } = useContext(StoreContext)
+  const { selectedProje, setSelectedProje } = useContext(StoreContext)
   const { setPozlar } = useContext(StoreContext)
   const RealmApp = useApp();
 
@@ -62,11 +62,11 @@ export default function PozHeader({ setShow }) {
 
       if (result.isIncludesPozFalse) {
 
-        let oldProject = JSON.parse(JSON.stringify(isProject))
+        let oldProject = JSON.parse(JSON.stringify(selectedProje))
 
         oldProject.wbs.find(item => item._id.toString() === poz._wbsId.toString()).includesPoz = false
 
-        setIsProject(oldProject)
+        setSelectedProje(oldProject)
 
       }
 
@@ -151,7 +151,7 @@ export default function PozHeader({ setShow }) {
               <Grid item onClick={() => handlePozDelete(selectedPoz)} sx={{ cursor: "pointer" }}>
                 <IconButton aria-label="addPoz" disabled>
                   <DeleteIcon
-                    // sx={{display: isProject_display}}
+                    // sx={{display: selectedProje_display}}
                     variant="contained" sx={{
                       color: selectedPoz ? "darkred" : "lightgray",
                     }} />
@@ -161,8 +161,8 @@ export default function PozHeader({ setShow }) {
 
 
               <Grid item>
-                <IconButton onClick={() => setShow("FormPozCreate")} aria-label="addWbs" disabled={(isProject?.wbs?.filter(item => item.openForPoz).length == 0 || !isProject?.wbs) ? true : false}>
-                  <AddCircleOutlineIcon variant="contained" color={(isProject?.wbs?.filter(item => item.openForPoz).length == 0 || !isProject?.wbs) ? " lightgray" : "success"} />
+                <IconButton onClick={() => setShow("FormPozCreate")} aria-label="addWbs" disabled={(selectedProje?.wbs?.filter(item => item.openForPoz).length == 0 || !selectedProje?.wbs) ? true : false}>
+                  <AddCircleOutlineIcon variant="contained" color={(selectedProje?.wbs?.filter(item => item.openForPoz).length == 0 || !selectedProje?.wbs) ? " lightgray" : "success"} />
                 </IconButton>
               </Grid>
 

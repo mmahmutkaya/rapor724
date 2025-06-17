@@ -18,9 +18,9 @@ exports = async function ({ _projectId, functionName, _baslikId }) {
 
   // const collection_Projects = context.services.get("mongodb-atlas").db("rapor724_v2").collection("projects")
 
-  // let isProject = await collection_Projects.findOne({ _id: _projectId, members: _userId, isDeleted: false })
-  // isProject = { ...isProject }
-  // if (!isProject) throw new Error("MONGO // updateCustomSettings // Poz başlığı eklemek istediğiniz proje sistemde bulunamadı, lütfen sayfayı yenileyiniz, sorun devam ederse Rapor7/24 ileirtibata geçiniz.")
+  // let selectedProje = await collection_Projects.findOne({ _id: _projectId, members: _userId, isDeleted: false })
+  // selectedProje = { ...selectedProje }
+  // if (!selectedProje) throw new Error("MONGO // updateCustomSettings // Poz başlığı eklemek istediğiniz proje sistemde bulunamadı, lütfen sayfayı yenileyiniz, sorun devam ederse Rapor7/24 ileirtibata geçiniz.")
 
   const collection_Users = context.services
     .get("mongodb-atlas")

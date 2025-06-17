@@ -23,7 +23,7 @@ import ArrowForwardIcon from '@mui/icons-material/ArrowForward';
 export default function FormMahalCreate({setShow}) {
 
 
-  const { isProject, setIsProject } = useContext(StoreContext)
+  const { selectedProje, setSelectedProje } = useContext(StoreContext)
   const { mahaller, setMahaller } = useContext(StoreContext)
 
   const [showDialog, setShowDialog] = useState(false)
@@ -33,7 +33,7 @@ export default function FormMahalCreate({setShow}) {
 
   // form verilerinde kullanmak için oluşturulan useState() verileri
   // form ilk açıldığında önceden belirlenen birşeyin seçilmiş olması için alttaki satırdaki gibi yapılabiliyor
-  // const [mahalTipi, setMahalTipi] = useState(isProject ? isProject.mahalTipleri.find(item => item.id === "direktMahalListesi") : "");
+  // const [mahalTipi, setMahalTipi] = useState(selectedProje ? selectedProje.mahalTipleri.find(item => item.id === "direktMahalListesi") : "");
   const [lbsId, setLbsId] = useState();
 
   const RealmApp = useApp();
@@ -51,7 +51,7 @@ export default function FormMahalCreate({setShow}) {
       const mahalKod = deleteLastSpace(data.get('mahalKod'))
 
       const newMahal = {
-        projectId: isProject?._id,
+        projectId: selectedProje?._id,
         lbsId,
         mahalKod,
         mahalName,
@@ -135,7 +135,7 @@ export default function FormMahalCreate({setShow}) {
       }
 
       setMahaller(oldMahaller => [...oldMahaller, result.newMahal])
-      setIsProject(result.newProject)
+      setSelectedProje(result.newProject)
       setShow("Main")
 
     } catch (err) {
@@ -160,7 +160,7 @@ export default function FormMahalCreate({setShow}) {
 
   // form verilerini kullanıcıdan alıp react hafızasına yüklemek - onChange - sadece seçmeliler - yazma gibi şeyler formun submit olduğu anda yakalanıyor
   const handleChange_lbs = (event) => {
-    setLbsId(isProject.lbs.find(item => item._id.toString() === event.target.value.toString())._id);
+    setLbsId(selectedProje.lbs.find(item => item._id.toString() === event.target.value.toString())._id);
   };
 
 
@@ -237,7 +237,7 @@ export default function FormMahalCreate({setShow}) {
                 name="lbsId"
               >
                 {
-                  isProject?.lbs?.filter(item => item.openForMahal)
+                  selectedProje?.lbs?.filter(item => item.openForMahal)
                     .sort(function (a, b) {
                       var nums1 = a.code.split(".");
                       var nums2 = b.code.split(".");
@@ -268,22 +268,22 @@ export default function FormMahalCreate({setShow}) {
 
                             if (index == 0 && cOunt == 1) {
                               lbsCode = codePart
-                              lbsName = isProject.lbs.find(item => item.code == lbsCode).name
+                              lbsName = selectedProje.lbs.find(item => item.code == lbsCode).name
                             }
 
                             if (index == 0 && cOunt !== 1) {
                               lbsCode = codePart
-                              lbsName = isProject.lbs.find(item => item.code == lbsCode).codeName
+                              lbsName = selectedProje.lbs.find(item => item.code == lbsCode).codeName
                             }
 
                             if (index !== 0 && index + 1 !== cOunt && cOunt !== 1) {
                               lbsCode = lbsCode + "." + codePart
-                              lbsName = lbsName + " > " + isProject.lbs.find(item => item.code == lbsCode).codeName
+                              lbsName = lbsName + " > " + selectedProje.lbs.find(item => item.code == lbsCode).codeName
                             }
 
                             if (index !== 0 && index + 1 == cOunt && cOunt !== 1) {
                               lbsCode = lbsCode + "." + codePart
-                              lbsName = lbsName + " > " + isProject.lbs.find(item => item.code == lbsCode).name
+                              lbsName = lbsName + " > " + selectedProje.lbs.find(item => item.code == lbsCode).name
                             }
 
                           })

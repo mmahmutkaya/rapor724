@@ -24,7 +24,7 @@ import { BSON } from 'realm-web';
 export default function P_MahalMetraj() {
 
 
-  const { isProject, setMahalListesi_wbsIds, setMahalListesi_lbsIds } = useContext(StoreContext)
+  const { selectedProje, setMahalListesi_wbsIds, setMahalListesi_lbsIds } = useContext(StoreContext)
   const { selectedNode, setSelectedNode } = useContext(StoreContext)
   const { selectedMahal, setSelectedMahal } = useContext(StoreContext)
   const { selectedPoz, setSelectedPoz } = useContext(StoreContext)
@@ -40,8 +40,8 @@ export default function P_MahalMetraj() {
 
 
   const navigate = useNavigate()
-  // !isProject ? navigate('/projects') : null
-  if (!isProject) window.location.href = "/projects"
+  // !selectedProje ? navigate('/projects') : null
+  if (!selectedProje) window.location.href = "/projects"
 
   const RealmApp = useApp();
 
@@ -83,7 +83,7 @@ export default function P_MahalMetraj() {
   const one_mahal_width = 10
 
 
-  let totalWidthSabit = isProject?.mahalBasliklari?.filter(item => item.sabit).reduce(
+  let totalWidthSabit = selectedProje?.mahalBasliklari?.filter(item => item.sabit).reduce(
     (accumulator, oneBilgi) => accumulator + oneBilgi.genislik,
     0
   )
@@ -97,8 +97,8 @@ export default function P_MahalMetraj() {
   let totalWidth = (parseFloat(totalWidthSabit) + 2 + parseFloat(totalWidthDegisken)) + 'rem'
 
 
-  let gridTemplateColumnsSabit = isProject?.mahalBasliklari?.filter(item => item.sabit).reduce(
-    (ilkString, oneBilgi, index) => index != isProject?.mahalBasliklari?.length ? ilkString + (oneBilgi.genislik + "rem ") : ilkString + (oneBilgi.genislik + "rem"),
+  let gridTemplateColumnsSabit = selectedProje?.mahalBasliklari?.filter(item => item.sabit).reduce(
+    (ilkString, oneBilgi, index) => index != selectedProje?.mahalBasliklari?.length ? ilkString + (oneBilgi.genislik + "rem ") : ilkString + (oneBilgi.genislik + "rem"),
     ""
   )
 
@@ -108,8 +108,8 @@ export default function P_MahalMetraj() {
     ""
   )
 
-  let gridTemplateColumnsDegisken2 = isProject?.mahalBasliklari?.filter(item => !item.sabit && item.goster).reduce(
-    (ilkString, oneBilgi, index) => index != isProject?.mahalBasliklari?.length ? ilkString + (oneBilgi.genislik + "rem ") : ilkString + (oneBilgi.genislik + "rem"),
+  let gridTemplateColumnsDegisken2 = selectedProje?.mahalBasliklari?.filter(item => !item.sabit && item.goster).reduce(
+    (ilkString, oneBilgi, index) => index != selectedProje?.mahalBasliklari?.length ? ilkString + (oneBilgi.genislik + "rem ") : ilkString + (oneBilgi.genislik + "rem"),
     ""
   )
 
@@ -233,7 +233,7 @@ export default function P_MahalMetraj() {
 
       {show == "FormMahalCreate" &&
         <Grid item >
-          <FormMahalCreate isProject={isProject} setShow={setShow} />
+          <FormMahalCreate selectedProje={selectedProje} setShow={setShow} />
         </Grid>
       }
 
@@ -243,7 +243,7 @@ export default function P_MahalMetraj() {
         </Grid>
       }
 
-      {show == "Main" && (isProject?.lbs?.filter(item => item.openForMahal).length == 0 || !isProject?.lbs) &&
+      {show == "Main" && (selectedProje?.lbs?.filter(item => item.openForMahal).length == 0 || !selectedProje?.lbs) &&
         <Stack sx={{ width: '100%', pl: "1rem", pr: "0.5rem", pt: "1rem", mt: subHeaderHeight }} spacing={2}>
           <Alert severity="info">
             Henüz hiç bir mahal başlığını mahal eklemeye açmamış görünüyorsunumuz. "Mahal Başlıkları" menüsünden işlem yapabilirsiniz.
@@ -251,7 +251,7 @@ export default function P_MahalMetraj() {
         </Stack>
       }
 
-      {show == "Main" && mahalListesi_state && isProject?.lbs?.filter(item => item.openForMahal).length > 0 &&
+      {show == "Main" && mahalListesi_state && selectedProje?.lbs?.filter(item => item.openForMahal).length > 0 &&
 
         <Box sx={{ mt: subHeaderHeight, pt: "1rem", pl: "1rem", pr: "1rem" }}>
 
@@ -266,10 +266,10 @@ export default function P_MahalMetraj() {
             {/* SOL KISIM SABİT EN ÜST MAHAL BAŞLIKLARI */}
             {/* HAYALET */}
             <Box sx={{ display: "none" }}>
-              {count_ = isProject?.mahalBasliklari?.filter(item => item.sabit).length}
+              {count_ = selectedProje?.mahalBasliklari?.filter(item => item.sabit).length}
             </Box>
 
-            {isProject?.mahalBasliklari?.filter(item => item.sabit).map((oneBaslik, index) => {
+            {selectedProje?.mahalBasliklari?.filter(item => item.sabit).map((oneBaslik, index) => {
               return (
                 <Box
                   sx={{
@@ -340,7 +340,7 @@ export default function P_MahalMetraj() {
 
           {/* SOL KISIMDAKİ SABİT KISIMDAKİ MAHAL BAŞLIKLARI ve SAĞ DEĞİŞKEN KISIMDA DEVAM EDEN BOŞ BAŞLIK HÜCRELERİ */}
           {/* SOL KISIMDAKİ SABİT KISIMDAKİ MAHAL BAŞLIĞI ALTINDAKİ MAHALLER ve SAĞ DEĞİŞKEN KISIMDA DEVAM EDEN BOŞ BAŞLIK HÜCRELERİ ALTINDA POZ HÜCRELERİ*/}
-          {isProject?.lbs
+          {selectedProje?.lbs
             .filter(item => item.openForMahal === true)
             .sort(function (a, b) {
               var nums1 = a.code.split(".");
@@ -378,22 +378,22 @@ export default function P_MahalMetraj() {
 
                         if (index == 0 && cOunt == 1) {
                           lbsCode = codePart
-                          lbsName = isProject?.lbs.find(item => item.code == lbsCode).name
+                          lbsName = selectedProje?.lbs.find(item => item.code == lbsCode).name
                         }
 
                         if (index == 0 && cOunt !== 1) {
                           lbsCode = codePart
-                          lbsName = isProject?.lbs.find(item => item.code == lbsCode).codeName
+                          lbsName = selectedProje?.lbs.find(item => item.code == lbsCode).codeName
                         }
 
                         if (index !== 0 && index + 1 !== cOunt && cOunt !== 1) {
                           lbsCode = lbsCode + "." + codePart
-                          lbsName = lbsName + " > " + isProject?.lbs.find(item => item.code == lbsCode).codeName
+                          lbsName = lbsName + " > " + selectedProje?.lbs.find(item => item.code == lbsCode).codeName
                         }
 
                         if (index !== 0 && index + 1 == cOunt && cOunt !== 1) {
                           lbsCode = lbsCode + "." + codePart
-                          lbsName = lbsName + " > " + isProject?.lbs.find(item => item.code == lbsCode).name
+                          lbsName = lbsName + " > " + selectedProje?.lbs.find(item => item.code == lbsCode).name
                         }
 
                       })
@@ -459,7 +459,7 @@ export default function P_MahalMetraj() {
                           }}
                         >
                           {
-                            isProject?.mahalBasliklari?.filter(item => item.sabit).map((oneBaslik, index) => {
+                            selectedProje?.mahalBasliklari?.filter(item => item.sabit).map((oneBaslik, index) => {
                               return (
                                 <TableItem
                                   key={index}

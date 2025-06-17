@@ -56,7 +56,7 @@ export default function Layout({ window, children }) {
   const { drawerWidth, topBarHeight } = useContext(StoreContext)
   const { Layout_Show, setLayout_Show } = useContext(StoreContext)
 
-  const { RealmApp, selectedFirma, isProject, setIsProject } = useContext(StoreContext)
+  const { RealmApp, selectedFirma, selectedProje, setSelectedProje} = useContext(StoreContext)
 
   const { setSelectedFirma, setSelectedLbs, setSelectedMahal, setSelectedMahalBaslik, setSelectedWbs, setSelectedPoz, setSelectedPozBaslik, setSelectedNode, pageMetraj_setShow } = useContext(StoreContext)
 
@@ -308,9 +308,9 @@ export default function Layout({ window, children }) {
     setSelectedPoz()
     setSelectedPozBaslik()
     setSelectedNode()
-    setIsProject()
+    setSelectedProje()
     pageMetraj_setShow("Pozlar")
-    navigate("/projects")
+    navigate("/projeler")
   };
 
 
@@ -351,8 +351,8 @@ export default function Layout({ window, children }) {
                 color="inherit"
                 aria-label="open drawer"
                 edge="start"
-                onClick={(selectedFirma && !isProject) ? () => clearSelectedFirma() : isProject ? () => clearSelectedProject() : null}
-                sx={{ display: (selectedFirma || isProject) ? "block" : "none" }}
+                onClick={(selectedFirma && !selectedProje) ? () => clearSelectedFirma() : selectedProje ? () => clearSelectedProject() : null}
+                sx={{ display: (selectedFirma || selectedProje) ? "block" : "none" }}
               >
                 <UndoIcon />
               </IconButton>
@@ -361,14 +361,14 @@ export default function Layout({ window, children }) {
 
             <Grid item>
               <Typography
-                // onClick={() => isProject ? null : navigate('/')}
+                // onClick={() => selectedProje ? null : navigate('/')}
                 onClick={() => navigate("/")}
                 variant="h6"
                 noWrap
                 component="div"
                 sx={{ cursor: "pointer", display: { xs: 'none', md: 'block' } }}
               >
-                {isProject ? isProject.name : selectedFirma ? selectedFirma.name : "Rapor7/24"}
+                {selectedProje ? selectedProje.name : selectedFirma ? selectedFirma.name : "Rapor7/24"}
               </Typography>
             </Grid>
 

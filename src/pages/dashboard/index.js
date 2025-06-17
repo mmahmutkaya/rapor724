@@ -16,33 +16,21 @@ const artir = function () {
 
 export default function P_Dashboard() {
 
-  const { isProject, setIsProject } = useContext(StoreContext)
+  const { selectedProje, setSelectedProje } = useContext(StoreContext)
 
   useEffect(() => {
-    if (!isProject) navigate('/projects')
-  }, [isProject]);
+    if (!selectedProje) navigate('/projeler')
+  }, [selectedProje]);
 
   const [sayi, setSayi] = useState(50)
 
   const navigate = useNavigate()
 
-
-
-  // const { isProject } = useContext(StoreContext)
-  // !isProject ? navigate('/projects') : null
-  // !isProject ? navigate('/projects') : null
-
-  // return (
-  //   <Typography p={2}>
-  //     {isProject?.name} + " projesinin adı db den geldi"
-  //   </Typography>
-  // )
-
   {
-    isProject &&
-    <>
-      {isProject.name}
-    </>
+    selectedProje &&
+      <>
+        {selectedProje.name}
+      </>
   }
 
 }

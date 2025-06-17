@@ -20,14 +20,14 @@ export default function P_KisilerProject() {
   const RealmApp = useApp();
   const navigate = useNavigate()
 
-  const { isProject, setIsProject } = useContext(StoreContext)
+  const { selectedProje, setSelectedProje } = useContext(StoreContext)
   const [sutunlar, setSutunlar] = useState(myArray)
 
   const [show, setShow] = useState("Main")
-  // isProject && console.log(isProject)
+  // selectedProje && console.log(selectedProje)
 
   useEffect(() => {
-    !isProject && navigate("/projects")
+    !selectedProje && navigate("/projects")
   }, [])
 
 
@@ -117,7 +117,7 @@ export default function P_KisilerProject() {
 
 
 
-          {isProject?.members.map((x, index) => {
+          {selectedProje?.members.map((x, index) => {
 
             return (
               <Fragment key={index}>

@@ -28,7 +28,7 @@ export default function MahalHeader({ setShow, editMahal, setEditMahal, saveMaha
 
   const { drawerWidth, topBarHeight } = useContext(StoreContext)
 
-  const { isProject, setIsProject } = useContext(StoreContext)
+  const { selectedProje, setSelectedProje } = useContext(StoreContext)
   const { setMahaller } = useContext(StoreContext)
 
   const RealmApp = useApp();
@@ -70,11 +70,11 @@ export default function MahalHeader({ setShow, editMahal, setEditMahal, saveMaha
 
       if (result.isIncludesMahalFalse) {
 
-        let oldProject = JSON.parse(JSON.stringify(isProject))
+        let oldProject = JSON.parse(JSON.stringify(selectedProje))
 
         oldProject.lbs.find(item => item._id.toString() === mahal._lbsId.toString()).includesMahal = false
 
-        setIsProject(oldProject)
+        setSelectedProje(oldProject)
 
       }
 
@@ -128,11 +128,11 @@ export default function MahalHeader({ setShow, editMahal, setEditMahal, saveMaha
 
       if (result.isIncludesMahalFalse) {
 
-        let oldProject = JSON.parse(JSON.stringify(isProject))
+        let oldProject = JSON.parse(JSON.stringify(selectedProje))
 
         oldProject.lbs.find(item => item._id.toString() === mahal._lbsId.toString()).includesMahal = false
 
-        setIsProject(oldProject)
+        setSelectedProje(oldProject)
 
       }
 
@@ -160,20 +160,20 @@ export default function MahalHeader({ setShow, editMahal, setEditMahal, saveMaha
 
 
   const handle_BaslikGenislet = () => {
-    setIsProject(isProject => {
-      const isProject_ = { ...isProject }
-      isProject_.mahalBasliklari.find(item => item.id == selectedMahalBaslik.id).genislik = isProject_.mahalBasliklari.find(item => item.id == selectedMahalBaslik.id).genislik + 0.5
-      return isProject_
+    setSelectedProje(selectedProje => {
+      const selectedProje_ = { ...selectedProje }
+      selectedProje_.mahalBasliklari.find(item => item.id == selectedMahalBaslik.id).genislik = selectedProje_.mahalBasliklari.find(item => item.id == selectedMahalBaslik.id).genislik + 0.5
+      return selectedProje_
     })
     setWillBeUpdate_mahalBaslik(true)
   }
 
 
   const handle_BaslikDaralt = () => {
-    setIsProject(isProject => {
-      const isProject_ = { ...isProject }
-      isProject_.mahalBasliklari.find(item => item.id == selectedMahalBaslik.id).genislik = isProject_.mahalBasliklari.find(item => item.id == selectedMahalBaslik.id).genislik - 0.5
-      return isProject_
+    setSelectedProje(selectedProje => {
+      const selectedProje_ = { ...selectedProje }
+      selectedProje_.mahalBasliklari.find(item => item.id == selectedMahalBaslik.id).genislik = selectedProje_.mahalBasliklari.find(item => item.id == selectedMahalBaslik.id).genislik - 0.5
+      return selectedProje_
     })
     setWillBeUpdate_mahalBaslik(true)
   }
@@ -181,13 +181,13 @@ export default function MahalHeader({ setShow, editMahal, setEditMahal, saveMaha
 
 
   const handle_YatayHiza = () => {
-    setIsProject(isProject => {
-      const isProject_ = { ...isProject }
-      let guncelYatayHiza = isProject_.mahalBasliklari.find(item => item.id == selectedMahalBaslik.id).yatayHiza
-      if (guncelYatayHiza == "start") isProject_.mahalBasliklari.find(item => item.id == selectedMahalBaslik.id).yatayHiza = "center"
-      if (guncelYatayHiza == "center") isProject_.mahalBasliklari.find(item => item.id == selectedMahalBaslik.id).yatayHiza = "end"
-      if (guncelYatayHiza == "end") isProject_.mahalBasliklari.find(item => item.id == selectedMahalBaslik.id).yatayHiza = "start"
-      return isProject_
+    setSelectedProje(selectedProje => {
+      const selectedProje_ = { ...selectedProje }
+      let guncelYatayHiza = selectedProje_.mahalBasliklari.find(item => item.id == selectedMahalBaslik.id).yatayHiza
+      if (guncelYatayHiza == "start") selectedProje_.mahalBasliklari.find(item => item.id == selectedMahalBaslik.id).yatayHiza = "center"
+      if (guncelYatayHiza == "center") selectedProje_.mahalBasliklari.find(item => item.id == selectedMahalBaslik.id).yatayHiza = "end"
+      if (guncelYatayHiza == "end") selectedProje_.mahalBasliklari.find(item => item.id == selectedMahalBaslik.id).yatayHiza = "start"
+      return selectedProje_
     })
     setWillBeUpdate_mahalBaslik(true)
   }
@@ -195,9 +195,9 @@ export default function MahalHeader({ setShow, editMahal, setEditMahal, saveMaha
 
   const unSelectMahalBaslik = async () => {
     if (willBeUpdate_mahalBaslik) {
-      let mahalBaslik = isProject.mahalBasliklari.find(item => item.id == selectedMahalBaslik.id)
+      let mahalBaslik = selectedProje.mahalBasliklari.find(item => item.id == selectedMahalBaslik.id)
       console.log("mahalBaslik", mahalBaslik)
-      const result = await RealmApp?.currentUser.callFunction("updateProjectMahalBaslik", ({ _projectId: isProject._id, mahalBaslik }));
+      const result = await RealmApp?.currentUser.callFunction("updateProjectMahalBaslik", ({ _projectId: selectedProje._id, mahalBaslik }));
       console.log("result", result)
       setWillBeUpdate_mahalBaslik(false)
     }
@@ -206,7 +206,7 @@ export default function MahalHeader({ setShow, editMahal, setEditMahal, saveMaha
 
 
   let header = "Mahaller"
-  // isProject?.name ? header = isProject?.name : null
+  // selectedProje?.name ? header = selectedProje?.name : null
 
 
 
@@ -286,7 +286,7 @@ export default function MahalHeader({ setShow, editMahal, setEditMahal, saveMaha
                   <Grid item onClick={() => handleMahalDelete(selectedMahal)} sx={{ cursor: "pointer" }}>
                     <IconButton aria-label="addMahal" disabled>
                       <DeleteIcon
-                        // sx={{display: isProject_display}}
+                        // sx={{display: selectedProje_display}}
                         variant="contained"
                         sx={{ color: "red" }} />
                     </IconButton>
@@ -322,7 +322,7 @@ export default function MahalHeader({ setShow, editMahal, setEditMahal, saveMaha
                   <Grid item onClick={() => handleMahalBaslikDelete(selectedMahalBaslik)} sx={{ cursor: "pointer" }}>
                     <IconButton aria-label="addMahal" disabled>
                       <DeleteIcon
-                        // sx={{display: isProject_display}}
+                        // sx={{display: selectedProje_display}}
                         variant="contained"
                         sx={{ color: "red" }} />
                     </IconButton>
@@ -412,8 +412,8 @@ export default function MahalHeader({ setShow, editMahal, setEditMahal, saveMaha
 
               {(!selectedMahalBaslik && !selectedMahal) &&
                 <Grid item>
-                  <IconButton onClick={() => setShow("FormMahalBaslikCreate")} aria-label="addMahalBilgi" disabled={(isProject?.lbs?.filter(item => item.openForMahal).length == 0 || !isProject?.lbs) ? true : false}>
-                    <AddCircleOutlineIcon variant="contained" sx={{ color: (isProject?.lbs?.filter(item => item.openForMahal).length == 0 || !isProject?.lbs) ? "lightgray" : "blue" }} />
+                  <IconButton onClick={() => setShow("FormMahalBaslikCreate")} aria-label="addMahalBilgi" disabled={(selectedProje?.lbs?.filter(item => item.openForMahal).length == 0 || !selectedProje?.lbs) ? true : false}>
+                    <AddCircleOutlineIcon variant="contained" sx={{ color: (selectedProje?.lbs?.filter(item => item.openForMahal).length == 0 || !selectedProje?.lbs) ? "lightgray" : "blue" }} />
                   </IconButton>
                 </Grid>
               }
@@ -421,8 +421,8 @@ export default function MahalHeader({ setShow, editMahal, setEditMahal, saveMaha
 
               {(!selectedMahalBaslik && !selectedMahal) &&
                 <Grid item>
-                  <IconButton onClick={() => setShow("FormMahalCreate")} aria-label="addLbs" disabled={(isProject?.lbs?.filter(item => item.openForMahal).length == 0 || !isProject?.lbs) ? true : false}>
-                    <AddCircleOutlineIcon variant="contained" color={(isProject?.lbs?.filter(item => item.openForMahal).length == 0 || !isProject?.lbs) ? " lightgray" : "success"} />
+                  <IconButton onClick={() => setShow("FormMahalCreate")} aria-label="addLbs" disabled={(selectedProje?.lbs?.filter(item => item.openForMahal).length == 0 || !selectedProje?.lbs) ? true : false}>
+                    <AddCircleOutlineIcon variant="contained" color={(selectedProje?.lbs?.filter(item => item.openForMahal).length == 0 || !selectedProje?.lbs) ? " lightgray" : "success"} />
                   </IconButton>
                 </Grid>
               }

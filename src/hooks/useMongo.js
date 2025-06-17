@@ -111,12 +111,12 @@ export const useGetProjectNames_firma = () => {
 export const useGetMahaller = (onSuccess, onError) => {
 
   // const RealmApp = useApp();
-  const { isProject, RealmApp } = useContext(StoreContext)
+  const { selectedProje, RealmApp } = useContext(StoreContext)
 
   return useQuery({
-    queryKey: ['mahaller', isProject?._id.toString()],
-    queryFn: () => RealmApp?.currentUser.callFunction("getProjectMahaller", ({ projectId: isProject?._id })),
-    enabled: !!RealmApp && !!isProject,
+    queryKey: ['mahaller', selectedProje?._id.toString()],
+    queryFn: () => RealmApp?.currentUser.callFunction("getProjectMahaller", ({ projectId: selectedProje?._id })),
+    enabled: !!RealmApp && !!selectedProje,
     onSuccess,
     onError,
     refetchOnMount: false,
@@ -130,12 +130,12 @@ export const useGetMahaller = (onSuccess, onError) => {
 export const useGetPozlar = (onSuccess, onError) => {
 
   // const RealmApp = useApp();
-  const { isProject, RealmApp } = useContext(StoreContext)
+  const { selectedProje, RealmApp } = useContext(StoreContext)
 
   return useQuery({
-    queryKey: ['pozlar', isProject?._id.toString()],
-    queryFn: () => RealmApp?.currentUser.callFunction("collectionDugumler", ({ functionName: "getProjectPozlar", _projectId: isProject?._id })),
-    enabled: !!RealmApp && !!isProject,
+    queryKey: ['pozlar', selectedProje?._id.toString()],
+    queryFn: () => RealmApp?.currentUser.callFunction("collectionDugumler", ({ functionName: "getProjectPozlar", _projectId: selectedProje?._id })),
+    enabled: !!RealmApp && !!selectedProje,
     onSuccess,
     onError,
     refetchOnMount: false,
@@ -148,12 +148,12 @@ export const useGetPozlar = (onSuccess, onError) => {
 export const useGetMahalListesi = () => {
 
   // const RealmApp = useApp();
-  const { isProject, RealmApp } = useContext(StoreContext)
+  const { selectedProje, RealmApp } = useContext(StoreContext)
 
   return useQuery({
-    queryKey: ['mahalListesi', isProject?._id.toString()],
-    queryFn: () => RealmApp?.currentUser.callFunction("collectionDugumler", ({ functionName: "getMahalListesi", _projectId: isProject?._id })),
-    enabled: !!RealmApp && !!isProject,
+    queryKey: ['mahalListesi', selectedProje?._id.toString()],
+    queryFn: () => RealmApp?.currentUser.callFunction("collectionDugumler", ({ functionName: "getMahalListesi", _projectId: selectedProje?._id })),
+    enabled: !!RealmApp && !!selectedProje,
     refetchOnMount: false,
     refetchOnWindowFocus: false,
     // select: (data) => data.mahalListesi,
@@ -168,12 +168,12 @@ export const useGetMahalListesi = () => {
 export const useGetHazirlananMetrajlar = ({ selectedNode }) => {
 
   // const RealmApp = useApp();
-  const { isProject, RealmApp } = useContext(StoreContext)
+  const { selectedProje, RealmApp } = useContext(StoreContext)
 
   return useQuery({
     queryKey: ['hazirlananMetrajlar', selectedNode?._id.toString()],
-    queryFn: () => RealmApp?.currentUser.callFunction("collectionDugumler", ({ functionName: "getHazirlananMetrajlar", _projectId: isProject?._id, _mahalId: selectedNode?._mahalId, _pozId: selectedNode?._pozId })),
-    enabled: !!RealmApp && !!isProject && !!selectedNode,
+    queryFn: () => RealmApp?.currentUser.callFunction("collectionDugumler", ({ functionName: "getHazirlananMetrajlar", _projectId: selectedProje?._id, _mahalId: selectedNode?._mahalId, _pozId: selectedNode?._pozId })),
+    enabled: !!RealmApp && !!selectedProje && !!selectedNode,
     refetchOnMount: false,
     refetchOnWindowFocus: false,
     staleTime: 5 * 60 * 1000,
@@ -186,12 +186,12 @@ export const useGetHazirlananMetrajlar = ({ selectedNode }) => {
 export const useGetOnaylananMetraj = ({ selectedNode }) => {
 
   // const RealmApp = useApp();
-  const { isProject, RealmApp } = useContext(StoreContext)
+  const { selectedProje, RealmApp } = useContext(StoreContext)
 
   return useQuery({
     queryKey: ['onaylananMetraj', selectedNode?._id.toString()],
-    queryFn: () => RealmApp?.currentUser.callFunction("collectionDugumler", ({ functionName: "getOnaylananMetraj", _projectId: isProject?._id, _mahalId: selectedNode?._mahalId, _pozId: selectedNode?._pozId })),
-    enabled: !!RealmApp && !!isProject && !!selectedNode,
+    queryFn: () => RealmApp?.currentUser.callFunction("collectionDugumler", ({ functionName: "getOnaylananMetraj", _projectId: selectedProje?._id, _mahalId: selectedNode?._mahalId, _pozId: selectedNode?._pozId })),
+    enabled: !!RealmApp && !!selectedProje && !!selectedNode,
     refetchOnMount: false,
     refetchOnWindowFocus: false,
     staleTime: 5 * 60 * 1000,
@@ -207,12 +207,12 @@ export const useGetOnaylananMetraj = ({ selectedNode }) => {
 export const useGetPozlarMetraj = () => {
 
   // const RealmApp = useApp();
-  const { isProject, RealmApp } = useContext(StoreContext)
+  const { selectedProje, RealmApp } = useContext(StoreContext)
 
   return useQuery({
-    queryKey: ['pozlarMetraj', isProject?._id.toString()],
-    queryFn: () => RealmApp?.currentUser.callFunction("collectionDugumler", ({ functionName: "getPozlarMetraj", _projectId: isProject?._id })),
-    enabled: !!RealmApp && !!isProject,
+    queryKey: ['pozlarMetraj', selectedProje?._id.toString()],
+    queryFn: () => RealmApp?.currentUser.callFunction("collectionDugumler", ({ functionName: "getPozlarMetraj", _projectId: selectedProje?._id })),
+    enabled: !!RealmApp && !!selectedProje,
     refetchOnMount: false,
     refetchOnWindowFocus: false,
     staleTime: 5 * 60 * 1000,
@@ -233,7 +233,7 @@ export const useGetPozlarMetraj = () => {
 
 //   // const RealmApp = useApp();
 //   const queryClient = useQueryClient()
-//   const { isProject,  RealmApp} = useContext(StoreContext)
+//   const { selectedProje,  RealmApp} = useContext(StoreContext)
 
 //   const mahalListesi_optimisticUpdate = (mahalListesi, variables2) => {
 
@@ -264,7 +264,7 @@ export const useGetPozlarMetraj = () => {
 
 //         // wbsLer boşsa herhangi bir sorgulama yapmadan yapıştır, aşağıda birdaha da boşmu diye sorgulama
 //         if (!wbsLer) {
-//           let { _id, code, name } = isProject.wbs.find(x => x.code === wbsCode2)
+//           let { _id, code, name } = selectedProje.wbs.find(x => x.code === wbsCode2)
 //           wbsLer = [{ _id, code, name }]
 //         } else {
 //           // wbsLer boş olsa bu sorgu hata verecek ama yukarıda yapıldı o sorgu, burdaysak doludur
@@ -274,7 +274,7 @@ export const useGetPozlarMetraj = () => {
 //             mapDurdur = true
 //             return
 //           } else {
-//             let { _id, code, name } = isProject.wbs.find(x => x.code === wbsCode2)
+//             let { _id, code, name } = selectedProje.wbs.find(x => x.code === wbsCode2)
 //             wbsLer = [...wbsLer, { _id, code, name }]
 //           }
 //         }
@@ -330,10 +330,10 @@ export const useGetPozlarMetraj = () => {
 
 //   return useMutation({
 //     mutationFn: ({ _mahalId, _pozId, _lbsId, _wbsId, wbsCode, lbsCode, switchValue }) => {
-//       return RealmApp?.currentUser.callFunction("collectionDugumler", ({ functionName: "toggle_openMetraj", _projectId: isProject?._id, _mahalId, _pozId, _lbsId, _wbsId, wbsCode, lbsCode }))
+//       return RealmApp?.currentUser.callFunction("collectionDugumler", ({ functionName: "toggle_openMetraj", _projectId: selectedProje?._id, _mahalId, _pozId, _lbsId, _wbsId, wbsCode, lbsCode }))
 //     },
-//     // onSuccess: () => queryClient.invalidateQueries({ queryKey: ['mahalListesi', isProject?._id.toString()] })
-//     onSuccess: (returnData, variables2) => queryClient.setQueryData(['mahalListesi', isProject?._id.toString()], (mahallistesi) => mahalListesi_optimisticUpdate(mahallistesi, variables2))
+//     // onSuccess: () => queryClient.invalidateQueries({ queryKey: ['mahalListesi', selectedProje?._id.toString()] })
+//     onSuccess: (returnData, variables2) => queryClient.setQueryData(['mahalListesi', selectedProje?._id.toString()], (mahallistesi) => mahalListesi_optimisticUpdate(mahallistesi, variables2))
 //   })
 
 // }
@@ -343,7 +343,7 @@ export const useToggleOpenMetrajDugum = () => {
 
   // const RealmApp = useApp();
   const queryClient = useQueryClient()
-  const { isProject, RealmApp } = useContext(StoreContext)
+  const { selectedProje, RealmApp } = useContext(StoreContext)
 
 
   // const mahalListesi_optimisticUpdate = (mahalListesi, variables2) => {
@@ -375,7 +375,7 @@ export const useToggleOpenMetrajDugum = () => {
 
   //     //   // wbsLer boşsa herhangi bir sorgulama yapmadan yapıştır, aşağıda birdaha da boşmu diye sorgulama
   //     //   if (!wbsLer) {
-  //     //     let { _id, code, name } = isProject.wbs.find(x => x.code === wbsCode2)
+  //     //     let { _id, code, name } = selectedProje.wbs.find(x => x.code === wbsCode2)
   //     //     wbsLer = [{ _id, code, name }]
   //     //   } else {
   //     //     // wbsLer boş olsa bu sorgu hata verecek ama yukarıda yapıldı o sorgu, burdaysak doludur
@@ -385,7 +385,7 @@ export const useToggleOpenMetrajDugum = () => {
   //     //       mapDurdur = true
   //     //       return
   //     //     } else {
-  //     //       let { _id, code, name } = isProject.wbs.find(x => x.code === wbsCode2)
+  //     //       let { _id, code, name } = selectedProje.wbs.find(x => x.code === wbsCode2)
   //     //       wbsLer = [...wbsLer, { _id, code, name }]
   //     //     }
   //     //   }
@@ -441,10 +441,10 @@ export const useToggleOpenMetrajDugum = () => {
 
   return useMutation({
     mutationFn: ({ _mahalId, _pozId, switchValue }) => {
-      return RealmApp?.currentUser.callFunction("collectionDugumler", ({ functionName: "toggle_openMetraj", _projectId: isProject?._id, _mahalId, _pozId, switchValue }))
+      return RealmApp?.currentUser.callFunction("collectionDugumler", ({ functionName: "toggle_openMetraj", _projectId: selectedProje?._id, _mahalId, _pozId, switchValue }))
     },
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['mahalListesi', isProject?._id.toString()] })
-    // onSuccess: (returnData, variables2) => queryClient.setQueryData(['mahalListesi', isProject?._id.toString()], (mahallistesi) => mahalListesi_optimisticUpdate(mahallistesi, variables2))
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['mahalListesi', selectedProje?._id.toString()] })
+    // onSuccess: (returnData, variables2) => queryClient.setQueryData(['mahalListesi', selectedProje?._id.toString()], (mahallistesi) => mahalListesi_optimisticUpdate(mahallistesi, variables2))
   })
 
 }
@@ -457,7 +457,7 @@ export const useUpdateHazirlananMetrajShort = () => {
 
   // const RealmApp = useApp();
   const queryClient = useQueryClient()
-  const { isProject, RealmApp } = useContext(StoreContext)
+  const { selectedProje, RealmApp } = useContext(StoreContext)
 
   const mahalListesi_optimisticUpdate = (mahalListesi, variables) => {
 
@@ -478,10 +478,10 @@ export const useUpdateHazirlananMetrajShort = () => {
 
   return useMutation({
     mutationFn: (mahalMetrajlar) => {
-      return RealmApp?.currentUser.callFunction("collectionDugumler", ({ functionName: "updateMahalMetraj", _projectId: isProject?._id, mahalMetrajlar }))
+      return RealmApp?.currentUser.callFunction("collectionDugumler", ({ functionName: "updateMahalMetraj", _projectId: selectedProje?._id, mahalMetrajlar }))
     },
     // onSuccess: () => queryClient.invalidateQueries({ queryKey: ["hazirlananMetraj"] })
-    // onSuccess: (returnData, variables) => queryClient.setQueryData(['mahalListesi', isProject?._id.toString()], (mahallistesi) => mahalListesi_optimisticUpdate(mahallistesi, variables))
+    // onSuccess: (returnData, variables) => queryClient.setQueryData(['mahalListesi', selectedProje?._id.toString()], (mahallistesi) => mahalListesi_optimisticUpdate(mahallistesi, variables))
   })
 
 }
@@ -495,7 +495,7 @@ export const useUpdateHazirlananMetraj = () => {
 
   // const RealmApp = useApp();
   const queryClient = useQueryClient()
-  const { isProject, RealmApp } = useContext(StoreContext)
+  const { selectedProje, RealmApp } = useContext(StoreContext)
 
   const optimisticUpdate = (hazirlananMetrajlar, variables) => {
 
@@ -511,7 +511,7 @@ export const useUpdateHazirlananMetraj = () => {
 
   return useMutation({
     mutationFn: ({ selectedNode, hazirlananMetraj_state, setHazirlananMetraj_state }) => {
-      return RealmApp?.currentUser.callFunction("collectionDugumler", ({ functionName: "updateHazirlananMetraj", hazirlananMetraj_state, _projectId: isProject?._id, _mahalId: selectedNode?._mahalId, _pozId: selectedNode?._pozId }))
+      return RealmApp?.currentUser.callFunction("collectionDugumler", ({ functionName: "updateHazirlananMetraj", hazirlananMetraj_state, _projectId: selectedProje?._id, _mahalId: selectedNode?._mahalId, _pozId: selectedNode?._pozId }))
     },
     onSuccess: (returnData, variables) => {
       queryClient.setQueryData(['hazirlananMetrajlar', variables.selectedNode._id.toString()], (hazirlananMetrajlar) => optimisticUpdate(hazirlananMetrajlar, variables))
@@ -530,11 +530,11 @@ export const useUpdateOnaylananMetraj = () => {
 
   // const RealmApp = useApp();
   const queryClient = useQueryClient()
-  const { isProject, RealmApp } = useContext(StoreContext)
+  const { selectedProje, RealmApp } = useContext(StoreContext)
 
   return useMutation({
     mutationFn: ({ selectedNode, hazirlananMetrajlar_state, setHazirlananMetrajlar_state, onaylananMetraj_state, setOnaylananMetraj_state }) => {
-      return RealmApp?.currentUser.callFunction("collectionDugumler", ({ functionName: "updateOnaylananMetraj", hazirlananMetrajlar_state, onaylananMetraj_state, _projectId: isProject?._id, _mahalId: selectedNode?._mahalId, _pozId: selectedNode?._pozId }))
+      return RealmApp?.currentUser.callFunction("collectionDugumler", ({ functionName: "updateOnaylananMetraj", hazirlananMetrajlar_state, onaylananMetraj_state, _projectId: selectedProje?._id, _mahalId: selectedNode?._mahalId, _pozId: selectedNode?._pozId }))
     },
     onSuccess: (returnData, variables) => {
       // queryClient.invalidateQueries({ queryKey: ['hazirlananMetrajlar', variables.selectedNode._id.toString()] })

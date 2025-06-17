@@ -29,7 +29,7 @@ export default function P_MetrajCetveli() {
   const queryClient = useQueryClient()
   const RealmApp = useApp();
 
-  const { isProject, setIsProject } = useContext(StoreContext)
+  const { selectedProje, setSelectedProje } = useContext(StoreContext)
   const { custom, setCustom } = useContext(StoreContext)
   const { selectedMahal, setSelectedMahal } = useContext(StoreContext)
   const { selectedPoz, setSelectedPoz } = useContext(StoreContext)
@@ -80,7 +80,7 @@ export default function P_MetrajCetveli() {
   const navigate = useNavigate()
   useEffect(() => {
     !selectedNode && navigate("/mahalmetraj")
-    !isProject && navigate("/projects")
+    !selectedProje && navigate("/projects")
   }, [])
 
 
@@ -101,7 +101,7 @@ export default function P_MetrajCetveli() {
   // Edit Metraj Sayfasının Fonksiyonu
   const load_hazirlananMetraj_state = () => {
 
-    let userharf = isProject?.metrajYapabilenler.find(x => x._userId.toString() == RealmApp?.currentUser.id).harf
+    let userharf = selectedProje?.metrajYapabilenler.find(x => x._userId.toString() == RealmApp?.currentUser.id).harf
 
     if (hazirlananMetrajlar?.length > 0) {
       let hazirlananMetraj = hazirlananMetrajlar?.find(x => x._userId.toString() == RealmApp?.currentUser.id)
@@ -368,7 +368,7 @@ export default function P_MetrajCetveli() {
 
 
 
-  pozBirim = isProject?.pozBirimleri.find(item => item.id == selectedPoz?.birimId)?.name
+  pozBirim = selectedProje?.pozBirimleri.find(item => item.id == selectedPoz?.birimId)?.name
   pozMetraj = mahalListesi?.list.filter(item => item._pozId.toString() == selectedPoz?._id.toString()).reduce((accumulator, oneNode) => (isNaN(parseFloat(oneNode.metraj?.guncel)) ? accumulator + 0 : accumulator + parseFloat(oneNode.metraj?.guncel)), 0)
   pozMetraj = Intl.NumberFormat('tr-TR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(pozMetraj)
 

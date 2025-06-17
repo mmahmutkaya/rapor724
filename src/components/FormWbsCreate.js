@@ -16,12 +16,12 @@ import DialogContentText from '@mui/material/DialogContentText';
 import { Typography } from '@mui/material';
 
 
-export default function P_FormWbsCreate({ setShow, isProject, setIsProject, selectedWbs, setSelectedWbs }) {
+export default function P_FormWbsCreate({ setShow, selectedProje, setSelectedProje, selectedWbs, setSelectedWbs }) {
 
-  // console.log("isProject",isProject)
+  // console.log("selectedProje",selectedProje)
 
   // proje ve _id si yoksa wbs oluşturma formunu göstermenin bir anlamı yok, hata vererek durduruyoruz
-  if (!isProject?._id) {
+  if (!selectedProje?._id) {
     throw new Error("Wbs oluşturulacak projenin database kaydı için ProjeId belirtilmemiş, sayfayı yeniden yükleyin, sorun devam ederse Rapor7/24 ile irtibata geçiniz.")
   }
 
@@ -88,7 +88,7 @@ export default function P_FormWbsCreate({ setShow, isProject, setIsProject, sele
       // useQuery ile oluşturduğumuz pozlar cash datamızı güncelliyoruz
       // sorgudan wbs datası güncellenmiş proje dödürüp, gelen data ile aşağıda react useContext deki projeyi update ediyoruz
       const newWbsItem = {
-        projectId: isProject._id,
+        projectId: selectedProje._id,
         upWbsId: selectedWbs ? selectedWbs._id : "0",
         newWbsName: wbsName,
         newWbsCodeName: wbsCodeName
@@ -130,7 +130,7 @@ export default function P_FormWbsCreate({ setShow, isProject, setIsProject, sele
 
       // yukarıdaki yapılan _id kontrolü tamamsa bu veri db de kaydolmuş demektir, refetch_pozlar() yapıp db yi yormaya gerek yok
       // useQuery ile oluşturduğumuz pozlar cash datamızı güncelliyoruz
-      setIsProject(resultProject)
+      setSelectedProje(resultProject)
 
       // sorgu işleminden önce seçilen wbs varsa, temizliyoruz, en büyük gerekçe seçilen wbs silinmiş olabilir, onunla işlem db de hata verir
       setSelectedWbs(null)

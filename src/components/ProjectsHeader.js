@@ -19,11 +19,11 @@ export default function ProjectHeader({ setShow }) {
 
 
   const handleTry = () => {
-    // return isProject ? setIsProject(isProject.name) : null
+    // return selectedProje ? setSelectedProje(selectedProje.name) : null
   }
 
   let header = "Projeler"
-  // isProject?.name ? header = isProject?.name : null
+  // selectedProje?.name ? header = selectedProje?.name : null
 
 
 

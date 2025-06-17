@@ -8,14 +8,14 @@ import { useApp } from "../../components/useApp";
 
 export default function P_Mongo() {
 
-  const { isProject, setIsProject } = useContext(StoreContext)
+  const { selectedProje, setSelectedProje } = useContext(StoreContext)
   const { selectedWbs, setSelectedWbs } = useContext(StoreContext)
 
   const RealmApp = useApp();
 
   async function wbs_upload() {
     try {
-      const result = await RealmApp?.currentUser?.callFunction("admin", { subFunction: "wbs_upload", projectId: isProject._id });
+      const result = await RealmApp?.currentUser?.callFunction("admin", { subFunction: "wbs_upload", projectId: selectedProje._id });
       console.log("result", result);
     } catch (error) {
       console.log('Error:', error);
@@ -24,9 +24,9 @@ export default function P_Mongo() {
 
   async function wbs_download() {
     try {
-      const result = await RealmApp?.currentUser?.callFunction("admin", { subFunction: "wbs_download", projectId: isProject._id });
+      const result = await RealmApp?.currentUser?.callFunction("admin", { subFunction: "wbs_download", projectId: selectedProje._id });
       console.log("result", result);
-      setIsProject({ ...isProject, wbs: result })
+      setSelectedProje({ ...selectedProje, wbs: result })
     } catch (error) {
       console.log('Error:', error);
     }

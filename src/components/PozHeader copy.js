@@ -28,7 +28,7 @@ export default function PozHeader({ setShow, editPoz, setEditPoz, savePoz }) {
 
   const { drawerWidth, topBarHeight } = useContext(StoreContext)
 
-  const { isProject, setIsProject } = useContext(StoreContext)
+  const { selectedProje, setSelectedProje } = useContext(StoreContext)
   const { setPozlar } = useContext(StoreContext)
 
   const RealmApp = useApp();
@@ -70,11 +70,11 @@ export default function PozHeader({ setShow, editPoz, setEditPoz, savePoz }) {
 
       if (result.isIncludesPozFalse) {
 
-        let oldProject = JSON.parse(JSON.stringify(isProject))
+        let oldProject = JSON.parse(JSON.stringify(selectedProje))
 
         oldProject.wbs.find(item => item._id.toString() === poz._wbsId.toString()).includesPoz = false
 
-        setIsProject(oldProject)
+        setSelectedProje(oldProject)
 
       }
 
@@ -128,11 +128,11 @@ export default function PozHeader({ setShow, editPoz, setEditPoz, savePoz }) {
 
       if (result.isIncludesPozFalse) {
 
-        let oldProject = JSON.parse(JSON.stringify(isProject))
+        let oldProject = JSON.parse(JSON.stringify(selectedProje))
 
         oldProject.wbs.find(item => item._id.toString() === poz._wbsId.toString()).includesPoz = false
 
-        setIsProject(oldProject)
+        setSelectedProje(oldProject)
 
       }
 
@@ -160,20 +160,20 @@ export default function PozHeader({ setShow, editPoz, setEditPoz, savePoz }) {
 
 
   const handle_BaslikGenislet = () => {
-    setIsProject(isProject => {
-      const isProject_ = { ...isProject }
-      isProject_.pozBasliklari.find(item => item.id == selectedPozBaslik.id).genislik = isProject_.pozBasliklari.find(item => item.id == selectedPozBaslik.id).genislik + 0.5
-      return isProject_
+    setSelectedProje(selectedProje => {
+      const selectedProje_ = { ...selectedProje }
+      selectedProje_.pozBasliklari.find(item => item.id == selectedPozBaslik.id).genislik = selectedProje_.pozBasliklari.find(item => item.id == selectedPozBaslik.id).genislik + 0.5
+      return selectedProje_
     })
     setWillBeUpdate_pozBaslik(true)
   }
 
 
   const handle_BaslikDaralt = () => {
-    setIsProject(isProject => {
-      const isProject_ = { ...isProject }
-      isProject_.pozBasliklari.find(item => item.id == selectedPozBaslik.id).genislik = isProject_.pozBasliklari.find(item => item.id == selectedPozBaslik.id).genislik - 0.5
-      return isProject_
+    setSelectedProje(selectedProje => {
+      const selectedProje_ = { ...selectedProje }
+      selectedProje_.pozBasliklari.find(item => item.id == selectedPozBaslik.id).genislik = selectedProje_.pozBasliklari.find(item => item.id == selectedPozBaslik.id).genislik - 0.5
+      return selectedProje_
     })
     setWillBeUpdate_pozBaslik(true)
   }
@@ -181,13 +181,13 @@ export default function PozHeader({ setShow, editPoz, setEditPoz, savePoz }) {
 
 
   const handle_YatayHiza = () => {
-    setIsProject(isProject => {
-      const isProject_ = { ...isProject }
-      let guncelYatayHiza = isProject_.pozBasliklari.find(item => item.id == selectedPozBaslik.id).yatayHiza
-      if (guncelYatayHiza == "start") isProject_.pozBasliklari.find(item => item.id == selectedPozBaslik.id).yatayHiza = "center"
-      if (guncelYatayHiza == "center") isProject_.pozBasliklari.find(item => item.id == selectedPozBaslik.id).yatayHiza = "end"
-      if (guncelYatayHiza == "end") isProject_.pozBasliklari.find(item => item.id == selectedPozBaslik.id).yatayHiza = "start"
-      return isProject_
+    setSelectedProje(selectedProje => {
+      const selectedProje_ = { ...selectedProje }
+      let guncelYatayHiza = selectedProje_.pozBasliklari.find(item => item.id == selectedPozBaslik.id).yatayHiza
+      if (guncelYatayHiza == "start") selectedProje_.pozBasliklari.find(item => item.id == selectedPozBaslik.id).yatayHiza = "center"
+      if (guncelYatayHiza == "center") selectedProje_.pozBasliklari.find(item => item.id == selectedPozBaslik.id).yatayHiza = "end"
+      if (guncelYatayHiza == "end") selectedProje_.pozBasliklari.find(item => item.id == selectedPozBaslik.id).yatayHiza = "start"
+      return selectedProje_
     })
     setWillBeUpdate_pozBaslik(true)
   }
@@ -195,9 +195,9 @@ export default function PozHeader({ setShow, editPoz, setEditPoz, savePoz }) {
 
   const unSelectPozBaslik = async () => {
     if (willBeUpdate_pozBaslik) {
-      let pozBaslik = isProject.pozBasliklari.find(item => item.id == selectedPozBaslik.id)
+      let pozBaslik = selectedProje.pozBasliklari.find(item => item.id == selectedPozBaslik.id)
       console.log("pozBaslik", pozBaslik)
-      const result = await RealmApp?.currentUser.callFunction("updateProjectPozBaslik", ({ _projectId: isProject._id, pozBaslik }));
+      const result = await RealmApp?.currentUser.callFunction("updateProjectPozBaslik", ({ _projectId: selectedProje._id, pozBaslik }));
       console.log("result", result)
       setWillBeUpdate_pozBaslik(false)
     }
@@ -206,7 +206,7 @@ export default function PozHeader({ setShow, editPoz, setEditPoz, savePoz }) {
 
 
   let header = "Pozlar"
-  // isProject?.name ? header = isProject?.name : null
+  // selectedProje?.name ? header = selectedProje?.name : null
 
 
 
@@ -275,14 +275,14 @@ export default function PozHeader({ setShow, editPoz, setEditPoz, savePoz }) {
                   </Grid>
 
                   <Grid item>
-                    <IconButton onClick={() => setShow("FormPozBaslikCreate")} aria-label="addPozBilgi" disabled={(isProject?.wbs?.filter(item => item.openForPoz).length == 0 || !isProject?.wbs) ? true : false}>
-                      <AddCircleOutlineIcon variant="contained" sx={{ color: (isProject?.wbs?.filter(item => item.openForPoz).length == 0 || !isProject?.wbs) ? "lightgray" : "blue" }} />
+                    <IconButton onClick={() => setShow("FormPozBaslikCreate")} aria-label="addPozBilgi" disabled={(selectedProje?.wbs?.filter(item => item.openForPoz).length == 0 || !selectedProje?.wbs) ? true : false}>
+                      <AddCircleOutlineIcon variant="contained" sx={{ color: (selectedProje?.wbs?.filter(item => item.openForPoz).length == 0 || !selectedProje?.wbs) ? "lightgray" : "blue" }} />
                     </IconButton>
                   </Grid>
 
                   <Grid item>
-                    <IconButton onClick={() => setShow("FormPozCreate")} aria-label="addWbs" disabled={(isProject?.wbs?.filter(item => item.openForPoz).length == 0 || !isProject?.wbs) ? true : false}>
-                      <AddCircleOutlineIcon variant="contained" color={(isProject?.wbs?.filter(item => item.openForPoz).length == 0 || !isProject?.wbs) ? " lightgray" : "success"} />
+                    <IconButton onClick={() => setShow("FormPozCreate")} aria-label="addWbs" disabled={(selectedProje?.wbs?.filter(item => item.openForPoz).length == 0 || !selectedProje?.wbs) ? true : false}>
+                      <AddCircleOutlineIcon variant="contained" color={(selectedProje?.wbs?.filter(item => item.openForPoz).length == 0 || !selectedProje?.wbs) ? " lightgray" : "success"} />
                     </IconButton>
                   </Grid>
                 </>
@@ -305,7 +305,7 @@ export default function PozHeader({ setShow, editPoz, setEditPoz, savePoz }) {
                   <Grid item onClick={() => handlePozDelete(selectedPoz)} sx={{ cursor: "pointer" }}>
                     <IconButton aria-label="addPoz" disabled>
                       <DeleteIcon
-                        // sx={{display: isProject_display}}
+                        // sx={{display: selectedProje_display}}
                         variant="contained"
                         sx={{ color: "red" }} />
                     </IconButton>
@@ -343,7 +343,7 @@ export default function PozHeader({ setShow, editPoz, setEditPoz, savePoz }) {
                   <Grid item onClick={() => handlePozBaslikDelete(selectedPozBaslik)} sx={{ cursor: "pointer" }}>
                     <IconButton aria-label="addPoz" disabled>
                       <DeleteIcon
-                        // sx={{display: isProject_display}}
+                        // sx={{display: selectedProje_display}}
                         variant="contained"
                         sx={{ color: "red" }} />
                     </IconButton>

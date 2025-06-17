@@ -28,9 +28,9 @@ import { Typography } from '@mui/material';
 export default function FormMetrajCreate({ setShow }) {
 
 
-  // console.log("FormMetrajCreate-->isProject",isProject)
+  // console.log("FormMetrajCreate-->selectedProje",selectedProje)
 
-  const { isProject, setIsProject } = useContext(StoreContext)
+  const { selectedProje, setSelectedProje } = useContext(StoreContext)
 
   const [showDialog, setShowDialog] = useState(false)
   const [dialogCase, setDialogCase] = useState("")
@@ -62,7 +62,7 @@ export default function FormMetrajCreate({ setShow }) {
 
 
       const newMetraj = {
-        projectId: isProject._id,
+        projectId: selectedProje._id,
         newMetrajName,
         newMetrajUnit
       }
@@ -102,7 +102,7 @@ export default function FormMetrajCreate({ setShow }) {
       }
 
       setMetrajlar(oldMetrajlar => [...oldMetrajlar, result.newMetraj])
-      setIsProject(result.newProject)
+      setSelectedProje(result.newProject)
       setShow("Main")
 
     } catch (err) {

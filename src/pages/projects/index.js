@@ -27,11 +27,11 @@ export default function P_Projects() {
 
 
   const navigate = useNavigate()
-  const { RealmApp, isProject, selectedFirma, setIsProject } = useContext(StoreContext)
+  const { RealmApp, selectedProje, selectedFirma, setSelectedProje } = useContext(StoreContext)
 
 
   useEffect(() => {
-    setIsProject()
+    setSelectedProje()
     if (!selectedFirma) navigate('/firmalar')
   }, [selectedFirma]);
 
@@ -55,7 +55,7 @@ export default function P_Projects() {
         return
       }
       
-      setIsProject(project)
+      setSelectedProje(project)
 
       // await RealmApp?.currentUser.refreshCustomData()
 
@@ -87,12 +87,12 @@ export default function P_Projects() {
 
       // BURASI AKTİFDİ
 
-      // setIsProject(isProject => {
+      // setSelectedProje(selectedProje => {
       //   let obj
       //   const customProjectSettings = RealmApp?.currentUser?.customData.customProjectSettings?.find(x => x._projectId.$oid === oneProject._id.toString())
 
 
-      //   isProject.mahalBasliklari = isProject.mahalBasliklari.map(item => {
+      //   selectedProje.mahalBasliklari = selectedProje.mahalBasliklari.map(item => {
 
       //     obj = customProjectSettings?.mahalBasliklari?.find(x => x._id.$oid === item._id.toString())
 
@@ -106,7 +106,7 @@ export default function P_Projects() {
       //     )
       //   })
 
-      //   isProject.pozBasliklari = isProject.pozBasliklari.map(item => {
+      //   selectedProje.pozBasliklari = selectedProje.pozBasliklari.map(item => {
 
       //     obj = customProjectSettings?.pozBasliklari?.find(x => x._id.$oid === item._id.toString())
 
@@ -121,7 +121,7 @@ export default function P_Projects() {
       //   })
 
       //   return (
-      //     isProject
+      //     selectedProje
       //   )
       // })
 

@@ -19,21 +19,21 @@ export default function P_Raporlar() {
 
   const { drawerWidth, topBarHeight } = useContext(StoreContext)
 
-  const { isProject } = useContext(StoreContext)
+  const { selectedProje } = useContext(StoreContext)
   const { pozlar, setPozlar } = useContext(StoreContext)
   const { mahaller, setMahaller } = useContext(StoreContext)
   const { mahalListesi, setMahalListesi } = useContext(StoreContext)
 
   const [show, setShow] = useState("Main")
 
-  if(!isProject) window.location.href = "/projects"
+  if(!selectedProje) window.location.href = "/projects"
 
   const RealmApp = useApp();
 
   
   const mahaller_fecth = async () => {
     if (!mahaller) {
-      const result = await RealmApp?.currentUser.callFunction("getProjectMahaller", ({ projectId: isProject?._id }));
+      const result = await RealmApp?.currentUser.callFunction("getProjectMahaller", ({ projectId: selectedProje?._id }));
       setMahaller(result)
     }
   }
@@ -43,7 +43,7 @@ export default function P_Raporlar() {
 
   const pozlar_fecth = async () => {
     if (!pozlar) {
-      const result = await RealmApp?.currentUser.callFunction("getProjectPozlar", ({ projectId: isProject?._id }));
+      const result = await RealmApp?.currentUser.callFunction("getProjectPozlar", ({ projectId: selectedProje?._id }));
       setPozlar(result)
     }
   }
@@ -52,7 +52,7 @@ export default function P_Raporlar() {
 
   const mahalListesi_fecth = async () => {
     if (!mahalListesi) {
-      const result = await RealmApp?.currentUser.callFunction("getMahalListesi", ({ projectId: isProject?._id }));
+      const result = await RealmApp?.currentUser.callFunction("getMahalListesi", ({ projectId: selectedProje?._id }));
       setMahalListesi(result)
     }
   }
@@ -61,12 +61,12 @@ export default function P_Raporlar() {
 
 
   const openMetraj = async ({ mahalId, pozId }) => {
-    const openedMetraj = await RealmApp?.currentUser.callFunction("openMetraj", ({ projectId: isProject?._id, mahalId, pozId }));
+    const openedMetraj = await RealmApp?.currentUser.callFunction("openMetraj", ({ projectId: selectedProje?._id, mahalId, pozId }));
     setMahalListesi(oldMahalListesi => [...oldMahalListesi, openedMetraj])
   }
 
   const closeMetraj = async ({ mahalId, pozId }) => {
-    await RealmApp?.currentUser.callFunction("closeMetraj", ({ projectId: isProject?._id, mahalId, pozId }));
+    await RealmApp?.currentUser.callFunction("closeMetraj", ({ projectId: selectedProje?._id, mahalId, pozId }));
     // hata olmadı db den çıktı - o zaman çıkarıyoruz
     setMahalListesi(oldMahalListesi => oldMahalListesi.map(item => {
       if (item._mahalId.toString() === mahalId.toString() && item._pozId.toString() === pozId.toString()) {
@@ -116,7 +116,7 @@ export default function P_Raporlar() {
         <MahalListesiHeader setShow={setShow} />
       </Grid>
 
-      {show == "Main" && (isProject?.lbs?.filter(item => item.openForMahal).length == 0) && (
+      {show == "Main" && (selectedProje?.lbs?.filter(item => item.openForMahal).length == 0) && (
         <Stack sx={{ mt: topBarHeight, width: '100%', padding: "1rem" }} spacing={2}>
           <Alert severity="info">
             Henüz hiç bir mahal başlığını mahal eklemeye açmamış görünüyorsunumuz. "Mahal Başlıkları" menüsünden işlem yapabilirsiniz.
@@ -124,7 +124,7 @@ export default function P_Raporlar() {
         </Stack>)
       }
 
-      {show == "Main" && (isProject?.lbs?.filter(item => item.openForMahal).length == 0 || !pozlar) && (
+      {show == "Main" && (selectedProje?.lbs?.filter(item => item.openForMahal).length == 0 || !pozlar) && (
         <Stack sx={{ mt: topBarHeight, width: '100%', padding: "1rem" }} spacing={2}>
           <Alert severity="info">
             Henüz hiç bir mahal başlığını mahal eklemeye açmamış görünüyorsunumuz. "Mahal Başlıkları" menüsünden işlem yapabilirsiniz.
@@ -132,7 +132,7 @@ export default function P_Raporlar() {
         </Stack>)
       }
 
-      {show == "Main" && isProject?.lbs?.filter(item => item.openForMahal).length > 0 && pozlar?.length > 0 && mahaller?.length > 0 &&
+      {show == "Main" && selectedProje?.lbs?.filter(item => item.openForMahal).length > 0 && pozlar?.length > 0 && mahaller?.length > 0 &&
         <Stack sx={{ mt: topBarHeight, width: '100%', pl: "1rem" }} spacing={0}>
 
 
@@ -245,7 +245,7 @@ export default function P_Raporlar() {
 
           {/* lbs başlığı ve altındaki mahaller */}
           {
-            isProject.lbs
+            selectedProje.lbs
               .filter(item => item.openForMahal === true)
               .sort(function (a, b) {
                 var nums1 = a.code.split(".");
@@ -301,22 +301,22 @@ export default function P_Raporlar() {
 
                                 if (index == 0 && cOunt == 1) {
                                   lbsCode = codePart
-                                  lbsName = isProject.lbs.find(item => item.code == lbsCode).name
+                                  lbsName = selectedProje.lbs.find(item => item.code == lbsCode).name
                                 }
 
                                 if (index == 0 && cOunt !== 1) {
                                   lbsCode = codePart
-                                  lbsName = isProject.lbs.find(item => item.code == lbsCode).codeName
+                                  lbsName = selectedProje.lbs.find(item => item.code == lbsCode).codeName
                                 }
 
                                 if (index !== 0 && index + 1 !== cOunt && cOunt !== 1) {
                                   lbsCode = lbsCode + "." + codePart
-                                  lbsName = lbsName + " > " + isProject.lbs.find(item => item.code == lbsCode).codeName
+                                  lbsName = lbsName + " > " + selectedProje.lbs.find(item => item.code == lbsCode).codeName
                                 }
 
                                 if (index !== 0 && index + 1 == cOunt && cOunt !== 1) {
                                   lbsCode = lbsCode + "." + codePart
-                                  lbsName = lbsName + " > " + isProject.lbs.find(item => item.code == lbsCode).name
+                                  lbsName = lbsName + " > " + selectedProje.lbs.find(item => item.code == lbsCode).name
                                 }
 
                               })

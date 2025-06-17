@@ -21,13 +21,13 @@ export default function P_Lbs() {
   const { subHeaderHeight } = useContext(StoreContext)
 
   const RealmApp = useApp();
-  const { isProject, setIsProject } = useContext(StoreContext)
+  const { selectedProje, setSelectedProje } = useContext(StoreContext)
   const { selectedLbs, setSelectedLbs } = useContext(StoreContext)
 
   const navigate = useNavigate()
 
   useEffect(() => {
-    !isProject && navigate('/projects')
+    !selectedProje && navigate('/projects')
   }, [])
 
 
@@ -56,18 +56,18 @@ export default function P_Lbs() {
 
       {show == "FormLbsCreate" &&
         <Grid item >
-          <FormLbsCreate setShow={setShow} isProject={isProject} setIsProject={setIsProject} selectedLbs={selectedLbs} setSelectedLbs={setSelectedLbs} />
+          <FormLbsCreate setShow={setShow} selectedProje={selectedProje} setSelectedProje={setSelectedProje} selectedLbs={selectedLbs} setSelectedLbs={setSelectedLbs} />
         </Grid>
       }
 
       {show == "FormLbsUpdate" &&
         <Grid item >
-          <FormLbsUpdate setShow={setShow} isProject={isProject} setIsProject={setIsProject} selectedLbs={selectedLbs} setSelectedLbs={setSelectedLbs} />
+          <FormLbsUpdate setShow={setShow} selectedProje={selectedProje} setSelectedProje={setSelectedProje} selectedLbs={selectedLbs} setSelectedLbs={setSelectedLbs} />
         </Grid>
       }
 
 
-      {!isProject?.lbs?.length &&
+      {!selectedProje?.lbs?.length &&
         <Stack sx={{ width: '100%', padding: "0.5rem" }} spacing={2}>
           <Alert severity="info">
             Yukarıdaki "+" tuşuna basarak "Mahal Başlığı" oluşturabilirsiniz.
@@ -75,7 +75,7 @@ export default function P_Lbs() {
         </Stack>
       }
 
-      {isProject?.lbs?.length > 0 &&
+      {selectedProje?.lbs?.length > 0 &&
         < Stack sx={{ width: '100%', padding: "0.5rem" }} spacing={0}>
 
           <Box sx={{ display: "grid", gridTemplateColumns: "1rem 1fr" }}>
@@ -83,7 +83,7 @@ export default function P_Lbs() {
 
             </Box>
             <Box sx={{ backgroundColor: "black", color: "white" }}>
-              {isProject.name}
+              {selectedProje.name}
             </Box>
           </Box>
 
@@ -96,7 +96,7 @@ export default function P_Lbs() {
             <Box display="grid">
 
               {
-                isProject.lbs
+                selectedProje.lbs
                   .sort(function (a, b) {
                     var nums1 = a.code.split(".");
                     var nums2 = b.code.split(".");

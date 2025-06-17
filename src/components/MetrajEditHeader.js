@@ -51,7 +51,7 @@ export default function P_MetrajEditHeader({
   const { showNodeMetraj, setShowNodeMetraj } = useContext(StoreContext)
   const { detailMode, setDetailMode } = useContext(StoreContext)
 
-  const { isProject, setIsProject } = useContext(StoreContext)
+  const { selectedProje, setSelectedProje } = useContext(StoreContext)
   const { selectedPoz, setSelectedPoz } = useContext(StoreContext)
 
   const RealmApp = useApp();

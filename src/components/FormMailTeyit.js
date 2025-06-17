@@ -53,7 +53,7 @@ const theme = createTheme();
 export default function FormMailTeyit() {
 
   const navigate = useNavigate()
-  const { RealmApp, isProject, setIsProject } = useContext(StoreContext)
+  const { RealmApp, selectedProje, setSelectedProje } = useContext(StoreContext)
   const { Layout_Show, setLayout_Show } = useContext(StoreContext)
 
   const [pageSituation, setPageSituation] = useState(0)
