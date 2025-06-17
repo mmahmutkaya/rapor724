@@ -9,7 +9,7 @@ exports = async function ({
   const mailTeyit = user.custom_data.mailTeyit;
   if (!mailTeyit) {
     throw new Error(
-      "MONGO // collection_firmalar // Öncelikle üyeliğinize ait mail adresinin size ait olduğunu doğrulamalısınız, tekrar giriş yapmayı deneyiniz veya bizimle iletişime geçiniz."
+      "MONGO // createFirma // Öncelikle üyeliğinize ait mail adresinin size ait olduğunu doğrulamalısınız, tekrar giriş yapmayı deneyiniz veya bizimle iletişime geçiniz."
     );
   }
 
@@ -148,7 +148,7 @@ exports = async function ({
     // ]
 
 
-    const newFirma = {
+    let newFirma = {
       name: firmaName,
       // wbs: [], // henüz herhangi bir başlık yok fakat yok ama bu property şimdi olmazsa ilk wbs kaydında bir hata yaşıyoruz
       // lbs: [], // henüz herhangi bir başlık yok fakat yok ama bu property şimdi olmazsa ilk wbs kaydında bir hata yaşıyoruz
@@ -162,10 +162,17 @@ exports = async function ({
 
     const resultNewFirma = await collection_Firmalar.insertOne(newFirma)
 
-    return resultNewFirma;
+    // tüm firma verilerini göndermek yerine ihtiyaç duyulan veriler gönderiliyor
+    newFirma = {
+      _id:resultNewFirma.insertedId,
+      name: firmaName,
+      yetkiliKisiler: [{ email: userEmail, yetki: "owner" }]
+    }
+
+    return newFirma;
 
   } catch (err) {
-    throw new Error("MONGO // collection_firmalar // " + err.message);
+    throw new Error("MONGO // createFirma // " + err.message);
   }
 
 
