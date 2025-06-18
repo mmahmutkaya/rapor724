@@ -1,7 +1,8 @@
-import { useState } from 'react';
+import { useState, useContext } from 'react';
+import { StoreContext } from '../components/store.js'
 import { useApp } from "./useApp.js";
 import deleteLastSpace from '../functions/deleteLastSpace.js';
-import { DialogAlert } from '../components/general/DialogAlert'
+import { DialogAlert } from './general/DialogAlert.js'
 
 
 //mui
@@ -16,22 +17,21 @@ import DialogContentText from '@mui/material/DialogContentText';
 import { Typography } from '@mui/material';
 
 
-export default function P_FormWbsCreate({ setShow, selectedProje, setSelectedProje, selectedWbs, setSelectedWbs }) {
+export default function P_FormWbsCreate({ setShow, selectedWbs, setSelectedWbs }) {
+
+  const { selectedProje, setSelectedProje } = useContext(StoreContext)
 
   // console.log("selectedProje",selectedProje)
 
   // proje ve _id si yoksa wbs oluşturma formunu göstermenin bir anlamı yok, hata vererek durduruyoruz
   if (!selectedProje?._id) {
-    throw new Error("Wbs oluşturulacak projenin database kaydı için ProjeId belirtilmemiş, sayfayı yeniden yükleyin, sorun devam ederse Rapor7/24 ile irtibata geçiniz.")
+    throw new Error("Wbs oluşturulacak projenin database kaydı için _projeId belirtilmemiş, sayfayı yeniden yükleyin, sorun devam ederse Rapor7/24 ile irtibata geçiniz.")
   }
 
   const [dialogAlert, setDialogAlert] = useState(false)
 
-  const [error_for_wbsName, setError_for_wbsName] = useState(false)
-  const [errorText_for_wbsName, setErrorText_for_wbsName] = useState()
-
-  const [error_for_wbsCodeName, setError_for_wbsCodeName] = useState(false)
-  const [errorText_for_wbsCodeName, setErrorText_for_wbsCodeName] = useState()
+  const [wbsNameError, setWbsNameError] = useState()
+  const [wbsCodeNameError, setWbsCodeNameError] = useState()
 
   const RealmApp = useApp();
 
@@ -40,7 +40,6 @@ export default function P_FormWbsCreate({ setShow, selectedProje, setSelectedPro
   async function handleSubmit(event) {
 
     event.preventDefault();
-    let isError = false
 
     try {
 
@@ -49,25 +48,26 @@ export default function P_FormWbsCreate({ setShow, selectedProje, setSelectedPro
       const wbsName = deleteLastSpace(data.get('wbsName'))
       const wbsCodeName = deleteLastSpace(data.get('wbsCodeName'))
 
+
+      let isError = false
+
       // bu kısımda frontend kısmında form validation hatalarını ilgili alanlarda gösterme işlemleri yapılır, aşağıda backend de
       if (!wbsName) {
-        setError_for_wbsName(true);
-        setErrorText_for_wbsName("Zorunlu")
+        setWbsNameError("Zorunlu")
         isError = true
         console.log("wbsName", "yok -- error")
       }
 
       // bu kısımda frontend kısmında form validation hatalarını ilgili alanlarda gösterme işlemleri yapılır, aşağıda backend de
       if (!wbsCodeName) {
-        setError_for_wbsCodeName(true);
-        setErrorText_for_wbsCodeName("Zorunlu")
+        setWbsCodeNameError("Zorunlu")
         isError = true
         console.log("wbsCodeName", "yok -- error")
       }
 
       if (wbsCodeName.includes(" ")) {
-        setError_for_wbsCodeName(true);
-        setErrorText_for_wbsCodeName("Boşluk kullanmayınız")
+        ;
+        setWbsCodeNameError("Boşluk kullanmayınız")
         isError = true
         console.log("wbsCodeName", "yok -- error")
       }
@@ -79,57 +79,35 @@ export default function P_FormWbsCreate({ setShow, selectedProje, setSelectedPro
         console.log("bu satırın altında fonksiyon --return-- ile durduruldu")
         return
       }
-      
 
 
       // yukarıdaki yapılan _id kontrolü tamamsa bu veri db de kaydolmuş demektir, refetch_pozlar() yapıp db yi yormaya gerek yok
       // useQuery ile oluşturduğumuz pozlar cash datamızı güncelliyoruz
       // sorgudan wbs datası güncellenmiş proje dödürüp, gelen data ile aşağıda react useContext deki projeyi update ediyoruz
       const newWbsItem = {
-        projectId: selectedProje._id,
+        _projeId: selectedProje._id,
         upWbsId: selectedWbs ? selectedWbs._id : "0",
         newWbsName: wbsName,
         newWbsCodeName: wbsCodeName
       }
 
-      console.log("newWbsItem",newWbsItem)
-      const resultProject = await RealmApp.currentUser.callFunction("createWbs", newWbsItem);
+      const result = await RealmApp.currentUser.callFunction("collection_projeler__wbs", { functionName: "createWbs", ...newWbsItem });
 
-      // eğer gönderilen form verilerinde hata varsa db den gelen form validation mesajları form içindeki ilgili alanlarda gösterilir ve fonksiyon durdurulur
-      // yukarıda da frontend kontrolü yapılmıştı
-      if (resultProject.errorFormObj) {
-
-        const errorFormObj = resultProject.errorFormObj
-
-        console.log("errorFormObj", errorFormObj)
-
-        // başka form alanları olsaydı onlarınkini de ekleyecektik aşağıdaki returnden önce, onlarda da hata uyarılarını görecektik
-        if (errorFormObj.newWbsName) {
-          setError_for_wbsName(true);
-          setErrorText_for_wbsName(errorFormObj.newWbsName)
-          isError = true
-        }
-
-        // başka form alanları olsaydı onlarınkini de ekleyecektik aşağıdaki returnden önce, onlarda da hata uyarılarını görecektik
-        if (errorFormObj.newWbsCodeName) {
-          setError_for_wbsCodeName(true);
-          setErrorText_for_wbsCodeName(errorFormObj.newWbsCodeName)
-          isError = true
-        }
-
+      // console.log("result", result)
+      if (result.errorObject) {
+        setWbsNameError(result.errorObject.wbsNameError)
+        setWbsCodeNameError(result.errorObject.wbsCodeNameError)
+        console.log("backend den gelen hata ile durdu")
         return
       }
 
 
-      // _id yoksa istediğimiz proje verisi değil demekki, hata ile durduruyoruz
-      if (!resultProject._id) {
-        throw new Error("db den Proje olarak beklenen verinin _id property yok, sayfayı yenileyiniz, sorun devam ederse Rapor7/24 ile irtibata geçiniz..")
+      if (result.wbs) {
+        setSelectedProje(proje => {
+          proje.wbs = result.wbs
+          return proje
+        })
       }
-
-
-      // yukarıdaki yapılan _id kontrolü tamamsa bu veri db de kaydolmuş demektir, refetch_pozlar() yapıp db yi yormaya gerek yok
-      // useQuery ile oluşturduğumuz pozlar cash datamızı güncelliyoruz
-      setSelectedProje(resultProject)
 
       // sorgu işleminden önce seçilen wbs varsa, temizliyoruz, en büyük gerekçe seçilen wbs silinmiş olabilir, onunla işlem db de hata verir
       setSelectedWbs(null)
@@ -144,20 +122,19 @@ export default function P_FormWbsCreate({ setShow, selectedProje, setSelectedPro
 
       console.log(err)
 
-      // eğer çifte kayıt oluyorsa form içindeki poz ismi girilen yere aşağıdaki mesaj gönderilir, fonksiyon durdurulur
-      // form sayfası kapanmadan hata gösterimi
-      if (err.message.includes("duplicate key error")) {
-        setError_for_wbsName(true);
-        setErrorText_for_wbsName("Aynı seviyede, aynı isimde wbs olamaz")
-        console.log("HATA - Aynı seviyede, aynı isimde wbs olamaz")
-        return
+      let dialogMessage = "Beklenmedik hata, sayfayı yenileyiniz, sorun devam ederse Rapor7/24 ile irtibata geçiniz.."
+      if (err.message.includes("__mesajBaslangic__") && err.message.includes("__mesajBitis__")) {
+        let mesajBaslangic = err.message.indexOf("__mesajBaslangic__") + "__mesajBaslangic__".length
+        let mesajBitis = err.message.indexOf("__mesajBitis__")
+        dialogMessage = err.message.slice(mesajBaslangic, mesajBitis)
       }
 
       setDialogAlert({
         dialogIcon: "warning",
-        dialogMessage: "Beklenmedik hata, sayfayı yenileyiniz, sorun devam ederse Rapo724 ile irtibata geçiniz.",
-        detailText: err.message,
+        dialogMessage,
+        detailText: err?.message ? err.message : null
       })
+
       return
 
     }
@@ -213,7 +190,7 @@ export default function P_FormWbsCreate({ setShow, selectedProje, setSelectedPro
               </DialogContentText>
             }
 
-            <Box onClick={() => setError_for_wbsName(false)}>
+            <Box onClick={() => setWbsNameError(false)}>
               <TextField
                 variant="standard"
                 // InputProps={{ sx: { height:"2rem", fontSize: "1.5rem" } }}
@@ -222,8 +199,8 @@ export default function P_FormWbsCreate({ setShow, selectedProje, setSelectedPro
                 id="wbsName"
                 name="wbsName"
                 autoFocus
-                error={error_for_wbsName}
-                helperText={error_for_wbsName ? errorText_for_wbsName : ""}
+                error={wbsNameError ? true : false}
+                helperText={wbsNameError ? wbsNameError : ""}
                 // margin="dense"
                 label="Wbs Adı"
                 type="text"
@@ -231,7 +208,7 @@ export default function P_FormWbsCreate({ setShow, selectedProje, setSelectedPro
               />
             </Box>
 
-            <Box onClick={() => setError_for_wbsCodeName(false)}>
+            <Box onClick={() => setWbsCodeNameError(false)}>
               <TextField
                 variant="standard"
                 // InputProps={{ sx: { height:"2rem", fontSize: "1.5rem" } }}
@@ -240,8 +217,8 @@ export default function P_FormWbsCreate({ setShow, selectedProje, setSelectedPro
                 id="wbsCodeName"
                 name="wbsCodeName"
                 // autoFocus
-                error={error_for_wbsCodeName}
-                helperText={error_for_wbsCodeName ? errorText_for_wbsCodeName : "Örnek : KABA İNŞAAT --> KAB"}
+                error={wbsCodeNameError ? true : false}
+                helperText={wbsCodeNameError ? wbsCodeNameError : "Örnek : KABA İNŞAAT --> KAB"}
                 // margin="dense"
                 label="Wbs Kod Adı"
                 type="text"
