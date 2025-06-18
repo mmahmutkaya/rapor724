@@ -6,7 +6,7 @@ import { useNavigate } from 'react-router-dom';
 
 import FormWbsCreate from '../../components/FormWbsCreate'
 import FormWbsUpdate from '../../components/FormWbsUpdate'
-import WbsHeader from '../../components/WbsHeader'
+import HeaderWbs from '../../components/HeaderWbs'
 
 
 import Grid from '@mui/material/Grid';
@@ -46,7 +46,7 @@ export default function P_Wbs() {
     <Grid container direction="column" spacing={0} sx={{ mt: subHeaderHeight }}>
 
       <Grid item  >
-        <WbsHeader
+        <HeaderWbs
           RealmApp={RealmApp}
           setShow={setShow}
           nameMode={nameMode} setNameMode={setNameMode}
@@ -116,7 +116,7 @@ export default function P_Wbs() {
                     }
                   }
                   return -1; // was missing case b.len > a.len
-                }).map((theWbs) => {
+                }).map((theWbs, index) => {
 
                   // theWbs = { _id, code, name }
 
@@ -124,7 +124,7 @@ export default function P_Wbs() {
 
                   return (
                     <Box
-                      key={theWbs._id}
+                      key={index}
                       sx={{
                         display: "grid",
                         gridTemplateColumns: (level - 1) == 0 ? "1rem 1fr" : "1rem repeat(" + (level - 1) + ", 1rem) 1fr", // baştaki poz var mı yok mu için
@@ -138,7 +138,7 @@ export default function P_Wbs() {
                       {Array.from({ length: (level - 1) > -1 ? (level - 1) : 0 }).map((_item, index) => {
                         return (
                           // <Box sx={{ backgroundColor: color(index + 1).bg, borderLeft: "1px solid " + color("border") }}></Box>
-                          <Box sx={{ backgroundColor: color(index + 1).bg, borderLeft: "1px solid " + color("border") }}></Box>
+                          <Box key={index} sx={{ backgroundColor: color(index + 1).bg, borderLeft: "1px solid " + color("border") }}></Box>
                         )
                       })}
 
@@ -198,7 +198,7 @@ export default function P_Wbs() {
 
                               {codeMode === null && //kısa
                                 <Grid item sx={{ ml: "0.2rem" }}>
-                                  {theWbs.code.split(".")[level -1] + " - "}
+                                  {theWbs.code.split(".")[level - 1] + " - "}
                                 </Grid>
                               }
 

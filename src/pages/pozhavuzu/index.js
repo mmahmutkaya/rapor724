@@ -31,7 +31,7 @@ export default function P_PozHavuzu() {
     !selectedFirma && navigate('/firmalar')
   }, [])
 
-  pozlar && console.log("pozlar", pozlar)
+  // pozlar && console.log("pozlar", pozlar)
 
   return (
     <Box sx={{ mt: "0rem" }}>
