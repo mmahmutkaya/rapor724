@@ -285,7 +285,6 @@ exports = async function ({
   }
 
 
-
   if (functionName == "openWbsForPoz") {
 
     if (typeof _firmaId != "object") throw new Error("MONGO // collection_firmalar__wbs // " + functionName + " // -- sorguya gönderilen --firmaId-- türü doğru değil, lütfen Rapor7/24 ile irtibata geçiniz. ")
@@ -337,7 +336,6 @@ exports = async function ({
   }
 
 
-
   if (functionName == "closeWbsForPoz") {
 
     if (typeof _firmaId != "object") throw new Error("MONGO // collection_firmalar__wbs // " + functionName + " // -- sorguya gönderilen --firmaId-- türü doğru değil, lütfen Rapor7/24 ile irtibata geçiniz. ")
@@ -387,8 +385,6 @@ exports = async function ({
 
 
   }
-
-
 
 
   if (functionName == "deleteWbs") {
