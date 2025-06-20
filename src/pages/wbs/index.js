@@ -1,8 +1,7 @@
 
-import { useState, useContext, useEffect } from 'react';
+import { useState, useContext, useEffect } from 'react'
 import { StoreContext } from '../../components/store'
-import { useApp } from "../../components/useApp";
-import { useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom'
 
 import FormWbsCreate from '../../components/FormWbsCreate'
 import FormWbsUpdate from '../../components/FormWbsUpdate'
@@ -15,13 +14,11 @@ import Alert from '@mui/material/Alert';
 import Stack from '@mui/material/Stack';
 
 
-
 export default function P_Wbs() {
 
   const navigate = useNavigate()
-  const RealmApp = useApp();
 
-  const { subHeaderHeight } = useContext(StoreContext)
+  const { RealmApp, subHeaderHeight } = useContext(StoreContext)
 
   const { selectedProje, setSelectedProje } = useContext(StoreContext)
   const { selectedWbs, setSelectedWbs } = useContext(StoreContext)
@@ -32,7 +29,7 @@ export default function P_Wbs() {
 
 
   useEffect(() => {
-    !selectedProje && navigate('/projects')
+    !selectedProje && navigate('/projeler')
   }, [])
 
 

@@ -19,12 +19,12 @@ import Stack from '@mui/material/Stack';
 export default function P_FirmaWbs() {
 
   const navigate = useNavigate()
-  const RealmApp = useApp();
 
-  const { subHeaderHeight } = useContext(StoreContext)
+  const { RealmApp, subHeaderHeight } = useContext(StoreContext)
 
   const { selectedFirma } = useContext(StoreContext)
   const { selectedWbs, setSelectedWbs } = useContext(StoreContext)
+
 
   const [show, setShow] = useState()
   const [nameMode, setNameMode] = useState(false)
@@ -32,13 +32,14 @@ export default function P_FirmaWbs() {
 
 
   useEffect(() => {
-    !selectedFirma && navigate('/firmalarim')
+    !selectedFirma && navigate('/firmalar')
   }, [])
 
 
   const handleSelectWbs = (wbs) => {
     setSelectedWbs(wbs)
   }
+
 
   let level
 
@@ -54,15 +55,13 @@ export default function P_FirmaWbs() {
         />
       </Grid>
 
-      {/* <Grid item >
-        <WbsMain />
-      </Grid> */}
 
       {show == "FormFirmaWbsCreate" &&
         <Grid item >
           <FormFirmaWbsCreate setShow={setShow} selectedWbs={selectedWbs} setSelectedWbs={setSelectedWbs} />
         </Grid>
       }
+
 
       {show == "FormFirmaWbsUpdate" &&
         <Grid item >

@@ -19,7 +19,7 @@ import { Typography } from '@mui/material';
 
 export default function P_FormWbsCreate({ setShow, selectedWbs, setSelectedWbs }) {
 
-  const { selectedFirma, setSelectedFirma } = useContext(StoreContext)
+  const { RealmApp, selectedFirma, setSelectedFirma } = useContext(StoreContext)
 
   // console.log("selectedFirma",selectedFirma)
 
@@ -32,9 +32,6 @@ export default function P_FormWbsCreate({ setShow, selectedWbs, setSelectedWbs }
 
   const [wbsNameError, setWbsNameError] = useState()
   const [wbsCodeNameError, setWbsCodeNameError] = useState()
-
-  const RealmApp = useApp();
-
 
 
   async function handleSubmit(event) {
@@ -66,7 +63,6 @@ export default function P_FormWbsCreate({ setShow, selectedWbs, setSelectedWbs }
       }
 
       if (wbsCodeName.includes(" ")) {
-        ;
         setWbsCodeNameError("Boşluk kullanmayınız")
         isError = true
         console.log("wbsCodeName", "yok -- error")
