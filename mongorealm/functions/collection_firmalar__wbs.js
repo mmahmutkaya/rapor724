@@ -256,7 +256,7 @@ exports = async function ({
     const collection_Firmalar = context.services.get("mongodb-atlas").db("rapor724_v2").collection("firmalar")
     const firma = await collection_Firmalar.findOne({ _id: _firmaId, isDeleted: false })
     if (!firma) throw new Error("MONGO // collection_firmalar__wbs // " + functionName + " // _firmaId ile sistemde firma bulunamadı, lütfen sayfayı yenileyiniz, sorun devam ederse Rapor7/24 ile irtibata geçiniz.")
-    if (!firma.wbs.find(x => x._id.toString() === _wbsId)) throw new Error("MONGO // collection_firmalar__wbs // " + functionName + " // güncellenmek istenen _wbsId sistemde bulunamadı, lütfen sayfayı yenileyiniz, sorun devam ederse Rapor7/24 ile irtibata geçiniz.")
+    if (!firma.wbs.find(x => x._id === _wbsId)) throw new Error("MONGO // collection_firmalar__wbs // " + functionName + " // güncellenmek istenen _wbsId sistemde bulunamadı, lütfen sayfayı yenileyiniz, sorun devam ederse Rapor7/24 ile irtibata geçiniz.")
 
 
     try {
