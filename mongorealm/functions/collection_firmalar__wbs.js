@@ -263,7 +263,7 @@ exports = async function ({
 
       const newWbsArray = firma.wbs.map(item => {
         if (item._id.toString() === _wbsId.toString()) {
-          return { ...item, newWbsName, newWbsCodeName }
+          return { ...item, name:newWbsName, codeName:newWbsCodeName }
         } else {
           return item
         }
