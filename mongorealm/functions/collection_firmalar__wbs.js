@@ -224,15 +224,6 @@ exports = async function ({
 
     if (typeof _firmaId !== "object") throw new Error("MONGO // collection_firmalar__wbs // " + functionName + " // -- sorguya gönderilen --firmaId-- türü doğru değil, lütfen Rapor7/24 ile irtibata geçiniz. ")
 
-    if (!(upWbsId === "0" || typeof upWbsId === "object")) throw new Error("MONGO // collection_firmalar__wbs // " + functionName + " // --upWbsId-- sorguya, gönderilmemiş, sayfayı yenileyiniz, sorun deva ederse Rapor7/24 ile irtibata geçiniz. ")
-
-
-    // aşağıdaki form verilerinden birinde hata tespit edilmişse
-    // alt satırda oluşturulan errorObject objesine form verisi ile ilişkilendirilmiş  property oluşturulup, içine yazı yazılıyor
-    // property isimleri yukarıda ilk satırda frontend den gelen verileri yakalarken kullanılanlar ile aynı 
-    // fonksiyon returnü olarak errorObject objesi döndürülüyor, frontenddeki form ekranında form verisine ait ilgili alanda bu yazı gösteriliyor
-    // form ile ilişkilendirilmiş ilgili alana ait bir ke hata yazısı yazılmışsa yani null değilse üstüne yazı yazılmıyor, ilk tespit edilen hata değiştirilmmeiş oluyor
-
     const errorObject = {}
 
     // newWbsName
@@ -265,14 +256,14 @@ exports = async function ({
     const collection_Firmalar = context.services.get("mongodb-atlas").db("rapor724_v2").collection("firmalar")
     const firma = await collection_Firmalar.findOne({ _id: _firmaId, isDeleted: false })
     if (!firma) throw new Error("MONGO // collection_firmalar__wbs // " + functionName + " // _firmaId ile sistemde firma bulunamadı, lütfen sayfayı yenileyiniz, sorun devam ederse Rapor7/24 ile irtibata geçiniz.")
-    if (!firma.wbs.find(x => x._id.toString() === _wbsId)) throw new Error("MONGO // collection_firmalar__wbs // " + functionName + " // güncellenmek istenen _wbsId sistemde bulunamadı, lütfen sayfayı yenileyiniz, sorun devam ederse Rapor7/24 ile irtibata geçiniz.")
+    if (!firma.wbs.find(x => x._id.toString() == _wbsId.toString())) throw new Error("MONGO // collection_firmalar__wbs // " + functionName + " // güncellenmek istenen _wbsId sistemde bulunamadı, lütfen sayfayı yenileyiniz, sorun devam ederse Rapor7/24 ile irtibata geçiniz.")
 
 
     try {
 
       const newWbsArray = firma.wbs.map(item => {
         if (item._id.toString() === _wbsId.toString()) {
-          return { ...item, newWbsName, newWbsCodeName }
+          return { ...item, name:newWbsName, codeName:newWbsCodeName }
         } else {
           return item
         }
