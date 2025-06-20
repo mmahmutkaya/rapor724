@@ -222,13 +222,13 @@ exports = async function ({
 
   if (functionName == "updateWbs") {
 
-    if (typeof _firmaId !== "object") throw new Error("MONGO // collection_firmalar__wbs // " + functionName + " // -- sorguya gönderilen --firmaId-- türü doğru değil, lütfen Rapor7/24 ile irtibata geçiniz. ")
+    if (typeof _projeId !== "object") throw new Error("MONGO // collection_projeler__wbs // " + functionName + " // -- sorguya gönderilen --projeId-- türü doğru değil, lütfen Rapor7/24 ile irtibata geçiniz. ")
 
     const errorObject = {}
 
     // newWbsName
     if (typeof newWbsName !== "string") {
-      throw new Error("MONGO // collection_firmalar__wbs // " + functionName + " / db ye gelen wbsName türü 'string' türünde değil, sayfayı yenileyiniz, sorun devam ederse Rapor724 ile iritbata geçiniz.")
+      throw new Error("MONGO // collection_projeler__wbs // " + functionName + " / db ye gelen wbsName türü 'string' türünde değil, sayfayı yenileyiniz, sorun devam ederse Rapor724 ile iritbata geçiniz.")
     }
 
     if (newWbsName.length < 1) {
@@ -238,7 +238,7 @@ exports = async function ({
 
     // newWbsCodeName
     if (typeof newWbsCodeName !== "string") {
-      throw new Error("MONGO // collection_firmalar__wbs // " + functionName + " / db ye gelen wbsCodeName türü 'string' türünde değil, sayfayı yenileyiniz, sorun devam ederse Rapor724 ile iritbata geçiniz.")
+      throw new Error("MONGO // collection_projeler__wbs // " + functionName + " / db ye gelen wbsCodeName türü 'string' türünde değil, sayfayı yenileyiniz, sorun devam ederse Rapor724 ile iritbata geçiniz.")
     }
 
     if (newWbsCodeName.length < 1) {
@@ -253,15 +253,15 @@ exports = async function ({
     if (Object.keys(errorObject).length > 0) return { errorObject }
 
 
-    const collection_Firmalar = context.services.get("mongodb-atlas").db("rapor724_v2").collection("firmalar")
-    const firma = await collection_Firmalar.findOne({ _id: _firmaId, isDeleted: false })
-    if (!firma) throw new Error("MONGO // collection_firmalar__wbs // " + functionName + " // _firmaId ile sistemde firma bulunamadı, lütfen sayfayı yenileyiniz, sorun devam ederse Rapor7/24 ile irtibata geçiniz.")
-    if (!firma.wbs.find(x => x._id.toString() == _wbsId.toString())) throw new Error("MONGO // collection_firmalar__wbs // " + functionName + " // güncellenmek istenen _wbsId sistemde bulunamadı, lütfen sayfayı yenileyiniz, sorun devam ederse Rapor7/24 ile irtibata geçiniz.")
+    const collection_Projeler = context.services.get("mongodb-atlas").db("rapor724_v2").collection("projeler")
+    const proje = await collection_Projeler.findOne({ _id: _projeId, isDeleted: false })
+    if (!proje) throw new Error("MONGO // collection_projeler__wbs // " + functionName + " // _projeId ile sistemde proje bulunamadı, lütfen sayfayı yenileyiniz, sorun devam ederse Rapor7/24 ile irtibata geçiniz.")
+    if (!proje.wbs.find(x => x._id.toString() == _wbsId.toString())) throw new Error("MONGO // collection_projeler__wbs // " + functionName + " // güncellenmek istenen _wbsId sistemde bulunamadı, lütfen sayfayı yenileyiniz, sorun devam ederse Rapor7/24 ile irtibata geçiniz.")
 
 
     try {
 
-      const newWbsArray = firma.wbs.map(item => {
+      const newWbsArray = proje.wbs.map(item => {
         if (item._id.toString() === _wbsId.toString()) {
           return { ...item, name:newWbsName, codeName:newWbsCodeName }
         } else {
@@ -269,8 +269,8 @@ exports = async function ({
         }
       })
 
-      const result = await collection_Firmalar.updateOne(
-        { _id: _firmaId },
+      const result = await collection_Projeler.updateOne(
+        { _id: _projeId },
         [
           { $set: { wbs: newWbsArray } }
         ]
@@ -279,7 +279,7 @@ exports = async function ({
       return { result, wbs: newWbsArray }
 
     } catch (err) {
-      throw new Error("MONGO // collection_firmalar__wbs // " + functionName + " // " + err.message)
+      throw new Error("MONGO // collection_projeler__wbs // " + functionName + " // " + err.message)
     }
 
   }
