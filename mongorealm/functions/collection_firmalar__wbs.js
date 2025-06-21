@@ -348,16 +348,16 @@ exports = async function ({
     if (!firma.wbs) throw new Error("MONGO // collection_firmalar__wbs // " + functionName + " // Firmaya ait WBS bulunamadı")
 
     let theWbs = firma.wbs.find(item => item._id.toString() == _wbsId.toString())
-    if (!theWbs) throw new Error("MONGO // collection_firmalar__wbs // " + functionName + " // " + "Sorguya gönderilen wbsId sistemde bulunamadı, sayfayı yenileyiniz, sorun devam ederse Rapor7/24 ile irtibata geçiniz.")
+    if (!theWbs) throw new Error("MONGO // collection_firmalar__wbs // " + functionName + " // " + "__mesajBaslangic__ Sorguya gönderilen wbsId sistemde bulunamadı, sayfayı yenileyiniz, sorun devam ederse Rapor7/24 ile irtibata geçiniz. __mesajBitis__")
 
     // aşağıda pozlar collection da poz var mı diye sorgulama yapmaya gerek kalmadı
-    if (theWbs.includesPoz) throw new Error("MONGO // collection_firmalar__wbs // " + functionName + " // " + "__mesajBaslangic__ Seçili başlık altında kayıtlı pozlar mevcut, öncelikle pozları silmeli ya da başka başlık altına taşımalısınız. __mesajBitis__")
+    if (theWbs.includesPoz) throw new Error("MONGO // collection_firmalar__wbs // " + functionName + " // " + "__mesajBaslangic__ Seçili başlık altında kayıtlı pozlar varken bu işlem yapılamaz. __mesajBitis__")
 
     const collection_FirmaPozlar = context.services.get("mongodb-atlas").db("rapor724_v2").collection("firmapozlar")
     const poz = await collection_FirmaPozlar.findOne({ _wbsId, isDeleted: false })
 
     // wbs altına poz eklenmişse silinmesin, pozlara ulaşamayız
-    if (poz) throw new Error("MONGO // collection_firmalar__wbs // " + functionName + " // " + "__mesajBaslangic__ Seçili başlık altında kayıtlı pozlar mevcut, öncelikle pozları silmeli ya da başka başlık altına taşımalısınız. __mesajBitis__")
+    if (poz) throw new Error("MONGO // collection_firmalar__wbs // " + functionName + " // " + "__mesajBaslangic__ Seçili başlık altında kayıtlı pozlar varken bu işlem yapılamaz. __mesajBitis__")
 
 
     try {
