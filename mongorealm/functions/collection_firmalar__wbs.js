@@ -399,10 +399,9 @@ exports = async function ({
     let { wbs: currentWbsArray } = firma
     if (!currentWbsArray) throw new Error("MONGO // collection_firmalar__wbs // " + functionName + " // Firmaya ait WBS bulunamadı")
 
-    return {currentWbsArray,_wbsId}
 
     let oneWbs = currentWbsArray.find(item => item._id === _wbsId)
-    if (!oneWbs) throw new Error("MONGO // collection_firmalar__wbs // " + functionName + " // Sorguya gönderilen wbsId sistemde bulunamadı, sayfayı yenileyiniz, sorun devam ederse Rapor7/24 ile irtibata geçiniz.")
+    if (!oneWbs) throw new Error("MONGO // collection_firmalar__wbs // " + functionName + " // Sorguya gönderilen _wbsId sistemde bulunamadı, sayfayı yenileyiniz, sorun devam ederse Rapor7/24 ile irtibata geçiniz.")
 
     // aşağıda pozlar collection da poz var mı diye sorgulama yapmaya gerek kalmadı
     if (oneWbs.openForPoz) throw new Error("MONGO // collection_firmalar__wbs // " + functionName + " // __mesajBaslangic__ Poz eklemeye açık başlıklar silinemez. __mesajBitis__")
