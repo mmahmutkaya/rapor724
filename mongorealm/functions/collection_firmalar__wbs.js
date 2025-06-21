@@ -1482,7 +1482,7 @@ exports = async function ({
 
     // üst başlık poza açıksa iptal
     if (upWbs.openForPoz) {
-      throw new Error("MONGO // moveWbsRight // __mesajBaslangic__ poza açık başlıkların alt başlığı olamaz. __mesajBitis__")
+      throw new Error("MONGO // moveWbsRight // __mesajBaslangic__ Poza açık başlıkların alt başlığı olamaz. __mesajBitis__")
     }
 
     // tespit edilen üst başlığın mevcut alt başlıkları varsa en sonuncusunu bulma
