@@ -354,7 +354,7 @@ exports = async function ({
     // aşağıda pozlar collection da poz var mı diye sorgulama yapmaya gerek kalmadı
     if (theWbs.includesPoz) throw new Error("MONGO // collection_projeler__wbs // " + functionName + " // " + "__mesajBaslangic__ Seçili başlık altında kayıtlı pozlar mevcut, öncelikle pozları silmeli ya da başka başlık altına taşımalısınız. __mesajBitis__")
 
-    const collection_Pozlar = context.services.get("mongodb-atlas").db("rapor724_v2").collection(pozlar)
+    const collection_Pozlar = context.services.get("mongodb-atlas").db("rapor724_v2").collection("pozlar")
     const poz = await collection_Pozlar.findOne({ _wbsId, isDeleted: false })
 
     // wbs altına poz eklenmişse silinmesin, pozlara ulaşamayız
@@ -415,7 +415,7 @@ exports = async function ({
       throw new Error("MONGO // collection_projeler__wbs // " + functionName + " // " + "Silmek istediğiniz  WBS'in alt seviyeleri mevcut, öncelikle onları silmelisiniz.")
     }
 
-    const collection_Pozlar = context.services.get("mongodb-atlas").db("rapor724_v2").collection(pozlar)
+    const collection_Pozlar = context.services.get("mongodb-atlas").db("rapor724_v2").collection("pozlar")
     const poz = await collection_Pozlar.findOne({ _wbsId, isDeleted: false })
 
     // wbs altına poz eklenmişse silinmesin, pozlara ulaşamayız
