@@ -72,7 +72,7 @@ exports = async function ({
 
   const pozlar = await collection_firmaPozlar.aggregate([
     {
-      $match: { _firmaId:newPoz._firmaId, isDeleted:false }
+      $match: { isDeleted:false }
     }
   ]).toArray()
 
