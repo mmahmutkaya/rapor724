@@ -76,6 +76,8 @@ exports = async function ({
     }
   ]).toArray()
 
+  return {pozlar}
+
   if (pozlar?.find(x => x.pozName === newPoz.pozName) && !pozNameError) {
     errorObject.pozNameError = `Bu poz ismi kullanılmış`
     pozNameError = true
