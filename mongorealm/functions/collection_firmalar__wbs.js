@@ -401,7 +401,7 @@ exports = async function ({
 
     return {currentWbsArray, _wbsId}
 
-    let oneWbs = await currentWbsArray.find(item => item._id === _wbsId)
+    let oneWbs = await currentWbsArray.find(item => item._id == _wbsId)
     if (!oneWbs) throw new Error("MONGO // collection_firmalar__wbs // " + functionName + " // Sorguya gönderilen _wbsId sistemde bulunamadı, sayfayı yenileyiniz, sorun devam ederse Rapor7/24 ile irtibata geçiniz.")
 
     // aşağıda pozlar collection da poz var mı diye sorgulama yapmaya gerek kalmadı
