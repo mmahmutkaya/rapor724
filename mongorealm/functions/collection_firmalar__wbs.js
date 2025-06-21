@@ -412,7 +412,7 @@ exports = async function ({
     // burada includes kullanamayız çünkü içinde değil başında arıyoruz
     let { code: oneWbsCode } = oneWbs
     if (currentWbsArray.find(item => item.code.indexOf(oneWbsCode + ".") === 0)) {
-      throw new Error("MONGO // collection_firmalar__wbs // " + functionName + " // " + "Silmek istediğiniz  WBS'in alt seviyeleri mevcut, öncelikle onları silmelisiniz.")
+      throw new Error("MONGO // collection_firmalar__wbs // " + functionName + " // " + "__mesajBaslangic__ Silmek istediğiniz  WBS'in alt seviyeleri mevcut, öncelikle onları silmelisiniz. __mesajBitis__")
     }
 
     const collection_FirmaPozlar = context.services.get("mongodb-atlas").db("rapor724_v2").collection("firmapozlar")
