@@ -44,7 +44,6 @@ export default function P_Wbs() {
 
       <Grid item  >
         <HeaderWbs
-          RealmApp={RealmApp}
           setShow={setShow}
           nameMode={nameMode} setNameMode={setNameMode}
           codeMode={codeMode} setCodeMode={setCodeMode}

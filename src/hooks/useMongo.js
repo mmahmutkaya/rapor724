@@ -35,8 +35,27 @@ export const useGetFirmaPozlar = (onSuccess, onError) => {
 
   return useQuery({
     queryKey: ['firmaPozlar', selectedFirma?._id.toString()],
-    queryFn: () => RealmApp?.currentUser.callFunction("getFirmaPozlar", ({_firmaId: selectedFirma?._id })),
+    queryFn: () => RealmApp?.currentUser.callFunction("getFirmaPozlar", ({ _firmaId: selectedFirma?._id })),
     enabled: !!RealmApp && !!selectedFirma,
+    onSuccess,
+    onError,
+    refetchOnMount: false,
+    refetchOnWindowFocus: false
+  })
+
+}
+
+
+
+export const useGetPozlar = (onSuccess, onError) => {
+
+  // const RealmApp = useApp();
+  const { RealmApp, selectedProje } = useContext(StoreContext)
+
+  return useQuery({
+    queryKey: ['pozlar', selectedProje?._id.toString()],
+    queryFn: () => RealmApp?.currentUser.callFunction("getPozlar", ({ _projeId: selectedProje?._id })),
+    enabled: !!RealmApp && !!selectedProje,
     onSuccess,
     onError,
     refetchOnMount: false,
@@ -57,7 +76,7 @@ export const useGetProjelerNames_byFirma = (onSuccess, onError) => {
 
   return useQuery({
     queryKey: ['projelerNames_byFirma', selectedFirma?._id.toString()],
-    queryFn: () => RealmApp?.currentUser.callFunction("getProjelerNames_byFirma",{_firmaId:selectedFirma._id}),
+    queryFn: () => RealmApp?.currentUser.callFunction("getProjelerNames_byFirma", { _firmaId: selectedFirma._id }),
     enabled: !!RealmApp,
     onSuccess,
     onError,
@@ -125,24 +144,6 @@ export const useGetMahaller = (onSuccess, onError) => {
 
 }
 
-
-
-export const useGetPozlar = (onSuccess, onError) => {
-
-  // const RealmApp = useApp();
-  const { selectedProje, RealmApp } = useContext(StoreContext)
-
-  return useQuery({
-    queryKey: ['pozlar', selectedProje?._id.toString()],
-    queryFn: () => RealmApp?.currentUser.callFunction("collectionDugumler", ({ functionName: "getProjectPozlar", _projectId: selectedProje?._id })),
-    enabled: !!RealmApp && !!selectedProje,
-    onSuccess,
-    onError,
-    refetchOnMount: false,
-    refetchOnWindowFocus: false
-  })
-
-}
 
 
 export const useGetMahalListesi = () => {

@@ -30,11 +30,11 @@ import Switch from '@mui/material/Switch';
 import { styled } from '@mui/material/styles';
 
 
-export default function WbsHeader({ RealmApp, setShow, nameMode, setNameMode, codeMode, setCodeMode }) {
+export default function WbsHeader({ setShow, nameMode, setNameMode, codeMode, setCodeMode }) {
 
   const navigate = useNavigate()
 
-  const { drawerWidth, topBarHeight, subHeaderHeight } = useContext(StoreContext)
+  const { RealmApp, drawerWidth, topBarHeight, subHeaderHeight } = useContext(StoreContext)
 
   const [dialogAlert, setDialogAlert] = useState()
 
@@ -574,14 +574,14 @@ export default function WbsHeader({ RealmApp, setShow, nameMode, setNameMode, co
               </IconButton>
             </Grid> */}
 
-            <Grid item  sx={{ml:"0.5rem"}}>
+            <Grid item sx={{ ml: "0.5rem" }}>
               <Typography
                 color="black"
                 variant="h6"
                 noWrap
                 component="div"
               >
-                Poz Başlıkları (WBS) 
+                Poz Başlıkları (WBS)
               </Typography>
             </Grid>
 

@@ -1,7 +1,9 @@
+import React from 'react'
 import { useState, useContext } from 'react';
 import { useApp } from "./useApp.js";
 import { StoreContext } from './store.js'
 import { DialogAlert } from './general/DialogAlert.js';
+import Divider from '@mui/material/Divider';
 
 
 //mui
@@ -9,6 +11,7 @@ import Box from '@mui/material/Box';
 import Grid from '@mui/material/Grid';
 import Switch from '@mui/material/Switch';
 import Dialog from '@mui/material/Dialog';
+import { DialogTitle, Typography } from '@mui/material';
 
 
 
@@ -18,33 +21,26 @@ export default function ShowFirmaPozBaslik({ setShow, basliklar, setBasliklar })
   const [dialogAlert, setDialogAlert] = useState()
 
 
+  const baslikUpdate = async ({ baslikId, showValue }) => {
 
-  const baslikUpdate = async (oneBaslikId,) => {
 
     try {
 
-      setBasliklar(basliklar => {
-
-        const basliklar2 = basliklar.map(oneBaslik2 => {
-          if (oneBaslik2.id === oneBaslik.id) {
-            oneBaslik2.show = !oneBaslik.show
-            return oneBaslik2
-          }
-          return oneBaslik2
-        })
-
-        const basliklar3 = basliklar2.map(x => {
-          delete x.baslikName
-          return x
-        })
-        const result = RealmApp?.currentUser.callFunction("customSettings_update", ({ functionName: "sayfaBasliklari", sayfa: "firmapozlari", basliklar: basliklar3 }))
-        RealmApp?.currentUser.refreshCustomData()
-        console.log("result", result)
-
-        return (
-          basliklar2
-        )
+      const basliklar2 = basliklar.map(oneBaslik => {
+        if (oneBaslik.id === baslikId) {
+          oneBaslik.show = showValue
+        }
+        return oneBaslik
       })
+
+      // önce frontend deki veri güncelleme
+      setBasliklar(basliklar2)
+
+      // db ye gönderme işlemi
+      await RealmApp?.currentUser.callFunction("customSettings_update", ({ functionName: "sayfaBasliklari", sayfaName: "firmapozlari", baslikId, showValue }))
+      await RealmApp?.currentUser.refreshCustomData()
+
+      return
 
     } catch (err) {
 
@@ -58,9 +54,7 @@ export default function ShowFirmaPozBaslik({ setShow, basliklar, setBasliklar })
 
     }
 
-
   }
-
 
 
   return (
@@ -77,18 +71,25 @@ export default function ShowFirmaPozBaslik({ setShow, basliklar, setBasliklar })
       }
 
       <Dialog
-        PaperProps={{ sx: { width: "30rem", position: "fixed", top: "10rem", p: "1.5rem" } }}
+        PaperProps={{ sx: { maxWidth: "30rem", minWidth: "20rem", position: "fixed", top: "10rem", p: "1.5rem" } }}
         open={true}
         onClose={() => setShow("Main")}
       >
+        <Typography variant="subtitle1" sx={{ mb: "0.5rem", fontWeight: "600" }}>
+          Sütunlar
+        </Typography>
+
+        <Divider></Divider>
 
         {basliklar.filter(x => x.visible).map((oneBaslik, index) =>
-          <Box key={index} sx={{ display: "grid", gridTemplateColumns: "1fr 5rem", alignItems: "center", justifyItems: "center" }}>
-            <Box>{oneBaslik.baslikName}</Box>
-            <Switch checked={oneBaslik.show} onChange={() => baslikUpdate(oneBaslik.id, !oneBaslik.show)} />
-          </Box>
+          <React.Fragment key={index}>
+            <Box sx={{ display: "grid", gridTemplateColumns: "1fr 5rem", alignItems: "center" }}>
+              <Box sx={{ my: "0.2rem", justifySelf: "start" }}>{oneBaslik.baslikName}</Box>
+              <Box sx={{ justifySelf: "end" }}><Switch checked={oneBaslik.show} onChange={() => baslikUpdate({ baslikId: oneBaslik.id, showValue: !oneBaslik.show })} /></Box>
+            </Box>
+            <Divider></Divider>
+          </React.Fragment>
         )}
-
 
 
         {/* <Switch checked={oneBaslik.goster} onChange={() => console.log("deneme1")} /> */}

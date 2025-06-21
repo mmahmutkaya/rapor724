@@ -138,6 +138,18 @@ const customSettings = {
         { id: "aciklama", baslikName: "Açıklama", visible: true, show: true },
         { id: "versiyon", baslikName: "Versiyon", visible: true, show: true }
       ]
+    },
+    pozlar: {
+      basliklar: [
+        { id: "aciklama", baslikName: "Açıklama", visible: true, show: true },
+        { id: "versiyon", baslikName: "Versiyon", visible: true, show: true }
+      ]
+    },
+    mahaller: {
+      basliklar: [
+        { id: "aciklama", baslikName: "Açıklama", visible: true, show: true },
+        { id: "versiyon", baslikName: "Versiyon", visible: true, show: true }
+      ]
     }
   }
 }

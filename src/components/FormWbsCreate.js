@@ -21,9 +21,6 @@ export default function P_FormWbsCreate({ setShow, selectedWbs, setSelectedWbs }
 
   const { selectedProje, setSelectedProje } = useContext(StoreContext)
 
-  // console.log("selectedProje",selectedProje)
-
-  // proje ve _id si yoksa wbs oluşturma formunu göstermenin bir anlamı yok, hata vererek durduruyoruz
   if (!selectedProje?._id) {
     throw new Error("Wbs oluşturulacak projenin database kaydı için _projeId belirtilmemiş, sayfayı yeniden yükleyin, sorun devam ederse Rapor7/24 ile irtibata geçiniz.")
   }
@@ -34,8 +31,6 @@ export default function P_FormWbsCreate({ setShow, selectedWbs, setSelectedWbs }
   const [wbsCodeNameError, setWbsCodeNameError] = useState()
 
   const RealmApp = useApp();
-
-
 
   async function handleSubmit(event) {
 

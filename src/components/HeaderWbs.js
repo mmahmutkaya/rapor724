@@ -30,11 +30,11 @@ import Switch from '@mui/material/Switch';
 import { styled } from '@mui/material/styles';
 
 
-export default function WbsHeader({ RealmApp, setShow, nameMode, setNameMode, codeMode, setCodeMode }) {
+export default function WbsHeader({ setShow, nameMode, setNameMode, codeMode, setCodeMode }) {
 
   const navigate = useNavigate()
 
-  const { drawerWidth, topBarHeight, subHeaderHeight } = useContext(StoreContext)
+  const { RealmApp, drawerWidth, topBarHeight, subHeaderHeight } = useContext(StoreContext)
 
   const [dialogAlert, setDialogAlert] = useState()
 
@@ -459,6 +459,7 @@ export default function WbsHeader({ RealmApp, setShow, nameMode, setNameMode, co
           return proje
         })
       }
+      
 
       // switch on-off gösterim durumunu güncellemesi için 
       setSelectedWbs(result.wbs.find(item => item._id.toString() === selectedWbs._id.toString()))
@@ -568,7 +569,7 @@ export default function WbsHeader({ RealmApp, setShow, nameMode, setNameMode, co
             {/* <Grid item>
               <IconButton
                 aria-label="open drawer"
-                onClick={() => navigate('/pozlar')}
+                onClick={() => navigate('/firmapozlari')}
               >
                 <UndoIcon />
               </IconButton>
@@ -666,8 +667,8 @@ export default function WbsHeader({ RealmApp, setShow, nameMode, setNameMode, co
                 </IconButton>
               </Grid>
 
-              <Grid item onClick={() => setShow("FormProjeWbsUpdate")} sx={{ color: !selectedWbs ? "lightgray" : "rgb(139,0,0)" }} aria-label="updateWbs">
-                <IconButton aria-label="moveRight">
+              <Grid item onClick={() => setShow("FormFirmaWbsUpdate")}>
+                <IconButton aria-label="edit" disabled={!selectedWbs ? true : false}>
                   <EditIcon sx={{ color: !selectedWbs ? "lightgray" : "rgb(100,100,100)" }} />
                 </IconButton>
               </Grid>
@@ -679,7 +680,7 @@ export default function WbsHeader({ RealmApp, setShow, nameMode, setNameMode, co
               </Grid>
 
               <Grid item>
-                <IconButton onClick={() => setShow("FormProjeWbsCreate")} disabled={selectedWbs?.code.split(".").length == 8 ? true : false} aria-label="addWbs">
+                <IconButton onClick={() => setShow("FormFirmaWbsCreate")} disabled={selectedWbs?.code.split(".").length == 8 ? true : false} aria-label="addWbs">
                   <AddCircleOutlineIcon variant="contained" color={selectedWbs?.code.split(".").length == 8 ? " lightgray" : "success"} />
                 </IconButton>
               </Grid>
