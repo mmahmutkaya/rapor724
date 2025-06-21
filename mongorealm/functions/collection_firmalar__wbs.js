@@ -353,7 +353,7 @@ exports = async function ({
     // aşağıda pozlar collection da poz var mı diye sorgulama yapmaya gerek kalmadı
     if (theWbs.includesPoz) throw new Error("MONGO // collection_firmalar__wbs // " + functionName + " // " + "__mesajBaslangic__ Seçili başlık altında kayıtlı pozlar mevcut, öncelikle pozları silmeli ya da başka başlık altına taşımalısınız. __mesajBitis__")
 
-    const collection_FirmaPozlar = context.services.get("mongodb-atlas").db("rapor724_v2_firmaPozlar").collection(_firmaId.toString())
+    const collection_FirmaPozlar = context.services.get("mongodb-atlas").db("rapor724_v2").collection("firmapozlar")
     const poz = await collection_FirmaPozlar.findOne({ _wbsId, isDeleted: false })
 
     // wbs altına poz eklenmişse silinmesin, pozlara ulaşamayız
@@ -399,7 +399,7 @@ exports = async function ({
     let { wbs: currentWbsArray } = firma
     if (!currentWbsArray) throw new Error("MONGO // collection_firmalar__wbs // " + functionName + " // Firmaya ait WBS bulunamadı")
 
-    let oneWbs = currentWbsArray.find(item => item._id.toString() == _wbsId.toString())
+    let oneWbs = currentWbsArray.find(item => item._id == _wbsId)
     if (!oneWbs) throw new Error("MONGO // collection_firmalar__wbs // " + functionName + " // Sorguya gönderilen wbsId sistemde bulunamadı, sayfayı yenileyiniz, sorun devam ederse Rapor7/24 ile irtibata geçiniz.")
 
     // aşağıda pozlar collection da poz var mı diye sorgulama yapmaya gerek kalmadı
@@ -412,7 +412,7 @@ exports = async function ({
       throw new Error("MONGO // collection_firmalar__wbs // " + functionName + " // " + "Silmek istediğiniz  WBS'in alt seviyeleri mevcut, öncelikle onları silmelisiniz.")
     }
 
-    const collection_FirmaPozlar = context.services.get("mongodb-atlas").db("rapor724_v2_firmaPozlar").collection(_firmaId.toString())
+    const collection_FirmaPozlar = context.services.get("mongodb-atlas").db("rapor724_v2").collection("firmapozlar")
     const poz = await collection_FirmaPozlar.findOne({ _wbsId, isDeleted: false })
 
     // wbs altına poz eklenmişse silinmesin, pozlara ulaşamayız
