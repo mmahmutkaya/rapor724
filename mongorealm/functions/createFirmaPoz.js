@@ -72,11 +72,10 @@ exports = async function ({
 
   const pozlar = await collection_firmaPozlar.aggregate([
     {
-      $match: { isDeleted:false }
+      $match: { _firmaId:newPoz._firmaId, isDeleted:false }
     }
   ]).toArray()
 
-  return {pozlar}
 
   if (pozlar?.find(x => x.pozName === newPoz.pozName) && !pozNameError) {
     errorObject.pozNameError = `Bu poz ismi kullanılmış`
