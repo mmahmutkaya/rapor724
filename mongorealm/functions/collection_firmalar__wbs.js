@@ -1260,11 +1260,11 @@ exports = async function ({
 
 
       if (name_Match) {
-        throw new Error("MONGO // moveWbsLeft // __mesajBaslangic__ Taşınmak istenen seviyede --" + _selectedWbs.name + "-- ismi mevcut, aynı seviyede iki aynı başlık kullanılamaz. __mesajBitis__")
+        throw new Error("MONGO // moveWbsLeft // __mesajBaslangic__ Eşit seviyede bir başlık ismi birden fazla kullanılamaz. Başlık ismini değiştirerek tekrar deneyiniz.  __mesajBitis__")
       }
 
       if (codeName_Match) {
-        throw new Error("MONGO // moveWbsLeft // __mesajBaslangic__ Taşınmak istenen seviyede --" + codeName_Match_name + "-- isimli başlığın kod ismi --" + _selectedWbs.codeName + "-- ve taşınmak istenen başlığın kod ismi ile aynı. Aynı seviyede iki aynı kod ismi kullanılamaz. __mesajBitis__")
+        throw new Error("MONGO // moveWbsLeft // __mesajBaslangic__ Eşit seviyede bir kod ismi birden fazla kullanılamaz. Kod ismini değiştirerek tekrar deneyiniz.  __mesajBitis__")
       }
 
 
@@ -1469,13 +1469,14 @@ exports = async function ({
     })
 
 
-    if (name_Match) {
-      throw new Error("MONGO // moveWbsRight // __mesajBaslangic__ Taşınmak istenen seviyede --" + _selectedWbs.name + "-- ismi mevcut, aynı seviyede iki aynı başlık kullanılamaz. __mesajBitis__")
-    }
+      if (name_Match) {
+        throw new Error("MONGO // moveWbsLeft // __mesajBaslangic__ Eşit seviyede bir başlık ismi birden fazla kullanılamaz. Başlık ismini değiştirerek tekrar deneyiniz.  __mesajBitis__")
+      }
 
-    if (codeName_Match) {
-      throw new Error("MONGO // moveWbsRight // __mesajBaslangic__ Taşınmak istenen seviyede --" + codeName_Match_name + "-- isimli başlığın kod ismi --" + _selectedWbs.codeName + "-- ve taşınmak istenen başlığın kod ismi ile aynı. Aynı seviyede iki aynı kod ismi kullanılamaz. __mesajBitis__")
-    }
+      if (codeName_Match) {
+        throw new Error("MONGO // moveWbsLeft // __mesajBaslangic__ Eşit seviyede bir kod ismi birden fazla kullanılamaz. Kod ismini değiştirerek tekrar deneyiniz.  __mesajBitis__")
+      }
+
 
 
 
