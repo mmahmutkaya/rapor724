@@ -11,45 +11,36 @@ exports = async function ({
   const mailTeyit = user.custom_data.mailTeyit;
   if (!mailTeyit)
     throw new Error(
-      "MONGO // updateCustomSettings --  Öncelikle üyeliğinize ait mail adresinin size ait olduğunu doğrulamalısınız, tekrar giriş yapmayı deneyiniz veya bizimle iletişime geçiniz."
+      "MONGO // customSettings_update --  Öncelikle üyeliğinize ait mail adresinin size ait olduğunu doğrulamalısınız, tekrar giriş yapmayı deneyiniz veya bizimle iletişime geçiniz."
     );
 
 
 
   
-  const collection_Users = context.services
-    .get("mongodb-atlas")
-    .db("rapor724_v2")
-    .collection("users");
+  const collection_Users = context.services.get("mongodb-atlas").db("rapor724_v2").collection("users");
 
 
   if (functionName == "sayfaBasliklari") {
 
     if(!sayfaName) {
       throw new Error(
-        "MONGO // updateCustomSettings --  Başlık güncellemesi yapmak istediniz fakat 'sayfaName' göndermediniz, sayfayı yenileyiniz, sorun devam ederse lütfen iletişime geçiniz."
+        "MONGO // customSettings_update --  Başlık güncellemesi yapmak istediniz fakat 'sayfaName' göndermediniz, sayfayı yenileyiniz, sorun devam ederse lütfen iletişime geçiniz."
       );
     }
   
    if(!baslikId) {
       throw new Error(
-        "MONGO // updateCustomSettings --  Başlık güncellemesi yapmak istediniz fakat 'başlıkId' göndermediniz, sayfayı yenileyiniz, sorun devam ederse lütfen iletişime geçiniz."
+        "MONGO // customSettings_update --  Başlık güncellemesi yapmak istediniz fakat db ye 'başlıkId' gelmedi, sayfayı yenileyiniz, sorun devam ederse lütfen Rapor724 ile iletişime geçiniz."
       );
     }
   
    if(!(showValue === true || showValue === false)) {
       throw new Error(
-        "MONGO // updateCustomSettings --  Başlık güncellemesi yapmak istediniz fakat 'showValue' göndermediniz, sayfayı yenileyiniz, sorun devam ederse lütfen iletişime geçiniz."
+        "MONGO // customSettings_update --  Başlık güncellemesi yapmak istediniz fakat db ye 'showValue' gelmedi, sayfayı yenileyiniz, sorun devam ederse lütfen Rapor 724 ile iletişime geçiniz."
       );
     }
 
-   const pages = context.values.get("pages")
-   if(sayfaName && !pages.find(x => x.name === sayfaName)) {
-    throw new Error(
-      "MONGO // updateCustomSettings --  Başlık güncellemesi yapmak isdeğiniz sayfa ismi mongodb atlas app context values verileri içinde mevcut değil"
-    );
-   }
-  
+ 
   const result = await collection_Users.updateOne(
     {email:userEmail},
     {$set:{["customSettings.pages." + sayfaName + '.basliklar.$[baslik].show']:showValue}},
@@ -61,5 +52,5 @@ exports = async function ({
   }
   
 
-  return { situation: "empty" };
+  return { message:"Herhangi bir functionName ile eşleşmedi" };
 };
