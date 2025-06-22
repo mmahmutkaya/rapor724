@@ -2,7 +2,7 @@ exports = async function ({
   newMahal
 }) {
 
-  // 44
+  // 55
   const user = context.user
   const _userId = new BSON.ObjectId(user.id)
   const userEmail = context.user.data.email
@@ -11,7 +11,7 @@ exports = async function ({
 
   const dateNow = new Date()
   const collection_mahaller = context.services.get("mongodb-atlas").db("rapor724_v2").collection("mahaller")
-
+  
 
   // newMahal frontend den gelen veri
 
@@ -32,7 +32,7 @@ exports = async function ({
 
   let errorObject = {}
   let isFormError = false
-
+  
   let lbsIdError
   let mahalNameError
   let mahalNoError
@@ -72,7 +72,7 @@ exports = async function ({
 
   const mahaller = await collection_mahaller.aggregate([
     {
-      $match: { _projeId: newMahal._projeId, isDeleted: false }
+      $match: { _projeId:newMahal._projeId, isDeleted:false }
     }
   ]).toArray()
 
@@ -101,24 +101,24 @@ exports = async function ({
 
   // form alanına uyarı veren hatalar olmuşsa burda durduralım
   if (isFormError) {
-    return { errorObject }
+    return {errorObject}
   }
 
   newMahal = {
     ...newMahal,
-    createdAt: dateNow,
-    createdBy: userEmail,
-    isDeleted: false
+    createdAt:dateNow,
+    createdBy:userEmail,
+    isDeleted:false
   }
-
+  
   const result = await collection_mahaller.insertOne(newMahal)
 
   newMahal = {
     ...newMahal,
-    _id: result.insertedId
+    _id:result.insertedId
   }
-
-  return { newMahal }
+  
+  return {newMahal}
 
 
 };
