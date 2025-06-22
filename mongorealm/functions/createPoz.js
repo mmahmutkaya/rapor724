@@ -44,7 +44,7 @@ exports = async function ({
   let pozMetrajTipIdError
 
 
-  if (!newPoz.wbsId && !wbsIdError) {
+  if (!newPoz._wbsId && !wbsIdError) {
     errorObject.wbsIdError = "Zorunlu"
     wbsIdError = true
     isFormError = true
