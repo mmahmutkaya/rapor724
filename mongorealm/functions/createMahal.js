@@ -2,8 +2,7 @@ exports = async function ({
   newMahal
 }) {
 
-// DENEME 22
-
+// 33
   const user = context.user
   const _userId = new BSON.ObjectId(user.id)
   const userEmail = context.user.data.email
@@ -98,22 +97,6 @@ exports = async function ({
   }
 
 
-<<<<<<< HEAD
-  if (!newMahal.mahalBirimId && !mahalBirimIdError) {
-    errorObject.mahalBirimIdError = `Zorunlu`
-    mahalBirimIdError = true
-    isFormError = true
-  }
-
-
-
-  if (!newMahal.mahalMetrajTipId) {
-    errorObject.mahalMetrajTipIdError = `Zorunlu`
-    mahalMetrajTipIdError = true
-    isFormError = true
-  }
-=======
->>>>>>> 7942dc7662846e4abcf7b1f73b952f3dfd342a8d
 
 
   // form alanına uyarı veren hatalar olmuşsa burda durduralım
