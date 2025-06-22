@@ -25,6 +25,7 @@ import ArrowForwardIcon from '@mui/icons-material/ArrowForward';
 
 
 
+
 export default function FormMahalCreate({ setShow }) {
 
   const queryClient = useQueryClient()
@@ -39,15 +40,8 @@ export default function FormMahalCreate({ setShow }) {
   const [lbsIdError, setLbsIdError] = useState()
   const [mahalNameError, setMahalNameError] = useState()
   const [mahalNoError, setMahalNoError] = useState()
-  const [mahalBirimIdError, setMahalBirimIdError] = useState()
-  const [mahalMetrajTipIdError, setMahalMetrajTipIdError] = useState()
 
-  // form verilerinde kullanmak için oluşturulan useState() verileri
-  // form ilk açıldığında önceden belirlenen birşeyin seçilmiş olması için alttaki satırdaki gibi yapılabiliyor
-  const [mahalMetrajTipId, setMahalMetrajTipId] = useState("standartMetrajSayfasi");
   const [lbsId, setLbsId] = useState();
-  const [mahalBirimId, setMahalBirimId] = useState();
-  const [mahalBirimDisabled, setMahalBirimDisabled] = useState(false);
 
 
   // mahal oluşturma fonksiyonu
@@ -68,22 +62,14 @@ export default function FormMahalCreate({ setShow }) {
         _lbsId: lbsId,
         mahalName,
         mahalNo,
-        mahalBirimId,
-        mahalMetrajTipId
       }
 
-      // veri düzeltme
-      if (newMahal.mahalMetrajTipId === "insaatDemiri") {
-        newMahal.mahalBirimId = "ton"
-      }
 
       ////// form validation - frontend
 
       let lbsIdError
       let mahalNameError
       let mahalNoError
-      let mahalBirimIdError
-      let mahalMetrajTipIdError
       let isFormError = false
 
 
@@ -140,19 +126,6 @@ export default function FormMahalCreate({ setShow }) {
       }
 
 
-      if (!newMahal.mahalBirimId && !mahalBirimIdError) {
-        setMahalBirimIdError(`Zorunlu`)
-        mahalBirimIdError = true
-        isFormError = true
-      }
-
-
-      if (!selectedProje.mahalMetrajTipleri.find(x => x.id == newMahal.mahalMetrajTipId) && !mahalMetrajTipIdError) {
-        setMahalMetrajTipIdError(`Zorunlu`)
-        mahalMetrajTipIdError = true
-        isFormError = true
-      }
-
 
       // form alanına uyarı veren hatalar olmuşsa burda durduralım
       if (isFormError) {
@@ -173,8 +146,6 @@ export default function FormMahalCreate({ setShow }) {
         setLbsIdError(result.errorObject.lbsIdError)
         setMahalNameError(result.errorObject.mahalNameError)
         setMahalNoError(result.errorObject.mahalNoError)
-        setMahalBirimIdError(result.errorObject.mahalBirimIdError)
-        setMahalMetrajTipIdError(result.errorObject.mahalMetrajTipIdError)
         console.log("result.errorObject", result.errorObject)
         console.log("alt satırda backend den gelen hata ile durdu")
         return
@@ -214,22 +185,7 @@ export default function FormMahalCreate({ setShow }) {
     setLbsId(selectedProje.lbs.find(item => item._id.toString() === event.target.value.toString())._id);
   };
 
-  const handleChange_mahalMetrajTipId = (event) => {
 
-    setMahalMetrajTipId(event.target.value);
-    setMahalBirimDisabled(false)
-
-    if (event.target.value === "insaatDemiri") {
-      setMahalBirimId("ton")
-      setMahalBirimDisabled(true)
-      setMahalBirimIdError()
-    }
-
-  };
-
-  const handleChange_mahalBirimId = (event) => {
-    setMahalBirimId(selectedProje.mahalBirimleri.find(item => item.id === event.target.value).id);
-  };
 
 
   // aşağıda kullanılıyor
@@ -446,87 +402,6 @@ export default function FormMahalCreate({ setShow }) {
               />
             </Box>
 
-
-            {/* mahal Tip seçme - çoktan seçmeli*/}
-            <Box
-              onClick={() => setMahalMetrajTipIdError()}
-              sx={{ minWidth: 120, marginBottom: "0rem" }}
-            >
-              <InputLabel
-                error={mahalMetrajTipIdError ? true : false}
-                id="select-mahalMetrajTip-label"
-              >
-                <Grid container justifyContent="space-between">
-                  <Grid item>Metraj Tipi Seçiniz</Grid>
-                </Grid>
-              </InputLabel>
-
-              <Select
-                error={mahalMetrajTipIdError ? true : false}
-                variant="standard"
-                fullWidth
-                labelId="select-mahalMetrajTip-label"
-                id="select-mahalMetrajTip"
-                value={mahalMetrajTipId ? mahalMetrajTipId : ""}
-                label="Mahal için tip seçiniz"
-                onChange={handleChange_mahalMetrajTipId}
-                required
-                name="mahalMetrajTipId"
-              >
-                {
-                  selectedProje?.mahalMetrajTipleri.map((oneMahalMetrajTipi, index) => (
-                    // console.log(lbs)
-                    <MenuItem key={index} value={oneMahalMetrajTipi.id}>
-                      {oneMahalMetrajTipi.name}
-                    </MenuItem>
-                  ))
-                }
-
-              </Select>
-
-            </Box>
-
-
-
-            {/* mahal biriminin seçildiği alan */}
-            <Box
-              onClick={() => setMahalBirimIdError()}
-              sx={{ minWidth: 120, marginTop: "2rem" }}
-            >
-              <InputLabel
-                error={mahalBirimIdError ? true : false}
-                id="select-newMahalBirim-label"
-              >
-                <Grid container justifyContent="space-between">
-                  <Grid item>Mahal Birim Seçiniz</Grid>
-                </Grid>
-              </InputLabel>
-
-              <Select
-                error={mahalBirimIdError ? true : false}
-                variant="standard"
-                fullWidth
-                labelId="select-newMahalBirim-label"
-                id="select-newMahalBirim"
-                value={mahalBirimId ? mahalBirimId : ""}
-                label="Mahal için tip seçiniz"
-                onChange={handleChange_mahalBirimId}
-                required
-                name="mahalBirimId"
-                disabled={mahalBirimDisabled}
-              >
-                {
-                  selectedProje?.mahalBirimleri.map((oneMahalBirim, index) => (
-                    <MenuItem key={index} value={oneMahalBirim.id}>
-                      {/* {console.log(oneMahalBirim)} */}
-                      {oneMahalBirim.name}
-                    </MenuItem>
-                  ))
-                }
-
-              </Select>
-
-            </Box>
 
           </DialogContent>
 

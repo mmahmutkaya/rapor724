@@ -2,6 +2,7 @@ exports = async function ({
   newMahal
 }) {
 
+// DENEME 22
 
   const user = context.user
   const _userId = new BSON.ObjectId(user.id)
@@ -107,6 +108,7 @@ exports = async function ({
     mahalBirimIdError = true
     isFormError = true
   }
+
 
 
   if (!newMahal.mahalMetrajTipId) {
