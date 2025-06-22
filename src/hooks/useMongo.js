@@ -66,6 +66,25 @@ export const useGetPozlar = (onSuccess, onError) => {
 
 
 
+export const useGetMahaller = (onSuccess, onError) => {
+
+  // const RealmApp = useApp();
+  const { RealmApp, selectedProje } = useContext(StoreContext)
+
+  return useQuery({
+    queryKey: ['mahaller', selectedProje?._id.toString()],
+    queryFn: () => RealmApp?.currentUser.callFunction("getMahaller", ({ _projeId: selectedProje?._id })),
+    enabled: !!RealmApp && !!selectedProje,
+    onSuccess,
+    onError,
+    refetchOnMount: false,
+    refetchOnWindowFocus: false
+  })
+
+}
+
+
+
 
 
 // MONGO FONKSİYON - getProjelerNames_byFirma
@@ -125,24 +144,6 @@ export const useGetProjectNames_firma = () => {
 
 }
 
-
-
-export const useGetMahaller = (onSuccess, onError) => {
-
-  // const RealmApp = useApp();
-  const { selectedProje, RealmApp } = useContext(StoreContext)
-
-  return useQuery({
-    queryKey: ['mahaller', selectedProje?._id.toString()],
-    queryFn: () => RealmApp?.currentUser.callFunction("getProjectMahaller", ({ projectId: selectedProje?._id })),
-    enabled: !!RealmApp && !!selectedProje,
-    onSuccess,
-    onError,
-    refetchOnMount: false,
-    refetchOnWindowFocus: false
-  })
-
-}
 
 
 

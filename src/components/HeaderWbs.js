@@ -30,7 +30,7 @@ import Switch from '@mui/material/Switch';
 import { styled } from '@mui/material/styles';
 
 
-export default function WbsHeader({ setShow, nameMode, setNameMode, codeMode, setCodeMode }) {
+export default function HeaderWbs({ setShow, nameMode, setNameMode, codeMode, setCodeMode }) {
 
   const navigate = useNavigate()
 
@@ -271,7 +271,7 @@ export default function WbsHeader({ setShow, nameMode, setNameMode, codeMode, se
 
       // bu kontrol backend de ayrıca yapılıyor
       if (selectedWbs.openForPoz) {
-        throw new Error("Poz eklemeye açık başlıklar silinemez, öncelikle poz eklemeye kapatınız")
+        throw new Error("__mesajBaslangic__ Poz eklemeye açık başlıklar silinemez, öncelikle poz eklemeye kapatınız. __mesajBitis__")
       }
 
       const result = await RealmApp.currentUser.callFunction("collection_projeler__wbs", { functionName: "deleteWbs", _projeId: selectedProje._id, _wbsId: selectedWbs._id });
@@ -459,7 +459,6 @@ export default function WbsHeader({ setShow, nameMode, setNameMode, codeMode, se
           return proje
         })
       }
-      
 
       // switch on-off gösterim durumunu güncellemesi için 
       setSelectedWbs(result.wbs.find(item => item._id.toString() === selectedWbs._id.toString()))
@@ -566,23 +565,15 @@ export default function WbsHeader({ setShow, nameMode, setNameMode, codeMode, se
           {/* başlık sol */}
           <Box sx={{ display: { xs: 'none', sm: "grid" }, gridAutoFlow: "column", alignItems: "center" }}>
 
-            {/* <Grid item>
-              <IconButton
-                aria-label="open drawer"
-                onClick={() => navigate('/firmapozlari')}
-              >
-                <UndoIcon />
-              </IconButton>
-            </Grid> */}
 
-            <Grid item  sx={{ml:"0.5rem"}}>
+            <Grid item sx={{ ml: "0.5rem" }}>
               <Typography
                 color="black"
                 variant="h6"
                 noWrap
                 component="div"
               >
-                Poz Başlıkları (WBS) 
+                Poz Başlıkları (WBS)
               </Typography>
             </Grid>
 
@@ -667,7 +658,7 @@ export default function WbsHeader({ setShow, nameMode, setNameMode, codeMode, se
                 </IconButton>
               </Grid>
 
-              <Grid item onClick={() => setShow("FormFirmaWbsUpdate")}>
+              <Grid item onClick={() => setShow("FormWbsUpdate")}>
                 <IconButton aria-label="edit" disabled={!selectedWbs ? true : false}>
                   <EditIcon sx={{ color: !selectedWbs ? "lightgray" : "rgb(100,100,100)" }} />
                 </IconButton>
@@ -680,7 +671,7 @@ export default function WbsHeader({ setShow, nameMode, setNameMode, codeMode, se
               </Grid>
 
               <Grid item>
-                <IconButton onClick={() => setShow("FormFirmaWbsCreate")} disabled={selectedWbs?.code.split(".").length == 8 ? true : false} aria-label="addWbs">
+                <IconButton onClick={() => setShow("FormWbsCreate")} disabled={selectedWbs?.code.split(".").length == 8 ? true : false} aria-label="addWbs">
                   <AddCircleOutlineIcon variant="contained" color={selectedWbs?.code.split(".").length == 8 ? " lightgray" : "success"} />
                 </IconButton>
               </Grid>

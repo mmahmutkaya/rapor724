@@ -272,7 +272,8 @@ export default function P_Pozlar() {
 
 
                 {/* WBS'İN POZLARI */}
-                {pozlar?.filter(x => x.wbsId.toString() === oneWbs._id.toString()).map((onePoz, index) => {
+                {pozlar?.filter(x => x._wbsId.toString() === oneWbs._id.toString()).map((onePoz, index) => {
+
                   return (
                     // <Box key={index} sx={{ display: "grid", gridTemplateColumns: columns, gridTemplateAreas: gridAreas_pozSatir }}>
                     <Box key={index} sx={{ display: "grid", gridTemplateColumns: columns }}>

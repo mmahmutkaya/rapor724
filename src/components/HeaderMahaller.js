@@ -22,7 +22,7 @@ import FileDownloadDoneIcon from '@mui/icons-material/FileDownloadDone';
 import EditIcon from '@mui/icons-material/Edit';
 
 
-export default function HeaderPozlar({ show, setShow, anyBaslikShow }) {
+export default function HeaderMahaller({ show, setShow, anyBaslikShow }) {
 
   const { selectedProje } = useContext(StoreContext)
   const navigate = useNavigate()
@@ -44,7 +44,7 @@ export default function HeaderPozlar({ show, setShow, anyBaslikShow }) {
             variant="h6"
             fontWeight="bold"
           >
-            Pozlar
+            Mahaller
           </Typography>
         </Grid>
 
@@ -55,15 +55,14 @@ export default function HeaderPozlar({ show, setShow, anyBaslikShow }) {
         <Grid item xs="auto">
           <Grid container spacing={1}>
 
-
             <Grid item >
-              <IconButton onClick={() => setShow("ShowBaslik")} aria-label="wbsUncliced" disabled={!anyBaslikShow}>
+              <IconButton onClick={() => setShow("ShowBaslik")} aria-label="lbsUncliced" disabled={!anyBaslikShow}>
                 <VisibilityIcon variant="contained" />
               </IconButton>
             </Grid>
 
             <Grid item >
-              <IconButton onClick={() => setShow("PozCreate")} aria-label="wbsUncliced" disabled={!selectedProje?.wbs?.find(x => x.openForPoz === true)}>
+              <IconButton onClick={() => setShow("MahalCreate")} aria-label="lbsUncliced" disabled={!selectedProje?.lbs?.find(x => x.openForMahal === true)}>
                 <AddCircleOutlineIcon variant="contained" />
               </IconButton>
             </Grid>

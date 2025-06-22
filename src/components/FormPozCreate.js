@@ -25,7 +25,6 @@ import ArrowForwardIcon from '@mui/icons-material/ArrowForward';
 
 
 
-
 export default function FormPozCreate({ setShow }) {
 
   const queryClient = useQueryClient()
@@ -66,7 +65,7 @@ export default function FormPozCreate({ setShow }) {
       const newPoz = {
         _firmaId: selectedFirma._id,
         _projeId: selectedProje._id,
-        wbsId,
+        _wbsId: wbsId,
         pozName,
         pozNo,
         pozBirimId,
@@ -90,7 +89,7 @@ export default function FormPozCreate({ setShow }) {
 
       // form alanına uyarı veren hatalar
 
-      if (!newPoz.wbsId && !wbsIdError) {
+      if (!newPoz._wbsId && !wbsIdError) {
         setWbsIdError("Zorunlu")
         wbsIdError = true
         isFormError = true
@@ -133,7 +132,7 @@ export default function FormPozCreate({ setShow }) {
         isFormError = true
       }
 
-      let pozFinded = pozlar?.find(x => x.pozNo == newPoz.pozNo)
+      let pozFinded = pozlar?.find(x => x.pozNo === newPoz.pozNo)
       if (pozFinded && !pozNoError) {
         setPozNoError(`Bu poz numarası kullanılmış`)
         pozNoError = true
@@ -157,13 +156,15 @@ export default function FormPozCreate({ setShow }) {
 
       // form alanına uyarı veren hatalar olmuşsa burda durduralım
       if (isFormError) {
-        console.log("form validation - hata - frontend")
+        // console.log("form validation - hata - frontend")
         return
       }
 
+      // console.log("newPoz", newPoz)
+      // return
+      // form verileri kontrolden geçti - db ye göndermeyi deniyoruz
 
-
-      const result = await RealmApp?.currentUser.callFunction("createPoz", ({ ...newPoz }))
+      const result = await RealmApp?.currentUser.callFunction("createPoz", ({ newPoz }))
 
       // console.log("result", result)
 
@@ -185,8 +186,8 @@ export default function FormPozCreate({ setShow }) {
         throw new Error("db den -newPoz- ve onun da -_id-  property dönmedi, sayfayı yenileyiniz, sorun devam ederse Rapor7/24 ile irtibata geçiniz..")
       }
 
-      queryClient.setQueryData(['pozlar', selectedProje?._id.toString()], (pozlar) => {
-        return [...pozlar, newPoz]
+      queryClient.setQueryData(['pozlar', selectedProje?._id.toString()], (pozlar2) => {
+        return [...pozlar2, newPoz]
       })
 
       setShow("Main")
@@ -296,6 +297,8 @@ export default function FormPozCreate({ setShow }) {
                 labelId="select-wbs-label"
                 id="select-wbs"
                 value={wbsId ? wbsId : ""}
+                // label="Poz için başlık seçiniz"
+                // label="Poz"
                 onChange={handleChange_wbs}
                 required
                 name="wbsId"
@@ -326,6 +329,10 @@ export default function FormPozCreate({ setShow }) {
 
                             let cOunt = wbsOne.code.split(".").length
 
+                            // console.log(cOunt)
+                            // console.log(index + 1)
+                            // console.log("---")
+
                             if (index == 0 && cOunt == 1) {
                               wbsCode = codePart
                               wbsName = selectedProje.wbs.find(item => item.code == wbsCode).name
@@ -350,11 +357,11 @@ export default function FormPozCreate({ setShow }) {
                         }
 
                         {/* wbsName hazır aslında ama aralarındaki ok işaretini kırmızıya boyamak için */}
-                        <Box sx={{ display: "grid", gridAutoFlow: "column" , justifyContent:"start" }} >
+                        <Box sx={{ display: "grid", gridAutoFlow: "column", justifyContent: "start" }} >
 
                           {wbsName.split(">").map((item, index) => (
 
-                            <Box key={index} sx={{ display: "grid", gridAutoFlow: "column", justifyContent:"start" }} >
+                            <Box key={index} sx={{ display: "grid", gridAutoFlow: "column", justifyContent: "start" }} >
                               {item}
                               {index + 1 !== wbsName.split(">").length &&
                                 <Box sx={{ color: myTema.renkler.baslik2_ayrac, mx: "0.2rem" }} >{">"}</Box>

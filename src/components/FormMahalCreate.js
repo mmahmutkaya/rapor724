@@ -2,7 +2,10 @@ import { useApp } from "./useApp.js";
 import { useState, useContext } from 'react';
 import { StoreContext } from './store.js'
 import deleteLastSpace from '../functions/deleteLastSpace.js';
-import { DialogWindow } from './general/DialogWindow';
+import { DialogAlert } from './general/DialogAlert.js';
+import { useGetMahaller } from '../hooks/useMongo.js';
+import { useQueryClient } from '@tanstack/react-query'
+
 
 
 //mui
@@ -20,23 +23,32 @@ import MenuItem from '@mui/material/MenuItem';
 import ArrowForwardIcon from '@mui/icons-material/ArrowForward';
 
 
-export default function FormMahalCreate({setShow}) {
 
 
-  const { selectedProje, setSelectedProje } = useContext(StoreContext)
-  const { mahaller, setMahaller } = useContext(StoreContext)
+export default function FormMahalCreate({ setShow }) {
 
-  const [showDialog, setShowDialog] = useState(false)
-  const [dialogCase, setDialogCase] = useState("")
+  const queryClient = useQueryClient()
+  // const RealmApp = useApp();
+  const { RealmApp, myTema } = useContext(StoreContext)
 
-  const [newMahalError, setNewMahalError] = useState(false)
+  const { selectedFirma, selectedProje } = useContext(StoreContext)
+  const { data: mahaller } = useGetMahaller()
+
+  const [dialogAlert, setDialogAlert] = useState()
+
+  const [lbsIdError, setLbsIdError] = useState()
+  const [mahalNameError, setMahalNameError] = useState()
+  const [mahalNoError, setMahalNoError] = useState()
+  const [mahalBirimIdError, setMahalBirimIdError] = useState()
+  const [mahalMetrajTipIdError, setMahalMetrajTipIdError] = useState()
 
   // form verilerinde kullanmak için oluşturulan useState() verileri
   // form ilk açıldığında önceden belirlenen birşeyin seçilmiş olması için alttaki satırdaki gibi yapılabiliyor
-  // const [mahalTipi, setMahalTipi] = useState(selectedProje ? selectedProje.mahalTipleri.find(item => item.id === "direktMahalListesi") : "");
+  const [mahalMetrajTipId, setMahalMetrajTipId] = useState("standartMetrajSayfasi");
   const [lbsId, setLbsId] = useState();
+  const [mahalBirimId, setMahalBirimId] = useState();
+  const [mahalBirimDisabled, setMahalBirimDisabled] = useState(false);
 
-  const RealmApp = useApp();
 
   // mahal oluşturma fonksiyonu
   async function handleSubmit(event) {
@@ -48,110 +60,149 @@ export default function FormMahalCreate({setShow}) {
       // formdan gelen text verilerini alma - (çoktan seçmeliler seçildiği anda useState() kısmında güncelleniyor)
       const data = new FormData(event.currentTarget);
       const mahalName = deleteLastSpace(data.get('mahalName'))
-      const mahalKod = deleteLastSpace(data.get('mahalKod'))
+      const mahalNo = deleteLastSpace(data.get('mahalNo'))
 
       const newMahal = {
-        projectId: selectedProje?._id,
-        lbsId,
-        mahalKod,
+        _firmaId: selectedFirma._id,
+        _projeId: selectedProje._id,
+        _lbsId: lbsId,
         mahalName,
+        mahalNo,
+        mahalBirimId,
+        mahalMetrajTipId
       }
 
       // veri düzeltme
-      console.log("newMahal", newMahal)
+      if (newMahal.mahalMetrajTipId === "insaatDemiri") {
+        newMahal.mahalBirimId = "ton"
+      }
 
       ////// form validation - frontend
 
+      let lbsIdError
+      let mahalNameError
+      let mahalNoError
+      let mahalBirimIdError
+      let mahalMetrajTipIdError
       let isFormError = false
-      // form alanına değil - direkt ekrana uyarı veren hata - (fonksiyon da durduruluyor)
-      if (typeof newMahal.projectId !== "object") {
-        setDialogCase("error")
-        setShowDialog("Mahal kaydı için gerekli olan  'projectId' verisinde hata tespit edildi, sayfayı yenileyiniz, sorun devam ederse Rapor7/24 ile irtibata geçiniz.")
-        console.log("kayıt için gerekli olan 'projectId' verisinde hata olduğu için bu satırın altında durduruldu")
-        return
-      }
+
 
       // form alanına uyarı veren hatalar
 
-      if (typeof newMahal.lbsId !== "object") {
-        setNewMahalError(prev => ({ ...prev, lbsId: "Zorunlu" }))
+      if (!newMahal._lbsId && !lbsIdError) {
+        setLbsIdError("Zorunlu")
+        lbsIdError = true
         isFormError = true
       }
 
 
-      if (typeof newMahal.mahalName !== "string") {
-        setNewMahalError(prev => ({ ...prev, mahalName: "Zorunlu" }))
+      if (typeof newMahal.mahalName !== "string" && !mahalNameError) {
+        setMahalNameError("Zorunlu")
+        mahalNameError = true
         isFormError = true
       }
 
-      if (typeof newMahal.mahalName === "string") {
+      if (typeof newMahal.mahalName === "string" && !mahalNameError) {
         if (newMahal.mahalName.length === 0) {
-          setNewMahalError(prev => ({ ...prev, mahalName: "Zorunlu" }))
+          setMahalNameError("Zorunlu")
+          mahalNameError = true
           isFormError = true
         }
       }
 
-      if (typeof newMahal.mahalName === "string") {
+      if (typeof newMahal.mahalName === "string" && !mahalNameError) {
         let minimumHaneSayisi = 3
         if (newMahal.mahalName.length > 0 && newMahal.mahalName.length < minimumHaneSayisi) {
-          setNewMahalError(prev => ({ ...prev, mahalName: `${minimumHaneSayisi} haneden az olamaz` }))
+          setMahalNameError(`${minimumHaneSayisi} haneden az olamaz`)
+          mahalNameError = true
           isFormError = true
         }
       }
 
-      let mahalFinded = mahaller.find(item => item.kod == newMahal.mahalKod)
-      if (mahalFinded) {
-        setNewMahalError(prev => ({ ...prev, mahalKod: `'${mahalFinded.name}' isimli mahalde bu kod kullanılmış` }))
+      if (mahaller?.find(x => x.mahalName === newMahal.mahalName) && !mahalNameError) {
+        setMahalNameError(`Bu mahal ismi kullanılmış`)
+        mahalNameError = true
+        isFormError = true
+      }
+
+
+      if (!newMahal.mahalNo && !mahalNoError) {
+        setMahalNoError(`Zorunlu`)
+        mahalNoError = true
+        isFormError = true
+      }
+
+      let mahalFinded = mahaller?.find(x => x.mahalNo === newMahal.mahalNo)
+      if (mahalFinded && !mahalNoError) {
+        setMahalNoError(`Bu mahal numarası kullanılmış`)
+        mahalNoError = true
+        isFormError = true
+      }
+
+
+      if (!newMahal.mahalBirimId && !mahalBirimIdError) {
+        setMahalBirimIdError(`Zorunlu`)
+        mahalBirimIdError = true
+        isFormError = true
+      }
+
+
+      if (!selectedProje.mahalMetrajTipleri.find(x => x.id == newMahal.mahalMetrajTipId) && !mahalMetrajTipIdError) {
+        setMahalMetrajTipIdError(`Zorunlu`)
+        mahalMetrajTipIdError = true
         isFormError = true
       }
 
 
       // form alanına uyarı veren hatalar olmuşsa burda durduralım
       if (isFormError) {
-        console.log("form validation - hata - frontend")
+        // console.log("form validation - hata - frontend")
         return
       }
 
-
+      // console.log("newMahal", newMahal)
+      // return
       // form verileri kontrolden geçti - db ye göndermeyi deniyoruz
-      const result = await RealmApp?.currentUser?.callFunction("createMahal", newMahal);
-      console.log("result", result)
+
+      const result = await RealmApp?.currentUser.callFunction("createMahal", ({ newMahal }))
+
+      // console.log("result", result)
 
       // form validation - backend
-      if (result.newMahalError) {
-        setNewMahalError(result.newMahalError)
-        console.log("result.newMahalError", result.newMahalError)
-        console.log("form validation - hata - backend")
+      if (result.errorObject) {
+        setLbsIdError(result.errorObject.lbsIdError)
+        setMahalNameError(result.errorObject.mahalNameError)
+        setMahalNoError(result.errorObject.mahalNoError)
+        setMahalBirimIdError(result.errorObject.mahalBirimIdError)
+        setMahalMetrajTipIdError(result.errorObject.mahalMetrajTipIdError)
+        console.log("result.errorObject", result.errorObject)
+        console.log("alt satırda backend den gelen hata ile durdu")
         return
       }
-      console.log("form validation - hata yok - backend")
+      // console.log("form validation - hata yok - backend")
 
       if (!result.newMahal?._id) {
+        console.log("result", result)
         throw new Error("db den -newMahal- ve onun da -_id-  property dönmedi, sayfayı yenileyiniz, sorun devam ederse Rapor7/24 ile irtibata geçiniz..")
       }
 
-      if (!result.newProject?._id) {
-        throw new Error("db den -newProject- ve onun da -_id-  property dönmedi, sayfayı yenileyiniz, sorun devam ederse Rapor7/24 ile irtibata geçiniz..")
-      }
+      queryClient.setQueryData(['mahaller', selectedProje?._id.toString()], (mahaller2) => {
+        return [...mahaller2, newMahal]
+      })
 
-      setMahaller(oldMahaller => [...oldMahaller, result.newMahal])
-      setSelectedProje(result.newProject)
       setShow("Main")
+
+      return
 
     } catch (err) {
 
       console.log(err)
-      let hataMesaj_ = err?.message ? err.message : "Beklenmedik hata, Rapor7/24 ile irtibata geçiniz.."
 
-      // eğer çifte kayıt oluyorsa form içindeki mahal ismi girilen yere aşağıdaki mesaj gönderilir, fonksiyon durdurulur
-      if (hataMesaj_.includes("duplicate key error")) {
-        setNewMahalError(prev => ({ ...prev, mahalName: "Bu mahal ismi kullanılmış" }))
-        console.log("Bu mahal ismi bu projede mevcut")
-        return
-      }
-
-      setDialogCase("error")
-      setShowDialog(hataMesaj_)
+      setDialogAlert({
+        dialogIcon: "warning",
+        dialogMessage: "Beklenmedik hata, Rapor7/24 ile irtibata geçiniz..",
+        detailText: err?.message ? err.message : null
+      })
 
     }
 
@@ -163,26 +214,47 @@ export default function FormMahalCreate({setShow}) {
     setLbsId(selectedProje.lbs.find(item => item._id.toString() === event.target.value.toString())._id);
   };
 
+  const handleChange_mahalMetrajTipId = (event) => {
+
+    setMahalMetrajTipId(event.target.value);
+    setMahalBirimDisabled(false)
+
+    if (event.target.value === "insaatDemiri") {
+      setMahalBirimId("ton")
+      setMahalBirimDisabled(true)
+      setMahalBirimIdError()
+    }
+
+  };
+
+  const handleChange_mahalBirimId = (event) => {
+    setMahalBirimId(selectedProje.mahalBirimleri.find(item => item.id === event.target.value).id);
+  };
+
 
   // aşağıda kullanılıyor
   let lbsCode
   let lbsName
 
+
+
   return (
     <div>
 
-      {showDialog &&
-        <DialogWindow dialogCase={dialogCase} showDialog={showDialog} setShowDialog={setShowDialog} />
+      {dialogAlert &&
+        <DialogAlert
+          dialogIcon={dialogAlert.dialogIcon}
+          dialogMessage={dialogAlert.dialogMessage}
+          detailText={dialogAlert.detailText}
+          onCloseAction={() => setDialogAlert()}
+        />
       }
+
 
       <Dialog
         PaperProps={{ sx: { width: "80%", position: "fixed", top: "10rem" } }}
         open={true}
-        onClose={() => {
-          console.log("deneme")
-          setShow("Main")
-        }}
-      >
+        onClose={() => setShow("Main")} >
         {/* <DialogTitle>Subscribe</DialogTitle> */}
         <Box component="form" onSubmit={handleSubmit} noValidate sx={{ mt: 1 }}>
 
@@ -195,19 +267,14 @@ export default function FormMahalCreate({setShow}) {
             </DialogContentText>
 
 
-
             {/* lbs adı seçme - çoktan seçmeli - mahal başlığı için*/}
             <Box
-              onClick={() => setNewMahalError(prevData => {
-                const newData = { ...prevData }
-                delete newData["lbsId"]
-                return newData
-              })}
+              onClick={() => setLbsIdError()}
               sx={{ minWidth: 120, marginBottom: "0rem" }}
             >
 
               <InputLabel
-                error={newMahalError.lbsId ? true : false}
+                error={lbsIdError ? true : false}
                 id="select-lbs-label"
               >
                 <Grid container justifyContent="space-between">
@@ -224,7 +291,7 @@ export default function FormMahalCreate({setShow}) {
               </InputLabel>
 
               <Select
-                error={newMahalError.lbsId ? true : false}
+                error={lbsIdError ? true : false}
                 variant="standard"
                 fullWidth
                 labelId="select-lbs-label"
@@ -289,16 +356,22 @@ export default function FormMahalCreate({setShow}) {
                           })
                         }
 
-                        {lbsName.split(">").map((item, index) => (
+                        {/* lbsName hazır aslında ama aralarındaki ok işaretini kırmızıya boyamak için */}
+                        <Box sx={{ display: "grid", gridAutoFlow: "column", justifyContent: "start" }} >
 
-                          <Box key={index} component={"span"} >
-                            {item}
-                            {index + 1 !== lbsName.split(">").length &&
-                              <Box component={"span"} ml={0.1} mr={0.3}>{"--"}</Box>
-                            }
-                          </Box>
+                          {lbsName.split(">").map((item, index) => (
 
-                        ))}
+                            <Box key={index} sx={{ display: "grid", gridAutoFlow: "column", justifyContent: "start" }} >
+                              {item}
+                              {index + 1 !== lbsName.split(">").length &&
+                                <Box sx={{ color: myTema.renkler.baslik2_ayrac, mx: "0.2rem" }} >{">"}</Box>
+                              }
+                            </Box>
+
+                          ))}
+
+                          {/* <Typography>{lbsName}</Typography> */}
+                        </Box>
 
                       </MenuItem>
                     ))
@@ -310,15 +383,11 @@ export default function FormMahalCreate({setShow}) {
 
 
 
-            {/* mahal kodunun yazıldığı alan */}
+            {/* mahal numarasının yazıldığı alan */}
             {/* tıklayınca setShowDialogError(false) çalışmasının sebebi -->  error vermişse yazmaya başlamak için tıklayınca error un silinmesi*/}
             <Box
-              onClick={() => setNewMahalError(prevData => {
-                const newData = { ...prevData }
-                delete newData["mahalKod"]
-                return newData
-              })}
-              sx={{ minWidth: 120, marginBottom: "2rem" }}
+              onClick={() => setMahalNoError()}
+              sx={{ minWidth: 120, my: "1rem" }}
             >
               <TextField
                 sx={{
@@ -332,27 +401,25 @@ export default function FormMahalCreate({setShow}) {
                 variant="standard"
                 // InputProps={{ sx: { height:"2rem", fontSize: "1.5rem" } }}
                 margin="normal"
-                id="mahalKod"
-                name="mahalKod"
+                id="mahalNo"
+                name="mahalNo"
                 // autoFocus
-                error={newMahalError.mahalKod ? true : false}
-                helperText={newMahalError.mahalKod}
+                error={mahalNoError ? true : false}
+                helperText={mahalNoError}
                 // margin="dense"
-                label="Mahal Kod"
+                label="Mahal No"
                 type="text"
                 fullWidth
               />
             </Box>
 
 
+
+
             {/* mahal isminin yazıldığı alan */}
             {/* tıklayınca setShowDialogError(false) çalışmasının sebebi -->  error vermişse yazmaya başlamak için tıklayınca error un silinmesi*/}
             <Box
-              onClick={() => setNewMahalError(prevData => {
-                const newData = { ...prevData }
-                delete newData["mahalName"]
-                return newData
-              })}
+              onClick={() => setMahalNameError()}
               sx={{ minWidth: 120, marginBottom: "2rem" }}
             >
               <TextField
@@ -370,13 +437,95 @@ export default function FormMahalCreate({setShow}) {
                 id="mahalName"
                 name="mahalName"
                 // autoFocus
-                error={newMahalError.mahalName ? true : false}
-                helperText={newMahalError.mahalName}
+                error={mahalNameError ? true : false}
+                helperText={mahalNameError}
                 // margin="dense"
                 label="Mahal Adi"
                 type="text"
                 fullWidth
               />
+            </Box>
+
+
+            {/* mahal Tip seçme - çoktan seçmeli*/}
+            <Box
+              onClick={() => setMahalMetrajTipIdError()}
+              sx={{ minWidth: 120, marginBottom: "0rem" }}
+            >
+              <InputLabel
+                error={mahalMetrajTipIdError ? true : false}
+                id="select-mahalMetrajTip-label"
+              >
+                <Grid container justifyContent="space-between">
+                  <Grid item>Metraj Tipi Seçiniz</Grid>
+                </Grid>
+              </InputLabel>
+
+              <Select
+                error={mahalMetrajTipIdError ? true : false}
+                variant="standard"
+                fullWidth
+                labelId="select-mahalMetrajTip-label"
+                id="select-mahalMetrajTip"
+                value={mahalMetrajTipId ? mahalMetrajTipId : ""}
+                label="Mahal için tip seçiniz"
+                onChange={handleChange_mahalMetrajTipId}
+                required
+                name="mahalMetrajTipId"
+              >
+                {
+                  selectedProje?.mahalMetrajTipleri.map((oneMahalMetrajTipi, index) => (
+                    // console.log(lbs)
+                    <MenuItem key={index} value={oneMahalMetrajTipi.id}>
+                      {oneMahalMetrajTipi.name}
+                    </MenuItem>
+                  ))
+                }
+
+              </Select>
+
+            </Box>
+
+
+
+            {/* mahal biriminin seçildiği alan */}
+            <Box
+              onClick={() => setMahalBirimIdError()}
+              sx={{ minWidth: 120, marginTop: "2rem" }}
+            >
+              <InputLabel
+                error={mahalBirimIdError ? true : false}
+                id="select-newMahalBirim-label"
+              >
+                <Grid container justifyContent="space-between">
+                  <Grid item>Mahal Birim Seçiniz</Grid>
+                </Grid>
+              </InputLabel>
+
+              <Select
+                error={mahalBirimIdError ? true : false}
+                variant="standard"
+                fullWidth
+                labelId="select-newMahalBirim-label"
+                id="select-newMahalBirim"
+                value={mahalBirimId ? mahalBirimId : ""}
+                label="Mahal için tip seçiniz"
+                onChange={handleChange_mahalBirimId}
+                required
+                name="mahalBirimId"
+                disabled={mahalBirimDisabled}
+              >
+                {
+                  selectedProje?.mahalBirimleri.map((oneMahalBirim, index) => (
+                    <MenuItem key={index} value={oneMahalBirim.id}>
+                      {/* {console.log(oneMahalBirim)} */}
+                      {oneMahalBirim.name}
+                    </MenuItem>
+                  ))
+                }
+
+              </Select>
+
             </Box>
 
           </DialogContent>

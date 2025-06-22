@@ -15,7 +15,7 @@ import { DialogTitle, Typography } from '@mui/material';
 
 
 
-export default function ShowPozBaslik({ setShow, basliklar, setBasliklar }) {
+export default function ShowMahalBaslik({ setShow, basliklar, setBasliklar }) {
 
   const RealmApp = useApp();
   const [dialogAlert, setDialogAlert] = useState()
@@ -37,7 +37,7 @@ export default function ShowPozBaslik({ setShow, basliklar, setBasliklar }) {
       setBasliklar(basliklar2)
 
       // db ye gönderme işlemi
-      await RealmApp?.currentUser.callFunction("customSettings_update", ({ functionName: "sayfaBasliklari", sayfaName: "pozlar", baslikId, showValue }))
+      await RealmApp?.currentUser.callFunction("customSettings_update", ({ functionName: "sayfaBasliklari", sayfaName: "mahaller", baslikId, showValue }))
       await RealmApp?.currentUser.refreshCustomData()
 
       return
