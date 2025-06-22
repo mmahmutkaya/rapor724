@@ -2,7 +2,7 @@ exports = async function ({
   _projeId, upLbsId, newLbsName, newLbsCodeName, functionName, _lbsId
 }) {
 
-
+  // deneme
   const user = context.user
   const _userId = new BSON.ObjectId(user.id)
   const userEmail = context.user.data.email
