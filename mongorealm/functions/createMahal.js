@@ -16,10 +16,6 @@ exports = async function ({
 
   // newMahal frontend den gelen veri
 
-  // veri düzeltme
-  if (newMahal.mahalMetrajTipId === "insaatDemiri") {
-    newMahal.mahalBirimId = "ton"
-  }
 
   // gelen veri kontrol
   if (!newMahal._firmaId) {
@@ -41,8 +37,7 @@ exports = async function ({
   let lbsIdError
   let mahalNameError
   let mahalNoError
-  let mahalBirimIdError
-  let mahalMetrajTipIdError
+
 
 
   if (!newMahal._lbsId && !lbsIdError) {
@@ -103,6 +98,7 @@ exports = async function ({
   }
 
 
+<<<<<<< HEAD
   if (!newMahal.mahalBirimId && !mahalBirimIdError) {
     errorObject.mahalBirimIdError = `Zorunlu`
     mahalBirimIdError = true
@@ -116,6 +112,8 @@ exports = async function ({
     mahalMetrajTipIdError = true
     isFormError = true
   }
+=======
+>>>>>>> 7942dc7662846e4abcf7b1f73b952f3dfd342a8d
 
 
   // form alanına uyarı veren hatalar olmuşsa burda durduralım
