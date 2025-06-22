@@ -19,7 +19,7 @@ exports = async function ({
     {
       $project: {
         _projeId:1,
-        wbsId:1,
+        _wbsId:1,
         pozNo:1,
         pozName:1,
         pozBirimId:1,
