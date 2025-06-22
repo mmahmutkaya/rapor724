@@ -53,8 +53,8 @@ exports = async function ({
     if (Object.keys(errorObject).length > 0) return { errorObject }
 
 
-    const collection_Projeler = context.services.get("mongodb-atlas").db("rapor724_v2").collection("projeler")
-    const proje = await collection_Projeler.findOne({ _id: _projeId, "yetkiliKisiler.email": userEmail, isDeleted: false })
+    const collection_projeler = context.services.get("mongodb-atlas").db("rapor724_v2").collection("projeler")
+    const proje = await collection_projeler.findOne({ _id: _projeId, isDeleted: false })
     if (!proje) throw new Error("MONGO // collection_projeler__wbs // " + functionName + " // _projeId ile sistemde proje bulunamadı, lütfen sayfayı yenileyiniz, sorun devam ederse Rapor7/24 ile irtibata geçiniz.")
 
 
@@ -75,7 +75,7 @@ exports = async function ({
 
       try {
 
-        const result = await collection_Projeler.updateOne(
+        const result = await collection_projeler.updateOne(
           { _id: _projeId },
           [
             { $set: { wbs: [newWbsItem] } }
@@ -128,7 +128,7 @@ exports = async function ({
 
       try {
 
-        const result = await collection_Projeler.updateOne(
+        const result = await collection_projeler.updateOne(
           { _id: _projeId },
           [
             { $set: { wbs: { $concatArrays: ["$wbs", [newWbsItem]] } } }
@@ -200,7 +200,7 @@ exports = async function ({
 
     try {
 
-      const result = await collection_Projeler.updateOne(
+      const result = await collection_projeler.updateOne(
         { _id: _projeId },
         [
           { $set: { wbs: { $concatArrays: ["$wbs", [newWbsItem]] } } }
@@ -253,8 +253,8 @@ exports = async function ({
     if (Object.keys(errorObject).length > 0) return { errorObject }
 
 
-    const collection_Projeler = context.services.get("mongodb-atlas").db("rapor724_v2").collection("projeler")
-    const proje = await collection_Projeler.findOne({ _id: _projeId, isDeleted: false })
+    const collection_projeler = context.services.get("mongodb-atlas").db("rapor724_v2").collection("projeler")
+    const proje = await collection_projeler.findOne({ _id: _projeId, isDeleted: false })
     if (!proje) throw new Error("MONGO // collection_projeler__wbs // " + functionName + " // _projeId ile sistemde proje bulunamadı, lütfen sayfayı yenileyiniz, sorun devam ederse Rapor7/24 ile irtibata geçiniz.")
     if (!proje.wbs.find(x => x._id.toString() == _wbsId.toString())) throw new Error("MONGO // collection_projeler__wbs // " + functionName + " // güncellenmek istenen _wbsId sistemde bulunamadı, lütfen sayfayı yenileyiniz, sorun devam ederse Rapor7/24 ile irtibata geçiniz.")
 
@@ -263,13 +263,13 @@ exports = async function ({
 
       const newWbsArray = proje.wbs.map(item => {
         if (item._id.toString() === _wbsId.toString()) {
-          return { ...item, name:newWbsName, codeName:newWbsCodeName }
+          return { ...item, name: newWbsName, codeName: newWbsCodeName }
         } else {
           return item
         }
       })
 
-      const result = await collection_Projeler.updateOne(
+      const result = await collection_projeler.updateOne(
         { _id: _projeId },
         [
           { $set: { wbs: newWbsArray } }
@@ -290,8 +290,8 @@ exports = async function ({
     if (typeof _projeId != "object") throw new Error("MONGO // collection_projeler__wbs // " + functionName + " // -- sorguya gönderilen --projeId-- türü doğru değil, lütfen Rapor7/24 ile irtibata geçiniz. ")
     if (typeof _wbsId != "object") throw new Error("MONGO // collection_projeler__wbs // " + functionName + " // -- sorguya gönderilen --_wbsId-- türü doğru değil, lütfen Rapor7/24 ile irtibata geçiniz. ")
 
-    const collection_Projeler = context.services.get("mongodb-atlas").db("rapor724_v2").collection("projeler")
-    const proje = await collection_Projeler.findOne({ _id: _projeId, "yetkiliKisiler.email": userEmail, isDeleted: false })
+    const collection_projeler = context.services.get("mongodb-atlas").db("rapor724_v2").collection("projeler")
+    const proje = await collection_projeler.findOne({ _id: _projeId, isDeleted: false })
     if (!proje) throw new Error("MONGO // collection_projeler__wbs // " + functionName + " // _projeId ile sistemde proje bulunamadı, lütfen sayfayı yenileyiniz, sorun devam ederse Rapor7/24 ile irtibata geçiniz.")
 
     if (!proje.wbs) throw new Error("MONGO // collection_projeler__wbs // " + functionName + " // Projeye ait WBS bulunamadı")
@@ -320,7 +320,7 @@ exports = async function ({
         }
       })
 
-      const result = await collection_Projeler.updateOne(
+      const result = await collection_projeler.updateOne(
         { _id: _projeId },
         [
           { $set: { wbs: newWbsArray } }
@@ -336,29 +336,28 @@ exports = async function ({
   }
 
 
-
   if (functionName == "closeWbsForPoz") {
 
     if (typeof _projeId != "object") throw new Error("MONGO // collection_projeler__wbs // " + functionName + " // -- sorguya gönderilen --projeId-- türü doğru değil, lütfen Rapor7/24 ile irtibata geçiniz. ")
     if (typeof _wbsId != "object") throw new Error("MONGO // collection_projeler__wbs // " + functionName + " // -- sorguya gönderilen --_wbsId-- türü doğru değil, lütfen Rapor7/24 ile irtibata geçiniz. ")
 
-    const collection_Projeler = context.services.get("mongodb-atlas").db("rapor724_v2").collection("projeler")
-    const proje = await collection_Projeler.findOne({ _id: _projeId, "yetkiliKisiler.email": userEmail, isDeleted: false })
+    const collection_projeler = context.services.get("mongodb-atlas").db("rapor724_v2").collection("projeler")
+    const proje = await collection_projeler.findOne({ _id: _projeId, isDeleted: false })
     if (!proje) throw new Error("MONGO // collection_projeler__wbs // " + functionName + " // _projeId ile sistemde proje bulunamadı, lütfen sayfayı yenileyiniz, sorun devam ederse Rapor7/24 ile irtibata geçiniz.")
 
     if (!proje.wbs) throw new Error("MONGO // collection_projeler__wbs // " + functionName + " // Projeye ait WBS bulunamadı")
 
     let theWbs = proje.wbs.find(item => item._id.toString() == _wbsId.toString())
-    if (!theWbs) throw new Error("MONGO // collection_projeler__wbs // " + functionName + " // " + "Sorguya gönderilen wbsId sistemde bulunamadı, sayfayı yenileyiniz, sorun devam ederse Rapor7/24 ile irtibata geçiniz.")
+    if (!theWbs) throw new Error("MONGO // collection_projeler__wbs // " + functionName + " // " + "__mesajBaslangic__ Sorguya gönderilen wbsId sistemde bulunamadı, sayfayı yenileyiniz, sorun devam ederse Rapor7/24 ile irtibata geçiniz. __mesajBitis__")
 
     // aşağıda pozlar collection da poz var mı diye sorgulama yapmaya gerek kalmadı
-    if (theWbs.includesPoz) throw new Error("MONGO // collection_projeler__wbs // " + functionName + " // " + "__mesajBaslangic__ Seçili başlık altında kayıtlı pozlar mevcut, öncelikle pozları silmeli ya da başka başlık altına taşımalısınız. __mesajBitis__")
+    if (theWbs.includesPoz) throw new Error("MONGO // collection_projeler__wbs // " + functionName + " // " + "__mesajBaslangic__ Seçili başlık altında kayıtlı pozlar varken bu işlem yapılamaz. __mesajBitis__")
 
-    const collection_Pozlar = context.services.get("mongodb-atlas").db("rapor724_v2").collection("pozlar")
-    const poz = await collection_Pozlar.findOne({ _wbsId, isDeleted: false })
+    const collection_pozlar = context.services.get("mongodb-atlas").db("rapor724_v2").collection("pozlar")
+    const poz = await collection_pozlar.findOne({ _wbsId, isDeleted: false })
 
     // wbs altına poz eklenmişse silinmesin, pozlara ulaşamayız
-    if (poz) throw new Error("MONGO // collection_projeler__wbs // " + functionName + " // " + "__mesajBaslangic__ Seçili başlık altında kayıtlı pozlar mevcut, öncelikle pozları silmeli ya da başka başlık altına taşımalısınız. __mesajBitis__")
+    if (poz) throw new Error("MONGO // collection_projeler__wbs // " + functionName + " // " + "__mesajBaslangic__ Seçili başlık altında kayıtlı pozlar varken bu işlem yapılamaz. __mesajBitis__")
 
 
     try {
@@ -371,7 +370,7 @@ exports = async function ({
         }
       })
 
-      const result = await collection_Projeler.updateOne(
+      const result = await collection_projeler.updateOne(
         { _id: _projeId },
         [
           { $set: { wbs: newWbsArray } }
@@ -388,22 +387,23 @@ exports = async function ({
   }
 
 
-
-
   if (functionName == "deleteWbs") {
 
     if (typeof _projeId != "object") throw new Error("MONGO // collection_projeler__wbs // " + functionName + " // -- sorguya gönderilen --projeId-- türü doğru değil, lütfen Rapor7/24 ile irtibata geçiniz. ")
     if (typeof _wbsId != "object") throw new Error("MONGO // collection_projeler__wbs // " + functionName + " // -- sorguya gönderilen --_wbsId-- türü doğru değil, lütfen Rapor7/24 ile irtibata geçiniz. ")
 
-    const collection_Projeler = context.services.get("mongodb-atlas").db("rapor724_v2").collection("projeler")
-    const proje = await collection_Projeler.findOne({ _id: _projeId, "yetkiliKisiler.email": userEmail, isDeleted: false })
+    const collection_projeler = context.services.get("mongodb-atlas").db("rapor724_v2").collection("projeler")
+    const proje = await collection_projeler.findOne({ _id: _projeId, isDeleted: false })
     if (!proje) throw new Error("MONGO // collection_projeler__wbs // " + functionName + " // _projeId ile sistemde proje bulunamadı, lütfen sayfayı yenileyiniz, sorun devam ederse Rapor7/24 ile irtibata geçiniz.")
 
     let { wbs: currentWbsArray } = proje
     if (!currentWbsArray) throw new Error("MONGO // collection_projeler__wbs // " + functionName + " // Projeye ait WBS bulunamadı")
 
-    let oneWbs = currentWbsArray.find(item => item._id.toString() == _wbsId.toString())
-    if (!oneWbs) throw new Error("MONGO // collection_projeler__wbs // " + functionName + " // Sorguya gönderilen wbsId sistemde bulunamadı, sayfayı yenileyiniz, sorun devam ederse Rapor7/24 ile irtibata geçiniz.")
+    // return {currentWbsArray, _wbsId}
+
+    let oneWbs = await currentWbsArray.find(item => item._id.toString() == _wbsId.toString())
+
+    if (!oneWbs) throw new Error("MONGO // collection_projeler__wbs // " + functionName + " // Sorguya gönderilen _wbsId sistemde bulunamadı, sayfayı yenileyiniz, sorun devam ederse Rapor7/24 ile irtibata geçiniz.")
 
     // aşağıda pozlar collection da poz var mı diye sorgulama yapmaya gerek kalmadı
     if (oneWbs.openForPoz) throw new Error("MONGO // collection_projeler__wbs // " + functionName + " // __mesajBaslangic__ Poz eklemeye açık başlıklar silinemez. __mesajBitis__")
@@ -412,11 +412,11 @@ exports = async function ({
     // burada includes kullanamayız çünkü içinde değil başında arıyoruz
     let { code: oneWbsCode } = oneWbs
     if (currentWbsArray.find(item => item.code.indexOf(oneWbsCode + ".") === 0)) {
-      throw new Error("MONGO // collection_projeler__wbs // " + functionName + " // " + "Silmek istediğiniz  WBS'in alt seviyeleri mevcut, öncelikle onları silmelisiniz.")
+      throw new Error("MONGO // collection_projeler__wbs // " + functionName + " // " + "__mesajBaslangic__ Silmek istediğiniz  WBS'in alt seviyeleri mevcut, öncelikle onları silmelisiniz. __mesajBitis__")
     }
 
-    const collection_Pozlar = context.services.get("mongodb-atlas").db("rapor724_v2").collection("pozlar")
-    const poz = await collection_Pozlar.findOne({ _wbsId, isDeleted: false })
+    const collection_pozlar = context.services.get("mongodb-atlas").db("rapor724_v2").collection("pozlar")
+    const poz = await collection_pozlar.findOne({ _wbsId, isDeleted: false })
 
     // wbs altına poz eklenmişse silinmesin, pozlara ulaşamayız
     if (poz) throw new Error("MONGO // collection_projeler__wbs // " + functionName + " // " + "__mesajBaslangic__ Altında poz bulunan başlıklar silinemez. __mesajBitis__")
@@ -485,7 +485,7 @@ exports = async function ({
 
         // return newWbsArray2
 
-        const result = await collection_Projeler.updateOne(
+        const result = await collection_projeler.updateOne(
           { _id: _projeId },
           [
             { $set: { wbs: newWbsArray2 } }
@@ -558,7 +558,7 @@ exports = async function ({
 
         // return newWbsArray2
 
-        const result = await collection_Projeler.updateOne(
+        const result = await collection_projeler.updateOne(
           { _id: _projeId },
           [
             { $set: { wbs: newWbsArray2 } }
@@ -586,8 +586,8 @@ exports = async function ({
     if (typeof _projeId != "object") throw new Error("MONGO // collection_projeler__wbs // " + functionName + " // -- sorguya gönderilen --projeId-- türü doğru değil, lütfen Rapor7/24 ile irtibata geçiniz. ")
     if (typeof _wbsId != "object") throw new Error("MONGO // collection_projeler__wbs // " + functionName + " // -- sorguya gönderilen --_wbsId-- türü doğru değil, lütfen Rapor7/24 ile irtibata geçiniz. ")
 
-    const collection_Projeler = context.services.get("mongodb-atlas").db("rapor724_v2").collection("projeler")
-    const proje = await collection_Projeler.findOne({ _id: _projeId, "yetkiliKisiler.email": userEmail, isDeleted: false })
+    const collection_projeler = context.services.get("mongodb-atlas").db("rapor724_v2").collection("projeler")
+    const proje = await collection_projeler.findOne({ _id: _projeId, isDeleted: false })
     if (!proje) throw new Error("MONGO // collection_projeler__wbs // " + functionName + " // _projeId ile sistemde proje bulunamadı, lütfen sayfayı yenileyiniz, sorun devam ederse Rapor7/24 ile irtibata geçiniz.")
 
     let { wbs: currentWbsArray } = proje
@@ -748,7 +748,7 @@ exports = async function ({
 
       if (switch1) {
 
-        const result = await collection_Projeler.updateOne(
+        const result = await collection_projeler.updateOne(
           { _id: _projeId },
           [
             { $set: { wbs: _wbs2 } }
@@ -781,8 +781,8 @@ exports = async function ({
     if (typeof _projeId != "object") throw new Error("MONGO // collection_projeler__wbs // " + functionName + " // -- sorguya gönderilen --projeId-- türü doğru değil, lütfen Rapor7/24 ile irtibata geçiniz. ")
     if (typeof _wbsId != "object") throw new Error("MONGO // collection_projeler__wbs // " + functionName + " // -- sorguya gönderilen --_wbsId-- türü doğru değil, lütfen Rapor7/24 ile irtibata geçiniz. ")
 
-    const collection_Projeler = context.services.get("mongodb-atlas").db("rapor724_v2").collection("projeler")
-    const proje = await collection_Projeler.findOne({ _id: _projeId, "yetkiliKisiler.email": userEmail, isDeleted: false })
+    const collection_projeler = context.services.get("mongodb-atlas").db("rapor724_v2").collection("projeler")
+    const proje = await collection_projeler.findOne({ _id: _projeId, isDeleted: false })
     if (!proje) throw new Error("MONGO // collection_projeler__wbs // " + functionName + " // _projeId ile sistemde proje bulunamadı, lütfen sayfayı yenileyiniz, sorun devam ederse Rapor7/24 ile irtibata geçiniz.")
 
     let { wbs: currentWbsArray } = proje
@@ -938,7 +938,7 @@ exports = async function ({
 
       if (switch1) {
 
-        const result = await collection_Projeler.updateOne(
+        const result = await collection_projeler.updateOne(
           { _id: _projeId },
           [
             { $set: { wbs: _wbs2 } }
@@ -971,8 +971,8 @@ exports = async function ({
     if (typeof _projeId != "object") throw new Error("MONGO // collection_projeler__wbs // " + functionName + " // -- sorguya gönderilen --projeId-- türü doğru değil, lütfen Rapor7/24 ile irtibata geçiniz. ")
     if (typeof _wbsId != "object") throw new Error("MONGO // collection_projeler__wbs // " + functionName + " // -- sorguya gönderilen --_wbsId-- türü doğru değil, lütfen Rapor7/24 ile irtibata geçiniz. ")
 
-    const collection_Projeler = context.services.get("mongodb-atlas").db("rapor724_v2").collection("projeler")
-    const proje = await collection_Projeler.findOne({ _id: _projeId, "yetkiliKisiler.email": userEmail, isDeleted: false })
+    const collection_projeler = context.services.get("mongodb-atlas").db("rapor724_v2").collection("projeler")
+    const proje = await collection_projeler.findOne({ _id: _projeId, isDeleted: false })
     if (!proje) throw new Error("MONGO // collection_projeler__wbs // " + functionName + " // _projeId ile sistemde proje bulunamadı, lütfen sayfayı yenileyiniz, sorun devam ederse Rapor7/24 ile irtibata geçiniz.")
 
     let { wbs: currentWbsArray } = proje
@@ -1128,7 +1128,7 @@ exports = async function ({
 
       if (switch1) {
 
-        const result = await collection_Projeler.updateOne(
+        const result = await collection_projeler.updateOne(
           { _id: _projeId },
           [
             { $set: { wbs: _wbs2 } }
@@ -1161,8 +1161,8 @@ exports = async function ({
     if (typeof _projeId != "object") throw new Error("MONGO // collection_projeler__wbs // " + functionName + " // -- sorguya gönderilen --projeId-- türü doğru değil, lütfen Rapor7/24 ile irtibata geçiniz. ")
     if (typeof _wbsId != "object") throw new Error("MONGO // collection_projeler__wbs // " + functionName + " // -- sorguya gönderilen --_wbsId-- türü doğru değil, lütfen Rapor7/24 ile irtibata geçiniz. ")
 
-    const collection_Projeler = context.services.get("mongodb-atlas").db("rapor724_v2").collection("projeler")
-    const proje = await collection_Projeler.findOne({ _id: _projeId, "yetkiliKisiler.email": userEmail, isDeleted: false })
+    const collection_projeler = context.services.get("mongodb-atlas").db("rapor724_v2").collection("projeler")
+    const proje = await collection_projeler.findOne({ _id: _projeId, isDeleted: false })
     if (!proje) throw new Error("MONGO // collection_projeler__wbs // " + functionName + " // _projeId ile sistemde proje bulunamadı, lütfen sayfayı yenileyiniz, sorun devam ederse Rapor7/24 ile irtibata geçiniz.")
 
     let { wbs: currentWbsArray } = proje
@@ -1260,11 +1260,11 @@ exports = async function ({
 
 
       if (name_Match) {
-        throw new Error("MONGO // moveWbsLeft // __mesajBaslangic__ Taşınmak istenen seviyede --" + _selectedWbs.name + "-- ismi mevcut, aynı seviyede iki aynı başlık kullanılamaz. __mesajBitis__")
+        throw new Error("MONGO // moveWbsLeft // __mesajBaslangic__ Eşit seviyede bir başlık ismi birden fazla kullanılamaz. Başlık ismini değiştirerek tekrar deneyiniz.  __mesajBitis__")
       }
 
       if (codeName_Match) {
-        throw new Error("MONGO // moveWbsLeft // __mesajBaslangic__ Taşınmak istenen seviyede --" + codeName_Match_name + "-- isimli başlığın kod ismi --" + _selectedWbs.codeName + "-- ve taşınmak istenen başlığın kod ismi ile aynı. Aynı seviyede iki aynı kod ismi kullanılamaz. __mesajBitis__")
+        throw new Error("MONGO // moveWbsLeft // __mesajBaslangic__ Eşit seviyede bir kod ismi birden fazla kullanılamaz. Kod ismini değiştirerek tekrar deneyiniz.  __mesajBitis__")
       }
 
 
@@ -1353,7 +1353,7 @@ exports = async function ({
 
       if (switch1) {
 
-        const result = await collection_Projeler.updateOne(
+        const result = await collection_projeler.updateOne(
           { _id: _projeId },
           [
             { $set: { wbs: _wbs2 } }
@@ -1386,8 +1386,8 @@ exports = async function ({
     if (typeof _projeId != "object") throw new Error("MONGO // collection_projeler__wbs // " + functionName + " // -- sorguya gönderilen --projeId-- türü doğru değil, lütfen Rapor7/24 ile irtibata geçiniz. ")
     if (typeof _wbsId != "object") throw new Error("MONGO // collection_projeler__wbs // " + functionName + " // -- sorguya gönderilen --_wbsId-- türü doğru değil, lütfen Rapor7/24 ile irtibata geçiniz. ")
 
-    const collection_Projeler = context.services.get("mongodb-atlas").db("rapor724_v2").collection("projeler")
-    const proje = await collection_Projeler.findOne({ _id: _projeId, "yetkiliKisiler.email": userEmail, isDeleted: false })
+    const collection_projeler = context.services.get("mongodb-atlas").db("rapor724_v2").collection("projeler")
+    const proje = await collection_projeler.findOne({ _id: _projeId, isDeleted: false })
     if (!proje) throw new Error("MONGO // collection_projeler__wbs // " + functionName + " // _projeId ile sistemde proje bulunamadı, lütfen sayfayı yenileyiniz, sorun devam ederse Rapor7/24 ile irtibata geçiniz.")
 
     let { wbs: currentWbsArray } = proje
@@ -1469,19 +1469,20 @@ exports = async function ({
     })
 
 
-    if (name_Match) {
-      throw new Error("MONGO // moveWbsRight // __mesajBaslangic__ Taşınmak istenen seviyede --" + _selectedWbs.name + "-- ismi mevcut, aynı seviyede iki aynı başlık kullanılamaz. __mesajBitis__")
-    }
+      if (name_Match) {
+        throw new Error("MONGO // moveWbsLeft // __mesajBaslangic__ Eşit seviyede bir başlık ismi birden fazla kullanılamaz. Başlık ismini değiştirerek tekrar deneyiniz.  __mesajBitis__")
+      }
 
-    if (codeName_Match) {
-      throw new Error("MONGO // moveWbsRight // __mesajBaslangic__ Taşınmak istenen seviyede --" + codeName_Match_name + "-- isimli başlığın kod ismi --" + _selectedWbs.codeName + "-- ve taşınmak istenen başlığın kod ismi ile aynı. Aynı seviyede iki aynı kod ismi kullanılamaz. __mesajBitis__")
-    }
+      if (codeName_Match) {
+        throw new Error("MONGO // moveWbsLeft // __mesajBaslangic__ Eşit seviyede bir kod ismi birden fazla kullanılamaz. Kod ismini değiştirerek tekrar deneyiniz.  __mesajBitis__")
+      }
+
 
 
 
     // üst başlık poza açıksa iptal
     if (upWbs.openForPoz) {
-      throw new Error("MONGO // moveWbsRight // __mesajBaslangic__ poza açık başlıkların alt başlığı olamaz. __mesajBitis__")
+      throw new Error("MONGO // moveWbsRight // __mesajBaslangic__ Poza açık başlıkların alt başlığı olamaz. __mesajBitis__")
     }
 
     // tespit edilen üst başlığın mevcut alt başlıkları varsa en sonuncusunu bulma
@@ -1566,7 +1567,7 @@ exports = async function ({
 
     try {
 
-      const result = await collection_Projeler.updateOne(
+      const result = await collection_projeler.updateOne(
         { _id: _projeId },
         [
           { $set: { wbs: _wbs } }
