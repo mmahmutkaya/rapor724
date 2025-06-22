@@ -30,7 +30,7 @@ import Switch from '@mui/material/Switch';
 import { styled } from '@mui/material/styles';
 
 
-export default function WbsHeader({ setShow, nameMode, setNameMode, codeMode, setCodeMode }) {
+export default function HeaderFirmaWbs({ setShow, nameMode, setNameMode, codeMode, setCodeMode }) {
 
   const navigate = useNavigate()
 
@@ -271,7 +271,7 @@ export default function WbsHeader({ setShow, nameMode, setNameMode, codeMode, se
 
       // bu kontrol backend de ayrıca yapılıyor
       if (selectedWbs.openForPoz) {
-        throw new Error("Poz eklemeye açık başlıklar silinemez, öncelikle poz eklemeye kapatınız")
+        throw new Error("__mesajBaslangic__ Poz eklemeye açık başlıklar silinemez, öncelikle poz eklemeye kapatınız. __mesajBitis__")
       }
 
       const result = await RealmApp.currentUser.callFunction("collection_firmalar__wbs", { functionName: "deleteWbs", _firmaId: selectedFirma._id, _wbsId: selectedWbs._id });

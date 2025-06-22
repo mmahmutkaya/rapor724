@@ -66,7 +66,7 @@ export default function FormFirmaPozCreate({ setShow }) {
 
       const newPoz = {
         _firmaId: selectedFirma._id,
-        wbsId,
+        _wbsId:wbsId,
         pozName,
         pozNo,
         pozBirimId,
@@ -90,7 +90,7 @@ export default function FormFirmaPozCreate({ setShow }) {
 
       // form alanına uyarı veren hatalar
 
-      if (!newPoz.wbsId && !wbsIdError) {
+      if (!newPoz._wbsId && !wbsIdError) {
         setWbsIdError("Zorunlu")
         wbsIdError = true
         isFormError = true
@@ -133,7 +133,7 @@ export default function FormFirmaPozCreate({ setShow }) {
         isFormError = true
       }
 
-      let pozFinded = pozlar?.find(x => x.pozNo == newPoz.pozNo)
+      let pozFinded = pozlar?.find(x => x.pozNo === newPoz.pozNo)
       if (pozFinded && !pozNoError) {
         setPozNoError(`Bu poz numarası kullanılmış`)
         pozNoError = true
@@ -359,11 +359,11 @@ export default function FormFirmaPozCreate({ setShow }) {
                         }
 
                         {/* wbsName hazır aslında ama aralarındaki ok işaretini kırmızıya boyamak için */}
-                        <Box sx={{ display: "grid", gridAutoFlow: "column" }} >
+                        <Box sx={{ display: "grid", gridAutoFlow: "column", justifyContent: "start" }} >
 
                           {wbsName.split(">").map((item, index) => (
 
-                            <Box key={index} sx={{ display: "grid", gridAutoFlow: "column" }} >
+                            <Box key={index} sx={{ display: "grid", gridAutoFlow: "column", justifyContent: "start" }} >
                               {item}
                               {index + 1 !== wbsName.split(">").length &&
                                 <Box sx={{ color: myTema.renkler.baslik2_ayrac, mx: "0.2rem" }} >{">"}</Box>

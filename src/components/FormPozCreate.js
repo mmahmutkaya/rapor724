@@ -3,7 +3,7 @@ import { useState, useContext } from 'react';
 import { StoreContext } from './store.js'
 import deleteLastSpace from '../functions/deleteLastSpace.js';
 import { DialogAlert } from './general/DialogAlert.js';
-import { useGetFirmaPozlar } from '../hooks/useMongo.js';
+import { useGetPozlar } from '../hooks/useMongo.js';
 import { useQueryClient } from '@tanstack/react-query'
 
 
@@ -24,7 +24,7 @@ import ArrowForwardIcon from '@mui/icons-material/ArrowForward';
 
 
 
-// export default function FormPozCreate({ setShow, selectedFirma, refetch_pozlar }) {
+
 
 export default function FormPozCreate({ setShow }) {
 
@@ -33,7 +33,7 @@ export default function FormPozCreate({ setShow }) {
   const { RealmApp, myTema } = useContext(StoreContext)
 
   const { selectedFirma, selectedProje } = useContext(StoreContext)
-  const { data: pozlar } = useGetFirmaPozlar()
+  const { data: pozlar } = useGetPozlar()
 
   const [dialogAlert, setDialogAlert] = useState()
 
@@ -46,7 +46,6 @@ export default function FormPozCreate({ setShow }) {
   // form verilerinde kullanmak için oluşturulan useState() verileri
   // form ilk açıldığında önceden belirlenen birşeyin seçilmiş olması için alttaki satırdaki gibi yapılabiliyor
   const [pozMetrajTipId, setPozMetrajTipId] = useState("standartMetrajSayfasi");
-  // const [pozMetrajTipi, setPozMetrajTipi] = useState(selectedFirma ? selectedFirma.pozMetrajTipleri.find(item => item.id === "standartMetrajSayfasi") : "");
   const [wbsId, setWbsId] = useState();
   const [pozBirimId, setPozBirimId] = useState();
   const [pozBirimDisabled, setPozBirimDisabled] = useState(false);
@@ -149,7 +148,7 @@ export default function FormPozCreate({ setShow }) {
       }
 
 
-      if (!selectedFirma.pozMetrajTipleri.find(x => x.id == newPoz.pozMetrajTipId) && !pozMetrajTipIdError) {
+      if (!selectedProje.pozMetrajTipleri.find(x => x.id == newPoz.pozMetrajTipId) && !pozMetrajTipIdError) {
         setPozMetrajTipIdError(`Zorunlu`)
         pozMetrajTipIdError = true
         isFormError = true
@@ -158,14 +157,11 @@ export default function FormPozCreate({ setShow }) {
 
       // form alanına uyarı veren hatalar olmuşsa burda durduralım
       if (isFormError) {
-        // console.log("form validation - hata - frontend")
+        console.log("form validation - hata - frontend")
         return
       }
 
-      // console.log("newPoz", newPoz)
-      // console.log("selectedFirma._id", selectedFirma._id)
-      // return
-      // form verileri kontrolden geçti - db ye göndermeyi deniyoruz
+
 
       const result = await RealmApp?.currentUser.callFunction("createPoz", ({ ...newPoz }))
 
@@ -214,7 +210,7 @@ export default function FormPozCreate({ setShow }) {
 
   // form verilerini kullanıcıdan alıp react hafızasına yüklemek - onChange - sadece seçmeliler - yazma gibi şeyler formun submit olduğu anda yakalanıyor
   const handleChange_wbs = (event) => {
-    setWbsId(selectedFirma.wbs.find(item => item._id.toString() === event.target.value.toString())._id);
+    setWbsId(selectedProje.wbs.find(item => item._id.toString() === event.target.value.toString())._id);
   };
 
   const handleChange_pozMetrajTipId = (event) => {
@@ -231,7 +227,7 @@ export default function FormPozCreate({ setShow }) {
   };
 
   const handleChange_pozBirimId = (event) => {
-    setPozBirimId(selectedFirma.pozBirimleri.find(item => item.id === event.target.value).id);
+    setPozBirimId(selectedProje.pozBirimleri.find(item => item.id === event.target.value).id);
   };
 
 
@@ -300,14 +296,12 @@ export default function FormPozCreate({ setShow }) {
                 labelId="select-wbs-label"
                 id="select-wbs"
                 value={wbsId ? wbsId : ""}
-                // label="Poz için başlık seçiniz"
-                // label="Poz"
                 onChange={handleChange_wbs}
                 required
                 name="wbsId"
               >
                 {
-                  selectedFirma?.wbs?.filter(item => item.openForPoz)
+                  selectedProje?.wbs?.filter(item => item.openForPoz)
                     .sort(function (a, b) {
                       var nums1 = a.code.split(".");
                       var nums2 = b.code.split(".");
@@ -332,39 +326,35 @@ export default function FormPozCreate({ setShow }) {
 
                             let cOunt = wbsOne.code.split(".").length
 
-                            // console.log(cOunt)
-                            // console.log(index + 1)
-                            // console.log("---")
-
                             if (index == 0 && cOunt == 1) {
                               wbsCode = codePart
-                              wbsName = selectedFirma.wbs.find(item => item.code == wbsCode).name
+                              wbsName = selectedProje.wbs.find(item => item.code == wbsCode).name
                             }
 
                             if (index == 0 && cOunt !== 1) {
                               wbsCode = codePart
-                              wbsName = selectedFirma.wbs.find(item => item.code == wbsCode).codeName
+                              wbsName = selectedProje.wbs.find(item => item.code == wbsCode).codeName
                             }
 
                             if (index !== 0 && index + 1 !== cOunt && cOunt !== 1) {
                               wbsCode = wbsCode + "." + codePart
-                              wbsName = wbsName + " > " + selectedFirma.wbs.find(item => item.code == wbsCode).codeName
+                              wbsName = wbsName + " > " + selectedProje.wbs.find(item => item.code == wbsCode).codeName
                             }
 
                             if (index !== 0 && index + 1 == cOunt && cOunt !== 1) {
                               wbsCode = wbsCode + "." + codePart
-                              wbsName = wbsName + " > " + selectedFirma.wbs.find(item => item.code == wbsCode).name
+                              wbsName = wbsName + " > " + selectedProje.wbs.find(item => item.code == wbsCode).name
                             }
 
                           })
                         }
 
                         {/* wbsName hazır aslında ama aralarındaki ok işaretini kırmızıya boyamak için */}
-                        <Box sx={{ display: "grid", gridAutoFlow: "column" }} >
+                        <Box sx={{ display: "grid", gridAutoFlow: "column" , justifyContent:"start" }} >
 
                           {wbsName.split(">").map((item, index) => (
 
-                            <Box key={index} sx={{ display: "grid", gridAutoFlow: "column" }} >
+                            <Box key={index} sx={{ display: "grid", gridAutoFlow: "column", justifyContent:"start" }} >
                               {item}
                               {index + 1 !== wbsName.split(">").length &&
                                 <Box sx={{ color: myTema.renkler.baslik2_ayrac, mx: "0.2rem" }} >{">"}</Box>
@@ -477,7 +467,7 @@ export default function FormPozCreate({ setShow }) {
                 name="pozMetrajTipId"
               >
                 {
-                  selectedFirma?.pozMetrajTipleri.map((onePozMetrajTipi, index) => (
+                  selectedProje?.pozMetrajTipleri.map((onePozMetrajTipi, index) => (
                     // console.log(wbs)
                     <MenuItem key={index} value={onePozMetrajTipi.id}>
                       {onePozMetrajTipi.name}
@@ -519,7 +509,7 @@ export default function FormPozCreate({ setShow }) {
                 disabled={pozBirimDisabled}
               >
                 {
-                  selectedFirma?.pozBirimleri.map((onePozBirim, index) => (
+                  selectedProje?.pozBirimleri.map((onePozBirim, index) => (
                     <MenuItem key={index} value={onePozBirim.id}>
                       {/* {console.log(onePozBirim)} */}
                       {onePozBirim.name}
