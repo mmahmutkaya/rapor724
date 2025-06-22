@@ -7,23 +7,23 @@ exports = async function ({
   const _userId = new BSON.ObjectId(user.id)
   const userEmail = context.user.data.email
   const mailTeyit = user.custom_data.mailTeyit
-  if (!mailTeyit) throw new Error("MONGO // collection_firmaPozlar // Öncelikle üyeliğinize ait mail adresinin size ait olduğunu doğrulamalısınız, tekrar giriş yapmayı deneyiniz veya bizimle iletişime geçiniz.")
+  if (!mailTeyit) throw new Error("MONGO // getMahaller // Öncelikle üyeliğinize ait mail adresinin size ait olduğunu doğrulamalısınız, tekrar giriş yapmayı deneyiniz veya bizimle iletişime geçiniz.")
 
-  const collection_pozlar = context.services.get("mongodb-atlas").db("rapor724_v2").collection("pozlar")
-
-  
-  if (!_projeId) throw new Error("MONGO // getPozlar // -- sorguya gönderilen --projeId-- türü doğru değil, lütfen Rapor7/24 ile irtibata geçiniz. ")
+  const collection_mahaller = context.services.get("mongodb-atlas").db("rapor724_v2").collection("mahaller")
 
   
-  const result = await collection_pozlar.aggregate([
+  if (!_projeId) throw new Error("MONGO // getMahaller // -- sorguya gönderilen --projeId-- türü doğru değil, lütfen Rapor7/24 ile irtibata geçiniz. ")
+
+  
+  const result = await collection_mahaller.aggregate([
     {
       $project: {
         _projeId:1,
-        _wbsId:1,
-        pozNo:1,
-        pozName:1,
-        pozBirimId:1,
-        pozMetrajTipId:1,
+        _lbsId:1,
+        mahalNo:1,
+        mahalName:1,
+        mahalBirimId:1,
+        mahalMetrajTipId:1,
         isDeleted:1
       }
     },       
