@@ -1,7 +1,8 @@
-import { useState } from 'react';
+import { useState, useContext } from 'react';
+import { StoreContext } from '../components/store.js'
 import { useApp } from "./useApp.js";
 import deleteLastSpace from '../functions/deleteLastSpace.js';
-import { DialogWindow } from '../components/general/DialogWindow';
+import { DialogAlert } from './general/DialogAlert.js'
 
 
 //mui
@@ -16,32 +17,24 @@ import DialogContentText from '@mui/material/DialogContentText';
 import { Typography } from '@mui/material';
 
 
-export default function P_FormLbsCreate({ setShow, selectedProje, setSelectedProje, selectedLbs, setSelectedLbs }) {
+export default function P_FormLbsCreate({ setShow, selectedLbs, setSelectedLbs }) {
 
-  // proje ve _id si yoksa lbs oluşturma formunu göstermenin bir anlamı yok, hata vererek durduruyoruz
+  const { selectedProje, setSelectedProje } = useContext(StoreContext)
+
   if (!selectedProje?._id) {
-    throw new Error("Lbs oluşturulacak projenin database kaydı için ProjeId belirtilmemiş, sayfayı yeniden yükleyin, sorun devam ederse Rapor7/24 ile irtibata geçiniz.")
+    throw new Error("Lbs oluşturulacak projenin database kaydı için _projeId belirtilmemiş, sayfayı yeniden yükleyin, sorun devam ederse Rapor7/24 ile irtibata geçiniz.")
   }
 
-  const [showDialog, setShowDialog] = useState(false)
-  const [dialogCase, setDialogCase] = useState("")
+  const [dialogAlert, setDialogAlert] = useState(false)
 
-  const [error_for_lbsName, setError_for_lbsName] = useState(false)
-  const [errorText_for_lbsName, setErrorText_for_lbsName] = useState()
-
-  const [error_for_lbsCodeName, setError_for_lbsCodeName] = useState(false)
-  const [errorText_for_lbsCodeName, setErrorText_for_lbsCodeName] = useState()
+  const [lbsNameError, setLbsNameError] = useState()
+  const [lbsCodeNameError, setLbsCodeNameError] = useState()
 
   const RealmApp = useApp();
-
-  const callBack_m = () => setShow()
-
-
 
   async function handleSubmit(event) {
 
     event.preventDefault();
-    let isError = false
 
     try {
 
@@ -50,25 +43,26 @@ export default function P_FormLbsCreate({ setShow, selectedProje, setSelectedPro
       const lbsName = deleteLastSpace(data.get('lbsName'))
       const lbsCodeName = deleteLastSpace(data.get('lbsCodeName'))
 
+
+      let isError = false
+
       // bu kısımda frontend kısmında form validation hatalarını ilgili alanlarda gösterme işlemleri yapılır, aşağıda backend de
       if (!lbsName) {
-        setError_for_lbsName(true);
-        setErrorText_for_lbsName("Zorunlu")
+        setLbsNameError("Zorunlu")
         isError = true
         console.log("lbsName", "yok -- error")
       }
 
       // bu kısımda frontend kısmında form validation hatalarını ilgili alanlarda gösterme işlemleri yapılır, aşağıda backend de
       if (!lbsCodeName) {
-        setError_for_lbsCodeName(true);
-        setErrorText_for_lbsCodeName("Zorunlu")
+        setLbsCodeNameError("Zorunlu")
         isError = true
         console.log("lbsCodeName", "yok -- error")
       }
 
-      if (lbsCodeName.includes(" ") ) {
-        setError_for_lbsCodeName(true);
-        setErrorText_for_lbsCodeName("Boşluk kullanmayınız")
+      if (lbsCodeName.includes(" ")) {
+        ;
+        setLbsCodeNameError("Boşluk kullanmayınız")
         isError = true
         console.log("lbsCodeName", "yok -- error")
       }
@@ -82,50 +76,30 @@ export default function P_FormLbsCreate({ setShow, selectedProje, setSelectedPro
       }
 
 
-
       const newLbsItem = {
-        projectId: selectedProje._id,
+        _projeId: selectedProje._id,
         upLbsId: selectedLbs ? selectedLbs._id : "0",
         newLbsName: lbsName,
         newLbsCodeName: lbsCodeName
       }
 
-      const resultProject = await RealmApp.currentUser.callFunction("createLbs", newLbsItem);
+      const result = await RealmApp.currentUser.callFunction("collection_projeler__lbs", { functionName: "createLbs", ...newLbsItem });
 
-      // eğer gönderilen form verilerinde hata varsa db den gelen form validation mesajları form içindeki ilgili alanlarda gösterilir ve fonksiyon durdurulur
-      // yukarıda da frontend kontrolü yapılmıştı
-      if (resultProject.errorFormObj) {
-
-        const errorFormObj = resultProject.errorFormObj
-
-        console.log("errorFormObj", errorFormObj)
-
-        // başka form alanları olsaydı onlarınkini de ekleyecektik aşağıdaki returnden önce, onlarda da hata uyarılarını görecektik
-        if (errorFormObj.newLbsName) {
-          setError_for_lbsName(true);
-          setErrorText_for_lbsName(errorFormObj.newLbsName)
-          isError = true
-        }
-
-        // başka form alanları olsaydı onlarınkini de ekleyecektik aşağıdaki returnden önce, onlarda da hata uyarılarını görecektik
-        if (errorFormObj.newLbsCodeName) {
-          setError_for_lbsCodeName(true);
-          setErrorText_for_lbsCodeName(errorFormObj.newLbsCodeName)
-          isError = true
-        }
-
+      // console.log("result", result)
+      if (result.errorObject) {
+        setLbsNameError(result.errorObject.lbsNameError)
+        setLbsCodeNameError(result.errorObject.lbsCodeNameError)
+        console.log("backend den gelen hata ile durdu")
         return
       }
 
 
-      // _id yoksa istediğimiz proje verisi değil demekki, hata ile durduruyoruz
-      if (!resultProject._id) {
-        throw new Error("db den Proje olarak beklenen verinin _id property yok, sayfayı yenileyiniz, sorun devam ederse Rapor7/24 ile irtibata geçiniz..")
+      if (result.lbs) {
+        setSelectedProje(proje => {
+          proje.lbs = result.lbs
+          return proje
+        })
       }
-
-
-      // yukarıdaki yapılan _id kontrolü tamamsa bu veri db de kaydolmuş demektir, refetch() yapıp db yi yormaya gerek yok
-      setSelectedProje(resultProject)
 
       // sorgu işleminden önce seçilen lbs varsa, temizliyoruz, en büyük gerekçe seçilen lbs silinmiş olabilir, onunla işlem db de hata verir
       setSelectedLbs(null)
@@ -139,27 +113,21 @@ export default function P_FormLbsCreate({ setShow, selectedProje, setSelectedPro
     } catch (err) {
 
       console.log(err)
-      let hataMesaj_ = err?.message ? err.message : "Beklenmedik hata, sayfayı yenileyiniz, sorun devam ederse Rapor7/24 ile irtibata geçiniz.."
 
-      let text1 = "__mesajBaslangic__"
-      let text2 = "__mesajBitis__"
-      let mesajBaslangic = hataMesaj_.includes(text1) ? hataMesaj_.indexOf(text1) + text1.length : 0
-      let mesajBitis = hataMesaj_.includes(text2) ? hataMesaj_.indexOf(text2) : hataMesaj_.length
-      // console.log(hataMesaj_.slice(mesajBaslangic + "mesajBaslangic:".length, mesajBitis))
-      hataMesaj_ = hataMesaj_.slice(mesajBaslangic, mesajBitis)
-      console.log(hataMesaj_)
-
-      // eğer çifte kayıt oluyorsa form içindeki mahal ismi girilen yere aşağıdaki mesaj gönderilir, fonksiyon durdurulur
-      // form sayfası kapanmadan hata gösterimi
-      if (hataMesaj_.includes("duplicate key error")) {
-        setError_for_lbsName(true);
-        setErrorText_for_lbsName("Aynı seviyede, aynı isimde lbs olamaz")
-        console.log("Aynı seviyede, aynı isimde lbs olamaz")
-        return
+      let dialogMessage = "Beklenmedik hata, sayfayı yenileyiniz, sorun devam ederse Rapor7/24 ile irtibata geçiniz.."
+      if (err.message.includes("__mesajBaslangic__") && err.message.includes("__mesajBitis__")) {
+        let mesajBaslangic = err.message.indexOf("__mesajBaslangic__") + "__mesajBaslangic__".length
+        let mesajBitis = err.message.indexOf("__mesajBitis__")
+        dialogMessage = err.message.slice(mesajBaslangic, mesajBitis)
       }
 
-      setDialogCase("error")
-      setShowDialog(hataMesaj_)
+      setDialogAlert({
+        dialogIcon: "warning",
+        dialogMessage,
+        detailText: err?.message ? err.message : null
+      })
+
+      return
 
     }
 
@@ -169,9 +137,16 @@ export default function P_FormLbsCreate({ setShow, selectedProje, setSelectedPro
   return (
     <div>
 
-      {showDialog &&
-        <DialogWindow dialogCase={dialogCase} showDialog={showDialog} setShowDialog={setShowDialog} afterDone={callBack_m} />
+
+      {dialogAlert &&
+        <DialogAlert
+          dialogIcon={dialogAlert.dialogIcon}
+          dialogMessage={dialogAlert.dialogMessage}
+          detailText={dialogAlert.detailText}
+          onCloseAction={() => setDialogAlert()}
+        />
       }
+
 
       <Dialog
         PaperProps={{ sx: { width: "80%", position: "fixed", top: "10rem" } }}
@@ -207,7 +182,7 @@ export default function P_FormLbsCreate({ setShow, selectedProje, setSelectedPro
               </DialogContentText>
             }
 
-            <Box onClick={() => setError_for_lbsName(false)}>
+            <Box onClick={() => setLbsNameError(false)}>
               <TextField
                 variant="standard"
                 // InputProps={{ sx: { height:"2rem", fontSize: "1.5rem" } }}
@@ -216,8 +191,8 @@ export default function P_FormLbsCreate({ setShow, selectedProje, setSelectedPro
                 id="lbsName"
                 name="lbsName"
                 autoFocus
-                error={error_for_lbsName}
-                helperText={error_for_lbsName ? errorText_for_lbsName : ""}
+                error={lbsNameError ? true : false}
+                helperText={lbsNameError ? lbsNameError : ""}
                 // margin="dense"
                 label="Lbs Adı"
                 type="text"
@@ -225,7 +200,7 @@ export default function P_FormLbsCreate({ setShow, selectedProje, setSelectedPro
               />
             </Box>
 
-            <Box onClick={() => setError_for_lbsCodeName(false)}>
+            <Box onClick={() => setLbsCodeNameError(false)}>
               <TextField
                 variant="standard"
                 // InputProps={{ sx: { height:"2rem", fontSize: "1.5rem" } }}
@@ -234,8 +209,8 @@ export default function P_FormLbsCreate({ setShow, selectedProje, setSelectedPro
                 id="lbsCodeName"
                 name="lbsCodeName"
                 // autoFocus
-                error={error_for_lbsCodeName}
-                helperText={error_for_lbsCodeName ? errorText_for_lbsCodeName : "Örnek : KABA İNŞAAT --> KAB"}
+                error={lbsCodeNameError ? true : false}
+                helperText={lbsCodeNameError ? lbsCodeNameError : "Örnek : KABA İNŞAAT --> KAB"}
                 // margin="dense"
                 label="Lbs Kod Adı"
                 type="text"

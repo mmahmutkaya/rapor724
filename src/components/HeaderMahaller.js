@@ -22,7 +22,7 @@ import FileDownloadDoneIcon from '@mui/icons-material/FileDownloadDone';
 import EditIcon from '@mui/icons-material/Edit';
 
 
-export default function HeaderMahaller({ show, setShow, anyBaslikShow }) {
+export default function HeaderMahaller({ setShow, anyBaslikShow }) {
 
   const { selectedProje } = useContext(StoreContext)
   const navigate = useNavigate()

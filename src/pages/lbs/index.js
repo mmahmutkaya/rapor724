@@ -1,12 +1,11 @@
 
-import { useState, useContext, useEffect } from 'react';
-import { useNavigate } from "react-router-dom";
+import { useState, useContext, useEffect } from 'react'
 import { StoreContext } from '../../components/store'
-import { useApp } from "../../components/useApp";
+import { useNavigate } from 'react-router-dom'
 
 import FormLbsCreate from '../../components/FormLbsCreate'
 import FormLbsUpdate from '../../components/FormLbsUpdate'
-import LbsHeader from '../../components/LbsHeader'
+import HeaderLbs from '../../components/HeaderLbs'
 
 
 import Grid from '@mui/material/Grid';
@@ -15,25 +14,23 @@ import Alert from '@mui/material/Alert';
 import Stack from '@mui/material/Stack';
 
 
-
 export default function P_Lbs() {
-
-  const { subHeaderHeight } = useContext(StoreContext)
-
-  const RealmApp = useApp();
-  const { selectedProje, setSelectedProje } = useContext(StoreContext)
-  const { selectedLbs, setSelectedLbs } = useContext(StoreContext)
 
   const navigate = useNavigate()
 
-  useEffect(() => {
-    !selectedProje && navigate('/projects')
-  }, [])
+  const { RealmApp, subHeaderHeight } = useContext(StoreContext)
 
+  const { selectedProje, setSelectedProje } = useContext(StoreContext)
+  const { selectedLbs, setSelectedLbs } = useContext(StoreContext)
 
   const [show, setShow] = useState()
   const [nameMode, setNameMode] = useState(false)
   const [codeMode, setCodeMode] = useState(true)
+
+
+  useEffect(() => {
+    !selectedProje && navigate('/projeler')
+  }, [])
 
 
   const handleSelectLbs = (lbs) => {
@@ -46,13 +43,16 @@ export default function P_Lbs() {
     <Grid container direction="column" spacing={0} sx={{ mt: subHeaderHeight }}>
 
       <Grid item  >
-        <LbsHeader
-          RealmApp={RealmApp}
+        <HeaderLbs
           setShow={setShow}
           nameMode={nameMode} setNameMode={setNameMode}
           codeMode={codeMode} setCodeMode={setCodeMode}
         />
       </Grid>
+
+      {/* <Grid item >
+        <LbsMain />
+      </Grid> */}
 
       {show == "FormLbsCreate" &&
         <Grid item >
@@ -87,176 +87,177 @@ export default function P_Lbs() {
             </Box>
           </Box>
 
+
           <Box sx={{ display: "grid", gridTemplateColumns: "1rem 1fr" }}>
 
             <Box sx={{ backgroundColor: "black" }}>
 
             </Box>
 
+            {/* {console.log("selectedProje?.lbs?.length", selectedProje?.lbs?.length)} */}
             <Box display="grid">
 
               {
-                selectedProje.lbs
-                  .sort(function (a, b) {
-                    var nums1 = a.code.split(".");
-                    var nums2 = b.code.split(".");
+                selectedProje.lbs.sort(function (a, b) {
+                  var nums1 = a.code.split(".");
+                  var nums2 = b.code.split(".");
 
-                    for (var i = 0; i < nums1.length; i++) {
-                      if (nums2[i]) { // assuming 5..2 is invalid
-                        if (nums1[i] !== nums2[i]) {
-                          return nums1[i] - nums2[i];
-                        } // else continue
-                      } else {
-                        return 1; // no second number in b
-                      }
+                  for (var i = 0; i < nums1.length; i++) {
+                    if (nums2[i]) { // assuming 5..2 is invalid
+                      if (nums1[i] !== nums2[i]) {
+                        return nums1[i] - nums2[i];
+                      } // else continue
+                    } else {
+                      return 1; // no second number in b
                     }
-                    return -1; // was missing case b.len > a.len
-                  })
-                  .map((theLbs) => {
+                  }
+                  return -1; // was missing case b.len > a.len
+                }).map((theLbs, index) => {
 
-                    // BU SCOPE TAMAMI BİR SATIRDIR (EN ÜST SEVİYE HARİÇ)
+                  // theLbs = { _id, code, name }
 
-                    // theLbs = { _id, code, name }
-                    level = theLbs?.code?.split(".").length
+                  level = theLbs?.code?.split(".").length
 
-                    return (
-                      <Box key={theLbs._id} sx={{
+                  return (
+                    <Box
+                      key={index}
+                      sx={{
                         display: "grid",
-                        gridTemplateColumns: (level - 1) == 0 ? "1rem 1fr" : "1rem repeat(" + (level - 1) + ", 1rem) 1fr", // baştaki poz var mı yok mu için
+                        gridTemplateColumns: (level - 1) == 0 ? "1rem 1fr" : "1rem repeat(" + (level - 1) + ", 1rem) 1fr", // baştaki mahal var mı yok mu için
                         "&:hover .hoverTheLbsLeft": {
                           visibility: "visible",
+                          color: "red",
                         },
 
                       }}>
 
-                        {Array.from({ length: (level - 1) > -1 ? (level - 1) : 0 }).map((_item, index) => {
-                          return (
-                            // <Box sx={{ backgroundColor: color(index + 1).bg, borderLeft: "1px solid " + color("border") }}></Box>
-                            <Box sx={{ backgroundColor: color(index + 1).bg, borderLeft: "1px solid " + color("border") }}></Box>
-                          )
-                        })}
+                      {Array.from({ length: (level - 1) > -1 ? (level - 1) : 0 }).map((_item, index) => {
+                        return (
+                          // <Box sx={{ backgroundColor: color(index + 1).bg, borderLeft: "1px solid " + color("border") }}></Box>
+                          <Box key={index} sx={{ backgroundColor: color(index + 1).bg, borderLeft: "1px solid " + color("border") }}></Box>
+                        )
+                      })}
 
-                        {/* <Box sx={{ position: "relative", backgroundColor: color(level).bg, borderLeft: "1px solid " + color("border") }}> */}
-                        <Box sx={{ position: "relative", backgroundColor: color(level).bg, borderBottom: "1px solid " + color("border") }}>
 
-                          {theLbs.openForMahal &&
-                            // lbs mahal eklemeye açıksa - var olan mevcut kutunun içinde beliren sarı kutu
-                            <Grid container sx={{ position: "absolute", borderRadius: "10%", backgroundColor: "#65FF00", top: "20%", left: "30%", width: "0.7rem", height: "0.7rem" }}>
+                      <Box sx={{ position: "relative", backgroundColor: color(level).bg, borderLeft: "1px solid " + color("border") }}>
 
-                              {/* mahal eklenmiş ise sarı kutunun içinde beliren siyah nokta */}
-                              {theLbs.includesMahal &&
-                                <Grid item sx={{ position: "relative", width: "100%", height: "100%" }}>
+                        {theLbs.openForMahal &&
+                          // lbs mahale açıksa - var olan mevcut kutunun içinde beliren sarı kutu
+                          <Grid container sx={{ position: "absolute", borderRadius: "10%", backgroundColor: "#65FF00", top: "20%", left: "30%", width: "0.7rem", height: "0.7rem" }}>
 
-                                  <Box sx={{ position: "absolute", borderRadius: "50%", backgroundColor: "red", top: "25%", left: "25%", width: "50%", height: "50%" }}>
+                            {/* mahal kayıtlı ise sarı kutunun içinde beliren siyah nokta */}
+                            {theLbs.includesMahal &&
+                              <Grid item sx={{ position: "relative", width: "100%", height: "100%" }}>
 
-                                  </Box>
+                                <Box sx={{ position: "absolute", borderRadius: "50%", backgroundColor: "red", top: "25%", left: "25%", width: "50%", height: "50%" }}>
 
+                                </Box>
+
+                              </Grid>
+                            }
+
+
+                          </Grid>
+                        }
+
+                      </Box>
+
+
+                      <Box
+                        onClick={() => handleSelectLbs(theLbs)}
+                        sx={{
+
+                          pl: "2px",
+
+                          borderBottom: "0.5px solid " + color("border"),
+
+                          // önce hepsini bu şekilde sonra seçilmişi aşağıda değiştiriyoruz
+                          backgroundColor: color(level).bg,
+                          color: color(level).co,
+
+                          "&:hover .hoverTheLbs": {
+                            // display: "inline"
+                            visibility: "visible"
+                          },
+
+                          cursor: "pointer",
+
+                        }}
+                      >
+
+                        <Grid container sx={{ display: "grid", gridTemplateColumns: "1fr 2rem" }}>
+
+                          {/* theLbs isminin yazılı olduğu kısım */}
+                          <Grid item>
+
+                            <Grid container sx={{ color: "#cccccc" }}>
+
+                              {codeMode === null && //kısa
+                                <Grid item sx={{ ml: "0.2rem" }}>
+                                  {theLbs.code.split(".")[level - 1] + " - "}
                                 </Grid>
                               }
 
+                              {codeMode === false && //tam
+                                <Grid item sx={{ ml: "0.2rem" }}>
+                                  {theLbs.code + " - "}
+                                </Grid>
+                              }
 
-                            </Grid>
-                          }
+                              {/* codeMode === true && //yok */}
 
-                        </Box>
+                              {nameMode === null &&
+                                <Grid item sx={{ ml: "0.3rem" }}>
+                                  {"(" + theLbs.codeName + ")" + " - " + theLbs.name}
+                                </Grid>
+                              }
 
+                              {nameMode === false &&
+                                <Grid item sx={{ ml: "0.3rem" }}>
+                                  {theLbs.name}
+                                </Grid>
+                              }
 
-                        <Box
-                          onClick={() => handleSelectLbs(theLbs)}
-                          sx={{
+                              {nameMode === true &&
+                                <Grid item sx={{ ml: "0.3rem" }}>
+                                  ({theLbs.codeName})
+                                </Grid>
+                              }
 
-                            pl: "2px",
+                              <Grid item className='hoverTheLbs'
+                                sx={{
+                                  ml: "0.5rem",
+                                  visibility: selectedLbs?._id.toString() === theLbs._id.toString() ? "visible" : "hidden",
+                                }}>
 
-                            borderBottom: "0.5px solid " + color("border"),
+                                <Grid container sx={{ alignItems: "center", justifyContent: "center", width: "100%", height: "100%" }}>
+                                  <Grid item >
+                                    <Box sx={{
+                                      backgroundColor: "yellow",
+                                      borderRadius: "0.5rem",
+                                      height: "0.5rem",
+                                      width: "0.5rem",
 
-                            // önce hepsini bu şekilde sonra seçilmişi aşağıda değiştiriyoruz
-                            backgroundColor: color(level).bg,
-                            color: color(level).co,
-
-                            "&:hover .hoverTheLbs": {
-                              // display: "inline"
-                              visibility: "visible"
-                            },
-
-                            cursor: "pointer",
-
-                          }}
-                        >
-
-                          <Grid container sx={{ display: "grid", gridTemplateColumns: "1fr 2rem" }}>
-
-                            {/* theLbs isminin yazılı olduğu kısım */}
-                            <Grid item>
-
-                              <Grid container sx={{ color: "#cccccc" }}>
-
-                                {codeMode === null && //kısa
-                                  <Grid item sx={{ ml: "0.2rem" }}>
-                                    {theLbs.code.split(".")[level - 1] + " - "}
+                                    }}>
+                                    </Box>
                                   </Grid>
-                                }
-
-                                {codeMode === false && //tam
-                                  <Grid item sx={{ ml: "0.2rem" }}>
-                                    {theLbs.code + " - "}
-                                  </Grid>
-                                }
-
-                                {/* codeMode === true && //yok */}
-
-                                {nameMode === null &&
-                                  <Grid item sx={{ ml: "0.3rem" }}>
-                                    {"(" + theLbs.codeName + ")" + " - " + theLbs.name}
-                                  </Grid>
-                                }
-
-                                {nameMode === false &&
-                                  <Grid item sx={{ ml: "0.3rem" }}>
-                                    {theLbs.name}
-                                  </Grid>
-                                }
-
-                                {nameMode === true &&
-                                  <Grid item sx={{ ml: "0.3rem" }}>
-                                    ({theLbs.codeName})
-                                  </Grid>
-                                }
-
-                                <Grid item className='hoverTheLbs'
-                                  sx={{
-                                    ml: "0.5rem",
-                                    visibility: selectedLbs?._id.toString() === theLbs._id.toString() ? "visible" : "hidden",
-                                  }}
-                                >
-
-                                  <Grid container sx={{ alignItems: "center", justifyContent: "center", width: "100%", height: "100%" }}>
-                                    <Grid item >
-                                      <Box sx={{
-                                        backgroundColor: "yellow",
-                                        borderRadius: "0.5rem",
-                                        height: "0.5rem",
-                                        width: "0.5rem",
-
-                                      }}>
-                                      </Box>
-                                    </Grid>
-                                  </Grid>
-
                                 </Grid>
 
                               </Grid>
-                            </Grid>
 
+                            </Grid>
                           </Grid>
 
-                        </Box>
-
-
+                        </Grid>
 
                       </Box>
-                    )
 
-                  })
+
+
+                    </Box>
+                  )
+
+                })
 
               }
 
@@ -293,8 +294,6 @@ function color(index) {
       return { bg: "#2929bc", co: "#e6e6e6" }
     case 7:
       return { bg: "#267347", co: "#e6e6e6" }
-    case 8:
-      return { bg: "gray", co: "red" }
     case "border":
       return "gray"
     case "font":
