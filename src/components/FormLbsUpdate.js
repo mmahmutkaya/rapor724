@@ -20,6 +20,9 @@ export default function P_FormLbsUpdate({ setShow, selectedLbs, setSelectedLbs }
 
   const [dialogAlert, setDialogAlert] = useState(false)
 
+  const [lbsName, setLbsName] = useState()
+  const [lbsCodeName, setLbsCodeName] = useState()
+
   const [lbsNameError, setLbsNameError] = useState()
   const [lbsCodeNameError, setLbsCodeNameError] = useState()
 
@@ -157,6 +160,8 @@ export default function P_FormLbsUpdate({ setShow, selectedLbs, setSelectedLbs }
               <TextField
                 variant="standard"
                 // InputProps={{ sx: { height:"2rem", fontSize: "1.5rem" } }}
+                onChange={(e) => setLbsName(() => e.target.value.replace("i", "İ").toUpperCase())}
+                value={lbsName}
                 defaultValue={selectedLbs.name}
                 margin="normal"
                 id="lbsName"
@@ -175,6 +180,8 @@ export default function P_FormLbsUpdate({ setShow, selectedLbs, setSelectedLbs }
               <TextField
                 variant="standard"
                 // InputProps={{ sx: { height:"2rem", fontSize: "1.5rem" } }}
+                onChange={(e) => setLbsCodeName(() => e.target.value.replace("i", "İ").toUpperCase())}
+                value={lbsCodeName}
                 defaultValue={selectedLbs.codeName}
                 margin="normal"
                 id="lbsCodeName"

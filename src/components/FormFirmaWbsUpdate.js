@@ -23,6 +23,9 @@ export default function P_FormWbsUpdate({ setShow, selectedWbs, setSelectedWbs }
 
   const [dialogAlert, setDialogAlert] = useState(false)
 
+  const [wbsName, setWbsName] = useState()
+  const [wbsCodeName, setWbsCodeName] = useState()
+
   const [wbsNameError, setWbsNameError] = useState()
   const [wbsCodeNameError, setWbsCodeNameError] = useState()
 
@@ -75,7 +78,7 @@ export default function P_FormWbsUpdate({ setShow, selectedWbs, setSelectedWbs }
       // sorgudan wbs datası güncellenmiş firma dödürüp, gelen data ile aşağıda react useContext deki firmayı update ediyoruz
       const willBeUpdatedWbs = {
         _firmaId: selectedFirma._id,
-        _wbsId:selectedWbs._id,
+        _wbsId: selectedWbs._id,
         newWbsName: wbsName,
         newWbsCodeName: wbsCodeName
       }
@@ -163,6 +166,8 @@ export default function P_FormWbsUpdate({ setShow, selectedWbs, setSelectedWbs }
               <TextField
                 variant="standard"
                 // InputProps={{ sx: { height:"2rem", fontSize: "1.5rem" } }}
+                onChange={(e) => setWbsName(() => e.target.value.replace("i", "İ").toUpperCase())}
+                value={wbsName}
                 defaultValue={selectedWbs.name}
                 margin="normal"
                 id="wbsName"
@@ -181,6 +186,8 @@ export default function P_FormWbsUpdate({ setShow, selectedWbs, setSelectedWbs }
               <TextField
                 variant="standard"
                 // InputProps={{ sx: { height:"2rem", fontSize: "1.5rem" } }}
+                onChange={(e) => setWbsCodeName(() => e.target.value.replace("i", "İ").toUpperCase())}
+                value={wbsCodeName}
                 defaultValue={selectedWbs.codeName}
                 margin="normal"
                 id="wbsCodeName"

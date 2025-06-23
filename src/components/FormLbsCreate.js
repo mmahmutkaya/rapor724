@@ -19,7 +19,7 @@ import { Typography } from '@mui/material';
 
 export default function P_FormLbsCreate({ setShow, selectedLbs, setSelectedLbs }) {
 
-  const { selectedProje, setSelectedProje } = useContext(StoreContext)
+  const { RealmApp, selectedProje, setSelectedProje } = useContext(StoreContext)
 
   if (!selectedProje?._id) {
     throw new Error("Lbs oluşturulacak projenin database kaydı için _projeId belirtilmemiş, sayfayı yeniden yükleyin, sorun devam ederse Rapor7/24 ile irtibata geçiniz.")
@@ -27,10 +27,11 @@ export default function P_FormLbsCreate({ setShow, selectedLbs, setSelectedLbs }
 
   const [dialogAlert, setDialogAlert] = useState(false)
 
+  const [lbsName, setLbsName] = useState()
+  const [lbsCodeName, setLbsCodeName] = useState()
+
   const [lbsNameError, setLbsNameError] = useState()
   const [lbsCodeNameError, setLbsCodeNameError] = useState()
-
-  const RealmApp = useApp();
 
   async function handleSubmit(event) {
 
@@ -186,7 +187,8 @@ export default function P_FormLbsCreate({ setShow, selectedLbs, setSelectedLbs }
               <TextField
                 variant="standard"
                 // InputProps={{ sx: { height:"2rem", fontSize: "1.5rem" } }}
-
+                onChange={(e) => setLbsName(() => e.target.value.replace("i", "İ").toUpperCase())}
+                value={lbsName}
                 margin="normal"
                 id="lbsName"
                 name="lbsName"
@@ -204,7 +206,8 @@ export default function P_FormLbsCreate({ setShow, selectedLbs, setSelectedLbs }
               <TextField
                 variant="standard"
                 // InputProps={{ sx: { height:"2rem", fontSize: "1.5rem" } }}
-
+                onChange={(e) => setLbsCodeName(() => e.target.value.replace("i", "İ").toUpperCase())}
+                value={lbsCodeName}
                 margin="normal"
                 id="lbsCodeName"
                 name="lbsCodeName"

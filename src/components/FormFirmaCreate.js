@@ -38,6 +38,7 @@ export default function P_FormFirmaCreate({ setShow }) {
   const RealmUserEmail = RealmApp.currentUser._profile.data.email
 
   const [firmaName, setFirmaName] = useState("")
+
   const [firmaNameError, setFirmaNameError] = useState()
 
   const [dialogAlert, setDialogAlert] = useState()
@@ -51,8 +52,8 @@ export default function P_FormFirmaCreate({ setShow }) {
 
     try {
 
-      // const data = new FormData(event.currentTarget);
-      // setFirmaName(firmaName => deleteLastSpace(firmaName).toUpperCase())
+      const data = new FormData(event.currentTarget);
+      const firmaName = deleteLastSpace(data.get('firmaName'))
 
       
       // VALIDATE KONTROL

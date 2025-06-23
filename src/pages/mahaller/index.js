@@ -27,7 +27,6 @@ import InfoIcon from '@mui/icons-material/Info';
 export default function P_Mahaller() {
 
   const navigate = useNavigate()
-  const queryClient = useQueryClient()
 
   const { data: mahaller } = useGetMahaller()
   // console.log("mahaller",mahaller)
@@ -35,8 +34,6 @@ export default function P_Mahaller() {
   const { selectedProje } = useContext(StoreContext)
 
   // console.log("selectedProje", selectedProje)
-  const mahalBirimleri = selectedProje?.mahalBirimleri
-  // console.log("mahalBirimleri", mahalBirimleri)
 
   const [show, setShow] = useState("Main")
 
@@ -52,7 +49,7 @@ export default function P_Mahaller() {
   const mahalAciklamaShow = basliklar?.find(x => x.id === "aciklama").show
   const mahalVersiyonShow = basliklar?.find(x => x.id === "versiyon").show
 
-  const columns = `5rem 15rem 5rem${mahalAciklamaShow ? " 1rem 10rem" : ""}${mahalVersiyonShow ? " 1rem 5rem" : ""}`
+  const columns = `5rem 15rem ${mahalAciklamaShow ? " 1rem 10rem" : ""}${mahalVersiyonShow ? " 1rem 5rem" : ""}`
 
 
   const enUstBaslik_css = {
@@ -66,7 +63,7 @@ export default function P_Mahaller() {
   }
 
   const lbsBaslik_css = {
-    gridColumn: "1 / span 3",
+    gridColumn: "1 / span 2",
     display: "grid",
     alignItems: "center",
     justifyItems: "start",
@@ -157,12 +154,8 @@ export default function P_Mahaller() {
             </Box>
 
 
-            {/* BAŞLIK - MAHAL BİRİM  */}
-            <Box sx={{ ...enUstBaslik_css }}>
-              Birim
-            </Box>
 
-            {/* BAŞLIK - MAHAL BİRİM  */}
+            {/* BAŞLIK - MAHAL AÇIKLAMA  */}
             {mahalAciklamaShow &&
               <>
                 <Box sx={{ ...bosluk_css }}></Box>
@@ -252,7 +245,7 @@ export default function P_Mahaller() {
                   </Box>
 
 
-                  {/* BAŞLIK - MAHAL BİRİM  */}
+                  {/* BAŞLIK - AÇIKLAMA  */}
                   {mahalAciklamaShow &&
                     <>
                       <Box sx={{ ...bosluk_css }}></Box>
@@ -283,11 +276,9 @@ export default function P_Mahaller() {
                       <Box sx={{ ...mahalNo_css, pl: "0.5rem", justifyItems: "start" }}>
                         {oneMahal.mahalName}
                       </Box>
-                      <Box sx={{ ...mahalNo_css }}>
-                        {mahalBirimleri.find(x => x.id === oneMahal.mahalBirimId).name}
-                      </Box>
 
-                      {/* BAŞLIK - MAHAL BİRİM  */}
+
+                      {/* BAŞLIK - AÇIKLAMA  */}
                       {mahalAciklamaShow &&
                         <>
                           <Box sx={{ ...bosluk_css }}></Box>

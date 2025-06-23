@@ -30,6 +30,9 @@ export default function P_FormWbsCreate({ setShow, selectedWbs, setSelectedWbs }
 
   const [dialogAlert, setDialogAlert] = useState(false)
 
+  const [wbsName, setWbsName] = useState()
+  const [wbsCodeName, setWbsCodeName] = useState()
+
   const [wbsNameError, setWbsNameError] = useState()
   const [wbsCodeNameError, setWbsCodeNameError] = useState()
 
@@ -190,7 +193,8 @@ export default function P_FormWbsCreate({ setShow, selectedWbs, setSelectedWbs }
               <TextField
                 variant="standard"
                 // InputProps={{ sx: { height:"2rem", fontSize: "1.5rem" } }}
-
+                onChange={(e) => setWbsName(() => e.target.value.replace("i", "İ").toUpperCase())}
+                value={wbsName}
                 margin="normal"
                 id="wbsName"
                 name="wbsName"
@@ -208,7 +212,8 @@ export default function P_FormWbsCreate({ setShow, selectedWbs, setSelectedWbs }
               <TextField
                 variant="standard"
                 // InputProps={{ sx: { height:"2rem", fontSize: "1.5rem" } }}
-
+                onChange={(e) => setWbsCodeName(() => e.target.value.replace("i", "İ").toUpperCase())}
+                value={wbsCodeName}
                 margin="normal"
                 id="wbsCodeName"
                 name="wbsCodeName"
