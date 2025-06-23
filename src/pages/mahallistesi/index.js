@@ -1,5 +1,5 @@
 
-import { useState, useContext } from 'react';
+import { useState, useContext, useEffect } from 'react';
 import { useNavigate } from "react-router-dom";
 import { StoreContext } from '../../components/store'
 import { useApp } from "../../components/useApp";
@@ -24,7 +24,7 @@ import { BSON } from 'realm-web';
 export default function P_MahalListesi() {
 
 
-  const { selectedProje, setMahalListesi_wbsIds, setMahalListesi_lbsIds } = useContext(StoreContext)
+  const { RealmApp, selectedProje, setMahalListesi_wbsIds, setMahalListesi_lbsIds } = useContext(StoreContext)
   const { selectedMahal, setSelectedMahal } = useContext(StoreContext)
   const { myTema, setMyTema } = useContext(StoreContext)
   const { selectedMahalBaslik, setSelectedMahalBaslik } = useContext(StoreContext)
@@ -38,16 +38,18 @@ export default function P_MahalListesi() {
 
 
   const navigate = useNavigate()
-  // !selectedProje ? navigate('/projects') : null
-  if (!selectedProje) window.location.href = "/projects"
 
-  const RealmApp = useApp();
+  useEffect(() => {
+    !selectedProje && navigate('/projeler')
+  }, [])
+
 
   const { data: pozlar } = useGetPozlar()
 
   const { data: mahaller } = useGetMahaller()
 
   const { data: mahalListesi } = useGetMahalListesi()
+  console.log("mahalListesi", mahalListesi)
 
   const { mutate: toggleMahalPoz } = useToggleOpenMetrajDugum()
 
@@ -80,35 +82,36 @@ export default function P_MahalListesi() {
   const one_mahal_width = 10
 
 
-  let totalWidthSabit = selectedProje?.mahalBasliklari?.filter(item => item.sabit).reduce(
-    (accumulator, oneBilgi) => accumulator + oneBilgi.genislik,
-    0
-  )
-  totalWidthSabit = totalWidthSabit + 'rem'
+  // let totalWidthSabit = selectedProje?.mahalBasliklari?.filter(item => item.sabit).reduce(
+  //   (accumulator, oneBilgi) => accumulator + oneBilgi.genislik,
+  //   0
+  // )
+  // totalWidthSabit = totalWidthSabit + 'rem'
+  let totalWidthSabit = 20 + 'rem'
 
 
-  let totalWidthDegisken = pozlar?.length * 10
-  totalWidthDegisken = totalWidthDegisken + 'rem'
+  // let totalWidthDegisken = pozlar?.length * 10
+  // totalWidthDegisken = totalWidthDegisken + 'rem'
+  let totalWidthDegisken = 20 + 'rem'
 
 
   let totalWidth = (parseFloat(totalWidthSabit) + 2 + parseFloat(totalWidthDegisken)) + 'rem'
 
 
-  let gridTemplateColumnsSabit = selectedProje?.mahalBasliklari?.filter(item => item.sabit).reduce(
-    (ilkString, oneBilgi, index) => index != selectedProje?.mahalBasliklari?.length ? ilkString + (oneBilgi.genislik + "rem ") : ilkString + (oneBilgi.genislik + "rem"),
-    ""
-  )
+  // let gridTemplateColumnsSabit = selectedProje?.mahalBasliklari?.filter(item => item.sabit).reduce(
+  //   (ilkString, oneBilgi, index) => index != selectedProje?.mahalBasliklari?.length ? ilkString + (oneBilgi.genislik + "rem ") : ilkString + (oneBilgi.genislik + "rem"),
+  //   ""
+  // )
+
+  let gridTemplateColumnsSabit = "5rem 15rem"
 
 
-  let gridTemplateColumnsDegisken = pozlar?.reduce(
-    (ilkString, onePoz, index) => index != pozlar?.length ? ilkString + (10 + "rem ") : ilkString + (10 + "rem"),
-    ""
-  )
+  // let gridTemplateColumnsDegisken = pozlar?.reduce(
+  //   (ilkString, onePoz, index) => index != pozlar?.length ? ilkString + (10 + "rem ") : ilkString + (10 + "rem"),
+  //   ""
+  // )
 
-  let gridTemplateColumnsDegisken2 = selectedProje?.mahalBasliklari?.filter(item => !item.sabit && item.goster).reduce(
-    (ilkString, oneBilgi, index) => index != selectedProje?.mahalBasliklari?.length ? ilkString + (oneBilgi.genislik + "rem ") : ilkString + (oneBilgi.genislik + "rem"),
-    ""
-  )
+  let gridTemplateColumnsDegisken = "10rem 10rem"
 
 
   let gridTemplateColumns_ = gridTemplateColumnsSabit + " 2rem " + gridTemplateColumnsDegisken
@@ -211,32 +214,47 @@ export default function P_MahalListesi() {
             {/* SOL KISIM SABİT EN ÜST MAHAL BAŞLIKLARI */}
             {/* HAYALET */}
             <Box sx={{ display: "none" }}>
-              {count_ = selectedProje?.mahalBasliklari?.filter(item => item.sabit).length}
+              {count_ = 2}
             </Box>
 
-            {selectedProje?.mahalBasliklari?.filter(item => item.sabit).map((oneBaslik, index) => {
-              return (
-                <Box
-                  sx={{
-                    cursor: "pointer",
-                    backgroundColor: "rgba( 56,56,56 , 0.9 )",
-                    color: "white",
-                    fontWeight: "bold",
-                    border: "solid black 1px",
-                    borderRight: index + 1 == count_ ? "solid black 1px" : "0px",
-                    height:"3rem",
-                    width: "100%",
-                    display: "grid",
-                    alignItems: "center",
-                    justifyContent: oneBaslik.yatayHiza,
-                  }}
-                  onClick={() => handle_selectBaslik(oneBaslik)}
-                  key={index}
-                >
-                  {oneBaslik.name}
-                </Box>
-              )
-            })}
+            <Box
+              sx={{
+                cursor: "pointer",
+                backgroundColor: "rgba( 56,56,56 , 0.9 )",
+                color: "white",
+                fontWeight: "bold",
+                border: "solid black 1px",
+                // borderRight: index + 1 == count_ ? "solid black 1px" : "0px",
+                height: "3rem",
+                width: "100%",
+                display: "grid",
+                alignItems: "center",
+                // justifyContent: oneBaslik.yatayHiza,
+              }}
+            >
+              {"oneBaslik.name"}
+            </Box>
+
+
+            <Box
+              sx={{
+                cursor: "pointer",
+                backgroundColor: "rgba( 56,56,56 , 0.9 )",
+                color: "white",
+                fontWeight: "bold",
+                border: "solid black 1px",
+                // borderRight: index + 1 == count_ ? "solid black 1px" : "0px",
+                height: "3rem",
+                width: "100%",
+                display: "grid",
+                alignItems: "center",
+                // justifyContent: oneBaslik.yatayHiza,
+              }}
+            >
+              {"oneBaslik.name"}
+            </Box>
+
+
 
 
             <Bosluk>
@@ -248,7 +266,7 @@ export default function P_MahalListesi() {
             <Box sx={{ display: "none" }}>
               {count_ = pozlar?.length}
             </Box>
-            
+
             {/* GÖZÜKEN KOMPONENT */}
             {pozlar?.map((onePoz, index) => {
               return (
@@ -260,7 +278,7 @@ export default function P_MahalListesi() {
                     fontWeight: "bold",
                     border: "solid black 1px",
                     borderRight: index + 1 == count_ ? "solid black 1px" : "0px",
-                    height:"3rem",
+                    height: "3rem",
                     width: "100%",
                     display: "grid",
                     justifyContent: "center"
