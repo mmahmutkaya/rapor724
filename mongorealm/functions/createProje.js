@@ -158,6 +158,9 @@ exports = async function ({
       name: projeName,
       // wbs: [], // henüz herhangi bir başlık yok fakat yok ama bu property şimdi olmazsa ilk wbs kaydında bir hata yaşıyoruz
       // lbs: [], // henüz herhangi bir başlık yok fakat yok ama bu property şimdi olmazsa ilk wbs kaydında bir hata yaşıyoruz
+      pozBasliklari,
+      mahalBasliklari,
+      metrajYapabilenler,
       pozMetrajTipleri,
       pozBirimleri,
       yetkiliKisiler: [{ email: userEmail, yetki: "owner" }],
