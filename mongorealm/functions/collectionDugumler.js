@@ -72,8 +72,11 @@ exports = async function ({
   if (functionName == "getMahalListesi") {
 
     const list = await collection_Dugumler.aggregate([
-      { $match: { openMetraj: true } },
+      { $match: { _projeId } },
+      { $project: { _pozId:1, _mahalId:1, openMetraj:1 } }
     ]).toArray()
+
+    return {list}
 
     // const list = await collection_Dugumler.find({_projeId}).toArray()
 
@@ -143,8 +146,6 @@ exports = async function ({
     //   }
 
     // });
-
-    return { list }
   }
 
 
@@ -391,7 +392,7 @@ exports = async function ({
   if (functionName == "toggle_openMetraj") {
 
     const result = await collection_Dugumler.updateOne(
-      { _mahalId, _pozId },
+      { _projeId, _mahalId, _pozId },
       [
         {
           $set: {
@@ -402,10 +403,11 @@ exports = async function ({
     )
 
     if (result.matchedCount) {
-      return { ok: "'toggle_openMetraj' - toggle - çalıştı.", result }
+      return { dataUpdated: true }
     }
 
-    const dugumObject = {
+    let dugumObject = {
+      _projeId,
       _mahalId,
       _pozId,
       openMetraj: switchValue,
@@ -413,8 +415,12 @@ exports = async function ({
       hazirlananMetrajlar: [],
       createdBy: _userId,
     }
+    
     const result2 = await collection_Dugumler.insertOne(dugumObject)
-    return { ok: "'toggle_openMetraj' - yeniObject - çalıştı.", result2 }
+    
+    dugumObject = {...dugumObject,_id:result2.insertedId}
+    
+    return { newObject:dugumObject }
 
   }
 
