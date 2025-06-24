@@ -131,34 +131,77 @@
 //   { id: "insaatDemiri", name: "İnşaat Demiri", birimId: "ton" },
 // ]
 
-const customSettings = {
-  pages: {
-    firmapozlari: {
-      basliklar: [
-        { id: "aciklama", baslikName: "Açıklama", visible: true, show: true },
-        { id: "versiyon", baslikName: "Versiyon", visible: true, show: true }
-      ]
-    },
-    pozlar: {
-      basliklar: [
-        { id: "aciklama", baslikName: "Açıklama", visible: true, show: true },
-        { id: "versiyon", baslikName: "Versiyon", visible: true, show: true }
-      ]
-    },
-    mahaller: {
-      basliklar: [
-        { id: "aciklama", baslikName: "Açıklama", visible: true, show: true },
-        { id: "versiyon", baslikName: "Versiyon", visible: true, show: true }
-      ]
-    }
+
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+
+
+// const customSettings = {
+//   pages: {
+//     firmapozlari: {
+//       basliklar: [
+//         { id: "aciklama", baslikName: "Açıklama", visible: true, show: true },
+//         { id: "versiyon", baslikName: "Versiyon", visible: true, show: true }
+//       ]
+//     },
+//     pozlar: {
+//       basliklar: [
+//         { id: "aciklama", baslikName: "Açıklama", visible: true, show: true },
+//         { id: "versiyon", baslikName: "Versiyon", visible: true, show: true }
+//       ]
+//     },
+//     mahaller: {
+//       basliklar: [
+//         { id: "aciklama", baslikName: "Açıklama", visible: true, show: true },
+//         { id: "versiyon", baslikName: "Versiyon", visible: true, show: true }
+//       ]
+//     }
+//   }
+// }
+
+
+// use('rapor724_v2');
+// db["users"].updateMany(
+//   {},
+//   { $set: { customSettings } }
+// )
+
+
+
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+// Select the database to use.
+
+const pozBasliklari = [
+  { _id: 1, platform: "web", sira: 1, referans: "pozNo", goster: true, sabit: true, genislik: 7, paddingInfo: "0px 1rem 0px 0px", yatayHiza: "center", name: "Poz No", dataType: "metin" },
+  { _id: 2, platform: "web", sira: 2, referans: "name", goster: true, sabit: true, genislik: 20, paddingInfo: "0px 1rem 0px 0px", yatayHiza: "center", name: "Poz İsmi", dataType: "metin" }
+]
+
+
+const metrajYapabilenler = [
+  {
+    "harf": "A",
+    _userId: 123
   }
-}
+]
+
+
+const mahalBasliklari = [
+  { _id: 1, sira: 1, referans: "kod", goster: true, sabit: true, genislik: 7, paddingInfo: "0px 1rem 0px 0px", yatayHiza: "center", name: "Mahal Kod", dataType: "metin" },
+  { _id: 2, sira: 2, referans: "name", goster: true, sabit: true, genislik: 20, paddingInfo: "0px 1rem 0px 0px", yatayHiza: "center", name: "Mahal İsmi", dataType: "metin" }
+]
+
 
 
 use('rapor724_v2');
-db["users"].updateMany(
+db["projeler"].updateMany(
   {},
-  { $set: { customSettings } }
+  { $set: { pozBasliklari, metrajYapabilenler, mahalBasliklari } }
 )
 
 
+
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////
