@@ -45,7 +45,9 @@ export default function P_MahalListesi() {
 
   const { data: pozlar } = useGetPozlar()
 
+
   const { data: mahaller } = useGetMahaller()
+  // console.log("mahaller", mahaller)
 
   const { data: mahalListesi } = useGetMahalListesi()
 
@@ -87,15 +89,18 @@ export default function P_MahalListesi() {
   totalWidthSabit = totalWidthSabit + 'rem'
 
 
+
+
   let totalWidthDegisken = pozlar?.length * 10
   totalWidthDegisken = totalWidthDegisken + 'rem'
+
 
 
   let totalWidth = (parseFloat(totalWidthSabit) + 2 + parseFloat(totalWidthDegisken)) + 'rem'
 
 
   let gridTemplateColumnsSabit = selectedProje?.mahalBasliklari?.filter(item => item.sabit).reduce(
-    (ilkString, oneBilgi, index) => index != selectedProje?.mahalBasliklari?.length ? ilkString + (oneBilgi.genislik + "rem ") : ilkString + (oneBilgi.genislik + "rem"),
+    (ilkString, oneBilgi, index) => index != selectedProje?.mahalBasliklari?.filter(item => item.sabit).length ? ilkString + (oneBilgi.genislik + "rem ") : ilkString + (oneBilgi.genislik + "rem"),
     ""
   )
 
@@ -111,8 +116,8 @@ export default function P_MahalListesi() {
   )
 
 
-  let gridTemplateColumns_ = gridTemplateColumnsSabit + " 2rem " + gridTemplateColumnsDegisken
-
+  let gridTemplateColumns_ = gridTemplateColumnsSabit + "2rem " + gridTemplateColumnsDegisken
+  // console.log("gridTemplateColumns_", gridTemplateColumns_)
 
   const TableHeader = styled('div')(({ index }) => ({
     marginTop: "1rem",
@@ -140,6 +145,7 @@ export default function P_MahalListesi() {
 
 
   const handle_selectBaslik = (oneBaslik) => {
+    // console.log("oneBaslik",oneBaslik)
     setSelectedMahalBaslik(oneBaslik)
     setSelectedMahal()
   }
@@ -215,6 +221,7 @@ export default function P_MahalListesi() {
             </Box>
 
             {selectedProje?.mahalBasliklari?.filter(item => item.sabit).map((oneBaslik, index) => {
+
               return (
                 <Box
                   sx={{
@@ -273,7 +280,7 @@ export default function P_MahalListesi() {
                   </Box>
 
                   <Box sx={{ display: "grid", justifyContent: "center" }}>
-                    {onePoz.name}
+                    {onePoz.pozName}
                   </Box>
 
                 </Box>
@@ -302,6 +309,7 @@ export default function P_MahalListesi() {
               }
               return -1; // was missing case b.len > a.len
             }).map((oneLbs, index) => {
+              // console.log("oneLbs", oneLbs)
               return (
                 <Grid
                   key={index}
@@ -372,12 +380,12 @@ export default function P_MahalListesi() {
                   {/* burada başlık sıralamasına göre güvenerek haraket ediliyor (tüm mahalBaşlıkları map'lerde) */}
                   {
                     pozlar?.map((onePoz, index) => {
+                      // console.log("onePoz", onePoz)
                       return (
                         <TableHeader key={index} index={index} count_={count_} sx={{ display: "grid", with: "100%", justifyContent: onePoz.yatayHiza }}>
 
                           {onePoz.veriTuruId == "sayi" && isNumeric(g_altBaslik) &&
                             <Box>
-
                             </Box>
                           }
                         </TableHeader>
@@ -398,6 +406,8 @@ export default function P_MahalListesi() {
 
                     {/* MAHALLER */}
                     {mahaller?.filter(item => item._lbsId.toString() == oneLbs._id.toString()).map((oneMahal, index) => {
+                      // console.log("oneMahal", oneMahal)
+                      // console.log("oneLbs", oneLbs)
                       return (
                         <Grid
                           key={index}
