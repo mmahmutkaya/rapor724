@@ -183,13 +183,13 @@ export default function FormFirmaPozCreate({ setShow }) {
       }
       // console.log("form validation - hata yok - backend")
 
-      if (!result.newPoz?._id) {
+      if (!result.newPoz) {
         console.log("result", result)
-        throw new Error("db den -newPoz- ve onun da -_id-  property dönmedi, sayfayı yenileyiniz, sorun devam ederse Rapor7/24 ile irtibata geçiniz..")
+        throw new Error("Kayıt işlemi gerçekleşmedi, sayfayı yenileyiniz, sorun devam ederse Rapor7/24 ile irtibata geçiniz..")
       }
 
-      queryClient.setQueryData(['firmaPozlar', selectedFirma?._id.toString()], (pozlar2) => {
-        return [...pozlar2, newPoz]
+      queryClient.setQueryData(['firmaPozlar', selectedFirma?._id.toString()], (pozlar) => {
+        return [...pozlar, {...result.newPoz}]
       })
 
       setShow("Main")

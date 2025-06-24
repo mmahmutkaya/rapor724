@@ -152,13 +152,13 @@ export default function FormMahalCreate({ setShow }) {
       }
       // console.log("form validation - hata yok - backend")
 
-      if (!result.newMahal?._id) {
+      if (!result.newMahal) {
         console.log("result", result)
-        throw new Error("db den -newMahal- ve onun da -_id-  property dönmedi, sayfayı yenileyiniz, sorun devam ederse Rapor7/24 ile irtibata geçiniz..")
+        throw new Error("Kayıt işlemi gerçekleşmedi, sayfayı yenileyiniz, sorun devam ederse Rapor7/24 ile irtibata geçiniz..")
       }
 
-      queryClient.setQueryData(['mahaller', selectedProje?._id.toString()], (mahaller2) => {
-        return [...mahaller2, newMahal]
+      queryClient.setQueryData(['mahaller', selectedProje?._id.toString()], (mahaller) => {
+        return [...mahaller, {...result.newMahal}]
       })
 
       setShow("Main")

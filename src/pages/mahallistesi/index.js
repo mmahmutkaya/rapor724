@@ -1,12 +1,16 @@
 
-import { useState, useContext } from 'react';
+import { useState, useContext, useEffect } from 'react';
 import { useNavigate } from "react-router-dom";
 import { StoreContext } from '../../components/store'
 import { useApp } from "../../components/useApp";
+import { useQueryClient } from '@tanstack/react-query'
+import { useGetMahaller, useGetMahalListesi, useToggleOpenMetrajDugum, useGetPozlar } from '../../hooks/useMongo';
+
+
 import FormMahalCreate from '../../components/FormMahalCreate'
 import FormMahalBaslikCreate from '../../components/FormMahalBaslikCreate'
 import MahalListesiHeader from '../../components/MahalListesiHeader'
-import { useGetMahaller, useGetMahalListesi, useToggleOpenMetrajDugum, useGetPozlar } from '../../hooks/useMongo';
+import { DialogAlert } from '../../components/general/DialogAlert'
 
 
 import { styled } from '@mui/system';
@@ -23,8 +27,10 @@ import { BSON } from 'realm-web';
 
 export default function P_MahalListesi() {
 
+  const navigate = useNavigate()
+  const queryClient = useQueryClient()
 
-  const { selectedProje, setMahalListesi_wbsIds, setMahalListesi_lbsIds } = useContext(StoreContext)
+  const { RealmApp, selectedProje, setMahalListesi_wbsIds, setMahalListesi_lbsIds } = useContext(StoreContext)
   const { selectedMahal, setSelectedMahal } = useContext(StoreContext)
   const { myTema, setMyTema } = useContext(StoreContext)
   const { selectedMahalBaslik, setSelectedMahalBaslik } = useContext(StoreContext)
@@ -37,21 +43,92 @@ export default function P_MahalListesi() {
   const [autoFocus, setAutoFocus] = useState({ baslikId: null, mahalId: null })
 
 
-  const navigate = useNavigate()
-  // !selectedProje ? navigate('/projects') : null
-  if (!selectedProje) window.location.href = "/projects"
+  useEffect(() => {
+    !selectedProje && navigate('/projeler')
+  }, [])
 
-  const RealmApp = useApp();
 
   const { data: pozlar } = useGetPozlar()
 
+  const [dialogAlert, setDialogAlert] = useState()
 
   const { data: mahaller } = useGetMahaller()
   // console.log("mahaller", mahaller)
 
   const { data: mahalListesi } = useGetMahalListesi()
+  // console.log("mahalListesi", mahalListesi)
 
-  const { mutate: toggleMahalPoz } = useToggleOpenMetrajDugum()
+  // const { mutate: toggleMahalPoz } = useToggleOpenMetrajDugum()
+
+
+  const toggleMahalPoz = async ({ _mahalId, _pozId, switchValue }) => {
+    // console.log({ mahalListesi, _mahalId, _pozId, switchValue })
+    try {
+      const result = await RealmApp?.currentUser.callFunction("collectionDugumler", ({ functionName: "toggle_openMetraj", _projeId: selectedProje?._id, _mahalId, _pozId, switchValue }))
+
+      if (result.dataUpdated) {
+        const mahalListesi2 = JSON.parse(JSON.stringify(mahalListesi))
+        mahalListesi2.list = mahalListesi2.list.map(element => {
+          if (element._pozId.toString() === _pozId.toString() && element._mahalId.toString() === _mahalId.toString()) {
+            element.openMetraj = switchValue
+          }
+          return element
+        })
+        queryClient.setQueryData(['mahalListesi', selectedProje?._id.toString()], mahalListesi2)
+      }
+
+
+      if (result.newObject) {
+        const mahalListesi2 = JSON.parse(JSON.stringify(mahalListesi))
+        mahalListesi2.list = [...mahalListesi2.list, {...result.newObject}]
+        queryClient.setQueryData(['mahalListesi', selectedProje?._id.toString()], mahalListesi2)
+      }
+
+
+      // queryClient.setQueryData(['mahalListesi', selectedProje?._id.toString()], (mahalListesi2) => {
+      //   if (switchValue) {
+      //     mahalListesi2.list = mahalListesi2.list.map(element => {
+      //       if (element._pozId.toString() === _pozId.toString() && element._pozId.toString() === _pozId.toString()) {
+      //         element.openMetraj = true
+      //       }
+      //       return element
+      //     })
+      //   }
+      //   if (!switchValue) {
+      //     mahalListesi2.list = mahalListesi2.list.map(element => {
+      //       if (element._pozId.toString() === _pozId.toString() && element._pozId.toString() === _pozId.toString()) {
+      //         element.openMetraj = false
+      //       }
+      //       return element
+      //     })
+      //     // const index = mahalListesi2.list.findIndex(element => element._pozId.toString() === _pozId.toString() && element._mahalId.toString() === _mahalId.toString());
+      //     // let array2 = mahalListesi2.list.splice(index, 1)
+      //     // console.log("array2",array2)
+      //     // mahalListesi2.list = array2
+      //     // console.log("index",index)
+      //     // console.log("mahalListesi2_false",mahalListesi2)
+      //     // return mahalListesi2
+      //   }
+      //   return JSON.parse(JSON.stringify(mahalListesi2));
+      // })
+
+      // queryClient.setQueryData(['mahalListesi', selectedProje?._id.toString()], mahalListesi2)
+      // queryClient.invalidateQueries({ queryKey: ['pozlar', selectedProje?._id.toString()] })
+
+    } catch (err) {
+
+      console.log(err)
+
+      setDialogAlert({
+        dialogIcon: "warning",
+        dialogMessage: "Beklenmedik hata, Rapor7/24 ile irtibata geçiniz..",
+        detailText: err?.message ? err.message : null
+      })
+
+    }
+  }
+
+
 
 
   const handleSelectMahal = (mahal) => {
@@ -176,6 +253,16 @@ export default function P_MahalListesi() {
 
     <>
 
+      {dialogAlert &&
+        <DialogAlert
+          dialogIcon={dialogAlert.dialogIcon}
+          dialogMessage={dialogAlert.dialogMessage}
+          detailText={dialogAlert.detailText}
+          onCloseAction={() => setDialogAlert()}
+        />
+      }
+
+
       <Grid item >
         <MahalListesiHeader setShow={setShow} editMode_MahalListesi={editMode_MahalListesi} setEditMode_MahalListesi={setEditMode_MahalListesi} saveMahal={saveMahal} />
       </Grid>
@@ -235,7 +322,7 @@ export default function P_MahalListesi() {
                     width: "100%",
                     display: "grid",
                     alignItems: "center",
-                    justifyContent: oneBaslik.yatayHiza,
+                    justifyContent: oneBaslik.yatayHiza
                   }}
                   onClick={() => handle_selectBaslik(oneBaslik)}
                   key={index}
@@ -406,8 +493,9 @@ export default function P_MahalListesi() {
 
                     {/* MAHALLER */}
                     {mahaller?.filter(item => item._lbsId.toString() == oneLbs._id.toString()).map((oneMahal, index) => {
-                      // console.log("oneMahal", oneMahal)
-                      // console.log("oneLbs", oneLbs)
+
+                      let filteredMahalListesi_byMahal = mahalListesi.list.filter(element => element._mahalId.toString() === oneMahal._id.toString() )
+
                       return (
                         <Grid
                           key={index}
@@ -443,7 +531,7 @@ export default function P_MahalListesi() {
                           </Bosluk>
                           {pozlar?.map((onePoz, index) => {
 
-                            let theDugum = mahalListesi.list?.find((item) => item._mahalId.toString() == oneMahal._id.toString() && item._pozId.toString() == onePoz._id.toString())
+                            let theDugum = filteredMahalListesi_byMahal?.find((item) => item._mahalId.toString() == oneMahal._id.toString() && item._pozId.toString() == onePoz._id.toString())
 
                             return theDugum?.openMetraj ?
 

@@ -154,7 +154,7 @@ export const useGetMahalListesi = () => {
 
   return useQuery({
     queryKey: ['mahalListesi', selectedProje?._id.toString()],
-    queryFn: () => RealmApp?.currentUser.callFunction("collectionDugumler", ({ functionName: "getMahalListesi", _projectId: selectedProje?._id })),
+    queryFn: () => RealmApp?.currentUser.callFunction("collectionDugumler", ({ functionName: "getMahalListesi", _projeId: selectedProje?._id })),
     enabled: !!RealmApp && !!selectedProje,
     refetchOnMount: false,
     refetchOnWindowFocus: false,
