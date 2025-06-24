@@ -1,6 +1,6 @@
 exports = async function ({
   functionName,
-  _projectId,
+  _projeId,
   _mahalId,
   _pozId,
   _dugumId,
@@ -35,47 +35,38 @@ exports = async function ({
   // 2-form verileri - hata varsa form alanlarında gözükmesi için bir obje gönderilir
 
   // tip2 - (yukarıda açıklandı)
-  if (!_projectId)
+  if (!_projeId)
     throw new Error(
       "MONGO // collectionDugumler // Proje Id -- sorguya gönderilmemiş, lütfen Rapor7/24 ile irtibata geçiniz. "
     );
   try {
-    if (typeof _projectId == "string") {
-      _projectId = new BSON.ObjectId(_projectId);
+    if (typeof _projeId == "string") {
+      _projeId = new BSON.ObjectId(_projeId);
     }
   } catch (err) {
     throw new Error(
-      "MONGO // collectionDugumler -- sorguya gönderilen --projectId-- türü doğru değil, lütfen Rapor7/24 ile irtibata geçiniz."
+      "MONGO // collectionDugumler -- sorguya gönderilen --projeId-- türü doğru değil, lütfen Rapor7/24 ile irtibata geçiniz."
     );
   }
-  if (typeof _projectId != "object")
+  if (typeof _projeId != "object")
     throw new Error(
-      "MONGO // collectionDugumler -- sorguya gönderilen --projectId-- türü doğru değil, lütfen Rapor7/24 ile irtibata geçiniz. "
+      "MONGO // collectionDugumler -- sorguya gönderilen --projeId-- türü doğru değil, lütfen Rapor7/24 ile irtibata geçiniz. "
     );
 
 
   const currentTime = new Date();
 
-  const collection_Projects = context.services.get("mongodb-atlas").db("rapor724_v2").collection("projects")
-  const collection_Dugumler = context.services.get("mongodb-atlas").db("rapor724_dugumler").collection(_projectId.toString())
-  const collection_HazirlananMetrajlar = context.services.get("mongodb-atlas").db("rapor724_hazirlananMetrajlar").collection(_projectId.toString())
-  const collection_OnaylananMetrajlar = context.services.get("mongodb-atlas").db("rapor724_onaylananMetrajlar").collection(_projectId.toString())
-  const collection_Mahaller = context.services.get("mongodb-atlas").db("rapor724_mahaller").collection(_projectId.toString())
-  const collection_Pozlar = context.services.get("mongodb-atlas").db("rapor724_pozlar").collection(_projectId.toString())
+  const collection_Projeler = context.services.get("mongodb-atlas").db("rapor724_v2").collection("projeler")
+  const collection_Dugumler = context.services.get("mongodb-atlas").db("rapor724_v2").collection("dugumler")
+  const collection_HazirlananMetrajlar = context.services.get("mongodb-atlas").db("rapor724_v2").collection("hazirlananMetrajlar")
+  const collection_OnaylananMetrajlar = context.services.get("mongodb-atlas").db("rapor724_v2").collection("onaylananMetrajlar")
+  const collection_Mahaller = context.services.get("mongodb-atlas").db("rapor724_v2").collection("mahaller")
+  const collection_Pozlar = context.services.get("mongodb-atlas").db("rapor724_v2").collection("pozlar")
   const collection_Users = context.services.get("mongodb-atlas").db("rapor724_v2").collection("users")
 
 
 
-  const project2 = await collection_Projects.aggregate([
-    { $match: { _id: _projectId } },
-  ]).toArray()
-
-
-  let project
-  project2.map((x, index) => {
-    // zaten bir project var ama olsun biz yine de index ===0 mı yani ilk obje mi sorgusunu yapalım
-    if (index == 0) project = x
-  })
+  let proje = await collection_Projeler.findOne({ _id: _projeId })
 
 
   if (functionName == "getMahalListesi") {
@@ -84,7 +75,7 @@ exports = async function ({
       { $match: { openMetraj: true } },
     ]).toArray()
 
-    // const list = await collection_Dugumler.find({_projectId}).toArray()
+    // const list = await collection_Dugumler.find({_projeId}).toArray()
 
     // let wbsLer
     // //
@@ -93,12 +84,12 @@ exports = async function ({
     //   // ilk seviye wbsLer'in yerleştirilmesi
     //   let code2 = ""
     //   if (!wbsLer) {
-    //     let { _id, code, name } = project.wbs.find(x => x._id.toString() === oneNode._wbsId.toString())
+    //     let { _id, code, name } = proje.wbs.find(x => x._id.toString() === oneNode._wbsId.toString())
     //     wbsLer = [{ _id, code, name }]
     //     code2 = code
     //   } else {
     //     if (!wbsLer.find(y => y._id.toString() == oneNode._wbsId.toString())) {
-    //       let { _id, code, name } = project.wbs.find(x => x._id.toString() === oneNode._wbsId.toString())
+    //       let { _id, code, name } = proje.wbs.find(x => x._id.toString() === oneNode._wbsId.toString())
     //       wbsLer = [...wbsLer, { _id, code, name }]
     //       code2 = code
     //     }
@@ -111,7 +102,7 @@ exports = async function ({
     //     codeArray.map(oneCode => {
     //       initialCode = initialCode.length ? initialCode + "." + oneCode : oneCode
     //       if (!wbsLer.find(x => x.code == initialCode)) {
-    //         let { _id, code, name } = project.wbs.find(x => x.code === initialCode)
+    //         let { _id, code, name } = proje.wbs.find(x => x.code === initialCode)
     //         wbsLer = [...wbsLer, { _id, code, name }]
     //       }
     //     })
@@ -127,12 +118,12 @@ exports = async function ({
     //   // ilk seviye lbsLer'in yerleştirilmesi
     //   let code2 = ""
     //   if (!lbsLer) {
-    //     let { _id, code, name } = project.lbs.find(x => x._id.toString() === oneNode._lbsId.toString())
+    //     let { _id, code, name } = proje.lbs.find(x => x._id.toString() === oneNode._lbsId.toString())
     //     lbsLer = [{ _id, code, name }]
     //     code2 = code
     //   } else {
     //     if (!lbsLer.find(y => y._id.toString() == oneNode._lbsId.toString())) {
-    //       let { _id, code, name } = project.lbs.find(x => x._id.toString() === oneNode._lbsId.toString())
+    //       let { _id, code, name } = proje.lbs.find(x => x._id.toString() === oneNode._lbsId.toString())
     //       lbsLer = [...lbsLer, { _id, code, name }]
     //       code2 = code
     //     }
@@ -145,7 +136,7 @@ exports = async function ({
     //     codeArray.map(oneCode => {
     //       initialCode = initialCode.length ? initialCode + "." + oneCode : oneCode
     //       if (!lbsLer.find(x => x.code == initialCode)) {
-    //         let { _id, code, name } = project.lbs.find(x => x.code === initialCode)
+    //         let { _id, code, name } = proje.lbs.find(x => x.code === initialCode)
     //         lbsLer = [...lbsLer, { _id, code, name }]
     //       }
     //     })
@@ -429,11 +420,11 @@ exports = async function ({
 
 
 
-  if (functionName == "getProjectPozlar") {
+  if (functionName == "getprojePozlar") {
     try {
 
       // pozlar metraj
-      const collection_Dugumler = context.services.get("mongodb-atlas").db("rapor724_dugumler").collection(_projectId.toString())
+      const collection_Dugumler = context.services.get("mongodb-atlas").db("rapor724_dugumler").collection(_projeId.toString())
 
       const onaylananMetrajlar = await collection_Dugumler.aggregate([
         {
@@ -466,13 +457,13 @@ exports = async function ({
 
 
       // pozlar bulma ve metrajlar ile birleştirme
-      const collection = context.services.get("mongodb-atlas").db("rapor724_pozlar").collection(_projectId.toString())
+      const collection = context.services.get("mongodb-atlas").db("rapor724_pozlar").collection(_projeId.toString())
       let pozlar = await collection.find({ isDeleted: false }).toArray()
       let pozlar2 = pozlar.map(onePoz => {
         let onaylananMetraj = onaylananMetrajlar.find(x => x._id.toString() == onePoz._id.toString())
         let hazirlananMetrajlar2 = hazirlananMetrajlar.find(x => x._id.toString() == onePoz._id.toString())
         let openMetraj = aktifPozlar.find(x => x._id.toString() == onePoz._id.toString()) ? true : false
-        let pozBirim = project.pozBirimleri.find(x => x.id == onePoz?.birimId)?.name
+        let pozBirim = proje.pozBirimleri.find(x => x.id == onePoz?.birimId)?.name
         return { ...onePoz, ...onaylananMetraj, ...hazirlananMetrajlar2, openMetraj, pozBirim }
       })
 
@@ -480,7 +471,7 @@ exports = async function ({
 
     } catch (err) {
 
-      throw new Error("MONGO // getProjectPozlar // " + err.message)
+      throw new Error("MONGO // getprojePozlar // " + err.message)
     }
 
   }
