@@ -72,7 +72,8 @@ exports = async function ({
   if (functionName == "getMahalListesi") {
 
     const list = await collection_Dugumler.aggregate([
-      { $match: { openMetraj: true } },
+      { $match: { _projeId, openMetraj: true } },
+      { $project: { _pozId:1, _mahalId:1 } }
     ]).toArray()
 
     return {list}
@@ -391,7 +392,7 @@ exports = async function ({
   if (functionName == "toggle_openMetraj") {
 
     const result = await collection_Dugumler.updateOne(
-      { _mahalId, _pozId },
+      { _projeId, _mahalId, _pozId },
       [
         {
           $set: {
@@ -406,6 +407,7 @@ exports = async function ({
     }
 
     const dugumObject = {
+      _projeId,
       _mahalId,
       _pozId,
       openMetraj: switchValue,
