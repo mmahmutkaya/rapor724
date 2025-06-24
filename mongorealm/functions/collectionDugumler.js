@@ -403,10 +403,10 @@ exports = async function ({
     )
 
     if (result.matchedCount) {
-      return { ok: "'toggle_openMetraj' - toggle - çalıştı.", result }
+      return { dataUpdated: true }
     }
 
-    const dugumObject = {
+    let dugumObject = {
       _projeId,
       _mahalId,
       _pozId,
@@ -415,8 +415,12 @@ exports = async function ({
       hazirlananMetrajlar: [],
       createdBy: _userId,
     }
+    
     const result2 = await collection_Dugumler.insertOne(dugumObject)
-    return { ok: "'toggle_openMetraj' - yeniObject - çalıştı.", result2 }
+    
+    dugumObject = {...dugumObject,_id:result2.insertedId}
+    
+    return { newObject:dugumObject }
 
   }
 
