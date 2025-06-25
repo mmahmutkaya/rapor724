@@ -35,7 +35,7 @@ export default function P_MetrajPozlar() {
 
 
   useEffect(() => {
-    !selectedProje && navigate("/projects")
+    !selectedProje && navigate("/projeler")
     return () => {
       // setSelectedPoz()
       // setMahallistesi_filtered()

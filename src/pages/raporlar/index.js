@@ -4,7 +4,7 @@ import { useNavigate } from "react-router-dom";
 import { StoreContext } from '../../components/store'
 import { useApp } from "../../components/useApp";
 import FormMahalCreate from '../../components/FormMahalCreate'
-import MahalListesiHeader from '../../components/MahalListesiHeader'
+import HeaderMahalListesi from '../../components/HeaderMahalListesi'
 
 import Grid from '@mui/material/Grid';
 import Alert from '@mui/material/Alert';
@@ -113,7 +113,7 @@ export default function P_Raporlar() {
     <Grid container direction="column" spacing={0}>
 
       <Grid item >
-        <MahalListesiHeader setShow={setShow} />
+        <HeaderMahalListesi setShow={setShow} />
       </Grid>
 
       {show == "Main" && (selectedProje?.lbs?.filter(item => item.openForMahal).length == 0) && (

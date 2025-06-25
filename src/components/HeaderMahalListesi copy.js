@@ -16,7 +16,7 @@ import FileDownloadDoneIcon from '@mui/icons-material/FileDownloadDone';
 import EditIcon from '@mui/icons-material/Edit';
 
 
-export default function MahalMetrajHeader({ setShow, editMode_MahalListesi, setEditMode_MahalListesi, saveMahal }) {
+export default function HeaderMahalListesi({ setShow, editMode_MahalListesi, setEditMode_MahalListesi, saveMahal }) {
 
   const { drawerWidth, topBarHeight } = useContext(StoreContext)
 
@@ -152,16 +152,6 @@ export default function MahalMetrajHeader({ setShow, editMode_MahalListesi, setE
           <Grid item xs="auto">
             <Grid container spacing={1}>
 
-              
-
-
-              {!editMode_MahalListesi &&
-                <Grid item>
-                  <IconButton onClick={() => saveMahal()} aria-label="addLbs" disabled={(selectedProje?.lbs?.filter(item => item.openForMahal).length == 0 || !selectedProje?.lbs) ? true : false}>
-                    <EditIcon variant="contained" color={(selectedProje?.lbs?.filter(item => item.openForMahal).length == 0 || !selectedProje?.lbs) ? " lightgray" : "success"} />
-                  </IconButton>
-                </Grid>
-              }
 
               {!editMode_MahalListesi &&
                 <Grid item>

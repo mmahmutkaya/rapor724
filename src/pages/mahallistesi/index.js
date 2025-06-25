@@ -3,14 +3,11 @@ import { useState, useContext, useEffect } from 'react';
 import { useNavigate } from "react-router-dom";
 import { StoreContext } from '../../components/store'
 import { useApp } from "../../components/useApp";
-import { useQueryClient } from '@tanstack/react-query'
-import { useGetMahaller, useGetMahalListesi, useToggleOpenMetrajDugum, useGetPozlar } from '../../hooks/useMongo';
-
 
 import FormMahalCreate from '../../components/FormMahalCreate'
 import FormMahalBaslikCreate from '../../components/FormMahalBaslikCreate'
-import MahalListesiHeader from '../../components/MahalListesiHeader'
-import { DialogAlert } from '../../components/general/DialogAlert'
+import HeaderMahalListesi from '../../components/HeaderMahalMetraj'
+import { useGetMahaller, useGetMahalListesi, useUpdateHazirlananMetrajShort, useGetPozlar } from '../../hooks/useMongo';
 
 
 import { styled } from '@mui/system';
@@ -27,20 +24,22 @@ import { BSON } from 'realm-web';
 
 export default function P_MahalListesi() {
 
-  const navigate = useNavigate()
-  const queryClient = useQueryClient()
 
-  const { RealmApp, selectedProje, setMahalListesi_wbsIds, setMahalListesi_lbsIds } = useContext(StoreContext)
+  const { RealmApp, selectedProje, setMahalListesi_wbsIds, setMahalListesi_lbsIds, myTema } = useContext(StoreContext)
+  const { selectedNode, setSelectedNode } = useContext(StoreContext)
   const { selectedMahal, setSelectedMahal } = useContext(StoreContext)
-  const { myTema, setMyTema } = useContext(StoreContext)
-  const { selectedMahalBaslik, setSelectedMahalBaslik } = useContext(StoreContext)
+  const { selectedPoz, setSelectedPoz } = useContext(StoreContext)
   const { drawerWidth, topBarHeight, subHeaderHeight } = useContext(StoreContext)
 
 
   const [show, setShow] = useState("Main")
+  const [isChanged, setIsChanged] = useState(0)
+  const [mahalListesi_state, setMahalListesi_state] = useState()
+  const [mahalListesi_willBeSaved, setMahalListesi_willBeSaved] = useState([])
   const [editMode_MahalListesi, setEditMode_MahalListesi] = useState(false)
-  const [mahalBilgiler_willBeSaved, setMahalBilgiler_willBeSaved] = useState([])
-  const [autoFocus, setAutoFocus] = useState({ baslikId: null, mahalId: null })
+
+
+  const navigate = useNavigate()
 
 
   useEffect(() => {
@@ -50,60 +49,19 @@ export default function P_MahalListesi() {
 
   const { data: pozlar } = useGetPozlar()
 
-  const [dialogAlert, setDialogAlert] = useState()
-
   const { data: mahaller } = useGetMahaller()
-  // console.log("mahaller", mahaller)
 
   const { data: mahalListesi } = useGetMahalListesi()
-  // console.log("mahalListesi", mahalListesi)
 
-  // const { mutate: toggleMahalPoz } = useToggleOpenMetrajDugum()
-
-
-  const toggleMahalPoz = async ({ _mahalId, _pozId, switchValue }) => {
-    // console.log({ mahalListesi, _mahalId, _pozId, switchValue })
-    try {
-      const result = await RealmApp?.currentUser.callFunction("collectionDugumler", ({ functionName: "toggle_openMetraj", _projeId: selectedProje?._id, _mahalId, _pozId, switchValue }))
-
-      if (result.dataUpdated) {
-        const mahalListesi2 = JSON.parse(JSON.stringify(mahalListesi))
-        mahalListesi2.list = mahalListesi2.list.map(element => {
-          if (element._pozId.toString() === _pozId.toString() && element._mahalId.toString() === _mahalId.toString()) {
-            element.openMetraj = switchValue
-          }
-          return element
-        })
-        queryClient.setQueryData(['mahalListesi', selectedProje?._id.toString()], mahalListesi2)
-      }
-
-
-      if (result.newObject) {
-        const mahalListesi2 = JSON.parse(JSON.stringify(mahalListesi))
-        mahalListesi2.list = [...mahalListesi2.list, {...result.newObject}]
-        queryClient.setQueryData(['mahalListesi', selectedProje?._id.toString()], mahalListesi2)
-      }
-
-    } catch (err) {
-
-      console.log(err)
-
-      setDialogAlert({
-        dialogIcon: "warning",
-        dialogMessage: "Beklenmedik hata, Rapor7/24 ile irtibata geçiniz..",
-        detailText: err?.message ? err.message : null
-      })
-
-    }
-  }
+  // const { mutate: updateMahalMetraj } = useUpdateHazirlananMetrajShort()
 
 
 
+  useEffect(() => {
+    console.log("useeffect")
+    setMahalListesi_state(mahalListesi?.list)
+  }, [mahalListesi?.list])
 
-  const handleSelectMahal = (mahal) => {
-    setSelectedMahal(mahal)
-    setSelectedMahalBaslik(false)
-  }
 
 
   // aşağıda kullanılıyor
@@ -135,18 +93,15 @@ export default function P_MahalListesi() {
   totalWidthSabit = totalWidthSabit + 'rem'
 
 
-
-
   let totalWidthDegisken = pozlar?.length * 10
   totalWidthDegisken = totalWidthDegisken + 'rem'
-
 
 
   let totalWidth = (parseFloat(totalWidthSabit) + 2 + parseFloat(totalWidthDegisken)) + 'rem'
 
 
   let gridTemplateColumnsSabit = selectedProje?.mahalBasliklari?.filter(item => item.sabit).reduce(
-    (ilkString, oneBilgi, index) => index != selectedProje?.mahalBasliklari?.filter(item => item.sabit).length ? ilkString + (oneBilgi.genislik + "rem ") : ilkString + (oneBilgi.genislik + "rem"),
+    (ilkString, oneBilgi, index) => index != selectedProje?.mahalBasliklari?.length ? ilkString + (oneBilgi.genislik + "rem ") : ilkString + (oneBilgi.genislik + "rem"),
     ""
   )
 
@@ -162,8 +117,8 @@ export default function P_MahalListesi() {
   )
 
 
-  let gridTemplateColumns_ = gridTemplateColumnsSabit + "2rem " + gridTemplateColumnsDegisken
-  // console.log("gridTemplateColumns_", gridTemplateColumns_)
+  let gridTemplateColumns_ = gridTemplateColumnsSabit + " 2rem " + gridTemplateColumnsDegisken
+
 
   const TableHeader = styled('div')(({ index }) => ({
     marginTop: "1rem",
@@ -190,13 +145,50 @@ export default function P_MahalListesi() {
   }));
 
 
-  const handle_selectBaslik = (oneBaslik) => {
-    // console.log("oneBaslik",oneBaslik)
-    setSelectedMahalBaslik(oneBaslik)
-    setSelectedMahal()
+  // const handle_selectBaslik = (oneBaslik) => {
+  //   setSelectedMahalBaslik(oneBaslik)
+  //   setSelectedMahal()
+  // }
+
+
+  const handle_input_onKey = async (event) => {
+    if (event.key == "e" || event.key == "E" || event.key == "+" || event.key == "-" || event.keyCode == "38" || event.keyCode == "40") {
+      // console.log("'e' - 'E' - '+' - '-' - 'up' - 'down' - kullanılmasın")
+      return event.preventDefault()
+    }
   }
 
 
+
+  const handle_input_onChange = ({ event, theDugum }) => {
+
+    // console.log("event.target.value", event.target.value)
+    // console.log("theDugumId", theDugum._id.toString())
+
+    // setMahalListesi_state(mahalListesi => {
+    //   console.log("mahalListesi", mahalListesi)
+    //   mahalListesi = mahalListesi.map(x => {
+    //     if (x._id.toString() === theDugum._id.toString()) {
+    //       x.metraj = event.target.value
+    //     }
+    //     return x
+    //   })
+    //   // console.log("mahalListesi", mahalListesi)
+    //   return mahalListesi
+    // })
+
+    setMahalListesi_willBeSaved(mahalListesi => {
+      mahalListesi = mahalListesi?.filter(x => x._dugumId.toString() !== theDugum._id.toString())
+      mahalListesi = [...mahalListesi, { _dugumId: theDugum._id, metrajValue: event.target.value }]
+      console.log("mahalListesi", mahalListesi)
+      return mahalListesi
+    })
+
+
+    setIsChanged(true)
+    // alttaki kod sadece react component render yapılması için biyerde kullanılmıyor -- (sonra bunada gerek kalmadı)
+    // setMetraj(oneRow["metin1"] + oneRow["metin2"] + oneRow["carpan1"] + oneRow["carpan2"] + oneRow["carpan3"] + oneRow["carpan4"] + oneRow["carpan5"])
+  }
 
 
   // bir string değerinin numerik olup olmadığının kontrolü
@@ -210,11 +202,63 @@ export default function P_MahalListesi() {
 
 
 
+  const handleCancel = () => {
+    setEditMode_MahalListesi()
+    setIsChanged()
+    setMahalListesi_willBeSaved([])
+  }
+
+
   const saveMahal = async () => {
-    // setMahalBilgiler_willBeSaved([])
-    const result = await RealmApp?.currentUser.callFunction("updateMahalBilgiler", { _projectId: selectedProje?._id, mahalBilgiler_willBeSaved });
-    setEditMode_MahalListesi(false)
-    setSelectedMahalBaslik(false)
+
+    if (isChanged) {
+      try {
+        console.log("güncellenecek")
+        console.log("mahalListesi_state", mahalListesi_state)
+      } catch (error) {
+
+      }
+    }
+
+    setEditMode_MahalListesi()
+    setIsChanged()
+    setMahalListesi_willBeSaved([])
+
+  }
+
+  const updateMahalListesi_state = ({ _mahalId, _pozId, switchValue }) => {
+
+    // console.log({ _mahalId, _pozId, switchValue })
+    if (mahalListesi_state.find(x => x._mahalId.toString() === _mahalId.toString() && x._pozId.toString() === _pozId.toString())) {
+      let mahalListesi_state2 = JSON.parse(JSON.stringify(mahalListesi_state))
+      // console.log("mahalListesi_state2", mahalListesi_state2)
+      mahalListesi_state2 = mahalListesi_state2.map(x => {
+        if (x._mahalId.toString() === _mahalId.toString() && x._pozId.toString() === _pozId.toString()) {
+          x.openMetraj = switchValue
+          x.isChanged = true
+        }
+        return x
+      })
+      setMahalListesi_state(mahalListesi_state2)
+    } else {
+      setMahalListesi_state([...mahalListesi_state, { _mahalId, _pozId, openMetraj: switchValue, isChanged: true }])
+    }
+    setIsChanged(true)
+    return
+
+  }
+
+
+  const metrajValue = (metrajValue) => {
+
+    // if (oneData == "pozBirim") return pozBirim
+    // if (oneData.includes("carpan")) return show !== "EditMetraj" ? ikiHane(oneRow[oneData]) : oneRow[oneData]
+    // if (oneData == "metraj") return ikiHane(oneRow[oneData])
+
+    // yukarıdaki hiçbiri değilse
+    metrajValue = metrajValue * 1
+    return metrajValue
+
   }
 
 
@@ -222,18 +266,8 @@ export default function P_MahalListesi() {
 
     <>
 
-      {dialogAlert &&
-        <DialogAlert
-          dialogIcon={dialogAlert.dialogIcon}
-          dialogMessage={dialogAlert.dialogMessage}
-          detailText={dialogAlert.detailText}
-          onCloseAction={() => setDialogAlert()}
-        />
-      }
-
-
       <Grid item >
-        <MahalListesiHeader setShow={setShow} editMode_MahalListesi={editMode_MahalListesi} setEditMode_MahalListesi={setEditMode_MahalListesi} saveMahal={saveMahal} />
+        <HeaderMahalListesi handleCancel={handleCancel} editMode_MahalListesi={editMode_MahalListesi} setEditMode_MahalListesi={setEditMode_MahalListesi} saveMahal={saveMahal} isChanged={isChanged} />
       </Grid>
 
       {show == "FormMahalCreate" &&
@@ -256,11 +290,9 @@ export default function P_MahalListesi() {
         </Stack>
       }
 
-      {show == "Main" && mahalListesi && selectedProje?.lbs?.filter(item => item.openForMahal).length > 0 &&
+      {show == "Main" && mahalListesi_state && selectedProje?.lbs?.filter(item => item.openForMahal).length > 0 &&
 
         <Box sx={{ mt: subHeaderHeight, pt: "1rem", pl: "1rem", pr: "1rem" }}>
-
-          {/* {console.log("mahalListesi", mahalListesi)} */}
 
           {/* EN ÜST BAŞLIK ÜST SATIRI */}
           <Grid
@@ -277,7 +309,6 @@ export default function P_MahalListesi() {
             </Box>
 
             {selectedProje?.mahalBasliklari?.filter(item => item.sabit).map((oneBaslik, index) => {
-
               return (
                 <Box
                   sx={{
@@ -291,9 +322,9 @@ export default function P_MahalListesi() {
                     width: "100%",
                     display: "grid",
                     alignItems: "center",
-                    justifyContent: oneBaslik.yatayHiza
+                    justifyContent: oneBaslik.yatayHiza,
                   }}
-                  onClick={() => handle_selectBaslik(oneBaslik)}
+                  // onClick={() => handle_selectBaslik(oneBaslik)}
                   key={index}
                 >
                   {oneBaslik.name}
@@ -318,8 +349,7 @@ export default function P_MahalListesi() {
                 <Box
                   sx={{
                     cursor: "pointer",
-                    backgroundColor: editMode_MahalListesi ? "rgb( 110, 16, 16 , 1)" : "rgba( 56,56,56 , 0.9 )",
-                    color: "white",
+                    backgroundColor: editMode_MahalListesi ? "rgb( 110, 16, 16 , 1)" : "rgba( 56,56,56 , 0.9 )", color: "white",
                     fontWeight: "bold",
                     border: "solid black 1px",
                     borderRight: index + 1 == count_ ? "solid black 1px" : "0px",
@@ -328,11 +358,11 @@ export default function P_MahalListesi() {
                     display: "grid",
                     justifyContent: "center"
                   }}
-                  onClick={() => handle_selectBaslik(onePoz)}
+                  // onClick={() => handle_selectBaslik(onePoz)}
                   key={index}
                 >
                   <Box sx={{ display: "grid", justifyContent: "center" }}>
-                    {index}
+                    {onePoz.pozNo}
                   </Box>
 
                   <Box sx={{ display: "grid", justifyContent: "center" }}>
@@ -365,7 +395,6 @@ export default function P_MahalListesi() {
               }
               return -1; // was missing case b.len > a.len
             }).map((oneLbs, index) => {
-              // console.log("oneLbs", oneLbs)
               return (
                 <Grid
                   key={index}
@@ -436,13 +465,10 @@ export default function P_MahalListesi() {
                   {/* burada başlık sıralamasına göre güvenerek haraket ediliyor (tüm mahalBaşlıkları map'lerde) */}
                   {
                     pozlar?.map((onePoz, index) => {
-                      // console.log("onePoz", onePoz)
                       return (
                         <TableHeader key={index} index={index} count_={count_} sx={{ display: "grid", with: "100%", justifyContent: onePoz.yatayHiza }}>
-
                           {onePoz.veriTuruId == "sayi" && isNumeric(g_altBaslik) &&
-                            <Box>
-                            </Box>
+                            <Box>{g_altBaslik}</Box>
                           }
                         </TableHeader>
                       )
@@ -462,9 +488,6 @@ export default function P_MahalListesi() {
 
                     {/* MAHALLER */}
                     {mahaller?.filter(item => item._lbsId.toString() == oneLbs._id.toString()).map((oneMahal, index) => {
-
-                      let filteredMahalListesi_byMahal = mahalListesi.list.filter(element => element._mahalId.toString() === oneMahal._id.toString() )
-
                       return (
                         <Grid
                           key={index}
@@ -490,6 +513,7 @@ export default function P_MahalListesi() {
                                     // backgroundColor: selectedMahal?._id.toString() == oneMahal._id.toString() ? "green" : null
                                   }}
                                 >
+                                  {/* {oneMahal[oneBaslik.referans]} */}
                                   {oneMahal[oneBaslik.referans]}
                                 </TableItem>
                               )
@@ -498,9 +522,16 @@ export default function P_MahalListesi() {
 
                           <Bosluk>
                           </Bosluk>
+
+                          {/* HAYALET */}
+                          {<Box sx={{ display: "none" }}>
+                            {count_ = pozlar?.length}
+                          </Box>}
+
                           {pozlar?.map((onePoz, index) => {
 
-                            let theDugum = filteredMahalListesi_byMahal?.find((item) => item._mahalId.toString() == oneMahal._id.toString() && item._pozId.toString() == onePoz._id.toString())
+                            let theDugum = mahalListesi_state?.find((item) => item._pozId.toString() == onePoz._id.toString() && item._mahalId.toString() == oneMahal._id.toString() && item.openMetraj)
+
 
                             return theDugum?.openMetraj ?
 
@@ -508,7 +539,7 @@ export default function P_MahalListesi() {
                                 key={index}
                                 index={index}
                                 count_={count_}
-                                onClick={editMode_MahalListesi ? () => toggleMahalPoz({
+                                onClick={editMode_MahalListesi ? () => updateMahalListesi_state({
                                   _mahalId: oneMahal._id,
                                   _pozId: onePoz._id,
                                   switchValue: false
@@ -530,7 +561,7 @@ export default function P_MahalListesi() {
                                 key={index}
                                 index={index}
                                 count_={count_}
-                                onClick={editMode_MahalListesi ? () => toggleMahalPoz({
+                                onClick={editMode_MahalListesi ? () => updateMahalListesi_state({
                                   _mahalId: oneMahal._id,
                                   _pozId: onePoz._id,
                                   switchValue: true

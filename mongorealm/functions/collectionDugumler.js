@@ -35,26 +35,14 @@ exports = async function ({
   // 2-form verileri - hata varsa form alanlarında gözükmesi için bir obje gönderilir
 
   // tip2 - (yukarıda açıklandı)
-  if (!_projeId)
+  if (!_projeId) {
     throw new Error(
       "MONGO // collectionDugumler // Proje Id -- sorguya gönderilmemiş, lütfen Rapor7/24 ile irtibata geçiniz. "
-    );
-  try {
-    if (typeof _projeId == "string") {
-      _projeId = new BSON.ObjectId(_projeId);
-    }
-  } catch (err) {
-    throw new Error(
-      "MONGO // collectionDugumler -- sorguya gönderilen --projeId-- türü doğru değil, lütfen Rapor7/24 ile irtibata geçiniz."
-    );
+    )
   }
-  if (typeof _projeId != "object")
-    throw new Error(
-      "MONGO // collectionDugumler -- sorguya gönderilen --projeId-- türü doğru değil, lütfen Rapor7/24 ile irtibata geçiniz. "
-    );
 
 
-  const currentTime = new Date();
+  const currentTime = new Date()
 
   const collection_Projeler = context.services.get("mongodb-atlas").db("rapor724_v2").collection("projeler")
   const collection_Dugumler = context.services.get("mongodb-atlas").db("rapor724_v2").collection("dugumler")
@@ -73,10 +61,10 @@ exports = async function ({
 
     const list = await collection_Dugumler.aggregate([
       { $match: { _projeId } },
-      { $project: { _pozId:1, _mahalId:1, openMetraj:1 } }
+      { $project: { _pozId: 1, _mahalId: 1, openMetraj: 1 } }
     ]).toArray()
 
-    return {list}
+    return { list }
 
     // const list = await collection_Dugumler.find({_projeId}).toArray()
 
@@ -180,7 +168,7 @@ exports = async function ({
   if (functionName == "getHazirlananMetrajlar") {
 
     const resultArray = await collection_HazirlananMetrajlar.aggregate([
-      { $match: { _mahalId, _pozId } }
+      { $match: { _projeId, _mahalId, _pozId } }
     ]).toArray()
 
     return resultArray[0]?.hazirlananMetrajlar ? resultArray[0].hazirlananMetrajlar : resultArray
@@ -191,7 +179,7 @@ exports = async function ({
   if (functionName == "getOnaylananMetraj") {
 
     const resultArray = await collection_OnaylananMetrajlar.aggregate([
-      { $match: { _mahalId, _pozId } }
+      { $match: { _projeId, _mahalId, _pozId } }
     ]).toArray()
 
     return resultArray[0]?.onaylananMetraj ? resultArray[0].onaylananMetraj : resultArray
@@ -387,11 +375,35 @@ exports = async function ({
   }
 
 
+  if (functionName == "toggleDugumler") {
+
+    const bulkArray = mahalListesi.map(x => {
+      return (
+        {
+          updateOne: {
+            filter: { _mahalId, _pozId },
+            update: { $set: { openMetraj: metrajValue } }
+          }
+        }
+      )
+    })
+
+    try {
+      const result = collection_Dugumler.bulkWrite(
+        bulkArray,
+        { ordered: false }
+      )
+      return result
+    } catch (error) {
+      print(error)
+    }
+
+  }
 
 
   if (functionName == "toggle_openMetraj") {
 
-    const result = await collection_Dugumler.updateOne(
+    const result = await collection_Dugumler.findOne(
       { _projeId, _mahalId, _pozId },
       [
         {
@@ -411,16 +423,15 @@ exports = async function ({
       _mahalId,
       _pozId,
       openMetraj: switchValue,
-      // onaylananMetrajlar: { metraj: 0, satirlar: [] },
-      hazirlananMetrajlar: [],
       createdBy: _userId,
+      createdDate: currentTime
     }
-    
+
     const result2 = await collection_Dugumler.insertOne(dugumObject)
-    
-    dugumObject = {...dugumObject,_id:result2.insertedId}
-    
-    return { newObject:dugumObject }
+
+    dugumObject = { ...dugumObject, _id: result2.insertedId }
+
+    return { newObject: dugumObject }
 
   }
 

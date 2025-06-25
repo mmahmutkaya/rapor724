@@ -5,7 +5,7 @@ import { StoreContext } from '../../components/store'
 import { useApp } from "../../components/useApp";
 import FormMahalCreate from '../../components/FormMahalCreate'
 import FormMahalBaslikCreate from '../../components/FormMahalBaslikCreate'
-import HeaderMahalMetraj from '../../components/HeaderMahalMetraj'
+import MahalMetrajHeader from '../../components/MahalMetrajHeader'
 import { useGetMahaller, useGetMahalListesi, useUpdateHazirlananMetrajShort, useGetPozlar } from '../../hooks/useMongo';
 
 
@@ -24,10 +24,11 @@ import { BSON } from 'realm-web';
 export default function P_MahalMetraj() {
 
 
-  const { RealmApp, selectedProje, setMahalListesi_wbsIds, setMahalListesi_lbsIds, myTema } = useContext(StoreContext)
+  const { selectedProje, setMahalListesi_wbsIds, setMahalListesi_lbsIds } = useContext(StoreContext)
   const { selectedNode, setSelectedNode } = useContext(StoreContext)
   const { selectedMahal, setSelectedMahal } = useContext(StoreContext)
   const { selectedPoz, setSelectedPoz } = useContext(StoreContext)
+  const { myTema, setMyTema } = useContext(StoreContext)
   const { drawerWidth, topBarHeight, subHeaderHeight } = useContext(StoreContext)
 
 
@@ -39,12 +40,10 @@ export default function P_MahalMetraj() {
 
 
   const navigate = useNavigate()
+  // !selectedProje ? navigate('/projects') : null
+  if (!selectedProje) window.location.href = "/projects"
 
-
-  useEffect(() => {
-    !selectedProje && navigate('/projeler')
-  }, [])
-
+  const RealmApp = useApp();
 
   const { data: pozlar } = useGetPozlar()
 
@@ -52,7 +51,7 @@ export default function P_MahalMetraj() {
 
   const { data: mahalListesi } = useGetMahalListesi()
 
-  // const { mutate: updateMahalMetraj } = useUpdateHazirlananMetrajShort()
+  const { mutate: updateMahalMetraj } = useUpdateHazirlananMetrajShort()
 
 
 
@@ -178,7 +177,6 @@ export default function P_MahalMetraj() {
     setMahalListesi_willBeSaved(mahalListesi => {
       mahalListesi = mahalListesi?.filter(x => x._dugumId.toString() !== theDugum._id.toString())
       mahalListesi = [...mahalListesi, { _dugumId: theDugum._id, metrajValue: event.target.value }]
-      console.log("mahalListesi", mahalListesi)
       return mahalListesi
     })
 
@@ -200,29 +198,15 @@ export default function P_MahalMetraj() {
 
 
 
-  const handleCancel = () => {
-    setEditMode_MahalListesi()
-    setIsChanged()
-    setMahalListesi_willBeSaved([])
-  }
-
-
   const saveMahal = async () => {
 
-    if (isChanged) {
-      try {
-
-      } catch (error) {
-
-      }
-      console.log("güncellenecek")
-      console.log("mahalListesi_willBeSaved", mahalListesi_willBeSaved)
-    }
-
-    setEditMode_MahalListesi()
+    if (isChanged) updateMahalMetraj(mahalListesi_willBeSaved)
+    // setShow("PozMahalMetrajlari")
     setIsChanged()
-    setMahalListesi_willBeSaved([])
 
+    setMahalListesi_willBeSaved([])
+    // setEditMode_MahalListesi(false)
+    // setSelectedMahalBaslik(false)
   }
 
 
@@ -244,7 +228,7 @@ export default function P_MahalMetraj() {
     <>
 
       <Grid item >
-        <HeaderMahalMetraj handleCancel={handleCancel} editMode_MahalListesi={editMode_MahalListesi} setEditMode_MahalListesi={setEditMode_MahalListesi} saveMahal={saveMahal} isChanged={isChanged} />
+        <MahalMetrajHeader setShow={setShow} editMode_MahalListesi={editMode_MahalListesi} setEditMode_MahalListesi={setEditMode_MahalListesi} saveMahal={saveMahal} />
       </Grid>
 
       {show == "FormMahalCreate" &&
@@ -274,7 +258,7 @@ export default function P_MahalMetraj() {
           {/* EN ÜST BAŞLIK ÜST SATIRI */}
           <Grid
             sx={{
-              // pb: "1rem",
+              pb: "1rem",
               display: "grid",
               gridTemplateColumns: gridTemplateColumns_,
             }}
@@ -326,7 +310,7 @@ export default function P_MahalMetraj() {
                 <Box
                   sx={{
                     cursor: "pointer",
-                    backgroundColor: "rgba( 56,56,56 , 0.9 )",
+                    backgroundColor: editMode_MahalListesi ? "rgb( 110, 16, 16 , 1)" : "rgba( 56,56,56 , 0.9 )",
                     color: "white",
                     fontWeight: "bold",
                     border: "solid black 1px",
@@ -508,8 +492,8 @@ export default function P_MahalMetraj() {
 
                           {pozlar?.map((onePoz, index) => {
 
-                            let theDugum = mahalListesi_state?.find((item) => item._pozId.toString() == onePoz._id.toString() && item._mahalId.toString() == oneMahal._id.toString() && item.openMetraj)
-
+                            let theDugum = mahalListesi_state?.find((item) => item._pozId.toString() == onePoz._id.toString() && item._mahalId.toString() == oneMahal._id.toString())
+                            let isLast = index + 1 == count_ && true
 
                             return <Input
                               key={oneMahal._id.toString() + onePoz._id.toString()}
@@ -518,7 +502,7 @@ export default function P_MahalMetraj() {
                               // autoFocus={autoFocus.mahalId == oneMahal._id.toString()}
                               // autoFocus={true}
                               defaultValue={theDugum?.onaylananMetraj ? theDugum.onaylananMetraj.metraj : ""}
-                              readOnly={!theDugum || !editMode_MahalListesi}
+                              readOnly={!theDugum}
                               disableUnderline={true}
                               size="small"
                               type={theDugum ? "number" : "text"}
@@ -533,16 +517,14 @@ export default function P_MahalMetraj() {
                               onKeyDown={(event) => handle_input_onKey(event)}
                               onChange={(event) => handle_input_onChange({ event, theDugum })}
                               sx={{
-                                input: { cursor: (!theDugum || !editMode_MahalListesi) && 'default' },
                                 borderBottom: "1px solid black",
                                 borderRight: "1px solid black",
-                                borderLeft: index === 0 && "1px solid black",
+                                borderLeft: !isLast && "1px solid black",
                                 width: "100%",
                                 display: "grid",
                                 alignItems: "center",
                                 px: "0.3rem",
-                                // backgroundColor: theDugum && editMode_MahalListesi && myTema.renkler.hazirlananMetraj,
-                                backgroundColor: (theDugum && editMode_MahalListesi) ? "yellow" : theDugum && "rgba( 179,235,242 , 0.6 )",
+                                backgroundColor: theDugum && "yellow",
                                 // color: isMinha ? "red" : null,
                                 // justifyItems: oneBaslik.yatayHiza,
                                 "& input::-webkit-outer-spin-button, & input::-webkit-inner-spin-button": {
