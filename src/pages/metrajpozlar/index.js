@@ -337,9 +337,9 @@ export default function P_MetrajPozlar() {
                   return (
                     <Fragment key={index} >
                       <Box sx={{ backgroundColor: !onePoz.openMetraj && "lightgray", border: "1px solid black", borderTop: "none", px: "0.5rem", display: "grid", justifyContent: "start" }}> {onePoz.pozNo} </Box>
-                      <Box onDoubleClick={() => onePoz.openMetraj && goToMahaller_birPoz(onePoz)} sx={{ backgroundColor: !onePoz.openMetraj && "lightgray", cursor: onePoz.openMetraj && "pointer", border: "1px solid black", borderTop: "none", borderLeft: "none", px: "0.5rem", display: "grid", justifyContent: "start" }}> {onePoz.name} </Box>
+                      <Box onDoubleClick={() => onePoz.openMetraj && goToMahaller_birPoz(onePoz)} sx={{ backgroundColor: !onePoz.openMetraj && "lightgray", cursor: onePoz.openMetraj && "pointer", border: "1px solid black", borderTop: "none", borderLeft: "none", px: "0.5rem", display: "grid", justifyContent: "start" }}> {onePoz.pozName} </Box>
                       <Box sx={{ display: "grid", justifyContent: "center", backgroundColor: "white", color: "white" }}>.</Box>
-                      <Box sx={{ backgroundColor: !onePoz.openMetraj && "lightgray", border: "1px solid black", borderTop: "none", px: "0.5rem", display: "grid", justifyContent: "center" }}>{selectedProje.pozBirimleri.find(x => x.id == onePoz.birimId).name}</Box>
+                      <Box sx={{ backgroundColor: !onePoz.openMetraj && "lightgray", border: "1px solid black", borderTop: "none", px: "0.5rem", display: "grid", justifyContent: "center" }}>{selectedProje.pozBirimleri.find(x => x.id == onePoz.pozBirimId).name}</Box>
                       <Box sx={{ display: "grid", justifyContent: "center", backgroundColor: "white", color: "white" }}>.</Box>
                       <>
                         {
@@ -351,7 +351,7 @@ export default function P_MetrajPozlar() {
                         }
                       </>
                       {/* <Box sx={{ border: "1px solid black", borderTop: "none", px: "0.5rem", display: "grid", justifyContent: "center" }}>{onePoz.hazirlananMetrajlar} </Box> */}
-                      {/* <Box sx={{ border: "1px solid black", borderTop: "none", borderLeft: "none", px: "0.5rem", display: "grid", justifyContent: "center" }}>{selectedProje.pozBirimleri.find(x => x.id == onePoz.birimId).name}</Box> */}
+                      {/* <Box sx={{ border: "1px solid black", borderTop: "none", borderLeft: "none", px: "0.5rem", display: "grid", justifyContent: "center" }}>{selectedProje.pozBirimleri.find(x => x.id == onePoz.pozBirimId).name}</Box> */}
                       <Box sx={{ display: "grid", justifyContent: "center", backgroundColor: "white", color: "white" }}>.</Box>
                       <Box sx={{ backgroundColor: !onePoz.openMetraj && "lightgray", border: "1px solid black", borderTop: "none", px: "0.5rem", display: "grid", justifyContent: "center" }}> {onePoz.onaylananMetraj} </Box>
                     </Fragment>

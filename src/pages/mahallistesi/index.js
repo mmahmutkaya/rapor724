@@ -84,37 +84,6 @@ export default function P_MahalListesi() {
         queryClient.setQueryData(['mahalListesi', selectedProje?._id.toString()], mahalListesi2)
       }
 
-
-      // queryClient.setQueryData(['mahalListesi', selectedProje?._id.toString()], (mahalListesi2) => {
-      //   if (switchValue) {
-      //     mahalListesi2.list = mahalListesi2.list.map(element => {
-      //       if (element._pozId.toString() === _pozId.toString() && element._pozId.toString() === _pozId.toString()) {
-      //         element.openMetraj = true
-      //       }
-      //       return element
-      //     })
-      //   }
-      //   if (!switchValue) {
-      //     mahalListesi2.list = mahalListesi2.list.map(element => {
-      //       if (element._pozId.toString() === _pozId.toString() && element._pozId.toString() === _pozId.toString()) {
-      //         element.openMetraj = false
-      //       }
-      //       return element
-      //     })
-      //     // const index = mahalListesi2.list.findIndex(element => element._pozId.toString() === _pozId.toString() && element._mahalId.toString() === _mahalId.toString());
-      //     // let array2 = mahalListesi2.list.splice(index, 1)
-      //     // console.log("array2",array2)
-      //     // mahalListesi2.list = array2
-      //     // console.log("index",index)
-      //     // console.log("mahalListesi2_false",mahalListesi2)
-      //     // return mahalListesi2
-      //   }
-      //   return JSON.parse(JSON.stringify(mahalListesi2));
-      // })
-
-      // queryClient.setQueryData(['mahalListesi', selectedProje?._id.toString()], mahalListesi2)
-      // queryClient.invalidateQueries({ queryKey: ['pozlar', selectedProje?._id.toString()] })
-
     } catch (err) {
 
       console.log(err)
