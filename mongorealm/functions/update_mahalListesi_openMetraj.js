@@ -23,7 +23,7 @@ exports = async function ({
 
   const currentTime = new Date();
 
-  const collection_MahalListesi = context.services.get("mongodb-atlas").db("rapor724_v2").collection("mahalListesi")
+  const collection_Dugumler = context.services.get("mongodb-atlas").db("rapor724_v2").collection("dugumler")
 
   const bulkArray = mahalListesi_state_filtered.map(x => {
     return (
@@ -38,7 +38,7 @@ exports = async function ({
   })
 
   try {
-    const result = collection_MahalListesi.bulkWrite(
+    const result = collection_Dugumler.bulkWrite(
       bulkArray,
       { ordered: false }
     )
@@ -47,7 +47,7 @@ exports = async function ({
     print(error)
   }
 
-  // const list = await collection_MahalListesi.aggregate([
+  // const list = await collection_Dugumler.aggregate([
   //   { $match: { _projeId } },
   //   { $project: { _pozId: 1, _mahalId: 1, openMetraj: 1 } }
   // ]).toArray()
