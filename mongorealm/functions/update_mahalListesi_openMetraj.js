@@ -25,7 +25,7 @@ exports = async function ({
     return (
       {
         updateOne: {
-          filter: { _mahalId: x._mahalId, _pozId: x._pozId },
+          filter: { _projeId:_projeId, _mahalId: x._mahalId, _pozId: x._pozId },
           update: { $set: { openMetraj: x.switchValue } },
           upsert: true
         }
