@@ -1,6 +1,6 @@
 exports = async function ({
   _projeId,
-  mahalListesi_state_filtered
+  dugumler_state_filtered
 }) {
 
 
@@ -13,15 +13,15 @@ exports = async function ({
 
   const mailTeyit = user.custom_data.mailTeyit;
   if (!mailTeyit) {
-    throw new Error("Öncelikle üyeliğinize ait mail adresinin size ait olduğunu doğrulamalısınız, tekrar giriş yapmayı deneyiniz veya bizimle iletişime geçiniz.");
+    throw new Error("MONGO // updateDugumler_openMetraj // Öncelikle üyeliğinize ait mail adresinin size ait olduğunu doğrulamalısınız, tekrar giriş yapmayı deneyiniz veya bizimle iletişime geçiniz.");
   }
 
   if (!_projeId) {
-    throw new Error("'_projeId' verisi db sorgusuna gelmedi");
+    throw new Error("MONGO // updateDugumler_openMetraj // '_projeId' verisi db sorgusuna gelmedi");
   }
 
-  if (!mahalListesi_state_filtered) {
-    throw new Error("'mahalListesi_state_filtered' verisi db sorgusuna gelmedi");
+  if (!dugumler_state_filtered) {
+    throw new Error("MONGO // updateDugumler_openMetraj // 'dugumler_state_filtered' verisi db sorgusuna gelmedi");
   }
 
 
@@ -30,7 +30,7 @@ exports = async function ({
   const collection_Dugumler = context.services.get("mongodb-atlas").db("rapor724_v2").collection("dugumler")
 
   
-  const bulkArray = mahalListesi_state_filtered.map(x => {
+  const bulkArray = dugumler_state_filtered.map(x => {
     return (
       {
         updateOne: {
@@ -48,7 +48,7 @@ exports = async function ({
       { ordered: false }
     )
   } catch (error) {
-    throw new Error({hatayeri:"MONGO // update_mahalListesi_openMetraj // collection_Dugumler.bulkWrite // ", error});
+    throw new Error({hatayeri:"MONGO // updateDugumler_openMetraj // collection_Dugumler.bulkWrite // ", error});
   }
 
 
@@ -63,7 +63,7 @@ exports = async function ({
     return {dugumler}
     
   } catch (error) {
-    throw new Error({hatayeri:"MONGO // update_mahalListesi_openMetraj // getDugumler // ", error});
+    throw new Error({hatayeri:"MONGO // updateDugumler_openMetraj // getDugumler // ", error});
   }
 
 

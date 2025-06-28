@@ -492,7 +492,7 @@
         "disable_arg_logs": true
     },
     {
-        "name": "update_mahalListesi_openMetraj",
+        "name": "updateDugumler_openMetraj",
         "private": false,
         "run_as_system": true,
         "disable_arg_logs": true
