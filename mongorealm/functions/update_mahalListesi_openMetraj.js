@@ -1,20 +1,7 @@
 exports = async function ({
-  functionName,
   _projeId,
   _mahalId,
   _pozId,
-  _dugumId,
-  _lbsId,
-  _wbsId,
-  wbsCode,
-  lbsCode,
-  mahalMetrajlar,
-  propertyName,
-  propertyValue,
-  hazirlananMetraj_state,
-  hazirlananMetrajlar_state,
-  onaylananMetraj_state,
-  switchValue,
   mahalListesi
 }) {
 
@@ -36,10 +23,11 @@ exports = async function ({
   // 2-form verileri - hata varsa form alanlarında gözükmesi için bir obje gönderilir
 
   // tip2 - (yukarıda açıklandı)
-  if (!_projeId){
+  if (!_projeId) {
     throw new Error(
       "MONGO // collectionDugumler // Proje Id -- sorguya gönderilmemiş, lütfen Rapor7/24 ile irtibata geçiniz. "
-    )}
+    )
+  }
 
 
 
@@ -54,36 +42,36 @@ exports = async function ({
   const collection_Users = context.services.get("mongodb-atlas").db("rapor724_v2").collection("users")
 
 
-  
 
-    const bulkArray = mahalListesi.map(x => {
-      return (
-        {
-          updateOne: {
-            filter: { _mahalId, _pozId },
-            update: { $set: { openMetraj: x.switchValue } },
-            upsert: true
-          }
+
+  const bulkArray = mahalListesi.map(x => {
+    return (
+      {
+        updateOne: {
+          filter: { _mahalId, _pozId },
+          update: { $set: { openMetraj: x.switchValue } },
+          upsert: true
         }
-      )
-    })
+      }
+    )
+  })
 
-    try {
-      const result = collection_Dugumler.bulkWrite(
-        bulkArray,
-        { ordered: false }
-      )
-      return result
-    } catch (error) {
-      print(error)
-    }
+  try {
+    const result = collection_Dugumler.bulkWrite(
+      bulkArray,
+      { ordered: false }
+    )
+    return result
+  } catch (error) {
+    print(error)
+  }
 
-    // const list = await collection_Dugumler.aggregate([
-    //   { $match: { _projeId } },
-    //   { $project: { _pozId: 1, _mahalId: 1, openMetraj: 1 } }
-    // ]).toArray()
+  // const list = await collection_Dugumler.aggregate([
+  //   { $match: { _projeId } },
+  //   { $project: { _pozId: 1, _mahalId: 1, openMetraj: 1 } }
+  // ]).toArray()
 
-    // return { list }
+  // return { list }
 
 
 
