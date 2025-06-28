@@ -1,8 +1,6 @@
 exports = async function ({
   _projeId,
-  _mahalId,
-  _pozId,
-  mahalListesi
+  mahalListesi_state_filtered
 }) {
 
 
@@ -18,37 +16,16 @@ exports = async function ({
     throw new Error("Öncelikle üyeliğinize ait mail adresinin size ait olduğunu doğrulamalısınız, tekrar giriş yapmayı deneyiniz veya bizimle iletişime geçiniz.");
   }
 
-  // gelen verileri ikiye ayırabiliriz,
-  // 1-form verisinden önceki ana veriler - hata varsa hata döndürülür
-  // 2-form verileri - hata varsa form alanlarında gözükmesi için bir obje gönderilir
-
-  // tip2 - (yukarıda açıklandı)
-  if (!_projeId) {
-    throw new Error(
-      "MONGO // collectionDugumler // Proje Id -- sorguya gönderilmemiş, lütfen Rapor7/24 ile irtibata geçiniz. "
-    )
-  }
-
-
 
   const currentTime = new Date();
 
-  const collection_Projeler = context.services.get("mongodb-atlas").db("rapor724_v2").collection("projeler")
   const collection_Dugumler = context.services.get("mongodb-atlas").db("rapor724_v2").collection("dugumler")
-  const collection_HazirlananMetrajlar = context.services.get("mongodb-atlas").db("rapor724_v2").collection("hazirlananMetrajlar")
-  const collection_OnaylananMetrajlar = context.services.get("mongodb-atlas").db("rapor724_v2").collection("onaylananMetrajlar")
-  const collection_Mahaller = context.services.get("mongodb-atlas").db("rapor724_v2").collection("mahaller")
-  const collection_Pozlar = context.services.get("mongodb-atlas").db("rapor724_v2").collection("pozlar")
-  const collection_Users = context.services.get("mongodb-atlas").db("rapor724_v2").collection("users")
 
-
-
-
-  const bulkArray = mahalListesi.map(x => {
+  const bulkArray = mahalListesi_state_filtered.map(x => {
     return (
       {
         updateOne: {
-          filter: { _mahalId, _pozId },
+          filter: { _mahalId: x._mahalId, _pozId: x._pozId },
           update: { $set: { openMetraj: x.switchValue } },
           upsert: true
         }
