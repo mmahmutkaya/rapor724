@@ -16,9 +16,9 @@ exports = async function ({
     throw new Error("Öncelikle üyeliğinize ait mail adresinin size ait olduğunu doğrulamalısınız, tekrar giriş yapmayı deneyiniz veya bizimle iletişime geçiniz.");
   }
 
-  // if (!_projeId) {
-  //   throw new Error("ProjeId verisi db sorgusuna gelmedi");
-  // }
+  if (!_projeId) {
+    throw new Error("ProjeId verisi db sorgusuna gelmedi");
+  }
 
 
   const currentTime = new Date();
@@ -29,7 +29,7 @@ exports = async function ({
     return (
       {
         updateOne: {
-          filter: { _projeId:_projeId, _mahalId: x._mahalId, _pozId: x._pozId },
+          filter: { _projeId, _mahalId: x._mahalId, _pozId: x._pozId },
           update: { $set: { openMetraj: x.switchValue } },
           upsert: true
         }
