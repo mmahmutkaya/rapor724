@@ -31,7 +31,7 @@ exports = async function ({
       { $project: { _pozId: 1, _mahalId: 1, openMetraj: 1 } }
     ]).toArray()
   
-    return {dugumler}
+    return dugumler
     
   } catch (error) {
     throw new Error({hatayeri:"MONGO // update_mahalListesi_openMetraj // getDugumler // ", error});
