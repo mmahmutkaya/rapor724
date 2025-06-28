@@ -25,6 +25,7 @@ exports = async function ({
 
   const collection_Dugumler = context.services.get("mongodb-atlas").db("rapor724_v2").collection("dugumler")
 
+  
   const bulkArray = mahalListesi_state_filtered.map(x => {
     return (
       {
@@ -38,23 +39,28 @@ exports = async function ({
   })
 
   try {
-    const result = collection_Dugumler.bulkWrite(
+    collection_Dugumler.bulkWrite(
       bulkArray,
       { ordered: false }
     )
-    return result
   } catch (error) {
-    print(error)
+    throw new Error({hatayeri:"MONGO // update_mahalListesi_openMetraj // collection_Dugumler.bulkWrite // ", error});
   }
 
-  const list = await collection_Dugumler.aggregate([
-    { $match: { _projeId } },
-    { $project: { _pozId: 1, _mahalId: 1, openMetraj: 1 } }
-  ]).toArray()
 
-  return { list }
-
-
+  
+  try {
+    
+    const dugumler = await collection_Dugumler.aggregate([
+      { $match: { _projeId } },
+      { $project: { _pozId: 1, _mahalId: 1, openMetraj: 1 } }
+    ]).toArray()
+  
+    return {dugumler}
+    
+  } catch (error) {
+    throw new Error({hatayeri:"MONGO // update_mahalListesi_openMetraj // getDugumler // ", error});
+  }
 
 
 
