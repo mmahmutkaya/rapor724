@@ -17,7 +17,11 @@ exports = async function ({
   }
 
   if (!_projeId) {
-    throw new Error("ProjeId verisi db sorgusuna gelmedi");
+    throw new Error("'_projeId' verisi db sorgusuna gelmedi");
+  }
+
+  if (!mahalListesi_state_filtered) {
+    throw new Error("'mahalListesi_state_filtered' verisi db sorgusuna gelmedi");
   }
 
 
@@ -39,7 +43,7 @@ exports = async function ({
   })
 
   try {
-    collection_Dugumler.bulkWrite(
+    await collection_Dugumler.bulkWrite(
       bulkArray,
       { ordered: false }
     )
