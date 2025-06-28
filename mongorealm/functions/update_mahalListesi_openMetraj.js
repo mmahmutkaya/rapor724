@@ -47,12 +47,12 @@ exports = async function ({
     print(error)
   }
 
-  // const list = await collection_Dugumler.aggregate([
-  //   { $match: { _projeId } },
-  //   { $project: { _pozId: 1, _mahalId: 1, openMetraj: 1 } }
-  // ]).toArray()
+  const list = await collection_Dugumler.aggregate([
+    { $match: { _projeId } },
+    { $project: { _pozId: 1, _mahalId: 1, openMetraj: 1 } }
+  ]).toArray()
 
-  // return { list }
+  return { list }
 
 
 
