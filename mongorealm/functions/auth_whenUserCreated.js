@@ -34,6 +34,12 @@ exports = async function (user) {
           { id: "aciklama", baslikName:Açıklama, visible: true, show: true },
           { id: "versiyon", baslikName:Versiyon, visible: true, show: true }
         ]
+      },
+      metrajpozlar:{
+        basliklar:[
+          { id: "aciklama", baslikName:Açıklama, visible: true, show: true },
+          { id: "versiyon", baslikName:Versiyon, visible: true, show: true }
+        ]
       }
     }
   }
