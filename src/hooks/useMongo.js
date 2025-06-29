@@ -47,6 +47,29 @@ export const useGetFirmaPozlar = (onSuccess, onError) => {
 
 
 
+
+// MONGO FONKSİYON - getProjelerNames_byFirma
+export const useGetProjelerNames_byFirma = (onSuccess, onError) => {
+
+  // const RealmApp = useApp();
+  const { RealmApp, selectedFirma } = useContext(StoreContext)
+
+  return useQuery({
+    queryKey: ['projelerNames_byFirma', selectedFirma?._id.toString()],
+    queryFn: () => RealmApp?.currentUser.callFunction("getProjelerNames_byFirma", { _firmaId: selectedFirma._id }),
+    enabled: !!RealmApp,
+    onSuccess,
+    onError,
+    refetchOnMount: false,
+    refetchOnWindowFocus: false
+  })
+
+}
+
+
+
+
+
 export const useGetPozlar = (onSuccess, onError) => {
 
   // const RealmApp = useApp();
@@ -87,23 +110,42 @@ export const useGetMahaller = (onSuccess, onError) => {
 
 
 
-// MONGO FONKSİYON - getProjelerNames_byFirma
-export const useGetProjelerNames_byFirma = (onSuccess, onError) => {
+export const useGetDugumler = () => {
 
   // const RealmApp = useApp();
-  const { RealmApp, selectedFirma } = useContext(StoreContext)
+  const { selectedProje, RealmApp } = useContext(StoreContext)
 
   return useQuery({
-    queryKey: ['projelerNames_byFirma', selectedFirma?._id.toString()],
-    queryFn: () => RealmApp?.currentUser.callFunction("getProjelerNames_byFirma", { _firmaId: selectedFirma._id }),
-    enabled: !!RealmApp,
-    onSuccess,
-    onError,
+    queryKey: ['dugumler', selectedProje?._id.toString()],
+    queryFn: () => RealmApp?.currentUser.callFunction("getDugumler", ({ _projeId: selectedProje?._id })),
+    enabled: !!RealmApp && !!selectedProje,
     refetchOnMount: false,
-    refetchOnWindowFocus: false
+    refetchOnWindowFocus: false,
+    // select: (data) => data.mahalListesi,
   })
 
 }
+
+
+
+
+
+export const useGetMahalListesi = () => {
+
+  // const RealmApp = useApp();
+  const { selectedProje, RealmApp } = useContext(StoreContext)
+
+  return useQuery({
+    queryKey: ['mahalListesi', selectedProje?._id.toString()],
+    queryFn: () => RealmApp?.currentUser.callFunction("collectionDugumler", ({ functionNames:"getMahalListesi", _projeId:selectedProje?._id })),
+    enabled: !!RealmApp && !!selectedProje,
+    refetchOnMount: false,
+    refetchOnWindowFocus: false,
+    // select: (data) => data.mahalListesi,
+  })
+
+}
+
 
 
 
@@ -143,26 +185,6 @@ export const useGetProjectNames_firma = () => {
   })
 
 }
-
-
-
-
-export const useGetMahalListesi = () => {
-
-  // const RealmApp = useApp();
-  const { selectedProje, RealmApp } = useContext(StoreContext)
-
-  return useQuery({
-    queryKey: ['mahalListesi', selectedProje?._id.toString()],
-    queryFn: () => RealmApp?.currentUser.callFunction("collectionDugumler", ({ functionName: "getMahalListesi", _projeId: selectedProje?._id })),
-    enabled: !!RealmApp && !!selectedProje,
-    refetchOnMount: false,
-    refetchOnWindowFocus: false,
-    // select: (data) => data.mahalListesi,
-  })
-
-}
-
 
 
 

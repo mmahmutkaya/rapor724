@@ -1,380 +1,290 @@
 
-import { useState, useContext, useEffect, Fragment } from 'react';
+import React from 'react'
+import { useState, useContext, useEffect } from 'react';
+import { useQueryClient } from '@tanstack/react-query'
 import { useNavigate } from "react-router-dom";
+
+
 import { StoreContext } from '../../components/store'
-import { useApp } from "../../components/useApp";
-import FormPozCreate from '../../components/FormPozCreate'
-import EditPozBaslik from '../../components/EditPozBaslik'
-import FormPozBaslikCreate from '../../components/FormPozBaslikCreate'
-import MetrajPozlarHeader from '../../components/MetrajPozlarHeader'
-import { BSON } from "realm-web"
+import { useGetPozlar } from '../../hooks/useMongo';
+import getWbsName from '../../functions/getWbsName';
 
-import { useGetPozlar, useGetMahalListesi, useGetMahaller } from '../../hooks/useMongo';
 
+import ShowMetrajPozlarBaslik from '../../components/ShowMetrajPozlarBaslik'
+import HeaderMetrajPozlar from '../../components/HeaderMetrajPozlar'
+
+
+import { borderLeft, fontWeight, grid, styled } from '@mui/system';
 import Grid from '@mui/material/Grid';
+import Input from '@mui/material/Input';
 import Alert from '@mui/material/Alert';
 import Stack from '@mui/material/Stack';
+import { Button, TextField, Typography } from '@mui/material';
 import Box from '@mui/material/Box';
+import InfoIcon from '@mui/icons-material/Info';
+
 
 
 export default function P_MetrajPozlar() {
 
-  const { selectedProje, setSelectedProje } = useContext(StoreContext)
-  const { selectedPoz, setSelectedPoz } = useContext(StoreContext)
-  const { selectedNode, setSelectedNode } = useContext(StoreContext)
-  const { selectedMahal, setSelectedMahal } = useContext(StoreContext)
-  const { drawerWidth, topBarHeight, subHeaderHeight } = useContext(StoreContext)
-
-  const [show, setShow] = useState("Main")
-  // const [editPoz, setEditPoz] = useState(false)
-  const [mahallistesi_filtered, setMahallistesi_filtered] = useState()
-  // const [pozBilgiler_willBeSaved, setPozBilgiler_willBeSaved] = useState([])
-  // const [autoFocus, setAutoFocus] = useState({ baslikId: null, pozId: null })
-
   const navigate = useNavigate()
-
-
-  useEffect(() => {
-    !selectedProje && navigate("/projeler")
-    return () => {
-      // setSelectedPoz()
-      // setMahallistesi_filtered()
-    }
-  }, [])
-
-
-
-  // const RealmApp = useApp();
-  // const { RealmApp } = useContext(StoreContext)
+  const queryClient = useQueryClient()
 
   const { data: pozlar } = useGetPozlar()
-  // pozlar && console.log("pozlar", pozlar)
-  // selectedProje && console.log("selectedProje", selectedProje)
-  const { data: mahaller } = useGetMahaller()
-  const { data: mahalListesi } = useGetMahalListesi()
-  // pozlar && console.log("pozlar", pozlar)
-  // const { data: mahaller_birPoz } = useGetMahaller_BirPoz({ _pozId: selectedPoz?._id })
-  // pozlar && console.log("pozlarMetraj", pozlarMetraj)
+  // console.log("pozlar",pozlar)
+  const { RealmApp, myTema } = useContext(StoreContext)
+  const { selectedProje } = useContext(StoreContext)
+
+  // console.log("selectedProje", selectedProje)
+  const pozBirimleri = selectedProje?.pozBirimleri
+  // console.log("pozBirimleri", pozBirimleri)
+
+  const [show, setShow] = useState("Main")
+
+  useEffect(() => {
+    !selectedProje && navigate('/projeler')
+  }, [])
+
+  const [basliklar, setBasliklar] = useState(RealmApp.currentUser.customData.customSettings.pages.metrajpozlar.basliklar)
+
+  // sayfadaki "visibility" tuşunun aktif olup olmamasını ayarlamak için
+  const anyBaslikShow = basliklar?.find(x => x.visible) ? true : false
+
+  const pozAciklamaShow = basliklar?.find(x => x.id === "aciklama").show
+  const pozVersiyonShow = basliklar?.find(x => x.id === "versiyon").show
+
+  const columns = `5rem 15rem 5rem 5rem${pozAciklamaShow ? " 1rem 10rem" : ""}${pozVersiyonShow ? " 1rem 5rem" : ""}`
 
 
-
-
-
-  const ikiHane = (value) => {
-    if (!value) {
-      return ""
-    }
-    if (value != "") {
-      return new Intl.NumberFormat("de-DE", { minimumFractionDigits: 2, maximumFractionDigits: 2, }).format(value)
-    }
-    return value
+  const enUstBaslik_css = {
+    display: "grid",
+    alignItems: "center",
+    justifyItems: "center",
+    backgroundColor: myTema.renkler.baslik1,
+    fontWeight: 600,
+    border: "1px solid black",
+    m: "-1px -1px 0 0"
   }
 
-
-  let wbsArray = selectedProje?.wbs
-    .filter(item => item.openForPoz === true)
-    .sort(function (a, b) {
-      var nums1 = a.code.split(".");
-      var nums2 = b.code.split(".");
-
-      for (var i = 0; i < nums1.length; i++) {
-        if (nums2[i]) { // assuming 5..2 is invalid
-          if (nums1[i] !== nums2[i]) {
-            return nums1[i] - nums2[i];
-          } // else continue
-        } else {
-          return 1; // no second number in b
-        }
-      }
-      return -1; // was missing case b.len > a.len
-    })
-
-
-  let lbsArray = selectedProje?.lbs
-    .filter(item => item.openForMahal === true)
-    .sort(function (a, b) {
-      var nums1 = a.code.split(".");
-      var nums2 = b.code.split(".");
-
-      for (var i = 0; i < nums1.length; i++) {
-        if (nums2[i]) { // assuming 5..2 is invalid
-          if (nums1[i] !== nums2[i]) {
-            return nums1[i] - nums2[i];
-          } // else continue
-        } else {
-          return 1; // no second number in b
-        }
-      }
-      return -1; // was missing case b.len > a.len
-    })
-
-
-
-  let getWbsName = (oneWbs) => {
-
-    let cOunt = oneWbs.code.split(".").length
-    let name
-    let code
-
-    oneWbs.code.split(".").map((codePart, index) => {
-
-      if (index == 0 && cOunt == 1) {
-        code = codePart
-        name = selectedProje?.wbs.find(item => item.code == code).name
-      }
-
-      if (index == 0 && cOunt !== 1) {
-        code = codePart
-        name = selectedProje?.wbs.find(item => item.code == code).codeName
-      }
-
-      if (index !== 0 && index + 1 !== cOunt && cOunt !== 1) {
-        code = code + "." + codePart
-        name = name + " > " + selectedProje?.wbs.find(item => item.code == code).codeName
-      }
-
-      if (index !== 0 && index + 1 == cOunt && cOunt !== 1) {
-        code = code + "." + codePart
-        name = name + " > " + selectedProje?.wbs.find(item => item.code == code).name
-      }
-
-    })
-
-    return { name, code }
-
+  const wbsBaslik_css = {
+    gridColumn: "1 / span 4",
+    display: "grid",
+    alignItems: "center",
+    justifyItems: "start",
+    backgroundColor: myTema.renkler.baslik2,
+    fontWeight: 600,
+    pl: "0.5rem",
+    border: "1px solid black",
+    m: "-1px -1px 0 0"
   }
 
-
-
-  let getLbsName = (oneLbs) => {
-
-    let cOunt = oneLbs.code.split(".").length
-    let name
-    let code
-
-    oneLbs.code.split(".").map((codePart, index) => {
-
-      if (index == 0 && cOunt == 1) {
-        code = codePart
-        name = selectedProje?.lbs.find(item => item.code == code).name
-      }
-
-      if (index == 0 && cOunt !== 1) {
-        code = codePart
-        name = selectedProje?.lbs.find(item => item.code == code).codeName
-      }
-
-      if (index !== 0 && index + 1 !== cOunt && cOunt !== 1) {
-        code = code + "." + codePart
-        name = name + " > " + selectedProje?.lbs.find(item => item.code == code).codeName
-      }
-
-      if (index !== 0 && index + 1 == cOunt && cOunt !== 1) {
-        code = code + "." + codePart
-        name = name + " > " + selectedProje?.lbs.find(item => item.code == code).name
-      }
-
-    })
-
-    return { name, code }
-
+  const wbsBaslik_css2 = {
+    backgroundColor: myTema.renkler.baslik2,
+    border: "1px solid black",
+    m: "-1px -1px 0 0"
   }
 
-
-  let count
-
-  let metrajyapabilen_sutunlar = selectedProje?.metrajYapabilenler.reduce((acc, x, index) => index == 0 ? "auto" : acc + " auto", "")
-  let users = selectedProje?.metrajYapabilenler.reduce((acc, x, index) => index == 0 ? "user" : acc + " user", "")
-  let hazirs = selectedProje?.metrajYapabilenler.reduce((acc, x, index) => index == 0 ? "hazir" : acc + " hazir", "")
-
-  count = 0
-  let userSirali = "user"
-  selectedProje?.metrajYapabilenler.map((x, index) => {
-    count = count + 1
-    return (
-      userSirali = index == 0 ? userSirali + count : userSirali + " user" + count
-    )
-  })
-
-
-  count = 0
-  let miktarSirali = "miktar"
-  selectedProje?.metrajYapabilenler.map((x, index) => {
-    count = count + 1
-    return (
-      miktarSirali = index == 0 ? miktarSirali + count : miktarSirali + " miktar" + count
-    )
-  })
-  // console.log("miktarSirali", miktarSirali)
-
-
-
-
-  const gridAreasPozlar = `
-    'no isim . birim . ${users} . onay'
-    'no isim . birim . ${userSirali} . onay'
-  `
-
-
-
-  const goToMahaller_birPoz = (onePoz) => {
-    // console.log("mahalListesi", mahalListesi)
-    // console.log("onePoz", onePoz)
-
-    // onePoz = { ...onePoz, pozBirim: selectedProje.pozBirimleri.find(x => x.id == onePoz?.birimId)?.name }
-
-    // setSelectedPoz(selectedPoz => {
-    //   selectedPoz = { ...selectedPoz, pozBirim: selectedProje.pozBirimleri.find(x => x.id == onePoz?.birimId)?.name }
-    //   console.log("selectedPoz", selectedPoz)
-    //   return selectedPoz
-    // })
-
-    setSelectedPoz(onePoz)
-    navigate('/metrajpozmahaller')
-    // setShow("MahalListesi_BirPoz")
+  const pozNo_css = {
+    display: "grid",
+    alignItems: "center",
+    justifyItems: "center",
+    backgroundColor: "white",
+    border: "1px solid black",
+    m: "-1px -1px 0 0"
   }
 
-
-
-  const handle_metrajEdit = (oneMahal, dugum) => {
-    setSelectedMahal(oneMahal)
-    setSelectedNode(dugum)
-    navigate('/metrajedit')
+  const bosluk_css = {
+    backgroundColor: "white",
+    borderLeft: "1px solid black"
   }
 
-
-
+  let wbsCode
+  let wbsName
+  let cOunt
 
   return (
+    <Box sx={{ m: "0rem" }}>
 
-    <>
+      {/* BAŞLIK */}
+      <HeaderMetrajPozlar show={show} setShow={setShow} anyBaslikShow={anyBaslikShow} />
 
-      <Grid item >
-        <MetrajPozlarHeader show={show} setShow={setShow} />
-      </Grid>
 
-      {show == "FormPozCreate" &&
-        <Grid item >
-          <FormPozCreate selectedProje={selectedProje} setShow={setShow} />
-        </Grid>
-      }
 
-      {show == "FormPozBaslikCreate" &&
-        <Grid item >
-          <FormPozBaslikCreate setShow={setShow} />
-        </Grid>
-      }
+      {/* BAŞLIK GÖSTER / GİZLE */}
+      {show == "ShowBaslik" && <ShowMetrajPozlarBaslik setShow={setShow} basliklar={basliklar} setBasliklar={setBasliklar} />}
 
-      {show == "EditPozBaslik" &&
-        <Grid item >
-          <EditPozBaslik setShow={setShow} />
-        </Grid>
-      }
 
-      {show == "Main" && (wbsArray?.length == 0 || !wbsArray) &&
-        <Stack sx={{ width: '100%', pl: "1rem", pr: "0.5rem", pt: "1rem", mt: subHeaderHeight }} spacing={2}>
+      {/* EĞER POZ BAŞLIĞI YOKSA */}
+      {show == "Main" && !selectedProje?.wbs?.find(x => x.openForPoz === true) &&
+        <Stack sx={{ width: '100%', m: "0rem", p: "1rem" }} spacing={2}>
           <Alert severity="info">
-            Henüz hiç bir poz başlığını poz eklemeye açmamış görünüyorsunumuz. "Poz Başlıkları" menüsünden işlem yapabilirsiniz.
+            Öncelikle poz oluşturmaya açık poz başlığı oluşturmalısınız.
           </Alert>
         </Stack>
       }
 
 
+      {/* EĞER POZ YOKSA */}
+      {show == "Main" && selectedProje?.wbs?.find(x => x.openForPoz === true) && !pozlar?.length > 0 &&
+        <Stack sx={{ width: '100%', m: "0rem", p: "1rem" }} spacing={2}>
+          <Alert severity="info">
+            Menüler yardımı ile poz oluşturmaya başlayabilirsiniz.
+          </Alert>
+        </Stack>
+      }
 
 
-      {show == "Main" && !wbsArray?.length > 0 && <Box>henüz herhangi bir WBS poz eklemeye açılmamış</Box>}
+      {/* ANA SAYFA - POZLAR VARSA */}
 
-      {show == "Main" && wbsArray?.length > 0 &&
+      {show == "Main" && selectedProje?.wbs?.find(x => x.openForPoz === true) && pozlar?.length > 0 &&
+        <Box sx={{ m: "1rem", maxWidth: "min-content" }}>
 
-        <Box sx={{ display: "grid", gridTemplateColumns: `auto 1fr 0.5rem auto 0.5rem ${metrajyapabilen_sutunlar} 0.5rem auto`, maxWidth: "70rem", gridTemplateAreas: gridAreasPozlar, mt: subHeaderHeight, pt: "1rem", pl: "1rem", pr: "1rem" }}>
 
-          {/* SUTUN BAŞLIK BİLGİLERİ SATIRI */}
-          <>
-            <Box sx={{ mb: "0rem", fontWeight: "600", border: "1px solid black", px: "0.5rem", display: "grid", gridArea: "no", justifyContent: "center", alignItems: "center", backgroundColor: "lightGray" }}>Poz No</Box>
-            <Box sx={{ mb: "0rem", fontWeight: "600", border: "1px solid black", borderLeft: "none", px: "0.5rem", display: "grid", gridArea: "isim", justifyContent: "center", alignItems: "center", backgroundColor: "lightGray" }}>Poz İsmi</Box>
-            <Box sx={{ mb: "0rem", fontWeight: "600", display: "grid", gridRow: "1/3", justifyContent: "center", px: "0.5rem", backgroundColor: "white", color: "white" }}>.</Box>
-            <Box sx={{ mb: "0rem", fontWeight: "600", border: "1px solid black", display: "grid", gridRow: "1/3", px: "0.5rem", justifyContent: "center", alignItems: "center", backgroundColor: "lightGray" }}>Birim</Box>
-            <Box sx={{ mb: "0rem", fontWeight: "600", display: "grid", gridRow: "1/3", justifyContent: "center", px: "0.5rem", backgroundColor: "white", color: "white" }}>.</Box>
-            <Box sx={{ mb: "0rem", fontWeight: "600", border: "1px solid black", borderBottom: "none", display: "grid", gridArea: "user", px: "0.5rem", justifyContent: "center", backgroundColor: "lightGray", textAlign: "center" }}>Hazırlanan</Box>
-            {
-              selectedProje?.metrajYapabilenler?.map((x, index) => {
-                return (
-                  <Box key={index} sx={{ mb: "0rem", fontWeight: "600", border: "1px solid black", borderLeft: index !== 0 && "none", display: "grid", gridArea: `user${index + 1}`, px: "0.5rem", justifyContent: "center", backgroundColor: "lightGray" }}>{x._userId.toString().substr(x._userId.toString().length - 3)}</Box>
-                )
-              })
+          {/*   EN ÜST BAŞLIK */}
+          {/* <Box sx={{ display: "grid", gridTemplateColumns: columns, gridTemplateAreas: gridAreas_enUstBaslik }}> */}
+          <Box sx={{ display: "grid", gridTemplateColumns: columns }}>
+
+            {/* BAŞLIK - POZ NO */}
+            <Box sx={{ ...enUstBaslik_css }}>
+              Poz No
+            </Box>
+
+            {/* BAŞLIK - POZ İSMİ */}
+            <Box sx={{ ...enUstBaslik_css }}>
+              Poz İsmi
+            </Box>
+
+            {/* BAŞLIK - POZ BİRİM  */}
+            <Box sx={{ ...enUstBaslik_css }}>
+              Miktar
+            </Box>
+
+
+            {/* BAŞLIK - POZ BİRİM  */}
+            <Box sx={{ ...enUstBaslik_css }}>
+              Birim
+            </Box>
+
+            {/* BAŞLIK - POZ BİRİM  */}
+            {pozAciklamaShow &&
+              <>
+                <Box sx={{ ...bosluk_css }}></Box>
+                <Box sx={{ ...enUstBaslik_css }}>
+                  Açıklama
+                </Box>
+              </>
             }
-            <Box sx={{ mb: "0rem", fontWeight: "600", display: "grid", justifyContent: "center", px: "0.5rem", backgroundColor: "white", color: "white" }}>.</Box>
-            <Box sx={{ mb: "0rem", fontWeight: "600", border: "1px solid black", display: "grid", gridArea: "onay", px: "0.5rem", justifyContent: "center", alignItems: "center", backgroundColor: "lightGray", maxWidth: "7rem", textAlign: "center" }}>Onaylanan Miktar</Box>
-          </>
 
-          {/* {console.log("selectedProje", selectedProje)} */}
-          {/* WBS BAŞLIK BİLGİLERİ SATIRI */}
+            {/* BAŞLIK - VERSİYON */}
+            {pozVersiyonShow &&
+              <>
+                <Box sx={{ ...bosluk_css }}></Box>
+                <Box sx={{ ...enUstBaslik_css }}>
+                  Versiyon
+                </Box>
+              </>
+            }
 
-          {wbsArray?.map((oneWbs, index) => {
+          </Box>
+
+
+
+
+
+          {/* WBS BAŞLIĞI ve ALTINDA POZLARI*/}
+
+          {selectedProje?.wbs.filter(x => x.openForPoz).map((oneWbs, index) => {
+
             return (
-              <Fragment key={index}>
 
-                {/* WBS BAŞLIKLARI */}
-                <Box sx={{ border: "1px solid black", mt: "1rem", px: "0.5rem", gridColumn: "1/3", display: "grid", justifyContent: "start", backgroundColor: "#FAEBD7" }}> {getWbsName(oneWbs).name} </Box>
-                <Box sx={{ mt: "1rem", display: "grid", justifyContent: "center", backgroundColor: "white", color: "white" }}>.</Box>
-                <Box sx={{ border: "1px solid black", mt: "1rem", px: "0.5rem", display: "grid", justifyContent: "center", backgroundColor: "#FAEBD7" }}></Box>
-                <Box sx={{ mt: "1rem", display: "grid", justifyContent: "center", backgroundColor: "white", color: "white" }}>.</Box>
-                {
-                  selectedProje?.metrajYapabilenler?.map((x, index) => {
-                    return (
-                      <Box key={index} sx={{ border: "1px solid black", borderLeft: index !== 0 && "none", mt: "1rem", px: "0.5rem", display: "grid", justifyContent: "center", backgroundColor: "#FAEBD7" }}></Box>
-                    )
-                  })
-                }
-                {/* <Box sx={{ border: "1px solid black", mt: "1rem", px: "0.5rem", display: "grid", justifyContent: "center", backgroundColor: "#FAEBD7" }}></Box> */}
-                {/* <Box sx={{ border: "1px solid black", borderLeft: "none", mt: "1rem", px: "0.5rem", display: "grid", justifyContent: "center", backgroundColor: "#FAEBD7" }}></Box> */}
-                <Box sx={{ mt: "1rem", display: "grid", justifyContent: "center", backgroundColor: "white", color: "white" }}>.</Box>
-                <Box sx={{ border: "1px solid black", mt: "1rem", px: "0.5rem", display: "grid", justifyContent: "center", backgroundColor: "#FAEBD7" }}></Box>
+              <React.Fragment key={index}>
+
+                {/* WBS BAŞLIĞININ OLDUĞU TÜM SATIR */}
+                <Box sx={{ mt: "1rem", display: "grid", gridTemplateColumns: columns }}>
+
+                  {/* WBS BAŞLIĞI */}
+                  <Box sx={{ ...wbsBaslik_css }}>
+                    <Box sx={{ display: "grid", gridAutoFlow: "column" }} >
+                      {getWbsName({ wbsArray: selectedProje.wbs, oneWbs }).name}
+                    </Box>
+                  </Box>
 
 
-                {/* POZ SATIRLARI */}
+                  {/* BAŞLIK - AÇIKLAMA  */}
+                  {pozAciklamaShow &&
+                    <>
+                      <Box sx={{ ...bosluk_css }}></Box>
+                      <Box sx={{ ...wbsBaslik_css2 }} />
+                    </>
+                  }
+
+                  {/* BAŞLIK - VERSİYON */}
+                  {pozVersiyonShow &&
+                    <>
+                      <Box sx={{ ...bosluk_css }} />
+                      <Box sx={{ ...wbsBaslik_css2 }} />
+                    </>
+                  }
+
+                </Box>
+
+
+                {/* WBS'İN POZLARI */}
                 {pozlar?.filter(x => x._wbsId.toString() === oneWbs._id.toString()).map((onePoz, index) => {
+
                   return (
-                    <Fragment key={index} >
-                      <Box sx={{ backgroundColor: !onePoz.openMetraj && "lightgray", border: "1px solid black", borderTop: "none", px: "0.5rem", display: "grid", justifyContent: "start" }}> {onePoz.pozNo} </Box>
-                      <Box onDoubleClick={() => onePoz.openMetraj && goToMahaller_birPoz(onePoz)} sx={{ backgroundColor: !onePoz.openMetraj && "lightgray", cursor: onePoz.openMetraj && "pointer", border: "1px solid black", borderTop: "none", borderLeft: "none", px: "0.5rem", display: "grid", justifyContent: "start" }}> {onePoz.pozName} </Box>
-                      <Box sx={{ display: "grid", justifyContent: "center", backgroundColor: "white", color: "white" }}>.</Box>
-                      <Box sx={{ backgroundColor: !onePoz.openMetraj && "lightgray", border: "1px solid black", borderTop: "none", px: "0.5rem", display: "grid", justifyContent: "center" }}>{selectedProje.pozBirimleri.find(x => x.id == onePoz.pozBirimId).name}</Box>
-                      <Box sx={{ display: "grid", justifyContent: "center", backgroundColor: "white", color: "white" }}>.</Box>
-                      <>
-                        {
-                          selectedProje?.metrajYapabilenler?.map((x, index2) => {
-                            return (
-                              <Box key={index2} sx={{ backgroundColor: !onePoz.openMetraj && "lightgray", border: "1px solid black", borderTop: "none", borderLeft: index2 !== 0 && "none", px: "0.5rem", display: "grid", justifyContent: "center" }}> {onePoz.hazirlananMetrajlar?.find(y => y._userId.toString() === x._userId.toString())?.metraj} </Box>
-                            )
-                          })
-                        }
-                      </>
-                      {/* <Box sx={{ border: "1px solid black", borderTop: "none", px: "0.5rem", display: "grid", justifyContent: "center" }}>{onePoz.hazirlananMetrajlar} </Box> */}
-                      {/* <Box sx={{ border: "1px solid black", borderTop: "none", borderLeft: "none", px: "0.5rem", display: "grid", justifyContent: "center" }}>{selectedProje.pozBirimleri.find(x => x.id == onePoz.pozBirimId).name}</Box> */}
-                      <Box sx={{ display: "grid", justifyContent: "center", backgroundColor: "white", color: "white" }}>.</Box>
-                      <Box sx={{ backgroundColor: !onePoz.openMetraj && "lightgray", border: "1px solid black", borderTop: "none", px: "0.5rem", display: "grid", justifyContent: "center" }}> {onePoz.onaylananMetraj} </Box>
-                    </Fragment>
+                    // <Box key={index} sx={{ display: "grid", gridTemplateColumns: columns, gridTemplateAreas: gridAreas_pozSatir }}>
+                    <Box key={index} sx={{ display: "grid", gridTemplateColumns: columns }}>
+                      <Box sx={{ ...pozNo_css }}>
+                        {onePoz.pozNo}
+                      </Box>
+                      <Box sx={{ ...pozNo_css, pl: "0.5rem", justifyItems: "start" }}>
+                        {onePoz.pozName}
+                      </Box>
+                      <Box sx={{ ...pozNo_css }}>
+                        {onePoz?.miktar}
+                      </Box>
+                      <Box sx={{ ...pozNo_css }}>
+                        {pozBirimleri.find(x => x.id === onePoz.pozBirimId).name}
+                      </Box>
+
+                      {/* BAŞLIK - POZ BİRİM  */}
+                      {pozAciklamaShow &&
+                        <>
+                          <Box sx={{ ...bosluk_css }}></Box>
+                          <Box sx={{ ...pozNo_css }}>
+                            {onePoz.aciklama}
+                          </Box>
+                        </>
+                      }
+
+                      {/* BAŞLIK - VERSİYON */}
+                      {pozVersiyonShow &&
+                        <>
+                          <Box sx={{ ...bosluk_css }} />
+                          <Box sx={{ ...pozNo_css }}>
+                            {onePoz.versiyon}
+                          </Box>
+                        </>
+                      }
+
+                    </Box>
                   )
                 })}
 
-              </Fragment>
+
+              </React.Fragment>
+
+
             )
           })}
 
 
-        </Box >
-
+        </Box>
       }
 
-     
-    </ >
+    </Box>
 
   )
 
-}
-
-
-const baslikA1 = {
-  fontWeight: "600", border: "1px solid black", mb: "0rem", py: "0.2rem", px: "0.5rem", display: "grid"
 }

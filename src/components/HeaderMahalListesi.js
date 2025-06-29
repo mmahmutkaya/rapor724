@@ -17,7 +17,7 @@ import EditIcon from '@mui/icons-material/Edit';
 import ClearOutlined from '@mui/icons-material/ClearOutlined';
 
 
-export default function HeaderMahalListesi({ setShow, editMode_MahalListesi, setEditMode_MahalListesi, saveMahal, isChanged, handleCancel }) {
+export default function HeaderMahalListesi({ setShow, editMode_Dugumler, setEditMode_Dugumler, saveMahal, isChanged, handleCancel }) {
 
   const { RealmApp, drawerWidth, topBarHeight } = useContext(StoreContext)
 
@@ -81,7 +81,7 @@ export default function HeaderMahalListesi({ setShow, editMode_MahalListesi, set
 
 
 
-              {/* {!editMode_MahalListesi &&
+              {/* {!editMode_Dugumler &&
                 <Grid item>
                   <IconButton onClick={() => saveMahal()} aria-label="addLbs" disabled={(selectedProje?.lbs?.filter(item => item.openForMahal).length == 0 || !selectedProje?.lbs) ? true : false}>
                     <EditIcon variant="contained" color={(selectedProje?.lbs?.filter(item => item.openForMahal).length == 0 || !selectedProje?.lbs) ? " lightgray" : "success"} />
@@ -89,16 +89,16 @@ export default function HeaderMahalListesi({ setShow, editMode_MahalListesi, set
                 </Grid>
               } */}
 
-              {!editMode_MahalListesi &&
+              {!editMode_Dugumler &&
                 <Grid item>
-                  <IconButton onClick={() => setEditMode_MahalListesi(true)} aria-label="addLbs" disabled={(selectedProje?.lbs?.filter(item => item.openForMahal).length == 0 || !selectedProje?.lbs) ? true : false}>
+                  <IconButton onClick={() => setEditMode_Dugumler(true)} aria-label="addLbs" disabled={(selectedProje?.lbs?.filter(item => item.openForMahal).length == 0 || !selectedProje?.lbs) ? true : false}>
                     <EditIcon variant="contained" color={(selectedProje?.lbs?.filter(item => item.openForMahal).length == 0 || !selectedProje?.lbs) ? " lightgray" : "success"} />
                   </IconButton>
                 </Grid>
               }
 
 
-              {editMode_MahalListesi &&
+              {editMode_Dugumler &&
                 <Grid item>
                   <IconButton
                     onClick={() => handleCancel()}
@@ -108,7 +108,7 @@ export default function HeaderMahalListesi({ setShow, editMode_MahalListesi, set
                 </Grid>
               }
 
-              {editMode_MahalListesi &&
+              {editMode_Dugumler &&
                 <Grid item>
                   <IconButton
                     onClick={() => saveMahal()}

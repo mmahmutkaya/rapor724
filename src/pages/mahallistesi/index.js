@@ -1,13 +1,16 @@
 
 import { useState, useContext, useEffect } from 'react';
 import { useNavigate } from "react-router-dom";
+import { useQueryClient } from '@tanstack/react-query'
+
 import { StoreContext } from '../../components/store'
-import { useApp } from "../../components/useApp";
+import { useGetMahaller, useGetDugumler, useUpdateHazirlananMetrajShort, useGetPozlar } from '../../hooks/useMongo';
 
 import FormMahalCreate from '../../components/FormMahalCreate'
 import FormMahalBaslikCreate from '../../components/FormMahalBaslikCreate'
-import HeaderMahalListesi from '../../components/HeaderMahalMetraj'
-import { useGetMahaller, useGetMahalListesi, useUpdateHazirlananMetrajShort, useGetPozlar } from '../../hooks/useMongo';
+import HeaderMahalListesi from '../../components/HeaderMahalListesi'
+import { DialogAlert } from '../../components/general/DialogAlert.js';
+
 
 
 import { styled } from '@mui/system';
@@ -24,19 +27,20 @@ import { BSON } from 'realm-web';
 
 export default function P_MahalListesi() {
 
+  const queryClient = useQueryClient()
 
-  const { RealmApp, selectedProje, setMahalListesi_wbsIds, setMahalListesi_lbsIds, myTema } = useContext(StoreContext)
+  const { RealmApp, selectedProje } = useContext(StoreContext)
   const { selectedNode, setSelectedNode } = useContext(StoreContext)
   const { selectedMahal, setSelectedMahal } = useContext(StoreContext)
   const { selectedPoz, setSelectedPoz } = useContext(StoreContext)
   const { drawerWidth, topBarHeight, subHeaderHeight } = useContext(StoreContext)
+  const [dialogAlert, setDialogAlert] = useState()
 
 
   const [show, setShow] = useState("Main")
   const [isChanged, setIsChanged] = useState(0)
-  const [mahalListesi_state, setMahalListesi_state] = useState()
-  const [mahalListesi_willBeSaved, setMahalListesi_willBeSaved] = useState([])
-  const [editMode_MahalListesi, setEditMode_MahalListesi] = useState(false)
+  const [dugumler_state, setDugumler_state] = useState()
+  const [editMode_Dugumler, setEditMode_Dugumler] = useState(false)
 
 
   const navigate = useNavigate()
@@ -51,16 +55,15 @@ export default function P_MahalListesi() {
 
   const { data: mahaller } = useGetMahaller()
 
-  const { data: mahalListesi } = useGetMahalListesi()
+  const { data: dugumler } = useGetDugumler()
 
   // const { mutate: updateMahalMetraj } = useUpdateHazirlananMetrajShort()
 
 
 
   useEffect(() => {
-    console.log("useeffect")
-    setMahalListesi_state(mahalListesi?.list)
-  }, [mahalListesi?.list])
+    setDugumler_state(dugumler)
+  }, [dugumler])
 
 
 
@@ -165,25 +168,17 @@ export default function P_MahalListesi() {
     // console.log("event.target.value", event.target.value)
     // console.log("theDugumId", theDugum._id.toString())
 
-    // setMahalListesi_state(mahalListesi => {
-    //   console.log("mahalListesi", mahalListesi)
-    //   mahalListesi = mahalListesi.map(x => {
+    // setDugumler_state(dugumler => {
+    //   console.log("dugumler", dugumler)
+    //   dugumler = dugumler.map(x => {
     //     if (x._id.toString() === theDugum._id.toString()) {
     //       x.metraj = event.target.value
     //     }
     //     return x
     //   })
-    //   // console.log("mahalListesi", mahalListesi)
-    //   return mahalListesi
+    //   // console.log("dugumler", dugumler)
+    //   return dugumler
     // })
-
-    setMahalListesi_willBeSaved(mahalListesi => {
-      mahalListesi = mahalListesi?.filter(x => x._dugumId.toString() !== theDugum._id.toString())
-      mahalListesi = [...mahalListesi, { _dugumId: theDugum._id, metrajValue: event.target.value }]
-      console.log("mahalListesi", mahalListesi)
-      return mahalListesi
-    })
-
 
     setIsChanged(true)
     // alttaki kod sadece react component render yapılması için biyerde kullanılmıyor -- (sonra bunada gerek kalmadı)
@@ -203,9 +198,9 @@ export default function P_MahalListesi() {
 
 
   const handleCancel = () => {
-    setEditMode_MahalListesi()
+    setDugumler_state(dugumler)
+    setEditMode_Dugumler()
     setIsChanged()
-    setMahalListesi_willBeSaved([])
   }
 
 
@@ -213,37 +208,58 @@ export default function P_MahalListesi() {
 
     if (isChanged) {
       try {
-        console.log("güncellenecek")
-        console.log("mahalListesi_state", mahalListesi_state)
+
+        let dugumler_state_filtered = dugumler_state.filter(x => x.isChanged)
+        console.log("dugumler_state_filtered", dugumler_state_filtered)
+
+        const result = await RealmApp?.currentUser.callFunction("updateDugumler_openMetraj", ({ _projeId: selectedProje._id, dugumler_state_filtered }))
+
+        if(result.dugumler)
+        queryClient.setQueryData(['dugumler', selectedProje?._id.toString()], result.dugumler)
+
+        setEditMode_Dugumler()
+        setIsChanged()
+        return
+
       } catch (error) {
+
+        console.log(error)
+
+        setDialogAlert({
+          dialogIcon: "warning",
+          dialogMessage: "Beklenmedik hata, Rapor7/24 ile irtibata geçiniz..",
+          detailText: error?.message ? error.message : null
+        })
 
       }
     }
 
-    setEditMode_MahalListesi()
+
+    setEditMode_Dugumler()
     setIsChanged()
-    setMahalListesi_willBeSaved([])
+    setDugumler_state([])
 
   }
 
-  const updateMahalListesi_state = ({ _mahalId, _pozId, switchValue }) => {
+  const updateDugumler_state = ({ _mahalId, _pozId, switchValue }) => {
 
     // console.log({ _mahalId, _pozId, switchValue })
-    if (mahalListesi_state.find(x => x._mahalId.toString() === _mahalId.toString() && x._pozId.toString() === _pozId.toString())) {
-      let mahalListesi_state2 = JSON.parse(JSON.stringify(mahalListesi_state))
-      // console.log("mahalListesi_state2", mahalListesi_state2)
-      mahalListesi_state2 = mahalListesi_state2.map(x => {
+    if (dugumler_state.find(x => x._mahalId.toString() === _mahalId.toString() && x._pozId.toString() === _pozId.toString())) {
+      let dugumler_state2 = JSON.parse(JSON.stringify(dugumler_state))
+      // console.log("dugumler_state2", dugumler_state2)
+      dugumler_state2 = dugumler_state2.map(x => {
         if (x._mahalId.toString() === _mahalId.toString() && x._pozId.toString() === _pozId.toString()) {
           x.openMetraj = switchValue
           x.isChanged = true
         }
         return x
       })
-      setMahalListesi_state(mahalListesi_state2)
+      setDugumler_state(dugumler_state2)
     } else {
-      setMahalListesi_state([...mahalListesi_state, { _mahalId, _pozId, openMetraj: switchValue, isChanged: true }])
+      setDugumler_state([...dugumler_state, { _mahalId, _pozId, openMetraj: switchValue, isChanged: true }])
     }
     setIsChanged(true)
+
     return
 
   }
@@ -266,8 +282,17 @@ export default function P_MahalListesi() {
 
     <>
 
+      {dialogAlert &&
+        <DialogAlert
+          dialogIcon={dialogAlert.dialogIcon}
+          dialogMessage={dialogAlert.dialogMessage}
+          detailText={dialogAlert.detailText}
+          onCloseAction={() => setDialogAlert()}
+        />
+      }
+
       <Grid item >
-        <HeaderMahalListesi handleCancel={handleCancel} editMode_MahalListesi={editMode_MahalListesi} setEditMode_MahalListesi={setEditMode_MahalListesi} saveMahal={saveMahal} isChanged={isChanged} />
+        <HeaderMahalListesi handleCancel={handleCancel} editMode_Dugumler={editMode_Dugumler} setEditMode_Dugumler={setEditMode_Dugumler} saveMahal={saveMahal} isChanged={isChanged} />
       </Grid>
 
       {show == "FormMahalCreate" &&
@@ -290,7 +315,7 @@ export default function P_MahalListesi() {
         </Stack>
       }
 
-      {show == "Main" && mahalListesi_state && selectedProje?.lbs?.filter(item => item.openForMahal).length > 0 &&
+      {show == "Main" && dugumler_state && selectedProje?.lbs?.filter(item => item.openForMahal).length > 0 &&
 
         <Box sx={{ mt: subHeaderHeight, pt: "1rem", pl: "1rem", pr: "1rem" }}>
 
@@ -349,7 +374,7 @@ export default function P_MahalListesi() {
                 <Box
                   sx={{
                     cursor: "pointer",
-                    backgroundColor: editMode_MahalListesi ? "rgb( 110, 16, 16 , 1)" : "rgba( 56,56,56 , 0.9 )", color: "white",
+                    backgroundColor: editMode_Dugumler ? "rgb( 110, 16, 16 , 1)" : "rgba( 56,56,56 , 0.9 )", color: "white",
                     fontWeight: "bold",
                     border: "solid black 1px",
                     borderRight: index + 1 == count_ ? "solid black 1px" : "0px",
@@ -530,7 +555,7 @@ export default function P_MahalListesi() {
 
                           {pozlar?.map((onePoz, index) => {
 
-                            let theDugum = mahalListesi_state?.find((item) => item._pozId.toString() == onePoz._id.toString() && item._mahalId.toString() == oneMahal._id.toString() && item.openMetraj)
+                            let theDugum = dugumler_state?.find((item) => item._pozId.toString() == onePoz._id.toString() && item._mahalId.toString() == oneMahal._id.toString() && item.openMetraj)
 
 
                             return theDugum?.openMetraj ?
@@ -539,13 +564,13 @@ export default function P_MahalListesi() {
                                 key={index}
                                 index={index}
                                 count_={count_}
-                                onClick={editMode_MahalListesi ? () => updateMahalListesi_state({
+                                onClick={editMode_Dugumler ? () => updateDugumler_state({
                                   _mahalId: oneMahal._id,
                                   _pozId: onePoz._id,
                                   switchValue: false
                                 }) : null}
                                 sx={{
-                                  cursor: editMode_MahalListesi ? "pointer" : null,
+                                  cursor: editMode_Dugumler ? "pointer" : null,
                                   display: "grid",
                                   alignItems: "center",
                                   justifyItems: onePoz.yatayHiza,
@@ -561,13 +586,13 @@ export default function P_MahalListesi() {
                                 key={index}
                                 index={index}
                                 count_={count_}
-                                onClick={editMode_MahalListesi ? () => updateMahalListesi_state({
+                                onClick={editMode_Dugumler ? () => updateDugumler_state({
                                   _mahalId: oneMahal._id,
                                   _pozId: onePoz._id,
                                   switchValue: true
                                 }) : null}
                                 sx={{
-                                  cursor: editMode_MahalListesi ? "pointer" : null,
+                                  cursor: editMode_Dugumler ? "pointer" : null,
                                   display: "grid",
                                   alignItems: "center",
                                   justifyItems: onePoz.yatayHiza,
