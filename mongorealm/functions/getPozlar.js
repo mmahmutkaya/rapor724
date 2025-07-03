@@ -54,11 +54,11 @@ exports = async function ({
       {
         $group: {
           _pozId: "$_pozId"
-          // totalSaleAmount: { $sum: { $multiply: ["$price", "$quantity"] } }
         }
       }
     ]).toArray()
 
+          // totalSaleAmount: { $sum: { $multiply: ["$price", "$quantity"] } }
 
     return dugumler
 
