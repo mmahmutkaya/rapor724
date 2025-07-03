@@ -31,7 +31,7 @@ export default function P_MetrajPozlar() {
   const queryClient = useQueryClient()
 
   const { data: pozlar } = useGetPozlar()
- 
+
   // console.log("pozlar",pozlar)
   const { RealmApp, myTema } = useContext(StoreContext)
   const { selectedProje } = useContext(StoreContext)
@@ -47,14 +47,14 @@ export default function P_MetrajPozlar() {
   }, [])
 
   const [basliklar, setBasliklar] = useState(RealmApp.currentUser.customData.customSettings.pages.metrajpozlar.basliklar)
-
-  // sayfadaki "visibility" tuşunun aktif olup olmamasını ayarlamak için
-  const anyBaslikShow = basliklar?.find(x => x.visible) ? true : false
+  // console.log("dd",RealmApp.currentUser.customData.customSettings.pages.metrajpozlar.showHasMahal)
+  const [showHasMahal, setShowHasMahal] = useState(RealmApp.currentUser.customData.customSettings.pages.metrajpozlar.showHasMahal)
 
   const pozAciklamaShow = basliklar?.find(x => x.id === "aciklama").show
   const pozVersiyonShow = basliklar?.find(x => x.id === "versiyon").show
 
   const columns = `5rem 15rem 5rem 5rem${pozAciklamaShow ? " 1rem 10rem" : ""}${pozVersiyonShow ? " 1rem 5rem" : ""}`
+
 
 
   const enUstBaslik_css = {
@@ -89,7 +89,6 @@ export default function P_MetrajPozlar() {
     display: "grid",
     alignItems: "center",
     justifyItems: "center",
-    backgroundColor: "white",
     border: "1px solid black",
     m: "-1px -1px 0 0"
   }
@@ -99,20 +98,17 @@ export default function P_MetrajPozlar() {
     borderLeft: "1px solid black"
   }
 
-  let wbsCode
-  let wbsName
-  let cOunt
+
 
   return (
     <Box sx={{ m: "0rem" }}>
 
       {/* BAŞLIK */}
-      <HeaderMetrajPozlar show={show} setShow={setShow} anyBaslikShow={anyBaslikShow} />
-
+      <HeaderMetrajPozlar show={show} setShow={setShow} />
 
 
       {/* BAŞLIK GÖSTER / GİZLE */}
-      {show == "ShowBaslik" && <ShowMetrajPozlarBaslik setShow={setShow} basliklar={basliklar} setBasliklar={setBasliklar} />}
+      {show == "ShowBaslik" && <ShowMetrajPozlarBaslik setShow={setShow} basliklar={basliklar} setBasliklar={setBasliklar} showHasMahal={showHasMahal} setShowHasMahal={setShowHasMahal} />}
 
 
       {/* EĞER POZ BAŞLIĞI YOKSA */}
@@ -233,9 +229,13 @@ export default function P_MetrajPozlar() {
                 {/* WBS'İN POZLARI */}
                 {pozlar?.filter(x => x._wbsId.toString() === oneWbs._id.toString()).map((onePoz, index) => {
 
+                  if(!showHasMahal && !onePoz.hasMahal) {
+                    return
+                  }
+
                   return (
                     // <Box key={index} sx={{ display: "grid", gridTemplateColumns: columns, gridTemplateAreas: gridAreas_pozSatir }}>
-                    <Box key={index} sx={{ display: "grid", gridTemplateColumns: columns }}>
+                    <Box key={index} sx={{ display: "grid", gridTemplateColumns: columns, backgroundColor: !onePoz.hasMahal && "lightgray" }}>
                       <Box sx={{ ...pozNo_css }}>
                         {onePoz.pozNo}
                       </Box>
@@ -289,3 +289,5 @@ export default function P_MetrajPozlar() {
   )
 
 }
+
+

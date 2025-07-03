@@ -23,7 +23,7 @@ import FileDownloadDoneIcon from '@mui/icons-material/FileDownloadDone';
 import EditIcon from '@mui/icons-material/Edit';
 
 
-export default function HeaderPozlar({ show, setShow, anyBaslikShow }) {
+export default function HeaderPozlar({ show, setShow }) {
 
   const { selectedProje } = useContext(StoreContext)
   const navigate = useNavigate()
@@ -67,7 +67,7 @@ export default function HeaderPozlar({ show, setShow, anyBaslikShow }) {
                 <EditIcon variant="contained" />
               </IconButton>
 
-              <IconButton onClick={() => setShow("ShowBaslik")} disabled={!anyBaslikShow}>
+              <IconButton onClick={() => setShow("ShowBaslik")} disabled={false}>
                 <VisibilityIcon variant="contained" />
               </IconButton>
 

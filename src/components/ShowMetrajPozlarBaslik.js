@@ -15,7 +15,7 @@ import { DialogTitle, Typography } from '@mui/material';
 
 
 
-export default function ShowFirmaPozBaslik({ setShow, basliklar, setBasliklar }) {
+export default function ShowFirmaPozBaslik({ setShow, basliklar, setBasliklar, showHasMahal, setShowHasMahal }) {
 
   const RealmApp = useApp();
   const [dialogAlert, setDialogAlert] = useState()
@@ -23,9 +23,9 @@ export default function ShowFirmaPozBaslik({ setShow, basliklar, setBasliklar })
 
   const baslikUpdate = async ({ baslikId, showValue }) => {
 
-
     try {
 
+      // frontend de hızlı olsun diye önce bu sonra arkada db güncelleme 
       const basliklar2 = basliklar.map(oneBaslik => {
         if (oneBaslik.id === baslikId) {
           oneBaslik.show = showValue
@@ -57,6 +57,36 @@ export default function ShowFirmaPozBaslik({ setShow, basliklar, setBasliklar })
   }
 
 
+
+  const toggle_showHasMahal = async (showHasMahal) => {
+
+    try {
+
+      // frontend de hızlı olsun diye önce bu sonra arkada db güncelleme 
+      setShowHasMahal(showHasMahal)
+
+      // db ye gönderme işlemi
+      await RealmApp?.currentUser.callFunction("customSettings_update", ({ functionName: "toggle_showHasMahal", sayfaName: "metrajpozlar", showValue: showHasMahal }))
+      await RealmApp?.currentUser.refreshCustomData()
+
+      return
+
+    } catch (err) {
+
+      console.log(err)
+
+      setDialogAlert({
+        dialogIcon: "warning",
+        dialogMessage: "Beklenmedik hata, Rapor7/24 ile irtibata geçiniz..",
+        detailText: err?.message ? err.message : null
+      })
+
+    }
+
+  }
+
+
+
   return (
 
     <>
@@ -76,7 +106,7 @@ export default function ShowFirmaPozBaslik({ setShow, basliklar, setBasliklar })
         onClose={() => setShow("Main")}
       >
         <Typography variant="subtitle1" sx={{ mb: "0.5rem", fontWeight: "600" }}>
-          Sütunlar
+          Göster / Gizle
         </Typography>
 
         <Divider></Divider>
@@ -92,11 +122,17 @@ export default function ShowFirmaPozBaslik({ setShow, basliklar, setBasliklar })
         )}
 
 
-        {/* <Switch checked={oneBaslik.goster} onChange={() => console.log("deneme1")} /> */}
+        <Box sx={{ display: "grid", gridTemplateColumns: "1fr 5rem", alignItems: "center" }}>
+          <Box sx={{ my: "0.2rem", justifySelf: "start" }}>Pasif Pozlar</Box>
+          <Box sx={{ justifySelf: "end" }}>
+            <Switch
+              checked={showHasMahal}
+              onChange={() => toggle_showHasMahal(!showHasMahal)}
+            />
+          </Box>
+        </Box>
 
-        {/* <Box>
-          Herhangi bir ilave başlık oluşturulmamış
-        </Box> */}
+        <Divider></Divider>
 
       </Dialog>
     </ >
