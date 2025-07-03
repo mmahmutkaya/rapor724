@@ -9,38 +9,65 @@ exports = async function ({
   const mailTeyit = user.custom_data.mailTeyit
   if (!mailTeyit) throw new Error("MONGO // collection_firmaPozlar // Öncelikle üyeliğinize ait mail adresinin size ait olduğunu doğrulamalısınız, tekrar giriş yapmayı deneyiniz veya bizimle iletişime geçiniz.")
 
-  const collection_pozlar = context.services.get("mongodb-atlas").db("rapor724_v2").collection("pozlar")
+  const collection_Pozlar = context.services.get("mongodb-atlas").db("rapor724_v2").collection("pozlar")
+  const collection_Dugumler = context.services.get("mongodb-atlas").db("rapor724_v2").collection("dugumler")
 
-  
+
   if (!_projeId) throw new Error("MONGO // getPozlar // -- sorguya gönderilen --projeId-- türü doğru değil, lütfen Rapor7/24 ile irtibata geçiniz. ")
 
-  
-  const result = await collection_pozlar.aggregate([
-    {
-      $project: {
-        _projeId:1,
-        _wbsId:1,
-        pozNo:1,
-        pozName:1,
-        pozBirimId:1,
-        pozMetrajTipId:1,
-        isDeleted:1
-      }
-    },       
-    {
-      $match: {
-        _projeId,
-        isDeleted:false
-      }
-    },
-    {
-      $project: {
-        isDeleted:0
-      }
-    }     
-  ])
 
-  return result
+  try {
+
+    let pozlar = await collection_Pozlar.aggregate([
+      {
+        $match: {
+          _projeId,
+          isDeleted: false
+        }
+      },
+      {
+        $project: {
+          _projeId: 1,
+          _wbsId: 1,
+          pozNo: 1,
+          pozName: 1,
+          pozBirimId: 1,
+          pozMetrajTipId: 1
+        }
+      }
+    ])
+
+
+    const dugumler = await collection_Dugumler.aggregate([
+      {
+        $match: {
+          _projeId,
+          openMetraj: true
+        }
+      },
+      {
+        $project: {
+          _pozId: 1,
+          _mahalId: 1
+        }
+      },
+      {
+        $group: {
+          _id: "$_pozId",
+          // totalSaleAmount: { $sum: { $multiply: ["$price", "$quantity"] } }
+        }
+      }
+    ]).toArray()
+
+
+    return pozlar
+
+
+  } catch (error) {
+    throw new Error({ hatayeri: "MONGO // getPozlar // ", error });
+  }
+
+
 
 
 };
