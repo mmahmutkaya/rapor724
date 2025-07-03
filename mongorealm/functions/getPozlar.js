@@ -35,7 +35,7 @@ exports = async function ({
           pozMetrajTipId: 1
         }
       }
-    ])
+    ]).toArray()
 
 
     const dugumler = await collection_Dugumler.aggregate([
