@@ -53,14 +53,14 @@ exports = async function ({
       },
       {
         $group: {
-          _id: "$_pozId",
+          _pozId: "$_pozId",
           // totalSaleAmount: { $sum: { $multiply: ["$price", "$quantity"] } }
         }
       }
     ]).toArray()
 
 
-    return pozlar
+    return dugumler
 
 
   } catch (error) {
