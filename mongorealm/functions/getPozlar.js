@@ -53,7 +53,7 @@ exports = async function ({
       },
       {
         $group: {
-          _pozId: "$_pozId"
+          _id: "$_pozId"
         }
       }
     ]).toArray()
