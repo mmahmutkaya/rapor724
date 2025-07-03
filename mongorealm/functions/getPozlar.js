@@ -59,7 +59,7 @@ exports = async function ({
     ]).toArray()
 
     pozlar = pozlar.map(x => {
-      if(dugumler.find(y => y._id == x._id)){
+      if(dugumler.find(y => y._id.toString() === x._id.toString())){
         x.hasMahal = true
       }
       return x
