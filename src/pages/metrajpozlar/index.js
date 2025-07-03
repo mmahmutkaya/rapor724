@@ -31,6 +31,7 @@ export default function P_MetrajPozlar() {
   const queryClient = useQueryClient()
 
   const { data: pozlar } = useGetPozlar()
+ 
   // console.log("pozlar",pozlar)
   const { RealmApp, myTema } = useContext(StoreContext)
   const { selectedProje } = useContext(StoreContext)

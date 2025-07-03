@@ -6,6 +6,7 @@ import { StoreContext } from './store'
 
 
 import Typography from '@mui/material/Typography';
+import Chip from '@mui/material/Chip';
 import Grid from '@mui/material/Grid';
 import Paper from '@mui/material/Paper';
 import IconButton from '@mui/material/IconButton';
@@ -44,7 +45,7 @@ export default function HeaderPozlar({ show, setShow, anyBaslikShow }) {
             variant="h6"
             fontWeight="bold"
           >
-            Pozlar
+            Metraj
           </Typography>
         </Grid>
 
@@ -57,9 +58,19 @@ export default function HeaderPozlar({ show, setShow, anyBaslikShow }) {
 
 
             <Grid item >
-              <IconButton onClick={() => setShow("ShowBaslik")} aria-label="wbsUncliced" disabled={!anyBaslikShow}>
+
+              <IconButton onClick={() => setShow("ShowBaslik")} >
+                 <Chip label="Hazırlanan" />
+              </IconButton>
+
+              <IconButton onClick={() => setShow("ShowBaslik")} >
+                <EditIcon variant="contained" />
+              </IconButton>
+
+              <IconButton onClick={() => setShow("ShowBaslik")} disabled={!anyBaslikShow}>
                 <VisibilityIcon variant="contained" />
               </IconButton>
+
             </Grid>
 
 
