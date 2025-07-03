@@ -39,7 +39,8 @@ exports = async function (user) {
         basliklar:[
           { id: "aciklama", baslikName:Açıklama, visible: true, show: true },
           { id: "versiyon", baslikName:Versiyon, visible: true, show: true }
-        ]
+        ],
+        hasMahalShow:true
       }
     }
   }
