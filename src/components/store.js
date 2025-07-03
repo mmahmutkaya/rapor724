@@ -44,6 +44,7 @@ export default ({ children }) => {
   const [selectedMahalBaslik, setSelectedMahalBaslik] = useState()
   const [selectedWbs, setSelectedWbs] = useState()
   const [selectedPoz, setSelectedPoz] = useState()
+  const [selectedPoz_metraj, setSelectedPoz_metraj] = useState()
   const [selectedPozBaslik, setSelectedPozBaslik] = useState()
   const [selectedNode, setSelectedNode] = useState()
   const [editNodeMetraj, setEditNodeMetraj] = useState()
@@ -77,6 +78,7 @@ export default ({ children }) => {
     selectedMahalBaslik, setSelectedMahalBaslik,
     selectedWbs, setSelectedWbs,
     selectedPoz, setSelectedPoz,
+    selectedPoz_metraj, setSelectedPoz_metraj,
     selectedPozBaslik, setSelectedPozBaslik,
     selectedNode, setSelectedNode,
     editNodeMetraj, setEditNodeMetraj,

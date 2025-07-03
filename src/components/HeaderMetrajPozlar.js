@@ -13,6 +13,7 @@ import IconButton from '@mui/material/IconButton';
 import DeleteIcon from '@mui/icons-material/Delete';
 import AddCircleOutlineIcon from '@mui/icons-material/AddCircleOutline';
 import ClearOutlined from '@mui/icons-material/ClearOutlined';
+import AdsClickIcon from '@mui/icons-material/AdsClick';
 import UnfoldMoreIcon from '@mui/icons-material/UnfoldMore';
 import UnfoldLessIcon from '@mui/icons-material/UnfoldLess';
 import VisibilityIcon from '@mui/icons-material/Visibility';
@@ -25,8 +26,8 @@ import EditIcon from '@mui/icons-material/Edit';
 
 export default function HeaderPozlar({ show, setShow }) {
 
-  const { selectedProje } = useContext(StoreContext)
-  const navigate = useNavigate()
+  const { selectedPoz_metraj, setSelectedPoz_metraj } = useContext(StoreContext)
+  // const navigate = useNavigate()
 
   return (
     <Paper >
@@ -50,8 +51,6 @@ export default function HeaderPozlar({ show, setShow }) {
         </Grid>
 
 
-
-
         {/* sağ kısım - (tuşlar)*/}
         <Grid item xs="auto">
           <Grid container spacing={1}>
@@ -59,17 +58,31 @@ export default function HeaderPozlar({ show, setShow }) {
 
             <Grid item >
 
-              <IconButton onClick={() => setShow("ShowBaslik")} >
-                 <Chip label="Hazırlanan" />
-              </IconButton>
+              {!selectedPoz_metraj &&
+                <>
+                  {/* <IconButton onClick={() => setShow("ShowBaslik")} >
+                    <Chip label="Hazırlanan" sx={{ m: "0rem", p: "0rem" }} />
+                  </IconButton> */}
 
-              <IconButton onClick={() => setShow("ShowBaslik")} >
-                <EditIcon variant="contained" />
-              </IconButton>
 
-              <IconButton onClick={() => setShow("ShowBaslik")} disabled={false}>
-                <VisibilityIcon variant="contained" />
-              </IconButton>
+                  <IconButton onClick={() => setShow("ShowBaslik")} disabled={false}>
+                    <VisibilityIcon variant="contained" />
+                  </IconButton>
+                </>
+              }
+
+              {selectedPoz_metraj &&
+                <>
+                  <IconButton onClick={() => setSelectedPoz_metraj()}>
+                    <ClearOutlined variant="contained" sx={{ color: "red" }} />
+                  </IconButton>
+
+                  <IconButton onClick={() => console.log("gidecek mahale")}>
+                    <AdsClickIcon variant="contained" />
+                  </IconButton>
+                </>
+              }
+
 
             </Grid>
 

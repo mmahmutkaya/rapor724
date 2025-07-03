@@ -35,6 +35,7 @@ export default function P_MetrajPozlar() {
   // console.log("pozlar",pozlar)
   const { RealmApp, myTema } = useContext(StoreContext)
   const { selectedProje } = useContext(StoreContext)
+  const { selectedPoz_metraj, setSelectedPoz_metraj } = useContext(StoreContext)
 
   // console.log("selectedProje", selectedProje)
   const pozBirimleri = selectedProje?.pozBirimleri
@@ -49,6 +50,7 @@ export default function P_MetrajPozlar() {
   const [basliklar, setBasliklar] = useState(RealmApp.currentUser.customData.customSettings.pages.metrajpozlar.basliklar)
   // console.log("dd",RealmApp.currentUser.customData.customSettings.pages.metrajpozlar.showHasMahal)
   const [showHasMahal, setShowHasMahal] = useState(RealmApp.currentUser.customData.customSettings.pages.metrajpozlar.showHasMahal)
+
 
   const pozAciklamaShow = basliklar?.find(x => x.id === "aciklama").show
   const pozVersiyonShow = basliklar?.find(x => x.id === "versiyon").show
@@ -99,16 +101,24 @@ export default function P_MetrajPozlar() {
   }
 
 
-
   return (
     <Box sx={{ m: "0rem" }}>
 
       {/* BAŞLIK */}
-      <HeaderMetrajPozlar show={show} setShow={setShow} />
+      <HeaderMetrajPozlar
+        show={show}
+        setShow={setShow}
+      />
 
 
       {/* BAŞLIK GÖSTER / GİZLE */}
-      {show == "ShowBaslik" && <ShowMetrajPozlarBaslik setShow={setShow} basliklar={basliklar} setBasliklar={setBasliklar} showHasMahal={showHasMahal} setShowHasMahal={setShowHasMahal} />}
+      {show == "ShowBaslik" &&
+        <ShowMetrajPozlarBaslik
+          setShow={setShow}
+          basliklar={basliklar} setBasliklar={setBasliklar}
+          showHasMahal={showHasMahal} setShowHasMahal={setShowHasMahal}
+        />
+      }
 
 
       {/* EĞER POZ BAŞLIĞI YOKSA */}
@@ -229,18 +239,29 @@ export default function P_MetrajPozlar() {
                 {/* WBS'İN POZLARI */}
                 {pozlar?.filter(x => x._wbsId.toString() === oneWbs._id.toString()).map((onePoz, index) => {
 
-                  if(!showHasMahal && !onePoz.hasMahal) {
+                  let isSelected = false
+
+                  if (!showHasMahal && !onePoz.hasMahal) {
                     return
+                  }
+
+                  if (selectedPoz_metraj?._id.toString() === onePoz._id.toString()) {
+                    isSelected = true
                   }
 
                   return (
                     // <Box key={index} sx={{ display: "grid", gridTemplateColumns: columns, gridTemplateAreas: gridAreas_pozSatir }}>
-                    <Box key={index} sx={{ display: "grid", gridTemplateColumns: columns, backgroundColor: !onePoz.hasMahal && "lightgray" }}>
+                    <Box key={index} onDoubleClick={() => console.log("gyt")} onClick={() => setSelectedPoz_metraj(onePoz)} sx={{ "&:hover": { "& .childClass": { display: "block" } }, cursor: "pointer", display: "grid", gridTemplateColumns: columns, backgroundColor: !onePoz.hasMahal && "lightgray" }}>
                       <Box sx={{ ...pozNo_css }}>
                         {onePoz.pozNo}
                       </Box>
-                      <Box sx={{ ...pozNo_css, pl: "0.5rem", justifyItems: "start" }}>
-                        {onePoz.pozName}
+                      <Box sx={{ ...pozNo_css, pl: "0.5rem", justifyItems: "start", display: "grid", gridTemplateColumns: "1fr 1rem" }}>
+                        <Box sx={{}}>
+                          {onePoz.pozName}
+                        </Box>
+                        <Box className="childClass" sx={{ display: isSelected ? "block" : "none", backgroundColor: isSelected ? "black" : "red", height: "0.5rem", width: "0.5rem", borderRadius: "50%" }}>
+                          { }
+                        </Box>
                       </Box>
                       <Box sx={{ ...pozNo_css }}>
                         {onePoz?.miktar}
