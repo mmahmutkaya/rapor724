@@ -58,9 +58,14 @@ exports = async function ({
       }
     ]).toArray()
 
-          // totalSaleAmount: { $sum: { $multiply: ["$price", "$quantity"] } }
+    pozlar = pozlar.map(x => {
+      if(dugumler.find(y => y._id == x._id)){
+        x.hasMahal = true
+      }
+      return x
+    })
 
-    return dugumler
+    return pozlar
 
 
   } catch (error) {
