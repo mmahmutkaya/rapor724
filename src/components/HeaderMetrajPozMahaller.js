@@ -28,7 +28,7 @@ import FileDownloadDoneIcon from '@mui/icons-material/FileDownloadDone';
 import EditIcon from '@mui/icons-material/Edit';
 
 
-export default function MetrajPozMahallerHeader() {
+export default function HeaderMetrajPozMahaller() {
 
   const navigate = useNavigate()
 
@@ -40,8 +40,8 @@ export default function MetrajPozMahallerHeader() {
   // const RealmApp = useApp();
   const { RealmApp } = useContext(StoreContext)
 
-  const { selectedPoz, setSelectedPoz } = useContext(StoreContext)
-  const { selectedPozBaslik, setSelectedPozBaslik } = useContext(StoreContext)
+  const { selectedPoz_metraj, setSelectedPoz_metraj } = useContext(StoreContext)
+  const { selectedPoz_metrajBaslik, setSelectedPoz_metrajBaslik } = useContext(StoreContext)
 
   const [willBeUpdate_mahalBaslik, setWillBeUpdate_mahalBaslik] = useState(false)
 
@@ -52,13 +52,13 @@ export default function MetrajPozMahallerHeader() {
   async function handlePozDelete(mahal) {
 
     // seçili wbs yoksa durdurma, inaktif iken tuşlara basılabiliyor mesela, bu fonksiyon çalıştırılıyor, orayı iptal etmekle uğraşmak istemedim
-    if (!selectedPoz) {
+    if (!selectedPoz_metraj) {
       console.log("alttaki satırda --return-- oldu")
       return
     }
 
     // bu kontrol backend de ayrıca yapılıyor
-    if (selectedPoz.includesPoz) {
+    if (selectedPoz_metraj.includesPoz) {
       throw new Error("Bu mahal metraj içerdiği için silinemez, öncelikle metrajları silmelisiniz.")
     }
 
@@ -85,7 +85,7 @@ export default function MetrajPozMahallerHeader() {
 
       }
 
-      setSelectedPoz()
+      setSelectedPoz_metraj()
 
     } catch (err) {
 
@@ -100,7 +100,7 @@ export default function MetrajPozMahallerHeader() {
         hataMesaj_ = "Poz eklemeye açık başlıklar silinemez, öncelikle mahal eklemeye kapatınız."
       }
 
-      setSelectedPoz()
+      setSelectedPoz_metraj()
       setDialogCase("error")
       setShowDialog(hataMesaj_)
     }
@@ -110,10 +110,10 @@ export default function MetrajPozMahallerHeader() {
 
   async function handlePozBaslikDelete(mahalBaslik) {
 
-    const mahal = selectedPozBaslik
+    const mahal = selectedPoz_metrajBaslik
 
     // seçili wbs yoksa durdurma, inaktif iken tuşlara basılabiliyor mesela, bu fonksiyon çalıştırılıyor, orayı iptal etmekle uğraşmak istemedim
-    if (!selectedPozBaslik) {
+    if (!selectedPoz_metrajBaslik) {
       console.log("alttaki satırda --return-- oldu")
       return
     }
@@ -143,7 +143,7 @@ export default function MetrajPozMahallerHeader() {
 
       }
 
-      setSelectedPoz()
+      setSelectedPoz_metraj()
 
     } catch (err) {
 
@@ -158,7 +158,7 @@ export default function MetrajPozMahallerHeader() {
         hataMesaj_ = "Poz eklemeye açık başlıklar silinemez, öncelikle mahal eklemeye kapatınız."
       }
 
-      setSelectedPoz()
+      setSelectedPoz_metraj()
       setDialogCase("error")
       setShowDialog(hataMesaj_)
     }
@@ -169,7 +169,7 @@ export default function MetrajPozMahallerHeader() {
   const handle_BaslikGenislet = () => {
     setSelectedProje(selectedProje => {
       const selectedProje_ = { ...selectedProje }
-      selectedProje_.mahalBasliklari.find(item => item.id == selectedPozBaslik.id).genislik = selectedProje_.mahalBasliklari.find(item => item.id == selectedPozBaslik.id).genislik + 0.5
+      selectedProje_.mahalBasliklari.find(item => item.id == selectedPoz_metrajBaslik.id).genislik = selectedProje_.mahalBasliklari.find(item => item.id == selectedPoz_metrajBaslik.id).genislik + 0.5
       return selectedProje_
     })
     setWillBeUpdate_mahalBaslik(true)
@@ -179,7 +179,7 @@ export default function MetrajPozMahallerHeader() {
   const handle_BaslikDaralt = () => {
     setSelectedProje(selectedProje => {
       const selectedProje_ = { ...selectedProje }
-      selectedProje_.mahalBasliklari.find(item => item.id == selectedPozBaslik.id).genislik = selectedProje_.mahalBasliklari.find(item => item.id == selectedPozBaslik.id).genislik - 0.5
+      selectedProje_.mahalBasliklari.find(item => item.id == selectedPoz_metrajBaslik.id).genislik = selectedProje_.mahalBasliklari.find(item => item.id == selectedPoz_metrajBaslik.id).genislik - 0.5
       return selectedProje_
     })
     setWillBeUpdate_mahalBaslik(true)
@@ -190,10 +190,10 @@ export default function MetrajPozMahallerHeader() {
   const handle_YatayHiza = () => {
     setSelectedProje(selectedProje => {
       const selectedProje_ = { ...selectedProje }
-      let guncelYatayHiza = selectedProje_.mahalBasliklari.find(item => item.id == selectedPozBaslik.id).yatayHiza
-      if (guncelYatayHiza == "start") selectedProje_.mahalBasliklari.find(item => item.id == selectedPozBaslik.id).yatayHiza = "center"
-      if (guncelYatayHiza == "center") selectedProje_.mahalBasliklari.find(item => item.id == selectedPozBaslik.id).yatayHiza = "end"
-      if (guncelYatayHiza == "end") selectedProje_.mahalBasliklari.find(item => item.id == selectedPozBaslik.id).yatayHiza = "start"
+      let guncelYatayHiza = selectedProje_.mahalBasliklari.find(item => item.id == selectedPoz_metrajBaslik.id).yatayHiza
+      if (guncelYatayHiza == "start") selectedProje_.mahalBasliklari.find(item => item.id == selectedPoz_metrajBaslik.id).yatayHiza = "center"
+      if (guncelYatayHiza == "center") selectedProje_.mahalBasliklari.find(item => item.id == selectedPoz_metrajBaslik.id).yatayHiza = "end"
+      if (guncelYatayHiza == "end") selectedProje_.mahalBasliklari.find(item => item.id == selectedPoz_metrajBaslik.id).yatayHiza = "start"
       return selectedProje_
     })
     setWillBeUpdate_mahalBaslik(true)
@@ -202,13 +202,13 @@ export default function MetrajPozMahallerHeader() {
 
   const unSelectPozBaslik = async () => {
     if (willBeUpdate_mahalBaslik) {
-      let mahalBaslik = selectedProje.mahalBasliklari.find(item => item.id == selectedPozBaslik.id)
+      let mahalBaslik = selectedProje.mahalBasliklari.find(item => item.id == selectedPoz_metrajBaslik.id)
       console.log("mahalBaslik", mahalBaslik)
       const result = await RealmApp?.currentUser.callFunction("updateProjectPozBaslik", ({ _projectId: selectedProje._id, mahalBaslik }));
       console.log("result", result)
       setWillBeUpdate_mahalBaslik(false)
     }
-    setSelectedPozBaslik(false)
+    setSelectedPoz_metrajBaslik(false)
   }
 
 
@@ -248,7 +248,7 @@ export default function MetrajPozMahallerHeader() {
               variant="h6"
               fontWeight="bold"
             >
-              selectedPoz?.name
+              {selectedPoz_metraj?.pozName}
             </Typography>
           </Grid>
 
@@ -262,11 +262,11 @@ export default function MetrajPozMahallerHeader() {
               <Grid item >
                 <IconButton onClick={() => navigate("/metrajpozlar")} aria-label="wbsUncliced">
                   <ReplyIcon variant="contained"
-                    sx={{ color: selectedPoz ? "red" : "lightgray" }} />
+                    sx={{ color: selectedPoz_metraj ? "red" : "lightgray" }} />
                 </IconButton>
               </Grid>
 
-              <Grid item onClick={() => console.log("selectedPoz", selectedPoz)} sx={{ cursor: "pointer" }}>
+              <Grid item onClick={() => console.log("selectedPoz_metraj", selectedPoz_metraj)} sx={{ cursor: "pointer" }}>
                 <IconButton aria-label="addPoz" disabled>
                   <VisibilityIcon variant="contained" sx={{ color: "gray" }} />
                 </IconButton>

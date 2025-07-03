@@ -251,7 +251,7 @@ export default function P_MetrajPozlar() {
 
                   return (
                     // <Box key={index} sx={{ display: "grid", gridTemplateColumns: columns, gridTemplateAreas: gridAreas_pozSatir }}>
-                    <Box key={index} onDoubleClick={() => console.log("gyt")} onClick={() => setSelectedPoz_metraj(onePoz)} sx={{ "&:hover": { "& .childClass": { display: "block" } }, cursor: "pointer", display: "grid", gridTemplateColumns: columns, backgroundColor: !onePoz.hasMahal && "lightgray" }}>
+                    <Box key={index} onDoubleClick={() => navigate('/metrajpozmahaller')} onClick={() => setSelectedPoz_metraj(onePoz)} sx={{ "&:hover": { "& .childClass": { display: "block" } }, cursor: "pointer", display: "grid", gridTemplateColumns: columns, backgroundColor: !onePoz.hasMahal && "lightgray" }}>
                       <Box sx={{ ...pozNo_css }}>
                         {onePoz.pozNo}
                       </Box>

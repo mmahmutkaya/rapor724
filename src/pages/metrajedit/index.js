@@ -6,7 +6,7 @@ import { useApp } from "../../components/useApp";
 import MetrajEditHeader from '../../components/MetrajEditHeader'
 import { useQuery, useQueryClient, useMutation } from '@tanstack/react-query'
 import { BSON } from "realm-web"
-import { useGetMahaller, useGetMahalListesi, useGetHazirlananMetrajlar, useUpdateHazirlananMetraj, useUpdateOnaylananMetraj, useGetOnaylananMetraj } from '../../hooks/useMongo';
+import { useGetMahaller, useGetDugumler, useGetHazirlananMetrajlar, useUpdateHazirlananMetraj, useUpdateOnaylananMetraj, useGetOnaylananMetraj } from '../../hooks/useMongo';
 
 import { styled } from '@mui/system';
 import Grid from '@mui/material/Grid';
@@ -32,7 +32,7 @@ export default function P_MetrajEdit() {
   const { selectedProje, setSelectedProje } = useContext(StoreContext)
   const { custom, setCustom } = useContext(StoreContext)
   const { selectedMahal, setSelectedMahal } = useContext(StoreContext)
-  const { selectedPoz, setSelectedPoz } = useContext(StoreContext)
+  const { selectedPoz_metraj } = useContext(StoreContext)
   const { myTema, setMyTema } = useContext(StoreContext)
   const { selectedNode, setSelectedNode } = useContext(StoreContext)
   const { drawerWidth, topBarHeight, subHeaderHeight } = useContext(StoreContext)
@@ -63,7 +63,7 @@ export default function P_MetrajEdit() {
 
   const navigate = useNavigate()
 
-  const { data: mahalListesi } = useGetMahalListesi()
+  const { data: dugumler } = useGetDugumler()
 
   const { data: hazirlananMetrajlar } = useGetHazirlananMetrajlar({ selectedNode })
 
@@ -354,8 +354,8 @@ export default function P_MetrajEdit() {
 
 
 
-  pozBirim = selectedProje?.pozBirimleri.find(item => item.id == selectedPoz?.birimId)?.name
-  pozMetraj = mahalListesi?.list.filter(item => item._pozId.toString() == selectedPoz?._id.toString()).reduce((accumulator, oneNode) => (isNaN(parseFloat(oneNode.metraj?.guncel)) ? accumulator + 0 : accumulator + parseFloat(oneNode.metraj?.guncel)), 0)
+  pozBirim = selectedProje?.pozBirimleri.find(item => item.id == selectedPoz_metraj?.pozBirimId)?.name
+  pozMetraj = dugumler.filter(item => item._pozId.toString() == selectedPoz_metraj?._id.toString()).reduce((accumulator, oneNode) => (isNaN(parseFloat(oneNode.metraj?.guncel)) ? accumulator + 0 : accumulator + parseFloat(oneNode.metraj?.guncel)), 0)
   pozMetraj = Intl.NumberFormat('tr-TR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(pozMetraj)
 
 
