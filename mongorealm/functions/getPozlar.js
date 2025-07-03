@@ -50,13 +50,13 @@ exports = async function ({
           _pozId: 1,
           _mahalId: 1
         }
-      },
-      {
-        $group: {
-          _pozId: "$_pozId",
-          // totalSaleAmount: { $sum: { $multiply: ["$price", "$quantity"] } }
-        }
       }
+      // {
+      //   $group: {
+      //     _pozId: "$_pozId",
+      //     // totalSaleAmount: { $sum: { $multiply: ["$price", "$quantity"] } }
+      //   }
+      // }
     ]).toArray()
 
 
