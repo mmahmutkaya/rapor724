@@ -34,7 +34,8 @@ exports = async function ({
     return (
       {
         updateOne: {
-          filter: { _projeId, _mahalId: new BSON.ObjectId(x._mahalId), _pozId: new BSON.ObjectId(x._pozId) },
+          // filter: { _projeId, _mahalId: new BSON.ObjectId(x._mahalId), _pozId: new BSON.ObjectId(x._pozId) },
+          filter: { _projeId, _mahalId: x._mahalId, _pozId: x._pozId },
           update: { $set: { openMetraj: x.openMetraj } },
           upsert: true
         }
