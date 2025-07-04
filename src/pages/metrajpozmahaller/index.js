@@ -19,10 +19,10 @@ import Box from '@mui/material/Box';
 
 export default function P_MetrajPozMahaller() {
 
-  const { selectedProje, setSelectedProje } = useContext(StoreContext)
+  const { RealmApp, selectedProje, setSelectedProje } = useContext(StoreContext)
   const { selectedPoz_metraj } = useContext(StoreContext)
   const { selectedNode, setSelectedNode } = useContext(StoreContext)
-  const { selectedMahal, setSelectedMahal } = useContext(StoreContext)
+  const { selectedMahal_metraj, setSelectedMahal_metraj } = useContext(StoreContext)
   const { drawerWidth, topBarHeight, subHeaderHeight } = useContext(StoreContext)
 
   const [show, setShow] = useState("Main")
@@ -33,9 +33,6 @@ export default function P_MetrajPozMahaller() {
 
   const navigate = useNavigate()
 
-
-
-  const RealmApp = useApp();
 
 
   // pozlar && console.log("pozlar", pozlar)
@@ -49,13 +46,12 @@ export default function P_MetrajPozMahaller() {
 
 
   useEffect(() => {
-    !selectedProje && navigate("/projects")
-    selectedPoz_metraj && dugumler && goToMahaller_birPoz()
+    !selectedPoz_metraj && navigate('/metrajpozlar')
     return () => {
       // setselectedPoz_metraj()
       // setDugumler_filtered()
     }
-  }, [selectedPoz_metraj, dugumler])
+  }, [selectedPoz_metraj])
 
 
 
@@ -164,14 +160,10 @@ export default function P_MetrajPozMahaller() {
 
 
 
-  const goToMahaller_birPoz = () => {
-    setDugumler_filtered(dugumler.filter(x => x._pozId.toString() === selectedPoz_metraj._id.toString()))
-  }
-
 
 
   const handle_metrajEdit = (oneMahal, dugum) => {
-    setSelectedMahal(oneMahal)
+    setSelectedMahal_metraj(oneMahal)
     setSelectedNode(dugum)
     navigate('/metrajedit')
   }
@@ -234,10 +226,12 @@ export default function P_MetrajPozMahaller() {
 
 
 
-          {/* {console.log("selectedProje", selectedProje)} */}
+
           {/* LBS BAŞLIK BİLGİLERİ SATIRI */}
 
           {openLbsArray?.map((oneLbs, index) => {
+
+            let mahaller_filtered = mahaller?.filter(x => x._lbsId.toString() === oneLbs._id.toString())
 
             return (
               <Fragment key={index}>
@@ -259,12 +253,13 @@ export default function P_MetrajPozMahaller() {
 
 
                 {/* MAHAL SATIRLARI */}
-                {mahaller?.filter(x => x._lbsId.toString() === oneLbs._id.toString()).map((oneMahal, index) => {
-                  let dugum = dugumler_filtered?.find(x => x._mahalId.toString() === oneMahal._id.toString())
+                {mahaller_filtered?.map((oneMahal, index) => {
+                  // let dugum = dugumler_filtered?.find(x => x._mahalId.toString() === oneMahal._id.toString())
+                  let dugum
                   return (
                     <Fragment key={index} >
-                      <Box sx={{ backgroundColor: !dugum && "rgba(211, 211, 211, 0.6)", border: "1px solid black", borderTop: "none", px: "0.5rem", display: "grid", justifyContent: "start" }}> {oneMahal.kod} </Box>
-                      <Box sx={{ backgroundColor: !dugum && "rgba(211, 211, 211, 0.6)", border: "1px solid black", borderTop: "none", borderLeft: "none", px: "0.5rem", display: "grid", justifyContent: "start" }}> {oneMahal.name} </Box>
+                      <Box sx={{ backgroundColor: !dugum && "rgba(211, 211, 211, 0.6)", border: "1px solid black", borderTop: "none", px: "0.5rem", display: "grid", justifyContent: "start" }}> {oneMahal.mahalNo} </Box>
+                      <Box sx={{ backgroundColor: !dugum && "rgba(211, 211, 211, 0.6)", border: "1px solid black", borderTop: "none", borderLeft: "none", px: "0.5rem", display: "grid", justifyContent: "start" }}> {oneMahal.mahalName} </Box>
                       <Box sx={{ backgroundColor: "white", display: "grid", justifyContent: "center", color: "white" }}>.</Box>
                       <Box sx={{ backgroundColor: !dugum && "rgba(211, 211, 211, 0.6)", border: "1px solid black", borderTop: "none", px: "0.5rem", display: "grid", justifyContent: "center" }}>{selectedPoz_metraj?.pozBirim}</Box>
                       <Box sx={{ display: "grid", justifyContent: "center", backgroundColor: "white", color: "white" }}>.</Box>

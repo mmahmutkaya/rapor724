@@ -56,6 +56,8 @@ export default function P_MahalListesi() {
   const { data: mahaller } = useGetMahaller()
 
   const { data: dugumler } = useGetDugumler()
+  console.log("dugumler",dugumler)
+  
 
   // const { mutate: updateMahalMetraj } = useUpdateHazirlananMetrajShort()
 
@@ -213,10 +215,10 @@ export default function P_MahalListesi() {
         console.log("dugumler_state_filtered", dugumler_state_filtered)
 
         const result = await RealmApp?.currentUser.callFunction("updateDugumler_openMetraj", ({ _projeId: selectedProje._id, dugumler_state_filtered }))
-
-        if(result.dugumler)
-        queryClient.setQueryData(['dugumler', selectedProje?._id.toString()], result.dugumler)
-
+        console.log("result", result)
+        if (result.dugumler) {
+          queryClient.setQueryData(['dugumler', selectedProje?._id.toString()], result.dugumler)
+        }
         setEditMode_Dugumler()
         setIsChanged()
         return
@@ -241,7 +243,32 @@ export default function P_MahalListesi() {
 
   }
 
-  const updateDugumler_state = ({ _mahalId, _pozId, switchValue }) => {
+  
+  // const updateDugumler_state = ({ _mahalId, _pozId, switchValue }) => {
+
+  //   // console.log({ _mahalId, _pozId, switchValue })
+  //   if (dugumler_state.find(x => x._mahalId.toString() === _mahalId.toString() && x._pozId.toString() === _pozId.toString())) {
+  //     let dugumler_state2 = JSON.parse(JSON.stringify(dugumler_state))
+  //     // console.log("dugumler_state2", dugumler_state2)
+  //     dugumler_state2 = dugumler_state2.map(x => {
+  //       if (x._mahalId.toString() === _mahalId.toString() && x._pozId.toString() === _pozId.toString()) {
+  //         x.openMetraj = switchValue
+  //         x.isChanged = true
+  //       }
+  //       return x
+  //     })
+  //     setDugumler_state(dugumler_state2)
+  //   } else {
+  //     setDugumler_state([...dugumler_state, { _mahalId, _pozId, openMetraj: switchValue, isChanged: true }])
+  //   }
+  //   setIsChanged(true)
+
+  //   return
+
+  // }
+
+
+    const updateDugumler_state = ({ _mahalId, _pozId, switchValue }) => {
 
     // console.log({ _mahalId, _pozId, switchValue })
     if (dugumler_state.find(x => x._mahalId.toString() === _mahalId.toString() && x._pozId.toString() === _pozId.toString())) {
