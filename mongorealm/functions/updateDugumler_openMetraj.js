@@ -57,7 +57,7 @@ exports = async function ({
   try {
     
     const dugumler = await collection_Dugumler.aggregate([
-      { $match: { _projeId } },
+      { $match: { _projeId, openMetraj:true } },
       { $project: { _pozId: 1, _mahalId: 1, openMetraj: 1 } }
     ]).toArray()
   

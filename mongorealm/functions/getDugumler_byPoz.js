@@ -1,5 +1,5 @@
 exports = async function ({
-  _projeId,
+  _pozId
 }) {
 
 
@@ -15,8 +15,8 @@ exports = async function ({
     throw new Error("Öncelikle üyeliğinize ait mail adresinin size ait olduğunu doğrulamalısınız, tekrar giriş yapmayı deneyiniz veya bizimle iletişime geçiniz.");
   }
 
-  if (!_projeId) {
-    throw new Error("'_projeId' verisi db sorgusuna gelmedi");
+  if (!_pozId) {
+    throw new Error("'_pozId' verisi db sorgusuna gelmedi");
   }
 
 
@@ -27,14 +27,14 @@ exports = async function ({
   try {
     
     const dugumler = await collection_Dugumler.aggregate([
-      { $match: { _projeId, openMetraj:true } },
+      { $match: { _pozId, openMetraj:true } },
       { $project: { _pozId: 1, _mahalId: 1, openMetraj: 1 } }
     ]).toArray()
   
     return dugumler
     
   } catch (error) {
-    throw new Error({hatayeri:"MONGO // getDugumler // ", error});
+    throw new Error({hatayeri:"MONGO // getDugumler_byPoz // ", error});
   }
 
 
