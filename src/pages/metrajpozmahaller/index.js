@@ -9,7 +9,7 @@ import FormPozBaslikCreate from '../../components/FormPozBaslikCreate'
 import HeaderMetrajPozMahaller from '../../components/HeaderMetrajPozMahaller'
 import { BSON } from "realm-web"
 
-import { useGetPozlar, useGetDugumler, useGetMahaller } from '../../hooks/useMongo';
+import { useGetPozlar, useGetDugumler_byPoz, useGetMahaller } from '../../hooks/useMongo';
 
 import Grid from '@mui/material/Grid';
 import Alert from '@mui/material/Alert';
@@ -27,21 +27,35 @@ export default function P_MetrajPozMahaller() {
 
   const [show, setShow] = useState("Main")
   const [editPoz, setEditPoz] = useState(false)
-  const [dugumler_filtered, setDugumler_filtered] = useState()
   const [pozBilgiler_willBeSaved, setPozBilgiler_willBeSaved] = useState([])
   const [autoFocus, setAutoFocus] = useState({ baslikId: null, pozId: null })
 
   const navigate = useNavigate()
+
+  const pozBirimName = selectedProje?.pozBirimleri.find(x => x.id == selectedPoz_metraj?.pozBirimId)?.name
 
 
 
   // pozlar && console.log("pozlar", pozlar)
   // selectedProje && console.log("selectedProje", selectedProje)
   const { data: mahaller } = useGetMahaller()
-  const { data: dugumler } = useGetDugumler()
-  // pozlar && console.log("pozlar", pozlar)
-  // const { data: mahaller_birPoz } = useGetMahaller_BirPoz({ _pozId: selectedPoz_metraj?._id })
-  // pozlar && console.log("pozlarMetraj", pozlarMetraj)
+  const { data: dugumler_byPoz } = useGetDugumler_byPoz()
+  // console.log("dugumler_byPoz", dugumler_byPoz)
+
+  let mahaller_byPoz
+  if (mahaller && dugumler_byPoz) {
+    console.log("mahaller", mahaller)
+    // console.log("dugumler_byPoz", dugumler_byPoz)
+    // mahaller_byPoz = mahaller?.map(oneMahal => {
+    //   if (dugumler_byPoz?.find(oneDugum => oneDugum._mahalId.toString() === oneMahal._id.toString())) {
+    //     return oneMahal
+    //   }
+    //   return
+    // })
+    mahaller_byPoz = mahaller.filter(oneMahal => dugumler_byPoz.find(oneDugum => oneDugum._mahalId.toString() === oneMahal._id.toString()))
+    console.log("mahaller_byPoz",mahaller_byPoz)
+  }
+
 
 
 
@@ -128,8 +142,6 @@ export default function P_MetrajPozMahaller() {
   let count
 
   let metrajyapabilen_sutunlar = selectedProje?.metrajYapabilenler.reduce((acc, x, index) => index == 0 ? "auto" : acc + " auto", "")
-  let users = selectedProje?.metrajYapabilenler.reduce((acc, x, index) => index == 0 ? "user" : acc + " user", "")
-  let hazirs = selectedProje?.metrajYapabilenler.reduce((acc, x, index) => index == 0 ? "hazir" : acc + " hazir", "")
 
   count = 0
   let userSirali = "user"
@@ -151,24 +163,32 @@ export default function P_MetrajPozMahaller() {
   })
 
 
-
-  const gridAreasMahaller = `
-    'no isim . birimAd . ${hazirs} . onay'
-    'no isim . birimAd . ${userSirali} . onay'
-    'top top . birimBr . ${miktarSirali} . miktar'
-  `
-
-
-
-
-
   const handle_metrajEdit = (oneMahal, dugum) => {
     setSelectedMahal_metraj(oneMahal)
     setSelectedNode(dugum)
     navigate('/metrajedit')
   }
 
+  const css_enUstBaslik = {
+    display: "grid",
+    fontWeight: "600",
+    border: "1px solid black",
+    borderLeft: "none",
+    mb: "0rem",
+    py: "0.2rem",
+    px: "0.5rem",
+    justifyContent: "start",
+    alignItems: "center",
+    backgroundColor: "#415a77",
+    color: "#e0e1dd"
+  }
 
+  const css_LbsBaslik = {
+    border: "1px solid black", mt: "1rem", px: "0.5rem", display: "grid", justifyContent: "start", backgroundColor: "#caf0f8"
+  }
+
+
+  const gridTemplateColumns1 = `auto 1fr auto ${metrajyapabilen_sutunlar} 0.5rem auto`
 
 
   return (
@@ -184,44 +204,56 @@ export default function P_MetrajPozMahaller() {
 
       {openLbsArray?.length > 0 &&
 
-
-
-        <Box sx={{ display: "grid", gridTemplateColumns: `auto 1fr 0.5rem auto 0.5rem ${metrajyapabilen_sutunlar} 0.5rem auto`, maxWidth: "70rem", gridTemplateAreas: gridAreasMahaller, mt: subHeaderHeight, pt: "1rem", pl: "1rem", pr: "1rem" }}>
+        <Box sx={{ maxWidth: "70rem", display: "grid", gridTemplateColumns: gridTemplateColumns1, mt: subHeaderHeight, pt: "1rem", pl: "1rem", pr: "1rem" }}>
 
           {/* HANGİ POZ İLE İŞLEM YAPILIYORSA - POZ İSMİ VE TOPLAM METRAJI */}
           <>
-            <Box sx={{ fontWeight: "600", border: "1px solid black", mb: "0rem", py: "0.2rem", px: "0.5rem", display: "grid", gridArea: "no", justifyContent: "start", alignItems: "center", backgroundColor: "#415a77", color: "#e0e1dd" }}> {selectedPoz_metraj.pozNo} </Box>
-            <Box sx={{ fontWeight: "600", border: "1px solid black", mb: "0rem", py: "0.2rem", px: "0.5rem", display: "grid", gridArea: "isim", justifyContent: "start", alignItems: "center", backgroundColor: "#415a77", color: "#e0e1dd" }}> {selectedPoz_metraj.pozName}  </Box>
-            <Box sx={{ fontWeight: "600", mb: "0rem", py: "0.2rem", display: "grid", gridRow: "1/3", justifyContent: "center", backgroundColor: "#e0e1dd", color: "white" }}>.</Box>
-            <Box sx={{ fontWeight: "600", border: "1px solid black", py: "0.2rem", mb: "0rem", px: "1rem", display: "grid", gridArea: "birimAd", justifyContent: "center", alignItems: "center", backgroundColor: "#415a77", color: "#e0e1dd" }}> Birim </Box>
-            <Box sx={{ mb: "0rem", fontWeight: "600", display: "grid", gridRow: "1/3", justifyContent: "center", px: "0.5rem", backgroundColor: "white", color: "white" }}>.</Box>
-            <Box sx={{ mb: "0rem", px: "0.5rem", py: "0.2rem", fontWeight: "600", border: "1px solid black", borderBottom: "none", display: "grid", gridArea: "hazir", justifyContent: "center", backgroundColor: "#415a77", color: "#e0e1dd", textAlign: "center" }}>Hazırlanan</Box>
+            <Box sx={{ ...css_enUstBaslik, borderLeft: "1px solid black", justifyContent: "center" }}>
+              {selectedPoz_metraj.pozNo}
+            </Box>
+            <Box sx={{ ...css_enUstBaslik }}>
+              {selectedPoz_metraj.pozName}
+            </Box>
+            <Box sx={{ ...css_enUstBaslik, justifyContent: "center" }}>
+              Miktar
+            </Box>
+            <Box sx={{ ...css_enUstBaslik, justifyContent: "center" }}>
+              Birim
+            </Box>
+            <Box> </Box>
             {
               selectedProje?.metrajYapabilenler.map((x, index) => {
                 return (
-                  <Box key={index} sx={{ mb: "0rem", py: "0.2rem", fontWeight: "600", border: "1px solid black", borderLeft: index !== 0 && "none", display: "grid", gridArea: `user${index + 1}`, px: "0.5rem", justifyContent: "center", backgroundColor: "#415a77", color: "#e0e1dd" }}>{x._userId.toString().substr(x._userId.toString().length - 3)}</Box>
+                  <Box key={index} sx={{ ...css_enUstBaslik, borderLeft: index == 0 && "1px solid black", justifyContent: "center" }}>
+                    {x._userId.toString().substr(x._userId.toString().length - 3)}
+                  </Box>
                 )
               })
             }
-            <Box sx={{ fontWeight: "600", mb: "0rem", display: "grid", py: "0.2rem", justifyContent: "center", backgroundColor: "#e0e1dd", color: "#e0e1dd" }}>.</Box>
-            <Box sx={{ fontWeight: "600", border: "1px solid black", mb: "0rem", py: "0.2rem", px: "0.5rem", display: "grid", gridArea: "onay", justifyContent: "center", alignItems: "center", backgroundColor: "#415a77", color: "#e0e1dd" }}> Miktar </Box>
           </>
 
+
           {/* HANGİ POZ İLE İŞLEM YAPILIYORSA - POZ İSMİ VE TOPLAM METRAJI */}
           <>
-            <Box sx={{ py: "0.2rem", fontWeight: "600", gridArea: "top", border: "1px solid black", mb: "0rem", px: "0.5rem", display: "grid", justifyContent: "end", backgroundColor: "#415a77", color: "#e0e1dd" }}> Toplam Metraj  </Box>
-            <Box sx={{ py: "0.2rem", fontWeight: "600", mb: "0rem", display: "grid", justifyContent: "center", backgroundColor: "#e0e1dd", color: "white" }}>.</Box>
-            <Box sx={{ py: "0.2rem", fontWeight: "600", border: "1px solid black", mb: "0rem", px: "1rem", display: "grid", gridArea: "birimBr", justifyContent: "center", backgroundColor: "#415a77", color: "#e0e1dd" }}>{selectedProje.pozBirimleri.find(x => x.id == selectedPoz_metraj?.pozBirimId)?.name}</Box>
-            <Box sx={{ py: "0.2rem", fontWeight: "600", mb: "0rem", display: "grid", justifyContent: "center", backgroundColor: "#e0e1dd", color: "white" }}>.</Box>
+            <Box sx={{ gridColumn: "1/3", ...css_enUstBaslik, justifyContent: "end", borderLeft: "1px solid black" }}>
+              Toplam Metraj
+            </Box>
+            <Box sx={{ ...css_enUstBaslik, }}>
+              {ikiHane(selectedPoz_metraj?.onaylananMetraj)}
+            </Box>
+            <Box sx={{ ...css_enUstBaslik, justifyContent: "center" }}>
+              {pozBirimName}
+            </Box>
+            <Box></Box>
             {
               selectedProje?.metrajYapabilenler.map((x, index) => {
                 return (
-                  <Box key={index} sx={{ mb: "0rem", pl: "1rem", pr: "0.5rem", py: "0.2rem", fontWeight: "600", border: "1px solid black", borderLeft: index !== 0 && "none", display: "grid", gridArea: `miktar${index + 1}`, justifyContent: "center", backgroundColor: "#415a77", color: "#e0e1dd" }}>{ikiHane(selectedPoz_metraj.hazirlananMetrajlar?.find(y => y._userId.toString() === x._userId.toString())?.metraj)}</Box>
+                  <Box key={index} sx={{ ...css_enUstBaslik, borderLeft: index == 0 && "1px solid black" }}>
+                    {ikiHane(selectedPoz_metraj.hazirlananMetrajlar?.find(y => y._userId.toString() === x._userId.toString())?.metraj)}
+                  </Box>
                 )
               })
             }
-            <Box sx={{ py: "0.2rem", fontWeight: "600", mb: "0rem", display: "grid", justifyContent: "center", backgroundColor: "#e0e1dd", color: "white" }}>.</Box>
-            <Box sx={{ py: "0.2rem", fontWeight: "600", border: "1px solid black", mb: "0rem", pl: "1rem", pr: "0.5rem", display: "grid", gridArea: "miktar", justifyContent: "center", backgroundColor: "#415a77", color: "#e0e1dd" }}>{ikiHane(selectedPoz_metraj?.onaylananMetraj)}</Box>
           </>
 
 
@@ -229,59 +261,68 @@ export default function P_MetrajPozMahaller() {
 
           {/* LBS BAŞLIK BİLGİLERİ SATIRI */}
 
-          {openLbsArray?.map((oneLbs, index) => {
+          {mahaller_byPoz && dugumler_byPoz && openLbsArray &&
 
-            let mahaller_filtered = mahaller?.filter(x => x._lbsId.toString() === oneLbs._id.toString())
+            openLbsArray?.map((oneLbs, index) => {
 
-            return (
-              <Fragment key={index}>
+              // console.log("mahaller_byPoz", mahaller_byPoz)
 
-                {/* LBS BAŞLIKLARI */}
-                <Box sx={{ border: "1px solid black", mt: "1rem", px: "0.5rem", gridColumn: "1/3", display: "grid", justifyContent: "start", backgroundColor: "#caf0f8" }}> {getLbsName(oneLbs).name} </Box>
-                <Box sx={{ mt: "1rem", display: "grid", justifyContent: "center", backgroundColor: "white", color: "white" }}>.</Box>
-                <Box sx={{ border: "1px solid black", mt: "1rem", px: "0.5rem", display: "grid", justifyContent: "center", backgroundColor: "#caf0f8" }}></Box>
-                <Box sx={{ mt: "1rem", display: "grid", justifyContent: "center", backgroundColor: "white", color: "white" }}>.</Box>
-                {
-                  selectedProje?.metrajYapabilenler.map((x, index) => {
+              let mahaller_byPoz_byLbs = mahaller_byPoz?.filter(x => x._lbsId.toString() === oneLbs._id.toString())
+
+              return (
+                <Fragment key={index}>
+
+                  {/* LBS BAŞLIKLARI */}
+                  <Box
+                    sx={{ gridColumn: "1/3", ...css_LbsBaslik }}> {getLbsName(oneLbs).name}
+                  </Box>
+                  <Box sx={{ ...css_LbsBaslik }}>
+                    {"lbs miktar"}
+                  </Box>
+                  <Box sx={{ ...css_LbsBaslik, justifyContent: "center" }}>
+                    {pozBirimName}
+                  </Box>
+                  <Box></Box>
+                  {
+                    selectedProje?.metrajYapabilenler.map((x, index) => {
+                      return (
+                        <Box key={index} sx={{ ...css_LbsBaslik, borderLeft: index == 0 && "1px solid black" }}></Box>
+                      )
+                    })
+                  }
+
+
+                  {/* MAHAL SATIRLARI */}
+                  {mahaller_byPoz_byLbs?.map((oneMahal, index) => {
+
+                    let dugum
+
                     return (
-                      <Box key={index} sx={{ border: "1px solid black", borderLeft: index !== 0 && "none", mt: "1rem", px: "0.5rem", display: "grid", justifyContent: "center", backgroundColor: "#caf0f8" }}></Box>
+                      <Fragment key={index} >
+                        <Box sx={{ backgroundColor: !dugum && "rgba(211, 211, 211, 0.6)", border: "1px solid black", borderTop: "none", px: "0.5rem", display: "grid", justifyContent: "start" }}> {oneMahal.mahalNo} </Box>
+                        <Box sx={{ backgroundColor: !dugum && "rgba(211, 211, 211, 0.6)", border: "1px solid black", borderTop: "none", borderLeft: "none", px: "0.5rem", display: "grid", justifyContent: "start" }}> {oneMahal.mahalName} </Box>
+                        <Box sx={{ backgroundColor: !dugum && "rgba(211, 211, 211, 0.6)", border: "1px solid black", borderTop: "none", px: "0.5rem", display: "grid", justifyContent: "end" }}> {ikiHane(dugum?.onaylananMetraj?.metraj)} </Box>
+                        {/* <Box sx={{ backgroundColor: "white", display: "grid", justifyContent: "center", color: "white" }}>.</Box> */}
+                        <Box sx={{ backgroundColor: !dugum && "rgba(211, 211, 211, 0.6)", border: "1px solid black", borderTop: "none", px: "0.5rem", display: "grid", justifyContent: "center" }}>{selectedPoz_metraj?.pozBirim}</Box>
+                        <Box sx={{ display: "grid", justifyContent: "center", backgroundColor: "white", color: "white" }}>.</Box>
+                        <>
+                          {
+                            selectedProje?.metrajYapabilenler.map((x, index2) => {
+                              return (
+                                <Box key={index2} onDoubleClick={() => handle_metrajEdit(oneMahal, dugum)} sx={{ border: "1px solid black", borderTop: "none", borderLeft: index2 !== 0 && "none", pl: "1rem", pr: "0.5rem", display: "grid", justifyContent: "center", backgroundColor: !dugum && "rgba(211, 211, 211, 0.6)" }}> {ikiHane(dugum?.hazirlananMetrajlar?.find(y => y._userId.toString() === x._userId.toString())?.metraj)} </Box>
+                              )
+                            })
+                          }
+                        </>
+                        {/* <Box sx={{ backgroundColor: "white", display: "grid", justifyContent: "center", backgroundColor: "white", color: "white" }}>.</Box> */}
+                      </Fragment>
                     )
-                  })
-                }
-                <Box sx={{ mt: "1rem", display: "grid", justifyContent: "center", backgroundColor: "white", color: "white" }}>.</Box>
-                <Box sx={{ border: "1px solid black", mt: "1rem", px: "0.5rem", display: "grid", justifyContent: "center", backgroundColor: "#caf0f8" }}></Box>
+                  })}
 
-
-                {/* MAHAL SATIRLARI */}
-                {mahaller_filtered?.map((oneMahal, index) => {
-                  // let dugum = dugumler_filtered?.find(x => x._mahalId.toString() === oneMahal._id.toString())
-                  let dugum
-                  return (
-                    <Fragment key={index} >
-                      <Box sx={{ backgroundColor: !dugum && "rgba(211, 211, 211, 0.6)", border: "1px solid black", borderTop: "none", px: "0.5rem", display: "grid", justifyContent: "start" }}> {oneMahal.mahalNo} </Box>
-                      <Box sx={{ backgroundColor: !dugum && "rgba(211, 211, 211, 0.6)", border: "1px solid black", borderTop: "none", borderLeft: "none", px: "0.5rem", display: "grid", justifyContent: "start" }}> {oneMahal.mahalName} </Box>
-                      <Box sx={{ backgroundColor: "white", display: "grid", justifyContent: "center", color: "white" }}>.</Box>
-                      <Box sx={{ backgroundColor: !dugum && "rgba(211, 211, 211, 0.6)", border: "1px solid black", borderTop: "none", px: "0.5rem", display: "grid", justifyContent: "center" }}>{selectedPoz_metraj?.pozBirim}</Box>
-                      <Box sx={{ display: "grid", justifyContent: "center", backgroundColor: "white", color: "white" }}>.</Box>
-                      <>
-                        {
-                          selectedProje?.metrajYapabilenler.map((x, index2) => {
-                            return (
-                              <Box key={index2} onDoubleClick={() => handle_metrajEdit(oneMahal, dugum)} sx={{ border: "1px solid black", borderTop: "none", borderLeft: index2 !== 0 && "none", pl: "1rem", pr: "0.5rem", display: "grid", justifyContent: "center", backgroundColor: !dugum && "rgba(211, 211, 211, 0.6)" }}> {ikiHane(dugum?.hazirlananMetrajlar?.find(y => y._userId.toString() === x._userId.toString())?.metraj)} </Box>
-                            )
-                          })
-                        }
-                      </>
-                      <Box sx={{ backgroundColor: "white", display: "grid", justifyContent: "center", backgroundColor: "white", color: "white" }}>.</Box>
-                      <Box sx={{ backgroundColor: !dugum && "rgba(211, 211, 211, 0.6)", border: "1px solid black", borderTop: "none", px: "0.5rem", display: "grid", justifyContent: "end" }}> {ikiHane(dugum?.onaylananMetraj?.metraj)} </Box>
-                    </Fragment>
-                  )
-                })}
-
-              </Fragment>
-            )
-          })}
-
+                </Fragment>
+              )
+            })
+          }
 
         </Box >
 

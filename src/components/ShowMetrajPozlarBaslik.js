@@ -122,7 +122,7 @@ export default function ShowFirmaPozBaslik({ setShow, basliklar, setBasliklar, s
         )}
 
 
-        <Box sx={{ display: "grid", gridTemplateColumns: "1fr 5rem", alignItems: "center" }}>
+        {/* <Box sx={{ display: "grid", gridTemplateColumns: "1fr 5rem", alignItems: "center" }}>
           <Box sx={{ my: "0.2rem", justifySelf: "start" }}>Pasif Pozlar</Box>
           <Box sx={{ justifySelf: "end" }}>
             <Switch
@@ -130,7 +130,7 @@ export default function ShowFirmaPozBaslik({ setShow, basliklar, setBasliklar, s
               onChange={() => toggle_showHasMahal(!showHasMahal)}
             />
           </Box>
-        </Box>
+        </Box> */}
 
         <Divider></Divider>
 

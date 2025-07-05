@@ -64,7 +64,6 @@ export default function HeaderPozlar({ show, setShow }) {
                     <Chip label="Hazırlanan" sx={{ m: "0rem", p: "0rem" }} />
                   </IconButton> */}
 
-
                   <IconButton onClick={() => setShow("ShowBaslik")} disabled={false}>
                     <VisibilityIcon variant="contained" />
                   </IconButton>

@@ -260,7 +260,12 @@ export default function HeaderMetrajPozMahaller() {
             <Grid container spacing={1}>
 
               <Grid item >
-                <IconButton onClick={() => navigate("/metrajpozlar")} aria-label="wbsUncliced">
+                <IconButton
+                  onClick={() => {
+                    navigate("/metrajpozlar")
+                    setSelectedPoz_metraj()
+                  }}
+                  aria-label="wbsUncliced">
                   <ReplyIcon variant="contained"
                     sx={{ color: selectedPoz_metraj ? "red" : "lightgray" }} />
                 </IconButton>

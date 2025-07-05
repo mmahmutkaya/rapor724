@@ -21,7 +21,7 @@ export const useGetFirmalarNames_byUser = (onSuccess, onError) => {
     enabled: !!RealmApp,
     onSuccess,
     onError,
-    refetchOnMount: false,
+    refetchOnMount: true,
     refetchOnWindowFocus: false
   })
 
@@ -39,7 +39,7 @@ export const useGetFirmaPozlar = (onSuccess, onError) => {
     enabled: !!RealmApp && !!selectedFirma,
     onSuccess,
     onError,
-    refetchOnMount: false,
+    refetchOnMount: true,
     refetchOnWindowFocus: false
   })
 
@@ -60,7 +60,7 @@ export const useGetProjelerNames_byFirma = (onSuccess, onError) => {
     enabled: !!RealmApp,
     onSuccess,
     onError,
-    refetchOnMount: false,
+    refetchOnMount: true,
     refetchOnWindowFocus: false
   })
 
@@ -81,7 +81,7 @@ export const useGetPozlar = (onSuccess, onError) => {
     enabled: !!RealmApp && !!selectedProje,
     onSuccess,
     onError,
-    refetchOnMount: false,
+    refetchOnMount: true,
     refetchOnWindowFocus: false
   })
 
@@ -100,7 +100,7 @@ export const useGetMahaller = (onSuccess, onError) => {
     enabled: !!RealmApp && !!selectedProje,
     onSuccess,
     onError,
-    refetchOnMount: false,
+    refetchOnMount: true,
     refetchOnWindowFocus: false
   })
 
@@ -119,7 +119,24 @@ export const useGetDugumler = () => {
     queryKey: ['dugumler', selectedProje?._id.toString()],
     queryFn: () => RealmApp?.currentUser.callFunction("getDugumler", ({ _projeId: selectedProje?._id })),
     enabled: !!RealmApp && !!selectedProje,
-    refetchOnMount: false,
+    refetchOnMount: true,
+    refetchOnWindowFocus: false,
+    // select: (data) => data.mahalListesi,
+  })
+
+}
+
+
+export const useGetDugumler_byPoz = () => {
+
+  // const RealmApp = useApp();
+  const { RealmApp, selectedPoz_metraj } = useContext(StoreContext)
+
+  return useQuery({
+    queryKey: ['dugumler_byPoz', selectedPoz_metraj?._id.toString()],
+    queryFn: () => RealmApp?.currentUser.callFunction("getDugumler_byPoz", ({ _pozId: selectedPoz_metraj?._id })),
+    enabled: !!RealmApp && !!selectedPoz_metraj,
+    refetchOnMount: true,
     refetchOnWindowFocus: false,
     // select: (data) => data.mahalListesi,
   })
@@ -137,9 +154,9 @@ export const useGetMahalListesi = () => {
 
   return useQuery({
     queryKey: ['mahalListesi', selectedProje?._id.toString()],
-    queryFn: () => RealmApp?.currentUser.callFunction("collectionDugumler", ({ functionNames:"getMahalListesi", _projeId:selectedProje?._id })),
+    queryFn: () => RealmApp?.currentUser.callFunction("collectionDugumler", ({ functionNames: "getMahalListesi", _projeId: selectedProje?._id })),
     enabled: !!RealmApp && !!selectedProje,
-    refetchOnMount: false,
+    refetchOnMount: true,
     refetchOnWindowFocus: false,
     // select: (data) => data.mahalListesi,
   })
@@ -162,7 +179,7 @@ export const useGetNetworkUsers = (onSuccess, onError) => {
     enabled: !!RealmApp,
     onSuccess,
     onError,
-    refetchOnMount: false,
+    refetchOnMount: true,
     refetchOnWindowFocus: false
   })
 
@@ -180,7 +197,7 @@ export const useGetProjectNames_firma = () => {
     enabled: !!RealmApp && !!_firmaId,
     // onSuccess,
     // onError,
-    refetchOnMount: false,
+    refetchOnMount: true,
     refetchOnWindowFocus: false
   })
 
@@ -198,7 +215,7 @@ export const useGetHazirlananMetrajlar = ({ selectedNode }) => {
     queryKey: ['hazirlananMetrajlar', selectedNode?._id.toString()],
     queryFn: () => RealmApp?.currentUser.callFunction("collectionDugumler", ({ functionName: "getHazirlananMetrajlar", _projectId: selectedProje?._id, _mahalId: selectedNode?._mahalId, _pozId: selectedNode?._pozId })),
     enabled: !!RealmApp && !!selectedProje && !!selectedNode,
-    refetchOnMount: false,
+    refetchOnMount: true,
     refetchOnWindowFocus: false,
     staleTime: 5 * 60 * 1000,
   })
@@ -216,7 +233,7 @@ export const useGetOnaylananMetraj = ({ selectedNode }) => {
     queryKey: ['onaylananMetraj', selectedNode?._id.toString()],
     queryFn: () => RealmApp?.currentUser.callFunction("collectionDugumler", ({ functionName: "getOnaylananMetraj", _projectId: selectedProje?._id, _mahalId: selectedNode?._mahalId, _pozId: selectedNode?._pozId })),
     enabled: !!RealmApp && !!selectedProje && !!selectedNode,
-    refetchOnMount: false,
+    refetchOnMount: true,
     refetchOnWindowFocus: false,
     staleTime: 5 * 60 * 1000,
   })
@@ -237,7 +254,7 @@ export const useGetPozlarMetraj = () => {
     queryKey: ['pozlarMetraj', selectedProje?._id.toString()],
     queryFn: () => RealmApp?.currentUser.callFunction("collectionDugumler", ({ functionName: "getPozlarMetraj", _projectId: selectedProje?._id })),
     enabled: !!RealmApp && !!selectedProje,
-    refetchOnMount: false,
+    refetchOnMount: true,
     refetchOnWindowFocus: false,
     staleTime: 5 * 60 * 1000,
     // select: (data) => data[0]

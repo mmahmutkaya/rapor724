@@ -45,6 +45,7 @@ export default function P_MetrajPozlar() {
 
   useEffect(() => {
     !selectedProje && navigate('/projeler')
+    selectedPoz_metraj && navigate('/metrajpozmahaller')
   }, [])
 
   const [basliklar, setBasliklar] = useState(RealmApp.currentUser.customData.customSettings.pages.metrajpozlar.basliklar)
