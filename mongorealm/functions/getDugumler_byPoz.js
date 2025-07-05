@@ -15,8 +15,8 @@ exports = async function ({
     throw new Error("Öncelikle üyeliğinize ait mail adresinin size ait olduğunu doğrulamalısınız, tekrar giriş yapmayı deneyiniz veya bizimle iletişime geçiniz.");
   }
 
-  if (!_projeId) {
-    throw new Error("'_projeId' verisi db sorgusuna gelmedi");
+  if (!_pozId) {
+    throw new Error("'_pozId' verisi db sorgusuna gelmedi");
   }
 
 
