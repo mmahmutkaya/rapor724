@@ -316,7 +316,7 @@ export default function Layout({ window, children }) {
 
   return (
 
-    <Box sx={{ display: 'flex', maxWidth:"70rem"  }}>
+    <Box sx={{ display: 'flex'  }}>
       <CssBaseline />
 
 
