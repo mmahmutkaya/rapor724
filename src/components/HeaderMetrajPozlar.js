@@ -27,7 +27,7 @@ import EditIcon from '@mui/icons-material/Edit';
 export default function HeaderPozlar({ show, setShow }) {
 
   const { selectedPoz_metraj, setSelectedPoz_metraj } = useContext(StoreContext)
-  // const navigate = useNavigate()
+  const navigate = useNavigate()
 
   return (
     <Paper >
@@ -76,7 +76,7 @@ export default function HeaderPozlar({ show, setShow }) {
                     <ClearOutlined variant="contained" sx={{ color: "red" }} />
                   </IconButton>
 
-                  <IconButton onClick={() => console.log("gidecek mahale")}>
+                  <IconButton onClick={() => navigate('/metrajpozmahaller')}>
                     <AdsClickIcon variant="contained" />
                   </IconButton>
                 </>

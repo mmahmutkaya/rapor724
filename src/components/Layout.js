@@ -316,16 +316,17 @@ export default function Layout({ window, children }) {
 
   return (
 
-    <Box sx={{ display: 'flex' }}>
+    <Box sx={{ display: 'flex', maxWidth:"70rem"  }}>
       <CssBaseline />
 
 
       {/* AppBar */}
-      <Box sx={{ display: 'flex' }}>
+      <Box sx={{ display: 'flex'}}>
         <AppBar
           position="fixed"
           sx={{
             backgroundColor: "#3D4849",
+            // width: { md: `calc(100% - ${drawerWidth}px)` },
             width: { md: `calc(100% - ${drawerWidth}px)` },
             ml: { md: `${drawerWidth}px` }
           }}

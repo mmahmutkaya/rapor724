@@ -31,8 +31,9 @@ export default function P_MetrajPozlar() {
   const queryClient = useQueryClient()
 
   const { data: pozlar } = useGetPozlar()
+  const pozlar_hasMahal = pozlar?.filter(onePoz => onePoz.hasMahal)
 
-  // console.log("pozlar",pozlar)
+
   const { RealmApp, myTema } = useContext(StoreContext)
   const { selectedProje } = useContext(StoreContext)
   const { selectedPoz_metraj, setSelectedPoz_metraj } = useContext(StoreContext)
@@ -58,6 +59,7 @@ export default function P_MetrajPozlar() {
 
   const columns = `5rem 15rem 5rem 5rem${pozAciklamaShow ? " 1rem 10rem" : ""}${pozVersiyonShow ? " 1rem 5rem" : ""}`
 
+  const wbsArray_hasMahal = selectedProje?.wbs.filter(oneWbs => pozlar_hasMahal?.find(onePoz => onePoz._wbsId.toString() === oneWbs._id.toString()))
 
 
   const enUstBaslik_css = {
@@ -133,10 +135,10 @@ export default function P_MetrajPozlar() {
 
 
       {/* EĞER POZ YOKSA */}
-      {show == "Main" && selectedProje?.wbs?.find(x => x.openForPoz === true) && !pozlar?.length > 0 &&
+      {show == "Main" && selectedProje?.wbs?.find(x => x.openForPoz === true) && !pozlar_hasMahal?.length > 0 &&
         <Stack sx={{ width: '100%', m: "0rem", p: "1rem" }} spacing={2}>
           <Alert severity="info">
-            Menüler yardımı ile poz oluşturmaya başlayabilirsiniz.
+            Herhangi bir mahal, herhangi bir poz ile henüz eşleştirilmemiş, 'mahallistesi' menüsüne gidiniz.  
           </Alert>
         </Stack>
       }
@@ -144,9 +146,9 @@ export default function P_MetrajPozlar() {
 
       {/* ANA SAYFA - POZLAR VARSA */}
 
-      {show == "Main" && selectedProje?.wbs?.find(x => x.openForPoz === true) && pozlar?.length > 0 &&
-        <Box sx={{ m: "1rem", maxWidth: "min-content" }}>
+      {show == "Main" && wbsArray_hasMahal && pozlar_hasMahal?.length > 0 &&
 
+        <Box sx={{ m: "1rem", maxWidth: "min-content" }}>
 
           {/*   EN ÜST BAŞLIK */}
           {/* <Box sx={{ display: "grid", gridTemplateColumns: columns, gridTemplateAreas: gridAreas_enUstBaslik }}> */}
@@ -197,11 +199,9 @@ export default function P_MetrajPozlar() {
 
 
 
-
-
           {/* WBS BAŞLIĞI ve ALTINDA POZLARI*/}
 
-          {selectedProje?.wbs.filter(x => x.openForPoz).map((oneWbs, index) => {
+          {wbsArray_hasMahal?.filter(x => x.openForPoz).map((oneWbs, index) => {
 
             return (
 
@@ -213,7 +213,7 @@ export default function P_MetrajPozlar() {
                   {/* WBS BAŞLIĞI */}
                   <Box sx={{ ...wbsBaslik_css }}>
                     <Box sx={{ display: "grid", gridAutoFlow: "column" }} >
-                      {getWbsName({ wbsArray: selectedProje.wbs, oneWbs }).name}
+                      {getWbsName({ wbsArray: wbsArray_hasMahal, oneWbs }).name}
                     </Box>
                   </Box>
 
@@ -238,7 +238,7 @@ export default function P_MetrajPozlar() {
 
 
                 {/* WBS'İN POZLARI */}
-                {pozlar?.filter(x => x._wbsId.toString() === oneWbs._id.toString()).map((onePoz, index) => {
+                {pozlar_hasMahal?.filter(x => x._wbsId.toString() === oneWbs._id.toString()).map((onePoz, index) => {
 
                   let isSelected = false
 

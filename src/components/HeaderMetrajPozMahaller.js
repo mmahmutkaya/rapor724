@@ -225,7 +225,7 @@ export default function HeaderMetrajPozMahaller() {
         sx={{
           backgroundColor: "white",
           color: "black",
-          width: { md: `calc(100% - ${drawerWidth}px)` },
+          // width: { md: `calc(100% - ${drawerWidth}px)` },
           mt: topBarHeight,
           // pt:"3rem",
           ml: { md: `${drawerWidth}px` }
@@ -238,8 +238,6 @@ export default function HeaderMetrajPozMahaller() {
           alignItems="center"
           sx={{ padding: "0.5rem 1rem", maxHeight: "5rem" }}
         >
-
-
 
           {/* sol kısım (başlık) */}
           <Grid item xs>
