@@ -140,7 +140,7 @@ export default function P_MetrajCetveliHeader({
 
           {/* sağ kısım - (tuşlar)*/}
           <Grid item xs="auto">
-            <Grid container spacing={1}>
+            <Grid container>
 
 
               {/* {show == "PozMahalleri" && !selectedNode &&
@@ -181,18 +181,10 @@ export default function P_MetrajCetveliHeader({
 
 
 
-
-
-
-
-
               {show == "DugumMetrajlari" &&
                 <Grid item >
                   <IconButton onClick={() => {
-                    setSelectedMahal()
-                    setSelectedPoz()
-                    setSelectedNode()
-                    navigate("/mahalmetraj")
+                    navigate("/metrajpozmahaller")
                   }} aria-label="lbsUncliced">
                     <ReplyIcon variant="contained" sx={{ color: !selectedPoz ? "lightgray" : "red" }} />
                   </IconButton>
@@ -216,7 +208,7 @@ export default function P_MetrajCetveliHeader({
               {show == "DugumMetrajlari" &&
                 <Grid item >
                   <IconButton onClick={() => {
-                    load_hazirlananMetraj_state()
+                    // load_hazirlananMetraj_state()
                     setShow("EditMetraj")
                   }} aria-label="lbsUncliced">
                     <EditIcon variant="contained" />
@@ -237,8 +229,6 @@ export default function P_MetrajCetveliHeader({
                   </IconButton>
                 </Grid>
               }
-
-
 
 
 

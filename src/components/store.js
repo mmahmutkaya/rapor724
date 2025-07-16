@@ -83,6 +83,7 @@ export default ({ children }) => {
     selectedMahal_metraj, setSelectedMahal_metraj,
     selectedPozBaslik, setSelectedPozBaslik,
     selectedNode, setSelectedNode,
+    
     editNodeMetraj, setEditNodeMetraj,
     showNodeMetraj, setShowNodeMetraj,
     nodeMetrajlar, setNodeMetrajlar,

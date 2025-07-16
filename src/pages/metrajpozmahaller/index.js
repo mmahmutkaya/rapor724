@@ -1,5 +1,5 @@
 
-import { useState, useContext, useEffect, Fragment } from 'react';
+import React, { useState, useContext, useEffect, Fragment } from 'react';
 import { useNavigate } from "react-router-dom";
 import { StoreContext } from '../../components/store'
 import { useApp } from "../../components/useApp";
@@ -21,10 +21,14 @@ import { BorderBottom } from '@mui/icons-material';
 export default function P_MetrajPozMahaller() {
 
   const { RealmApp, selectedProje, setSelectedProje } = useContext(StoreContext)
+  // const currentUser = console.log(RealmApp)
+  const customData = RealmApp.currentUser.customData
+
   const { selectedPoz_metraj } = useContext(StoreContext)
   const { selectedNode, setSelectedNode } = useContext(StoreContext)
   const { selectedMahal_metraj, setSelectedMahal_metraj } = useContext(StoreContext)
   const { drawerWidth, topBarHeight, subHeaderHeight } = useContext(StoreContext)
+  const { editNodeMetraj, setEditNodeMetraj } = useContext(StoreContext)
 
   const [show, setShow] = useState("Main")
   const [editPoz, setEditPoz] = useState(false)
@@ -117,10 +121,7 @@ export default function P_MetrajPozMahaller() {
   }
 
 
-
   let count
-
-  let metrajyapabilen_sutunlar = selectedProje?.metrajYapabilenler.reduce((acc, x, index) => index == 0 ? "auto" : acc + " auto", "")
 
   count = 0
   let userSirali = "user"
@@ -142,10 +143,9 @@ export default function P_MetrajPozMahaller() {
   })
 
 
-  const handle_metrajEdit = (oneMahal, dugum) => {
-    setSelectedMahal_metraj(oneMahal)
+  const goto_metrajCetveli = (dugum) => {
     setSelectedNode(dugum)
-    navigate('/metrajedit')
+    navigate('/metrajcetveli')
   }
 
   const css_enUstBaslik = {
@@ -171,14 +171,11 @@ export default function P_MetrajPozMahaller() {
   }
 
 
-
-
-  const gridTemplateColumns1 = `auto 1fr auto ${metrajyapabilen_sutunlar} 0.5rem auto`
-
+  const gridTemplateColumns1 = `auto 1fr auto auto${editNodeMetraj ? " 0.5rem auto" : ""}`
 
   return (
 
-    <>
+    <Box sx={{ m: "0rem", maxWidth: "60rem" }}>
 
       <Grid item >
         <HeaderMetrajPozMahaller show={show} setShow={setShow} />
@@ -189,11 +186,12 @@ export default function P_MetrajPozMahaller() {
 
       {openLbsArray?.length > 0 &&
 
-        <Box sx={{ display: "grid", gridTemplateColumns: gridTemplateColumns1, mt: subHeaderHeight, pt: "1rem", pl: "1rem", pr: "1rem" }}>
+        <Box sx={{ m: "1rem", mt: "4.5rem", display: "grid", gridTemplateColumns: gridTemplateColumns1 }}>
 
           {/* EN ÜST BAŞLIĞIN ÜST SATIRI - HANGİ POZ İLE İŞLEM YAPILIYORSA - POZ İSMİ VE TOPLAM METRAJI */}
           <>
-            <Box sx={{ ...css_enUstBaslik, borderLeft: "1px solid black", justifyContent: "center" }}>
+
+            <Box sx={{ ...css_enUstBaslik, borderLeft: "1px solid black", justifyContent: "start" }}>
               {selectedPoz_metraj.pozNo}
             </Box>
             <Box sx={{ ...css_enUstBaslik }}>
@@ -205,15 +203,13 @@ export default function P_MetrajPozMahaller() {
             <Box sx={{ ...css_enUstBaslik, justifyContent: "center" }}>
               Birim
             </Box>
-            <Box> </Box>
-            {
-              selectedProje?.metrajYapabilenler.map((x, index) => {
-                return (
-                  <Box key={index} sx={{ ...css_enUstBaslik, borderLeft: index == 0 && "1px solid black", justifyContent: "center" }}>
-                    {x._userId.toString().substr(x._userId.toString().length - 3)}
-                  </Box>
-                )
-              })
+            {editNodeMetraj &&
+              <>
+                <Box> </Box>
+                <Box sx={{ ...css_enUstBaslik, borderLeft: "1px solid black", justifyContent: "center" }}>
+                  {"deneme"}
+                </Box>
+              </>
             }
           </>
 
@@ -229,15 +225,13 @@ export default function P_MetrajPozMahaller() {
             <Box sx={{ ...css_enUstBaslik, justifyContent: "center" }}>
               {pozBirimName}
             </Box>
-            <Box></Box>
-            {
-              selectedProje?.metrajYapabilenler.map((x, index) => {
-                return (
-                  <Box key={index} sx={{ ...css_enUstBaslik, borderLeft: index == 0 && "1px solid black" }}>
-                    {ikiHane(selectedPoz_metraj.hazirlananMetrajlar?.find(y => y._userId.toString() === x._userId.toString())?.metraj)}
-                  </Box>
-                )
-              })
+            {editNodeMetraj &&
+              <>
+                <Box> </Box>
+                <Box sx={{ ...css_enUstBaslik, borderLeft: "1px solid black", justifyContent: "center" }}>
+                  {"deneme"}
+                </Box>
+              </>
             }
           </>
 
@@ -251,17 +245,19 @@ export default function P_MetrajPozMahaller() {
             const mahaller_byPoz_byLbs = mahaller_byPoz?.filter(x => x._lbsId.toString() === oneLbs._id.toString())
 
             return (
-              <Fragment key={index}>
+              <React.Fragment key={index}>
 
                 {/* LBS BAŞLIKLARI */}
                 <Box sx={{ ...css_LbsBaslik, borderLeft: "1px solid black", gridColumn: "1/3" }}> {getLbsName(oneLbs).name}</Box>
                 <Box sx={{ ...css_LbsBaslik }}>  {"lbs miktar"} </Box>
                 <Box sx={{ ...css_LbsBaslik, justifyContent: "center" }}> {pozBirimName} </Box>
-                <Box></Box>
-                {
+                {editNodeMetraj &&
                   selectedProje?.metrajYapabilenler.map((x, index) => {
                     return (
-                      <Box key={index} sx={{ ...css_LbsBaslik, borderLeft: index == 0 && "1px solid black" }}></Box>
+                      <React.Fragment key={index}>
+                        <Box></Box>
+                        <Box key={index} sx={{ ...css_LbsBaslik, borderLeft: index == 0 && "1px solid black" }}></Box>
+                      </React.Fragment>
                     )
                   })
                 }
@@ -270,33 +266,30 @@ export default function P_MetrajPozMahaller() {
                 {/* MAHAL SATIRLARI */}
                 {mahaller_byPoz_byLbs?.map((oneMahal, index) => {
 
-                  let dugum
+                  let dugum = dugumler_byPoz?.find(oneDugum => oneDugum._pozId.toString() === selectedPoz_metraj._id.toString() && oneDugum._mahalId.toString() === oneMahal._id.toString())
 
                   return (
-                    <Fragment key={index} >
+                    <React.Fragment key={index}>
                       <Box sx={{ ...css_mahaller, borderLeft: "1px solid black" }}> {oneMahal.mahalNo} </Box>
                       <Box sx={{ ...css_mahaller }}> {oneMahal.mahalName} </Box>
                       <Box sx={{ ...css_mahaller }}> {ikiHane(dugum?.onaylananMetraj?.metraj)} </Box>
                       <Box sx={{ ...css_mahaller }}>{selectedPoz_metraj?.pozBirim}</Box>
-                      <Box></Box>
-                      {
-                        selectedProje?.metrajYapabilenler.map((x, index2) => {
-                          return (
-                            <Box
-                              key={index2}
-                              onDoubleClick={() => handle_metrajEdit(oneMahal, dugum)}
-                              sx={{ ...css_mahaller, borderLeft: index2 == 0 && "1px solid black" }}>
-                              {ikiHane(dugum?.hazirlananMetrajlar?.find(y => y._userId.toString() === x._userId.toString())?.metraj)}
-                            </Box>
-                          )
-                        })
+                      {editNodeMetraj &&
+                        <>
+                          <Box></Box>
+                          <Box
+                            onDoubleClick={() => goto_metrajCetveli(dugum)}
+                            sx={{ ...css_mahaller, cursor: "pointer", backgroundColor: "yellow", borderLeft: "1px solid black" }}>
+                            {ikiHane(dugum?.hazirlananMetrajlar?.find(y => y.userEmail === customData.email)?.metraj)}
+                          </Box>
+                        </>
                       }
 
-                    </Fragment>
+                    </React.Fragment>
                   )
                 })}
 
-              </Fragment>
+              </React.Fragment>
             )
           })
           }
@@ -304,7 +297,7 @@ export default function P_MetrajPozMahaller() {
         </Box >
 
       }
-    </ >
+    </Box >
 
   )
 

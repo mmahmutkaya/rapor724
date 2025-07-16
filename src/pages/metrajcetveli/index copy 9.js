@@ -116,22 +116,22 @@ export default function P_MetrajCetveli() {
         // console.log("backend teki usermetraj şablonu yüklendi", hazirlananMetraj)
       } else {
         let satirlar = [
-          { satirNo: userharf + 1, aciklama: "", carpan1: "", carpan2: "", carpan3: "", carpan4: "", carpan5: "", metraj: "" },
-          { satirNo: userharf + 2, aciklama: "", carpan1: "", carpan2: "", carpan3: "", carpan4: "", carpan5: "", metraj: "" },
-          { satirNo: userharf + 3, aciklama: "", carpan1: "", carpan2: "", carpan3: "", carpan4: "", carpan5: "", metraj: "" },
-          { satirNo: userharf + 4, aciklama: "", carpan1: "", carpan2: "", carpan3: "", carpan4: "", carpan5: "", metraj: "" },
-          { satirNo: userharf + 5, aciklama: "", carpan1: "", carpan2: "", carpan3: "", carpan4: "", carpan5: "", metraj: "" }
+          { satirNo: userharf + 1, metin1: "", metin2: "", carpan1: "", carpan2: "", carpan3: "", carpan4: "", carpan5: "", metraj: "" },
+          { satirNo: userharf + 2, metin1: "", metin2: "", carpan1: "", carpan2: "", carpan3: "", carpan4: "", carpan5: "", metraj: "" },
+          { satirNo: userharf + 3, metin1: "", metin2: "", carpan1: "", carpan2: "", carpan3: "", carpan4: "", carpan5: "", metraj: "" },
+          { satirNo: userharf + 4, metin1: "", metin2: "", carpan1: "", carpan2: "", carpan3: "", carpan4: "", carpan5: "", metraj: "" },
+          { satirNo: userharf + 5, metin1: "", metin2: "", carpan1: "", carpan2: "", carpan3: "", carpan4: "", carpan5: "", metraj: "" }
         ]
         setHazirlananMetraj_state({ userEmail: RealmApp?.currentUser.customData.email, satirlar, metraj: 0 })
         // console.log("frontend teki usermetraj şablonu yüklendi", { _userId: new BSON.ObjectId(RealmApp?.currentUser.id), satirlar })
       }
     } else {
       let satirlar = [
-        { satirNo: userharf + 11111, aciklama: "", carpan1: "", carpan2: "", carpan3: "", carpan4: "", carpan5: "", metraj: "" },
-        { satirNo: userharf + 2, aciklama: "", carpan1: "", carpan2: "", carpan3: "", carpan4: "", carpan5: "", metraj: "" },
-        { satirNo: userharf + 3, aciklama: "", carpan1: "", carpan2: "", carpan3: "", carpan4: "", carpan5: "", metraj: "" },
-        { satirNo: userharf + 4, aciklama: "", carpan1: "", carpan2: "", carpan3: "", carpan4: "", carpan5: "", metraj: "" },
-        { satirNo: userharf + 5, aciklama: "", carpan1: "", carpan2: "", carpan3: "", carpan4: "", carpan5: "", metraj: "" }
+        { satirNo: userharf + 1, metin1: "", metin2: "", carpan1: "", carpan2: "", carpan3: "", carpan4: "", carpan5: "", metraj: "" },
+        { satirNo: userharf + 2, metin1: "", metin2: "", carpan1: "", carpan2: "", carpan3: "", carpan4: "", carpan5: "", metraj: "" },
+        { satirNo: userharf + 3, metin1: "", metin2: "", carpan1: "", carpan2: "", carpan3: "", carpan4: "", carpan5: "", metraj: "" },
+        { satirNo: userharf + 4, metin1: "", metin2: "", carpan1: "", carpan2: "", carpan3: "", carpan4: "", carpan5: "", metraj: "" },
+        { satirNo: userharf + 5, metin1: "", metin2: "", carpan1: "", carpan2: "", carpan3: "", carpan4: "", carpan5: "", metraj: "" }
       ]
       setHazirlananMetraj_state({ userEmail: RealmApp?.currentUser.customData.email, satirlar, metraj: 0 })
       // console.log("frontend teki usermetraj şablonu yüklendi", { _userId: new BSON.ObjectId(RealmApp?.currentUser.id), satirlar })
@@ -168,7 +168,7 @@ export default function P_MetrajCetveli() {
 
         oneRow[oneProperty] = event.target.value
 
-        let isMinha = oneRow["aciklama"].replace("İ", "i").toLowerCase().includes("minha") ? true : false
+        let isMinha = oneRow["metin1"].replace("İ", "i").toLowerCase().includes("minha") || oneRow["metin2"].replace("İ", "i").toLowerCase().includes("minha") ? true : false
 
         if (oneRow.carpan1 == "" && oneRow.carpan2 == "" && oneRow.carpan3 == "" && oneRow.carpan4 == "" && oneRow.carpan5 == "") {
           oneRow.metraj = ""
@@ -205,7 +205,7 @@ export default function P_MetrajCetveli() {
     setIsChanged(true)
     setHazirlananMetraj_state(hazirlananMetraj_state2)
     // alttaki kod sadece react component render yapılması için biyerde kullanılmıyor -- (sonra bunada gerek kalmadı)
-    // setMetraj(oneRow["aciklama"] + oneRow["carpan1"] + oneRow["carpan2"] + oneRow["carpan3"] + oneRow["carpan4"] + oneRow["carpan5"])
+    // setMetraj(oneRow["metin1"] + oneRow["metin2"] + oneRow["carpan1"] + oneRow["carpan2"] + oneRow["carpan3"] + oneRow["carpan4"] + oneRow["carpan5"])
   }
 
 
@@ -258,19 +258,15 @@ export default function P_MetrajCetveli() {
 
   // CSS
   const css_enUstBaslik = {
-    px: "0.3rem", border: "1px solid black", backgroundColor: "lightgray", display: "grid", alignItems: "center", justifyContent: "center"
+    backgroundColor: "lightgray", border: "1px solid black", display: "grid", alignItems: "center", justifyContent: "center"
   }
 
   const css_metrajCetveliBaslik = {
-    mt: "1rem", px: "0.3rem", border: "1px solid black", backgroundColor: "rgba( 253, 197, 123 , 0.6 )", display: "grid", alignItems: "center", justifyContent: "center"
-  }
-
-  const css_metrajCetveliSatir = {
-    px: "0.3rem", border: "1px solid black", display: "grid", alignItems: "center", justifyContent: "center"
+    mt: "1rem", border: "1px solid black", backgroundColor: "rgba( 253, 197, 123 , 0.6 )", display: "grid", alignItems: "center", justifyContent: "center"
   }
 
 
-  const gridTemplateColumns1 = 'min-content minmax(min-content, 1fr) repeat(7, min-content) 1rem min-content'
+  const gridTemplateColumns1 = 'auto auto 14rem repeat(5, auto) auto auto 1rem auto'
 
   pozBirim = selectedProje?.pozBirimleri.find(item => item.id == selectedPoz_metraj?.pozBirimId)?.name
 
@@ -293,7 +289,7 @@ export default function P_MetrajCetveli() {
       </Grid>
 
 
-      {hazirlananMetraj_state &&
+      {hazirlananMetraj_state && show === "EditMetraj" &&
 
         < Box sx={{ display: "grid", gridTemplateColumns: gridTemplateColumns1, mt: subHeaderHeight, mb: "1rem", mx: "1rem" }}>
 
@@ -302,6 +298,9 @@ export default function P_MetrajCetveli() {
           < React.Fragment >
             <Box sx={{ ...css_enUstBaslik }}>
               Sıra
+            </Box>
+            <Box sx={{ ...css_enUstBaslik }}>
+              Kısa Açıklama
             </Box>
             <Box sx={{ ...css_enUstBaslik }}>
               Açıklama
@@ -340,7 +339,7 @@ export default function P_MetrajCetveli() {
           {/* Metraj Cetveli Başlık Satırı */}
           <React.Fragment>
 
-            <Box sx={{ ...css_metrajCetveliBaslik, gridColumn: "1/8", justifyContent: "end", pr: "1rem" }}>
+            <Box sx={{ ...css_metrajCetveliBaslik, gridColumn: "1/9", justifyContent: "end", pr: "1rem" }}>
               {"name gelecek"}
             </Box>
 
@@ -363,22 +362,19 @@ export default function P_MetrajCetveli() {
 
 
 
+          <React.Fragment>
 
+            {/* {console.log("hazirlananMetraj_state.satirlar", hazirlananMetraj_state.satirlar)} */}
+            {hazirlananMetraj_state.satirlar.map((oneRow, index) => {
+              return (
+                // < Grid key={index} sx={{ display: "grid", gridTemplateColumns: "6rem 10rem 14rem repeat(5, 5rem) 8rem 3rem 1rem 4rem", justifyContent: "start" }}>
+                < React.Fragment>
 
-          {/* {console.log("hazirlananMetraj_state.satirlar", hazirlananMetraj_state.satirlar)} */}
-          {hazirlananMetraj_state.satirlar.map((oneRow, index) => {
-            return (
-              < React.Fragment key={index}>
-
-                {["satirNo", "aciklama", "carpan1", "carpan2", "carpan3", "carpan4", "carpan5", "metraj", "pozBirim"].map((oneProperty, index) => {
-                  // let isCellEdit = (oneProperty === "satirNo" || oneProperty === "pozBirim" || oneProperty === "metraj") ? false : true
-                  let isCellEdit = show === "EditMetraj" && (oneProperty.includes("aciklama") || oneProperty.includes("carpan")) ? true : false
-                  let isMinha = oneRow["aciklama"].replace("İ", "i").toLowerCase().includes("minha") ? true : false
-
-                  return (
-                    <React.Fragment key={index}>
-
-                      {isCellEdit &&
+                  {["satirNo", "metin1", "metin2", "carpan1", "carpan2", "carpan3", "carpan4", "carpan5", "metraj", "pozBirim"].map((oneProperty, index) => {
+                    let isCellEdit = (oneProperty === "satirNo" || oneProperty === "pozBirim" || oneProperty === "metraj") ? false : true
+                    let isMinha = oneRow["metin1"].replace("İ", "i").toLowerCase().includes("minha") || oneRow["metin2"].replace("İ", "i").toLowerCase().includes("minha") ? true : false
+                    return (
+                      <Box key={index} sx={{ display: "grid", alignItems: "center" }}>
 
                         <Input
                           // autoFocus={autoFocus.baslikId == oneBaslik.id && autoFocus.mahalId == oneMahal._id.toString()}
@@ -387,7 +383,7 @@ export default function P_MetrajCetveli() {
                           autoComplete='off'
                           id={oneRow.satirNo + oneProperty}
                           name={oneRow.satirNo + oneProperty}
-                          readOnly={oneRow.isApproved}
+                          readOnly={!isCellEdit || oneRow.isApproved}
                           disableUnderline={true}
                           size="small"
                           type={oneProperty.includes("carpan") ? "number" : "text"}
@@ -397,9 +393,11 @@ export default function P_MetrajCetveli() {
                           onKeyDown={oneProperty.includes("carpan") ? (event) => handle_input_onKey(event) : null}
                           onChange={(event) => handle_input_onChange(event, oneRow.satirNo, oneProperty)}
                           sx={{
-                            pl: "0.3rem",
-                            pr: "0.3rem",
                             border: "1px solid black",
+                            width: "100%",
+                            display: "grid",
+                            alignItems: "center",
+                            px: "0.3rem",
                             backgroundColor: isCellEdit && !oneRow.isApproved ? "rgba(255,255,0, 0.3)" : null,
                             color: isMinha ? "red" : null,
                             // justifyItems: oneBaslik.yatayHiza,
@@ -415,54 +413,51 @@ export default function P_MetrajCetveli() {
                           value={metrajValue(oneRow, oneProperty, isMinha)}
                           inputProps={{
                             style: {
-                              pt: "0.25rem",
                               height: "0.95rem",
-                              minWidth:"5rem",
-                              textAlign: oneProperty.includes("carpan") || oneProperty.includes("metraj") ? "end" : oneProperty.includes("aciklama") ? "start" : "center"
+                              // fontSize: "0.95rem",
+                              // marginTop: "0.1rem",
+                              // marginbottom: "0px",
+                              paddingTop: "0.25rem",
+                              // px:"0.3rem",
+                              textAlign: oneProperty.includes("carpan") || oneProperty.includes("metraj") ? "end" : oneProperty.includes("metin") ? "start" : "center"
                             },
                           }}
                         />
-                      }
 
-                      {!isCellEdit &&
-                        <Box sx={{
-                          ...css_metrajCetveliSatir,
-                          justifyContent: oneProperty.includes("aciklama") ? "start" : oneProperty.includes("carpan") ? "end" : oneProperty.includes("metraj") ? "end" : "center",
-                          minWidth: oneProperty.includes("carpan") ? "5rem" : oneProperty.includes("metraj") ? "5rem" : null
-                        }}                        >
-                          {metrajValue(oneRow, oneProperty, isMinha)}
-                        </Box>
-                      }
+                      </Box>
 
-                    </React.Fragment>
-                  )
+                    )
 
-                })}
+                  })}
 
-                <Box></Box>
+                  <Box sx={{ border: "none" }}></Box>
 
-                <Box sx={{
-                  // backgroundColor: oneRow.isApproved ? null : "rgba(255,255,0, 0.3)",
-                  // backgroundColor: "rgba(255,255,0, 0.3)",
-                  cursor: "pointer",
-                  display: "grid",
-                  alignItems: "center",
-                  justifyItems: "center",
-                  px: "0.3rem",
-                  border: "1px solid black"
-                }}>
-                  {oneRow.isApproved &&
-                    <CheckIcon variant="contained" sx={{ color: "rgba( 0, 128, 0, 0.7 )", fontSize: "1.5rem" }} />
-                  }
-                  {!oneRow.isApproved &&
-                    <HourglassFullSharpIcon variant="contained" sx={{ color: "rgba( 255,165,0, 1 )", fontSize: "0.95rem" }} />
-                  }
-                </Box>
+                  <Box
+                    sx={{
+                      // backgroundColor: oneRow.isApproved ? null : "rgba(255,255,0, 0.3)",
+                      // backgroundColor: "rgba(255,255,0, 0.3)",
+                      cursor: "pointer",
+                      display: "grid",
+                      alignItems: "center",
+                      justifyItems: "center",
+                      px: "0.3rem",
+                      border: "1px solid black"
+                    }}>
+                    {oneRow.isApproved &&
+                      <CheckIcon variant="contained" sx={{ color: "rgba( 0, 128, 0, 0.7 )", fontSize: "1.5rem" }} />
+                    }
+                    {!oneRow.isApproved &&
+                      <HourglassFullSharpIcon variant="contained" sx={{ color: "rgba( 255,165,0, 1 )", fontSize: "0.95rem" }} />
+                    }
+                  </Box>
 
-              </React.Fragment>
-            )
+                </React.Fragment>
+              )
 
-          })}
+            })}
+
+          </React.Fragment>
+
 
 
         </Box >

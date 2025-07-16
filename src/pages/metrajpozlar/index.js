@@ -37,6 +37,7 @@ export default function P_MetrajPozlar() {
   const { RealmApp, myTema } = useContext(StoreContext)
   const { selectedProje } = useContext(StoreContext)
   const { selectedPoz_metraj, setSelectedPoz_metraj } = useContext(StoreContext)
+  const { editNodeMetraj, setEditNodeMetraj } = useContext(StoreContext)
 
   // console.log("selectedProje", selectedProje)
   const pozBirimleri = selectedProje?.pozBirimleri
@@ -57,11 +58,10 @@ export default function P_MetrajPozlar() {
   const pozAciklamaShow = basliklar?.find(x => x.id === "aciklama").show
   const pozVersiyonShow = basliklar?.find(x => x.id === "versiyon").show
 
-  const columns = `5rem 15rem 5rem 5rem${pozAciklamaShow ? " 1rem 10rem" : ""}${pozVersiyonShow ? " 1rem 5rem" : ""}`
-
   const wbsArray_hasMahal = selectedProje?.wbs.filter(oneWbs => pozlar_hasMahal?.find(onePoz => onePoz._wbsId.toString() === oneWbs._id.toString()))
 
 
+  // CSS
   const enUstBaslik_css = {
     display: "grid",
     alignItems: "center",
@@ -69,8 +69,9 @@ export default function P_MetrajPozlar() {
     backgroundColor: myTema.renkler.baslik1,
     fontWeight: 600,
     border: "1px solid black",
-    m: "-1px -1px 0 0"
+    px: "0.7rem"
   }
+
 
   const wbsBaslik_css = {
     gridColumn: "1 / span 4",
@@ -81,31 +82,40 @@ export default function P_MetrajPozlar() {
     fontWeight: 600,
     pl: "0.5rem",
     border: "1px solid black",
-    m: "-1px -1px 0 0"
+    mt: "1rem",
+    px: "0.7rem"
   }
 
   const wbsBaslik_css2 = {
     backgroundColor: myTema.renkler.baslik2,
     border: "1px solid black",
-    m: "-1px -1px 0 0"
+    mt: "1rem",
+    px: "0.7rem"
   }
+
+
 
   const pozNo_css = {
     display: "grid",
     alignItems: "center",
     justifyItems: "center",
     border: "1px solid black",
-    m: "-1px -1px 0 0"
+    px: "0.7rem"
   }
 
-  const bosluk_css = {
-    backgroundColor: "white",
-    borderLeft: "1px solid black"
+
+
+  const goTo_MetrajPozmahaller = (onePoz) => {
+    navigate('/metrajpozmahaller')
+    setSelectedPoz_metraj(onePoz)
   }
+
+
+  const columns = `auto 1fr auto auto${pozAciklamaShow ? " 1rem 10rem" : ""}${pozVersiyonShow ? " 1rem auto" : ""}${editNodeMetraj ? " 1rem auto" : ""}`
 
 
   return (
-    <Box sx={{ m: "0rem" }}>
+    <Box sx={{ m: "0rem", maxWidth: "60rem" }}>
 
       {/* BAŞLIK */}
       <HeaderMetrajPozlar
@@ -138,7 +148,7 @@ export default function P_MetrajPozlar() {
       {show == "Main" && selectedProje?.wbs?.find(x => x.openForPoz === true) && !pozlar_hasMahal?.length > 0 &&
         <Stack sx={{ width: '100%', m: "0rem", p: "1rem" }} spacing={2}>
           <Alert severity="info">
-            Herhangi bir mahal, herhangi bir poz ile henüz eşleştirilmemiş, 'mahallistesi' menüsüne gidiniz.  
+            Herhangi bir mahal, herhangi bir poz ile henüz eşleştirilmemiş, 'mahallistesi' menüsüne gidiniz.
           </Alert>
         </Stack>
       }
@@ -148,11 +158,10 @@ export default function P_MetrajPozlar() {
 
       {show == "Main" && wbsArray_hasMahal && pozlar_hasMahal?.length > 0 &&
 
-        <Box sx={{ m: "1rem", maxWidth: "min-content" }}>
+        <Box sx={{ m: "1rem", mt: "4.5rem", display: "grid", gridTemplateColumns: columns }}>
 
           {/*   EN ÜST BAŞLIK */}
-          {/* <Box sx={{ display: "grid", gridTemplateColumns: columns, gridTemplateAreas: gridAreas_enUstBaslik }}> */}
-          <Box sx={{ display: "grid", gridTemplateColumns: columns }}>
+          <>
 
             {/* BAŞLIK - POZ NO */}
             <Box sx={{ ...enUstBaslik_css }}>
@@ -178,7 +187,7 @@ export default function P_MetrajPozlar() {
             {/* BAŞLIK - POZ BİRİM  */}
             {pozAciklamaShow &&
               <>
-                <Box sx={{ ...bosluk_css }}></Box>
+                <Box></Box>
                 <Box sx={{ ...enUstBaslik_css }}>
                   Açıklama
                 </Box>
@@ -188,14 +197,24 @@ export default function P_MetrajPozlar() {
             {/* BAŞLIK - VERSİYON */}
             {pozVersiyonShow &&
               <>
-                <Box sx={{ ...bosluk_css }}></Box>
+                <Box></Box>
                 <Box sx={{ ...enUstBaslik_css }}>
                   Versiyon
                 </Box>
               </>
             }
 
-          </Box>
+            {/* METRAJ DÜZENLEME AÇIKSA */}
+            {editNodeMetraj &&
+              <>
+                <Box></Box>
+                <Box sx={{ ...enUstBaslik_css }}>
+                  {RealmApp.currentUser.customData.isim}
+                </Box>
+              </>
+            }
+
+          </>
 
 
 
@@ -208,8 +227,7 @@ export default function P_MetrajPozlar() {
               <React.Fragment key={index}>
 
                 {/* WBS BAŞLIĞININ OLDUĞU TÜM SATIR */}
-                <Box sx={{ mt: "1rem", display: "grid", gridTemplateColumns: columns }}>
-
+                <>
                   {/* WBS BAŞLIĞI */}
                   <Box sx={{ ...wbsBaslik_css }}>
                     <Box sx={{ display: "grid", gridAutoFlow: "column" }} >
@@ -221,7 +239,7 @@ export default function P_MetrajPozlar() {
                   {/* BAŞLIK - AÇIKLAMA  */}
                   {pozAciklamaShow &&
                     <>
-                      <Box sx={{ ...bosluk_css }}></Box>
+                      <Box></Box>
                       <Box sx={{ ...wbsBaslik_css2 }} />
                     </>
                   }
@@ -229,12 +247,20 @@ export default function P_MetrajPozlar() {
                   {/* BAŞLIK - VERSİYON */}
                   {pozVersiyonShow &&
                     <>
-                      <Box sx={{ ...bosluk_css }} />
+                      <Box />
                       <Box sx={{ ...wbsBaslik_css2 }} />
                     </>
                   }
 
-                </Box>
+                  {/* METRAJ DÜZENLEME AÇIKSA */}
+                  {editNodeMetraj &&
+                    <>
+                      <Box />
+                      <Box sx={{ ...wbsBaslik_css2 }} />
+                    </>
+                  }
+
+                </>
 
 
                 {/* WBS'İN POZLARI */}
@@ -251,21 +277,21 @@ export default function P_MetrajPozlar() {
                   }
 
                   return (
-                    // <Box key={index} sx={{ display: "grid", gridTemplateColumns: columns, gridTemplateAreas: gridAreas_pozSatir }}>
-                    <Box key={index} onDoubleClick={() => navigate('/metrajpozmahaller')} onClick={() => setSelectedPoz_metraj(onePoz)} sx={{ "&:hover": { "& .childClass": { display: "block" } }, cursor: "pointer", display: "grid", gridTemplateColumns: columns, backgroundColor: !onePoz.hasMahal && "lightgray" }}>
-                      <Box sx={{ ...pozNo_css }}>
+                    // <Box key={index} onDoubleClick={() => navigate('/metrajpozmahaller')} onClick={() => setSelectedPoz_metraj(onePoz)} sx={{ "&:hover": { "& .childClass": { display: "block" } }, cursor: "pointer", display: "grid", }}>
+                    <React.Fragment key={index} >
+                      <Box sx={{ ...pozNo_css }} >
                         {onePoz.pozNo}
                       </Box>
-                      <Box sx={{ ...pozNo_css, pl: "0.5rem", justifyItems: "start", display: "grid", gridTemplateColumns: "1fr 1rem" }}>
-                        <Box sx={{}}>
-                          {onePoz.pozName}
-                        </Box>
-                        <Box className="childClass" sx={{ display: isSelected ? "block" : "none", backgroundColor: isSelected ? "black" : "red", height: "0.5rem", width: "0.5rem", borderRadius: "50%" }}>
-                          { }
-                        </Box>
+                      <Box sx={{ ...pozNo_css, justifyItems: "start", pl: "0.5rem" }} >
+                        {onePoz.pozName}
                       </Box>
-                      <Box sx={{ ...pozNo_css }}>
-                        {onePoz?.miktar}
+                      <Box onDoubleClick={() => goTo_MetrajPozmahaller(onePoz)} sx={{ ...pozNo_css, cursor: "pointer", display: "grid", gridTemplateColumns: "1rem 1fr", "&:hover": { "& .childClass": { backgroundColor: "red" } } }}>
+                        <Box className="childClass" sx={{ ml: "-1rem", backgroundColor: "white", height: "0.5rem", width: "0.5rem", borderRadius: "50%" }}>
+
+                        </Box>
+                        <Box>
+                          {onePoz?.miktar}
+                        </Box>
                       </Box>
                       <Box sx={{ ...pozNo_css }}>
                         {pozBirimleri.find(x => x.id === onePoz.pozBirimId).name}
@@ -274,7 +300,7 @@ export default function P_MetrajPozlar() {
                       {/* BAŞLIK - POZ BİRİM  */}
                       {pozAciklamaShow &&
                         <>
-                          <Box sx={{ ...bosluk_css }}></Box>
+                          <Box></Box>
                           <Box sx={{ ...pozNo_css }}>
                             {onePoz.aciklama}
                           </Box>
@@ -284,14 +310,28 @@ export default function P_MetrajPozlar() {
                       {/* BAŞLIK - VERSİYON */}
                       {pozVersiyonShow &&
                         <>
-                          <Box sx={{ ...bosluk_css }} />
+                          <Box />
                           <Box sx={{ ...pozNo_css }}>
                             {onePoz.versiyon}
                           </Box>
                         </>
                       }
 
-                    </Box>
+                      {/* METRAJ DÜZENLEME AÇIKSA - KİŞİNİN HAZIRLADIĞI TOPLAM POZ METRAJ*/}
+                      {editNodeMetraj &&
+                        <>
+                          <Box />
+                          <Box onDoubleClick={() => goTo_MetrajPozmahaller(onePoz)} sx={{ ...pozNo_css, cursor: "pointer", backgroundColor: "yellow", cursor: "pointer", display: "grid", gridTemplateColumns: "1rem 1fr", "&:hover": { "& .childClass": { backgroundColor: "red" } } }}>
+                            <Box className="childClass" sx={{ ml: "-1rem", backgroundColor: "yellow", height: "0.5rem", width: "0.5rem", borderRadius: "50%" }}>
+                            </Box>
+                            <Box>
+                              {".. m2"}
+                            </Box>
+                          </Box>
+                        </>
+                      }
+
+                    </React.Fragment>
                   )
                 })}
 

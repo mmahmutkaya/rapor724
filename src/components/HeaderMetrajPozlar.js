@@ -5,6 +5,7 @@ import { useNavigate } from "react-router-dom";
 import { StoreContext } from './store'
 
 
+import AppBar from '@mui/material/AppBar';
 import Typography from '@mui/material/Typography';
 import Chip from '@mui/material/Chip';
 import Grid from '@mui/material/Grid';
@@ -24,73 +25,96 @@ import FileDownloadDoneIcon from '@mui/icons-material/FileDownloadDone';
 import EditIcon from '@mui/icons-material/Edit';
 
 
-export default function HeaderPozlar({ show, setShow }) {
+export default function HeaderPozlar({ setShow }) {
 
+  const { drawerWidth, topBarHeight } = useContext(StoreContext)
   const { selectedPoz_metraj, setSelectedPoz_metraj } = useContext(StoreContext)
+  const { editNodeMetraj, setEditNodeMetraj } = useContext(StoreContext)
   const navigate = useNavigate()
 
   return (
     <Paper >
 
-      <Grid
-        container
-        justifyContent="space-between"
-        alignItems="center"
-        sx={{ padding: "0.5rem 1rem", maxHeight: "5rem" }}
+      <AppBar
+        position="fixed"
+        sx={{
+          backgroundColor: "white",
+          color: "black",
+          width: { md: `calc(100% - ${drawerWidth}px)` },
+          mt: topBarHeight,
+          // pt:"3rem",
+          ml: { md: `${drawerWidth}px` }
+        }}
       >
 
-        {/* sol kısım (başlık) */}
-        <Grid item xs>
-          <Typography
-            // nowrap={true}
-            variant="h6"
-            fontWeight="bold"
-          >
-            Metraj
-          </Typography>
-        </Grid>
+        <Grid
+          container
+          justifyContent="space-between"
+          alignItems="center"
+          sx={{ padding: "0.5rem 1rem", maxHeight: "5rem" }}
+        >
+
+          {/* sol kısım (başlık) */}
+          <Grid item xs>
+            <Typography
+              // nowrap={true}
+              variant="h6"
+              fontWeight="bold"
+            >
+              Metraj
+            </Typography>
+          </Grid>
 
 
-        {/* sağ kısım - (tuşlar)*/}
-        <Grid item xs="auto">
-          <Grid container spacing={1}>
+          {/* sağ kısım - (tuşlar)*/}
+          <Grid item xs="auto">
+            <Grid container >
 
-
-            <Grid item >
 
               {!selectedPoz_metraj &&
                 <>
-                  {/* <IconButton onClick={() => setShow("ShowBaslik")} >
-                    <Chip label="Hazırlanan" sx={{ m: "0rem", p: "0rem" }} />
-                  </IconButton> */}
 
-                  <IconButton onClick={() => setShow("ShowBaslik")} disabled={false}>
-                    <VisibilityIcon variant="contained" />
-                  </IconButton>
+                  <Grid item >
+                    <IconButton onClick={() => setEditNodeMetraj(editNodeMetraj => !editNodeMetraj)} disabled={false} >
+                      <EditIcon variant="contained" sx={{ color: editNodeMetraj && "red" }} />
+                    </IconButton>
+                  </Grid>
+
+                  <Grid item >
+                    <IconButton onClick={() => setShow("ShowBaslik")} disabled={false}>
+                      <VisibilityIcon variant="contained" />
+                    </IconButton>
+                  </Grid>
+
                 </>
               }
 
               {selectedPoz_metraj &&
                 <>
-                  <IconButton onClick={() => setSelectedPoz_metraj()}>
-                    <ClearOutlined variant="contained" sx={{ color: "red" }} />
-                  </IconButton>
+                  <Grid item >
+                    <IconButton onClick={() => setSelectedPoz_metraj()}>
+                      <ClearOutlined variant="contained" sx={{ color: "red" }} />
+                    </IconButton>
+                  </Grid>
 
-                  <IconButton onClick={() => navigate('/metrajpozmahaller')}>
-                    <AdsClickIcon variant="contained" />
-                  </IconButton>
+                  <Grid item >
+                    <IconButton onClick={() => navigate('/metrajpozmahaller')}>
+                      <AdsClickIcon variant="contained" />
+                    </IconButton>
+                  </Grid>
+
                 </>
               }
 
 
+
             </Grid>
-
-
           </Grid>
+
         </Grid>
 
-      </Grid>
+      </AppBar>
 
-    </Paper>
+    </Paper >
   )
 }

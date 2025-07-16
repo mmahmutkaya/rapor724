@@ -33,6 +33,7 @@ export default function HeaderMetrajPozMahaller() {
   const navigate = useNavigate()
 
   const { drawerWidth, topBarHeight } = useContext(StoreContext)
+  const { editNodeMetraj, setEditNodeMetraj } = useContext(StoreContext)
 
   const { selectedProje, setSelectedProje } = useContext(StoreContext)
   const { setPozlar } = useContext(StoreContext)
@@ -232,6 +233,7 @@ export default function HeaderMetrajPozMahaller() {
         }}
       >
 
+
         <Grid
           container
           justifyContent="space-between"
@@ -257,7 +259,7 @@ export default function HeaderMetrajPozMahaller() {
 
           {/* sağ kısım - (tuşlar)*/}
           <Grid item xs="auto">
-            <Grid container spacing={1}>
+            <Grid container>
 
               <Grid item >
                 <IconButton
@@ -272,7 +274,13 @@ export default function HeaderMetrajPozMahaller() {
               </Grid>
 
               <Grid item onClick={() => console.log("selectedPoz_metraj", selectedPoz_metraj)} sx={{ cursor: "pointer" }}>
-                <IconButton aria-label="addPoz" disabled>
+                <IconButton onClick={() => setEditNodeMetraj(editNodeMetraj => !editNodeMetraj)} disabled={false} >
+                  <EditIcon variant="contained" sx={{ color: editNodeMetraj && "red" }} />
+                </IconButton>
+              </Grid>
+
+              <Grid item onClick={() => console.log("selectedPoz_metraj", selectedPoz_metraj)} sx={{ cursor: "pointer" }}>
+                <IconButton aria-label="addPoz">
                   <VisibilityIcon variant="contained" sx={{ color: "gray" }} />
                 </IconButton>
               </Grid>
