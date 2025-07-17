@@ -32,39 +32,30 @@ exports = async function ({
 
 
 
-  let {metraj} = hazirlananMetraj_state.satirlar
-  let newSatirlar = hazirlananMetraj_state.satirlar.filter(x => !x.onayli)
+  let { metraj: newMetraj } = hazirlananMetraj_state.satirlar
+  let { satirlar: newSatirlar } = hazirlananMetraj_state.satirlar
+  newSatirlar = newSatirlar.filter(x => !x.onayli)
 
   try {
-
-    let metrajSatirlari
 
     const hazirlananMetraj = await collection_hazirlananMetrajlar.findOne({ _dugumId, userEmail })
 
     if (hazirlananMetraj) {
 
-      let { metrajSatirlari } = hazirlananMetraj
+      let { satirlar } = hazirlananMetraj
 
-      if (metrajSatirlari) {
+      if (satirlar) {
 
-        metrajSatirlari = metrajSatirlari.filter(x => !x.onayli)
-        metrajSatirlari = [...metrajSatirlari, ...newSatirlar]
-
-      } else {
-
-        metrajSatirlari = newSatirlar
+        satirlar = satirlar.filter(x => !x.onayli)
+        newSatirlar = [...satirlar, ...newSatirlar]
 
       }
-
-    } else {
-
-      metrajSatirlari = newSatirlar
 
     }
 
     await collection_hazirlananMetrajlar.updateOne(
       { _dugumId, userEmail },
-      { $set: { metrajSatirlari, metraj} },
+      { $set: { satirlar: newSatirlar, newMetraj } },
       { upsert: true }
     )
 
@@ -75,7 +66,7 @@ exports = async function ({
 
 
 
-  
+
 
   try {
 
@@ -89,19 +80,19 @@ exports = async function ({
 
       hazirlananMetrajlar = hazirlananMetrajlar.map(x => {
         if (x.userEmail === userEmail) {
-          x.metraj = metraj
+          x.metraj = newMetraj
           isUpdated = true
         }
         return x
       })
 
       if (!isUpdated) {
-        hazirlananMetrajlar = [...hazirlananMetrajlar, { userEmail, metraj }]
+        hazirlananMetrajlar = [...hazirlananMetrajlar, { userEmail, metraj: newMetraj }]
       }
 
     } else {
 
-      hazirlananMetrajlar = [{ userEmail, metraj }]
+      hazirlananMetrajlar = [{ userEmail, metraj: newMetraj }]
 
     }
 
@@ -111,7 +102,6 @@ exports = async function ({
       { upsert: true }
     )
 
-    return
 
   } catch (error) {
     throw new Error({ hatayeri: "MONGO // update_hazirlananMetrajlar // getDugumler // ", error });
