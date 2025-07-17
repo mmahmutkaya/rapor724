@@ -1,6 +1,6 @@
 exports = async function ({
   _dugumId,
-  newMetrajSatirlari
+  hazirlananMetraj_state
 }) {
 
 
@@ -20,8 +20,8 @@ exports = async function ({
     throw new Error("MONGO // update_hazirlananMetrajlar // '_dugumId' verisi db sorgusuna gelmedi");
   }
 
-  if (!newMetrajSatirlari) {
-    throw new Error("MONGO // update_hazirlananMetrajlar // 'newMetrajSatirlari' verisi db sorgusuna gelmedi");
+  if (!hazirlananMetraj_state) {
+    throw new Error("MONGO // update_hazirlananMetrajlar // 'hazirlananMetraj_state' verisi db sorgusuna gelmedi");
   }
 
 
@@ -32,7 +32,8 @@ exports = async function ({
 
 
 
-  let toplamMetraj = 0
+  let {metraj} = hazirlananMetraj_state.satirlar
+  let newSatirlar = hazirlananMetraj_state.satirlar.filter(x => !x.onayli)
 
   try {
 
@@ -47,30 +48,25 @@ exports = async function ({
       if (metrajSatirlari) {
 
         metrajSatirlari = metrajSatirlari.filter(x => !x.onayli)
-        metrajSatirlari = [...metrajSatirlari, ...newMetrajSatirlari]
+        metrajSatirlari = [...metrajSatirlari, ...newSatirlar]
 
       } else {
 
-        metrajSatirlari = newMetrajSatirlari
+        metrajSatirlari = newSatirlar
 
       }
 
     } else {
 
-      metrajSatirlari = newMetrajSatirlari
+      metrajSatirlari = newSatirlar
 
     }
 
     await collection_hazirlananMetrajlar.updateOne(
       { _dugumId, userEmail },
-      { $set: { metrajSatirlari } },
+      { $set: { metrajSatirlari, metraj} },
       { upsert: true }
     )
-
-
-    metrajSatirlari.map(x => {
-      toplamMetraj = toplamMetraj + x.metraj
-    })
 
 
   } catch (error) {
@@ -79,6 +75,7 @@ exports = async function ({
 
 
 
+  
 
   try {
 
@@ -92,19 +89,19 @@ exports = async function ({
 
       hazirlananMetrajlar = hazirlananMetrajlar.map(x => {
         if (x.userEmail === userEmail) {
-          x.metraj = toplamMetraj
+          x.metraj = metraj
           isUpdated = true
         }
         return x
       })
 
       if (!isUpdated) {
-        hazirlananMetrajlar = [...hazirlananMetrajlar, { userEmail, metraj: toplamMetraj }]
+        hazirlananMetrajlar = [...hazirlananMetrajlar, { userEmail, metraj }]
       }
 
     } else {
 
-      hazirlananMetrajlar = [{ userEmail, metraj: toplamMetraj }]
+      hazirlananMetrajlar = [{ userEmail, metraj }]
 
     }
 
