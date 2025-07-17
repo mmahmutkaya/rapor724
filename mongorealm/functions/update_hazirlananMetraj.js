@@ -29,7 +29,7 @@ exports = async function ({
 
   const collection_HazirlananMetrajlar = context.services.get("mongodb-atlas").db("rapor724_v2").collection("hazirlananMetrajlar")
 
-  
+
   // const bulkArray = dugumler_state_filtered.map(x => {
   //   return (
   //     {
@@ -43,7 +43,7 @@ exports = async function ({
   //   )
   // })
 
-  
+
   // try {
   //   await collection_Dugumler.bulkWrite(
   //     bulkArray,
@@ -53,31 +53,41 @@ exports = async function ({
   //   throw new Error({hatayeri:"MONGO // update_hazirlananMetraj // collection_Dugumler.bulkWrite // ", error});
   // }
 
+
+  const hazirlananMetrajlar = await collection_HazirlananMetrajlar.findOne({_dugumId})
+
+  return hazirlananMetrajlar
+
+  // if()
+
+  // let userMetrajlar = hazirlananMetrajlar.hazirlananMetrajlar.find()
+
+
   // try {
   //   collection_HazirlananMetrajlar.updateOne(
-  //   {_dugumId},
-  //    { $set: { "grades.$[elem].mean" : 100 } },
-  //    { arrayFilters: [ { "elem.grade": { $gte: 85 } } ] }
-  // )
+  //     { _dugumId },
+  //     { $set: { "userMetrajlar.$[elem].mean": 100 } },
+  //     { arrayFilters: [{ "userEmail": userEmail }] }
+  //   )
 
   //   )
   // } catch (error) {
-    
+
   // }
 
-  
-  try {
-    
-    const dugumler = await collection_Dugumler.aggregate([
-      { $match: { _projeId, openMetraj:true } },
-      { $project: { _pozId: 1, _mahalId: 1, openMetraj: 1 } }
-    ]).toArray()
-  
-    return {dugumler}
-    
-  } catch (error) {
-    throw new Error({hatayeri:"MONGO // update_hazirlananMetraj // getDugumler // ", error});
-  }
+
+  // try {
+
+  //   const dugumler = await collection_Dugumler.aggregate([
+  //     { $match: { _projeId, openMetraj: true } },
+  //     { $project: { _pozId: 1, _mahalId: 1, openMetraj: 1 } }
+  //   ]).toArray()
+
+  //   return { dugumler }
+
+  // } catch (error) {
+  //   throw new Error({ hatayeri: "MONGO // update_hazirlananMetraj // getDugumler // ", error });
+  // }
 
 
 
