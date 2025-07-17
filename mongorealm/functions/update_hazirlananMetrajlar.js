@@ -34,9 +34,10 @@ exports = async function ({
 
   let { metraj: newMetraj } = hazirlananMetraj_state.satirlar
   let { satirlar: newSatirlar } = hazirlananMetraj_state.satirlar
-  newSatirlar = newSatirlar.filter(x => !x.onayli)
 
   try {
+
+    newSatirlar = newSatirlar.filter(x => !x.onayli)
 
     const hazirlananMetraj = await collection_hazirlananMetrajlar.findOne({ _dugumId, userEmail })
 
@@ -61,7 +62,7 @@ exports = async function ({
 
 
   } catch (error) {
-    throw new Error({ hatayeri: "MONGO // update_hazirlananMetrajlar // ", error });
+    throw new Error({ hatayeri: "MONGO // update_hazirlananMetrajlar // hazirlanan metrajlar güncelleme", error });
   }
 
 
@@ -104,7 +105,7 @@ exports = async function ({
 
 
   } catch (error) {
-    throw new Error({ hatayeri: "MONGO // update_hazirlananMetrajlar // getDugumler // ", error });
+    throw new Error({ hatayeri: "MONGO // update_hazirlananMetrajlar // dugum guncelleme ", error });
   }
 
   return
