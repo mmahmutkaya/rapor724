@@ -36,21 +36,32 @@ exports = async function ({
 
   try {
 
-    let oldHazirlananMetraj
     let metrajSatirlari
 
     const hazirlananMetraj = await collection_hazirlananMetrajlar.findOne({ _dugumId, userEmail })
-    let { oldMetrajSatirlari } = hazirlananMetraj
 
+    if (hazirlananMetraj) {
 
-    if (oldMetrajSatirlari) {
-      oldMetrajSatirlari = oldMetrajSatirlari.filter(x => !x.onayli)
-      metrajSatirlari = [...oldMetrajSatirlari, ...newMetrajSatirlari]
+      let { metrajSatirlari } = hazirlananMetraj
+
+      if (metrajSatirlari) {
+
+        metrajSatirlari = metrajSatirlari.filter(x => !x.onayli)
+        metrajSatirlari = [...metrajSatirlari, ...newMetrajSatirlari]
+
+      } else {
+
+        metrajSatirlari = newMetrajSatirlari
+
+      }
+
     } else {
+
       metrajSatirlari = newMetrajSatirlari
+
     }
 
-    const result = await collection_hazirlananMetrajlar.updateOne(
+    await collection_hazirlananMetrajlar.updateOne(
       { _dugumId, userEmail },
       { $set: { metrajSatirlari } },
       { upsert: true }
@@ -96,6 +107,12 @@ exports = async function ({
       hazirlananMetrajlar = [{ userEmail, metraj: toplamMetraj }]
 
     }
+
+    await collection_Dugumler.updateOne(
+      { _id: _dugumId },
+      { $set: { hazirlananMetrajlar } },
+      { upsert: true }
+    )
 
     return
 
