@@ -31,18 +31,15 @@ exports = async function ({
   const collection_Dugumler = context.services.get("mongodb-atlas").db("rapor724_v2").collection("dugumler")
 
 
+
+
+  let { metraj: newMetraj } = hazirlananMetraj_state
+
+
   try {
 
-    let { metraj: newMetraj } = hazirlananMetraj_state
     let { satirlar: newSatirlar } = hazirlananMetraj_state
     newSatirlar = newSatirlar.filter(x => !x.onayli)
-
-  } catch (error) {
-    throw new Error({ hatayeri: "MONGO // update_hazirlananMetrajlar // gelen data hazırlama", error });
-  }
-
-
-  try {
 
 
     const hazirlananMetraj = await collection_hazirlananMetrajlar.findOne({ _dugumId, userEmail })
@@ -62,7 +59,7 @@ exports = async function ({
 
     await collection_hazirlananMetrajlar.updateOne(
       { _dugumId, userEmail },
-      { $set: { satirlar: newSatirlar, newMetraj } },
+      { $set: { satirlar: newSatirlar, metraj: newMetraj } },
       { upsert: true }
     )
 
