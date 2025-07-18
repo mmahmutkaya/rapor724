@@ -50,7 +50,7 @@ exports = async function ({
 
       if (satirlar) {
 
-        satirlar = satirlar.filter(x => !x.onayli)
+        satirlar = satirlar.filter(x => x.onayli)
         newSatirlar = [...satirlar, ...newSatirlar]
 
       }
