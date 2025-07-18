@@ -28,7 +28,7 @@ exports = async function ({
     
     const dugumler = await collection_Dugumler.aggregate([
       { $match: { _pozId, openMetraj:true } },
-      { $project: { _pozId: 1, _mahalId: 1, openMetraj: 1 } }
+      { $project: { _pozId: 1, _mahalId: 1, openMetraj: 1, hazirlananMetrajlar:1, onaylananMetraj:1 } }
     ]).toArray()
   
     return dugumler
