@@ -67,7 +67,7 @@ exports = async function ({
       return x
     })
 
-    return pozlar
+    return {pozlar, dugumler}
 
 
   } catch (error) {
