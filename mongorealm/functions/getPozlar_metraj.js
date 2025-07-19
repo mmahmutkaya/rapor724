@@ -69,7 +69,7 @@ exports = async function ({
 
     let { metrajYapabilenler } = proje.yetki
 
-
+  return {pozlar, metrajYapabilenler, pozlar2}
     pozlar = pozlar.map(onePoz => {
 
       const onePoz2 = pozlar2.find(onePoz2 => onePoz2._id.toString() === onePoz._id.toString())
