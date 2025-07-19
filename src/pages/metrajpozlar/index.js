@@ -276,6 +276,8 @@ export default function P_MetrajPozlar() {
                     isSelected = true
                   }
 
+                  console.log("onePoz",onePoz)
+
                   return (
                     // <Box key={index} onDoubleClick={() => navigate('/metrajpozmahaller')} onClick={() => setSelectedPoz_metraj(onePoz)} sx={{ "&:hover": { "& .childClass": { display: "block" } }, cursor: "pointer", display: "grid", }}>
                     <React.Fragment key={index} >

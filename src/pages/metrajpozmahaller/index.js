@@ -25,7 +25,7 @@ export default function P_MetrajPozMahaller() {
   const customData = RealmApp.currentUser.customData
 
   const { selectedPoz_metraj } = useContext(StoreContext)
-  const { selectedNode, setSelectedNode } = useContext(StoreContext)
+  const { selectedNode_metraj, setSelectedNode_metraj } = useContext(StoreContext)
   const { selectedMahal_metraj, setSelectedMahal_metraj } = useContext(StoreContext)
   const { drawerWidth, topBarHeight, subHeaderHeight } = useContext(StoreContext)
   const { editNodeMetraj, setEditNodeMetraj } = useContext(StoreContext)
@@ -42,6 +42,7 @@ export default function P_MetrajPozMahaller() {
 
   const { data: mahaller } = useGetMahaller()
   const { data: dugumler_byPoz } = useGetDugumler_byPoz()
+  // console.log("dugumler_byPoz",dugumler_byPoz)
 
   const mahaller_byPoz = mahaller?.filter(oneMahal => dugumler_byPoz?.find(oneDugum => oneDugum._mahalId.toString() === oneMahal._id.toString()))
 
@@ -144,10 +145,12 @@ export default function P_MetrajPozMahaller() {
 
 
   const goto_metrajCetveli = (dugum) => {
-    setSelectedNode(dugum)
+    setSelectedNode_metraj(dugum)
     navigate('/metrajcetveli')
   }
 
+
+  // CSS
   const css_enUstBaslik = {
     display: "grid",
     fontWeight: "600",
@@ -167,7 +170,7 @@ export default function P_MetrajPozMahaller() {
   }
 
   const css_mahaller = {
-    borderRight: "1px solid black", borderBottom: "1px solid black", px: "0.5rem", display: "grid", justifyContent: "start"
+    border: "1px solid black", px: "0.5rem", display: "grid", justifyContent: "start"
   }
 
 
@@ -279,7 +282,7 @@ export default function P_MetrajPozMahaller() {
                           <Box></Box>
                           <Box
                             onDoubleClick={() => goto_metrajCetveli(dugum)}
-                            sx={{ ...css_mahaller, cursor: "pointer", backgroundColor: "yellow", borderLeft: "1px solid black" }}>
+                            sx={{ ...css_mahaller, cursor: "pointer", backgroundColor: "yellow", justifyContent: "right" }}>
                             {ikiHane(dugum?.hazirlananMetrajlar?.find(y => y.userEmail === customData.email)?.metraj)}
                           </Box>
                         </>

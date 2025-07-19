@@ -49,7 +49,7 @@ export default function P_MetrajCetveliHeader({
 
   const { drawerWidth, topBarHeight } = useContext(StoreContext)
   const { custom, setCustom } = useContext(StoreContext)
-  const { selectedNode, setSelectedNode } = useContext(StoreContext)
+  const { selectedNode_metraj } = useContext(StoreContext)
   const { editNodeMetraj, setEditNodeMetraj } = useContext(StoreContext)
   const { showNodeMetraj, setShowNodeMetraj } = useContext(StoreContext)
   const { detailMode, setDetailMode } = useContext(StoreContext)
@@ -130,7 +130,7 @@ export default function P_MetrajCetveliHeader({
             >
               {selectedPoz?.name} {" > "}
 
-              <Typography variant="h6" fontWeight="bold" component={"span"} sx={{ color: "darkred" }}>{mahaller?.find(item => item._id.toString() == selectedNode?._mahalId.toString())?.name}</Typography>
+              <Typography variant="h6" fontWeight="bold" component={"span"} sx={{ color: "darkred" }}>{mahaller?.find(item => item._id.toString() == selectedNode_metraj?._mahalId.toString())?.name}</Typography>
 
             </Typography>
           </Grid>
@@ -143,7 +143,7 @@ export default function P_MetrajCetveliHeader({
             <Grid container>
 
 
-              {/* {show == "PozMahalleri" && !selectedNode &&
+              {/* {show == "PozMahalleri" && !selectedNode_metraj &&
                 <Grid item >
                   <IconButton onClick={() => {
                     navigate("/metraj")
@@ -155,18 +155,18 @@ export default function P_MetrajCetveliHeader({
               }
 
 
-              {show == "PozMahalleri" && selectedNode &&
+              {show == "PozMahalleri" && selectedNode_metraj &&
                 <Grid item >
                   <IconButton onClick={() => {
                     setSelectedNode()
                   }} aria-label="lbsUncliced">
-                    <ClearOutlined variant="contained" sx={{ color: !selectedNode ? "lightgray" : "red" }} />
+                    <ClearOutlined variant="contained" sx={{ color: !selectedNode_metraj ? "lightgray" : "red" }} />
                   </IconButton>
                 </Grid>
               }
 
 
-              {show == "PozMahalleri" && selectedNode &&
+              {show == "PozMahalleri" && selectedNode_metraj &&
                 <Grid item >
                   <IconButton onClick={() => {
                     setShow("DugumMetrajlari")

@@ -212,7 +212,6 @@ export default function P_MahalListesi() {
       try {
 
         let dugumler_state_filtered = dugumler_state.filter(x => x.isChanged)
-        console.log("dugumler_state_filtered", dugumler_state_filtered)
 
         const result = await RealmApp?.currentUser.callFunction("updateDugumler_openMetraj", ({ _projeId: selectedProje._id, dugumler_state_filtered }))
         console.log("result", result)

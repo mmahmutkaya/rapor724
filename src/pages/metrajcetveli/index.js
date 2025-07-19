@@ -2,11 +2,14 @@
 import React, { useState, useContext, useEffect } from 'react';
 import { useNavigate } from "react-router-dom";
 import { StoreContext } from '../../components/store'
-import { useApp } from "../../components/useApp";
+
+
+import { DialogAlert } from '../../components/general/DialogAlert.js';
 import MetrajCetveliHeader from '../../components/MetrajCetveliHeader'
 import { useQuery, useQueryClient, useMutation } from '@tanstack/react-query'
 import { BSON } from "realm-web"
-import { useGetMahaller, useGetMahalListesi, useGetHazirlananMetrajlar, useUpdateHazirlananMetraj, useUpdateOnaylananMetraj, useGetOnaylananMetraj } from '../../hooks/useMongo';
+import { useGetMahaller, useGetMahalListesi, useGetHazirlananMetraj, useUpdateHazirlananMetraj, useUpdateOnaylananMetraj, useGetOnaylananMetraj } from '../../hooks/useMongo';
+
 
 import { styled } from '@mui/system';
 import Grid from '@mui/material/Grid';
@@ -33,13 +36,14 @@ export default function P_MetrajCetveli() {
   const { selectedMahal, setSelectedMahal } = useContext(StoreContext)
   const { selectedPoz_metraj, setSelectedPoz_metraj } = useContext(StoreContext)
   const { myTema, setMyTema } = useContext(StoreContext)
-  const { selectedNode, setSelectedNode } = useContext(StoreContext)
+  const { selectedNode_metraj, setSelectedNode_metraj } = useContext(StoreContext)
   const { drawerWidth, topBarHeight, subHeaderHeight } = useContext(StoreContext)
   const { editNodeMetraj, setEditNodeMetraj } = useContext(StoreContext)
   const { showNodeMetraj, setShowNodeMetraj } = useContext(StoreContext)
   const { detailMode, setDetailMode } = useContext(StoreContext)
 
 
+  const [dialogAlert, setDialogAlert] = useState()
   const [show, setShow] = useState("DugumMetrajlari")
   const [approveMode, setApproveMode] = useState()
   const [isChanged, setIsChanged] = useState(0)
@@ -76,67 +80,85 @@ export default function P_MetrajCetveli() {
   const hazirlananKilitliSatir_color = "rgba( 128, 128, 128, 0.3 )" // gri
 
 
-  const navigate = useNavigate()
-  useEffect(() => {
-    !selectedNode && navigate("/metrajpozmahaller")
-    load_hazirlananMetraj_state()
-  }, [])
-
-
-
   const { data: mahalListesi } = useGetMahalListesi()
 
-  const { data: hazirlananMetrajlar } = useGetHazirlananMetrajlar({ selectedNode })
+  const { data: hazirlananMetraj } = useGetHazirlananMetraj()
 
-  const { data: onaylananMetraj } = useGetOnaylananMetraj({ selectedNode })
+  const { data: onaylananMetraj } = useGetOnaylananMetraj({ selectedNode_metraj })
   // onaylananMetraj && console.log("onaylananMetraj", onaylananMetraj)
-
-  const { mutate: updateHazirlananMetraj } = useUpdateHazirlananMetraj()
 
   const { mutate: updateOnaylananMetraj } = useUpdateOnaylananMetraj()
 
 
+  const navigate = useNavigate()
+  useEffect(() => {
+    !selectedNode_metraj && navigate("/metrajpozmahaller")
+    load_hazirlananMetraj_state()
+  }, [hazirlananMetraj])
+
+
+
 
   // Edit Metraj Sayfasının Fonksiyonu
+  // const load_hazirlananMetraj_state = () => {
+
+  //   let userharf = selectedProje?.metrajYapabilenler.find(x => x.userEmail === RealmApp?.currentUser.customData.email).harf
+
+  //   if (hazirlananMetraj?.length > 0) {
+  //     let hazirlananMetraj = hazirlananMetrajlar?.find(x => x.userEmail === RealmApp?.currentUser.customData.email)
+
+  //     if (hazirlananMetraj) {
+  //       hazirlananMetraj = JSON.parse(JSON.stringify(hazirlananMetraj))
+  //       hazirlananMetraj._userId = new BSON.ObjectId(hazirlananMetraj._userId)
+  //       hazirlananMetraj.satirlar = hazirlananMetraj.satirlar.map(x => {
+  //         x.sonGuncelleme = new Date(x.sonGuncelleme)
+  //         return x
+  //       })
+  //       setHazirlananMetraj_state(hazirlananMetraj)
+  //       // console.log("backend teki usermetraj şablonu yüklendi", hazirlananMetraj)
+  //     } else {
+  //       let satirlar = [
+  //         { satirNo: userharf + 1, aciklama: "", carpan1: "", carpan2: "", carpan3: "", carpan4: "", carpan5: "", metraj: "" },
+  //         { satirNo: userharf + 2, aciklama: "", carpan1: "", carpan2: "", carpan3: "", carpan4: "", carpan5: "", metraj: "" },
+  //         { satirNo: userharf + 3, aciklama: "", carpan1: "", carpan2: "", carpan3: "", carpan4: "", carpan5: "", metraj: "" },
+  //         { satirNo: userharf + 4, aciklama: "", carpan1: "", carpan2: "", carpan3: "", carpan4: "", carpan5: "", metraj: "" },
+  //         { satirNo: userharf + 5, aciklama: "", carpan1: "", carpan2: "", carpan3: "", carpan4: "", carpan5: "", metraj: "" }
+  //       ]
+  //       setHazirlananMetraj_state({ userEmail: RealmApp?.currentUser.customData.email, satirlar, metraj: 0 })
+  //       // console.log("frontend teki usermetraj şablonu yüklendi", { _userId: new BSON.ObjectId(RealmApp?.currentUser.id), satirlar })
+  //     }
+  //   } else {
+  //     let satirlar = [
+  //       { satirNo: userharf + 1, aciklama: "", carpan1: "", carpan2: "", carpan3: "", carpan4: "", carpan5: "", metraj: "" },
+  //       { satirNo: userharf + 2, aciklama: "", carpan1: "", carpan2: "", carpan3: "", carpan4: "", carpan5: "", metraj: "" },
+  //       { satirNo: userharf + 3, aciklama: "", carpan1: "", carpan2: "", carpan3: "", carpan4: "", carpan5: "", metraj: "" },
+  //       { satirNo: userharf + 4, aciklama: "", carpan1: "", carpan2: "", carpan3: "", carpan4: "", carpan5: "", metraj: "" },
+  //       { satirNo: userharf + 5, aciklama: "", carpan1: "", carpan2: "", carpan3: "", carpan4: "", carpan5: "", metraj: "" }
+  //     ]
+  //     setHazirlananMetraj_state({ userEmail: RealmApp?.currentUser.customData.email, satirlar, metraj: 0 })
+  //     // console.log("frontend teki usermetraj şablonu yüklendi", { _userId: new BSON.ObjectId(RealmApp?.currentUser.id), satirlar })
+  //   }
+
+  // }
+
+
+
   const load_hazirlananMetraj_state = () => {
 
     let userharf = selectedProje?.metrajYapabilenler.find(x => x.userEmail === RealmApp?.currentUser.customData.email).harf
 
-    if (hazirlananMetrajlar?.length > 0) {
-      let hazirlananMetraj = hazirlananMetrajlar?.find(x => x.userEmail === RealmApp?.currentUser.customData.email)
-
-      if (hazirlananMetraj) {
-        hazirlananMetraj = JSON.parse(JSON.stringify(hazirlananMetraj))
-        hazirlananMetraj._userId = new BSON.ObjectId(hazirlananMetraj._userId)
-        hazirlananMetraj.satirlar = hazirlananMetraj.satirlar.map(x => {
-          x.sonGuncelleme = new Date(x.sonGuncelleme)
-          return x
-        })
-        setHazirlananMetraj_state(hazirlananMetraj)
-        // console.log("backend teki usermetraj şablonu yüklendi", hazirlananMetraj)
-      } else {
-        let satirlar = [
-          { satirNo: userharf + 1, aciklama: "", carpan1: "", carpan2: "", carpan3: "", carpan4: "", carpan5: "", metraj: "" },
-          { satirNo: userharf + 2, aciklama: "", carpan1: "", carpan2: "", carpan3: "", carpan4: "", carpan5: "", metraj: "" },
-          { satirNo: userharf + 3, aciklama: "", carpan1: "", carpan2: "", carpan3: "", carpan4: "", carpan5: "", metraj: "" },
-          { satirNo: userharf + 4, aciklama: "", carpan1: "", carpan2: "", carpan3: "", carpan4: "", carpan5: "", metraj: "" },
-          { satirNo: userharf + 5, aciklama: "", carpan1: "", carpan2: "", carpan3: "", carpan4: "", carpan5: "", metraj: "" }
-        ]
-        setHazirlananMetraj_state({ userEmail: RealmApp?.currentUser.customData.email, satirlar, metraj: 0 })
-        // console.log("frontend teki usermetraj şablonu yüklendi", { _userId: new BSON.ObjectId(RealmApp?.currentUser.id), satirlar })
-      }
+    if (hazirlananMetraj) {
+      setHazirlananMetraj_state(hazirlananMetraj)
     } else {
       let satirlar = [
-        { satirNo: userharf + 11111, aciklama: "", carpan1: "", carpan2: "", carpan3: "", carpan4: "", carpan5: "", metraj: "" },
+        { satirNo: userharf + 1, aciklama: "", carpan1: "", carpan2: "", carpan3: "", carpan4: "", carpan5: "", metraj: "" },
         { satirNo: userharf + 2, aciklama: "", carpan1: "", carpan2: "", carpan3: "", carpan4: "", carpan5: "", metraj: "" },
         { satirNo: userharf + 3, aciklama: "", carpan1: "", carpan2: "", carpan3: "", carpan4: "", carpan5: "", metraj: "" },
         { satirNo: userharf + 4, aciklama: "", carpan1: "", carpan2: "", carpan3: "", carpan4: "", carpan5: "", metraj: "" },
         { satirNo: userharf + 5, aciklama: "", carpan1: "", carpan2: "", carpan3: "", carpan4: "", carpan5: "", metraj: "" }
       ]
       setHazirlananMetraj_state({ userEmail: RealmApp?.currentUser.customData.email, satirlar, metraj: 0 })
-      // console.log("frontend teki usermetraj şablonu yüklendi", { _userId: new BSON.ObjectId(RealmApp?.currentUser.id), satirlar })
     }
-
   }
 
 
@@ -210,10 +232,35 @@ export default function P_MetrajCetveli() {
 
 
   // Edit Metraj Sayfasının Fonksiyonu
-  const save_hazirlananMetraj_toDb = () => {
-    if (isChanged) updateHazirlananMetraj({ selectedNode, hazirlananMetraj_state, setHazirlananMetraj_state })
-    setShow("DugumMetrajlari")
-    setIsChanged()
+  const save_hazirlananMetraj_toDb = async () => {
+
+    if (isChanged) {
+      try {
+
+        console.log("hazirlananMetraj_state", hazirlananMetraj_state)
+
+        await RealmApp?.currentUser.callFunction("update_hazirlananMetraj", ({ _dugumId: selectedNode_metraj._id, hazirlananMetraj_state }))
+        // console.log("result", result)
+        // if (result.dugumler) {
+        //   queryClient.setQueryData(['dugumler', selectedProje?._id.toString()], result.dugumler)
+        // }
+        setShow("DugumMetrajlari")
+        setIsChanged()
+        return
+
+      } catch (error) {
+
+        console.log(error)
+
+        setDialogAlert({
+          dialogIcon: "warning",
+          dialogMessage: "Beklenmedik hata, Rapor7/24 ile irtibata geçiniz..",
+          detailText: error?.message ? error.message : null
+        })
+
+      }
+    }
+
   }
 
 
@@ -256,6 +303,8 @@ export default function P_MetrajCetveli() {
 
 
 
+
+
   // CSS
   const css_enUstBaslik = {
     px: "0.3rem", border: "1px solid black", backgroundColor: "lightgray", display: "grid", alignItems: "center", justifyContent: "center"
@@ -270,7 +319,9 @@ export default function P_MetrajCetveli() {
   }
 
 
-  const gridTemplateColumns1 = 'min-content minmax(min-content, 1fr) repeat(7, min-content) 1rem min-content'
+  // const gridTemplateColumns1 = 'min-content minmax(min-content, 10fr) repeat(7, minmax(min-content, 2fr)) 1rem min-content'
+  const gridTemplateColumns1 = 'min-content minmax(min-content, 5fr) repeat(7, minmax(min-content, 1fr)) 1rem min-content'
+  const gridTemplateColumns2 = 'min-content minmax(min-content, 5fr) repeat(7, minmax(min-content, 1fr)) 1rem min-content'
 
   pozBirim = selectedProje?.pozBirimleri.find(item => item.id == selectedPoz_metraj?.pozBirimId)?.name
 
@@ -278,6 +329,15 @@ export default function P_MetrajCetveli() {
   return (
 
     <>
+
+      {dialogAlert &&
+        <DialogAlert
+          dialogIcon={dialogAlert.dialogIcon}
+          dialogMessage={dialogAlert.dialogMessage}
+          detailText={dialogAlert.detailText}
+          onCloseAction={() => setDialogAlert()}
+        />
+      }
 
       <Grid name="metrajCetveliHeader" item sx={{ mt: (parseFloat(subHeaderHeight) + 1) + "rem", }}>
         <MetrajCetveliHeader
@@ -295,7 +355,7 @@ export default function P_MetrajCetveli() {
 
       {hazirlananMetraj_state &&
 
-        < Box sx={{ display: "grid", gridTemplateColumns: gridTemplateColumns1, mt: subHeaderHeight, mb: "1rem", mx: "1rem" }}>
+        < Box sx={{ display: "grid", gridTemplateColumns: show === "EditMetraj" ? gridTemplateColumns2 : gridTemplateColumns1, mt: subHeaderHeight, mb: "1rem", mx: "1rem" }}>
 
 
           {/* En Üst Başlık Satırı */}
@@ -319,7 +379,7 @@ export default function P_MetrajCetveli() {
               Boy
             </Box>
             <Box sx={{ ...css_enUstBaslik }}>
-              Yükseklik
+              Yük.
             </Box>
             <Box sx={{ ...css_enUstBaslik }}>
               Metraj
@@ -361,10 +421,6 @@ export default function P_MetrajCetveli() {
           </React.Fragment>
 
 
-
-
-
-
           {/* {console.log("hazirlananMetraj_state.satirlar", hazirlananMetraj_state.satirlar)} */}
           {hazirlananMetraj_state.satirlar.map((oneRow, index) => {
             return (
@@ -379,57 +435,64 @@ export default function P_MetrajCetveli() {
                     <React.Fragment key={index}>
 
                       {isCellEdit &&
-
-                        <Input
-                          // autoFocus={autoFocus.baslikId == oneBaslik.id && autoFocus.mahalId == oneMahal._id.toString()}
-                          // autoFocus={autoFocus.mahalId == oneMahal._id.toString()}
-                          // autoFocus={true}
-                          autoComplete='off'
-                          id={oneRow.satirNo + oneProperty}
-                          name={oneRow.satirNo + oneProperty}
-                          readOnly={oneRow.isApproved}
-                          disableUnderline={true}
-                          size="small"
-                          type={oneProperty.includes("carpan") ? "number" : "text"}
-                          // type={"text"}
-                          // onChange={(e) => parseFloat(e.target.value).toFixed(1)}
-                          // onKeyDown={(evt) => ilaveYasaklilar.some(elem => evt.target.value.includes(elem)) && ilaveYasaklilar.find(item => item == evt.key) && evt.preventDefault()}
-                          onKeyDown={oneProperty.includes("carpan") ? (event) => handle_input_onKey(event) : null}
-                          onChange={(event) => handle_input_onChange(event, oneRow.satirNo, oneProperty)}
-                          sx={{
-                            pl: "0.3rem",
-                            pr: "0.3rem",
-                            border: "1px solid black",
-                            backgroundColor: isCellEdit && !oneRow.isApproved ? "rgba(255,255,0, 0.3)" : null,
-                            color: isMinha ? "red" : null,
-                            // justifyItems: oneBaslik.yatayHiza,
-                            "& input::-webkit-outer-spin-button, & input::-webkit-inner-spin-button": {
-                              display: "none",
-                            },
-                            "& input[type=number]": {
-                              MozAppearance: "textfield",
-                            },
-                          }}
-                          // metrajValue={oneRow[oneProperty]}
-                          // value={metrajValue(oneRow, oneProperty, isMinha)}
-                          value={metrajValue(oneRow, oneProperty, isMinha)}
-                          inputProps={{
-                            style: {
-                              pt: "0.25rem",
-                              height: "0.95rem",
-                              minWidth:"5rem",
-                              textAlign: oneProperty.includes("carpan") || oneProperty.includes("metraj") ? "end" : oneProperty.includes("aciklama") ? "start" : "center"
-                            },
-                          }}
-                        />
+                        <Box sx={{
+                          ...css_metrajCetveliSatir,
+                          backgroundColor: !oneRow.isApproved && oneProperty.includes("aciklama") ? "rgba(255,255,0, 0.2)" : !oneRow.isApproved && oneProperty.includes("carpan") ? "rgba(255,255,0, 0.3)" : null,
+                          minWidth: oneProperty.includes("aciklama") ? "10rem" : oneProperty.includes("1") || oneProperty.includes("2") ? "4rem" : "6rem"
+                        }}>
+                          <Input
+                            // autoFocus={autoFocus.baslikId == oneBaslik.id && autoFocus.mahalId == oneMahal._id.toString()}
+                            // autoFocus={autoFocus.mahalId == oneMahal._id.toString()}
+                            // autoFocus={true}
+                            autoComplete='off'
+                            id={oneRow.satirNo + oneProperty}
+                            name={oneRow.satirNo + oneProperty}
+                            readOnly={oneRow.isApproved}
+                            disableUnderline={true}
+                            // size="small"
+                            type={oneProperty.includes("carpan") ? "number" : "text"}
+                            // type={"text"}
+                            // onChange={(e) => parseFloat(e.target.value).toFixed(1)}
+                            // onKeyDown={(evt) => ilaveYasaklilar.some(elem => evt.target.value.includes(elem)) && ilaveYasaklilar.find(item => item == evt.key) && evt.preventDefault()}
+                            onKeyDown={oneProperty.includes("carpan") ? (event) => handle_input_onKey(event) : null}
+                            onChange={(event) => handle_input_onChange(event, oneRow.satirNo, oneProperty)}
+                            sx={{
+                              // height: "100%",
+                              // pt: "0.3rem",
+                              color: isMinha ? "red" : null,
+                              // justifyItems: oneBaslik.yatayHiza,
+                              "& input::-webkit-outer-spin-button, & input::-webkit-inner-spin-button": {
+                                display: "none",
+                              },
+                              "& input[type=number]": {
+                                MozAppearance: "textfield",
+                              },
+                            }}
+                            // metrajValue={oneRow[oneProperty]}
+                            // value={metrajValue(oneRow, oneProperty, isMinha)}
+                            value={metrajValue(oneRow, oneProperty, isMinha)}
+                            inputProps={{
+                              style: {
+                                boxSizing: "border-box",
+                                // mt: "0.5rem",
+                                // height: "0.95rem",
+                                // minWidth: oneProperty.includes("aciklama") ? "min-content" : "4rem",
+                                // width: "min-content",
+                                textAlign: oneProperty.includes("carpan") || oneProperty.includes("metraj") ? "end" : oneProperty.includes("aciklama") ? "start" : "center"
+                              },
+                              step: "0.1", lang: "en-US"
+                            }}
+                          />
+                        </Box>
                       }
 
                       {!isCellEdit &&
                         <Box sx={{
                           ...css_metrajCetveliSatir,
                           justifyContent: oneProperty.includes("aciklama") ? "start" : oneProperty.includes("carpan") ? "end" : oneProperty.includes("metraj") ? "end" : "center",
-                          minWidth: oneProperty.includes("carpan") ? "5rem" : oneProperty.includes("metraj") ? "5rem" : null
-                        }}                        >
+                          minWidth: oneProperty.includes("carpan") ? "5rem" : oneProperty.includes("metraj") ? "5rem" : null,
+                          color: isMinha ? "red" : null
+                        }}>
                           {metrajValue(oneRow, oneProperty, isMinha)}
                         </Box>
                       }

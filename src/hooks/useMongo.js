@@ -164,6 +164,23 @@ export const useGetMahalListesi = () => {
 }
 
 
+export const useGetHazirlananMetraj = () => {
+
+  // const RealmApp = useApp();
+  const { RealmApp, selectedNode_metraj } = useContext(StoreContext)
+
+  return useQuery({
+    queryKey: ['hazirlananMetraj', selectedNode_metraj?._id.toString() + `--` + RealmApp.currentUser.customData.email],
+    queryFn: () => RealmApp?.currentUser.callFunction("getHazirlananMetraj", ({ _dugumId:selectedNode_metraj._id  })),
+    enabled: !!RealmApp && !!selectedNode_metraj,
+    refetchOnMount: true,
+    refetchOnWindowFocus: false,
+    // select: (data) => data.mahalListesi,
+  })
+
+}
+
+
 
 
 
