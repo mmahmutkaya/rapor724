@@ -100,7 +100,7 @@ exports = async function ({
     pozlar = pozlar.filter(onePoz => onePoz)
 
 
-    return pozlar
+    return {pozlar}
 
 
   } catch (error) {
