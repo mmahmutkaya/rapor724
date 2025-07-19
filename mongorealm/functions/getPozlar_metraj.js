@@ -67,7 +67,7 @@ exports = async function ({
     ]).toArray()
 
 
-    let { metrajYapabilenler } = proje.yetki.metrajYapabilenler
+    let { metrajYapabilenler } = proje.yetki
 
 
     pozlar = pozlar.map(onePoz => {
