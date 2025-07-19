@@ -72,8 +72,8 @@ exports = async function ({
     pozlar = pozlar.map(onePoz => {
 
       const onePoz2 = pozlar2.find(onePoz2 => onePoz2._id.toString() === onePoz._id.toString())
-      
-      if(!onePoz2){
+
+      if (!onePoz2) {
         return
       }
 
@@ -85,8 +85,8 @@ exports = async function ({
           toplam = oneArray.find(x => x.userEmail === oneYapabilen.userEmail).metraj + toplam
         })
         return ({
-          userEmail:oneYapabilen.userEmail,
-          metraj:toplam
+          userEmail: oneYapabilen.userEmail,
+          metraj: toplam
         })
       })
 
@@ -98,9 +98,9 @@ exports = async function ({
     // yukarıda !onePoz2 ise return diyerek undefined objeler oluşturmuştuk, bunları temizledik
     // yani bir dugume denk gelmemiş pozları, kullanılmayan pozları ayıkladık
     pozlar = pozlar.filter(onePoz => onePoz)
-  
 
-    return { pozlar, dugumler, metrajYapabilenler }
+
+    return pozlar
 
 
   } catch (error) {
