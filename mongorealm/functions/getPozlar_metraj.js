@@ -41,7 +41,7 @@ exports = async function ({
       }
     ]).toArray()
 
-    
+    return pozlar
     const pozlar2 = await collection_Dugumler.aggregate([
       {
         $match: {
