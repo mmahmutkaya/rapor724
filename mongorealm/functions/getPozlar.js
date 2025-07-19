@@ -16,7 +16,7 @@ exports = async function ({
 
   if (!_projeId) throw new Error("MONGO // getPozlar // -- sorguya gönderilen --projeId-- türü doğru değil, lütfen Rapor7/24 ile irtibata geçiniz. ")
 
-  const proje = collection_Projeler.findOne({ _id: _projeId })
+  const proje = await collection_Projeler.findOne({ _id: _projeId })
 
 
   try {
