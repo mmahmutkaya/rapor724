@@ -48,24 +48,32 @@ exports = async function ({
       {
         $project: {
           _pozId: 1,
-          _mahalId: 1
+          _mahalId: 1,
+          hazirlananMetrajlar:1,
+          onaylananMetraj:1
         }
       },
       {
         $group: {
-          _id: "$_pozId"
+          _id: "$_pozId",
+          hazirlananMetrajlar:{$push:"$hazirlananMetrajlar"},
+          onaylananMetraj:{$sum:"$onaylananMetraj"}
         }
       }
     ]).toArray()
 
-    pozlar = pozlar.map(x => {
-      if(dugumler.find(y => y._id.toString() === x._id.toString())){
-        x.hasMahal = true
-      }
-      return x
-    })
 
-    return pozlar
+
+    
+
+    // pozlar = pozlar.map(x => {
+    //   if(dugumler.find(y => y._id.toString() === x._id.toString())){
+    //     x.hasMahal = true
+    //   }
+    //   return x
+    // })
+
+    return {pozlar, dugumler}
 
 
   } catch (error) {
