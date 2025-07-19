@@ -11,9 +11,12 @@ exports = async function ({
 
   const collection_Pozlar = context.services.get("mongodb-atlas").db("rapor724_v2").collection("pozlar")
   const collection_Dugumler = context.services.get("mongodb-atlas").db("rapor724_v2").collection("dugumler")
+  const collection_Projeler = context.services.get("mongodb-atlas").db("rapor724_v2").collection("projeler")
 
 
   if (!_projeId) throw new Error("MONGO // getPozlar // -- sorguya gönderilen --projeId-- türü doğru değil, lütfen Rapor7/24 ile irtibata geçiniz. ")
+
+  const proje = collection_Projeler.findOne({ _id: _projeId })
 
 
   try {
@@ -49,38 +52,60 @@ exports = async function ({
         $project: {
           _pozId: 1,
           _mahalId: 1,
-          hazirlananMetrajlar:1,
-          onaylananMetraj:1
+          hazirlananMetrajlar: 1,
+          onaylananMetraj: 1
         }
       },
       {
         $group: {
           _id: "$_pozId",
-          hazirlananMetrajlar:{$push:"$hazirlananMetrajlar"},
-          onaylananMetraj:{$sum:"$onaylananMetraj"}
+          hazirlananMetrajlar: { $push: "$hazirlananMetrajlar" },
+          onaylananMetraj: { $sum: "$onaylananMetraj" }
         }
       }
     ]).toArray()
 
 
+    let { metrajYapabilenler } = proje
 
-    
 
-    // pozlar = pozlar.map(x => {
-    //   if(dugumler.find(y => y._id.toString() === x._id.toString())){
-    //     x.hasMahal = true
-    //   }
-    //   return x
-    // })
+    pozlar = pozlar.map(onePoz => {
 
-    return {pozlar, dugumler}
+      const dugum = dugumler.find(oneDugum => oneDugum._pozId.toString() === onePoz._id.toString())
+      
+      if(!dugum){
+        return
+      }
+
+      onePoz.onaylananMetraj = dugum.onaylananMetraj
+
+      onePoz.hazirlananMetrajlar = metrajYapabilenler.map(oneYapabilen => {
+        let toplam = 0
+        dugum.hazirlananMetrajlar.map(oneArray => {
+          toplam = oneArray.find(x => x.userEmail === oneYapabilen.userEmail).metraj + toplam
+        })
+        return ({
+          userEmail:oneYapabilen.userEmail,
+          metraj:toplam
+        })
+      })
+
+      return onePoz
+
+    })
+
+
+    // yukarıda !dugum ise return diyerek undefined objeler oluşturmuştuk, bunları temizledik
+    // yani bir dugume denk gelmemiş pozları, kullanılmayan pozları ayıkladık
+    pozlar = pozlar.filter(onePoz => onePoz)
+  
+
+    return { pozlar, dugumler }
 
 
   } catch (error) {
     throw new Error({ hatayeri: "MONGO // getPozlar // ", error });
   }
-
-
 
 
 };
