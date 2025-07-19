@@ -56,7 +56,7 @@ exports = async function ({
       {
         $group: {
           _id: "$_pozId",
-          hazirlananMetrajlar:{$push:{$hazirlananMetrajlar}}
+          hazirlananMetrajlar:{$push:"$hazirlananMetrajlar"}
         }
       }
     ]).toArray()
