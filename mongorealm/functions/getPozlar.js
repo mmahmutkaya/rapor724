@@ -55,17 +55,22 @@ exports = async function ({
       },
       {
         $group: {
-          _id: "$_pozId"
+          _id: "$_pozId",
+          hazirlananMetrajlar:{$push:{$hazirlananMetrajlar}}
         }
       }
     ]).toArray()
 
-    pozlar = pozlar.map(x => {
-      if(dugumler.find(y => y._id.toString() === x._id.toString())){
-        x.hasMahal = true
-      }
-      return x
-    })
+
+
+    
+
+    // pozlar = pozlar.map(x => {
+    //   if(dugumler.find(y => y._id.toString() === x._id.toString())){
+    //     x.hasMahal = true
+    //   }
+    //   return x
+    // })
 
     return {pozlar, dugumler}
 
