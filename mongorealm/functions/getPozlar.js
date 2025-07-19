@@ -41,7 +41,7 @@ exports = async function ({
     ]).toArray()
 
 
-    const dugumler = await collection_Dugumler.aggregate([
+    const pozlar2 = await collection_Dugumler.aggregate([
       {
         $match: {
           _projeId,
@@ -69,38 +69,38 @@ exports = async function ({
     let { metrajYapabilenler } = proje
 
 
-    // pozlar = pozlar.map(onePoz => {
+    pozlar = pozlar.map(onePoz => {
 
-    //   const dugum = dugumler.find(oneDugum => oneDugum._pozId.toString() === onePoz._id.toString())
+      const onePoz2 = pozlar2.find(onePoz2 => onePoz2._id.toString() === onePoz._id.toString())
       
-    //   if(!dugum){
-    //     return
-    //   }
+      if(!onePoz2){
+        return
+      }
 
-    //   onePoz.onaylananMetraj = dugum.onaylananMetraj
+      onePoz.onaylananMetraj = onePoz2.onaylananMetraj
 
-    //   onePoz.hazirlananMetrajlar = metrajYapabilenler.map(oneYapabilen => {
-    //     let toplam = 0
-    //     dugum.hazirlananMetrajlar.map(oneArray => {
-    //       toplam = oneArray.find(x => x.userEmail === oneYapabilen.userEmail).metraj + toplam
-    //     })
-    //     return ({
-    //       userEmail:oneYapabilen.userEmail,
-    //       metraj:toplam
-    //     })
-    //   })
+      onePoz.hazirlananMetrajlar = metrajYapabilenler.map(oneYapabilen => {
+        let toplam = 0
+        onePoz2.hazirlananMetrajlar.map(oneArray => {
+          toplam = oneArray.find(x => x.userEmail === oneYapabilen.userEmail).metraj + toplam
+        })
+        return ({
+          userEmail:oneYapabilen.userEmail,
+          metraj:toplam
+        })
+      })
 
-    //   return onePoz
+      return onePoz
 
-    // })
+    })
 
 
-    // yukarıda !dugum ise return diyerek undefined objeler oluşturmuştuk, bunları temizledik
+    // yukarıda !onePoz2 ise return diyerek undefined objeler oluşturmuştuk, bunları temizledik
     // yani bir dugume denk gelmemiş pozları, kullanılmayan pozları ayıkladık
     pozlar = pozlar.filter(onePoz => onePoz)
   
 
-    return { pozlar, dugumler,metrajYapabilenler }
+    return { pozlar, dugumler, metrajYapabilenler }
 
 
   } catch (error) {
