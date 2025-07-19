@@ -69,30 +69,30 @@ exports = async function ({
     let { metrajYapabilenler } = proje
 
 
-    pozlar = pozlar.map(onePoz => {
+    // pozlar = pozlar.map(onePoz => {
 
-      const dugum = dugumler.find(oneDugum => oneDugum._pozId.toString() === onePoz._id.toString())
+    //   const dugum = dugumler.find(oneDugum => oneDugum._pozId.toString() === onePoz._id.toString())
       
-      if(!dugum){
-        return
-      }
+    //   if(!dugum){
+    //     return
+    //   }
 
-      onePoz.onaylananMetraj = dugum.onaylananMetraj
+    //   onePoz.onaylananMetraj = dugum.onaylananMetraj
 
-      onePoz.hazirlananMetrajlar = metrajYapabilenler.map(oneYapabilen => {
-        let toplam = 0
-        dugum.hazirlananMetrajlar.map(oneArray => {
-          toplam = oneArray.find(x => x.userEmail === oneYapabilen.userEmail).metraj + toplam
-        })
-        return ({
-          userEmail:oneYapabilen.userEmail,
-          metraj:toplam
-        })
-      })
+    //   onePoz.hazirlananMetrajlar = metrajYapabilenler.map(oneYapabilen => {
+    //     let toplam = 0
+    //     dugum.hazirlananMetrajlar.map(oneArray => {
+    //       toplam = oneArray.find(x => x.userEmail === oneYapabilen.userEmail).metraj + toplam
+    //     })
+    //     return ({
+    //       userEmail:oneYapabilen.userEmail,
+    //       metraj:toplam
+    //     })
+    //   })
 
-      return onePoz
+    //   return onePoz
 
-    })
+    // })
 
 
     // yukarıda !dugum ise return diyerek undefined objeler oluşturmuştuk, bunları temizledik
@@ -100,7 +100,7 @@ exports = async function ({
     pozlar = pozlar.filter(onePoz => onePoz)
   
 
-    return { pozlar, dugumler }
+    return { pozlar, dugumler,metrajYapabilenler }
 
 
   } catch (error) {
