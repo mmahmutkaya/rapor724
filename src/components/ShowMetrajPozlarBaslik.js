@@ -15,7 +15,7 @@ import { DialogTitle, Typography } from '@mui/material';
 
 
 
-export default function ShowFirmaPozBaslik({ setShow, basliklar, setBasliklar, showHasMahal, setShowHasMahal }) {
+export default function ShowFirmaPozBaslik({ setShow, basliklar, setBasliklar }) {
 
   const RealmApp = useApp();
   const [dialogAlert, setDialogAlert] = useState()
@@ -38,35 +38,6 @@ export default function ShowFirmaPozBaslik({ setShow, basliklar, setBasliklar, s
 
       // db ye gönderme işlemi
       await RealmApp?.currentUser.callFunction("customSettings_update", ({ functionName: "sayfaBasliklari", sayfaName: "metrajpozlar", baslikId, showValue }))
-      await RealmApp?.currentUser.refreshCustomData()
-
-      return
-
-    } catch (err) {
-
-      console.log(err)
-
-      setDialogAlert({
-        dialogIcon: "warning",
-        dialogMessage: "Beklenmedik hata, Rapor7/24 ile irtibata geçiniz..",
-        detailText: err?.message ? err.message : null
-      })
-
-    }
-
-  }
-
-
-
-  const toggle_showHasMahal = async (showHasMahal) => {
-
-    try {
-
-      // frontend de hızlı olsun diye önce bu sonra arkada db güncelleme 
-      setShowHasMahal(showHasMahal)
-
-      // db ye gönderme işlemi
-      await RealmApp?.currentUser.callFunction("customSettings_update", ({ functionName: "toggle_showHasMahal", sayfaName: "metrajpozlar", showValue: showHasMahal }))
       await RealmApp?.currentUser.refreshCustomData()
 
       return

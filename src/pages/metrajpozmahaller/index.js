@@ -173,8 +173,9 @@ export default function P_MetrajPozMahaller() {
     border: "1px solid black", px: "0.5rem", display: "grid", justifyContent: "start"
   }
 
+  const gridTemplateColumns2 = `auto 1fr auto auto${editNodeMetraj ? " 0.5rem auto" : ""}`
 
-  const gridTemplateColumns1 = `auto 1fr auto auto${editNodeMetraj ? " 0.5rem auto" : ""}`
+  const gridTemplateColumns1 = `min-content 1fr max-content min-content${editNodeMetraj ? " 1rem min-content" : ""}`
 
   return (
 
@@ -255,14 +256,12 @@ export default function P_MetrajPozMahaller() {
                 <Box sx={{ ...css_LbsBaslik }}>  {"lbs miktar"} </Box>
                 <Box sx={{ ...css_LbsBaslik, justifyContent: "center" }}> {pozBirimName} </Box>
                 {editNodeMetraj &&
-                  selectedProje?.metrajYapabilenler.map((x, index) => {
-                    return (
-                      <React.Fragment key={index}>
-                        <Box></Box>
-                        <Box key={index} sx={{ ...css_LbsBaslik, borderLeft: index == 0 && "1px solid black" }}></Box>
-                      </React.Fragment>
-                    )
-                  })
+                  <>
+                    <Box> </Box>
+                    <Box sx={{ ...css_enUstBaslik, borderLeft: "1px solid black", justifyContent: "center" }}>
+                      {"deneme"}
+                    </Box>
+                  </>
                 }
 
 

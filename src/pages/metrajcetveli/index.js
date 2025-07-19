@@ -319,9 +319,7 @@ export default function P_MetrajCetveli() {
   }
 
 
-  // const gridTemplateColumns1 = 'min-content minmax(min-content, 10fr) repeat(7, minmax(min-content, 2fr)) 1rem min-content'
   const gridTemplateColumns1 = 'min-content minmax(min-content, 5fr) repeat(7, minmax(min-content, 1fr)) 1rem min-content'
-  const gridTemplateColumns2 = 'min-content minmax(min-content, 5fr) repeat(7, minmax(min-content, 1fr)) 1rem min-content'
 
   pozBirim = selectedProje?.pozBirimleri.find(item => item.id == selectedPoz_metraj?.pozBirimId)?.name
 
@@ -355,7 +353,7 @@ export default function P_MetrajCetveli() {
 
       {hazirlananMetraj_state &&
 
-        < Box sx={{ display: "grid", gridTemplateColumns: show === "EditMetraj" ? gridTemplateColumns2 : gridTemplateColumns1, mt: subHeaderHeight, mb: "1rem", mx: "1rem" }}>
+        < Box sx={{ display: "grid", gridTemplateColumns: gridTemplateColumns1, mt: subHeaderHeight, mb: "1rem", mx: "1rem" }}>
 
 
           {/* En Üst Başlık Satırı */}

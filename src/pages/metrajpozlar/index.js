@@ -6,7 +6,7 @@ import { useNavigate } from "react-router-dom";
 
 
 import { StoreContext } from '../../components/store'
-import { useGetPozlar } from '../../hooks/useMongo';
+import { useGetPozlar_metraj } from '../../hooks/useMongo';
 import getWbsName from '../../functions/getWbsName';
 
 
@@ -30,9 +30,7 @@ export default function P_MetrajPozlar() {
   const navigate = useNavigate()
   const queryClient = useQueryClient()
 
-  const { data: pozlar } = useGetPozlar()
-  const pozlar_hasMahal = pozlar?.filter(onePoz => onePoz.hasMahal)
-
+  const { data: pozlar } = useGetPozlar_metraj()
 
   const { RealmApp, myTema } = useContext(StoreContext)
   const { selectedProje } = useContext(StoreContext)
@@ -51,14 +49,24 @@ export default function P_MetrajPozlar() {
   }, [])
 
   const [basliklar, setBasliklar] = useState(RealmApp.currentUser.customData.customSettings.pages.metrajpozlar.basliklar)
-  // console.log("dd",RealmApp.currentUser.customData.customSettings.pages.metrajpozlar.showHasMahal)
-  const [showHasMahal, setShowHasMahal] = useState(RealmApp.currentUser.customData.customSettings.pages.metrajpozlar.showHasMahal)
 
 
   const pozAciklamaShow = basliklar?.find(x => x.id === "aciklama").show
   const pozVersiyonShow = basliklar?.find(x => x.id === "versiyon").show
 
-  const wbsArray_hasMahal = selectedProje?.wbs.filter(oneWbs => pozlar_hasMahal?.find(onePoz => onePoz._wbsId.toString() === oneWbs._id.toString()))
+  const wbsArray_hasMahal = selectedProje?.wbs.filter(oneWbs => pozlar?.find(onePoz => onePoz._wbsId.toString() === oneWbs._id.toString()))
+
+
+
+  const ikiHane = (value) => {
+    if (!value) {
+      return ""
+    }
+    if (value != "") {
+      return new Intl.NumberFormat("de-DE", { minimumFractionDigits: 2, maximumFractionDigits: 2, }).format(value)
+    }
+    return value
+  }
 
 
   // CSS
@@ -129,7 +137,6 @@ export default function P_MetrajPozlar() {
         <ShowMetrajPozlarBaslik
           setShow={setShow}
           basliklar={basliklar} setBasliklar={setBasliklar}
-          showHasMahal={showHasMahal} setShowHasMahal={setShowHasMahal}
         />
       }
 
@@ -145,7 +152,7 @@ export default function P_MetrajPozlar() {
 
 
       {/* EĞER POZ YOKSA */}
-      {show == "Main" && selectedProje?.wbs?.find(x => x.openForPoz === true) && !pozlar_hasMahal?.length > 0 &&
+      {show == "Main" && selectedProje?.wbs?.find(x => x.openForPoz === true) && !pozlar?.length > 0 &&
         <Stack sx={{ width: '100%', m: "0rem", p: "1rem" }} spacing={2}>
           <Alert severity="info">
             Herhangi bir mahal, herhangi bir poz ile henüz eşleştirilmemiş, 'mahallistesi' menüsüne gidiniz.
@@ -156,7 +163,7 @@ export default function P_MetrajPozlar() {
 
       {/* ANA SAYFA - POZLAR VARSA */}
 
-      {show == "Main" && wbsArray_hasMahal && pozlar_hasMahal?.length > 0 &&
+      {show == "Main" && wbsArray_hasMahal && pozlar?.length > 0 &&
 
         <Box sx={{ m: "1rem", mt: "4.5rem", display: "grid", gridTemplateColumns: columns }}>
 
@@ -264,19 +271,13 @@ export default function P_MetrajPozlar() {
 
 
                 {/* WBS'İN POZLARI */}
-                {pozlar_hasMahal?.filter(x => x._wbsId.toString() === oneWbs._id.toString()).map((onePoz, index) => {
+                {pozlar?.filter(x => x._wbsId.toString() === oneWbs._id.toString()).map((onePoz, index) => {
 
                   let isSelected = false
-
-                  if (!showHasMahal && !onePoz.hasMahal) {
-                    return
-                  }
 
                   if (selectedPoz_metraj?._id.toString() === onePoz._id.toString()) {
                     isSelected = true
                   }
-
-                  console.log("onePoz",onePoz)
 
                   return (
                     // <Box key={index} onDoubleClick={() => navigate('/metrajpozmahaller')} onClick={() => setSelectedPoz_metraj(onePoz)} sx={{ "&:hover": { "& .childClass": { display: "block" } }, cursor: "pointer", display: "grid", }}>
@@ -291,8 +292,8 @@ export default function P_MetrajPozlar() {
                         <Box className="childClass" sx={{ ml: "-1rem", backgroundColor: "white", height: "0.5rem", width: "0.5rem", borderRadius: "50%" }}>
 
                         </Box>
-                        <Box>
-                          {onePoz?.miktar}
+                        <Box sx={{justifySelf:"end"}}>
+                          {ikiHane(onePoz?.onaylananMetraj)}
                         </Box>
                       </Box>
                       <Box sx={{ ...pozNo_css }}>

@@ -138,35 +138,35 @@
 
 
 
-  const customSettings = {
-    pages:{
-      firmapozlari:{
-        basliklar:[
-          { id: "aciklama", baslikName:"Açıklama", visible: true, show: true },
-          { id: "versiyon", baslikName:"Versiyon", visible: true, show: true }
-        ]
-      },
-      pozlar:{
-        basliklar:[
-          { id: "aciklama", baslikName:"Açıklama", visible: true, show: true },
-          { id: "versiyon", baslikName:"Versiyon", visible: true, show: true }
-        ]
-      },
-      mahaller:{
-        basliklar:[
-          { id: "aciklama", baslikName:"Açıklama", visible: true, show: true },
-          { id: "versiyon", baslikName:"Versiyon", visible: true, show: true }
-        ]
-      },
-      metrajpozlar:{
-        basliklar:[
-          { id: "aciklama", baslikName:"Açıklama", visible: true, show: true },
-          { id: "versiyon", baslikName:"Versiyon", visible: true, show: true }
-        ],
-        showHasMahal:false
-      }
+const customSettings = {
+  pages: {
+    firmapozlari: {
+      basliklar: [
+        { id: "aciklama", baslikName: "Açıklama", visible: true, show: true },
+        { id: "versiyon", baslikName: "Versiyon", visible: true, show: true }
+      ]
+    },
+    pozlar: {
+      basliklar: [
+        { id: "aciklama", baslikName: "Açıklama", visible: true, show: true },
+        { id: "versiyon", baslikName: "Versiyon", visible: true, show: true }
+      ]
+    },
+    mahaller: {
+      basliklar: [
+        { id: "aciklama", baslikName: "Açıklama", visible: true, show: true },
+        { id: "versiyon", baslikName: "Versiyon", visible: true, show: true }
+      ]
+    },
+    metrajpozlar: {
+      basliklar: [
+        { id: "aciklama", baslikName: "Açıklama", visible: true, show: true },
+        { id: "versiyon", baslikName: "Versiyon", visible: true, show: true }
+      ],
+      showHasMahal: false
     }
   }
+}
 
 
 use('rapor724_v2');
@@ -216,3 +216,25 @@ db["users"].updateMany(
 
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+
+
+const yetki = [{
+  sahipler: [
+    { userEmail: "mmahmutkaya999@gmail.com" }
+  ],
+  metrajYapabilenler:[
+    {}
+  ]
+}]
+
+
+
+use('rapor724_v2');
+db["projeler"].updateMany(
+  {},
+  {
+    $set: { pozBasliklari, metrajYapabilenler, mahalBasliklari }
+  }
+)
+

@@ -89,6 +89,27 @@ export const useGetPozlar = (onSuccess, onError) => {
 
 
 
+
+export const useGetPozlar_metraj = () => {
+
+  // const RealmApp = useApp();
+  const { selectedProje, RealmApp } = useContext(StoreContext)
+
+  return useQuery({
+    queryKey: ['pozlar_metraj', selectedProje?._id.toString()],
+    queryFn: () => RealmApp?.currentUser.callFunction("getPozlar_metraj", ({ _projeId: selectedProje?._id })),
+    enabled: !!RealmApp && !!selectedProje,
+    refetchOnMount: true,
+    refetchOnWindowFocus: false,
+    staleTime: 5 * 60 * 1000,
+    // select: (data) => data[0]
+  })
+
+}
+
+
+
+
 export const useGetMahaller = (onSuccess, onError) => {
 
   // const RealmApp = useApp();
@@ -171,7 +192,7 @@ export const useGetHazirlananMetraj = () => {
 
   return useQuery({
     queryKey: ['hazirlananMetraj', selectedNode_metraj?._id.toString() + `--` + RealmApp.currentUser.customData.email],
-    queryFn: () => RealmApp?.currentUser.callFunction("getHazirlananMetraj", ({ _dugumId:selectedNode_metraj._id  })),
+    queryFn: () => RealmApp?.currentUser.callFunction("getHazirlananMetraj", ({ _dugumId: selectedNode_metraj._id })),
     enabled: !!RealmApp && !!selectedNode_metraj,
     refetchOnMount: true,
     refetchOnWindowFocus: false,
@@ -257,27 +278,6 @@ export const useGetOnaylananMetraj = ({ selectedNode }) => {
 
 }
 
-
-
-
-
-
-export const useGetPozlarMetraj = () => {
-
-  // const RealmApp = useApp();
-  const { selectedProje, RealmApp } = useContext(StoreContext)
-
-  return useQuery({
-    queryKey: ['pozlarMetraj', selectedProje?._id.toString()],
-    queryFn: () => RealmApp?.currentUser.callFunction("collectionDugumler", ({ functionName: "getPozlarMetraj", _projectId: selectedProje?._id })),
-    enabled: !!RealmApp && !!selectedProje,
-    refetchOnMount: true,
-    refetchOnWindowFocus: false,
-    staleTime: 5 * 60 * 1000,
-    // select: (data) => data[0]
-  })
-
-}
 
 
 
