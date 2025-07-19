@@ -9,6 +9,7 @@ exports = async function ({
   const mailTeyit = user.custom_data.mailTeyit
   if (!mailTeyit) throw new Error("MONGO // collection_firmaPozlar // Öncelikle üyeliğinize ait mail adresinin size ait olduğunu doğrulamalısınız, tekrar giriş yapmayı deneyiniz veya bizimle iletişime geçiniz.")
 
+  
   const collection_Pozlar = context.services.get("mongodb-atlas").db("rapor724_v2").collection("pozlar")
   const collection_Dugumler = context.services.get("mongodb-atlas").db("rapor724_v2").collection("dugumler")
   const collection_Projeler = context.services.get("mongodb-atlas").db("rapor724_v2").collection("projeler")
@@ -41,63 +42,65 @@ exports = async function ({
     ]).toArray()
 
 
-    const pozlar2 = await collection_Dugumler.aggregate([
-      {
-        $match: {
-          _projeId,
-          openMetraj: true
-        }
-      },
-      {
-        $project: {
-          _pozId: 1,
-          _mahalId: 1,
-          hazirlananMetrajlar: 1,
-          onaylananMetraj: 1
-        }
-      },
-      {
-        $group: {
-          _id: "$_pozId",
-          hazirlananMetrajlar: { $push: "$hazirlananMetrajlar" },
-          onaylananMetraj: { $sum: "$onaylananMetraj" }
-        }
-      }
-    ]).toArray()
+    // bu  kısımlar getPozlar_metraj - fonksşyonunda kullanılıyor
+    
+    // const pozlar2 = await collection_Dugumler.aggregate([
+    //   {
+    //     $match: {
+    //       _projeId,
+    //       openMetraj: true
+    //     }
+    //   },
+    //   {
+    //     $project: {
+    //       _pozId: 1,
+    //       _mahalId: 1,
+    //       hazirlananMetrajlar: 1,
+    //       onaylananMetraj: 1
+    //     }
+    //   },
+    //   {
+    //     $group: {
+    //       _id: "$_pozId",
+    //       hazirlananMetrajlar: { $push: "$hazirlananMetrajlar" },
+    //       onaylananMetraj: { $sum: "$onaylananMetraj" }
+    //     }
+    //   }
+    // ]).toArray()
 
 
-    let { metrajYapabilenler } = proje
+    // let { metrajYapabilenler } = proje.yetki.metrajYapabilenler
 
 
-    pozlar = pozlar.map(onePoz => {
+    // pozlar = pozlar.map(onePoz => {
 
-      const onePoz2 = pozlar2.find(onePoz2 => onePoz2._id.toString() === onePoz._id.toString())
+    //   const onePoz2 = pozlar2.find(onePoz2 => onePoz2._id.toString() === onePoz._id.toString())
 
-      if (!onePoz2) {
-        return
-      }
+    //   if (!onePoz2) {
+    //     return
+    //   }
 
-      onePoz.onaylananMetraj = onePoz2.onaylananMetraj
+    //   onePoz.onaylananMetraj = onePoz2.onaylananMetraj
 
-      onePoz.hazirlananMetrajlar = metrajYapabilenler.map(oneYapabilen => {
-        let toplam = 0
-        onePoz2.hazirlananMetrajlar.map(oneArray => {
-          toplam = oneArray.find(x => x.userEmail === oneYapabilen.userEmail).metraj + toplam
-        })
-        return ({
-          userEmail: oneYapabilen.userEmail,
-          metraj: toplam
-        })
-      })
+    //   onePoz.hazirlananMetrajlar = metrajYapabilenler.map(oneYapabilen => {
+    //     let toplam = 0
+    //     onePoz2.hazirlananMetrajlar.map(oneArray => {
+    //       toplam = oneArray.find(x => x.userEmail === oneYapabilen.userEmail).metraj + toplam
+    //     })
+    //     return ({
+    //       userEmail: oneYapabilen.userEmail,
+    //       metraj: toplam
+    //     })
+    //   })
 
-      return onePoz
+    //   return onePoz
 
-    })
+    // })
 
 
-    // yukarıda !onePoz2 ise return diyerek undefined objeler oluşturmuştuk, bunları temizledik
-    // yani bir dugume denk gelmemiş pozları, kullanılmayan pozları ayıkladık
-    pozlar = pozlar.filter(onePoz => onePoz)
+    // // yukarıda !onePoz2 ise return diyerek undefined objeler oluşturmuştuk, bunları temizledik
+    // // yani bir dugume denk gelmemiş pozları, kullanılmayan pozları ayıkladık
+    // pozlar = pozlar.filter(onePoz => onePoz)
 
 
     return pozlar
