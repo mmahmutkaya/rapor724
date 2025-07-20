@@ -41,6 +41,8 @@ exports = async function ({ isim, soyisim }) {
 
   const users = await collection_Users.find({},{userCode:1}).toArray()
 
+  return users
+
   if(users.length){
     
     let benzerVar
