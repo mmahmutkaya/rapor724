@@ -39,7 +39,7 @@ exports = async function ({ isim, soyisim }) {
   
   const collection_Users = context.services.get("mongodb-atlas").db("rapor724_v2").collection("users")
 
-  const users = await collection_Users.find({},{userCode}).toArray()
+  const users = await collection_Users.find({},{userCode:1}).toArray()
 
   if(users.length){
     
