@@ -41,7 +41,6 @@ exports = async function ({ isim, soyisim }) {
 
   const users = await collection_Users.find({},{userCode:1}).toArray()
 
-  return users
 
   if(users.length){
     
@@ -52,7 +51,7 @@ exports = async function ({ isim, soyisim }) {
 
       let oneCode = oneUser.userCode
       
-      if(oneCode.substring(0,4) === userCode){
+      if(oneCode?.substring(0,4) === userCode){
         
         benzerVar = true
         let theNumber = parseInt(oneCode.substring(4,oneCode.length))
