@@ -33,13 +33,41 @@ exports = async function ({ isim, soyisim }) {
     return errorObj
   }
 
-  const userEmail = context.user.data.email
 
   const collection_Users = context.services.get("mongodb-atlas").db("rapor724_v2").collection("users")
+
+  
+  let userCode = isim.substring(0, 3) + soyisim.substring(0, 3)
+  let kullanilmis
+  i = 1
+  kullanilmis = await collection_Users.findOne({userCode})
+  
+  if(!kullanilmis) {
+    
+    return
+    
+  } else {
+    
+    start_position: while (true) {
+      
+        userCode + i
+        kullanilmis = await collection_Users.findOne({userCode})
+        i++;
+      
+        if (kullanilmis) continue start_position;
+        break;
+    }
+
+  }
+
+  
+
+  const userEmail = context.user.data.email
+
   try {
     const result = await collection_Users.updateOne({ email: userEmail },
       [
-        { $set: { isim, soyisim } }
+        { $set: { isim, soyisim, userCode } }
       ]
     )
     return result
