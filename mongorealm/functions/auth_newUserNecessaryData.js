@@ -67,7 +67,7 @@ exports = async function ({ isim, soyisim }) {
   try {
     const result = await collection_Users.updateOne({ email: userEmail },
       [
-        { $set: { isim, soyisim, userCode } }
+        { $set: { isim, soyisim } }
       ]
     )
     return result
