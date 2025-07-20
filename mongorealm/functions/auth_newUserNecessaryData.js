@@ -39,14 +39,16 @@ exports = async function ({ isim, soyisim }) {
   
   const collection_Users = context.services.get("mongodb-atlas").db("rapor724_v2").collection("users")
 
-  const userCodes = await collection_Users.find({},{userCode}).toArray()
+  const users = await collection_Users.find({},{userCode}).toArray()
 
-  if(userCodes.length){
+  if(users.length){
     
     let benzervar
     let maxNumber = 1
     
-    userCodes.map(oneCode => {
+    users.map(oneUser => {
+
+      let oneCode = oneUser.userCode
       
       if(oneCode.substring(0,4) === userCode){
         
