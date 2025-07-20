@@ -42,19 +42,27 @@ exports = async function ({ isim, soyisim }) {
   kullanilmis = await collection_Users.findOne({userCode})
   
   i = 1
-  if(kullanilmis) {
+  // if(kullanilmis) {
     
-    start_position: while (true) {
+  //   start_position: while (true) {
       
-        userCode + i
-        kullanilmis = await collection_Users.findOne({userCode})
+  //       userCode + i
+  //       kullanilmis = await collection_Users.findOne({userCode})
       
-        i++;
-        if (kullanilmis) continue start_position;
-        break;
-    }
+  //       i++;
+  //       if (kullanilmis) continue start_position;
+  //       break;
+  //   }
     
-  } 
+  // } 
+
+
+  while (kullanilmis) {
+    userCode + i
+    kullanilmis = await collection_Users.findOne({userCode})
+    i++;
+  }
+    
 
   
 
