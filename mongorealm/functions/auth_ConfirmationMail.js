@@ -10,8 +10,7 @@ exports = async function (mailCode) {
 
     await context.services.get("mongodb-atlas").db("rapor724_v2").collection("users").updateOne(
       { email },
-      { $set: { "mailTeyit": true } },
-      { upsert: true }
+      { $set: { "mailTeyit": true } }
     )
     return "teyit edildi" 
   }
