@@ -33,6 +33,7 @@ export default function P_MetrajPozlar() {
   const { data: pozlar } = useGetPozlar_metraj()
 
   const { RealmApp, myTema } = useContext(StoreContext)
+  const { customData } = RealmApp.currentUser
   const { selectedProje } = useContext(StoreContext)
   const { selectedPoz_metraj, setSelectedPoz_metraj } = useContext(StoreContext)
   const { editNodeMetraj, setEditNodeMetraj } = useContext(StoreContext)
@@ -216,7 +217,7 @@ export default function P_MetrajPozlar() {
               <>
                 <Box></Box>
                 <Box sx={{ ...enUstBaslik_css }}>
-                  {RealmApp.currentUser.customData.isim}
+                  {customData.isim}
                 </Box>
               </>
             }
@@ -290,9 +291,8 @@ export default function P_MetrajPozlar() {
                       </Box>
                       <Box onDoubleClick={() => goTo_MetrajPozmahaller(onePoz)} sx={{ ...pozNo_css, cursor: "pointer", display: "grid", gridTemplateColumns: "1rem 1fr", "&:hover": { "& .childClass": { backgroundColor: "red" } } }}>
                         <Box className="childClass" sx={{ ml: "-1rem", backgroundColor: "white", height: "0.5rem", width: "0.5rem", borderRadius: "50%" }}>
-
                         </Box>
-                        <Box sx={{justifySelf:"end"}}>
+                        <Box sx={{ justifySelf: "end" }}>
                           {ikiHane(onePoz?.onaylananMetraj)}
                         </Box>
                       </Box>
@@ -324,11 +324,11 @@ export default function P_MetrajPozlar() {
                       {editNodeMetraj &&
                         <>
                           <Box />
-                          <Box onDoubleClick={() => goTo_MetrajPozmahaller(onePoz)} sx={{ ...pozNo_css, cursor: "pointer", backgroundColor: "yellow", cursor: "pointer", display: "grid", gridTemplateColumns: "1rem 1fr", "&:hover": { "& .childClass": { backgroundColor: "red" } } }}>
+                          <Box onDoubleClick={() => goTo_MetrajPozmahaller(onePoz)} sx={{ ...pozNo_css, justifyContent: "end", cursor: "pointer", backgroundColor: "yellow", cursor: "pointer", display: "grid", gridTemplateColumns: "1rem 1fr", "&:hover": { "& .childClass": { backgroundColor: "red" } } }}>
                             <Box className="childClass" sx={{ ml: "-1rem", backgroundColor: "yellow", height: "0.5rem", width: "0.5rem", borderRadius: "50%" }}>
                             </Box>
-                            <Box>
-                              {".. m2"}
+                            <Box sx={{ justifySelf: "end" }}>
+                              {ikiHane(onePoz?.hazirlananMetrajlar.find(x => x.userEmail === customData.email).metraj)}
                             </Box>
                           </Box>
                         </>

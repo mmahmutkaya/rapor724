@@ -21,7 +21,7 @@ import { BorderBottom } from '@mui/icons-material';
 export default function P_MetrajPozMahaller() {
 
   const { RealmApp, selectedProje, setSelectedProje } = useContext(StoreContext)
-  // const currentUser = console.log(RealmApp)
+
   const customData = RealmApp.currentUser.customData
 
   const { selectedPoz_metraj } = useContext(StoreContext)
@@ -37,12 +37,11 @@ export default function P_MetrajPozMahaller() {
 
   const navigate = useNavigate()
 
-  const pozBirimName = selectedProje?.pozBirimleri.find(x => x.id == selectedPoz_metraj?.pozBirimId)?.name
+  const pozBirim = selectedProje?.pozBirimleri.find(x => x.id == selectedPoz_metraj?.pozBirimId)?.name
 
 
   const { data: mahaller } = useGetMahaller()
   const { data: dugumler_byPoz } = useGetDugumler_byPoz()
-  // console.log("dugumler_byPoz",dugumler_byPoz)
 
   const mahaller_byPoz = mahaller?.filter(oneMahal => dugumler_byPoz?.find(oneDugum => oneDugum._mahalId.toString() === oneMahal._id.toString()))
 
@@ -126,7 +125,7 @@ export default function P_MetrajPozMahaller() {
 
   count = 0
   let userSirali = "user"
-  selectedProje?.metrajYapabilenler.map((x, index) => {
+  selectedProje?.yetki.metrajYapabilenler.map((x, index) => {
     count = count + 1
     return (
       userSirali = index == 0 ? userSirali + count : userSirali + " user" + count
@@ -136,7 +135,7 @@ export default function P_MetrajPozMahaller() {
 
   count = 0
   let miktarSirali = "miktar"
-  selectedProje?.metrajYapabilenler.map((x, index) => {
+  selectedProje?.yetki.metrajYapabilenler.map((x, index) => {
     count = count + 1
     return (
       miktarSirali = index == 0 ? miktarSirali + count : miktarSirali + " miktar" + count
@@ -156,8 +155,7 @@ export default function P_MetrajPozMahaller() {
     fontWeight: "600",
     border: "1px solid black",
     borderLeft: "none",
-    mb: "0rem",
-    py: "0.2rem",
+    py: "0.05rem",
     px: "0.5rem",
     justifyContent: "start",
     alignItems: "center",
@@ -173,9 +171,7 @@ export default function P_MetrajPozMahaller() {
     border: "1px solid black", px: "0.5rem", display: "grid", justifyContent: "start"
   }
 
-  const gridTemplateColumns2 = `auto 1fr auto auto${editNodeMetraj ? " 0.5rem auto" : ""}`
-
-  const gridTemplateColumns1 = `min-content 1fr max-content min-content${editNodeMetraj ? " 1rem min-content" : ""}`
+  const gridTemplateColumns1 = `max-content 1fr max-content min-content${editNodeMetraj ? " 1rem min-content" : ""}`
 
   return (
 
@@ -211,7 +207,7 @@ export default function P_MetrajPozMahaller() {
               <>
                 <Box> </Box>
                 <Box sx={{ ...css_enUstBaslik, borderLeft: "1px solid black", justifyContent: "center" }}>
-                  {"deneme"}
+                  {customData.isim}
                 </Box>
               </>
             }
@@ -223,17 +219,17 @@ export default function P_MetrajPozMahaller() {
             <Box sx={{ ...css_enUstBaslik, borderLeft: "1px solid black", gridColumn: "1/3", justifyContent: "end", borderLeft: "1px solid black" }}>
               Toplam Metraj
             </Box>
-            <Box sx={{ ...css_enUstBaslik, }}>
+            <Box sx={{ ...css_enUstBaslik, justifyContent: "end" }}>
               {ikiHane(selectedPoz_metraj?.onaylananMetraj)}
             </Box>
             <Box sx={{ ...css_enUstBaslik, justifyContent: "center" }}>
-              {pozBirimName}
+              {pozBirim}
             </Box>
             {editNodeMetraj &&
               <>
                 <Box> </Box>
-                <Box sx={{ ...css_enUstBaslik, borderLeft: "1px solid black", justifyContent: "center" }}>
-                  {"deneme"}
+                <Box sx={{ ...css_enUstBaslik, justifyContent: "end", borderLeft: "1px solid black" }}>
+                  {ikiHane(selectedPoz_metraj?.hazirlananMetrajlar.find(x => x.userEmail === customData.email).metraj)}
                 </Box>
               </>
             }
@@ -254,11 +250,11 @@ export default function P_MetrajPozMahaller() {
                 {/* LBS BAŞLIKLARI */}
                 <Box sx={{ ...css_LbsBaslik, borderLeft: "1px solid black", gridColumn: "1/3" }}> {getLbsName(oneLbs).name}</Box>
                 <Box sx={{ ...css_LbsBaslik }}>  {"lbs miktar"} </Box>
-                <Box sx={{ ...css_LbsBaslik, justifyContent: "center" }}> {pozBirimName} </Box>
+                <Box sx={{ ...css_LbsBaslik, justifyContent: "center" }}> {pozBirim} </Box>
                 {editNodeMetraj &&
                   <>
                     <Box> </Box>
-                    <Box sx={{ ...css_enUstBaslik, borderLeft: "1px solid black", justifyContent: "center" }}>
+                    <Box sx={{ ...css_LbsBaslik, borderLeft: "1px solid black", justifyContent: "center" }}>
                       {"deneme"}
                     </Box>
                   </>
@@ -274,15 +270,15 @@ export default function P_MetrajPozMahaller() {
                     <React.Fragment key={index}>
                       <Box sx={{ ...css_mahaller, borderLeft: "1px solid black" }}> {oneMahal.mahalNo} </Box>
                       <Box sx={{ ...css_mahaller }}> {oneMahal.mahalName} </Box>
-                      <Box sx={{ ...css_mahaller }}> {ikiHane(dugum?.onaylananMetraj?.metraj)} </Box>
-                      <Box sx={{ ...css_mahaller }}>{selectedPoz_metraj?.pozBirim}</Box>
+                      <Box sx={{ ...css_mahaller, justifyContent: "end" }}> {ikiHane(dugum?.onaylananMetraj)} </Box>
+                      <Box sx={{ ...css_mahaller, justifyContent: "center" }}>{pozBirim}</Box>
                       {editNodeMetraj &&
                         <>
                           <Box></Box>
                           <Box
                             onDoubleClick={() => goto_metrajCetveli(dugum)}
-                            sx={{ ...css_mahaller, cursor: "pointer", backgroundColor: "yellow", justifyContent: "right" }}>
-                            {ikiHane(dugum?.hazirlananMetrajlar?.find(y => y.userEmail === customData.email)?.metraj)}
+                            sx={{ ...css_mahaller, justifyContent: "end", cursor: "pointer", backgroundColor: "yellow" }}>
+                            {ikiHane(dugum?.hazirlananMetrajlar.find(x => x.userEmail === customData.email).metraj)}
                           </Box>
                         </>
                       }

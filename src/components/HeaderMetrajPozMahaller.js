@@ -273,17 +273,17 @@ export default function HeaderMetrajPozMahaller() {
                 </IconButton>
               </Grid>
 
-              <Grid item onClick={() => console.log("selectedPoz_metraj", selectedPoz_metraj)} sx={{ cursor: "pointer" }}>
-                <IconButton onClick={() => setEditNodeMetraj(editNodeMetraj => !editNodeMetraj)} disabled={false} >
+              <Grid item onClick={() => setEditNodeMetraj(editNodeMetraj => !editNodeMetraj)} sx={{ cursor: "pointer" }}>
+                <IconButton disabled={false} >
                   <EditIcon variant="contained" sx={{ color: editNodeMetraj && "red" }} />
                 </IconButton>
               </Grid>
 
-              <Grid item onClick={() => console.log("selectedPoz_metraj", selectedPoz_metraj)} sx={{ cursor: "pointer" }}>
+              {/* <Grid item onClick={() => console.log("selectedPoz_metraj", selectedPoz_metraj)} sx={{ cursor: "pointer" }}>
                 <IconButton aria-label="addPoz">
                   <VisibilityIcon variant="contained" sx={{ color: "gray" }} />
                 </IconButton>
-              </Grid>
+              </Grid> */}
 
 
             </Grid>

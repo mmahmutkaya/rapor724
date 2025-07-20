@@ -85,7 +85,6 @@ export default function P_MetrajCetveli() {
   const { data: hazirlananMetraj } = useGetHazirlananMetraj()
 
   const { data: onaylananMetraj } = useGetOnaylananMetraj({ selectedNode_metraj })
-  // onaylananMetraj && console.log("onaylananMetraj", onaylananMetraj)
 
   const { mutate: updateOnaylananMetraj } = useUpdateOnaylananMetraj()
 
@@ -419,7 +418,6 @@ export default function P_MetrajCetveli() {
           </React.Fragment>
 
 
-          {/* {console.log("hazirlananMetraj_state.satirlar", hazirlananMetraj_state.satirlar)} */}
           {hazirlananMetraj_state.satirlar.map((oneRow, index) => {
             return (
               < React.Fragment key={index}>

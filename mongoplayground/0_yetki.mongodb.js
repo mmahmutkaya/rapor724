@@ -1,7 +1,7 @@
 
 
 
-const yetki = [{
+const yetki = {
   tümKisiler: [
     "mahmutkaya999@gmail.com",
     "mmahmutkaya@gmail.com",
@@ -13,7 +13,7 @@ const yetki = [{
     { userEmail: "mahmutkaya999@gmail.com" },
     { userEmail: "mmahmutkaya@gmail.com" }
   ]
-}]
+}
 
 
 use('rapor724_v2');
