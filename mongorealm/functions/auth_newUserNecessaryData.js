@@ -39,17 +39,17 @@ exports = async function ({ isim, soyisim }) {
   
   let userCode = isim.substring(0, 3) + soyisim.substring(0, 3)
   let kullanilmis
-  i = 1
   kullanilmis = await collection_Users.findOne({userCode})
   
+  i = 1
   if(kullanilmis) {
     
     start_position: while (true) {
       
         userCode + i
         kullanilmis = await collection_Users.findOne({userCode})
-        i++;
       
+        i++;
         if (kullanilmis) continue start_position;
         break;
     }
