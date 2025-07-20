@@ -3,6 +3,8 @@ exports = async function ({ isim, soyisim }) {
   isim = isim.trim()
   soyisim = soyisim.trim()
 
+  const userId = context.user.id
+
   if (!context.user.custom_data.mailTeyit) {
     throw new Error("Öncelikle mail adresinin sizin olduğunu teyit etmelisiniz")
   }
@@ -41,12 +43,11 @@ exports = async function ({ isim, soyisim }) {
 
   if(benzerIsimler.length){
     return benzerIsimler
-    return
   }
 
 
   try {
-    const result = await collection_Users.updateOne({ email: userEmail },
+    const result = await collection_Users.updateOne({ userId },
       [
         { $set: { isim, soyisim, userCode } }
       ]
