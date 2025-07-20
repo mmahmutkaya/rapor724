@@ -36,22 +36,12 @@ exports = async function ({ isim, soyisim }) {
 
   const collection_Users = context.services.get("mongodb-atlas").db("rapor724_v2").collection("users")
 
+  const benzerIsimler = collection_Users.find({isim,soyisim})
+
+  return benzerIsimler
+
   
   let userCode = isim.substring(0, 3) + soyisim.substring(0, 3)
-  let kullanilmis = await collection_Users.findOne({userCode})
-
-  if(kullanilmis) {
-    
-    for (let i = 1; i < 10000; i++) {
-      let userCode2 = userCode + i
-      kullanilmis = await collection_Users.findOne({userCode2})
-      if(kullanilmis){
-        break
-      }
-    }
-    
-  }
-
 
   
 
