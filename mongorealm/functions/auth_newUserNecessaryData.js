@@ -39,8 +39,8 @@ exports = async function ({ isim, soyisim }) {
   
   const collection_Users = context.services.get("mongodb-atlas").db("rapor724_v2").collection("users")
 
-  const benzerIsimler = await collection_Users.find({isim,soyisim})
-
+  const benzerIsimler = await collection_Users.find({isim,soyisim}).toArray()
+  
   if(benzerIsimler.length){
     return benzerIsimler
   }
