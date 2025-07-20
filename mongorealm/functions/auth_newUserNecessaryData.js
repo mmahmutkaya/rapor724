@@ -38,31 +38,20 @@ exports = async function ({ isim, soyisim }) {
 
   
   let userCode = isim.substring(0, 3) + soyisim.substring(0, 3)
-  let kullanilmis
-  kullanilmis = await collection_Users.findOne({userCode})
-  
-  i = 1
-  // if(kullanilmis) {
-    
-  //   start_position: while (true) {
-      
-  //       userCode + i
-  //       kullanilmis = await collection_Users.findOne({userCode})
-      
-  //       i++;
-  //       if (kullanilmis) continue start_position;
-  //       break;
-  //   }
-    
-  // } 
+  let kullanilmis = await collection_Users.findOne({userCode})
 
-
-  while (kullanilmis) {
-    userCode + i
-    kullanilmis = await collection_Users.findOne({userCode})
-    i++;
+  if(kullanilmis) {
+    
+    for (let i = 1; i < 10000; i++) {
+      let userCode2 = userCode + i
+      kullanilmis = await collection_Users.findOne({userCode2})
+      if(kullanilmis){
+        break
+      }
+    }
+    
   }
-    
+
 
   
 
