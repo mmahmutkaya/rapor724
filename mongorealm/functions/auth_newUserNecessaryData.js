@@ -44,7 +44,7 @@ exports = async function ({ isim, soyisim }) {
   if(users.length){
     
     let benzervar
-    let maxNumber = 1
+    let maxNumber = 0
     
     users.map(oneUser => {
 
