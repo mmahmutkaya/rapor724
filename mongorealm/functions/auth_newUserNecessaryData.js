@@ -39,8 +39,9 @@ exports = async function ({ isim, soyisim }) {
 
   const benzerIsimler = collection_Users.find({isim,soyisim})
 
-  if(benzerIsimler){
+  if(benzerIsimler.length){
     return benzerIsimler
+    return
   }
 
 
