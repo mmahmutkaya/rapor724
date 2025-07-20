@@ -39,11 +39,23 @@ exports = async function ({ isim, soyisim }) {
   
   const collection_Users = context.services.get("mongodb-atlas").db("rapor724_v2").collection("users")
 
-  const benzerIsimler = await collection_Users.find({isim,soyisim}).toArray()
-  
-  if(benzerIsimler.length){
-    return benzerIsimler
+  const benzerKodlar = await collection_Users.find({isim,soyisim},{userCode}).toArray()
+
+  if(benzerKodlar.length){
+    
+    let maxNumber = 1
+    
+    numaralar = benzerKodlar.map(oneCode => {
+      let theNumber = oneCode.substring(6,oneCode.length)
+      if(theNumber > maxNumber) {
+        maxNumber = theNumber
+      }
+    })
+
+   userCode = userCode + (parseInt(maxNumber) + 1)
+    
   }
+  
 
 
   try {
