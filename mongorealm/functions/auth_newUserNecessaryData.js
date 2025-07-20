@@ -37,28 +37,24 @@ exports = async function ({ isim, soyisim }) {
   const collection_Users = context.services.get("mongodb-atlas").db("rapor724_v2").collection("users")
 
   
-  // let userCode = isim.substring(0, 3) + soyisim.substring(0, 3)
-  // let kullanilmis
-  // i = 1
-  // kullanilmis = await collection_Users.findOne({userCode})
+  let userCode = isim.substring(0, 3) + soyisim.substring(0, 3)
+  let kullanilmis
+  i = 1
+  kullanilmis = await collection_Users.findOne({userCode})
   
-  // if(!kullanilmis) {
+  if(kullanilmis) {
     
-  //   return
-    
-  // } else {
-    
-  //   start_position: while (true) {
+    start_position: while (true) {
       
-  //       userCode + i
-  //       kullanilmis = await collection_Users.findOne({userCode})
-  //       i++;
+        userCode + i
+        kullanilmis = await collection_Users.findOne({userCode})
+        i++;
       
-  //       if (kullanilmis) continue start_position;
-  //       break;
-  //   }
-
-  // }
+        if (kullanilmis) continue start_position;
+        break;
+    }
+    
+  } 
 
   
 
@@ -67,7 +63,7 @@ exports = async function ({ isim, soyisim }) {
   try {
     const result = await collection_Users.updateOne({ email: userEmail },
       [
-        { $set: { isim, soyisim } }
+        { $set: { isim, soyisim, userCode } }
       ]
     )
     return result
