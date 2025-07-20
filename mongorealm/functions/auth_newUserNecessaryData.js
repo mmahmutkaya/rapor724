@@ -33,19 +33,16 @@ exports = async function ({ isim, soyisim }) {
     return errorObj
   }
 
-
+  let userCode = isim.substring(0, 3) + soyisim.substring(0, 3)
+  
   const collection_Users = context.services.get("mongodb-atlas").db("rapor724_v2").collection("users")
 
   const benzerIsimler = collection_Users.find({isim,soyisim})
 
-  return benzerIsimler
+  if(benzerIsimler){
+    return benzerIsimler
+  }
 
-  
-  let userCode = isim.substring(0, 3) + soyisim.substring(0, 3)
-
-  
-
-  const userEmail = context.user.data.email
 
   try {
     const result = await collection_Users.updateOne({ email: userEmail },
