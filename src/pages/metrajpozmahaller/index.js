@@ -120,31 +120,33 @@ export default function P_MetrajPozMahaller() {
 
   }
 
+  // console.log("selectedProje",selectedProje)
 
-  let count
+  // let count
 
-  count = 0
-  let userSirali = "user"
-  selectedProje?.yetki.metrajYapabilenler.map((x, index) => {
-    count = count + 1
-    return (
-      userSirali = index == 0 ? userSirali + count : userSirali + " user" + count
-    )
-  })
-
-
-  count = 0
-  let miktarSirali = "miktar"
-  selectedProje?.yetki.metrajYapabilenler.map((x, index) => {
-    count = count + 1
-    return (
-      miktarSirali = index == 0 ? miktarSirali + count : miktarSirali + " miktar" + count
-    )
-  })
+  // count = 0
+  // let userSirali = "user"
+  // selectedProje?.yetki.metrajYapabilenler.map((x, index) => {
+  //   count = count + 1
+  //   return (
+  //     userSirali = index == 0 ? userSirali + count : userSirali + " user" + count
+  //   )
+  // })
 
 
-  const goto_metrajCetveli = (dugum) => {
+  // count = 0
+  // let miktarSirali = "miktar"
+  // selectedProje?.yetki.metrajYapabilenler.map((x, index) => {
+  //   count = count + 1
+  //   return (
+  //     miktarSirali = index == 0 ? miktarSirali + count : miktarSirali + " miktar" + count
+  //   )
+  // })
+
+
+  const goto_metrajCetveli = (dugum,oneMahal) => {
     setSelectedNode_metraj(dugum)
+    setSelectedMahal_metraj(oneMahal)
     navigate('/metrajcetveli')
   }
 
@@ -229,7 +231,7 @@ export default function P_MetrajPozMahaller() {
               <>
                 <Box> </Box>
                 <Box sx={{ ...css_enUstBaslik, justifyContent: "end", borderLeft: "1px solid black" }}>
-                  {ikiHane(selectedPoz_metraj?.hazirlananMetrajlar.find(x => x.userEmail === customData.email).metraj)}
+                  {ikiHane(selectedPoz_metraj?.hazirlananMetrajlar?.find(x => x.userEmail === customData.email).metraj)}
                 </Box>
               </>
             }
@@ -276,9 +278,9 @@ export default function P_MetrajPozMahaller() {
                         <>
                           <Box></Box>
                           <Box
-                            onDoubleClick={() => goto_metrajCetveli(dugum)}
+                            onDoubleClick={() => goto_metrajCetveli(dugum,oneMahal)}
                             sx={{ ...css_mahaller, justifyContent: "end", cursor: "pointer", backgroundColor: "yellow" }}>
-                            {ikiHane(dugum?.hazirlananMetrajlar.find(x => x.userEmail === customData.email).metraj)}
+                            {ikiHane(dugum?.hazirlananMetrajlar?.find(x => x.userEmail === customData.email).metraj)}
                           </Box>
                         </>
                       }

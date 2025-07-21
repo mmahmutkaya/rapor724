@@ -35,6 +35,7 @@ export default function P_MetrajCetveli() {
   const { custom, setCustom } = useContext(StoreContext)
   const { selectedMahal, setSelectedMahal } = useContext(StoreContext)
   const { selectedPoz_metraj, setSelectedPoz_metraj } = useContext(StoreContext)
+  const { selectedMahal_metraj } = useContext(StoreContext)
   const { myTema, setMyTema } = useContext(StoreContext)
   const { selectedNode_metraj, setSelectedNode_metraj } = useContext(StoreContext)
   const { drawerWidth, topBarHeight, subHeaderHeight } = useContext(StoreContext)
@@ -144,8 +145,8 @@ export default function P_MetrajCetveli() {
 
   const load_hazirlananMetraj_state = () => {
 
-    let userharf = selectedProje?.metrajYapabilenler.find(x => x.userEmail === RealmApp?.currentUser.customData.email).harf
-
+    // let userharf = selectedProje?.yetki?.metrajYapabilenler.find(x => x.userEmail === RealmApp?.currentUser.customData.email).userCode
+    let userharf = "A"
     if (hazirlananMetraj) {
       setHazirlananMetraj_state(hazirlananMetraj)
     } else {

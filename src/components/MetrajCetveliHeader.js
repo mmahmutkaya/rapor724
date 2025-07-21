@@ -12,6 +12,7 @@ import AppBar from '@mui/material/AppBar';
 
 import Typography from '@mui/material/Typography';
 import Grid from '@mui/material/Grid';
+import Box from '@mui/material/Box';
 import Paper from '@mui/material/Paper';
 import IconButton from '@mui/material/IconButton';
 import DeleteIcon from '@mui/icons-material/Delete';
@@ -55,7 +56,7 @@ export default function P_MetrajCetveliHeader({
   const { detailMode, setDetailMode } = useContext(StoreContext)
 
   const { selectedProje, setSelectedProje } = useContext(StoreContext)
-  const { selectedPoz, setSelectedPoz } = useContext(StoreContext)
+  const { selectedPoz_metraj, selectedMahal_metraj } = useContext(StoreContext)
 
   const RealmApp = useApp();
 
@@ -122,17 +123,32 @@ export default function P_MetrajCetveliHeader({
 
 
           {/* sol kısım (başlık) */}
-          <Grid item xs>
+          {/* <Grid item xs>
             <Typography
               // nowrap={true}
               variant="h6"
               fontWeight="bold"
             >
-              {selectedPoz?.name} {" > "}
+              {selectedPoz_metraj?.pozName} {" > "} {selectedMahal_metraj?.mahalName} 
 
               <Typography variant="h6" fontWeight="bold" component={"span"} sx={{ color: "darkred" }}>{mahaller?.find(item => item._id.toString() == selectedNode_metraj?._mahalId.toString())?.name}</Typography>
 
             </Typography>
+          </Grid> */}
+
+          {/* sol kısım (başlık) */}
+          <Grid item xs>
+            <Box sx={{ display: "grid", gridAutoFlow: "column", justifyContent: "start", columnGap: "0.5rem" }}>
+              <Box>
+                {selectedPoz_metraj?.pozName}
+              </Box>
+              <Box sx={{ color: "#8B0000", fontWeight:"600" }}>
+                {" > "}
+              </Box>
+              <Box>
+                {selectedMahal_metraj?.mahalName}
+              </Box>
+            </Box>
           </Grid>
 
 
@@ -149,7 +165,7 @@ export default function P_MetrajCetveliHeader({
                     navigate("/metraj")
                     setSelectedNode()
                   }} aria-label="lbsUncliced">
-                    <ReplyIcon variant="contained" sx={{ color: !selectedPoz ? "lightgray" : "red" }} />
+                    <ReplyIcon variant="contained" sx={{ color: !selectedPoz_metraj ? "lightgray" : "red" }} />
                   </IconButton>
                 </Grid>
               }
@@ -186,7 +202,7 @@ export default function P_MetrajCetveliHeader({
                   <IconButton onClick={() => {
                     navigate("/metrajpozmahaller")
                   }} aria-label="lbsUncliced">
-                    <ReplyIcon variant="contained" sx={{ color: !selectedPoz ? "lightgray" : "red" }} />
+                    <ReplyIcon variant="contained" sx={{ color: !selectedPoz_metraj ? "lightgray" : "red" }} />
                   </IconButton>
                 </Grid>
               }

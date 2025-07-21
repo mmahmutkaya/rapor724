@@ -16,11 +16,23 @@ const yetki = {
 }
 
 
+// use('rapor724_v2');
+// db["projeler"].updateMany(
+//   {},
+//   {
+//     $set: { yetki },
+//     $unset: { metrajYapabilenler: "" }
+//   }
+// )
+
+
 use('rapor724_v2');
 db["projeler"].updateMany(
   {},
   {
-    $set: { yetki }
+    $set: { yetki },
+    $unset: { metrajYapabilenler: "" }
   }
 )
+
 

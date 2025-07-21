@@ -183,24 +183,6 @@ export default function P_FormLbsCreate({ setShow, selectedLbs, setSelectedLbs }
               </DialogContentText>
             }
 
-            <Box onClick={() => setLbsNameError(false)}>
-              <TextField
-                variant="standard"
-                // InputProps={{ sx: { height:"2rem", fontSize: "1.5rem" } }}
-                onChange={(e) => setLbsName(() => e.target.value.replace("i", "İ").toUpperCase())}
-                value={lbsName}
-                margin="normal"
-                id="lbsName"
-                name="lbsName"
-                autoFocus
-                error={lbsNameError ? true : false}
-                helperText={lbsNameError ? lbsNameError : ""}
-                // margin="dense"
-                label="Lbs Adı"
-                type="text"
-                fullWidth
-              />
-            </Box>
 
             <Box onClick={() => setLbsCodeNameError(false)}>
               <TextField
@@ -216,6 +198,26 @@ export default function P_FormLbsCreate({ setShow, selectedLbs, setSelectedLbs }
                 helperText={lbsCodeNameError ? lbsCodeNameError : "Örnek : KABA İNŞAAT --> KAB"}
                 // margin="dense"
                 label="Lbs Kod Adı"
+                type="text"
+                fullWidth
+              />
+            </Box>
+
+
+            <Box onClick={() => setLbsNameError(false)}>
+              <TextField
+                variant="standard"
+                // InputProps={{ sx: { height:"2rem", fontSize: "1.5rem" } }}
+                onChange={(e) => setLbsName(() => e.target.value.replace("i", "İ").toUpperCase())}
+                value={lbsName}
+                margin="normal"
+                id="lbsName"
+                name="lbsName"
+                autoFocus
+                error={lbsNameError ? true : false}
+                helperText={lbsNameError ? lbsNameError : ""}
+                // margin="dense"
+                label="Lbs Adı"
                 type="text"
                 fullWidth
               />
