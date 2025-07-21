@@ -3,6 +3,8 @@ exports = async function ({ isim, soyisim }) {
   isim = isim.trim()
   soyisim = soyisim.trim()
 
+  const userId = context.user.id
+
   if (!context.user.custom_data.mailTeyit) {
     throw new Error("Öncelikle mail adresinin sizin olduğunu teyit etmelisiniz")
   }
@@ -33,13 +35,46 @@ exports = async function ({ isim, soyisim }) {
     return errorObj
   }
 
-  const userEmail = context.user.data.email
-
+  let userCode = isim.substring(0, 2) + soyisim.substring(0, 2)
+  
   const collection_Users = context.services.get("mongodb-atlas").db("rapor724_v2").collection("users")
+
+  const users = await collection_Users.find({},{userCode:1}).toArray()
+
+
+  if(users.length){
+    
+    let benzerVar
+    let maxNumber = 0
+    
+    users.map(oneUser => {
+
+      let oneCode = oneUser.userCode
+      
+      if(oneCode?.substring(0,4) === userCode){
+        
+        benzerVar = true
+        let theNumber = parseInt(oneCode.substring(4,oneCode.length))
+        if(theNumber > maxNumber) {
+          maxNumber = theNumber
+        }
+        
+      }
+      
+    })
+
+   if(benzerVar) {
+    userCode = userCode + (parseInt(maxNumber) + 1)
+   }
+    
+  }
+  
+
+
   try {
-    const result = await collection_Users.updateOne({ email: userEmail },
+    const result = await collection_Users.updateOne({ userId },
       [
-        { $set: { isim, soyisim } }
+        { $set: { isim, soyisim, userCode } }
       ]
     )
     return result
