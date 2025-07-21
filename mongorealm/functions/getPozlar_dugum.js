@@ -63,9 +63,10 @@ exports = async function ({
 
 
     pozlar = pozlar.map(onePoz => {
-      if(pozlar2.find(x => x._id.toString() === onePoz._id.toString())) {
+      let onePoz2 = pozlar2.find(x => x._id.toString() === onePoz._id.toString())
+      if(onePoz2) {
         onePoz.hasMahal = true
-        onePoz.onaylananMetraj = x.onaylananMetraj
+        onePoz.onaylananMetraj = onePoz2.onaylananMetraj
       }
       return onePoz
     })
