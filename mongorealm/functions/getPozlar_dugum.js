@@ -67,6 +67,8 @@ exports = async function ({
       if(onePoz2) {
         onePoz.hasMahal = true
         onePoz.onaylananMetraj = onePoz2.onaylananMetraj
+      } else {
+        onePoz.hasMahal = false
       }
       return onePoz
     })
