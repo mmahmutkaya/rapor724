@@ -50,19 +50,22 @@ exports = async function ({
       {
         $project: {
           _pozId: 1,
+          onaylananMetraj:1
         }
       },
       {
         $group: {
-          _id: "$_pozId"
+          _id: "$_pozId",
+          onaylananMetraj:{ $sum: "$onaylananMetraj" }
         }
       }
     ]).toArray()
 
 
     pozlar = pozlar.map(onePoz => {
-      if(pozlar2.find(x => x._id.toString() === onePoz._id.toString)) {
+      if(pozlar2.find(x => x._id.toString() === onePoz._id.toString())) {
         onePoz.hasMahal = true
+        onePoz.onaylananMetraj = x.onaylananMetraj
       }
       return onePoz
     })
