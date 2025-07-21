@@ -144,7 +144,7 @@ export default function P_MetrajPozlar() {
 
       {/* EĞER POZ BAŞLIĞI YOKSA */}
       {show == "Main" && !selectedProje?.wbs?.find(x => x.openForPoz === true) &&
-        <Stack sx={{ width: '100%', m: "0rem", p: "1rem" }} spacing={2}>
+        <Stack sx={{ width: '100%', mt: "3.5rem", p: "1rem" }} spacing={2}>
           <Alert severity="info">
             Öncelikle poz oluşturmaya açık poz başlığı oluşturmalısınız.
           </Alert>
@@ -154,7 +154,7 @@ export default function P_MetrajPozlar() {
 
       {/* EĞER POZ YOKSA */}
       {show == "Main" && selectedProje?.wbs?.find(x => x.openForPoz === true) && !pozlar?.length > 0 &&
-        <Stack sx={{ width: '100%', m: "0rem", p: "1rem" }} spacing={2}>
+        <Stack sx={{ width: '100%', mt: "3.5rem", p: "1rem" }} spacing={2}>
           <Alert severity="info">
             Herhangi bir mahal, herhangi bir poz ile henüz eşleştirilmemiş, 'mahallistesi' menüsüne gidiniz.
           </Alert>

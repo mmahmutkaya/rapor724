@@ -145,9 +145,9 @@ export default function FormSifreYenileme() {
           return
         }
 
+        console.log("result",result) 
         await RealmApp.currentUser.refreshCustomData()
-
-        navigate(0)
+        navigate('/firmalar')
         
         return
 
