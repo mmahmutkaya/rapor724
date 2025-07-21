@@ -98,6 +98,7 @@ export default function P_MetrajCetveliHeader({
           action1={cancelDialog}
           actionText2={"Onayla"}
           action2={approveDialog}
+          detailText={"bu bir denemedir"}
         />
       }
 
@@ -123,26 +124,12 @@ export default function P_MetrajCetveliHeader({
 
 
           {/* sol kısım (başlık) */}
-          {/* <Grid item xs>
-            <Typography
-              // nowrap={true}
-              variant="h6"
-              fontWeight="bold"
-            >
-              {selectedPoz_metraj?.pozName} {" > "} {selectedMahal_metraj?.mahalName} 
-
-              <Typography variant="h6" fontWeight="bold" component={"span"} sx={{ color: "darkred" }}>{mahaller?.find(item => item._id.toString() == selectedNode_metraj?._mahalId.toString())?.name}</Typography>
-
-            </Typography>
-          </Grid> */}
-
-          {/* sol kısım (başlık) */}
           <Grid item xs>
             <Box sx={{ display: "grid", gridAutoFlow: "column", justifyContent: "start", columnGap: "0.5rem" }}>
               <Box>
                 {selectedPoz_metraj?.pozName}
               </Box>
-              <Box sx={{ color: "#8B0000", fontWeight:"600" }}>
+              <Box sx={{ color: "#8B0000", fontWeight: "600" }}>
                 {" > "}
               </Box>
               <Box>

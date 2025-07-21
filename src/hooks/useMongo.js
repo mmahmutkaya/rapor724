@@ -110,6 +110,26 @@ export const useGetPozlar_metraj = () => {
 
 
 
+export const useGetPozlar_dugum = () => {
+
+  // const RealmApp = useApp();
+  const { selectedProje, RealmApp } = useContext(StoreContext)
+
+  return useQuery({
+    queryKey: ['pozlar_dugum', selectedProje?._id.toString()],
+    queryFn: () => RealmApp?.currentUser.callFunction("getPozlar_dugum", ({ _projeId: selectedProje?._id })),
+    enabled: !!RealmApp && !!selectedProje,
+    refetchOnMount: true,
+    refetchOnWindowFocus: false,
+    staleTime: 5 * 60 * 1000,
+    // select: (data) => data[0]
+  })
+
+}
+
+
+
+
 export const useGetMahaller = (onSuccess, onError) => {
 
   // const RealmApp = useApp();
