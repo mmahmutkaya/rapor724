@@ -83,7 +83,7 @@ exports = async function ({
       onePoz.hazirlananMetrajlar = metrajYapabilenler.map(oneYapabilen => {
         let toplam = 0
         onePoz2.hazirlananMetrajlar.map(oneArray => {
-          toplam = oneArray.find(x => x.userEmail === oneYapabilen.userEmail).metraj + toplam
+          toplam = oneArray.find(x => x.userEmail === oneYapabilen.userEmail)?.metraj + toplam
         })
         return ({
           userEmail: oneYapabilen.userEmail,

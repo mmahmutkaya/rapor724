@@ -28,7 +28,7 @@ exports = async function ({
         "MONGO // createProje // Projenin oluşturulacağı firma sorguya gönderilmemiş, sayfayı yenileyiniz, sorun devam ederse Rapor724 ile iletişime geçiniz."
       );
     }
-    
+
     let errorObject = {}
 
     if (typeof projeName != "string" && !errorObject.projeNameError) {
@@ -41,7 +41,7 @@ exports = async function ({
 
     if (projeName.length < 3 && !errorObject.projeNameError) {
       errorObject.projeNameError = "Proje adı çok kısa"
-      
+
     }
 
     // ARA VALIDATE KONTROL - VALIDATE HATA VARSA BOŞUNA DEVAM EDİP AŞAĞIDAKİ SORGUYU YAPMASIN
@@ -71,12 +71,20 @@ exports = async function ({
     ]
 
 
-    const metrajYapabilenler = [
-      {
-        "harf": "A",
-        _userId
-      }
-    ]
+    const yetki = {
+      tümKisiler: [
+        "mahmutkaya999@gmail.com",
+        "mmahmutkaya@gmail.com",
+      ],
+      owners: [
+        { userEmail: "mahmutkaya999@gmail.com" }
+      ],
+      metrajYapabilenler: [
+        { userEmail: "mahmutkaya999@gmail.com" },
+        { userEmail: "mmahmutkaya@gmail.com" }
+      ]
+    }
+
 
     const pozBirimleri = [
       { id: "mt", name: "mt" },
@@ -174,13 +182,13 @@ exports = async function ({
 
     // tüm proje verileri gönderilmiyor, gerekli veriler gönderiliyor
     newProje = {
-      _id:result_newProje.insertedId,
+      _id: result_newProje.insertedId,
       _firmaId,
       name: projeName,
       yetkiliKisiler: [{ email: userEmail, yetki: "owner" }],
       yetkiliFirmalar: [{ _firmaId, yetki: "owner" }]
     }
-    
+
     return newProje;
 
   } catch (err) {
