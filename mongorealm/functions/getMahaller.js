@@ -15,18 +15,7 @@ exports = async function ({
   if (!_projeId) throw new Error("MONGO // getMahaller // -- sorguya gönderilen --projeId-- türü doğru değil, lütfen Rapor7/24 ile irtibata geçiniz. ")
 
   
-  const result = await collection_mahaller.aggregate([
-    {
-      $project: {
-        _projeId:1,
-        _lbsId:1,
-        mahalNo:1,
-        mahalName:1,
-        mahalBirimId:1,
-        mahalMetrajTipId:1,
-        isDeleted:1
-      }
-    },       
+  const mahaller = await collection_mahaller.aggregate([
     {
       $match: {
         _projeId,
@@ -35,12 +24,18 @@ exports = async function ({
     },
     {
       $project: {
+        _projeId:1,
+        _lbsId:1,
+        mahalNo:1,
+        mahalName:1,
+        isDeleted:1,
         isDeleted:0
       }
-    }     
-  ])
+    }  
+  ]).toArray()
 
-  return result
+
+   return mahaller
 
 
 };
