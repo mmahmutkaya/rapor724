@@ -46,6 +46,7 @@ exports = async function ({
       if (!dugum) {
         oneMahal.hasDugum = false
       } else {
+        oneMahal.hasDugum = true
         oneMahal.onaylananMetraj = dugum.onaylananMetraj
         oneMahal.hazirlananMetrajlar = dugum.hazirlananMetrajlar
       }
