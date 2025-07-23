@@ -17,9 +17,9 @@ exports = async function ({
     throw new Error("MONGO // getMahaller_byPoz // '_projeId' verisi db sorgusuna gelmedi");
   }
 
-  if (!_pozId) {
-    throw new Error("MONGO // getMahaller_byPoz // '_pozId' verisi db sorgusuna gelmedi");
-  }
+  // if (!_pozId) {
+  //   throw new Error("MONGO // getMahaller_byPoz // '_pozId' verisi db sorgusuna gelmedi");
+  // }
 
 
 
