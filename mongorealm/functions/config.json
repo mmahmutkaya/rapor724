@@ -526,5 +526,17 @@
         "private": false,
         "run_as_system": true,
         "disable_arg_logs": true
+    },
+    {
+        "name": "getMahalListesi_mahaller_byPoz",
+        "private": false,
+        "run_as_system": true,
+        "disable_arg_logs": true
+    },
+    {
+        "name": "getMahalListesi_pozlar",
+        "private": false,
+        "run_as_system": true,
+        "disable_arg_logs": true
     }
 ]

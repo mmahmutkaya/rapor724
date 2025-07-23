@@ -1,5 +1,6 @@
 exports = async function ({
-  _projeId
+  _projeId,
+  _pozId
 }) {
 
   const user = context.user;
@@ -17,9 +18,9 @@ exports = async function ({
     throw new Error("MONGO // getMahaller_byPoz // '_projeId' verisi db sorgusuna gelmedi");
   }
 
-  // if (!_pozId) {
-  //   throw new Error("MONGO // getMahaller_byPoz // '_pozId' verisi db sorgusuna gelmedi");
-  // }
+  if (!_pozId) {
+    throw new Error("MONGO // getMahaller_byPoz // '_pozId' verisi db sorgusuna gelmedi");
+  }
 
 
 
@@ -29,28 +30,28 @@ exports = async function ({
 
   try {
 
-    // const dugumler = await collection_Dugumler.aggregate([
-    //   { $match: { _pozId, openMetraj: true } },
-    //   { $project: { _mahalId: 1, hazirlananMetrajlar: 1, onaylananMetraj: 1 } }
-    // ]).toArray()
+    const dugumler = await collection_Dugumler.aggregate([
+      { $match: { _pozId, openMetraj: true } },
+      { $project: { _mahalId: 1, hazirlananMetrajlar: 1, onaylananMetraj: 1 } }
+    ]).toArray()
 
 
     let mahaller = await collection_Mahaller.aggregate([
       { $match: { _projeId, isDeleted: false } },
-      { $project: { _lbsId: 1, mahalNo: 1, mahalName: 1 } }
+      { $project: { mahalNo: 1, mahalName: 1 } }
     ]).toArray()
 
-    // mahaller = mahaller.map(oneMahal => {
-    //   const dugum = dugumler.find(oneDugum => oneDugum._mahalId.toString() === oneMahal._id.toString())
-    //   if (!dugum) {
-    //     oneMahal.hasDugum = false
-    //   } else {
-    //     oneMahal.hasDugum = true
-    //     oneMahal.onaylananMetraj = dugum.onaylananMetraj
-    //     oneMahal.hazirlananMetrajlar = dugum.hazirlananMetrajlar
-    //   }
-    //   return oneMahal
-    // })
+    mahaller = mahaller.map(oneMahal => {
+      const dugum = dugumler.find(oneDugum => oneDugum._mahalId.toString() === oneMahal._id.toString())
+      if (!dugum) {
+        oneMahal.hasDugum = false
+      } else {
+        oneMahal.hasDugum = true
+        oneMahal.onaylananMetraj = dugum.onaylananMetraj
+        oneMahal.hazirlananMetrajlar = dugum.hazirlananMetrajlar
+      }
+      return oneMahal
+    })
 
     return mahaller
 

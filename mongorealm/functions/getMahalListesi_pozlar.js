@@ -67,6 +67,8 @@ exports = async function ({
     ]).toArray()
 
 
+   
+
     let { metrajYapabilenler } = proje.yetki
 
 
