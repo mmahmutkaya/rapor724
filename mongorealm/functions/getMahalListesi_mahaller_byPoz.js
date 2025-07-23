@@ -41,7 +41,7 @@ exports = async function ({
       { $project: { mahalNo: 1, mahalName: 1 } }
     ]).toArray()
 
-    return {mahaller,dugumler,_pozId:_pozId.toString()}
+    // return {mahaller,dugumler,_pozId:_pozId.toString()}
 
     mahaller = mahaller.map(oneMahal => {
       const dugum = dugumler.find(oneDugum => oneDugum._mahalId.toString() === oneMahal._id.toString())
