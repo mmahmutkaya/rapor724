@@ -3,6 +3,8 @@ exports = async function ({
   _pozId
 }) {
 
+  return {_projeId,_pozId}
+
   const user = context.user;
   const _userId = new BSON.ObjectId(user.id)
   const userEmail = context.user.data.email
