@@ -32,7 +32,7 @@ exports = async function ({
 
     const dugumler = await collection_Dugumler.aggregate([
       { $match: { _pozId, openMetraj: true } },
-      { $project: { _mahalId: 1, hazirlananMetrajlar: 1, onaylananMetraj: 1 } }
+      { $project: { _mahalId: 1, _id: 0 } }
     ]).toArray()
 
 
@@ -41,14 +41,14 @@ exports = async function ({
       { $project: { mahalNo: 1, mahalName: 1 } }
     ]).toArray()
 
+    return {mahaller,dugumler}
+
     mahaller = mahaller.map(oneMahal => {
       const dugum = dugumler.find(oneDugum => oneDugum._mahalId.toString() === oneMahal._id.toString())
       if (!dugum) {
         oneMahal.hasDugum = false
       } else {
         oneMahal.hasDugum = true
-        oneMahal.onaylananMetraj = dugum.onaylananMetraj
-        oneMahal.hazirlananMetrajlar = dugum.hazirlananMetrajlar
       }
       return oneMahal
     })
