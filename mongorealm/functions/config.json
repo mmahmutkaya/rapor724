@@ -528,7 +528,7 @@
         "disable_arg_logs": true
     },
     {
-        "name": "getMahaller_byPoz",
+        "name": "getMahalListesi_mahaller_byPoz",
         "private": false,
         "run_as_system": true,
         "disable_arg_logs": true

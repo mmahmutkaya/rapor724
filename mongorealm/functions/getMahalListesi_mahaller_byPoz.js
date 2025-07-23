@@ -42,7 +42,7 @@ exports = async function ({
     ]).toArray()
 
     mahaller = mahaller.map(oneMahal => {
-      const dugum = dugumler.find(x => x._mahalId.toString() === oneMahal._id.toString())
+      const dugum = dugumler.find(oneDugum => oneDugum._mahalId.toString() === oneMahal._id.toString())
       if (!dugum) {
         oneMahal.hasDugum = false
       } else {
