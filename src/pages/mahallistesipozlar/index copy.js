@@ -8,7 +8,7 @@ import { useGetMahaller, useGetDugumler, useGetPozlar } from '../../hooks/useMon
 
 import FormMahalCreate from '../../components/FormMahalCreate.js'
 import FormMahalBaslikCreate from '../../components/FormMahalBaslikCreate.js'
-import HeaderMahalListesi from '../../components/HeaderMahalListesiPozlar.js'
+import HeaderMahalListesi from '../../components/HeaderMahalListesi.js'
 import { DialogAlert } from '../../components/general/DialogAlert.js';
 
 

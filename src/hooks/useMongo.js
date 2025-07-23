@@ -90,15 +90,57 @@ export const useGetPozlar = (onSuccess, onError) => {
 
 
 
-export const useGetPozlar_metraj = () => {
+
+export const useGetMahalListesi_pozlar = (onSuccess, onError) => {
 
   // const RealmApp = useApp();
-  const { selectedProje, RealmApp } = useContext(StoreContext)
+  const { RealmApp, selectedProje } = useContext(StoreContext)
 
   return useQuery({
-    queryKey: ['pozlar_metraj', selectedProje?._id.toString()],
-    queryFn: () => RealmApp?.currentUser.callFunction("getPozlar_metraj", ({ _projeId: selectedProje?._id })),
+    queryKey: ['mahallistesi_pozlar', selectedProje?._id.toString()],
+    queryFn: () => RealmApp?.currentUser.callFunction("getMahalListesi_pozlar", ({ _projeId: selectedProje?._id })),
     enabled: !!RealmApp && !!selectedProje,
+    onSuccess,
+    onError,
+    refetchOnMount: true,
+    refetchOnWindowFocus: false
+  })
+
+}
+
+
+
+
+export const useGetMahalListesi_mahaller_byPoz = (onSuccess, onError) => {
+
+  // const RealmApp = useApp();
+  const { RealmApp, selectedProje, selectedPoz_mahalListesi } = useContext(StoreContext)
+
+  return useQuery({
+    queryKey: ['mahalListesi_mahaller_byPoz', selectedProje?._id.toString()],
+    queryFn: () => RealmApp?.currentUser.callFunction("getMahalListesi_mahaller_byPoz", ({ _projeId: selectedProje?._id, _pozId:selectedPoz_mahalListesi })),
+    enabled: !!RealmApp && !!selectedProje && !!selectedPoz_mahalListesi,
+    onSuccess,
+    onError,
+    refetchOnMount: true,
+    refetchOnWindowFocus: false
+  })
+
+}
+
+
+
+
+
+export const useGetMahalListesi_byPoz = () => {
+
+  // const RealmApp = useApp();
+  const { selectedProje, RealmApp, selectedPoz_forMahalListesi } = useContext(StoreContext)
+
+  return useQuery({
+    queryKey: ['mahalListesi_byPoz'],
+    queryFn: () => RealmApp?.currentUser.callFunction("getMahalListesi_byPoz", ({ _projeId: selectedProje?._id, _pozId:selectedPoz_forMahalListesi._id })),
+    enabled: !!RealmApp && !!selectedProje && !!selectedPoz_forMahalListesi,
     refetchOnMount: true,
     refetchOnWindowFocus: false,
     staleTime: 5 * 60 * 1000,
@@ -109,23 +151,6 @@ export const useGetPozlar_metraj = () => {
 
 
 
-
-export const useGetPozlar_dugum = () => {
-
-  // const RealmApp = useApp();
-  const { selectedProje, RealmApp } = useContext(StoreContext)
-
-  return useQuery({
-    queryKey: ['pozlar_dugum', selectedProje?._id.toString()],
-    queryFn: () => RealmApp?.currentUser.callFunction("getPozlar_dugum", ({ _projeId: selectedProje?._id })),
-    enabled: !!RealmApp && !!selectedProje,
-    refetchOnMount: true,
-    refetchOnWindowFocus: false,
-    staleTime: 5 * 60 * 1000,
-    // select: (data) => data[0]
-  })
-
-}
 
 
 

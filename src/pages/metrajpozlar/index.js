@@ -6,7 +6,7 @@ import { useNavigate } from "react-router-dom";
 
 
 import { StoreContext } from '../../components/store'
-import { useGetPozlar_metraj } from '../../hooks/useMongo';
+import { useGetPozlar } from '../../hooks/useMongo';
 import getWbsName from '../../functions/getWbsName';
 
 
@@ -30,8 +30,8 @@ export default function P_MetrajPozlar() {
   const navigate = useNavigate()
   const queryClient = useQueryClient()
 
-  const { data: pozlar } = useGetPozlar_metraj()
-  console.log("pozlar",pozlar)
+  let { data: pozlar } = useGetPozlar()
+  pozlar = pozlar?.filter(x => x.hasDugum)
 
   const { RealmApp, myTema } = useContext(StoreContext)
   const { customData } = RealmApp.currentUser

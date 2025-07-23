@@ -74,7 +74,7 @@ export default function Sidebar({ setMobileOpen }) {
 
             <ListItemButton
               onClick={() => navigate('/firmawbs')}
-              sx={{ backgroundColor: pathname == "/fşrmawbs" ? "#f0f0f1" : null }}
+              sx={{ backgroundColor: pathname == "/firmawbs" ? "#f0f0f1" : null }}
             >
               <ListItemIcon>
                 <SendIcon />
@@ -185,8 +185,8 @@ export default function Sidebar({ setMobileOpen }) {
 
 
             <ListItemButton
-              onClick={() => navigate('/mahallistesi')}
-              sx={{ backgroundColor: pathname == "/mahallistesi" ? "#f0f0f1" : null }}
+              onClick={() => navigate('/mahallistesipozlar')}
+              sx={{ backgroundColor: pathname.includes("/mahallistesi") ? "#f0f0f1" : null }}
             >
               <ListItemIcon>
                 <SendIcon />
@@ -196,19 +196,8 @@ export default function Sidebar({ setMobileOpen }) {
 
 
             <ListItemButton
-              onClick={() => navigate('/mahalmetraj')}
-              sx={{ backgroundColor: pathname == "/mahalmetraj" ? "#f0f0f1" : null }}
-            >
-              <ListItemIcon>
-                <SendIcon />
-              </ListItemIcon>
-              <ListItemText primary="Mahal Metraj" />
-            </ListItemButton>
-
-
-            <ListItemButton
               onClick={() => navigate('/metrajpozlar')}
-              sx={{ backgroundColor: pathname == "/metrajpozlar" ? "#f0f0f1" : null }}
+              sx={{ backgroundColor: pathname.includes("/metraj") ? "#f0f0f1" : null }}
             >
               <ListItemIcon>
                 <SendIcon />

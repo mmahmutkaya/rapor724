@@ -3,7 +3,7 @@ import { useState, useContext, useEffect } from 'react';
 import { useNavigate } from "react-router-dom";
 import { StoreContext } from '../../components/store'
 import { useApp } from "../../components/useApp";
-import MetrajCetveliHeader from '../../components/MetrajCetveliHeader'
+import HeaderMetrajCetveli from '../../components/HeaderMetrajCetveli'
 import { useQuery, useQueryClient, useMutation } from '@tanstack/react-query'
 import { BSON } from "realm-web"
 import { useGetMahaller, useGetMahalListesi, useGetHazirlananMetrajlar, useUpdateHazirlananMetraj, useUpdateOnaylananMetraj, useGetOnaylananMetraj } from '../../hooks/useMongo';
@@ -379,7 +379,7 @@ export default function P_MetrajCetveli() {
     <>
 
       <Grid name="metrajCetveliHeader" item sx={{ mt: (parseFloat(subHeaderHeight) + 1) + "rem", }}>
-        <MetrajCetveliHeader
+        <HeaderMetrajCetveli
           show={show} setShow={setShow}
           save_hazirlananMetraj_toDb={save_hazirlananMetraj_toDb}
           load_hazirlananMetraj_state={load_hazirlananMetraj_state}

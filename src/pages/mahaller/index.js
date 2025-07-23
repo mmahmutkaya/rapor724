@@ -29,7 +29,7 @@ export default function P_Mahaller() {
   const navigate = useNavigate()
 
   const { data: mahaller } = useGetMahaller()
-  // console.log("mahaller",mahaller)
+
   const { RealmApp, myTema } = useContext(StoreContext)
   const { selectedProje } = useContext(StoreContext)
 

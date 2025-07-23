@@ -21,6 +21,7 @@ export default ({ children }) => {
       baslik2_ayrac: "#8a2424",
       hazirlananMetraj: "rgb(255,165,0,0.4)",
       editMetraj: "yellow",
+      inactiveGray: "rgb(230,230,230)",
     },
     firstColor: "#3c4245",
     secondColor: "#5f6769",
@@ -43,10 +44,13 @@ export default ({ children }) => {
   const [selectedMahal, setSelectedMahal] = useState()
   const [selectedMahalBaslik, setSelectedMahalBaslik] = useState()
   const [selectedWbs, setSelectedWbs] = useState()
+
   const [selectedPoz, setSelectedPoz] = useState()
   const [selectedPoz_metraj, setSelectedPoz_metraj] = useState()
-  const [selectedMahal_metraj, setSelectedMahal_metraj] = useState()
+  const [selectedPoz_mahalListesi, setSelectedPoz_mahalListesi] = useState()
   const [selectedPozBaslik, setSelectedPozBaslik] = useState()
+
+  const [selectedMahal_metraj, setSelectedMahal_metraj] = useState()
   const [selectedNode, setSelectedNode] = useState()
   const [selectedNode_metraj, setSelectedNode_metraj] = useState()
   const [editNodeMetraj, setEditNodeMetraj] = useState()
@@ -74,18 +78,21 @@ export default ({ children }) => {
 
     Layout_Show, setLayout_Show,
 
-
     selectedLbs, setSelectedLbs,
     selectedMahal, setSelectedMahal,
     selectedMahalBaslik, setSelectedMahalBaslik,
     selectedWbs, setSelectedWbs,
+
     selectedPoz, setSelectedPoz,
     selectedPoz_metraj, setSelectedPoz_metraj,
-    selectedMahal_metraj, setSelectedMahal_metraj,
+    selectedPoz_mahalListesi, setSelectedPoz_mahalListesi,
     selectedPozBaslik, setSelectedPozBaslik,
+
+    selectedMahal_metraj, setSelectedMahal_metraj,
+
     selectedNode, setSelectedNode,
     selectedNode_metraj, setSelectedNode_metraj,
-    
+
     editNodeMetraj, setEditNodeMetraj,
     showNodeMetraj, setShowNodeMetraj,
     nodeMetrajlar, setNodeMetrajlar,

@@ -1,4 +1,4 @@
-import HeaderMahalListesi from '../../components/HeaderMahalListesi'
+import HeaderMahalListesi from '../../components/HeaderMahalListesiPozlar.js'
 
 import React from 'react'
 import { useState, useContext, useEffect } from 'react';
@@ -9,7 +9,7 @@ import getWbsName from '../../functions/getWbsName.js';
 import { DialogAlert } from '../../components/general/DialogAlert.js';
 
 import { StoreContext } from '../../components/store.js'
-import { useGetPozlar } from '../../hooks/useMongo.js';
+import { useGetMahalListesi_pozlar } from '../../hooks/useMongo.js';
 
 
 
@@ -23,12 +23,12 @@ import Box from '@mui/material/Box';
 
 
 
-export default function P_SablonPozlar() {
+export default function P_MahalListesi() {
 
   const navigate = useNavigate()
   const queryClient = useQueryClient()
 
-  const { data: pozlar } = useGetPozlar()
+  const { data: pozlar } = useGetMahalListesi_pozlar()
 
   const { RealmApp, myTema } = useContext(StoreContext)
   const { selectedProje } = useContext(StoreContext)
@@ -236,35 +236,39 @@ export default function P_SablonPozlar() {
                 {/* WBS'İN POZLARI */}
                 {pozlar?.filter(x => x._wbsId.toString() === oneWbs._id.toString()).map((onePoz, index) => {
 
-                  let isSelected = false
+                  // let isSelected = false
 
-                  if (selectedPoz_metraj?._id.toString() === onePoz._id.toString()) {
-                    isSelected = true
-                  }
+                  // if (selectedPoz_metraj?._id.toString() === onePoz._id.toString()) {
+                  //   isSelected = true
+                  // }
+
+                  let hasMahal = onePoz.hasDugum
+                  let { inactiveGray } = myTema.renkler
 
                   return (
                     // <Box key={index} onDoubleClick={() => navigate('/metrajpozmahaller')} onClick={() => setSelectedPoz_metraj(onePoz)} sx={{ "&:hover": { "& .childClass": { display: "block" } }, cursor: "pointer", display: "grid", }}>
                     <React.Fragment key={index} >
-                      <Box sx={{ ...pozNo_css }} >
+                      <Box sx={{ ...pozNo_css, backgroundColor: !hasMahal && inactiveGray }} >
                         {onePoz.pozNo}
                       </Box>
-                      <Box sx={{ ...pozNo_css, justifyItems: "start", pl: "0.5rem" }} >
+                      <Box sx={{ ...pozNo_css, justifyItems: "start", pl: "0.5rem", backgroundColor: !hasMahal && inactiveGray }} >
                         {onePoz.pozName}
                       </Box>
-                      <Box onDoubleClick={() => console.log("onaylı metraja tıklandı")} sx={{ ...pozNo_css, cursor: "pointer", display: "grid", gridTemplateColumns: "1rem 1fr", "&:hover": { "& .childClass": { backgroundColor: "red" } } }}>
-                        <Box className="childClass" sx={{ ml: "-1rem", backgroundColor: "white", height: "0.5rem", width: "0.5rem", borderRadius: "50%" }}>
+                      <Box onDoubleClick={() => console.log("onaylı metraja tıklandı")} sx={{ ...pozNo_css, cursor: "pointer", display: "grid", gridTemplateColumns: "1rem 1fr", backgroundColor: !hasMahal && inactiveGray, "&:hover": { "& .childClass": { backgroundColor: "red" } } }}>
+                        <Box className="childClass" sx={{ ml: "-1rem", height: "0.5rem", width: "0.5rem", borderRadius: "50%" }}>
                         </Box>
                         <Box sx={{ justifySelf: "end" }}>
                           {ikiHane(onePoz?.onaylananMetraj)}
                         </Box>
                       </Box>
-                      <Box sx={{ ...pozNo_css }}>
+                      <Box sx={{ ...pozNo_css, backgroundColor: !hasMahal && inactiveGray }}>
                         {selectedProje?.pozBirimleri.find(x => x.id === onePoz.pozBirimId).name}
                       </Box>
 
 
                       {/* METRAJ DÜZENLEME AÇIKSA - KİŞİNİN HAZIRLADIĞI TOPLAM POZ METRAJ*/}
-                      {editMode &&
+                      {
+                        editMode &&
                         <>
                           <Box />
                           <Box onDoubleClick={() => handleEdit(onePoz)} sx={{ ...pozNo_css, justifyContent: "end", cursor: "pointer", backgroundColor: "yellow", cursor: "pointer", display: "grid", gridTemplateColumns: "1rem 1fr", "&:hover": { "& .childClass": { backgroundColor: "red" } } }}>
@@ -292,7 +296,7 @@ export default function P_SablonPozlar() {
         </Box>
       }
 
-    </Box>
+    </Box >
 
   )
 

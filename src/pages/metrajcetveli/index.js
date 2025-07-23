@@ -5,7 +5,7 @@ import { StoreContext } from '../../components/store'
 
 
 import { DialogAlert } from '../../components/general/DialogAlert.js';
-import MetrajCetveliHeader from '../../components/MetrajCetveliHeader'
+import HeaderMetrajCetveli from '../../components/HeaderMetrajCetveli'
 import { useQuery, useQueryClient, useMutation } from '@tanstack/react-query'
 import { BSON } from "realm-web"
 import { useGetMahaller, useGetMahalListesi, useGetHazirlananMetraj, useUpdateHazirlananMetraj, useUpdateOnaylananMetraj, useGetOnaylananMetraj } from '../../hooks/useMongo';
@@ -338,7 +338,7 @@ export default function P_MetrajCetveli() {
       }
 
       <Grid name="metrajCetveliHeader" item sx={{ mt: (parseFloat(subHeaderHeight) + 1) + "rem", }}>
-        <MetrajCetveliHeader
+        <HeaderMetrajCetveli
           show={show} setShow={setShow}
           save_hazirlananMetraj_toDb={save_hazirlananMetraj_toDb}
           load_hazirlananMetraj_state={load_hazirlananMetraj_state}

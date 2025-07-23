@@ -12,7 +12,7 @@
 // }
 
 
-// const wbsArray = selectedProje?.wbs
+// const lbsArray = selectedProje?.wbs
 //   .filter(item => item.openForPoz === true)
 //   .sort(function (a, b) {
 //     var nums1 = a.code.split(".");
@@ -51,32 +51,32 @@
 
 
 
-export default function ({wbsArray, oneWbs}) {
+export default function ({lbsArray, oneLbs}) {
 
-  let cOunt = oneWbs.code.split(".").length
+  let cOunt = oneLbs.code.split(".").length
   let name
   let code
 
-  oneWbs.code.split(".").map((codePart, index) => {
+  oneLbs.code.split(".").map((codePart, index) => {
 
     if (index == 0 && cOunt == 1) {
       code = codePart
-      name = wbsArray.find(item => item.code == code).name
+      name = lbsArray.find(item => item.code == code).name
     }
 
     if (index == 0 && cOunt !== 1) {
       code = codePart
-      name = wbsArray.find(item => item.code == code).codeName
+      name = lbsArray.find(item => item.code == code).codeName
     }
 
     if (index !== 0 && index + 1 !== cOunt && cOunt !== 1) {
       code = code + "." + codePart
-      name = name + " > " + wbsArray.find(item => item.code == code).codeName
+      name = name + " > " + lbsArray.find(item => item.code == code).codeName
     }
 
     if (index !== 0 && index + 1 == cOunt && cOunt !== 1) {
       code = code + "." + codePart
-      name = name + " > " + wbsArray.find(item => item.code == code).name
+      name = name + " > " + lbsArray.find(item => item.code == code).name
     }
 
   })

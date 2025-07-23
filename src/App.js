@@ -18,7 +18,11 @@ import P_PozHavuzu from './pages/pozhavuzu'
 import P_Pozlar from './pages/pozlar'
 import P_Lbs from './pages/lbs'
 import P_Mahaller from './pages/mahaller'
-import P_MahalListesi from './pages/mahallistesi'
+
+import P_MahalListesiPozlar from './pages/mahallistesipozlar'
+import P_MahalListesiPozMahaller from './pages/mahallistesipozmahaller'
+
+
 import P_MahalMetraj from './pages/mahalmetraj'
 import P_MetrajPozlar from './pages/metrajpozlar'
 import P_KisilerProject from './pages/kisilerproject'
@@ -50,7 +54,10 @@ function App() {
       <Route path='/pozlar' element={<P_Pozlar />} />
       <Route path='/lbs' element={<P_Lbs />} />
       <Route path='/mahaller' element={<P_Mahaller />} />
-      <Route path='/mahallistesi' element={<P_MahalListesi />} />
+
+      <Route path='/mahallistesipozlar' element={<P_MahalListesiPozlar />} />
+      <Route path='/mahallistesipozmahaller' element={<P_MahalListesiPozMahaller />} />
+
       <Route path='/mahalmetraj' element={<P_MahalMetraj />} />
       <Route path='/metrajpozlar' element={<P_MetrajPozlar />} />
       <Route path='/kisilerproject' element={<P_KisilerProject />} />
