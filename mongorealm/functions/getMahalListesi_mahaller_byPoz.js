@@ -33,7 +33,7 @@ exports = async function ({
 
     const dugumler = await collection_Dugumler.aggregate([
       { $match: { _pozId, openMetraj: true } },
-      { $project: { _mahalId: 1, _id: 0 } }
+      { $project: { _id: 0 , _mahalId: 1, onaylananMetraj: 1 } }
     ]).toArray()
 
 
@@ -49,6 +49,7 @@ exports = async function ({
         oneMahal.hasDugum = false
       } else {
         oneMahal.hasDugum = true
+        oneMahal.onaylananMetraj = dugum.onaylananMetraj
       }
       return oneMahal
     })
