@@ -3,6 +3,8 @@ exports = async function ({
   _pozId
 }) {
 
+  return {_projeId,_pozId}
+
   const user = context.user;
   const _userId = new BSON.ObjectId(user.id)
   const userEmail = context.user.data.email
@@ -31,8 +33,8 @@ exports = async function ({
   try {
 
     const dugumler = await collection_Dugumler.aggregate([
-      { $match: { _pozId, openMetraj: true } },
-      { $project: { _mahalId: 1, hazirlananMetrajlar: 1, onaylananMetraj: 1 } }
+      { $match: { _pozId, openMetraj: true } }
+      // { $project: { _mahalId: 1, _id: 0 } }
     ]).toArray()
 
 
@@ -41,14 +43,14 @@ exports = async function ({
       { $project: { mahalNo: 1, mahalName: 1 } }
     ]).toArray()
 
+    // return {mahaller,dugumler,_pozId:_pozId.toString()}
+
     mahaller = mahaller.map(oneMahal => {
       const dugum = dugumler.find(oneDugum => oneDugum._mahalId.toString() === oneMahal._id.toString())
       if (!dugum) {
         oneMahal.hasDugum = false
       } else {
         oneMahal.hasDugum = true
-        oneMahal.onaylananMetraj = dugum.onaylananMetraj
-        oneMahal.hazirlananMetrajlar = dugum.hazirlananMetrajlar
       }
       return oneMahal
     })
