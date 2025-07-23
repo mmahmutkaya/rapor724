@@ -1,6 +1,5 @@
 exports = async function ({
-  _projeId,
-  _pozId
+  _projeId
 }) {
 
   const user = context.user;
