@@ -118,7 +118,7 @@ export const useGetMahalListesi_mahaller_byPoz = (onSuccess, onError) => {
 
   return useQuery({
     queryKey: ['mahalListesi_mahaller_byPoz', selectedProje?._id.toString()],
-    queryFn: () => RealmApp?.currentUser.callFunction("getMahalListesi_mahaller_byPoz", ({ _projeId: selectedProje?._id, _pozId:selectedPoz_mahalListesi })),
+    queryFn: () => RealmApp?.currentUser.callFunction("getMahalListesi_mahaller_byPoz", ({ _projeId: selectedProje?._id, _pozId:selectedPoz_mahalListesi._id })),
     enabled: !!RealmApp && !!selectedProje && !!selectedPoz_mahalListesi,
     onSuccess,
     onError,

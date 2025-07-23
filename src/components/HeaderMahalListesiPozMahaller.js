@@ -3,8 +3,8 @@ import React from 'react'
 import { useState, useContext } from 'react';
 import { StoreContext } from './store'
 import { DialogAlert } from './general/DialogAlert';
+import { useNavigate } from "react-router-dom";
 
-import { useApp } from "./useApp";
 import AppBar from '@mui/material/AppBar';
 
 import Typography from '@mui/material/Typography';
@@ -16,9 +16,12 @@ import IconButton from '@mui/material/IconButton';
 import FileDownloadDoneIcon from '@mui/icons-material/FileDownloadDone';
 import EditIcon from '@mui/icons-material/Edit';
 import ClearOutlined from '@mui/icons-material/ClearOutlined';
+import ReplyIcon from '@mui/icons-material/Reply';
 
 
-export default function HeaderMahalListesi({ editMode, setEditMode, isChanged, cancelChange, saveChange }) {
+export default function HeaderMahalListesi({ isChanged, cancelChange, saveChange }) {
+
+  const navigate = useNavigate()
 
   const { drawerWidth, topBarHeight } = useContext(StoreContext)
   const { selectedPoz_mahalListesi } = useContext(StoreContext)
@@ -90,11 +93,15 @@ export default function HeaderMahalListesi({ editMode, setEditMode, isChanged, c
 
 
               {!isChanged &&
-                <Grid item>
-                  <IconButton onClick={() => setEditMode(editMode => !editMode)} disabled={false}>
-                    <EditIcon variant="contained" sx={{ color: "gray" }} />
-                  </IconButton>
-                </Grid>
+                <>
+
+                  <Grid item>
+                    <IconButton onClick={() => navigate('/mahallistesipozlar')} disabled={false}>
+                      <ReplyIcon variant="contained" sx={{ color: "gray" }} />
+                    </IconButton>
+                  </Grid>
+
+                </>
               }
 
 
@@ -106,7 +113,7 @@ export default function HeaderMahalListesi({ editMode, setEditMode, isChanged, c
                       onClick={() => setShowEminMisin(true)}
                       disabled={!isChanged}
                     >
-                      <ClearOutlined variant="contained" sx={{ color: isChanged ? "red" : "lightgray" }} />
+                      <ClearOutlined variant="contained" sx={{ color: "red" }} />
                     </IconButton>
                   </Grid>
 
@@ -115,7 +122,7 @@ export default function HeaderMahalListesi({ editMode, setEditMode, isChanged, c
                       onClick={() => saveChange()}
                       disabled={!isChanged}
                     >
-                      <FileDownloadDoneIcon variant="contained" sx={{ color: isChanged ? "green" : "lightgray" }} />
+                      <FileDownloadDoneIcon variant="contained" sx={{ color: "green" }} />
                     </IconButton>
                   </Grid>
 

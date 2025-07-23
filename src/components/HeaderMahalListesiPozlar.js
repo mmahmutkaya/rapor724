@@ -17,30 +17,13 @@ import EditIcon from '@mui/icons-material/Edit';
 import ClearOutlined from '@mui/icons-material/ClearOutlined';
 
 
-export default function HeaderMahalListesi({ editMode, setEditMode, isChanged, cancelChange, saveChange }) {
+export default function HeaderMahalListesi() {
 
   const { drawerWidth, topBarHeight } = useContext(StoreContext)
-
-  const [showEminMisin, setShowEminMisin] = useState(false)
 
 
   return (
     <Paper >
-
-      {showEminMisin &&
-        <DialogAlert
-          dialogIcon={"warning"}
-          dialogMessage={"Yaptığınız değişiklikleri kaybedeceksiniz ?"}
-          onCloseAction={() => setShowEminMisin()}
-          actionText1={"İptal"}
-          action1={() => setShowEminMisin()}
-          actionText2={"Onayla"}
-          action2={() => {
-            cancelChange()
-            setShowEminMisin()
-          }}
-        />
-      }
 
 
       <AppBar
@@ -83,38 +66,13 @@ export default function HeaderMahalListesi({ editMode, setEditMode, isChanged, c
             <Grid container>
 
 
-              {!isChanged &&
-                <Grid item>
-                  <IconButton onClick={() => setEditMode(editMode => !editMode)} disabled={false}>
-                    <EditIcon variant="contained" sx={{ color: "gray" }} />
-                  </IconButton>
-                </Grid>
-              }
 
+              {/* <Grid item>
+                <IconButton onClick={() => setEditMode(editMode => !editMode)} disabled={false}>
+                  <EditIcon variant="contained" sx={{ color: "gray" }} />
+                </IconButton>
+              </Grid> */}
 
-              {isChanged &&
-                <>
-
-                  <Grid item>
-                    <IconButton
-                      onClick={() => setShowEminMisin(true)}
-                      disabled={!isChanged}
-                    >
-                      <ClearOutlined variant="contained" sx={{ color: isChanged ? "red" : "lightgray" }} />
-                    </IconButton>
-                  </Grid>
-
-                  <Grid item>
-                    <IconButton
-                      onClick={() => saveChange()}
-                      disabled={!isChanged}
-                    >
-                      <FileDownloadDoneIcon variant="contained" sx={{ color: isChanged ? "green" : "lightgray" }} />
-                    </IconButton>
-                  </Grid>
-
-                </>
-              }
 
 
             </Grid>

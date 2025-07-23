@@ -28,23 +28,25 @@ export default function P_MahalListesiPozMahaller() {
   const navigate = useNavigate()
   const queryClient = useQueryClient()
 
-  const { data: pozlar } = useGetPozlar()
-  const { data: mahaller } = useGetMahalListesi_mahaller_byPoz()
+  const { data: mahaller_query } = useGetMahalListesi_mahaller_byPoz()
+  const [mahaller_state, setMahaller_state] = useState()
 
   const { RealmApp, myTema } = useContext(StoreContext)
   const { selectedProje } = useContext(StoreContext)
   const { selectedPoz_mahalListesi } = useContext(StoreContext)
+  const { selectedMahal_mahalListesi, setSelectedMahal_mahalListesi } = useContext(StoreContext)
 
   const [dialogAlert, setDialogAlert] = useState()
 
   const [show, setShow] = useState("Main")
-  const [editMode, setEditMode] = useState()
   const [isChanged, setIsChanged] = useState()
 
 
   useEffect(() => {
     !selectedProje && navigate('/projeler')
-  }, [])
+    setMahaller_state(mahaller_query)
+    console.log("mahaller_query", mahaller_query)
+  }, [mahaller_query])
 
 
 
@@ -104,26 +106,64 @@ export default function P_MahalListesiPozMahaller() {
 
 
 
-  const handleEdit = (oneMahal) => {
-    console.log("değişiklik oldu")
+  const handleDugumToggle = ({ oneMahal, toggleValue }) => {
+    // console.log("oneMahal",oneMahal)
+    let mahaller2 = mahaller_state
+    mahaller2 = mahaller2.map(oneMahal2 => {
+      if (oneMahal2._id.toString() === oneMahal._id.toString()) {
+        oneMahal2.isChanged = true
+        oneMahal2.hasDugum = toggleValue
+      }
+      return oneMahal2
+    })
     setIsChanged(true)
+    setMahaller_state(mahaller2)
   }
+
 
 
   const cancelChange = () => {
-    console.log("son kayıtlar geri alındı")
+    queryClient.invalidateQueries(['mahalListesi_mahaller_byPoz'])
     setIsChanged()
   }
 
-  const saveChange = () => {
-    console.log("son kayıtlar kaydedildi")
-    setIsChanged()
+
+  const saveChange = async () => {
+
+    try {
+
+      const mahaller = mahaller_state.filter(x => x.isChanged)
+      const result = await RealmApp.currentUser.callFunction("updateDugumler_openMetraj", { functionName: "mahaller_byPozId", _projeId: selectedProje._id, mahaller, _pozId: selectedPoz_mahalListesi._id });
+
+      if (result.ok) {
+        queryClient.invalidateQueries(['mahalListesi_mahaller_byPoz'])
+      }
+
+      setIsChanged()
+
+    } catch (err) {
+
+      setDialogAlert({
+        dialogIcon: "warning",
+        dialogMessage: "Beklenmedik hata, Rapor7/24 ile irtibata geçiniz..",
+        detailText: err?.message ? err.message : null
+      })
+
+    }
   }
+
+
+
+  const handleEdit = (oneMahal) => {
+    setSelectedMahal_mahalListesi(oneMahal)
+
+  }
+
 
 
 
   // const columns = `auto 1fr auto auto${editNodeMetraj ? " 1rem auto" : ""}`
-  const columns = `max-content minmax(min-content, 1fr) max-content max-content${editMode ? " 1rem max-content" : ""}}`
+  const columns = `max-content minmax(min-content, 1fr) max-content max-content`
 
 
   return (
@@ -143,7 +183,6 @@ export default function P_MahalListesiPozMahaller() {
       <Grid item >
         <HeaderMahalListesiPozMahaller
           show={show} setShow={setShow}
-          editMode={editMode} setEditMode={setEditMode}
           isChanged={isChanged}
           cancelChange={cancelChange}
           saveChange={saveChange}
@@ -164,7 +203,7 @@ export default function P_MahalListesiPozMahaller() {
 
       {/* ANA SAYFA - POZLAR VARSA */}
 
-      {show == "Main" && pozlar?.length > 0 &&
+      {show == "Main" && mahaller_state?.length > 0 &&
 
         <Box sx={{ m: "1rem", mt: "4.5rem", display: "grid", gridTemplateColumns: columns }}>
 
@@ -192,16 +231,6 @@ export default function P_MahalListesiPozMahaller() {
               Birim
             </Box>
 
-            {/* METRAJ DÜZENLEME AÇIKSA */}
-            {editMode &&
-              <>
-                <Box></Box>
-                <Box sx={{ ...enUstBaslik_css }}>
-                  {"deneme"}
-                </Box>
-              </>
-            }
-
           </>
 
 
@@ -223,20 +252,12 @@ export default function P_MahalListesiPozMahaller() {
                     </Box>
                   </Box>
 
-                  {/* METRAJ DÜZENLEME AÇIKSA */}
-                  {editMode &&
-                    <>
-                      <Box />
-                      <Box sx={{ ...lbsBaslik_css2 }} />
-                    </>
-                  }
-
                 </>
 
 
                 {/* LBS'İN POZLARI */}
-                {/* {mahaller?.filter(x => x._lbsId.toString() === oneLbs._id.toString()).map((oneMahal, index) => { */}
-                {mahaller?.map((oneMahal, index) => {
+                {/* {mahaller_state?.filter(x => x._lbsId.toString() === oneLbs._id.toString()).map((oneMahal, index) => { */}
+                {mahaller_state?.map((oneMahal, index) => {
 
                   // let isSelected = false
 
@@ -256,7 +277,7 @@ export default function P_MahalListesiPozMahaller() {
                       <Box sx={{ ...mahalNo_css, justifyItems: "start", pl: "0.5rem", backgroundColor: !hasDugum && inactiveGray }} >
                         {oneMahal.mahalName}
                       </Box>
-                      <Box onDoubleClick={() => console.log("onaylı metraja tıklandı")} sx={{ ...mahalNo_css, cursor: "pointer", display: "grid", gridTemplateColumns: "1rem 1fr", backgroundColor: !hasDugum && inactiveGray, "&:hover": { "& .childClass": { backgroundColor: "red" } } }}>
+                      <Box onDoubleClick={() => handleDugumToggle({ oneMahal, toggleValue: !hasDugum })} sx={{ ...mahalNo_css, cursor: "pointer", display: "grid", gridTemplateColumns: "1rem 1fr", backgroundColor: !hasDugum && inactiveGray, "&:hover": { "& .childClass": { backgroundColor: "red" } } }}>
                         <Box className="childClass" sx={{ ml: "-1rem", height: "0.5rem", width: "0.5rem", borderRadius: "50%" }}>
                         </Box>
                         <Box sx={{ justifySelf: "end" }}>
@@ -267,21 +288,6 @@ export default function P_MahalListesiPozMahaller() {
                         {selectedProje?.pozBirimleri.find(x => x.id === selectedPoz_mahalListesi.pozBirimId).name}
                       </Box>
 
-
-                      {/* METRAJ DÜZENLEME AÇIKSA - KİŞİNİN HAZIRLADIĞI TOPLAM POZ METRAJ*/}
-                      {
-                        editMode &&
-                        <>
-                          <Box />
-                          <Box onDoubleClick={() => handleEdit(oneMahal)} sx={{ ...mahalNo_css, justifyContent: "end", cursor: "pointer", backgroundColor: "yellow", cursor: "pointer", display: "grid", gridTemplateColumns: "1rem 1fr", "&:hover": { "& .childClass": { backgroundColor: "red" } } }}>
-                            <Box className="childClass" sx={{ ml: "-1rem", backgroundColor: "yellow", height: "0.5rem", width: "0.5rem", borderRadius: "50%" }}>
-                            </Box>
-                            <Box sx={{ justifySelf: "end" }}>
-                              {ikiHane(oneMahal?.hazirlananMetrajlar?.find(x => x.userEmail === RealmApp?.currentUser.customData.email)?.metraj)}
-                            </Box>
-                          </Box>
-                        </>
-                      }
 
                     </React.Fragment>
                   )

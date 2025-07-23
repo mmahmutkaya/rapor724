@@ -9,7 +9,7 @@ import getWbsName from '../../functions/getWbsName.js';
 import { DialogAlert } from '../../components/general/DialogAlert.js';
 
 import { StoreContext } from '../../components/store.js'
-import { useGetPozlar } from '../../hooks/useMongo.js';
+import { useGetMahalListesi_pozlar } from '../../hooks/useMongo.js';
 
 
 
@@ -28,7 +28,7 @@ export default function P_MahalListesiPozlar() {
   const navigate = useNavigate()
   const queryClient = useQueryClient()
 
-  const { data: pozlar } = useGetPozlar()
+  const { data: pozlar } = useGetMahalListesi_pozlar()
 
   const { RealmApp, myTema } = useContext(StoreContext)
   const { selectedProje } = useContext(StoreContext)
@@ -37,7 +37,6 @@ export default function P_MahalListesiPozlar() {
   const [dialogAlert, setDialogAlert] = useState()
 
   const [show, setShow] = useState("Main")
-  const [editMode, setEditMode] = useState()
   const [isChanged, setIsChanged] = useState()
 
 
@@ -130,7 +129,7 @@ export default function P_MahalListesiPozlar() {
 
 
   // const columns = `auto 1fr auto auto${editNodeMetraj ? " 1rem auto" : ""}`
-  const columns = `max-content minmax(min-content, 1fr) max-content max-content${editMode ? " 1rem max-content" : ""}}`
+  const columns = `max-content minmax(min-content, 1fr) max-content max-content`
 
 
   return (
@@ -150,7 +149,6 @@ export default function P_MahalListesiPozlar() {
       <Grid item >
         <HeaderMahalListesiPozlar
           show={show} setShow={setShow}
-          editMode={editMode} setEditMode={setEditMode}
           isChanged={isChanged}
           cancelChange={cancelChange}
           saveChange={saveChange}
@@ -199,16 +197,6 @@ export default function P_MahalListesiPozlar() {
               Birim
             </Box>
 
-            {/* METRAJ DÜZENLEME AÇIKSA */}
-            {editMode &&
-              <>
-                <Box></Box>
-                <Box sx={{ ...enUstBaslik_css }}>
-                  {"deneme"}
-                </Box>
-              </>
-            }
-
           </>
 
 
@@ -229,14 +217,6 @@ export default function P_MahalListesiPozlar() {
                       {getWbsName({ wbsArray: selectedProje?.wbs, oneWbs }).name}
                     </Box>
                   </Box>
-
-                  {/* METRAJ DÜZENLEME AÇIKSA */}
-                  {editMode &&
-                    <>
-                      <Box />
-                      <Box sx={{ ...wbsBaslik_css2 }} />
-                    </>
-                  }
 
                 </>
 
@@ -273,21 +253,6 @@ export default function P_MahalListesiPozlar() {
                         {selectedProje?.pozBirimleri.find(x => x.id === onePoz.pozBirimId).name}
                       </Box>
 
-
-                      {/* METRAJ DÜZENLEME AÇIKSA - KİŞİNİN HAZIRLADIĞI TOPLAM POZ METRAJ*/}
-                      {
-                        editMode &&
-                        <>
-                          <Box />
-                          <Box onDoubleClick={() => handleEdit(onePoz)} sx={{ ...pozNo_css, justifyContent: "end", cursor: "pointer", backgroundColor: "yellow", cursor: "pointer", display: "grid", gridTemplateColumns: "1rem 1fr", "&:hover": { "& .childClass": { backgroundColor: "red" } } }}>
-                            <Box className="childClass" sx={{ ml: "-1rem", backgroundColor: "yellow", height: "0.5rem", width: "0.5rem", borderRadius: "50%" }}>
-                            </Box>
-                            <Box sx={{ justifySelf: "end" }}>
-                              {ikiHane(onePoz?.hazirlananMetrajlar?.find(x => x.userEmail === RealmApp?.currentUser.customData.email)?.metraj)}
-                            </Box>
-                          </Box>
-                        </>
-                      }
 
                     </React.Fragment>
                   )
