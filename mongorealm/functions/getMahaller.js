@@ -37,7 +37,7 @@ exports = async function ({
 
     let mahaller = await collection_Mahaller.aggregate([
       { $match: { _projeId, isDeleted: false } },
-      { $project: { _lbsId, mahalNo: 1, mahalName: 1 } }
+      { $project: { _lbsId: 1, mahalNo: 1, mahalName: 1 } }
     ]).toArray()
 
     // mahaller = mahaller.map(oneMahal => {
