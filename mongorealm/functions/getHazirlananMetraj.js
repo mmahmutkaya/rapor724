@@ -27,7 +27,7 @@ exports = async function ({
   
   try {
     
-    let hazirlananMetraj = await collection_hazirlananMetrajlar.findOne({_dugumId})
+    let hazirlananMetraj = await collection_hazirlananMetrajlar.findOne({_dugumId,userEmail})
     if(!hazirlananMetraj) {
       hazirlananMetraj = {
         userEmail,
