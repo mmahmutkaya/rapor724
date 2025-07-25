@@ -27,7 +27,7 @@ exports = async function ({
   
   try {
     
-    let hazirlananMetrajlar = await collection_hazirlananMetrajlar.find({_id:_dugumId})
+    let hazirlananMetrajlar = await collection_hazirlananMetrajlar.find({_dugumId})
     return hazirlananMetrajlar
     
   } catch (error) {

@@ -27,7 +27,7 @@ exports = async function ({
   
   try {
     
-    let onaylananMetraj = await collection_onaylananMetraj.findOne({_id:_dugumId})
+    let onaylananMetraj = await collection_onaylananMetraj.findOne({_dugumId})
     return onaylananMetraj
     
   } catch (error) {
