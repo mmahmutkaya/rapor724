@@ -169,12 +169,6 @@ export default function P_Firmalar() {
                   </Typography>
                 </Box>
 
-                <Box className="childClass" sx={{ pr: "1rem", color: "gray" }}>
-                  <Typography>
-                    {oneFirma.yetkiliKisiler.find(oneKisi => oneKisi.email === RealmApp.currentUser._profile.data.email && oneKisi.yetki === "owner") ? "sahip" : "diğer"}
-                  </Typography>
-                </Box>
-
               </Box>
 
             ))

@@ -35,9 +35,13 @@ export default function P_MetrajPozlar() {
 
   const { RealmApp, myTema } = useContext(StoreContext)
   const { customData } = RealmApp.currentUser
+
   const { selectedProje } = useContext(StoreContext)
+  const metrajYapabilenler = selectedProje?.yetki?.metrajYapabilenler
+  const yetkililer = selectedProje?.yetki.yetkililer
+
   const { selectedPoz_metraj, setSelectedPoz_metraj } = useContext(StoreContext)
-  const { editNodeMetraj, setEditNodeMetraj } = useContext(StoreContext)
+  const { editNodeMetraj, onayNodeMetraj } = useContext(StoreContext)
 
   // console.log("selectedProje", selectedProje)
   const pozBirimleri = selectedProje?.pozBirimleri
@@ -120,8 +124,8 @@ export default function P_MetrajPozlar() {
     setSelectedPoz_metraj(onePoz)
   }
 
-
-  const columns = `auto 1fr auto auto${pozAciklamaShow ? " 1rem 10rem" : ""}${pozVersiyonShow ? " 1rem auto" : ""}${editNodeMetraj ? " 1rem auto" : ""}`
+  const metrajYapabilenlerColumns = " 1rem repeat(" + metrajYapabilenler?.length + ", max-content)"
+  const columns = `max-content minmax(min-content, 3fr) max-content max-content${pozAciklamaShow ? " 0.5rem minmax(min-content, 2fr)" : ""}${pozVersiyonShow ? " 0.5rem min-content" : ""}${editNodeMetraj ? " 0.5rem max-content" : ""}${onayNodeMetraj ? metrajYapabilenlerColumns : ""}`
 
 
   return (
@@ -218,8 +222,21 @@ export default function P_MetrajPozlar() {
               <>
                 <Box></Box>
                 <Box sx={{ ...enUstBaslik_css }}>
-                  {customData.isim}
+                  {customData.userCode}
                 </Box>
+              </>
+            }
+
+            {onayNodeMetraj &&
+              <>
+                <Box> </Box>
+                {metrajYapabilenler.map((oneYapabilen, index) => {
+                  return (
+                    <Box key={index} sx={{ ...enUstBaslik_css, borderLeft: "1px solid black", justifyContent: "center" }}>
+                      {yetkililer?.find(oneYetkili => oneYetkili.userEmail === oneYapabilen.userEmail).userCode}
+                    </Box>
+                  )
+                })}
               </>
             }
 
@@ -269,6 +286,19 @@ export default function P_MetrajPozlar() {
                     </>
                   }
 
+                  {onayNodeMetraj &&
+                    <>
+                      <Box> </Box>
+                      {metrajYapabilenler.map((oneYapabilen, index) => {
+                        return (
+                          <Box key={index} sx={{ ...wbsBaslik_css2, borderLeft: "1px solid black", justifyContent: "center" }}>
+
+                          </Box>
+                        )
+                      })}
+                    </>
+                  }
+
                 </>
 
 
@@ -306,7 +336,7 @@ export default function P_MetrajPozlar() {
                         <>
                           <Box></Box>
                           <Box sx={{ ...pozNo_css }}>
-                            {onePoz.aciklama}
+                            {onePoz.aciklaam}
                           </Box>
                         </>
                       }
@@ -325,15 +355,33 @@ export default function P_MetrajPozlar() {
                       {editNodeMetraj &&
                         <>
                           <Box />
-                          <Box onDoubleClick={() => goTo_MetrajPozmahaller(onePoz)} sx={{ ...pozNo_css, justifyContent: "end", cursor: "pointer", backgroundColor: "yellow", cursor: "pointer", display: "grid", gridTemplateColumns: "1rem 1fr", "&:hover": { "& .childClass": { backgroundColor: "red" } } }}>
+                          <Box onDoubleClick={() => goTo_MetrajPozmahaller(onePoz)} sx={{ ...pozNo_css, justifyContent: "end", cursor: "pointer", backgroundColor: "yellow", display: "grid", gridTemplateColumns: "1rem 1fr", "&:hover": { "& .childClass": { backgroundColor: "red" } } }}>
                             <Box className="childClass" sx={{ ml: "-1rem", backgroundColor: "yellow", height: "0.5rem", width: "0.5rem", borderRadius: "50%" }}>
                             </Box>
                             <Box sx={{ justifySelf: "end" }}>
-                              {ikiHane(onePoz?.hazirlananMetrajlar.find(x => x.userEmail === customData.email).metraj)}
+                              {ikiHane(onePoz?.hazirlananMetrajlar.find(x => x.userEmail === customData.email)?.metraj)}
                             </Box>
                           </Box>
                         </>
                       }
+
+                      {onayNodeMetraj &&
+                        <>
+                          <Box> </Box>
+                          {metrajYapabilenler.map((oneYapabilen, index) => {
+                            return (
+                              <Box key={index} onDoubleClick={() => goTo_MetrajPozmahaller(onePoz)} sx={{ ...pozNo_css, justifyContent: "end", cursor: "pointer", backgroundColor: "rgb(143,206,0,0.3)", display: "grid", gridTemplateColumns: "1rem 1fr", "&:hover": { "& .childClass": { backgroundColor: "red" } } }}>
+                                <Box className="childClass" sx={{ color: "rgb(143,206,0,0.3)", ml: "-1rem", height: "0.5rem", width: "0.5rem", borderRadius: "50%" }}>
+                                </Box>
+                                <Box sx={{ justifySelf: "end" }}>
+                                  {ikiHane(onePoz?.hazirlananMetrajlar.find(x => x.userEmail === oneYapabilen.userEmail)?.metraj)}
+                                </Box>
+                              </Box>
+                            )
+                          })}
+                        </>
+                      }
+
 
                     </React.Fragment>
                   )

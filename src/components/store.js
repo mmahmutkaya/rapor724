@@ -21,7 +21,7 @@ export default ({ children }) => {
       baslik2_ayrac: "#8a2424",
       hazirlananMetraj: "rgb(255,165,0,0.4)",
       editMetraj: "yellow",
-      inactiveGray: "rgb(230,230,230)",
+      inactiveGray: "rgb(210,210,210)",
     },
     firstColor: "#3c4245",
     secondColor: "#5f6769",
@@ -56,8 +56,10 @@ export default ({ children }) => {
   const [selectedNode, setSelectedNode] = useState()
   const [selectedNode_metraj, setSelectedNode_metraj] = useState()
   const [editNodeMetraj, setEditNodeMetraj] = useState()
+  const [onayNodeMetraj, setOnayNodeMetraj] = useState()
   const [showNodeMetraj, setShowNodeMetraj] = useState()
   const [nodeMetrajlar, setNodeMetrajlar] = useState()
+  
   const [detailMode, setDetailMode] = useState()
 
   const [RealmApp, setRealmApp] = useState(Realm.getApp("rapor724_v2-cykom"))
@@ -97,6 +99,7 @@ export default ({ children }) => {
     selectedNode_metraj, setSelectedNode_metraj,
 
     editNodeMetraj, setEditNodeMetraj,
+    onayNodeMetraj, setOnayNodeMetraj,
     showNodeMetraj, setShowNodeMetraj,
     nodeMetrajlar, setNodeMetrajlar,
     detailMode, setDetailMode,

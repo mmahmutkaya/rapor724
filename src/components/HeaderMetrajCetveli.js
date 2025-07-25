@@ -35,70 +35,34 @@ import { useGetMahaller } from '../hooks/useMongo';
 
 
 
-export default function P_MetrajCetveliHeader({
-  show, setShow,
-  save_hazirlananMetraj_toDb,
-  load_hazirlananMetraj_state,
-  load_hazirlananVeOnaylananMetrajlar_state,
-  setHazirlananMetraj_state,
-  setOnaylananMetraj_state,
-  isChanged, setIsChanged,
-  saveOnaylananMetraj_toDb,
-}) {
+export default function P_MetrajCetveliHeader({ show, setShow, isChanged, cancel, save }) {
 
   const navigate = useNavigate()
 
   const { drawerWidth, topBarHeight } = useContext(StoreContext)
-  const { custom, setCustom } = useContext(StoreContext)
-  const { selectedNode_metraj } = useContext(StoreContext)
-  const { editNodeMetraj, setEditNodeMetraj } = useContext(StoreContext)
-  const { showNodeMetraj, setShowNodeMetraj } = useContext(StoreContext)
+
   const { detailMode, setDetailMode } = useContext(StoreContext)
 
-  const { selectedProje, setSelectedProje } = useContext(StoreContext)
   const { selectedPoz_metraj, selectedMahal_metraj } = useContext(StoreContext)
 
-  const RealmApp = useApp();
-
-  const { selectedMahal, setSelectedMahal } = useContext(StoreContext)
-  const { selectedMahalBaslik, setSelectedMahalBaslik } = useContext(StoreContext)
-
-  const [willBeUpdate_mahalBaslik, setWillBeUpdate_mahalBaslik] = useState(false)
-
-  const [showDialog, setShowDialog] = useState(false)
-
-
-  const { data: mahaller } = useGetMahaller()
-
-
-  const cancelDialog = () => {
-    setShowDialog(false)
-  }
-
-
-  const approveDialog = () => {
-    setShowDialog(false)
-    setHazirlananMetraj_state()
-    setOnaylananMetraj_state()
-    setIsChanged()
-    setShow("DugumMetrajlari")
-  }
-
+  const [showEminMisin, setShowEminMisin] = useState(false)
 
 
   return (
     <Paper >
 
-      {showDialog &&
+      {showEminMisin &&
         <DialogAlert
           dialogIcon={"warning"}
           dialogMessage={"Yaptığınız değişiklikleri kaybedeceksiniz ?"}
-          onCloseAction={cancelDialog}
+          onCloseAction={() => setShowEminMisin()}
           actionText1={"İptal"}
-          action1={cancelDialog}
+          action1={() => setShowEminMisin()}
           actionText2={"Onayla"}
-          action2={approveDialog}
-          detailText={"bu bir denemedir"}
+          action2={() => {
+            cancel()
+            setShowEminMisin()
+          }}
         />
       }
 
@@ -146,168 +110,56 @@ export default function P_MetrajCetveliHeader({
             <Grid container>
 
 
-              {/* {show == "PozMahalleri" && !selectedNode_metraj &&
-                <Grid item >
-                  <IconButton onClick={() => {
-                    navigate("/metraj")
-                    setSelectedNode()
-                  }} aria-label="lbsUncliced">
-                    <ReplyIcon variant="contained" sx={{ color: !selectedPoz_metraj ? "lightgray" : "red" }} />
-                  </IconButton>
-                </Grid>
-              }
-
-
-              {show == "PozMahalleri" && selectedNode_metraj &&
-                <Grid item >
-                  <IconButton onClick={() => {
-                    setSelectedNode()
-                  }} aria-label="lbsUncliced">
-                    <ClearOutlined variant="contained" sx={{ color: !selectedNode_metraj ? "lightgray" : "red" }} />
-                  </IconButton>
-                </Grid>
-              }
-
-
-              {show == "PozMahalleri" && selectedNode_metraj &&
-                <Grid item >
-                  <IconButton onClick={() => {
-                    setShow("DugumMetrajlari")
-                  }} aria-label="lbsUncliced">
-                    <ForwardIcon variant="contained" sx={{
-                      color: "green",
-                    }} />
-                  </IconButton>
-                </Grid>
-              } */}
-
-
-
 
               {show == "DugumMetrajlari" &&
-                <Grid item >
-                  <IconButton onClick={() => {
-                    navigate("/metrajpozmahaller")
-                  }} aria-label="lbsUncliced">
-                    <ReplyIcon variant="contained" sx={{ color: !selectedPoz_metraj ? "lightgray" : "red" }} />
-                  </IconButton>
-                </Grid>
-              }
+                <>
+                  <Grid item >
+                    <IconButton onClick={() => {
+                      navigate("/metrajpozmahaller")
+                    }} aria-label="lbsUncliced">
+                      <ReplyIcon variant="contained" sx={{ color: "gray" }} />
+                    </IconButton>
+                  </Grid>
 
+                  <Grid item >
+                    <IconButton onClick={() => {
+                      setShow("EditMetraj")
+                    }} aria-label="lbsUncliced">
+                      <EditIcon variant="contained" />
+                    </IconButton>
+                  </Grid>
 
-
-              {show == "DugumMetrajlari" &&
-                <Grid item >
-                  <IconButton onClick={() => {
-                    setDetailMode(detailMode => !detailMode)
-                  }} aria-label="lbsUncliced">
-                    <VisibilityIcon variant="contained" sx={{ color: detailMode ? "gray" : "lightgray" }} />
-                  </IconButton>
-                </Grid>
-              }
-
-
-
-              {show == "DugumMetrajlari" &&
-                <Grid item >
-                  <IconButton onClick={() => {
-                    // load_hazirlananMetraj_state()
-                    setShow("EditMetraj")
-                  }} aria-label="lbsUncliced">
-                    <EditIcon variant="contained" />
-                  </IconButton>
-                </Grid>
-              }
-
-
-              {show == "DugumMetrajlari" &&
-                <Grid item >
-                  <IconButton
-                    onClick={() => {
-                      load_hazirlananVeOnaylananMetrajlar_state()
-                      setShow("MetrajOnay")
-                    }}
-                    aria-label="lbsUncliced">
-                    <TaskAltIcon variant="contained" />
-                  </IconButton>
-                </Grid>
-              }
-
-
-
-
-
-              {show == "EditMetraj" &&
-                <Grid item >
-                  <IconButton onClick={() => {
-                    if (isChanged) {
-                      setShowDialog(true)
-                    } else {
-                      setShow("DugumMetrajlari")
-                    }
-                  }} aria-label="lbsUncliced">
-                    <ClearOutlined variant="contained" sx={{ color: "red" }} />
-                  </IconButton>
-                </Grid>
+                </>
               }
 
 
 
               {show == "EditMetraj" &&
-                <Grid item >
-                  <IconButton onClick={() => {
-                    save_hazirlananMetraj_toDb()
-                  }} aria-label="lbsUncliced">
-                    <SaveIcon variant="contained" />
-                  </IconButton>
-                </Grid>
+
+                <>
+
+                  <Grid item >
+                    <IconButton onClick={() => {
+                      if (isChanged) {
+                        setShowEminMisin(true)
+                      } else {
+                        setShow("DugumMetrajlari")
+                      }
+                    }} aria-label="lbsUncliced">
+                      <ClearOutlined variant="contained" sx={{ color: "red" }} />
+                    </IconButton>
+                  </Grid>
+
+                  <Grid item >
+                    <IconButton onClick={() => {
+                      save()
+                    }} aria-label="lbsUncliced">
+                      <SaveIcon variant="contained" />
+                    </IconButton>
+                  </Grid>
+
+                </>
               }
-
-
-
-
-
-
-
-
-              {show == "MetrajOnay" &&
-                <Grid item >
-                  <IconButton onClick={() => {
-                    setDetailMode(detailMode => !detailMode)
-                  }} aria-label="lbsUncliced">
-                    <VisibilityIcon variant="contained" sx={{ color: detailMode ? "gray" : "lightgray" }} />
-                  </IconButton>
-                </Grid>
-              }
-
-
-
-              {show == "MetrajOnay" &&
-                <Grid item >
-                  <IconButton onClick={() => {
-                    if (isChanged) {
-                      setShowDialog(true)
-                    } else {
-                      setShow("DugumMetrajlari")
-                    }
-                  }} aria-label="lbsUncliced">
-                    <ClearOutlined variant="contained" sx={{ color: "red" }} />
-                  </IconButton>
-                </Grid>
-              }
-
-
-
-              {show == "MetrajOnay" &&
-                <Grid item >
-                  <IconButton onClick={() => {
-                    saveOnaylananMetraj_toDb()
-                  }} aria-label="lbsUncliced">
-                    <SaveIcon variant="contained" />
-                  </IconButton>
-                </Grid>
-              }
-
 
 
 

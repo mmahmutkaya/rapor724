@@ -32,6 +32,7 @@ export default function P_MetrajCetveli() {
   const queryClient = useQueryClient()
 
   const { RealmApp, selectedProje, setSelectedProje } = useContext(StoreContext)
+  const { customData } = RealmApp.currentUser
   const { custom, setCustom } = useContext(StoreContext)
   const { selectedMahal, setSelectedMahal } = useContext(StoreContext)
   const { selectedPoz_metraj, setSelectedPoz_metraj } = useContext(StoreContext)
@@ -93,73 +94,31 @@ export default function P_MetrajCetveli() {
   const navigate = useNavigate()
   useEffect(() => {
     !selectedNode_metraj && navigate("/metrajpozmahaller")
-    load_hazirlananMetraj_state()
+    setHazirlananMetraj_state(hazirlananMetraj)
   }, [hazirlananMetraj])
 
 
 
 
-  // Edit Metraj Sayfasının Fonksiyonu
+
+
   // const load_hazirlananMetraj_state = () => {
 
-  //   let userharf = selectedProje?.metrajYapabilenler.find(x => x.userEmail === RealmApp?.currentUser.customData.email).harf
+  //   let userCode = customData.userCode
 
-  //   if (hazirlananMetraj?.length > 0) {
-  //     let hazirlananMetraj = hazirlananMetrajlar?.find(x => x.userEmail === RealmApp?.currentUser.customData.email)
-
-  //     if (hazirlananMetraj) {
-  //       hazirlananMetraj = JSON.parse(JSON.stringify(hazirlananMetraj))
-  //       hazirlananMetraj._userId = new BSON.ObjectId(hazirlananMetraj._userId)
-  //       hazirlananMetraj.satirlar = hazirlananMetraj.satirlar.map(x => {
-  //         x.sonGuncelleme = new Date(x.sonGuncelleme)
-  //         return x
-  //       })
-  //       setHazirlananMetraj_state(hazirlananMetraj)
-  //       // console.log("backend teki usermetraj şablonu yüklendi", hazirlananMetraj)
-  //     } else {
-  //       let satirlar = [
-  //         { satirNo: userharf + 1, aciklama: "", carpan1: "", carpan2: "", carpan3: "", carpan4: "", carpan5: "", metraj: "" },
-  //         { satirNo: userharf + 2, aciklama: "", carpan1: "", carpan2: "", carpan3: "", carpan4: "", carpan5: "", metraj: "" },
-  //         { satirNo: userharf + 3, aciklama: "", carpan1: "", carpan2: "", carpan3: "", carpan4: "", carpan5: "", metraj: "" },
-  //         { satirNo: userharf + 4, aciklama: "", carpan1: "", carpan2: "", carpan3: "", carpan4: "", carpan5: "", metraj: "" },
-  //         { satirNo: userharf + 5, aciklama: "", carpan1: "", carpan2: "", carpan3: "", carpan4: "", carpan5: "", metraj: "" }
-  //       ]
-  //       setHazirlananMetraj_state({ userEmail: RealmApp?.currentUser.customData.email, satirlar, metraj: 0 })
-  //       // console.log("frontend teki usermetraj şablonu yüklendi", { _userId: new BSON.ObjectId(RealmApp?.currentUser.id), satirlar })
-  //     }
+  //   if (hazirlananMetraj) {
+  //     setHazirlananMetraj_state(hazirlananMetraj)
   //   } else {
   //     let satirlar = [
-  //       { satirNo: userharf + 1, aciklama: "", carpan1: "", carpan2: "", carpan3: "", carpan4: "", carpan5: "", metraj: "" },
-  //       { satirNo: userharf + 2, aciklama: "", carpan1: "", carpan2: "", carpan3: "", carpan4: "", carpan5: "", metraj: "" },
-  //       { satirNo: userharf + 3, aciklama: "", carpan1: "", carpan2: "", carpan3: "", carpan4: "", carpan5: "", metraj: "" },
-  //       { satirNo: userharf + 4, aciklama: "", carpan1: "", carpan2: "", carpan3: "", carpan4: "", carpan5: "", metraj: "" },
-  //       { satirNo: userharf + 5, aciklama: "", carpan1: "", carpan2: "", carpan3: "", carpan4: "", carpan5: "", metraj: "" }
+  //       { satirNo: userCode + 1, aciklama: "", carpan1: "", carpan2: "", carpan3: "", carpan4: "", carpan5: "", metraj: "" },
+  //       { satirNo: userCode + 2, aciklama: "", carpan1: "", carpan2: "", carpan3: "", carpan4: "", carpan5: "", metraj: "" },
+  //       { satirNo: userCode + 3, aciklama: "", carpan1: "", carpan2: "", carpan3: "", carpan4: "", carpan5: "", metraj: "" },
+  //       { satirNo: userCode + 4, aciklama: "", carpan1: "", carpan2: "", carpan3: "", carpan4: "", carpan5: "", metraj: "" },
+  //       { satirNo: userCode + 5, aciklama: "", carpan1: "", carpan2: "", carpan3: "", carpan4: "", carpan5: "", metraj: "" }
   //     ]
   //     setHazirlananMetraj_state({ userEmail: RealmApp?.currentUser.customData.email, satirlar, metraj: 0 })
-  //     // console.log("frontend teki usermetraj şablonu yüklendi", { _userId: new BSON.ObjectId(RealmApp?.currentUser.id), satirlar })
   //   }
-
   // }
-
-
-
-  const load_hazirlananMetraj_state = () => {
-
-    // let userharf = selectedProje?.yetki?.metrajYapabilenler.find(x => x.userEmail === RealmApp?.currentUser.customData.email).userCode
-    let userharf = "A"
-    if (hazirlananMetraj) {
-      setHazirlananMetraj_state(hazirlananMetraj)
-    } else {
-      let satirlar = [
-        { satirNo: userharf + 1, aciklama: "", carpan1: "", carpan2: "", carpan3: "", carpan4: "", carpan5: "", metraj: "" },
-        { satirNo: userharf + 2, aciklama: "", carpan1: "", carpan2: "", carpan3: "", carpan4: "", carpan5: "", metraj: "" },
-        { satirNo: userharf + 3, aciklama: "", carpan1: "", carpan2: "", carpan3: "", carpan4: "", carpan5: "", metraj: "" },
-        { satirNo: userharf + 4, aciklama: "", carpan1: "", carpan2: "", carpan3: "", carpan4: "", carpan5: "", metraj: "" },
-        { satirNo: userharf + 5, aciklama: "", carpan1: "", carpan2: "", carpan3: "", carpan4: "", carpan5: "", metraj: "" }
-      ]
-      setHazirlananMetraj_state({ userEmail: RealmApp?.currentUser.customData.email, satirlar, metraj: 0 })
-    }
-  }
 
 
 
@@ -232,14 +191,12 @@ export default function P_MetrajCetveli() {
 
 
   // Edit Metraj Sayfasının Fonksiyonu
-  const save_hazirlananMetraj_toDb = async () => {
+  const save = async () => {
 
     if (isChanged) {
       try {
 
-        console.log("hazirlananMetraj_state", hazirlananMetraj_state)
-
-        await RealmApp?.currentUser.callFunction("update_hazirlananMetraj", ({ _dugumId: selectedNode_metraj._id, hazirlananMetraj_state }))
+        await RealmApp?.currentUser.callFunction("updateDugumler_hazirlananMetraj", ({ _dugumId: selectedNode_metraj._id, hazirlananMetraj_state }))
         // console.log("result", result)
         // if (result.dugumler) {
         //   queryClient.setQueryData(['dugumler', selectedProje?._id.toString()], result.dugumler)
@@ -264,7 +221,10 @@ export default function P_MetrajCetveli() {
   }
 
 
-
+  const cancel = () => {
+    queryClient.invalidateQueries(['hazirlananMetraj'])
+    setIsChanged()
+  }
 
 
 
@@ -319,7 +279,7 @@ export default function P_MetrajCetveli() {
   }
 
 
-  const gridTemplateColumns1 = 'min-content minmax(min-content, 5fr) repeat(7, minmax(min-content, 1fr)) 1rem min-content'
+  const gridTemplateColumns1 = 'max-content minmax(min-content, 5fr) repeat(7, minmax(min-content, 1fr)) 0.5rem max-content'
 
   pozBirim = selectedProje?.pozBirimleri.find(item => item.id == selectedPoz_metraj?.pozBirimId)?.name
 
@@ -340,13 +300,9 @@ export default function P_MetrajCetveli() {
       <Grid name="metrajCetveliHeader" item sx={{ mt: (parseFloat(subHeaderHeight) + 1) + "rem", }}>
         <HeaderMetrajCetveli
           show={show} setShow={setShow}
-          save_hazirlananMetraj_toDb={save_hazirlananMetraj_toDb}
-          load_hazirlananMetraj_state={load_hazirlananMetraj_state}
-          setHazirlananMetraj_state={setHazirlananMetraj_state}
-          setOnaylananMetraj_state={setOnaylananMetraj_state}
+          save={save}
+          cancel={cancel}
           isChanged={isChanged} setIsChanged={setIsChanged}
-          approveMode={approveMode}
-          setApproveMode={setApproveMode}
         />
       </Grid>
 

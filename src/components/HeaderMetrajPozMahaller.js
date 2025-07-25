@@ -10,6 +10,7 @@ import AppBar from '@mui/material/AppBar';
 
 import Typography from '@mui/material/Typography';
 import Grid from '@mui/material/Grid';
+import Box from '@mui/material/Box';
 import Paper from '@mui/material/Paper';
 
 //icons
@@ -34,6 +35,7 @@ export default function HeaderMetrajPozMahaller() {
 
   const { drawerWidth, topBarHeight } = useContext(StoreContext)
   const { editNodeMetraj, setEditNodeMetraj } = useContext(StoreContext)
+  const { onayNodeMetraj, setOnayNodeMetraj } = useContext(StoreContext)
 
   const { selectedProje, setSelectedProje } = useContext(StoreContext)
   const { setPozlar } = useContext(StoreContext)
@@ -50,166 +52,16 @@ export default function HeaderMetrajPozMahaller() {
   const [dialogCase, setDialogCase] = useState("")
 
 
-  async function handlePozDelete(mahal) {
 
-    // seçili wbs yoksa durdurma, inaktif iken tuşlara basılabiliyor mesela, bu fonksiyon çalıştırılıyor, orayı iptal etmekle uğraşmak istemedim
-    if (!selectedPoz_metraj) {
-      console.log("alttaki satırda --return-- oldu")
-      return
-    }
-
-    // bu kontrol backend de ayrıca yapılıyor
-    if (selectedPoz_metraj.includesPoz) {
-      throw new Error("Bu mahal metraj içerdiği için silinemez, öncelikle metrajları silmelisiniz.")
-    }
-
-    try {
-      const result = await RealmApp.currentUser.callFunction("deletePoz", { mahalId: mahal._id });
-
-      if (result.deletedCount) {
-
-        // const oldPozlar = queryClient.getQueryData(["pozlar"])
-        // const newPozlar = oldPozlar.filter(item => item._id.toString() !== mahal._id.toString())
-        // queryClient.setQueryData(["pozlar"], newPozlar)
-
-        setPozlar(oldPozlar => oldPozlar.filter(item => item._id.toString() !== mahal._id.toString()))
-
-      }
-
-      if (result.isIncludesPozFalse) {
-
-        let oldProject = JSON.parse(JSON.stringify(selectedProje))
-
-        oldProject.wbs.find(item => item._id.toString() === mahal._wbsId.toString()).includesPoz = false
-
-        setSelectedProje(oldProject)
-
-      }
-
-      setSelectedPoz_metraj()
-
-    } catch (err) {
-
-      console.log(err)
-      let hataMesaj_ = err.message ? err.message : "Beklenmedik hata, Rapor7/24 ile irtibata geçiniz.."
-
-      if (hataMesaj_.includes("Silmek istediğiniz  Wbs'in alt seviyeleri mevcut")) {
-        hataMesaj_ = "Silmek istediğiniz  Wbs'in alt seviyeleri mevcut, öncelikle onları silmelisiniz."
-      }
-
-      if (hataMesaj_.includes("Poz eklemeye açık başlıklar silinemez")) {
-        hataMesaj_ = "Poz eklemeye açık başlıklar silinemez, öncelikle mahal eklemeye kapatınız."
-      }
-
-      setSelectedPoz_metraj()
-      setDialogCase("error")
-      setShowDialog(hataMesaj_)
-    }
+  const toggleEdit = () => {
+    setEditNodeMetraj(editNodeMetraj => !editNodeMetraj)
+    setOnayNodeMetraj()
   }
 
 
-
-  async function handlePozBaslikDelete(mahalBaslik) {
-
-    const mahal = selectedPoz_metrajBaslik
-
-    // seçili wbs yoksa durdurma, inaktif iken tuşlara basılabiliyor mesela, bu fonksiyon çalıştırılıyor, orayı iptal etmekle uğraşmak istemedim
-    if (!selectedPoz_metrajBaslik) {
-      console.log("alttaki satırda --return-- oldu")
-      return
-    }
-
-    return { "silinecekPozBaslik": mahalBaslik }
-
-    try {
-      const result = await RealmApp.currentUser.callFunction("deletePozBaslik", { mahalId: mahal._id });
-
-      if (result.deletedCount) {
-
-        // const oldPozlar = queryClient.getQueryData(["pozlar"])
-        // const newPozlar = oldPozlar.filter(item => item._id.toString() !== mahal._id.toString())
-        // queryClient.setQueryData(["pozlar"], newPozlar)
-
-        setPozlar(oldPozlar => oldPozlar.filter(item => item._id.toString() !== mahal._id.toString()))
-
-      }
-
-      if (result.isIncludesPozFalse) {
-
-        let oldProject = JSON.parse(JSON.stringify(selectedProje))
-
-        oldProject.wbs.find(item => item._id.toString() === mahal._wbsId.toString()).includesPoz = false
-
-        setSelectedProje(oldProject)
-
-      }
-
-      setSelectedPoz_metraj()
-
-    } catch (err) {
-
-      console.log(err)
-      let hataMesaj_ = err.message ? err.message : "Beklenmedik hata, Rapor7/24 ile irtibata geçiniz.."
-
-      if (hataMesaj_.includes("Silmek istediğiniz  Wbs'in alt seviyeleri mevcut")) {
-        hataMesaj_ = "Silmek istediğiniz  Wbs'in alt seviyeleri mevcut, öncelikle onları silmelisiniz."
-      }
-
-      if (hataMesaj_.includes("Poz eklemeye açık başlıklar silinemez")) {
-        hataMesaj_ = "Poz eklemeye açık başlıklar silinemez, öncelikle mahal eklemeye kapatınız."
-      }
-
-      setSelectedPoz_metraj()
-      setDialogCase("error")
-      setShowDialog(hataMesaj_)
-    }
-  }
-
-
-
-  const handle_BaslikGenislet = () => {
-    setSelectedProje(selectedProje => {
-      const selectedProje_ = { ...selectedProje }
-      selectedProje_.mahalBasliklari.find(item => item.id == selectedPoz_metrajBaslik.id).genislik = selectedProje_.mahalBasliklari.find(item => item.id == selectedPoz_metrajBaslik.id).genislik + 0.5
-      return selectedProje_
-    })
-    setWillBeUpdate_mahalBaslik(true)
-  }
-
-
-  const handle_BaslikDaralt = () => {
-    setSelectedProje(selectedProje => {
-      const selectedProje_ = { ...selectedProje }
-      selectedProje_.mahalBasliklari.find(item => item.id == selectedPoz_metrajBaslik.id).genislik = selectedProje_.mahalBasliklari.find(item => item.id == selectedPoz_metrajBaslik.id).genislik - 0.5
-      return selectedProje_
-    })
-    setWillBeUpdate_mahalBaslik(true)
-  }
-
-
-
-  const handle_YatayHiza = () => {
-    setSelectedProje(selectedProje => {
-      const selectedProje_ = { ...selectedProje }
-      let guncelYatayHiza = selectedProje_.mahalBasliklari.find(item => item.id == selectedPoz_metrajBaslik.id).yatayHiza
-      if (guncelYatayHiza == "start") selectedProje_.mahalBasliklari.find(item => item.id == selectedPoz_metrajBaslik.id).yatayHiza = "center"
-      if (guncelYatayHiza == "center") selectedProje_.mahalBasliklari.find(item => item.id == selectedPoz_metrajBaslik.id).yatayHiza = "end"
-      if (guncelYatayHiza == "end") selectedProje_.mahalBasliklari.find(item => item.id == selectedPoz_metrajBaslik.id).yatayHiza = "start"
-      return selectedProje_
-    })
-    setWillBeUpdate_mahalBaslik(true)
-  }
-
-
-  const unSelectPozBaslik = async () => {
-    if (willBeUpdate_mahalBaslik) {
-      let mahalBaslik = selectedProje.mahalBasliklari.find(item => item.id == selectedPoz_metrajBaslik.id)
-      console.log("mahalBaslik", mahalBaslik)
-      const result = await RealmApp?.currentUser.callFunction("updateProjectPozBaslik", ({ _projectId: selectedProje._id, mahalBaslik }));
-      console.log("result", result)
-      setWillBeUpdate_mahalBaslik(false)
-    }
-    setSelectedPoz_metrajBaslik(false)
+  const toggleOnay = () => {
+    setOnayNodeMetraj(onayNodeMetraj => !onayNodeMetraj)
+    setEditNodeMetraj()
   }
 
 
@@ -244,7 +96,7 @@ export default function HeaderMetrajPozMahaller() {
 
 
           {/* sol kısım (başlık) */}
-          <Grid item xs>
+          {/* <Grid item xs>
             <Typography
               // nowrap={true}
               variant="h6"
@@ -252,6 +104,20 @@ export default function HeaderMetrajPozMahaller() {
             >
               {selectedPoz_metraj?.pozName}
             </Typography>
+          </Grid> */}
+
+          <Grid item xs>
+            <Box sx={{ display: "grid", gridAutoFlow: "column", justifyContent: "start", columnGap: "0.5rem" }}>
+              <Box>
+                {selectedPoz_metraj?.pozName}
+              </Box>
+              <Box sx={{ color: "#8B0000", fontWeight: "600" }}>
+                {" > "}
+              </Box>
+              <Box>
+                {"Tüm Açık Mahaller"}
+              </Box>
+            </Box>
           </Grid>
 
 
@@ -269,13 +135,19 @@ export default function HeaderMetrajPozMahaller() {
                   }}
                   aria-label="wbsUncliced">
                   <ReplyIcon variant="contained"
-                    sx={{ color: selectedPoz_metraj ? "red" : "lightgray" }} />
+                    sx={{ color: "lightgray", "&:hover": { color: "gray" } }} />
                 </IconButton>
               </Grid>
 
-              <Grid item onClick={() => setEditNodeMetraj(editNodeMetraj => !editNodeMetraj)} sx={{ cursor: "pointer" }}>
+              <Grid item onClick={() => toggleEdit()} sx={{ cursor: "pointer" }}>
                 <IconButton disabled={false} >
-                  <EditIcon variant="contained" sx={{ color: editNodeMetraj && "red" }} />
+                  <EditIcon variant="contained" sx={{ color: editNodeMetraj ? "gray" : "lightgray", "&:hover": { color: "gray" } }} />
+                </IconButton>
+              </Grid>
+
+              <Grid item onClick={() => toggleOnay()} sx={{ cursor: "pointer" }}>
+                <IconButton disabled={false} >
+                  <FileDownloadDoneIcon variant="contained" sx={{ color: onayNodeMetraj ? "gray" : "lightgray", "&:hover": { color: "gray" } }} />
                 </IconButton>
               </Grid>
 

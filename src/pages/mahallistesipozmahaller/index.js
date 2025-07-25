@@ -45,7 +45,6 @@ export default function P_MahalListesiPozMahaller() {
   useEffect(() => {
     !selectedProje && navigate('/projeler')
     setMahaller_state(mahaller_query)
-    console.log("mahaller_query", mahaller_query)
   }, [mahaller_query])
 
 

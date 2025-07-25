@@ -2,9 +2,9 @@
 
 
 const yetki = {
-  tümKisiler: [
-    "mahmutkaya999@gmail.com",
-    "mmahmutkaya@gmail.com",
+  yetkililer: [
+    {userEmail:"mahmutkaya999@gmail.com", isim:"Mahmut", soyisim:"KAYA", userCode:"MaKA"},
+    {userEmail:"mmahmutkaya@gmail.com", isim:"Mahmut", soyisim:"KAYA", userCode:"MaKA2"}
   ],
   owners: [
     { userEmail: "mahmutkaya999@gmail.com" }

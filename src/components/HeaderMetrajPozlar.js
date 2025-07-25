@@ -29,8 +29,24 @@ export default function HeaderPozlar({ setShow }) {
 
   const { drawerWidth, topBarHeight } = useContext(StoreContext)
   const { selectedPoz_metraj, setSelectedPoz_metraj } = useContext(StoreContext)
+
   const { editNodeMetraj, setEditNodeMetraj } = useContext(StoreContext)
+  const { onayNodeMetraj, setOnayNodeMetraj } = useContext(StoreContext)
+
   const navigate = useNavigate()
+
+
+  const toggleEdit = () => {
+    setEditNodeMetraj(editNodeMetraj => !editNodeMetraj)
+    setOnayNodeMetraj()
+  }
+
+
+  const toggleOnay = () => {
+    setOnayNodeMetraj(onayNodeMetraj => !onayNodeMetraj)
+    setEditNodeMetraj()
+  }
+
 
   return (
     <Paper >
@@ -74,9 +90,15 @@ export default function HeaderPozlar({ setShow }) {
               {!selectedPoz_metraj &&
                 <>
 
-                  <Grid item >
-                    <IconButton onClick={() => setEditNodeMetraj(editNodeMetraj => !editNodeMetraj)} disabled={false} >
-                      <EditIcon variant="contained" sx={{ color: editNodeMetraj && "red" }} />
+                  <Grid item onClick={() => toggleEdit()} sx={{ cursor: "pointer" }}>
+                    <IconButton disabled={false} >
+                      <EditIcon variant="contained" sx={{ color: editNodeMetraj ? "gray" : "lightgray", "&:hover": { color: "gray" } }} />
+                    </IconButton>
+                  </Grid>
+
+                  <Grid item onClick={() => toggleOnay()} sx={{ cursor: "pointer" }}>
+                    <IconButton disabled={false} >
+                      <FileDownloadDoneIcon variant="contained" sx={{ color: onayNodeMetraj ? "gray" : "lightgray", "&:hover": { color: "gray" } }} />
                     </IconButton>
                   </Grid>
 

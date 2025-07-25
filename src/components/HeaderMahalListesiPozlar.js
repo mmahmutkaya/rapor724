@@ -54,7 +54,7 @@ export default function HeaderMahalListesi() {
               variant="h6"
               fontWeight="bold"
             >
-              {"Başlık"}
+              {"Tüm Pozlar"}
             </Typography>
           </Grid>
 

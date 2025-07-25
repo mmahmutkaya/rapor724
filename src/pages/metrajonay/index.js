@@ -6,7 +6,7 @@ import { useApp } from "../../components/useApp";
 import HeaderMetrajCetveli from '../../components/HeaderMetrajCetveli'
 import { useQuery, useQueryClient, useMutation } from '@tanstack/react-query'
 import { BSON } from "realm-web"
-import { useGetMahaller, useGetMahalListesi, useGetHazirlananMetrajlar, useUpdateHazirlananMetraj, useUpdateOnaylananMetraj, useGetOnaylananMetraj } from '../../hooks/useMongo';
+import { useGetMahaller, useGetHazirlananMetrajlar, useUpdateHazirlananMetraj, useUpdateOnaylananMetraj, useGetOnaylananMetraj } from '../../hooks/useMongo';
 
 import { styled } from '@mui/system';
 import Grid from '@mui/material/Grid';
@@ -85,7 +85,8 @@ export default function P_MetrajCetveli() {
 
 
 
-  const { data: mahalListesi } = useGetMahalListesi()
+  // const { data: mahalListesi } = useGetMahalListesi()
+  const mahalListesi = []
 
   const { data: hazirlananMetrajlar } = useGetHazirlananMetrajlar({ selectedNode })
 

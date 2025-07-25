@@ -20,15 +20,17 @@ import { BorderBottom } from '@mui/icons-material';
 
 export default function P_MetrajPozMahaller() {
 
-  const { RealmApp, selectedProje, setSelectedProje } = useContext(StoreContext)
+  const { RealmApp } = useContext(StoreContext)
+
+  const { selectedProje, editNodeMetraj, onayNodeMetraj, selectedPoz_metraj } = useContext(StoreContext)
+  const metrajYapabilenler = selectedProje?.yetki?.metrajYapabilenler
+  const yetkililer = selectedProje?.yetki.yetkililer
+
+  const { selectedNode_metraj, setSelectedNode_metraj } = useContext(StoreContext)
+  const { selectedMahal_metraj, setSelectedMahal_metraj } = useContext(StoreContext)
 
   const customData = RealmApp.currentUser.customData
 
-  const { selectedPoz_metraj } = useContext(StoreContext)
-  const { selectedNode_metraj, setSelectedNode_metraj } = useContext(StoreContext)
-  const { selectedMahal_metraj, setSelectedMahal_metraj } = useContext(StoreContext)
-  const { drawerWidth, topBarHeight, subHeaderHeight } = useContext(StoreContext)
-  const { editNodeMetraj, setEditNodeMetraj } = useContext(StoreContext)
 
   const [show, setShow] = useState("Main")
   const [editPoz, setEditPoz] = useState(false)
@@ -120,35 +122,23 @@ export default function P_MetrajPozMahaller() {
 
   }
 
-  // console.log("selectedProje",selectedProje)
-
-  // let count
-
-  // count = 0
-  // let userSirali = "user"
-  // selectedProje?.yetki.metrajYapabilenler.map((x, index) => {
-  //   count = count + 1
-  //   return (
-  //     userSirali = index == 0 ? userSirali + count : userSirali + " user" + count
-  //   )
-  // })
-
-
-  // count = 0
-  // let miktarSirali = "miktar"
-  // selectedProje?.yetki.metrajYapabilenler.map((x, index) => {
-  //   count = count + 1
-  //   return (
-  //     miktarSirali = index == 0 ? miktarSirali + count : miktarSirali + " miktar" + count
-  //   )
-  // })
-
-
-  const goto_metrajCetveli = (dugum,oneMahal) => {
+ 
+  const goto_metrajCetveli = (dugum, oneMahal) => {
     setSelectedNode_metraj(dugum)
     setSelectedMahal_metraj(oneMahal)
     navigate('/metrajcetveli')
   }
+
+
+
+  const goTo_onaylananMetrajDugum = (dugum) => {
+    console.log("dugum", dugum)
+    // setSelectedNode_metraj(dugum)
+    // setSelectedMahal_metraj(oneMahal)
+    // navigate('/metrajcetveli')
+  }
+
+
 
 
   // CSS
@@ -173,7 +163,8 @@ export default function P_MetrajPozMahaller() {
     border: "1px solid black", px: "0.5rem", display: "grid", justifyContent: "start"
   }
 
-  const gridTemplateColumns1 = `max-content 1fr max-content min-content${editNodeMetraj ? " 1rem min-content" : ""}`
+  const metrajYapabilenlerColumns = " 1rem repeat(" + metrajYapabilenler?.length + ", max-content)"
+  const gridTemplateColumns1 = `max-content minmax(min-content, 1fr) max-content max-content${editNodeMetraj ? " 1rem max-content" : ""}${onayNodeMetraj ? metrajYapabilenlerColumns : ""}`
 
   return (
 
@@ -205,14 +196,29 @@ export default function P_MetrajPozMahaller() {
             <Box sx={{ ...css_enUstBaslik, justifyContent: "center" }}>
               Birim
             </Box>
+
             {editNodeMetraj &&
               <>
                 <Box> </Box>
-                <Box sx={{ ...css_enUstBaslik, borderLeft: "1px solid black", justifyContent: "center" }}>
-                  {customData.isim}
+                <Box sx={{ ...css_enUstBaslik, justifyContent: "center" }}>
+                  {yetkililer?.find(oneYetkili => oneYetkili.userEmail === customData.email).userCode}
                 </Box>
               </>
             }
+
+            {onayNodeMetraj &&
+              <>
+                <Box> </Box>
+                {metrajYapabilenler.map((oneYapabilen, index) => {
+                  return (
+                    <Box key={index} sx={{ ...css_enUstBaslik, borderLeft: "1px solid black", justifyContent: "center" }}>
+                      {yetkililer?.find(oneYetkili => oneYetkili.userEmail === oneYapabilen.userEmail).userCode}
+                    </Box>
+                  )
+                })}
+              </>
+            }
+
           </>
 
 
@@ -227,12 +233,27 @@ export default function P_MetrajPozMahaller() {
             <Box sx={{ ...css_enUstBaslik, justifyContent: "center" }}>
               {pozBirim}
             </Box>
+
             {editNodeMetraj &&
               <>
                 <Box> </Box>
                 <Box sx={{ ...css_enUstBaslik, justifyContent: "end", borderLeft: "1px solid black" }}>
-                  {ikiHane(selectedPoz_metraj?.hazirlananMetrajlar?.find(x => x.userEmail === customData.email).metraj)}
+                  {ikiHane(selectedPoz_metraj?.hazirlananMetrajlar?.find(x => x.userEmail === customData.email)?.metraj)}
                 </Box>
+              </>
+            }
+
+            {onayNodeMetraj &&
+              <>
+                <Box> </Box>
+                {metrajYapabilenler.map((oneYapabilen, index) => {
+                  return (
+                    <Box key={index} sx={{ ...css_enUstBaslik, borderLeft: "1px solid black", justifyContent: "end" }}>
+                      {ikiHane(selectedPoz_metraj.hazirlananMetrajlar.find(x => x.userEmail === oneYapabilen.userEmail)?.metraj)}
+                    </Box>
+                  )
+                })}
+
               </>
             }
           </>
@@ -253,12 +274,26 @@ export default function P_MetrajPozMahaller() {
                 <Box sx={{ ...css_LbsBaslik, borderLeft: "1px solid black", gridColumn: "1/3" }}> {getLbsName(oneLbs).name}</Box>
                 <Box sx={{ ...css_LbsBaslik }}>  {"lbs miktar"} </Box>
                 <Box sx={{ ...css_LbsBaslik, justifyContent: "center" }}> {pozBirim} </Box>
+
                 {editNodeMetraj &&
                   <>
                     <Box> </Box>
                     <Box sx={{ ...css_LbsBaslik, borderLeft: "1px solid black", justifyContent: "center" }}>
                       {"deneme"}
                     </Box>
+                  </>
+                }
+
+                {onayNodeMetraj &&
+                  <>
+                    <Box> </Box>
+                    {metrajYapabilenler.map((oneYapabilen, index) => {
+                      return (
+                        <Box key={index} sx={{ ...css_LbsBaslik, borderLeft: "1px solid black", justifyContent: "end" }}>
+
+                        </Box>
+                      )
+                    })}
                   </>
                 }
 
@@ -270,18 +305,61 @@ export default function P_MetrajPozMahaller() {
 
                   return (
                     <React.Fragment key={index}>
-                      <Box sx={{ ...css_mahaller, borderLeft: "1px solid black" }}> {oneMahal.mahalNo} </Box>
-                      <Box sx={{ ...css_mahaller }}> {oneMahal.mahalName} </Box>
-                      <Box sx={{ ...css_mahaller, justifyContent: "end" }}> {ikiHane(dugum?.onaylananMetraj)} </Box>
-                      <Box sx={{ ...css_mahaller, justifyContent: "center" }}>{pozBirim}</Box>
+
+                      <Box sx={{ ...css_mahaller, borderLeft: "1px solid black" }}>
+                        {oneMahal.mahalNo}
+                      </Box>
+
+                      <Box sx={{ ...css_mahaller }}>
+                        {oneMahal.mahalName}
+                      </Box>
+
+                      <Box onDoubleClick={() => goTo_onaylananMetrajDugum(dugum)} sx={{ ...css_mahaller, cursor: "pointer", display: "grid", alignItems: "center", gridTemplateColumns: "1rem 1fr", "&:hover": { "& .childClass": { backgroundColor: "red" } } }}>
+                        <Box className="childClass" sx={{ backgroundColor: "white", height: "0.5rem", width: "0.5rem", borderRadius: "50%" }}>
+                        </Box>
+                        <Box sx={{ justifySelf: "end" }}>
+                          {ikiHane(dugum?.onaylananMetraj)}
+                        </Box>
+                      </Box>
+
+                      <Box sx={{ ...css_mahaller, justifyContent: "center" }}>
+                        {pozBirim}
+                      </Box>
+
                       {editNodeMetraj &&
                         <>
-                          <Box></Box>
+                          <Box />
                           <Box
-                            onDoubleClick={() => goto_metrajCetveli(dugum,oneMahal)}
-                            sx={{ ...css_mahaller, justifyContent: "end", cursor: "pointer", backgroundColor: "yellow" }}>
-                            {ikiHane(dugum?.hazirlananMetrajlar?.find(x => x.userEmail === customData.email).metraj)}
+                            onDoubleClick={() => goto_metrajCetveli(dugum, oneMahal)}
+                            sx={{
+                              ...css_mahaller,
+                              display: "grid",
+                              gridTemplateColumns: "1rem 1fr",
+                              alignItems: "center",
+                              justifyContent: "end",
+                              cursor: "pointer",
+                              backgroundColor: "yellow",
+                              "&:hover": { "& .childClass": { backgroundColor: "red" } }
+                            }}>
+                            <Box className="childClass" sx={{ backgroundColor: "yellow", height: "0.5rem", width: "0.5rem", borderRadius: "50%" }}>
+                            </Box>
+                            <Box sx={{ justifySelf: "end" }}>
+                              {ikiHane(dugum?.hazirlananMetrajlar?.find(x => x.userEmail === customData.email)?.metraj)}
+                            </Box>
                           </Box>
+                        </>
+                      }
+
+                      {onayNodeMetraj &&
+                        <>
+                          <Box> </Box>
+                          {metrajYapabilenler.map((oneYapabilen, index) => {
+                            return (
+                              <Box key={index} sx={{ ...css_mahaller, backgroundColor: "rgb(143,206,0,0.3)", borderLeft: "1px solid black", justifyContent: "end" }}>
+                                {ikiHane(dugum?.hazirlananMetrajlar?.find(x => x.userEmail === oneYapabilen.userEmail)?.metraj)}
+                              </Box>
+                            )
+                          })}
                         </>
                       }
 
