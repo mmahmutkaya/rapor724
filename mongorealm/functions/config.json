@@ -544,5 +544,17 @@
         "private": false,
         "run_as_system": true,
         "disable_arg_logs": true
+    },
+    {
+        "name": "getHazirlananMetrajlar",
+        "private": false,
+        "run_as_system": true,
+        "disable_arg_logs": true
+    },
+    {
+        "name": "getOnaylananMetraj",
+        "private": false,
+        "run_as_system": true,
+        "disable_arg_logs": true
     }
 ]
