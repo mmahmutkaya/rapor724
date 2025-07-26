@@ -22,16 +22,19 @@ exports = async function ({
 
 
 
-  const collection_onaylananMetraj = context.services.get("mongodb-atlas").db("rapor724_v2").collection("onaylananMetraj")
+  const collection_onaylananMetraj = context.services.get("mongodb-atlas").db("rapor724_v2").collection("onaylananMetrajlar")
 
-  
+
   try {
-    
-    let onaylananMetraj = await collection_onaylananMetraj.findOne({_dugumId})
+
+    let onaylananMetraj = await collection_onaylananMetraj.findOne({ _dugumId })
+    if (!onaylananMetraj) {
+      onaylananMetraj = {metraj:0,satirlar:[]}
+    }
     return onaylananMetraj
-    
+
   } catch (error) {
-    throw new Error({hatayeri:"MONGO // getOnaylananMetraj // ", error});
+    throw new Error({ hatayeri: "MONGO // getOnaylananMetraj // ", error });
   }
 
 
