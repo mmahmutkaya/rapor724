@@ -119,8 +119,6 @@ exports = async function ({
       )
     })
 
-    return bulkArray
-
     await collection_hazirlananMetrajlar.bulkWrite(
       bulkArray,
       { ordered: false }
