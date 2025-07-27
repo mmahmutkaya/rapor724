@@ -114,18 +114,26 @@ exports = async function ({
             filter: { _dugumId, userEmail: oneHazirlanan.userEmail },
             update: { $set: { "satirlar.$[elemUsed].isUsed": true, "satirlar.$[elemUnUsed].isUsed": false } },
             arrayFilters: [
-              { "elemUsed.satirNo": { $in: oneHazirlanan.usedSatirNolar } },
-              { "elemUnUsed.satirNo": { $in: oneHazirlanan.unUsedSatirNolar } }
+              { "elemUsed.satirNo": { $in: oneHazirlanan.usedSatirNolar }, "elemUnUsed.satirNo": { $in: oneHazirlanan.unUsedSatirNolar } },
             ]
           }
         }
       )
     })
 
-    await collection_hazirlananMetrajlar.bulkWrite(
-      bulkArray,
-      { ordered: false }
-    )
+    // hazirlananMetrajlar_state2.updateOne(
+    //   {_dugumId, userEmail: oneHazirlanan.userEmail},
+    //   { $set: { "satirlar.$[elemUsed].isUsed": true, "satirlar.$[elemUnUsed].isUsed": false } },
+    //   arrayFilters: [
+    //     { "elemUsed.satirNo": { $in: oneHazirlanan.usedSatirNolar } },
+    //     { "elemUnUsed.satirNo": { $in: oneHazirlanan.unUsedSatirNolar } }
+    //   ]
+    // )
+
+    // await collection_hazirlananMetrajlar.bulkWrite(
+    //   bulkArray,
+    //   { ordered: false }
+    // )
 
   } catch (error) {
     throw new Error({ hatayeri: "MONGO // updateDugumler_onaylananMetraj // hazirlanan metrajlar isUsed guncelleme //", error });
