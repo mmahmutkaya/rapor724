@@ -130,10 +130,10 @@ exports = async function ({
     //   ]
     // )
 
-    // await collection_hazirlananMetrajlar.bulkWrite(
-    //   bulkArray,
-    //   { ordered: false }
-    // )
+    await collection_hazirlananMetrajlar.bulkWrite(
+      bulkArray,
+      { ordered: false }
+    )
 
   } catch (error) {
     throw new Error({ hatayeri: "MONGO // updateDugumler_onaylananMetraj // hazirlanan metrajlar isUsed guncelleme //", error });
