@@ -25,6 +25,11 @@ exports = async function ({
     throw new Error("MONGO // updateDugumler_onaylananMetraj // 'onaylananMetraj_state' verisi db sorgusuna gelmedi");
   }
 
+   if (!hazirlananMetrajlar_state2) {
+    throw new Error("MONGO // updateDugumler_onaylananMetraj // 'hazirlananMetrajlar_state2' verisi db sorgusuna gelmedi");
+  }
+
+
 
   const currentTime = new Date();
 
@@ -106,7 +111,6 @@ exports = async function ({
       return (
         {
           updateOne: {
-            // filter: { _projeId, _mahalId: new BSON.ObjectId(x._mahalId), _pozId: new BSON.ObjectId(x._pozId) },
             filter: { _dugumId, userEmail: oneHazirlanan.userEmail },
             update: { $set: { "satirlar.$[elem_isUsed].isUsed": true } },
             arrayFilters: [{ "elem_isUsed.satirNo": { $in: oneHazirlanan.usedSatirNolar } }]
@@ -114,6 +118,8 @@ exports = async function ({
         }
       )
     })
+
+    return bulkArray
 
     await collection_hazirlananMetrajlar.bulkWrite(
       bulkArray,
