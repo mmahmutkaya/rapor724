@@ -112,8 +112,11 @@ exports = async function ({
         {
           updateOne: {
             filter: { _dugumId, userEmail: oneHazirlanan.userEmail },
-            update: { $set: { "satirlar.$[elemUsed].isUsed": true } },
-            arrayFilters: [{ "elemUsed.satirNo": { $in: oneHazirlanan.usedSatirNolar } }]
+            update: { $set: { "satirlar.$[elemUsed].isUsed": true, "satirlar.$[elemUnUsed].isUsed": false } },
+            arrayFilters: [
+              { "elemUsed.satirNo": { $in: oneHazirlanan.usedSatirNolar } },
+              { "elemUnUsed.satirNo": { $in: oneHazirlanan.unUsedSatirNolar } }
+            ]
           }
         }
       )
