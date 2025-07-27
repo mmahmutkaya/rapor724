@@ -25,7 +25,7 @@ exports = async function ({
     throw new Error("MONGO // updateDugumler_onaylananMetraj // 'onaylananMetraj_state' verisi db sorgusuna gelmedi");
   }
 
-  if (!hazirlananMetrajlar_state2) {
+   if (!hazirlananMetrajlar_state2) {
     throw new Error("MONGO // updateDugumler_onaylananMetraj // 'hazirlananMetrajlar_state2' verisi db sorgusuna gelmedi");
   }
 
@@ -107,31 +107,24 @@ exports = async function ({
 
   try {
 
-    // const bulkArray = hazirlananMetrajlar_state2.map(oneHazirlanan => {
-    //   return (
-    //     {
-    //       updateOne: {
-    //         filter: { _dugumId, userEmail: oneHazirlanan.userEmail },
-    //         update: { $set: { "satirlar.$[elem_isUsed].isUsed": true } },
-    //         arrayFilters: [{ "elem_isUsed.satirNo": { $in: oneHazirlanan.usedSatirNolar } }]
-    //       }
-    //     }
-    //   )
-    // })
+    const bulkArray = hazirlananMetrajlar_state2.map(oneHazirlanan => {
+      return (
+        {
+          updateOne: {
+            filter: { _dugumId, userEmail: oneHazirlanan.userEmail },
+            update: { $set: { "satirlar.$[elemUsed].isUsed": true } },
+            arrayFilters: [{ "elemUsed.satirNo": { $in: oneHazirlanan.usedSatirNolar } }]
+          }
+        }
+      )
+    })
 
-    // return bulkArray
+    return bulkArray
 
-    // await collection_hazirlananMetrajlar.bulkWrite(
-    //   bulkArray,
-    //   { ordered: false }
-    // )
-
-    collection_hazirlananMetrajlar.updateOne(
-      { _dugumId, userEmail: hazirlananMetrajlar_state2[0].userEmail },
-      { $set: { "satirlar.$[elem_isUsed].isUsed": true } },
-      {arrayFilters: [{ "elem_isUsed.satirNo": { $in: hazirlananMetrajlar_state2[0].usedSatirNolar } }]}
+    await collection_hazirlananMetrajlar.bulkWrite(
+      bulkArray,
+      { ordered: false }
     )
-
 
   } catch (error) {
     throw new Error({ hatayeri: "MONGO // updateDugumler_onaylananMetraj // hazirlanan metrajlar isUsed guncelleme //", error });
