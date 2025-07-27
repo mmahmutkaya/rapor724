@@ -1,6 +1,7 @@
 exports = async function ({
   _dugumId,
-  onaylananMetraj_state
+  onaylananMetraj_state,
+  hazirlananMetrajlar_state2
 }) {
 
 
@@ -27,6 +28,7 @@ exports = async function ({
 
   const currentTime = new Date();
 
+  const collection_hazirlananMetrajlar = context.services.get("mongodb-atlas").db("rapor724_v2").collection("hazirlananMetrajlar")
   const collection_onaylananMetrajlar = context.services.get("mongodb-atlas").db("rapor724_v2").collection("onaylananMetrajlar")
   const collection_Dugumler = context.services.get("mongodb-atlas").db("rapor724_v2").collection("dugumler")
 
@@ -39,26 +41,27 @@ exports = async function ({
   try {
 
     let { satirlar: newSatirlar } = onaylananMetraj_state
-    newSatirlar = newSatirlar.filter(x => !x.onayli)
+    // versiyon yayınlanınca alttaki kullanılacak
+    // newSatirlar = newSatirlar.filter(x => !x.onayli)
 
 
-    const onaylananMetraj = await collection_onaylananMetrajlar.findOne({ _dugumId, userEmail })
+    const onaylananMetraj = await collection_onaylananMetrajlar.findOne({ _dugumId })
 
-    if (onaylananMetraj) {
+    // versiyon yayınlanınca alttaki kullanılacak, şu an direk geleni yapıştırıyoruz
+    // if (onaylananMetraj) {
 
-      let { satirlar } = onaylananMetraj
+    //   let { satirlar } = onaylananMetraj
 
-      if (satirlar) {
+    //   if (satirlar) {
+    //     satirlar = satirlar.filter(x => x.onayli)
+    //     newSatirlar = [...satirlar, ...newSatirlar]
 
-        satirlar = satirlar.filter(x => x.onayli)
-        newSatirlar = [...satirlar, ...newSatirlar]
+    //   }
 
-      }
-
-    }
+    // }
 
     await collection_onaylananMetrajlar.updateOne(
-      { _dugumId, userEmail },
+      { _dugumId },
       { $set: { satirlar: newSatirlar, metraj: newMetraj } },
       { upsert: true }
     )
@@ -71,16 +74,56 @@ exports = async function ({
 
 
   try {
- 
+
     await collection_Dugumler.updateOne(
       { _id: _dugumId },
-      { $set: { onaylananMetraj: newMetraj} },
+      { $set: { onaylananMetraj: newMetraj } },
       { upsert: true }
     )
 
   } catch (error) {
     throw new Error({ hatayeri: "MONGO // updateDugumler_onaylananMetraj // dugum guncelleme ", error });
   }
+
+
+  try {
+
+    await collection_Dugumler.updateOne(
+      { _id: _dugumId },
+      { $set: { onaylananMetraj: newMetraj } },
+      { upsert: true }
+    )
+
+  } catch (error) {
+    throw new Error({ hatayeri: "MONGO // updateDugumler_onaylananMetraj // dugum guncelleme ", error });
+  }
+
+
+
+  try {
+
+    const bulkArray = hazirlananMetrajlar_state2.map(oneHazirlanan => {
+      return (
+        {
+          updateOne: {
+            // filter: { _projeId, _mahalId: new BSON.ObjectId(x._mahalId), _pozId: new BSON.ObjectId(x._pozId) },
+            filter: { _dugumId, userEmail: oneHazirlanan.userEmail },
+            update: { $set: { "satirlar.$[elem_isUsed].isUsed": true } },
+            arrayFilters: [{ "elem_isUsed.satirNo": { $in: oneHazirlanan.usedSatirNolar } }]
+          }
+        }
+      )
+    })
+
+    await collection_hazirlananMetrajlar.bulkWrite(
+      bulkArray,
+      { ordered: false }
+    )
+
+  } catch (error) {
+    throw new Error({ hatayeri: "MONGO // updateDugumler_onaylananMetraj // hazirlanan metrajlar isUsed guncelleme //", error });
+  }
+
 
   return
 
