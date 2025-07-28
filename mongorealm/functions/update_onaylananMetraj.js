@@ -151,10 +151,10 @@ exports = async function ({
 
     let bulkArray = []
     if(bulkArray1) {
-      bulkArray = [...bulkArray, bulkArray1]
+      bulkArray = [...bulkArray, ...bulkArray1]
     }
     if(bulkArray2){
-      bulkArray = [...bulkArray, bulkArray2]
+      bulkArray = [...bulkArray, ...bulkArray2]
     }
 
     return bulkArray
