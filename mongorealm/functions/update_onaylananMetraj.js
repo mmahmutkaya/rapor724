@@ -1,7 +1,8 @@
 exports = async function ({
   _dugumId,
   onaylananMetraj_state,
-  hazirlananMetrajlar_state2
+  hazirlananlar_used,
+  hazirlananlar_unUsed
 }) {
 
 
@@ -107,14 +108,28 @@ exports = async function ({
 
   try {
 
-    const bulkArray = hazirlananMetrajlar_state2.map(oneHazirlanan => {
+    const bulkArray1 = hazirlananlar_used.map(oneHazirlanan => {
       return (
         {
           updateOne: {
             filter: { _dugumId, userEmail: oneHazirlanan.userEmail },
-            update: { $set: { "satirlar.$[elemUsed].isUsed": true, "satirlar.$[elemUnUsed].isUsed": false } },
+            update: { $set: { "satirlar.$[elem].isUsed": true } },
             arrayFilters: [
-              { "elemUsed.satirNo": { $in: oneHazirlanan.usedSatirNolar }, "elemUnUsed.satirNo": { $in: oneHazirlanan.unUsedSatirNolar } },
+              { "elem.satirNo": { $in: oneHazirlanan.satirNolar } },
+            ]
+          }
+        }
+      )
+    })
+
+    const bulkArray2 = hazirlananlar_unUsed.map(oneHazirlanan => {
+      return (
+        {
+          updateOne: {
+            filter: { _dugumId, userEmail: oneHazirlanan.userEmail },
+            update: { $set: { "satirlar.$[elem].isUsed": false } },
+            arrayFilters: [
+              { "elem.satirNo": { $in: oneHazirlanan.satirNolar } },
             ]
           }
         }
@@ -130,6 +145,7 @@ exports = async function ({
     //   ]
     // )
 
+    const bulkArray = [...bulkArray1,...bulkArray2]
     await collection_hazirlananMetrajlar.bulkWrite(
       bulkArray,
       { ordered: false }
