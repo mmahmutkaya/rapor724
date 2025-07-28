@@ -59,10 +59,10 @@ function App() {
       <Route path='/mahallistesipozmahaller' element={<P_MahalListesiPozMahaller />} />
 
       <Route path='/mahalmetraj' element={<P_MahalMetraj />} />
-      <Route path='/metrajpozlar' element={<P_MetrajPozlar />} />
       <Route path='/kisilerproject' element={<P_KisilerProject />} />
       <Route path='/raporlar' element={<P_Raporlar />} />
 
+      <Route path='/metrajpozlar' element={<P_MetrajPozlar />} />
       <Route path='/metrajpozmahaller' element={<P_metrajpozmahaller />} />
       <Route path='/metrajcetveli' element={<P_MetrajCetveli />} />
       <Route path='/metrajedit' element={<P_MetrajEdit />} />

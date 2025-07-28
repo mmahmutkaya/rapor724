@@ -25,7 +25,7 @@ import HourglassFullSharpIcon from '@mui/icons-material/HourglassFullSharp';
 import CircleIcon from '@mui/icons-material/Circle';
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import CheckIcon from '@mui/icons-material/Check';
-import DoneAllIcon from '@mui/icons-material/DoneAll';
+import LockIcon from '@mui/icons-material/Lock';
 
 export default function P_MetrajCetveli() {
 
@@ -381,7 +381,7 @@ export default function P_MetrajCetveli() {
 
                 {["satirNo", "aciklama", "carpan1", "carpan2", "carpan3", "carpan4", "carpan5", "metraj", "pozBirim"].map((oneProperty, index) => {
                   // let isCellEdit = (oneProperty === "satirNo" || oneProperty === "pozBirim" || oneProperty === "metraj") ? false : true
-                  let isCellEdit = show === "EditMetraj" && (oneProperty.includes("aciklama") || oneProperty.includes("carpan")) ? true : false
+                  let isCellEdit = show === "EditMetraj" && !oneRow.isUsed && (oneProperty.includes("aciklama") || oneProperty.includes("carpan")) ? true : false
                   let isMinha = oneRow["aciklama"].replace("İ", "i").toLowerCase().includes("minha") ? true : false
 
                   return (
@@ -390,7 +390,7 @@ export default function P_MetrajCetveli() {
                       {isCellEdit &&
                         <Box sx={{
                           ...css_metrajCetveliSatir,
-                          backgroundColor: !oneRow.isApproved && oneProperty.includes("aciklama") ? "rgba(255,255,0, 0.2)" : !oneRow.isApproved && oneProperty.includes("carpan") ? "rgba(255,255,0, 0.3)" : null,
+                          backgroundColor: !oneRow.isUsed && oneProperty.includes("aciklama") ? "rgba(255,255,0, 0.2)" : !oneRow.isUsed && oneProperty.includes("carpan") ? "rgba(255,255,0, 0.3)" : null,
                           minWidth: oneProperty.includes("aciklama") ? "10rem" : oneProperty.includes("1") || oneProperty.includes("2") ? "4rem" : "6rem"
                         }}>
                           <Input
@@ -400,7 +400,7 @@ export default function P_MetrajCetveli() {
                             autoComplete='off'
                             id={oneRow.satirNo + oneProperty}
                             name={oneRow.satirNo + oneProperty}
-                            readOnly={oneRow.isApproved}
+                            readOnly={oneRow.isUsed}
                             disableUnderline={true}
                             // size="small"
                             type={oneProperty.includes("carpan") ? "number" : "text"}
@@ -442,6 +442,7 @@ export default function P_MetrajCetveli() {
                       {!isCellEdit &&
                         <Box sx={{
                           ...css_metrajCetveliSatir,
+                          backgroundColor: oneRow?.isUsed && myTema.renkler.inaktifGri,
                           justifyContent: oneProperty.includes("aciklama") ? "start" : oneProperty.includes("carpan") ? "end" : oneProperty.includes("metraj") ? "end" : "center",
                           minWidth: oneProperty.includes("carpan") ? "5rem" : oneProperty.includes("metraj") ? "5rem" : null,
                           color: isMinha ? "red" : null
@@ -458,7 +459,7 @@ export default function P_MetrajCetveli() {
                 <Box></Box>
 
                 <Box sx={{
-                  // backgroundColor: oneRow.isApproved ? null : "rgba(255,255,0, 0.3)",
+                  // backgroundColor: oneRow.isUsed ? null : "rgba(255,255,0, 0.3)",
                   // backgroundColor: "rgba(255,255,0, 0.3)",
                   cursor: "pointer",
                   display: "grid",
@@ -467,12 +468,12 @@ export default function P_MetrajCetveli() {
                   px: "0.3rem",
                   border: "1px solid black"
                 }}>
-                  {oneRow.isApproved &&
-                    <CheckIcon variant="contained" sx={{ color: "rgba( 0, 128, 0, 0.7 )", fontSize: "1.5rem" }} />
+                  {oneRow.isUsed &&
+                    <LockIcon variant="contained" sx={{ color: "gray", fontSize: "1rem" }} />
                   }
-                  {!oneRow.isApproved &&
+                  {/* {!oneRow.isUsed &&
                     <HourglassFullSharpIcon variant="contained" sx={{ color: "rgba( 255,165,0, 1 )", fontSize: "0.95rem" }} />
-                  }
+                  } */}
                 </Box>
 
               </React.Fragment>

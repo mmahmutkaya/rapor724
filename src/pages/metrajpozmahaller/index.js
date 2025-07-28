@@ -122,7 +122,7 @@ export default function P_MetrajPozMahaller() {
 
   }
 
- 
+
   const goto_metrajCetveli = (dugum, oneMahal) => {
     setSelectedNode_metraj(dugum)
     setSelectedMahal_metraj(oneMahal)
@@ -139,6 +139,12 @@ export default function P_MetrajPozMahaller() {
   }
 
 
+
+  const goTo_onayCetveli = ({ dugum, oneMahal }) => {
+    setSelectedNode_metraj(dugum)
+    setSelectedMahal_metraj(oneMahal)
+    navigate('/metrajonay')
+  }
 
 
   // CSS
@@ -160,11 +166,12 @@ export default function P_MetrajPozMahaller() {
   }
 
   const css_mahaller = {
-    border: "1px solid black", px: "0.5rem", display: "grid", justifyContent: "start"
+    border: "1px solid black", px: "0.5rem", display: "grid", justifyContent: "start", alignItems: "center"
   }
 
   const metrajYapabilenlerColumns = " 1rem repeat(" + metrajYapabilenler?.length + ", max-content)"
   const gridTemplateColumns1 = `max-content minmax(min-content, 1fr) max-content max-content${editNodeMetraj ? " 1rem max-content" : ""}${onayNodeMetraj ? metrajYapabilenlerColumns : ""}`
+
 
   return (
 
@@ -355,9 +362,16 @@ export default function P_MetrajPozMahaller() {
                           <Box> </Box>
                           {metrajYapabilenler.map((oneYapabilen, index) => {
                             return (
-                              <Box key={index} sx={{ ...css_mahaller, backgroundColor: "rgb(143,206,0,0.3)", borderLeft: "1px solid black", justifyContent: "end" }}>
-                                {ikiHane(dugum?.hazirlananMetrajlar?.find(x => x.userEmail === oneYapabilen.userEmail)?.metraj)}
+                              <Box key={index} onDoubleClick={() => goTo_onayCetveli({ dugum, oneMahal })} sx={{ ...css_mahaller, justifyContent: "end", cursor: "pointer", backgroundColor: "rgb(143,206,0,0.3)", display: "grid", gridTemplateColumns: "1rem 1fr", "&:hover": { "& .childClass": { backgroundColor: "red" } } }}>
+                                <Box className="childClass" sx={{ color: "rgb(143,206,0,0.3)", height: "0.5rem", width: "0.5rem", borderRadius: "50%" }}>
+                                </Box>
+                                <Box sx={{ justifySelf: "end" }}>
+                                  {ikiHane(dugum?.hazirlananMetrajlar?.find(x => x.userEmail === oneYapabilen.userEmail)?.metraj)}
+                                </Box>
                               </Box>
+                              // <Box key={index} sx={{ ...css_mahaller, backgroundColor: "rgb(143,206,0,0.3)", borderLeft: "1px solid black", justifyContent: "end" }}>
+                              //   {ikiHane(dugum?.hazirlananMetrajlar?.find(x => x.userEmail === oneYapabilen.userEmail)?.metraj)}
+                              // </Box>
                             )
                           })}
                         </>

@@ -110,11 +110,11 @@ export default function P_MetrajPozlar() {
 
 
   const pozNo_css = {
+    border: "1px solid black",
+    px: "0.7rem",
     display: "grid",
     alignItems: "center",
-    justifyItems: "center",
-    border: "1px solid black",
-    px: "0.7rem"
+    justifyItems: "center"
   }
 
 

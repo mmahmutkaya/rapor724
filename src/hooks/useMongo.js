@@ -251,15 +251,15 @@ export const useGetHazirlananMetraj = () => {
 
 
 
-export const useGetHazirlananMetrajlar = ({ selectedNode }) => {
+export const useGetHazirlananMetrajlar = () => {
 
   // const RealmApp = useApp();
-  const { selectedProje, RealmApp } = useContext(StoreContext)
+  const { selectedProje, RealmApp, selectedNode_metraj } = useContext(StoreContext)
 
   return useQuery({
-    queryKey: ['hazirlananMetrajlar', selectedNode?._id.toString()],
-    queryFn: () => RealmApp?.currentUser.callFunction("collectionDugumler", ({ functionName: "getHazirlananMetrajlar", _projectId: selectedProje?._id, _mahalId: selectedNode?._mahalId, _pozId: selectedNode?._pozId })),
-    enabled: !!RealmApp && !!selectedProje && !!selectedNode,
+    queryKey: ['hazirlananMetrajlar', selectedNode_metraj?._id.toString()],
+    queryFn: () => RealmApp?.currentUser.callFunction("getHazirlananMetrajlar", ({ _dugumId: selectedNode_metraj?._id })),
+    enabled: !!RealmApp && !!selectedProje && !!selectedNode_metraj,
     refetchOnMount: true,
     refetchOnWindowFocus: false,
     staleTime: 5 * 60 * 1000,
@@ -267,6 +267,24 @@ export const useGetHazirlananMetrajlar = ({ selectedNode }) => {
 
 }
 
+
+
+
+export const useGetOnaylananMetraj = () => {
+
+  // const RealmApp = useApp();
+  const { selectedProje, RealmApp, selectedNode_metraj } = useContext(StoreContext)
+
+  return useQuery({
+    queryKey: ['onaylananMetraj', selectedNode_metraj?._id.toString()],
+    queryFn: () => RealmApp?.currentUser.callFunction("getOnaylananMetraj", ({ _dugumId: selectedNode_metraj?._id })),
+    enabled: !!RealmApp && !!selectedProje && !!selectedNode_metraj,
+    refetchOnMount: true,
+    refetchOnWindowFocus: false,
+    staleTime: 5 * 60 * 1000,
+  })
+
+}
 
 
 
@@ -307,24 +325,6 @@ export const useGetProjectNames_firma = () => {
 
 }
 
-
-
-
-export const useGetOnaylananMetraj = ({ selectedNode }) => {
-
-  // const RealmApp = useApp();
-  const { selectedProje, RealmApp } = useContext(StoreContext)
-
-  return useQuery({
-    queryKey: ['onaylananMetraj'],
-    queryFn: () => RealmApp?.currentUser.callFunction("collectionDugumler", ({ functionName: "getOnaylananMetraj", _projectId: selectedProje?._id, _mahalId: selectedNode?._mahalId, _pozId: selectedNode?._pozId })),
-    enabled: !!RealmApp && !!selectedProje && !!selectedNode,
-    refetchOnMount: true,
-    refetchOnWindowFocus: false,
-    staleTime: 5 * 60 * 1000,
-  })
-
-}
 
 
 

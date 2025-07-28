@@ -21,7 +21,7 @@ export default ({ children }) => {
       baslik2_ayrac: "#8a2424",
       hazirlananMetraj: "rgb(255,165,0,0.4)",
       editMetraj: "yellow",
-      inactiveGray: "rgb(210,210,210)",
+      inaktifGri: "rgb(230,230,230)",
     },
     firstColor: "#3c4245",
     secondColor: "#5f6769",
