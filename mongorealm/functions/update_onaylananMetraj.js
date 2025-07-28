@@ -26,10 +26,13 @@ exports = async function ({
     throw new Error("MONGO // updateDugumler_onaylananMetraj // 'onaylananMetraj_state' verisi db sorgusuna gelmedi");
   }
 
-   if (!hazirlananMetrajlar_state2) {
-    throw new Error("MONGO // updateDugumler_onaylananMetraj // 'hazirlananMetrajlar_state2' verisi db sorgusuna gelmedi");
+  if (!hazirlananlar_used) {
+    throw new Error("MONGO // updateDugumler_onaylananMetraj // 'hazirlananlar_used' verisi db sorgusuna gelmedi");
   }
 
+  if (!hazirlananlar_unUsed) {
+    throw new Error("MONGO // updateDugumler_onaylananMetraj // 'hazirlananlar_unUsed' verisi db sorgusuna gelmedi");
+  }
 
 
   const currentTime = new Date();
