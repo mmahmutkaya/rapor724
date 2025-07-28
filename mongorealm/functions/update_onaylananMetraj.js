@@ -157,7 +157,6 @@ exports = async function ({
       bulkArray = [...bulkArray, ...bulkArray2]
     }
 
-    return bulkArray
 
     if(bulkArray) {    
       await collection_hazirlananMetrajlar.bulkWrite(
