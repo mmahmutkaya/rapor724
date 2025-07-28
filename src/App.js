@@ -28,8 +28,9 @@ import P_MetrajPozlar from './pages/metrajpozlar'
 import P_KisilerProject from './pages/kisilerproject'
 import P_Raporlar from './pages/raporlar'
 
-import P_metrajpozmahaller from './pages/metrajpozmahaller'
-import P_MetrajCetveli from './pages/metrajcetveli'
+import P_Metrajpozmahaller from './pages/metrajpozmahaller'
+import P_MetrajCetveliHazirlanan from './pages/metrajcetvelihazirlanan'
+import P_MetrajCetveliOnaylanan from './pages/metrajcetvelionaylanan'
 import P_MetrajEdit from './pages/metrajedit'
 import P_MetrajOnay from './pages/metrajonay'
 
@@ -63,10 +64,11 @@ function App() {
       <Route path='/raporlar' element={<P_Raporlar />} />
 
       <Route path='/metrajpozlar' element={<P_MetrajPozlar />} />
-      <Route path='/metrajpozmahaller' element={<P_metrajpozmahaller />} />
-      <Route path='/metrajcetveli' element={<P_MetrajCetveli />} />
+      <Route path='/metrajpozmahaller' element={<P_Metrajpozmahaller />} />
+      <Route path='/metrajcetvelihazirlanan' element={<P_MetrajCetveliHazirlanan />} />
       <Route path='/metrajedit' element={<P_MetrajEdit />} />
       <Route path='/metrajonay' element={<P_MetrajOnay />} />
+      <Route path='/metrajcetvelionaylanan' element={<P_MetrajCetveliOnaylanan />} />
 
     </Routes>
   );

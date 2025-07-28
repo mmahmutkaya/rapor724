@@ -20,7 +20,7 @@ import { BorderBottom } from '@mui/icons-material';
 
 export default function P_MetrajPozMahaller() {
 
-  const { RealmApp } = useContext(StoreContext)
+  const { RealmApp, myTema } = useContext(StoreContext)
 
   const { selectedProje, editNodeMetraj, onayNodeMetraj, selectedPoz_metraj } = useContext(StoreContext)
   const metrajYapabilenler = selectedProje?.yetki?.metrajYapabilenler
@@ -123,10 +123,10 @@ export default function P_MetrajPozMahaller() {
   }
 
 
-  const goto_metrajCetveli = (dugum, oneMahal) => {
+  const goto_metrajCetveliHazirlanan = (dugum, oneMahal) => {
     setSelectedNode_metraj(dugum)
     setSelectedMahal_metraj(oneMahal)
-    navigate('/metrajcetveli')
+    navigate('/metrajcetvelihazirlanan')
   }
 
 
@@ -135,7 +135,7 @@ export default function P_MetrajPozMahaller() {
     console.log("dugum", dugum)
     // setSelectedNode_metraj(dugum)
     // setSelectedMahal_metraj(oneMahal)
-    // navigate('/metrajcetveli')
+    // navigate('/metrajcetvelihazirlanan')
   }
 
 
@@ -162,7 +162,7 @@ export default function P_MetrajPozMahaller() {
   }
 
   const css_LbsBaslik = {
-    border: "1px solid black", borderLeft: "none", mt: "1rem", px: "0.5rem", display: "grid", justifyContent: "start", backgroundColor: "#caf0f8"
+    border: "1px solid black", borderLeft: "none", mt: "1rem", px: "0.5rem", display: "grid", justifyContent: "start", backgroundColor: myTema.renkler.metrajOnaylananBaslik
   }
 
   const css_mahaller = {
@@ -337,7 +337,7 @@ export default function P_MetrajPozMahaller() {
                         <>
                           <Box />
                           <Box
-                            onDoubleClick={() => goto_metrajCetveli(dugum, oneMahal)}
+                            onDoubleClick={() => goto_metrajCetveliHazirlanan(dugum, oneMahal)}
                             sx={{
                               ...css_mahaller,
                               display: "grid",

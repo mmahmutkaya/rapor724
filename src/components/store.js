@@ -21,10 +21,11 @@ export default ({ children }) => {
       baslik2_ayrac: "#8a2424",
       hazirlananMetraj: "rgb(255,165,0,0.4)",
       editMetraj: "yellow",
-      inaktifGri: "rgb(230,230,230)",
+      inaktifGri: "rgb(225,225,225)",
+      metrajOnaylananBaslik:"rgba(202, 240, 248, 1)"
     },
     firstColor: "#3c4245",
-    secondColor: "#5f6769",
+    secondColor: "rgba(85, 210, 221, 1)",
     thirdColor: "#719192",
     fouthColor: "#dfcdc3"
   }

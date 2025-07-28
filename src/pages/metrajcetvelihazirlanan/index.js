@@ -1,14 +1,14 @@
 
 import React, { useState, useContext, useEffect } from 'react';
 import { useNavigate } from "react-router-dom";
-import { StoreContext } from '../../components/store'
+import { StoreContext } from '../../components/store.js'
 
 
 import { DialogAlert } from '../../components/general/DialogAlert.js';
-import HeaderMetrajCetveli from '../../components/HeaderMetrajCetveli'
+import HeaderMetrajCetveliHazirlanan from '../../components/HeaderMetrajCetveliHazirlanan'
 import { useQuery, useQueryClient, useMutation } from '@tanstack/react-query'
 import { BSON } from "realm-web"
-import { useGetMahaller, useGetMahalListesi, useGetHazirlananMetraj, useUpdateHazirlananMetraj, useUpdateOnaylananMetraj, useGetOnaylananMetraj } from '../../hooks/useMongo';
+import { useGetMahaller, useGetMahalListesi, useGetHazirlananMetraj, useUpdateHazirlananMetraj, useUpdateOnaylananMetraj, useGetOnaylananMetraj } from '../../hooks/useMongo.js';
 
 
 import { styled } from '@mui/system';
@@ -27,7 +27,7 @@ import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import CheckIcon from '@mui/icons-material/Check';
 import LockIcon from '@mui/icons-material/Lock';
 
-export default function P_MetrajCetveli() {
+export default function P_MetrajCetveliHazirlanan() {
 
   const queryClient = useQueryClient()
 
@@ -202,6 +202,7 @@ export default function P_MetrajCetveli() {
         //   queryClient.setQueryData(['dugumler', selectedProje?._id.toString()], result.dugumler)
         // }
         setShow("DugumMetrajlari")
+        queryClient.invalidateQueries(['hazirlananMetrajlar', selectedNode_metraj?._id.toString()])
         setIsChanged()
         return
 
@@ -298,7 +299,7 @@ export default function P_MetrajCetveli() {
       }
 
       <Grid name="metrajCetveliHeader" item sx={{ mt: (parseFloat(subHeaderHeight) + 1) + "rem", }}>
-        <HeaderMetrajCetveli
+        <HeaderMetrajCetveliHazirlanan
           show={show} setShow={setShow}
           save={save}
           cancel={cancel}

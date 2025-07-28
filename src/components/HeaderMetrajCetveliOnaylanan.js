@@ -35,11 +35,13 @@ import { useGetMahaller } from '../hooks/useMongo';
 
 
 
-export default function P_HeaderMetrajOnay({ show, setShow, isChanged, cancel, save,  }) {
+export default function P_HeaderMetrajCetveliOnaylanan({ show, setShow, isChanged, cancel, save }) {
 
   const navigate = useNavigate()
 
   const { drawerWidth, topBarHeight } = useContext(StoreContext)
+
+  const { detailMode, setDetailMode } = useContext(StoreContext)
 
   const { selectedPoz_metraj, selectedMahal_metraj } = useContext(StoreContext)
 
@@ -101,17 +103,19 @@ export default function P_HeaderMetrajOnay({ show, setShow, isChanged, cancel, s
           </Grid>
 
 
+
+
           {/* sağ kısım - (tuşlar)*/}
           <Grid item xs="auto">
             <Grid container>
 
 
 
-              {!isChanged &&
+              {show == "DugumMetrajlari" &&
                 <>
                   <Grid item >
                     <IconButton onClick={() => {
-                      navigate("/metrajpozmahaller")
+                      navigate("/metrajonay")
                     }} aria-label="lbsUncliced">
                       <ReplyIcon variant="contained" sx={{ color: "gray" }} />
                     </IconButton>
@@ -119,7 +123,7 @@ export default function P_HeaderMetrajOnay({ show, setShow, isChanged, cancel, s
 
                   <Grid item >
                     <IconButton onClick={() => {
-                      navigate('/metrajcetvelionaylanan')
+                      setShow("EditMetraj")
                     }} aria-label="lbsUncliced">
                       <EditIcon variant="contained" />
                     </IconButton>
@@ -130,7 +134,7 @@ export default function P_HeaderMetrajOnay({ show, setShow, isChanged, cancel, s
 
 
 
-              {isChanged &&
+              {show == "EditMetraj" &&
 
                 <>
 

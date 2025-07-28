@@ -309,7 +309,7 @@ export default function P_MetrajOnay() {
   }
 
   const css_metrajOnayBaslik = {
-    mt: "2rem", px: "0.3rem", border: "1px solid black", fontWeight: "600", backgroundColor: "rgba( 185,206,251 , 0.6 )", display: "grid", alignItems: "center", justifyContent: "center"
+    mt: "2rem", px: "0.3rem", border: "1px solid black", fontWeight: "600", backgroundColor: myTema.renkler.metrajOnaylananBaslik, display: "grid", alignItems: "center", justifyContent: "center"
   }
 
   const css_metrajCetveliBaslik = {
