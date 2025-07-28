@@ -54,7 +54,7 @@ exports = async function ({
     // newSatirlar = newSatirlar.filter(x => !x.onayli)
 
 
-    const onaylananMetraj = await collection_onaylananMetrajlar.findOne({ _dugumId })
+    // const onaylananMetraj = await collection_onaylananMetrajlar.findOne({ _dugumId })
 
     // versiyon yayınlanınca alttaki kullanılacak, şu an direk geleni yapıştırıyoruz
     // if (onaylananMetraj) {
@@ -91,20 +91,7 @@ exports = async function ({
     )
 
   } catch (error) {
-    throw new Error({ hatayeri: "MONGO // updateDugumler_onaylananMetraj // dugum guncelleme ", error });
-  }
-
-
-  try {
-
-    await collection_Dugumler.updateOne(
-      { _id: _dugumId },
-      { $set: { onaylananMetraj: newMetraj } },
-      { upsert: true }
-    )
-
-  } catch (error) {
-    throw new Error({ hatayeri: "MONGO // updateDugumler_onaylananMetraj // dugum guncelleme ", error });
+    throw new Error({ hatayeri: "MONGO // updateDugumler_onaylananMetraj // dugumler guncelleme ", error });
   }
 
 
