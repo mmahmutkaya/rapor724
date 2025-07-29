@@ -89,7 +89,7 @@ exports = async function ({
 
     return functionName
 
-    let customData = collection_Users.findOne({_userId})
+    let customData = collection_Users.findOne({userId:user.id})
 
     let showMetrajYapabilenler = customData.customSettings.showMetrajYapabilenler
 
@@ -106,7 +106,7 @@ exports = async function ({
 
     
     const result = await collection_Users.updateOne(
-      { _userId },
+      { userId:user.id },
       { $set: { ["customSettings.showMetrajYapabilenler"] : showMetrajYapabilenler } }
     )
 
