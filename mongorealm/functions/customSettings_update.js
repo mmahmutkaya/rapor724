@@ -91,7 +91,7 @@ exports = async function ({
 
     let customData = collection_Users.findOne({userId:user.id})
 
-    let {showMetrajYapabilenler} = customData.customSettings
+    let showMetrajYapabilenler = customData.customSettings.showMetrajYapabilenler
 
     return {showMetrajYapabilenler,customData,functionName}
 
