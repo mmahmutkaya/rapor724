@@ -5,8 +5,10 @@ import { StoreContext } from '../../components/store'
 import _ from 'lodash';
 
 
-import { DialogAlert } from '../../components/general/DialogAlert.js';
+import ShowMetrajYapabilenler from '../../components/ShowMetrajYapabilenler'
 import HeaderMetrajOnay from '../../components/HeaderMetrajOnay'
+
+import { DialogAlert } from '../../components/general/DialogAlert.js';
 import { useQuery, useQueryClient, useMutation } from '@tanstack/react-query'
 import { BSON } from "realm-web"
 import { useGetMahalListesi, useGetHazirlananMetrajlar, useUpdateOnaylananMetraj, useGetOnaylananMetraj } from '../../hooks/useMongo';
@@ -39,7 +41,12 @@ export default function P_MetrajOnay() {
     selectedProje, selectedPoz_metraj, selectedNode_metraj
   } = useContext(StoreContext)
 
+  const { showMetrajYapabilenler, setShowMetrajYapabilenler } = useContext(StoreContext)
   const yetkililer = selectedProje?.yetki.yetkililer
+
+  useEffect(() => {
+    setShowMetrajYapabilenler(RealmApp.currentUser.customData.customSettings.showMetrajYapabilenler)
+  }, [])
 
 
   const [dialogAlert, setDialogAlert] = useState()
@@ -369,6 +376,15 @@ export default function P_MetrajOnay() {
           isChanged={isChanged} setIsChanged={setIsChanged}
         />
       </Grid>
+
+
+      {/* BAŞLIK GÖSTER / GİZLE */}
+      {show == "ShowMetrajYapabilenler" &&
+        <ShowMetrajYapabilenler
+          setShow={setShow}
+        />
+      }
+
 
 
       {!hazirlananMetrajlar?.length > 0 &&

@@ -29,7 +29,7 @@ import FileDownloadDoneIcon from '@mui/icons-material/FileDownloadDone';
 import EditIcon from '@mui/icons-material/Edit';
 
 
-export default function HeaderMetrajOnaylaPozMahaller() {
+export default function HeaderMetrajOnaylaPozMahaller({ setShow }) {
 
   const navigate = useNavigate()
 
@@ -147,17 +147,17 @@ export default function HeaderMetrajOnaylaPozMahaller() {
                 </IconButton>
               </Grid> */}
 
-              <Grid item sx={{ cursor: "pointer" }}>
+              {/* <Grid item sx={{ cursor: "pointer" }}>
                 <IconButton disabled={false} >
                   <FileDownloadDoneIcon variant="contained" sx={{ color: onayNodeMetraj ? "gray" : "lightgray", "&:hover": { color: "gray" } }} />
                 </IconButton>
-              </Grid>
-
-              {/* <Grid item onClick={() => console.log("selectedPoz_metraj", selectedPoz_metraj)} sx={{ cursor: "pointer" }}>
-                <IconButton aria-label="addPoz">
-                  <VisibilityIcon variant="contained" sx={{ color: "gray" }} />
-                </IconButton>
               </Grid> */}
+
+              <Grid item >
+                <IconButton onClick={() => setShow("ShowMetrajYapabilenler")} disabled={false}>
+                  <VisibilityIcon variant="contained" />
+                </IconButton>
+              </Grid>
 
 
             </Grid>

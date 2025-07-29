@@ -1,5 +1,5 @@
 import React from 'react'
-import { useState, useContext } from 'react';
+import { useState, useContext, useEffect } from 'react';
 import { useApp } from "./useApp.js";
 import { StoreContext } from './store.js'
 import { DialogAlert } from './general/DialogAlert.js';
@@ -15,35 +15,47 @@ import { DialogTitle, Typography } from '@mui/material';
 
 
 
-export default function ShowMetrajYapanlar({ setShow }) {
+export default function ShowMetrajYapabilenler({ setShow }) {
 
-  const RealmApp = useApp();
-  const { selectedProje } = useContext(StoreContext)
+  const { RealmApp, selectedProje } = useContext(StoreContext)
 
-  let showMetrajYapabilenler = RealmApp?.currentUser.customData.customSettings.showMetrajYapabilenler
+  const { showMetrajYapabilenler, setShowMetrajYapabilenler } = useContext(StoreContext)
+  useEffect(() => {
+    setShowMetrajYapabilenler(RealmApp.currentUser.customData.customSettings.showMetrajYapabilenler)
+  }, [RealmApp])
+
+
+
 
   let metrajYapabilenler = selectedProje?.yetki.metrajYapabilenler
 
   const [dialogAlert, setDialogAlert] = useState()
 
 
-  const showUpdate = async ({ userEmail, showValue }) => {
+  const update_state = async ({ userEmail, showValue }) => {
 
     try {
 
       // frontend de hızlı olsun diye önce bu sonra arkada db güncelleme
+
+      let showMetrajYapabilenler2 = _.cloneDeep(showMetrajYapabilenler)
       if (showValue) {
-        if (!showMetrajYapabilenler) {
-          showMetrajYapabilenler = [userEmail]
+        if (!showMetrajYapabilenler2) {
+          showMetrajYapabilenler2 = [userEmail]
         } else {
-          showMetrajYapabilenler = [...showMetrajYapabilenler, userEmail]
+          showMetrajYapabilenler2 = [...showMetrajYapabilenler2, userEmail]
         }
       } else {
-        showMetrajYapabilenler = showMetrajYapabilenler.filter(x => x !== userEmail)
+        if (!showMetrajYapabilenler2) {
+          return
+        } else {
+          showMetrajYapabilenler2 = showMetrajYapabilenler2.filter(x => x !== userEmail)
+        }
       }
+      setShowMetrajYapabilenler(showMetrajYapabilenler2)
+      // console.log("showMetrajYapabilenler2", showMetrajYapabilenler2)
 
-      // db ye gönderme işlemi
-      await RealmApp?.currentUser.callFunction("customSettings_update", ({ functionName: "showMetrajYapabilenler", userEmail, showValue }))
+      await RealmApp?.currentUser.callFunction("customSettings_update", ({ functionName: "showMetrajYapabilenler", showMetrajYapabilenler: showMetrajYapabilenler2 }))
       await RealmApp?.currentUser.refreshCustomData()
 
       return
@@ -63,6 +75,28 @@ export default function ShowMetrajYapanlar({ setShow }) {
   }
 
 
+  // const save_db = async () => {
+  //   try {
+  //     console.log("deneme")
+  //     // db ye gönderme işlemi
+  //     await RealmApp?.currentUser.callFunction("customSettings_update", ({ functionName: "showMetrajYapabilenler", showMetrajYapabilenler }))
+  //     await RealmApp?.currentUser.refreshCustomData()
+
+  //   } catch (err) {
+
+  //     console.log(err)
+
+  //     setDialogAlert({
+  //       dialogIcon: "warning",
+  //       dialogMessage: "Beklenmedik hata, Rapor7/24 ile irtibata geçiniz..",
+  //       detailText: err?.message ? err.message : null
+  //     })
+
+  //   }
+
+  // }
+
+
 
   return (
 
@@ -73,7 +107,9 @@ export default function ShowMetrajYapanlar({ setShow }) {
           dialogIcon={dialogAlert.dialogIcon}
           dialogMessage={dialogAlert.dialogMessage}
           detailText={dialogAlert.detailText}
-          onCloseAction={() => setDialogAlert()}
+          onCloseAction={() => {
+            setDialogAlert()
+          }}
         />
       }
 
@@ -94,8 +130,8 @@ export default function ShowMetrajYapanlar({ setShow }) {
               <Box sx={{ my: "0.2rem", justifySelf: "start" }}>{oneYapabilen.userEmail}</Box>
               <Box sx={{ justifySelf: "end" }}>
                 <Switch
-                  checked={showMetrajYapabilenler?.find(x => x === oneYapabilen.userEmail)}
-                  onChange={() => showUpdate({ userEmail: oneYapabilen.userEmail, showValue: !showMetrajYapabilenler?.find(x => x === oneYapabilen.userEmail) })}
+                  checked={showMetrajYapabilenler?.find(x => x === oneYapabilen.userEmail) ? true : false}
+                  onChange={() => update_state({ userEmail: oneYapabilen.userEmail, showValue: showMetrajYapabilenler?.find(x => x === oneYapabilen.userEmail) ? false : true })}
                 />
               </Box>
             </Box>

@@ -29,7 +29,6 @@ export default function HeaderMetrajOnaylaPozlar({ setShow }) {
 
   const { drawerWidth, topBarHeight } = useContext(StoreContext)
   const { selectedPoz_metraj, setSelectedPoz_metraj } = useContext(StoreContext)
-  // const { showMetrajYapanlar, setShowMetrajYapanlar } = useContext(StoreContext)
 
   // const { editNodeMetraj, setEditNodeMetraj } = useContext(StoreContext)
   // const { onayNodeMetraj, setOnayNodeMetraj } = useContext(StoreContext)
@@ -37,7 +36,6 @@ export default function HeaderMetrajOnaylaPozlar({ setShow }) {
   let onayNodeMetraj = true
 
   const navigate = useNavigate()
-
 
 
   return (
@@ -95,7 +93,7 @@ export default function HeaderMetrajOnaylaPozlar({ setShow }) {
                   </Grid>
 
                   <Grid item >
-                    <IconButton onClick={() => setShow("ShowMetrajYapanlar")} disabled={false}>
+                    <IconButton onClick={() => setShow("ShowMetrajYapabilenler")} disabled={false}>
                       <VisibilityIcon variant="contained" />
                     </IconButton>
                   </Grid>

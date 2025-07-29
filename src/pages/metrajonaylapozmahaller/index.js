@@ -6,8 +6,10 @@ import { useApp } from "../../components/useApp";
 import FormPozCreate from '../../components/FormPozCreate'
 import EditPozBaslik from '../../components/EditPozBaslik'
 import FormPozBaslikCreate from '../../components/FormPozBaslikCreate'
+
+import ShowMetrajYapabilenler from '../../components/ShowMetrajYapabilenler'
 import HeaderMetrajOnaylaPozMahaller from '../../components/HeaderMetrajOnaylaPozMahaller'
-import { BSON } from "realm-web"
+
 
 import { useGetPozlar, useGetDugumler_byPoz, useGetMahaller } from '../../hooks/useMongo';
 
@@ -23,9 +25,8 @@ export default function P_MetrajOnaylaPozMahaller() {
   const { RealmApp, myTema } = useContext(StoreContext)
 
   const { selectedProje, selectedPoz_metraj } = useContext(StoreContext)
-  const metrajYapabilenler = selectedProje?.yetki?.metrajYapabilenler
-  console.log("metrajYapabilenler",metrajYapabilenler)
-  
+  const { showMetrajYapabilenler, setShowMetrajYapabilenler } = useContext(StoreContext)
+
   const yetkililer = selectedProje?.yetki.yetkililer
 
   const { selectedNode_metraj, setSelectedNode_metraj } = useContext(StoreContext)
@@ -35,6 +36,9 @@ export default function P_MetrajOnaylaPozMahaller() {
 
   const customData = RealmApp.currentUser.customData
 
+  useEffect(() => {
+    setShowMetrajYapabilenler(RealmApp.currentUser.customData.customSettings.showMetrajYapabilenler)
+  }, [])
 
 
 
@@ -175,8 +179,8 @@ export default function P_MetrajOnaylaPozMahaller() {
     border: "1px solid black", px: "0.5rem", display: "grid", justifyContent: "start", alignItems: "center"
   }
 
-  const metrajYapabilenlerColumns = " 1rem repeat(" + metrajYapabilenler?.length + ", max-content)"
-  const gridTemplateColumns1 = `max-content minmax(min-content, 1fr) max-content max-content${editNodeMetraj ? " 1rem max-content" : ""}${onayNodeMetraj ? metrajYapabilenlerColumns : ""}`
+  const showMetrajYapabilenlerColumns = " 1rem repeat(" + showMetrajYapabilenler?.length + ", max-content)"
+  const gridTemplateColumns1 = `max-content minmax(min-content, 1fr) max-content max-content${editNodeMetraj ? " 1rem max-content" : ""}${onayNodeMetraj ? showMetrajYapabilenlerColumns : ""}`
 
 
   return (
@@ -186,6 +190,14 @@ export default function P_MetrajOnaylaPozMahaller() {
       <Grid item >
         <HeaderMetrajOnaylaPozMahaller show={show} setShow={setShow} />
       </Grid>
+
+
+      {/* BAŞLIK GÖSTER / GİZLE */}
+      {show == "ShowMetrajYapabilenler" &&
+        <ShowMetrajYapabilenler
+          setShow={setShow}
+        />
+      }
 
 
       {!openLbsArray?.length > 0 && <Box>henüz herhangi bir LBS mahal eklemeye açılmamış</Box>}
@@ -222,10 +234,10 @@ export default function P_MetrajOnaylaPozMahaller() {
             {onayNodeMetraj &&
               <>
                 <Box> </Box>
-                {metrajYapabilenler.map((oneYapabilen, index) => {
+                {showMetrajYapabilenler?.map((oneYapabilen, index) => {
                   return (
                     <Box key={index} sx={{ ...css_enUstBaslik, borderLeft: "1px solid black", justifyContent: "center" }}>
-                      {yetkililer?.find(oneYetkili => oneYetkili.userEmail === oneYapabilen.userEmail).userCode}
+                      {yetkililer?.find(oneYetkili => oneYetkili.userEmail === oneYapabilen).userCode}
                     </Box>
                   )
                 })}
@@ -259,10 +271,10 @@ export default function P_MetrajOnaylaPozMahaller() {
             {onayNodeMetraj &&
               <>
                 <Box> </Box>
-                {metrajYapabilenler.map((oneYapabilen, index) => {
+                {showMetrajYapabilenler?.map((oneYapabilen, index) => {
                   return (
                     <Box key={index} sx={{ ...css_enUstBaslik, borderLeft: "1px solid black", justifyContent: "end" }}>
-                      {ikiHane(selectedPoz_metraj.hazirlananMetrajlar.find(x => x.userEmail === oneYapabilen.userEmail)?.metraj)}
+                      {ikiHane(selectedPoz_metraj.hazirlananMetrajlar.find(x => x.userEmail === oneYapabilen)?.metraj)}
                     </Box>
                   )
                 })}
@@ -300,7 +312,7 @@ export default function P_MetrajOnaylaPozMahaller() {
                 {onayNodeMetraj &&
                   <>
                     <Box> </Box>
-                    {metrajYapabilenler.map((oneYapabilen, index) => {
+                    {showMetrajYapabilenler?.map((oneYapabilen, index) => {
                       return (
                         <Box key={index} sx={{ ...css_LbsBaslik, borderLeft: "1px solid black", justifyContent: "end" }}>
 
@@ -366,17 +378,17 @@ export default function P_MetrajOnaylaPozMahaller() {
                       {onayNodeMetraj &&
                         <>
                           <Box> </Box>
-                          {metrajYapabilenler.map((oneYapabilen, index) => {
+                          {showMetrajYapabilenler?.map((oneYapabilen, index) => {
                             return (
                               <Box key={index} onDoubleClick={() => goTo_onayCetveli({ dugum, oneMahal })} sx={{ ...css_mahaller, justifyContent: "end", cursor: "pointer", backgroundColor: "rgb(143,206,0,0.3)", display: "grid", gridTemplateColumns: "1rem 1fr", "&:hover": { "& .childClass": { backgroundColor: "red" } } }}>
                                 <Box className="childClass" sx={{ color: "rgb(143,206,0,0.3)", height: "0.5rem", width: "0.5rem", borderRadius: "50%" }}>
                                 </Box>
                                 <Box sx={{ justifySelf: "end" }}>
-                                  {ikiHane(dugum?.hazirlananMetrajlar?.find(x => x.userEmail === oneYapabilen.userEmail)?.metraj)}
+                                  {ikiHane(dugum?.hazirlananMetrajlar?.find(x => x.userEmail === oneYapabilen)?.metraj)}
                                 </Box>
                               </Box>
                               // <Box key={index} sx={{ ...css_mahaller, backgroundColor: "rgb(143,206,0,0.3)", borderLeft: "1px solid black", justifyContent: "end" }}>
-                              //   {ikiHane(dugum?.hazirlananMetrajlar?.find(x => x.userEmail === oneYapabilen.userEmail)?.metraj)}
+                              //   {ikiHane(dugum?.hazirlananMetrajlar?.find(x => x.userEmail === oneYapabilen)?.metraj)}
                               // </Box>
                             )
                           })}

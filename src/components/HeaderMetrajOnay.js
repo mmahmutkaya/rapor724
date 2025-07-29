@@ -35,7 +35,7 @@ import { useGetMahaller } from '../hooks/useMongo';
 
 
 
-export default function P_HeaderMetrajOnay({ show, setShow, isChanged, cancel, save,  }) {
+export default function P_HeaderMetrajOnay({ show, setShow, isChanged, cancel, save, }) {
 
   const navigate = useNavigate()
 
@@ -156,6 +156,13 @@ export default function P_HeaderMetrajOnay({ show, setShow, isChanged, cancel, s
 
                 </>
               }
+
+
+              <Grid item >
+                <IconButton onClick={() => setShow("ShowMetrajYapabilenler")} disabled={false}>
+                  <VisibilityIcon variant="contained" />
+                </IconButton>
+              </Grid>
 
 
 

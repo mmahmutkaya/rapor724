@@ -10,9 +10,9 @@ import { useGetPozlar } from '../../hooks/useMongo';
 import getWbsName from '../../functions/getWbsName';
 
 
-import ShowMetrajOnaylaPozlarBaslik from '../../components/ShowMetrajOnaylaPozlarBaslik'
-import ShowMetrajYapanlar from '../../components/ShowMetrajYapanlar'
 import HeaderMetrajOnaylaPozlar from '../../components/HeaderMetrajOnaylaPozlar'
+import ShowMetrajYapabilenler from '../../components/ShowMetrajYapabilenler'
+import ShowMetrajOnaylaPozlarBaslik from '../../components/ShowMetrajOnaylaPozlarBaslik'
 
 
 import { borderLeft, fontWeight, grid, styled } from '@mui/system';
@@ -35,13 +35,18 @@ export default function P_MetrajOnaylaPozlar() {
   pozlar = pozlar?.filter(x => x.hasDugum)
 
   const { RealmApp, myTema } = useContext(StoreContext)
-  const { showMetrajYapanlar, setShowMetrajYapanlar } = useContext(StoreContext)
+  const { showMetrajYapabilenler, setShowMetrajYapabilenler } = useContext(StoreContext)
+
+  useEffect(() => {
+    setShowMetrajYapabilenler(RealmApp.currentUser.customData.customSettings.showMetrajYapabilenler)
+  }, [])
+
 
   const { customData } = RealmApp.currentUser
 
   const { selectedProje } = useContext(StoreContext)
-  // const metrajYapabilenler = selectedProje?.yetki?.metrajYapabilenler
-  let showMetrajYapabilenler = [{userEmail:"mmahmutkaya@gmail.com", userCode:"MAKA-1"}]
+  const metrajYapabilenler = selectedProje?.yetki?.metrajYapabilenler
+
   const yetkililer = selectedProje?.yetki.yetkililer
 
   const { selectedPoz_metraj, setSelectedPoz_metraj } = useContext(StoreContext)
@@ -152,8 +157,8 @@ export default function P_MetrajOnaylaPozlar() {
       }
 
       {/* BAŞLIK GÖSTER / GİZLE */}
-      {show == "ShowMetrajYapanlar" &&
-        <ShowMetrajYapanlar
+      {show == "ShowMetrajYapabilenler" &&
+        <ShowMetrajYapabilenler
           setShow={setShow}
         />
       }
@@ -245,7 +250,7 @@ export default function P_MetrajOnaylaPozlar() {
                 {showMetrajYapabilenler?.map((oneYapabilen, index) => {
                   return (
                     <Box key={index} sx={{ ...enUstBaslik_css, borderLeft: "1px solid black", justifyContent: "center" }}>
-                      {yetkililer?.find(oneYetkili => oneYetkili.userEmail === oneYapabilen.userEmail).userCode}
+                      {yetkililer?.find(oneYetkili => oneYetkili.userEmail === oneYapabilen).userCode}
                     </Box>
                   )
                 })}
@@ -385,7 +390,7 @@ export default function P_MetrajOnaylaPozlar() {
                                 <Box className="childClass" sx={{ color: "rgb(143,206,0,0.3)", ml: "-1rem", height: "0.5rem", width: "0.5rem", borderRadius: "50%" }}>
                                 </Box>
                                 <Box sx={{ justifySelf: "end" }}>
-                                  {ikiHane(onePoz?.hazirlananMetrajlar.find(x => x.userEmail === oneYapabilen.userEmail)?.metraj)}
+                                  {ikiHane(onePoz?.hazirlananMetrajlar.find(x => x.userEmail === oneYapabilen)?.metraj)}
                                 </Box>
                               </Box>
                             )
