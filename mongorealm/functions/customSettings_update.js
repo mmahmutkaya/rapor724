@@ -78,7 +78,6 @@ exports = async function ({
 
 
 
-
   if (functionName == "showMetrajYapabilenler") {
 
 
@@ -88,6 +87,7 @@ exports = async function ({
       );
     }
 
+    return functionName
 
     let showMetrajYapabilenler = user.custom_data.customSettings.showMetrajYapabilenler
 
@@ -101,9 +101,11 @@ exports = async function ({
       showMetrajYapabilenler = showMetrajYapabilenler.filter(x => x !== userEmail)
     }
 
+    return showMetrajYapabilenler
+    
     const result = await collection_Users.updateOne(
       { _userId },
-      { $set: { "customSettings.showMetrajYapabilenler" : showMetrajYapabilenler } }
+      { $set: { ["customSettings.showMetrajYapabilenler"] : showMetrajYapabilenler } }
     )
 
     return { result }
