@@ -82,7 +82,9 @@ export default function P_MetrajCetveliOnaylanan() {
 
 
     // bu değişim orjinal satırdan gelmişse, satırın kopyasını oluşturacağız, öncelikle satır no revizesi, sonra yoksa oluşturma
+    let originalSatirNo
     if (!oneSatir.isEdit) {
+      originalSatirNo = oneSatir.satirNo
       oneSatir.satirNo = oneSatir.satirNo + ".1"
     }
     if (!onaylananMetraj_state2.satirlar.find(x => x.satirNo === oneSatir.satirNo)) {
@@ -91,6 +93,10 @@ export default function P_MetrajCetveliOnaylanan() {
 
     // map ile tarayarak, state kısmındaki datanın ilgili satırını güncelliyoruz, ayrıca tüm satırların toplam metrajını, önce önceki değeri çıkartıp yeni değeri ekleyerek
     onaylananMetraj_state2["satirlar"] = onaylananMetraj_state2["satirlar"].map(oneRow => {
+
+      if (oneRow.satirNo === originalSatirNo) {
+        oneRow.isDeactive = true
+      }
 
       if (oneRow.satirNo === oneSatir.satirNo) {
 
@@ -327,7 +333,7 @@ export default function P_MetrajCetveliOnaylanan() {
           </React.Fragment>
 
 
-          {onaylananMetraj_state.satirlar.filter(x => showOriginal ? x : !x.original).sort((a, b) => a.siraNo - b.siraNo).map((oneRow, index) => {
+          {onaylananMetraj_state.satirlar.filter(x => showOriginal ? x : !x.isDeactive).sort((a, b) => a.siraNo - b.siraNo).map((oneRow, index) => {
             return (
               < React.Fragment key={index}>
 

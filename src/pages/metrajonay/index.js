@@ -133,6 +133,10 @@ export default function P_MetrajOnay() {
 
   const handle_satirIptal = ({ oneRow, hazirlayan }) => {
 
+    if (oneRow.isEdit) {
+      return
+    }
+
     if (!isChanged) {
       setHazirlananMetrajlar_backUp(_.cloneDeep(hazirlananMetrajlar_state))
       setOnaylananMetraj_backUp(_.cloneDeep(onaylananMetraj_state))
@@ -140,7 +144,12 @@ export default function P_MetrajOnay() {
     }
 
     let onaylananMetraj_state2 = _.cloneDeep(onaylananMetraj_state)
-    onaylananMetraj_state2.satirlar = onaylananMetraj_state2.satirlar.filter(x => x.satirNo !== oneRow.satirNo)
+
+    onaylananMetraj_state2.satirlar = onaylananMetraj_state2.satirlar.filter(x => {
+      let a = x.satirNo.includes(".") ? x.satirNo.substring(0, x.satirNo.indexOf(".")) : x.satirNo
+      let b = oneRow.satirNo.includes(".") ? oneRow.satirNo.substring(0, oneRow.satirNo.indexOf(".")) : oneRow.satirNo
+      return a !== b
+    })
     let count = 1
     onaylananMetraj_state2.satirlar = onaylananMetraj_state2.satirlar.sort((a, b) => a.siraNo - b.siraNo).map(x => {
       x.siraNo = count
@@ -470,7 +479,7 @@ export default function P_MetrajOnay() {
                                 ...css_metrajCetveliSatir,
                                 cursor: "pointer",
                                 backgroundColor: oneRow?.isUsed && myTema.renkler.inaktifGri,
-                                justifyContent: oneProperty.includes("aciklama") ? "start" : oneProperty.includes("carpan") ? "end" : oneProperty.includes("metraj") ? "end" : "center",
+                                justifyContent: (oneProperty.includes("satirNo") || oneProperty.includes("aciklama")) ? "start" : oneProperty.includes("carpan") ? "end" : oneProperty.includes("metraj") ? "end" : "center",
                                 minWidth: oneProperty.includes("carpan") ? "5rem" : oneProperty.includes("metraj") ? "5rem" : null,
                                 color: isMinha ? "red" : null
                               }}>
@@ -556,7 +565,8 @@ export default function P_MetrajOnay() {
 
                         <Box sx={{
                           ...css_metrajCetveliSatir,
-                          justifyContent: oneProperty.includes("aciklama") ? "start" : oneProperty.includes("carpan") ? "end" : oneProperty.includes("metraj") ? "end" : "center",
+                          backgroundColor: (oneRow?.isUsed && !oneRow?.isEdit) ? myTema.renkler.inaktifGri : oneRow?.isEdit ? "rgba(255, 255, 23, 0.12)" : null,
+                          justifyContent: (oneProperty.includes("satirNo") || oneProperty.includes("aciklama")) ? "start" : oneProperty.includes("carpan") ? "end" : oneProperty.includes("metraj") ? "end" : "center",
                           minWidth: oneProperty.includes("carpan") ? "5rem" : oneProperty.includes("metraj") ? "5rem" : null,
                           color: isMinha ? "red" : null
                         }}>
