@@ -102,7 +102,11 @@ exports = async function ({
         showMetrajYapabilenler = [...showMetrajYapabilenler, userEmail]
       }
     } else {
-      showMetrajYapabilenler = showMetrajYapabilenler.filter(x => x !== userEmail)
+      if(!showMetrajYapabilenler){
+        return
+      } else {
+        showMetrajYapabilenler = showMetrajYapabilenler.filter(x => x !== userEmail)
+      }
     }
 
 
