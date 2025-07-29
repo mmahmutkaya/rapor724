@@ -88,6 +88,12 @@ exports = async function ({
       );
     }
 
+    if (!userEmail2) {
+      throw new Error(
+        "MONGO // customSettings_update // showMetrajYapabilenler // db ye 'userEmail2' değeri doğru gelmedi, sayfayı yenileyiniz, sorun devam ederse lütfen Rapor 724 ile iletişime geçiniz."
+      );
+    }
+
 
     // let customData = await collection_Users.findOne({userId:user.id})
 
@@ -97,15 +103,15 @@ exports = async function ({
 
     if (showValue) {
       if (!showMetrajYapabilenler) {
-        showMetrajYapabilenler = [userEmail]
+        showMetrajYapabilenler = [userEmail2]
       } else {
-        showMetrajYapabilenler = [...showMetrajYapabilenler, userEmail]
+        showMetrajYapabilenler = [...showMetrajYapabilenler, userEmail2]
       }
     } else {
       if(!showMetrajYapabilenler){
         return
       } else {
-        showMetrajYapabilenler = showMetrajYapabilenler.filter(x => x !== userEmail)
+        showMetrajYapabilenler = showMetrajYapabilenler.filter(x => x !== userEmail2)
       }
     }
 
