@@ -15,23 +15,23 @@ exports = async function ({
 
   const mailTeyit = user.custom_data.mailTeyit;
   if (!mailTeyit) {
-    throw new Error("MONGO // updateDugumler_onaylananMetraj // Öncelikle üyeliğinize ait mail adresinin size ait olduğunu doğrulamalısınız, tekrar giriş yapmayı deneyiniz veya bizimle iletişime geçiniz.");
+    throw new Error("MONGO // update_onaylananMetraj // Öncelikle üyeliğinize ait mail adresinin size ait olduğunu doğrulamalısınız, tekrar giriş yapmayı deneyiniz veya bizimle iletişime geçiniz.");
   }
 
   if (!_dugumId) {
-    throw new Error("MONGO // updateDugumler_onaylananMetraj // '_dugumId' verisi db sorgusuna gelmedi");
+    throw new Error("MONGO // update_onaylananMetraj // '_dugumId' verisi db sorgusuna gelmedi");
   }
 
   if (!onaylananMetraj_state) {
-    throw new Error("MONGO // updateDugumler_onaylananMetraj // 'onaylananMetraj_state' verisi db sorgusuna gelmedi");
+    throw new Error("MONGO // update_onaylananMetraj // 'onaylananMetraj_state' verisi db sorgusuna gelmedi");
   }
 
   // if (!hazirlananlar_used) {
-  //   throw new Error("MONGO // updateDugumler_onaylananMetraj // 'hazirlananlar_used' verisi db sorgusuna gelmedi");
+  //   throw new Error("MONGO // update_onaylananMetraj // 'hazirlananlar_used' verisi db sorgusuna gelmedi");
   // }
 
   // if (!hazirlananlar_unUsed) {
-  //   throw new Error("MONGO // updateDugumler_onaylananMetraj // 'hazirlananlar_unUsed' verisi db sorgusuna gelmedi");
+  //   throw new Error("MONGO // update_onaylananMetraj // 'hazirlananlar_unUsed' verisi db sorgusuna gelmedi");
   // }
 
 
@@ -77,7 +77,7 @@ exports = async function ({
 
 
   } catch (error) {
-    throw new Error({ hatayeri: "MONGO // updateDugumler_onaylananMetraj // onaylanan metrajlar güncelleme", error });
+    throw new Error({ hatayeri: "MONGO // update_onaylananMetraj // onaylanan metrajlar güncelleme", error });
   }
 
 
@@ -91,7 +91,7 @@ exports = async function ({
     )
 
   } catch (error) {
-    throw new Error({ hatayeri: "MONGO // updateDugumler_onaylananMetraj // dugumler guncelleme ", error });
+    throw new Error({ hatayeri: "MONGO // update_onaylananMetraj // dugumler guncelleme ", error });
   }
 
 
@@ -153,7 +153,7 @@ exports = async function ({
     }
 
   } catch (error) {
-    throw new Error({ hatayeri: "MONGO // updateDugumler_onaylananMetraj // hazirlanan metrajlar isUsed guncelleme //", error });
+    throw new Error({ hatayeri: "MONGO // update_onaylananMetraj // hazirlanan metrajlar isUsed guncelleme //", error });
   }
 
 
