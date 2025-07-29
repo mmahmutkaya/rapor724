@@ -17,7 +17,6 @@ exports = async function ({
     );
 
 
-      return functionName
 
   const collection_Users = context.services.get("mongodb-atlas").db("rapor724_v2").collection("users");
 
@@ -89,7 +88,6 @@ exports = async function ({
       );
     }
 
-    return functionName
 
     let customData = collection_Users.findOne({userId:user.id})
 
