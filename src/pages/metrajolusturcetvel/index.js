@@ -5,7 +5,7 @@ import { StoreContext } from '../../components/store.js'
 
 
 import { DialogAlert } from '../../components/general/DialogAlert.js';
-import HeaderMetrajCetveliHazirlanan from '../../components/HeaderMetrajCetveliHazirlanan'
+import HeaderMetrajOlusturCetvel from '../../components/HeaderMetrajOlusturCetvel.js'
 import { useQuery, useQueryClient, useMutation } from '@tanstack/react-query'
 import { BSON } from "realm-web"
 import { useGetMahaller, useGetMahalListesi, useGetHazirlananMetraj, useUpdateHazirlananMetraj, useUpdateOnaylananMetraj, useGetOnaylananMetraj } from '../../hooks/useMongo.js';
@@ -27,7 +27,7 @@ import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import CheckIcon from '@mui/icons-material/Check';
 import LockIcon from '@mui/icons-material/Lock';
 
-export default function P_MetrajCetveliHazirlanan() {
+export default function P_MetrajOlusturCetvel() {
 
   const queryClient = useQueryClient()
 
@@ -46,7 +46,7 @@ export default function P_MetrajCetveliHazirlanan() {
 
 
   const [dialogAlert, setDialogAlert] = useState()
-  const [show, setShow] = useState("DugumMetrajlari")
+  const [show, setShow] = useState("EditMetraj")
   const [approveMode, setApproveMode] = useState()
   const [isChanged, setIsChanged] = useState(0)
   const [hazirlananMetraj_state, setHazirlananMetraj_state] = useState()
@@ -82,13 +82,7 @@ export default function P_MetrajCetveliHazirlanan() {
   const hazirlananKilitliSatir_color = "rgba( 128, 128, 128, 0.3 )" // gri
 
 
-  const { data: mahalListesi } = useGetMahalListesi()
-
   const { data: hazirlananMetraj } = useGetHazirlananMetraj()
-
-  const { data: onaylananMetraj } = useGetOnaylananMetraj({ selectedNode_metraj })
-
-  const { mutate: updateOnaylananMetraj } = useUpdateOnaylananMetraj()
 
 
   const navigate = useNavigate()
@@ -96,31 +90,6 @@ export default function P_MetrajCetveliHazirlanan() {
     !selectedNode_metraj && navigate("/metrajpozmahaller")
     setHazirlananMetraj_state(hazirlananMetraj)
   }, [hazirlananMetraj])
-
-
-
-
-
-
-  // const load_hazirlananMetraj_state = () => {
-
-  //   let userCode = customData.userCode
-
-  //   if (hazirlananMetraj) {
-  //     setHazirlananMetraj_state(hazirlananMetraj)
-  //   } else {
-  //     let satirlar = [
-  //       { satirNo: userCode + 1, aciklama: "", carpan1: "", carpan2: "", carpan3: "", carpan4: "", carpan5: "", metraj: "" },
-  //       { satirNo: userCode + 2, aciklama: "", carpan1: "", carpan2: "", carpan3: "", carpan4: "", carpan5: "", metraj: "" },
-  //       { satirNo: userCode + 3, aciklama: "", carpan1: "", carpan2: "", carpan3: "", carpan4: "", carpan5: "", metraj: "" },
-  //       { satirNo: userCode + 4, aciklama: "", carpan1: "", carpan2: "", carpan3: "", carpan4: "", carpan5: "", metraj: "" },
-  //       { satirNo: userCode + 5, aciklama: "", carpan1: "", carpan2: "", carpan3: "", carpan4: "", carpan5: "", metraj: "" }
-  //     ]
-  //     setHazirlananMetraj_state({ userEmail: RealmApp?.currentUser.customData.email, satirlar, metraj: 0 })
-  //   }
-  // }
-
-
 
 
 
@@ -201,7 +170,7 @@ export default function P_MetrajCetveliHazirlanan() {
         // if (result.dugumler) {
         //   queryClient.setQueryData(['dugumler', selectedProje?._id.toString()], result.dugumler)
         // }
-        setShow("DugumMetrajlari")
+        // setShow("DugumMetrajlari")
         queryClient.invalidateQueries(['hazirlananMetrajlar', selectedNode_metraj?._id.toString()])
         setIsChanged()
         return
@@ -299,7 +268,7 @@ export default function P_MetrajCetveliHazirlanan() {
       }
 
       <Grid name="metrajCetveliHeader" item sx={{ mt: (parseFloat(subHeaderHeight) + 1) + "rem", }}>
-        <HeaderMetrajCetveliHazirlanan
+        <HeaderMetrajOlusturCetvel
           show={show} setShow={setShow}
           save={save}
           cancel={cancel}

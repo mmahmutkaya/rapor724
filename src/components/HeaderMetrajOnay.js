@@ -111,7 +111,7 @@ export default function P_HeaderMetrajOnay({ show, setShow, isChanged, cancel, s
                 <>
                   <Grid item >
                     <IconButton onClick={() => {
-                      navigate("/metrajpozmahaller")
+                      navigate("/metrajonaylapozmahaller")
                     }} aria-label="lbsUncliced">
                       <ReplyIcon variant="contained" sx={{ color: "gray" }} />
                     </IconButton>
@@ -119,7 +119,7 @@ export default function P_HeaderMetrajOnay({ show, setShow, isChanged, cancel, s
 
                   <Grid item >
                     <IconButton onClick={() => {
-                      navigate('/metrajcetvelionaylanan')
+                      navigate('/metrajonaylacetvel')
                     }} aria-label="lbsUncliced">
                       <EditIcon variant="contained" />
                     </IconButton>

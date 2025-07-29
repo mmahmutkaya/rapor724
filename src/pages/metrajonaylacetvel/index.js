@@ -6,7 +6,7 @@ import _ from 'lodash';
 
 
 import { DialogAlert } from '../../components/general/DialogAlert.js';
-import HeaderMetrajCetveliOnaylanan from '../../components/HeaderMetrajCetveliOnaylanan.js'
+import HeaderMetrajCetveliOnaylanan from '../../components/HeaderMetrajOnaylaCetvel.js'
 import { useQuery, useQueryClient, useMutation } from '@tanstack/react-query'
 import { BSON } from "realm-web"
 import { useGetOnaylananMetraj } from '../../hooks/useMongo.js';
@@ -54,7 +54,7 @@ export default function P_MetrajCetveliOnaylanan() {
 
   const navigate = useNavigate()
   useEffect(() => {
-    !selectedNode_metraj && navigate("/metrajonay")
+    !selectedNode_metraj && navigate("/metrajonaylapozlar")
     setOnaylananMetraj_state(_.cloneDeep(onaylananMetraj))
     setOnaylananMetraj_backUp(_.cloneDeep(onaylananMetraj))
   }, [onaylananMetraj])

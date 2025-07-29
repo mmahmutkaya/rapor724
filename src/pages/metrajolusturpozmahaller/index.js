@@ -6,7 +6,7 @@ import { useApp } from "../../components/useApp";
 import FormPozCreate from '../../components/FormPozCreate'
 import EditPozBaslik from '../../components/EditPozBaslik'
 import FormPozBaslikCreate from '../../components/FormPozBaslikCreate'
-import HeaderMetrajPozMahaller from '../../components/HeaderMetrajPozMahaller'
+import HeaderMetrajOlusturPozMahaller from '../../components/HeaderMetrajOlusturPozMahaller'
 import { BSON } from "realm-web"
 
 import { useGetPozlar, useGetDugumler_byPoz, useGetMahaller } from '../../hooks/useMongo';
@@ -18,13 +18,14 @@ import Box from '@mui/material/Box';
 import { BorderBottom } from '@mui/icons-material';
 
 
-export default function P_MetrajPozMahaller() {
+export default function P_MetrajOlusturPozMahaller() {
 
   const { RealmApp, myTema } = useContext(StoreContext)
 
-  const { selectedProje, editNodeMetraj, onayNodeMetraj, selectedPoz_metraj } = useContext(StoreContext)
+  const { selectedProje, selectedPoz_metraj } = useContext(StoreContext)
   const metrajYapabilenler = selectedProje?.yetki?.metrajYapabilenler
   const yetkililer = selectedProje?.yetki.yetkililer
+  let editNodeMetraj = true
 
   const { selectedNode_metraj, setSelectedNode_metraj } = useContext(StoreContext)
   const { selectedMahal_metraj, setSelectedMahal_metraj } = useContext(StoreContext)
@@ -123,19 +124,10 @@ export default function P_MetrajPozMahaller() {
   }
 
 
-  const goto_metrajCetveliHazirlanan = (dugum, oneMahal) => {
+  const goto_metrajOlusturCetvel = (dugum, oneMahal) => {
     setSelectedNode_metraj(dugum)
     setSelectedMahal_metraj(oneMahal)
     navigate('/metrajolusturcetvel')
-  }
-
-
-
-  const goTo_onaylananMetrajDugum = (dugum) => {
-    console.log("dugum", dugum)
-    // setSelectedNode_metraj(dugum)
-    // setSelectedMahal_metraj(oneMahal)
-    // navigate('/metrajcetvelihazirlanan')
   }
 
 
@@ -170,7 +162,8 @@ export default function P_MetrajPozMahaller() {
   }
 
   const metrajYapabilenlerColumns = " 1rem repeat(" + metrajYapabilenler?.length + ", max-content)"
-  const gridTemplateColumns1 = `max-content minmax(min-content, 1fr) max-content max-content${editNodeMetraj ? " 1rem max-content" : ""}${onayNodeMetraj ? metrajYapabilenlerColumns : ""}`
+  // const gridTemplateColumns1 = `max-content minmax(min-content, 1fr) max-content max-content${editNodeMetraj ? " 1rem max-content" : ""}${onayNodeMetraj ? metrajYapabilenlerColumns : ""}`
+  const gridTemplateColumns1 = `max-content minmax(min-content, 1fr) max-content max-content${editNodeMetraj ? " 1rem max-content" : ""}`
 
 
   return (
@@ -178,7 +171,7 @@ export default function P_MetrajPozMahaller() {
     <Box sx={{ m: "0rem", maxWidth: "60rem" }}>
 
       <Grid item >
-        <HeaderMetrajPozMahaller show={show} setShow={setShow} />
+        <HeaderMetrajOlusturPozMahaller show={show} setShow={setShow} />
       </Grid>
 
 
@@ -213,7 +206,7 @@ export default function P_MetrajPozMahaller() {
               </>
             }
 
-            {onayNodeMetraj &&
+            {/* {onayNodeMetraj &&
               <>
                 <Box> </Box>
                 {metrajYapabilenler.map((oneYapabilen, index) => {
@@ -224,7 +217,7 @@ export default function P_MetrajPozMahaller() {
                   )
                 })}
               </>
-            }
+            } */}
 
           </>
 
@@ -250,7 +243,7 @@ export default function P_MetrajPozMahaller() {
               </>
             }
 
-            {onayNodeMetraj &&
+            {/* {onayNodeMetraj &&
               <>
                 <Box> </Box>
                 {metrajYapabilenler.map((oneYapabilen, index) => {
@@ -262,7 +255,8 @@ export default function P_MetrajPozMahaller() {
                 })}
 
               </>
-            }
+            } */}
+
           </>
 
 
@@ -291,7 +285,7 @@ export default function P_MetrajPozMahaller() {
                   </>
                 }
 
-                {onayNodeMetraj &&
+                {/* {onayNodeMetraj &&
                   <>
                     <Box> </Box>
                     {metrajYapabilenler.map((oneYapabilen, index) => {
@@ -302,7 +296,7 @@ export default function P_MetrajPozMahaller() {
                       )
                     })}
                   </>
-                }
+                } */}
 
 
                 {/* MAHAL SATIRLARI */}
@@ -321,23 +315,29 @@ export default function P_MetrajPozMahaller() {
                         {oneMahal.mahalName}
                       </Box>
 
-                      <Box onDoubleClick={() => goTo_onaylananMetrajDugum(dugum)} sx={{ ...css_mahaller, cursor: "pointer", display: "grid", alignItems: "center", gridTemplateColumns: "1rem 1fr", "&:hover": { "& .childClass": { backgroundColor: "red" } } }}>
+                      {/* <Box onDoubleClick={() => goTo_onaylananMetrajDugum(dugum)} sx={{ ...css_mahaller, cursor: "pointer", display: "grid", alignItems: "center", gridTemplateColumns: "1rem 1fr", "&:hover": { "& .childClass": { backgroundColor: "red" } } }}>
                         <Box className="childClass" sx={{ backgroundColor: "white", height: "0.5rem", width: "0.5rem", borderRadius: "50%" }}>
                         </Box>
                         <Box sx={{ justifySelf: "end" }}>
                           {ikiHane(dugum?.onaylananMetraj)}
                         </Box>
+                      </Box> */}
+
+                      <Box sx={{ ...css_mahaller, justifyContent: "end" }}>
+                        {ikiHane(dugum?.onaylananMetraj)}
                       </Box>
 
                       <Box sx={{ ...css_mahaller, justifyContent: "center" }}>
                         {pozBirim}
                       </Box>
 
+
+
                       {editNodeMetraj &&
                         <>
                           <Box />
                           <Box
-                            onDoubleClick={() => goto_metrajCetveliHazirlanan(dugum, oneMahal)}
+                            onDoubleClick={() => goto_metrajOlusturCetvel(dugum, oneMahal)}
                             sx={{
                               ...css_mahaller,
                               display: "grid",
@@ -357,7 +357,7 @@ export default function P_MetrajPozMahaller() {
                         </>
                       }
 
-                      {onayNodeMetraj &&
+                      {/* {onayNodeMetraj &&
                         <>
                           <Box> </Box>
                           {metrajYapabilenler.map((oneYapabilen, index) => {
@@ -375,7 +375,7 @@ export default function P_MetrajPozMahaller() {
                             )
                           })}
                         </>
-                      }
+                      } */}
 
                     </React.Fragment>
                   )

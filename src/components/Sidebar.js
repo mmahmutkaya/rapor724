@@ -196,8 +196,28 @@ export default function Sidebar({ setMobileOpen }) {
 
 
             <ListItemButton
+              onClick={() => navigate('/metrajolusturpozlar')}
+              sx={{ backgroundColor: pathname.includes("/metrajolustur") ? "#f0f0f1" : null }}
+            >
+              <ListItemIcon>
+                <SendIcon />
+              </ListItemIcon>
+              <ListItemText primary="Metraj Oluştur" />
+            </ListItemButton>
+
+            <ListItemButton
+              onClick={() => navigate('/metrajonaylapozlar')}
+              sx={{ backgroundColor: pathname.includes("/metrajonayla") ? "#f0f0f1" : null }}
+            >
+              <ListItemIcon>
+                <SendIcon />
+              </ListItemIcon>
+              <ListItemText primary="Metraj Onayla" />
+            </ListItemButton>
+
+            <ListItemButton
               onClick={() => navigate('/metrajpozlar')}
-              sx={{ backgroundColor: pathname.includes("/metraj") ? "#f0f0f1" : null }}
+              sx={{ backgroundColor: pathname.includes("/metrajpoz") ? "#f0f0f1" : null }}
             >
               <ListItemIcon>
                 <SendIcon />

@@ -24,15 +24,22 @@ import P_MahalListesiPozMahaller from './pages/mahallistesipozmahaller'
 
 
 import P_MahalMetraj from './pages/mahalmetraj'
-import P_MetrajPozlar from './pages/metrajpozlar'
 import P_KisilerProject from './pages/kisilerproject'
 import P_Raporlar from './pages/raporlar'
 
-import P_Metrajpozmahaller from './pages/metrajpozmahaller'
-import P_MetrajCetveliHazirlanan from './pages/metrajcetvelihazirlanan'
-import P_MetrajCetveliOnaylanan from './pages/metrajcetvelionaylanan'
-import P_MetrajEdit from './pages/metrajedit'
+import P_MetrajOlusturPozlar from './pages/metrajolusturpozlar'
+import P_MetrajOlusturPozMahaller from './pages/metrajolusturpozmahaller'
+import P_MetrajOlusturCetvel from './pages/metrajolusturcetvel'
+
+import P_MetrajOnaylaPozlar from './pages/metrajonaylapozlar'
+import P_MetrajOnaylaPozMahaller from './pages/metrajonaylapozmahaller'
 import P_MetrajOnay from './pages/metrajonay'
+import P_MetrajOnaylaCetvel from './pages/metrajonaylacetvel'
+
+import P_MetrajPozlar from './pages/metrajpozlar'
+import P_MetrajPozMahaller from './pages/metrajpozmahaller'
+
+import P_MetrajEdit from './pages/metrajedit'
 
 function App() {
 
@@ -64,11 +71,18 @@ function App() {
       <Route path='/raporlar' element={<P_Raporlar />} />
 
       <Route path='/metrajpozlar' element={<P_MetrajPozlar />} />
-      <Route path='/metrajpozmahaller' element={<P_Metrajpozmahaller />} />
-      <Route path='/metrajcetvelihazirlanan' element={<P_MetrajCetveliHazirlanan />} />
-      <Route path='/metrajedit' element={<P_MetrajEdit />} />
+      <Route path='/metrajpozmahaller' element={<P_MetrajPozMahaller />} />
+
+      <Route path='/metrajolusturpozlar' element={<P_MetrajOlusturPozlar />} />
+      <Route path='/metrajolusturpozmahaller' element={<P_MetrajOlusturPozMahaller />} />
+      <Route path='/metrajolusturcetvel' element={<P_MetrajOlusturCetvel />} />
+
+      <Route path='/metrajonaylapozlar' element={<P_MetrajOnaylaPozlar />} />
+      <Route path='/metrajonaylapozmahaller' element={<P_MetrajOnaylaPozMahaller />} />
       <Route path='/metrajonay' element={<P_MetrajOnay />} />
-      <Route path='/metrajcetvelionaylanan' element={<P_MetrajCetveliOnaylanan />} />
+      <Route path='/metrajonaylacetvel' element={<P_MetrajOnaylaCetvel />} />
+      
+      <Route path='/metrajedit' element={<P_MetrajEdit />} />
 
     </Routes>
   );

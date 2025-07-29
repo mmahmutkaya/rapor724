@@ -35,7 +35,7 @@ import { useGetMahaller } from '../hooks/useMongo';
 
 
 
-export default function P_HeaderMetrajCetveliHazirlanan({ show, setShow, isChanged, cancel, save }) {
+export default function P_HeaderMetrajOlusturCetvel({ show, setShow, isChanged, cancel, save }) {
 
   const navigate = useNavigate()
 
@@ -110,50 +110,30 @@ export default function P_HeaderMetrajCetveliHazirlanan({ show, setShow, isChang
             <Grid container>
 
 
-
-              {show == "DugumMetrajlari" &&
+              {!isChanged &&
                 <>
                   <Grid item >
-                    <IconButton onClick={() => {
-                      navigate("/metrajpozmahaller")
-                    }} aria-label="lbsUncliced">
+                    <IconButton onClick={() => navigate("/metrajolusturpozmahaller")}>
                       <ReplyIcon variant="contained" sx={{ color: "gray" }} />
                     </IconButton>
                   </Grid>
-
-                  <Grid item >
-                    <IconButton onClick={() => {
-                      setShow("EditMetraj")
-                    }} aria-label="lbsUncliced">
-                      <EditIcon variant="contained" />
-                    </IconButton>
-                  </Grid>
-
                 </>
+
               }
 
 
-
-              {show == "EditMetraj" &&
+              {isChanged == true &&
 
                 <>
 
                   <Grid item >
-                    <IconButton onClick={() => {
-                      if (isChanged) {
-                        setShowEminMisin(true)
-                      } else {
-                        setShow("DugumMetrajlari")
-                      }
-                    }} aria-label="lbsUncliced">
+                    <IconButton onClick={() => setShowEminMisin(true)}>
                       <ClearOutlined variant="contained" sx={{ color: "red" }} />
                     </IconButton>
                   </Grid>
 
                   <Grid item >
-                    <IconButton onClick={() => {
-                      save()
-                    }} aria-label="lbsUncliced">
+                    <IconButton onClick={() => save()} >
                       <SaveIcon variant="contained" />
                     </IconButton>
                   </Grid>

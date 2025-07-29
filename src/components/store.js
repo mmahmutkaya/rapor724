@@ -76,6 +76,9 @@ export default ({ children }) => {
   const [mahalListesi, setMahalListesi] = useState()
   const [projectNames, setProjectNames] = useState()
 
+  const [showMetrajYapanlar, setShowMetrajYapanlar] = useState()
+
+
   const [pageMetraj_show, pageMetraj_setShow] = useState("Pozlar")
 
   const store = {
@@ -124,6 +127,8 @@ export default ({ children }) => {
     myTema, setMyTema,
 
     pozMahalMetrajlar, setPozMahalMetrajlar,
+
+    showMetrajYapanlar, setShowMetrajYapanlar,
 
     pageMetraj_show, pageMetraj_setShow
   }

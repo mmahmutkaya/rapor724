@@ -10,8 +10,8 @@ import { useGetPozlar } from '../../hooks/useMongo';
 import getWbsName from '../../functions/getWbsName';
 
 
-import ShowMetrajPozlarBaslik from '../../components/ShowMetrajPozlarBaslik'
-import HeaderMetrajPozlar from '../../components/HeaderMetrajPozlar'
+import ShowMetrajOlusturPozlarBaslik from '../../components/ShowMetrajOlusturPozlarBaslik'
+import HeaderMetrajOlusturPozlar from '../../components/HeaderMetrajOlusturPozlar'
 
 
 import { borderLeft, fontWeight, grid, styled } from '@mui/system';
@@ -25,7 +25,7 @@ import InfoIcon from '@mui/icons-material/Info';
 
 
 
-export default function P_MetrajPozlar() {
+export default function P_MetrajOlusturPozlar() {
 
   const navigate = useNavigate()
   const queryClient = useQueryClient()
@@ -41,7 +41,8 @@ export default function P_MetrajPozlar() {
   const yetkililer = selectedProje?.yetki.yetkililer
 
   const { selectedPoz_metraj, setSelectedPoz_metraj } = useContext(StoreContext)
-  const { editNodeMetraj, onayNodeMetraj } = useContext(StoreContext)
+  // const { editNodeMetraj, onayNodeMetraj } = useContext(StoreContext)
+  let editNodeMetraj = true
 
   // console.log("selectedProje", selectedProje)
   const pozBirimleri = selectedProje?.pozBirimleri
@@ -119,19 +120,19 @@ export default function P_MetrajPozlar() {
 
 
   const goTo_MetrajPozmahaller = (onePoz) => {
-    navigate('/metrajpozmahaller')
+    navigate('/metrajolusturpozmahaller')
     setSelectedPoz_metraj(onePoz)
   }
 
   const metrajYapabilenlerColumns = " 1rem repeat(" + metrajYapabilenler?.length + ", max-content)"
-  const columns = `max-content minmax(min-content, 3fr) max-content max-content${pozAciklamaShow ? " 0.5rem minmax(min-content, 2fr)" : ""}${pozVersiyonShow ? " 0.5rem min-content" : ""}${editNodeMetraj ? " 0.5rem max-content" : ""}${onayNodeMetraj ? metrajYapabilenlerColumns : ""}`
+  const columns = `max-content minmax(min-content, 3fr) max-content max-content${pozAciklamaShow ? " 0.5rem minmax(min-content, 2fr)" : ""}${pozVersiyonShow ? " 0.5rem min-content" : ""}${editNodeMetraj ? " 0.5rem max-content" : ""}`
 
 
   return (
     <Box sx={{ m: "0rem", maxWidth: "60rem" }}>
 
       {/* BAŞLIK */}
-      <HeaderMetrajPozlar
+      <HeaderMetrajOlusturPozlar
         show={show}
         setShow={setShow}
       />
@@ -139,7 +140,7 @@ export default function P_MetrajPozlar() {
 
       {/* BAŞLIK GÖSTER / GİZLE */}
       {show == "ShowBaslik" &&
-        <ShowMetrajPozlarBaslik
+        <ShowMetrajOlusturPozlarBaslik
           setShow={setShow}
           basliklar={basliklar} setBasliklar={setBasliklar}
         />
@@ -226,7 +227,7 @@ export default function P_MetrajPozlar() {
               </>
             }
 
-            {onayNodeMetraj &&
+            {/* {onayNodeMetraj &&
               <>
                 <Box> </Box>
                 {metrajYapabilenler.map((oneYapabilen, index) => {
@@ -237,7 +238,7 @@ export default function P_MetrajPozlar() {
                   )
                 })}
               </>
-            }
+            } */}
 
           </>
 
@@ -285,7 +286,7 @@ export default function P_MetrajPozlar() {
                     </>
                   }
 
-                  {onayNodeMetraj &&
+                  {/* {onayNodeMetraj &&
                     <>
                       <Box> </Box>
                       {metrajYapabilenler.map((oneYapabilen, index) => {
@@ -296,7 +297,7 @@ export default function P_MetrajPozlar() {
                         )
                       })}
                     </>
-                  }
+                  } */}
 
                 </>
 
@@ -311,7 +312,6 @@ export default function P_MetrajPozlar() {
                   }
 
                   return (
-                    // <Box key={index} onDoubleClick={() => navigate('/metrajpozmahaller')} onClick={() => setSelectedPoz_metraj(onePoz)} sx={{ "&:hover": { "& .childClass": { display: "block" } }, cursor: "pointer", display: "grid", }}>
                     <React.Fragment key={index} >
                       <Box sx={{ ...pozNo_css }} >
                         {onePoz.pozNo}
@@ -319,12 +319,15 @@ export default function P_MetrajPozlar() {
                       <Box sx={{ ...pozNo_css, justifyItems: "start", pl: "0.5rem" }} >
                         {onePoz.pozName}
                       </Box>
-                      <Box onDoubleClick={() => goTo_MetrajPozmahaller(onePoz)} sx={{ ...pozNo_css, cursor: "pointer", display: "grid", gridTemplateColumns: "1rem 1fr", "&:hover": { "& .childClass": { backgroundColor: "red" } } }}>
+                      {/* <Box onDoubleClick={() => goTo_MetrajPozmahaller(onePoz)} sx={{ ...pozNo_css, cursor: "pointer", display: "grid", gridTemplateColumns: "1rem 1fr", "&:hover": { "& .childClass": { backgroundColor: "red" } } }}>
                         <Box className="childClass" sx={{ ml: "-1rem", backgroundColor: "white", height: "0.5rem", width: "0.5rem", borderRadius: "50%" }}>
                         </Box>
                         <Box sx={{ justifySelf: "end" }}>
                           {ikiHane(onePoz?.onaylananMetraj)}
                         </Box>
+                      </Box> */}
+                      <Box sx={{ ...pozNo_css, justifyContent:"end" }}>
+                        {ikiHane(onePoz?.onaylananMetraj)}
                       </Box>
                       <Box sx={{ ...pozNo_css }}>
                         {pozBirimleri.find(x => x.id === onePoz.pozBirimId).name}
@@ -364,7 +367,7 @@ export default function P_MetrajPozlar() {
                         </>
                       }
 
-                      {onayNodeMetraj &&
+                      {/* {onayNodeMetraj &&
                         <>
                           <Box> </Box>
                           {metrajYapabilenler.map((oneYapabilen, index) => {
@@ -379,7 +382,7 @@ export default function P_MetrajPozlar() {
                             )
                           })}
                         </>
-                      }
+                      } */}
 
 
                     </React.Fragment>

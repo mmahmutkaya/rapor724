@@ -6,7 +6,7 @@ import { useApp } from "../../components/useApp";
 import FormPozCreate from '../../components/FormPozCreate'
 import EditPozBaslik from '../../components/EditPozBaslik'
 import FormPozBaslikCreate from '../../components/FormPozBaslikCreate'
-import HeaderMetrajPozMahaller from '../../components/HeaderMetrajPozMahaller'
+import HeaderMetrajOnaylaPozMahaller from '../../components/HeaderMetrajOnaylaPozMahaller'
 import { BSON } from "realm-web"
 
 import { useGetPozlar, useGetDugumler_byPoz, useGetMahaller } from '../../hooks/useMongo';
@@ -18,18 +18,24 @@ import Box from '@mui/material/Box';
 import { BorderBottom } from '@mui/icons-material';
 
 
-export default function P_MetrajPozMahaller() {
+export default function P_MetrajOnaylaPozMahaller() {
 
   const { RealmApp, myTema } = useContext(StoreContext)
 
-  const { selectedProje, editNodeMetraj, onayNodeMetraj, selectedPoz_metraj } = useContext(StoreContext)
+  const { selectedProje, selectedPoz_metraj } = useContext(StoreContext)
   const metrajYapabilenler = selectedProje?.yetki?.metrajYapabilenler
+  console.log("metrajYapabilenler",metrajYapabilenler)
+  
   const yetkililer = selectedProje?.yetki.yetkililer
 
   const { selectedNode_metraj, setSelectedNode_metraj } = useContext(StoreContext)
   const { selectedMahal_metraj, setSelectedMahal_metraj } = useContext(StoreContext)
+  let editNodeMetraj = false
+  let onayNodeMetraj = true
 
   const customData = RealmApp.currentUser.customData
+
+
 
 
   const [show, setShow] = useState("Main")
@@ -123,7 +129,7 @@ export default function P_MetrajPozMahaller() {
   }
 
 
-  const goto_metrajCetveliHazirlanan = (dugum, oneMahal) => {
+  const goto_metrajOlusturCetvel = (dugum, oneMahal) => {
     setSelectedNode_metraj(dugum)
     setSelectedMahal_metraj(oneMahal)
     navigate('/metrajolusturcetvel')
@@ -178,7 +184,7 @@ export default function P_MetrajPozMahaller() {
     <Box sx={{ m: "0rem", maxWidth: "60rem" }}>
 
       <Grid item >
-        <HeaderMetrajPozMahaller show={show} setShow={setShow} />
+        <HeaderMetrajOnaylaPozMahaller show={show} setShow={setShow} />
       </Grid>
 
 
@@ -337,7 +343,7 @@ export default function P_MetrajPozMahaller() {
                         <>
                           <Box />
                           <Box
-                            onDoubleClick={() => goto_metrajCetveliHazirlanan(dugum, oneMahal)}
+                            onDoubleClick={() => goto_metrajOlusturCetvel(dugum, oneMahal)}
                             sx={{
                               ...css_mahaller,
                               display: "grid",

@@ -35,7 +35,7 @@ import { useGetMahaller } from '../hooks/useMongo';
 
 
 
-export default function P_HeaderMetrajCetveliOnaylanan({ show, setShow, isChanged, cancel, save, showOriginal, setShowOriginal }) {
+export default function P_HeaderMetrajOnaylaCetvel({ show, setShow, isChanged, cancel, save, showOriginal, setShowOriginal }) {
 
   const navigate = useNavigate()
 
