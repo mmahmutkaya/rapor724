@@ -402,7 +402,7 @@ export default function P_MetrajCetveliOnaylanan() {
                         <Box sx={{
                           ...css_metrajCetveliSatir,
                           backgroundColor: oneRow?.isDeactive && myTema.renkler.inaktifGri,
-                          justifyContent: oneProperty.includes("aciklama") ? "start" : oneProperty.includes("carpan") ? "end" : oneProperty.includes("metraj") ? "end" : "center",
+                          justifyContent: (oneProperty.includes("satirNo") || oneProperty.includes("aciklama")) ? "start" : oneProperty.includes("carpan") ? "end" : oneProperty.includes("metraj") ? "end" : "center",
                           minWidth: oneProperty.includes("carpan") ? "5rem" : oneProperty.includes("metraj") ? "5rem" : null,
                           color: isMinha ? "red" : null
                         }}>
