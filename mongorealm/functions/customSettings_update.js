@@ -89,11 +89,11 @@ exports = async function ({
     }
 
 
-    let customData = await collection_Users.findOne({userId:user.id})
+    // let customData = await collection_Users.findOne({userId:user.id})
 
-    let showMetrajYapabilenler = customData.customSettings.showMetrajYapabilenler
+    let showMetrajYapabilenler = user.custom_data.customSettings.showMetrajYapabilenler
 
-    return {showMetrajYapabilenler,customData,functionName}
+    // return {showMetrajYapabilenler,customData,functionName}
 
     if (showValue) {
       if (!showMetrajYapabilenler) {
