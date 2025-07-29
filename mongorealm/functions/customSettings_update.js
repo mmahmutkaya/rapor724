@@ -2,7 +2,9 @@ exports = async function ({
   functionName,
   sayfaName,
   baslikId,
-  showValue
+  showValue,
+  userEmail2
+  
 }) {
   const user = await context.user;
   const userEmail = context.user.data.email;
@@ -15,7 +17,7 @@ exports = async function ({
     );
 
 
-
+      return functionName
 
   const collection_Users = context.services.get("mongodb-atlas").db("rapor724_v2").collection("users");
 
