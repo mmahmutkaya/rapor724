@@ -77,5 +77,40 @@ exports = async function ({
   }
 
 
+
+
+  if (functionName == "showMetrajYapabilenler") {
+
+
+    if (!(showValue === true || showValue === false)) {
+      throw new Error(
+        "MONGO // customSettings_update // showMetrajYapabilenler // db ye 'showValue' değeri doğru gelmedi, sayfayı yenileyiniz, sorun devam ederse lütfen Rapor 724 ile iletişime geçiniz."
+      );
+    }
+
+
+    let showMetrajYapabilenler = user.custom_data.customSettings.showMetrajYapabilenler
+
+    if (showValue) {
+      if (!showMetrajYapabilenler) {
+        showMetrajYapabilenler = [userEmail]
+      } else {
+        showMetrajYapabilenler = [...showMetrajYapabilenler, userEmail]
+      }
+    } else {
+      showMetrajYapabilenler = showMetrajYapabilenler.filter(x => x !== userEmail)
+    }
+
+    const result = await collection_Users.updateOne(
+      { _userId },
+      { $set: { "customSettings.showMetrajYapabilenler" : showMetrajYapabilenler } }
+    )
+
+    return { result }
+
+  }
+
+
+
   return { message: "Herhangi bir functionName ile eşleşmedi" };
 };
