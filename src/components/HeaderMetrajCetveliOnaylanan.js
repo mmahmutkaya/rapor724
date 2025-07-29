@@ -35,7 +35,7 @@ import { useGetMahaller } from '../hooks/useMongo';
 
 
 
-export default function P_HeaderMetrajCetveliOnaylanan({ show, setShow, isChanged, cancel, save }) {
+export default function P_HeaderMetrajCetveliOnaylanan({ show, setShow, isChanged, cancel, save, showOriginal, setShowOriginal }) {
 
   const navigate = useNavigate()
 
@@ -124,10 +124,19 @@ export default function P_HeaderMetrajCetveliOnaylanan({ show, setShow, isChange
                   <Grid item >
                     <IconButton onClick={() => {
                       setShow("EditMetraj")
+                      setShowOriginal()
                     }} aria-label="lbsUncliced">
                       <EditIcon variant="contained" />
                     </IconButton>
                   </Grid>
+
+
+                  <Grid item >
+                    <IconButton onClick={() => setShowOriginal(x => !x)} disabled={false}>
+                      <VisibilityIcon variant="contained" sx={{ color: showOriginal ? "gray" : "lightgray" }} />
+                    </IconButton>
+                  </Grid>
+
 
                 </>
               }
@@ -151,15 +160,14 @@ export default function P_HeaderMetrajCetveliOnaylanan({ show, setShow, isChange
                   </Grid>
 
                   <Grid item >
-                    <IconButton onClick={() => {
-                      save()
-                    }} aria-label="lbsUncliced">
+                    <IconButton onClick={() => save()} disabled={!isChanged}>
                       <SaveIcon variant="contained" />
                     </IconButton>
                   </Grid>
 
                 </>
               }
+
 
 
 

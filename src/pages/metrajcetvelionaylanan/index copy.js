@@ -41,6 +41,7 @@ export default function P_MetrajCetveliOnaylanan() {
   const [isChanged, setIsChanged] = useState(0)
   const [onaylananMetraj_state, setOnaylananMetraj_state] = useState()
   const [onaylananMetraj_backUp, setOnaylananMetraj_backUp] = useState()
+  const [originalSatirlar, setOriginalSatirlar] = useState()
   const [_pozId] = useState()
 
 
@@ -60,6 +61,21 @@ export default function P_MetrajCetveliOnaylanan() {
   }, [onaylananMetraj])
 
 
+  useEffect(() => {
+    if (show === "EditMetraj") {
+
+      let onaylananMetraj_state2 = _.cloneDeep(onaylananMetraj_state)
+      
+      let originalSatirlar2 = onaylananMetraj_state2.satirlar.filter(x => x.original)
+
+      onaylananMetraj_state2.satirlar = onaylananMetraj_state2.satirlar.map(x => {
+        x.original = false
+        x.copy = true
+        return x
+      })
+
+    }
+  }, [show])
 
   // Edit Metraj Sayfasının Fonksiyonu
   const handle_input_onKey = async (event) => {
@@ -71,29 +87,55 @@ export default function P_MetrajCetveliOnaylanan() {
 
 
   // Edit Metraj Sayfasının Fonksiyonu
-  const handle_input_onChange = (event, oneSatir, oneProperty) => {
+  const handle_input_onChange = (event, satirNo, oneProperty) => {
 
     if (!isChanged) {
+      setOnaylananMetraj_backUp(_.cloneDeep(onaylananMetraj_state))
       setIsChanged(true)
     }
 
     let onaylananMetraj_state2 = _.cloneDeep(onaylananMetraj_state)
-    // console.log("onaylananMetraj_state2", onaylananMetraj_state2)
-
-
-    // bu değişim orjinal satırdan gelmişse, satırın kopyasını oluşturacağız, öncelikle satır no revizesi, sonra yoksa oluşturma
-    if (!oneSatir.isEdit) {
-      oneSatir.satirNo = oneSatir.satirNo + ".1"
-    }
-    if (!onaylananMetraj_state2.satirlar.find(x => x.satirNo === oneSatir.satirNo)) {
-      onaylananMetraj_state2.satirlar = [...onaylananMetraj_state2.satirlar, { ...oneSatir, isEdit: true }]
-    }
+    console.log("onaylananMetraj_state2", onaylananMetraj_state2)
 
     // map ile tarayarak, state kısmındaki datanın ilgili satırını güncelliyoruz, ayrıca tüm satırların toplam metrajını, önce önceki değeri çıkartıp yeni değeri ekleyerek
     onaylananMetraj_state2["satirlar"] = onaylananMetraj_state2["satirlar"].map(oneRow => {
 
-      if (oneRow.satirNo === oneSatir.satirNo) {
+      if (oneRow.satirNo === satirNo) {
 
+        // //  değiştirmeden önce ayrı bir yere kopyalayıp, sonra dönüştürüyoruz
+        // if (!oneRow.isEdit && !oneRow.isDeactive) {
+
+        //   let deActiveRows2 = _.cloneDeep(deActiveRows)
+        //   if (!deActiveRows2) {
+        //     deActiveRows2 = [{ ...oneRow, isDeactive: true }]
+        //   } else {
+        //     if (!deActiveRows2?.find(x => x.satirNo === oneRow.satirNo)) {
+        //       deActiveRows2 = [...deActiveRows2, { ...oneRow, isDeactive: true }]
+        //     }
+        //   }
+        //   console.log("deActiveRows2", deActiveRows2)
+        //   setDeActiveRows(deActiveRows2)
+
+        //   // if (!deActiveRows) {
+        //   //   setDeActiveRows([{ ...oneRow, isDeactive: true }])
+        //   // } else {
+        //   //   setDeActiveRows(rows => {
+        //   //     if(!rows.find(x => x.satirNo === x.SatirNo)){
+        //   //       return [...rows, { ...oneRow, isDeactive: true }]
+        //   //     } else {
+        //   //       return rows
+        //   //     }
+        //   //   })
+        //   // }
+
+        //   oneRow.isEdit = true
+        //   oneRow.siraNo = oneRow.siraNo + 0.1
+        // }
+
+        // yeni satırlar eklenirse diye
+        if (oneRow.isUsed) {
+          oneRow.isEdit = true
+        }
         // önceki satır metrajını çıkartıyoruz, yeni değeri bulunca aşağıda ekleyeceğiz
         onaylananMetraj_state2["metraj"] = Number(onaylananMetraj_state2["metraj"]) - Number(oneRow["metraj"])
 
@@ -145,6 +187,7 @@ export default function P_MetrajCetveliOnaylanan() {
     setOnaylananMetraj_state(_.cloneDeep(onaylananMetraj_backUp))
     setIsChanged()
     setShow("DugumMetrajlari")
+    setOnaylananMetraj_backUp()
   }
 
 
@@ -155,7 +198,27 @@ export default function P_MetrajCetveliOnaylanan() {
     if (isChanged) {
       try {
 
-        await RealmApp?.currentUser.callFunction("update_onaylananMetrajCetveli", ({ _dugumId: selectedNode_metraj._id, onaylananMetraj_state }))
+
+        let newEditSatirlar = _.cloneDeep(onaylananMetraj_state.satirlar.filter(x => x.isEdit))
+        let originalSatirlar = _.cloneDeep(onaylananMetraj_backUp.satirlar.filter(x => !x.isEdit))
+        let onaylananMetraj_state2 = _.cloneDeep(onaylananMetraj_state)
+        if (newEditSatirlar) {
+          originalSatirlar = originalSatirlar.map(x => {
+            if (newEditSatirlar.find(y => y.satirNo === x.satirNo)) {
+              x.isDeactive = true
+            }
+            return x
+          })
+          onaylananMetraj_state2.satirlar = [...newEditSatirlar, ...originalSatirlar]
+        }
+        console.log("onaylananMetraj_state2", onaylananMetraj_state2)
+        return
+
+        await RealmApp?.currentUser.callFunction("update_onaylananMetrajCetveli", ({ _dugumId: selectedNode_metraj._id, onaylananMetraj_state: onaylananMetraj_state2 }))
+        // console.log("result", result)
+        // if (result.dugumler) {
+        //   queryClient.setQueryData(['dugumler', selectedProje?._id.toString()], result.dugumler)
+        // }
         setShow("DugumMetrajlari")
         queryClient.invalidateQueries(['onaylananMetrajlar', selectedNode_metraj?._id.toString()])
         setIsChanged()
@@ -361,7 +424,7 @@ export default function P_MetrajCetveliOnaylanan() {
                             // onChange={(e) => parseFloat(e.target.value).toFixed(1)}
                             // onKeyDown={(evt) => ilaveYasaklilar.some(elem => evt.target.value.includes(elem)) && ilaveYasaklilar.find(item => item == evt.key) && evt.preventDefault()}
                             onKeyDown={oneProperty.includes("carpan") ? (event) => handle_input_onKey(event) : null}
-                            onChange={(event) => handle_input_onChange(event, oneRow, oneProperty)}
+                            onChange={(event) => handle_input_onChange(event, oneRow.satirNo, oneProperty)}
                             sx={{
                               // height: "100%",
                               // pt: "0.3rem",

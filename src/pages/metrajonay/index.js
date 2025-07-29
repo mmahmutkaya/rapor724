@@ -97,13 +97,20 @@ export default function P_MetrajOnay() {
     }
 
     let onaylananMetraj_state2 = _.cloneDeep(onaylananMetraj_state)
-    onaylananMetraj_state2.satirlar = [...onaylananMetraj_state2.satirlar, oneRow]
+    let maxNumber = 0
+    onaylananMetraj_state2.satirlar.map(x => {
+      if (x?.siraNo > maxNumber) {
+        maxNumber = x.siraNo
+      }
+    })
+    onaylananMetraj_state2.satirlar = [...onaylananMetraj_state2.satirlar, { ...oneRow, isUsed: true, siraNo: maxNumber + 1 }]
 
     if (oneRow.metraj > 0 || oneRow.metraj < 0) {
       onaylananMetraj_state2.metraj = parseFloat(onaylananMetraj_state2.metraj) + parseFloat(oneRow.metraj)
     }
     setOnaylananMetraj_state(onaylananMetraj_state2)
 
+    // hazirlanan metrajlar güncelleme alanı
     let hazirlananMetrajlar_state2 = _.cloneDeep(hazirlananMetrajlar_state)
     hazirlananMetrajlar_state2 = hazirlananMetrajlar_state2.map(oneHazirlanan => {
       if (oneHazirlanan.userEmail === hazirlayan.userEmail) {
@@ -134,6 +141,12 @@ export default function P_MetrajOnay() {
 
     let onaylananMetraj_state2 = _.cloneDeep(onaylananMetraj_state)
     onaylananMetraj_state2.satirlar = onaylananMetraj_state2.satirlar.filter(x => x.satirNo !== oneRow.satirNo)
+    let count = 1
+    onaylananMetraj_state2.satirlar = onaylananMetraj_state2.satirlar.sort((a, b) => a.siraNo - b.siraNo).map(x => {
+      x.siraNo = count
+      count = count + 1
+      return x
+    })
     if (oneRow.metraj > 0 || oneRow.metraj < 0) {
       onaylananMetraj_state2.metraj = parseFloat(onaylananMetraj_state2.metraj) - parseFloat(oneRow.metraj)
     }
@@ -530,7 +543,7 @@ export default function P_MetrajOnay() {
             </React.Fragment>
 
 
-            {onaylananMetraj_state?.satirlar.map((oneRow, index) => {
+            {onaylananMetraj_state?.satirlar.filter(x => !x.isDeactive).map((oneRow, index) => {
               return (
                 < React.Fragment key={index}>
 
@@ -569,12 +582,12 @@ export default function P_MetrajOnay() {
                       px: "0.3rem",
                       border: "1px solid black"
                     }}>
-                    {/* {oneRow?.isUsed &&
-                      <CheckIcon variant="contained" sx={{ color: "rgba( 0, 128, 0, 0.7 )", fontSize: "1.5rem" }} />
-                    } */}
-                    {/* {!oneRow?.isUsed &&
+                    {!oneRow.isEdit &&
+                      <LockIcon variant="contained" sx={{ color: "gray", fontSize: "1rem" }} />
+                    }
+                    {oneRow.isEdit &&
                       <HourglassFullSharpIcon variant="contained" sx={{ color: "rgba( 255,165,0, 1 )", fontSize: "0.95rem" }} />
-                    } */}
+                    }
                   </Box>
 
                 </React.Fragment>
