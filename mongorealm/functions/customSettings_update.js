@@ -3,7 +3,7 @@ exports = async function ({
   sayfaName,
   baslikId,
   showValue,
-  userEmail2
+  showMetrajYapabilenler
   
 }) {
   const user = await context.user;
@@ -82,38 +82,32 @@ exports = async function ({
   if (functionName == "showMetrajYapabilenler") {
 
 
-    if (!(showValue === true || showValue === false)) {
+    if (!showMetrajYapabilenler) {
       throw new Error(
-        "MONGO // customSettings_update // showMetrajYapabilenler // db ye 'showValue' değeri doğru gelmedi, sayfayı yenileyiniz, sorun devam ederse lütfen Rapor 724 ile iletişime geçiniz."
-      );
-    }
-
-    if (!userEmail2) {
-      throw new Error(
-        "MONGO // customSettings_update // showMetrajYapabilenler // db ye 'userEmail2' değeri doğru gelmedi, sayfayı yenileyiniz, sorun devam ederse lütfen Rapor 724 ile iletişime geçiniz."
+        "MONGO // customSettings_update // showMetrajYapabilenler // db ye 'showMetrajYapabilenler' değeri doğru gelmedi, sayfayı yenileyiniz, sorun devam ederse lütfen Rapor 724 ile iletişime geçiniz."
       );
     }
 
 
-    // let customData = await collection_Users.findOne({userId:user.id})
+    // // let customData = await collection_Users.findOne({userId:user.id})
 
-    let showMetrajYapabilenler = user.custom_data.customSettings.showMetrajYapabilenler
+    // let showMetrajYapabilenler = user.custom_data.customSettings.showMetrajYapabilenler
 
-    // return {showMetrajYapabilenler,customData,functionName}
+    // // return {showMetrajYapabilenler,customData,functionName}
 
-    if (showValue) {
-      if (!showMetrajYapabilenler) {
-        showMetrajYapabilenler = [userEmail2]
-      } else {
-        showMetrajYapabilenler = [...showMetrajYapabilenler, userEmail2]
-      }
-    } else {
-      if(!showMetrajYapabilenler){
-        return
-      } else {
-        showMetrajYapabilenler = showMetrajYapabilenler.filter(x => x !== userEmail2)
-      }
-    }
+    // if (showValue) {
+    //   if (!showMetrajYapabilenler) {
+    //     showMetrajYapabilenler = [userEmail2]
+    //   } else {
+    //     showMetrajYapabilenler = [...showMetrajYapabilenler, userEmail2]
+    //   }
+    // } else {
+    //   if(!showMetrajYapabilenler){
+    //     return
+    //   } else {
+    //     showMetrajYapabilenler = showMetrajYapabilenler.filter(x => x !== userEmail2)
+    //   }
+    // }
 
 
     
