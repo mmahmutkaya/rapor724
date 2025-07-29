@@ -43,7 +43,7 @@ export default function ShowMetrajYapanlar({ setShow }) {
       }
 
       // db ye gönderme işlemi
-      await RealmApp?.currentUser.callFunction("customSettings_update", ({ functionName: "showMetrajYapabilenler", userEmail, showValue:"12" }))
+      await RealmApp?.currentUser.callFunction("customSettings_update", ({ functionName: "showMetrajYapabilenler", userEmail, showValue }))
       await RealmApp?.currentUser.refreshCustomData()
 
       return
