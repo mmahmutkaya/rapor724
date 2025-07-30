@@ -396,7 +396,7 @@ export default function P_MetrajOnay() {
       }
 
 
-      {hazirlananMetrajlar_state?.length &&
+      {hazirlananMetrajlar_state?.length > 0 &&
 
         < Box sx={{ display: "grid", gridTemplateColumns: gridTemplateColumns1, mt: subHeaderHeight, mb: "1rem", mx: "1rem" }}>
 

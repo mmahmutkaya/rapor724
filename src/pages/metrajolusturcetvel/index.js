@@ -279,7 +279,7 @@ export default function P_MetrajOlusturCetvel() {
 
       {hazirlananMetraj_state &&
 
-        < Box sx={{ display: "grid", gridTemplateColumns: gridTemplateColumns1, mt: subHeaderHeight, mb: "1rem", mx: "1rem" }}>
+        < Box sx={{ width: "65rem", display: "grid", gridTemplateColumns: gridTemplateColumns1, mt: subHeaderHeight, mb: "1rem", mx: "1rem" }}>
 
 
           {/* En Üst Başlık Satırı */}
