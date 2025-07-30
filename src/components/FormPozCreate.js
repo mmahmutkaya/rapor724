@@ -186,7 +186,7 @@ export default function FormPozCreate({ setShow }) {
         throw new Error("Kayıt işlemi gerçekleşmedi, sayfayı yenileyiniz, sorun devam ederse Rapor7/24 ile irtibata geçiniz..")
       }
 
-      queryClient.setQueryData(['pozlar', selectedProje?._id.toString()], (pozlar) => {
+      queryClient.setQueryData(['pozlar'], (pozlar) => {
         return [...pozlar, {...result.newPoz}]
       })
 

@@ -76,7 +76,7 @@ export default function P_Lbs() {
       }
 
       {selectedProje?.lbs?.length > 0 &&
-        < Stack sx={{ width: '100%', padding: "0.5rem" }} spacing={0}>
+        < Stack sx={{ width: '60rem', padding: "0.5rem" }} spacing={0}>
 
           <Box sx={{ display: "grid", gridTemplateColumns: "1rem 1fr" }}>
             <Box sx={{ backgroundColor: "black", color: "white" }}>

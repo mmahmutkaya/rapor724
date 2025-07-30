@@ -22,6 +22,7 @@ export default ({ children }) => {
       hazirlananMetraj: "rgb(255,165,0,0.4)",
       editMetraj: "yellow",
       inaktifGri: "rgb(225,225,225)",
+      inactiveGray: "rgb(225,225,225)",
       metrajOnaylananBaslik:"rgba(202, 240, 248, 1)"
     },
     firstColor: "#3c4245",

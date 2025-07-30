@@ -108,7 +108,7 @@ export default function P_FormProjeCreate({ setShow }) {
       }
 
       if (result_newProje._id) {
-        queryClient.setQueryData(['projelerNames_byFirma', _firmaId.toString()], (firmaProjeleri) => [...firmaProjeleri, result_newProje])
+        queryClient.setQueryData(['projelerNames_byFirma'], (firmaProjeleri) => [...firmaProjeleri, result_newProje])
         setShow("Main")
         return
       }

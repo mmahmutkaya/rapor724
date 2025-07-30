@@ -29,7 +29,8 @@ export default function P_MahalListesiPozlar() {
   const queryClient = useQueryClient()
 
   const { data: pozlar } = useGetMahalListesi_pozlar()
-
+  console.log(pozlar, pozlar)
+  
   const { RealmApp, myTema } = useContext(StoreContext)
   const { selectedProje } = useContext(StoreContext)
   const { selectedPoz_mahalListesi, setSelectedPoz_mahalListesi } = useContext(StoreContext)

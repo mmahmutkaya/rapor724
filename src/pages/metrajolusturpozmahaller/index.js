@@ -201,7 +201,7 @@ export default function P_MetrajOlusturPozMahaller() {
               <>
                 <Box> </Box>
                 <Box sx={{ ...css_enUstBaslik, justifyContent: "center" }}>
-                  {yetkililer?.find(oneYetkili => oneYetkili.userEmail === customData.email).userCode}
+                  {yetkililer?.find(oneYetkili => oneYetkili.userEmail === customData.email)?.userCode}
                 </Box>
               </>
             }

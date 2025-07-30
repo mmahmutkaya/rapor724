@@ -107,7 +107,7 @@ export default function P_FormFirmaCreate({ setShow }) {
       }
 
       if (result_newFirma._id) {
-        queryClient.setQueryData(['firmalarNames_byUser', RealmUserEmail], (firmalarNames) => [...firmalarNames, result_newFirma])
+        queryClient.setQueryData(['firmalarNames_byUser'], (firmalarNames) => [...firmalarNames, result_newFirma])
         setShow("Main")
         return
       }

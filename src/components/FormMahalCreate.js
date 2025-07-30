@@ -159,7 +159,7 @@ export default function FormMahalCreate({ setShow }) {
         throw new Error("Kayıt işlemi gerçekleşmedi, sayfayı yenileyiniz, sorun devam ederse Rapor7/24 ile irtibata geçiniz..")
       }
 
-      queryClient.setQueryData(['mahaller', selectedProje?._id.toString()], (mahaller) => {
+      queryClient.setQueryData(['mahaller'], (mahaller) => {
         return [...mahaller, {...result.newMahal}]
       })
 

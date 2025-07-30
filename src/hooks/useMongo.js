@@ -90,6 +90,26 @@ export const useGetPozlar = (onSuccess, onError) => {
 
 
 
+export const useGetMahaller = (onSuccess, onError) => {
+
+  // const RealmApp = useApp();
+  const { RealmApp, selectedProje } = useContext(StoreContext)
+
+  return useQuery({
+    queryKey: ['mahaller'],
+    queryFn: () => RealmApp?.currentUser.callFunction("getMahaller", ({ _projeId: selectedProje?._id })),
+    enabled: !!RealmApp && !!selectedProje,
+    onSuccess,
+    onError,
+    refetchOnMount: true,
+    refetchOnWindowFocus: false
+  })
+
+}
+
+
+
+
 
 export const useGetMahalListesi_pozlar = (onSuccess, onError) => {
 
@@ -152,25 +172,6 @@ export const useGetMahalListesi_byPoz = () => {
 
 
 
-
-
-
-export const useGetMahaller = (onSuccess, onError) => {
-
-  // const RealmApp = useApp();
-  const { RealmApp, selectedProje } = useContext(StoreContext)
-
-  return useQuery({
-    queryKey: ['mahaller'],
-    queryFn: () => RealmApp?.currentUser.callFunction("getMahaller", ({ _projeId: selectedProje?._id })),
-    enabled: !!RealmApp && !!selectedProje,
-    onSuccess,
-    onError,
-    refetchOnMount: true,
-    refetchOnWindowFocus: false
-  })
-
-}
 
 
 
