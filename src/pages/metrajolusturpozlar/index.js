@@ -22,6 +22,7 @@ import Stack from '@mui/material/Stack';
 import { Button, TextField, Typography } from '@mui/material';
 import Box from '@mui/material/Box';
 import InfoIcon from '@mui/icons-material/Info';
+import Tooltip from '@mui/material/Tooltip';
 
 
 
@@ -221,9 +222,12 @@ export default function P_MetrajOlusturPozlar() {
             {editNodeMetraj &&
               <>
                 <Box></Box>
-                <Box sx={{ ...enUstBaslik_css }}>
-                  {customData.userCode}
-                </Box>
+                <Tooltip placement="top" title={customData.isim + " " + customData.soyisim}>
+                  <Box sx={{ ...enUstBaslik_css }}>
+                    {customData.userCode}
+                  </Box>
+                </Tooltip>
+
               </>
             }
 
@@ -326,7 +330,7 @@ export default function P_MetrajOlusturPozlar() {
                           {ikiHane(onePoz?.onaylananMetraj)}
                         </Box>
                       </Box> */}
-                      <Box sx={{ ...pozNo_css, justifyContent:"end" }}>
+                      <Box sx={{ ...pozNo_css, justifyContent: "end" }}>
                         {ikiHane(onePoz?.onaylananMetraj)}
                       </Box>
                       <Box sx={{ ...pozNo_css }}>

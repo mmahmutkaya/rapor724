@@ -28,6 +28,8 @@ import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import CheckIcon from '@mui/icons-material/Check';
 import LockIcon from '@mui/icons-material/Lock';
 
+
+
 export default function P_MetrajCetveliOnaylanan() {
 
   const queryClient = useQueryClient()
@@ -267,7 +269,7 @@ export default function P_MetrajCetveliOnaylanan() {
 
       {onaylananMetraj_state &&
 
-        < Box sx={{ display: "grid", gridTemplateColumns: gridTemplateColumns1, mt: subHeaderHeight, mb: "1rem", mx: "1rem" }}>
+        < Box sx={{ maxWidth: "65rem", display: "grid", gridTemplateColumns: gridTemplateColumns1, mt: subHeaderHeight, mb: "1rem", mx: "1rem" }}>
 
 
           {/* En Üst Başlık Satırı */}

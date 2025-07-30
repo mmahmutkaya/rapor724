@@ -253,11 +253,13 @@ export default function P_MetrajOnaylaPozlar() {
                   let yetkili = yetkililer?.find(oneYetkili => oneYetkili.userEmail === oneYapabilen)
 
                   return (
-                    <Tooltip placement="top" title={yetkili.isim + " " + yetkili.soyisim}>
-                      <Box key={index} sx={{ ...enUstBaslik_css, borderLeft: "1px solid black", justifyContent: "center" }}>
-                        {yetkililer?.find(oneYetkili => oneYetkili.userEmail === oneYapabilen).userCode}
-                      </Box>
-                    </Tooltip>
+                    <Box key={index} sx={{ ...enUstBaslik_css, borderLeft: "1px solid black", justifyContent: "center" }}>
+                      <Tooltip placement="top" title={yetkili.isim + " " + yetkili.soyisim}>
+                        <Box>
+                          {yetkililer?.find(oneYetkili => oneYetkili.userEmail === oneYapabilen).userCode}
+                        </Box>
+                      </Tooltip>
+                    </Box>
                   )
                 })}
               </>
@@ -342,8 +344,8 @@ export default function P_MetrajOnaylaPozlar() {
                       <Box sx={{ ...pozNo_css, justifyItems: "start", pl: "0.5rem" }} >
                         {onePoz.pozName}
                       </Box>
-                      <Box onDoubleClick={() => goTo_MetrajPozmahaller(onePoz)} sx={{ ...pozNo_css, cursor: "pointer", display: "grid", gridTemplateColumns: "1rem 1fr", "&:hover": { "& .childClass": { backgroundColor: "red" } } }}>
-                        <Box className="childClass" sx={{ ml: "-1rem", backgroundColor: "white", height: "0.5rem", width: "0.5rem", borderRadius: "50%" }}>
+                      <Box onDoubleClick={() => goTo_MetrajPozmahaller(onePoz)} sx={{ ...pozNo_css, backgroundColor: "rgba(255, 251, 0, 0.55)", cursor: "pointer", display: "grid", gridTemplateColumns: "1rem 1fr", "&:hover": { "& .childClass": { backgroundColor: "red" } } }}>
+                        <Box className="childClass" sx={{ ml: "-1rem", backgroundColor: "rgba(255, 251, 0, 0.55)", height: "0.5rem", width: "0.5rem", borderRadius: "50%" }}>
                         </Box>
                         <Box sx={{ justifySelf: "end" }}>
                           {ikiHane(onePoz?.onaylananMetraj)}
@@ -392,8 +394,8 @@ export default function P_MetrajOnaylaPozlar() {
                           <Box> </Box>
                           {showMetrajYapabilenler?.map((oneYapabilen, index) => {
                             return (
-                              <Box key={index} onDoubleClick={() => goTo_MetrajPozmahaller(onePoz)} sx={{ ...pozNo_css, justifyContent: "end", cursor: "pointer", backgroundColor: "rgb(143,206,0,0.3)", display: "grid", gridTemplateColumns: "1rem 1fr", "&:hover": { "& .childClass": { backgroundColor: "red" } } }}>
-                                <Box className="childClass" sx={{ color: "rgb(143,206,0,0.3)", ml: "-1rem", height: "0.5rem", width: "0.5rem", borderRadius: "50%" }}>
+                              <Box key={index} onDoubleClick={() => goTo_MetrajPozmahaller(onePoz)} sx={{ ...pozNo_css, justifyContent: "end", cursor: "pointer", backgroundColor: "rgba(255, 251, 0, 0.55)", display: "grid", gridTemplateColumns: "1rem 1fr", "&:hover": { "& .childClass": { backgroundColor: "red" } } }}>
+                                <Box className="childClass" sx={{ color: "rgba(255, 251, 0, 0.55)", ml: "-1rem", height: "0.5rem", width: "0.5rem", borderRadius: "50%" }}>
                                 </Box>
                                 <Box sx={{ justifySelf: "end" }}>
                                   {ikiHane(onePoz?.hazirlananMetrajlar.find(x => x.userEmail === oneYapabilen)?.metraj)}

@@ -77,31 +77,31 @@ export default function HeaderMetrajOnaylaPozlar({ setShow }) {
             <Grid container >
 
 
-              {!selectedPoz_metraj &&
-                <>
 
-                  {/* <Grid item onClick={() => toggleEdit()} sx={{ cursor: "pointer" }}>
+              <>
+
+                {/* <Grid item onClick={() => toggleEdit()} sx={{ cursor: "pointer" }}>
                     <IconButton disabled={false} >
                       <EditIcon variant="contained" sx={{ color: editNodeMetraj ? "gray" : "lightgray", "&:hover": { color: "gray" } }} />
                     </IconButton>
                   </Grid> */}
 
-                  <Grid item sx={{ cursor: "pointer" }}>
-                    <IconButton disabled={false} >
-                      <FileDownloadDoneIcon variant="contained" sx={{ color: onayNodeMetraj ? "gray" : "lightgray", "&:hover": { color: "gray" } }} />
-                    </IconButton>
-                  </Grid>
+                {/* <Grid item sx={{ cursor: "pointer" }}>
+                  <IconButton disabled={false} >
+                    <FileDownloadDoneIcon variant="contained" sx={{ color: onayNodeMetraj ? "gray" : "lightgray", "&:hover": { color: "gray" } }} />
+                  </IconButton>
+                </Grid> */}
 
-                  <Grid item >
-                    <IconButton onClick={() => setShow("ShowMetrajYapabilenler")} disabled={false}>
-                      <VisibilityIcon variant="contained" />
-                    </IconButton>
-                  </Grid>
+                <Grid item >
+                  <IconButton onClick={() => setShow("ShowMetrajYapabilenler")} disabled={false}>
+                    <VisibilityIcon variant="contained" />
+                  </IconButton>
+                </Grid>
 
-                </>
-              }
+              </>
 
-              {selectedPoz_metraj &&
+
+              {/* {selectedPoz_metraj &&
                 <>
                   <Grid item >
                     <IconButton onClick={() => setSelectedPoz_metraj()}>
@@ -116,7 +116,7 @@ export default function HeaderMetrajOnaylaPozlar({ setShow }) {
                   </Grid>
 
                 </>
-              }
+              } */}
 
 
 

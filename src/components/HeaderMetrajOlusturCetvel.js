@@ -110,30 +110,38 @@ export default function P_HeaderMetrajOlusturCetvel({ show, setShow, isChanged, 
             <Grid container>
 
 
-              {!isChanged &&
+              {show === "DugumMetrajlari" &&
                 <>
+
                   <Grid item >
                     <IconButton onClick={() => navigate("/metrajolusturpozmahaller")}>
                       <ReplyIcon variant="contained" sx={{ color: "gray" }} />
                     </IconButton>
                   </Grid>
+
+                  <Grid item onClick={() => setShow("EditMetraj")} sx={{ cursor: "pointer" }}>
+                    <IconButton disabled={false} >
+                      <EditIcon variant="contained" sx={{ color: "gray" }} />
+                    </IconButton>
+                  </Grid>
+
                 </>
 
               }
 
 
-              {isChanged == true &&
+              {show === "EditMetraj" &&
 
                 <>
 
                   <Grid item >
-                    <IconButton onClick={() => setShowEminMisin(true)}>
+                    <IconButton onClick={() => isChanged ? setShowEminMisin(true) : setShow("DugumMetrajlari")}>
                       <ClearOutlined variant="contained" sx={{ color: "red" }} />
                     </IconButton>
                   </Grid>
 
                   <Grid item >
-                    <IconButton onClick={() => save()} >
+                    <IconButton onClick={() => save()} disabled={!isChanged} >
                       <SaveIcon variant="contained" />
                     </IconButton>
                   </Grid>

@@ -46,7 +46,7 @@ export default function P_MetrajOlusturCetvel() {
 
 
   const [dialogAlert, setDialogAlert] = useState()
-  const [show, setShow] = useState("EditMetraj")
+  const [show, setShow] = useState("DugumMetrajlari")
   const [approveMode, setApproveMode] = useState()
   const [isChanged, setIsChanged] = useState(0)
   const [hazirlananMetraj_state, setHazirlananMetraj_state] = useState()
@@ -106,6 +106,10 @@ export default function P_MetrajOlusturCetvel() {
   // Edit Metraj Sayfasının Fonksiyonu
   const handle_input_onChange = (event, satirNo, oneProperty) => {
 
+    if(!isChanged){
+      setIsChanged(true)
+    }
+
     let hazirlananMetraj_state2 = { ...hazirlananMetraj_state }
 
     // map ile tarayarak, state kısmındaki datanın ilgili satırını güncelliyoruz, ayrıca tüm satırların toplam metrajını, önce önceki değeri çıkartıp yeni değeri ekleyerek
@@ -152,7 +156,6 @@ export default function P_MetrajOlusturCetvel() {
 
     })
 
-    setIsChanged(true)
     setHazirlananMetraj_state(hazirlananMetraj_state2)
     // alttaki kod sadece react component render yapılması için biyerde kullanılmıyor -- (sonra bunada gerek kalmadı)
     // setMetraj(oneRow["aciklama"] + oneRow["carpan1"] + oneRow["carpan2"] + oneRow["carpan3"] + oneRow["carpan4"] + oneRow["carpan5"])
@@ -161,6 +164,8 @@ export default function P_MetrajOlusturCetvel() {
 
   // Edit Metraj Sayfasının Fonksiyonu
   const save = async () => {
+
+    console.log("burada")
 
     if (isChanged) {
       try {
@@ -173,6 +178,7 @@ export default function P_MetrajOlusturCetvel() {
         // setShow("DugumMetrajlari")
         queryClient.invalidateQueries(['hazirlananMetrajlar', selectedNode_metraj?._id.toString()])
         setIsChanged()
+        setShow("DugumMetrajlari")
         return
 
       } catch (error) {
@@ -194,6 +200,7 @@ export default function P_MetrajOlusturCetvel() {
   const cancel = () => {
     queryClient.invalidateQueries(['hazirlananMetraj'])
     setIsChanged()
+    setShow("DugumMetrajlari")
   }
 
 

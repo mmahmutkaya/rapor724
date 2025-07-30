@@ -115,7 +115,7 @@ export default function P_HeaderMetrajOnaylaCetvel({ show, setShow, isChanged, c
                 <>
                   <Grid item >
                     <IconButton onClick={() => {
-                      navigate("/metrajonay")
+                      navigate("/metrajonaylapozmahaller")
                     }} aria-label="lbsUncliced">
                       <ReplyIcon variant="contained" sx={{ color: "gray" }} />
                     </IconButton>

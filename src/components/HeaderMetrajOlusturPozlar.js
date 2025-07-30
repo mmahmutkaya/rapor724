@@ -112,7 +112,7 @@ export default function HeaderMetrajOlusturPozlar({ setShow }) {
                 </>
               }
 
-              {selectedPoz_metraj &&
+              {/* {selectedPoz_metraj &&
                 <>
                   <Grid item >
                     <IconButton onClick={() => setSelectedPoz_metraj()}>
@@ -127,7 +127,7 @@ export default function HeaderMetrajOlusturPozlar({ setShow }) {
                   </Grid>
 
                 </>
-              }
+              } */}
 
 
 

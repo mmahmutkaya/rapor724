@@ -16,6 +16,7 @@ import Alert from '@mui/material/Alert';
 import Stack from '@mui/material/Stack';
 import Box from '@mui/material/Box';
 import { BorderBottom } from '@mui/icons-material';
+import Tooltip from '@mui/material/Tooltip';
 
 
 export default function P_MetrajOlusturPozMahaller() {
@@ -200,9 +201,11 @@ export default function P_MetrajOlusturPozMahaller() {
             {editNodeMetraj &&
               <>
                 <Box> </Box>
-                <Box sx={{ ...css_enUstBaslik, justifyContent: "center" }}>
-                  {yetkililer?.find(oneYetkili => oneYetkili.userEmail === customData.email)?.userCode}
-                </Box>
+                <Tooltip placement="top" title={customData.isim + " " + customData.soyisim}>
+                  <Box sx={{ ...css_enUstBaslik, justifyContent: "center" }}>
+                    {customData.userCode}
+                  </Box>
+                </Tooltip>
               </>
             }
 

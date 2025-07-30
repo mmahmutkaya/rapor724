@@ -34,8 +34,11 @@ export default function HeaderMetrajPozMahaller() {
   const navigate = useNavigate()
 
   const { drawerWidth, topBarHeight } = useContext(StoreContext)
-  const { editNodeMetraj, setEditNodeMetraj } = useContext(StoreContext)
-  const { onayNodeMetraj, setOnayNodeMetraj } = useContext(StoreContext)
+  // const { editNodeMetraj, setEditNodeMetraj } = useContext(StoreContext)
+  // const { onayNodeMetraj, setOnayNodeMetraj } = useContext(StoreContext)
+
+  let editNodeMetraj = false
+  let onayNodeMetraj = false
 
   const { selectedProje, setSelectedProje } = useContext(StoreContext)
   const { setPozlar } = useContext(StoreContext)
@@ -53,16 +56,16 @@ export default function HeaderMetrajPozMahaller() {
 
 
 
-  const toggleEdit = () => {
-    setEditNodeMetraj(editNodeMetraj => !editNodeMetraj)
-    setOnayNodeMetraj()
-  }
+  // const toggleEdit = () => {
+  //   setEditNodeMetraj(editNodeMetraj => !editNodeMetraj)
+  //   setOnayNodeMetraj()
+  // }
 
 
-  const toggleOnay = () => {
-    setOnayNodeMetraj(onayNodeMetraj => !onayNodeMetraj)
-    setEditNodeMetraj()
-  }
+  // const toggleOnay = () => {
+  //   setOnayNodeMetraj(onayNodeMetraj => !onayNodeMetraj)
+  //   setEditNodeMetraj()
+  // }
 
 
 
@@ -135,21 +138,22 @@ export default function HeaderMetrajPozMahaller() {
                   }}
                   aria-label="wbsUncliced">
                   <ReplyIcon variant="contained"
-                    sx={{ color: "lightgray", "&:hover": { color: "gray" } }} />
+                    // sx={{ color: "lightgray", "&:hover": { color: "gray" } }} />
+                    sx={{ color: "gray" }} />
                 </IconButton>
               </Grid>
 
-              <Grid item onClick={() => toggleEdit()} sx={{ cursor: "pointer" }}>
+              {/* <Grid item onClick={() => toggleEdit()} sx={{ cursor: "pointer" }}>
                 <IconButton disabled={false} >
                   <EditIcon variant="contained" sx={{ color: editNodeMetraj ? "gray" : "lightgray", "&:hover": { color: "gray" } }} />
                 </IconButton>
-              </Grid>
+              </Grid> */}
 
-              <Grid item onClick={() => toggleOnay()} sx={{ cursor: "pointer" }}>
+              {/* <Grid item onClick={() => toggleOnay()} sx={{ cursor: "pointer" }}>
                 <IconButton disabled={false} >
                   <FileDownloadDoneIcon variant="contained" sx={{ color: onayNodeMetraj ? "gray" : "lightgray", "&:hover": { color: "gray" } }} />
                 </IconButton>
-              </Grid>
+              </Grid> */}
 
               {/* <Grid item onClick={() => console.log("selectedPoz_metraj", selectedPoz_metraj)} sx={{ cursor: "pointer" }}>
                 <IconButton aria-label="addPoz">
