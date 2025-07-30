@@ -117,13 +117,13 @@ export default function P_HeaderMetrajOnay({ show, setShow, isChanged, cancel, s
                     </IconButton>
                   </Grid>
 
-                  <Grid item >
+                  {/* <Grid item >
                     <IconButton onClick={() => {
                       navigate('/metrajonaylacetvel')
                     }} aria-label="lbsUncliced">
                       <EditIcon variant="contained" />
                     </IconButton>
-                  </Grid>
+                  </Grid> */}
 
                 </>
               }
@@ -157,13 +157,13 @@ export default function P_HeaderMetrajOnay({ show, setShow, isChanged, cancel, s
                 </>
               }
 
-
-              <Grid item >
-                <IconButton onClick={() => setShow("ShowMetrajYapabilenler")} disabled={false}>
-                  <VisibilityIcon variant="contained" />
-                </IconButton>
-              </Grid>
-
+              {!isChanged &&
+                <Grid item >
+                  <IconButton onClick={() => setShow("ShowMetrajYapabilenler")} >
+                    <VisibilityIcon variant="contained" />
+                  </IconButton>
+                </Grid>
+              }
 
 
             </Grid>

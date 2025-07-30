@@ -386,6 +386,7 @@ export default function P_MetrajCetveliOnaylanan() {
                             inputProps={{
                               style: {
                                 boxSizing: "border-box",
+                                fontWeight: oneProperty === "metraj" && "700",
                                 // mt: "0.5rem",
                                 // height: "0.95rem",
                                 // minWidth: oneProperty.includes("aciklama") ? "min-content" : "4rem",
@@ -401,10 +402,11 @@ export default function P_MetrajCetveliOnaylanan() {
                       {!isCellEdit &&
                         <Box sx={{
                           ...css_metrajCetveliSatir,
-                          backgroundColor: oneRow?.isDeactive && myTema.renkler.inaktifGri,
+                          backgroundColor: showOriginal && oneRow?.isUsed && !oneRow.isEdit && myTema.renkler.inaktifGri,
                           justifyContent: (oneProperty.includes("satirNo") || oneProperty.includes("aciklama")) ? "start" : oneProperty.includes("carpan") ? "end" : oneProperty.includes("metraj") ? "end" : "center",
                           minWidth: oneProperty.includes("carpan") ? "5rem" : oneProperty.includes("metraj") ? "5rem" : null,
-                          color: isMinha ? "red" : null
+                          color: isMinha ? "red" : null,
+                          fontWeight: oneProperty === "metraj" && "700",
                         }}>
                           {metrajValue(oneRow, oneProperty, isMinha)}
                         </Box>

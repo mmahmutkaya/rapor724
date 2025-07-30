@@ -141,12 +141,15 @@ export default function P_MetrajOnaylaPozMahaller() {
 
 
 
-  const goTo_onaylananMetrajDugum = (dugum) => {
-    console.log("dugum", dugum)
-    // setSelectedNode_metraj(dugum)
-    // setSelectedMahal_metraj(oneMahal)
-    // navigate('/metrajcetvelihazirlanan')
+     
+
+  const goTo_MetrajOnaylaCetvel = ({dugum,oneMahal}) => {
+    setSelectedNode_metraj(dugum)
+    setSelectedMahal_metraj(oneMahal)
+    navigate('/metrajonaylacetvel')
   }
+
+
 
 
 
@@ -339,7 +342,7 @@ export default function P_MetrajOnaylaPozMahaller() {
                         {oneMahal.mahalName}
                       </Box>
 
-                      <Box onDoubleClick={() => goTo_onaylananMetrajDugum(dugum)} sx={{ ...css_mahaller, cursor: "pointer", display: "grid", alignItems: "center", gridTemplateColumns: "1rem 1fr", "&:hover": { "& .childClass": { backgroundColor: "red" } } }}>
+                      <Box onDoubleClick={() => goTo_MetrajOnaylaCetvel({dugum,oneMahal})} sx={{ ...css_mahaller, cursor: "pointer", display: "grid", alignItems: "center", gridTemplateColumns: "1rem 1fr", "&:hover": { "& .childClass": { backgroundColor: "red" } } }}>
                         <Box className="childClass" sx={{ backgroundColor: "white", height: "0.5rem", width: "0.5rem", borderRadius: "50%" }}>
                         </Box>
                         <Box sx={{ justifySelf: "end" }}>

@@ -337,18 +337,18 @@ export default function P_MetrajOnay() {
     px: "0.3rem", border: "1px solid black", backgroundColor: "lightgray", display: "grid", alignItems: "center", justifyContent: "center"
   }
 
-  const css_metrajOnayBaslik = {
-    mt: "2rem", px: "0.3rem", border: "1px solid black", fontWeight: "600", backgroundColor: myTema.renkler.metrajOnaylananBaslik, display: "grid", alignItems: "center", justifyContent: "center"
-  }
-
+  
   const css_metrajCetveliBaslik = {
-    mt: "2rem", px: "0.3rem", border: "1px solid black", backgroundColor: "rgba( 253, 197, 123 , 0.6 )", display: "grid", alignItems: "center", justifyContent: "center"
+    mt: "1.5rem", px: "0.3rem", border: "1px solid black", backgroundColor: "rgba( 253, 197, 123 , 0.6 )", display: "grid", alignItems: "center", justifyContent: "center"
   }
-
+  
   const css_metrajCetveliSatir = {
     px: "0.3rem", border: "1px solid black", display: "grid", alignItems: "center", justifyContent: "center"
   }
-
+  
+  const css_metrajOnayBaslik = {
+    mt: "2rem", px: "0.3rem", border: "1px solid black", fontWeight: "600", backgroundColor: myTema.renkler.metrajOnaylananBaslik, display: "grid", alignItems: "center", justifyContent: "center"
+  }
 
   const gridTemplateColumns1 = 'max-content minmax(min-content, 5fr) repeat(7, minmax(min-content, 1fr)) 1rem max-content'
 
@@ -400,6 +400,9 @@ export default function P_MetrajOnay() {
 
         < Box sx={{ display: "grid", gridTemplateColumns: gridTemplateColumns1, mt: subHeaderHeight, mb: "1rem", mx: "1rem" }}>
 
+          <Box sx={{ mt: "0rem", mb: "1rem", gridColumn: "1/12", fontWeight: "600" }}>
+            Hazırlanan Metrajlar
+          </Box>
 
           {/* En Üst Başlık Satırı */}
           < React.Fragment >
@@ -441,12 +444,12 @@ export default function P_MetrajOnay() {
 
 
 
-          <Box sx={{ mt: "0.7rem", mb: "-1rem", gridColumn: "1/5", fontWeight: "600" }}>
-            Hazırlanan Metrajlar
-          </Box>
-
 
           {hazirlananMetrajlar_state.map((oneHazirlanan, index) => {
+
+            if (!showMetrajYapabilenler.find(x => x === oneHazirlanan.userEmail)) {
+              return
+            }
 
             let hazirlayan = yetkililer.find(oneYetkili => oneYetkili.userEmail === oneHazirlanan.userEmail)
 
@@ -539,13 +542,11 @@ export default function P_MetrajOnay() {
           })}
 
 
+          {/* ONAYLANAN METRAJ SATIRLARI GİZLENDİ */}
+          {/* <React.Fragment>
 
-
-
-
-          <React.Fragment>
-            {/* Onaylanan Metraj Başlık Satırı */}
             <React.Fragment>
+
 
               <Box sx={{ ...css_metrajOnayBaslik, gridColumn: "1/8", justifyContent: "end", pr: "1rem" }}>
                 Onaylanan Metraj
@@ -599,8 +600,6 @@ export default function P_MetrajOnay() {
                   <Box
                     onClick={() => console.log("deneme")}
                     sx={{
-                      // backgroundColor: oneRow.isUsed ? null : "rgba(255,255,0, 0.3)",
-                      // backgroundColor: "rgba(255,255,0, 0.3)",
                       cursor: "pointer",
                       display: "grid",
                       alignItems: "center",
@@ -621,7 +620,9 @@ export default function P_MetrajOnay() {
 
             })}
 
-          </React.Fragment>
+          </React.Fragment> */}
+
+
 
         </Box >
       }

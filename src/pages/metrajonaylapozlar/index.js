@@ -127,7 +127,7 @@ export default function P_MetrajOnaylaPozlar() {
     justifyItems: "center"
   }
 
-
+  
 
   const goTo_MetrajPozmahaller = (onePoz) => {
     navigate('/metrajonaylapozmahaller')
