@@ -18,6 +18,7 @@ import Alert from '@mui/material/Alert';
 import Stack from '@mui/material/Stack';
 import Box from '@mui/material/Box';
 import { BorderBottom } from '@mui/icons-material';
+import Tooltip from '@mui/material/Tooltip';
 
 
 export default function P_MetrajOnaylaPozMahaller() {
@@ -141,9 +142,9 @@ export default function P_MetrajOnaylaPozMahaller() {
 
 
 
-     
 
-  const goTo_MetrajOnaylaCetvel = ({dugum,oneMahal}) => {
+
+  const goTo_MetrajOnaylaCetvel = ({ dugum, oneMahal }) => {
     setSelectedNode_metraj(dugum)
     setSelectedMahal_metraj(oneMahal)
     navigate('/metrajonaylacetvel')
@@ -183,7 +184,7 @@ export default function P_MetrajOnaylaPozMahaller() {
   }
 
   const showMetrajYapabilenlerColumns = " 1rem repeat(" + showMetrajYapabilenler?.length + ", max-content)"
-  const gridTemplateColumns1 = `max-content minmax(min-content, 1fr) max-content max-content${editNodeMetraj ? " 1rem max-content" : ""}${onayNodeMetraj ? showMetrajYapabilenlerColumns : ""}`
+  const gridTemplateColumns1 = `max-content minmax(min-content, 1fr) max-content max-content${showMetrajYapabilenler?.length > 0 ? showMetrajYapabilenlerColumns : ""}`
 
 
   return (
@@ -204,6 +205,7 @@ export default function P_MetrajOnaylaPozMahaller() {
 
 
       {!openLbsArray?.length > 0 && <Box>henüz herhangi bir LBS mahal eklemeye açılmamış</Box>}
+
 
       {openLbsArray?.length > 0 &&
 
@@ -234,14 +236,17 @@ export default function P_MetrajOnaylaPozMahaller() {
               </>
             } */}
 
-            {onayNodeMetraj &&
+            {showMetrajYapabilenler.length > 0 &&
               <>
                 <Box> </Box>
                 {showMetrajYapabilenler?.map((oneYapabilen, index) => {
+                  let yetkili = yetkililer?.find(oneYetkili => oneYetkili.userEmail === oneYapabilen)
                   return (
-                    <Box key={index} sx={{ ...css_enUstBaslik, borderLeft: "1px solid black", justifyContent: "center" }}>
-                      {yetkililer?.find(oneYetkili => oneYetkili.userEmail === oneYapabilen).userCode}
-                    </Box>
+                    <Tooltip placement="top" title={yetkili.isim + " " + yetkili.soyisim}>
+                      <Box key={index} sx={{ ...css_enUstBaslik, borderLeft: "1px solid black", justifyContent: "center" }}>
+                        {yetkili.userCode}
+                      </Box>
+                    </Tooltip>
                   )
                 })}
               </>
@@ -271,7 +276,7 @@ export default function P_MetrajOnaylaPozMahaller() {
               </>
             } */}
 
-            {onayNodeMetraj &&
+            {showMetrajYapabilenler.length > 0 &&
               <>
                 <Box> </Box>
                 {showMetrajYapabilenler?.map((oneYapabilen, index) => {
@@ -312,7 +317,7 @@ export default function P_MetrajOnaylaPozMahaller() {
                   </>
                 } */}
 
-                {onayNodeMetraj &&
+                {showMetrajYapabilenler.length > 0 &&
                   <>
                     <Box> </Box>
                     {showMetrajYapabilenler?.map((oneYapabilen, index) => {
@@ -342,7 +347,7 @@ export default function P_MetrajOnaylaPozMahaller() {
                         {oneMahal.mahalName}
                       </Box>
 
-                      <Box onDoubleClick={() => goTo_MetrajOnaylaCetvel({dugum,oneMahal})} sx={{ ...css_mahaller, cursor: "pointer", display: "grid", alignItems: "center", gridTemplateColumns: "1rem 1fr", "&:hover": { "& .childClass": { backgroundColor: "red" } } }}>
+                      <Box onDoubleClick={() => goTo_MetrajOnaylaCetvel({ dugum, oneMahal })} sx={{ ...css_mahaller, cursor: "pointer", display: "grid", alignItems: "center", gridTemplateColumns: "1rem 1fr", "&:hover": { "& .childClass": { backgroundColor: "red" } } }}>
                         <Box className="childClass" sx={{ backgroundColor: "white", height: "0.5rem", width: "0.5rem", borderRadius: "50%" }}>
                         </Box>
                         <Box sx={{ justifySelf: "end" }}>
@@ -378,7 +383,7 @@ export default function P_MetrajOnaylaPozMahaller() {
                         </>
                       } */}
 
-                      {onayNodeMetraj &&
+                      {showMetrajYapabilenler.length > 0 &&
                         <>
                           <Box> </Box>
                           {showMetrajYapabilenler?.map((oneYapabilen, index) => {

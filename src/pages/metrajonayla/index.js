@@ -398,7 +398,7 @@ export default function P_MetrajOnay() {
 
       {hazirlananMetrajlar_state?.length > 0 &&
 
-        < Box sx={{ display: "grid", gridTemplateColumns: gridTemplateColumns1, mt: subHeaderHeight, mb: "1rem", mx: "1rem" }}>
+        < Box sx={{ width: "65rem", display: "grid", gridTemplateColumns: gridTemplateColumns1, mt: subHeaderHeight, mb: "1rem", mx: "1rem" }}>
 
           <Box sx={{ mt: "0rem", mb: "1rem", gridColumn: "1/12", fontWeight: "600" }}>
             Hazırlanan Metrajlar

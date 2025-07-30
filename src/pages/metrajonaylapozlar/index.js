@@ -23,6 +23,7 @@ import Stack from '@mui/material/Stack';
 import { Button, TextField, Typography } from '@mui/material';
 import Box from '@mui/material/Box';
 import InfoIcon from '@mui/icons-material/Info';
+import Tooltip from '@mui/material/Tooltip';
 
 
 
@@ -127,7 +128,7 @@ export default function P_MetrajOnaylaPozlar() {
     justifyItems: "center"
   }
 
-  
+
 
   const goTo_MetrajPozmahaller = (onePoz) => {
     navigate('/metrajonaylapozmahaller')
@@ -248,10 +249,15 @@ export default function P_MetrajOnaylaPozlar() {
               <>
                 <Box> </Box>
                 {showMetrajYapabilenler?.map((oneYapabilen, index) => {
+
+                  let yetkili = yetkililer?.find(oneYetkili => oneYetkili.userEmail === oneYapabilen)
+
                   return (
-                    <Box key={index} sx={{ ...enUstBaslik_css, borderLeft: "1px solid black", justifyContent: "center" }}>
-                      {yetkililer?.find(oneYetkili => oneYetkili.userEmail === oneYapabilen).userCode}
-                    </Box>
+                    <Tooltip placement="top" title={yetkili.isim + " " + yetkili.soyisim}>
+                      <Box key={index} sx={{ ...enUstBaslik_css, borderLeft: "1px solid black", justifyContent: "center" }}>
+                        {yetkililer?.find(oneYetkili => oneYetkili.userEmail === oneYapabilen).userCode}
+                      </Box>
+                    </Tooltip>
                   )
                 })}
               </>
