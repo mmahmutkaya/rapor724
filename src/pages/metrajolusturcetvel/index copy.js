@@ -396,7 +396,6 @@ export default function P_MetrajOlusturCetvel() {
                             value={metrajValue(oneRow, oneProperty, isMinha)}
                             inputProps={{
                               style: {
-                                width: "100%",
                                 boxSizing: "border-box",
                                 // mt: "0.5rem",
                                 // height: "0.95rem",

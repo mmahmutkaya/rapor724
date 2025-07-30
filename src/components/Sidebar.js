@@ -29,6 +29,8 @@ export default function Sidebar({ setMobileOpen }) {
   const { pathname } = useLocation()
   const { selectedProje, persons, selectedFirma } = useContext(StoreContext)
 
+  let seciliSayfaRengi = "rgba(0, 0, 0, 0.14)"
+
   return (
     <Grid container direction="column">
 
@@ -43,7 +45,7 @@ export default function Sidebar({ setMobileOpen }) {
 
             <ListItemButton
               onClick={() => navigate("/firmalar")}
-              sx={{ backgroundColor: pathname == "/firmalar" ? "#f0f0f1" : null }}>
+              sx={{ backgroundColor: pathname == "/firmalar" ? seciliSayfaRengi : null, '&:hover': { backgroundColor: seciliSayfaRengi } }}>
               <ListItemIcon>
                 <SendIcon />
               </ListItemIcon>
@@ -63,7 +65,7 @@ export default function Sidebar({ setMobileOpen }) {
 
             <ListItemButton
               onClick={() => navigate('/projeler')}
-              sx={{ backgroundColor: pathname == "/projeler" ? "#f0f0f1" : null }}
+              sx={{ backgroundColor: pathname == "/projeler" ? seciliSayfaRengi : null, '&:hover': { backgroundColor: seciliSayfaRengi } }}
             >
               <ListItemIcon>
                 <SendIcon />
@@ -74,7 +76,7 @@ export default function Sidebar({ setMobileOpen }) {
 
             <ListItemButton
               onClick={() => navigate('/firmawbs')}
-              sx={{ backgroundColor: pathname == "/firmawbs" ? "#f0f0f1" : null }}
+              sx={{ backgroundColor: pathname == "/firmawbs" ? seciliSayfaRengi : null, '&:hover': { backgroundColor: seciliSayfaRengi } }}
             >
               <ListItemIcon>
                 <SendIcon />
@@ -85,7 +87,7 @@ export default function Sidebar({ setMobileOpen }) {
 
             <ListItemButton
               onClick={() => navigate('/firmapozlari')}
-              sx={{ backgroundColor: pathname == "/firmapozlari" ? "#f0f0f1" : null }}
+              sx={{ backgroundColor: pathname == "/firmapozlari" ? seciliSayfaRengi : null, '&:hover': { backgroundColor: seciliSayfaRengi } }}
             >
               <ListItemIcon>
                 <SendIcon />
@@ -96,7 +98,7 @@ export default function Sidebar({ setMobileOpen }) {
 
             <ListItemButton
               onClick={() => navigate('/firmakadrosu')}
-              sx={{ backgroundColor: pathname == "/firmakadrosu" ? "#f0f0f1" : null }}
+              sx={{ backgroundColor: pathname == "/firmakadrosu" ? seciliSayfaRengi : null, '&:hover': { backgroundColor: seciliSayfaRengi } }}
             >
               <ListItemIcon>
                 <SendIcon />
@@ -120,7 +122,7 @@ export default function Sidebar({ setMobileOpen }) {
 
             <ListItemButton
               onClick={() => navigate('/dashboard')}
-              sx={{ backgroundColor: pathname == "/dashboard" ? "#f0f0f1" : null }}
+              sx={{ backgroundColor: pathname == "/dashboard" ? seciliSayfaRengi : null, '&:hover': { backgroundColor: seciliSayfaRengi } }}
             >
               <ListItemIcon>
                 <SendIcon />
@@ -131,7 +133,7 @@ export default function Sidebar({ setMobileOpen }) {
 
             <ListItemButton
               onClick={() => navigate('/pozhavuzu')}
-              sx={{ backgroundColor: pathname == "/pozhavuzu" ? "#f0f0f1" : null }}
+              sx={{ backgroundColor: pathname == "/pozhavuzu" ? seciliSayfaRengi : null, '&:hover': { backgroundColor: seciliSayfaRengi } }}
             >
               <ListItemIcon>
                 <SendIcon />
@@ -142,7 +144,7 @@ export default function Sidebar({ setMobileOpen }) {
 
             <ListItemButton
               onClick={() => navigate('/wbs')}
-              sx={{ backgroundColor: pathname == "/wbs" ? "#f0f0f1" : null }}
+              sx={{ backgroundColor: pathname == "/wbs" ? seciliSayfaRengi : null, '&:hover': { backgroundColor: seciliSayfaRengi } }}
             >
               <ListItemIcon>
                 <SendIcon />
@@ -153,7 +155,7 @@ export default function Sidebar({ setMobileOpen }) {
 
             <ListItemButton
               onClick={() => navigate('/pozlar')}
-              sx={{ backgroundColor: pathname == "/pozlar" ? "#f0f0f1" : null }}
+              sx={{ backgroundColor: pathname == "/pozlar" ? seciliSayfaRengi : null, '&:hover': { backgroundColor: seciliSayfaRengi } }}
             >
               <ListItemIcon>
                 <SendIcon />
@@ -164,7 +166,7 @@ export default function Sidebar({ setMobileOpen }) {
 
             <ListItemButton
               onClick={() => navigate('/lbs')}
-              sx={{ backgroundColor: pathname == "/lbs" ? "#f0f0f1" : null }}
+              sx={{ backgroundColor: pathname == "/lbs" ? seciliSayfaRengi : null, '&:hover': { backgroundColor: seciliSayfaRengi } }}
             >
               <ListItemIcon>
                 <SendIcon />
@@ -175,7 +177,7 @@ export default function Sidebar({ setMobileOpen }) {
 
             <ListItemButton
               onClick={() => navigate('/mahaller')}
-              sx={{ backgroundColor: pathname == "/mahaller" ? "#f0f0f1" : null }}
+              sx={{ backgroundColor: pathname == "/mahaller" ? seciliSayfaRengi : null, '&:hover': { backgroundColor: seciliSayfaRengi } }}
             >
               <ListItemIcon>
                 <SendIcon />
@@ -186,7 +188,7 @@ export default function Sidebar({ setMobileOpen }) {
 
             <ListItemButton
               onClick={() => navigate('/mahallistesipozlar')}
-              sx={{ backgroundColor: pathname.includes("/mahallistesi") ? "#f0f0f1" : null }}
+              sx={{ backgroundColor: pathname.includes("/mahallistesi") ? seciliSayfaRengi : null, '&:hover': { backgroundColor: seciliSayfaRengi } }}
             >
               <ListItemIcon>
                 <SendIcon />
@@ -197,7 +199,7 @@ export default function Sidebar({ setMobileOpen }) {
 
             <ListItemButton
               onClick={() => navigate('/metrajolusturpozlar')}
-              sx={{ backgroundColor: pathname.includes("/metrajolustur") ? "#f0f0f1" : null }}
+              sx={{ backgroundColor: pathname.includes("/metrajolustur") ? seciliSayfaRengi : null, '&:hover': { backgroundColor: seciliSayfaRengi } }}
             >
               <ListItemIcon>
                 <SendIcon />
@@ -207,7 +209,7 @@ export default function Sidebar({ setMobileOpen }) {
 
             <ListItemButton
               onClick={() => navigate('/metrajonaylapozlar')}
-              sx={{ backgroundColor: pathname.includes("/metrajonayla") ? "#f0f0f1" : null }}
+              sx={{ backgroundColor: pathname.includes("/metrajonayla") ? seciliSayfaRengi : null, '&:hover': { backgroundColor: seciliSayfaRengi } }}
             >
               <ListItemIcon>
                 <SendIcon />
@@ -217,7 +219,7 @@ export default function Sidebar({ setMobileOpen }) {
 
             <ListItemButton
               onClick={() => navigate('/metrajpozlar')}
-              sx={{ backgroundColor: pathname.includes("/metrajpoz") ? "#f0f0f1" : null }}
+              sx={{ backgroundColor: pathname.includes("/metrajpoz") ? seciliSayfaRengi : null, '&:hover': { backgroundColor: seciliSayfaRengi } }}
             >
               <ListItemIcon>
                 <SendIcon />
@@ -228,7 +230,7 @@ export default function Sidebar({ setMobileOpen }) {
 
             <ListItemButton
               onClick={() => navigate('/kisilerproject')}
-              sx={{ backgroundColor: pathname == "/kisilerproject" ? "#f0f0f1" : null }}
+              sx={{ backgroundColor: pathname == "/kisilerproject" ? seciliSayfaRengi : null, '&:hover': { backgroundColor: seciliSayfaRengi } }}
             >
               <ListItemIcon>
                 <SendIcon />
@@ -239,7 +241,7 @@ export default function Sidebar({ setMobileOpen }) {
 
             <ListItemButton
               onClick={() => navigate('/raporlar')}
-              sx={{ backgroundColor: pathname == "/raporlar" ? "#f0f0f1" : null }}
+              sx={{ backgroundColor: pathname == "/raporlar" ? seciliSayfaRengi : null, '&:hover': { backgroundColor: seciliSayfaRengi } }}
             >
               <ListItemIcon>
                 <SendIcon />

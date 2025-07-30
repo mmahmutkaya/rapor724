@@ -52,7 +52,7 @@ export default function P_Pozlar() {
   const pozAciklamaShow = basliklar?.find(x => x.id === "aciklama").show
   const pozVersiyonShow = basliklar?.find(x => x.id === "versiyon").show
 
-  const columns = `5rem 15rem 5rem${pozAciklamaShow ? " 1rem 10rem" : ""}${pozVersiyonShow ? " 1rem 5rem" : ""}`
+  const columns = `max-content minmax(min-content, 35rem) max-content${pozAciklamaShow ? " 1rem minmax(min-content, 10rem)" : ""}${pozVersiyonShow ? " 1rem max-content" : ""}`
 
 
   const enUstBaslik_css = {
@@ -62,11 +62,10 @@ export default function P_Pozlar() {
     backgroundColor: myTema.renkler.baslik1,
     fontWeight: 600,
     border: "1px solid black",
-    m: "-1px -1px 0 0"
+    px: "0.7rem"
   }
 
   const wbsBaslik_css = {
-    gridColumn: "1 / span 3",
     display: "grid",
     alignItems: "center",
     justifyItems: "start",
@@ -74,13 +73,7 @@ export default function P_Pozlar() {
     fontWeight: 600,
     pl: "0.5rem",
     border: "1px solid black",
-    m: "-1px -1px 0 0"
-  }
-
-  const wbsBaslik_css2 = {
-    backgroundColor: myTema.renkler.baslik2,
-    border: "1px solid black",
-    m: "-1px -1px 0 0"
+    mt: "1.5rem",
   }
 
   const pozNo_css = {
@@ -89,13 +82,10 @@ export default function P_Pozlar() {
     justifyItems: "center",
     backgroundColor: "white",
     border: "1px solid black",
-    m: "-1px -1px 0 0"
+    px: "0.7rem"
   }
 
-  const bosluk_css = {
-    backgroundColor: "white",
-    borderLeft: "1px solid black"
-  }
+
 
   let wbsCode
   let wbsName
@@ -139,12 +129,12 @@ export default function P_Pozlar() {
       {/* ANA SAYFA - POZLAR VARSA */}
 
       {show == "Main" && selectedProje?.wbs?.find(x => x.openForPoz === true) && pozlar?.length > 0 &&
-        <Box sx={{ m: "1rem", maxWidth: "min-content" }}>
+        <Box sx={{ m: "1rem", display: "grid", gridTemplateColumns: columns }}>
 
 
           {/*   EN ÜST BAŞLIK */}
           {/* <Box sx={{ display: "grid", gridTemplateColumns: columns, gridTemplateAreas: gridAreas_enUstBaslik }}> */}
-          <Box sx={{ display: "grid", gridTemplateColumns: columns }}>
+          <React.Fragment >
 
             {/* BAŞLIK - POZ NO */}
             <Box sx={{ ...enUstBaslik_css }}>
@@ -165,7 +155,7 @@ export default function P_Pozlar() {
             {/* BAŞLIK - POZ BİRİM  */}
             {pozAciklamaShow &&
               <>
-                <Box sx={{ ...bosluk_css }}></Box>
+                <Box></Box>
                 <Box sx={{ ...enUstBaslik_css }}>
                   Açıklama
                 </Box>
@@ -175,14 +165,14 @@ export default function P_Pozlar() {
             {/* BAŞLIK - VERSİYON */}
             {pozVersiyonShow &&
               <>
-                <Box sx={{ ...bosluk_css }}></Box>
+                <Box></Box>
                 <Box sx={{ ...enUstBaslik_css }}>
                   Versiyon
                 </Box>
               </>
             }
 
-          </Box>
+          </React.Fragment >
 
 
 
@@ -197,78 +187,77 @@ export default function P_Pozlar() {
               <React.Fragment key={index}>
 
                 {/* WBS BAŞLIĞI */}
-                <Box sx={{ mt: "1rem", display: "grid", gridTemplateColumns: columns }}>
 
-                  <Box sx={{ ...wbsBaslik_css }}>
 
-                    {/* HAYALET */}
-                    <Box sx={{ display: "none" }}>
-                      {cOunt = oneWbs.code.split(".").length}
-                    </Box>
 
-                    {
-                      oneWbs.code.split(".").map((codePart, index) => {
+                {/* HAYALET */}
+                <Box sx={{ display: "none" }}>
+                  {cOunt = oneWbs.code.split(".").length}
+                </Box>
 
-                        if (index == 0 && cOunt == 1) {
-                          wbsCode = codePart
-                          wbsName = selectedProje?.wbs?.find(item => item.code == wbsCode).name
-                        }
+                {
+                  oneWbs.code.split(".").map((codePart, index) => {
 
-                        if (index == 0 && cOunt !== 1) {
-                          wbsCode = codePart
-                          wbsName = selectedProje?.wbs?.find(item => item.code == wbsCode).codeName
-                        }
-
-                        if (index !== 0 && index + 1 !== cOunt && cOunt !== 1) {
-                          wbsCode = wbsCode + "." + codePart
-                          wbsName = wbsName + " > " + selectedProje?.wbs?.find(item => item.code == wbsCode).codeName
-                        }
-
-                        if (index !== 0 && index + 1 == cOunt && cOunt !== 1) {
-                          wbsCode = wbsCode + "." + codePart
-                          wbsName = wbsName + " > " + selectedProje?.wbs?.find(item => item.code == wbsCode).name
-                        }
-
-                      })
+                    if (index == 0 && cOunt == 1) {
+                      wbsCode = codePart
+                      wbsName = selectedProje?.wbs?.find(item => item.code == wbsCode).name
                     }
 
-                    {/* wbsName hazır aslında ama aralarındaki ok işaretini kırmızıya boyamak için */}
-                    <Box sx={{ display: "grid", gridAutoFlow: "column" }} >
+                    if (index == 0 && cOunt !== 1) {
+                      wbsCode = codePart
+                      wbsName = selectedProje?.wbs?.find(item => item.code == wbsCode).codeName
+                    }
 
-                      {wbsName.split(">").map((item, index) => (
+                    if (index !== 0 && index + 1 !== cOunt && cOunt !== 1) {
+                      wbsCode = wbsCode + "." + codePart
+                      wbsName = wbsName + " > " + selectedProje?.wbs?.find(item => item.code == wbsCode).codeName
+                    }
 
-                        <Box key={index} sx={{ display: "grid", gridAutoFlow: "column" }} >
-                          {item}
-                          {index + 1 !== wbsName.split(">").length &&
-                            <Box sx={{ color: myTema.renkler.baslik2_ayrac, mx: "0.2rem" }} >{">"}</Box>
-                          }
-                        </Box>
+                    if (index !== 0 && index + 1 == cOunt && cOunt !== 1) {
+                      wbsCode = wbsCode + "." + codePart
+                      wbsName = wbsName + " > " + selectedProje?.wbs?.find(item => item.code == wbsCode).name
+                    }
 
-                      ))}
+                  })
+                }
 
-                      {/* <Typography>{wbsName}</Typography> */}
+                {/* wbsName hazır aslında ama aralarındaki ok işaretini kırmızıya boyamak için */}
+                <Box sx={{ gridColumn: "1/4", ...wbsBaslik_css, display: "grid", gridAutoFlow: "column" }} >
+
+                  {wbsName.split(">").map((item, index) => (
+
+                    <Box key={index} sx={{ display: "grid", gridAutoFlow: "column" }} >
+                      {item}
+                      {index + 1 !== wbsName.split(">").length &&
+                        <Box sx={{ color: myTema.renkler.baslik2_ayrac, mx: "0.2rem" }} >{">"}</Box>
+                      }
                     </Box>
 
-                  </Box>
+                  ))}
 
-
-                  {/* BAŞLIK - POZ BİRİM  */}
-                  {pozAciklamaShow &&
-                    <>
-                      <Box sx={{ ...bosluk_css }}></Box>
-                      <Box sx={{ ...wbsBaslik_css2 }} />
-                    </>
-                  }
-
-                  {/* BAŞLIK - VERSİYON */}
-                  {pozVersiyonShow &&
-                    <>
-                      <Box sx={{ ...bosluk_css }} />
-                      <Box sx={{ ...wbsBaslik_css2 }} />
-                    </>
-                  }
-
+                  {/* <Typography>{wbsName}</Typography> */}
                 </Box>
+
+
+
+
+                {/* BAŞLIK - POZ BİRİM  */}
+                {pozAciklamaShow &&
+                  <>
+                    <Box></Box>
+                    <Box sx={{ ...wbsBaslik_css }} />
+                  </>
+                }
+
+                {/* BAŞLIK - VERSİYON */}
+                {pozVersiyonShow &&
+                  <>
+                    <Box />
+                    <Box sx={{ ...wbsBaslik_css }} />
+                  </>
+                }
+
+
 
 
                 {/* WBS'İN POZLARI */}
@@ -276,7 +265,7 @@ export default function P_Pozlar() {
 
                   return (
                     // <Box key={index} sx={{ display: "grid", gridTemplateColumns: columns, gridTemplateAreas: gridAreas_pozSatir }}>
-                    <Box key={index} sx={{ display: "grid", gridTemplateColumns: columns }}>
+                    <React.Fragment key={index}>
                       <Box sx={{ ...pozNo_css }}>
                         {onePoz.pozNo}
                       </Box>
@@ -290,7 +279,7 @@ export default function P_Pozlar() {
                       {/* BAŞLIK - POZ BİRİM  */}
                       {pozAciklamaShow &&
                         <>
-                          <Box sx={{ ...bosluk_css }}></Box>
+                          <Box></Box>
                           <Box sx={{ ...pozNo_css }}>
                             {onePoz.aciklama}
                           </Box>
@@ -300,14 +289,14 @@ export default function P_Pozlar() {
                       {/* BAŞLIK - VERSİYON */}
                       {pozVersiyonShow &&
                         <>
-                          <Box sx={{ ...bosluk_css }} />
+                          <Box />
                           <Box sx={{ ...pozNo_css }}>
                             {onePoz.versiyon}
                           </Box>
                         </>
                       }
 
-                    </Box>
+                    </React.Fragment>
                   )
                 })}
 
@@ -327,7 +316,7 @@ export default function P_Pozlar() {
         </Box>
       }
 
-    </Box>
+    </Box >
 
   )
 
