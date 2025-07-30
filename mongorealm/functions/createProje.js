@@ -72,16 +72,20 @@ exports = async function ({
 
 
     const yetki = {
-      tümKisiler: [
+      yetkililer: [
         "mahmutkaya999@gmail.com",
         "mmahmutkaya@gmail.com",
+        "mbrkhncr@gmail.com",
       ],
       owners: [
+        { userEmail: "mmahmutkaya@gmail.com" },
+        { userEmail: "mbrkhncr@gmail.com" },
         { userEmail: "mahmutkaya999@gmail.com" }
       ],
       metrajYapabilenler: [
         { userEmail: "mahmutkaya999@gmail.com" },
-        { userEmail: "mmahmutkaya@gmail.com" }
+        { userEmail: "mmahmutkaya@gmail.com" },
+        {userEmail:"mbrkhncr@gmail.com"}
       ]
     }
 
@@ -168,7 +172,7 @@ exports = async function ({
       // lbs: [], // henüz herhangi bir başlık yok fakat yok ama bu property şimdi olmazsa ilk wbs kaydında bir hata yaşıyoruz
       pozBasliklari,
       mahalBasliklari,
-      metrajYapabilenler,
+      yetki,
       pozMetrajTipleri,
       pozBirimleri,
       yetkiliKisiler: [{ email: userEmail, yetki: "owner" }],
