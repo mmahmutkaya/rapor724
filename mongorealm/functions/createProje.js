@@ -73,9 +73,9 @@ exports = async function ({
 
     const yetki = {
       yetkililer: [
-        "mahmutkaya999@gmail.com",
-        "mmahmutkaya@gmail.com",
-        "mbrkhncr@gmail.com",
+        { userEmail: "mmahmutkaya@gmail.com", userCode: MaKA1, isim: "Mahmut", soyisim: "KAYA" },
+        { userEmail: "mbrkhncr@gmail.com", userCode: "MaKA1", isim: "Mahmut", soyisim: "KAYA" },
+        { userEmail: "mahmutkaya999@gmail.com", userCode: "MaKA1", isim: "Mahmut", soyisim: "KAYA" }
       ],
       owners: [
         { userEmail: "mmahmutkaya@gmail.com" },
@@ -85,7 +85,7 @@ exports = async function ({
       metrajYapabilenler: [
         { userEmail: "mahmutkaya999@gmail.com" },
         { userEmail: "mmahmutkaya@gmail.com" },
-        {userEmail:"mbrkhncr@gmail.com"}
+        { userEmail: "mbrkhncr@gmail.com" }
       ]
     }
 
