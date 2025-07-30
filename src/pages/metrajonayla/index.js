@@ -1,17 +1,17 @@
 
 import React, { useState, useContext, useEffect } from 'react';
 import { useNavigate } from "react-router-dom";
-import { StoreContext } from '../../components/store'
+import { StoreContext } from '../../components/store.js'
 import _ from 'lodash';
 
 
-import ShowMetrajYapabilenler from '../../components/ShowMetrajYapabilenler'
-import HeaderMetrajOnay from '../../components/HeaderMetrajOnay'
+import ShowMetrajYapabilenler from '../../components/ShowMetrajYapabilenler.js'
+import HeaderMetrajOnay from '../../components/HeaderMetrajOnay.js'
 
 import { DialogAlert } from '../../components/general/DialogAlert.js';
 import { useQuery, useQueryClient, useMutation } from '@tanstack/react-query'
 import { BSON } from "realm-web"
-import { useGetMahalListesi, useGetHazirlananMetrajlar, useUpdateOnaylananMetraj, useGetOnaylananMetraj } from '../../hooks/useMongo';
+import { useGetMahalListesi, useGetHazirlananMetrajlar, useUpdateOnaylananMetraj, useGetOnaylananMetraj } from '../../hooks/useMongo.js';
 
 
 import { fontWeight, styled } from '@mui/system';

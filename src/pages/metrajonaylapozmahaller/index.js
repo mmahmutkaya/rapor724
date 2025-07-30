@@ -133,11 +133,11 @@ export default function P_MetrajOnaylaPozMahaller() {
   }
 
 
-  const goto_metrajOlusturCetvel = (dugum, oneMahal) => {
-    setSelectedNode_metraj(dugum)
-    setSelectedMahal_metraj(oneMahal)
-    navigate('/metrajolusturcetvel')
-  }
+  // const goto_metrajOlusturCetvel = (dugum, oneMahal) => {
+  //   setSelectedNode_metraj(dugum)
+  //   setSelectedMahal_metraj(oneMahal)
+  //   navigate('/metrajolusturcetvel')
+  // }
 
 
 
@@ -156,7 +156,7 @@ export default function P_MetrajOnaylaPozMahaller() {
   const goTo_onayCetveli = ({ dugum, oneMahal }) => {
     setSelectedNode_metraj(dugum)
     setSelectedMahal_metraj(oneMahal)
-    navigate('/metrajonay')
+    navigate('/metrajonayla')
   }
 
 
@@ -225,14 +225,14 @@ export default function P_MetrajOnaylaPozMahaller() {
               Birim
             </Box>
 
-            {editNodeMetraj &&
+            {/* {editNodeMetraj &&
               <>
                 <Box> </Box>
                 <Box sx={{ ...css_enUstBaslik, justifyContent: "center" }}>
                   {yetkililer?.find(oneYetkili => oneYetkili.userEmail === customData.email).userCode}
                 </Box>
               </>
-            }
+            } */}
 
             {onayNodeMetraj &&
               <>
@@ -262,14 +262,14 @@ export default function P_MetrajOnaylaPozMahaller() {
               {pozBirim}
             </Box>
 
-            {editNodeMetraj &&
+            {/* {editNodeMetraj &&
               <>
                 <Box> </Box>
                 <Box sx={{ ...css_enUstBaslik, justifyContent: "end", borderLeft: "1px solid black" }}>
                   {ikiHane(selectedPoz_metraj?.hazirlananMetrajlar?.find(x => x.userEmail === customData.email)?.metraj)}
                 </Box>
               </>
-            }
+            } */}
 
             {onayNodeMetraj &&
               <>
@@ -303,14 +303,14 @@ export default function P_MetrajOnaylaPozMahaller() {
                 <Box sx={{ ...css_LbsBaslik }}>  {"lbs miktar"} </Box>
                 <Box sx={{ ...css_LbsBaslik, justifyContent: "center" }}> {pozBirim} </Box>
 
-                {editNodeMetraj &&
+                {/* {editNodeMetraj &&
                   <>
                     <Box> </Box>
                     <Box sx={{ ...css_LbsBaslik, borderLeft: "1px solid black", justifyContent: "center" }}>
                       {"deneme"}
                     </Box>
                   </>
-                }
+                } */}
 
                 {onayNodeMetraj &&
                   <>
@@ -354,7 +354,7 @@ export default function P_MetrajOnaylaPozMahaller() {
                         {pozBirim}
                       </Box>
 
-                      {editNodeMetraj &&
+                      {/* {editNodeMetraj &&
                         <>
                           <Box />
                           <Box
@@ -376,7 +376,7 @@ export default function P_MetrajOnaylaPozMahaller() {
                             </Box>
                           </Box>
                         </>
-                      }
+                      } */}
 
                       {onayNodeMetraj &&
                         <>

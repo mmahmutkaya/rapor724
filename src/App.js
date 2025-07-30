@@ -33,7 +33,7 @@ import P_MetrajOlusturCetvel from './pages/metrajolusturcetvel'
 
 import P_MetrajOnaylaPozlar from './pages/metrajonaylapozlar'
 import P_MetrajOnaylaPozMahaller from './pages/metrajonaylapozmahaller'
-import P_MetrajOnay from './pages/metrajonay'
+import P_MetrajOnayla from './pages/metrajonayla'
 import P_MetrajOnaylaCetvel from './pages/metrajonaylacetvel'
 
 import P_MetrajPozlar from './pages/metrajpozlar'
@@ -79,7 +79,7 @@ function App() {
 
       <Route path='/metrajonaylapozlar' element={<P_MetrajOnaylaPozlar />} />
       <Route path='/metrajonaylapozmahaller' element={<P_MetrajOnaylaPozMahaller />} />
-      <Route path='/metrajonay' element={<P_MetrajOnay />} />
+      <Route path='/metrajonayla' element={<P_MetrajOnayla />} />
       <Route path='/metrajonaylacetvel' element={<P_MetrajOnaylaCetvel />} />
       
       <Route path='/metrajedit' element={<P_MetrajEdit />} />
