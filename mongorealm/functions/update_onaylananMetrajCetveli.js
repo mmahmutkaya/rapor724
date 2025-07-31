@@ -1,6 +1,7 @@
 exports = async function ({
   _dugumId,
-  onaylananMetraj_state
+  onaylananMetraj_state,
+  revizeEdilenler
 }) {
 
 
@@ -24,13 +25,9 @@ exports = async function ({
     throw new Error("MONGO // updateDugumler_onaylananMetraj // 'onaylananMetraj_state' verisi db sorgusuna gelmedi");
   }
 
-  // if (!hazirlananlar_used) {
-  //   throw new Error("MONGO // updateDugumler_onaylananMetraj // 'hazirlananlar_used' verisi db sorgusuna gelmedi");
-  // }
-
-  // if (!hazirlananlar_unUsed) {
-  //   throw new Error("MONGO // updateDugumler_onaylananMetraj // 'hazirlananlar_unUsed' verisi db sorgusuna gelmedi");
-  // }
+  if (!revizeEdilenler) {
+    throw new Error("MONGO // updateDugumler_onaylananMetraj // 'revizeEdilenler' verisi db sorgusuna gelmedi");
+  }
 
 
   const currentTime = new Date();
@@ -94,66 +91,68 @@ exports = async function ({
   }
 
 
-  // hazirlanan metrajlar burada revize olmuyor, içeri alırken oluyor
-  // try {
-    
-  //   let bulkArray1
-  //   if(hazirlananlar_used) {
-   
-  //     bulkArray1 = hazirlananlar_used.map(oneHazirlanan => {
-  //       return (
-  //         {
-  //           updateOne: {
-  //             filter: { _dugumId, userEmail: oneHazirlanan.userEmail },
-  //             update: { $set: { "satirlar.$[elem].isUsed": true } },
-  //             arrayFilters: [
-  //               { "elem.satirNo": { $in: oneHazirlanan.satirNolar } },
-  //             ]
-  //           }
-  //         }
-  //       )
-  //     })
-      
-  //   }
-    
-  //   let bulkArray2
-  //   if(hazirlananlar_unUsed) {
-   
-  //     bulkArray2 = hazirlananlar_unUsed.map(oneHazirlanan => {
-  //       return (
-  //         {
-  //           updateOne: {
-  //             filter: { _dugumId, userEmail: oneHazirlanan.userEmail },
-  //             update: { $set: { "satirlar.$[elem].isUsed": false } },
-  //             arrayFilters: [
-  //               { "elem.satirNo": { $in: oneHazirlanan.satirNolar } },
-  //             ]
-  //           }
-  //         }
-  //       )
-  //     })
-
-  //   }
-
-  //   let bulkArray = []
-  //   if(bulkArray1) {
-  //     bulkArray = [...bulkArray, ...bulkArray1]
-  //   }
-  //   if(bulkArray2){
-  //     bulkArray = [...bulkArray, ...bulkArray2]
-  //   }
 
 
-  //   if(bulkArray) {    
-  //     await collection_hazirlananMetrajlar.bulkWrite(
-  //       bulkArray,
-  //       { ordered: false }
-  //     )
-  //   }
+  try {
 
-  // } catch (error) {
-  //   throw new Error({ hatayeri: "MONGO // updateDugumler_onaylananMetraj // hazirlanan metrajlar isUsed guncelleme //", error });
-  // }
+    let bulkArray1
+    if (revizeEdilenler) {
+
+      bulkArray1 = revizeEdilenler.map(oneRevizeEdilen => {
+        return (
+          {
+            updateOne: {
+              filter: { _dugumId, userEmail: oneRevizeEdilen.userEmail },
+              update: { $set: { "satirlar.$[elem].isRevize": true } },
+              arrayFilters: [
+                { "elem.satirNo": { $in: oneRevizeEdilen.satirNolar } },
+              ]
+            }
+          }
+        )
+      })
+
+    }
+
+    // let bulkArray2
+    // if (hazirlananlar_unUsed) {
+
+    //   bulkArray2 = hazirlananlar_unUsed.map(oneHazirlanan => {
+    //     return (
+    //       {
+    //         updateOne: {
+    //           filter: { _dugumId, userEmail: oneHazirlanan.userEmail },
+    //           update: { $set: { "satirlar.$[elem].isUsed": false } },
+    //           arrayFilters: [
+    //             { "elem.satirNo": { $in: oneHazirlanan.satirNolar } },
+    //           ]
+    //         }
+    //       }
+    //     )
+    //   })
+
+    // }
+
+    let bulkArray = []
+    if (bulkArray1) {
+      bulkArray = [...bulkArray, ...bulkArray1]
+    }
+    // if (bulkArray2) {
+    //   bulkArray = [...bulkArray, ...bulkArray2]
+    // }
+
+
+    if (bulkArray.length > 0) {
+      await collection_hazirlananMetrajlar.bulkWrite(
+        bulkArray,
+        { ordered: false }
+      )
+    }
+
+  } catch (error) {
+    throw new Error({ hatayeri: "MONGO // update_onaylananMetraj // hazirlanan metrajlar isUsed guncelleme //", error });
+  }
+
 
 
   return
