@@ -36,6 +36,7 @@ export default function P_MetrajCetveliOnaylanan() {
 
   const { RealmApp, myTema, subHeaderHeight } = useContext(StoreContext)
   const { selectedProje, selectedPoz_metraj, selectedNode_metraj } = useContext(StoreContext)
+  const yetkililer = selectedProje?.yetki.yetkililer
 
   const [dialogAlert, setDialogAlert] = useState()
   const [show, setShow] = useState("DugumMetrajlari")
@@ -97,7 +98,10 @@ export default function P_MetrajCetveliOnaylanan() {
     onaylananMetraj_state2["satirlar"] = onaylananMetraj_state2["satirlar"].map(oneRow => {
 
       if (oneRow.satirNo === originalSatirNo) {
+
+        // onaylılar kısmında deactive ediyoruz çünkü revize oldu artık, hesaba katılmıyor, sadece yapılan revizeyi görmek için istenince gri olarak gösterilecek
         oneRow.isDeactive = true
+
       }
 
       if (oneRow.satirNo === oneSatir.satirNo) {
@@ -162,8 +166,39 @@ export default function P_MetrajCetveliOnaylanan() {
 
     if (isChanged) {
       try {
+        console.log("onaylananMetraj_state",onaylananMetraj_state)
+        // db deki 'hazırlananMetrajlar' isimli 'collection' daki ilgili 'document' içinde ilgil satırlarda revize olduğunu belirtiyoruz, onaylılardan kaldırılamasın, kitlemek için veri opluyoruz - changed olmuş ve used ise 
+        // db ye göndereeğimiz 'revizeEdilenler' henüz hiç oluşmamışsa
+        let deActiveSatirlar = onaylananMetraj_state.satirlar.filter(x => x.isDeactive)
+        let revizeEdilenler
+        
+        if (deActiveSatirlar.length > 0) {
 
-        await RealmApp?.currentUser.callFunction("update_onaylananMetrajCetveli", ({ _dugumId: selectedNode_metraj._id, onaylananMetraj_state }))
+          deActiveSatirlar.map(oneRow => {
+
+            let userCode = oneRow.satirNo.substring(0, oneRow.satirNo.indexOf("-"))
+            let userEmail = yetkililer.find(x => x.userCode === userCode).userEmail
+            if (!revizeEdilenler) {
+              revizeEdilenler = [{ userEmail, satirNolar: [oneRow.satirNo] }]
+
+              //  db ye göndereeğimiz 'revizeEdilenler' - oluşmuşsa ve oluşturan kullanıcı da varsa
+            } else if (revizeEdilenler?.find(x => x.userEmail === userEmail)) {
+              revizeEdilenler = revizeEdilenler.map(oneRevizeEdilen => {
+                if (oneRevizeEdilen.userEmail === userEmail) {
+                  oneRevizeEdilen.satirNolar = [...oneRevizeEdilen.satirNolar, oneRow.satirNo]
+                }
+                return oneRevizeEdilen
+              })
+
+              //  db ye göndereeğimiz 'revizeEdilenler' - oluşmuşsa fakat kullanıcınınki henüz yoksa
+            } else {
+              revizeEdilenler = [...revizeEdilenler, { userEmail, satirNolar: [oneRow.satirNo] }]
+            }
+          })
+
+        }
+
+        await RealmApp?.currentUser.callFunction("update_onaylananMetrajCetveli", ({ _dugumId: selectedNode_metraj._id, onaylananMetraj_state, revizeEdilenler }))
         setShow("DugumMetrajlari")
         queryClient.invalidateQueries(['onaylananMetrajlar', selectedNode_metraj?._id.toString()])
         setIsChanged()

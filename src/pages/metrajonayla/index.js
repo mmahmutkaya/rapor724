@@ -210,7 +210,8 @@ export default function P_MetrajOnay() {
           if (oneHazirlanan.satirlar.find(x => x.isChanged)) {
             oneHazirlanan.satirlar = oneHazirlanan.satirlar.map(oneRow => {
 
-              // changed olmuş ve used ise
+
+              // db deki 'hazırlananMetrajlar' isimli 'collection' daki ilgili 'document' içinde ilgil satırları kitlemek için veri opluyoruz  - changed olmuş ve used ise 
               if (oneRow.isChanged && oneRow.isUsed) {
 
                 //  db ye göndereeğimiz 'hazirlananlar_used' henüz hiç oluşmamışsa
@@ -219,11 +220,11 @@ export default function P_MetrajOnay() {
 
                   //  db ye göndereeğimiz 'hazirlananlar_used' - oluşmuşsa ve oluşturan kullanıcı da varsa
                 } else if (hazirlananlar_used?.find(x => x.userEmail === oneHazirlanan.userEmail)) {
-                  hazirlananlar_used = hazirlananlar_used.map(oneUsedSatir => {
-                    if (oneUsedSatir.userEmail === oneHazirlanan.userEmail) {
-                      oneUsedSatir.satirNolar = [...oneUsedSatir.satirNolar, oneRow.satirNo]
+                  hazirlananlar_used = hazirlananlar_used.map(oneHazirlanan_used => {
+                    if (oneHazirlanan_used.userEmail === oneHazirlanan.userEmail) {
+                      oneHazirlanan_used.satirNolar = [...oneHazirlanan_used.satirNolar, oneRow.satirNo]
                     }
-                    return oneUsedSatir
+                    return oneHazirlanan_used
                   })
 
                   //  db ye göndereeğimiz 'hazirlananlar_used' - oluşmuşsa fakat kullanıcınınki henüz yoksa
@@ -233,7 +234,7 @@ export default function P_MetrajOnay() {
 
               }
 
-              // changed olmuş ve unUsed ise
+              // db deki 'hazırlananMetrajlar' isimli 'collection' daki ilgili 'document' içinde ilgil satırları kitlemek için veri opluyoruz  - changed olmuş ve unUsed ise
               if (oneRow.isChanged && !oneRow.isUsed) {
 
                 //  db ye göndereeğimiz 'hazirlananlar_unUsed' henüz hiç oluşmamışsa
@@ -242,11 +243,11 @@ export default function P_MetrajOnay() {
 
                   //  db ye göndereeğimiz 'hazirlananlar_unUsed' - oluşmuşsa ve oluşturan kullanıcı da varsa
                 } else if (hazirlananlar_unUsed?.find(x => x.userEmail === oneHazirlanan.userEmail)) {
-                  hazirlananlar_unUsed = hazirlananlar_unUsed.map(oneUsedSatir => {
-                    if (oneUsedSatir.userEmail === oneHazirlanan.userEmail) {
-                      oneUsedSatir.satirNolar = [...oneUsedSatir.satirNolar, oneRow.satirNo]
+                  hazirlananlar_unUsed = hazirlananlar_unUsed.map(oneHazirlanan_used => {
+                    if (oneHazirlanan_used.userEmail === oneHazirlanan.userEmail) {
+                      oneHazirlanan_used.satirNolar = [...oneHazirlanan_used.satirNolar, oneRow.satirNo]
                     }
-                    return oneUsedSatir
+                    return oneHazirlanan_used
                   })
 
                   //  db ye göndereeğimiz 'hazirlananlar_unUsed' - oluşmuşsa fakat kullanıcınınki henüz yoksa
@@ -480,8 +481,8 @@ export default function P_MetrajOnay() {
 
                 {oneHazirlanan.satirlar.map((oneRow, index) => {
 
-                  console.log("showMetrajYapabilenler",showMetrajYapabilenler)
-                  console.log("oneHazirlanan",oneHazirlanan)
+                  // console.log("showMetrajYapabilenler",showMetrajYapabilenler)
+                  // console.log("oneHazirlanan",oneHazirlanan)
                   if (!showMetrajYapabilenler.find(x => x === oneHazirlanan.userEmail)) {
                     return
                   }
@@ -497,7 +498,7 @@ export default function P_MetrajOnay() {
                           <React.Fragment key={index}>
 
                             <Box
-                              onClick={() => !oneRow?.isUsed ? handle_satirOnayla({ oneRow, hazirlayan }) : handle_satirIptal({ oneRow, hazirlayan })}
+                              onClick={() => !oneRow?.isUsed ? handle_satirOnayla({ oneRow, hazirlayan }) : !oneRow?.isRevize ? handle_satirIptal({ oneRow, hazirlayan }) : null}
                               sx={{
                                 ...css_metrajCetveliSatir,
                                 cursor: "pointer",
@@ -528,7 +529,7 @@ export default function P_MetrajOnay() {
                           border: "1px solid black"
                         }}>
                         {oneRow?.isUsed &&
-                          <LockIcon variant="contained" sx={{ color: "gray", fontSize: "1rem" }} />
+                          <LockIcon variant="contained" sx={{ color: oneRow.isRevize ? "rgba( 255,165,0, 1 )" : "gray", fontSize: "1rem" }} />
                         }
                         {/* {!oneRow?.isUsed &&
                           <HourglassFullSharpIcon variant="contained" sx={{ color: "rgba( 255,165,0, 1 )", fontSize: "0.95rem" }} />

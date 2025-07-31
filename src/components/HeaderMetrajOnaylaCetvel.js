@@ -10,6 +10,7 @@ import { DialogAlert } from './general/DialogAlert';
 import { useApp } from "./useApp";
 import AppBar from '@mui/material/AppBar';
 
+
 import Typography from '@mui/material/Typography';
 import Grid from '@mui/material/Grid';
 import Box from '@mui/material/Box';
@@ -31,7 +32,7 @@ import TuneIcon from '@mui/icons-material/Tune';
 import TaskAltIcon from '@mui/icons-material/TaskAlt';
 import ForwardIcon from '@mui/icons-material/Forward';
 import SaveIcon from '@mui/icons-material/Save';
-import { useGetMahaller } from '../hooks/useMongo';
+import Tooltip from '@mui/material/Tooltip';
 
 
 
@@ -132,9 +133,11 @@ export default function P_HeaderMetrajOnaylaCetvel({ show, setShow, isChanged, c
 
 
                   <Grid item >
-                    <IconButton onClick={() => setShowOriginal(x => !x)} disabled={false}>
-                      <VisibilityIcon variant="contained" sx={{ color: showOriginal ? "gray" : "lightgray" }} />
-                    </IconButton>
+                    {/* <Tooltip placement="bottom" title={"Değişiklileri Göster"}> */}
+                      <IconButton onClick={() => setShowOriginal(x => !x)} disabled={false}>
+                        <VisibilityIcon variant="contained" sx={{ color: showOriginal ? "gray" : "lightgray" }} />
+                      </IconButton>
+                    {/* </Tooltip> */}
                   </Grid>
 
 

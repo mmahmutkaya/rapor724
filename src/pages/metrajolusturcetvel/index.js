@@ -165,12 +165,10 @@ export default function P_MetrajOlusturCetvel() {
   // Edit Metraj Sayfasının Fonksiyonu
   const save = async () => {
 
-    console.log("burada")
-
     if (isChanged) {
       try {
 
-        await RealmApp?.currentUser.callFunction("updateDugumler_hazirlananMetraj", ({ _dugumId: selectedNode_metraj._id, hazirlananMetraj_state }))
+        await RealmApp?.currentUser.callFunction("update_hazirlananMetraj", ({ _dugumId: selectedNode_metraj._id, hazirlananMetraj_state }))
         // console.log("result", result)
         // if (result.dugumler) {
         //   queryClient.setQueryData(['dugumler', selectedProje?._id.toString()], result.dugumler)
