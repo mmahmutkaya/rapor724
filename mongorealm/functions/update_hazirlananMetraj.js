@@ -39,7 +39,8 @@ exports = async function ({
   try {
 
     let { satirlar: newSatirlar } = hazirlananMetraj_state
-    newSatirlar = newSatirlar.filter(x => !x.onayli)
+    // frontend kısmında isUsed revize edilemez ama ilave güvenlik önlemi
+    newSatirlar = newSatirlar.filter(x => !x.isUsed)
 
 
     const hazirlananMetraj = await collection_hazirlananMetrajlar.findOne({ _dugumId, userEmail })
@@ -50,8 +51,9 @@ exports = async function ({
 
       if (satirlar) {
 
-        satirlar = satirlar.filter(x => x.onayli)
-        newSatirlar = [...satirlar, ...newSatirlar]
+        // onayliMetrajlarda kullanılmış olanları koruyalım, yukaroda filtre ettik çünkü gelen verilerden
+        usedSatirlar = satirlar.filter(x => x.isUsed)
+        newSatirlar = [...usedSatirlar, ...newSatirlar]
 
       }
 
