@@ -45,7 +45,7 @@ exports = async function ({
 
     await collection_onaylananMetrajlar.updateOne(
       { _dugumId },
-      { $set: { satirlar: newSatirlar, metraj: newMetraj } }
+      { $set: { satirlar: onaylananMetraj_state.satirlar, metraj: newMetraj } }
     )
 
   } catch (error) {
