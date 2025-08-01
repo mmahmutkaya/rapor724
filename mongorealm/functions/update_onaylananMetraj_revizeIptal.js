@@ -79,7 +79,7 @@ exports = async function ({
           {
             updateOne: {
               filter: { _dugumId, userEmail: oneRevizeEdilen.userEmail },
-              update: { $set: { "satirlar.$[elem].isRevize": true } },
+              update: { $set: { "satirlar.$[elem].isRevize": false } },
               arrayFilters: [
                 { "elem.satirNo": { $in: oneRevizeEdilen.satirNolar } },
               ]
