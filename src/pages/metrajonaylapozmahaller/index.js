@@ -7,6 +7,9 @@ import FormPozCreate from '../../components/FormPozCreate'
 import EditPozBaslik from '../../components/EditPozBaslik'
 import FormPozBaslikCreate from '../../components/FormPozBaslikCreate'
 
+import _ from 'lodash';
+
+
 import ShowMetrajYapabilenler from '../../components/ShowMetrajYapabilenler'
 import HeaderMetrajOnaylaPozMahaller from '../../components/HeaderMetrajOnaylaPozMahaller'
 
@@ -37,9 +40,9 @@ export default function P_MetrajOnaylaPozMahaller() {
 
   const customData = RealmApp.currentUser.customData
 
-  useEffect(() => {
-    setShowMetrajYapabilenler(RealmApp.currentUser.customData.customSettings.showMetrajYapabilenler)
-  }, [])
+  // useEffect(() => {
+  //   setShowMetrajYapabilenler(RealmApp.currentUser.customData.customSettings.showMetrajYapabilenler)
+  // }, [])
 
 
 
@@ -153,10 +156,24 @@ export default function P_MetrajOnaylaPozMahaller() {
 
 
 
-
-  const goTo_onayCetveli = ({ dugum, oneMahal }) => {
+  const goTo_onayCetveli = ({ dugum, oneMahal, userEmail }) => {
+    // console.log("userEmail", userEmail)
     setSelectedNode_metraj(dugum)
     setSelectedMahal_metraj(oneMahal)
+
+    let showMetrajYapabilenler2 = _.cloneDeep(showMetrajYapabilenler)
+
+    showMetrajYapabilenler2 = showMetrajYapabilenler2.map(oneYapabilen => {
+      if (oneYapabilen.userEmail === userEmail) {
+        oneYapabilen.isSelected = true
+      } else {
+        oneYapabilen.isSelected = false
+      }
+      return oneYapabilen
+    })
+
+    setShowMetrajYapabilenler(showMetrajYapabilenler2)
+
     navigate('/metrajonayla')
   }
 
@@ -183,8 +200,8 @@ export default function P_MetrajOnaylaPozMahaller() {
     border: "1px solid black", px: "0.5rem", display: "grid", justifyContent: "start", alignItems: "center"
   }
 
-  const showMetrajYapabilenlerColumns = " 1rem repeat(" + showMetrajYapabilenler?.length + ", max-content)"
-  const gridTemplateColumns1 = `max-content minmax(min-content, 1fr) max-content max-content${showMetrajYapabilenler?.length > 0 ? showMetrajYapabilenlerColumns : ""}`
+  const showMetrajYapabilenlerColumns = " 1rem repeat(" + showMetrajYapabilenler?.filter(x => x.isShow).length + ", max-content)"
+  const gridTemplateColumns1 = `max-content minmax(min-content, 1fr) max-content max-content${showMetrajYapabilenler?.filter(x => x.isShow).length > 0 ? showMetrajYapabilenlerColumns : ""}`
 
 
   return (
@@ -236,11 +253,11 @@ export default function P_MetrajOnaylaPozMahaller() {
               </>
             } */}
 
-            {showMetrajYapabilenler.length > 0 &&
+            {showMetrajYapabilenler?.filter(x => x.isShow).length > 0 &&
               <>
                 <Box> </Box>
-                {showMetrajYapabilenler?.map((oneYapabilen, index) => {
-                  let yetkili = yetkililer?.find(oneYetkili => oneYetkili.userEmail === oneYapabilen)
+                {showMetrajYapabilenler?.filter(x => x.isShow).map((oneYapabilen, index) => {
+                  let yetkili = yetkililer?.find(oneYetkili => oneYetkili.userEmail === oneYapabilen.userEmail)
                   return (
                     <Box key={index} sx={{ ...css_enUstBaslik, borderLeft: "1px solid black", justifyContent: "center" }}>
                       <Tooltip placement="top" title={yetkili.isim + " " + yetkili.soyisim}>
@@ -278,13 +295,13 @@ export default function P_MetrajOnaylaPozMahaller() {
               </>
             } */}
 
-            {showMetrajYapabilenler.length > 0 &&
+            {showMetrajYapabilenler?.filter(x => x.isShow).length > 0 &&
               <>
                 <Box> </Box>
-                {showMetrajYapabilenler?.map((oneYapabilen, index) => {
+                {showMetrajYapabilenler?.filter(x => x.isShow).map((oneYapabilen, index) => {
                   return (
                     <Box key={index} sx={{ ...css_enUstBaslik, borderLeft: "1px solid black", justifyContent: "end" }}>
-                      {ikiHane(selectedPoz_metraj.hazirlananMetrajlar.find(x => x.userEmail === oneYapabilen)?.metraj)}
+                      {ikiHane(selectedPoz_metraj.hazirlananMetrajlar.find(x => x.userEmail === oneYapabilen.userEmail)?.metraj)}
                     </Box>
                   )
                 })}
@@ -319,10 +336,10 @@ export default function P_MetrajOnaylaPozMahaller() {
                   </>
                 } */}
 
-                {showMetrajYapabilenler.length > 0 &&
+                {showMetrajYapabilenler?.filter(x => x.isShow).length > 0 &&
                   <>
                     <Box> </Box>
-                    {showMetrajYapabilenler?.map((oneYapabilen, index) => {
+                    {showMetrajYapabilenler?.filter(x => x.isShow).map((oneYapabilen, index) => {
                       return (
                         <Box key={index} sx={{ ...css_LbsBaslik, borderLeft: "1px solid black", justifyContent: "end" }}>
 
@@ -385,16 +402,16 @@ export default function P_MetrajOnaylaPozMahaller() {
                         </>
                       } */}
 
-                      {showMetrajYapabilenler.length > 0 &&
+                      {showMetrajYapabilenler?.filter(x => x.isShow).length > 0 &&
                         <>
                           <Box> </Box>
-                          {showMetrajYapabilenler?.map((oneYapabilen, index) => {
+                          {showMetrajYapabilenler?.filter(x => x.isShow).map((oneYapabilen, index) => {
                             return (
-                              <Box key={index} onDoubleClick={() => goTo_onayCetveli({ dugum, oneMahal })} sx={{ ...css_mahaller, justifyContent: "end", cursor: "pointer", backgroundColor: "rgba(255, 251, 0, 0.55)", display: "grid", gridTemplateColumns: "1rem 1fr", "&:hover": { "& .childClass": { backgroundColor: "red" } } }}>
+                              <Box key={index} onDoubleClick={() => goTo_onayCetveli({ dugum, oneMahal, userEmail: oneYapabilen.userEmail })} sx={{ ...css_mahaller, justifyContent: "end", cursor: "pointer", backgroundColor: "rgba(255, 251, 0, 0.55)", display: "grid", gridTemplateColumns: "1rem 1fr", "&:hover": { "& .childClass": { backgroundColor: "red" } } }}>
                                 <Box className="childClass" sx={{ backgroundColor: "rgba(255, 251, 0, 0.55)", height: "0.5rem", width: "0.5rem", borderRadius: "50%" }}>
                                 </Box>
                                 <Box sx={{ justifySelf: "end" }}>
-                                  {ikiHane(dugum?.hazirlananMetrajlar?.find(x => x.userEmail === oneYapabilen)?.metraj)}
+                                  {ikiHane(dugum?.hazirlananMetrajlar?.find(x => x.userEmail === oneYapabilen.userEmail)?.metraj)}
                                 </Box>
                               </Box>
                               // <Box key={index} sx={{ ...css_mahaller, backgroundColor: "rgb(143,206,0,0.3)", borderLeft: "1px solid black", justifyContent: "end" }}>

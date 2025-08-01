@@ -36,7 +36,13 @@ import Tooltip from '@mui/material/Tooltip';
 
 
 
-export default function P_HeaderMetrajOnaylaCetvel({ show, setShow, isChanged, cancel, save, showOriginal, setShowOriginal }) {
+export default function P_HeaderMetrajOnaylaCetvel({
+  show, setShow,
+  isChanged, cancel, save,
+  hasDeActive,
+  showDeActive, setShowDeActive,
+  isChanged_revize, cancel_revize, save_revize
+}) {
 
   const navigate = useNavigate()
 
@@ -47,6 +53,8 @@ export default function P_HeaderMetrajOnaylaCetvel({ show, setShow, isChanged, c
   const { selectedPoz_metraj, selectedMahal_metraj } = useContext(StoreContext)
 
   const [showEminMisin, setShowEminMisin] = useState(false)
+
+  const [showEminMisin_revize, setShowEminMisin_revize] = useState(false)
 
 
   return (
@@ -63,6 +71,23 @@ export default function P_HeaderMetrajOnaylaCetvel({ show, setShow, isChanged, c
           action2={() => {
             cancel()
             setShowEminMisin()
+          }}
+        />
+      }
+
+
+
+      {showEminMisin_revize &&
+        <DialogAlert
+          dialogIcon={"warning"}
+          dialogMessage={"Yaptığınız değişiklikleri kaybedeceksiniz ?"}
+          onCloseAction={() => setShowEminMisin_revize()}
+          actionText1={"İptal"}
+          action1={() => setShowEminMisin_revize()}
+          actionText2={"Onayla"}
+          action2={() => {
+            cancel_revize()
+            setShowEminMisin_revize()
           }}
         />
       }
@@ -112,7 +137,7 @@ export default function P_HeaderMetrajOnaylaCetvel({ show, setShow, isChanged, c
 
 
 
-              {show == "DugumMetrajlari" &&
+              {show == "Main" && !isChanged_revize &&
                 <>
                   <Grid item >
                     <IconButton onClick={() => {
@@ -125,7 +150,7 @@ export default function P_HeaderMetrajOnaylaCetvel({ show, setShow, isChanged, c
                   <Grid item >
                     <IconButton onClick={() => {
                       setShow("EditMetraj")
-                      setShowOriginal()
+                      setShowDeActive()
                     }} aria-label="lbsUncliced">
                       <EditIcon variant="contained" />
                     </IconButton>
@@ -134,9 +159,10 @@ export default function P_HeaderMetrajOnaylaCetvel({ show, setShow, isChanged, c
 
                   <Grid item >
                     {/* <Tooltip placement="bottom" title={"Değişiklileri Göster"}> */}
-                      <IconButton onClick={() => setShowOriginal(x => !x)} disabled={false}>
-                        <VisibilityIcon variant="contained" sx={{ color: showOriginal ? "gray" : "lightgray" }} />
-                      </IconButton>
+                    <IconButton onClick={() => hasDeActive && setShowDeActive(x => !x)} >
+                      {/* <VisibilityIcon variant="contained" sx={{ color: showDeActive ? "gray" : "lightgray" }} /> */}
+                      <VisibilityIcon variant="contained" sx={{ color: hasDeActive && showDeActive ? "rgba(255, 132, 0, 1)" : hasDeActive && !showDeActive ? "rgba(255, 132, 0, 0.5)" : "lightgray"}} />
+                    </IconButton>
                     {/* </Tooltip> */}
                   </Grid>
 
@@ -155,7 +181,7 @@ export default function P_HeaderMetrajOnaylaCetvel({ show, setShow, isChanged, c
                       if (isChanged) {
                         setShowEminMisin(true)
                       } else {
-                        setShow("DugumMetrajlari")
+                        setShow("Main")
                       }
                     }} aria-label="lbsUncliced">
                       <ClearOutlined variant="contained" sx={{ color: "red" }} />
@@ -172,6 +198,31 @@ export default function P_HeaderMetrajOnaylaCetvel({ show, setShow, isChanged, c
               }
 
 
+
+              {isChanged_revize &&
+
+                <>
+
+                  <Grid item >
+                    <IconButton onClick={() => {
+                      if (isChanged_revize) {
+                        setShowEminMisin_revize(true)
+                      } else {
+                        setShow("Main")
+                      }
+                    }} aria-label="lbsUncliced">
+                      <ClearOutlined variant="contained" sx={{ color: "red" }} />
+                    </IconButton>
+                  </Grid>
+
+                  <Grid item >
+                    <IconButton onClick={() => save_revize()} disabled={!isChanged_revize}>
+                      <SaveIcon variant="contained" />
+                    </IconButton>
+                  </Grid>
+
+                </>
+              }
 
 
             </Grid>

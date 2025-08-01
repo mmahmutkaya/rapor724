@@ -38,11 +38,6 @@ export default function P_MetrajOnaylaPozlar() {
   const { RealmApp, myTema } = useContext(StoreContext)
   const { showMetrajYapabilenler, setShowMetrajYapabilenler } = useContext(StoreContext)
 
-  useEffect(() => {
-    setShowMetrajYapabilenler(RealmApp.currentUser.customData.customSettings.showMetrajYapabilenler)
-  }, [])
-
-
   const { customData } = RealmApp.currentUser
 
   const { selectedProje } = useContext(StoreContext)
@@ -53,7 +48,7 @@ export default function P_MetrajOnaylaPozlar() {
   const { selectedPoz_metraj, setSelectedPoz_metraj } = useContext(StoreContext)
   // const { editNodeMetraj, onayNodeMetraj } = useContext(StoreContext)
   let editNodeMetraj = false
-  let onayNodeMetraj = showMetrajYapabilenler?.length ? true : false
+  let onayNodeMetraj = showMetrajYapabilenler?.find(x => x.isShow) ? true : false
 
   // console.log("selectedProje", selectedProje)
   const pozBirimleri = selectedProje?.pozBirimleri
@@ -135,7 +130,7 @@ export default function P_MetrajOnaylaPozlar() {
     setSelectedPoz_metraj(onePoz)
   }
 
-  const showMetrajYapabilenlerColumns = " 1rem repeat(" + showMetrajYapabilenler?.length + ", max-content)"
+  const showMetrajYapabilenlerColumns = " 1rem repeat(" + showMetrajYapabilenler?.filter(x => x.isShow).length + ", max-content)"
   const columns = `max-content minmax(min-content, 3fr) max-content max-content${pozAciklamaShow ? " 0.5rem minmax(min-content, 2fr)" : ""}${pozVersiyonShow ? " 0.5rem min-content" : ""}${editNodeMetraj ? " 0.5rem max-content" : ""}${onayNodeMetraj ? showMetrajYapabilenlerColumns : ""}`
 
 
@@ -248,15 +243,15 @@ export default function P_MetrajOnaylaPozlar() {
             {onayNodeMetraj &&
               <>
                 <Box> </Box>
-                {showMetrajYapabilenler?.map((oneYapabilen, index) => {
+                {showMetrajYapabilenler?.filter(x => x.isShow).map((oneYapabilen, index) => {
 
-                  let yetkili = yetkililer?.find(oneYetkili => oneYetkili.userEmail === oneYapabilen)
+                  let yetkili = yetkililer?.find(oneYetkili => oneYetkili.userEmail === oneYapabilen?.userEmail)
 
                   return (
                     <Box key={index} sx={{ ...enUstBaslik_css, borderLeft: "1px solid black", justifyContent: "center" }}>
-                      <Tooltip placement="top" title={yetkili.isim + " " + yetkili.soyisim}>
+                      <Tooltip placement="bottom" title={yetkili.isim + " " + yetkili.soyisim}>
                         <Box>
-                          {yetkililer?.find(oneYetkili => oneYetkili.userEmail === oneYapabilen).userCode}
+                          {yetkililer?.find(oneYetkili => oneYetkili.userEmail === oneYapabilen.userEmail).userCode}
                         </Box>
                       </Tooltip>
                     </Box>
@@ -314,7 +309,7 @@ export default function P_MetrajOnaylaPozlar() {
                   {onayNodeMetraj &&
                     <>
                       <Box> </Box>
-                      {showMetrajYapabilenler?.map((oneYapabilen, index) => {
+                      {showMetrajYapabilenler?.filter(x => x.isShow).map((oneYapabilen, index) => {
                         return (
                           <Box key={index} sx={{ ...wbsBaslik_css2, borderLeft: "1px solid black", justifyContent: "center" }}>
 
@@ -392,13 +387,13 @@ export default function P_MetrajOnaylaPozlar() {
                       {onayNodeMetraj &&
                         <>
                           <Box> </Box>
-                          {showMetrajYapabilenler?.map((oneYapabilen, index) => {
+                          {showMetrajYapabilenler?.filter(x => x.isShow).map((oneYapabilen, index) => {
                             return (
                               <Box key={index} onDoubleClick={() => goTo_MetrajPozmahaller(onePoz)} sx={{ ...pozNo_css, justifyContent: "end", cursor: "pointer", backgroundColor: "rgba(255, 251, 0, 0.55)", display: "grid", gridTemplateColumns: "1rem 1fr", "&:hover": { "& .childClass": { backgroundColor: "red" } } }}>
                                 <Box className="childClass" sx={{ color: "rgba(255, 251, 0, 0.55)", ml: "-1rem", height: "0.5rem", width: "0.5rem", borderRadius: "50%" }}>
                                 </Box>
                                 <Box sx={{ justifySelf: "end" }}>
-                                  {ikiHane(onePoz?.hazirlananMetrajlar.find(x => x.userEmail === oneYapabilen)?.metraj)}
+                                  {ikiHane(onePoz?.hazirlananMetrajlar.find(x => x.userEmail === oneYapabilen.userEmail)?.metraj)}
                                 </Box>
                               </Box>
                             )

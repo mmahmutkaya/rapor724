@@ -32,26 +32,27 @@ export default function ShowMetrajYapabilenler({ setShow }) {
   const [dialogAlert, setDialogAlert] = useState()
 
 
-  const update_state = async ({ userEmail, showValue }) => {
+  const update_state = async ({ userEmail, isShow }) => {
 
     try {
 
-      // frontend de hızlı olsun diye önce bu sonra arkada db güncelleme
-
       let showMetrajYapabilenler2 = _.cloneDeep(showMetrajYapabilenler)
-      if (showValue) {
-        if (!showMetrajYapabilenler2) {
-          showMetrajYapabilenler2 = [userEmail]
-        } else {
-          showMetrajYapabilenler2 = [...showMetrajYapabilenler2, userEmail]
-        }
+
+      if (!showMetrajYapabilenler2) {
+        showMetrajYapabilenler2 = [{ userEmail, isShow }]
+
+      } else if (showMetrajYapabilenler2?.find(x => x.userEmail === userEmail)) {
+        showMetrajYapabilenler2 = showMetrajYapabilenler2.map(oneYapabilen => {
+          if (oneYapabilen.userEmail === userEmail) {
+            oneYapabilen.isShow = isShow
+          }
+          return oneYapabilen
+        })
+
       } else {
-        if (!showMetrajYapabilenler2) {
-          return
-        } else {
-          showMetrajYapabilenler2 = showMetrajYapabilenler2.filter(x => x !== userEmail)
-        }
+        showMetrajYapabilenler2 = [...showMetrajYapabilenler2, { userEmail, isShow }]
       }
+
       setShowMetrajYapabilenler(showMetrajYapabilenler2)
       // console.log("showMetrajYapabilenler2", showMetrajYapabilenler2)
 
@@ -73,28 +74,6 @@ export default function ShowMetrajYapabilenler({ setShow }) {
     }
 
   }
-
-
-  // const save_db = async () => {
-  //   try {
-  //     console.log("deneme")
-  //     // db ye gönderme işlemi
-  //     await RealmApp?.currentUser.callFunction("customSettings_update", ({ functionName: "showMetrajYapabilenler", showMetrajYapabilenler }))
-  //     await RealmApp?.currentUser.refreshCustomData()
-
-  //   } catch (err) {
-
-  //     console.log(err)
-
-  //     setDialogAlert({
-  //       dialogIcon: "warning",
-  //       dialogMessage: "Beklenmedik hata, Rapor7/24 ile irtibata geçiniz..",
-  //       detailText: err?.message ? err.message : null
-  //     })
-
-  //   }
-
-  // }
 
 
 
@@ -124,20 +103,24 @@ export default function ShowMetrajYapabilenler({ setShow }) {
 
         <Divider></Divider>
 
-        {metrajYapabilenler.map((oneYapabilen, index) =>
-          <React.Fragment key={index}>
-            <Box sx={{ display: "grid", gridTemplateColumns: "1fr 5rem", alignItems: "center" }}>
-              <Box sx={{ my: "0.2rem", justifySelf: "start" }}>{oneYapabilen.userEmail}</Box>
-              <Box sx={{ justifySelf: "end" }}>
-                <Switch
-                  checked={showMetrajYapabilenler?.find(x => x === oneYapabilen.userEmail) ? true : false}
-                  onChange={() => update_state({ userEmail: oneYapabilen.userEmail, showValue: showMetrajYapabilenler?.find(x => x === oneYapabilen.userEmail) ? false : true })}
-                />
+        {metrajYapabilenler.map((oneYapabilen, index) => {
+          let userValue = showMetrajYapabilenler?.find(x => x.userEmail === oneYapabilen.userEmail)
+          return (
+            <React.Fragment key={index}>
+              <Box sx={{ display: "grid", gridTemplateColumns: "1fr 5rem", alignItems: "center" }}>
+                <Box sx={{ my: "0.2rem", justifySelf: "start" }}>{oneYapabilen.userEmail}</Box>
+                <Box sx={{ justifySelf: "end" }}>
+                  <Switch
+                    checked={userValue?.isShow ? true : false}
+                    onChange={() => update_state({ userEmail: oneYapabilen.userEmail, isShow: userValue?.isShow ? false : true })}
+                  />
+                </Box>
               </Box>
-            </Box>
-            <Divider></Divider>
-          </React.Fragment>
-        )}
+              <Divider></Divider>
+            </React.Fragment>
+          )
+
+        })}
 
 
         {/* <Box sx={{ display: "grid", gridTemplateColumns: "1fr 5rem", alignItems: "center" }}>

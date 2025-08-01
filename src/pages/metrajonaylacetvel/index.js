@@ -27,6 +27,8 @@ import CircleIcon from '@mui/icons-material/Circle';
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import CheckIcon from '@mui/icons-material/Check';
 import LockIcon from '@mui/icons-material/Lock';
+import StarIcon from '@mui/icons-material/Star';
+import ReplyIcon from '@mui/icons-material/Reply';
 
 
 
@@ -39,12 +41,17 @@ export default function P_MetrajCetveliOnaylanan() {
   const yetkililer = selectedProje?.yetki.yetkililer
 
   const [dialogAlert, setDialogAlert] = useState()
-  const [show, setShow] = useState("DugumMetrajlari")
-  const [showOriginal, setShowOriginal] = useState()
-  const [isChanged, setIsChanged] = useState(0)
+  const [show, setShow] = useState("Main")
+  const [showDeActive, setShowDeActive] = useState()
+  const [isChanged, setIsChanged] = useState()
   const [onaylananMetraj_state, setOnaylananMetraj_state] = useState()
   const [onaylananMetraj_backUp, setOnaylananMetraj_backUp] = useState()
+  const [hasDeActive, setHasDeActive] = useState()
   const [_pozId] = useState()
+  const [isChanged_revize, setIsChanged_revize] = useState()
+  const [revizeIptalSatirNolar, setRevizeIptalSatirNolar] = useState([])
+  const [deActiveIptalSatirNolar, setDeActiveIptalSatirNolar] = useState([])
+  // const [isHovered, setIsHovered] = useState(false);
 
 
   let pozBirim
@@ -53,16 +60,21 @@ export default function P_MetrajCetveliOnaylanan() {
   // const { data: onaylananMetraj } = useGetOnaylananMetraj()
   const { data: onaylananMetraj } = useGetOnaylananMetraj()
 
-
-
   const navigate = useNavigate()
   useEffect(() => {
     !selectedNode_metraj && navigate("/metrajonaylapozlar")
     setOnaylananMetraj_state(_.cloneDeep(onaylananMetraj))
     setOnaylananMetraj_backUp(_.cloneDeep(onaylananMetraj))
+    setHasDeActive(onaylananMetraj?.satirlar.find(x => x.isDeactive) ? true : false)
   }, [onaylananMetraj])
 
 
+
+
+
+
+
+  // METRAJ REVİZE ETME FONKSİYONLARI
 
   // Edit Metraj Sayfasının Fonksiyonu
   const handle_input_onKey = async (event) => {
@@ -152,32 +164,24 @@ export default function P_MetrajCetveliOnaylanan() {
 
 
 
-  const cancel = () => {
-    // queryClient.invalidateQueries(['onaylananMetraj'])
-    setOnaylananMetraj_state(_.cloneDeep(onaylananMetraj_backUp))
-    setIsChanged()
-    setShow("DugumMetrajlari")
-  }
 
 
-
-  // Edit Metraj Sayfasının Fonksiyonu
   const save = async () => {
 
     if (isChanged) {
       try {
-        console.log("onaylananMetraj_state",onaylananMetraj_state)
         // db deki 'hazırlananMetrajlar' isimli 'collection' daki ilgili 'document' içinde ilgil satırlarda revize olduğunu belirtiyoruz, onaylılardan kaldırılamasın, kitlemek için veri opluyoruz - changed olmuş ve used ise 
-        // db ye göndereeğimiz 'revizeEdilenler' henüz hiç oluşmamışsa
         let deActiveSatirlar = onaylananMetraj_state.satirlar.filter(x => x.isDeactive)
         let revizeEdilenler
-        
+
         if (deActiveSatirlar.length > 0) {
 
           deActiveSatirlar.map(oneRow => {
 
             let userCode = oneRow.satirNo.substring(0, oneRow.satirNo.indexOf("-"))
             let userEmail = yetkililer.find(x => x.userCode === userCode).userEmail
+
+            // db ye göndereeğimiz 'revizeEdilenler' henüz hiç oluşmamışsa
             if (!revizeEdilenler) {
               revizeEdilenler = [{ userEmail, satirNolar: [oneRow.satirNo] }]
 
@@ -199,7 +203,7 @@ export default function P_MetrajCetveliOnaylanan() {
         }
 
         await RealmApp?.currentUser.callFunction("update_onaylananMetrajCetveli", ({ _dugumId: selectedNode_metraj._id, onaylananMetraj_state, revizeEdilenler }))
-        setShow("DugumMetrajlari")
+        setShow("Main")
         queryClient.invalidateQueries(['onaylananMetrajlar', selectedNode_metraj?._id.toString()])
         setIsChanged()
         return
@@ -218,6 +222,128 @@ export default function P_MetrajCetveliOnaylanan() {
     }
 
   }
+
+
+
+  const cancel = () => {
+    // queryClient.invalidateQueries(['onaylananMetraj'])
+    setOnaylananMetraj_state(_.cloneDeep(onaylananMetraj_backUp))
+    setIsChanged()
+    setShow("Main")
+  }
+
+
+
+
+
+
+
+
+
+  // REVİZELERİ GERİ ALMA FONKSİYONLARI
+
+  const update_state_revizeGeri = (iptalRow) => {
+    if (!isChanged_revize) {
+      setIsChanged_revize(true)
+    }
+
+    let onaylananMetraj_state2 = _.cloneDeep(onaylananMetraj_state)
+
+    onaylananMetraj_state2["metraj"] = Number(onaylananMetraj_state2["metraj"]) - Number(iptalRow["metraj"])
+
+    onaylananMetraj_state2.satirlar = onaylananMetraj_state2.satirlar.filter(x => x.satirNo !== iptalRow.satirNo)
+
+
+    let aktifEdilecekSatirNo = iptalRow.satirNo.substring(0, iptalRow.satirNo.indexOf("."))
+    onaylananMetraj_state2.satirlar = onaylananMetraj_state2.satirlar.map(oneRow => {
+      if (oneRow.satirNo === aktifEdilecekSatirNo) {
+        oneRow.isDeactive = false
+        onaylananMetraj_state2["metraj"] = Number(onaylananMetraj_state2["metraj"]) + Number(oneRow["metraj"])
+      }
+      return oneRow
+    })
+
+
+    // db ye hazırlık - save_revize fonksiyonunda kullanılacak
+    setDeActiveIptalSatirNolar(satirNolar => {
+      if (!satirNolar?.find(x => x === aktifEdilecekSatirNo)) {
+        satirNolar = [...satirNolar, aktifEdilecekSatirNo]
+      }
+      return satirNolar
+    })
+
+    setHasDeActive(onaylananMetraj_state2?.satirlar.find(x => x.isDeactive) ? true : false)
+    setOnaylananMetraj_state(onaylananMetraj_state2)
+
+  }
+
+
+  const cancel_revize = () => {
+    setOnaylananMetraj_state(_.cloneDeep(onaylananMetraj_backUp))
+    setHasDeActive(onaylananMetraj_state?.satirlar.find(x => x.isDeactive) ? true : false)
+    setIsChanged_revize()
+    setShow("Main")
+  }
+
+
+  const save_revize = async () => {
+
+
+    try {
+
+      // db deki 'hazırlananMetrajlar' isimli 'collection' daki ilgili 'document' içinde ilgil satırlarda revizenin iptal olduğunu belirtiyoruz, onaylılardan artık kaldırılabilir, kilitli değil
+
+      let revizeEdilenler
+      if (deActiveIptalSatirNolar.length > 0) {
+
+        deActiveIptalSatirNolar.map(satirNo => {
+
+          let userCode = satirNo.substring(0, satirNo.indexOf("-"))
+          let userEmail = yetkililer.find(x => x.userCode === userCode).userEmail
+          // db ye göndereeğimiz 'revizeEdilenler' henüz hiç oluşmamışsa
+          if (!revizeEdilenler) {
+            revizeEdilenler = [{ userEmail, satirNolar: [satirNo] }]
+
+            //  db ye göndereeğimiz 'revizeEdilenler' - oluşmuşsa ve oluşturan kullanıcı da varsa
+          } else if (revizeEdilenler?.find(x => x.userEmail === userEmail)) {
+            revizeEdilenler = revizeEdilenler.map(oneActiveEdilen => {
+              if (oneActiveEdilen.userEmail === userEmail) {
+                oneActiveEdilen.satirNolar = [...oneActiveEdilen.satirNolar, satirNo]
+              }
+              return oneActiveEdilen
+            })
+
+            //  db ye göndereeğimiz 'revizeEdilenler' - oluşmuşsa fakat kullanıcınınki henüz yoksa
+          } else {
+            revizeEdilenler = [...revizeEdilenler, { userEmail, satirNolar: [satirNo] }]
+          }
+        })
+
+      }
+
+      await RealmApp?.currentUser.callFunction("update_onaylananMetraj_revizeIptal", ({ _dugumId: selectedNode_metraj._id, onaylananMetraj_state, revizeEdilenler }))
+      setShow("Main")
+      queryClient.invalidateQueries(['onaylananMetrajlar', selectedNode_metraj?._id.toString()])
+      setIsChanged_revize()
+      return
+
+    } catch (error) {
+
+      console.log(error)
+
+      setDialogAlert({
+        dialogIcon: "warning",
+        dialogMessage: "Beklenmedik hata, Rapor7/24 ile irtibata geçiniz..",
+        detailText: error?.message ? error.message : null
+      })
+
+    }
+
+    setHasDeActive(onaylananMetraj_state?.satirlar.find(x => x.isDeactive) ? true : false)
+    setIsChanged_revize()
+  }
+
+
 
 
 
@@ -294,10 +420,15 @@ export default function P_MetrajCetveliOnaylanan() {
       <Grid name="metrajCetveliHeader" item sx={{ mt: (parseFloat(subHeaderHeight) + 1) + "rem", }}>
         <HeaderMetrajCetveliOnaylanan
           show={show} setShow={setShow}
-          showOriginal={showOriginal} setShowOriginal={setShowOriginal}
-          save={save}
-          cancel={cancel}
+          showDeActive={showDeActive} setShowDeActive={setShowDeActive}
+
+          save={save} cancel={cancel}
           isChanged={isChanged} setIsChanged={setIsChanged}
+
+          hasDeActive={hasDeActive}
+          onaylananMetraj_state={onaylananMetraj_state}
+          save_revize={save_revize} cancel_revize={cancel_revize}
+          isChanged_revize={isChanged_revize} setIsChanged_revize={setIsChanged_revize}
         />
       </Grid>
 
@@ -370,7 +501,7 @@ export default function P_MetrajCetveliOnaylanan() {
           </React.Fragment>
 
 
-          {onaylananMetraj_state.satirlar.filter(x => showOriginal ? x : !x.isDeactive).sort((a, b) => a.siraNo - b.siraNo).map((oneRow, index) => {
+          {onaylananMetraj_state.satirlar.filter(x => showDeActive ? x : !x.isDeactive).sort((a, b) => a.siraNo - b.siraNo).map((oneRow, index) => {
             return (
               < React.Fragment key={index}>
 
@@ -439,7 +570,7 @@ export default function P_MetrajCetveliOnaylanan() {
                       {!isCellEdit &&
                         <Box sx={{
                           ...css_metrajCetveliSatir,
-                          backgroundColor: showOriginal && oneRow?.isUsed && !oneRow.isEdit && myTema.renkler.inaktifGri,
+                          backgroundColor: showDeActive && oneRow?.isUsed && !oneRow.isEdit && myTema.renkler.inaktifGri,
                           justifyContent: (oneProperty.includes("satirNo") || oneProperty.includes("aciklama")) ? "start" : oneProperty.includes("carpan") ? "end" : oneProperty.includes("metraj") ? "end" : "center",
                           minWidth: oneProperty.includes("carpan") ? "5rem" : oneProperty.includes("metraj") ? "5rem" : null,
                           color: isMinha ? "red" : null,
@@ -456,21 +587,31 @@ export default function P_MetrajCetveliOnaylanan() {
 
                 <Box></Box>
 
-                <Box sx={{
-                  // backgroundColor: oneRow.isUsed ? null : "rgba(255,255,0, 0.3)",
-                  // backgroundColor: "rgba(255,255,0, 0.3)",
-                  cursor: "pointer",
-                  display: "grid",
-                  alignItems: "center",
-                  justifyItems: "center",
-                  px: "0.3rem",
-                  border: "1px solid black"
-                }}>
+                <Box
+                  onClick={() => showDeActive && oneRow.isEdit && update_state_revizeGeri(oneRow)}
+                  // onMouseEnter={() => showDeActive && setIsHovered(true)}
+                  // onMouseLeave={() => showDeActive && setIsHovered(false)}
+                  sx={{
+                    // backgroundColor: oneRow.isUsed ? null : "rgba(255,255,0, 0.3)",
+                    // backgroundColor: "rgba(255,255,0, 0.3)",
+                    cursor: "pointer",
+                    display: "grid",
+                    alignItems: "center",
+                    justifyItems: "center",
+                    px: "0.3rem",
+                    border: "1px solid black",
+                  }}
+                >
                   {oneRow.isUsed && !oneRow.isEdit &&
-                    <LockIcon variant="contained" sx={{ color: "gray", fontSize: "1rem" }} />
+                    <LockIcon
+                      variant="contained"
+                      sx={{ color: oneRow.isDeactive ? "rgba(255, 132, 0, 1)" : "gray", fontSize: "0.9rem" }} />
                   }
-                  {oneRow.isEdit &&
-                    <HourglassFullSharpIcon variant="contained" sx={{ color: "rgba( 255,165,0, 1 )", fontSize: "0.95rem" }} />
+                  {!showDeActive && oneRow.isEdit &&
+                    <StarIcon variant="contained" sx={{ color: "rgba(255, 132, 0, 1)", fontSize: "0.9rem" }} />
+                  }
+                  {showDeActive && oneRow.isEdit &&
+                    <ReplyIcon variant="contained" sx={{ color: "rgba(255, 132, 0, 1)", fontSize: "0.9rem" }} />
                   }
                 </Box>
 
