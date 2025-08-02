@@ -55,7 +55,7 @@ exports = async function ({
         usedSatirlar = satirlar.filter(x => x.isUsed)
         newSatirlar.map(x => {
           if(usedSatirlar.find(y => y.satirNo === x.satirNo)){
-             throw new Error("MONGO // update_hazirlananMetrajlar // __mesajBaslangic__Önceden oluşturmuş olduğunuz bazı satırlar onaylı tarafa alınmış ve değerlendiriliyor, değişiklikleriniz kaydedilmedi, yeni satırlar ekleyerek devam edebilirsiniz.__mesajBitis__ ");
+             throw new Error("MONGO // update_hazirlananMetrajlar // __mesajBaslangic__Önceden oluşturmuş olduğunuz bazı satırlar onaylı tarafa alınmış ve değerlendiriliyor, değişiklikleriniz kaydedilmedi.__mesajBitis__ ");
           }
         })
         
