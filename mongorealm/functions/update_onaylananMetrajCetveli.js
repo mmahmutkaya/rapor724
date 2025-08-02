@@ -1,7 +1,8 @@
 exports = async function ({
   _dugumId,
   onaylananMetraj_state,
-  hazirlananMetrajlar_isPasif
+  hazirlananMetrajlar_isLock_true,
+  hazirlananMetrajlar_isLock_false
 }) {
 
 
@@ -25,8 +26,8 @@ exports = async function ({
     throw new Error("MONGO // updateDugumler_onaylananMetraj // 'onaylananMetraj_state' verisi db sorgusuna gelmedi");
   }
 
-  if (!hazirlananMetrajlar_isPasif) {
-    throw new Error("MONGO // updateDugumler_onaylananMetraj // 'hazirlananMetrajlar_isPasif' verisi db sorgusuna gelmedi");
+  if (!(hazirlananMetrajlar_isLock_false || hazirlananMetrajlar_isLock_true)) {
+    throw new Error("MONGO // updateDugumler_onaylananMetraj // 'hazirlananMetrajlar_isLock_false veya hazirlananMetrajlar_isLock_true' verisi db sorgusuna gelmedi");
   }
 
 
@@ -96,14 +97,14 @@ exports = async function ({
   try {
 
     let bulkArray1
-    if (hazirlananMetrajlar_isPasif) {
+    if (hazirlananMetrajlar_isLock_true) {
 
-      bulkArray1 = hazirlananMetrajlar_isPasif.map(oneRevizeEdilen => {
+      bulkArray1 = hazirlananMetrajlar_isLock_true.map(oneRevizeEdilen => {
         return (
           {
             updateOne: {
               filter: { _dugumId, userEmail: oneRevizeEdilen.userEmail },
-              update: { $set: { "satirlar.$[elem].isPasif": true } },
+              update: { $set: { "satirlar.$[elem].isLock": true } },
               arrayFilters: [
                 { "elem.satirNo": { $in: oneRevizeEdilen.satirNolar } },
               ]
@@ -114,32 +115,32 @@ exports = async function ({
 
     }
 
-    // let bulkArray2
-    // if (hazirlananlar_unUsed) {
+    let bulkArray2
+    if (hazirlananMetrajlar_isLock_false) {
 
-    //   bulkArray2 = hazirlananlar_unUsed.map(oneHazirlanan => {
-    //     return (
-    //       {
-    //         updateOne: {
-    //           filter: { _dugumId, userEmail: oneHazirlanan.userEmail },
-    //           update: { $set: { "satirlar.$[elem].isUsed": false } },
-    //           arrayFilters: [
-    //             { "elem.satirNo": { $in: oneHazirlanan.satirNolar } },
-    //           ]
-    //         }
-    //       }
-    //     )
-    //   })
+      bulkArray2 = hazirlananMetrajlar_isLock_false.map(oneHazirlanan => {
+        return (
+          {
+            updateOne: {
+              filter: { _dugumId, userEmail: oneHazirlanan.userEmail },
+              update: { $set: { "satirlar.$[elem].isUsed": false } },
+              arrayFilters: [
+                { "elem.satirNo": { $in: oneHazirlanan.satirNolar } },
+              ]
+            }
+          }
+        )
+      })
 
-    // }
+    }
 
     let bulkArray = []
     if (bulkArray1) {
       bulkArray = [...bulkArray, ...bulkArray1]
     }
-    // if (bulkArray2) {
-    //   bulkArray = [...bulkArray, ...bulkArray2]
-    // }
+    if (bulkArray2) {
+      bulkArray = [...bulkArray, ...bulkArray2]
+    }
 
 
     if (bulkArray.length > 0) {
