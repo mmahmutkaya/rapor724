@@ -1,7 +1,7 @@
 exports = async function ({
   _dugumId,
   onaylananMetraj_state,
-  revizeEdilenler
+  hazirlananMetrajlar_isPasif
 }) {
 
 
@@ -25,8 +25,8 @@ exports = async function ({
     throw new Error("MONGO // updateDugumler_onaylananMetraj // 'onaylananMetraj_state' verisi db sorgusuna gelmedi");
   }
 
-  if (!revizeEdilenler) {
-    throw new Error("MONGO // updateDugumler_onaylananMetraj // 'revizeEdilenler' verisi db sorgusuna gelmedi");
+  if (!hazirlananMetrajlar_isPasif) {
+    throw new Error("MONGO // updateDugumler_onaylananMetraj // 'hazirlananMetrajlar_isPasif' verisi db sorgusuna gelmedi");
   }
 
 
@@ -96,14 +96,14 @@ exports = async function ({
   try {
 
     let bulkArray1
-    if (revizeEdilenler) {
+    if (hazirlananMetrajlar_isPasif) {
 
-      bulkArray1 = revizeEdilenler.map(oneRevizeEdilen => {
+      bulkArray1 = hazirlananMetrajlar_isPasif.map(oneRevizeEdilen => {
         return (
           {
             updateOne: {
               filter: { _dugumId, userEmail: oneRevizeEdilen.userEmail },
-              update: { $set: { "satirlar.$[elem].isRevize": true } },
+              update: { $set: { "satirlar.$[elem].isPasif": true } },
               arrayFilters: [
                 { "elem.satirNo": { $in: oneRevizeEdilen.satirNolar } },
               ]
