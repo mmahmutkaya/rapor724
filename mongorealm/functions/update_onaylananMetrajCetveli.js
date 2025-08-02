@@ -150,6 +150,8 @@ exports = async function ({
       )
     }
 
+    return bulkArray
+    
   } catch (error) {
     throw new Error({ hatayeri: "MONGO // update_onaylananMetraj // hazirlanan metrajlar isUsed guncelleme //", error });
   }
