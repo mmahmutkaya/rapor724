@@ -1,8 +1,8 @@
 exports = async function ({
   _dugumId,
   onaylananMetraj_state,
-  hazirlananMetrajlar_isLock_true,
-  hazirlananMetrajlar_isLock_false
+  satirNolar_lock,
+  satirNolar_unlock
 }) {
 
 
@@ -26,8 +26,8 @@ exports = async function ({
     throw new Error("MONGO // updateDugumler_onaylananMetraj // 'onaylananMetraj_state' verisi db sorgusuna gelmedi");
   }
 
-  if (!(hazirlananMetrajlar_isLock_false || hazirlananMetrajlar_isLock_true)) {
-    throw new Error("MONGO // updateDugumler_onaylananMetraj // 'hazirlananMetrajlar_isLock_false veya hazirlananMetrajlar_isLock_true' verisi db sorgusuna gelmedi");
+  if (!(satirNolar_unlock || satirNolar_lock)) {
+    throw new Error("MONGO // updateDugumler_onaylananMetraj // 'satirNolar_unlock veya satirNolar_lock' verisi db sorgusuna gelmedi");
   }
 
 
@@ -97,9 +97,9 @@ exports = async function ({
   try {
 
     let bulkArray1
-    if (hazirlananMetrajlar_isLock_true) {
+    if (satirNolar_lock) {
 
-      bulkArray1 = hazirlananMetrajlar_isLock_true.map(oneRevizeEdilen => {
+      bulkArray1 = satirNolar_lock.map(oneRevizeEdilen => {
         return (
           {
             updateOne: {
@@ -116,9 +116,9 @@ exports = async function ({
     }
 
     let bulkArray2
-    if (hazirlananMetrajlar_isLock_false) {
+    if (satirNolar_unlock) {
 
-      bulkArray2 = hazirlananMetrajlar_isLock_false.map(oneHazirlanan => {
+      bulkArray2 = satirNolar_unlock.map(oneHazirlanan => {
         return (
           {
             updateOne: {
