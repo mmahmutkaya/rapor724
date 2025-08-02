@@ -123,7 +123,7 @@ exports = async function ({
           {
             updateOne: {
               filter: { _dugumId, userEmail: oneHazirlanan.userEmail },
-              update: { $set: { "satirlar.$[elem].isUsed": false } },
+              update: { $set: { "satirlar.$[elem].isLock": false } },
               arrayFilters: [
                 { "elem.satirNo": { $in: oneHazirlanan.satirNolar } },
               ]
