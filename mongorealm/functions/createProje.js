@@ -189,7 +189,6 @@ exports = async function ({
       _id: result_newProje.insertedId,
       _firmaId,
       name: projeName,
-      yetkiliKisiler: [{ email: userEmail, yetki: "owner" }],
       yetkiliFirmalar: [{ _firmaId, yetki: "owner" }]
     }
 
