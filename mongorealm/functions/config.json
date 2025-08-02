@@ -336,12 +336,6 @@
         "disable_arg_logs": true
     },
     {
-        "name": "createProject",
-        "private": false,
-        "run_as_system": true,
-        "disable_arg_logs": true
-    },
-    {
         "name": "0_TRIGGER_userCreate_DISABLE",
         "private": true
     },
