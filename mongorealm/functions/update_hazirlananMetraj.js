@@ -53,6 +53,12 @@ exports = async function ({
 
         // onayliMetrajlarda kullanılmış olanları koruyalım, yukaroda filtre ettik çünkü gelen verilerden
         usedSatirlar = satirlar.filter(x => x.isUsed)
+        newSatirlar.map(x => {
+          if(usedSatirlar.find(y => y.SatirNo === x.satirNo)){
+             throw new Error("MONGO // update_hazirlananMetrajlar // Önceden oluşturmuş olduğunuz bazı satırlar onaylı tarafa alınmış ve değerlendiriliyor, değişiklikleriniz kaydedilmedi, yeni satırlar ekleyerek devam edebilirsiniz.");
+          }
+        })
+        
         newSatirlar = [...usedSatirlar, ...newSatirlar]
 
       }
