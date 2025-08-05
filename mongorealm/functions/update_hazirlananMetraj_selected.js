@@ -36,8 +36,8 @@ exports = async function ({
   const collection_HazirlananMetrajlar = context.services.get("mongodb-atlas").db("rapor724_v2").collection("hazirlananMetrajlar")
   const collection_Dugumler = context.services.get("mongodb-atlas").db("rapor724_v2").collection("dugumler")
 
-  const proje = collection_Projeler.findOne({ _id: _projeId })
-  const metrajYapabilenler = proje.yetki.metrajYapabilenler
+  const proje = await collection_Projeler.findOne({ _id: _projeId })
+  // const {metrajYapabilenler} = proje.yetki
 
 
 
