@@ -66,8 +66,6 @@ exports = async function ({
       }
     ]).toArray()
 
-    return {pozlar,pozlar2}
-
 
     let { metrajYapabilenler } = proje.yetki
 
