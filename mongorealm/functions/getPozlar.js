@@ -66,7 +66,7 @@ exports = async function ({
       }
     ]).toArray()
 
-
+ 
     let { metrajYapabilenler } = proje.yetki
 
 
@@ -87,7 +87,7 @@ exports = async function ({
         onePoz.hazirlananMetrajlar = metrajYapabilenler.map(oneYapabilen => {
           let toplam = 0
           onePoz2.hazirlananMetrajlar.map(oneArray => {
-            toplam = oneArray.find(x => x.userEmail === oneYapabilen.userEmail)?.metraj + toplam
+            toplam = Number(oneArray.find(x => x.userEmail === oneYapabilen.userEmail)?.metraj) + Number(toplam)
           })
           return ({
             userEmail: oneYapabilen.userEmail,
