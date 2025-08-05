@@ -76,7 +76,7 @@ exports = async function ({
 
     // processItems();
 
-    return results
+    return result
 
   // } catch (error) {
   //   throw new Error({ hatayeri: "MONGO // update_hazirlananMetraj_selected // hazirlanan metrajlar güncelleme", error });
