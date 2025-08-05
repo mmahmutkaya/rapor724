@@ -63,6 +63,7 @@ exports = async function ({
           if (lockedSatirlar?.find(y => y.satirNo === newSatir.satirNo)) {
             throw new Error("MONGO // update_hazirlananMetrajlar // __mesajBaslangic__Önceden oluşturmuş olduğunuz bazı satırlar onaylı tarafa alınmış ve değerlendiriliyor, değişiklikleriniz kaydedilmedi.__mesajBitis__ ");
           }
+          return newSatir
         })
 
         newSatirlar = [...lockedSatirlar, ...newSatirlar]
