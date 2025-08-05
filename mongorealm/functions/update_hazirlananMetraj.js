@@ -33,7 +33,7 @@ exports = async function ({
 
 
 
-  let { metraj: newMetraj } = hazirlananMetraj_state
+  let metraj = 0
 
 
   try {
@@ -53,9 +53,12 @@ exports = async function ({
 
         // onayliMetrajlarda kullanılmış olanları koruyalım, yukaroda filtre ettik çünkü gelen verilerden
         lockedSatirlar = satirlar.filter(x => x.isLock)
-        newSatirlar.map(x => {
-          if(lockedSatirlar.find(y => y.satirNo === x.satirNo)){
+        newSatirlar.map(newSatir => {
+          if(lockedSatirlar.find(y => y.satirNo === newSatir.satirNo)){
              throw new Error("MONGO // update_hazirlananMetrajlar // __mesajBaslangic__Önceden oluşturmuş olduğunuz bazı satırlar onaylı tarafa alınmış ve değerlendiriliyor, değişiklikleriniz kaydedilmedi.__mesajBitis__ ");
+          } else {
+            newSatir._id = ObjectId()
+            newSatir.userEmail = userEmail
           }
         })
         
@@ -65,9 +68,13 @@ exports = async function ({
 
     }
 
+    metraj = newSatirlar.map(oneSatir => {
+      metraj = metraj + oneSatir.metraj
+    })
+
     await collection_hazirlananMetrajlar.updateOne(
       { _dugumId, userEmail },
-      { $set: { satirlar: newSatirlar, metraj: newMetraj } },
+      { $set: { satirlar: newSatirlar, metraj } },
       { upsert: true }
     )
 
@@ -92,19 +99,19 @@ exports = async function ({
 
       hazirlananMetrajlar = hazirlananMetrajlar.map(x => {
         if (x.userEmail === userEmail) {
-          x.metraj = newMetraj
+          x.metraj = metraj
           isUpdated = true
         }
         return x
       })
 
       if (!isUpdated) {
-        hazirlananMetrajlar = [...hazirlananMetrajlar, { userEmail, metraj: newMetraj }]
+        hazirlananMetrajlar = [...hazirlananMetrajlar, { userEmail, metraj }]
       }
 
     } else {
 
-      hazirlananMetrajlar = [{ userEmail, metraj: newMetraj }]
+      hazirlananMetrajlar = [{ userEmail, metraj }]
 
     }
 
