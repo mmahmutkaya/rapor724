@@ -39,8 +39,8 @@ exports = async function ({
   try {
 
     let { satirlar: newSatirlar } = hazirlananMetraj_state
-    // frontend kısmında isUsed revize edilemez ama ilave güvenlik önlemi
-    newSatirlar = newSatirlar.filter(x => !x.isUsed)
+
+    newSatirlar = newSatirlar.filter(x => !x.isLock)
 
 
     const hazirlananMetraj = await collection_hazirlananMetrajlar.findOne({ _dugumId, userEmail })
@@ -52,14 +52,14 @@ exports = async function ({
       if (satirlar) {
 
         // onayliMetrajlarda kullanılmış olanları koruyalım, yukaroda filtre ettik çünkü gelen verilerden
-        usedSatirlar = satirlar.filter(x => x.isUsed)
+        lockedSatirlar = satirlar.filter(x => x.isLock)
         newSatirlar.map(x => {
-          if(usedSatirlar.find(y => y.satirNo === x.satirNo)){
+          if(lockedSatirlar.find(y => y.satirNo === x.satirNo)){
              throw new Error("MONGO // update_hazirlananMetrajlar // __mesajBaslangic__Önceden oluşturmuş olduğunuz bazı satırlar onaylı tarafa alınmış ve değerlendiriliyor, değişiklikleriniz kaydedilmedi.__mesajBitis__ ");
           }
         })
         
-        newSatirlar = [...usedSatirlar, ...newSatirlar]
+        newSatirlar = [...lockedSatirlar, ...newSatirlar]
 
       }
 

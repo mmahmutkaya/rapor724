@@ -50,24 +50,27 @@ exports = async function ({
   try {
 
     let { satirlar: newSatirlar } = onaylananMetraj_state
+    let newSatirlarUnLocked
     // versiyon yayınlanınca alttaki kullanılacak
     // newSatirlar = newSatirlar.filter(x => !x.onayli)
 
 
-    // const onaylananMetraj = await collection_onaylananMetrajlar.findOne({ _dugumId })
+    const onaylananMetraj = await collection_onaylananMetrajlar.findOne({ _dugumId })
 
     // versiyon yayınlanınca alttaki kullanılacak, şu an direk geleni yapıştırıyoruz
-    // if (onaylananMetraj) {
+    if (onaylananMetraj) {
 
-    //   let { satirlar } = onaylananMetraj
+      let { satirlar:oldSatirlar } = onaylananMetraj
+      let oldSatirlarLocked = oldSatirlar.filter(x => x.isLock)
 
-    //   if (satirlar) {
-    //     satirlar = satirlar.filter(x => x.onayli)
-    //     newSatirlar = [...satirlar, ...newSatirlar]
+      
+      if (satirlar) {
+        satirlar = satirlar.filter(x => x.onayli)
+        newSatirlar = [...satirlar, ...newSatirlar]
 
-    //   }
+      }
 
-    // }
+    }
 
     await collection_onaylananMetrajlar.updateOne(
       { _dugumId },
