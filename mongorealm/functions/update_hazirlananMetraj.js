@@ -44,7 +44,9 @@ exports = async function ({
     newSatirlar = newSatirlar.map(newSatir => {
       newSatir.userEmail = userEmail
       newSatir._id = new BSON.ObjectId()
+      return newSatir
     })
+
 
 
     const hazirlananMetraj = await collection_hazirlananMetrajlar.findOne({ _dugumId, userEmail })
