@@ -41,7 +41,7 @@ export default function P_HeaderMetrajOnaylaCetvel({
   isChanged, cancel, save,
   hasDeActive,
   showDeActive, setShowDeActive,
-  isChanged_revize, cancel_revize, save_revize
+  isChanged_unLock, cancel_unLock, save_unLock
 }) {
 
   const navigate = useNavigate()
@@ -54,7 +54,7 @@ export default function P_HeaderMetrajOnaylaCetvel({
 
   const [showEminMisin, setShowEminMisin] = useState(false)
 
-  const [showEminMisin_revize, setShowEminMisin_revize] = useState(false)
+  const [showEminMisin_unLock, setShowEminMisin_unLock] = useState(false)
 
 
   return (
@@ -77,17 +77,17 @@ export default function P_HeaderMetrajOnaylaCetvel({
 
 
 
-      {showEminMisin_revize &&
+      {showEminMisin_unLock &&
         <DialogAlert
           dialogIcon={"warning"}
           dialogMessage={"Yaptığınız değişiklikleri kaybedeceksiniz ?"}
-          onCloseAction={() => setShowEminMisin_revize()}
+          onCloseAction={() => setShowEminMisin_unLock()}
           actionText1={"İptal"}
-          action1={() => setShowEminMisin_revize()}
+          action1={() => setShowEminMisin_unLock()}
           actionText2={"Onayla"}
           action2={() => {
-            cancel_revize()
-            setShowEminMisin_revize()
+            cancel_unLock()
+            setShowEminMisin_unLock()
           }}
         />
       }
@@ -137,7 +137,7 @@ export default function P_HeaderMetrajOnaylaCetvel({
 
 
 
-              {show == "Main" && !isChanged_revize &&
+              {show == "Main" && !isChanged_unLock &&
                 <>
                   <Grid item >
                     <IconButton onClick={() => {
@@ -199,14 +199,14 @@ export default function P_HeaderMetrajOnaylaCetvel({
 
 
 
-              {isChanged_revize &&
+              {isChanged_unLock &&
 
                 <>
 
                   <Grid item >
                     <IconButton onClick={() => {
-                      if (isChanged_revize) {
-                        setShowEminMisin_revize(true)
+                      if (isChanged_unLock) {
+                        setShowEminMisin_unLock(true)
                       } else {
                         setShow("Main")
                       }
@@ -216,7 +216,7 @@ export default function P_HeaderMetrajOnaylaCetvel({
                   </Grid>
 
                   <Grid item >
-                    <IconButton onClick={() => save_revize()} disabled={!isChanged_revize}>
+                    <IconButton onClick={() => save_unLock()} disabled={!isChanged_unLock}>
                       <SaveIcon variant="contained" />
                     </IconButton>
                   </Grid>

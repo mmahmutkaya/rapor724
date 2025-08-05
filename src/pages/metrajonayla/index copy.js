@@ -51,10 +51,14 @@ export default function P_MetrajOnay() {
 
   const [dialogAlert, setDialogAlert] = useState()
   const [show, setShow] = useState("DugumMetrajlari")
+  const [approveMode, setApproveMode] = useState()
   const [isChanged, setIsChanged] = useState()
 
   const [hazirlananMetrajlar_state, setHazirlananMetrajlar_state] = useState()
+  const [onaylananMetraj_state, setOnaylananMetraj_state] = useState()
+
   const [hazirlananMetrajlar_backUp, setHazirlananMetrajlar_backUp] = useState()
+  const [onaylananMetraj_backUp, setOnaylananMetraj_backUp] = useState()
 
   const [_pozId, set_pozId] = useState()
 
@@ -79,30 +83,48 @@ export default function P_MetrajOnay() {
 
 
   const { data: hazirlananMetrajlar } = useGetHazirlananMetrajlar()
+  const { data: onaylananMetraj } = useGetOnaylananMetraj()
 
 
   const navigate = useNavigate()
   useEffect(() => {
     !selectedNode_metraj && navigate("/metrajpozmahaller")
     setHazirlananMetrajlar_state(_.cloneDeep(hazirlananMetrajlar))
-  }, [hazirlananMetrajlar])
+    setOnaylananMetraj_state(_.cloneDeep(onaylananMetraj.filter(x => !x.satirNo.includes("."))))
+  }, [hazirlananMetrajlar, onaylananMetraj])
 
 
 
-  const handle_satirSec = ({ oneRow, hazirlayan }) => {
+  const handle_satirOnayla = ({ oneRow, hazirlayan }) => {
 
     if (!isChanged) {
       setHazirlananMetrajlar_backUp(_.cloneDeep(hazirlananMetrajlar_state))
+      setOnaylananMetraj_backUp(_.cloneDeep(onaylananMetraj_state))
       setIsChanged(true)
     }
 
+    let onaylananMetraj_state2 = _.cloneDeep(onaylananMetraj_state)
+    let maxNumber = 0
+    onaylananMetraj_state2.satirlar.map(x => {
+      if (x?.siraNo > maxNumber) {
+        maxNumber = x.siraNo
+      }
+    })
+    onaylananMetraj_state2.satirlar = [...onaylananMetraj_state2.satirlar, { ...oneRow, isHazirlanan: true, siraNo: maxNumber + 1 }]
+
+    if (oneRow.metraj > 0 || oneRow.metraj < 0) {
+      onaylananMetraj_state2.metraj = Number(onaylananMetraj_state2.metraj) + Number(oneRow.metraj)
+    }
+    setOnaylananMetraj_state(onaylananMetraj_state2)
+
+    // hazirlanan metrajlar güncelleme alanı
     let hazirlananMetrajlar_state2 = _.cloneDeep(hazirlananMetrajlar_state)
     hazirlananMetrajlar_state2 = hazirlananMetrajlar_state2.map(oneHazirlanan => {
       if (oneHazirlanan.userEmail === hazirlayan.userEmail) {
         oneHazirlanan.satirlar.map(oneSatir => {
           if (oneSatir.satirNo === oneRow.satirNo) {
-            oneSatir.isSelected = true
-            oneSatir.newSelected = true
+            oneSatir.isLock = true
+            oneSatir.isChanged = true
           }
           return oneSatir
         })
@@ -121,23 +143,41 @@ export default function P_MetrajOnay() {
 
   const handle_satirIptal = ({ oneRow, hazirlayan }) => {
 
-    if (!oneRow.newSelected) {
+    if (oneRow.hasRevize) {
       return
     }
 
     if (!isChanged) {
       setHazirlananMetrajlar_backUp(_.cloneDeep(hazirlananMetrajlar_state))
+      setOnaylananMetraj_backUp(_.cloneDeep(onaylananMetraj_state))
       setIsChanged(true)
     }
 
+    let onaylananMetraj_state2 = _.cloneDeep(onaylananMetraj_state)
+
+    onaylananMetraj_state2.satirlar = onaylananMetraj_state2.satirlar.filter(x => {
+      let a = x.satirNo.includes(".") ? x.satirNo.substring(0, x.satirNo.indexOf(".")) : x.satirNo
+      let b = oneRow.satirNo.includes(".") ? oneRow.satirNo.substring(0, oneRow.satirNo.indexOf(".")) : oneRow.satirNo
+      return a !== b
+    })
+    let count = 1
+    onaylananMetraj_state2.satirlar = onaylananMetraj_state2.satirlar.sort((a, b) => a.siraNo - b.siraNo).map(x => {
+      x.siraNo = count
+      count = count + 1
+      return x
+    })
+    if (oneRow.metraj > 0 || oneRow.metraj < 0) {
+      onaylananMetraj_state2.metraj = Number(onaylananMetraj_state2.metraj) - Number(oneRow.metraj)
+    }
+    setOnaylananMetraj_state(onaylananMetraj_state2)
 
     let hazirlananMetrajlar_state2 = _.cloneDeep(hazirlananMetrajlar_state)
     hazirlananMetrajlar_state2 = hazirlananMetrajlar_state2.map(oneHazirlanan => {
       if (oneHazirlanan.userEmail === hazirlayan.userEmail) {
         oneHazirlanan.satirlar.map(oneSatir => {
           if (oneSatir.satirNo === oneRow.satirNo) {
-            delete oneSatir.isSelected
-            delete oneSatir.newSelected
+            oneSatir.isUsed = false
+            oneSatir.isChanged = true
           }
           return oneSatir
         })
@@ -150,8 +190,10 @@ export default function P_MetrajOnay() {
 
 
 
+
   const cancel = () => {
     setHazirlananMetrajlar_state(_.cloneDeep(hazirlananMetrajlar_backUp))
+    setOnaylananMetraj_state(_.cloneDeep(onaylananMetraj_backUp))
     setIsChanged()
   }
 
@@ -160,22 +202,79 @@ export default function P_MetrajOnay() {
   const save = async () => {
 
     if (isChanged) {
-
       try {
-        // let newSelecteds = hazirlananMetrajlar_state.filter(x => x.newSelected)
-        let hazirlananMetrajlar_selected = metrajYapabilenler.map(oneYapabilen => {
-          let satirlar = hazirlananMetrajlar_state.find(x => x.userEmail === oneYapabilen.userEmail)?.satirlar.filter(x => x.newSelected)
-          if (satirlar?.length > 0) {
-            satirlar = satirlar.map(x => {
-              delete x.newSelected
-              return x
-            })
-            return { userEmail: oneYapabilen.userEmail, satirlar }
-          }
-        })
-        hazirlananMetrajlar_selected = hazirlananMetrajlar_selected.filter(x => x)
 
-        await RealmApp?.currentUser.callFunction("update_onaylananMetraj_selected", ({ _projeId: selectedProje._id, _dugumId: selectedNode_metraj._id, hazirlananMetrajlar_selected }))
+        let hazirlananlar_used
+        let hazirlananlar_unUsed
+
+        let hazirlananMetrajlar_state2 = _.cloneDeep(hazirlananMetrajlar_state)
+        hazirlananMetrajlar_state2 = hazirlananMetrajlar_state2.map(oneHazirlanan => {
+
+          if (oneHazirlanan.satirlar.find(x => x.isChanged)) {
+            oneHazirlanan.satirlar = oneHazirlanan.satirlar.map(oneRow => {
+
+
+              // db deki 'hazırlananMetrajlar' isimli 'collection' daki ilgili 'document' içinde ilgil satırları kitlemek için veri opluyoruz  - changed olmuş ve used ise 
+              if (oneRow.isChanged && oneRow.isUsed) {
+
+                //  db ye göndereeğimiz 'hazirlananlar_used' henüz hiç oluşmamışsa
+                if (!hazirlananlar_used) {
+                  hazirlananlar_used = [{ userEmail: oneHazirlanan.userEmail, satirNolar: [oneRow.satirNo] }]
+
+                  //  db ye göndereeğimiz 'hazirlananlar_used' - oluşmuşsa ve oluşturan kullanıcı da varsa
+                } else if (hazirlananlar_used?.find(x => x.userEmail === oneHazirlanan.userEmail)) {
+                  hazirlananlar_used = hazirlananlar_used.map(oneHazirlanan_used => {
+                    if (oneHazirlanan_used.userEmail === oneHazirlanan.userEmail) {
+                      oneHazirlanan_used.satirNolar = [...oneHazirlanan_used.satirNolar, oneRow.satirNo]
+                    }
+                    return oneHazirlanan_used
+                  })
+
+                  //  db ye göndereeğimiz 'hazirlananlar_used' - oluşmuşsa fakat kullanıcınınki henüz yoksa
+                } else {
+                  hazirlananlar_used = [...hazirlananlar_used, { userEmail: oneHazirlanan.userEmail, satirNolar: [oneRow.satirNo] }]
+                }
+
+              }
+
+              // db deki 'hazırlananMetrajlar' isimli 'collection' daki ilgili 'document' içinde ilgil satırları kitlemek için veri opluyoruz  - changed olmuş ve unUsed ise
+              if (oneRow.isChanged && !oneRow.isUsed) {
+
+                //  db ye göndereeğimiz 'hazirlananlar_unUsed' henüz hiç oluşmamışsa
+                if (!hazirlananlar_unUsed) {
+                  hazirlananlar_unUsed = [{ userEmail: oneHazirlanan.userEmail, satirNolar: [oneRow.satirNo] }]
+
+                  //  db ye göndereeğimiz 'hazirlananlar_unUsed' - oluşmuşsa ve oluşturan kullanıcı da varsa
+                } else if (hazirlananlar_unUsed?.find(x => x.userEmail === oneHazirlanan.userEmail)) {
+                  hazirlananlar_unUsed = hazirlananlar_unUsed.map(oneHazirlanan_used => {
+                    if (oneHazirlanan_used.userEmail === oneHazirlanan.userEmail) {
+                      oneHazirlanan_used.satirNolar = [...oneHazirlanan_used.satirNolar, oneRow.satirNo]
+                    }
+                    return oneHazirlanan_used
+                  })
+
+                  //  db ye göndereeğimiz 'hazirlananlar_unUsed' - oluşmuşsa fakat kullanıcınınki henüz yoksa
+                } else {
+                  hazirlananlar_unUsed = [...hazirlananlar_unUsed, { userEmail: oneHazirlanan.userEmail, satirNolar: [oneRow.satirNo] }]
+                }
+
+              }
+
+              // frontend de görünen state deki veri de ye göndermek için ayıklandığı için isChanged ler false yapıyoruz, birdahaki db kaydetmesinde tekrar gönderilmesin 
+              oneRow.isChanged = false
+              return oneRow
+            })
+          }
+
+          return oneHazirlanan
+        })
+
+        setHazirlananMetrajlar_state(hazirlananMetrajlar_state2)
+
+        // console.log("hazirlananlar_used", hazirlananlar_used)
+        // console.log("hazirlananlar_unUsed", hazirlananlar_unUsed)
+
+        await RealmApp?.currentUser.callFunction("update_onaylananMetraj", ({ _dugumId: selectedNode_metraj._id, onaylananMetraj_state, hazirlananlar_used, hazirlananlar_unUsed }))
 
         queryClient.invalidateQueries(['onaylananMetraj', selectedNode_metraj?._id.toString()])
         queryClient.invalidateQueries(['hazirlananMetrajlar', selectedNode_metraj?._id.toString()])
@@ -200,7 +299,7 @@ export default function P_MetrajOnay() {
   }
 
 
-  const toggleShow = ({ userEmail }) => {
+  const toggleSelect = ({ userEmail }) => {
 
     let showMetrajYapabilenler2 = _.cloneDeep(showMetrajYapabilenler)
 
@@ -392,10 +491,10 @@ export default function P_MetrajOnay() {
                       {hazirlayan?.isim + " " + hazirlayan?.soyisim}
                     </Box>
                     {oneYapabilen.isSelected &&
-                      <ExpandLessIcon onClick={() => toggleShow({ userEmail: oneYapabilen.userEmail })} sx={{ cursor: "pointer" }} />
+                      <ExpandLessIcon onClick={() => toggleSelect({ userEmail: oneYapabilen.userEmail })} sx={{ cursor: "pointer" }} />
                     }
                     {!oneYapabilen.isSelected &&
-                      <ExpandMoreIcon onClick={() => toggleShow({ userEmail: oneYapabilen.userEmail })} sx={{ cursor: "pointer" }} />
+                      <ExpandMoreIcon onClick={() => toggleSelect({ userEmail: oneYapabilen.userEmail })} sx={{ cursor: "pointer" }} />
                     }
                   </Box>
 
@@ -438,11 +537,11 @@ export default function P_MetrajOnay() {
                             <React.Fragment key={index}>
 
                               <Box
-                                onClick={() => !oneRow?.isSelected ? handle_satirSec({ oneRow, hazirlayan }) : !oneRow?.isLock ? handle_satirIptal({ oneRow, hazirlayan }) : null}
+                                onClick={() => !oneRow?.isUsed ? handle_satirOnayla({ oneRow, hazirlayan }) : !oneRow?.isRevize ? handle_satirIptal({ oneRow, hazirlayan }) : null}
                                 sx={{
                                   ...css_metrajCetveliSatir,
                                   cursor: "pointer",
-                                  backgroundColor: oneRow?.isSelected && myTema.renkler.inaktifGri,
+                                  backgroundColor: oneRow?.isUsed && myTema.renkler.inaktifGri,
                                   justifyContent: (oneProperty.includes("satirNo") || oneProperty.includes("aciklama")) ? "start" : oneProperty.includes("carpan") ? "end" : oneProperty.includes("metraj") ? "end" : "center",
                                   minWidth: oneProperty.includes("carpan") ? "5rem" : oneProperty.includes("metraj") ? "5rem" : null,
                                   color: isMinha ? "red" : null
@@ -459,7 +558,7 @@ export default function P_MetrajOnay() {
 
                         <Box
                           sx={{
-                            // backgroundColor: oneRow.isSelected ? null : "rgba(255,255,0, 0.3)",
+                            // backgroundColor: oneRow.isUsed ? null : "rgba(255,255,0, 0.3)",
                             // backgroundColor: "rgba(255,255,0, 0.3)",
                             cursor: "pointer",
                             display: "grid",
@@ -468,10 +567,10 @@ export default function P_MetrajOnay() {
                             px: "0.3rem",
                             border: "1px solid black"
                           }}>
-                          {oneRow?.isSelected && !oneRow?.newSelected &&
-                            <LockIcon variant="contained" sx={{ color: "gray", fontSize: "1rem" }} />
+                          {oneRow?.isUsed && 
+                            <LockIcon variant="contained" sx={{ color: oneRow.isLock ? "rgba( 255,165,0, 1 )" : "gray", fontSize: "1rem" }} />
                           }
-                          {/* {!oneRow?.isSelected &&
+                          {/* {!oneRow?.isUsed &&
                           <HourglassFullSharpIcon variant="contained" sx={{ color: "rgba( 255,165,0, 1 )", fontSize: "0.95rem" }} />
                         } */}
                         </Box>
@@ -528,7 +627,7 @@ export default function P_MetrajOnay() {
 
                         <Box sx={{
                           ...css_metrajCetveliSatir,
-                          backgroundColor: (oneRow?.isSelected && !oneRow?.isEdit) ? myTema.renkler.inaktifGri : oneRow?.isEdit ? "rgba(255, 255, 23, 0.12)" : null,
+                          backgroundColor: (oneRow?.isUsed && !oneRow?.isEdit) ? myTema.renkler.inaktifGri : oneRow?.isEdit ? "rgba(255, 255, 23, 0.12)" : null,
                           justifyContent: (oneProperty.includes("satirNo") || oneProperty.includes("aciklama")) ? "start" : oneProperty.includes("carpan") ? "end" : oneProperty.includes("metraj") ? "end" : "center",
                           minWidth: oneProperty.includes("carpan") ? "5rem" : oneProperty.includes("metraj") ? "5rem" : null,
                           color: isMinha ? "red" : null

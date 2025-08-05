@@ -6,7 +6,7 @@ import _ from 'lodash';
 
 
 import { DialogAlert } from '../../components/general/DialogAlert.js';
-import HeaderMetrajCetveliOnaylanan from '../../components/HeaderMetrajOnaylaCetvel.js'
+import HeaderMetrajOnaylaCetvel from '../../components/HeaderMetrajOnaylaCetvel.js'
 import { useQuery, useQueryClient, useMutation } from '@tanstack/react-query'
 import { BSON } from "realm-web"
 import { useGetOnaylananMetraj } from '../../hooks/useMongo.js';
@@ -48,8 +48,9 @@ export default function P_MetrajCetveliOnaylanan() {
   const [onaylananMetraj_backUp, setOnaylananMetraj_backUp] = useState()
   const [hasDeActive, setHasDeActive] = useState()
   const [_pozId] = useState()
-  const [isChanged_revize, setIsChanged_revize] = useState()
-  const [revizeIptalSatirNolar, setRevizeIptalSatirNolar] = useState([])
+  const [isChanged_unLock, setIsChanged_unLock] = useState()
+  const [satirNolar_lock, setSatirNolar_lock] = useState([])
+  const [satirNolar_unLock, setSatirNolar_unLock] = useState([])
   const [deActiveIptalSatirNolar, setDeActiveIptalSatirNolar] = useState([])
   // const [isHovered, setIsHovered] = useState(false);
 
@@ -65,7 +66,7 @@ export default function P_MetrajCetveliOnaylanan() {
     !selectedNode_metraj && navigate("/metrajonaylapozlar")
     setOnaylananMetraj_state(_.cloneDeep(onaylananMetraj))
     setOnaylananMetraj_backUp(_.cloneDeep(onaylananMetraj))
-    setHasDeActive(onaylananMetraj?.satirlar.find(x => x.isDeactive) ? true : false)
+    setHasDeActive(onaylananMetraj?.satirlar.find(x => x.isLock) ? true : false)
   }, [onaylananMetraj])
 
 
@@ -98,12 +99,12 @@ export default function P_MetrajCetveliOnaylanan() {
 
     // bu değişim orjinal satırdan gelmişse, satırın kopyasını oluşturacağız, öncelikle satır no revizesi, sonra yoksa oluşturma
     let originalSatirNo
-    if (!oneSatir.isEdit) {
+    if (!oneSatir.isUsedCopy) {
       originalSatirNo = oneSatir.satirNo
       oneSatir.satirNo = oneSatir.satirNo + ".1"
     }
     if (!onaylananMetraj_state2.satirlar.find(x => x.satirNo === oneSatir.satirNo)) {
-      onaylananMetraj_state2.satirlar = [...onaylananMetraj_state2.satirlar, { ...oneSatir, isEdit: true }]
+      onaylananMetraj_state2.satirlar = [...onaylananMetraj_state2.satirlar, { ...oneSatir, isUsedCopy: true }]
     }
 
     // map ile tarayarak, state kısmındaki datanın ilgili satırını güncelliyoruz, ayrıca tüm satırların toplam metrajını, önce önceki değeri çıkartıp yeni değeri ekleyerek
@@ -111,11 +112,28 @@ export default function P_MetrajCetveliOnaylanan() {
 
       if (oneRow.satirNo === originalSatirNo) {
 
-        // onaylılar kısmında deactive ediyoruz çünkü revize oldu artık, hesaba katılmıyor, sadece yapılan revizeyi görmek için istenince gri olarak gösterilecek
-        oneRow.isDeactive = true
+        oneRow.isLock = true
+
+        let userEmail = oneRow.userEmail
+        // db ye göndereeğimiz 'revizeEdilenler' henüz hiç oluşmamışsa
+        let satirNolar_lock2 = _.cloneDeep(satirNolar_lock)
+        if (satirNolar_lock2?.find(x => x.userEmail === userEmail)) {
+          satirNolar_lock2 = satirNolar_lock2.map(oneHazirlanan => {
+            if (oneHazirlanan.userEmail === userEmail) {
+              if (!oneHazirlanan.satirNolar.find(x => x === originalSatirNo))
+                oneHazirlanan.satirNolar = [...oneHazirlanan.satirNolar, originalSatirNo]
+            }
+            return oneHazirlanan
+          })
+        } else {
+          satirNolar_lock2 = [...satirNolar_lock2, { userEmail, satirNolar: [originalSatirNo] }]
+        }
+
+        setSatirNolar_lock(satirNolar_lock2)
 
       }
 
+      // yukarıda satırno değiştirdik kopyasına yeni satır numarası verdik noktalı
       if (oneRow.satirNo === oneSatir.satirNo) {
 
         // önceki satır metrajını çıkartıyoruz, yeni değeri bulunca aşağıda ekleyeceğiz
@@ -169,40 +187,11 @@ export default function P_MetrajCetveliOnaylanan() {
   const save = async () => {
 
     if (isChanged) {
+
       try {
-        // db deki 'hazırlananMetrajlar' isimli 'collection' daki ilgili 'document' içinde ilgil satırlarda revize olduğunu belirtiyoruz, onaylılardan kaldırılamasın, kitlemek için veri opluyoruz - changed olmuş ve used ise 
-        let deActiveSatirlar = onaylananMetraj_state.satirlar.filter(x => x.isDeactive)
-        let revizeEdilenler
 
-        if (deActiveSatirlar.length > 0) {
-
-          deActiveSatirlar.map(oneRow => {
-
-            let userCode = oneRow.satirNo.substring(0, oneRow.satirNo.indexOf("-"))
-            let userEmail = yetkililer.find(x => x.userCode === userCode).userEmail
-
-            // db ye göndereeğimiz 'revizeEdilenler' henüz hiç oluşmamışsa
-            if (!revizeEdilenler) {
-              revizeEdilenler = [{ userEmail, satirNolar: [oneRow.satirNo] }]
-
-              //  db ye göndereeğimiz 'revizeEdilenler' - oluşmuşsa ve oluşturan kullanıcı da varsa
-            } else if (revizeEdilenler?.find(x => x.userEmail === userEmail)) {
-              revizeEdilenler = revizeEdilenler.map(oneRevizeEdilen => {
-                if (oneRevizeEdilen.userEmail === userEmail) {
-                  oneRevizeEdilen.satirNolar = [...oneRevizeEdilen.satirNolar, oneRow.satirNo]
-                }
-                return oneRevizeEdilen
-              })
-
-              //  db ye göndereeğimiz 'revizeEdilenler' - oluşmuşsa fakat kullanıcınınki henüz yoksa
-            } else {
-              revizeEdilenler = [...revizeEdilenler, { userEmail, satirNolar: [oneRow.satirNo] }]
-            }
-          })
-
-        }
-
-        await RealmApp?.currentUser.callFunction("update_onaylananMetrajCetveli", ({ _dugumId: selectedNode_metraj._id, onaylananMetraj_state, revizeEdilenler }))
+        console.log("satirNolar_lock",satirNolar_lock)
+        await RealmApp?.currentUser.callFunction("update_onaylananMetrajCetveli", ({ _dugumId: selectedNode_metraj._id, onaylananMetraj_state, satirNolar_lock }))
         setShow("Main")
         queryClient.invalidateQueries(['onaylananMetrajlar', selectedNode_metraj?._id.toString()])
         setIsChanged()
@@ -242,9 +231,9 @@ export default function P_MetrajCetveliOnaylanan() {
 
   // REVİZELERİ GERİ ALMA FONKSİYONLARI
 
-  const update_state_revizeGeri = (iptalRow) => {
-    if (!isChanged_revize) {
-      setIsChanged_revize(true)
+  const update_state_unLock = (iptalRow) => {
+    if (!isChanged_unLock) {
+      setIsChanged_unLock(true)
     }
 
     let onaylananMetraj_state2 = _.cloneDeep(onaylananMetraj_state)
@@ -254,77 +243,51 @@ export default function P_MetrajCetveliOnaylanan() {
     onaylananMetraj_state2.satirlar = onaylananMetraj_state2.satirlar.filter(x => x.satirNo !== iptalRow.satirNo)
 
 
-    let aktifEdilecekSatirNo = iptalRow.satirNo.substring(0, iptalRow.satirNo.indexOf("."))
+    let unLock_edilecekSatirNo = iptalRow.satirNo.substring(0, iptalRow.satirNo.indexOf("."))
     onaylananMetraj_state2.satirlar = onaylananMetraj_state2.satirlar.map(oneRow => {
-      if (oneRow.satirNo === aktifEdilecekSatirNo) {
-        oneRow.isDeactive = false
+      if (oneRow.satirNo === unLock_edilecekSatirNo) {
+        oneRow.isLock = false
         onaylananMetraj_state2["metraj"] = Number(onaylananMetraj_state2["metraj"]) + Number(oneRow["metraj"])
       }
       return oneRow
     })
 
+    // db ye göndereeğimiz 'revizeEdilenler' henüz hiç oluşmamışsa
+    let iptalSatirNo = iptalRow.satirNo
+    let userEmail = iptalRow.userEmail
+    let satirNolar_unLock2 = _.cloneDeep(satirNolar_unLock)
+    if (satirNolar_unLock2?.find(x => x.userEmail === userEmail)) {
+      satirNolar_unLock2 = satirNolar_unLock2.map(oneHazirlanan => {
+        if (oneHazirlanan.userEmail === userEmail) {
+          oneHazirlanan.satirNolar = oneHazirlanan.satirNolar.filter(x => x.satirNo !== iptalSatirNo)
+        }
+        return oneHazirlanan
+      })
+    }
+    setSatirNolar_unLock(satirNolar_unLock2)
 
-    // db ye hazırlık - save_revize fonksiyonunda kullanılacak
-    setDeActiveIptalSatirNolar(satirNolar => {
-      if (!satirNolar?.find(x => x === aktifEdilecekSatirNo)) {
-        satirNolar = [...satirNolar, aktifEdilecekSatirNo]
-      }
-      return satirNolar
-    })
-
-    setHasDeActive(onaylananMetraj_state2?.satirlar.find(x => x.isDeactive) ? true : false)
+    setHasDeActive(onaylananMetraj_state2?.satirlar.find(x => x.isLock) ? true : false)
     setOnaylananMetraj_state(onaylananMetraj_state2)
 
   }
 
 
-  const cancel_revize = () => {
+  const cancel_unLock = () => {
     setOnaylananMetraj_state(_.cloneDeep(onaylananMetraj_backUp))
-    setHasDeActive(onaylananMetraj_state?.satirlar.find(x => x.isDeactive) ? true : false)
-    setIsChanged_revize()
+    setHasDeActive(onaylananMetraj_state?.satirlar.find(x => x.isLock) ? true : false)
+    setIsChanged_unLock()
     setShow("Main")
   }
 
 
-  const save_revize = async () => {
-
+  const save_unLock = async () => {
 
     try {
 
-      // db deki 'hazırlananMetrajlar' isimli 'collection' daki ilgili 'document' içinde ilgil satırlarda revizenin iptal olduğunu belirtiyoruz, onaylılardan artık kaldırılabilir, kilitli değil
-
-      let revizeEdilenler
-      if (deActiveIptalSatirNolar.length > 0) {
-
-        deActiveIptalSatirNolar.map(satirNo => {
-
-          let userCode = satirNo.substring(0, satirNo.indexOf("-"))
-          let userEmail = yetkililer.find(x => x.userCode === userCode).userEmail
-          // db ye göndereeğimiz 'revizeEdilenler' henüz hiç oluşmamışsa
-          if (!revizeEdilenler) {
-            revizeEdilenler = [{ userEmail, satirNolar: [satirNo] }]
-
-            //  db ye göndereeğimiz 'revizeEdilenler' - oluşmuşsa ve oluşturan kullanıcı da varsa
-          } else if (revizeEdilenler?.find(x => x.userEmail === userEmail)) {
-            revizeEdilenler = revizeEdilenler.map(oneActiveEdilen => {
-              if (oneActiveEdilen.userEmail === userEmail) {
-                oneActiveEdilen.satirNolar = [...oneActiveEdilen.satirNolar, satirNo]
-              }
-              return oneActiveEdilen
-            })
-
-            //  db ye göndereeğimiz 'revizeEdilenler' - oluşmuşsa fakat kullanıcınınki henüz yoksa
-          } else {
-            revizeEdilenler = [...revizeEdilenler, { userEmail, satirNolar: [satirNo] }]
-          }
-        })
-
-      }
-
-      await RealmApp?.currentUser.callFunction("update_onaylananMetraj_revizeIptal", ({ _dugumId: selectedNode_metraj._id, onaylananMetraj_state, revizeEdilenler }))
+      await RealmApp?.currentUser.callFunction("update_onaylananMetrajCetveli", ({ _dugumId: selectedNode_metraj._id, onaylananMetraj_state, satirNolar_unLock }))
       setShow("Main")
       queryClient.invalidateQueries(['onaylananMetrajlar', selectedNode_metraj?._id.toString()])
-      setIsChanged_revize()
+      setIsChanged_unLock()
       return
 
     } catch (error) {
@@ -339,8 +302,8 @@ export default function P_MetrajCetveliOnaylanan() {
 
     }
 
-    setHasDeActive(onaylananMetraj_state?.satirlar.find(x => x.isDeactive) ? true : false)
-    setIsChanged_revize()
+    setHasDeActive(onaylananMetraj_state?.satirlar.find(x => x.isLock) ? true : false)
+    setIsChanged_unLock()
   }
 
 
@@ -418,7 +381,7 @@ export default function P_MetrajCetveliOnaylanan() {
       }
 
       <Grid name="metrajCetveliHeader" item sx={{ mt: (parseFloat(subHeaderHeight) + 1) + "rem", }}>
-        <HeaderMetrajCetveliOnaylanan
+        <HeaderMetrajOnaylaCetvel
           show={show} setShow={setShow}
           showDeActive={showDeActive} setShowDeActive={setShowDeActive}
 
@@ -427,8 +390,8 @@ export default function P_MetrajCetveliOnaylanan() {
 
           hasDeActive={hasDeActive}
           onaylananMetraj_state={onaylananMetraj_state}
-          save_revize={save_revize} cancel_revize={cancel_revize}
-          isChanged_revize={isChanged_revize} setIsChanged_revize={setIsChanged_revize}
+          save_unLock={save_unLock} cancel_unLock={cancel_unLock}
+          isChanged_unLock={isChanged_unLock} setIsChanged_unLock={setIsChanged_unLock}
         />
       </Grid>
 
@@ -501,7 +464,7 @@ export default function P_MetrajCetveliOnaylanan() {
           </React.Fragment>
 
 
-          {onaylananMetraj_state.satirlar.filter(x => showDeActive ? x : !x.isDeactive).sort((a, b) => a.siraNo - b.siraNo).map((oneRow, index) => {
+          {onaylananMetraj_state.satirlar.filter(x => showDeActive ? x : !x.isLock).sort((a, b) => a.siraNo - b.siraNo).map((oneRow, index) => {
             return (
               < React.Fragment key={index}>
 
@@ -517,7 +480,7 @@ export default function P_MetrajCetveliOnaylanan() {
                       {isCellEdit &&
                         <Box sx={{
                           ...css_metrajCetveliSatir,
-                          backgroundColor: oneRow.isEdit && (oneProperty.includes("aciklama") || oneProperty.includes("carpan")) ? "rgba(255,255,0, 0.3)" : "rgba(255,255,0, 0.1)",
+                          backgroundColor: oneRow.isUsedCopy && (oneProperty.includes("aciklama") || oneProperty.includes("carpan")) ? "rgba(255,255,0, 0.3)" : "rgba(255,255,0, 0.1)",
                           minWidth: oneProperty.includes("aciklama") ? "10rem" : oneProperty.includes("1") || oneProperty.includes("2") ? "4rem" : "6rem"
                         }}>
                           <Input
@@ -570,7 +533,7 @@ export default function P_MetrajCetveliOnaylanan() {
                       {!isCellEdit &&
                         <Box sx={{
                           ...css_metrajCetveliSatir,
-                          backgroundColor: showDeActive && oneRow?.isUsed && !oneRow.isEdit && myTema.renkler.inaktifGri,
+                          backgroundColor: showDeActive && oneRow?.isUsed && !oneRow.isUsedCopy && myTema.renkler.inaktifGri,
                           justifyContent: (oneProperty.includes("satirNo") || oneProperty.includes("aciklama")) ? "start" : oneProperty.includes("carpan") ? "end" : oneProperty.includes("metraj") ? "end" : "center",
                           minWidth: oneProperty.includes("carpan") ? "5rem" : oneProperty.includes("metraj") ? "5rem" : null,
                           color: isMinha ? "red" : null,
@@ -588,7 +551,7 @@ export default function P_MetrajCetveliOnaylanan() {
                 <Box></Box>
 
                 <Box
-                  onClick={() => showDeActive && oneRow.isEdit && update_state_revizeGeri(oneRow)}
+                  onClick={() => showDeActive && oneRow.isUsedCopy && update_state_unLock(oneRow)}
                   // onMouseEnter={() => showDeActive && setIsHovered(true)}
                   // onMouseLeave={() => showDeActive && setIsHovered(false)}
                   sx={{
@@ -602,15 +565,15 @@ export default function P_MetrajCetveliOnaylanan() {
                     border: "1px solid black",
                   }}
                 >
-                  {oneRow.isUsed && !oneRow.isEdit &&
+                  {oneRow.isUsed && !oneRow.isUsedCopy &&
                     <LockIcon
                       variant="contained"
-                      sx={{ color: oneRow.isDeactive ? "rgba(255, 132, 0, 1)" : "gray", fontSize: "0.9rem" }} />
+                      sx={{ color: oneRow.isLock ? "rgba(255, 132, 0, 1)" : "gray", fontSize: "0.9rem" }} />
                   }
-                  {!showDeActive && oneRow.isEdit &&
+                  {!showDeActive && oneRow.isUsedCopy &&
                     <StarIcon variant="contained" sx={{ color: "rgba(255, 132, 0, 1)", fontSize: "0.9rem" }} />
                   }
-                  {showDeActive && oneRow.isEdit &&
+                  {showDeActive && oneRow.isUsedCopy &&
                     <ReplyIcon variant="contained" sx={{ color: "rgba(255, 132, 0, 1)", fontSize: "0.9rem" }} />
                   }
                 </Box>

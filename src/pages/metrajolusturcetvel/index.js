@@ -168,6 +168,8 @@ export default function P_MetrajOlusturCetvel() {
     if (isChanged) {
       try {
 
+        console.log("hazirlananMetraj_state",hazirlananMetraj_state)
+        // return
         await RealmApp?.currentUser.callFunction("update_hazirlananMetraj", ({ _dugumId: selectedNode_metraj._id, hazirlananMetraj_state }))
         // console.log("result", result)
         // if (result.dugumler) {
