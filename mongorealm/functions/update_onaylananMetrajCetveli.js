@@ -99,14 +99,14 @@ exports = async function ({
     let bulkArray1
     if (satirNolar_lock) {
 
-      bulkArray1 = satirNolar_lock.map(oneRevizeEdilen => {
+      bulkArray1 = satirNolar_lock.map(oneHazirlanan => {
         return (
           {
             updateOne: {
-              filter: { _dugumId, userEmail: oneRevizeEdilen.userEmail },
+              filter: { _dugumId, userEmail: oneHazirlanan.userEmail },
               update: { $set: { "satirlar.$[elem].isLock": true } },
               arrayFilters: [
-                { "elem.satirNo": { $in: oneRevizeEdilen.satirNolar } },
+                { "elem.satirNo": { $in: oneHazirlanan.satirNolar } },
               ]
             }
           }
