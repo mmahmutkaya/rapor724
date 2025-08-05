@@ -41,7 +41,7 @@ exports = async function ({
 
 
 
-  try {
+  // try {
 
 
     async function fetchData(oneHazirlanan) {
@@ -78,9 +78,9 @@ exports = async function ({
 
     return results
 
-  } catch (error) {
-    throw new Error({ hatayeri: "MONGO // update_hazirlananMetraj_selected // hazirlanan metrajlar güncelleme", error });
-  }
+  // } catch (error) {
+  //   throw new Error({ hatayeri: "MONGO // update_hazirlananMetraj_selected // hazirlanan metrajlar güncelleme", error });
+  // }
 
 
 
