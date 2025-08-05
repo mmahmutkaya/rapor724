@@ -70,7 +70,7 @@ exports = async function ({
     }
 
     newSatirlar.map(oneSatir => {
-      metraj = metraj + oneSatir.metraj
+      metraj = metraj + oneSatir?.metraj
     })
 
     await collection_hazirlananMetrajlar.updateOne(
