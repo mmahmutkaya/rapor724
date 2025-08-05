@@ -65,14 +65,16 @@ exports = async function ({
       return result
     }
 
-    let results
-    async function processItems() {
-      const promises = hazirlananMetrajlar_selected.map(oneHazirlanan => fetchData(oneHazirlanan));
-      results = await Promise.all(promises);
-      // console.log(results); // This will contain the resolved data from each fetch
-    }
+    const result = hazirlananMetrajlar_selected.map(oneHazirlanan => fetchData(oneHazirlanan));
 
-    processItems();
+    // let results
+    // async function processItems() {
+    //   const promises = hazirlananMetrajlar_selected.map(oneHazirlanan => fetchData(oneHazirlanan));
+    //   results = await Promise.all(promises);
+    //   // console.log(results); // This will contain the resolved data from each fetch
+    // }
+
+    // processItems();
 
     return results
 
