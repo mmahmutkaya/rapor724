@@ -41,6 +41,10 @@ exports = async function ({
     let { satirlar: newSatirlar } = hazirlananMetraj_state
 
     newSatirlar = newSatirlar.filter(x => !x.isLock)
+    newSatirlar = newSatirlar.map(newSatir => {
+      newSatir.userEmail = userEmail
+      newSatir._id = new BSON.ObjectId()
+    })
 
 
     const hazirlananMetraj = await collection_hazirlananMetrajlar.findOne({ _dugumId, userEmail })
@@ -53,22 +57,19 @@ exports = async function ({
 
         // onayliMetrajlarda kullanılmış olanları koruyalım, yukaroda filtre ettik çünkü gelen verilerden
         lockedSatirlar = satirlar.filter(x => x.isLock)
-        newSatirlar.map(newSatir => {
-          if(lockedSatirlar.find(y => y.satirNo === newSatir.satirNo)){
-             throw new Error("MONGO // update_hazirlananMetrajlar // __mesajBaslangic__Önceden oluşturmuş olduğunuz bazı satırlar onaylı tarafa alınmış ve değerlendiriliyor, değişiklikleriniz kaydedilmedi.__mesajBitis__ ");
-          } else {
-            newSatir._id = ObjectId()
-            newSatir.userEmail = userEmail
+        newSatirlar = newSatirlar.map(newSatir => {
+          if (lockedSatirlar?.find(y => y.satirNo === newSatir.satirNo)) {
+            throw new Error("MONGO // update_hazirlananMetrajlar // __mesajBaslangic__Önceden oluşturmuş olduğunuz bazı satırlar onaylı tarafa alınmış ve değerlendiriliyor, değişiklikleriniz kaydedilmedi.__mesajBitis__ ");
           }
         })
-        
+
         newSatirlar = [...lockedSatirlar, ...newSatirlar]
 
       }
 
     }
 
-    metraj = newSatirlar.map(oneSatir => {
+    newSatirlar.map(oneSatir => {
       metraj = metraj + oneSatir.metraj
     })
 
