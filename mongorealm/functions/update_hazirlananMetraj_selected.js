@@ -40,7 +40,7 @@ exports = async function ({
   // const {metrajYapabilenler} = proje.yetki
 
 
-  // try {
+  try {
 
     let hazirlananMetraj = await collection_HazirlananMetrajlar.findOne({ _dugumId, userEmail: hazirlananMetraj_selected.userEmail })
     
@@ -52,7 +52,7 @@ exports = async function ({
     })
     
     if(hatMesaj){
-      throw new Error("MONGO // update_hazirlananMetraj_selected // seçmeye çalıştığınız metrajlar şu anda diğer kullanıcı tarafından işlem görüyor, tekrar deneyiniz.");
+      throw new Error(hatMesaj);
     }
     
     let satirlar = hazirlananMetraj.satirlar.map(oneSatir => {
@@ -67,9 +67,9 @@ exports = async function ({
     )
     return result
 
-  // } catch (err) {
-  //   throw new Error("MONGO // update_hazirlananMetraj_selected // hata");
-  // }
+  } catch (err) {
+    throw new Error("MONGO // update_hazirlananMetraj_selected // " + err.message);
+  }
 
 
 
