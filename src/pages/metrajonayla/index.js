@@ -85,6 +85,8 @@ export default function P_MetrajOnay() {
   useEffect(() => {
     !selectedNode_metraj && navigate("/metrajpozmahaller")
     setHazirlananMetrajlar_state(_.cloneDeep(hazirlananMetrajlar))
+    setHazirlananMetrajlar_backUp(_.cloneDeep(hazirlananMetrajlar))
+    setIsChanged()
   }, [hazirlananMetrajlar])
 
 
@@ -92,7 +94,6 @@ export default function P_MetrajOnay() {
   const handle_satirSec = ({ oneRow, hazirlayan }) => {
 
     if (!isChanged) {
-      setHazirlananMetrajlar_backUp(_.cloneDeep(hazirlananMetrajlar_state))
       setIsChanged(true)
     }
 
@@ -126,7 +127,6 @@ export default function P_MetrajOnay() {
     }
 
     if (!isChanged) {
-      setHazirlananMetrajlar_backUp(_.cloneDeep(hazirlananMetrajlar_state))
       setIsChanged(true)
     }
 
@@ -175,8 +175,14 @@ export default function P_MetrajOnay() {
         })
         hazirlananMetrajlar_selected = hazirlananMetrajlar_selected.filter(x => x)
 
-        let hazirlananMetraj_selected = hazirlananMetrajlar_selected[0]
-        await RealmApp?.currentUser.callFunction("update_hazirlananMetraj_selected", ({ _projeId: selectedProje._id, _dugumId: selectedNode_metraj._id, hazirlananMetraj_selected}))
+        const results = await Promise.all(hazirlananMetrajlar_selected.map(async (oneHazirlanan) => {
+          const result = await RealmApp?.currentUser.callFunction("update_hazirlananMetraj_selected", ({ _projeId: selectedProje._id, _dugumId: selectedNode_metraj._id, hazirlananMetraj_selected: oneHazirlanan }))
+          return result
+        }));
+
+        console.log("results", results)
+
+        // await RealmApp?.currentUser.callFunction("update_hazirlananMetraj_selected", ({ _projeId: selectedProje._id, _dugumId: selectedNode_metraj._id, hazirlananMetraj_selected }))
 
         queryClient.invalidateQueries(['onaylananMetraj', selectedNode_metraj?._id.toString()])
         queryClient.invalidateQueries(['hazirlananMetrajlar', selectedNode_metraj?._id.toString()])
@@ -185,14 +191,29 @@ export default function P_MetrajOnay() {
         setIsChanged()
         return
 
-      } catch (error) {
+      } catch (err) {
 
-        console.log(error)
+        console.log(err)
 
+        let dialogIcon = "warning"
+        let dialogMessage = "Beklenmedik hata, sayfayı yenileyiniz, sorun devam ederse Rapor7/24 ile irtibata geçiniz.."
+        let onCloseAction = () => setDialogAlert()
+
+        if (err.message.includes("__mesajBaslangic__") && err.message.includes("__mesajBitis__")) {
+          let mesajBaslangic = err.message.indexOf("__mesajBaslangic__") + "__mesajBaslangic__".length
+          let mesajBitis = err.message.indexOf("__mesajBitis__")
+          dialogMessage = err.message.slice(mesajBaslangic, mesajBitis)
+          dialogIcon = "info"
+          onCloseAction = () => {
+            setDialogAlert()
+            queryClient.invalidateQueries(['hazirlananMetrajlar', selectedNode_metraj?._id.toString()])
+          }
+        }
         setDialogAlert({
-          dialogIcon: "warning",
-          dialogMessage: "Beklenmedik hata, Rapor7/24 ile irtibata geçiniz..",
-          detailText: error?.message ? error.message : null
+          dialogIcon,
+          dialogMessage,
+          detailText: err?.message ? err.message : null,
+          onCloseAction
         })
 
       }
@@ -284,7 +305,7 @@ export default function P_MetrajOnay() {
           dialogIcon={dialogAlert.dialogIcon}
           dialogMessage={dialogAlert.dialogMessage}
           detailText={dialogAlert.detailText}
-          onCloseAction={() => setDialogAlert()}
+          onCloseAction={dialogAlert.onCloseAction}
         />
       }
 
