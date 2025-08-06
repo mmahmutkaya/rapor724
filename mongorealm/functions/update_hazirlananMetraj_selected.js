@@ -43,12 +43,18 @@ exports = async function ({
   try {
 
     let hazirlananMetraj = await collection_HazirlananMetrajlar.findOne({ _dugumId, userEmail: hazirlananMetraj_selected.userEmail })
+    
+    let hatMesaj
     hazirlananMetraj_selected.satirlar.map(oneSatir => {
       if (!hazirlananMetraj.satirlar.find(x => x._id.toString() === oneSatir._id.toString())) {
-        throw new Error("MONGO // update_hazirlananMetraj_selected // seçmeye çalıştığınız metrajlar şu anda diğer kullanıcı tarafından işlem görüyor, tekrar deneyiniz.");
+        hatMesaj = "seçmeye çalıştığınız metrajlar şu anda diğer kullanıcı tarafından işlem görüyor, tekrar deneyiniz."
       }
     })
- 
+    
+    if(hatMesaj){
+      throw new Error("MONGO // update_hazirlananMetraj_selected // seçmeye çalıştığınız metrajlar şu anda diğer kullanıcı tarafından işlem görüyor, tekrar deneyiniz.");
+    }
+    
     let satirlar = hazirlananMetraj.satirlar.map(oneSatir => {
       if (hazirlananMetraj_selected.satirlar.find(x => x._id.toString() === oneSatir._id.toString())) {
         oneSatir.isSelected = true
