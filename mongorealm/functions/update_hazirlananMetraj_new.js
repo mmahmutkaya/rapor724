@@ -117,24 +117,25 @@ exports = async function ({
       throw new Error(hataMesaj);
     }
 
-    hazirlananMetraj_new.satirlar = hazirlananMetraj_new.satirlar.map(oneSatir =>{
+    hazirlananMetraj_new.satirlar = hazirlananMetraj_new.satirlar.map(oneSatir => {
       oneSatir.userEmail = userEmail
       oneSatir._id = new BSON.ObjectId()
       return oneSatir
     })
 
     let satirlar = satirlar_selected ? [...satirlar_selected, ...hazirlananMetraj_new.satirlar] : hazirlananMetraj_new.satirlar
-    
+
     // return {satirlar}
-    
+
     satirlar.map(oneSatir => {
       metraj = metraj + oneSatir?.metraj
     })
 
-    return {_dugumId, userEmail,satirlar}
-    await collection_HazirlananMetrajlar.updateOne(
+
+    await collection_hazirlananMetrajlar.updateOne(
       { _dugumId, userEmail },
-      { $set: { satirlar } }
+      { $set: { satirlar: newSatirlar, metraj } },
+      { upsert: true }
     )
 
 
