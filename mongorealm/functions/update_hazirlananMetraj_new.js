@@ -131,6 +131,7 @@ exports = async function ({
       metraj = metraj + oneSatir?.metraj
     })
 
+    return {_dugumId, userEmail,satirlar}
     await collection_HazirlananMetrajlar.updateOne(
       { _dugumId, userEmail },
       { $set: { satirlar } }
