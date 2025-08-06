@@ -118,6 +118,7 @@ exports = async function ({
     }
 
     hazirlananMetraj_new.satirlar = hazirlananMetraj_new.satirlar.map(oneSatir =>{
+      oneSatir.userEmail = userEmail
       oneSatir._id = new BSON.ObjectId()
     })
 
