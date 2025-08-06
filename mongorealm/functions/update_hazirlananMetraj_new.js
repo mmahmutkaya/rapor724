@@ -132,7 +132,7 @@ exports = async function ({
     })
 
 
-    await collection_hazirlananMetrajlar.updateOne(
+    await collection_HazirlananMetrajlar.updateOne(
       { _dugumId, userEmail },
       { $set: { satirlar: newSatirlar, metraj } },
       { upsert: true }
