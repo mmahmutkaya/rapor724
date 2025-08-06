@@ -48,7 +48,7 @@ exports = async function ({
     let hatMesaj
     hazirlananMetraj_selected.satirlar.map(oneSatir => {
       if (!hazirlananMetraj.satirlar.find(x => x._id.toString() === oneSatir._id.toString())) {
-        hatMesaj = `__mesajBaslangic__Kaydetmeye çalıştığınız, '${hazirlayan.isim + " " + hazirlayan.soyisim}' tarafından hazırlanan veriler, siz kaydetmeden önce önce diğer kullanıcılar tarafından değiştirilmiş, güncel verileri kontrol edip tekrar deneyiniz. Kayıtlarınızın bazıları gerçekleşmiş, bazıları gerçekleşmemiş olabilir. Kontol ederek tekrar deneyiniz.__mesajBitis__`
+        hatMesaj = `__mesajBaslangic__Kaydetmeye çalıştığınız, '${hazirlayan.isim + " " + hazirlayan.soyisim}' tarafından hazırlanan veriler, siz kaydetmeden önce önce diğer kullanıcılar tarafından değiştirilmiş. Kayıtlarınızın bazıları gerçekleşmiş, bazıları gerçekleşmemiş olabilir. Kontol ederek tekrar deneyiniz.__mesajBitis__`
       }
     })
 
