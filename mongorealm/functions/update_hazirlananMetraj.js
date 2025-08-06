@@ -40,7 +40,7 @@ exports = async function ({
 
     let { satirlar: newSatirlar } = hazirlananMetraj_state
 
-    newSatirlar = newSatirlar.filter(x => !x.isLock)
+    newSatirlar = newSatirlar.filter(x => !x.isSelected)
     newSatirlar = newSatirlar.map(newSatir => {
       newSatir.userEmail = userEmail
       newSatir._id = new BSON.ObjectId()
@@ -58,15 +58,15 @@ exports = async function ({
       if (satirlar) {
 
         // onayliMetrajlarda kullanılmış olanları koruyalım, yukaroda filtre ettik çünkü gelen verilerden
-        lockedSatirlar = satirlar.filter(x => x.isLock)
+        selectedSatirlar = satirlar.filter(x => x.isSelected)
         newSatirlar = newSatirlar.map(newSatir => {
-          if (lockedSatirlar?.find(y => y.satirNo === newSatir.satirNo)) {
+          if (selectedSatirlar?.find(y => y.satirNo === newSatir.satirNo)) {
             throw new Error("MONGO // update_hazirlananMetrajlar // __mesajBaslangic__Önceden oluşturmuş olduğunuz bazı satırlar onaylı tarafa alınmış ve değerlendiriliyor, değişiklikleriniz kaydedilmedi.__mesajBitis__ ");
           }
           return newSatir
         })
 
-        newSatirlar = [...lockedSatirlar, ...newSatirlar]
+        newSatirlar = [...selectedSatirlar, ...newSatirlar]
 
       }
 
