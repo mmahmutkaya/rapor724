@@ -175,7 +175,8 @@ export default function P_MetrajOnay() {
         })
         hazirlananMetrajlar_selected = hazirlananMetrajlar_selected.filter(x => x)
 
-        await RealmApp?.currentUser.callFunction("update_onaylananMetraj_selected", ({ _projeId: selectedProje._id, _dugumId: selectedNode_metraj._id, hazirlananMetrajlar_selected }))
+        let hazirlananMetraj_selected = hazirlananMetrajlar_selected[0]
+        await RealmApp?.currentUser.callFunction("update_hazirlananMetraj_selected", ({ _projeId: selectedProje._id, _dugumId: selectedNode_metraj._id, hazirlananMetraj_selected}))
 
         queryClient.invalidateQueries(['onaylananMetraj', selectedNode_metraj?._id.toString()])
         queryClient.invalidateQueries(['hazirlananMetrajlar', selectedNode_metraj?._id.toString()])
