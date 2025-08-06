@@ -59,12 +59,17 @@ exports = async function ({
 
         // onayliMetrajlarda kullanılmış olanları koruyalım, yukaroda filtre ettik çünkü gelen verilerden
         selectedSatirlar = satirlar.filter(x => x.isSelected)
+        let hataMesaj
         newSatirlar = newSatirlar.map(newSatir => {
           if (selectedSatirlar?.find(y => y.satirNo === newSatir.satirNo)) {
-            throw new Error("MONGO // update_hazirlananMetrajlar // __mesajBaslangic__Önceden oluşturmuş olduğunuz bazı satırlar onaylı tarafa alınmış ve değerlendiriliyor, değişiklikleriniz kaydedilmedi.__mesajBitis__ ");
+            hataMesaj = "MONGO // update_hazirlananMetrajlar // __mesajBaslangic__Önceden oluşturmuş olduğunuz bazı satırlar onaylı tarafa alınmış ve değerlendiriliyor, değişiklikleriniz kaydedilmedi.__mesajBitis__ "
           }
           return newSatir
         })
+
+        if (hataMesaj) {
+          throw new Error(hataMesaj);
+        }
 
         newSatirlar = [...selectedSatirlar, ...newSatirlar]
 
