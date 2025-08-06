@@ -124,7 +124,9 @@ exports = async function ({
     })
 
     let satirlar = satirlar_selected ? [...satirlar_selected, ...hazirlananMetraj_new.satirlar] : hazirlananMetraj_new.satirlar
-    return {satirlar_selected,satirlarNew:hazirlananMetraj_new.satirlar}
+    
+    return {satirlar}
+    
     satirlar.map(oneSatir => {
       metraj = metraj + oneSatir?.metraj
     })
