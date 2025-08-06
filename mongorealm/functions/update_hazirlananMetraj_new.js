@@ -113,7 +113,7 @@ exports = async function ({
       })
     }
 
-    return { satirlar_selected, newSatirlar: hazirlananMetraj_new.satirlar }
+    // return { satirlar_selected, newSatirlar: hazirlananMetraj_new.satirlar }
 
     if (hataMesaj) {
       throw new Error(hataMesaj);
