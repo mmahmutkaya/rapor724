@@ -105,7 +105,7 @@ exports = async function ({
 
 
     let hataMesaj
-    if (satirlar_selected?.length > 0) {
+    if (satirlar_selected) {
       hazirlananMetraj_new.satirlar.map(oneSatir => {
         if (satirlar_selected.find(x => x._id.toString() === oneSatir._id.toString())) {
           hataMesaj = `__mesajBaslangic__Kaydetmeye çalıştığınız bazı satırlar, siz kaydetmeden önce önce onaylı kısma alınmış ve değerlendiriliyor. Kayıtlarınızın bazıları gerçekleşmiş, bazıları gerçekleşmemiş olabilir. Kontol ederek tekrar deneyiniz.__mesajBitis__`
@@ -122,7 +122,7 @@ exports = async function ({
       oneSatir._id = new BSON.ObjectId()
     })
 
-    let satirlar = [...satirlar_selected, ...hazirlananMetraj_new.satirlar]
+    let satirlar = satirlar_selected ? [...satirlar_selected, ...hazirlananMetraj_new.satirlar] : hazirlananMetraj_new.satirlar
 
     satirlar.map(oneSatir => {
       metraj = metraj + oneSatir?.metraj
