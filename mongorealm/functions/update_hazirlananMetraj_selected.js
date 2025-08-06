@@ -59,17 +59,21 @@ exports = async function ({
     let satirlar = hazirlananMetraj.satirlar.map(oneSatir => {
       if (hazirlananMetraj_selected.satirlar.find(x => x._id.toString() === oneSatir._id.toString())) {
         oneSatir.isSelected = true
+        oneSatir._id = new BSON.ObjectId()
       }
       return oneSatir
     })
+
     const result = await collection_HazirlananMetrajlar.updateOne(
       { _dugumId, userEmail: hazirlananMetraj_selected.userEmail },
       { $set: { satirlar } }
     )
+
     return result
 
   } catch (err) {
     throw new Error("MONGO // update_hazirlananMetrajlar_selected // " + err.message);
   }
+  
 
 };
