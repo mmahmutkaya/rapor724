@@ -59,7 +59,6 @@ exports = async function ({
     let satirlar = hazirlananMetraj.satirlar.map(oneSatir => {
       if (hazirlananMetraj_selected.satirlar.find(x => x._id.toString() === oneSatir._id.toString())) {
         oneSatir.isSelected = true
-        oneSatir._id = new BSON.ObjectId()
       }
       return oneSatir
     })
