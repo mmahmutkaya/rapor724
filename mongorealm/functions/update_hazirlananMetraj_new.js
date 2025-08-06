@@ -108,7 +108,7 @@ exports = async function ({
     if (satirlar_selected) {
       hazirlananMetraj_new.satirlar.map(oneSatir => {
         if (satirlar_selected.find(x => x._id.toString() === oneSatir._id.toString())) {
-          hataMesaj = `__mesajBaslangic__Kaydetmeye çalıştığınız bazı satırlar, siz kaydetmeden önce önce onaylı kısma alınmış ve değerlendiriliyor. Kayıtlarınızın bazıları gerçekleşmiş, bazıları gerçekleşmemiş olabilir. Kontol ederek tekrar deneyiniz.__mesajBitis__`
+          hataMesaj = `__mesajBaslangic__Kaydetmeye çalıştığınız bazı satırlar, siz işlem yaparken, sizden önce onaylı kısma alınmış ve değerlendiriliyor. Bu sebeple kayıt işleminiz gerçekleşmedi.__mesajBitis__`
         }
       })
     }
