@@ -47,7 +47,7 @@ exports = async function ({
     let hatMesaj
     hazirlananMetraj_selected.satirlar.map(oneSatir => {
       if (!hazirlananMetraj.satirlar.find(x => x._id.toString() === oneSatir._id.toString())) {
-        hatMesaj = "__mesajBaslangic__seçmeye çalıştığınız metrajlar şu anda diğer kullanıcı tarafından işlem görüyor, tekrar deneyiniz.__mesajBitis__"
+        hatMesaj = "__mesajBaslangic__Kaydetmeye çalıştığınız veriler, siz kaydetmeden önce önce diğer kullanıcı tarafından değiştirilmiş, güncel verileri kontrol edip tekrar deneyiniz.__mesajBitis__"
       }
     })
     
