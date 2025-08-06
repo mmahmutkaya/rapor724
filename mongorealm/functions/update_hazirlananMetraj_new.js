@@ -117,7 +117,11 @@ exports = async function ({
       throw new Error(hataMesaj);
     }
 
-    let satirlar = [...satirlar_selected, hazirlananMetraj_new.satirlar]
+    hazirlananMetraj_new.satirlar = hazirlananMetraj_new.satirlar.map(oneSatir =>{
+      oneSatir._id = new BSON.ObjectId()
+    })
+
+    let satirlar = [...satirlar_selected, ...hazirlananMetraj_new.satirlar]
 
     satirlar.map(oneSatir => {
       metraj = metraj + oneSatir?.metraj
@@ -130,7 +134,7 @@ exports = async function ({
 
 
   } catch (err) {
-    throw new Error("MONGO // update_hazirlananMetrajlar_selected // " + err.message);
+    throw new Error("MONGO // update_hazirlananMetrajlar_new // " + err.message);
   }
 
 
