@@ -105,7 +105,7 @@ exports = async function ({
 
 
     let hataMesaj
-    if (satirlar_selected) {
+    if (satirlar_selected.length > 0) {
       hazirlananMetraj_new.satirlar.map(oneSatir => {
         if (satirlar_selected.find(x => x._id.toString() === oneSatir._id.toString())) {
           hataMesaj = `__mesajBaslangic__Kaydetmeye çalıştığınız bazı satırlar, siz kaydetmeden önce önce onaylı kısma alınmış ve değerlendiriliyor. Kayıtlarınızın bazıları gerçekleşmiş, bazıları gerçekleşmemiş olabilir. Kontol ederek tekrar deneyiniz.__mesajBitis__`
