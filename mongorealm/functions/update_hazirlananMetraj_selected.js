@@ -107,7 +107,7 @@ exports = async function ({
     return results
 
 
-  } catch (error) {
+  } catch (err) {
     throw new Error("MONGO // update_hazirlananMetraj_selected // " + err.message);
   }
 
