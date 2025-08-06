@@ -25,8 +25,8 @@ exports = async function ({
     throw new Error("MONGO // update_hazirlananMetraj_selected // '_dugumId' verisi db sorgusuna gelmedi");
   }
 
-  if (!hazirlananMetrajlar_selected) {
-    throw new Error("MONGO // update_hazirlananMetraj_selected // 'hazirlananMetrajlar_selected' verisi db sorgusuna gelmedi");
+  if (!hazirlananMetraj_selected) {
+    throw new Error("MONGO // update_hazirlananMetraj_selected // 'hazirlananMetraj_selected' verisi db sorgusuna gelmedi");
   }
 
 
