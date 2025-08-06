@@ -1,7 +1,7 @@
 exports = async function ({
   _projeId,
   _dugumId,
-  hazirlananMetraj_selected
+  hazirlananMetrajlar_selected
 }) {
 
 
@@ -14,19 +14,19 @@ exports = async function ({
 
   const mailTeyit = user.custom_data.mailTeyit;
   if (!mailTeyit) {
-    throw new Error("MONGO // update_hazirlananMetraj_selected // Öncelikle üyeliğinize ait mail adresinin size ait olduğunu doğrulamalısınız, tekrar giriş yapmayı deneyiniz veya bizimle iletişime geçiniz.");
+    throw new Error("MONGO // update_hazirlananMetrajlar_selected // Öncelikle üyeliğinize ait mail adresinin size ait olduğunu doğrulamalısınız, tekrar giriş yapmayı deneyiniz veya bizimle iletişime geçiniz.");
   }
 
   if (!_projeId) {
-    throw new Error("MONGO // update_hazirlananMetraj_selected // '_projeId' verisi db sorgusuna gelmedi");
+    throw new Error("MONGO // update_hazirlananMetrajlar_selected // '_projeId' verisi db sorgusuna gelmedi");
   }
 
   if (!_dugumId) {
-    throw new Error("MONGO // update_hazirlananMetraj_selected // '_dugumId' verisi db sorgusuna gelmedi");
+    throw new Error("MONGO // update_hazirlananMetrajlar_selected // '_dugumId' verisi db sorgusuna gelmedi");
   }
 
-  if (!hazirlananMetraj_selected) {
-    throw new Error("MONGO // update_hazirlananMetraj_selected // 'hazirlananMetraj_selected' verisi db sorgusuna gelmedi");
+  if (!hazirlananMetrajlar_selected) {
+    throw new Error("MONGO // update_hazirlananMetrajlar_selected // 'hazirlananMetrajlar_selected' verisi db sorgusuna gelmedi");
   }
 
 
@@ -42,10 +42,10 @@ exports = async function ({
 
   // try {
 
-  //   let hazirlananMetraj = await collection_HazirlananMetrajlar.findOne({ _dugumId, userEmail: hazirlananMetraj_selected.userEmail })
+  //   let hazirlananMetraj = await collection_HazirlananMetrajlar.findOne({ _dugumId, userEmail: hazirlananMetrajlar_selected.userEmail })
 
   //   let hatMesaj
-  //   hazirlananMetraj_selected.satirlar.map(oneSatir => {
+  //   hazirlananMetrajlar_selected.satirlar.map(oneSatir => {
   //     if (!hazirlananMetraj.satirlar.find(x => x._id.toString() === oneSatir._id.toString())) {
   //       hatMesaj = "__mesajBaslangic__Kaydetmeye çalıştığınız veriler, siz kaydetmeden önce önce diğer kullanıcı tarafından değiştirilmiş, güncel verileri kontrol edip tekrar deneyiniz.__mesajBitis__"
   //     }
@@ -56,28 +56,28 @@ exports = async function ({
   //   }
 
   //   let satirlar = hazirlananMetraj.satirlar.map(oneSatir => {
-  //     if (hazirlananMetraj_selected.satirlar.find(x => x._id.toString() === oneSatir._id.toString())) {
+  //     if (hazirlananMetrajlar_selected.satirlar.find(x => x._id.toString() === oneSatir._id.toString())) {
   //       oneSatir.isSelected = true
   //     }
   //     return oneSatir
   //   })
   //   const result = await collection_HazirlananMetrajlar.updateOne(
-  //     { _dugumId, userEmail: hazirlananMetraj_selected.userEmail },
+  //     { _dugumId, userEmail: hazirlananMetrajlar_selected.userEmail },
   //     { $set: { satirlar } }
   //   )
   //   return result
 
   // } catch (err) {
-  //   throw new Error("MONGO // update_hazirlananMetraj_selected // " + err.message);
+  //   throw new Error("MONGO // update_hazirlananMetrajlar_selected // " + err.message);
   // }
 
 
   
   try {
 
-    const results = await Promise.all(hazirlananMetraj_selected.map(async (oneHazirlanan) => {
+    const results = await Promise.all(hazirlananMetrajlar_selected.map(async (oneHazirlanan) => {
 
-      let hazirlananMetraj = await collection_HazirlananMetrajlar.findOne({ _dugumId, userEmail: hazirlananMetraj_selected.userEmail })
+      let hazirlananMetraj = await collection_HazirlananMetrajlar.findOne({ _dugumId, userEmail: oneHazirlanan.userEmail })
 
       let hatMesaj
       oneHazirlanan.satirlar.map(oneSatir => {
@@ -108,7 +108,7 @@ exports = async function ({
 
 
   } catch (err) {
-    throw new Error("MONGO // update_hazirlananMetraj_selected // " + err.message);
+    throw new Error("MONGO // update_hazirlananMetrajlar_selected // " + err.message);
   }
 
 
