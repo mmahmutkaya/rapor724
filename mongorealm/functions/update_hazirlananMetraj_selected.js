@@ -54,6 +54,7 @@ exports = async function ({
       }
       return oneSatir
     })
+    return {satirlar}
     const result = await collection_HazirlananMetrajlar.updateOne(
       { _dugumId, userEmail: hazirlananMetraj_selected.userEmail },
       { $set: { satirlar } }
