@@ -40,34 +40,74 @@ exports = async function ({
   // const {metrajYapabilenler} = proje.yetki
 
 
+  // try {
+
+  //   let hazirlananMetraj = await collection_HazirlananMetrajlar.findOne({ _dugumId, userEmail: hazirlananMetraj_selected.userEmail })
+
+  //   let hatMesaj
+  //   hazirlananMetraj_selected.satirlar.map(oneSatir => {
+  //     if (!hazirlananMetraj.satirlar.find(x => x._id.toString() === oneSatir._id.toString())) {
+  //       hatMesaj = "__mesajBaslangic__Kaydetmeye çalıştığınız veriler, siz kaydetmeden önce önce diğer kullanıcı tarafından değiştirilmiş, güncel verileri kontrol edip tekrar deneyiniz.__mesajBitis__"
+  //     }
+  //   })
+
+  //   if(hatMesaj){
+  //     throw new Error(hatMesaj);
+  //   }
+
+  //   let satirlar = hazirlananMetraj.satirlar.map(oneSatir => {
+  //     if (hazirlananMetraj_selected.satirlar.find(x => x._id.toString() === oneSatir._id.toString())) {
+  //       oneSatir.isSelected = true
+  //     }
+  //     return oneSatir
+  //   })
+  //   const result = await collection_HazirlananMetrajlar.updateOne(
+  //     { _dugumId, userEmail: hazirlananMetraj_selected.userEmail },
+  //     { $set: { satirlar } }
+  //   )
+  //   return result
+
+  // } catch (err) {
+  //   throw new Error("MONGO // update_hazirlananMetraj_selected // " + err.message);
+  // }
+
+
+  
   try {
 
-    let hazirlananMetraj = await collection_HazirlananMetrajlar.findOne({ _dugumId, userEmail: hazirlananMetraj_selected.userEmail })
-    
-    let hatMesaj
-    hazirlananMetraj_selected.satirlar.map(oneSatir => {
-      if (!hazirlananMetraj.satirlar.find(x => x._id.toString() === oneSatir._id.toString())) {
-        hatMesaj = "__mesajBaslangic__Kaydetmeye çalıştığınız veriler, siz kaydetmeden önce önce diğer kullanıcı tarafından değiştirilmiş, güncel verileri kontrol edip tekrar deneyiniz.__mesajBitis__"
-      }
-    })
-    
-    if(hatMesaj){
-      throw new Error(hatMesaj);
-    }
-    
-    let satirlar = hazirlananMetraj.satirlar.map(oneSatir => {
-      if (hazirlananMetraj_selected.satirlar.find(x => x._id.toString() === oneSatir._id.toString())) {
-        oneSatir.isSelected = true
-      }
-      return oneSatir
-    })
-    const result = await collection_HazirlananMetrajlar.updateOne(
-      { _dugumId, userEmail: hazirlananMetraj_selected.userEmail },
-      { $set: { satirlar } }
-    )
-    return result
+    const results = await Promise.all(hazirlananMetraj_selected.map(async (oneHazirlanan) => {
 
-  } catch (err) {
+      let hazirlananMetraj = await collection_HazirlananMetrajlar.findOne({ _dugumId, userEmail: hazirlananMetraj_selected.userEmail })
+
+      let hatMesaj
+      oneHazirlanan.satirlar.map(oneSatir => {
+        if (!hazirlananMetraj.satirlar.find(x => x._id.toString() === oneSatir._id.toString())) {
+          hatMesaj = "__mesajBaslangic__Kaydetmeye çalıştığınız veriler, siz kaydetmeden önce önce diğer kullanıcı tarafından değiştirilmiş, güncel verileri kontrol edip tekrar deneyiniz.__mesajBitis__"
+        }
+      })
+
+      if (hatMesaj) {
+        throw new Error(hatMesaj);
+      }
+
+      let satirlar = hazirlananMetraj.satirlar.map(oneSatir => {
+        if (oneHazirlanan.satirlar.find(x => x._id.toString() === oneSatir._id.toString())) {
+          oneSatir.isSelected = true
+        }
+        return oneSatir
+      })
+      const result = await collection_HazirlananMetrajlar.updateOne(
+        { _dugumId, userEmail: oneHazirlanan.userEmail },
+        { $set: { satirlar } }
+      )
+      return result
+
+    }));
+
+    return results
+
+
+  } catch (error) {
     throw new Error("MONGO // update_hazirlananMetraj_selected // " + err.message);
   }
 
