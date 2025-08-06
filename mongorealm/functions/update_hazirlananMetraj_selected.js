@@ -40,90 +40,81 @@ exports = async function ({
   // const {metrajYapabilenler} = proje.yetki
 
 
+  // Final results 
+  let results;
+  try {
+    // Get all repositories
+
+
+    results = Promise.all(
+      // Get the project name from the URL and skills from the file
+      hazirlananMetrajlar_selected.map(async (oneHazirlanan) => {
+        let hazirlananMetraj = await collection_HazirlananMetrajlar.findOne({ _dugumId, userEmail: oneHazirlanan.userEmail })
+        oneHazirlanan.satirlar.map(oneSatir => {
+          if (!hazirlananMetraj.satirlar.find(x => x._id.toString() === oneSatir._id.toString())) {
+            throw new Error("MONGO // update_hazirlananMetraj_selected // seçmeye çalıştığınız metrajlar şu anda diğer kullanıcı tarafından işlem görüyor, tekrar deneyiniz.");
+          }
+        })
+        let satirlar = hazirlananMetraj.satirlar(oneSatir => {
+          if (oneHazirlanan.satirlar.find(x => x._id.toString() === oneSatir._id.toString())) {
+            oneSatir.isSelected = true
+          }
+          return oneSatir
+        })
+        const result = await collection_HazirlananMetrajlar.updateOne(
+          { _dugumId, userEmail: oneHazirlanan.userEmail },
+          { $set: { satirlar } }
+        )
+        return result
+      })
+    );
+  } catch (err) {
+    throw new Error("MONGO // update_hazirlananMetraj_selected // toplu sorguda hata");
+  }
+  results.then((s) => console.log(s));
+
+
+
+
 
   // try {
 
+  //   let dugum = await collection_Dugumler.findOne({ _id: _dugumId })
 
-    async function fetchData(oneHazirlanan) {
-      // Simulate an asynchronous operation, e.g., fetching data from an API
-      let hazirlananMetraj = await collection_HazirlananMetrajlar.findOne({ _dugumId, userEmail: oneHazirlanan.userEmail })
-      oneHazirlanan.satirlar.map(oneSatir => {
-        if (!hazirlananMetraj.satirlar.find(x => x._id.toString() === oneSatir._id.toString())) {
-          throw new Error("MONGO // update_hazirlananMetraj_selected // seçmeye çalıştığınız metrajlar şu anda diğer kullanıcı tarafından işlem görüyor, tekrar deneyiniz.");
-        }
-      })
-      let satirlar = hazirlananMetraj.satirlar(oneSatir => {
-        if (oneHazirlanan.satirlar.find(x => x._id.toString() === oneSatir._id.toString())) {
-          oneSatir.isSelected = true
-        }
-        return oneSatir
-      })
-      const result = await collection_HazirlananMetrajlar.updateOne(
-        { _dugumId, userEmail: oneHazirlanan.userEmail },
-        { $set: { satirlar } }
-      )
-      return result
-    }
+  //   let { hazirlananMetrajlar } = dugum
 
-    const result = hazirlananMetrajlar_selected.map(oneHazirlanan => fetchData(oneHazirlanan));
+  //   let isUpdated
 
-    // let results
-    // async function processItems() {
-    //   const promises = hazirlananMetrajlar_selected.map(oneHazirlanan => fetchData(oneHazirlanan));
-    //   results = await Promise.all(promises);
-    //   // console.log(results); // This will contain the resolved data from each fetch
-    // }
+  //   if (hazirlananMetrajlar) {
 
-    // processItems();
+  //     hazirlananMetrajlar = hazirlananMetrajlar.map(x => {
+  //       if (x.userEmail === userEmail) {
+  //         x.metraj = metraj
+  //         isUpdated = true
+  //       }
+  //       return x
+  //     })
 
-    return result
+  //     if (!isUpdated) {
+  //       hazirlananMetrajlar = [...hazirlananMetrajlar, { userEmail, metraj }]
+  //     }
+
+  //   } else {
+
+  //     hazirlananMetrajlar = [{ userEmail, metraj }]
+
+  //   }
+
+  //   await collection_Dugumler.updateOne(
+  //     { _id: _dugumId },
+  //     { $set: { hazirlananMetrajlar } },
+  //     { upsert: true }
+  //   )
+
 
   // } catch (error) {
-  //   throw new Error({ hatayeri: "MONGO // update_hazirlananMetraj_selected // hazirlanan metrajlar güncelleme", error });
+  //   throw new Error({ hatayeri: "MONGO // update_hazirlananMetraj_selected // dugum guncelleme ", error });
   // }
-
-
-
-
-
-  try {
-
-    let dugum = await collection_Dugumler.findOne({ _id: _dugumId })
-
-    let { hazirlananMetrajlar } = dugum
-
-    let isUpdated
-
-    if (hazirlananMetrajlar) {
-
-      hazirlananMetrajlar = hazirlananMetrajlar.map(x => {
-        if (x.userEmail === userEmail) {
-          x.metraj = metraj
-          isUpdated = true
-        }
-        return x
-      })
-
-      if (!isUpdated) {
-        hazirlananMetrajlar = [...hazirlananMetrajlar, { userEmail, metraj }]
-      }
-
-    } else {
-
-      hazirlananMetrajlar = [{ userEmail, metraj }]
-
-    }
-
-    await collection_Dugumler.updateOne(
-      { _id: _dugumId },
-      { $set: { hazirlananMetrajlar } },
-      { upsert: true }
-    )
-
-
-  } catch (error) {
-    throw new Error({ hatayeri: "MONGO // update_hazirlananMetraj_selected // dugum guncelleme ", error });
-  }
 
   return
 
