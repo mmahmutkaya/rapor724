@@ -48,13 +48,13 @@ exports = async function ({
         throw new Error("MONGO // update_hazirlananMetraj_selected // seçmeye çalıştığınız metrajlar şu anda diğer kullanıcı tarafından işlem görüyor, tekrar deneyiniz.");
       }
     })
+    return "hata yok"
     let satirlar = hazirlananMetraj.satirlar(oneSatir => {
       if (hazirlananMetraj_selected.satirlar.find(x => x._id.toString() === oneSatir._id.toString())) {
         oneSatir.isSelected = true
       }
       return oneSatir
     })
-    return {satirlar}
     const result = await collection_HazirlananMetrajlar.updateOne(
       { _dugumId, userEmail: hazirlananMetraj_selected.userEmail },
       { $set: { satirlar } }
@@ -62,7 +62,7 @@ exports = async function ({
     return result
 
   } catch (err) {
-    throw new Error("MONGO // update_hazirlananMetraj_selected // toplu sorguda hata");
+    throw new Error("MONGO // update_hazirlananMetraj_selected // hata");
   }
 
 
