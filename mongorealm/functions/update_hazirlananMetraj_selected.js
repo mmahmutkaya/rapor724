@@ -44,11 +44,12 @@ exports = async function ({
   let hasSelected
   let hasSelectedFull
   let hazirlayanEmail = hazirlananMetraj_selected.userEmail
-  
+
   try {
 
     let hazirlananMetraj = await collection_HazirlananMetrajlar.findOne({ _dugumId, userEmail: hazirlayanEmail })
-
+    //  hazirlananMetraj kesin olmalı zaten onun içinden selected yapılmış olmalı
+    
     let hatMesaj
     hazirlananMetraj_selected.satirlar.map(oneSatir => {
       if (!hazirlananMetraj.satirlar.find(x => x._id.toString() === oneSatir._id.toString())) {
@@ -60,6 +61,7 @@ exports = async function ({
       throw new Error(hatMesaj);
     }
 
+
     let satirlar = hazirlananMetraj.satirlar.map(oneSatir => {
       if (hazirlananMetraj_selected.satirlar.find(x => x._id.toString() === oneSatir._id.toString())) {
         oneSatir.isSelected = true
@@ -68,7 +70,7 @@ exports = async function ({
     })
 
 
-    
+
     if (satirlar.find(x => x.isSelected)) {
       hasSelected = true
       if (satirlar.filter(x => x.isSelected).length === satirlar.length) {
@@ -96,31 +98,15 @@ exports = async function ({
     let onaylananMetraj = await collection_OnaylananMetrajlar.findOne({ _dugumId })
 
     if (onaylananMetraj) {
-        
-      let newSiraNo = 1
-      onaylananMetraj.satirlar.map(oneSatir => {
-        if(oneSatir.siraNo > newSiraNo){
-          newSiraNo = oneSatir.siraNo + 1
-        }
-      })
-
       hazirlananMetraj_selected.satirlar.map(oneSatir => {
         if (!onaylananMetraj.satirlar.find(x => x._id.toString() === oneSatir._id.toString())) {
-          oneSatir.siraNo = newSiraNo
-          onaylananMetraj.satirlar = [...onaylananMetraj.satirlar, {oneSatir}]
-          newSiraNo += 1
+          onaylananMetraj.satirlar = [...onaylananMetraj.satirlar, oneSatir]
         }
       })
     } else {
       onaylananMetraj = {
         satirlar: hazirlananMetraj_selected.satirlar,
       }
-      let newSiraNo = 1
-      onaylananMetraj.satirlar = onaylananMetraj.satirlar.map(oneSatir => {
-        oneSatir.siraNo = newSiraNo
-        newSiraNo += 1
-        return oneSatir
-      })
     }
 
 
@@ -148,11 +134,11 @@ exports = async function ({
       {
         $set: {
           onaylananMetraj: metraj,
-          "hazirlananMetrajlar.$[elem].hasSelected":hasSelected,
-          "hazirlananMetrajlar.$[elem].hasSelectedFull":hasSelectedFull,
+          "hazirlananMetrajlar.$[elem].hasSelected": hasSelected,
+          "hazirlananMetrajlar.$[elem].hasSelectedFull": hasSelectedFull,
         }
       },
-      { arrayFilters: [ { "elem.userEmail": hazirlayanEmail } ] }
+      { arrayFilters: [{ "elem.userEmail": hazirlayanEmail }] }
     )
 
   } catch (err) {
