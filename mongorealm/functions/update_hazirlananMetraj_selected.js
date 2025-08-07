@@ -78,16 +78,17 @@ exports = async function ({
 
     let onaylananMetraj = await collection_Dugumler.findOne({ _dugumId })
 
-    if(!onaylananMetraj?.satirlar){
-      onaylananMetraj.satirlar = []
-    }
-
-    hazirlananMetraj_selected.satirlar.map(oneSatir => {
-      if(!onaylananMetraj.satirlar.find(x => x._id.toString() === oneSatir._id.toString())){
-        onaylananMetraj.satirlar = [...onaylananMetraj.satirlar, oneSatir]
+    if (onaylananMetraj) {
+      hazirlananMetraj_selected.satirlar.map(oneSatir => {
+        if (!onaylananMetraj.satirlar.find(x => x._id.toString() === oneSatir._id.toString())) {
+          onaylananMetraj.satirlar = [...onaylananMetraj.satirlar, oneSatir]
+        }
+      })
+    } else {
+      onaylananMetraj = {
+        satirlar:hazirlananMetraj_selected.satirlar,
       }
-    })
-
+    }
 
     let metraj = 0
     onaylananMetraj.satirlar.map(oneSatir => {
@@ -96,7 +97,7 @@ exports = async function ({
 
     await collection_Dugumler.updateOne(
       { _dugumId },
-      { $set: { satirlar: onaylananMetraj.satirlar, metraj} }
+      { $set: { satirlar: onaylananMetraj.satirlar, metraj } }
     )
 
     return result
