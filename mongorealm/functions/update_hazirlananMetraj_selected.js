@@ -129,8 +129,8 @@ exports = async function ({
       {
         $set: {
           onaylananMetraj: metraj,
-          "selectedDurum.$[elem].hasSelected":hasSelected,
-          "selectedDurum.$[elem].hasSelectedFull":hasSelectedFull,
+          "hazirlananMetrajlar.$[elem].hasSelected":hasSelected,
+          "hazirlananMetrajlar.$[elem].hasSelectedFull":hasSelectedFull,
         }
       },
       { arrayFilters: [ { "elem.userEmail": userEmail } ] }
