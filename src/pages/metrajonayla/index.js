@@ -146,6 +146,20 @@ export default function P_MetrajOnay() {
     })
     setHazirlananMetrajlar_state(hazirlananMetrajlar_state2)
 
+
+    // kaydetme tuşunu pasif hale getirme
+    let hasNewSelected = false;
+    for (var i = 0; i < hazirlananMetrajlar_state2.length; i++) {
+      if (hazirlananMetrajlar_state2[i].satirlar.find(x => x.newSelected)) {
+        hasNewSelected = true;
+        break;
+      }
+    }
+    if (!hasNewSelected) {
+      setIsChanged()
+    }
+
+
   }
 
 
@@ -166,9 +180,9 @@ export default function P_MetrajOnay() {
         let hazirlananMetrajlar_selected = metrajYapabilenler.map(oneYapabilen => {
           let satirlar = hazirlananMetrajlar_state.find(x => x.userEmail === oneYapabilen.userEmail)?.satirlar.filter(x => x.newSelected)
           if (satirlar?.length > 0) {
-            satirlar = satirlar.map(x => {
-              delete x.newSelected
-              return x
+            satirlar = satirlar.map(oneSatir => {
+              delete oneSatir.newSelected
+              return oneSatir
             })
             return { userEmail: oneYapabilen.userEmail, satirlar }
           }
@@ -492,8 +506,8 @@ export default function P_MetrajOnay() {
                             <LockIcon variant="contained" sx={{ color: "gray", fontSize: "1rem" }} />
                           }
                           {oneRow?.isSelected && oneRow?.newSelected &&
-                          <HourglassFullSharpIcon variant="contained" sx={{ color: "rgba( 255,165,0, 1 )", fontSize: "0.95rem" }} />
-                        }
+                            <HourglassFullSharpIcon variant="contained" sx={{ color: "rgba( 255,165,0, 1 )", fontSize: "0.95rem" }} />
+                          }
                         </Box>
 
                       </React.Fragment>
