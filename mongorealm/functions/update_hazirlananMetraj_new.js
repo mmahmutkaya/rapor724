@@ -130,7 +130,7 @@ exports = async function ({
     // return {satirlar}
 
     satirlar.map(oneSatir => {
-      metraj = metraj + oneSatir?.metraj
+      metraj = metraj + Number(oneSatir?.metraj)
     })
 
 

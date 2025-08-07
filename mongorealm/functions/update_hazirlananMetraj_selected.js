@@ -94,7 +94,7 @@ exports = async function ({
 
 
     onaylananMetraj.satirlar.map(oneSatir => {
-      metraj = metraj + oneSatir.metraj
+      metraj = metraj + Number(oneSatir.metraj)
     })
 
     await collection_OnaylananMetrajlar.updateOne(
