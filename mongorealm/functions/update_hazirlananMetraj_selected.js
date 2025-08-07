@@ -74,10 +74,11 @@ exports = async function ({
   }
 
 
+  let metraj = 0
 
   try {
 
-    let onaylananMetraj = await collection_Dugumler.findOne({ _dugumId })
+    let onaylananMetraj = await collection_OnaylananMetrajlar.findOne({ _dugumId })
 
     if (onaylananMetraj) {
       hazirlananMetraj_selected.satirlar.map(oneSatir => {
@@ -91,7 +92,7 @@ exports = async function ({
       }
     }
 
-    let metraj = 0
+
     onaylananMetraj.satirlar.map(oneSatir => {
       metraj = metraj + oneSatir.metraj
     })
@@ -105,6 +106,19 @@ exports = async function ({
 
   } catch (err) {
     throw new Error("MONGO // update_hazirlananMetrajlar_selected // onaylananMetraj güncelleme " + err.message);
+  }
+
+
+  
+  try {
+
+    await collection_Dugumler.updateOne(
+      { _dugumId },
+      { $set: { onaylananMetraj: metraj } }
+    )
+
+  } catch (err) {
+    throw new Error("MONGO // update_hazirlananMetrajlar_selected // dugum onaylananMetraj güncelleme " + err.message);
   }
 
 
