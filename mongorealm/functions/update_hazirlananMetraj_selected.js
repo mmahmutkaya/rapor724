@@ -100,7 +100,6 @@ exports = async function ({
       { $set: { satirlar: onaylananMetraj.satirlar, metraj } }
     )
 
-    return result
 
   } catch (err) {
     throw new Error("MONGO // update_hazirlananMetrajlar_selected // onaylananMetraj güncelleme " + err.message);
