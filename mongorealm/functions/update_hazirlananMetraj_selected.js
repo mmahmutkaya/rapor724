@@ -87,7 +87,7 @@ exports = async function ({
       })
     } else {
       onaylananMetraj = {
-        satirlar:hazirlananMetraj_selected.satirlar,
+        satirlar: hazirlananMetraj_selected.satirlar,
       }
     }
 
@@ -98,7 +98,8 @@ exports = async function ({
 
     await collection_OnaylananMetrajlar.updateOne(
       { _dugumId },
-      { $set: { satirlar: onaylananMetraj.satirlar, metraj } }
+      { $set: { satirlar: onaylananMetraj.satirlar, metraj } },
+      { upsert: true }
     )
 
 
