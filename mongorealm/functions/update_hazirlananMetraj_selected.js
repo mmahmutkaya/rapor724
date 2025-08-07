@@ -96,15 +96,31 @@ exports = async function ({
     let onaylananMetraj = await collection_OnaylananMetrajlar.findOne({ _dugumId })
 
     if (onaylananMetraj) {
+        
+      let newSiraNo = 1
+      onaylananMetraj.satirlar.map(oneSatir => {
+        if(oneSatir.siraNo > newSiraNo){
+          newSiraNo = oneSatir.siraNo + 1
+        }
+      })
+
       hazirlananMetraj_selected.satirlar.map(oneSatir => {
         if (!onaylananMetraj.satirlar.find(x => x._id.toString() === oneSatir._id.toString())) {
-          onaylananMetraj.satirlar = [...onaylananMetraj.satirlar, oneSatir]
+          oneSatir.siraNo = newSiraNo
+          onaylananMetraj.satirlar = [...onaylananMetraj.satirlar, {oneSatir}]
+          newSiraNo += 1
         }
       })
     } else {
       onaylananMetraj = {
         satirlar: hazirlananMetraj_selected.satirlar,
       }
+      let newSiraNo = 1
+      onaylananMetraj.satirlar = onaylananMetraj.satirlar.map(oneSatir => {
+        oneSatir.siraNo = newSiraNo
+        newSiraNo += 1
+        return oneSatir
+      })
     }
 
 
