@@ -34,6 +34,7 @@ exports = async function ({
 
   const collection_Projeler = context.services.get("mongodb-atlas").db("rapor724_v2").collection("projeler")
   const collection_HazirlananMetrajlar = context.services.get("mongodb-atlas").db("rapor724_v2").collection("hazirlananMetrajlar")
+  const collection_OnaylananMetrajlar = context.services.get("mongodb-atlas").db("rapor724_v2").collection("onaylananMetrajlar")
   const collection_Dugumler = context.services.get("mongodb-atlas").db("rapor724_v2").collection("dugumler")
 
   const proje = await collection_Projeler.findOne({ _id: _projeId })
@@ -95,7 +96,7 @@ exports = async function ({
       metraj = metraj + oneSatir.metraj
     })
 
-    await collection_Dugumler.updateOne(
+    await collection_OnaylananMetrajlar.updateOne(
       { _dugumId },
       { $set: { satirlar: onaylananMetraj.satirlar, metraj } }
     )
