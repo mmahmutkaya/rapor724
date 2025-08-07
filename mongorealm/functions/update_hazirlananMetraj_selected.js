@@ -113,7 +113,7 @@ exports = async function ({
   try {
 
     await collection_Dugumler.updateOne(
-      { _dugumId },
+      { _id:_dugumId },
       { $set: { onaylananMetraj: metraj } }
     )
 
