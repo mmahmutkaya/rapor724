@@ -41,6 +41,8 @@ exports = async function ({
   // const {metrajYapabilenler} = proje.yetki
 
 
+  let hasSelected
+  let hasSelectedFull
   try {
 
     let hazirlananMetraj = await collection_HazirlananMetrajlar.findOne({ _dugumId, userEmail: hazirlananMetraj_selected.userEmail })
@@ -64,6 +66,14 @@ exports = async function ({
       return oneSatir
     })
 
+    if (satirlar.find(x => x.isSelected)) {
+      hasSelected: true
+      if (satirlar.length === hazirlananMetraj_selected.satirlar.length) {
+        hasSelectedFull = true
+      }
+    }
+
+
     await collection_HazirlananMetrajlar.updateOne(
       { _dugumId, userEmail: hazirlananMetraj_selected.userEmail },
       { $set: { satirlar } }
@@ -72,6 +82,8 @@ exports = async function ({
   } catch (err) {
     throw new Error("MONGO // update_hazirlananMetrajlar_selected // hazirlananMetraj güncelleme " + err.message);
   }
+
+
 
 
   let metraj = 0
@@ -109,12 +121,19 @@ exports = async function ({
   }
 
 
-  
+
   try {
 
     await collection_Dugumler.updateOne(
-      { _id:_dugumId },
-      { $set: { onaylananMetraj: metraj } }
+      { _id: _dugumId },
+      {
+        $set: {
+          onaylananMetraj: metraj,
+          "selectedDurum.$[elem].hasSelected":hasSelected,
+          "selectedDurum.$[elem].hasSelectedFull":hasSelectedFull,
+        }
+      },
+      { arrayFilters: [ { "elem.userEmail": userEmail } ] }
     )
 
   } catch (err) {
