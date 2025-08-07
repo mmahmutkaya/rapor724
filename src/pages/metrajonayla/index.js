@@ -180,8 +180,6 @@ export default function P_MetrajOnay() {
           return result
         }));
 
-        console.log("results", results)
-
         // await RealmApp?.currentUser.callFunction("update_hazirlananMetraj_selected", ({ _projeId: selectedProje._id, _dugumId: selectedNode_metraj._id, hazirlananMetraj_selected }))
 
         queryClient.invalidateQueries(['onaylananMetraj', selectedNode_metraj?._id.toString()])
@@ -493,9 +491,9 @@ export default function P_MetrajOnay() {
                           {oneRow?.isSelected && !oneRow?.newSelected &&
                             <LockIcon variant="contained" sx={{ color: "gray", fontSize: "1rem" }} />
                           }
-                          {/* {!oneRow?.isSelected &&
+                          {oneRow?.isSelected && oneRow?.newSelected &&
                           <HourglassFullSharpIcon variant="contained" sx={{ color: "rgba( 255,165,0, 1 )", fontSize: "0.95rem" }} />
-                        } */}
+                        }
                         </Box>
 
                       </React.Fragment>

@@ -3,6 +3,7 @@ import React, { useState, useContext, useEffect } from 'react';
 import { useNavigate } from "react-router-dom";
 import { StoreContext } from '../../components/store.js'
 import Tooltip from '@mui/material/Tooltip';
+import _ from 'lodash';
 
 import { DialogAlert } from '../../components/general/DialogAlert.js';
 import HeaderMetrajOlusturCetvel from '../../components/HeaderMetrajOlusturCetvel.js'
@@ -106,7 +107,7 @@ export default function P_MetrajOlusturCetvel() {
   // Edit Metraj Sayfasının Fonksiyonu
   const handle_input_onChange = (event, satirNo, oneProperty) => {
 
-    if(!isChanged){
+    if (!isChanged) {
       setIsChanged(true)
     }
 
@@ -168,29 +169,42 @@ export default function P_MetrajOlusturCetvel() {
     if (isChanged) {
       try {
 
-        console.log("hazirlananMetraj_state",hazirlananMetraj_state)
-        // return
-        await RealmApp?.currentUser.callFunction("update_hazirlananMetraj", ({ _dugumId: selectedNode_metraj._id, hazirlananMetraj_state }))
-        // console.log("result", result)
-        // if (result.dugumler) {
-        //   queryClient.setQueryData(['dugumler', selectedProje?._id.toString()], result.dugumler)
-        // }
-        // setShow("DugumMetrajlari")
+
+        let hazirlananMetraj_new = _.cloneDeep(hazirlananMetraj_state)
+        hazirlananMetraj_new.satirlar = hazirlananMetraj_new.satirlar.filter(x => !x.isSelected)
+
+        await RealmApp?.currentUser.callFunction("update_hazirlananMetraj_new", ({ _dugumId: selectedNode_metraj._id, hazirlananMetraj_new }))
+
         queryClient.invalidateQueries(['hazirlananMetrajlar', selectedNode_metraj?._id.toString()])
         setIsChanged()
         setShow("DugumMetrajlari")
         return
 
-      } catch (error) {
+      } catch (err) {
 
-        console.log(error)
+        console.log(err)
 
+        let dialogIcon = "warning"
+        let dialogMessage = "Beklenmedik hata, sayfayı yenileyiniz, sorun devam ederse Rapor7/24 ile irtibata geçiniz.."
+        let onCloseAction = () => setDialogAlert()
+
+        if (err.message.includes("__mesajBaslangic__") && err.message.includes("__mesajBitis__")) {
+          let mesajBaslangic = err.message.indexOf("__mesajBaslangic__") + "__mesajBaslangic__".length
+          let mesajBitis = err.message.indexOf("__mesajBitis__")
+          dialogMessage = err.message.slice(mesajBaslangic, mesajBitis)
+          dialogIcon = "info"
+          onCloseAction = () => {
+            setDialogAlert()
+            setIsChanged()
+            queryClient.invalidateQueries(['hazirlananMetrajlar', selectedNode_metraj?._id.toString()])
+          }
+        }
         setDialogAlert({
-          dialogIcon: "warning",
-          dialogMessage: "Beklenmedik hata, Rapor7/24 ile irtibata geçiniz..",
-          detailText: error?.message ? error.message : null
+          dialogIcon,
+          dialogMessage,
+          detailText: err?.message ? err.message : null,
+          onCloseAction
         })
-
       }
     }
 
@@ -270,7 +284,7 @@ export default function P_MetrajOlusturCetvel() {
           dialogIcon={dialogAlert.dialogIcon}
           dialogMessage={dialogAlert.dialogMessage}
           detailText={dialogAlert.detailText}
-          onCloseAction={() => setDialogAlert()}
+          onCloseAction={dialogAlert.onCloseAction}
         />
       }
 
@@ -358,7 +372,7 @@ export default function P_MetrajOlusturCetvel() {
 
                 {["satirNo", "aciklama", "carpan1", "carpan2", "carpan3", "carpan4", "carpan5", "metraj", "pozBirim"].map((oneProperty, index) => {
                   // let isCellEdit = (oneProperty === "satirNo" || oneProperty === "pozBirim" || oneProperty === "metraj") ? false : true
-                  let isCellEdit = show === "EditMetraj" && !oneRow.isUsed && (oneProperty.includes("aciklama") || oneProperty.includes("carpan")) ? true : false
+                  let isCellEdit = show === "EditMetraj" && !oneRow.isSelected && (oneProperty.includes("aciklama") || oneProperty.includes("carpan")) ? true : false
                   let isMinha = oneRow["aciklama"].replace("İ", "i").toLowerCase().includes("minha") ? true : false
 
                   return (
@@ -367,7 +381,7 @@ export default function P_MetrajOlusturCetvel() {
                       {isCellEdit &&
                         <Box sx={{
                           ...css_metrajCetveliSatir,
-                          backgroundColor: !oneRow.isUsed && oneProperty.includes("aciklama") ? "rgba(255,255,0, 0.2)" : !oneRow.isUsed && oneProperty.includes("carpan") ? "rgba(255,255,0, 0.3)" : null,
+                          backgroundColor: !oneRow.isSelected && oneProperty.includes("aciklama") ? "rgba(255,255,0, 0.2)" : !oneRow.isSelected && oneProperty.includes("carpan") ? "rgba(255,255,0, 0.3)" : null,
                           minWidth: oneProperty.includes("aciklama") ? "10rem" : oneProperty.includes("1") || oneProperty.includes("2") ? "4rem" : "6rem"
                         }}>
                           <Input
@@ -377,7 +391,7 @@ export default function P_MetrajOlusturCetvel() {
                             autoComplete='off'
                             id={oneRow.satirNo + oneProperty}
                             name={oneRow.satirNo + oneProperty}
-                            readOnly={oneRow.isUsed}
+                            readOnly={oneRow.isSelected}
                             disableUnderline={true}
                             // size="small"
                             type={oneProperty.includes("carpan") ? "number" : "text"}
@@ -420,7 +434,7 @@ export default function P_MetrajOlusturCetvel() {
                       {!isCellEdit &&
                         <Box sx={{
                           ...css_metrajCetveliSatir,
-                          backgroundColor: oneRow?.isUsed && myTema.renkler.inaktifGri,
+                          backgroundColor: oneRow?.isSelected && myTema.renkler.inaktifGri,
                           justifyContent: oneProperty.includes("aciklama") ? "start" : oneProperty.includes("carpan") ? "end" : oneProperty.includes("metraj") ? "end" : "center",
                           minWidth: oneProperty.includes("carpan") ? "5rem" : oneProperty.includes("metraj") ? "5rem" : null,
                           color: isMinha ? "red" : null
@@ -437,7 +451,7 @@ export default function P_MetrajOlusturCetvel() {
                 <Box></Box>
 
                 <Box sx={{
-                  // backgroundColor: oneRow.isUsed ? null : "rgba(255,255,0, 0.3)",
+                  // backgroundColor: oneRow.isSelected ? null : "rgba(255,255,0, 0.3)",
                   // backgroundColor: "rgba(255,255,0, 0.3)",
                   cursor: "pointer",
                   display: "grid",
@@ -446,12 +460,12 @@ export default function P_MetrajOlusturCetvel() {
                   px: "0.3rem",
                   border: "1px solid black"
                 }}>
-                  {oneRow.isUsed &&
+                  {oneRow.isSelected &&
                     <Tooltip placement="top" title="Onaylı Metraj Kısmında Kullanıldı">
                       <LockIcon variant="contained" sx={{ color: "gray", fontSize: "1rem" }} />
                     </Tooltip>
                   }
-                  {/* {!oneRow.isUsed &&
+                  {/* {!oneRow.isSelected &&
                     <HourglassFullSharpIcon variant="contained" sx={{ color: "rgba( 255,165,0, 1 )", fontSize: "0.95rem" }} />
                   } */}
                 </Box>
