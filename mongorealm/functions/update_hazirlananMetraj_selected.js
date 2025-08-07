@@ -66,9 +66,11 @@ exports = async function ({
       return oneSatir
     })
 
+
+    
     if (satirlar.find(x => x.isSelected)) {
       hasSelected = true
-      if (satirlar.length === hazirlananMetraj_selected.satirlar.length) {
+      if (satirlar.filter(x => x.isSelected).length === satirlar.length) {
         hasSelectedFull = true
       }
     }
