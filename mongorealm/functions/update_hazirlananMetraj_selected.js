@@ -43,9 +43,10 @@ exports = async function ({
 
   let hasSelected
   let hasSelectedFull
+  let hazirlayan = proje.yetki.yetkililer.find(x => x.userEmail === hazirlananMetraj.userEmail)
+  
   try {
 
-    let hazirlayan = proje.yetki.yetkililer.find(x => x.userEmail === hazirlananMetraj.userEmail)
     let hazirlananMetraj = await collection_HazirlananMetrajlar.findOne({ _dugumId, userEmail: hazirlayan.userEmail })
 
     let hatMesaj
