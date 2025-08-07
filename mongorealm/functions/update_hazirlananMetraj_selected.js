@@ -52,7 +52,7 @@ exports = async function ({
       }
     })
 
-    if(hatMesaj){
+    if (hatMesaj) {
       throw new Error(hatMesaj);
     }
 
@@ -63,16 +63,43 @@ exports = async function ({
       return oneSatir
     })
 
-    const result = await collection_HazirlananMetrajlar.updateOne(
+    await collection_HazirlananMetrajlar.updateOne(
       { _dugumId, userEmail: hazirlananMetraj_selected.userEmail },
       { $set: { satirlar } }
+    )
+
+  } catch (err) {
+    throw new Error("MONGO // update_hazirlananMetrajlar_selected // hazirlananMetraj güncelleme " + err.message);
+  }
+
+
+
+  try {
+
+    let onaylananMetraj = await collection_Dugumler.findOne({ _dugumId })
+
+    hazirlananMetraj_selected.satirlar.map(oneSatir => {
+      if(!onaylananMetraj.satirlar.find(x => x._id.toString() === oneSatir._id.toString())){
+        onaylananMetraj.satirlar = [...onaylananMetraj.satirlar, oneSatir]
+      }
+    })
+
+
+    let metraj = 0
+    onaylananMetraj.satirlar.map(oneSatir => {
+      metraj = metraj + oneSatir.metraj
+    })
+
+    await collection_Dugumler.updateOne(
+      { _dugumId },
+      { $set: { satirlar: onaylananMetraj.satirlar, metraj} }
     )
 
     return result
 
   } catch (err) {
-    throw new Error("MONGO // update_hazirlananMetrajlar_selected // " + err.message);
+    throw new Error("MONGO // update_hazirlananMetrajlar_selected // onaylananMetraj güncelleme " + err.message);
   }
-  
+
 
 };
