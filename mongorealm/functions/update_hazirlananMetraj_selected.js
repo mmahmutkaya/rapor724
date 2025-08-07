@@ -43,11 +43,11 @@ exports = async function ({
 
   let hasSelected
   let hasSelectedFull
-  let hazirlayan = proje.yetki.yetkililer.find(x => x.userEmail === hazirlananMetraj.userEmail)
+  let hazirlayanEmail = hazirlananMetraj_selected.userEmail
   
   try {
 
-    let hazirlananMetraj = await collection_HazirlananMetrajlar.findOne({ _dugumId, userEmail: hazirlayan.userEmail })
+    let hazirlananMetraj = await collection_HazirlananMetrajlar.findOne({ _dugumId, userEmail: hazirlayanEmail })
 
     let hatMesaj
     hazirlananMetraj_selected.satirlar.map(oneSatir => {
@@ -78,7 +78,7 @@ exports = async function ({
 
 
     await collection_HazirlananMetrajlar.updateOne(
-      { _dugumId, userEmail: hazirlayan.userEmail },
+      { _dugumId, userEmail: hazirlayanEmail },
       { $set: { satirlar } }
     )
 
@@ -136,7 +136,7 @@ exports = async function ({
           "hazirlananMetrajlar.$[elem].hasSelectedFull":hasSelectedFull,
         }
       },
-      { arrayFilters: [ { "elem.userEmail": hazirlayan.userEmail } ] }
+      { arrayFilters: [ { "elem.userEmail": hazirlayanEmail } ] }
     )
 
   } catch (err) {
