@@ -30,7 +30,7 @@ exports = async function ({
     let hazirlananMetraj = await collection_hazirlananMetrajlar.findOne({_dugumId,userEmail})
     if(!hazirlananMetraj) {
       hazirlananMetraj = {
-        _versionId:new BSON.Object(),
+        _versionId:new BSON.ObjectId(),
         userEmail,
         metraj:0,
         satirlar:[
