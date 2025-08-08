@@ -48,14 +48,14 @@ exports = async function ({
 
     // db hazirlik - metraj
 
-    metraj = hazirlananMetraj.metraj
+    metraj = hazirlananMetraj_new.metraj
 
     // db hazirlik - _versionId
     _versionId = new BSON.ObjectId()
 
     await collection_HazirlananMetrajlar.updateOne(
       { _dugumId, userEmail },
-      { $set: { _versionId, ...hazirlananMetraj } },
+      { $set: { _versionId, ...hazirlananMetraj_new } },
       { upsert: true }
     )
 
