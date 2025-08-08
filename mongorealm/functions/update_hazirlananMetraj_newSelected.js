@@ -106,7 +106,7 @@ exports = async function ({
       })
 
       hazirlananMetraj_newSelected.satirlar.map(oneSatir => {
-        if (!onaylananMetraj.satirlar.find(x => x._id.toString() === oneSatir._id.toString())) {
+        if (!onaylananMetraj.satirlar.find(x => x?._id.toString() === oneSatir._id.toString())) {
           oneSatir.siraNo = newSiraNo
           onaylananMetraj.satirlar = [...onaylananMetraj.satirlar, oneSatir]
           newSiraNo += 1
