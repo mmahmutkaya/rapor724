@@ -25,19 +25,26 @@ exports = async function ({
   const collection_hazirlananMetrajlar = context.services.get("mongodb-atlas").db("rapor724_v2").collection("hazirlananMetrajlar")
   const collection_onaylananMetrajlar = context.services.get("mongodb-atlas").db("rapor724_v2").collection("onaylananMetrajlar")
 
-  
+
+  let _newVersionId = new BSON.ObjectId()
+
   try {
-    
-    let hazirlananMetrajlar = await collection_hazirlananMetrajlar.find({_dugumId})
-    let onaylananMetraj = await collection_hazirlananMetrajlar.findOne({_dugumId})
+
+    let hazirlananMetrajlar = await collection_hazirlananMetrajlar.find({ _dugumId })
+    const result = await collection_hazirlananMetrajlar.findAndModify({ _dugumId }, { $set: { _versionId: _newVersionId } })
+    return result
+
+
+
+    let onaylananMetraj = await collection_hazirlananMetrajlar.findOne({ _dugumId })
     let onaylananMetraj_versionId = new BSON.ObjectId()
-    
-    if(onaylananMetraj){
+
+    if (onaylananMetraj) {
       onaylananMetraj_versionId = onaylananMetraj._versionId
     } else {
       onaylananMetraj_versionId = new BSON.ObjectId()
-      const result = collection_onaylananMetrajlar.insertOne({_dugumId,_versionId:onaylananMetraj_versionId})
-      if(!result.insertedId){
+      const result = collection_onaylananMetrajlar.insertOne({ _dugumId, _versionId: onaylananMetraj_versionId })
+      if (!result.insertedId) {
         throw new Error("versiyonId işlemi için onaylananMetraj oluşturulurken hata oluştu");
       }
     }
@@ -46,12 +53,12 @@ exports = async function ({
     // if(!result.modifiedCount){
     //   throw new Error("versiyonId işlemi için onaylananMetraj oluşturulurken hata oluştu");
     // }
-    
+
     hazirlananMetrajlar.onaylananMetraj_versionId = onaylananMetraj_versionId
     return hazirlananMetrajlar
-    
+
   } catch (error) {
-    throw new Error({hatayeri:"MONGO // getHazirlananMetrajlar // ", error});
+    throw new Error({ hatayeri: "MONGO // getHazirlananMetrajlar // ", error });
   }
 
 
