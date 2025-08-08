@@ -24,16 +24,26 @@ exports = async function ({
 
   const collection_hazirlananMetrajlar = context.services.get("mongodb-atlas").db("rapor724_v2").collection("hazirlananMetrajlar")
 
-  
+
   try {
-    
-    let hazirlananMetraj = await collection_hazirlananMetrajlar.findOne({_dugumId,userEmail})
-    if(!hazirlananMetraj) {
+
+    let hazirlananMetraj = await collection_hazirlananMetrajlar.findOne({ _dugumId, userEmail })
+
+    // ya burdan dönecek
+    if (hazirlananMetraj) {
+      let _newVersionId = new BSON.ObjectId()
+      await collection_hazirlananMetrajlar.updateOne({ _dugumId, userEmail },{$set:{_versionId:_newVersionId}})
+      return hazirlananMetraj
+    }
+
+    // ya burdan dönecek
+    if (!hazirlananMetraj) {
       hazirlananMetraj = {
-        _versionId:new BSON.ObjectId(),
+        _versionId: new BSON.ObjectId(),
+        _dugumId,
         userEmail,
-        metraj:0,
-        satirlar:[
+        metraj: 0,
+        satirlar: [
           { satirNo: userCode + "-" + 1, aciklama: "", carpan1: "", carpan2: "", carpan3: "", carpan4: "", carpan5: "", metraj: "" },
           { satirNo: userCode + "-" + 2, aciklama: "", carpan1: "", carpan2: "", carpan3: "", carpan4: "", carpan5: "", metraj: "" },
           { satirNo: userCode + "-" + 3, aciklama: "", carpan1: "", carpan2: "", carpan3: "", carpan4: "", carpan5: "", metraj: "" },
@@ -41,11 +51,14 @@ exports = async function ({
           { satirNo: userCode + "-" + 5, aciklama: "", carpan1: "", carpan2: "", carpan3: "", carpan4: "", carpan5: "", metraj: "" }
         ]
       }
+      await collection_hazirlananMetrajlar.insertOne(hazirlananMetraj)
+      return hazirlananMetraj
     }
-    return hazirlananMetraj
-    
+
+
+
   } catch (error) {
-    throw new Error({hatayeri:"MONGO // getHazirlananMetraj // ", error});
+    throw new Error({ hatayeri: "MONGO // getHazirlananMetraj // ", error });
   }
 
 
