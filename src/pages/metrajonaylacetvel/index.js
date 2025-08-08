@@ -42,11 +42,13 @@ export default function P_MetrajCetveliOnaylanan() {
 
   const [dialogAlert, setDialogAlert] = useState()
   const [show, setShow] = useState("Main")
-  const [showDeActive, setShowDeActive] = useState()
   const [isChanged, setIsChanged] = useState()
   const [onaylananMetraj_state, setOnaylananMetraj_state] = useState()
   const [onaylananMetraj_backUp, setOnaylananMetraj_backUp] = useState()
-  const [hasDeActive, setHasDeActive] = useState()
+  
+  const [showHasSelectedCopy, setShowHasSelectedCopy] = useState()
+  const [hasSelectedCopySatirlar, setHasSelectedCopySatirlar] = useState()
+  
   const [_pozId] = useState()
   const [isChanged_unLock, setIsChanged_unLock] = useState()
   const [satirNolar_lock, setSatirNolar_lock] = useState([])
@@ -66,7 +68,7 @@ export default function P_MetrajCetveliOnaylanan() {
     !selectedNode_metraj && navigate("/metrajonaylapozlar")
     setOnaylananMetraj_state(_.cloneDeep(onaylananMetraj))
     setOnaylananMetraj_backUp(_.cloneDeep(onaylananMetraj))
-    setHasDeActive(onaylananMetraj?.satirlar.find(x => x.isLock) ? true : false)
+    setHasSelectedCopySatirlar(onaylananMetraj?.satirlar.find(x => x.hasSelectedCopy) ? true : false)
   }, [onaylananMetraj])
 
 
@@ -97,14 +99,14 @@ export default function P_MetrajCetveliOnaylanan() {
     // console.log("onaylananMetraj_state2", onaylananMetraj_state2)
 
 
-    // bu değişim orjinal satırdan gelmişse, satırın kopyasını oluşturacağız, öncelikle satır no revizesi, sonra yoksa oluşturma
+    // orjinal satır değiştirilmeye başladığında satır numaraları ile kopyası oluşturulur
     let originalSatirNo
-    if (!oneSatir.isUsedCopy) {
+    if (!oneSatir.isSelectedCopy) {
       originalSatirNo = oneSatir.satirNo
-      oneSatir.satirNo = oneSatir.satirNo + ".1"
+      oneSatir.satirNo = originalSatirNo + ".1"
     }
     if (!onaylananMetraj_state2.satirlar.find(x => x.satirNo === oneSatir.satirNo)) {
-      onaylananMetraj_state2.satirlar = [...onaylananMetraj_state2.satirlar, { ...oneSatir, isUsedCopy: true }]
+      onaylananMetraj_state2.satirlar = [...onaylananMetraj_state2.satirlar, { ...oneSatir, isSelectedCopy: true }]
     }
 
     // map ile tarayarak, state kısmındaki datanın ilgili satırını güncelliyoruz, ayrıca tüm satırların toplam metrajını, önce önceki değeri çıkartıp yeni değeri ekleyerek
@@ -112,7 +114,7 @@ export default function P_MetrajCetveliOnaylanan() {
 
       if (oneRow.satirNo === originalSatirNo) {
 
-        oneRow.isLock = true
+        oneRow.hasSelectedCopy = true
 
         let userEmail = oneRow.userEmail
         // db ye göndereeğimiz 'revizeEdilenler' henüz hiç oluşmamışsa
@@ -246,7 +248,7 @@ export default function P_MetrajCetveliOnaylanan() {
     let unLock_edilecekSatirNo = iptalRow.satirNo.substring(0, iptalRow.satirNo.indexOf("."))
     onaylananMetraj_state2.satirlar = onaylananMetraj_state2.satirlar.map(oneRow => {
       if (oneRow.satirNo === unLock_edilecekSatirNo) {
-        oneRow.isLock = false
+        oneRow.hasSelectedCopy = false
         onaylananMetraj_state2["metraj"] = Number(onaylananMetraj_state2["metraj"]) + Number(oneRow["metraj"])
       }
       return oneRow
@@ -266,7 +268,7 @@ export default function P_MetrajCetveliOnaylanan() {
     }
     setSatirNolar_unLock(satirNolar_unLock2)
 
-    setHasDeActive(onaylananMetraj_state2?.satirlar.find(x => x.isLock) ? true : false)
+    setHasSelectedCopySatirlar(onaylananMetraj_state2?.satirlar.find(x => x.hasSelectedCopy) ? true : false)
     setOnaylananMetraj_state(onaylananMetraj_state2)
 
   }
@@ -274,7 +276,7 @@ export default function P_MetrajCetveliOnaylanan() {
 
   const cancel_unLock = () => {
     setOnaylananMetraj_state(_.cloneDeep(onaylananMetraj_backUp))
-    setHasDeActive(onaylananMetraj_state?.satirlar.find(x => x.isLock) ? true : false)
+    setHasSelectedCopySatirlar(onaylananMetraj_state?.satirlar.find(x => x.hasSelectedCopy) ? true : false)
     setIsChanged_unLock()
     setShow("Main")
   }
@@ -302,7 +304,7 @@ export default function P_MetrajCetveliOnaylanan() {
 
     }
 
-    setHasDeActive(onaylananMetraj_state?.satirlar.find(x => x.isLock) ? true : false)
+    setHasSelectedCopySatirlar(onaylananMetraj_state?.satirlar.find(x => x.hasSelectedCopy) ? true : false)
     setIsChanged_unLock()
   }
 
@@ -383,12 +385,12 @@ export default function P_MetrajCetveliOnaylanan() {
       <Grid name="metrajCetveliHeader" item sx={{ mt: (parseFloat(subHeaderHeight) + 1) + "rem", }}>
         <HeaderMetrajOnaylaCetvel
           show={show} setShow={setShow}
-          showDeActive={showDeActive} setShowDeActive={setShowDeActive}
+          showHasSelectedCopy={showHasSelectedCopy} setShowHasSelectedCopy={setShowHasSelectedCopy}
 
           save={save} cancel={cancel}
           isChanged={isChanged} setIsChanged={setIsChanged}
 
-          hasDeActive={hasDeActive}
+          hasSelectedCopySatirlar={hasSelectedCopySatirlar}
           onaylananMetraj_state={onaylananMetraj_state}
           save_unLock={save_unLock} cancel_unLock={cancel_unLock}
           isChanged_unLock={isChanged_unLock} setIsChanged_unLock={setIsChanged_unLock}
@@ -464,13 +466,13 @@ export default function P_MetrajCetveliOnaylanan() {
           </React.Fragment>
 
 
-          {onaylananMetraj_state.satirlar.filter(x => showDeActive ? x : !x.isLock).sort((a, b) => a.siraNo - b.siraNo).map((oneRow, index) => {
+          {onaylananMetraj_state.satirlar.filter(x => showHasSelectedCopy ? x : !x.hasSelectedCopy).sort((a, b) => a.siraNo - b.siraNo).map((oneRow, index) => {
             return (
               < React.Fragment key={index}>
 
                 {["satirNo", "aciklama", "carpan1", "carpan2", "carpan3", "carpan4", "carpan5", "metraj", "pozBirim"].map((oneProperty, index) => {
                   // let isCellEdit = (oneProperty === "satirNo" || oneProperty === "pozBirim" || oneProperty === "metraj") ? false : true
-                  // let isCellEdit = show === "EditMetraj" && !oneRow.isUsed && (oneProperty.includes("aciklama") || oneProperty.includes("carpan")) ? true : false
+                  // let isCellEdit = show === "EditMetraj" && !oneRow.isSelected && (oneProperty.includes("aciklama") || oneProperty.includes("carpan")) ? true : false
                   let isCellEdit = show === "EditMetraj" && (oneProperty.includes("aciklama") || oneProperty.includes("carpan")) ? true : false
                   let isMinha = oneRow["aciklama"].replace("İ", "i").toLowerCase().includes("minha") ? true : false
 
@@ -480,7 +482,7 @@ export default function P_MetrajCetveliOnaylanan() {
                       {isCellEdit &&
                         <Box sx={{
                           ...css_metrajCetveliSatir,
-                          backgroundColor: oneRow.isUsedCopy && (oneProperty.includes("aciklama") || oneProperty.includes("carpan")) ? "rgba(255,255,0, 0.3)" : "rgba(255,255,0, 0.1)",
+                          backgroundColor: oneRow.isSelectedCopy && (oneProperty.includes("aciklama") || oneProperty.includes("carpan")) ? "rgba(255,255,0, 0.3)" : "rgba(255,255,0, 0.1)",
                           minWidth: oneProperty.includes("aciklama") ? "10rem" : oneProperty.includes("1") || oneProperty.includes("2") ? "4rem" : "6rem"
                         }}>
                           <Input
@@ -490,7 +492,7 @@ export default function P_MetrajCetveliOnaylanan() {
                             autoComplete='off'
                             id={oneRow.satirNo + oneProperty}
                             name={oneRow.satirNo + oneProperty}
-                            // readOnly={oneRow.isUsed}
+                            // readOnly={oneRow.isSelected}
                             disableUnderline={true}
                             // size="small"
                             type={oneProperty.includes("carpan") ? "number" : "text"}
@@ -533,7 +535,7 @@ export default function P_MetrajCetveliOnaylanan() {
                       {!isCellEdit &&
                         <Box sx={{
                           ...css_metrajCetveliSatir,
-                          backgroundColor: showDeActive && oneRow?.isUsed && !oneRow.isUsedCopy && myTema.renkler.inaktifGri,
+                          backgroundColor: showHasSelectedCopy && oneRow?.isSelected && !oneRow.isSelectedCopy && myTema.renkler.inaktifGri,
                           justifyContent: (oneProperty.includes("satirNo") || oneProperty.includes("aciklama")) ? "start" : oneProperty.includes("carpan") ? "end" : oneProperty.includes("metraj") ? "end" : "center",
                           minWidth: oneProperty.includes("carpan") ? "5rem" : oneProperty.includes("metraj") ? "5rem" : null,
                           color: isMinha ? "red" : null,
@@ -551,11 +553,11 @@ export default function P_MetrajCetveliOnaylanan() {
                 <Box></Box>
 
                 <Box
-                  onClick={() => showDeActive && oneRow.isUsedCopy && update_state_unLock(oneRow)}
-                  // onMouseEnter={() => showDeActive && setIsHovered(true)}
-                  // onMouseLeave={() => showDeActive && setIsHovered(false)}
+                  onClick={() => showHasSelectedCopy && oneRow.isSelectedCopy && update_state_unLock(oneRow)}
+                  // onMouseEnter={() => showHasSelectedCopy && setIsHovered(true)}
+                  // onMouseLeave={() => showHasSelectedCopy && setIsHovered(false)}
                   sx={{
-                    // backgroundColor: oneRow.isUsed ? null : "rgba(255,255,0, 0.3)",
+                    // backgroundColor: oneRow.isSelected ? null : "rgba(255,255,0, 0.3)",
                     // backgroundColor: "rgba(255,255,0, 0.3)",
                     cursor: "pointer",
                     display: "grid",
@@ -565,15 +567,15 @@ export default function P_MetrajCetveliOnaylanan() {
                     border: "1px solid black",
                   }}
                 >
-                  {oneRow.isUsed && !oneRow.isUsedCopy &&
+                  {oneRow.isSelected && !oneRow.isSelectedCopy &&
                     <LockIcon
                       variant="contained"
-                      sx={{ color: oneRow.isLock ? "rgba(255, 132, 0, 1)" : "gray", fontSize: "0.9rem" }} />
+                      sx={{ color: oneRow.hasSelectedCopy ? "rgba(255, 132, 0, 1)" : "gray", fontSize: "0.9rem" }} />
                   }
-                  {!showDeActive && oneRow.isUsedCopy &&
+                  {!showHasSelectedCopy && oneRow.isSelectedCopy &&
                     <StarIcon variant="contained" sx={{ color: "rgba(255, 132, 0, 1)", fontSize: "0.9rem" }} />
                   }
-                  {showDeActive && oneRow.isUsedCopy &&
+                  {showHasSelectedCopy && oneRow.isSelectedCopy &&
                     <ReplyIcon variant="contained" sx={{ color: "rgba(255, 132, 0, 1)", fontSize: "0.9rem" }} />
                   }
                 </Box>

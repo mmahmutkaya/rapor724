@@ -2,14 +2,14 @@
 import React, { useState, useContext, useEffect } from 'react';
 import { useNavigate } from "react-router-dom";
 import { StoreContext } from '../../components/store.js'
-import Tooltip from '@mui/material/Tooltip';
 import _ from 'lodash';
 
+
 import { DialogAlert } from '../../components/general/DialogAlert.js';
-import HeaderMetrajOlusturCetvel from '../../components/HeaderMetrajOlusturCetvel.js'
+import HeaderMetrajOnaylaCetvel from '../../components/HeaderMetrajOnaylaCetvel.js'
 import { useQuery, useQueryClient, useMutation } from '@tanstack/react-query'
 import { BSON } from "realm-web"
-import { useGetMahaller, useGetMahalListesi, useGetHazirlananMetraj, useUpdateHazirlananMetraj, useUpdateOnaylananMetraj, useGetOnaylananMetraj } from '../../hooks/useMongo.js';
+import { useGetOnaylananMetraj } from '../../hooks/useMongo.js';
 
 
 import { styled } from '@mui/system';
@@ -27,72 +27,55 @@ import CircleIcon from '@mui/icons-material/Circle';
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import CheckIcon from '@mui/icons-material/Check';
 import LockIcon from '@mui/icons-material/Lock';
+import StarIcon from '@mui/icons-material/Star';
+import ReplyIcon from '@mui/icons-material/Reply';
 
-export default function P_MetrajOlusturCetvel() {
+
+
+export default function P_MetrajCetveliOnaylanan() {
 
   const queryClient = useQueryClient()
 
-  const { RealmApp, selectedProje, setSelectedProje } = useContext(StoreContext)
-  const { customData } = RealmApp.currentUser
-  const { custom, setCustom } = useContext(StoreContext)
-  const { selectedMahal, setSelectedMahal } = useContext(StoreContext)
-  const { selectedPoz_metraj, setSelectedPoz_metraj } = useContext(StoreContext)
-  const { selectedMahal_metraj } = useContext(StoreContext)
-  const { myTema, setMyTema } = useContext(StoreContext)
-  const { selectedNode_metraj, setSelectedNode_metraj } = useContext(StoreContext)
-  const { drawerWidth, topBarHeight, subHeaderHeight } = useContext(StoreContext)
-  const { editNodeMetraj, setEditNodeMetraj } = useContext(StoreContext)
-  const { showNodeMetraj, setShowNodeMetraj } = useContext(StoreContext)
-  const { detailMode, setDetailMode } = useContext(StoreContext)
-
+  const { RealmApp, myTema, subHeaderHeight } = useContext(StoreContext)
+  const { selectedProje, selectedPoz_metraj, selectedNode_metraj } = useContext(StoreContext)
+  const yetkililer = selectedProje?.yetki.yetkililer
 
   const [dialogAlert, setDialogAlert] = useState()
-  const [show, setShow] = useState("DugumMetrajlari")
-  const [approveMode, setApproveMode] = useState()
-  const [isChanged, setIsChanged] = useState(0)
-  const [hazirlananMetraj_state, setHazirlananMetraj_state] = useState()
-  const [hazirlananMetrajlar_state, setHazirlananMetrajlar_state] = useState()
+  const [show, setShow] = useState("Main")
+  const [showDeActive, setShowDeActive] = useState()
+  const [isChanged, setIsChanged] = useState()
   const [onaylananMetraj_state, setOnaylananMetraj_state] = useState()
-  const [onaylananMetrajUsers_state, setOnaylananMetrajUsers_state] = useState()
-  const [dugumMetraj_state, setDugumMetraj_state] = useState()
-  const [metraj, setMetraj] = useState()
-  const [_pozId, set_pozId] = useState()
-  const [mahalBilgiler_willBeSaved, setMahalBilgiler_willBeSaved] = useState([])
-  const [autoFocus, setAutoFocus] = useState({ pozId: null, mahalId: null })
-  const [satirlarToplam, setSatirlarToplam] = useState()
+  const [onaylananMetraj_backUp, setOnaylananMetraj_backUp] = useState()
+  const [hasDeActive, setHasDeActive] = useState()
+  const [_pozId] = useState()
+  const [isChanged_unLock, setIsChanged_unLock] = useState()
+  const [satirNolar_lock, setSatirNolar_lock] = useState([])
+  const [satirNolar_unLock, setSatirNolar_unLock] = useState([])
+  const [deActiveIptalSatirNolar, setDeActiveIptalSatirNolar] = useState([])
+  // const [isHovered, setIsHovered] = useState(false);
+
 
   let pozBirim
-  let pozMetraj
 
 
-  let metrajCesitleri = [{ id: "guncel", name: "Güncel" }]
-
-  // renkler
-
-  const onaylananBaslik_color = "rgba( 253, 197, 123 , 0.6 )" // tarçın
-  const onaylananSatir_color = "rgba(255,255,0, 0.3)" // açık sarı 
-
-  // "rgba( 253, 197, 123 , 0.6 )" // tarçın
-  // "rgba( 0, 255, 0, 0.2 )" // fosforlu yeşil 
-  // "rgba( 128, 128, 128, 0.3 )" // gri 
-  // "rgba(255,255,0, 0.3)" // sarı
-
-  const hazirlananBaslik_color = "rgba( 253, 197, 123 , 0.6 )" // tarçın
-  const hazirlananSatir_color = "rgba(255,255,0, 0.3)" // sarı 
-  const hazirlananOnayliSatir_color = "rgba( 128, 128, 128, 0.2 )" // gri
-  const hazirlananKilitliSatir_color = "rgba( 128, 128, 128, 0.3 )" // gri
-
-
-  const { data: hazirlananMetraj } = useGetHazirlananMetraj()
-
+  // const { data: onaylananMetraj } = useGetOnaylananMetraj()
+  const { data: onaylananMetraj } = useGetOnaylananMetraj()
 
   const navigate = useNavigate()
   useEffect(() => {
-    !selectedNode_metraj && navigate("/metrajpozmahaller")
-    setHazirlananMetraj_state(hazirlananMetraj)
-  }, [hazirlananMetraj])
+    !selectedNode_metraj && navigate("/metrajonaylapozlar")
+    setOnaylananMetraj_state(_.cloneDeep(onaylananMetraj))
+    setOnaylananMetraj_backUp(_.cloneDeep(onaylananMetraj))
+    setHasDeActive(onaylananMetraj?.satirlar.find(x => x.hasSelectedCopy) ? true : false)
+  }, [onaylananMetraj])
 
 
+
+
+
+
+
+  // METRAJ REVİZE ETME FONKSİYONLARI
 
   // Edit Metraj Sayfasının Fonksiyonu
   const handle_input_onKey = async (event) => {
@@ -103,23 +86,58 @@ export default function P_MetrajOlusturCetvel() {
   }
 
 
-
   // Edit Metraj Sayfasının Fonksiyonu
-  const handle_input_onChange = (event, satirNo, oneProperty) => {
+  const handle_input_onChange = (event, oneSatir, oneProperty) => {
 
     if (!isChanged) {
       setIsChanged(true)
     }
 
-    let hazirlananMetraj_state2 = { ...hazirlananMetraj_state }
+    let onaylananMetraj_state2 = _.cloneDeep(onaylananMetraj_state)
+    // console.log("onaylananMetraj_state2", onaylananMetraj_state2)
+
+
+    // orjinal satır değiştirilmeye başladığında satır numaraları ile kopyası oluşturulur
+    let originalSatirNo
+    if (!oneSatir.isSelectedCopy) {
+      originalSatirNo = oneSatir.satirNo
+      oneSatir.satirNo = originalSatirNo + ".1"
+    }
+    if (!onaylananMetraj_state2.satirlar.find(x => x.satirNo === oneSatir.satirNo)) {
+      onaylananMetraj_state2.satirlar = [...onaylananMetraj_state2.satirlar, { ...oneSatir, isSelectedCopy: true }]
+    }
 
     // map ile tarayarak, state kısmındaki datanın ilgili satırını güncelliyoruz, ayrıca tüm satırların toplam metrajını, önce önceki değeri çıkartıp yeni değeri ekleyerek
-    hazirlananMetraj_state2["satirlar"] = hazirlananMetraj_state2["satirlar"].map(oneRow => {
+    onaylananMetraj_state2["satirlar"] = onaylananMetraj_state2["satirlar"].map(oneRow => {
 
-      if (oneRow.satirNo == satirNo) {
+      if (oneRow.satirNo === originalSatirNo) {
+
+        oneRow.hasSelectedCopy = true
+
+        let userEmail = oneRow.userEmail
+        // db ye göndereeğimiz 'revizeEdilenler' henüz hiç oluşmamışsa
+        let satirNolar_lock2 = _.cloneDeep(satirNolar_lock)
+        if (satirNolar_lock2?.find(x => x.userEmail === userEmail)) {
+          satirNolar_lock2 = satirNolar_lock2.map(oneHazirlanan => {
+            if (oneHazirlanan.userEmail === userEmail) {
+              if (!oneHazirlanan.satirNolar.find(x => x === originalSatirNo))
+                oneHazirlanan.satirNolar = [...oneHazirlanan.satirNolar, originalSatirNo]
+            }
+            return oneHazirlanan
+          })
+        } else {
+          satirNolar_lock2 = [...satirNolar_lock2, { userEmail, satirNolar: [originalSatirNo] }]
+        }
+
+        setSatirNolar_lock(satirNolar_lock2)
+
+      }
+
+      // yukarıda satırno değiştirdik kopyasına yeni satır numarası verdik noktalı
+      if (oneRow.satirNo === oneSatir.satirNo) {
 
         // önceki satır metrajını çıkartıyoruz, yeni değeri bulunca aşağıda ekleyeceğiz
-        hazirlananMetraj_state2["metraj"] = Number(hazirlananMetraj_state2["metraj"]) - Number(oneRow["metraj"])
+        onaylananMetraj_state2["metraj"] = Number(onaylananMetraj_state2["metraj"]) - Number(oneRow["metraj"])
 
         oneRow[oneProperty] = event.target.value
 
@@ -127,7 +145,7 @@ export default function P_MetrajOlusturCetvel() {
 
         if (oneRow.carpan1 == "" && oneRow.carpan2 == "" && oneRow.carpan3 == "" && oneRow.carpan4 == "" && oneRow.carpan5 == "") {
           oneRow.metraj = ""
-          // hazirlananMetraj_state2["metraj"] ı güncelleyecek bir durum yok, önceki değeri yukarıda çıkarmıştık, yenisi zaten sıfır çıktı
+          // onaylananMetraj_state2["metraj"] ı güncelleyecek bir durum yok, önceki değeri yukarıda çıkarmıştık, yenisi zaten sıfır çıktı
           return oneRow
         }
 
@@ -141,13 +159,13 @@ export default function P_MetrajOlusturCetvel() {
 
         if (isMinha) {
           oneRow.metraj = oneRowMetraj * -1
-          hazirlananMetraj_state2["metraj"] = hazirlananMetraj_state2["metraj"] + Number(oneRow.metraj)
+          onaylananMetraj_state2["metraj"] = onaylananMetraj_state2["metraj"] + Number(oneRow.metraj)
           // metraj = oneRowMetraj > 0 ? Number(metraj) - Number(oneRowMetraj) : Number(metraj)
           return oneRow
         } else {
           oneRow.metraj = oneRowMetraj
           // metraj = Number(oneRowMetraj) > 0 ? Number(metraj) + Number(oneRowMetraj) : Number(metraj)
-          hazirlananMetraj_state2["metraj"] = hazirlananMetraj_state2["metraj"] + Number(oneRow.metraj)
+          onaylananMetraj_state2["metraj"] = onaylananMetraj_state2["metraj"] + Number(oneRow.metraj)
           return oneRow
         }
 
@@ -157,61 +175,139 @@ export default function P_MetrajOlusturCetvel() {
 
     })
 
-    setHazirlananMetraj_state(hazirlananMetraj_state2)
+    setOnaylananMetraj_state(onaylananMetraj_state2)
     // alttaki kod sadece react component render yapılması için biyerde kullanılmıyor -- (sonra bunada gerek kalmadı)
     // setMetraj(oneRow["aciklama"] + oneRow["carpan1"] + oneRow["carpan2"] + oneRow["carpan3"] + oneRow["carpan4"] + oneRow["carpan5"])
   }
 
 
-  // Edit Metraj Sayfasının Fonksiyonu
+
+
+
   const save = async () => {
 
     if (isChanged) {
+
       try {
 
-        await RealmApp?.currentUser.callFunction("update_hazirlananMetraj_new", ({ _dugumId: selectedNode_metraj._id, hazirlananMetraj_new: hazirlananMetraj_state }))
-
-        queryClient.invalidateQueries(['hazirlananMetrajlar', selectedNode_metraj?._id.toString()])
+        console.log("satirNolar_lock",satirNolar_lock)
+        await RealmApp?.currentUser.callFunction("update_onaylananMetrajCetveli", ({ _dugumId: selectedNode_metraj._id, onaylananMetraj_state, satirNolar_lock }))
+        setShow("Main")
+        queryClient.invalidateQueries(['onaylananMetrajlar', selectedNode_metraj?._id.toString()])
         setIsChanged()
-        setShow("DugumMetrajlari")
         return
 
-      } catch (err) {
+      } catch (error) {
 
-        console.log(err)
+        console.log(error)
 
-        let dialogIcon = "warning"
-        let dialogMessage = "Beklenmedik hata, sayfayı yenileyiniz, sorun devam ederse Rapor7/24 ile irtibata geçiniz.."
-        let onCloseAction = () => setDialogAlert()
-
-        if (err.message.includes("__mesajBaslangic__") && err.message.includes("__mesajBitis__")) {
-          let mesajBaslangic = err.message.indexOf("__mesajBaslangic__") + "__mesajBaslangic__".length
-          let mesajBitis = err.message.indexOf("__mesajBitis__")
-          dialogMessage = err.message.slice(mesajBaslangic, mesajBitis)
-          dialogIcon = "info"
-          onCloseAction = () => {
-            setDialogAlert()
-            setIsChanged()
-            queryClient.invalidateQueries(['hazirlananMetrajlar', selectedNode_metraj?._id.toString()])
-          }
-        }
         setDialogAlert({
-          dialogIcon,
-          dialogMessage,
-          detailText: err?.message ? err.message : null,
-          onCloseAction
+          dialogIcon: "warning",
+          dialogMessage: "Beklenmedik hata, Rapor7/24 ile irtibata geçiniz..",
+          detailText: error?.message ? error.message : null
         })
+
       }
     }
 
   }
 
 
+
   const cancel = () => {
-    queryClient.invalidateQueries(['hazirlananMetraj'])
+    // queryClient.invalidateQueries(['onaylananMetraj'])
+    setOnaylananMetraj_state(_.cloneDeep(onaylananMetraj_backUp))
     setIsChanged()
-    setShow("DugumMetrajlari")
+    setShow("Main")
   }
+
+
+
+
+
+
+
+
+
+  // REVİZELERİ GERİ ALMA FONKSİYONLARI
+
+  const update_state_unLock = (iptalRow) => {
+    if (!isChanged_unLock) {
+      setIsChanged_unLock(true)
+    }
+
+    let onaylananMetraj_state2 = _.cloneDeep(onaylananMetraj_state)
+
+    onaylananMetraj_state2["metraj"] = Number(onaylananMetraj_state2["metraj"]) - Number(iptalRow["metraj"])
+
+    onaylananMetraj_state2.satirlar = onaylananMetraj_state2.satirlar.filter(x => x.satirNo !== iptalRow.satirNo)
+
+
+    let unLock_edilecekSatirNo = iptalRow.satirNo.substring(0, iptalRow.satirNo.indexOf("."))
+    onaylananMetraj_state2.satirlar = onaylananMetraj_state2.satirlar.map(oneRow => {
+      if (oneRow.satirNo === unLock_edilecekSatirNo) {
+        oneRow.hasSelectedCopy = false
+        onaylananMetraj_state2["metraj"] = Number(onaylananMetraj_state2["metraj"]) + Number(oneRow["metraj"])
+      }
+      return oneRow
+    })
+
+    // db ye göndereeğimiz 'revizeEdilenler' henüz hiç oluşmamışsa
+    let iptalSatirNo = iptalRow.satirNo
+    let userEmail = iptalRow.userEmail
+    let satirNolar_unLock2 = _.cloneDeep(satirNolar_unLock)
+    if (satirNolar_unLock2?.find(x => x.userEmail === userEmail)) {
+      satirNolar_unLock2 = satirNolar_unLock2.map(oneHazirlanan => {
+        if (oneHazirlanan.userEmail === userEmail) {
+          oneHazirlanan.satirNolar = oneHazirlanan.satirNolar.filter(x => x.satirNo !== iptalSatirNo)
+        }
+        return oneHazirlanan
+      })
+    }
+    setSatirNolar_unLock(satirNolar_unLock2)
+
+    setHasDeActive(onaylananMetraj_state2?.satirlar.find(x => x.hasSelectedCopy) ? true : false)
+    setOnaylananMetraj_state(onaylananMetraj_state2)
+
+  }
+
+
+  const cancel_unLock = () => {
+    setOnaylananMetraj_state(_.cloneDeep(onaylananMetraj_backUp))
+    setHasDeActive(onaylananMetraj_state?.satirlar.find(x => x.hasSelectedCopy) ? true : false)
+    setIsChanged_unLock()
+    setShow("Main")
+  }
+
+
+  const save_unLock = async () => {
+
+    try {
+
+      await RealmApp?.currentUser.callFunction("update_onaylananMetrajCetveli", ({ _dugumId: selectedNode_metraj._id, onaylananMetraj_state, satirNolar_unLock }))
+      setShow("Main")
+      queryClient.invalidateQueries(['onaylananMetrajlar', selectedNode_metraj?._id.toString()])
+      setIsChanged_unLock()
+      return
+
+    } catch (error) {
+
+      console.log(error)
+
+      setDialogAlert({
+        dialogIcon: "warning",
+        dialogMessage: "Beklenmedik hata, Rapor7/24 ile irtibata geçiniz..",
+        detailText: error?.message ? error.message : null
+      })
+
+    }
+
+    setHasDeActive(onaylananMetraj_state?.satirlar.find(x => x.hasSelectedCopy) ? true : false)
+    setIsChanged_unLock()
+  }
+
+
+
 
 
 
@@ -258,7 +354,7 @@ export default function P_MetrajOlusturCetvel() {
   }
 
   const css_metrajCetveliBaslik = {
-    mt: "1rem", px: "0.3rem", border: "1px solid black", backgroundColor: "rgba( 253, 197, 123 , 0.6 )", display: "grid", alignItems: "center", justifyContent: "center"
+    mt: "1rem", px: "0.3rem", border: "1px solid black", backgroundColor: myTema.renkler.metrajOnaylananBaslik, display: "grid", alignItems: "center", justifyContent: "center"
   }
 
   const css_metrajCetveliSatir = {
@@ -280,23 +376,29 @@ export default function P_MetrajOlusturCetvel() {
           dialogIcon={dialogAlert.dialogIcon}
           dialogMessage={dialogAlert.dialogMessage}
           detailText={dialogAlert.detailText}
-          onCloseAction={dialogAlert.onCloseAction}
+          onCloseAction={() => setDialogAlert()}
         />
       }
 
       <Grid name="metrajCetveliHeader" item sx={{ mt: (parseFloat(subHeaderHeight) + 1) + "rem", }}>
-        <HeaderMetrajOlusturCetvel
+        <HeaderMetrajOnaylaCetvel
           show={show} setShow={setShow}
-          save={save}
-          cancel={cancel}
+          showDeActive={showDeActive} setShowDeActive={setShowDeActive}
+
+          save={save} cancel={cancel}
           isChanged={isChanged} setIsChanged={setIsChanged}
+
+          hasDeActive={hasDeActive}
+          onaylananMetraj_state={onaylananMetraj_state}
+          save_unLock={save_unLock} cancel_unLock={cancel_unLock}
+          isChanged_unLock={isChanged_unLock} setIsChanged_unLock={setIsChanged_unLock}
         />
       </Grid>
 
 
-      {hazirlananMetraj_state &&
+      {onaylananMetraj_state &&
 
-        < Box sx={{ width: "65rem", display: "grid", gridTemplateColumns: gridTemplateColumns1, mt: subHeaderHeight, mb: "1rem", mx: "1rem" }}>
+        < Box sx={{ maxWidth: "65rem", display: "grid", gridTemplateColumns: gridTemplateColumns1, mt: subHeaderHeight, mb: "1rem", mx: "1rem" }}>
 
 
           {/* En Üst Başlık Satırı */}
@@ -342,11 +444,11 @@ export default function P_MetrajOlusturCetvel() {
           <React.Fragment>
 
             <Box sx={{ ...css_metrajCetveliBaslik, gridColumn: "1/8", justifyContent: "end", pr: "1rem" }}>
-              {"name gelecek"}
+              {"Onaylanan Metraj"}
             </Box>
 
-            <Box sx={{ ...css_metrajCetveliBaslik, justifyContent: "end", pr: "0.3rem", color: hazirlananMetraj_state["metraj"] < 0 ? "red" : null }}>
-              {ikiHane(hazirlananMetraj_state["metraj"])}
+            <Box sx={{ ...css_metrajCetveliBaslik, justifyContent: "end", pr: "0.3rem", color: onaylananMetraj_state["metraj"] < 0 ? "red" : null }}>
+              {ikiHane(onaylananMetraj_state["metraj"])}
             </Box>
 
             <Box sx={{ ...css_metrajCetveliBaslik }}>
@@ -362,13 +464,14 @@ export default function P_MetrajOlusturCetvel() {
           </React.Fragment>
 
 
-          {hazirlananMetraj_state.satirlar.map((oneRow, index) => {
+          {onaylananMetraj_state.satirlar.filter(x => showDeActive ? x : !x.hasSelectedCopy).sort((a, b) => a.siraNo - b.siraNo).map((oneRow, index) => {
             return (
               < React.Fragment key={index}>
 
                 {["satirNo", "aciklama", "carpan1", "carpan2", "carpan3", "carpan4", "carpan5", "metraj", "pozBirim"].map((oneProperty, index) => {
                   // let isCellEdit = (oneProperty === "satirNo" || oneProperty === "pozBirim" || oneProperty === "metraj") ? false : true
-                  let isCellEdit = show === "EditMetraj" && !oneRow.isSelected && (oneProperty.includes("aciklama") || oneProperty.includes("carpan")) ? true : false
+                  // let isCellEdit = show === "EditMetraj" && !oneRow.isSelected && (oneProperty.includes("aciklama") || oneProperty.includes("carpan")) ? true : false
+                  let isCellEdit = show === "EditMetraj" && (oneProperty.includes("aciklama") || oneProperty.includes("carpan")) ? true : false
                   let isMinha = oneRow["aciklama"].replace("İ", "i").toLowerCase().includes("minha") ? true : false
 
                   return (
@@ -377,7 +480,7 @@ export default function P_MetrajOlusturCetvel() {
                       {isCellEdit &&
                         <Box sx={{
                           ...css_metrajCetveliSatir,
-                          backgroundColor: !oneRow.isSelected && oneProperty.includes("aciklama") ? "rgba(255,255,0, 0.2)" : !oneRow.isSelected && oneProperty.includes("carpan") ? "rgba(255,255,0, 0.3)" : null,
+                          backgroundColor: oneRow.isSelectedCopy && (oneProperty.includes("aciklama") || oneProperty.includes("carpan")) ? "rgba(255,255,0, 0.3)" : "rgba(255,255,0, 0.1)",
                           minWidth: oneProperty.includes("aciklama") ? "10rem" : oneProperty.includes("1") || oneProperty.includes("2") ? "4rem" : "6rem"
                         }}>
                           <Input
@@ -387,7 +490,7 @@ export default function P_MetrajOlusturCetvel() {
                             autoComplete='off'
                             id={oneRow.satirNo + oneProperty}
                             name={oneRow.satirNo + oneProperty}
-                            readOnly={oneRow.isSelected}
+                            // readOnly={oneRow.isSelected}
                             disableUnderline={true}
                             // size="small"
                             type={oneProperty.includes("carpan") ? "number" : "text"}
@@ -395,7 +498,7 @@ export default function P_MetrajOlusturCetvel() {
                             // onChange={(e) => parseFloat(e.target.value).toFixed(1)}
                             // onKeyDown={(evt) => ilaveYasaklilar.some(elem => evt.target.value.includes(elem)) && ilaveYasaklilar.find(item => item == evt.key) && evt.preventDefault()}
                             onKeyDown={oneProperty.includes("carpan") ? (event) => handle_input_onKey(event) : null}
-                            onChange={(event) => handle_input_onChange(event, oneRow.satirNo, oneProperty)}
+                            onChange={(event) => handle_input_onChange(event, oneRow, oneProperty)}
                             sx={{
                               // height: "100%",
                               // pt: "0.3rem",
@@ -413,8 +516,8 @@ export default function P_MetrajOlusturCetvel() {
                             value={metrajValue(oneRow, oneProperty, isMinha)}
                             inputProps={{
                               style: {
-                                width: "100%",
                                 boxSizing: "border-box",
+                                fontWeight: oneProperty === "metraj" && "700",
                                 // mt: "0.5rem",
                                 // height: "0.95rem",
                                 // minWidth: oneProperty.includes("aciklama") ? "min-content" : "4rem",
@@ -430,10 +533,11 @@ export default function P_MetrajOlusturCetvel() {
                       {!isCellEdit &&
                         <Box sx={{
                           ...css_metrajCetveliSatir,
-                          backgroundColor: oneRow?.isSelected && myTema.renkler.inaktifGri,
-                          justifyContent: oneProperty.includes("aciklama") ? "start" : oneProperty.includes("carpan") ? "end" : oneProperty.includes("metraj") ? "end" : "center",
+                          backgroundColor: showDeActive && oneRow?.isSelected && !oneRow.isSelectedCopy && myTema.renkler.inaktifGri,
+                          justifyContent: (oneProperty.includes("satirNo") || oneProperty.includes("aciklama")) ? "start" : oneProperty.includes("carpan") ? "end" : oneProperty.includes("metraj") ? "end" : "center",
                           minWidth: oneProperty.includes("carpan") ? "5rem" : oneProperty.includes("metraj") ? "5rem" : null,
-                          color: isMinha ? "red" : null
+                          color: isMinha ? "red" : null,
+                          fontWeight: oneProperty === "metraj" && "700",
                         }}>
                           {metrajValue(oneRow, oneProperty, isMinha)}
                         </Box>
@@ -446,24 +550,32 @@ export default function P_MetrajOlusturCetvel() {
 
                 <Box></Box>
 
-                <Box sx={{
-                  // backgroundColor: oneRow.isSelected ? null : "rgba(255,255,0, 0.3)",
-                  // backgroundColor: "rgba(255,255,0, 0.3)",
-                  cursor: "pointer",
-                  display: "grid",
-                  alignItems: "center",
-                  justifyItems: "center",
-                  px: "0.3rem",
-                  border: "1px solid black"
-                }}>
-                  {oneRow.isSelected &&
-                    <Tooltip placement="top" title="Onaylı Metraj Kısmında Kullanıldı">
-                      <LockIcon variant="contained" sx={{ color: "gray", fontSize: "1rem" }} />
-                    </Tooltip>
+                <Box
+                  onClick={() => showDeActive && oneRow.isSelectedCopy && update_state_unLock(oneRow)}
+                  // onMouseEnter={() => showDeActive && setIsHovered(true)}
+                  // onMouseLeave={() => showDeActive && setIsHovered(false)}
+                  sx={{
+                    // backgroundColor: oneRow.isSelected ? null : "rgba(255,255,0, 0.3)",
+                    // backgroundColor: "rgba(255,255,0, 0.3)",
+                    cursor: "pointer",
+                    display: "grid",
+                    alignItems: "center",
+                    justifyItems: "center",
+                    px: "0.3rem",
+                    border: "1px solid black",
+                  }}
+                >
+                  {oneRow.isSelected && !oneRow.isSelectedCopy &&
+                    <LockIcon
+                      variant="contained"
+                      sx={{ color: oneRow.hasSelectedCopy ? "rgba(255, 132, 0, 1)" : "gray", fontSize: "0.9rem" }} />
                   }
-                  {/* {!oneRow.isSelected &&
-                    <HourglassFullSharpIcon variant="contained" sx={{ color: "rgba( 255,165,0, 1 )", fontSize: "0.95rem" }} />
-                  } */}
+                  {!showDeActive && oneRow.isSelectedCopy &&
+                    <StarIcon variant="contained" sx={{ color: "rgba(255, 132, 0, 1)", fontSize: "0.9rem" }} />
+                  }
+                  {showDeActive && oneRow.isSelectedCopy &&
+                    <ReplyIcon variant="contained" sx={{ color: "rgba(255, 132, 0, 1)", fontSize: "0.9rem" }} />
+                  }
                 </Box>
 
               </React.Fragment>

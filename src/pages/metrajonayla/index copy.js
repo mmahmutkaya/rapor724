@@ -177,38 +177,25 @@ export default function P_MetrajOnay() {
 
       try {
         // let newSelecteds = hazirlananMetrajlar_state.filter(x => x.newSelected)
-        // let hazirlananMetrajlar_selected = metrajYapabilenler.map(oneYapabilen => {
-        //   let satirlar = hazirlananMetrajlar_state.find(x => x.userEmail === oneYapabilen.userEmail)?.satirlar.filter(x => x.newSelected)
-        //   if (satirlar?.length > 0) {
-        //     satirlar = satirlar.map(oneSatir => {
-        //       delete oneSatir.newSelected
-        //       return oneSatir
-        //     })
-        //     return { userEmail: oneYapabilen.userEmail, satirlar }
-        //   }
-        // })
-        // hazirlananMetrajlar_selected = hazirlananMetrajlar_selected.filter(x => x)
+        let hazirlananMetrajlar_selected = metrajYapabilenler.map(oneYapabilen => {
+          let satirlar = hazirlananMetrajlar_state.find(x => x.userEmail === oneYapabilen.userEmail)?.satirlar.filter(x => x.newSelected)
+          if (satirlar?.length > 0) {
+            satirlar = satirlar.map(oneSatir => {
+              delete oneSatir.newSelected
+              return oneSatir
+            })
+            return { userEmail: oneYapabilen.userEmail, satirlar }
+          }
+        })
+        hazirlananMetrajlar_selected = hazirlananMetrajlar_selected.filter(x => x)
 
-        // const results = await Promise.all(hazirlananMetrajlar_selected.map(async (oneHazirlanan) => {
-        //   const result = await RealmApp?.currentUser.callFunction("update_hazirlananMetraj_selected", ({ _projeId: selectedProje._id, _dugumId: selectedNode_metraj._id, hazirlananMetraj_selected: oneHazirlanan }))
-        //   return result
-        // }));
+        const results = await Promise.all(hazirlananMetrajlar_selected.map(async (oneHazirlanan) => {
+          const result = await RealmApp?.currentUser.callFunction("update_hazirlananMetraj_selected", ({ _projeId: selectedProje._id, _dugumId: selectedNode_metraj._id, hazirlananMetraj_selected: oneHazirlanan }))
+          return result
+        }));
 
         // await RealmApp?.currentUser.callFunction("update_hazirlananMetraj_selected", ({ _projeId: selectedProje._id, _dugumId: selectedNode_metraj._id, hazirlananMetraj_selected }))
 
-        let hazirlananMetrajlar_newSelected = _.cloneDeep(hazirlananMetrajlar_state)
-        hazirlananMetrajlar_newSelected = hazirlananMetrajlar_newSelected.map(oneHazirlanan => {
-          if(oneHazirlanan.satirlar.find(x => x.isSelected)){
-            return oneHazirlanan
-          }
-        })
-        hazirlananMetrajlar_newSelected = hazirlananMetrajlar_newSelected.filter(x => x)
-        await Promise.all(hazirlananMetrajlar_newSelected.map(async (oneHazirlanan) => {
-          const result = await RealmApp?.currentUser.callFunction("update_hazirlananMetraj_newSelected", ({ _projeId: selectedProje._id, _dugumId: selectedNode_metraj._id, hazirlananMetraj_newSelected: oneHazirlanan }))
-          return result
-        }));
-        
-        
         queryClient.invalidateQueries(['onaylananMetraj', selectedNode_metraj?._id.toString()])
         queryClient.invalidateQueries(['hazirlananMetrajlar', selectedNode_metraj?._id.toString()])
 

@@ -39,8 +39,8 @@ import Tooltip from '@mui/material/Tooltip';
 export default function P_HeaderMetrajOnaylaCetvel({
   show, setShow,
   isChanged, cancel, save,
-  hasDeActive,
-  showDeActive, setShowDeActive,
+  hasSelectedCopySatirlar,
+  showHasSelectedCopy, setShowHasSelectedCopy,
   isChanged_unLock, cancel_unLock, save_unLock
 }) {
 
@@ -150,7 +150,7 @@ export default function P_HeaderMetrajOnaylaCetvel({
                   <Grid item >
                     <IconButton onClick={() => {
                       setShow("EditMetraj")
-                      setShowDeActive()
+                      setShowHasSelectedCopy()
                     }} aria-label="lbsUncliced">
                       <EditIcon variant="contained" />
                     </IconButton>
@@ -159,9 +159,9 @@ export default function P_HeaderMetrajOnaylaCetvel({
 
                   <Grid item >
                     {/* <Tooltip placement="bottom" title={"Değişiklileri Göster"}> */}
-                    <IconButton onClick={() => hasDeActive && setShowDeActive(x => !x)} >
-                      {/* <VisibilityIcon variant="contained" sx={{ color: showDeActive ? "gray" : "lightgray" }} /> */}
-                      <VisibilityIcon variant="contained" sx={{ color: hasDeActive && showDeActive ? "rgba(255, 132, 0, 1)" : hasDeActive && !showDeActive ? "rgba(255, 132, 0, 0.5)" : "lightgray"}} />
+                    <IconButton onClick={() => hasSelectedCopySatirlar && setShowHasSelectedCopy(x => !x)} >
+                      {/* <VisibilityIcon variant="contained" sx={{ color: showHasSelectedCopy ? "gray" : "lightgray" }} /> */}
+                      <VisibilityIcon variant="contained" sx={{ color: hasSelectedCopySatirlar && showHasSelectedCopy ? "rgba(255, 132, 0, 1)" : hasSelectedCopySatirlar && !showHasSelectedCopy ? "rgba(255, 132, 0, 0.5)" : "lightgray"}} />
                     </IconButton>
                     {/* </Tooltip> */}
                   </Grid>

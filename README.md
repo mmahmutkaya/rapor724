@@ -1,4 +1,30 @@
-# Getting Started with Create React App
+
+
+
+ÇALIŞMA SİSTEMİNE DAİR ÖNEMLİ NOTLAR
+-ileride bazı iyileştirmeler yapman gerekiyor, örneğin backend de, update_hazirlananMetraj_selected fonksiyonunda 3 kısım var, hazirlananMetraj, onaylananMetraj ve dugum güncelleme kısmı, ilk aşamada isSelected oluyorlar fakat ikinci aşamada hata çıksa onaylananMetraj kısmı eksik kalabiliyor, bu gibi fonksiyonlarda alttaki kısımda hata almışsak yukarıdaki kısmında iptal olması gibi bir önlem
+
+
+
+--AŞAĞIDA DB DEKİ VERİLERİN DEĞİŞİMLERİ LİSTELENMİŞTİR
+--BU İŞLEMLER OLDUĞUNDA OBJECT ID DEĞİŞTİRLSİN
+--İŞLEMİN KAYDI DURDURULSUN
+---
+-hazirlananMetrajlar
+--yeni satırlar eklenebilir - "update_hazirlananMetrajlar_new"
+--kopyası onaylı taraf alınınca 'isSelected' olur - "update_hazirlananMetrajlar_select"
+---
+-onaylananMetrajlar
+--hazırlananaMetrajlar tarafından kopyası gelince 'isSelected' ile gelir
+--revize edilirse kendisi 'hasSelectedCopy' olur - kopyası 'isSelectedCopy' olur
+--siraNolar - değişiminde objectId değiştirmeye gerek yok
+
+
+
+
+
+REACT DEFAULT NOTLAR
+<!-- # Getting Started with Create React App
 
 This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
 
@@ -67,4 +93,4 @@ This section has moved here: [https://facebook.github.io/create-react-app/docs/d
 
 ### `npm run build` fails to minify
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify](https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify)
+This section has moved here: [https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify](https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify) -->
