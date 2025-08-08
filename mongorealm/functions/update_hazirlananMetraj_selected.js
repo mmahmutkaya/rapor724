@@ -141,7 +141,7 @@ exports = async function ({
     )
 
   } catch (error) {
-    throw new Error("MONGO // update_hazirlananMetrajlar_selected // hazirlananMetraj güncelleme " + err.message);
+    throw new Error("MONGO // update_hazirlananMetrajlar_selected // onaylananMetraj güncelleme " + err.message);
   }
 
 
@@ -161,7 +161,7 @@ exports = async function ({
     )
 
   } catch (err) {
-    throw new Error("MONGO // update_hazirlananMetrajlar_selected // dugum onaylananMetraj güncelleme " + err.message);
+    throw new Error("MONGO // update_hazirlananMetrajlar_selected // dugum güncelleme " + err.message);
   }
 
 
