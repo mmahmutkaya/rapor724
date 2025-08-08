@@ -32,20 +32,20 @@ exports = async function ({
     let onaylananMetraj = await collection_hazirlananMetrajlar.findOne({_dugumId})
     let onaylananMetraj_versionId = new BSON.ObjectId()
     
-    // if(onaylananMetraj){
-    //   onaylananMetraj_versionId = onaylananMetraj._versionId
-    // } else {
-    //   onaylananMetraj_versionId = new BSON.ObjectId()
-    //   const result = collection_onaylananMetrajlar.insertOne({_dugumId,_versionId:onaylananMetraj_versionId})
-    //   if(!result.insertedId){
-    //     throw new Error("versiyonId işlemi için onaylananMetraj oluşturulurken hata oluştu");
-    //   }
-    // }
-
-    const result = await collection_onaylananMetrajlar.updateOne({_dugumId},{_versionId:onaylananMetraj_versionId},{upsert:true})
-    if(!result.modifiedCount){
-      throw new Error("versiyonId işlemi için onaylananMetraj oluşturulurken hata oluştu");
+    if(onaylananMetraj){
+      onaylananMetraj_versionId = onaylananMetraj._versionId
+    } else {
+      onaylananMetraj_versionId = new BSON.ObjectId()
+      const result = collection_onaylananMetrajlar.insertOne({_dugumId,_versionId:onaylananMetraj_versionId})
+      if(!result.insertedId){
+        throw new Error("versiyonId işlemi için onaylananMetraj oluşturulurken hata oluştu");
+      }
     }
+
+    // const result = await collection_onaylananMetrajlar.updateOne({_dugumId},{_versionId:onaylananMetraj_versionId},{upsert:true})
+    // if(!result.modifiedCount){
+    //   throw new Error("versiyonId işlemi için onaylananMetraj oluşturulurken hata oluştu");
+    // }
     
     hazirlananMetrajlar.onaylananMetraj_versionId = onaylananMetraj_versionId
     return hazirlananMetrajlar
