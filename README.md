@@ -19,6 +19,7 @@
 --revize edilirse kendisi 'hasSelectedCopy' olur - kopyası 'isSelectedCopy' olur
 --siraNolar - değişiminde objectId değiştirmeye gerek yok
 
+--getHazirlananMetrajlar - sırasında onaylananMetraj a da _versionId güncellemesi yapılıyor
 
 
 

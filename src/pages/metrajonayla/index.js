@@ -204,15 +204,23 @@ export default function P_MetrajOnay() {
 
         // await RealmApp?.currentUser.callFunction("update_hazirlananMetraj_selected", ({ _projeId: selectedProje._id, _dugumId: selectedNode_metraj._id, hazirlananMetraj_selected }))
 
-        let hazirlananMetrajlar_newSelected = _.cloneDeep(hazirlananMetrajlar_state)
-        hazirlananMetrajlar_newSelected = hazirlananMetrajlar_newSelected.map(oneHazirlanan => {
-          if (oneHazirlanan.satirlar.find(x => x.isSelected)) {
+        let hazirlananMetrajlar_selected = _.cloneDeep(hazirlananMetrajlar_state)
+        hazirlananMetrajlar_selected = hazirlananMetrajlar_selected.map(oneHazirlanan => {
+          if (oneHazirlanan.satirlar.find(x => x.isSelected && x.newSelected)) {
+            // db de zaten mevcut hazirlananMetraj satırları loop yapılıp isSelected olanlar isSelectd olarak değiştiriliyor, newSelected felan kayda alınmıyor
+            // eskiden isLock olmuş olanlarda loop içinde yeniden kaydedilmiş oluyor sadece
+            // oneHazirlanan.satirlar = oneHazirlanan.satirlar.map(oneSatir => {
+            //   delete oneSatir.newSelected
+            //   return oneSatir
+            // })
             return oneHazirlanan
           }
         })
-        hazirlananMetrajlar_newSelected = hazirlananMetrajlar_newSelected.filter(x => x)
-        await Promise.all(hazirlananMetrajlar_newSelected.map(async (oneHazirlanan) => {
-          const result = await RealmApp?.currentUser.callFunction("update_hazirlananMetraj_newSelected", ({ _projeId: selectedProje._id, _dugumId: selectedNode_metraj._id, hazirlananMetraj_newSelected: oneHazirlanan }))
+
+        hazirlananMetrajlar_selected = hazirlananMetrajlar_selected.filter(x => x)
+
+        await Promise.all(hazirlananMetrajlar_selected.map(async (oneHazirlanan) => {
+          const result = await RealmApp?.currentUser.callFunction("update_hazirlananMetraj_selected", ({ _projeId: selectedProje._id, _dugumId: selectedNode_metraj._id, hazirlananMetraj_selected: oneHazirlanan }))
           return result
         }));
 
