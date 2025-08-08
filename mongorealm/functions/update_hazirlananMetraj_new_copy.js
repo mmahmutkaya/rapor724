@@ -1,7 +1,7 @@
 exports = async function ({
   _versionId,
   _dugumId,
-  hazirlananMetraj_state
+  hazirlananMetraj_new
 }) {
 
 
@@ -96,60 +96,48 @@ exports = async function ({
 
 
 
+
+
+
   try {
 
     let hazirlananMetraj = await collection_HazirlananMetrajlar.findOne({ _dugumId, userEmail: hazirlananMetraj_new.userEmail })
+    let satirlar_selected = hazirlananMetraj?.satirlar.filter(x => x.isSelected)
 
-    if(hazirlananMetraj) {
-      if(hazirlananMetraj._versionId.toString() !== hazirlananMetraj_state._versionId.toString()){
 
-        hataMesaj = `__mesajBaslangic__Kaydetmeye çalıştığınız bazı satırlar, siz işlem yaparken, başa kullanıcı tarafından güncellenmiş. Bu sebeple kayıt işleminiz gerçekleşmedi. Kontrol edip tekrar deneyiniz.__mesajBitis__`
-
-      }
+    let hataMesaj
+    if (satirlar_selected) {
+      hazirlananMetraj_new.satirlar.map(oneSatir => {
+        if (satirlar_selected.find(x => x._id.toString() === oneSatir._id.toString())) {
+          hataMesaj = `__mesajBaslangic__Kaydetmeye çalıştığınız bazı satırlar, siz işlem yaparken, sizden önce onaylı kısma alınmış ve değerlendiriliyor. Bu sebeple kayıt işleminiz gerçekleşmedi.__mesajBitis__`
+        }
+      })
     }
 
-    
-    // let satirlar_selected = hazirlananMetraj?.satirlar.filter(x => x.isSelected)
+    // return { satirlar_selected, newSatirlar: hazirlananMetraj_new.satirlar }
 
+    if (hataMesaj) {
+      throw new Error(hataMesaj);
+    }
 
-    // let hataMesaj
-    // if (satirlar_selected) {
-    //   hazirlananMetraj_new.satirlar.map(oneSatir => {
-    //     if (satirlar_selected.find(x => x._id.toString() === oneSatir._id.toString())) {
-    //       hataMesaj = `__mesajBaslangic__Kaydetmeye çalıştığınız bazı satırlar, siz işlem yaparken, sizden önce onaylı kısma alınmış ve değerlendiriliyor. Bu sebeple kayıt işleminiz gerçekleşmedi.__mesajBitis__`
-    //     }
-    //   })
-    // }
-
-    // // return { satirlar_selected, newSatirlar: hazirlananMetraj_new.satirlar }
-
-    // if (hataMesaj) {
-    //   throw new Error(hataMesaj);
-    // }
-
-    // hazirlananMetraj_new.satirlar = hazirlananMetraj_new.satirlar.map(oneSatir => {
-    //   oneSatir.userEmail = userEmail
-    //   oneSatir._id = new BSON.ObjectId()
-    //   return oneSatir
-    // })
-
-    // let satirlar = satirlar_selected ? [...satirlar_selected, ...hazirlananMetraj_new.satirlar] : hazirlananMetraj_new.satirlar
-
-    // // return {satirlar}
-
-    // satirlar.map(oneSatir => {
-    //   metraj = metraj + Number(oneSatir?.metraj)
-    // })
-
-    let {satirlar} = hazirlananMetraj_state
-    hazirlananMetraj.satirlar.map(oneSatir => {
-      metraj += Number(oneSatir?.metraj)
+    hazirlananMetraj_new.satirlar = hazirlananMetraj_new.satirlar.map(oneSatir => {
+      oneSatir.userEmail = userEmail
+      oneSatir._id = new BSON.ObjectId()
+      return oneSatir
     })
-    _versionId = new BSON.ObjectId()
-    
+
+    let satirlar = satirlar_selected ? [...satirlar_selected, ...hazirlananMetraj_new.satirlar] : hazirlananMetraj_new.satirlar
+
+    // return {satirlar}
+
+    satirlar.map(oneSatir => {
+      metraj = metraj + Number(oneSatir?.metraj)
+    })
+
+
     await collection_HazirlananMetrajlar.updateOne(
       { _dugumId, userEmail },
-      { $set: { _versionId,satirlar, metraj } },
+      { $set: { satirlar, metraj } },
       { upsert: true }
     )
 
