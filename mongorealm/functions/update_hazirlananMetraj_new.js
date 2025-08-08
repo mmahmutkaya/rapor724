@@ -1,5 +1,4 @@
 exports = async function ({
-  _versionId,
   _dugumId,
   hazirlananMetraj_new
 }) {
@@ -37,30 +36,26 @@ exports = async function ({
   let metraj = 0
 
 
-   try {
+  try {
 
     let hazirlananMetraj = await collection_HazirlananMetrajlar.findOne({ _dugumId, userEmail: hazirlananMetraj_new.userEmail })
 
-    if(hazirlananMetraj) {
-      if(hazirlananMetraj._versionId.toString() !== hazirlananMetraj_new._versionId.toString()){
-
-        hataMesaj = `__mesajBaslangic__Kaydetmeye çalıştığınız bazı satırlar, siz işlem yaparken, başa kullanıcı tarafından güncellenmiş. Bu sebeple kayıt işleminiz gerçekleşmedi. Kontrol edip tekrar deneyiniz.__mesajBitis__`
-
-      }
+    if (hazirlananMetraj._versionId.toString() !== hazirlananMetraj_new._versionId.toString()) {
+      hataMesaj = `__mesajBaslangic__Kaydetmeye çalıştığınız bazı satırlar, siz işlem yaparken, başa kullanıcı tarafından güncellenmiş. Bu sebeple kayıt işleminiz gerçekleşmedi. Kontrol edip tekrar deneyiniz.__mesajBitis__`
     }
 
-    // db hazirlik - satirlar
-    let {satirlar} = hazirlananMetraj_new
+
+
     // db hazirlik - metraj
-    satirlar.map(oneSatir => {
-      metraj += Number(oneSatir?.metraj)
-    })
+
+    metraj = hazirlananMetraj.metraj
+
     // db hazirlik - _versionId
     _versionId = new BSON.ObjectId()
-    
+
     await collection_HazirlananMetrajlar.updateOne(
       { _dugumId, userEmail },
-      { $set: { _versionId,satirlar, metraj } },
+      { $set: { _versionId, ...hazirlananMetraj } },
       { upsert: true }
     )
 
