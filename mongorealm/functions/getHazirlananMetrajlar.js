@@ -23,11 +23,24 @@ exports = async function ({
 
 
   const collection_hazirlananMetrajlar = context.services.get("mongodb-atlas").db("rapor724_v2").collection("hazirlananMetrajlar")
+  const collection_onaylananMetrajlar = context.services.get("mongodb-atlas").db("rapor724_v2").collection("onaylananMetrajlar")
 
   
   try {
     
     let hazirlananMetrajlar = await collection_hazirlananMetrajlar.find({_dugumId})
+    let onaylananMetraj = await collection_hazirlananMetrajlar.findOne({_dugumId})
+    let onaylananMetraj_versionId
+    if(onaylananMetraj){
+      onaylananMetraj_versionId = onaylananMetraj._versionId
+    } else {
+      onaylananMetraj_versionId = new BSON.ObjectId()
+      const result = collection_onaylananMetrajlar.insertOne({_dugumId,_versionId:onaylananMetraj_versionId})
+      if(!result.insertedId){
+        throw new Error("versiyonId işlemi için onaylananMetraj oluşturulurken hata oluştu");
+      }
+    }
+    hazirlananMetrajlar.onaylananMetraj_versionId = onaylananMetraj_versionId
     return hazirlananMetrajlar
     
   } catch (error) {
