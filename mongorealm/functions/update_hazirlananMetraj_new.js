@@ -37,66 +37,7 @@ exports = async function ({
   let metraj = 0
 
 
-  // try {
-
-  //   let { satirlar: newSatirlar } = hazirlananMetraj_new
-
-  //   newSatirlar = newSatirlar.filter(x => !x.isSelected)
-  //   newSatirlar = newSatirlar.map(newSatir => {
-  //     newSatir.userEmail = userEmail
-  //     newSatir._id = new BSON.ObjectId()
-  //     return newSatir
-  //   })
-
-
-
-  //   const hazirlananMetraj = await collection_hazirlananMetrajlar.findOne({ _dugumId, userEmail })
-
-  //   if (hazirlananMetraj) {
-
-  //     let { satirlar } = hazirlananMetraj
-
-  //     if (satirlar) {
-
-  //       // onayliMetrajlarda kullanılmış olanları koruyalım, yukaroda filtre ettik çünkü gelen verilerden
-  //       selectedSatirlar = satirlar.filter(x => x.isSelected)
-  //       let hataMesaj
-  //       newSatirlar = newSatirlar.map(newSatir => {
-  //         if (selectedSatirlar?.find(y => y.satirNo === newSatir.satirNo)) {
-  //           hataMesaj = "MONGO // update_hazirlananMetrajlar // __mesajBaslangic__Önceden oluşturmuş olduğunuz bazı satırlar onaylı tarafa alınmış ve değerlendiriliyor, değişiklikleriniz kaydedilmedi.__mesajBitis__ "
-  //         }
-  //         return newSatir
-  //       })
-
-  //       if (hataMesaj) {
-  //         throw new Error(hataMesaj);
-  //       }
-
-  //       newSatirlar = [...selectedSatirlar, ...newSatirlar]
-
-  //     }
-
-  //   }
-
-  //   newSatirlar.map(oneSatir => {
-  //     metraj = metraj + oneSatir?.metraj
-  //   })
-
-
-  //   await collection_hazirlananMetrajlar.updateOne(
-  //     { _dugumId, userEmail },
-  //     { $set: { satirlar: newSatirlar, metraj } },
-  //     { upsert: true }
-  //   )
-
-
-  // } catch (error) {
-  //   throw new Error({ hatayeri: "MONGO // update_hazirlananMetrajlar // hazirlanan metrajlar güncelleme", error });
-  // }
-
-
-
-  try {
+   try {
 
     let hazirlananMetraj = await collection_HazirlananMetrajlar.findOne({ _dugumId, userEmail: hazirlananMetraj_new.userEmail })
 
@@ -108,43 +49,13 @@ exports = async function ({
       }
     }
 
-    
-    // let satirlar_selected = hazirlananMetraj?.satirlar.filter(x => x.isSelected)
-
-
-    // let hataMesaj
-    // if (satirlar_selected) {
-    //   hazirlananMetraj_new.satirlar.map(oneSatir => {
-    //     if (satirlar_selected.find(x => x._id.toString() === oneSatir._id.toString())) {
-    //       hataMesaj = `__mesajBaslangic__Kaydetmeye çalıştığınız bazı satırlar, siz işlem yaparken, sizden önce onaylı kısma alınmış ve değerlendiriliyor. Bu sebeple kayıt işleminiz gerçekleşmedi.__mesajBitis__`
-    //     }
-    //   })
-    // }
-
-    // // return { satirlar_selected, newSatirlar: hazirlananMetraj_new.satirlar }
-
-    // if (hataMesaj) {
-    //   throw new Error(hataMesaj);
-    // }
-
-    // hazirlananMetraj_new.satirlar = hazirlananMetraj_new.satirlar.map(oneSatir => {
-    //   oneSatir.userEmail = userEmail
-    //   oneSatir._id = new BSON.ObjectId()
-    //   return oneSatir
-    // })
-
-    // let satirlar = satirlar_selected ? [...satirlar_selected, ...hazirlananMetraj_new.satirlar] : hazirlananMetraj_new.satirlar
-
-    // // return {satirlar}
-
-    // satirlar.map(oneSatir => {
-    //   metraj = metraj + Number(oneSatir?.metraj)
-    // })
-
+    // db hazirlik - satirlar
     let {satirlar} = hazirlananMetraj_new
-    hazirlananMetraj.satirlar.map(oneSatir => {
+    // db hazirlik - metraj
+    satirlar.map(oneSatir => {
       metraj += Number(oneSatir?.metraj)
     })
+    // db hazirlik - _versionId
     _versionId = new BSON.ObjectId()
     
     await collection_HazirlananMetrajlar.updateOne(
