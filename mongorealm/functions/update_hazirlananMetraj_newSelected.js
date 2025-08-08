@@ -47,21 +47,41 @@ exports = async function ({
 
   try {
 
-        let hazirlananMetraj = await collection_HazirlananMetrajlar.findOne({ _dugumId, userEmail: hazirlananMetraj_new.userEmail })
+    let hazirlananMetraj = await collection_HazirlananMetrajlar.findOne({ _dugumId, userEmail: hazirlananMetraj_newSelected.userEmail })
 
-    if(hazirlananMetraj) {
-      if(hazirlananMetraj._versionId.toString() !== hazirlananMetraj_state._versionId.toString()){
+    if (hazirlananMetraj) {
+      if (hazirlananMetraj._versionId.toString() !== hazirlananMetraj_newSelected._versionId.toString()) {
 
-        hataMesaj = `__mesajBaslangic__Kaydetmeye çalıştığınız bazı satırlar, siz işlem yaparken, başa kullanıcı tarafından güncellenmiş. Bu sebeple kayıt işleminiz gerçekleşmedi. Kontrol edip tekrar deneyiniz.__mesajBitis__`
+        hataMesaj = `__mesajBaslangic__Kaydetmeye çalıştığınız bazı veriler, siz işlem yaparken, başa kullanıcı tarafından güncellenmiş. Bu sebeple kayıt işleminiz gerçekleşmedi. Kontrol edip tekrar deneyiniz.__mesajBitis__`
 
       }
     }
 
 
+
+
+    // db için satirlar
+    let { satirlar } = hazirlananMetraj_newSelected
+    // db için metraj
+    hazirlananMetraj.satirlar.map(oneSatir => {
+      metraj += Number(oneSatir?.metraj)
+    })
+    _versionId = new BSON.ObjectId()
+
+    // aşağıdaki dugumId için veri güncelleme
+    if (satirlar.find(x => x.isSelected)) {
+      hasSelected = true
+      if (satirlar.filter(x => x.isSelected).length === satirlar.length) {
+        hasSelectedFull = true
+      }
+    }
+
     await collection_HazirlananMetrajlar.updateOne(
-      { _dugumId, userEmail: hazirlayanEmail },
-      { $set: { satirlar } }
+      { _dugumId, userEmail },
+      { $set: { _versionId, satirlar, metraj } },
+      { upsert: true }
     )
+
 
   } catch (err) {
     throw new Error("MONGO // update_hazirlananMetrajlar_selected // hazirlananMetraj güncelleme " + err.message);
@@ -77,10 +97,10 @@ exports = async function ({
     let onaylananMetraj = await collection_OnaylananMetrajlar.findOne({ _dugumId })
 
     if (onaylananMetraj) {
-        
+
       let newSiraNo = 1
       onaylananMetraj.satirlar.map(oneSatir => {
-        if(oneSatir.siraNo > newSiraNo){
+        if (oneSatir.siraNo > newSiraNo) {
           newSiraNo = oneSatir.siraNo + 1
         }
       })
