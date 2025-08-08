@@ -44,7 +44,7 @@ exports = async function ({
 
   try {
     if (!result_updateVersiyonId_onaylanan.matchedCount) {
-      await collection_OnaylananMetrajlar.insertOne({ _dugumId }, { $set: { _versionId } })
+      await collection_OnaylananMetrajlar.insertOne({ _dugumId }, { $set: { _versionId, satirlar:[], metraj:0 } })
     }
   } catch (error) {
     throw new Error({ hatayeri: "MONGO // getHazirlananVeOnaylananMetrajlar // onaylananMetraj oluşturma sırasında hata oluştu", error });
