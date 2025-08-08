@@ -42,10 +42,10 @@ exports = async function ({
     //   }
     // }
 
-     const result = await collection_onaylananMetrajlar.updateOne({_dugumId},{_versionId:onaylananMetraj_versionId},{upsert:true})
-      if(!result.modifiedCount){
-        throw new Error("versiyonId işlemi için onaylananMetraj oluşturulurken hata oluştu");
-      }
+    const result = await collection_onaylananMetrajlar.updateOne({_dugumId},{_versionId:onaylananMetraj_versionId},{upsert:true})
+    if(!result.modifiedCount){
+      throw new Error("versiyonId işlemi için onaylananMetraj oluşturulurken hata oluştu");
+    }
     
     hazirlananMetrajlar.onaylananMetraj_versionId = onaylananMetraj_versionId
     return hazirlananMetrajlar
