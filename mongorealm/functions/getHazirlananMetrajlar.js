@@ -30,7 +30,7 @@ exports = async function ({
     
     let hazirlananMetrajlar = await collection_hazirlananMetrajlar.find({_dugumId})
     let onaylananMetraj = await collection_hazirlananMetrajlar.findOne({_dugumId})
-    let onaylananMetraj_versionId = new BSON.ObjectId
+    let onaylananMetraj_versionId = new BSON.ObjectId()
     
     // if(onaylananMetraj){
     //   onaylananMetraj_versionId = onaylananMetraj._versionId
