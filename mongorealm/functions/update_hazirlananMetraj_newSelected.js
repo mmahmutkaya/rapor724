@@ -14,19 +14,19 @@ exports = async function ({
 
   const mailTeyit = user.custom_data.mailTeyit;
   if (!mailTeyit) {
-    throw new Error("MONGO // update_hazirlananMetrajlar_selected // Öncelikle üyeliğinize ait mail adresinin size ait olduğunu doğrulamalısınız, tekrar giriş yapmayı deneyiniz veya bizimle iletişime geçiniz.");
+    throw new Error("MONGO // update_hazirlananMetrajlar_newSelected // Öncelikle üyeliğinize ait mail adresinin size ait olduğunu doğrulamalısınız, tekrar giriş yapmayı deneyiniz veya bizimle iletişime geçiniz.");
   }
 
   if (!_projeId) {
-    throw new Error("MONGO // update_hazirlananMetrajlar_selected // '_projeId' verisi db sorgusuna gelmedi");
+    throw new Error("MONGO // update_hazirlananMetrajlar_newSelected // '_projeId' verisi db sorgusuna gelmedi");
   }
 
   if (!_dugumId) {
-    throw new Error("MONGO // update_hazirlananMetrajlar_selected // '_dugumId' verisi db sorgusuna gelmedi");
+    throw new Error("MONGO // update_hazirlananMetrajlar_newSelected // '_dugumId' verisi db sorgusuna gelmedi");
   }
 
   if (!hazirlananMetraj_newSelected) {
-    throw new Error("MONGO // update_hazirlananMetrajlar_selected // 'hazirlananMetraj_newSelected' verisi db sorgusuna gelmedi");
+    throw new Error("MONGO // update_hazirlananMetrajlar_newSelected // 'hazirlananMetraj_newSelected' verisi db sorgusuna gelmedi");
   }
 
 
@@ -47,7 +47,7 @@ exports = async function ({
 
   try {
 
-    let hazirlananMetraj = await collection_HazirlananMetrajlar.findOne({ _dugumId, userEmail: hazirlananMetraj_newSelected.userEmail })
+    let hazirlananMetraj = await collection_HazirlananMetrajlar.findOne({ _dugumId, userEmail: hazirlayanEmail })
 
     if (hazirlananMetraj) {
       if (hazirlananMetraj._versionId.toString() !== hazirlananMetraj_newSelected._versionId.toString()) {
@@ -84,7 +84,7 @@ exports = async function ({
 
 
   } catch (err) {
-    throw new Error("MONGO // update_hazirlananMetrajlar_selected // hazirlananMetraj güncelleme " + err.message);
+    throw new Error("MONGO // update_hazirlananMetrajlar_newSelected // hazirlananMetraj güncelleme " + err.message);
   }
 
 
@@ -137,7 +137,7 @@ exports = async function ({
 
 
   } catch (err) {
-    throw new Error("MONGO // update_hazirlananMetrajlar_selected // onaylananMetraj güncelleme " + err.message);
+    throw new Error("MONGO // update_hazirlananMetrajlar_newSelected // onaylananMetraj güncelleme " + err.message);
   }
 
 
@@ -157,7 +157,7 @@ exports = async function ({
     )
 
   } catch (err) {
-    throw new Error("MONGO // update_hazirlananMetrajlar_selected // dugum onaylananMetraj güncelleme " + err.message);
+    throw new Error("MONGO // update_hazirlananMetrajlar_newSelected // dugum onaylananMetraj güncelleme " + err.message);
   }
 
 

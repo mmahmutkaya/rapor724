@@ -36,7 +36,7 @@ exports = async function ({
       onaylananMetraj_versionId = onaylananMetraj._versionId
     } else {
       onaylananMetraj_versionId = new BSON.ObjectId()
-      const result = collection_onaylananMetrajlar.insertOne({_dugumId,_versionId:onaylananMetraj_versionId})
+      const result = collection_onaylananMetrajlar.insertOne({_dugumId,_versionId:onaylananMetraj_versionId,satirlar:[],metraj:0})
       if(!result.insertedId){
         throw new Error("versiyonId işlemi için onaylananMetraj oluşturulurken hata oluştu");
       }
