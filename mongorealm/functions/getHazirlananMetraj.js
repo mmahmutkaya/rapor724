@@ -21,7 +21,7 @@ exports = async function ({
   }
 
 
-  
+  // deneme
 
   const collection_hazirlananMetrajlar = context.services.get("mongodb-atlas").db("rapor724_v2").collection("hazirlananMetrajlar")
 
