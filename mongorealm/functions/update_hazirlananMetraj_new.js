@@ -1,7 +1,7 @@
 exports = async function ({
   _versionId,
   _dugumId,
-  hazirlananMetraj_state
+  hazirlananMetraj_new
 }) {
 
 
@@ -101,7 +101,7 @@ exports = async function ({
     let hazirlananMetraj = await collection_HazirlananMetrajlar.findOne({ _dugumId, userEmail: hazirlananMetraj_new.userEmail })
 
     if(hazirlananMetraj) {
-      if(hazirlananMetraj._versionId.toString() !== hazirlananMetraj_state._versionId.toString()){
+      if(hazirlananMetraj._versionId.toString() !== hazirlananMetraj_new._versionId.toString()){
 
         hataMesaj = `__mesajBaslangic__Kaydetmeye çalıştığınız bazı satırlar, siz işlem yaparken, başa kullanıcı tarafından güncellenmiş. Bu sebeple kayıt işleminiz gerçekleşmedi. Kontrol edip tekrar deneyiniz.__mesajBitis__`
 
@@ -141,7 +141,7 @@ exports = async function ({
     //   metraj = metraj + Number(oneSatir?.metraj)
     // })
 
-    let {satirlar} = hazirlananMetraj_state
+    let {satirlar} = hazirlananMetraj_new
     hazirlananMetraj.satirlar.map(oneSatir => {
       metraj += Number(oneSatir?.metraj)
     })
