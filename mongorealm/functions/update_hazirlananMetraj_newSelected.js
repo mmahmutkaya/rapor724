@@ -1,7 +1,7 @@
 exports = async function ({
   _projeId,
   _dugumId,
-  hazirlananMetraj_selected
+  hazirlananMetraj_newSelected
 }) {
 
 
@@ -25,8 +25,8 @@ exports = async function ({
     throw new Error("MONGO // update_hazirlananMetrajlar_selected // '_dugumId' verisi db sorgusuna gelmedi");
   }
 
-  if (!hazirlananMetraj_selected) {
-    throw new Error("MONGO // update_hazirlananMetrajlar_selected // 'hazirlananMetraj_selected' verisi db sorgusuna gelmedi");
+  if (!hazirlananMetraj_newSelected) {
+    throw new Error("MONGO // update_hazirlananMetrajlar_selected // 'hazirlananMetraj_newSelected' verisi db sorgusuna gelmedi");
   }
 
 
@@ -43,38 +43,17 @@ exports = async function ({
 
   let hasSelected
   let hasSelectedFull
-  let hazirlayanEmail = hazirlananMetraj_selected.userEmail
+  let hazirlayanEmail = hazirlananMetraj_newSelected.userEmail
 
   try {
 
-    let hazirlananMetraj = await collection_HazirlananMetrajlar.findOne({ _dugumId, userEmail: hazirlayanEmail })
-    //  hazirlananMetraj kesin olmalı zaten onun içinden selected yapılmış olmalı
-    
-    let hatMesaj
-    hazirlananMetraj_selected.satirlar.map(oneSatir => {
-      if (!hazirlananMetraj.satirlar.find(x => x._id.toString() === oneSatir._id.toString())) {
-        hatMesaj = `__mesajBaslangic__Kaydetmeye çalıştığınız, '${hazirlayan.isim + " " + hazirlayan.soyisim}' tarafından hazırlanan veriler, siz kaydetmeden önce önce diğer kullanıcılar tarafından değiştirilmiş. Kayıtlarınızın bazıları gerçekleşmiş, bazıları gerçekleşmemiş olabilir. Kontol ederek tekrar deneyiniz.__mesajBitis__`
-      }
-    })
+        let hazirlananMetraj = await collection_HazirlananMetrajlar.findOne({ _dugumId, userEmail: hazirlananMetraj_new.userEmail })
 
-    if (hatMesaj) {
-      throw new Error(hatMesaj);
-    }
+    if(hazirlananMetraj) {
+      if(hazirlananMetraj._versionId.toString() !== hazirlananMetraj_state._versionId.toString()){
 
+        hataMesaj = `__mesajBaslangic__Kaydetmeye çalıştığınız bazı satırlar, siz işlem yaparken, başa kullanıcı tarafından güncellenmiş. Bu sebeple kayıt işleminiz gerçekleşmedi. Kontrol edip tekrar deneyiniz.__mesajBitis__`
 
-    let satirlar = hazirlananMetraj.satirlar.map(oneSatir => {
-      if (hazirlananMetraj_selected.satirlar.find(x => x._id.toString() === oneSatir._id.toString())) {
-        oneSatir.isSelected = true
-      }
-      return oneSatir
-    })
-
-
-
-    if (satirlar.find(x => x.isSelected)) {
-      hasSelected = true
-      if (satirlar.filter(x => x.isSelected).length === satirlar.length) {
-        hasSelectedFull = true
       }
     }
 
@@ -106,7 +85,7 @@ exports = async function ({
         }
       })
 
-      hazirlananMetraj_selected.satirlar.map(oneSatir => {
+      hazirlananMetraj_newSelected.satirlar.map(oneSatir => {
         if (!onaylananMetraj.satirlar.find(x => x._id.toString() === oneSatir._id.toString())) {
           oneSatir.siraNo = newSiraNo
           onaylananMetraj.satirlar = [...onaylananMetraj.satirlar, oneSatir]
@@ -115,7 +94,7 @@ exports = async function ({
       })
     } else {
       onaylananMetraj = {
-        satirlar: hazirlananMetraj_selected.satirlar,
+        satirlar: hazirlananMetraj_newSelected.satirlar,
       }
       let newSiraNo = 1
       onaylananMetraj.satirlar = onaylananMetraj.satirlar.map(oneSatir => {
