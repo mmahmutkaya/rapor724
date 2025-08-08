@@ -580,5 +580,11 @@
         "private": false,
         "run_as_system": true,
         "disable_arg_logs": true
+    },
+    {
+        "name": "update_hazirlananMetraj_selected_copy",
+        "private": false,
+        "run_as_system": true,
+        "disable_arg_logs": true
     }
 ]
