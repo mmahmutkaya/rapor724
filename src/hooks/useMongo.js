@@ -271,6 +271,26 @@ export const useGetHazirlananMetrajlar = () => {
 
 
 
+
+// export const useGetHazirlananVeOnaylananMetrajlar = () => {
+
+//   // const RealmApp = useApp();
+//   const { selectedProje, RealmApp, selectedNode_metraj } = useContext(StoreContext)
+
+//   return useQuery({
+//     queryKey: ['hazirlananVeOnaylananMetrajlar', selectedNode_metraj?._id.toString()],
+//     queryFn: () => RealmApp?.currentUser.callFunction("getHazirlananVeOnaylananMetrajlar", ({ _dugumId: selectedNode_metraj?._id })),
+//     enabled: !!RealmApp && !!selectedProje && !!selectedNode_metraj,
+//     refetchOnMount: true,
+//     refetchOnWindowFocus: false,
+//     staleTime: 5 * 60 * 1000,
+//   })
+
+// }
+
+
+
+
 export const useGetOnaylananMetraj = () => {
 
   // const RealmApp = useApp();

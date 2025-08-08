@@ -56,6 +56,9 @@ export default function P_MetrajOnay() {
   const [hazirlananMetrajlar_state, setHazirlananMetrajlar_state] = useState()
   const [hazirlananMetrajlar_backUp, setHazirlananMetrajlar_backUp] = useState()
 
+  const [onaylananMetrajlar_state, setOnaylananMetrajlar_state] = useState()
+  const [onaylananMetrajlar_backUp, setOnaylananMetrajlar_backUp] = useState()
+
   const [_pozId, set_pozId] = useState()
 
 
@@ -84,11 +87,15 @@ export default function P_MetrajOnay() {
   const navigate = useNavigate()
   useEffect(() => {
     !selectedNode_metraj && navigate("/metrajpozmahaller")
+
     setHazirlananMetrajlar_state(_.cloneDeep(hazirlananMetrajlar))
     setHazirlananMetrajlar_backUp(_.cloneDeep(hazirlananMetrajlar))
+
     setIsChanged()
   }, [hazirlananMetrajlar])
 
+  // console.log("onaylananMetrajlar_state", onaylananMetrajlar_state)
+  // console.log("hazirlananMetrajlar_state", hazirlananMetrajlar_state)
 
 
   const handle_satirSec = ({ oneRow, hazirlayan }) => {
@@ -110,6 +117,7 @@ export default function P_MetrajOnay() {
       }
       return oneHazirlanan
     })
+
     setHazirlananMetrajlar_state(hazirlananMetrajlar_state2)
 
   }
@@ -198,7 +206,7 @@ export default function P_MetrajOnay() {
 
         let hazirlananMetrajlar_newSelected = _.cloneDeep(hazirlananMetrajlar_state)
         hazirlananMetrajlar_newSelected = hazirlananMetrajlar_newSelected.map(oneHazirlanan => {
-          if(oneHazirlanan.satirlar.find(x => x.isSelected)){
+          if (oneHazirlanan.satirlar.find(x => x.isSelected)) {
             return oneHazirlanan
           }
         })
@@ -207,8 +215,8 @@ export default function P_MetrajOnay() {
           const result = await RealmApp?.currentUser.callFunction("update_hazirlananMetraj_newSelected", ({ _projeId: selectedProje._id, _dugumId: selectedNode_metraj._id, hazirlananMetraj_newSelected: oneHazirlanan }))
           return result
         }));
-        
-        
+
+
         queryClient.invalidateQueries(['onaylananMetraj', selectedNode_metraj?._id.toString()])
         queryClient.invalidateQueries(['hazirlananMetrajlar', selectedNode_metraj?._id.toString()])
 
