@@ -32,12 +32,12 @@ exports = async function ({
 
   const currentTime = new Date();
 
-  const collection_Projeler = context.services.get("mongodb-atlas").db("rapor724_v2").collection("projeler")
+  // const collection_Projeler = context.services.get("mongodb-atlas").db("rapor724_v2").collection("projeler")
   const collection_HazirlananMetrajlar = context.services.get("mongodb-atlas").db("rapor724_v2").collection("hazirlananMetrajlar")
   const collection_OnaylananMetrajlar = context.services.get("mongodb-atlas").db("rapor724_v2").collection("onaylananMetrajlar")
   const collection_Dugumler = context.services.get("mongodb-atlas").db("rapor724_v2").collection("dugumler")
 
-  const proje = await collection_Projeler.findOne({ _id: _projeId })
+  // const proje = await collection_Projeler.findOne({ _id: _projeId })
   // const {metrajYapabilenler} = proje.yetki
 
 
@@ -63,7 +63,7 @@ exports = async function ({
       hataMesaj = `__mesajBaslangic__Kaydetmeye çalıştığınız bazı veriler, siz işlem yaparken, başa kullanıcı tarafından güncellenmiş. Bu sebeple kayıt işleminiz gerçekleşmedi. Kontrol edip tekrar deneyiniz.__mesajBitis__`
     }
 
-    onaylananMetraj = await collection_HazirlananMetrajlar.findOne({ _dugumId });
+    onaylananMetraj = await collection_OnaylananMetrajlar.findOne({ _dugumId });
     if (onaylananMetraj._versionId.toString() !== _versionId.toString()) {
       hataMesaj = `__mesajBaslangic__Kaydetmeye çalıştığınız bazı veriler, siz işlem yaparken, başa kullanıcı tarafından güncellenmiş. Bu sebeple kayıt işleminiz gerçekleşmedi. Kontrol edip tekrar deneyiniz.__mesajBitis__`
     }
