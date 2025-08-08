@@ -153,7 +153,7 @@ exports = async function ({
       { _id: _dugumId },
       {
         $set: {
-          onaylananMetraj: metraj,
+          onaylananMetraj: metrajOnaylanan,
           "hazirlananMetrajlar.$[elem].hasSelected": hasSelected,
           "hazirlananMetrajlar.$[elem].hasSelectedFull": hasSelectedFull,
         }
