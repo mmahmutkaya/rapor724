@@ -79,10 +79,11 @@ exports = async function ({
 
   try {
 
-    hazirlananMetraj.satirlar = hazirlananMetraj.satirlar(oneSatir => {
+    hazirlananMetraj.satirlar = hazirlananMetraj.satirlar.map(oneSatir => {
       if (selectedSatirlar.find(x => x.satirNo === oneSatir.satirNo)) {
         oneSatir.isSelected = true
       }
+      return oneSatir
     })
 
     // db için satirlar
