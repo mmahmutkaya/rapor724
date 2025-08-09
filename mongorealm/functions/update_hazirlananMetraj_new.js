@@ -49,13 +49,14 @@ exports = async function ({
     // db hazirlik - metraj
 
     metraj = hazirlananMetraj_new.metraj
-
-    // db hazirlik - _versionId
-    _versionId = new BSON.ObjectId()
+    hazirlananMetraj_new.satirlar = hazirlananMetraj_new.satirlar.map(oneSatir => {
+      oneSatir.userEmail = userEmail
+      return oneSatir
+    })
 
     await collection_HazirlananMetrajlar.updateOne(
       { _dugumId, userEmail },
-      { $set: { _versionId, ...hazirlananMetraj_new } },
+      { $set: { ...hazirlananMetraj_new } },
       { upsert: true }
     )
 
