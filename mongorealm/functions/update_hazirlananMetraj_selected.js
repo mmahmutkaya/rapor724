@@ -128,6 +128,7 @@ exports = async function ({
     selectedSatirlar.map(oneSatir => {
       if (!onaylananMetraj.satirlar.find(x => x.satirNo === oneSatir.satirNo)) {
         oneSatir.siraNo = newSiraNo + 1
+        oneSatir.userEmail = hazirlayanEmail
         onaylananMetraj.satirlar = [...onaylananMetraj.satirlar, oneSatir]
         newSiraNo += 1
       }
