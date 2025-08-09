@@ -1,7 +1,7 @@
 exports = async function ({
   _projeId,
   _dugumId,
-  hazirlananMetraj_selected
+  onaylananMetraj_state
 }) {
 
 
