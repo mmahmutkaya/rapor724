@@ -69,7 +69,7 @@ exports = async function ({
     }
 
   } catch (error) {
-    throw new Error("MONGO // update_hazirlananMetrajlar_selected // versionId " + err.message);
+    throw new Error("MONGO // update_hazirlananMetrajlar_selected // versionId " + error);
   }
 
 
