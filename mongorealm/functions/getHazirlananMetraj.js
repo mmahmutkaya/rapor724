@@ -21,26 +21,28 @@ exports = async function ({
   }
 
 
-  // deneme
 
   const collection_hazirlananMetrajlar = context.services.get("mongodb-atlas").db("rapor724_v2").collection("hazirlananMetrajlar")
 
 
   try {
 
-    let hazirlananMetraj = await collection_hazirlananMetrajlar.findOne({ _dugumId, userEmail })
+    const _versionId = new BSON.ObjectId()
 
-    // ya burdan dönecek
+    let hazirlananMetraj = await collection_hazirlananMetrajlar.findAndModify({
+      query: { _dugumId, userEmail },
+      update: [{ $set: { _versionId } }],
+      new: true
+    })
+
     if (hazirlananMetraj) {
-      let _newVersionId = new BSON.ObjectId()
-      await collection_hazirlananMetrajlar.updateOne({ _dugumId, userEmail },{$set:{_versionId:_newVersionId}})
-      return hazirlananMetraj
-    }
 
-    // ya burdan dönecek
-    if (!hazirlananMetraj) {
+      return hazirlananMetraj
+
+    } else {
+
       hazirlananMetraj = {
-        _versionId: new BSON.ObjectId(),
+        _versionId,
         _dugumId,
         userEmail,
         metraj: 0,
@@ -52,10 +54,11 @@ exports = async function ({
           { satirNo: userCode + "-" + 5, aciklama: "", carpan1: "", carpan2: "", carpan3: "", carpan4: "", carpan5: "", metraj: "" }
         ]
       }
+
       await collection_hazirlananMetrajlar.insertOne(hazirlananMetraj)
       return hazirlananMetraj
-    }
 
+    }
 
 
   } catch (error) {
