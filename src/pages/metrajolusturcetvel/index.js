@@ -171,7 +171,7 @@ export default function P_MetrajOlusturCetvel() {
 
         await RealmApp?.currentUser.callFunction("update_hazirlananMetraj_new", ({ _dugumId: selectedNode_metraj._id, hazirlananMetraj_new: hazirlananMetraj_state }))
 
-        queryClient.invalidateQueries(['hazirlananMetrajlar', selectedNode_metraj?._id.toString()])
+        queryClient.invalidateQueries(['hazirlananMetraj', selectedNode_metraj?._id.toString()])
         setIsChanged()
         setShow("DugumMetrajlari")
         return
