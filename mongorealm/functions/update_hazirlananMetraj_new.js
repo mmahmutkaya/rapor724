@@ -49,10 +49,6 @@ exports = async function ({
     // db hazirlik - metraj
 
     metraj = hazirlananMetraj_new.metraj
-    hazirlananMetraj_new.satirlar = hazirlananMetraj_new.satirlar.map(oneSatir => {
-      oneSatir.userEmail = userEmail
-      return oneSatir
-    })
 
     await collection_HazirlananMetrajlar.updateOne(
       { _dugumId, userEmail },
