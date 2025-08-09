@@ -29,19 +29,11 @@ exports = async function ({
 
     const _versionId = new BSON.ObjectId()
 
-    let hazirlananMetraj = await collection_hazirlananMetrajlar.findAndModify({
-      query: { _dugumId, userEmail },
-      update: [{ $set: { _versionId } }],
-      new: true
-    })
+    let resultUpdate = await collection_hazirlananMetrajlar.updateOne({ _dugumId, userEmail }, { $set: { _versionId } })
 
-    if (hazirlananMetraj) {
+    if (!resultUpdate.matchedCount) {
 
-      return hazirlananMetraj
-
-    } else {
-
-      hazirlananMetraj = {
+      const hazirlananMetraj = {
         _versionId,
         _dugumId,
         userEmail,
@@ -56,6 +48,11 @@ exports = async function ({
       }
 
       await collection_hazirlananMetrajlar.insertOne(hazirlananMetraj)
+      return hazirlananMetraj
+
+    } else {
+
+      const hazirlananMetraj = await collection_hazirlananMetrajlar.findOne({ _dugumId, userEmail })
       return hazirlananMetraj
 
     }
