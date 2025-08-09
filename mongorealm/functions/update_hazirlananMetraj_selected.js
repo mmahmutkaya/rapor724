@@ -125,7 +125,7 @@ exports = async function ({
     })
     selectedSatirlar.map(oneSatir => {
       if (!onaylananMetraj.satirlar.find(x => x.satirNo === oneSatir.satirNo)) {
-        oneSatir.siraNo = newSiraNo + 1
+        oneSatir.siraNo = newSiraNo
         oneSatir.userEmail = hazirlayanEmail
         delete oneSatir.newSelected
         onaylananMetraj.satirlar = [...onaylananMetraj.satirlar, oneSatir]
