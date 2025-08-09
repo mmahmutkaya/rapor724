@@ -116,12 +116,14 @@ exports = async function ({
 
   try {
 
-
+    // hem newSiraNo belirliyoruz hem newSelected siliyoruz
     let newSiraNo = 1
-    onaylananMetraj.satirlar.map(oneSatir => {
+    onaylananMetraj.satirlar = onaylananMetraj.satirlar.map(oneSatir => {
+      delete oneSatir.newSelected
       if (oneSatir.siraNo > newSiraNo) {
         newSiraNo = oneSatir.siraNo + 1
       }
+      return oneSatir
     })
     selectedSatirlar.map(oneSatir => {
       if (!onaylananMetraj.satirlar.find(x => x.satirNo === oneSatir.satirNo)) {
