@@ -106,8 +106,8 @@ exports = async function ({
       { $set: { satirlar, metraj: metrajHazirlanan } }
     )
 
-  } catch (err) {
-    throw new Error("MONGO // update_hazirlananMetrajlar_selected // hazirlananMetraj güncelleme " + err.message);
+  } catch (error) {
+    throw new Error("MONGO // update_hazirlananMetrajlar_selected // hazirlananMetraj güncelleme " + error);
   }
 
 
@@ -142,7 +142,7 @@ exports = async function ({
     )
 
   } catch (error) {
-    throw new Error("MONGO // update_hazirlananMetrajlar_selected // onaylananMetraj güncelleme " + err.message);
+    throw new Error("MONGO // update_hazirlananMetrajlar_selected // onaylananMetraj güncelleme " + error);
   }
 
 
@@ -161,8 +161,8 @@ exports = async function ({
       { arrayFilters: [{ "elem.userEmail": hazirlayanEmail }] }
     )
 
-  } catch (err) {
-    throw new Error("MONGO // update_hazirlananMetrajlar_selected // dugum güncelleme " + err.message);
+  } catch (error) {
+    throw new Error("MONGO // update_hazirlananMetrajlar_selected // dugum güncelleme " + error);
   }
 
 
