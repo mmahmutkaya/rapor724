@@ -192,6 +192,7 @@ export default function P_MetrajOlusturCetvel() {
           onCloseAction = () => {
             setDialogAlert()
             setIsChanged()
+            setShow("DugumMetrajlari")
             queryClient.invalidateQueries(['hazirlananMetrajlar', selectedNode_metraj?._id.toString()])
           }
         }
