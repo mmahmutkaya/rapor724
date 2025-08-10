@@ -143,6 +143,11 @@ exports = async function ({
       { $set: { satirlar: onaylananMetraj.satirlar, metraj: metrajOnaylanan } }
     )
 
+    await collection_Dugumler.updateOne(
+      { _dugumId },
+      { $set: { onaylananMetraj: metrajOnaylanan } }
+    )
+
 
   } catch (error) {
     throw new Error("MONGO // update_hazirlananMetrajlar_selected // onaylananMetraj güncelleme " + error);
@@ -174,8 +179,6 @@ exports = async function ({
           filter: { _dugumId },
           update: {
             $set: {
-              onaylananMetraj: metrajOnaylanan,
-              "hazirlananMetrajlar.$[elem].metraj": metraj,
               "hazirlananMetrajlar.$[elem].hasSelected": hasSelected,
               "hazirlananMetrajlar.$[elem].hasSelectedFull": hasSelectedFull,
             }
