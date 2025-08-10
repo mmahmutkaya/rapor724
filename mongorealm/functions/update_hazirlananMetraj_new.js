@@ -47,7 +47,7 @@ exports = async function ({
 
     // db hazirlik - metraj
     hazirlananMetraj_new.satirlar.map(oneSatir => {
-      metraj += oneSatir
+      metraj += Number(oneSatir.metraj)
     })
     hazirlananMetraj.metraj = metraj
 
@@ -97,7 +97,6 @@ exports = async function ({
     await collection_Dugumler.updateOne(
       { _id: _dugumId },
       { $set: { hazirlananMetrajlar } },
-      { upsert: true }
     )
 
 
