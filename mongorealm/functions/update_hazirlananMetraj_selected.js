@@ -149,42 +149,42 @@ exports = async function ({
   }
 
 
+  return { hazirlananMetrajlar, metrajOnaylanan }
 
-  try {
-
-    return { hazirlananMetrajlar, metrajOnaylanan }
-
-    let hazirlananMetrajlar = hazirlananMetrajlar.map(oneHazirlanan => {
-      let hasSelected
-      let hasSelectedFull
-      let userEmail = oneHazirlanan.userEmail
-      let metraj = 0
-      oneHazirlanan.satirlar.map(oneSatir => {
-        metraj += Number(oneSatir.metraj)
-      })
-      if (oneHazirlanan.satirlar.find(x => x.isSelected)) {
-        hasSelected = true
-        if (oneHazirlanan.satirlar.filter(x => x.isSelected).length === oneHazirlanan.satirlar.length) {
-          hasSelectedFull = true
-        }
-      }
-      return { userEmail, metraj, hasSelected, hasSelectedFull }
-    })
+  // try {
 
 
-    const result = await collection_Dugumler.updateOne({ _dugumId }, [{ $set: { "hazirlananMetrajlar": hazirlananMetrajlar2, "onaylananMetraj": metrajHazirlanan } }])
+  //   let hazirlananMetrajlar = hazirlananMetrajlar.map(oneHazirlanan => {
+  //     let hasSelected
+  //     let hasSelectedFull
+  //     let userEmail = oneHazirlanan.userEmail
+  //     let metraj = 0
+  //     oneHazirlanan.satirlar.map(oneSatir => {
+  //       metraj += Number(oneSatir.metraj)
+  //     })
+  //     if (oneHazirlanan.satirlar.find(x => x.isSelected)) {
+  //       hasSelected = true
+  //       if (oneHazirlanan.satirlar.filter(x => x.isSelected).length === oneHazirlanan.satirlar.length) {
+  //         hasSelectedFull = true
+  //       }
+  //     }
+  //     return { userEmail, metraj, hasSelected, hasSelectedFull }
+  //   })
 
-    // await collection_Dugumler.updateOne(
-    //   { _dugumId },
-    //   { $set: { hazirlananMetrajlar: {...hazirlananMetrajlar2} } }
-    // )
 
-    return { result, hazirlananMetrajlar, metrajHazirlanan }
+  //   const result = await collection_Dugumler.updateOne({ _dugumId }, [{ $set: { "hazirlananMetrajlar": hazirlananMetrajlar2, "onaylananMetraj": metrajHazirlanan } }])
+
+  //   // await collection_Dugumler.updateOne(
+  //   //   { _dugumId },
+  //   //   { $set: { hazirlananMetrajlar: {...hazirlananMetrajlar2} } }
+  //   // )
+
+  //   return { result, hazirlananMetrajlar, metrajHazirlanan }
 
 
-  } catch (error) {
-    throw new Error("MONGO // update_hazirlananMetrajlar_selected // dugum güncelleme " + error);
-  }
+  // } catch (error) {
+  //   throw new Error("MONGO // update_hazirlananMetrajlar_selected // dugum güncelleme " + error);
+  // }
 
 
 };
