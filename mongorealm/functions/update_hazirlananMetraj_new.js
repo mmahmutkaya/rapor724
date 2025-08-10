@@ -46,20 +46,21 @@ exports = async function ({
 
 
     // db hazirlik - metraj
-    metraj = hazirlananMetraj_new.metraj
+    hazirlananMetraj_new.satirlar.map(oneSatir => {
+      metraj += oneSatir
+    })
+    hazirlananMetraj.metraj = metraj
 
 
     await collection_HazirlananMetrajlar.updateOne(
       { _dugumId, userEmail },
-      { $set: { ...hazirlananMetraj_new } },
-      { upsert: true }
+      { $set: { ...hazirlananMetraj_new } }
     )
 
 
   } catch (err) {
     throw new Error("MONGO // update_hazirlananMetrajlar_new // " + err.message);
   }
-
 
 
 
