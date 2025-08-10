@@ -292,8 +292,9 @@ export default function P_MetrajCetveliOnaylanan() {
 
   // ORJİNAK SATIRLARI VE REVİZELERİ SİLME FONKSİYONU
 
-  
+
   const update_state_unLock = (iptalRow) => {
+
     if (!isChanged_unLock) {
       setIsChanged_unLock(true)
     }
@@ -312,9 +313,10 @@ export default function P_MetrajCetveliOnaylanan() {
       setOnaylananMetraj_state(onaylananMetraj_state2)
       return
     }
- 
+
 
     let unLock_edilecekSatirNo = iptalRow.satirNo.substring(0, iptalRow.satirNo.indexOf("."))
+    console.log("unLock_edilecekSatirNo",unLock_edilecekSatirNo)
     onaylananMetraj_state2.satirlar = onaylananMetraj_state2.satirlar.map(oneRow => {
       if (oneRow.satirNo === unLock_edilecekSatirNo) {
         oneRow.hasSelectedCopy = false
@@ -341,6 +343,8 @@ export default function P_MetrajCetveliOnaylanan() {
     setOnaylananMetraj_state(onaylananMetraj_state2)
 
   }
+
+
 
 
   const cancel_unLock = () => {
@@ -629,7 +633,7 @@ export default function P_MetrajCetveliOnaylanan() {
                 <Box></Box>
 
                 <Box
-                  onClick={() => showHasSelectedCopy && oneRow.isSelectedCopy && update_state_unLock(oneRow)}
+                  onClick={() => showHasSelectedCopy && !oneRow.hasSelectedCopy && update_state_unLock(oneRow)}
                   // onMouseEnter={() => showHasSelectedCopy && setIsHovered(true)}
                   // onMouseLeave={() => showHasSelectedCopy && setIsHovered(false)}
                   sx={{
@@ -644,22 +648,24 @@ export default function P_MetrajCetveliOnaylanan() {
                     borderBottom: oneRow.isLastCopy && "2px solid black",
                   }}
                 >
-                  {oneRow.isSelected && !oneRow.hasSelectedCopy &&
+                  {!showHasSelectedCopy && oneRow.isSelected && !oneRow.hasSelectedCopy &&
                     <LockIcon
                       variant="contained"
                       sx={{ color: "gray", fontSize: "0.9rem" }} />
                   }
-                  {oneRow.isSelected && oneRow.hasSelectedCopy && showHasSelectedCopy &&
-                    <EditIcon
-                      variant="contained"
-                      sx={{ color: "gray", fontSize: "0.9rem" }} />
-                  }
-                  {oneRow.isSelectedCopy && !showHasSelectedCopy &&
+                  {!showHasSelectedCopy && oneRow.isSelectedCopy && !showHasSelectedCopy &&
                     <EditIcon variant="contained" sx={{ color: "rgba(255, 132, 0, 1)", fontSize: "0.9rem" }} />
                   }
-                  {oneRow.isSelectedCopy && showHasSelectedCopy &&
+
+                  {showHasSelectedCopy && oneRow.isSelected &&
+                    <ReplyIcon
+                      variant="contained"
+                      sx={{ color: oneRow.hasSelectedCopy ? "lightgray" : "gray", fontSize: "0.9rem" }} />
+                  }
+                  {showHasSelectedCopy && oneRow.isSelectedCopy &&
                     <ReplyIcon variant="contained" sx={{ color: "rgba(255, 132, 0, 1)", fontSize: "0.9rem" }} />
                   }
+
                 </Box>
 
               </React.Fragment>
