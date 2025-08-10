@@ -58,11 +58,12 @@ exports = async function ({
   try {
 
     hazirlananMetrajlar = await collection_HazirlananMetrajlar.find({ _dugumId }).toArray()
-    hazirlananMetrajlar.map(oneHazirlanan => {
-      if (oneHazirlanan._versionId.toString() !== _versionId.toString()) {
+    hazirlananMetrajlar_state.map(oneHazirlanan => {
+      if (!oneHazirlanan._versionId.toString === hazirlananMetrajlar.find(x => x.userEmail === oneHazirlanan.userEmail)._versionId) {
         throw new Error(`__mesajBaslangic__Kaydetmeye çalıştığınız bazı veriler, siz işlem yaparken, başa kullanıcı tarafından güncellenmiş. Bu sebeple kayıt işleminiz gerçekleşmedi. Kontrol edip tekrar deneyiniz.__mesajBitis__`)
       }
     })
+
 
     onaylananMetraj = await collection_OnaylananMetrajlar.findOne({ _dugumId });
     if (onaylananMetraj._versionId.toString() !== _versionId.toString()) {
@@ -151,8 +152,9 @@ exports = async function ({
 
   try {
 
+    let bulkArray = []
 
-    let hazirlananMetrajlar2 = hazirlananMetrajlar.map(oneHazirlanan => {
+    hazirlananMetrajlar.map(oneHazirlanan => {
       let hasSelected
       let hasSelectedFull
       let userEmail = oneHazirlanan.userEmail
@@ -166,17 +168,28 @@ exports = async function ({
           hasSelectedFull = true
         }
       }
-      return { userEmail, metraj, hasSelected, hasSelectedFull }
+
+      oneBulk = {
+        updateOne: {
+          filter: { _id:_dugumId },
+          update: {
+            $set: {
+              onaylananMetraj: metrajOnaylanan,
+              "hazirlananMetrajlar.$[elem].hasSelected": hasSelected,
+              "hazirlananMetrajlar.$[elem].hasSelectedFull": hasSelectedFull,
+            }
+          },
+          arrayFilters: [{ "elem.userEmail": userEmail }],
+        }
+      }
+      bulkArray = [...bulkArray, oneBulk]
+
     })
 
-
-    await collection_Dugumler.updateOne(
-      { _dugumId },
-      { $set: { hazirlananMetrajlar: hazirlananMetrajlar2, onaylananMetraj: metrajOnaylanan } }
+    await collection_Dugumler.bulkWrite(
+      bulkArray,
+      { ordered: false }
     )
-
-    return 
-
 
   } catch (error) {
     throw new Error("MONGO // update_hazirlananMetrajlar_selected // dugum güncelleme " + error);
