@@ -186,7 +186,7 @@ exports = async function ({
             }
           },
           arrayFilters: [{ "elem.userEmail": userEmail }],
-          upsert:true
+          // upsert:true
         }
       }
       bulkArray = [...bulkArray, oneBulk]
