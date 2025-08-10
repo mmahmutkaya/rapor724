@@ -292,6 +292,7 @@ export default function P_MetrajCetveliOnaylanan() {
 
   // ORJİNAK SATIRLARI VE REVİZELERİ SİLME FONKSİYONU
 
+  
   const update_state_unLock = (iptalRow) => {
     if (!isChanged_unLock) {
       setIsChanged_unLock(true)
