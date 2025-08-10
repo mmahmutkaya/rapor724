@@ -546,7 +546,7 @@
         "disable_arg_logs": true
     },
     {
-        "name": "update_onaylananMetrajCetveli",
+        "name": "update_onaylananMetraj_unselect",
         "private": false,
         "run_as_system": true,
         "disable_arg_logs": true
@@ -559,18 +559,6 @@
     },
     {
         "name": "update_hazirlananMetraj_selected",
-        "private": false,
-        "run_as_system": true,
-        "disable_arg_logs": true
-    },
-    {
-        "name": "getHazirlananVeOnaylananMetrajlar",
-        "private": false,
-        "run_as_system": true,
-        "disable_arg_logs": true
-    },
-    {
-        "name": "getOnaylananMetraj_copy",
         "private": false,
         "run_as_system": true,
         "disable_arg_logs": true
