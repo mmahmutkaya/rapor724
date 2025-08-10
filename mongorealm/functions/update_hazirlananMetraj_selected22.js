@@ -152,7 +152,7 @@ exports = async function ({
   try {
 
 
-    let hazirlananMetrajlar2 = hazirlananMetrajlar.map(oneHazirlanan => {
+    let hazirlananMetrajlar = hazirlananMetrajlar.map(oneHazirlanan => {
       let hasSelected
       let hasSelectedFull
       let userEmail = oneHazirlanan.userEmail
@@ -170,14 +170,14 @@ exports = async function ({
     })
 
 
-    collection_Dugumler.updateOne({ _dugumId }, [{ $set: { "hazirlananMetrajlar": hazirlananMetrajlar2, onaylananMetraj: metrajHazirlanan } }])
+    const result = await collection_Dugumler.updateOne({ _dugumId }, [{ $set: { "hazirlananMetrajlar": hazirlananMetrajlar2, "onaylananMetraj": metrajHazirlanan } }])
 
     // await collection_Dugumler.updateOne(
     //   { _dugumId },
     //   { $set: { hazirlananMetrajlar: {...hazirlananMetrajlar2} } }
     // )
 
-    return
+    return {result,hazirlananMetrajlar,metrajHazirlanan}
 
 
   } catch (error) {
