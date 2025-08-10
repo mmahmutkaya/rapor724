@@ -143,10 +143,10 @@ exports = async function ({
       { $set: { satirlar: onaylananMetraj.satirlar, metraj: metrajOnaylanan } }
     )
 
-    await collection_Dugumler.updateOne(
-      { _dugumId },
-      [{ $set: { onaylananMetraj: metrajOnaylanan } }]
-    )
+    // await collection_Dugumler.updateOne(
+    //   { _dugumId },
+    //   [{ $set: { onaylananMetraj: metrajOnaylanan } }]
+    // )
 
 
   } catch (error) {
@@ -179,11 +179,13 @@ exports = async function ({
           filter: { _dugumId },
           update: {
             $set: {
+              onaylananMetraj: metrajOnaylanan,
               "hazirlananMetrajlar.$[elem].hasSelected": hasSelected,
               "hazirlananMetrajlar.$[elem].hasSelectedFull": hasSelectedFull,
             }
           },
-          arrayFilters: [{ "elem.userEmail": userEmail }]
+          arrayFilters: [{ "elem.userEmail": userEmail }],
+          upsert:true
         }
       }
       bulkArray = [...bulkArray, oneBulk]
