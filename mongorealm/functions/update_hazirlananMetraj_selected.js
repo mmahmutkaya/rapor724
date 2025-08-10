@@ -48,7 +48,7 @@ exports = async function ({
 
   let hazirlayanEmail = hazirlananMetraj_selected.userEmail
 
-  let _versionId = hazirlananMetraj_selected._versionId
+  const _versionId = hazirlananMetraj_selected._versionId
 
   let hazirlananMetraj
   let onaylananMetraj
@@ -75,7 +75,9 @@ exports = async function ({
 
 
 
-  let selectedSatirlar = hazirlananMetraj_selected.satirlar.filter(x => x.isSelected)
+  let selectedSatirlar = hazirlananMetraj_selected.satirlar.filter(x => x.isSelected).map(oneSatir => {
+    delete oneSatir.newSelected
+  })
 
   try {
 
@@ -116,18 +118,19 @@ exports = async function ({
 
   try {
 
+    // hem newSiraNo belirliyoruz hem newSelected siliyoruz
     let newSiraNo = 1
     onaylananMetraj.satirlar = onaylananMetraj.satirlar.map(oneSatir => {
-      if (oneSatir.siraNo > newSiraNo) {
+      if (oneSatir.siraNo >= newSiraNo) {
         newSiraNo = oneSatir.siraNo + 1
       }
       return oneSatir
     })
+
+
     selectedSatirlar.map(oneSatir => {
       if (!onaylananMetraj.satirlar.find(x => x.satirNo === oneSatir.satirNo)) {
         oneSatir.siraNo = newSiraNo
-        oneSatir.userEmail = hazirlayanEmail
-        delete oneSatir.newSelected
         onaylananMetraj.satirlar = [...onaylananMetraj.satirlar, oneSatir]
         newSiraNo += 1
       }
