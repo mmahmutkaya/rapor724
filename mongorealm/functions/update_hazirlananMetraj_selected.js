@@ -149,42 +149,70 @@ exports = async function ({
   }
 
 
-  return { hazirlananMetrajlar, metrajOnaylanan }
 
-  // try {
+  try {
+
+    let bulkArray
+
+    hazirlananMetrajlar.map(oneHazirlanan => {
+      let hasSelected
+      let hasSelectedFull
+      let userEmail = oneHazirlanan.userEmail
+      let metraj = 0
+      oneHazirlanan.satirlar.map(oneSatir => {
+        metraj += Number(oneSatir.metraj)
+      })
+      if (oneHazirlanan.satirlar.find(x => x.isSelected)) {
+        hasSelected = true
+        if (oneHazirlanan.satirlar.filter(x => x.isSelected).length === oneHazirlanan.satirlar.length) {
+          hasSelectedFull = true
+        }
+      }
+
+      oneBulk = {
+        updateOne: {
+          filter: { _dugumId, userEmai },
+          update: {
+            $set: {
+              onaylananMetraj: metrajOnaylanan,
+              "hazirlananMetrajlar.$[elem].metraj": metraj,
+              "hazirlananMetrajlar.$[elem].hasSelected": hasSelected,
+              "hazirlananMetrajlar.$[elem].hasSelectedFull": hasSelectedFull,
+            }
+          },
+          arrayFilters: [{ "elem.userEmail": userEmail }]
+        }
+      }
+      bulkArray = [...bulkArray, oneBulk]
+
+    })
+
+    await collection_Dugumler.bulkWrite(
+      bulkArray,
+      { ordered: false }
+    )
 
 
-  //   let hazirlananMetrajlar = hazirlananMetrajlar.map(oneHazirlanan => {
-  //     let hasSelected
-  //     let hasSelectedFull
-  //     let userEmail = oneHazirlanan.userEmail
-  //     let metraj = 0
-  //     oneHazirlanan.satirlar.map(oneSatir => {
-  //       metraj += Number(oneSatir.metraj)
-  //     })
-  //     if (oneHazirlanan.satirlar.find(x => x.isSelected)) {
-  //       hasSelected = true
-  //       if (oneHazirlanan.satirlar.filter(x => x.isSelected).length === oneHazirlanan.satirlar.length) {
-  //         hasSelectedFull = true
-  //       }
-  //     }
-  //     return { userEmail, metraj, hasSelected, hasSelectedFull }
-  //   })
+    // const result = await collection_Dugumler.updateOne({ _dugumId }, [{ $set: { "hazirlananMetrajlar": hazirlananMetrajlar2, "onaylananMetraj": metrajHazirlanan } }])
+
+    // await collection_Dugumler.updateOne(
+    //   { _id: _dugumId },
+    //   {
+    //     $set: {
+    //       onaylananMetraj: metrajOnaylanan,
+    //       "hazirlananMetrajlar.$[elem].hasSelected": hasSelected,
+    //       "hazirlananMetrajlar.$[elem].hasSelectedFull": hasSelectedFull,
+    //     }
+    //   },
+    //   { arrayFilters: [{ "elem.userEmail": hazirlayanEmail }] }
+    // )
+
+    // return { result, hazirlananMetrajlar, metrajHazirlanan }
 
 
-  //   const result = await collection_Dugumler.updateOne({ _dugumId }, [{ $set: { "hazirlananMetrajlar": hazirlananMetrajlar2, "onaylananMetraj": metrajHazirlanan } }])
-
-  //   // await collection_Dugumler.updateOne(
-  //   //   { _dugumId },
-  //   //   { $set: { hazirlananMetrajlar: {...hazirlananMetrajlar2} } }
-  //   // )
-
-  //   return { result, hazirlananMetrajlar, metrajHazirlanan }
-
-
-  // } catch (error) {
-  //   throw new Error("MONGO // update_hazirlananMetrajlar_selected // dugum güncelleme " + error);
-  // }
+  } catch (error) {
+    throw new Error("MONGO // update_hazirlananMetrajlar_selected // dugum güncelleme " + error);
+  }
 
 
 };
