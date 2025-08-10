@@ -175,7 +175,7 @@ exports = async function ({
       { $set: { "deneme":34, "onaylananMetraj":28, "hazirlananMetrajlar": hazirlananMetrajlar2 } }
     )
 
-    return 
+    return hazirlananMetrajlar2
 
 
   } catch (error) {
