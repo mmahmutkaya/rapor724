@@ -151,7 +151,7 @@ exports = async function ({
 
   try {
 
-    return {hazirlananMetrajlar,metrajHazirlanan} 
+    return {hazirlananMetrajlar,onaylananMetraj} 
 
     let hazirlananMetrajlar = hazirlananMetrajlar.map(oneHazirlanan => {
       let hasSelected
