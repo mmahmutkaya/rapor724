@@ -58,11 +58,12 @@ exports = async function ({
   try {
 
     hazirlananMetrajlar = await collection_HazirlananMetrajlar.find({ _dugumId }).toArray()
-    hazirlananMetrajlar.map(oneHazirlanan => {
-      if (oneHazirlanan._versionId.toString() !== _versionId.toString()) {
+    hazirlananMetrajlar_state.map(oneHazirlanan => {
+      if (!oneHazirlanan._versionId.toString === hazirlananMetrajlar.find(x => x.userEmail === oneHazirlanan.userEmail)._versionId) {
         throw new Error(`__mesajBaslangic__Kaydetmeye çalıştığınız bazı veriler, siz işlem yaparken, başa kullanıcı tarafından güncellenmiş. Bu sebeple kayıt işleminiz gerçekleşmedi. Kontrol edip tekrar deneyiniz.__mesajBitis__`)
       }
     })
+
 
     onaylananMetraj = await collection_OnaylananMetrajlar.findOne({ _dugumId });
     if (onaylananMetraj._versionId.toString() !== _versionId.toString()) {
@@ -151,7 +152,7 @@ exports = async function ({
 
   try {
 
-    return {hazirlananMetrajlar,onaylananMetraj} 
+    return { hazirlananMetrajlar, metrajOnaylanan }
 
     let hazirlananMetrajlar = hazirlananMetrajlar.map(oneHazirlanan => {
       let hasSelected
@@ -178,7 +179,7 @@ exports = async function ({
     //   { $set: { hazirlananMetrajlar: {...hazirlananMetrajlar2} } }
     // )
 
-    return {result,hazirlananMetrajlar,metrajHazirlanan}
+    return { result, hazirlananMetrajlar, metrajHazirlanan }
 
 
   } catch (error) {
