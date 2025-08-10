@@ -149,84 +149,6 @@ exports = async function ({
 
 
 
-
-
-  // let selectedSatirlar = hazirlananMetraj_selected.satirlar.filter(x => x.isSelected).map(oneSatir => {
-  //   delete oneSatir.newSelected
-  // })
-
-  // try {
-
-  //   hazirlananMetraj.satirlar = hazirlananMetraj.satirlar.map(oneSatir => {
-  //     if (selectedSatirlar.find(x => x.satirNo === oneSatir.satirNo)) {
-  //       oneSatir.isSelected = true
-  //     }
-  //     return oneSatir
-  //   })
-
-  //   // db için satirlar
-  //   let { satirlar } = hazirlananMetraj
-  //   // db için metraj
-  //   satirlar.map(oneSatir => {
-  //     metrajHazirlanan += Number(oneSatir?.metraj)
-  //   })
-
-  //   // aşağıdaki dugumId için veri güncelleme
-  //   if (satirlar.find(x => x.isSelected)) {
-  //     hasSelected = true
-  //     if (satirlar.filter(x => x.isSelected).length === satirlar.length) {
-  //       hasSelectedFull = true
-  //     }
-  //   }
-
-  //   await collection_HazirlananMetrajlar.updateOne(
-  //     { _dugumId, userEmail: hazirlayanEmail },
-  //     { $set: { satirlar, metraj: metrajHazirlanan } }
-  //   )
-
-  // } catch (error) {
-  //   throw new Error("MONGO // update_hazirlananMetrajlar_selected // hazirlananMetraj güncelleme " + error);
-  // }
-
-
-
-
-
-  // try {
-
-  //   let newSiraNo = 1
-  //   onaylananMetraj.satirlar = onaylananMetraj.satirlar.map(oneSatir => {
-  //     if (oneSatir.siraNo >= newSiraNo) {
-  //       newSiraNo = oneSatir.siraNo + 1
-  //     }
-  //     return oneSatir
-  //   })
-
-
-  //   selectedSatirlar.map(oneSatir => {
-  //     if (!onaylananMetraj.satirlar.find(x => x.satirNo === oneSatir.satirNo)) {
-  //       oneSatir.siraNo = newSiraNo
-  //       onaylananMetraj.satirlar = [...onaylananMetraj.satirlar, oneSatir]
-  //       newSiraNo += 1
-  //     }
-  //   })
-
-
-  //   onaylananMetraj.satirlar.map(oneSatir => {
-  //     metrajOnaylanan += Number(oneSatir.metraj)
-  //   })
-
-  //   await collection_OnaylananMetrajlar.updateOne(
-  //     { _dugumId },
-  //     { $set: { satirlar: onaylananMetraj.satirlar, metraj: metrajOnaylanan } }
-  //   )
-
-  // } catch (error) {
-  //   throw new Error("MONGO // update_hazirlananMetrajlar_selected // onaylananMetraj güncelleme " + error);
-  // }
-
-
-
   try {
 
 
@@ -250,7 +172,7 @@ exports = async function ({
 
     await collection_Dugumler.updateOne(
       { _dugumId },
-      { $set: { hazirlananMetrajlar: hazirlananMetrajlar2 } }
+      { $set: { hazirlananMetrajlar: hazirlananMetrajlar2, onaylananMetraj: metrajOnaylanan } }
     )
 
 
