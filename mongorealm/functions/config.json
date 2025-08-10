@@ -534,12 +534,6 @@
         "disable_arg_logs": true
     },
     {
-        "name": "update_onaylananMetraj_copy3",
-        "private": false,
-        "run_as_system": true,
-        "disable_arg_logs": true
-    },
-    {
         "name": "getHazirlananMetrajlar",
         "private": false,
         "run_as_system": true,
@@ -564,24 +558,6 @@
         "disable_arg_logs": true
     },
     {
-        "name": "update_hazirlananMetraj_selected_2",
-        "private": false,
-        "run_as_system": true,
-        "disable_arg_logs": true
-    },
-    {
-        "name": "update_onaylananMetraj_copy",
-        "private": false,
-        "run_as_system": true,
-        "disable_arg_logs": true
-    },
-    {
-        "name": "update_hazirlananMetraj_new_copy",
-        "private": false,
-        "run_as_system": true,
-        "disable_arg_logs": true
-    },
-    {
         "name": "update_hazirlananMetraj_selected",
         "private": false,
         "run_as_system": true,
@@ -594,7 +570,7 @@
         "disable_arg_logs": true
     },
     {
-        "name": "update_onaylananMetraj_copy2",
+        "name": "getOnaylananMetraj_copy",
         "private": false,
         "run_as_system": true,
         "disable_arg_logs": true
