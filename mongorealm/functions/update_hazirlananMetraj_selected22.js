@@ -151,6 +151,7 @@ exports = async function ({
 
   try {
 
+    return {hazirlananMetrajlar,metrajHazirlanan} 
 
     let hazirlananMetrajlar = hazirlananMetrajlar.map(oneHazirlanan => {
       let hasSelected
@@ -169,7 +170,6 @@ exports = async function ({
       return { userEmail, metraj, hasSelected, hasSelectedFull }
     })
 
-    return {hazirlananMetrajlar,metrajHazirlanan} 
 
     const result = await collection_Dugumler.updateOne({ _dugumId }, [{ $set: { "hazirlananMetrajlar": hazirlananMetrajlar2, "onaylananMetraj": metrajHazirlanan } }])
 
