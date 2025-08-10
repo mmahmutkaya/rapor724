@@ -230,31 +230,42 @@ exports = async function ({
   try {
 
 
-
-    // oneBulk = {
-    //   updateOne: {
-    //     filter: { _dugumId, userEmail: oneHazirlanan.userEmail },
-    //     update: { $set: { ...oneHazirlanan } }
-    //   }
-    // }
-    // bulkArray = [...bulkArray, oneBulk]
-
-
-
-
+    let hazirlananMetrajlar2 = hazirlananMetrajlar.map(oneHazirlanan => {
+      let hasSelected
+      let hasSelectedFull
+      let userEmail = oneHazirlanan.userEmail
+      let metraj = 0
+      oneHazirlanan.satirlar.map(oneSatir => {
+        metraj += Number(oneSatir.metraj)
+      })
+      if (oneHazirlanan.satirlar.find(x => x.isSelected)) {
+        hasSelected = true
+        if (oneHazirlanan.satirlar.filter(x => x.isSelected).length === oneHazirlanan.satirlar.length) {
+          hasSelectedFull = true
+        }
+      }
+      return { userEmail, metraj, hasSelected, hasSelectedFull }
+    })
 
 
     await collection_Dugumler.updateOne(
-      { _id: _dugumId },
-      {
-        $set: {
-          onaylananMetraj: metrajOnaylanan,
-          "hazirlananMetrajlar.$[elem].hasSelected": hasSelected,
-          "hazirlananMetrajlar.$[elem].hasSelectedFull": hasSelectedFull,
-        }
-      },
-      { arrayFilters: [{ "elem.userEmail": hazirlayanEmail }] }
+      { _dugumId },
+      { $set: { hazirlananMetrajlar: hazirlananMetrajlar2 } }
     )
+
+
+
+    // await collection_Dugumler.updateOne(
+    //   { _id: _dugumId },
+    //   {
+    //     $set: {
+    //       onaylananMetraj: metrajOnaylanan,
+    //       "hazirlananMetrajlar.$[elem].hasSelected": hasSelected,
+    //       "hazirlananMetrajlar.$[elem].hasSelectedFull": hasSelectedFull,
+    //     }
+    //   },
+    //   { arrayFilters: [{ "elem.userEmail": hazirlayanEmail }] }
+    // )
 
   } catch (error) {
     throw new Error("MONGO // update_hazirlananMetrajlar_selected // dugum güncelleme " + error);
