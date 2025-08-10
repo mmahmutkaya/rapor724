@@ -57,7 +57,8 @@ exports = async function ({
 
   try {
 
-    hazirlananMetrajlar = await collection_HazirlananMetrajlar.find({ _dugumId });
+    hazirlananMetrajlar = await collection_HazirlananMetrajlar.find({ _dugumId }).toArray()
+    return hazirlananMetrajlar
     hazirlananMetrajlar.map(oneHazirlanan => {
       if (oneHazirlanan._versionId.toString() !== _versionId.toString()) {
         throw new Error(`__mesajBaslangic__Kaydetmeye çalıştığınız bazı veriler, siz işlem yaparken, başa kullanıcı tarafından güncellenmiş. Bu sebeple kayıt işleminiz gerçekleşmedi. Kontrol edip tekrar deneyiniz.__mesajBitis__`)
