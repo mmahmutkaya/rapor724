@@ -27,13 +27,18 @@ exports = async function ({
 
   try {
 
+    let hazirlananMetraj
     const _versionId = new BSON.ObjectId()
 
     let resultUpdate = await collection_hazirlananMetrajlar.updateOne({ _dugumId, userEmail }, { $set: { _versionId } })
 
-    if (!resultUpdate.matchedCount) {
+    if (resultUpdate.matchedCount) {
 
-      const hazirlananMetraj = {
+      hazirlananMetraj = await collection_hazirlananMetrajlar.findOne({ _dugumId, userEmail })
+      
+    } else {
+      
+      hazirlananMetraj = {
         _versionId,
         _dugumId,
         userEmail,
@@ -48,15 +53,12 @@ exports = async function ({
       }
 
       await collection_hazirlananMetrajlar.insertOne(hazirlananMetraj)
-      return hazirlananMetraj
-
-    } else {
-
-      const hazirlananMetraj = await collection_hazirlananMetrajlar.findOne({ _dugumId, userEmail })
-      return hazirlananMetraj
 
     }
 
+    // db deki _versionId leri değiştirmeden başarısız olmuşsak diye ilave güvenlik önlemi veya biz yazdıktan sonra biri değiştirdi, biz kendimizinkini kullanalım
+    hazirlananMetraj._versionId = _versionId
+    return hazirlananMetraj
 
   } catch (error) {
     throw new Error({ hatayeri: "MONGO // getHazirlananMetraj // ", error });

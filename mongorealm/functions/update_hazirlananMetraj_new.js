@@ -35,10 +35,9 @@ exports = async function ({
 
   let metraj = 0
 
-
   try {
 
-    let hazirlananMetraj = await collection_HazirlananMetrajlar.findOne({ _dugumId, userEmail: hazirlananMetraj_new.userEmail })
+    let hazirlananMetraj = await collection_HazirlananMetrajlar.findOne({ _dugumId, userEmail: hazirlayanEmail })
 
     if (hazirlananMetraj._versionId.toString() !== hazirlananMetraj_new._versionId.toString()) {
       throw new Error(`__mesajBaslangic__Kaydetmeye çalıştığınız bazı satırlar, siz işlem yaparken, başa kullanıcı tarafından güncellenmiş. Bu sebeple kayıt işleminiz gerçekleşmedi. Kontrol edip tekrar deneyiniz.__mesajBitis__`)
@@ -47,23 +46,21 @@ exports = async function ({
 
 
     // db hazirlik - metraj
+    hazirlananMetraj_new.satirlar.map(oneSatir => {
+      metraj += Number(oneSatir.metraj)
+    })
+    hazirlananMetraj.metraj = metraj
 
-    metraj = hazirlananMetraj_new.metraj
-
-    // db hazirlik - _versionId
-    _versionId = new BSON.ObjectId()
 
     await collection_HazirlananMetrajlar.updateOne(
       { _dugumId, userEmail },
-      { $set: { _versionId, ...hazirlananMetraj_new } },
-      { upsert: true }
+      { $set: { ...hazirlananMetraj_new } }
     )
 
 
   } catch (err) {
     throw new Error("MONGO // update_hazirlananMetrajlar_new // " + err.message);
   }
-
 
 
 
@@ -100,7 +97,6 @@ exports = async function ({
     await collection_Dugumler.updateOne(
       { _id: _dugumId },
       { $set: { hazirlananMetrajlar } },
-      { upsert: true }
     )
 
 

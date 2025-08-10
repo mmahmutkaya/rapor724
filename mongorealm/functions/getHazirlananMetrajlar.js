@@ -65,7 +65,10 @@ exports = async function ({
   // } catch (error) {
   //   throw new Error({ hatayeri: "MONGO // getHazirlananVeOnaylananMetrajlar // get onaylananMetraj sırasında hata oluştu", error });
   // }
-  
+
+
+  // çok ince bir düşünce yukarıda kopyaladık zaten ama bizim kopyalamamız ile veri alma süremiz arasında bir kayıt olmuşsa diye
+  hazirlananMetrajlar._versionId = _versionId
   return hazirlananMetrajlar
 
 
