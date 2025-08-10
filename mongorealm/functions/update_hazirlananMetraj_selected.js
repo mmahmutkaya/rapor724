@@ -143,12 +143,6 @@ exports = async function ({
       { $set: { satirlar: onaylananMetraj.satirlar, metraj: metrajOnaylanan } }
     )
 
-    // await collection_Dugumler.updateOne(
-    //   { _dugumId },
-    //   { $set: { onaylananMetraj: metrajOnaylanan } },
-    //   {upsert:true}
-    // )
-
 
   } catch (error) {
     throw new Error("MONGO // update_hazirlananMetrajlar_selected // onaylananMetraj güncelleme " + error);
@@ -196,24 +190,6 @@ exports = async function ({
       bulkArray,
       { ordered: false }
     )
-
-
-    // const result = await collection_Dugumler.updateOne({ _dugumId }, [{ $set: { "hazirlananMetrajlar": hazirlananMetrajlar2, "onaylananMetraj": metrajHazirlanan } }])
-
-    // await collection_Dugumler.updateOne(
-    //   { _id: _dugumId },
-    //   {
-    //     $set: {
-    //       onaylananMetraj: metrajOnaylanan,
-    //       "hazirlananMetrajlar.$[elem].hasSelected": hasSelected,
-    //       "hazirlananMetrajlar.$[elem].hasSelectedFull": hasSelectedFull,
-    //     }
-    //   },
-    //   { arrayFilters: [{ "elem.userEmail": hazirlayanEmail }] }
-    // )
-
-    // return { result, hazirlananMetrajlar, metrajHazirlanan }
-
 
   } catch (error) {
     throw new Error("MONGO // update_hazirlananMetrajlar_selected // dugum güncelleme " + error);
