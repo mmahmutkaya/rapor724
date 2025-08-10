@@ -121,8 +121,10 @@ exports = async function ({
     })
 
     hazirlananMetrajlar.map(oneHazirlanan => {
+
       let hazirlayanEmail = oneHazirlanan.userEmail
-      oneHazirlanan.satirlar.map(oneSatir => {
+
+      oneHazirlanan.satirlar.filter(x => x.isSelected).map(oneSatir => {
         if (!onaylananMetraj.satirlar.find(x => x.satirNo === oneSatir.satirNo)) {
           onaylananMetraj.satirlar = [...onaylananMetraj.satirlar, { ...oneSatir, siraNo: newSiraNo, userEmail: hazirlayanEmail }]
           newSiraNo += 1
