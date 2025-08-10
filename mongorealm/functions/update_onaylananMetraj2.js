@@ -1,5 +1,4 @@
 exports = async function ({
-  _projeId,
   _dugumId,
   onaylananMetraj_state
 }) {
@@ -17,9 +16,9 @@ exports = async function ({
     throw new Error("MONGO // update_hazirlananMetrajlar_selected // Öncelikle üyeliğinize ait mail adresinin size ait olduğunu doğrulamalısınız, tekrar giriş yapmayı deneyiniz veya bizimle iletişime geçiniz.");
   }
 
-  if (!_projeId) {
-    throw new Error("MONGO // update_hazirlananMetrajlar_selected // '_projeId' verisi db sorgusuna gelmedi");
-  }
+  // if (!_projeId) {
+  //   throw new Error("MONGO // update_hazirlananMetrajlar_selected // '_projeId' verisi db sorgusuna gelmedi");
+  // }
 
   if (!_dugumId) {
     throw new Error("MONGO // update_hazirlananMetrajlar_selected // '_dugumId' verisi db sorgusuna gelmedi");
