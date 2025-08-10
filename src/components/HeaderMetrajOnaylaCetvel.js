@@ -33,12 +33,14 @@ import TaskAltIcon from '@mui/icons-material/TaskAlt';
 import ForwardIcon from '@mui/icons-material/Forward';
 import SaveIcon from '@mui/icons-material/Save';
 import Tooltip from '@mui/material/Tooltip';
+import ShowMetrajYapabilenler from './ShowMetrajYapabilenler';
 
 
 
 export default function P_HeaderMetrajOnaylaCetvel({
   show, setShow,
   isChanged, cancel, save,
+  copySelectedRow,
   hasSelectedCopySatirlar,
   showHasSelectedCopy, setShowHasSelectedCopy,
   isChanged_unLock, cancel_unLock, save_unLock
@@ -137,7 +139,7 @@ export default function P_HeaderMetrajOnaylaCetvel({
 
 
 
-              {show == "Main" && !isChanged_unLock &&
+              {show == "Main" && !isChanged_unLock && !showHasSelectedCopy &&
                 <>
                   <Grid item >
                     <IconButton onClick={() => {
@@ -146,28 +148,29 @@ export default function P_HeaderMetrajOnaylaCetvel({
                       <ReplyIcon variant="contained" sx={{ color: "gray" }} />
                     </IconButton>
                   </Grid>
-
-                  <Grid item >
-                    <IconButton onClick={() => {
-                      setShow("EditMetraj")
-                      setShowHasSelectedCopy()
-                    }} aria-label="lbsUncliced">
-                      <EditIcon variant="contained" />
-                    </IconButton>
-                  </Grid>
-
-
-                  <Grid item >
-                    {/* <Tooltip placement="bottom" title={"Değişiklileri Göster"}> */}
-                    <IconButton onClick={() => hasSelectedCopySatirlar && setShowHasSelectedCopy(x => !x)} >
-                      {/* <VisibilityIcon variant="contained" sx={{ color: showHasSelectedCopy ? "gray" : "lightgray" }} /> */}
-                      <VisibilityIcon variant="contained" sx={{ color: hasSelectedCopySatirlar && showHasSelectedCopy ? "rgba(255, 132, 0, 1)" : hasSelectedCopySatirlar && !showHasSelectedCopy ? "rgba(255, 132, 0, 0.5)" : "lightgray"}} />
-                    </IconButton>
-                    {/* </Tooltip> */}
-                  </Grid>
-
-
                 </>
+              }
+
+              {show !== "EditMetraj" && !showHasSelectedCopy &&
+                <Grid item >
+                  <IconButton onClick={() => {
+                    setShow("EditMetraj")
+                    setShowHasSelectedCopy()
+                  }} aria-label="lbsUncliced">
+                    <EditIcon variant="contained" />
+                  </IconButton>
+                </Grid>
+              }
+
+              {!isChanged_unLock && hasSelectedCopySatirlar && show !== "EditMetraj" &&
+                <Grid item >
+                  {/* <Tooltip placement="bottom" title={"Değişiklileri Göster"}> */}
+                  <IconButton onClick={() => hasSelectedCopySatirlar && setShowHasSelectedCopy(x => !x)} >
+                    {/* <VisibilityIcon variant="contained" sx={{ color: showHasSelectedCopy ? "gray" : "lightgray" }} /> */}
+                    <VisibilityIcon variant="contained" sx={{ color: hasSelectedCopySatirlar && showHasSelectedCopy ? "rgba(255, 132, 0, 1)" : hasSelectedCopySatirlar && !showHasSelectedCopy ? "rgba(255, 132, 0, 0.5)" : "lightgray" }} />
+                  </IconButton>
+                  {/* </Tooltip> */}
+                </Grid>
               }
 
 
@@ -175,6 +178,16 @@ export default function P_HeaderMetrajOnaylaCetvel({
               {show == "EditMetraj" &&
 
                 <>
+
+                  {hasSelectedCopySatirlar &&
+                    <Grid item >
+                      <IconButton onClick={() => {
+                        copySelectedRow()
+                      }} aria-label="lbsUncliced">
+                        <AddCircleOutlineIcon variant="contained" sx={{ color: "rgba(70, 140, 55, 0.6)" }} />
+                      </IconButton>
+                    </Grid>
+                  }
 
                   <Grid item >
                     <IconButton onClick={() => {

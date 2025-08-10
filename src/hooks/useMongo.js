@@ -262,8 +262,8 @@ export const useGetHazirlananMetrajlar = () => {
     queryFn: () => RealmApp?.currentUser.callFunction("getHazirlananMetrajlar", ({ _dugumId: selectedNode_metraj?._id })),
     enabled: !!RealmApp && !!selectedProje && !!selectedNode_metraj,
     refetchOnMount: true,
-    refetchOnWindowFocus: false,
-    staleTime: 5 * 60 * 1000,
+    refetchOnWindowFocus: false
+    // staleTime: 5 * 60 * 1000,
   })
 
 }
