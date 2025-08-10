@@ -170,12 +170,14 @@ exports = async function ({
     })
 
 
-    await collection_Dugumler.updateOne(
-      { _dugumId },
-      { $set: { hazirlananMetrajlar: {...hazirlananMetrajlar2} } }
-    )
+    collection_Dugumler.updateOne({ _dugumId }, [{ $set: { "hazirlananMetrajlar": hazirlananMetrajlar2, onaylananMetraj: metrajHazirlanan } }])
 
-    return 
+    // await collection_Dugumler.updateOne(
+    //   { _dugumId },
+    //   { $set: { hazirlananMetrajlar: {...hazirlananMetrajlar2} } }
+    // )
+
+    return
 
 
   } catch (error) {
