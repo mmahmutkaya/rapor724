@@ -13,11 +13,11 @@ exports = async function ({
 
   const mailTeyit = user.custom_data.mailTeyit;
   if (!mailTeyit) {
-    throw new Error("MONGO // getHazirlananVeOnaylananMetrajlar // Öncelikle üyeliğinize ait mail adresinin size ait olduğunu doğrulamalısınız, tekrar giriş yapmayı deneyiniz veya bizimle iletişime geçiniz.");
+    throw new Error("MONGO // getHazirlananMetrajlar // Öncelikle üyeliğinize ait mail adresinin size ait olduğunu doğrulamalısınız, tekrar giriş yapmayı deneyiniz veya bizimle iletişime geçiniz.");
   }
 
   if (!_dugumId) {
-    throw new Error("MONGO // getHazirlananVeOnaylananMetrajlar // '_dugumId' verisi db sorgusuna gelmedi");
+    throw new Error("MONGO // getHazirlananMetrajlar // '_dugumId' verisi db sorgusuna gelmedi");
   }
 
   
@@ -30,7 +30,7 @@ exports = async function ({
   try {
     await collection_HazirlananMetrajlar.updateMany({ _dugumId }, { $set: { _versionId } })
   } catch (error) {
-    throw new Error({ hatayeri: "MONGO // getHazirlananVeOnaylananMetrajlar // hazirlananMetrajlar _versionId güncelleme sırasında hata oluştu", error });
+    throw new Error({ hatayeri: "MONGO // getHazirlananMetrajlar // hazirlananMetrajlar _versionId güncelleme sırasında hata oluştu", error });
   }
 
 
@@ -38,7 +38,7 @@ exports = async function ({
   try {
     result_updateVersiyonId_onaylanan = await collection_OnaylananMetrajlar.updateOne({ _dugumId }, { $set: { _versionId } })
   } catch (error) {
-    throw new Error({ hatayeri: "MONGO // getHazirlananVeOnaylananMetrajlar // onaylananMetraj _versionId güncelleme sırasında hata oluştu", error });
+    throw new Error({ hatayeri: "MONGO // getHazirlananMetrajlar // onaylananMetraj _versionId güncelleme sırasında hata oluştu", error });
   }
 
 
@@ -47,7 +47,7 @@ exports = async function ({
       await collection_OnaylananMetrajlar.insertOne({ _dugumId, _versionId, satirlar:[], metraj:0 })
     }
   } catch (error) {
-    throw new Error({ hatayeri: "MONGO // getHazirlananVeOnaylananMetrajlar // onaylananMetraj oluşturma sırasında hata oluştu", error });
+    throw new Error({ hatayeri: "MONGO // getHazirlananMetrajlar // onaylananMetraj oluşturma sırasında hata oluştu", error });
   }
 
 
@@ -55,7 +55,7 @@ exports = async function ({
   try {
     hazirlananMetrajlar = await collection_HazirlananMetrajlar.find({ _dugumId })
   } catch (error) {
-    throw new Error({ hatayeri: "MONGO // getHazirlananVeOnaylananMetrajlar // get hazirlananMetrajlar sırasında hata oluştu", error });
+    throw new Error({ hatayeri: "MONGO // getHazirlananMetrajlar // get hazirlananMetrajlar sırasında hata oluştu", error });
   }
 
 
@@ -63,7 +63,7 @@ exports = async function ({
   // try {
   //   onaylananMetraj = await collection_OnaylananMetrajlar.findOne({ _dugumId })
   // } catch (error) {
-  //   throw new Error({ hatayeri: "MONGO // getHazirlananVeOnaylananMetrajlar // get onaylananMetraj sırasında hata oluştu", error });
+  //   throw new Error({ hatayeri: "MONGO // getHazirlananMetrajlar // get onaylananMetraj sırasında hata oluştu", error });
   // }
 
 
