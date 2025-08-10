@@ -219,7 +219,6 @@ export default function P_MetrajOnay() {
 
         // hazirlananMetrajlar_selected = hazirlananMetrajlar_selected.filter(x => x)
 
-
         await RealmApp?.currentUser.callFunction("update_hazirlananMetraj_selected", ({ _projeId: selectedProje._id, _dugumId: selectedNode_metraj._id, hazirlananMetrajlar_state }))
 
 

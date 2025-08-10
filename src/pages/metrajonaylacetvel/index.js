@@ -191,7 +191,7 @@ export default function P_MetrajCetveliOnaylanan() {
   }
 
 
-
+  // ilk kopya yukarıda orjinalinin düzenlenmeye başlaması ile oluyor bunlar sonraki kopyalar
   const copySelectedRow = () => {
 
     if (!selectedRow || !selectedRow.isSelectedCopy) {
@@ -230,6 +230,7 @@ export default function P_MetrajCetveliOnaylanan() {
       }
       return oneSatir
     })
+
 
 
     oneRow.satirNo = leftPart1 + newSiraNo
@@ -289,12 +290,15 @@ export default function P_MetrajCetveliOnaylanan() {
 
 
 
-  // REVİZELERİ GERİ ALMA FONKSİYONLARI
+  // ORJİNAK SATIRLARI VE REVİZELERİ SİLME FONKSİYONU
 
   const update_state_unLock = (iptalRow) => {
     if (!isChanged_unLock) {
       setIsChanged_unLock(true)
     }
+
+    let leftPart = iptalRow.satirNo.substring(0, iptalRow.satirNo.indexOf(".") + 1)
+    let rightPart = iptalRow.satirNo.substring(iptalRow.satirNo.indexOf(".") + 1, iptalRow.satirNo.length)
 
     let onaylananMetraj_state2 = _.cloneDeep(onaylananMetraj_state)
 
@@ -302,6 +306,12 @@ export default function P_MetrajCetveliOnaylanan() {
 
     onaylananMetraj_state2.satirlar = onaylananMetraj_state2.satirlar.filter(x => x.satirNo !== iptalRow.satirNo)
 
+    // orjinal satıların başka kopyaları varsa iptal edicez
+    if (onaylananMetraj_state2.satirlar.find(x => x.satirNo.includes(leftPart))) {
+      setOnaylananMetraj_state(onaylananMetraj_state2)
+      return
+    }
+ 
 
     let unLock_edilecekSatirNo = iptalRow.satirNo.substring(0, iptalRow.satirNo.indexOf("."))
     onaylananMetraj_state2.satirlar = onaylananMetraj_state2.satirlar.map(oneRow => {
