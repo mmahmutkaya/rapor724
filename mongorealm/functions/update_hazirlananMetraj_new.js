@@ -35,10 +35,9 @@ exports = async function ({
 
   let metraj = 0
 
-
   try {
 
-    let hazirlananMetraj = await collection_HazirlananMetrajlar.findOne({ _dugumId, userEmail: hazirlananMetraj_new.userEmail })
+    let hazirlananMetraj = await collection_HazirlananMetrajlar.findOne({ _dugumId, userEmail: hazirlayanEmail })
 
     if (hazirlananMetraj._versionId.toString() !== hazirlananMetraj_new._versionId.toString()) {
       throw new Error(`__mesajBaslangic__Kaydetmeye çalıştığınız bazı satırlar, siz işlem yaparken, başa kullanıcı tarafından güncellenmiş. Bu sebeple kayıt işleminiz gerçekleşmedi. Kontrol edip tekrar deneyiniz.__mesajBitis__`)
@@ -47,8 +46,8 @@ exports = async function ({
 
 
     // db hazirlik - metraj
-
     metraj = hazirlananMetraj_new.metraj
+
 
     await collection_HazirlananMetrajlar.updateOne(
       { _dugumId, userEmail },
