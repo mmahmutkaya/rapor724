@@ -152,7 +152,7 @@ exports = async function ({
 
   try {
 
-    let bulkArray
+    let bulkArray = []
 
     hazirlananMetrajlar.map(oneHazirlanan => {
       let hasSelected
