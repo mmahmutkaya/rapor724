@@ -54,9 +54,9 @@ export default function P_MetrajCetveliOnaylanan() {
 
   const [_pozId] = useState()
   const [isChanged_unLock, setIsChanged_unLock] = useState()
-  // const [satirNolar_lock, setSatirNolar_lock] = useState([])
-  // const [satirNolar_unLock, setSatirNolar_unLock] = useState([])
-
+  const [satirNolar_lock, setSatirNolar_lock] = useState([])
+  const [satirNolar_unLock, setSatirNolar_unLock] = useState([])
+  const [deActiveIptalSatirNolar, setDeActiveIptalSatirNolar] = useState([])
   // const [isHovered, setIsHovered] = useState(false);
 
 
@@ -121,22 +121,22 @@ export default function P_MetrajCetveliOnaylanan() {
         oneRow.hasSelectedCopy = true
         oneRow.isChange = true
 
-        // let userEmail = oneRow.userEmail
-        // // db ye göndereeğimiz 'revizeEdilenler' henüz hiç oluşmamışsa
-        // let satirNolar_lock2 = _.cloneDeep(satirNolar_lock)
-        // if (satirNolar_lock2?.find(x => x.userEmail === userEmail)) {
-        //   satirNolar_lock2 = satirNolar_lock2.map(oneHazirlanan => {
-        //     if (oneHazirlanan.userEmail === userEmail) {
-        //       if (!oneHazirlanan.satirNolar.find(x => x === originalSatirNo))
-        //         oneHazirlanan.satirNolar = [...oneHazirlanan.satirNolar, originalSatirNo]
-        //     }
-        //     return oneHazirlanan
-        //   })
-        // } else {
-        //   satirNolar_lock2 = [...satirNolar_lock2, { userEmail, satirNolar: [originalSatirNo] }]
-        // }
+        let userEmail = oneRow.userEmail
+        // db ye göndereeğimiz 'revizeEdilenler' henüz hiç oluşmamışsa
+        let satirNolar_lock2 = _.cloneDeep(satirNolar_lock)
+        if (satirNolar_lock2?.find(x => x.userEmail === userEmail)) {
+          satirNolar_lock2 = satirNolar_lock2.map(oneHazirlanan => {
+            if (oneHazirlanan.userEmail === userEmail) {
+              if (!oneHazirlanan.satirNolar.find(x => x === originalSatirNo))
+                oneHazirlanan.satirNolar = [...oneHazirlanan.satirNolar, originalSatirNo]
+            }
+            return oneHazirlanan
+          })
+        } else {
+          satirNolar_lock2 = [...satirNolar_lock2, { userEmail, satirNolar: [originalSatirNo] }]
+        }
 
-        // setSatirNolar_lock(satirNolar_lock2)
+        setSatirNolar_lock(satirNolar_lock2)
 
       }
 
@@ -261,7 +261,7 @@ export default function P_MetrajCetveliOnaylanan() {
 
       try {
 
-        await RealmApp?.currentUser.callFunction("update_onaylananMetraj2", ({ _dugumId: selectedNode_metraj._id, onaylananMetraj_state }))
+        await RealmApp?.currentUser.callFunction("update_onaylananMetrajCetveli", ({ _dugumId: selectedNode_metraj._id, onaylananMetraj_state, satirNolar_lock }))
         setShow("Main")
         queryClient.invalidateQueries(['onaylananMetraj', selectedNode_metraj?._id.toString()])
         setIsChanged()
@@ -316,7 +316,7 @@ export default function P_MetrajCetveliOnaylanan() {
 
 
     let unLock_edilecekSatirNo = iptalRow.satirNo.substring(0, iptalRow.satirNo.indexOf("."))
-    console.log("unLock_edilecekSatirNo", unLock_edilecekSatirNo)
+    console.log("unLock_edilecekSatirNo",unLock_edilecekSatirNo)
     onaylananMetraj_state2.satirlar = onaylananMetraj_state2.satirlar.map(oneRow => {
       if (oneRow.satirNo === unLock_edilecekSatirNo) {
         oneRow.hasSelectedCopy = false
@@ -325,19 +325,19 @@ export default function P_MetrajCetveliOnaylanan() {
       return oneRow
     })
 
-    // // db ye göndereeğimiz 'revizeEdilenler' henüz hiç oluşmamışsa
-    // let iptalSatirNo = iptalRow.satirNo
-    // let userEmail = iptalRow.userEmail
-    // let satirNolar_unLock2 = _.cloneDeep(satirNolar_unLock)
-    // if (satirNolar_unLock2?.find(x => x.userEmail === userEmail)) {
-    //   satirNolar_unLock2 = satirNolar_unLock2.map(oneHazirlanan => {
-    //     if (oneHazirlanan.userEmail === userEmail) {
-    //       oneHazirlanan.satirNolar = oneHazirlanan.satirNolar.filter(x => x.satirNo !== iptalSatirNo)
-    //     }
-    //     return oneHazirlanan
-    //   })
-    // }
-    // setSatirNolar_unLock(satirNolar_unLock2)
+    // db ye göndereeğimiz 'revizeEdilenler' henüz hiç oluşmamışsa
+    let iptalSatirNo = iptalRow.satirNo
+    let userEmail = iptalRow.userEmail
+    let satirNolar_unLock2 = _.cloneDeep(satirNolar_unLock)
+    if (satirNolar_unLock2?.find(x => x.userEmail === userEmail)) {
+      satirNolar_unLock2 = satirNolar_unLock2.map(oneHazirlanan => {
+        if (oneHazirlanan.userEmail === userEmail) {
+          oneHazirlanan.satirNolar = oneHazirlanan.satirNolar.filter(x => x.satirNo !== iptalSatirNo)
+        }
+        return oneHazirlanan
+      })
+    }
+    setSatirNolar_unLock(satirNolar_unLock2)
 
     setHasSelectedCopySatirlar(onaylananMetraj_state2?.satirlar.find(x => x.hasSelectedCopy) ? true : false)
     setOnaylananMetraj_state(onaylananMetraj_state2)
@@ -359,7 +359,7 @@ export default function P_MetrajCetveliOnaylanan() {
 
     try {
 
-      await RealmApp?.currentUser.callFunction("update_onaylananMetraj2", ({ _dugumId: selectedNode_metraj._id, onaylananMetraj_state }))
+      await RealmApp?.currentUser.callFunction("update_onaylananMetrajCetveli", ({ _dugumId: selectedNode_metraj._id, onaylananMetraj_state, satirNolar_unLock }))
       queryClient.invalidateQueries(['onaylananMetraj', selectedNode_metraj?._id.toString()])
       setShow("Main")
       setIsChanged_unLock()
