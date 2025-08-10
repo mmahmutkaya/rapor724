@@ -171,7 +171,7 @@ exports = async function ({
 
       oneBulk = {
         updateOne: {
-          filter: { _dugumId, userEmai },
+          filter: { _dugumId, userEmail },
           update: {
             $set: {
               onaylananMetraj: metrajOnaylanan,
