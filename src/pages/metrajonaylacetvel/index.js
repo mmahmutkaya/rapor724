@@ -267,14 +267,31 @@ export default function P_MetrajCetveliOnaylanan() {
         setIsChanged()
         return
 
-      } catch (error) {
+      } catch (err) {
 
-        console.log(error)
+        console.log(err)
 
+        let dialogIcon = "warning"
+        let dialogMessage = "Beklenmedik hata, sayfayı yenileyiniz, sorun devam ederse Rapor7/24 ile irtibata geçiniz.."
+        let onCloseAction = () => setDialogAlert()
+
+        if (err.message.includes("__mesajBaslangic__") && err.message.includes("__mesajBitis__")) {
+          let mesajBaslangic = err.message.indexOf("__mesajBaslangic__") + "__mesajBaslangic__".length
+          let mesajBitis = err.message.indexOf("__mesajBitis__")
+          dialogMessage = err.message.slice(mesajBaslangic, mesajBitis)
+          dialogIcon = "info"
+          onCloseAction = () => {
+            setDialogAlert()
+            setIsChanged()
+            setShow("DugumMetrajlari")
+            queryClient.invalidateQueries(['onaylananMetraj', selectedNode_metraj?._id.toString()])
+          }
+        }
         setDialogAlert({
-          dialogIcon: "warning",
-          dialogMessage: "Beklenmedik hata, Rapor7/24 ile irtibata geçiniz..",
-          detailText: error?.message ? error.message : null
+          dialogIcon,
+          dialogMessage,
+          detailText: err?.message ? err.message : null,
+          onCloseAction
         })
 
       }
@@ -366,15 +383,32 @@ export default function P_MetrajCetveliOnaylanan() {
       setShowHasSelectedCopy()
       return
 
-    } catch (error) {
+    } catch (err) {
 
-      console.log(error)
+        console.log(err)
 
-      setDialogAlert({
-        dialogIcon: "warning",
-        dialogMessage: "Beklenmedik hata, Rapor7/24 ile irtibata geçiniz..",
-        detailText: error?.message ? error.message : null
-      })
+        let dialogIcon = "warning"
+        let dialogMessage = "Beklenmedik hata, sayfayı yenileyiniz, sorun devam ederse Rapor7/24 ile irtibata geçiniz.."
+        let onCloseAction = () => setDialogAlert()
+
+        if (err.message.includes("__mesajBaslangic__") && err.message.includes("__mesajBitis__")) {
+          let mesajBaslangic = err.message.indexOf("__mesajBaslangic__") + "__mesajBaslangic__".length
+          let mesajBitis = err.message.indexOf("__mesajBitis__")
+          dialogMessage = err.message.slice(mesajBaslangic, mesajBitis)
+          dialogIcon = "info"
+          onCloseAction = () => {
+            setDialogAlert()
+            setIsChanged()
+            setShow("DugumMetrajlari")
+            queryClient.invalidateQueries(['onaylananMetraj', selectedNode_metraj?._id.toString()])
+          }
+        }
+        setDialogAlert({
+          dialogIcon,
+          dialogMessage,
+          detailText: err?.message ? err.message : null,
+          onCloseAction
+        })
 
     }
 
@@ -452,7 +486,7 @@ export default function P_MetrajCetveliOnaylanan() {
           dialogIcon={dialogAlert.dialogIcon}
           dialogMessage={dialogAlert.dialogMessage}
           detailText={dialogAlert.detailText}
-          onCloseAction={() => setDialogAlert()}
+          onCloseAction={dialogAlert.onCloseAction}
         />
       }
 
