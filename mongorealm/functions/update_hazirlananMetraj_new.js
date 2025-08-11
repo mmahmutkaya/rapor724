@@ -53,9 +53,7 @@ exports = async function ({
 
     let isSilinecek = true
     hazirlananMetraj_new.satirlar.map(oneSatir => {
-      if (oneSatir.aciklama === "" && Number(oneSatir.carpan1) === 0 && Number(oneSatir.carpan2) === 0 && Number(oneSatir.carpan3) === 0 && Number(oneSatir.carpan4) === 0 && Number(oneSatir.carpan5) === 0) {
-        return
-      } else {
+      if (!(oneSatir.aciklama === "" && Number(oneSatir.carpan1) === 0 && Number(oneSatir.carpan2) === 0 && Number(oneSatir.carpan3) === 0 && Number(oneSatir.carpan4) === 0 && Number(oneSatir.carpan5) === 0)) {
         isSilinecek = false
       }
       if(oneSatir.isSelected){
