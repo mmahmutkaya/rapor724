@@ -53,7 +53,7 @@ exports = async function ({
 
   let hazirlananMetrajlar
   try {
-    hazirlananMetrajlar = await collection_HazirlananMetrajlar.find({ _dugumId })
+    hazirlananMetrajlar = await collection_HazirlananMetrajlar.find({ _dugumId, isDeleted:false })
   } catch (error) {
     throw new Error({ hatayeri: "MONGO // getHazirlananMetrajlar // get hazirlananMetrajlar sırasında hata oluştu", error });
   }
