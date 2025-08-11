@@ -85,9 +85,11 @@ exports = async function ({
 
     let bulkArray = []
     hazirlananMetrajlar = hazirlananMetrajlar.map(oneHazirlanan => {
-      let unSelectedSatirlar = onaylananMetraj_state.satirlar.filter(x => x.userEmail === oneHazirlanan.userEmail && !x.isSelected)
+      let selectedSatirlar = onaylananMetraj_state.satirlar.filter(x => x.userEmail === oneHazirlanan.userEmail && x.isSelected)
       oneHazirlanan.satirlar = oneHazirlanan.satirlar.map(oneSatir => {
-        if (unSelectedSatirlar.find(x => x.satirNo === oneSatir.satirNo)) {
+        if (selectedSatirlar.find(x => x.satirNo === oneSatir.satirNo)) {
+          oneSatir.isSelected = true
+        } else {
           oneSatir.isSelected = false
         }
         return oneSatir
@@ -138,7 +140,7 @@ exports = async function ({
     // })
 
 
-    onaylananMetraj.satirlar.map(oneSatir => {
+    onaylananMetraj.satirlar.filter(x => x.isSelected).map(oneSatir => {
       metrajOnaylanan += Number(oneSatir.metraj)
     })
 
