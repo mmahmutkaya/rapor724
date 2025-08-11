@@ -116,10 +116,13 @@ export default function P_MetrajCetveliOnaylanan() {
     // map ile tarayarak, state kısmındaki datanın ilgili satırını güncelliyoruz, ayrıca tüm satırların toplam metrajını, önce önceki değeri çıkartıp yeni değeri ekleyerek
     onaylananMetraj_state2["satirlar"] = onaylananMetraj_state2["satirlar"].map(oneRow => {
 
+      // orjinal satırın değiştirilmesi ile yapılmışsa originalSatır diye bişey var yoksa alttan devam edecek
       if (oneRow.satirNo === originalSatirNo) {
 
         oneRow.hasSelectedCopy = true
-        oneRow.isChange = true
+        // onaylananMetraj_state2["metraj"] = Number(onaylananMetraj_state2["metraj"]) - Number(iptalRow["metraj"])
+
+        // oneRow.isChange = true
 
         // let userEmail = oneRow.userEmail
         // // db ye göndereeğimiz 'revizeEdilenler' henüz hiç oluşmamışsa
@@ -147,7 +150,7 @@ export default function P_MetrajCetveliOnaylanan() {
         setHasSelectedCopySatirlar(true)
 
         // önceki satır metrajını çıkartıyoruz, yeni değeri bulunca aşağıda ekleyeceğiz
-        onaylananMetraj_state2["metraj"] = Number(onaylananMetraj_state2["metraj"]) - Number(oneRow["metraj"])
+        // onaylananMetraj_state2["metraj"] = Number(onaylananMetraj_state2["metraj"]) - Number(oneRow["metraj"])
 
         oneRow[oneProperty] = event.target.value
 
@@ -169,13 +172,13 @@ export default function P_MetrajCetveliOnaylanan() {
 
         if (isMinha) {
           oneRow.metraj = oneRowMetraj * -1
-          onaylananMetraj_state2["metraj"] = onaylananMetraj_state2["metraj"] + Number(oneRow.metraj)
+          // onaylananMetraj_state2["metraj"] = onaylananMetraj_state2["metraj"] + Number(oneRow.metraj)
           // metraj = oneRowMetraj > 0 ? Number(metraj) - Number(oneRowMetraj) : Number(metraj)
           return oneRow
         } else {
           oneRow.metraj = oneRowMetraj
           // metraj = Number(oneRowMetraj) > 0 ? Number(metraj) + Number(oneRowMetraj) : Number(metraj)
-          onaylananMetraj_state2["metraj"] = onaylananMetraj_state2["metraj"] + Number(oneRow.metraj)
+          // onaylananMetraj_state2["metraj"] = onaylananMetraj_state2["metraj"] + Number(oneRow.metraj)
           return oneRow
         }
 
@@ -184,6 +187,15 @@ export default function P_MetrajCetveliOnaylanan() {
       return oneRow
 
     })
+
+    let metraj = 0
+    onaylananMetraj_state2.satirlar.filter(x => x.isSelected && !x.hasSelectedCopy).map(oneSatir => {
+      metraj += Number(oneSatir.metraj)
+    })
+    onaylananMetraj_state2.satirlar.filter(x => x.isSelectedCopy).map(oneSatir => {
+      metraj += Number(oneSatir.metraj)
+    })
+    onaylananMetraj_state2.metraj = metraj
 
     setOnaylananMetraj_state(onaylananMetraj_state2)
     // alttaki kod sadece react component render yapılması için biyerde kullanılmıyor -- (sonra bunada gerek kalmadı)
@@ -316,48 +328,52 @@ export default function P_MetrajCetveliOnaylanan() {
       setIsChanged_unLock(true)
     }
 
-    let leftPart = iptalRow.satirNo.substring(0, iptalRow.satirNo.indexOf(".") + 1)
-    let rightPart = iptalRow.satirNo.substring(iptalRow.satirNo.indexOf(".") + 1, iptalRow.satirNo.length)
 
     let onaylananMetraj_state2 = _.cloneDeep(onaylananMetraj_state)
 
-    onaylananMetraj_state2["metraj"] = Number(onaylananMetraj_state2["metraj"]) - Number(iptalRow["metraj"])
+    // reviz edilmiş bir satırsa
+    if (iptalRow.isSelectedCopy) {
 
-    onaylananMetraj_state2.satirlar = onaylananMetraj_state2.satirlar.filter(x => x.satirNo !== iptalRow.satirNo)
+      //  metrajını ve kendisini önce bi çıkartalım
+      onaylananMetraj_state2.satirlar = onaylananMetraj_state2.satirlar.filter(x => x.satirNo !== iptalRow.satirNo)
 
-    // orjinal satıların başka kopyaları varsa iptal edicez
-    if (onaylananMetraj_state2.satirlar.find(x => x.satirNo.includes(leftPart))) {
-      setOnaylananMetraj_state(onaylananMetraj_state2)
-      return
+      let leftPart = iptalRow.satirNo.substring(0, iptalRow.satirNo.indexOf(".") + 1)
+      // let rightPart = iptalRow.satirNo.substring(iptalRow.satirNo.indexOf(".") + 1, iptalRow.satirNo.length)
+
+      // orjinale ait başka revize satır kalmamışsa orjinali devreye sokmak için hasSelected property siliyoruz, metrajını da ekliyoruz, setHasSelectedCopySatirlar değişmiş olabilir onu da güncelliyoruz
+      if (!onaylananMetraj_state2.satirlar.find(x => x.satirNo.includes(leftPart))) {
+
+        let orjinalSatirNo = iptalRow.satirNo.substring(0, iptalRow.satirNo.indexOf("."))
+
+        onaylananMetraj_state2.satirlar = onaylananMetraj_state2.satirlar.map(oneSatir => {
+          if (oneSatir.satirNo === orjinalSatirNo) {
+            delete oneSatir.hasSelectedCopy
+          }
+          return oneSatir
+        })
+
+      }
+
     }
 
+    // orjinal satırsa direk silebiliyoruz, hasSekected güncellemesine de gerek yok
+    if (iptalRow.isSelected && !iptalRow.hasSelected) {
+      onaylananMetraj_state2["metraj"] = Number(onaylananMetraj_state2["metraj"]) - Number(iptalRow["metraj"])
+      onaylananMetraj_state2.satirlar = onaylananMetraj_state2.satirlar.filter(x => x.satirNo !== iptalRow.satirNo)
+    }
 
-    let unLock_edilecekSatirNo = iptalRow.satirNo.substring(0, iptalRow.satirNo.indexOf("."))
-    console.log("unLock_edilecekSatirNo", unLock_edilecekSatirNo)
-    onaylananMetraj_state2.satirlar = onaylananMetraj_state2.satirlar.map(oneRow => {
-      if (oneRow.satirNo === unLock_edilecekSatirNo) {
-        oneRow.hasSelectedCopy = false
-        onaylananMetraj_state2["metraj"] = Number(onaylananMetraj_state2["metraj"]) + Number(oneRow["metraj"])
-      }
-      return oneRow
+    let metraj = 0
+    onaylananMetraj_state2.satirlar.filter(x => x.isSelected && !x.hasSelectedCopy).map(oneSatir => {
+      metraj += Number(oneSatir.metraj)
     })
+    onaylananMetraj_state2.satirlar.filter(x => x.isSelectedCopy).map(oneSatir => {
+      metraj += Number(oneSatir.metraj)
+    })
+    onaylananMetraj_state2.metraj = metraj
 
-    // // db ye göndereeğimiz 'revizeEdilenler' henüz hiç oluşmamışsa
-    // let iptalSatirNo = iptalRow.satirNo
-    // let userEmail = iptalRow.userEmail
-    // let satirNolar_unLock2 = _.cloneDeep(satirNolar_unLock)
-    // if (satirNolar_unLock2?.find(x => x.userEmail === userEmail)) {
-    //   satirNolar_unLock2 = satirNolar_unLock2.map(oneHazirlanan => {
-    //     if (oneHazirlanan.userEmail === userEmail) {
-    //       oneHazirlanan.satirNolar = oneHazirlanan.satirNolar.filter(x => x.satirNo !== iptalSatirNo)
-    //     }
-    //     return oneHazirlanan
-    //   })
-    // }
-    // setSatirNolar_unLock(satirNolar_unLock2)
-
-    setHasSelectedCopySatirlar(onaylananMetraj_state2?.satirlar.find(x => x.hasSelectedCopy) ? true : false)
     setOnaylananMetraj_state(onaylananMetraj_state2)
+    setHasSelectedCopySatirlar(onaylananMetraj_state2?.satirlar.find(x => x.hasSelectedCopy) ? true : false)
+
 
   }
 
@@ -385,30 +401,31 @@ export default function P_MetrajCetveliOnaylanan() {
 
     } catch (err) {
 
-        console.log(err)
+      console.log(err)
 
-        let dialogIcon = "warning"
-        let dialogMessage = "Beklenmedik hata, sayfayı yenileyiniz, sorun devam ederse Rapor7/24 ile irtibata geçiniz.."
-        let onCloseAction = () => setDialogAlert()
+      let dialogIcon = "warning"
+      let dialogMessage = "Beklenmedik hata, sayfayı yenileyiniz, sorun devam ederse Rapor7/24 ile irtibata geçiniz.."
+      let onCloseAction = () => setDialogAlert()
 
-        if (err.message.includes("__mesajBaslangic__") && err.message.includes("__mesajBitis__")) {
-          let mesajBaslangic = err.message.indexOf("__mesajBaslangic__") + "__mesajBaslangic__".length
-          let mesajBitis = err.message.indexOf("__mesajBitis__")
-          dialogMessage = err.message.slice(mesajBaslangic, mesajBitis)
-          dialogIcon = "info"
-          onCloseAction = () => {
-            setDialogAlert()
-            setIsChanged()
-            setShow("DugumMetrajlari")
-            queryClient.invalidateQueries(['onaylananMetraj', selectedNode_metraj?._id.toString()])
-          }
+      if (err.message.includes("__mesajBaslangic__") && err.message.includes("__mesajBitis__")) {
+        let mesajBaslangic = err.message.indexOf("__mesajBaslangic__") + "__mesajBaslangic__".length
+        let mesajBitis = err.message.indexOf("__mesajBitis__")
+        dialogMessage = err.message.slice(mesajBaslangic, mesajBitis)
+        dialogIcon = "info"
+        onCloseAction = () => {
+          setDialogAlert()
+          setIsChanged()
+          setShow("DugumMetrajlari")
+          setShowHasSelectedCopy()
+          queryClient.invalidateQueries(['onaylananMetraj', selectedNode_metraj?._id.toString()])
         }
-        setDialogAlert({
-          dialogIcon,
-          dialogMessage,
-          detailText: err?.message ? err.message : null,
-          onCloseAction
-        })
+      }
+      setDialogAlert({
+        dialogIcon,
+        dialogMessage,
+        detailText: err?.message ? err.message : null,
+        onCloseAction
+      })
 
     }
 
@@ -653,7 +670,7 @@ export default function P_MetrajCetveliOnaylanan() {
                           justifyContent: (oneProperty.includes("satirNo") || oneProperty.includes("aciklama")) ? "start" : oneProperty.includes("carpan") ? "end" : oneProperty.includes("metraj") ? "end" : "center",
                           minWidth: oneProperty.includes("carpan") ? "5rem" : oneProperty.includes("metraj") ? "5rem" : null,
                           color: isMinha ? "red" : null,
-                          fontWeight: oneProperty === "metraj" && "700",
+                          fontWeight: oneRow.hasSelectedCopy ? "400" : oneProperty === "metraj" ? "700" : null
                         }}>
                           {metrajValue(oneRow, oneProperty, isMinha)}
                         </Box>
