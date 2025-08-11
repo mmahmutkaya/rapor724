@@ -1,5 +1,4 @@
 exports = async function ({
-  _projeId,
   _dugumId,
   onaylananMetraj_state
 }) {
