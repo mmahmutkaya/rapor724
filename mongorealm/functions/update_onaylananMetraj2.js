@@ -60,14 +60,23 @@ exports = async function ({
     })
 
 
+  } catch (error) {
+    throw new Error("MONGO // update_hazirlananMetrajlar_selected // versionId hazirlananMetrajlar" + error);
+  }
+
+
+  
+  try {
+
     onaylananMetraj = await collection_OnaylananMetrajlar.findOne({ _dugumId });
     if (onaylananMetraj._versionId.toString() !== _versionId.toString()) {
       throw new Error(`__mesajBaslangic__Kaydetmeye çalıştığınız bazı veriler, siz işlem yaparken, başa kullanıcı tarafından güncellenmiş. Bu sebeple kayıt işleminiz gerçekleşmedi. Kontrol edip tekrar deneyiniz.__mesajBitis__`)
     }
 
   } catch (error) {
-    throw new Error("MONGO // update_hazirlananMetrajlar_selected // versionId " + error);
+    throw new Error("MONGO // update_hazirlananMetrajlar_selected // versionId onaylananMetraj" + error);
   }
+
 
 
 
