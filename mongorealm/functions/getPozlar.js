@@ -84,14 +84,15 @@ exports = async function ({
 
         onePoz.onaylananMetraj = onePoz2.onaylananMetraj
 
-        let hasSelected = true
-        let hasSelectedFull = true
         onePoz.hazirlananMetrajlar = metrajYapabilenler.map(oneYapabilen => {
+          
           let hazirlananlar_byUser = onePoz2.hazirlananMetrajlar.filter(x => x.userEmail === oneYapabilen.userEmail)
-          let toplam = 0
 
+          let metraj = 0
+          let hasSelected
+          let hasSelectedFull = true
           hazirlananlar_byUser.map(oneHazirlanan => {
-            toplam += Number(oneHazirlanan.metraj)
+            metraj += Number(oneHazirlanan.metraj)
             if (oneHazirlanan.hasSelected) {
               hasSelected = true
             }
@@ -102,11 +103,11 @@ exports = async function ({
 
           return ({
             userEmail: oneYapabilen.userEmail,
-            metraj: toplam,
+            metraj,
             hasSelected,
             hasSelectedFull,
           })
-          
+
         })
 
       }
