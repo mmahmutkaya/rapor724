@@ -58,6 +58,9 @@ exports = async function ({
       } else {
         isSilinecek = false
       }
+      if(oneSatir.isSelected){
+        isSilinecek = false
+      }
     })
 
     if (isSilinecek) {
