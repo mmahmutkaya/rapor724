@@ -32,14 +32,14 @@ exports = async function ({
 
 
 
-
+  let _versionId = hazirlananMetraj_new._versionId
   let metraj = 0
 
   try {
 
     let hazirlananMetraj = await collection_HazirlananMetrajlar.findOne({ _dugumId, userEmail })
 
-    if (hazirlananMetraj._versionId.toString() !== hazirlananMetraj_new._versionId.toString()) {
+    if (hazirlananMetraj._versionId.toString() !== _versionId.toString()) {
       throw new Error(`__mesajBaslangic__Kaydetmeye çalıştığınız bazı satırlar, siz işlem yaparken, başa kullanıcı tarafından güncellenmiş. Bu sebeple kayıt işleminiz gerçekleşmedi. Kontrol edip tekrar deneyiniz.__mesajBitis__`)
     }
 
