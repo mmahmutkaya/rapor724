@@ -41,10 +41,6 @@ exports = async function ({
 
 
 
-
-  let hasSelected
-  let hasSelectedFull
-
   const _versionId = onaylananMetraj_state._versionId
 
   let hazirlananMetrajlar
@@ -58,7 +54,7 @@ exports = async function ({
 
     hazirlananMetrajlar = await collection_HazirlananMetrajlar.find({ _dugumId }).toArray()
     hazirlananMetrajlar.map(oneHazirlanan => {
-      if (!oneHazirlanan._versionId.toString !== _versionId.toString()) {
+      if (!oneHazirlanan._versionId.toString() !== _versionId.toString()) {
         throw new Error(`__mesajBaslangic__Kaydetmeye çalıştığınız bazı veriler, siz işlem yaparken, başa kullanıcı tarafından güncellenmiş. Bu sebeple kayıt işleminiz gerçekleşmedi. Kontrol edip tekrar deneyiniz.__mesajBitis__`)
       }
     })
