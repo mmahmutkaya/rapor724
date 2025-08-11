@@ -140,10 +140,10 @@ exports = async function ({
     })
 
 
-    onaylananMetraj_state.satirlar.filter(x => x.isSelected && !x.hasSelectedCopy).map(oneSatir => {
+    onaylananMetraj.satirlar.filter(x => x.isSelected && !x.hasSelectedCopy).map(oneSatir => {
       metrajOnaylanan += Number(oneSatir.metraj)
     })
-    onaylananMetraj_state.satirlar.filter(x => x.isSelectedCopy).map(oneSatir => {
+    onaylananMetraj.satirlar.filter(x => x.isSelectedCopy).map(oneSatir => {
       metrajOnaylanan += Number(oneSatir.metraj)
     })
 
