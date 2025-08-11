@@ -49,22 +49,28 @@ exports = async function ({
     hazirlananMetraj_new.satirlar.map(oneSatir => {
       metraj += Number(oneSatir.metraj)
     })
-    hazirlananMetraj.metraj = metraj
+    hazirlananMetraj_new.metraj = metraj
 
     let isSilinecek = true
-    hazirlananMetraj.satirlar.map(oneSatir => {
-      if(oneSatir.aciklama === "" && Number(oneSatir.carpan1) === 0 && Number(oneSatir.carpan2) === 0 && Number(oneSatir.carpan3) === 0 && Number(oneSatir.carpan4) === 0 && Number(oneSatir.carpan5) === 0){
+    hazirlananMetraj_new.satirlar.map(oneSatir => {
+      if (oneSatir.aciklama === "" && Number(oneSatir.carpan1) === 0 && Number(oneSatir.carpan2) === 0 && Number(oneSatir.carpan3) === 0 && Number(oneSatir.carpan4) === 0 && Number(oneSatir.carpan5) === 0) {
         return
       } else {
         isSilinecek = false
       }
     })
 
+    if (isSilinecek) {
+      await collection_HazirlananMetrajlar.deleteOne(
+        { _dugumId, userEmail }
+      )
+    } else {
+      await collection_HazirlananMetrajlar.updateOne(
+        { _dugumId, userEmail },
+        { $set: { ...hazirlananMetraj_new } }
+      )
+    }
 
-    await collection_HazirlananMetrajlar.updateOne(
-      { _dugumId, userEmail },
-      { $set: { ...hazirlananMetraj_new } }
-    )
 
 
   } catch (err) {
