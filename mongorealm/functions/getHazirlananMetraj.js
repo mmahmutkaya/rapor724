@@ -39,6 +39,7 @@ exports = async function ({
     } else {
       
       hazirlananMetraj = {
+        isDeleted:true,
         _versionId,
         _dugumId,
         userEmail,
@@ -52,6 +53,7 @@ exports = async function ({
         ]
       }
 
+      // sa
       await collection_hazirlananMetrajlar.insertOne(hazirlananMetraj)
 
     }
