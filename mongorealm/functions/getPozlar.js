@@ -96,7 +96,7 @@ exports = async function ({
 
             metraj += Number(oneHazirlanan?.metraj)
             hasSelected_Array = [...hasSelected_Array, oneHazirlanan?.hasSelected ? true : false]
-            hasSelectedFull_Array = [...hasSelectedFull_Array, oneHazirlanan?.hasSelectedFull ? true : false]
+            hasSelectedFull_Array = [...hasSelectedFull_Array, oneHazirlanan?.hasSelectedFull === true ? true : false]
 
           })
 
