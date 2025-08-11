@@ -89,15 +89,19 @@ exports = async function ({
           let metraj = 0
           let hasSelected_Array = []
           let hasSelectedFull_Array = []
+          let hasMetraj
 
           onePoz2.hazirlananMetrajlar.map(oneArray => {
 
             let oneHazirlanan = oneArray.find(x => x.userEmail === oneYapabilen.userEmail)
 
-            let metraj2 = oneHazirlanan?.metraj ? Number(oneHazirlanan?.metraj) : 0
-            metraj += metraj2
-            hasSelected_Array = [...hasSelected_Array, oneHazirlanan?.hasSelected]
-            hasSelectedFull_Array = [...hasSelectedFull_Array, oneHazirlanan?.hasSelectedFull]
+            if (oneHazirlanan) {
+              hasMetraj = true
+              let metraj2 = oneHazirlanan?.metraj ? Number(oneHazirlanan?.metraj) : 0
+              metraj += metraj2
+              hasSelected_Array = [...hasSelected_Array, oneHazirlanan?.hasSelected]
+              hasSelectedFull_Array = [...hasSelectedFull_Array, oneHazirlanan?.hasSelectedFull]
+            }
 
           })
 
@@ -109,6 +113,7 @@ exports = async function ({
             metraj,
             hasSelected,
             hasSelectedFull,
+            hasMetraj
           })
 
         })
