@@ -68,7 +68,7 @@ exports = async function ({
     } else {
       await collection_HazirlananMetrajlar.updateOne(
         { _dugumId, userEmail },
-        { $set: { ...hazirlananMetraj_new } }
+        { $set: { ...hazirlananMetraj_new, isDeleted:false } }
       )
     }
 
