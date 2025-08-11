@@ -95,13 +95,13 @@ exports = async function ({
             let oneHazirlanan = oneArray.find(x => x.userEmail === oneYapabilen.userEmail)
 
             metraj += Number(oneHazirlanan?.metraj)
-            hasSelected_Array = [...hasSelected_Array, oneHazirlanan?.hasSelected ? true : false]
-            hasSelectedFull_Array = [...hasSelectedFull_Array, oneHazirlanan?.hasSelectedFull === true ? true : false]
+            hasSelected_Array = [...hasSelected_Array, oneHazirlanan?.hasSelected]
+            hasSelectedFull_Array = [...hasSelectedFull_Array, oneHazirlanan?.hasSelectedFull]
 
           })
 
           let hasSelected = hasSelected_Array.find(x => x === true)
-          let hasSelectedFull = hasSelectedFull_Array.find(x => x === false) ? false : true
+          let hasSelectedFull = hasSelectedFull_Array.length === hasSelectedFull_Array.filter(x => x === true ).length ?  true : false
 
           return ({
             userEmail: oneYapabilen.userEmail,
