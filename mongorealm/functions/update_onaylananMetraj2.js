@@ -58,7 +58,7 @@ exports = async function ({
     }
 
   } catch (error) {
-    throw new Error("MONGO // update_hazirlananMetrajlar_selected // versionId onaylananMetraj" + error);
+    throw new Error("MONGO // update_hazirlananMetrajlar_selected // versionId onaylananMetraj " + error);
   }
 
 
@@ -73,7 +73,7 @@ exports = async function ({
 
 
   } catch (error) {
-    throw new Error("MONGO // update_hazirlananMetrajlar_selected // versionId hazirlananMetrajlar" + error);
+    throw new Error("MONGO // update_hazirlananMetrajlar_selected // versionId hazirlananMetrajlar " + error);
   }  
 
 
