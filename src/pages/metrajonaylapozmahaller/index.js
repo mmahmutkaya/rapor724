@@ -365,9 +365,9 @@ export default function P_MetrajOnaylaPozMahaller() {
                 {mahaller_byPoz_byLbs?.map((oneMahal, index) => {
 
                   let dugum = dugumler_byPoz?.find(oneDugum => oneDugum._pozId.toString() === selectedPoz_metraj._id.toString() && oneDugum._mahalId.toString() === oneMahal._id.toString())
-                  // let hasSelected = dugum.hazirlananMetrajlar.find(x => x.userEmail === oneYapabilen.userEmail).hasSelected
-                  // let hasSelectedFull = dugum.hazirlananMetrajlar.find(x => x.userEmail === oneYapabilen.userEmail).hasSelectedFull
-                  if(!dugum){
+                  let hasOnaylananMetraj = dugum.hazirlananMetrajlar.find(x => x.hasSelected)
+
+                  if (!dugum) {
                     console.log("olmayan dugum tespit edildi ve return oldu hata olmaması için")
                     return
                   }
@@ -382,8 +382,8 @@ export default function P_MetrajOnaylaPozMahaller() {
                         {oneMahal.mahalName}
                       </Box>
 
-                      <Box onDoubleClick={() => goTo_MetrajOnaylaCetvel({ dugum, oneMahal })} sx={{ ...css_mahaller, cursor: "pointer", display: "grid", alignItems: "center", gridTemplateColumns: "1rem 1fr", backgroundColor: "rgba(255, 251, 0, 0.55)", "&:hover": { "& .childClass": { backgroundColor: "red" } } }}>
-                        <Box className="childClass" sx={{ backgroundColor: "rgba(255, 251, 0, 0.55)", height: "0.5rem", width: "0.5rem", borderRadius: "50%" }}>
+                      <Box onDoubleClick={() => hasOnaylananMetraj && goTo_MetrajOnaylaCetvel({ dugum, oneMahal })} sx={{ ...css_mahaller, cursor: "pointer", display: "grid", alignItems: "center", gridTemplateColumns: "1rem 1fr", backgroundColor: !hasOnaylananMetraj ? "lightgray" : "rgba(255, 251, 0, 0.55)", "&:hover": { "& .childClass": { backgroundColor: "red" } } }}>
+                        <Box className="childClass" sx={{ backgroundColor: !hasOnaylananMetraj ? "lightgray" : "rgba(255, 251, 0, 0.55)", height: "0.5rem", width: "0.5rem", borderRadius: "50%" }}>
                         </Box>
                         <Box sx={{ justifySelf: "end" }}>
                           {ikiHane(dugum?.onaylananMetraj)}
@@ -428,7 +428,7 @@ export default function P_MetrajOnaylaPozMahaller() {
                             // let hasSelectedFull = dugum.hazirlananMetrajlar.find(x => x.userEmail === oneYapabilen.userEmail)?.hasSelectedFull
 
                             let oneHazirlanan = dugum?.hazirlananMetrajlar?.find(x => x.userEmail === oneYapabilen.userEmail)
-                            
+
                             let hasMetraj = oneHazirlanan ? true : false
                             let hasSelected = oneHazirlanan?.hasSelected
                             let hasSelectedFull = oneHazirlanan?.hasSelectedFull
