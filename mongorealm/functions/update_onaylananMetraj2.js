@@ -58,7 +58,7 @@ exports = async function ({
     }
 
   } catch (error) {
-    throw new Error("MONGO // update_hazirlananMetrajlar_selected // versionId onaylananMetraj " + error);
+    throw new Error("MONGO // update_hazirlananMetrajlar_selected // versionId onaylananMetraj" + error);
   }
 
 
@@ -73,7 +73,7 @@ exports = async function ({
 
 
   } catch (error) {
-    throw new Error("MONGO // update_hazirlananMetrajlar_selected // versionId hazirlananMetrajlar " + error);
+    throw new Error("MONGO // update_hazirlananMetrajlar_selected // versionId hazirlananMetrajlar" + error);
   }  
 
 
@@ -85,7 +85,7 @@ exports = async function ({
 
     let bulkArray = []
     hazirlananMetrajlar = hazirlananMetrajlar.map(oneHazirlanan => {
-      let unSelectedSatirlar = onaylananMetraj_state.satirlar.find(x => x.userEmail === oneHazirlanan.userEmail).satirlar.filter(x => !x.isSelected)
+      let unSelectedSatirlar = onaylananMetraj_state.satirlar.filter(x => x.userEmail === oneHazirlanan.userEmail && !x.isSelected)
       oneHazirlanan.satirlar = oneHazirlanan.satirlar.map(oneSatir => {
         if (unSelectedSatirlar.find(x => x.satirNo === oneSatir.satirNo)) {
           oneSatir.isSelected = false
