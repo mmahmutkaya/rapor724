@@ -34,6 +34,7 @@ export default function P_MetrajOnaylaPozlar() {
 
   let { data: pozlar } = useGetPozlar()
   pozlar = pozlar?.filter(x => x.hasDugum)
+  // console.log("pozlar", pozlar)
 
   const { RealmApp, myTema } = useContext(StoreContext)
   const { showMetrajYapabilenler, setShowMetrajYapabilenler } = useContext(StoreContext)
@@ -374,8 +375,20 @@ export default function P_MetrajOnaylaPozlar() {
                       {editNodeMetraj &&
                         <>
                           <Box />
-                          <Box onDoubleClick={() => goTo_MetrajPozmahaller(onePoz)} sx={{ ...pozNo_css, justifyContent: "end", cursor: "pointer", backgroundColor: "yellow", display: "grid", gridTemplateColumns: "1rem 1fr", "&:hover": { "& .childClass": { backgroundColor: "red" } } }}>
-                            <Box className="childClass" sx={{ ml: "-1rem", backgroundColor: "yellow", height: "0.5rem", width: "0.5rem", borderRadius: "50%" }}>
+                          <Box
+                            onDoubleClick={() => goTo_MetrajPozmahaller(onePoz)}
+                            sx={{
+                              ...pozNo_css,
+                              display: "grid", gridTemplateColumns: "1rem 1fr", justifyContent: "end", cursor: "pointer",
+                              backgroundColor: "rgba(255, 251, 0, 0.55)",
+                              "&:hover": { "& .childClass": { backgroundColor: "red" } }
+                            }}>
+                            <Box
+                              className="childClass"
+                              sx={{
+                                ml: "-1rem", height: "0.5rem", width: "0.5rem", borderRadius: "50%",
+                                backgroundColor: "rgba(255, 251, 0, 0.55)",
+                              }}>
                             </Box>
                             <Box sx={{ justifySelf: "end" }}>
                               {ikiHane(onePoz?.hazirlananMetrajlar.find(x => x.userEmail === customData.email)?.metraj)}
@@ -388,12 +401,32 @@ export default function P_MetrajOnaylaPozlar() {
                         <>
                           <Box> </Box>
                           {showMetrajYapabilenler?.filter(x => x.isShow).map((oneYapabilen, index) => {
+
+                            let oneHazirlanan = onePoz.hazirlananMetrajlar.find(x => x.userEmail === oneYapabilen.userEmail)
+
+                            let hasMetraj = oneHazirlanan?.hasMetraj
+                            let hasSelected = oneHazirlanan?.hasSelected
+                            let hasSelectedFull = oneHazirlanan?.hasSelectedFull
+                            let metraj = oneHazirlanan?.metraj
+
                             return (
-                              <Box key={index} onDoubleClick={() => goTo_MetrajPozmahaller(onePoz)} sx={{ ...pozNo_css, justifyContent: "end", cursor: "pointer", backgroundColor: "rgba(255, 251, 0, 0.55)", display: "grid", gridTemplateColumns: "1rem 1fr", "&:hover": { "& .childClass": { backgroundColor: "red" } } }}>
-                                <Box className="childClass" sx={{ color: "rgba(255, 251, 0, 0.55)", ml: "-1rem", height: "0.5rem", width: "0.5rem", borderRadius: "50%" }}>
+                              <Box
+                                key={index}
+                                onDoubleClick={() => goTo_MetrajPozmahaller(onePoz)}
+                                sx={{
+                                  ...pozNo_css, display: "grid", gridTemplateColumns: "1rem 1fr", justifyContent: "end", cursor: "pointer",
+                                  backgroundColor: !hasMetraj ? "lightgray" : !hasSelectedFull && "rgba(255, 251, 0, 0.55)",
+                                  "&:hover": { "& .childClass": { backgroundColor: "red" } }
+                                }}>
+                                <Box
+                                  className="childClass"
+                                  sx={{
+                                    ml: "-1rem", height: "0.5rem", width: "0.5rem", borderRadius: "50%",
+                                    backgroundColor: !hasMetraj ? "lightgray" : !hasSelectedFull && !hasSelected ? "rgba(255, 251, 0, 0.55)" : !hasSelectedFull && hasSelected && "gray",
+                                  }}>
                                 </Box>
                                 <Box sx={{ justifySelf: "end" }}>
-                                  {ikiHane(onePoz?.hazirlananMetrajlar.find(x => x.userEmail === oneYapabilen.userEmail)?.metraj)}
+                                  {ikiHane(metraj)}
                                 </Box>
                               </Box>
                             )

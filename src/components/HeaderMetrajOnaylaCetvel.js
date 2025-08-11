@@ -17,6 +17,7 @@ import Box from '@mui/material/Box';
 import Paper from '@mui/material/Paper';
 import IconButton from '@mui/material/IconButton';
 import DeleteIcon from '@mui/icons-material/Delete';
+import DeleteForeverIcon from '@mui/icons-material/DeleteForever';
 import AddCircleOutlineIcon from '@mui/icons-material/AddCircleOutline';
 import ClearOutlined from '@mui/icons-material/ClearOutlined';
 import UnfoldMoreIcon from '@mui/icons-material/UnfoldMore';
@@ -168,7 +169,7 @@ export default function P_HeaderMetrajOnaylaCetvel({
                   <IconButton onClick={() => setShowHasSelectedCopy(x => !x)} >
                     {/* <VisibilityIcon variant="contained" sx={{ color: showHasSelectedCopy ? "gray" : "lightgray" }} /> */}
                     {/* <VisibilityIcon variant="contained" sx={{ color: hasSelectedCopySatirlar && showHasSelectedCopy ? "rgba(255, 132, 0, 1)" : hasSelectedCopySatirlar && !showHasSelectedCopy ? "rgba(255, 132, 0, 0.5)" : "lightgray" }} /> */}
-                    <VisibilityIcon variant="contained" sx={{ color: showHasSelectedCopy ? "gray" : "lightgray" }} />
+                    <DeleteForeverIcon variant="contained" sx={{ color: showHasSelectedCopy ? "gray" : "lightgray" }} />
                   </IconButton>
                   {/* </Tooltip> */}
                 </Grid>

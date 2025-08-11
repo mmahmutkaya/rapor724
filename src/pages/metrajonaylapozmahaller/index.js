@@ -58,6 +58,7 @@ export default function P_MetrajOnaylaPozMahaller() {
 
   const { data: mahaller } = useGetMahaller()
   const { data: dugumler_byPoz } = useGetDugumler_byPoz()
+  // console.log("dugumler_byPoz",dugumler_byPoz)
 
   const mahaller_byPoz = mahaller?.filter(oneMahal => dugumler_byPoz?.find(oneDugum => oneDugum._mahalId.toString() === oneMahal._id.toString()))
 
@@ -259,12 +260,22 @@ export default function P_MetrajOnaylaPozMahaller() {
                 {showMetrajYapabilenler?.filter(x => x.isShow).map((oneYapabilen, index) => {
                   let yetkili = yetkililer?.find(oneYetkili => oneYetkili.userEmail === oneYapabilen.userEmail)
                   return (
+                    // <Box key={index} sx={{ ...css_enUstBaslik, borderLeft: "1px solid black", justifyContent: "center" }}>
+                    //   <Tooltip placement="top" title={yetkili.isim + " " + yetkili.soyisim}>
+                    //     <Box>
+                    //       {yetkili.userCode}
+                    //     </Box>
+                    //   </Tooltip>
+                    // </Box>
                     <Box key={index} sx={{ ...css_enUstBaslik, borderLeft: "1px solid black", justifyContent: "center" }}>
-                      <Tooltip placement="top" title={yetkili.isim + " " + yetkili.soyisim}>
+                      <Box sx={{ display: "grid", alignItems: "center", justifyItems: "center", fontSize: "0.75rem" }}>
                         <Box>
-                          {yetkili.userCode}
+                          {yetkili.isim}
                         </Box>
-                      </Tooltip>
+                        <Box>
+                          {yetkili.soyisim}
+                        </Box>
+                      </Box>
                     </Box>
                   )
                 })}
@@ -354,7 +365,12 @@ export default function P_MetrajOnaylaPozMahaller() {
                 {mahaller_byPoz_byLbs?.map((oneMahal, index) => {
 
                   let dugum = dugumler_byPoz?.find(oneDugum => oneDugum._pozId.toString() === selectedPoz_metraj._id.toString() && oneDugum._mahalId.toString() === oneMahal._id.toString())
-
+                  // let hasSelected = dugum.hazirlananMetrajlar.find(x => x.userEmail === oneYapabilen.userEmail).hasSelected
+                  // let hasSelectedFull = dugum.hazirlananMetrajlar.find(x => x.userEmail === oneYapabilen.userEmail).hasSelectedFull
+                  if(!dugum){
+                    console.log("olmayan dugum tespit edildi ve return oldu hata olmaması için")
+                    return
+                  }
                   return (
                     <React.Fragment key={index}>
 
@@ -403,15 +419,46 @@ export default function P_MetrajOnaylaPozMahaller() {
                       } */}
 
                       {showMetrajYapabilenler?.filter(x => x.isShow).length > 0 &&
+
                         <>
                           <Box> </Box>
                           {showMetrajYapabilenler?.filter(x => x.isShow).map((oneYapabilen, index) => {
+
+                            // let hasSelected = dugum.hazirlananMetrajlar.find(x => x.userEmail === oneYapabilen.userEmail)?.hasSelected
+                            // let hasSelectedFull = dugum.hazirlananMetrajlar.find(x => x.userEmail === oneYapabilen.userEmail)?.hasSelectedFull
+
+                            let oneHazirlanan = dugum?.hazirlananMetrajlar?.find(x => x.userEmail === oneYapabilen.userEmail)
+                            
+                            let hasMetraj = oneHazirlanan ? true : false
+                            let hasSelected = oneHazirlanan?.hasSelected
+                            let hasSelectedFull = oneHazirlanan?.hasSelectedFull
+                            let metraj = oneHazirlanan?.metraj
+
                             return (
-                              <Box key={index} onDoubleClick={() => goTo_onayCetveli({ dugum, oneMahal, userEmail: oneYapabilen.userEmail })} sx={{ ...css_mahaller, justifyContent: "end", cursor: "pointer", backgroundColor: "rgba(255, 251, 0, 0.55)", display: "grid", gridTemplateColumns: "1rem 1fr", "&:hover": { "& .childClass": { backgroundColor: "red" } } }}>
-                                <Box className="childClass" sx={{ backgroundColor: "rgba(255, 251, 0, 0.55)", height: "0.5rem", width: "0.5rem", borderRadius: "50%" }}>
+                              <Box
+                                key={index}
+                                onDoubleClick={() => goTo_onayCetveli({ dugum, oneMahal, userEmail: oneYapabilen.userEmail })}
+                                sx={{
+                                  ...css_mahaller,
+                                  justifyContent: "end",
+                                  cursor: "pointer",
+                                  // backgroundColor: hasSelectedFull ? "lightgray" : "rgba(255, 251, 0, 0.55)",
+                                  backgroundColor: !hasMetraj ? "lightgray" : !hasSelectedFull && "rgba(255, 251, 0, 0.55)",
+                                  display: "grid",
+                                  gridTemplateColumns: "1rem 1fr",
+                                  "&:hover": { "& .childClass": { backgroundColor: "red" } }
+                                }}>
+                                <Box
+                                  className="childClass"
+                                  sx={{
+                                    // backgroundColor: hasSelectedFull ? "lightgray" : hasSelected ? "gray" : "rgba(255, 251, 0, 0.55)",
+                                    backgroundColor: !hasMetraj ? "lightgray" : !hasSelectedFull && !hasSelected ? "rgba(255, 251, 0, 0.55)" : !hasSelectedFull && hasSelected && "gray",
+                                    height: "0.5rem", width: "0.5rem",
+                                    borderRadius: "50%"
+                                  }}>
                                 </Box>
                                 <Box sx={{ justifySelf: "end" }}>
-                                  {ikiHane(dugum?.hazirlananMetrajlar?.find(x => x.userEmail === oneYapabilen.userEmail)?.metraj)}
+                                  {ikiHane(metraj)}
                                 </Box>
                               </Box>
                               // <Box key={index} sx={{ ...css_mahaller, backgroundColor: "rgb(143,206,0,0.3)", borderLeft: "1px solid black", justifyContent: "end" }}>
