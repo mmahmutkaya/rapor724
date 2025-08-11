@@ -106,7 +106,7 @@ exports = async function ({
           })
 
           let hasSelected = hasSelected_Array.find(x => x === true)
-          let hasSelectedFull = hasSelectedFull_Array.length === hasSelectedFull_Array.filter(x => x === true).length ? true : false
+          let hasSelectedFull = hasSelectedFull_Array.length > 0 && hasSelectedFull_Array.length === hasSelectedFull_Array.filter(x => x === true).length ? true : false
 
           return ({
             userEmail: oneYapabilen.userEmail,
