@@ -51,6 +51,15 @@ exports = async function ({
     })
     hazirlananMetraj.metraj = metraj
 
+    let isSilinecek = true
+    hazirlananMetraj.satirlar.map(oneSatir => {
+      if(oneSatir.aciklama === "" && Number(oneSatir.carpan1) === 0 && Number(oneSatir.carpan2) === 0 && Number(oneSatir.carpan3) === 0 && Number(oneSatir.carpan4) === 0 && Number(oneSatir.carpan5) === 0){
+        return
+      } else {
+        isSilinecek = false
+      }
+    })
+
 
     await collection_HazirlananMetrajlar.updateOne(
       { _dugumId, userEmail },
