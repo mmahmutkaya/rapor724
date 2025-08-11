@@ -66,7 +66,7 @@ exports = async function ({
       }
     ]).toArray()
 
- 
+
     let { metrajYapabilenler } = proje.yetki
 
 
@@ -84,15 +84,29 @@ exports = async function ({
 
         onePoz.onaylananMetraj = onePoz2.onaylananMetraj
 
+        let hasSelected = true
+        let hasSelectedFull = true
         onePoz.hazirlananMetrajlar = metrajYapabilenler.map(oneYapabilen => {
+          let hazirlananlar_byUser = onePoz2.hazirlananMetrajlar.filter(x => x.userEmail === oneYapabilen.userEmail)
           let toplam = 0
-          onePoz2.hazirlananMetrajlar.map(oneArray => {
-            toplam = Number(oneArray.find(x => x.userEmail === oneYapabilen.userEmail)?.metraj) + Number(toplam)
+
+          hazirlananlar_byUser.map(oneHazirlanan => {
+            toplam += Number(oneHazirlanan.metraj)
+            if (oneHazirlanan.hasSelected) {
+              hasSelected = true
+            }
+            if (!oneHazirlanan.hasSelectedFull) {
+              hasSelected = false
+            }
           })
+
           return ({
             userEmail: oneYapabilen.userEmail,
-            metraj: toplam
+            metraj: toplam,
+            hasSelected,
+            hasSelectedFull,
           })
+          
         })
 
       }
