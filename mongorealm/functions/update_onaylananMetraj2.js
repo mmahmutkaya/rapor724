@@ -13,19 +13,19 @@ exports = async function ({
 
   const mailTeyit = user.custom_data.mailTeyit;
   if (!mailTeyit) {
-    throw new Error("MONGO // update_onaylananMetraj // Öncelikle üyeliğinize ait mail adresinin size ait olduğunu doğrulamalısınız, tekrar giriş yapmayı deneyiniz veya bizimle iletişime geçiniz.");
+    throw new Error("MONGO // update_hazirlananMetrajlar_selected // Öncelikle üyeliğinize ait mail adresinin size ait olduğunu doğrulamalısınız, tekrar giriş yapmayı deneyiniz veya bizimle iletişime geçiniz.");
   }
 
-  if (!_projeId) {
-    throw new Error("MONGO // update_onaylananMetraj // '_projeId' verisi db sorgusuna gelmedi");
-  }
+  // if (!_projeId) {
+  //   throw new Error("MONGO // update_hazirlananMetrajlar_selected // '_projeId' verisi db sorgusuna gelmedi");
+  // }
 
   if (!_dugumId) {
-    throw new Error("MONGO // update_onaylananMetraj // '_dugumId' verisi db sorgusuna gelmedi");
+    throw new Error("MONGO // update_hazirlananMetrajlar_selected // '_dugumId' verisi db sorgusuna gelmedi");
   }
 
   if (!onaylananMetraj_state) {
-    throw new Error("MONGO // update_onaylananMetraj // 'onaylananMetraj_state' verisi db sorgusuna gelmedi");
+    throw new Error("MONGO // update_hazirlananMetrajlar_selected // 'onaylananMetraj_state' verisi db sorgusuna gelmedi");
   }
 
 
@@ -57,8 +57,8 @@ exports = async function ({
   try {
 
     hazirlananMetrajlar = await collection_HazirlananMetrajlar.find({ _dugumId }).toArray()
-    hazirlananMetrajlar.map(oneHazirlanan => {
-      if (!oneHazirlanan._versionId.toString !== _versionId.toString()) {
+    hazirlananMetrajlar_state.map(oneHazirlanan => {
+      if (!oneHazirlanan._versionId.toString === hazirlananMetrajlar.find(x => x.userEmail === oneHazirlanan.userEmail)._versionId) {
         throw new Error(`__mesajBaslangic__Kaydetmeye çalıştığınız bazı veriler, siz işlem yaparken, başa kullanıcı tarafından güncellenmiş. Bu sebeple kayıt işleminiz gerçekleşmedi. Kontrol edip tekrar deneyiniz.__mesajBitis__`)
       }
     })
@@ -70,7 +70,7 @@ exports = async function ({
     }
 
   } catch (error) {
-    throw new Error("MONGO // update_onaylananMetraj // versionId " + error);
+    throw new Error("MONGO // update_hazirlananMetrajlar_selected // versionId " + error);
   }
 
 
@@ -106,7 +106,7 @@ exports = async function ({
     )
 
   } catch (error) {
-    throw new Error("MONGO // update_onaylananMetraj // hazirlananMetraj güncelleme " + error);
+    throw new Error("MONGO // update_hazirlananMetrajlar_selected // hazirlananMetraj güncelleme " + error);
   }
 
 
@@ -144,7 +144,7 @@ exports = async function ({
 
 
   } catch (error) {
-    throw new Error("MONGO // update_onaylananMetraj // onaylananMetraj güncelleme " + error);
+    throw new Error("MONGO // update_hazirlananMetrajlar_selected // onaylananMetraj güncelleme " + error);
   }
 
 
@@ -191,7 +191,7 @@ exports = async function ({
     )
 
   } catch (error) {
-    throw new Error("MONGO // update_onaylananMetraj // dugum güncelleme " + error);
+    throw new Error("MONGO // update_hazirlananMetrajlar_selected // dugum güncelleme " + error);
   }
 
 
