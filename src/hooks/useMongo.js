@@ -197,11 +197,11 @@ export const useGetDugumler = () => {
 export const useGetDugumler_byPoz = () => {
 
   // const RealmApp = useApp();
-  const { RealmApp, selectedPoz_metraj } = useContext(StoreContext)
+  const { RealmApp, selectedProje, selectedPoz_metraj } = useContext(StoreContext)
 
   return useQuery({
     queryKey: ['dugumler_byPoz'],
-    queryFn: () => RealmApp?.currentUser.callFunction("getDugumler_byPoz", ({ _pozId: selectedPoz_metraj?._id })),
+    queryFn: () => RealmApp?.currentUser.callFunction("getDugumler_byPoz", ({ _projeId: selectedProje?._id, _pozId: selectedPoz_metraj?._id })),
     enabled: !!RealmApp && !!selectedPoz_metraj,
     refetchOnMount: true,
     refetchOnWindowFocus: false,

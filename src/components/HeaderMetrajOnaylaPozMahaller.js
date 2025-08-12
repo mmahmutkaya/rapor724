@@ -2,7 +2,7 @@ import React from 'react'
 
 import { useState, useContext } from 'react';
 import { StoreContext } from './store'
-import { DialogWindow } from './general/DialogWindow';
+import { DialogAlert } from './general/DialogAlert';
 
 import { useApp } from "./useApp";
 import { useNavigate } from "react-router-dom";
@@ -27,53 +27,42 @@ import AlignHorizontalRightOutlinedIcon from '@mui/icons-material/AlignHorizonta
 import AlignHorizontalCenterOutlinedIcon from '@mui/icons-material/AlignHorizontalCenterOutlined';
 import FileDownloadDoneIcon from '@mui/icons-material/FileDownloadDone';
 import EditIcon from '@mui/icons-material/Edit';
+import GroupWorkIcon from '@mui/icons-material/GroupWork';
+import SaveIcon from '@mui/icons-material/Save';
 
 
-export default function HeaderMetrajOnaylaPozMahaller({ setShow }) {
+export default function HeaderMetrajOnaylaPozMahaller({
+  setShow,
+  selectMode, setSelectMode, isChange_select, setIsChange_select, save_select, cancel_select
+}) {
 
   const navigate = useNavigate()
 
   const { drawerWidth, topBarHeight } = useContext(StoreContext)
-  // const { editNodeMetraj, setEditNodeMetraj } = useContext(StoreContext)
-  // const { onayNodeMetraj, setOnayNodeMetraj } = useContext(StoreContext),
-  let editNodeMetraj = false
-  let onayNodeMetraj = true
-
-  const { selectedProje, setSelectedProje } = useContext(StoreContext)
-  const { setPozlar } = useContext(StoreContext)
-
-  // const RealmApp = useApp();
-  const { RealmApp } = useContext(StoreContext)
 
   const { selectedPoz_metraj, setSelectedPoz_metraj } = useContext(StoreContext)
-  const { selectedPoz_metrajBaslik, setSelectedPoz_metrajBaslik } = useContext(StoreContext)
 
-  const [willBeUpdate_mahalBaslik, setWillBeUpdate_mahalBaslik] = useState(false)
-
-  const [showDialog, setShowDialog] = useState(false)
-  const [dialogCase, setDialogCase] = useState("")
-
-
-
-  // const toggleEdit = () => {
-  //   setEditNodeMetraj(editNodeMetraj => !editNodeMetraj)
-  //   setOnayNodeMetraj()
-  // }
-
-
-  // const toggleOnay = () => {
-  //   setOnayNodeMetraj(onayNodeMetraj => !onayNodeMetraj)
-  //   setEditNodeMetraj()
-  // }
-
+  const [showEminMisin_select, setShowEminMisin_select] = useState(false)
 
 
   return (
     <Paper >
 
-      {showDialog &&
-        <DialogWindow dialogCase={dialogCase} showDialog={showDialog} setShowDialog={setShowDialog} />
+      {showEminMisin_select &&
+        <DialogAlert
+          dialogIcon={"warning"}
+          dialogMessage={"Yaptığınız değişiklikleri kaybedeceksiniz ?"}
+          onCloseAction={() => setShowEminMisin_select()}
+          actionText1={"İptal"}
+          action1={() => setShowEminMisin_select()}
+          actionText2={"Onayla"}
+          action2={() => {
+            cancel_select()
+            setShowEminMisin_select()
+          }}
+        />
       }
+
 
       <AppBar
         position="fixed"
@@ -117,7 +106,7 @@ export default function HeaderMetrajOnaylaPozMahaller({ setShow }) {
                 {" > "}
               </Box>
               <Box>
-                {"Tüm Açık Mahaller"}
+                {"Mahal Listesinde Bu Poz İçin Açılmış Tüm Mahaller"}
               </Box>
             </Box>
           </Grid>
@@ -129,35 +118,68 @@ export default function HeaderMetrajOnaylaPozMahaller({ setShow }) {
           <Grid item xs="auto">
             <Grid container>
 
-              <Grid item >
-                <IconButton
-                  onClick={() => {
-                    navigate("/metrajonaylapozlar")
-                    setSelectedPoz_metraj()
-                  }}
-                  aria-label="wbsUncliced">
-                  <ReplyIcon variant="contained"
-                    sx={{ color: "gray" }} />
-                </IconButton>
-              </Grid>
 
-              {/* <Grid item onClick={() => toggleEdit()} sx={{ cursor: "pointer" }}>
-                <IconButton disabled={false} >
-                  <EditIcon variant="contained" sx={{ color: editNodeMetraj ? "gray" : "lightgray", "&:hover": { color: "gray" } }} />
-                </IconButton>
-              </Grid> */}
+              {!selectMode &&
+                <Grid item >
+                  <IconButton
+                    onClick={() => {
+                      navigate("/metrajonaylapozlar")
+                      setSelectedPoz_metraj()
+                    }}
+                    aria-label="wbsUncliced">
+                    <ReplyIcon variant="contained"
+                      sx={{ color: "gray" }} />
+                  </IconButton>
+                </Grid>
+              }
 
-              {/* <Grid item sx={{ cursor: "pointer" }}>
-                <IconButton disabled={false} >
-                  <FileDownloadDoneIcon variant="contained" sx={{ color: onayNodeMetraj ? "gray" : "lightgray", "&:hover": { color: "gray" } }} />
-                </IconButton>
-              </Grid> */}
+              {!selectMode &&
+                <Grid item sx={{ cursor: "pointer" }}>
+                  <IconButton onClick={() => setSelectMode(x => !x)} disabled={false}>
+                    <GroupWorkIcon variant="contained" sx={{ color: "gray", "&:hover": { color: "gray" } }} />
+                  </IconButton>
+                </Grid>
+              }
 
-              <Grid item >
-                <IconButton onClick={() => setShow("ShowMetrajYapabilenler")} disabled={false}>
-                  <VisibilityIcon variant="contained" />
-                </IconButton>
-              </Grid>
+              {!selectMode &&
+                <Grid item >
+                  <IconButton onClick={() => setShow("ShowMetrajYapabilenler")} disabled={false}>
+                    <VisibilityIcon variant="contained" />
+                  </IconButton>
+                </Grid>
+              }
+
+
+              {selectMode &&
+
+                <>
+
+                  <Grid item >
+                    <IconButton onClick={() => {
+                      if (isChange_select) {
+                        setShowEminMisin_select(true)
+                      } else {
+                        cancel_select()
+                      }
+                    }} aria-label="lbsUncliced">
+                      <ClearOutlined variant="contained" sx={{ color: "red" }} />
+                    </IconButton>
+                  </Grid>
+
+                  <Grid item >
+                    <IconButton
+                      onClick={() => {
+                        save_select()
+                      }}
+                      aria-label="lbsUncliced"
+                      disabled={!isChange_select}
+                    >
+                      <SaveIcon variant="contained" />
+                    </IconButton>
+                  </Grid>
+
+                </>
+              }
 
 
             </Grid>

@@ -6,7 +6,6 @@ import { useApp } from "../../components/useApp";
 import FormPozCreate from '../../components/FormPozCreate'
 import EditPozBaslik from '../../components/EditPozBaslik'
 import FormPozBaslikCreate from '../../components/FormPozBaslikCreate'
-
 import _ from 'lodash';
 
 
@@ -22,6 +21,8 @@ import Stack from '@mui/material/Stack';
 import Box from '@mui/material/Box';
 import { BorderBottom } from '@mui/icons-material';
 import Tooltip from '@mui/material/Tooltip';
+import FileDownloadDoneIcon from '@mui/icons-material/FileDownloadDone';
+import CircleIcon from '@mui/icons-material/Circle';
 
 
 export default function P_MetrajOnaylaPozMahaller() {
@@ -47,8 +48,14 @@ export default function P_MetrajOnaylaPozMahaller() {
 
 
   const [show, setShow] = useState("Main")
-  const [editPoz, setEditPoz] = useState(false)
-  const [pozBilgiler_willBeSaved, setPozBilgiler_willBeSaved] = useState([])
+
+  const [selectMode, setSelectMode] = useState(false)
+  const [isChange_select, setIsChange_select] = useState(false)
+  const [dugumler_byPoz_state, setDugumler_byPoz_state] = useState()
+  const [dugumler_byPoz_backUp, setDugumler_byPoz_backup] = useState()
+
+
+  const [lbsMetrajlar, setLbsMetrajlar] = useState([])
   const [autoFocus, setAutoFocus] = useState({ baslikId: null, pozId: null })
 
   const navigate = useNavigate()
@@ -57,18 +64,21 @@ export default function P_MetrajOnaylaPozMahaller() {
 
 
   const { data: mahaller } = useGetMahaller()
-  const { data: dugumler_byPoz } = useGetDugumler_byPoz()
-  // console.log("dugumler_byPoz",dugumler_byPoz)
+  const { data } = useGetDugumler_byPoz()
 
-  const mahaller_byPoz = mahaller?.filter(oneMahal => dugumler_byPoz?.find(oneDugum => oneDugum._mahalId.toString() === oneMahal._id.toString()))
+
+  const mahaller_byPoz = mahaller?.filter(oneMahal => dugumler_byPoz_state?.find(oneDugum => oneDugum._mahalId.toString() === oneMahal._id.toString()))
 
   useEffect(() => {
     !selectedPoz_metraj && navigate('/metrajpozlar')
+    setDugumler_byPoz_state(_.cloneDeep(data?.dugumler_byPoz))
+    setDugumler_byPoz_backup(_.cloneDeep(data?.dugumler_byPoz))
+    setLbsMetrajlar(_.cloneDeep(data?.lbsMetrajlar))
     return () => {
       // setselectedPoz_metraj()
       // setDugumler_filtered()
     }
-  }, [selectedPoz_metraj])
+  }, [data])
 
 
   const ikiHane = (value) => {
@@ -138,11 +148,86 @@ export default function P_MetrajOnaylaPozMahaller() {
   }
 
 
-  // const goto_metrajOlusturCetvel = (dugum, oneMahal) => {
-  //   setSelectedNode_metraj(dugum)
-  //   setSelectedMahal_metraj(oneMahal)
-  //   navigate('/metrajolusturcetvel')
-  // }
+
+  //  selectedNode toplu onaylama fınksiyonları
+
+  const addNodes_select = ({ tip, mahaller, mahal, userEmail }) => {
+
+    let dugumler_byPoz_state2 = _.cloneDeep(dugumler_byPoz_state)
+
+    if (tip === "all") {
+      dugumler_byPoz_state2 = dugumler_byPoz_state2?.map(oneDugum => {
+        oneDugum?.hazirlananMetrajlar?.map(oneHazirlanan => {
+          if (oneHazirlanan.userEmail === userEmail && !oneHazirlanan.hasSelectedFull) {
+            oneHazirlanan.hasSelectedFull_aday = true
+          }
+          return oneHazirlanan
+        })
+        return oneDugum
+      })
+    }
+
+
+    if (tip === "mahaller_byPoz_byLbs") {
+
+      dugumler_byPoz_state2 = dugumler_byPoz_state2?.map(oneDugum => {
+        if (!mahaller.find(x => x._id.toString() === oneDugum._mahalId.toString())) {
+          return oneDugum
+        }
+        oneDugum?.hazirlananMetrajlar?.map(oneHazirlanan => {
+
+          if (oneHazirlanan.userEmail === userEmail && !oneHazirlanan.hasSelectedFull) {
+            oneHazirlanan.hasSelectedFull_aday = true
+          }
+          return oneHazirlanan
+        })
+        return oneDugum
+      })
+    }
+
+
+    if (tip === "mahal") {
+
+      dugumler_byPoz_state2 = dugumler_byPoz_state2?.map(oneDugum => {
+        if (mahal?._id?.toString() !== oneDugum?._mahalId?.toString()) {
+          return oneDugum
+        }
+        oneDugum?.hazirlananMetrajlar?.map(oneHazirlanan => {
+
+          if (oneHazirlanan.userEmail === userEmail && !oneHazirlanan.hasSelectedFull) {
+            oneHazirlanan.hasSelectedFull_aday = true
+          }
+          return oneHazirlanan
+        })
+        return oneDugum
+      })
+    }
+
+    // dugumler_byPoz_state2 = dugumler_byPoz_state2.filter(x => x)
+
+    // console.log("dugumler_byPoz_state2", dugumler_byPoz_state2)
+
+    setDugumler_byPoz_state(dugumler_byPoz_state2)
+    // console.log("dugumler_byPoz_state2", dugumler_byPoz_state2.map(oneDugum => {
+    //   let oneHazirlanan = oneDugum.hazirlananMetrajlar?.find(x => x.userEmail === userEmail)
+    //   return oneHazirlanan
+    // }))
+
+    setIsChange_select(true)
+  }
+
+  const cancel_select = () => {
+    setDugumler_byPoz_state(_.cloneDeep(dugumler_byPoz_backUp))
+    setIsChange_select()
+    setSelectMode()
+  }
+
+  const save_select = () => {
+
+  }
+
+
+
 
 
 
@@ -210,7 +295,12 @@ export default function P_MetrajOnaylaPozMahaller() {
     <Box sx={{ m: "0rem", maxWidth: "60rem" }}>
 
       <Grid item >
-        <HeaderMetrajOnaylaPozMahaller show={show} setShow={setShow} />
+        <HeaderMetrajOnaylaPozMahaller
+          setShow={setShow}
+
+          setSelectMode={setSelectMode} selectMode={selectMode}
+          isChange_select={isChange_select} setIsChange_select={setIsChange_select} cancel_select={cancel_select} save_select={save_select}
+        />
       </Grid>
 
 
@@ -267,7 +357,9 @@ export default function P_MetrajOnaylaPozMahaller() {
                     //     </Box>
                     //   </Tooltip>
                     // </Box>
-                    <Box key={index} sx={{ ...css_enUstBaslik, borderLeft: "1px solid black", justifyContent: "center" }}>
+                    <Box
+                      key={index}
+                      sx={{ ...css_enUstBaslik, borderLeft: "1px solid black", justifyContent: "center" }}>
                       <Box sx={{ display: "grid", alignItems: "center", justifyItems: "center", fontSize: "0.75rem" }}>
                         <Box>
                           {yetkili.isim}
@@ -311,7 +403,10 @@ export default function P_MetrajOnaylaPozMahaller() {
                 <Box> </Box>
                 {showMetrajYapabilenler?.filter(x => x.isShow).map((oneYapabilen, index) => {
                   return (
-                    <Box key={index} sx={{ ...css_enUstBaslik, borderLeft: "1px solid black", justifyContent: "end" }}>
+                    <Box
+                      onClick={() => selectMode && addNodes_select({ tip: "all", userEmail: oneYapabilen.userEmail })}
+                      key={index}
+                      sx={{ ...css_enUstBaslik, cursor: selectMode && "pointer", borderLeft: "1px solid black", justifyContent: "end" }}>
                       {ikiHane(selectedPoz_metraj.hazirlananMetrajlar.find(x => x.userEmail === oneYapabilen.userEmail)?.metraj)}
                     </Box>
                   )
@@ -329,13 +424,14 @@ export default function P_MetrajOnaylaPozMahaller() {
           {openLbsArray?.map((oneLbs, index) => {
 
             const mahaller_byPoz_byLbs = mahaller_byPoz?.filter(x => x._lbsId.toString() === oneLbs._id.toString())
+            const lbsMetraj = lbsMetrajlar.find(x => x._id.toString() === oneLbs._id.toString())
 
             return (
               <React.Fragment key={index}>
 
                 {/* LBS BAŞLIKLARI */}
                 <Box sx={{ ...css_LbsBaslik, borderLeft: "1px solid black", gridColumn: "1/3" }}> {getLbsName(oneLbs).name}</Box>
-                <Box sx={{ ...css_LbsBaslik }}>  {"lbs miktar"} </Box>
+                <Box sx={{ ...css_LbsBaslik, justifyContent: "end" }}>  {ikiHane(lbsMetraj?.onaylananMetraj)} </Box>
                 <Box sx={{ ...css_LbsBaslik, justifyContent: "center" }}> {pozBirim} </Box>
 
                 {/* {editNodeMetraj &&
@@ -352,8 +448,12 @@ export default function P_MetrajOnaylaPozMahaller() {
                     <Box> </Box>
                     {showMetrajYapabilenler?.filter(x => x.isShow).map((oneYapabilen, index) => {
                       return (
-                        <Box key={index} sx={{ ...css_LbsBaslik, borderLeft: "1px solid black", justifyContent: "end" }}>
-
+                        <Box
+                          onClick={() => selectMode && addNodes_select({ tip: "mahaller_byPoz_byLbs", mahaller: mahaller_byPoz_byLbs, userEmail: oneYapabilen.userEmail })}
+                          key={index}
+                          sx={{ ...css_LbsBaslik, cursor: selectMode && "pointer", borderLeft: "1px solid black", justifyContent: "end" }}
+                        >
+                          {ikiHane(lbsMetraj?.hazirlananMetrajlar?.find(x => x.userEmail === oneYapabilen.userEmail).metraj)}
                         </Box>
                       )
                     })}
@@ -364,8 +464,8 @@ export default function P_MetrajOnaylaPozMahaller() {
                 {/* MAHAL SATIRLARI */}
                 {mahaller_byPoz_byLbs?.map((oneMahal, index) => {
 
-                  let dugum = dugumler_byPoz?.find(oneDugum => oneDugum._pozId.toString() === selectedPoz_metraj._id.toString() && oneDugum._mahalId.toString() === oneMahal._id.toString())
-                  let hasOnaylananMetraj = dugum.hazirlananMetrajlar.find(x => x.hasSelected)
+                  let dugum = dugumler_byPoz_state?.find(oneDugum => oneDugum._pozId.toString() === selectedPoz_metraj._id.toString() && oneDugum._mahalId.toString() === oneMahal._id.toString())
+                  let hasOnaylananMetraj = dugum.hazirlananMetrajlar?.find(x => x.hasSelected)
 
                   if (!dugum) {
                     console.log("olmayan dugum tespit edildi ve return oldu hata olmaması için")
@@ -382,8 +482,8 @@ export default function P_MetrajOnaylaPozMahaller() {
                         {oneMahal.mahalName}
                       </Box>
 
-                      <Box onDoubleClick={() => hasOnaylananMetraj && goTo_MetrajOnaylaCetvel({ dugum, oneMahal })} sx={{ ...css_mahaller, cursor: "pointer", display: "grid", alignItems: "center", gridTemplateColumns: "1rem 1fr", backgroundColor: !hasOnaylananMetraj ? "lightgray" : "rgba(255, 251, 0, 0.55)", "&:hover": { "& .childClass": { backgroundColor: "red" } } }}>
-                        <Box className="childClass" sx={{ backgroundColor: !hasOnaylananMetraj ? "lightgray" : "rgba(255, 251, 0, 0.55)", height: "0.5rem", width: "0.5rem", borderRadius: "50%" }}>
+                      <Box onDoubleClick={() => hasOnaylananMetraj && !selectMode && goTo_MetrajOnaylaCetvel({ dugum, oneMahal })} sx={{ ...css_mahaller, cursor: hasOnaylananMetraj && !selectMode && "pointer", display: "grid", alignItems: "center", gridTemplateColumns: "1rem 1fr", backgroundColor: !hasOnaylananMetraj ? "lightgray" : !selectMode && "rgba(255, 251, 0, 0.55)", "&:hover": hasOnaylananMetraj && !selectMode && { "& .childClass": { backgroundColor: "red" } } }}>
+                        <Box className="childClass" sx={{ backgroundColor: !hasOnaylananMetraj ? "lightgray" : !selectMode && "rgba(255, 251, 0, 0.55)", height: "0.5rem", width: "0.5rem", borderRadius: "50%" }}>
                         </Box>
                         <Box sx={{ justifySelf: "end" }}>
                           {ikiHane(dugum?.onaylananMetraj)}
@@ -428,35 +528,65 @@ export default function P_MetrajOnaylaPozMahaller() {
                             // let hasSelectedFull = dugum.hazirlananMetrajlar.find(x => x.userEmail === oneYapabilen.userEmail)?.hasSelectedFull
 
                             let oneHazirlanan = dugum?.hazirlananMetrajlar?.find(x => x.userEmail === oneYapabilen.userEmail)
-
                             let hasMetraj = oneHazirlanan ? true : false
                             let hasSelected = oneHazirlanan?.hasSelected
                             let hasSelectedFull = oneHazirlanan?.hasSelectedFull
                             let metraj = oneHazirlanan?.metraj
+                            let hasSelectedFull_aday = oneHazirlanan?.hasSelectedFull_aday
 
                             return (
                               <Box
                                 key={index}
-                                onDoubleClick={() => goTo_onayCetveli({ dugum, oneMahal, userEmail: oneYapabilen.userEmail })}
+                                onClick={() => selectMode && !hasSelectedFull && addNodes_select({ tip: "mahal", mahal: oneMahal, userEmail: oneYapabilen.userEmail })}
+                                onDoubleClick={() => !selectMode && hasMetraj && goTo_onayCetveli({ dugum, oneMahal, userEmail: oneYapabilen.userEmail })}
                                 sx={{
                                   ...css_mahaller,
                                   justifyContent: "end",
-                                  cursor: "pointer",
+                                  cursor: !selectMode && hasMetraj ? "pointer" : (selectMode && !hasSelectedFull) && "pointer",
                                   // backgroundColor: hasSelectedFull ? "lightgray" : "rgba(255, 251, 0, 0.55)",
                                   backgroundColor: !hasMetraj ? "lightgray" : !hasSelectedFull && "rgba(255, 251, 0, 0.55)",
                                   display: "grid",
                                   gridTemplateColumns: "1rem 1fr",
-                                  "&:hover": { "& .childClass": { backgroundColor: "red" } }
+                                  "&:hover": hasMetraj && { "& .childClass": { backgroundColor: "red" } }
                                 }}>
-                                <Box
-                                  className="childClass"
-                                  sx={{
-                                    // backgroundColor: hasSelectedFull ? "lightgray" : hasSelected ? "gray" : "rgba(255, 251, 0, 0.55)",
-                                    backgroundColor: !hasMetraj ? "lightgray" : !hasSelectedFull && !hasSelected ? "rgba(255, 251, 0, 0.55)" : !hasSelectedFull && hasSelected && "gray",
-                                    height: "0.5rem", width: "0.5rem",
-                                    borderRadius: "50%"
-                                  }}>
-                                </Box>
+                                {!selectMode &&
+                                  <Box
+                                    className="childClass"
+                                    sx={{
+                                      // backgroundColor: hasSelectedFull ? "lightgray" : hasSelected ? "gray" : "rgba(255, 251, 0, 0.55)",
+                                      backgroundColor: !hasMetraj ? "lightgray" : !hasSelectedFull && !hasSelected ? "rgba(255, 251, 0, 0.55)" : !hasSelectedFull && hasSelected && "gray",
+                                      height: "0.5rem", width: "0.5rem",
+                                      borderRadius: "50%"
+                                    }}>
+                                  </Box>
+                                }
+                                {selectMode && hasSelectedFull &&
+                                  <Box
+                                    // className="childClass"
+                                    sx={{
+                                      // backgroundColor: hasSelectedFull ? "lightgray" : hasSelected ? "gray" : "rgba(255, 251, 0, 0.55)",
+                                      backgroundColor: !hasMetraj ? "lightgray" : !hasSelectedFull && !hasSelected ? "rgba(255, 251, 0, 0.55)" : !hasSelectedFull && hasSelected && "gray",
+                                      height: "0.5rem", width: "0.5rem",
+                                      borderRadius: "50%"
+                                    }}>
+                                  </Box>
+                                }
+                                {selectMode && hasMetraj && !hasSelectedFull && !hasSelectedFull_aday && !hasSelected &&
+                                  <Box sx={{ display: "grid", alignItems: "center", justifyContent: "center" }}>
+                                    <FileDownloadDoneIcon variant="contained" sx={{ fontSize: "1rem", color: "yellow", "&:hover": { color: "red" } }} />
+                                  </Box>
+                                }
+                                {selectMode && hasMetraj && !hasSelectedFull && !hasSelectedFull_aday && hasSelected &&
+                                  <Box sx={{ display: "grid", alignItems: "center", justifyContent: "center" }}>
+                                    <CircleIcon variant="contained" sx={{ fontSize: "0.6rem", color: "gray", "&:hover": { color: "gray" } }} />
+                                  </Box>
+                                }
+                                {selectMode && hasMetraj && !hasSelectedFull && hasSelectedFull_aday &&
+                                  <Box sx={{ display: "grid", alignItems: "center", justifyContent: "center" }}>
+                                    <FileDownloadDoneIcon variant="contained" sx={{ fontSize: "1rem", color: "green", "&:hover": { color: "green" } }} />
+                                  </Box>
+                                }
+
                                 <Box sx={{ justifySelf: "end" }}>
                                   {ikiHane(metraj)}
                                 </Box>

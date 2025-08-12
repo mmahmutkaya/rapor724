@@ -118,7 +118,7 @@ export default function HeaderMetrajPozMahaller() {
                 {" > "}
               </Box>
               <Box>
-                {"Tüm Açık Mahaller"}
+                {"Mahal Listesinde Bu Poz İçin Açılmış Tüm Mahaller"}
               </Box>
             </Box>
           </Grid>

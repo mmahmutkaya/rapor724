@@ -5,6 +5,7 @@ import { useState, useContext, useEffect } from 'react';
 import { useQueryClient } from '@tanstack/react-query'
 import { useNavigate } from "react-router-dom";
 import getLbsName from '../../functions/getLbsName.js';
+import _ from 'lodash';
 
 import { DialogAlert } from '../../components/general/DialogAlert.js';
 
@@ -44,7 +45,7 @@ export default function P_MahalListesiPozMahaller() {
 
   useEffect(() => {
     !selectedProje && navigate('/projeler')
-    setMahaller_state(mahaller_query)
+    setMahaller_state(_.cloneDeep(mahaller_query))
   }, [mahaller_query])
 
 
@@ -99,7 +100,8 @@ export default function P_MahalListesiPozMahaller() {
     alignItems: "center",
     justifyItems: "center",
     border: "1px solid black",
-    px: "0.7rem"
+    px: "0.7rem",
+    cursor:"pointer"
   }
 
 
@@ -256,7 +258,8 @@ export default function P_MahalListesiPozMahaller() {
 
                 {/* LBS'İN POZLARI */}
                 {/* {mahaller_state?.filter(x => x._lbsId.toString() === oneLbs._id.toString()).map((oneMahal, index) => { */}
-                {mahaller_state?.map((oneMahal, index) => {
+                {mahaller_state?.filter(x => x._lbsId.toString() === oneLbs._id.toString()).map((oneMahal, index) => {
+
 
                   // let isSelected = false
 
@@ -270,20 +273,20 @@ export default function P_MahalListesiPozMahaller() {
                   return (
                     // <Box key={index} onDoubleClick={() => navigate('/metrajpozmahaller')} onClick={() => setSelectedPoz_metraj(oneMahal)} sx={{ "&:hover": { "& .childClass": { display: "block" } }, cursor: "pointer", display: "grid", }}>
                     <React.Fragment key={index} >
-                      <Box sx={{ ...mahalNo_css, backgroundColor: !hasDugum && inactiveGray }} >
+                      <Box onClick={() => handleDugumToggle({ oneMahal, toggleValue: !hasDugum })} sx={{ ...mahalNo_css, backgroundColor: !hasDugum && inactiveGray }} >
                         {oneMahal.mahalNo}
                       </Box>
-                      <Box sx={{ ...mahalNo_css, justifyItems: "start", pl: "0.5rem", backgroundColor: !hasDugum && inactiveGray }} >
+                      <Box onClick={() => handleDugumToggle({ oneMahal, toggleValue: !hasDugum })} sx={{ ...mahalNo_css, justifyItems: "start", pl: "0.5rem", backgroundColor: !hasDugum && inactiveGray }} >
                         {oneMahal.mahalName}
                       </Box>
-                      <Box onDoubleClick={() => handleDugumToggle({ oneMahal, toggleValue: !hasDugum })} sx={{ ...mahalNo_css, cursor: "pointer", display: "grid", gridTemplateColumns: "1rem 1fr", backgroundColor: !hasDugum && inactiveGray, "&:hover": { "& .childClass": { backgroundColor: "red" } } }}>
+                      <Box onClick={() => handleDugumToggle({ oneMahal, toggleValue: !hasDugum })} sx={{ ...mahalNo_css, cursor: "pointer", display: "grid", gridTemplateColumns: "1rem 1fr", backgroundColor: !hasDugum && inactiveGray, "&:hover": { "& .childClass": { backgroundColor: "red" } } }}>
                         <Box className="childClass" sx={{ ml: "-1rem", height: "0.5rem", width: "0.5rem", borderRadius: "50%" }}>
                         </Box>
                         <Box sx={{ justifySelf: "end" }}>
                           {ikiHane(oneMahal?.onaylananMetraj)}
                         </Box>
                       </Box>
-                      <Box sx={{ ...mahalNo_css, backgroundColor: !hasDugum && inactiveGray }}>
+                      <Box onClick={() => handleDugumToggle({ oneMahal, toggleValue: !hasDugum })} sx={{ ...mahalNo_css, backgroundColor: !hasDugum && inactiveGray }}>
                         {selectedProje?.pozBirimleri.find(x => x.id === selectedPoz_mahalListesi.pozBirimId).name}
                       </Box>
 

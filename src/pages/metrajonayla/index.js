@@ -50,7 +50,7 @@ export default function P_MetrajOnay() {
 
 
   const [dialogAlert, setDialogAlert] = useState()
-  const [show, setShow] = useState("DugumMetrajlari")
+  const [show, setShow] = useState("Main")
   const [isChanged, setIsChanged] = useState()
 
   const [hazirlananMetrajlar_state, setHazirlananMetrajlar_state] = useState()
@@ -225,7 +225,7 @@ export default function P_MetrajOnay() {
         queryClient.invalidateQueries(['onaylananMetraj', selectedNode_metraj?._id.toString()])
         queryClient.invalidateQueries(['hazirlananMetrajlar', selectedNode_metraj?._id.toString()])
 
-        setShow("DugumMetrajlari")
+        setShow("Main")
         setIsChanged()
         return
 

@@ -139,7 +139,7 @@ export default function P_HeaderMetrajOnay({ show, setShow, isChanged, cancel, s
                       if (isChanged) {
                         setShowEminMisin(true)
                       } else {
-                        setShow("DugumMetrajlari")
+                        setShow("Main")
                       }
                     }} aria-label="lbsUncliced">
                       <ClearOutlined variant="contained" sx={{ color: "red" }} />

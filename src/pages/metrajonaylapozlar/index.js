@@ -325,7 +325,6 @@ export default function P_MetrajOnaylaPozlar() {
 
                 {/* WBS'İN POZLARI */}
                 {pozlar?.filter(x => x._wbsId.toString() === oneWbs._id.toString()).map((onePoz, index) => {
-                  console.log("onePoz", onePoz)
                   let hasOnaylananMetraj = onePoz?.hazirlananMetrajlar.find(x => x.hasSelected)
 
                   let isSelected = false

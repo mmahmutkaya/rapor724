@@ -29,7 +29,7 @@ export default function P_MahalListesiPozlar() {
   const queryClient = useQueryClient()
 
   const { data: pozlar } = useGetMahalListesi_pozlar()
-  
+
   const { RealmApp, myTema } = useContext(StoreContext)
   const { selectedProje } = useContext(StoreContext)
   const { selectedPoz_mahalListesi, setSelectedPoz_mahalListesi } = useContext(StoreContext)
@@ -96,7 +96,8 @@ export default function P_MahalListesiPozlar() {
     alignItems: "center",
     justifyItems: "center",
     border: "1px solid black",
-    px: "0.7rem"
+    px: "0.7rem",
+    cursor: "pointer"
   }
 
 
@@ -236,20 +237,20 @@ export default function P_MahalListesiPozlar() {
                   return (
                     // <Box key={index} onDoubleClick={() => navigate('/metrajpozmahaller')} onClick={() => setSelectedPoz_metraj(onePoz)} sx={{ "&:hover": { "& .childClass": { display: "block" } }, cursor: "pointer", display: "grid", }}>
                     <React.Fragment key={index} >
-                      <Box sx={{ ...pozNo_css, backgroundColor: !hasMahal && inactiveGray }} >
+                      <Box onDoubleClick={() => gotToMahalListesiPozMahaller({ onePoz })} sx={{ ...pozNo_css, backgroundColor: !hasMahal && inactiveGray }}  >
                         {onePoz.pozNo}
                       </Box>
-                      <Box sx={{ ...pozNo_css, justifyItems: "start", pl: "0.5rem", backgroundColor: !hasMahal && inactiveGray }} >
+                      <Box onDoubleClick={() => gotToMahalListesiPozMahaller({ onePoz })} sx={{ ...pozNo_css, justifyItems: "start", pl: "0.5rem", backgroundColor: !hasMahal && inactiveGray }} >
                         {onePoz.pozName}
                       </Box>
                       <Box onDoubleClick={() => gotToMahalListesiPozMahaller({ onePoz })} sx={{ ...pozNo_css, cursor: "pointer", display: "grid", gridTemplateColumns: "1rem 1fr", backgroundColor: !hasMahal && inactiveGray, "&:hover": { "& .childClass": { backgroundColor: "red" } } }}>
                         <Box className="childClass" sx={{ ml: "-1rem", height: "0.5rem", width: "0.5rem", borderRadius: "50%" }}>
                         </Box>
-                        <Box sx={{ justifySelf: "end" }}>
+                        <Box onDoubleClick={() => gotToMahalListesiPozMahaller({ onePoz })} sx={{ justifySelf: "end" }}>
                           {ikiHane(onePoz?.onaylananMetraj)}
                         </Box>
                       </Box>
-                      <Box sx={{ ...pozNo_css, backgroundColor: !hasMahal && inactiveGray }}>
+                      <Box onDoubleClick={() => gotToMahalListesiPozMahaller({ onePoz })} sx={{ ...pozNo_css, backgroundColor: !hasMahal && inactiveGray }}>
                         {selectedProje?.pozBirimleri.find(x => x.id === onePoz.pozBirimId).name}
                       </Box>
 

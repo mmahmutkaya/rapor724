@@ -8,6 +8,7 @@ import EditPozBaslik from '../../components/EditPozBaslik'
 import FormPozBaslikCreate from '../../components/FormPozBaslikCreate'
 import HeaderMetrajOlusturPozMahaller from '../../components/HeaderMetrajOlusturPozMahaller'
 import { BSON } from "realm-web"
+import _ from 'lodash';
 
 import { useGetPozlar, useGetDugumler_byPoz, useGetMahaller } from '../../hooks/useMongo';
 
@@ -39,23 +40,29 @@ export default function P_MetrajOlusturPozMahaller() {
   const [pozBilgiler_willBeSaved, setPozBilgiler_willBeSaved] = useState([])
   const [autoFocus, setAutoFocus] = useState({ baslikId: null, pozId: null })
 
+  const [dugumler_byPoz, setDugumler_byPoz] = useState()
+  const [lbsMetrajlar, setLbsMetrajlar] = useState([])
+
   const navigate = useNavigate()
 
   const pozBirim = selectedProje?.pozBirimleri.find(x => x.id == selectedPoz_metraj?.pozBirimId)?.name
 
 
   const { data: mahaller } = useGetMahaller()
-  const { data: dugumler_byPoz } = useGetDugumler_byPoz()
+  const { data } = useGetDugumler_byPoz()
 
   const mahaller_byPoz = mahaller?.filter(oneMahal => dugumler_byPoz?.find(oneDugum => oneDugum._mahalId.toString() === oneMahal._id.toString()))
 
   useEffect(() => {
     !selectedPoz_metraj && navigate('/metrajpozlar')
+    setDugumler_byPoz(_.cloneDeep(data?.dugumler_byPoz))
+    setLbsMetrajlar(_.cloneDeep(data?.lbsMetrajlar))
+
     return () => {
       // setselectedPoz_metraj()
       // setDugumler_filtered()
     }
-  }, [selectedPoz_metraj])
+  }, [data])
 
 
   const ikiHane = (value) => {
