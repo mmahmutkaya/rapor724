@@ -1,5 +1,6 @@
 exports = async function ({
-  _pozId
+  _pozId,
+  _projeId
 }) {
 
 
@@ -22,19 +23,57 @@ exports = async function ({
 
 
   const collection_Dugumler = context.services.get("mongodb-atlas").db("rapor724_v2").collection("dugumler")
+  const collection_Mahaller = context.services.get("mongodb-atlas").db("rapor724_v2").collection("mahaller")
+  const collection_Projeler = context.services.get("mongodb-atlas").db("rapor724_v2").collection("projeler")
 
-  
+
   try {
-    
-    const dugumler = await collection_Dugumler.aggregate([
-      { $match: { _pozId, openMetraj:true } },
-      { $project: { _pozId: 1, _mahalId: 1, openMetraj: 1, hazirlananMetrajlar:1, onaylananMetraj:1 } }
+
+
+    const dugumler_byPoz = await collection_Dugumler.aggregate([
+      { $match: { _pozId, openMetraj: true } },
+      { $project: { _pozId: 1, _mahalId: 1, openMetraj: 1, hazirlananMetrajlar: 1, onaylananMetraj: 1 } }
     ]).toArray()
-  
-    return dugumler
+
+
+
+    const proje = await collection_Projeler.findOne({ _id: _projeId }, { lbs: 1, yetki: 1 })
+
+    let mahaller = await collection_Mahaller.aggregate([
+      { $match: { _projeId, isDeleted: false } },
+      { $project: { mahalNo: 1, mahalName: 1, _lbsId: 1 } }
+    ]).toArray()
+
     
+
+    let lbsMetrajlar = proje.lbs.map(oneLbs => {
+
+      let mahaller_byLbs = mahaller.filter(x => x._lbsId.toString() === oneLbs._id.toString())
+      let onaylananMetraj = 0
+      let hazirlananMetrajlar = proje.yetki.metrajYapabilenler.map(oneYapabilen => {
+        return { userEmail: oneYapabilen.userEmail, metraj: 0 }
+      })
+
+      mahaller_byLbs.map(oneMahal => {
+        let dugum = dugumler_byPoz.find(x => x._id.toString() === oneMahal._lbsId.toString())
+        onaylananMetraj += dugum.onaylananMetraj
+
+        hazirlananMetrajlar = hazirlananMetrajlar.map(oneHazirlanan => {
+          oneHazirlanan.metraj += dugum.hazirlananMetrajlar.find(x => x.userEmail === oneHazirlanan.userEmail).metraj
+          return oneHazirlanan
+        })
+
+      })
+      return {_id:oneLbs._id, onaylananMetraj, hazirlananMetrajlar}
+    })
+
+
+
+
+    return { dugumler: dugumler_byPoz, lbsMetrajlar }
+
   } catch (error) {
-    throw new Error({hatayeri:"MONGO // getDugumler_byPoz // ", error});
+    throw new Error({ hatayeri: "MONGO // getDugumler_byPoz // ", error });
   }
 
 
