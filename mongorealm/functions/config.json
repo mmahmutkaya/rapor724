@@ -546,7 +546,7 @@
         "disable_arg_logs": true
     },
     {
-        "name": "update_onaylananMetraj2",
+        "name": "update_onaylananMetraj",
         "private": false,
         "run_as_system": true,
         "disable_arg_logs": true
