@@ -55,7 +55,7 @@ exports = async function ({
       })
 
       mahaller_byLbs.map(oneMahal => {
-        let dugum = dugumler_byPoz.find(x => x._id.toString() === oneMahal._lbsId.toString())
+        let dugum = dugumler_byPoz.find(x => x._mahalId.toString() === oneMahal._id.toString())
         onaylananMetraj += dugum?.onaylananMetraj ? dugum.onaylananMetraj : 0
 
         hazirlananMetrajlar = hazirlananMetrajlar?.map(oneHazirlanan => {
