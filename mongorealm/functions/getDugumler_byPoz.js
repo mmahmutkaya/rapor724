@@ -58,7 +58,7 @@ exports = async function ({
         let dugum = dugumler_byPoz.find(x => x._id.toString() === oneMahal._lbsId.toString())
         onaylananMetraj += dugum?.onaylananMetraj ? dugum.onaylananMetraj : 0
 
-        hazirlananMetrajlar = hazirlananMetrajlar.map(oneHazirlanan => {
+        hazirlananMetrajlar = hazirlananMetrajlar?.map(oneHazirlanan => {
           oneHazirlanan.metraj += dugum.hazirlananMetrajlar.find(x => x.userEmail === oneHazirlanan.userEmail).metraj
           return oneHazirlanan
         })
