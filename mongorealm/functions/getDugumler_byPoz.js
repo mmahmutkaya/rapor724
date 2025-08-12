@@ -70,7 +70,7 @@ exports = async function ({
 
 
 
-    return { dugumler: dugumler_byPoz, lbsMetrajlar }
+    return { dugumler_byPoz, lbsMetrajlar }
 
   } catch (error) {
     throw new Error({ hatayeri: "MONGO // getDugumler_byPoz // ", error });
