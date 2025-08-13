@@ -54,16 +54,20 @@ exports = async function ({
       }
     })
 
-
-
-
-    // db hazirlik - metraj
-    hazirlananMetraj_new.satirlar.map(oneSatir => {
-      metraj += Number(oneSatir.metraj)
-    })
-    hazirlananMetraj_new.metraj = metraj
+   
+      
     
+    // birdahaki kayıt için kaydedilecek ibarelerini satırları temizleme
+    // db hazirlik - metraj
     // dugum - db hazirlik - metraj
+    hazirlananMetraj_new.satirlar = hazirlananMetraj_new.satirlar.map(oneSatir => {
+      metraj += Number(oneSatir.metraj)
+      metraj_ready += oneSatir.isReady ? Number(oneSatir.metraj) : 0
+      delete oneSatir.isKaydedilecek
+      return oneSatir
+    })
+   
+    
     hazirlananMetraj_new.satirlar.filter(x => x.isReady).map(oneSatir => {
       metraj_ready += Number(oneSatir.metraj)
     })
