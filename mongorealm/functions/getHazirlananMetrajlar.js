@@ -1,5 +1,5 @@
 exports = async function ({
-  _dugumId,
+  _projeId, _dugumId
 }) {
 
 
@@ -21,15 +21,21 @@ exports = async function ({
   }
 
   const collection_HazirlananMetrajlar = context.services.get("mongodb-atlas").db("rapor724_v2").collection("hazirlananMetrajlar")
+  // const collection_Projeler = context.services.get("mongodb-atlas").db("rapor724_v2").collection("projeler")
 
+  // let proje = await collection_Projeler.findOne({ _id: _projeId }, { yetki: 1 })
 
   let hazirlananMetrajlar = await collection_HazirlananMetrajlar.find({ _dugumId })
 
+  if(hazirlananMetrajlar.length > 0){
+    hazirlananMetrajlar = hazirlananMetrajlar.map(oneHazirlanan => {
+      oneHazirlanan.satirlar = oneHazirlanan.satirlar.filter(x => x.isReady)
+      return oneHazirlanan
+    })
+  }
 
-  hazirlananMetrajlar.satirlar = hazirlananMetrajlar.satirlar.filter(x => x.isReady)
 
-
-  return {hazirlananMetrajlar}
+  return { hazirlananMetrajlar }
 
 
 };
