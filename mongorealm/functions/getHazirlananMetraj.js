@@ -28,14 +28,10 @@ exports = async function ({
   try {
 
     let hazirlananMetraj = await collection_hazirlananMetrajlar.findOne({ _dugumId, userEmail })
-    // const _versionId = new BSON.ObjectId()
-
-    // let resultUpdate = await collection_hazirlananMetrajlar.updateOne({ _dugumId, userEmail }, { $set: { _versionId } })
 
     if (!hazirlananMetraj) {
 
       hazirlananMetraj = {
-        isDeleted:true,
         _versionId,
         _dugumId,
         userEmail,
