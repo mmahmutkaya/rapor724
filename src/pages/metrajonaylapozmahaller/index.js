@@ -227,7 +227,10 @@ export default function P_MetrajOnaylaPozMahaller() {
   }
 
   const save_select = () => {
-    
+
+    console.log("dugumler_byPoz_state", dugumler_byPoz_state)
+    RealmApp?.currentUser.callFunction("update_hazirlananMetrajlar_selectedFull",({}))
+
   }
 
 
@@ -587,7 +590,7 @@ export default function P_MetrajOnaylaPozMahaller() {
                                 }
                                 {selectMode && hasMetraj && !hasSelectedFull && hasSelectedFull_aday &&
                                   <Box sx={{ display: "grid", alignItems: "center", justifyContent: "center" }}>
-                                    <AddCircleIcon variant="contained" sx={{ fontSize: "0.95rem", color: "green", "&:hover": { color: "green" } }} />
+                                    <AddCircleIcon variant="contained" sx={{ fontSize: "0.90rem", color: "green", "&:hover": { color: "green" } }} />
                                   </Box>
                                 }
 

@@ -57,7 +57,7 @@ export default function P_MetrajOlusturPozMahaller() {
     !selectedPoz_metraj && navigate('/metrajpozlar')
     setDugumler_byPoz(_.cloneDeep(data?.dugumler_byPoz))
     setLbsMetrajlar(_.cloneDeep(data?.lbsMetrajlar))
-
+    // console.log("data?.dugumler_byPoz",data?.dugumler_byPoz)
     return () => {
       // setselectedPoz_metraj()
       // setDugumler_filtered()

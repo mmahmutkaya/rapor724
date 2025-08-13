@@ -35,17 +35,16 @@ import { useGetMahaller } from '../hooks/useMongo';
 
 
 
-export default function P_HeaderMetrajOlusturCetvel({ show, setShow, isChanged, cancel, save }) {
+export default function P_HeaderMetrajOlusturCetvel({ show, setShow, isChanged, cancel, save, isChanged_ready, cancel_ready, save_ready }) {
 
   const navigate = useNavigate()
 
   const { drawerWidth, topBarHeight } = useContext(StoreContext)
 
-  const { detailMode, setDetailMode } = useContext(StoreContext)
-
   const { selectedPoz_metraj, selectedMahal_metraj } = useContext(StoreContext)
 
   const [showEminMisin, setShowEminMisin] = useState(false)
+  const [showEminMisin_ready, setShowEminMisin_ready] = useState(false)
 
 
   return (
@@ -62,6 +61,22 @@ export default function P_HeaderMetrajOlusturCetvel({ show, setShow, isChanged, 
           action2={() => {
             cancel()
             setShowEminMisin()
+          }}
+        />
+      }
+
+
+      {showEminMisin_ready &&
+        <DialogAlert
+          dialogIcon={"warning"}
+          dialogMessage={"Yaptığınız değişiklikleri kaybedeceksiniz ?"}
+          onCloseAction={() => setShowEminMisin_ready()}
+          actionText1={"İptal"}
+          action1={() => setShowEminMisin_ready()}
+          actionText2={"Onayla"}
+          action2={() => {
+            cancel_ready()
+            setShowEminMisin_ready()
           }}
         />
       }
@@ -110,7 +125,7 @@ export default function P_HeaderMetrajOlusturCetvel({ show, setShow, isChanged, 
             <Grid container>
 
 
-              {show === "DugumMetrajlari" &&
+              {show === "Main" && !isChanged_ready &&
                 <>
 
                   <Grid item >
@@ -130,18 +145,38 @@ export default function P_HeaderMetrajOlusturCetvel({ show, setShow, isChanged, 
               }
 
 
-              {show === "EditMetraj" &&
+              {show === "EditMetraj" && !isChanged_ready &&
 
                 <>
 
                   <Grid item >
-                    <IconButton onClick={() => isChanged ? setShowEminMisin(true) : setShow("DugumMetrajlari")}>
+                    <IconButton onClick={() => isChanged ? setShowEminMisin(true) : setShow("Main")}>
                       <ClearOutlined variant="contained" sx={{ color: "red" }} />
                     </IconButton>
                   </Grid>
 
                   <Grid item >
                     <IconButton onClick={() => save()} disabled={!isChanged} >
+                      <SaveIcon variant="contained" />
+                    </IconButton>
+                  </Grid>
+
+                </>
+              }
+
+
+              {show === "Main" && isChanged_ready && 
+
+                <>
+
+                  <Grid item >
+                    <IconButton onClick={() => setShowEminMisin_ready(true)}>
+                      <ClearOutlined variant="contained" sx={{ color: "red" }} />
+                    </IconButton>
+                  </Grid>
+
+                  <Grid item >
+                    <IconButton onClick={() => save()} disabled={!isChanged_ready} >
                       <SaveIcon variant="contained" />
                     </IconButton>
                   </Grid>

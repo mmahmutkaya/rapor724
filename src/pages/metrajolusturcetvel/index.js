@@ -28,6 +28,7 @@ import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import CheckIcon from '@mui/icons-material/Check';
 import LockIcon from '@mui/icons-material/Lock';
 
+
 export default function P_MetrajOlusturCetvel() {
 
   const queryClient = useQueryClient()
@@ -47,19 +48,17 @@ export default function P_MetrajOlusturCetvel() {
 
 
   const [dialogAlert, setDialogAlert] = useState()
-  const [show, setShow] = useState("DugumMetrajlari")
-  const [approveMode, setApproveMode] = useState()
+  const [show, setShow] = useState("Main")
   const [isChanged, setIsChanged] = useState(0)
   const [hazirlananMetraj_state, setHazirlananMetraj_state] = useState()
-  const [hazirlananMetrajlar_state, setHazirlananMetrajlar_state] = useState()
-  const [onaylananMetraj_state, setOnaylananMetraj_state] = useState()
-  const [onaylananMetrajUsers_state, setOnaylananMetrajUsers_state] = useState()
-  const [dugumMetraj_state, setDugumMetraj_state] = useState()
-  const [metraj, setMetraj] = useState()
-  const [_pozId, set_pozId] = useState()
-  const [mahalBilgiler_willBeSaved, setMahalBilgiler_willBeSaved] = useState([])
-  const [autoFocus, setAutoFocus] = useState({ pozId: null, mahalId: null })
-  const [satirlarToplam, setSatirlarToplam] = useState()
+  const [hazirlananMetraj_backUp, setHazirlananMetraj_backUp] = useState()
+
+  const [isChanged_ready, setIsChanged_ready] = useState()
+
+
+
+  const [_pozId] = useState()
+
 
   let pozBirim
   let pozMetraj
@@ -89,7 +88,8 @@ export default function P_MetrajOlusturCetvel() {
   const navigate = useNavigate()
   useEffect(() => {
     !selectedNode_metraj && navigate("/metrajpozmahaller")
-    setHazirlananMetraj_state(hazirlananMetraj)
+    setHazirlananMetraj_state(_.cloneDeep(hazirlananMetraj))
+    setHazirlananMetraj_backUp(_.cloneDeep(hazirlananMetraj))
   }, [hazirlananMetraj])
 
 
@@ -153,6 +153,7 @@ export default function P_MetrajOlusturCetvel() {
 
       }
 
+      oneRow.isKaydedilecek = true
       return oneRow
 
     })
@@ -163,18 +164,26 @@ export default function P_MetrajOlusturCetvel() {
   }
 
 
+  const cancel = () => {
+    setHazirlananMetraj_state(_.cloneDeep(hazirlananMetraj_backUp))
+    setIsChanged()
+    setShow("Main")
+  }
+
+
   // Edit Metraj Sayfasının Fonksiyonu
   const save = async () => {
 
-    if (isChanged) {
+    if (isChanged || isChanged_ready) {
       try {
 
-        // console.log("hazirlananMetraj_state",hazirlananMetraj_state)
+        console.log("hazirlananMetraj_state",hazirlananMetraj_state)
         await RealmApp?.currentUser.callFunction("update_hazirlananMetraj_new", ({ _dugumId: selectedNode_metraj._id, hazirlananMetraj_new: hazirlananMetraj_state }))
 
         queryClient.invalidateQueries(['hazirlananMetraj', selectedNode_metraj?._id.toString()])
         setIsChanged()
-        setShow("DugumMetrajlari")
+        setIsChanged_ready()
+        setShow("Main")
         return
 
       } catch (err) {
@@ -193,7 +202,7 @@ export default function P_MetrajOlusturCetvel() {
           onCloseAction = () => {
             setDialogAlert()
             setIsChanged()
-            setShow("DugumMetrajlari")
+            setShow("Main")
             queryClient.invalidateQueries(['hazirlananMetrajlar', selectedNode_metraj?._id.toString()])
           }
         }
@@ -209,11 +218,87 @@ export default function P_MetrajOlusturCetvel() {
   }
 
 
-  const cancel = () => {
-    queryClient.invalidateQueries(['hazirlananMetraj'])
-    setIsChanged()
-    setShow("DugumMetrajlari")
+
+
+
+
+
+  const addRow_ready = (oneRow) => {
+
+    let hazirlananMetraj_state2 = _.cloneDeep(hazirlananMetraj_state)
+    hazirlananMetraj_state2.satirlar = hazirlananMetraj_state2.satirlar.map(oneSatir => {
+      if (oneSatir.satirNo === oneRow.satirNo) {
+        oneSatir.isReady = true
+        oneSatir.isKaydedilecek ? delete oneSatir.isKaydedilecek : oneSatir.isKaydedilecek = true
+      }
+      return oneSatir
+    })
+    hazirlananMetraj_state2.satirlar.find(x => x.isKaydedilecek) ? setIsChanged_ready(true) : setIsChanged_ready()
+    setHazirlananMetraj_state(hazirlananMetraj_state2)
   }
+
+
+  const removeRow_ready = (oneRow) => {
+
+    let hazirlananMetraj_state2 = _.cloneDeep(hazirlananMetraj_state)
+    hazirlananMetraj_state2.satirlar = hazirlananMetraj_state2.satirlar.map(oneSatir => {
+      if (oneSatir.satirNo === oneRow.satirNo) {
+        delete oneSatir.isReady
+        oneSatir.isKaydedilecek ? delete oneSatir.isKaydedilecek : oneSatir.isKaydedilecek = true
+      }
+      return oneSatir
+    })
+
+    hazirlananMetraj_state2.satirlar.find(x => x.isKaydedilecek) ? setIsChanged_ready(true) : setIsChanged_ready()
+    setHazirlananMetraj_state(hazirlananMetraj_state2)
+  }
+
+  const cancel_ready = () => {
+    setHazirlananMetraj_state(_.cloneDeep(hazirlananMetraj_backUp))
+    setIsChanged_ready()
+  }
+
+
+  // const save_ready = async () => {
+  //   try {
+
+  //     // console.log("hazirlananMetraj_state",hazirlananMetraj_state)
+  //     await RealmApp?.currentUser.callFunction("update_hazirlananMetraj_new", ({ _dugumId: selectedNode_metraj._id, hazirlananMetraj_new: hazirlananMetraj_state }))
+
+  //     queryClient.invalidateQueries(['hazirlananMetraj', selectedNode_metraj?._id.toString()])
+  //     setIsChanged_ready()
+  //     return
+
+  //   } catch (err) {
+
+  //     console.log(err)
+
+  //     let dialogIcon = "warning"
+  //     let dialogMessage = "Beklenmedik hata, sayfayı yenileyiniz, sorun devam ederse Rapor7/24 ile irtibata geçiniz.."
+  //     let onCloseAction = () => setDialogAlert()
+
+  //     if (err.message.includes("__mesajBaslangic__") && err.message.includes("__mesajBitis__")) {
+  //       let mesajBaslangic = err.message.indexOf("__mesajBaslangic__") + "__mesajBaslangic__".length
+  //       let mesajBitis = err.message.indexOf("__mesajBitis__")
+  //       dialogMessage = err.message.slice(mesajBaslangic, mesajBitis)
+  //       dialogIcon = "info"
+  //       onCloseAction = () => {
+  //         setDialogAlert()
+  //         setIsChanged_ready()
+  //         queryClient.invalidateQueries(['hazirlananMetrajlar', selectedNode_metraj?._id.toString()])
+  //       }
+  //     }
+  //     setDialogAlert({
+  //       dialogIcon,
+  //       dialogMessage,
+  //       detailText: err?.message ? err.message : null,
+  //       onCloseAction
+  //     })
+  //   }
+  // }
+
+
+
 
 
 
@@ -289,9 +374,8 @@ export default function P_MetrajOlusturCetvel() {
       <Grid name="metrajCetveliHeader" item sx={{ mt: (parseFloat(subHeaderHeight) + 1) + "rem", }}>
         <HeaderMetrajOlusturCetvel
           show={show} setShow={setShow}
-          save={save}
-          cancel={cancel}
-          isChanged={isChanged} setIsChanged={setIsChanged}
+          save={save} cancel={cancel} isChanged={isChanged} setIsChanged={setIsChanged}
+          cancel_ready={cancel_ready} isChanged_ready={isChanged_ready} setIsChanged_ready={setIsChanged_ready}
         />
       </Grid>
 
@@ -370,7 +454,7 @@ export default function P_MetrajOlusturCetvel() {
 
                 {["satirNo", "aciklama", "carpan1", "carpan2", "carpan3", "carpan4", "carpan5", "metraj", "pozBirim"].map((oneProperty, index) => {
                   // let isCellEdit = (oneProperty === "satirNo" || oneProperty === "pozBirim" || oneProperty === "metraj") ? false : true
-                  let isCellEdit = show === "EditMetraj" && !oneRow.isSelected && (oneProperty.includes("aciklama") || oneProperty.includes("carpan")) ? true : false
+                  let isCellEdit = show === "EditMetraj" && !oneRow.isSelected && !oneRow.isReady && (oneProperty.includes("aciklama") || oneProperty.includes("carpan")) ? true : false
                   let isMinha = oneRow["aciklama"].replace("İ", "i").toLowerCase().includes("minha") ? true : false
 
                   return (
@@ -432,7 +516,7 @@ export default function P_MetrajOlusturCetvel() {
                       {!isCellEdit &&
                         <Box sx={{
                           ...css_metrajCetveliSatir,
-                          backgroundColor: oneRow?.isSelected && myTema.renkler.inaktifGri,
+                          backgroundColor: oneRow?.isSelected ? myTema.renkler.inaktifGri : oneRow?.isReady && "rgba(46, 172, 63, 0.13)",
                           justifyContent: oneProperty.includes("aciklama") ? "start" : oneProperty.includes("carpan") ? "end" : oneProperty.includes("metraj") ? "end" : "center",
                           minWidth: oneProperty.includes("carpan") ? "5rem" : oneProperty.includes("metraj") ? "5rem" : null,
                           color: isMinha ? "red" : null
@@ -448,24 +532,27 @@ export default function P_MetrajOlusturCetvel() {
 
                 <Box></Box>
 
-                <Box sx={{
-                  // backgroundColor: oneRow.isSelected ? null : "rgba(255,255,0, 0.3)",
-                  // backgroundColor: "rgba(255,255,0, 0.3)",
-                  cursor: "pointer",
-                  display: "grid",
-                  alignItems: "center",
-                  justifyItems: "center",
-                  px: "0.3rem",
-                  border: "1px solid black"
-                }}>
+                <Box
+                  onClick={() => show === "Main" && !oneRow.isSelected && !oneRow.isReady ? addRow_ready(oneRow) : show === "Main" && !oneRow.isSelected && oneRow.isReady && removeRow_ready(oneRow)}
+                  sx={{
+                    // backgroundColor: oneRow.isSelected ? null : "rgba(255,255,0, 0.3)",
+                    // backgroundColor: "rgba(255,255,0, 0.3)",
+                    cursor: "pointer",
+                    display: "grid",
+                    alignItems: "center",
+                    justifyItems: "center",
+                    px: "0.3rem",
+                    border: "1px solid black"
+                  }}>
                   {oneRow.isSelected &&
-                    <Tooltip placement="top" title="Onaylı Metraj Kısmında Kullanıldı">
-                      <LockIcon variant="contained" sx={{ color: "gray", fontSize: "1rem" }} />
-                    </Tooltip>
+                    <LockIcon variant="contained" sx={{ color: "gray", fontSize: "1rem" }} />
                   }
-                  {/* {!oneRow.isSelected &&
+                  {!oneRow.isSelected && oneRow.isReady &&
+                    <CheckIcon variant="contained" sx={{ color: "rgba(14, 99, 7, 0.96)", fontSize: "0.95rem" }} />
+                  }
+                  {!oneRow.isSelected && !oneRow.isReady &&
                     <HourglassFullSharpIcon variant="contained" sx={{ color: "rgba( 255,165,0, 1 )", fontSize: "0.95rem" }} />
-                  } */}
+                  }
                 </Box>
 
               </React.Fragment>
