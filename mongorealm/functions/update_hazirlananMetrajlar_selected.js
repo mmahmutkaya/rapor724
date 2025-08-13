@@ -46,8 +46,6 @@ exports = async function ({
   let hasSelected
   let hasSelectedFull
 
-  const _versionId = hazirlananMetrajlar_state[0]._versionId
-
   let hazirlananMetrajlar
   let onaylananMetraj
 
@@ -55,18 +53,11 @@ exports = async function ({
   let metrajOnaylanan = 0
 
 
-  // try {
-
-  //   hazirlananMetrajlar = await collection_HazirlananMetrajlar.find({ _dugumId }).toArray()
-  //   hazirlananMetrajlar_state.map(oneHazirlanan => {
-  //     if (oneHazirlanan._versionId.toString() !== _versionId.toString()) {
-  //       throw new Error(`__mesajBaslangic__Kaydetmeye çalıştığınız bazı veriler, siz işlem yaparken, başa kullanıcı tarafından güncellenmiş. Bu sebeple kayıt işleminiz gerçekleşmedi. Kontrol edip tekrar deneyiniz.__mesajBitis__`)
-  //     }
-  //   })
-
-  // } catch (error) {
-  //   throw new Error("MONGO // update_hazirlananMetrajlar_selected // versionId hazirlananMetraj" + error);
-  // }
+  try {
+    hazirlananMetrajlar = await collection_HazirlananMetrajlar.find({ _dugumId }).toArray()
+  } catch (error) {
+    throw new Error("MONGO // update_hazirlananMetrajlar_selected // versionId hazirlananMetraj" + error);
+  }
 
 
   // try {
