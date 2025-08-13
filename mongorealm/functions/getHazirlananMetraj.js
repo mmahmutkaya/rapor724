@@ -2,7 +2,6 @@ exports = async function ({
   _dugumId,
 }) {
 
-
   const user = context.user;
   const _userId = new BSON.ObjectId(user.id)
   const userEmail = context.user.data.email
@@ -19,29 +18,30 @@ exports = async function ({
     throw new Error("MONGO // getHazirlananMetraj // '_dugumId' verisi db sorgusuna gelmedi");
   }
 
-  const collection_Dugumler = context.services.get("mongodb-atlas").db("rapor724_v2").collection("dugumler")
+  const collection_hazirlananMetrajlar = context.services.get("mongodb-atlas").db("rapor724_v2").collection("hazirlananMetrajlar")
 
   try {
-    let metrajSatirlari
-    let dugum = await collection_Dugumler.findOne({ _id:_dugumId }, { metrajSatirlari: 1 })
-    metrajSatirlari = dugum.metrajSatirlari
-    if (!metrajSatirlari?.filter(x => x.userEmail).length > 0) {
-      metrajSatirlari = [
-        { satirNo: userCode + "-" + 1, aciklama: "", carpan1: "", carpan2: "", carpan3: "", carpan4: "", carpan5: "", metraj: "", userEmail },
-        { satirNo: userCode + "-" + 2, aciklama: "", carpan1: "", carpan2: "", carpan3: "", carpan4: "", carpan5: "", metraj: "", userEmail },
-        { satirNo: userCode + "-" + 3, aciklama: "", carpan1: "", carpan2: "", carpan3: "", carpan4: "", carpan5: "", metraj: "", userEmail },
-        { satirNo: userCode + "-" + 4, aciklama: "", carpan1: "", carpan2: "", carpan3: "", carpan4: "", carpan5: "", metraj: "", userEmail },
-        { satirNo: userCode + "-" + 5, aciklama: "", carpan1: "", carpan2: "", carpan3: "", carpan4: "", carpan5: "", metraj: "", userEmail }
-      ]
+
+    let hazirlananMetraj = await collection_hazirlananMetrajlar.findOne({ _dugumId, userEmail })
+
+    if (!hazirlananMetraj) {
+
+      hazirlananMetraj = {
+        _dugumId,
+        userEmail,
+        metraj: 0,
+        satirlar: [
+          { satirNo: userCode + "-" + 1, aciklama: "", carpan1: "", carpan2: "", carpan3: "", carpan4: "", carpan5: "", metraj: "" },
+          { satirNo: userCode + "-" + 2, aciklama: "", carpan1: "", carpan2: "", carpan3: "", carpan4: "", carpan5: "", metraj: "" },
+          { satirNo: userCode + "-" + 3, aciklama: "", carpan1: "", carpan2: "", carpan3: "", carpan4: "", carpan5: "", metraj: "" },
+          { satirNo: userCode + "-" + 4, aciklama: "", carpan1: "", carpan2: "", carpan3: "", carpan4: "", carpan5: "", metraj: "" },
+          { satirNo: userCode + "-" + 5, aciklama: "", carpan1: "", carpan2: "", carpan3: "", carpan4: "", carpan5: "", metraj: "" }
+        ]
+      }
+
     }
 
-
-    let metraj = 0
-    metrajSatirlari.map(oneSatir => {
-      metraj += Number(oneSatir.metraj)
-    })
-
-    return { metrajSatirlari, metraj }
+    return hazirlananMetraj
 
   } catch (error) {
     throw new Error({ hatayeri: "MONGO // getHazirlananMetraj // ", error });
