@@ -2,11 +2,11 @@
 
 use('rapor724_v2');
 
-// db.onaylananMetrajlar.deleteMany({})
+db.onaylananMetrajlar.deleteMany({})
 
 db.hazirlananMetrajlar.deleteMany({})
 
-// db.dugumler.deleteMany({})
+db.dugumler.deleteMany({})
 
 
 // const veri = [

@@ -32,7 +32,7 @@ import SaveIcon from '@mui/icons-material/Save';
 
 
 export default function HeaderMetrajOnaylaPozMahaller({
-  setShow,
+  setShow, anySelectable,
   selectMode, setSelectMode, isChange_select, setIsChange_select, save_select, cancel_select
 }) {
 
@@ -135,13 +135,13 @@ export default function HeaderMetrajOnaylaPozMahaller({
 
               {!selectMode &&
                 <Grid item sx={{ cursor: "pointer" }}>
-                  <IconButton onClick={() => setSelectMode(x => !x)} disabled={false}>
-                    <GroupWorkIcon variant="contained" sx={{ color: "gray", "&:hover": { color: "gray" } }} />
+                  <IconButton onClick={() => setSelectMode(x => !x)} disabled={!anySelectable}>
+                    <GroupWorkIcon variant="contained" sx={{ color: anySelectable ? "gray" : "lightgray"}} />
                   </IconButton>
                 </Grid>
               }
 
-              {!selectMode &&
+              {!selectMode && 
                 <Grid item >
                   <IconButton onClick={() => setShow("ShowMetrajYapabilenler")} disabled={false}>
                     <VisibilityIcon variant="contained" />

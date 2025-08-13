@@ -163,15 +163,27 @@ export default function P_HeaderMetrajOnaylaCetvel({
                 </Grid>
               }
 
-              {!isChanged_unLock && show !== "EditMetraj" &&
+              {/* {!isChanged_unLock && show !== "EditMetraj" &&
                 <Grid item >
-                  {/* <Tooltip placement="bottom" title={"Değişiklileri Göster"}> */}
                   <IconButton onClick={() => setShowHasSelectedCopy(x => !x)} >
-                    {/* <VisibilityIcon variant="contained" sx={{ color: showHasSelectedCopy ? "gray" : "lightgray" }} /> */}
-                    {/* <VisibilityIcon variant="contained" sx={{ color: hasSelectedCopySatirlar && showHasSelectedCopy ? "rgba(255, 132, 0, 1)" : hasSelectedCopySatirlar && !showHasSelectedCopy ? "rgba(255, 132, 0, 0.5)" : "lightgray" }} /> */}
-                    <DeleteForeverIcon variant="contained" sx={{ color: showHasSelectedCopy ? "gray" : "lightgray" }} />
+                    <DeleteForeverIcon variant="contained" sx={{ color: showHasSelectedCopy ? "red" : "rgba(200, 17, 17, 0.33)" }} />
                   </IconButton>
-                  {/* </Tooltip> */}
+                </Grid>
+              } */}
+
+              {!isChanged_unLock && show !== "EditMetraj" && showHasSelectedCopy &&
+                <Grid item >
+                  <IconButton onClick={() => setShowHasSelectedCopy(x => !x)} >
+                    <DeleteForeverIcon variant="contained" sx={{ color: "red" }} />
+                  </IconButton>
+                </Grid>
+              }
+
+              {!isChanged_unLock && show !== "EditMetraj" && !showHasSelectedCopy &&
+                <Grid item >
+                  <IconButton onClick={() => setShowHasSelectedCopy(x => !x)} >
+                    <VisibilityIcon variant="contained" sx={{ color: "rgba(209, 17, 17, 0.31)" }} />
+                  </IconButton>
                 </Grid>
               }
 

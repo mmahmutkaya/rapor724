@@ -23,6 +23,7 @@ import { BorderBottom } from '@mui/icons-material';
 import Tooltip from '@mui/material/Tooltip';
 import FileDownloadDoneIcon from '@mui/icons-material/FileDownloadDone';
 import CircleIcon from '@mui/icons-material/Circle';
+import AddCircleIcon from '@mui/icons-material/AddCircle';
 
 
 export default function P_MetrajOnaylaPozMahaller() {
@@ -53,6 +54,8 @@ export default function P_MetrajOnaylaPozMahaller() {
   const [isChange_select, setIsChange_select] = useState(false)
   const [dugumler_byPoz_state, setDugumler_byPoz_state] = useState()
   const [dugumler_byPoz_backUp, setDugumler_byPoz_backup] = useState()
+  const [anySelectable, setAnySelectable] = useState()
+
 
 
   const [lbsMetrajlar, setLbsMetrajlar] = useState([])
@@ -74,6 +77,7 @@ export default function P_MetrajOnaylaPozMahaller() {
     setDugumler_byPoz_state(_.cloneDeep(data?.dugumler_byPoz))
     setDugumler_byPoz_backup(_.cloneDeep(data?.dugumler_byPoz))
     setLbsMetrajlar(_.cloneDeep(data?.lbsMetrajlar))
+    setAnySelectable(data?.anySelectable)
     return () => {
       // setselectedPoz_metraj()
       // setDugumler_filtered()
@@ -159,7 +163,10 @@ export default function P_MetrajOnaylaPozMahaller() {
       dugumler_byPoz_state2 = dugumler_byPoz_state2?.map(oneDugum => {
         oneDugum?.hazirlananMetrajlar?.map(oneHazirlanan => {
           if (oneHazirlanan.userEmail === userEmail && !oneHazirlanan.hasSelectedFull) {
-            oneHazirlanan.hasSelectedFull_aday = true
+            if (!oneHazirlanan.hasSelectedFull) {
+              oneHazirlanan.hasSelectedFull_aday = true
+              setIsChange_select(true)
+            }
           }
           return oneHazirlanan
         })
@@ -177,7 +184,10 @@ export default function P_MetrajOnaylaPozMahaller() {
         oneDugum?.hazirlananMetrajlar?.map(oneHazirlanan => {
 
           if (oneHazirlanan.userEmail === userEmail && !oneHazirlanan.hasSelectedFull) {
-            oneHazirlanan.hasSelectedFull_aday = true
+            if (!oneHazirlanan.hasSelectedFull) {
+              oneHazirlanan.hasSelectedFull_aday = true
+              setIsChange_select(true)
+            }
           }
           return oneHazirlanan
         })
@@ -195,7 +205,10 @@ export default function P_MetrajOnaylaPozMahaller() {
         oneDugum?.hazirlananMetrajlar?.map(oneHazirlanan => {
 
           if (oneHazirlanan.userEmail === userEmail && !oneHazirlanan.hasSelectedFull) {
-            oneHazirlanan.hasSelectedFull_aday = true
+            if (!oneHazirlanan.hasSelectedFull) {
+              oneHazirlanan.hasSelectedFull_aday = true
+              setIsChange_select(true)
+            }
           }
           return oneHazirlanan
         })
@@ -203,17 +216,8 @@ export default function P_MetrajOnaylaPozMahaller() {
       })
     }
 
-    // dugumler_byPoz_state2 = dugumler_byPoz_state2.filter(x => x)
-
-    // console.log("dugumler_byPoz_state2", dugumler_byPoz_state2)
-
     setDugumler_byPoz_state(dugumler_byPoz_state2)
-    // console.log("dugumler_byPoz_state2", dugumler_byPoz_state2.map(oneDugum => {
-    //   let oneHazirlanan = oneDugum.hazirlananMetrajlar?.find(x => x.userEmail === userEmail)
-    //   return oneHazirlanan
-    // }))
 
-    setIsChange_select(true)
   }
 
   const cancel_select = () => {
@@ -223,7 +227,7 @@ export default function P_MetrajOnaylaPozMahaller() {
   }
 
   const save_select = () => {
-
+    
   }
 
 
@@ -297,7 +301,7 @@ export default function P_MetrajOnaylaPozMahaller() {
       <Grid item >
         <HeaderMetrajOnaylaPozMahaller
           setShow={setShow}
-
+          anySelectable={anySelectable}
           setSelectMode={setSelectMode} selectMode={selectMode}
           isChange_select={isChange_select} setIsChange_select={setIsChange_select} cancel_select={cancel_select} save_select={save_select}
         />
@@ -583,7 +587,7 @@ export default function P_MetrajOnaylaPozMahaller() {
                                 }
                                 {selectMode && hasMetraj && !hasSelectedFull && hasSelectedFull_aday &&
                                   <Box sx={{ display: "grid", alignItems: "center", justifyContent: "center" }}>
-                                    <FileDownloadDoneIcon variant="contained" sx={{ fontSize: "1rem", color: "green", "&:hover": { color: "green" } }} />
+                                    <AddCircleIcon variant="contained" sx={{ fontSize: "0.95rem", color: "green", "&:hover": { color: "green" } }} />
                                   </Box>
                                 }
 

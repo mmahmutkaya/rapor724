@@ -394,7 +394,7 @@ export default function P_MetrajCetveliOnaylanan() {
 
     try {
 
-      await RealmApp?.currentUser.callFunction("update_onaylananMetraj2", ({ _dugumId: selectedNode_metraj._id, onaylananMetraj_state }))
+      await RealmApp?.currentUser.callFunction("update_onaylananMetraj", ({ _dugumId: selectedNode_metraj._id, onaylananMetraj_state }))
       queryClient.invalidateQueries(['onaylananMetraj', selectedNode_metraj?._id.toString()])
       setShow("Main")
       setIsChanged_unLock()
