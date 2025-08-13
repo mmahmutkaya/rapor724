@@ -114,7 +114,7 @@ exports = async function ({
 
     anySelectable
     dugumler_byPoz.map(oneDugum => {
-      oneDugum?.hazirlananMetrajlar.map(oneHazirlanan => {
+      oneDugum?.hazirlananMetrajlar?.map(oneHazirlanan => {
         if (oneHazirlanan) {
           if (!oneHazirlanan.hasSelectedFull) {
             anySelectable = true
