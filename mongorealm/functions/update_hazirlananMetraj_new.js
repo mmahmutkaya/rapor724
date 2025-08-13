@@ -38,25 +38,24 @@ exports = async function ({
   let metraj_ready = 0
   let metraj = 0
 
+  let hazirlananMetraj_db
+
   try {
 
-    let hazirlananMetraj_db = await collection_HazirlananMetrajlar.findOne({ _dugumId, userEmail })
+    hazirlananMetraj_db = await collection_HazirlananMetrajlar.findOne({ _dugumId, userEmail })
 
     // if (hazirlananMetraj._versionId.toString() !== _versionId.toString()) {
     //   throw new Error(`__mesajBaslangic__Kaydetmeye çalıştığınız bazı satırlar, siz işlem yaparken, başa kullanıcı tarafından güncellenmiş. Bu sebeple kayıt işleminiz gerçekleşmedi. Kontrol edip tekrar deneyiniz.__mesajBitis__`)
     // }
 
-    let selectedSatirlar = hazirlananMetraj_db.satirlar.filter(x => x.isSelected)
-    let kaydedilecekSatirlar = hazirlananMetraj_new.satirlar.filter(x => x.isKaydedilecek)
-    selectedSatirlar.map(oneSatir => {
+    let selectedSatirlar = hazirlananMetraj_db?.satirlar?.filter(x => x.isSelected)
+    let kaydedilecekSatirlar = hazirlananMetraj_new.satirlar?.filter(x => x.isKaydedilecek)
+    selectedSatirlar?.map(oneSatir => {
       if (kaydedilecekSatirlar.find(x => x.satirNo === oneSatir.satirNo)) {
         throw new Error(`__mesajBaslangic__Kaydetmeye çalıştığınız bazı satırlar, siz işlem yaparken, başa kullanıcı tarafından onaylı tarafa alınmış. Kayıt işleminiz gerçekleşmedi. Kontrol edip tekrar deneyiniz.__mesajBitis__`)
       }
     })
 
-   
-      
-    
     // birdahaki kayıt için kaydedilecek ibarelerini satırları temizleme
     // db hazirlik - metraj
     // dugum - db hazirlik - metraj
@@ -66,8 +65,14 @@ exports = async function ({
       delete oneSatir.isKaydedilecek
       return oneSatir
     })
-   
-  
+
+
+  } catch (err) {
+    throw new Error("MONGO // update_hazirlananMetrajlar_new // ilk aşama " + err.message);
+  }
+
+
+  try {
 
     hazirlananMetraj_new.satirlar.map(oneSatir => {
       if (!(oneSatir.aciklama === "" && Number(oneSatir.carpan1) === 0 && Number(oneSatir.carpan2) === 0 && Number(oneSatir.carpan3) === 0 && Number(oneSatir.carpan4) === 0 && Number(oneSatir.carpan5) === 0)) {
@@ -83,16 +88,22 @@ exports = async function ({
         { _dugumId, userEmail }
       )
     } else {
-      await collection_HazirlananMetrajlar.updateOne(
+
+      const result = await collection_HazirlananMetrajlar.updateOne(
         { _dugumId, userEmail },
         { $set: { ...hazirlananMetraj_new, isDeleted: false } }
       )
+
+      if (!result.matchedCount) {
+        await collection_HazirlananMetrajlar.insertOne({ ...hazirlananMetraj_new, isDeleted: false }
+        )
+      }
+
     }
 
 
-
   } catch (err) {
-    throw new Error("MONGO // update_hazirlananMetrajlar_new // " + err.message);
+    throw new Error("MONGO // update_hazirlananMetrajlar_new // silinecek kontrol kısmı " + err.message);
   }
 
 

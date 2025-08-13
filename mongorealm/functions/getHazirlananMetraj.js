@@ -27,20 +27,11 @@ exports = async function ({
 
   try {
 
-    let hazirlananMetraj
-    const _versionId = new BSON.ObjectId()
+    let hazirlananMetraj = await collection_hazirlananMetrajlar.findOne({ _dugumId, userEmail })
 
-    let resultUpdate = await collection_hazirlananMetrajlar.updateOne({ _dugumId, userEmail }, { $set: { _versionId } })
+    if (!hazirlananMetraj) {
 
-    if (resultUpdate.matchedCount) {
-
-      hazirlananMetraj = await collection_hazirlananMetrajlar.findOne({ _dugumId, userEmail })
-      
-    } else {
-      
       hazirlananMetraj = {
-        isDeleted:true,
-        _versionId,
         _dugumId,
         userEmail,
         metraj: 0,
@@ -53,13 +44,8 @@ exports = async function ({
         ]
       }
 
-      // sa
-      await collection_hazirlananMetrajlar.insertOne(hazirlananMetraj)
-
     }
 
-    // db deki _versionId leri değiştirmeden başarısız olmuşsak diye ilave güvenlik önlemi veya biz yazdıktan sonra biri değiştirdi, biz kendimizinkini kullanalım
-    hazirlananMetraj._versionId = _versionId
     return hazirlananMetraj
 
   } catch (error) {
