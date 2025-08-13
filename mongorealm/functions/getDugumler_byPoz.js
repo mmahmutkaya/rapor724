@@ -31,22 +31,54 @@ exports = async function ({
   const collection_Projeler = context.services.get("mongodb-atlas").db("rapor724_v2").collection("projeler")
 
 
+  let dugumler_byPoz
   try {
 
-
-    const dugumler_byPoz = await collection_Dugumler.aggregate([
+    dugumler_byPoz = await collection_Dugumler.aggregate([
       { $match: { _pozId, openMetraj: true } },
       { $project: { _pozId: 1, _mahalId: 1, openMetraj: 1, hazirlananMetrajlar: 1, onaylananMetraj: 1 } }
     ]).toArray()
 
+    if (!dugumler_byPoz.length > 0) {
+      throw new Error("MONGO // getDugumler_byPoz // dugumler_byPoz boş ");
+    }
 
-    const proje = await collection_Projeler.findOne({ _id: _projeId }, { lbs: 1, yetki: 1 })
+  } catch (error) {
+    throw new Error("MONGO // getDugumler_byPoz // dugumler_byPoz sırasında hata oluştu"+ error);
+  }
 
-    let mahaller = await collection_Mahaller.aggregate([
+
+  let proje
+  try {
+
+    proje = await collection_Projeler.findOne({ _id: _projeId }, { lbs: 1, yetki: 1 })
+    if (!proje) {
+      throw new Error("MONGO // getDugumler_byPoz // proje bulunamadı ");
+    }
+
+  } catch (error) {
+    throw new Error("MONGO // getDugumler_byPoz // proje sırasında hata oluştu"+ error);
+  }
+
+
+  let mahaller
+  try {
+
+    mahaller = await collection_Mahaller.aggregate([
       { $match: { _projeId, isDeleted: false } },
       { $project: { mahalNo: 1, mahalName: 1, _lbsId: 1 } }
     ]).toArray()
 
+    if (!mahaller.length > 0) {
+      throw new Error("MONGO // getDugumler_byPoz // mahaller boş ");
+    }
+
+  } catch (error) {
+    throw new Error("MONGO // getDugumler_byPoz // mahaller sırasında hata oluştu" + error);
+  }
+
+
+  try {
 
 
     let lbsMetrajlar = proje?.lbs.map(oneLbs => {
