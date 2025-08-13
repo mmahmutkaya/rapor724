@@ -23,7 +23,7 @@ exports = async function ({
 
   try {
     let metrajSatirlari
-    let dugum = await collection_Dugumler.findOne({ _dugumId }, { metrajSatirlari: 1 })
+    let dugum = await collection_Dugumler.findOne({ _id:_dugumId }, { metrajSatirlari: 1 })
     metrajSatirlari = dugum.metrajSatirlari
     if (!metrajSatirlari?.filter(x => x.userEmail).length > 0) {
       metrajSatirlari = [
