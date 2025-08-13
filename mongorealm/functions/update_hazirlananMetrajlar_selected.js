@@ -55,30 +55,30 @@ exports = async function ({
   let metrajOnaylanan = 0
 
 
-  try {
+  // try {
 
-    hazirlananMetrajlar = await collection_HazirlananMetrajlar.find({ _dugumId }).toArray()
-    hazirlananMetrajlar_state.map(oneHazirlanan => {
-      if (oneHazirlanan._versionId.toString() !== _versionId.toString()) {
-        throw new Error(`__mesajBaslangic__Kaydetmeye çalıştığınız bazı veriler, siz işlem yaparken, başa kullanıcı tarafından güncellenmiş. Bu sebeple kayıt işleminiz gerçekleşmedi. Kontrol edip tekrar deneyiniz.__mesajBitis__`)
-      }
-    })
+  //   hazirlananMetrajlar = await collection_HazirlananMetrajlar.find({ _dugumId }).toArray()
+  //   hazirlananMetrajlar_state.map(oneHazirlanan => {
+  //     if (oneHazirlanan._versionId.toString() !== _versionId.toString()) {
+  //       throw new Error(`__mesajBaslangic__Kaydetmeye çalıştığınız bazı veriler, siz işlem yaparken, başa kullanıcı tarafından güncellenmiş. Bu sebeple kayıt işleminiz gerçekleşmedi. Kontrol edip tekrar deneyiniz.__mesajBitis__`)
+  //     }
+  //   })
 
-  } catch (error) {
-    throw new Error("MONGO // update_hazirlananMetrajlar_selected // versionId hazirlananMetraj" + error);
-  }
+  // } catch (error) {
+  //   throw new Error("MONGO // update_hazirlananMetrajlar_selected // versionId hazirlananMetraj" + error);
+  // }
 
 
-  try {
+  // try {
 
-    onaylananMetraj = await collection_OnaylananMetrajlar.findOne({ _dugumId });
-    if (onaylananMetraj._versionId.toString() !== _versionId.toString()) {
-      throw new Error(`__mesajBaslangic__Kaydetmeye çalıştığınız bazı veriler, siz işlem yaparken, başa kullanıcı tarafından güncellenmiş. Bu sebeple kayıt işleminiz gerçekleşmedi. Kontrol edip tekrar deneyiniz.__mesajBitis__`)
-    }
+  //   onaylananMetraj = await collection_OnaylananMetrajlar.findOne({ _dugumId });
+  //   if (onaylananMetraj._versionId.toString() !== _versionId.toString()) {
+  //     throw new Error(`__mesajBaslangic__Kaydetmeye çalıştığınız bazı veriler, siz işlem yaparken, başa kullanıcı tarafından güncellenmiş. Bu sebeple kayıt işleminiz gerçekleşmedi. Kontrol edip tekrar deneyiniz.__mesajBitis__`)
+  //   }
 
-  } catch (error) {
-    throw new Error("MONGO // update_hazirlananMetrajlar_selected // versionId onaylananMetraj " + error);
-  }
+  // } catch (error) {
+  //   throw new Error("MONGO // update_hazirlananMetrajlar_selected // versionId onaylananMetraj " + error);
+  // }
 
 
 
