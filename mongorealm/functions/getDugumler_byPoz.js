@@ -46,7 +46,7 @@ exports = async function ({
 
 
 
-    let lbsMetrajlar = proje.lbs.map(oneLbs => {
+    let lbsMetrajlar = proje?.lbs.map(oneLbs => {
 
       let mahaller_byLbs = mahaller.filter(x => x._lbsId.toString() === oneLbs._id.toString())
       let onaylananMetraj = 0
