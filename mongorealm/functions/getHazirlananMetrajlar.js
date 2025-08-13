@@ -27,9 +27,9 @@ exports = async function ({
 
   let hazirlananMetrajlar = await collection_HazirlananMetrajlar.find({ _dugumId })
 
-  if(hazirlananMetrajlar.length > 0){
+  if (hazirlananMetrajlar.length > 0) {
     hazirlananMetrajlar = hazirlananMetrajlar.map(oneHazirlanan => {
-      oneHazirlanan.satirlar = oneHazirlanan.satirlar.filter(x => x.isReady)
+      oneHazirlanan.satirlar = oneHazirlanan.satirlar.filter(x => x.isReady === true)
       return oneHazirlanan
     })
   }
