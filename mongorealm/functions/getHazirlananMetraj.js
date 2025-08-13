@@ -32,7 +32,6 @@ exports = async function ({
     if (!hazirlananMetraj) {
 
       hazirlananMetraj = {
-        _versionId,
         _dugumId,
         userEmail,
         metraj: 0,
