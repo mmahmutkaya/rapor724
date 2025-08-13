@@ -78,7 +78,7 @@ exports = async function ({
       if (!(oneSatir.aciklama === "" && Number(oneSatir.carpan1) === 0 && Number(oneSatir.carpan2) === 0 && Number(oneSatir.carpan3) === 0 && Number(oneSatir.carpan4) === 0 && Number(oneSatir.carpan5) === 0)) {
         isSilinecek = false
       }
-      if (oneSatir.isSelected) {
+      if (oneSatir.isReady) {
         isSilinecek = false
       }
     })
@@ -107,18 +107,7 @@ exports = async function ({
   }
 
 
-
-  try {
-    const result = await collection_OnaylananMetrajlar.findOne({ _dugumId })
-    if (!result) {
-      await collection_OnaylananMetrajlar.insertOne({ _dugumId, satirlar: [], metraj: 0 })
-    }
-  } catch (error) {
-    throw new Error("MONGO // update_hazirlananMetrajlar_new // ilk onaylananMetraj verisini oluşturma" + err.message);
-  }
-
-
-
+  
   try {
 
     let dugum = await collection_Dugumler.findOne({ _id: _dugumId })
