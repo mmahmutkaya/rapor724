@@ -46,8 +46,8 @@ exports = async function ({
     //   throw new Error(`__mesajBaslangic__Kaydetmeye çalıştığınız bazı satırlar, siz işlem yaparken, başa kullanıcı tarafından güncellenmiş. Bu sebeple kayıt işleminiz gerçekleşmedi. Kontrol edip tekrar deneyiniz.__mesajBitis__`)
     // }
 
-    let selectedSatirlar = hazirlananMetraj_db.satirlar.filter(x => x.isSelected)
-    let kaydedilecekSatirlar = hazirlananMetraj_new.satirlar.filter(x => x.isKaydedilecek)
+    let selectedSatirlar = hazirlananMetraj_db?.satirlar?.filter(x => x.isSelected)
+    let kaydedilecekSatirlar = hazirlananMetraj_new.satirlar?.filter(x => x.isKaydedilecek)
     selectedSatirlar.map(oneSatir => {
       if (kaydedilecekSatirlar.find(x => x.satirNo === oneSatir.satirNo)) {
         throw new Error(`__mesajBaslangic__Kaydetmeye çalıştığınız bazı satırlar, siz işlem yaparken, başa kullanıcı tarafından onaylı tarafa alınmış. Kayıt işleminiz gerçekleşmedi. Kontrol edip tekrar deneyiniz.__mesajBitis__`)
