@@ -28,21 +28,32 @@ exports = async function ({
   const currentTime = new Date();
 
   const collection_HazirlananMetrajlar = context.services.get("mongodb-atlas").db("rapor724_v2").collection("hazirlananMetrajlar")
+  const collection_OnaylananMetrajlar = context.services.get("mongodb-atlas").db("rapor724_v2").collection("onaylananMetrajlar")
   const collection_Dugumler = context.services.get("mongodb-atlas").db("rapor724_v2").collection("dugumler")
 
 
 
-  let _versionId = hazirlananMetraj_new._versionId
+
   let isSilinecek = true
+  let metraj_ready = 0
   let metraj = 0
 
   try {
 
-    let hazirlananMetraj = await collection_HazirlananMetrajlar.findOne({ _dugumId, userEmail })
+    let hazirlananMetraj_db = await collection_HazirlananMetrajlar.findOne({ _dugumId, userEmail })
 
-    if (hazirlananMetraj._versionId.toString() !== _versionId.toString()) {
-      throw new Error(`__mesajBaslangic__Kaydetmeye çalıştığınız bazı satırlar, siz işlem yaparken, başa kullanıcı tarafından güncellenmiş. Bu sebeple kayıt işleminiz gerçekleşmedi. Kontrol edip tekrar deneyiniz.__mesajBitis__`)
-    }
+    // if (hazirlananMetraj._versionId.toString() !== _versionId.toString()) {
+    //   throw new Error(`__mesajBaslangic__Kaydetmeye çalıştığınız bazı satırlar, siz işlem yaparken, başa kullanıcı tarafından güncellenmiş. Bu sebeple kayıt işleminiz gerçekleşmedi. Kontrol edip tekrar deneyiniz.__mesajBitis__`)
+    // }
+
+    let selectedSatirlar = hazirlananMetraj_db.satirlar.filter(x => x.isSelected)
+    let kaydedilecekSatirlar = hazirlananMetraj_new.satirlar.filter(x => x.isKaydedilecek)
+    selectedSatirlar.map(oneSatir => {
+      if (kaydedilecekSatirlar.find(x => x.satirNo === oneSatir.satirNo)) {
+        throw new Error(`__mesajBaslangic__Kaydetmeye çalıştığınız bazı satırlar, siz işlem yaparken, başa kullanıcı tarafından onaylı tarafa alınmış. Kayıt işleminiz gerçekleşmedi. Kontrol edip tekrar deneyiniz.__mesajBitis__`)
+      }
+    })
+
 
 
 
@@ -51,12 +62,19 @@ exports = async function ({
       metraj += Number(oneSatir.metraj)
     })
     hazirlananMetraj_new.metraj = metraj
+    
+    // dugum - db hazirlik - metraj
+    hazirlananMetraj_new.satirlar.filter(x => x.isReady).map(oneSatir => {
+      metraj_ready += Number(oneSatir.metraj)
+    })
+
+    
 
     hazirlananMetraj_new.satirlar.map(oneSatir => {
       if (!(oneSatir.aciklama === "" && Number(oneSatir.carpan1) === 0 && Number(oneSatir.carpan2) === 0 && Number(oneSatir.carpan3) === 0 && Number(oneSatir.carpan4) === 0 && Number(oneSatir.carpan5) === 0)) {
         isSilinecek = false
       }
-      if(oneSatir.isSelected){
+      if (oneSatir.isSelected) {
         isSilinecek = false
       }
     })
@@ -68,7 +86,7 @@ exports = async function ({
     } else {
       await collection_HazirlananMetrajlar.updateOne(
         { _dugumId, userEmail },
-        { $set: { ...hazirlananMetraj_new, isDeleted:false } }
+        { $set: { ...hazirlananMetraj_new, isDeleted: false } }
       )
     }
 
@@ -79,6 +97,15 @@ exports = async function ({
   }
 
 
+
+  try {
+    const result = await collection_OnaylananMetrajlar.findOne({ _dugumId })
+    if (!result) {
+      await collection_OnaylananMetrajlar.insertOne({ _dugumId, satirlar: [], metraj: 0 })
+    }
+  } catch (error) {
+    throw new Error("MONGO // update_hazirlananMetrajlar_new // ilk onaylananMetraj verisini oluşturma" + err.message);
+  }
 
 
 
@@ -94,23 +121,23 @@ exports = async function ({
 
       hazirlananMetrajlar = hazirlananMetrajlar.map(x => {
         if (x.userEmail === userEmail) {
-          x.metraj = metraj
+          x.metraj = metraj_ready
           isUpdated = true
         }
         return x
       })
 
       if (!isUpdated) {
-        hazirlananMetrajlar = [...hazirlananMetrajlar, { userEmail, metraj }]
+        hazirlananMetrajlar = [...hazirlananMetrajlar, { userEmail, metraj_ready }]
       }
 
     } else {
 
-      hazirlananMetrajlar = [{ userEmail, metraj }]
+      hazirlananMetrajlar = [{ userEmail, metraj_ready }]
 
     }
 
-    if(isSilinecek){
+    if (isSilinecek) {
       hazirlananMetrajlar = hazirlananMetrajlar.filter(x => !x.userEmail)
     }
 
@@ -123,6 +150,7 @@ exports = async function ({
   } catch (error) {
     throw new Error({ hatayeri: "MONGO // update_hazirlananMetrajlar // dugum guncelleme ", error });
   }
+
 
   return
 
