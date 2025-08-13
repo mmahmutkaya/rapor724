@@ -20,58 +20,16 @@ exports = async function ({
     throw new Error("MONGO // getHazirlananMetrajlar // '_dugumId' verisi db sorgusuna gelmedi");
   }
 
-
   const collection_HazirlananMetrajlar = context.services.get("mongodb-atlas").db("rapor724_v2").collection("hazirlananMetrajlar")
-  // const collection_OnaylananMetrajlar = context.services.get("mongodb-atlas").db("rapor724_v2").collection("onaylananMetrajlar")
 
 
-  // let _versionId = new BSON.ObjectId()
-
-  // try {
-  //   await collection_HazirlananMetrajlar.updateMany({ _dugumId }, { $set: { _versionId } })
-  // } catch (error) {
-  //   throw new Error({ hatayeri: "MONGO // getHazirlananMetrajlar // hazirlananMetrajlar _versionId güncelleme sırasında hata oluştu", error });
-  // }
+  let hazirlananMetrajlar = await collection_HazirlananMetrajlar.find({ _dugumId })
 
 
-  // let result_updateVersiyonId_onaylanan
-  // try {
-  //   result_updateVersiyonId_onaylanan = await collection_OnaylananMetrajlar.updateOne({ _dugumId }, { $set: { _versionId } })
-  // } catch (error) {
-  //   throw new Error({ hatayeri: "MONGO // getHazirlananMetrajlar // onaylananMetraj _versionId güncelleme sırasında hata oluştu", error });
-  // }
+  hazirlananMetrajlar.satirlar = hazirlananMetrajlar.satirlar.filter(x => x.isReady)
 
 
-  // try {
-  //   if (!result_updateVersiyonId_onaylanan.matchedCount) {
-  //     await collection_OnaylananMetrajlar.insertOne({ _dugumId, _versionId, satirlar:[], metraj:0 })
-  //   }
-  // } catch (error) {
-  //   throw new Error({ hatayeri: "MONGO // getHazirlananMetrajlar // onaylananMetraj oluşturma sırasında hata oluştu", error });
-  // }
-
-
-  let hazirlananMetrajlar
-  try {
-    hazirlananMetrajlar = await collection_HazirlananMetrajlar.find(
-      { _dugumId, satirlar: { $elemMatch: { isReady: true } } }
-    )
-  } catch (error) {
-    throw new Error({ hatayeri: "MONGO // getHazirlananMetrajlar // get hazirlananMetrajlar sırasında hata oluştu", error });
-  }
-
-
-  // let onaylananMetraj
-  // try {
-  //   onaylananMetraj = await collection_OnaylananMetrajlar.findOne({ _dugumId })
-  // } catch (error) {
-  //   throw new Error({ hatayeri: "MONGO // getHazirlananMetrajlar // get onaylananMetraj sırasında hata oluştu", error });
-  // }
-
-
-  // // çok ince bir düşünce yukarıda kopyaladık zaten ama bizim kopyalamamız ile veri alma süremiz arasında bir kayıt olmuşsa diye
-  // hazirlananMetrajlar._versionId = _versionId
-  return hazirlananMetrajlar
+  return {hazirlananMetrajlar}
 
 
 };
