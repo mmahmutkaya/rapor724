@@ -54,9 +54,9 @@ exports = async function ({
       }
     })
 
-   
-      
-    
+
+
+
     // birdahaki kayıt için kaydedilecek ibarelerini satırları temizleme
     // db hazirlik - metraj
     // dugum - db hazirlik - metraj
@@ -66,8 +66,8 @@ exports = async function ({
       delete oneSatir.isKaydedilecek
       return oneSatir
     })
-   
-  
+
+
 
     hazirlananMetraj_new.satirlar.map(oneSatir => {
       if (!(oneSatir.aciklama === "" && Number(oneSatir.carpan1) === 0 && Number(oneSatir.carpan2) === 0 && Number(oneSatir.carpan3) === 0 && Number(oneSatir.carpan4) === 0 && Number(oneSatir.carpan5) === 0)) {
@@ -83,10 +83,19 @@ exports = async function ({
         { _dugumId, userEmail }
       )
     } else {
-      await collection_HazirlananMetrajlar.updateOne(
+
+      const result = await collection_HazirlananMetrajlar.updateOne(
         { _dugumId, userEmail },
         { $set: { ...hazirlananMetraj_new, isDeleted: false } }
       )
+
+      if (!result.matchedCount) {
+        await collection_HazirlananMetrajlar.insertOne(
+          { _dugumId, userEmail },
+          { $set: { ...hazirlananMetraj_new, isDeleted: false } }
+        )
+      }
+
     }
 
 
