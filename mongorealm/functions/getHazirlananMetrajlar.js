@@ -25,7 +25,7 @@ exports = async function ({
 
   // let proje = await collection_Projeler.findOne({ _id: _projeId }, { yetki: 1 })
 
-  let hazirlananMetrajlar = await collection_HazirlananMetrajlar.find({ _dugumId })
+  let hazirlananMetrajlar = await collection_HazirlananMetrajlar.find({ _dugumId }).toArray()
 
   if (hazirlananMetrajlar.length > 0) {
     hazirlananMetrajlar = hazirlananMetrajlar.map(oneHazirlanan => {
