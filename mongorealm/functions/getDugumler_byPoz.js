@@ -44,7 +44,7 @@ exports = async function ({
       { $project: { mahalNo: 1, mahalName: 1, _lbsId: 1 } }
     ]).toArray()
 
-    
+
 
     let lbsMetrajlar = proje.lbs.map(oneLbs => {
 
@@ -65,13 +65,25 @@ exports = async function ({
         })
 
       })
-      return {_id:oneLbs._id, onaylananMetraj, hazirlananMetrajlar}
+      return { _id: oneLbs._id, onaylananMetraj, hazirlananMetrajlar }
+    })
+
+
+    let anySelectable
+    dugumler_byPoz.map(oneDugum => {
+      oneDugum.hazirlananMetrajlar.map(oneHazirlanan => {
+        if (oneHazirlanan) {
+          if (!oneHazirlanan.hasSelectedFull) {
+            anySelectable = true
+          }
+        }
+      })
     })
 
 
 
 
-    return { dugumler_byPoz, lbsMetrajlar }
+    return { dugumler_byPoz, lbsMetrajlar, anySelectable }
 
   } catch (error) {
     throw new Error({ hatayeri: "MONGO // getDugumler_byPoz // ", error });
