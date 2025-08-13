@@ -81,18 +81,20 @@ export default function P_MetrajOnay() {
   const hazirlananKilitliSatir_color = "rgba( 128, 128, 128, 0.3 )" // gri
 
 
-  const { data: hazirlananMetrajlar } = useGetHazirlananMetrajlar()
+  const { data } = useGetHazirlananMetrajlar()
+
 
 
   const navigate = useNavigate()
   useEffect(() => {
     !selectedNode_metraj && navigate("/metrajpozmahaller")
 
-    setHazirlananMetrajlar_state(_.cloneDeep(hazirlananMetrajlar))
-    setHazirlananMetrajlar_backUp(_.cloneDeep(hazirlananMetrajlar))
-
+    setHazirlananMetrajlar_state(_.cloneDeep(data?.hazirlananMetrajlar))
+    setHazirlananMetrajlar_backUp(_.cloneDeep(data?.hazirlananMetrajlar))
+    // console.log("data?.hazirlananMetrajlar",data?.hazirlananMetrajlar)
+    // console.log("data",data)
     setIsChanged()
-  }, [hazirlananMetrajlar])
+  }, [data])
 
   // console.log("onaylananMetrajlar_state", onaylananMetrajlar_state)
   // console.log("hazirlananMetrajlar_state", hazirlananMetrajlar_state)
@@ -184,43 +186,8 @@ export default function P_MetrajOnay() {
     if (isChanged) {
 
       try {
-        // let newSelecteds = hazirlananMetrajlar_state.filter(x => x.newSelected)
-        // let hazirlananMetrajlar_selected = metrajYapabilenler.map(oneYapabilen => {
-        //   let satirlar = hazirlananMetrajlar_state.find(x => x.userEmail === oneYapabilen.userEmail)?.satirlar.filter(x => x.newSelected)
-        //   if (satirlar?.length > 0) {
-        //     satirlar = satirlar.map(oneSatir => {
-        //       delete oneSatir.newSelected
-        //       return oneSatir
-        //     })
-        //     return { userEmail: oneYapabilen.userEmail, satirlar }
-        //   }
-        // })
-        // hazirlananMetrajlar_selected = hazirlananMetrajlar_selected.filter(x => x)
 
-        // const results = await Promise.all(hazirlananMetrajlar_selected.map(async (oneHazirlanan) => {
-        //   const result = await RealmApp?.currentUser.callFunction("update_hazirlananMetraj_selected", ({ _projeId: selectedProje._id, _dugumId: selectedNode_metraj._id, hazirlananMetraj_selected: oneHazirlanan }))
-        //   return result
-        // }));
-
-        // await RealmApp?.currentUser.callFunction("update_hazirlananMetraj_selected", ({ _projeId: selectedProje._id, _dugumId: selectedNode_metraj._id, hazirlananMetraj_selected }))
-
-        // let hazirlananMetrajlar_selected = _.cloneDeep(hazirlananMetrajlar_state)
-        // hazirlananMetrajlar_selected = hazirlananMetrajlar_selected.map(oneHazirlanan => {
-        //   if (oneHazirlanan.satirlar.find(x => x.isSelected && x.newSelected)) {
-        //     // db de zaten mevcut hazirlananMetraj satırları loop yapılıp isSelected olanlar isSelectd olarak değiştiriliyor, newSelected felan kayda alınmıyor
-        //     // eskiden isLock olmuş olanlarda loop içinde yeniden kaydedilmiş oluyor sadece
-        //     // oneHazirlanan.satirlar = oneHazirlanan.satirlar.map(oneSatir => {
-        //     //   delete oneSatir.newSelected
-        //     //   return oneSatir
-        //     // })
-        //     return oneHazirlanan
-        //   }
-        // })
-
-        // hazirlananMetrajlar_selected = hazirlananMetrajlar_selected.filter(x => x)
-
-        await RealmApp?.currentUser.callFunction("update_hazirlananMetraj_selected", ({ _projeId: selectedProje._id, _dugumId: selectedNode_metraj._id, hazirlananMetrajlar_state }))
-
+        await RealmApp?.currentUser.callFunction("update_hazirlananMetrajlar_selected", ({ _projeId: selectedProje._id, _dugumId: selectedNode_metraj._id, hazirlananMetrajlar_state }))
 
         queryClient.invalidateQueries(['onaylananMetraj', selectedNode_metraj?._id.toString()])
         queryClient.invalidateQueries(['hazirlananMetrajlar', selectedNode_metraj?._id.toString()])

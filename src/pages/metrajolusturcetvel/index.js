@@ -177,7 +177,6 @@ export default function P_MetrajOlusturCetvel() {
     if (isChanged || isChanged_ready) {
       try {
 
-        console.log("hazirlananMetraj_state",hazirlananMetraj_state)
         await RealmApp?.currentUser.callFunction("update_hazirlananMetraj_new", ({ _dugumId: selectedNode_metraj._id, hazirlananMetraj_new: hazirlananMetraj_state }))
 
         queryClient.invalidateQueries(['hazirlananMetraj', selectedNode_metraj?._id.toString()])
