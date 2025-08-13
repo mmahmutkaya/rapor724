@@ -140,6 +140,7 @@ export default function P_MetrajOnay() {
       setIsChanged(true)
     }
 
+    
 
     let hazirlananMetrajlar_state2 = _.cloneDeep(hazirlananMetrajlar_state)
     hazirlananMetrajlar_state2 = hazirlananMetrajlar_state2.map(oneHazirlanan => {
