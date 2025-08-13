@@ -90,9 +90,7 @@ exports = async function ({
       )
 
       if (!result.matchedCount) {
-        await collection_HazirlananMetrajlar.insertOne(
-          { _dugumId, userEmail },
-          { $set: { ...hazirlananMetraj_new, isDeleted: false } }
+        await collection_HazirlananMetrajlar.insertOne({ ...hazirlananMetraj_new, isDeleted: false }
         )
       }
 
