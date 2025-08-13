@@ -44,7 +44,7 @@ exports = async function ({
     }
 
   } catch (error) {
-    throw new Error("MONGO // getDugumler_byPoz // dugumler_byPoz sırasında hata oluştu"+ error);
+    throw new Error("MONGO // getDugumler_byPoz // dugumler_byPoz sırasında hata oluştu" + error);
   }
 
 
@@ -57,7 +57,7 @@ exports = async function ({
     }
 
   } catch (error) {
-    throw new Error("MONGO // getDugumler_byPoz // proje sırasında hata oluştu"+ error);
+    throw new Error("MONGO // getDugumler_byPoz // proje sırasında hata oluştu" + error);
   }
 
 
@@ -77,11 +77,10 @@ exports = async function ({
     throw new Error("MONGO // getDugumler_byPoz // mahaller sırasında hata oluştu" + error);
   }
 
-
+  let lbsMetrajlar
   try {
 
-
-    let lbsMetrajlar = proje?.lbs.map(oneLbs => {
+    lbsMetrajlar = proje?.lbs.map(oneLbs => {
 
       let mahaller_byLbs = mahaller.filter(x => x._lbsId.toString() === oneLbs._id.toString())
       let onaylananMetraj = 0
@@ -104,9 +103,18 @@ exports = async function ({
     })
 
 
-    let anySelectable
+  } catch (error) {
+    throw new Error({ hatayeri: "MONGO // getDugumler_byPoz // lbsMetrajlar", error });
+  }
+
+
+
+  let anySelectable
+  try {
+
+    anySelectable
     dugumler_byPoz.map(oneDugum => {
-      oneDugum.hazirlananMetrajlar.map(oneHazirlanan => {
+      oneDugum?.hazirlananMetrajlar.map(oneHazirlanan => {
         if (oneHazirlanan) {
           if (!oneHazirlanan.hasSelectedFull) {
             anySelectable = true
@@ -115,15 +123,11 @@ exports = async function ({
       })
     })
 
-
-
-
-    return { dugumler_byPoz, lbsMetrajlar, anySelectable }
-
   } catch (error) {
-    throw new Error({ hatayeri: "MONGO // getDugumler_byPoz // ", error });
+    throw new Error({ hatayeri: "MONGO // getDugumler_byPoz // anySelectable", error });
   }
 
 
+  return { dugumler_byPoz, lbsMetrajlar, anySelectable }
 
 };
