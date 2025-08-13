@@ -35,7 +35,7 @@ exports = async function ({
       { $project: { _pozId: 1, _mahalId: 1, openMetraj: 1, hazirlananMetrajlar: 1, onaylananMetraj: 1 } }
     ]).toArray()
 
-
+    return dugumler_byPoz
 
     const proje = await collection_Projeler.findOne({ _id: _projeId }, { lbs: 1, yetki: 1 })
 
