@@ -34,7 +34,7 @@ exports = async function ({
         }
       }
     }
-  ])
+  ]).toArray()
 
 
   let { hazirlananMetraj } = result
