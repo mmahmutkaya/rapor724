@@ -52,7 +52,7 @@ exports = async function ({
             updateOne: {
               // filter: { _projeId, _mahalId: new BSON.ObjectId(x._mahalId), _pozId: new BSON.ObjectId(x._pozId) },
               filter: { _projeId, _mahalId: oneMahal._id, _pozId },
-              update: { $set: { openMetraj: oneMahal.hasDugum } },
+              update: { $set: { openMetraj: oneMahal.hasDugum, isDeleted:oneMahal.hasDugum ? false : true } },
               upsert: true
             }
           }
