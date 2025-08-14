@@ -36,7 +36,7 @@ exports = async function ({
     }
   ]).toArray()
 
-
+  return result
   let { hazirlananMetraj } = result
 
   if (!hazirlananMetraj.length) {
