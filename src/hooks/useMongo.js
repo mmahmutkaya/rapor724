@@ -231,7 +231,7 @@ export const useGetMahalListesi = () => {
 }
 
 
-export const useGetHazirlananMetraj = () => {
+export const useGetHazirlananMetraj = (onError) => {
 
   // const RealmApp = useApp();
   const { RealmApp, selectedNode_metraj } = useContext(StoreContext)
@@ -241,6 +241,7 @@ export const useGetHazirlananMetraj = () => {
     queryKey: ['hazirlananMetraj', selectedNode_metraj?._id.toString()],
     queryFn: () => RealmApp?.currentUser.callFunction("getHazirlananMetraj", ({ _dugumId: selectedNode_metraj._id })),
     enabled: !!RealmApp && !!selectedNode_metraj,
+    onError,
     refetchOnMount: true,
     refetchOnWindowFocus: false,
     // select: (data) => data.mahalListesi,
