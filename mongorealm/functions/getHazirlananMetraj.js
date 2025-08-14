@@ -51,7 +51,10 @@ exports = async function ({
   await collection_Dugumler.updateOne(
     { _id: _dugumId },
     { $set: { "hazirlananMetrajlar.$[element]": defaultHazirlananMetraj } },
-    { arrayFilters: [ { "element.userEmail": userEmail } ] }
+    {
+      arrayFilters: [{ "element.userEmail": userEmail }],
+      upsert:true
+    }
   )
 
 
