@@ -80,10 +80,10 @@ exports = async function ({
     // db de isSelected varsa da biri ready lerden onaylı tarafa çekmiş belki, kullanıcı bütün satırları boşaltmadan 
     if (isSilinecek && hazirlananMetraj_db) {
 
-      if(hazirlananMetraj_db.satirlar.find(x => x.isSelected)){
+      if (hazirlananMetraj_db.satirlar.find(x => x.isSelected)) {
         isSilinecek = false
       }
-      
+
     }
 
     // hala true ise artık silebilir ve fonksiyonu sonlandırabiliriz
@@ -110,8 +110,33 @@ exports = async function ({
     throw new Error("MONGO // update_hazirlananMetrajlar_new // silinecekse " + error.message);
   }
 
+  try {
 
+    await collection_Dugumler.updateOne({ _id: _dugumId },
+      [
+        {
+          $project: {
+            hazirlananMetrajlar: {
+              $map: {
+                input: "$hazirlananMetrajlar",
+                as: "hazirlananMetraj",
+                in: {
+                  $cond: {
+                    if: {  $neq: ["$$hazirlananMetraj.userEmail", userEmail]  },
+                    then: "$$hazirlananMetraj",
+                    else: hazirlananMetraj_new
+                  }
+                }
+              }
+            }
+          }
+        }
+      ]
+    )
 
+  } catch (error) {
+    throw new Error("MONGO // update_hazirlananMetrajlar_new // güncellenecekse " + error.message);
+  }
 
 
 
