@@ -21,29 +21,11 @@ exports = async function ({
   const collection_Dugumler = context.services.get("mongodb-atlas").db("rapor724_v2").collection("dugumler")
 
 
-
-
-
-  let hazirlananMetraj
-
-  let dugum
-  let defaultHazirlananMetraj = {
-    userEmail,
-    metraj: 0,
-    satirlar: [
-      { satirNo: userCode + "-" + 1, aciklama: "", carpan1: "", carpan2: "", carpan3: "", carpan4: "", carpan5: "", metraj: "" },
-      { satirNo: userCode + "-" + 2, aciklama: "", carpan1: "", carpan2: "", carpan3: "", carpan4: "", carpan5: "", metraj: "" },
-      { satirNo: userCode + "-" + 3, aciklama: "", carpan1: "", carpan2: "", carpan3: "", carpan4: "", carpan5: "", metraj: "" },
-      { satirNo: userCode + "-" + 4, aciklama: "", carpan1: "", carpan2: "", carpan3: "", carpan4: "", carpan5: "", metraj: "" },
-      { satirNo: userCode + "-" + 5, aciklama: "", carpan1: "", carpan2: "", carpan3: "", carpan4: "", carpan5: "", metraj: "" }
-    ]
-  }
-
-  hazirlananMetraj = await collection_Dugumler.aggregate([
+  const result = hazirlananMetraj = await collection_Dugumler.aggregate([
     { $match: { _id: _dugumId } },
     {
       $project: {
-        items: {
+        hazirlananMetraj: {
           $filter: {
             input: "$hazirlananMetrajlar",
             as: "hazirlananMetraj",
@@ -54,45 +36,25 @@ exports = async function ({
     }
   ])
 
+
+  let { hazirlananMetraj } = result
+
+  if (!hazirlananMetraj.length) {
+
+    hazirlananMetraj = {
+      userEmail,
+      metraj: 0,
+      satirlar: [
+        { satirNo: userCode + "-" + 1, aciklama: "", carpan1: "", carpan2: "", carpan3: "", carpan4: "", carpan5: "", metraj: "" },
+        { satirNo: userCode + "-" + 2, aciklama: "", carpan1: "", carpan2: "", carpan3: "", carpan4: "", carpan5: "", metraj: "" },
+        { satirNo: userCode + "-" + 3, aciklama: "", carpan1: "", carpan2: "", carpan3: "", carpan4: "", carpan5: "", metraj: "" },
+        { satirNo: userCode + "-" + 4, aciklama: "", carpan1: "", carpan2: "", carpan3: "", carpan4: "", carpan5: "", metraj: "" },
+        { satirNo: userCode + "-" + 5, aciklama: "", carpan1: "", carpan2: "", carpan3: "", carpan4: "", carpan5: "", metraj: "" }
+      ]
+    }
+
+  }
+
   return hazirlananMetraj
-
-  // await collection_Dugumler.updateOne(
-  //   { _id: _dugumId },
-  //   { $set: { "hazirlananMetrajlar.$[element]": defaultHazirlananMetraj } },
-  //   {
-  //     arrayFilters: [{ "element.userEmail": userEmail }]
-  //   }
-  // )
-
-
-
-
-
-  // try {
-
-  //   dugum = await collection_Dugumler.findOne({ _id: _dugumId }, { metrajSatirlari: 1 })
-  //   let hazirlananMetrajlar = dugum.hazirlananMetrajlar
-
-  //   if (hazirlananMetrajlar) {
-
-  //     hazirlananMetraj = hazirlananMetrajlar.find(x => x.userEmail === userEmail)
-
-  //     if (!hazirlananMetraj) {
-  //       hazirlananMetraj = defaultHazirlananMetraj
-  //     }
-
-  //   }
-
-  //   if (!hazirlananMetrajlar) {
-  //     hazirlananMetraj = defaultHazirlananMetraj
-  //   }
-
-  //   return hazirlananMetraj
-
-  // } catch (error) {
-  //   throw new Error({ hatayeri: "MONGO // getHazirlananMetraj // ", error });
-  // }
-
-
 
 };
