@@ -35,7 +35,7 @@ exports = async function ({
       throw new Error("MONGO // updateDugumler_openMetraj // 'mahaller' verisi db sorgusuna gelmedi");
     }
 
-    if (!mahaller.length) {
+    if (!mahaller.length > 0) {
       throw new Error("MONGO // updateDugumler_openMetraj // 'mahaller' verisi db sorgusuna 'boş array' olarak gelmiş");
     }
 
@@ -44,15 +44,17 @@ exports = async function ({
       throw new Error("MONGO // updateDugumler_openMetraj // '_pozId' verisi db sorgusuna gelmedi");
     }
 
+
+
+
     try {
 
-      const bulkArray = mahaller.map(oneMahal => {
+      const bulkArray1 = mahaller.map(oneMahal => {
         return (
           {
             updateOne: {
-              // filter: { _projeId, _mahalId: new BSON.ObjectId(x._mahalId), _pozId: new BSON.ObjectId(x._pozId) },
-              filter: { _projeId, _mahalId: oneMahal._id, _pozId },
-              update: { $set: { openMetraj: oneMahal.hasDugum } },
+              filter: { _projeId, _mahalId: oneMahal._id, _pozId, },
+              update: { $set: { openMetraj: oneMahal.hasDugum, isDeleted: oneMahal.hasDugum ? false : true } },
               upsert: true
             }
           }
@@ -60,15 +62,43 @@ exports = async function ({
       })
 
       await collection_Dugumler.bulkWrite(
-        bulkArray,
+        bulkArray1,
         { ordered: false }
       )
 
-      return { ok: true }
+    } catch (error) {
+      throw new Error({ hatayeri: "MONGO // updateDugumler_openMetraj // collection_Dugumler.bulkWrite 1 // ", error });
+    }
+
+
+
+    
+
+    try {
+
+      const bulkArray2 = mahaller.map(oneMahal => {
+        return (
+          {
+            updateOne: {
+              filter: { _projeId, _mahalId: oneMahal._id, _pozId, hazirlananMetrajlar: { $exists: false } },
+              update: { $set: { hazirlananMetrajlar: [], metrajlar: [] } },
+            }
+          }
+        )
+      })
+
+
+      await collection_Dugumler.bulkWrite(
+        bulkArray2,
+        { ordered: false }
+      )
 
     } catch (error) {
-      throw new Error({ hatayeri: "MONGO // updateDugumler_openMetraj // collection_Dugumler.bulkWrite // ", error });
+      throw new Error({ hatayeri: "MONGO // updateDugumler_openMetraj // collection_Dugumler.bulkWrite 2 // ", error });
     }
+
+
+    return { ok: true }
 
 
   }

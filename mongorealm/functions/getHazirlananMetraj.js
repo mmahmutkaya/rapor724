@@ -2,8 +2,6 @@ exports = async function ({
   _dugumId,
 }) {
 
-
-
   const user = context.user;
   const _userId = new BSON.ObjectId(user.id)
   const userEmail = context.user.data.email
@@ -20,38 +18,46 @@ exports = async function ({
     throw new Error("MONGO // getHazirlananMetraj // '_dugumId' verisi db sorgusuna gelmedi");
   }
 
+  const collection_Dugumler = context.services.get("mongodb-atlas").db("rapor724_v2").collection("dugumler")
 
 
-  const collection_hazirlananMetrajlar = context.services.get("mongodb-atlas").db("rapor724_v2").collection("hazirlananMetrajlar")
-
-
-  try {
-
-    let hazirlananMetraj = await collection_hazirlananMetrajlar.findOne({ _dugumId, userEmail })
-
-    if (!hazirlananMetraj) {
-
-      hazirlananMetraj = {
-        _dugumId,
-        userEmail,
-        metraj: 0,
-        satirlar: [
-          { satirNo: userCode + "-" + 1, aciklama: "", carpan1: "", carpan2: "", carpan3: "", carpan4: "", carpan5: "", metraj: "" },
-          { satirNo: userCode + "-" + 2, aciklama: "", carpan1: "", carpan2: "", carpan3: "", carpan4: "", carpan5: "", metraj: "" },
-          { satirNo: userCode + "-" + 3, aciklama: "", carpan1: "", carpan2: "", carpan3: "", carpan4: "", carpan5: "", metraj: "" },
-          { satirNo: userCode + "-" + 4, aciklama: "", carpan1: "", carpan2: "", carpan3: "", carpan4: "", carpan5: "", metraj: "" },
-          { satirNo: userCode + "-" + 5, aciklama: "", carpan1: "", carpan2: "", carpan3: "", carpan4: "", carpan5: "", metraj: "" }
-        ]
+  const result = await collection_Dugumler.aggregate([
+    { $match: { _id: _dugumId } },
+    {
+      $project: {
+        hazirlananMetrajlar_filtered: {
+          $filter: {
+            input: "$hazirlananMetrajlar",
+            as: "hazirlananMetraj",
+            cond: { $eq: ["$$hazirlananMetraj.userEmail", userEmail] }
+          }
+        }
       }
+    },
+    { $limit: 1 }
+  ]).toArray()
 
+
+  let { hazirlananMetrajlar_filtered } = result[0]
+  hazirlananMetraj = hazirlananMetrajlar_filtered[0]
+
+
+  if (!hazirlananMetraj) {
+
+    hazirlananMetraj = {
+      userEmail,
+      metraj: 0,
+      satirlar: [
+        { satirNo: userCode + "-" + 1, aciklama: "", carpan1: "", carpan2: "", carpan3: "", carpan4: "", carpan5: "", metraj: "" },
+        { satirNo: userCode + "-" + 2, aciklama: "", carpan1: "", carpan2: "", carpan3: "", carpan4: "", carpan5: "", metraj: "" },
+        { satirNo: userCode + "-" + 3, aciklama: "", carpan1: "", carpan2: "", carpan3: "", carpan4: "", carpan5: "", metraj: "" },
+        { satirNo: userCode + "-" + 4, aciklama: "", carpan1: "", carpan2: "", carpan3: "", carpan4: "", carpan5: "", metraj: "" },
+        { satirNo: userCode + "-" + 5, aciklama: "", carpan1: "", carpan2: "", carpan3: "", carpan4: "", carpan5: "", metraj: "" }
+      ]
     }
 
-    return hazirlananMetraj
-
-  } catch (error) {
-    throw new Error({ hatayeri: "MONGO // getHazirlananMetraj // ", error });
   }
 
-
+  return hazirlananMetraj
 
 };
