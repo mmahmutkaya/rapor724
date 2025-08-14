@@ -55,11 +55,11 @@ exports = async function ({
             updateOne: {
               filter: { _projeId, _mahalId: oneMahal._id, _pozId, hazirlananMetrajlar: { $exists: false } },
               update: { $set: { hazirlananMetrajlar: [], metrajlar: [] } },
-              upsert: true
             }
           }
         )
       })
+
 
       await collection_Dugumler.bulkWrite(
         bulkArray1,
