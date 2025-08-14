@@ -41,8 +41,8 @@ exports = async function ({
   let { hazirlananMetrajlar_filtered } = result[0]
   hazirlananMetraj = hazirlananMetrajlar_filtered[0]
 
-  return {result, hazirlananMetrajlar_filtered,hazirlananMetraj}
-  if (!hazirlananMetraj.length) {
+
+  if (!hazirlananMetraj) {
 
     hazirlananMetraj = {
       userEmail,
