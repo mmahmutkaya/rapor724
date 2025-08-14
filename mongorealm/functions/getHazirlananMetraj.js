@@ -39,23 +39,24 @@ exports = async function ({
     ]
   }
 
-  // const result = collection_Dugumler.findOne({
-  //   _id: _dugumId,
-  //   hazirlananMetrajlar: {
-  //     $elemMatch: {
-  //       userEmail
-  //     }
-  //   }
-  // });
-
-  await collection_Dugumler.updateOne(
-    { _id: _dugumId },
-    { $set: { "hazirlananMetrajlar.$[element]": defaultHazirlananMetraj } },
-    {
-      arrayFilters: [{ "element.userEmail": userEmail }],
-      upsert:true
+  const result = collection_Dugumler.findOne({
+    _id: _dugumId,
+    hazirlananMetrajlar: {
+      $elemMatch: {
+        userEmail
+      }
     }
-  )
+  });
+
+  return result
+
+  // await collection_Dugumler.updateOne(
+  //   { _id: _dugumId },
+  //   { $set: { "hazirlananMetrajlar.$[element]": defaultHazirlananMetraj } },
+  //   {
+  //     arrayFilters: [{ "element.userEmail": userEmail }]
+  //   }
+  // )
 
 
 
