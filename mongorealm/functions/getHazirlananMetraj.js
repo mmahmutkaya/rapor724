@@ -50,10 +50,10 @@ exports = async function ({
         hazirlananMetraj = defaultHazirlananMetraj
       }
 
-    } else {
-
+    } 
+    
+    if (!hazirlananMetrajlar){
       hazirlananMetraj = defaultHazirlananMetraj
-
     }
 
     return hazirlananMetraj
