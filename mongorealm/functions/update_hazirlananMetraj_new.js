@@ -189,7 +189,7 @@ exports = async function ({
                   }
                 }
               },
-              onaylananMetraj:metrajReady
+              onaylananMetraj: metrajReady
             }
           }
         ]
@@ -202,109 +202,5 @@ exports = async function ({
     throw new Error("MONGO // update_hazirlananMetrajlar_new // güncellenecekse " + error.message);
   }
 
-
-
-
-  // // yeni eklenecekse veya güncellenecekse burada bitiyor
-
-  // try {
-
-  //   if (!hazirlananMetrajlar_db) {
-
-  //     hazirlananMetraj_new.satirlar = hazirlananMetraj_new.satirlar.map(oneSatir => {
-  //       metraj += Number(oneSatir.metraj)
-  //       metrajReady += oneSatir.isReady ? Number(oneSatir.metraj) : 0
-  //       delete oneSatir.isKaydedilecek
-  //       return oneSatir
-  //     })
-
-  //     hazirlananMetrajlar = [{ ...hazirlananMetraj_new, metraj, }]
-  //   }
-
-  //   if (hazirlananMetrajlar) {
-  //     hazirlananMetraj = hazirlananMetrajlar.find(x => x.userEmail === userEmail)
-  //     if (!hazirlananMetraj) {
-  //       hazirlananMetrajlar = [...hazirlananMetrajlar, hazirlananMetraj_new]
-  //     }
-  //   }
-
-
-  // } catch (error) {
-  //   throw new Error("MONGO // update_hazirlananMetrajlar_new // db sorgusu " + error.message);
-  // }
-
-
-  // try {
-
-  //   // metraj verilerini oluşturuyoruz
-  //   hazirlananMetraj_new.satirlar = hazirlananMetraj_new.satirlar.map(oneSatir => {
-  //     metraj += Number(oneSatir.metraj)
-  //     metrajReady += oneSatir.isReady ? Number(oneSatir.metraj) : 0
-  //     delete oneSatir.isKaydedilecek
-  //     return oneSatir
-  //   })
-
-
-  //   let selectedSatirlar = hazirlananMetraj_db?.satirlar?.filter(x => x.isSelected)
-  //   let unSelectedSatirlar = hazirlananMetraj_new.satirlar?.filter(x => x.isKaydedilecek)
-  //   selectedSatirlar?.map(oneSatir => {
-  //     if (unSelectedSatirlar.find(x => x.satirNo === oneSatir.satirNo)) {
-  //       throw new Error(`__mesajBaslangic__Kaydetmeye çalıştığınız bazı satırlar, siz işlem yaparken, başa kullanıcı tarafından onaylı tarafa alınmış. Kayıt işleminiz gerçekleşmedi. Kontrol edip tekrar deneyiniz.__mesajBitis__`)
-  //     }
-  //   })
-
-
-  //   // birdahaki kayıt için kaydedilecek ibarelerini satırları temizleme
-  //   // db hazirlik - metraj
-  //   // dugum - db hazirlik - metraj
-  //   hazirlananMetraj_new.satirlar = hazirlananMetraj_new.satirlar.map(oneSatir => {
-  //     metraj += Number(oneSatir.metraj)
-  //     metrajReady += oneSatir.isReady ? Number(oneSatir.metraj) : 0
-  //     delete oneSatir.isKaydedilecek
-  //     return oneSatir
-  //   })
-
-  // } catch (error) {
-  //   throw new Error("MONGO // update_hazirlananMetrajlar_new // ilk aşama " + err.message);
-  // }
-
-
-  // try {
-
-  //   hazirlananMetraj_new.satirlar.map(oneSatir => {
-  //     if (!(oneSatir.aciklama === "" && Number(oneSatir.carpan1) === 0 && Number(oneSatir.carpan2) === 0 && Number(oneSatir.carpan3) === 0 && Number(oneSatir.carpan4) === 0 && Number(oneSatir.carpan5) === 0)) {
-  //       isSilinecek = false
-  //     }
-  //     if (oneSatir.isReady) {
-  //       isSilinecek = false
-  //     }
-  //   })
-
-  //   if (isSilinecek) {
-  //     await collection_HazirlananMetrajlar.deleteOne(
-  //       { _dugumId, userEmail }
-  //     )
-  //   } else {
-
-  //     const result = await collection_HazirlananMetrajlar.updateOne(
-  //       { _dugumId, userEmail },
-  //       { $set: { ...hazirlananMetraj_new, isDeleted: false } }
-  //     )
-
-  //     if (!result.matchedCount) {
-  //       await collection_HazirlananMetrajlar.insertOne({ ...hazirlananMetraj_new, isDeleted: false }
-  //       )
-  //     }
-
-  //   }
-
-
-  // } catch (err) {
-  //   throw new Error("MONGO // update_hazirlananMetrajlar_new // silinecek kontrol kısmı " + err.message);
-  // }
-
-
-
-  return
 
 };
