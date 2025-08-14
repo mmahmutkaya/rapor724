@@ -20,24 +20,36 @@ exports = async function ({
 
   const collection_hazirlananMetrajlar = context.services.get("mongodb-atlas").db("rapor724_v2").collection("hazirlananMetrajlar")
 
+  let hazirlananMetraj
+  let hazirlananMetrajlar
+  let defaultHazirlananMetraj = {
+    userEmail,
+    metraj: 0,
+    satirlar: [
+      { satirNo: userCode + "-" + 1, aciklama: "", carpan1: "", carpan2: "", carpan3: "", carpan4: "", carpan5: "", metraj: "" },
+      { satirNo: userCode + "-" + 2, aciklama: "", carpan1: "", carpan2: "", carpan3: "", carpan4: "", carpan5: "", metraj: "" },
+      { satirNo: userCode + "-" + 3, aciklama: "", carpan1: "", carpan2: "", carpan3: "", carpan4: "", carpan5: "", metraj: "" },
+      { satirNo: userCode + "-" + 4, aciklama: "", carpan1: "", carpan2: "", carpan3: "", carpan4: "", carpan5: "", metraj: "" },
+      { satirNo: userCode + "-" + 5, aciklama: "", carpan1: "", carpan2: "", carpan3: "", carpan4: "", carpan5: "", metraj: "" }
+    ]
+  }
+
   try {
 
-    let hazirlananMetraj = await collection_hazirlananMetrajlar.findOne({ _dugumId, userEmail })
+    hazirlananMetrajlar = await collection_hazirlananMetrajlar.findOne({ _dugumId })
 
-    if (!hazirlananMetraj) {
+    if (hazirlananMetrajlar) {
 
-      hazirlananMetraj = {
-        _dugumId,
-        userEmail,
-        metraj: 0,
-        satirlar: [
-          { satirNo: userCode + "-" + 1, aciklama: "", carpan1: "", carpan2: "", carpan3: "", carpan4: "", carpan5: "", metraj: "" },
-          { satirNo: userCode + "-" + 2, aciklama: "", carpan1: "", carpan2: "", carpan3: "", carpan4: "", carpan5: "", metraj: "" },
-          { satirNo: userCode + "-" + 3, aciklama: "", carpan1: "", carpan2: "", carpan3: "", carpan4: "", carpan5: "", metraj: "" },
-          { satirNo: userCode + "-" + 4, aciklama: "", carpan1: "", carpan2: "", carpan3: "", carpan4: "", carpan5: "", metraj: "" },
-          { satirNo: userCode + "-" + 5, aciklama: "", carpan1: "", carpan2: "", carpan3: "", carpan4: "", carpan5: "", metraj: "" }
-        ]
+      hazirlananMetraj = hazirlananMetrajlar.find(x => x.userEmail)
+
+      if(!hazirlananMetraj){
+        hazirlananMetraj = defaultHazirlananMetraj
       }
+
+    } else {
+
+      hazirlananMetrajlar = [defaultHazirlananMetraj]
+      await collection_hazirlananMetrajlar.insertOne({ _dugumId },[hazirlananMetrajlar])
 
     }
 
