@@ -33,11 +33,12 @@ exports = async function ({
           }
         }
       }
-    }
+    },
+    { $limit: 1 }
   ]).toArray()
 
-  return result
-  let { hazirlananMetraj } = result
+
+  let { hazirlananMetraj } = result[0]
 
   if (!hazirlananMetraj.length) {
 
