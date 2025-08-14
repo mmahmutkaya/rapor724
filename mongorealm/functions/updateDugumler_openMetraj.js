@@ -46,12 +46,25 @@ exports = async function ({
 
     try {
 
-      const bulkArray = mahaller.map(oneMahal => {
+
+
+      const bulkArray1 = mahaller.map(oneMahal => {
         return (
           {
             updateOne: {
-              // filter: { _projeId, _mahalId: new BSON.ObjectId(x._mahalId), _pozId: new BSON.ObjectId(x._pozId) },
-              filter: { _projeId, _mahalId: oneMahal._id, _pozId },
+              filter: { _projeId, _mahalId: oneMahal._id, _pozId, hazirlananMetrajlar: { $exists: false }},
+              update: { $set: { hazirlananMetrajlar:[], metrajlar:[] } },
+              upsert: true
+            }
+          }
+        )
+      })
+
+      const bulkArray2 = mahaller.map(oneMahal => {
+        return (
+          {
+            updateOne: {
+              filter: { _projeId, _mahalId: oneMahal._id, _pozId, },
               update: { $set: { openMetraj: oneMahal.hasDugum, isDeleted:oneMahal.hasDugum ? false : true } },
               upsert: true
             }
@@ -59,8 +72,15 @@ exports = async function ({
         )
       })
 
+      
       await collection_Dugumler.bulkWrite(
-        bulkArray,
+        bulkArray1,
+        { ordered: false }
+      )
+
+
+      await collection_Dugumler.bulkWrite(
+        bulkArray2,
         { ordered: false }
       )
 
