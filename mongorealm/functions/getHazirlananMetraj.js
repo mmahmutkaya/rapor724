@@ -40,7 +40,7 @@ exports = async function ({
   try {
 
     dugum = await collection_Dugumler.findOne({ _id:_dugumId },{metrajSatirlari:1})
-    let hazirlananMetrajlar = dugum2.hazirlananMetrajlar
+    let hazirlananMetrajlar = dugum.hazirlananMetrajlar
 
     if (hazirlananMetrajlar) {
 
