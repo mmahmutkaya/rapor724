@@ -106,7 +106,7 @@ exports = async function ({
                 $filter: {
                   input: "$hazirlananMetrajlar",
                   as: "hazirlananMetraj",
-                  cond: { $neq: ["$$hazirlananMetraj.userEmail", userEmail] }
+                  cond: { $ne: ["$$hazirlananMetraj.userEmail", userEmail] }
                 }
               }
             }
