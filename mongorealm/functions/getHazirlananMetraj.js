@@ -21,7 +21,7 @@ exports = async function ({
   const collection_Dugumler = context.services.get("mongodb-atlas").db("rapor724_v2").collection("dugumler")
 
 
-  const result = hazirlananMetraj = await collection_Dugumler.aggregate([
+  const result = await collection_Dugumler.aggregate([
     { $match: { _id: _dugumId } },
     {
       $project: {
@@ -34,7 +34,7 @@ exports = async function ({
         }
       }
     }
-  ]).toArray()
+  ])
 
 
   let { hazirlananMetraj } = result
