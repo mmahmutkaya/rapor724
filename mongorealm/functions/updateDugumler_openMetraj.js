@@ -53,13 +53,13 @@ exports = async function ({
         return (
           {
             updateOne: {
-              filter: { _projeId, _mahalId: oneMahal._id, _pozId, hazirlananMetrajlar: { $exists: false } },
-              update: { $set: { hazirlananMetrajlar: [], metrajlar: [] } },
+              filter: { _projeId, _mahalId: oneMahal._id, _pozId, },
+              update: { $set: { openMetraj: oneMahal.hasDugum, isDeleted: oneMahal.hasDugum ? false : true } },
+              upsert: true
             }
           }
         )
       })
-
 
       await collection_Dugumler.bulkWrite(
         bulkArray1,
@@ -72,8 +72,7 @@ exports = async function ({
 
 
 
-
-
+    
 
     try {
 
@@ -81,13 +80,13 @@ exports = async function ({
         return (
           {
             updateOne: {
-              filter: { _projeId, _mahalId: oneMahal._id, _pozId, },
-              update: { $set: { openMetraj: oneMahal.hasDugum, isDeleted: oneMahal.hasDugum ? false : true } },
-              upsert: true
+              filter: { _projeId, _mahalId: oneMahal._id, _pozId, hazirlananMetrajlar: { $exists: false } },
+              update: { $set: { hazirlananMetrajlar: [], metrajlar: [] } },
             }
           }
         )
       })
+
 
       await collection_Dugumler.bulkWrite(
         bulkArray2,
@@ -97,6 +96,8 @@ exports = async function ({
     } catch (error) {
       throw new Error({ hatayeri: "MONGO // updateDugumler_openMetraj // collection_Dugumler.bulkWrite 2 // ", error });
     }
+
+
 
 
 
