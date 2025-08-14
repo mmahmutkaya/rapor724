@@ -23,7 +23,7 @@ exports = async function ({
 
 
   let hazirlananMetraj
-  let hazirlananMetrajlar
+
   let dugum
   let defaultHazirlananMetraj = {
     userEmail,
@@ -39,7 +39,7 @@ exports = async function ({
 
   try {
 
-    dugum = await collection_Dugumler.findOne({ _dugumId },{metrajSatirlari:1})
+    dugum = await collection_Dugumler.findOne({ _id:_dugumId },{metrajSatirlari:1})
     let hazirlananMetrajlar = dugum.hazirlananMetrajlar
 
     if (hazirlananMetrajlar) {
@@ -53,7 +53,7 @@ exports = async function ({
     } else {
 
       hazirlananMetraj = defaultHazirlananMetraj
-      
+
     }
 
     return hazirlananMetraj
