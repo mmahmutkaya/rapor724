@@ -38,8 +38,7 @@ exports = async function ({
   ]).toArray()
 
 
-  let { hazirlananMetrajlar_filtered } = result[0]
-  hazirlananMetraj = hazirlananMetrajlar_filtered[0]
+  let { hazirlananMetraj } = result[0].hazirlananMetrajlar_filtered[0]
 
 
   if (!hazirlananMetraj) {
