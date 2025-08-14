@@ -18,10 +18,13 @@ exports = async function ({
     throw new Error("MONGO // getHazirlananMetraj // '_dugumId' verisi db sorgusuna gelmedi");
   }
 
-  const collection_hazirlananMetrajlar = context.services.get("mongodb-atlas").db("rapor724_v2").collection("hazirlananMetrajlar")
+  const collection_Dugumler = context.services.get("mongodb-atlas").db("rapor724_v2").collection("dugumler")
+
+
 
   let hazirlananMetraj
   let hazirlananMetrajlar
+  let dugum
   let defaultHazirlananMetraj = {
     userEmail,
     metraj: 0,
@@ -36,11 +39,12 @@ exports = async function ({
 
   try {
 
-    hazirlananMetrajlar = await collection_hazirlananMetrajlar.findOne({ _dugumId })
+    dugum = await collection_Dugumler.findOne({ _dugumId },{metrajSatirlari:1})
+    let hazirlananMetrajlar = dugum.hazirlananMetrajlar
 
     if (hazirlananMetrajlar) {
 
-      hazirlananMetraj = hazirlananMetrajlar.find(x => x.userEmail)
+      hazirlananMetraj = hazirlananMetrajlar.find(x => x.userEmail === userEmail)
 
       if(!hazirlananMetraj){
         hazirlananMetraj = defaultHazirlananMetraj
@@ -49,8 +53,7 @@ exports = async function ({
     } else {
 
       hazirlananMetraj = defaultHazirlananMetraj
-      await collection_hazirlananMetrajlar.insertOne({ _dugumId },hazirlananMetraj)
-
+      
     }
 
     return hazirlananMetraj
