@@ -48,8 +48,8 @@ exports = async function ({
 
     } else {
 
-      hazirlananMetrajlar = [defaultHazirlananMetraj]
-      await collection_hazirlananMetrajlar.insertOne({ _dugumId },[hazirlananMetrajlar])
+      hazirlananMetraj = defaultHazirlananMetraj
+      await collection_hazirlananMetrajlar.insertOne({ _dugumId },hazirlananMetraj)
 
     }
 
