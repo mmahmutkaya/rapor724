@@ -35,10 +35,11 @@ exports = async function ({
       }
     },
     { $limit: 1 }
-  ]).toArray()
+  ])
 
 
-  let { hazirlananMetraj } = result[0].hazirlananMetrajlar_filtered[0]
+  let { hazirlananMetrajlar_filtered } = result[0]
+  hazirlananMetraj = hazirlananMetrajlar_filtered[0]
 
 
   if (!hazirlananMetraj) {
