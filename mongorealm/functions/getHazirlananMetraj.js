@@ -22,6 +22,8 @@ exports = async function ({
 
 
 
+
+
   let hazirlananMetraj
 
   let dugum
@@ -37,30 +39,49 @@ exports = async function ({
     ]
   }
 
-  try {
+  // const result = collection_Dugumler.findOne({
+  //   _id: _dugumId,
+  //   hazirlananMetrajlar: {
+  //     $elemMatch: {
+  //       userEmail
+  //     }
+  //   }
+  // });
 
-    dugum = await collection_Dugumler.findOne({ _id:_dugumId },{metrajSatirlari:1})
-    let hazirlananMetrajlar = dugum.hazirlananMetrajlar
+  await collection_Dugumler.updateOne(
+    { _id: _dugumId },
+    { $set: { "hazirlananMetrajlar.$[element]": defaultHazirlananMetraj } },
+    { arrayFilters: [ { "element.userEmail": userEmail } ] }
+  )
 
-    if (hazirlananMetrajlar) {
 
-      hazirlananMetraj = hazirlananMetrajlar.find(x => x.userEmail === userEmail)
 
-      if(!hazirlananMetraj){
-        hazirlananMetraj = defaultHazirlananMetraj
-      }
 
-    } 
-    
-    if (!hazirlananMetrajlar){
-      hazirlananMetraj = defaultHazirlananMetraj
-    }
 
-    return hazirlananMetraj
+  // try {
 
-  } catch (error) {
-    throw new Error({ hatayeri: "MONGO // getHazirlananMetraj // ", error });
-  }
+  //   dugum = await collection_Dugumler.findOne({ _id: _dugumId }, { metrajSatirlari: 1 })
+  //   let hazirlananMetrajlar = dugum.hazirlananMetrajlar
+
+  //   if (hazirlananMetrajlar) {
+
+  //     hazirlananMetraj = hazirlananMetrajlar.find(x => x.userEmail === userEmail)
+
+  //     if (!hazirlananMetraj) {
+  //       hazirlananMetraj = defaultHazirlananMetraj
+  //     }
+
+  //   }
+
+  //   if (!hazirlananMetrajlar) {
+  //     hazirlananMetraj = defaultHazirlananMetraj
+  //   }
+
+  //   return hazirlananMetraj
+
+  // } catch (error) {
+  //   throw new Error({ hatayeri: "MONGO // getHazirlananMetraj // ", error });
+  // }
 
 
 
