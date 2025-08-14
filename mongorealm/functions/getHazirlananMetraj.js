@@ -25,7 +25,7 @@ exports = async function ({
     { $match: { _id: _dugumId } },
     {
       $project: {
-        hazirlananMetraj: {
+        hazirlananMetrajlar_filtered: {
           $filter: {
             input: "$hazirlananMetrajlar",
             as: "hazirlananMetraj",
@@ -38,7 +38,8 @@ exports = async function ({
   ]).toArray()
 
 
-  let { hazirlananMetraj } = result[0]
+  let { hazirlananMetrajlar_filtered } = result[0]
+  hazirlananMetraj = hazirlananMetrajlar_filtered[0]
 
   if (!hazirlananMetraj.length) {
 
