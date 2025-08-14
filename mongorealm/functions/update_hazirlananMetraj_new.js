@@ -122,7 +122,7 @@ exports = async function ({
 
 
 
-  // yeni eklenecekse veya güncellenecekse
+  // yeni eklenecekse
   try {
 
     // db'de yoksa ve yeni eklenecekse
@@ -143,8 +143,65 @@ exports = async function ({
       )
 
   } catch (error) {
+    throw new Error("MONGO // update_hazirlananMetrajlar_new // yeni eklenecekse " + error.message);
+  }
+
+
+
+  // db'de varsa ve güncellenecekse
+  try {
+
+    if (hazirlananMetraj_db) {
+
+      // gelen veriden isSelected olmayıp db'de isSelected olan, yani muhtemelen az önce başka kullanıcı tarafından onaylıya taşınmış olan satırlar mevcut
+      let selectedSatirlar = hazirlananMetraj_db?.satirlar?.filter(x => x.isSelected)
+      let unSelectedSatirlar = hazirlananMetraj_new.satirlar?.filter(x => !x.isSelected)
+      selectedSatirlar?.map(oneSatir => {
+        if (unSelectedSatirlar.find(x => x.satirNo === oneSatir.satirNo)) {
+          throw new Error(`__mesajBaslangic__Kaydetmeye çalıştığınız bazı satırlar, siz işlem yaparken, başa kullanıcı tarafından onaylı tarafa alınmış. Kayıt işleminiz gerçekleşmedi. Kontrol edip tekrar deneyiniz.__mesajBitis__`)
+        }
+      })
+
+      // gelen veride sıkıntı görülmedi olduğu gibi kaydedilecek ama önce metraj verisi alma ve temizlik
+      // isKaydedilecek, frontend'de değişim olan satırları takip etmek için, değişimlileri kaldırınca kaydetme tuşu pasif oluyor 
+      hazirlananMetraj_new.satirlar = hazirlananMetraj_new.satirlar.map(oneSatir => {
+        metraj += Number(oneSatir.metraj)
+        metrajReady += oneSatir.isReady ? Number(oneSatir.metraj) : 0
+        delete oneSatir.isKaydedilecek
+        return oneSatir
+      })
+      hazirlananMetraj_new.metraj = metraj
+
+      await collection_Dugumler.updateOne({ _id: _dugumId },
+        [
+          {
+            $set: {
+              hazirlananMetrajlar: {
+                $map: {
+                  input: "$hazirlananMetrajlar",
+                  as: "hazirlananMetraj",
+                  in: {
+                    $cond: {
+                      if: { $eq: ["$$hazirlananMetraj.userEmail", userEmail] },
+                      then: hazirlananMetraj_new,
+                      else: "$$hazirlananMetraj"
+                    }
+                  }
+                }
+              },
+              onaylananMetraj:metrajReady
+            }
+          }
+        ]
+      )
+
+    }
+
+
+  } catch (error) {
     throw new Error("MONGO // update_hazirlananMetrajlar_new // güncellenecekse " + error.message);
   }
+
 
 
 
@@ -189,9 +246,9 @@ exports = async function ({
 
 
   //   let selectedSatirlar = hazirlananMetraj_db?.satirlar?.filter(x => x.isSelected)
-  //   let kaydedilecekSatirlar = hazirlananMetraj_new.satirlar?.filter(x => x.isKaydedilecek)
+  //   let unSelectedSatirlar = hazirlananMetraj_new.satirlar?.filter(x => x.isKaydedilecek)
   //   selectedSatirlar?.map(oneSatir => {
-  //     if (kaydedilecekSatirlar.find(x => x.satirNo === oneSatir.satirNo)) {
+  //     if (unSelectedSatirlar.find(x => x.satirNo === oneSatir.satirNo)) {
   //       throw new Error(`__mesajBaslangic__Kaydetmeye çalıştığınız bazı satırlar, siz işlem yaparken, başa kullanıcı tarafından onaylı tarafa alınmış. Kayıt işleminiz gerçekleşmedi. Kontrol edip tekrar deneyiniz.__mesajBitis__`)
   //     }
   //   })
