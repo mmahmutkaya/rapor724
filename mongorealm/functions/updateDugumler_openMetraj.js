@@ -35,7 +35,7 @@ exports = async function ({
       throw new Error("MONGO // updateDugumler_openMetraj // 'mahaller' verisi db sorgusuna gelmedi");
     }
 
-    if (!mahaller.length) {
+    if (!mahaller.length > 0) {
       throw new Error("MONGO // updateDugumler_openMetraj // 'mahaller' verisi db sorgusuna 'boş array' olarak gelmiş");
     }
 
