@@ -39,16 +39,22 @@ exports = async function ({
     ]
   }
 
-  const result = collection_Dugumler.findOne({
-    _id: _dugumId,
-    hazirlananMetrajlar: {
-      $elemMatch: {
-        userEmail
+  hazirlananMetraj = await collection_Dugumler.aggregate([
+    { $match: { _id: _dugumId } },
+    {
+      $project: {
+        items: {
+          $filter: {
+            input: "$hazirlananMetrajlar",
+            as: "hazirlananMetraj",
+            cond: { "$$hazirlananMetraj.userEmail": userEmail }
+          }
+        }
       }
     }
-  });
+  ])
 
-  return result
+  return hazirlananMetraj
 
   // await collection_Dugumler.updateOne(
   //   { _id: _dugumId },
