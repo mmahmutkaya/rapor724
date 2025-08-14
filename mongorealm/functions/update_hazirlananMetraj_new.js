@@ -78,20 +78,30 @@ exports = async function ({
     })
 
     // db de isSelected varsa da biri ready lerden onaylı tarafa çekmiş belki, kullanıcı bütün satırları boşaltmadan 
-    if (isSilinecek && hazirlananMetraj_db) {
+    if (isSilinecek) {
 
-      if (hazirlananMetraj_db.satirlar.find(x => x.isSelected)) {
-        isSilinecek = false
+      if (!hazirlananMetraj_db) {
+
+        // zaten yokmuş fonksiyonu sonlandıralım
+        return
+
+      } else {
+
+        if (hazirlananMetraj_db.satirlar.find(x => x.isSelected)) {
+
+          // silme işleminden önce ready varmış ve seçilmiş demekki onaylı tarafa
+          isSilinecek = false
+        }
       }
 
     }
 
-    // hala true ise artık silebilir ve fonksiyonu sonlandırabiliriz
+    // hala true ise ve db'de de varsa artık silebilir ve fonksiyonu sonlandırabiliriz
     if (isSilinecek) {
       await collection_Dugumler.updateOne({ _id: _dugumId },
         [
           {
-            $project: {
+            $set: {
               hazirlananMetrajlar: {
                 $filter: {
                   input: "$hazirlananMetrajlar",
@@ -110,29 +120,27 @@ exports = async function ({
     throw new Error("MONGO // update_hazirlananMetrajlar_new // silinecekse " + error.message);
   }
 
+
+
+  // yeni eklenecekse veya güncellenecekse
   try {
 
-    await collection_Dugumler.updateOne({ _id: _dugumId },
-      [
-        {
-          $project: {
-            hazirlananMetrajlar: {
-              $map: {
-                input: "$hazirlananMetrajlar",
-                as: "hazirlananMetraj",
-                in: {
-                  $cond: {
-                    if: {  $neq: ["$$hazirlananMetraj.userEmail", userEmail]  },
-                    then: "$$hazirlananMetraj",
-                    else: hazirlananMetraj_new
-                  }
-                }
+    // db'de yoksa ve yeni eklenecekse
+    if (!hazirlananMetraj_db)
+      await collection_Dugumler.updateOne({ _id: _dugumId },
+        [
+          {
+            $set: {
+              hazirlananMetrajlar: {
+                $concatArrays: [
+                  "$hazirlananMetrajlar", // The existing array
+                  [hazirlananMetraj_new] // The new object as an array
+                ]
               }
             }
           }
-        }
-      ]
-    )
+        ]
+      )
 
   } catch (error) {
     throw new Error("MONGO // update_hazirlananMetrajlar_new // güncellenecekse " + error.message);
