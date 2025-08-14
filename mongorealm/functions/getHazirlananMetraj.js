@@ -35,7 +35,7 @@ exports = async function ({
       }
     },
     { $limit: 1 }
-  ])
+  ]).toArray()
 
 
   let { hazirlananMetrajlar_filtered } = result[0]
