@@ -56,7 +56,7 @@ exports = async function ({
 
 
   try {
-    dugum = await collection_Dugumler.findOne({ _dugumId })
+    dugum = await collection_Dugumler.findOne({ _id:_dugumId })
     hazirlananMetrajlar = dugum.hazirlananMetrajlar
   } catch (error) {
     throw new Error("MONGO // update_hazirlananMetrajlar_selected // db'den veri çekme" + error);
