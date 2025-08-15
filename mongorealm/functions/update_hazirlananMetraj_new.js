@@ -227,7 +227,7 @@ exports = async function ({
                     userEmail: "$$hazirlananMetraj.userEmail",
                     metraj: {
                       $reduce: {
-                        input: "$hazirlananMetraj.satirlar",
+                        input: "$$hazirlananMetraj.satirlar",
                         initialValue: 0,
                         in: {
                           $add: ["$$value",
