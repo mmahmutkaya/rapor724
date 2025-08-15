@@ -171,6 +171,7 @@ exports = async function ({
         return oneSatir
       })
       hazirlananMetraj_new.metraj = metraj
+      hazirlananMetraj_new.metrajReady = metrajReady
 
       await collection_Dugumler.updateOne({ _id: _dugumId },
         [
@@ -188,20 +189,7 @@ exports = async function ({
                     }
                   }
                 }
-              },
-              readyMetrajlar: {
-                $map: {
-                  input: "$hazirlananMetrajlar",
-                  as: "hazirlananMetraj",
-                  in: {
-                    $cond: {
-                      if: { $eq: ["$$hazirlananMetraj.userEmail", userEmail] },
-                      then: { metrajReady },
-                      else: "$$PRUNE"
-                    }
-                  }
-                }
-              },
+              }
             }
           }
         ]
