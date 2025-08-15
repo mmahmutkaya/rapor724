@@ -133,7 +133,17 @@ exports = async function ({
   try {
 
     // db'de yoksa ve yeni eklenecekse
-    if (!hazirlananMetraj_db)
+    if (!hazirlananMetraj_db) {
+
+      hazirlananMetraj_new.satirlar = hazirlananMetraj_new.satirlar.map(oneSatir => {
+        metraj += Number(oneSatir.metraj)
+        readyMetraj += oneSatir.isReady ? Number(oneSatir.metraj) : 0
+        delete oneSatir.isKaydedilecek
+        return oneSatir
+      })
+      hazirlananMetraj_new.metraj = metraj
+      hazirlananMetraj_new.readyMetraj = readyMetraj
+
       await collection_Dugumler.updateOne({ _id: _dugumId },
         [
           {
@@ -143,19 +153,30 @@ exports = async function ({
                   "$hazirlananMetrajlar", // The existing array
                   [hazirlananMetraj_new] // The new object as an array
                 ]
-              },
+              }
+            }
+          },
+          {
+            $set: {
               readyMetrajlar: {
                 $map: {
                   input: "$hazirlananMetrajlar",
                   as: "hazirlananMetraj",
-                  in: { userEmail: "$$hazirlananMetraj.userEmail", metraj: "$$hazirlananMetraj.readyMetraj" }
+                  in: {
+                    $cond: {
+                      if: { $eq: ["$$hazirlananMetraj.userEmail", userEmail] },
+                      then: { userEmail, metraj: readyMetraj },
+                      else: "$$hazirlananMetraj"
+                    }
+                  }
                 }
               }
             }
-          }
+          },
         ]
       )
 
+    }
   } catch (error) {
     throw new Error("MONGO // update_hazirlananMetrajlar_new // yeni eklenecekse " + error.message);
   }
@@ -197,9 +218,9 @@ exports = async function ({
                   as: "hazirlananMetraj",
                   in: {
                     $cond: {
-                      if: { $ne: ["$$hazirlananMetraj.userEmail", userEmail] },
-                      then: "$$hazirlananMetraj",
-                      else: hazirlananMetraj_new
+                      if: { $eq: ["$$hazirlananMetraj.userEmail", userEmail] },
+                      then: hazirlananMetraj_new,
+                      else: "$$hazirlananMetraj"
                     }
                   }
                 }
@@ -214,9 +235,9 @@ exports = async function ({
                   as: "hazirlananMetraj",
                   in: {
                     $cond: {
-                      if: { $ne: ["$$hazirlananMetraj.userEmail", userEmail] },
-                      then: "$$hazirlananMetraj",
-                      else: { userEmail, metraj: readyMetraj }
+                      if: { $eq: ["$$hazirlananMetraj.userEmail", userEmail] },
+                      then: { userEmail, metraj: readyMetraj },
+                      else: "$$hazirlananMetraj"
                     }
                   }
                 }
