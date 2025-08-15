@@ -27,11 +27,20 @@ exports = async function ({
 
   // let hazirlananMetrajlar = await collection_Dugumler.aggregate({ _dugumId }, { hazirlananMetrajlar: 1 }).toArray()
 
-  let dugum = await collection_Dugumler.aggregate([
-    { $match: { _id: _dugumId, isDeleted: false } },
+  // let dugum = await collection_Dugumler.aggregate([
+  //   { $match: { _id: _dugumId, isDeleted: false } },
+  //   { $project: { _pozId: 1, _mahalId: 1, hazirlananMetrajlar: 1, onaylananMetraj: 1 } },
+  //   { $limit: 1 }
+  // ]).toArray()
+
+  const result = await collection_Dugumler.aggregate([
+    { $match: { _id: _dugumId } },
     { $project: { _pozId: 1, _mahalId: 1, hazirlananMetrajlar: 1, onaylananMetraj: 1 } },
     { $limit: 1 }
   ]).toArray()
+
+  let dugum = result[0]
+  // hazirlananMetraj = hazirlananMetrajlar_filtered[0]
 
   let { hazirlananMetrajlar } = dugum
 
