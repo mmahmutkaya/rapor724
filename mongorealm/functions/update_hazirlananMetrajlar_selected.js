@@ -104,7 +104,9 @@ exports = async function ({
       return oneHazirlanan
     })
 
-    hazirlananMetrajlar.map(oneHazirlanan => {
+    hazirlananMetrajlar = hazirlananMetrajlar.map(oneHazirlanan => {
+      oneHazirlanan.hasSelected = false
+      oneHazirlanan.hasSelectedFull = false
       let onaylananSatirlar = oneHazirlanan.satirlar.filter(x => (x.isSelected && !x.hasSelected) || (x.isSelectedCopy))
       if (oneHazirlanan.satirlar.find(x => x.isSelected)) {
         oneHazirlanan.hasSelected = true
