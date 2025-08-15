@@ -82,7 +82,7 @@ exports = async function ({
     // let bulkArray = []
     let newSiraNo = 1
     hazirlananMetrajlar.map(oneHazirlanan => {
-      oneHazirlanan.satirlar.filter(x => x.isSelected && !x.newSelected)(oneSatir => {
+      oneHazirlanan.satirlar.filter(x => x.isSelected && !x.newSelected).map(oneSatir => {
         if (oneSatir?.siraNo >= newSiraNo) {
           newSiraNo = oneSatir?.siraNo + 1
           metrajOnaylanan += Number(oneSatir.metraj)
