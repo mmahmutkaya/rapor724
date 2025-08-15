@@ -193,7 +193,7 @@ exports = async function ({
             readyMetrajlar: {
               $concatArrays: [
                 "$readyMetrajlar",
-                [{ userEmail: "hazirlananMetraj_new", metraj: readyMetraj }]
+                [{ userEmail: hazirlananMetraj_new.userEmail, metraj: readyMetraj }]
               ]
 
             }
