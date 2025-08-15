@@ -119,7 +119,7 @@ exports = async function ({
         oneHazirlanan.hasSelected = true
       }
       
-      if(selectedSatirlar.length === oneHazirlanan.satirlar.length){
+      if(selectedSatirlar.length === oneHazirlanan.satirlar.filter(x => x.isReady).length){
         oneHazirlanan.hasSelectedFull = true
       }
       return oneHazirlanan
@@ -223,6 +223,7 @@ exports = async function ({
   //     bulkArray = [...bulkArray, oneBulk]
 
   //   })
+  
 
   //   await collection_Dugumler.bulkWrite(
   //     bulkArray,
