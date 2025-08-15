@@ -196,8 +196,8 @@ exports = async function ({
                   in: {
                     $cond: {
                       if: { $eq: ["$$hazirlananMetraj.userEmail", userEmail] },
-                      then: { $set: { "$$hazirlananMetraj.metraj": metrajReady } },
-                      else: { $set: { "$$hazirlananMetraj": undefined } }
+                      then: { "$$hazirlananMetraj.metraj": metrajReady },
+                      else: { "$$hazirlananMetraj": undefined }
                     }
                   }
                 }
