@@ -20,12 +20,20 @@ exports = async function ({
     throw new Error("MONGO // getHazirlananMetrajlar // '_dugumId' verisi db sorgusuna gelmedi");
   }
 
-  const collection_HazirlananMetrajlar = context.services.get("mongodb-atlas").db("rapor724_v2").collection("hazirlananMetrajlar")
+  const collection_Dugumler = context.services.get("mongodb-atlas").db("rapor724_v2").collection("hazirlananMetrajlar")
   // const collection_Projeler = context.services.get("mongodb-atlas").db("rapor724_v2").collection("projeler")
 
   // let proje = await collection_Projeler.findOne({ _id: _projeId }, { yetki: 1 })
 
-  let hazirlananMetrajlar = await collection_HazirlananMetrajlar.find({ _dugumId }).toArray()
+  // let hazirlananMetrajlar = await collection_Dugumler.aggregate({ _dugumId }, { hazirlananMetrajlar: 1 }).toArray()
+
+  let dugum = await collection_Dugumler.aggregate([
+    { $match: { _id: _dugumId, isDeleted: false } },
+    { $project: { _pozId: 1, _mahalId: 1, hazirlananMetrajlar: 1, onaylananMetraj: 1 } },
+    { $limit: 1 }
+  ]).toArray()
+
+  let { hazirlananMetrajlar } = dugum
 
   if (hazirlananMetrajlar.length > 0) {
     hazirlananMetrajlar = hazirlananMetrajlar.map(oneHazirlanan => {
