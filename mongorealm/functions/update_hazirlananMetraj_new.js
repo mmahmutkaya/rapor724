@@ -197,9 +197,26 @@ exports = async function ({
                   as: "hazirlananMetraj",
                   in: {
                     $cond: {
-                      if: { $eq: ["$$hazirlananMetraj.userEmail", userEmail] },
-                      then: hazirlananMetraj_new,
-                      else: "$$hazirlananMetraj"
+                      if: { $ne: ["$$hazirlananMetraj.userEmail", userEmail] },
+                      then: "$$hazirlananMetraj",
+                      else: hazirlananMetraj_new
+                    }
+                  }
+                }
+              }
+            }
+          },
+          {
+            $set: {
+              readyMetrajlar: {
+                $map: {
+                  input: "$hazirlananMetrajlar",
+                  as: "hazirlananMetraj",
+                  in: {
+                    $cond: {
+                      if: { $ne: ["$$hazirlananMetraj.userEmail", userEmail] },
+                      then: "$$hazirlananMetraj",
+                      else: { userEmail, metraj: readyMetraj }
                     }
                   }
                 }
@@ -212,41 +229,30 @@ exports = async function ({
           //       $map: {
           //         input: "$hazirlananMetrajlar",
           //         as: "hazirlananMetraj",
-          //         in: { userEmail: "$$hazirlananMetraj.userEmail", metraj: "$$hazirlananMetraj.readyMetraj" }
+          //         in: {
+          //           userEmail: "$$hazirlananMetraj.userEmail",
+          //           metraj: {
+          //             $reduce: {
+          //               input: "$$hazirlananMetraj.satirlar",
+          //               initialValue: 0,
+          //               in: {
+          //                 $add: ["$$value",
+          //                   {
+          //                     $cond: {
+          //                       if: { $eq: ["$$this.isReady", true] },
+          //                       then:  "$$this.metraj",
+          //                       else: 0
+          //                     }
+          //                   }
+          //                 ]
+          //               }
+          //             }
+          //           }
+          //         }
           //       }
           //     }
           //   }
-          // },
-          {
-            $set: {
-              readyMetrajlar: {
-                $map: {
-                  input: "$hazirlananMetrajlar",
-                  as: "hazirlananMetraj",
-                  in: {
-                    userEmail: "$$hazirlananMetraj.userEmail",
-                    metraj: {
-                      $reduce: {
-                        input: "$$hazirlananMetraj.satirlar",
-                        initialValue: 0,
-                        in: {
-                          $add: ["$$value",
-                            {
-                              $cond: {
-                                if: { $eq: ["$$this.isReady", true] },
-                                then:  "$$this.metraj",
-                                else: 0
-                              }
-                            }
-                          ]
-                        }
-                      }
-                    }
-                  }
-                }
-              }
-            }
-          }
+          // }
         ]
       )
 
