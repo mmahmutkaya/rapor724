@@ -108,6 +108,13 @@ exports = async function ({
                   as: "hazirlananMetraj",
                   cond: { $ne: ["$$hazirlananMetraj.userEmail", userEmail] }
                 }
+              },
+              readyMetrajlar: {
+                $map: {
+                  input: "$hazirlananMetrajlar",
+                  as: "hazirlananMetraj",
+                  in: { userEmail:"$$hazirlananMetraj.userEmail", metraj: "$$hazirlananMetraj.readyMetraj" }
+                }
               }
             }
           }
@@ -136,6 +143,13 @@ exports = async function ({
                   "$hazirlananMetrajlar", // The existing array
                   [hazirlananMetraj_new] // The new object as an array
                 ]
+              },
+              readyMetrajlar: {
+                $map: {
+                  input: "$hazirlananMetrajlar",
+                  as: "hazirlananMetraj",
+                  in: { userEmail:"$$hazirlananMetraj.userEmail", metraj: "$$hazirlananMetraj.readyMetraj" }
+                }
               }
             }
           }
