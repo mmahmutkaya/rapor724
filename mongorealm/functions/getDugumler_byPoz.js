@@ -33,12 +33,12 @@ exports = async function ({
 
   let dugumler_byPoz
 
-  
+
   try {
 
     dugumler_byPoz = await collection_Dugumler.aggregate([
       { $match: { _pozId, openMetraj: true } },
-      { $project: { _pozId: 1, _mahalId: 1, openMetraj: 1, hazirlananMetrajlar:"$readyMetrajlar", onaylananMetraj: 1 } }
+      { $project: { _pozId: 1, _mahalId: 1, openMetraj: 1, hazirlananMetrajlar: "$readyMetrajlar", onaylananMetraj: 1, hasSelected: 1, hasSelectedFull: 1 } }
     ]).toArray()
 
     if (!dugumler_byPoz.length > 0) {
