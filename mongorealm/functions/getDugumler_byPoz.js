@@ -32,11 +32,13 @@ exports = async function ({
 
 
   let dugumler_byPoz
+
+  
   try {
 
     dugumler_byPoz = await collection_Dugumler.aggregate([
       { $match: { _pozId, openMetraj: true } },
-      { $project: { _pozId: 1, _mahalId: 1, openMetraj: 1, hazirlananMetrajlar: 1, onaylananMetraj: 1 } }
+      { $project: { _pozId: 1, _mahalId: 1, openMetraj: 1, hazirlananMetrajlar:"$readyMetrajlar", onaylananMetraj: 1 } }
     ]).toArray()
 
     if (!dugumler_byPoz.length > 0) {
@@ -46,6 +48,25 @@ exports = async function ({
   } catch (error) {
     throw new Error("MONGO // getDugumler_byPoz // dugumler_byPoz sırasında hata oluştu" + error);
   }
+
+
+
+  // try {
+
+  //   dugumler_byPoz = await collection_Dugumler.aggregate([
+  //     { $match: { _pozId, openMetraj: true } },
+  //     { $project: { _pozId: 1, _mahalId: 1, openMetraj: 1, hazirlananMetrajlar: 1, onaylananMetraj: 1 } }
+  //   ]).toArray()
+
+  //   if (!dugumler_byPoz.length > 0) {
+  //     throw new Error("MONGO // getDugumler_byPoz // dugumler_byPoz boş ");
+  //   }
+
+  // } catch (error) {
+  //   throw new Error("MONGO // getDugumler_byPoz // dugumler_byPoz sırasında hata oluştu" + error);
+  // }
+
+
 
 
   let proje
