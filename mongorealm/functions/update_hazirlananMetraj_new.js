@@ -194,7 +194,7 @@ exports = async function ({
                 $map: {
                   input: "$hazirlananMetrajlar",
                   as: "hazirlananMetraj",
-                  in: { userEmail, metraj: readyMetraj }
+                  in: { userEmail:"$$hazirlananMetraj.userEmail", metraj: "$$hazirlananMetraj.readyMetraj" }
                 }
               }
             }
