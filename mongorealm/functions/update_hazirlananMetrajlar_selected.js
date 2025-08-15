@@ -117,6 +117,7 @@ exports = async function ({
       onaylananSatirlar.map(oneSatir => {
         metrajOnaylanan += Number(oneSatir.metraj)
       })
+      return oneHazirlanan
     })
 
     // oneBulk = {
