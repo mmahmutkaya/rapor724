@@ -197,7 +197,7 @@ exports = async function ({
                     $cond: {
                       if: { $eq: ["$$hazirlananMetraj.userEmail", userEmail] },
                       then: { metrajReady },
-                      else: { undefined }
+                      else: "$$REMOVE"
                     }
                   }
                 }
