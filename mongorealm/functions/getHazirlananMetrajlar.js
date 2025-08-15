@@ -47,6 +47,7 @@ exports = async function ({
   if (hazirlananMetrajlar.length > 0) {
     hazirlananMetrajlar = hazirlananMetrajlar.map(oneHazirlanan => {
       oneHazirlanan.satirlar = oneHazirlanan.satirlar.filter(x => x.isReady === true)
+      oneHazirlanan.metraj = oneHazirlanan.readyMetraj
       return oneHazirlanan
     })
   }
