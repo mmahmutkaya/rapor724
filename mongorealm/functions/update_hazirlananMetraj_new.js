@@ -206,13 +206,39 @@ exports = async function ({
               }
             }
           },
+          // {
+          //   $set: {
+          //     readyMetrajlar: {
+          //       $map: {
+          //         input: "$hazirlananMetrajlar",
+          //         as: "hazirlananMetraj",
+          //         in: { userEmail: "$$hazirlananMetraj.userEmail", metraj: "$$hazirlananMetraj.readyMetraj" }
+          //       }
+          //     }
+          //   }
+          // },
           {
             $set: {
               readyMetrajlar: {
                 $map: {
                   input: "$hazirlananMetrajlar",
                   as: "hazirlananMetraj",
-                  in: { userEmail: "$$hazirlananMetraj.userEmail", metraj: "$$hazirlananMetraj.readyMetraj" }
+                  in: {
+                    userEmail: "$$hazirlananMetraj.userEmail",
+                    metraj: {
+                      $reduce: {
+                        input: "$hazirlananMetraj.satirlar",
+                        initialValue: 0,
+                        in: {
+                          $cond: {
+                            if: { $eq: ["$$this.isReady", true] },
+                            then: { $add: ["$$value", "$$this.metraj"] },
+                            else: { $add: ["$$value", 0] }
+                          }
+                        }
+                      }
+                    }
+                  }
                 }
               }
             }
