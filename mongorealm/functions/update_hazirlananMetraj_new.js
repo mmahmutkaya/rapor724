@@ -230,11 +230,15 @@ exports = async function ({
                         input: "$hazirlananMetraj.satirlar",
                         initialValue: 0,
                         in: {
-                          $cond: {
-                            if: { $eq: ["$$this.isReady", true] },
-                            then: { $add: ["$$value", "$$this.metraj"] },
-                            else: { $add: ["$$value", 0] }
-                          }
+                          $add: ["$$value",
+                            {
+                              $cond: {
+                                if: { $eq: ["$$this.isReady", true] },
+                                then:  "$$this.metraj",
+                                else: 0
+                              }
+                            }
+                          ]
                         }
                       }
                     }
