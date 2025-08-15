@@ -105,18 +105,23 @@ exports = async function ({
     })
 
     hazirlananMetrajlar = hazirlananMetrajlar.map(oneHazirlanan => {
+      
       oneHazirlanan.hasSelected = false
       oneHazirlanan.hasSelectedFull = false
-      let onaylananSatirlar = oneHazirlanan.satirlar.filter(x => (x.isSelected && !x.hasSelected) || (x.isSelectedCopy))
-      if (oneHazirlanan.satirlar.find(x => x.isSelected)) {
+
+      let metrajSatirlari = oneHazirlanan.satirlar.filter(x => (x.isSelected && !x.hasSelected) || (x.isSelectedCopy))
+      metrajSatirlari.map(oneSatir => {
+        metrajOnaylanan += oneSatir.metraj
+      })
+      
+      let selectedSatirlar = oneHazirlanan.satirlar.filter(x => x.isSelected)
+      if(selectedSatirlar.length > 0){
         oneHazirlanan.hasSelected = true
       }
-      if (oneHazirlanan.satirlar.length === oneHazirlanan.satirlar.filter(x => x.isSelected).length) {
+      
+      if(selectedSatirlar.length === oneHazirlanan.satirlar.length){
         oneHazirlanan.hasSelectedFull = true
       }
-      onaylananSatirlar.map(oneSatir => {
-        metrajOnaylanan += Number(oneSatir.metraj)
-      })
       return oneHazirlanan
     })
 
