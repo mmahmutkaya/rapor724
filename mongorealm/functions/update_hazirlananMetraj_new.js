@@ -41,7 +41,7 @@ exports = async function ({
 
 
 
-  // b'deki verinin alınması
+  // db'deki verinin alınması
   try {
 
     const result = await collection_Dugumler.aggregate([
