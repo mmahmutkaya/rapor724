@@ -105,7 +105,7 @@ exports = async function ({
     })
 
     hazirlananMetrajlar = hazirlananMetrajlar.map(oneHazirlanan => {
-      
+
       oneHazirlanan.hasSelected = false
       oneHazirlanan.hasSelectedFull = false
 
@@ -139,7 +139,7 @@ exports = async function ({
     //   { ordered: false }
     // )
 
-    await collection_Dugumler.updateOne({ _id: _dugumId }, { $set: { hazirlananMetrajlar, onaylananMetraj: metrajOnaylanan, hasSelected, hasSelectedFull } })
+    await collection_Dugumler.updateOne({ _id: _dugumId }, { $set: { hazirlananMetrajlar, onaylananMetraj: metrajOnaylanan } })
 
   } catch (error) {
     throw new Error("MONGO // update_hazirlananMetrajlar_selected // hazirlananMetraj güncelleme " + error);
