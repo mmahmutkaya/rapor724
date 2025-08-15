@@ -37,7 +37,7 @@ exports = async function ({
   let hazirlananMetraj_db
   let hazirlananMetraj
   let isSilinecek = true
-  let metrajReady = 0
+  let readyMetraj = 0
   let metraj = 0
 
 
@@ -166,12 +166,12 @@ exports = async function ({
       // isKaydedilecek, frontend'de değişim olan satırları takip etmek için, değişimlileri kaldırınca kaydetme tuşu pasif oluyor 
       hazirlananMetraj_new.satirlar = hazirlananMetraj_new.satirlar.map(oneSatir => {
         metraj += Number(oneSatir.metraj)
-        metrajReady += oneSatir.isReady ? Number(oneSatir.metraj) : 0
+        readyMetraj += oneSatir.isReady ? Number(oneSatir.metraj) : 0
         delete oneSatir.isKaydedilecek
         return oneSatir
       })
       hazirlananMetraj_new.metraj = metraj
-      hazirlananMetraj_new.metrajReady = metrajReady
+      hazirlananMetraj_new.readyMetraj = readyMetraj
 
       await collection_Dugumler.updateOne({ _id: _dugumId },
         [
@@ -188,6 +188,13 @@ exports = async function ({
                       else: "$$hazirlananMetraj"
                     }
                   }
+                }
+              },
+              readyMetrajlar: {
+                $map: {
+                  input: "$hazirlananMetrajlar",
+                  as: "hazirlananMetraj",
+                  in: { userEmail, metraj: readyMetraj }
                 }
               }
             }
