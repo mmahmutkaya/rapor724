@@ -20,7 +20,7 @@ exports = async function ({
     throw new Error("MONGO // getHazirlananMetrajlar // '_dugumId' verisi db sorgusuna gelmedi");
   }
 
-  const collection_Dugumler = context.services.get("mongodb-atlas").db("rapor724_v2").collection("hazirlananMetrajlar")
+  const collection_Dugumler = context.services.get("mongodb-atlas").db("rapor724_v2").collection("dugumler")
   // const collection_Projeler = context.services.get("mongodb-atlas").db("rapor724_v2").collection("projeler")
 
   // let proje = await collection_Projeler.findOne({ _id: _projeId }, { yetki: 1 })
