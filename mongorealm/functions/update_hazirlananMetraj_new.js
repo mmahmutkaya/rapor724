@@ -113,7 +113,7 @@ exports = async function ({
                 $map: {
                   input: "$hazirlananMetrajlar",
                   as: "hazirlananMetraj",
-                  in: { userEmail:"$$hazirlananMetraj.userEmail", metraj: "$$hazirlananMetraj.readyMetraj" }
+                  in: { userEmail: "$$hazirlananMetraj.userEmail", metraj: "$$hazirlananMetraj.readyMetraj" }
                 }
               }
             }
@@ -148,7 +148,7 @@ exports = async function ({
                 $map: {
                   input: "$hazirlananMetrajlar",
                   as: "hazirlananMetraj",
-                  in: { userEmail:"$$hazirlananMetraj.userEmail", metraj: "$$hazirlananMetraj.readyMetraj" }
+                  in: { userEmail: "$$hazirlananMetraj.userEmail", metraj: "$$hazirlananMetraj.readyMetraj" }
                 }
               }
             }
@@ -203,12 +203,16 @@ exports = async function ({
                     }
                   }
                 }
-              },
+              }
+            }
+          },
+          {
+            $set: {
               readyMetrajlar: {
                 $map: {
                   input: "$hazirlananMetrajlar",
                   as: "hazirlananMetraj",
-                  in: { userEmail:"$$hazirlananMetraj.userEmail", metraj: "$$hazirlananMetraj.readyMetraj" }
+                  in: { userEmail: "$$hazirlananMetraj.userEmail", metraj: "$$hazirlananMetraj.readyMetraj" }
                 }
               }
             }
