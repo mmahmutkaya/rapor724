@@ -127,7 +127,9 @@ exports = async function ({
           }
         ]
       )
+      return
     }
+
 
 
   } catch (error) {
