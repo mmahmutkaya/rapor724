@@ -131,7 +131,7 @@ exports = async function ({
     //   { ordered: false }
     // )
 
-    await collection_Dugumler.updateOne({ _id: _dugumId }, { $set: { hazirlananMetrajlar, onaylananMetraj: metrajOnaylanan } })
+    await collection_Dugumler.updateOne({ _id: _dugumId }, { $set: { hazirlananMetrajlar, onaylananMetraj: metrajOnaylanan, hasSelected, hasSelectedFull } })
 
   } catch (error) {
     throw new Error("MONGO // update_hazirlananMetrajlar_selected // hazirlananMetraj güncelleme " + error);
