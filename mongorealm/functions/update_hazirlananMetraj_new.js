@@ -189,7 +189,19 @@ exports = async function ({
                   }
                 }
               },
-              onaylananMetraj: metrajReady
+              readyMetrajlar: {
+                $map: {
+                  input: "$hazirlananMetrajlar",
+                  as: "hazirlananMetraj",
+                  in: {
+                    $cond: {
+                      if: { $eq: ["$$hazirlananMetraj.userEmail", userEmail] },
+                      then: { $set: { "$$hazirlananMetraj.metraj": metrajReady } },
+                      else: { $set: { "$$hazirlananMetraj.metraj": null } }
+                    }
+                  }
+                }
+              },
             }
           }
         ]
