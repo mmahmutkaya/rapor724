@@ -115,7 +115,7 @@ exports = async function ({
         updateOne: {
           filter: { _id: _dugumId },
           update: { $set: { "hazirlananMetrajlar.$[oneHazirlanan].satirlar.$[oneSatir].isReady": false } },
-          arrayFilters: [{ "oneHazirlanan.userEmail": userEmail }, { "oneSatir.satirNo": { $in: oneHazirlanan_unReady_satirNolar } }]
+          arrayFilters: [{ "oneHazirlanan.userEmail": oneHazirlanan.userEmail }, { "oneSatir.satirNo": { $in: oneHazirlanan_unReady_satirNolar } }]
         }
       }
       bulkArray = [...bulkArray, oneBulk]
