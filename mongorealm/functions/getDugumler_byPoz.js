@@ -46,7 +46,12 @@ exports = async function ({
             $map: {
               input: "$hazirlananMetrajlar",
               as: "hazirlananMetraj",
-              in: { userEmail: "$$hazirlananMetraj.userEmail", metraj: "$$hazirlananMetraj.readyMetraj" }
+              in: {
+                userEmail: "$$hazirlananMetraj.userEmail",
+                metraj: "$$hazirlananMetraj.readyMetraj",
+                hasSelected:"$$hazirlananMetraj.hasSelected",
+                hasSelectedFull:"$$hazirlananMetraj.hasSelectedFull",
+              }
             }
           }
         }
