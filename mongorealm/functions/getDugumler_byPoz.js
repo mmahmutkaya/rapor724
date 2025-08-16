@@ -38,7 +38,19 @@ exports = async function ({
 
     dugumler_byPoz = await collection_Dugumler.aggregate([
       { $match: { _pozId, openMetraj: true } },
-      { $project: { _pozId: 1, _mahalId: 1, openMetraj: 1, hazirlananMetrajlar: 1, onaylananMetraj: 1 } }
+      {
+        $project: {
+          _pozId: 1, _mahalId: 1, openMetraj: 1, onaylananMetraj: 1,
+
+          hazirlananMetrajlar: {
+            $map: {
+              input: "$hazirlananMetrajlar",
+              as: "hazirlananMetraj",
+              in: { userEmail: "$$hazirlananMetraj.userEmail", metraj: "$$hazirlananMetraj.readyMetraj" }
+            }
+          }
+        }
+      }
     ]).toArray()
 
     if (!dugumler_byPoz.length > 0) {
