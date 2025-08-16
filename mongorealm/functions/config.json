@@ -576,7 +576,7 @@
         "disable_arg_logs": true
     },
     {
-        "name": "copy/update_hazirlananMetrajlar_selected",
+        "name": "update_hazirlananMetrajlar_unReady",
         "private": false,
         "run_as_system": true,
         "disable_arg_logs": true
