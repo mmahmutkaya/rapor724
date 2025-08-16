@@ -50,70 +50,87 @@ exports = async function ({
   })
 
 
-  const result = await collection_Dugumler.aggregate([
-    {
-      "$addFields": {
-        "hazirlananMetrajlar": {
-          "$map": {
-            "input": "$hazirlananMetrajlar",
-            "as": "oneHazirlanan",
-            "in": {
-              $mergeObjects: [
-                "$$oneHazirlanan",
-                {
-                  "satirlar": {
-                    $map: {
-                      input: "$$oneHazirlanan.satirlar",
-                      as: "oneSatir",
-                      in: {
-                        "$mergeObjects": [
-                          "$$oneSatir",
-                          {
-                            "$cond": {
-                              "if": {
-                                "$$oneSatir.satirNo": { $in: iptalEdilecekSatirNolar }
-                              },
-                              "then": {
-                                isReady: false
-                              },
-                              "else": {
-                                isReady: "$$oneSatir.isReady"
-                              }
-                            }
-                          }
-                        ]
-                      }
-                    }
-                  }
-                }
-              ]
-            }
-          }
-        }
-      }
-    }
-  ])
-
-  return result
-
-
-  //   let bulkArray = []
-  // hazirlananMetrajlar_state.map(oneHazirlanan => {
-
-  //   let unReady_SatirNolar = oneHazirlanan.satirlar.filter(x => !x.isReady).map(oneSatir => {
-  //     return oneSatir.satirNo
-  //   })
-
-  //   oneBulk = {
-  //     updateOne: {
-  //       filter: { _id:_dugumId },
-  //       update: { $set: { "hazirlananMetrajlar.$[oneHazirlanan].satirlar" } },
-  //       arrayFilters: [ { "oneHazirlanan.userEmail": userEmail } ]
+  // const result = await collection_Dugumler.aggregate([
+  //   {
+  //     "$addFields": {
+  //       "hazirlananMetrajlar": {
+  //         "$map": {
+  //           "input": "$hazirlananMetrajlar",
+  //           "as": "oneHazirlanan",
+  //           "in": {
+  //             $mergeObjects: [
+  //               "$$oneHazirlanan",
+  //               {
+  //                 "satirlar": {
+  //                   $map: {
+  //                     input: "$$oneHazirlanan.satirlar",
+  //                     as: "oneSatir",
+  //                     in: {
+  //                       "$mergeObjects": [
+  //                         "$$oneSatir",
+  //                         {
+  //                           "$cond": {
+  //                             "if": {
+  //                               "$$oneSatir.satirNo": { $in: iptalEdilecekSatirNolar }
+  //                             },
+  //                             "then": {
+  //                               isReady: false
+  //                             },
+  //                             "else": {
+  //                               isReady: "$$oneSatir.isReady"
+  //                             }
+  //                           }
+  //                         }
+  //                       ]
+  //                     }
+  //                   }
+  //                 }
+  //               }
+  //             ]
+  //           }
+  //         }
+  //       }
   //     }
   //   }
-  //   bulkArray = [...bulkArray, oneBulk]
+  // ])
 
-  // })
+  // return result
+
+
+
+
+  try {
+
+
+    let bulkArray = []
+    hazirlananMetrajlar_state.map(oneHazirlanan => {
+
+      let oneHazirlanan_unReady_satirNolar = oneHazirlanan.satirlar.filter(x => !x.isReady).map(oneSatir => {
+        return oneSatir.satirNo
+      })
+
+      oneBulk = {
+        updateOne: {
+          filter: { _id: _dugumId },
+          update: { $set: { "hazirlananMetrajlar.$[oneHazirlanan].satirlar.$[oneSatir].isReady": false } },
+          arrayFilters: [{ "oneHazirlanan.userEmail": userEmail }, { "oneSatir.satirNo": { $in: oneHazirlanan_unReady_satirNolar } }]
+        }
+      }
+      bulkArray = [...bulkArray, oneBulk]
+
+    })
+
+    const result = await collection_HazirlananMetrajlar.bulkWrite(
+      bulkArray,
+      { ordered: false }
+    )
+
+    return result
+
+
+  } catch (error) {
+    throw new Error("MONGO // update_hazirlananMetrajlar_selected // " + error);
+  }
 
 
 
