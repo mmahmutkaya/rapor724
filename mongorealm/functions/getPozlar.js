@@ -42,7 +42,7 @@ exports = async function ({
     ]).toArray()
 
 
-    const pozlar2 = await collection_Dugumler.aggregate([
+    const dugum_byPoz = await collection_Dugumler.aggregate([
       {
         $match: {
           _projeId,
@@ -53,8 +53,19 @@ exports = async function ({
         $project: {
           _pozId: 1,
           _mahalId: 1,
-          hazirlananMetrajlar: 1,
-          onaylananMetraj: 1
+          onaylananMetraj: 1,
+          hazirlananMetrajlar: {
+            $map: {
+              input: "$hazirlananMetrajlar",
+              as: "hazirlananMetraj",
+              in: {
+                userEmail: "$$hazirlananMetraj.userEmail",
+                metraj: "$$hazirlananMetraj.readyMetraj",
+                hasSelected: "$$hazirlananMetraj.hasSelected",
+                hasSelectedFull: "$$hazirlananMetraj.hasSelectedFull",
+              }
+            }
+          }
         }
       },
       {
@@ -72,7 +83,7 @@ exports = async function ({
 
     pozlar = pozlar.map(onePoz => {
 
-      const onePoz2 = pozlar2.find(onePoz2 => onePoz2._id.toString() === onePoz._id.toString())
+      const onePoz2 = dugum_byPoz.find(onePoz2 => onePoz2._id.toString() === onePoz._id.toString())
 
       if (!onePoz2) {
 
