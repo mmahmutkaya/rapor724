@@ -53,8 +53,19 @@ exports = async function ({
         $project: {
           _pozId: 1,
           _mahalId: 1,
-          hazirlananMetrajlar: 1,
-          onaylananMetraj: 1
+          onaylananMetraj: 1,
+          hazirlananMetrajlar: {
+            $map: {
+              input: "$hazirlananMetrajlar",
+              as: "hazirlananMetraj",
+              in: {
+                userEmail: "$$hazirlananMetraj.userEmail",
+                metraj: "$$hazirlananMetraj.readyMetraj",
+                hasSelected: "$$hazirlananMetraj.hasSelected",
+                hasSelectedFull: "$$hazirlananMetraj.hasSelectedFull",
+              }
+            }
+          }
         }
       },
       {
