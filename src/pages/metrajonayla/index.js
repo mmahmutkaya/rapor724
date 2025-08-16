@@ -32,6 +32,7 @@ import CheckIcon from '@mui/icons-material/Check';
 import DoneAllIcon from '@mui/icons-material/DoneAll';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import ExpandLessIcon from '@mui/icons-material/ExpandLess';
+import ClearOutlined from '@mui/icons-material/ClearOutlined';
 
 
 export default function P_MetrajOnay() {
@@ -53,7 +54,10 @@ export default function P_MetrajOnay() {
   const [show, setShow] = useState("Main")
   const [isChanged, setIsChanged] = useState()
 
-  
+  const [isChanged_unReady, setIsChanged_unReady] = useState()
+  const [mode_unReady, setMode_unReady] = useState()
+
+
 
   const [hazirlananMetrajlar_state, setHazirlananMetrajlar_state] = useState()
   const [hazirlananMetrajlar_backUp, setHazirlananMetrajlar_backUp] = useState()
@@ -86,7 +90,6 @@ export default function P_MetrajOnay() {
   const { data } = useGetHazirlananMetrajlar()
 
 
-
   const navigate = useNavigate()
   useEffect(() => {
     !selectedNode_metraj && navigate("/metrajpozmahaller")
@@ -100,6 +103,10 @@ export default function P_MetrajOnay() {
 
   // console.log("onaylananMetrajlar_state", onaylananMetrajlar_state)
   // console.log("hazirlananMetrajlar_state", hazirlananMetrajlar_state)
+
+
+
+  // SELECT FONKSİYONLARI - SELECT - UNSELECT - CANCEL - SAVE
 
 
   const handle_satirSec = ({ oneRow, hazirlayan }) => {
@@ -142,7 +149,7 @@ export default function P_MetrajOnay() {
       setIsChanged(true)
     }
 
-    
+
 
     let hazirlananMetrajlar_state2 = _.cloneDeep(hazirlananMetrajlar_state)
     hazirlananMetrajlar_state2 = hazirlananMetrajlar_state2.map(oneHazirlanan => {
@@ -174,7 +181,6 @@ export default function P_MetrajOnay() {
 
 
   }
-
 
 
   const cancel = () => {
@@ -230,6 +236,148 @@ export default function P_MetrajOnay() {
   }
 
 
+
+
+
+
+
+
+  // UNREADY FONKSİYONLARI - SELECT - UNSELECT - CANCEL - SAVE
+
+
+  const handle_satirSec_unReady = ({ oneRow, hazirlayan }) => {
+
+    if (!isChanged_unReady) {
+      setIsChanged_unReady(true)
+    }
+
+    let hazirlananMetrajlar_state2 = _.cloneDeep(hazirlananMetrajlar_state)
+    hazirlananMetrajlar_state2 = hazirlananMetrajlar_state2.map(oneHazirlanan => {
+      if (oneHazirlanan.userEmail === hazirlayan.userEmail) {
+        oneHazirlanan.satirlar.map(oneSatir => {
+          if (oneSatir.satirNo === oneRow.satirNo) {
+            oneSatir.isReady = false
+            oneSatir.newSelected = true
+          }
+          return oneSatir
+        })
+      }
+      return oneHazirlanan
+    })
+
+    setHazirlananMetrajlar_state(hazirlananMetrajlar_state2)
+
+  }
+
+
+
+
+  const handle_satirIptal_unReady = ({ oneRow, hazirlayan }) => {
+
+    if (!oneRow.newSelected) {
+      return
+    }
+
+    if (!isChanged_unReady) {
+      setIsChanged_unReady(true)
+    }
+
+    let hazirlananMetrajlar_state2 = _.cloneDeep(hazirlananMetrajlar_state)
+    hazirlananMetrajlar_state2 = hazirlananMetrajlar_state2.map(oneHazirlanan => {
+      if (oneHazirlanan.userEmail === hazirlayan.userEmail) {
+        oneHazirlanan.satirlar.map(oneSatir => {
+          if (oneSatir.satirNo === oneRow.satirNo) {
+            oneSatir.isReady = true
+            delete oneSatir.newSelected
+          }
+          return oneSatir
+        })
+      }
+      return oneHazirlanan
+    })
+    setHazirlananMetrajlar_state(hazirlananMetrajlar_state2)
+
+
+    // kaydetme tuşunu pasif hale getirme
+    let hasNewSelected = false;
+    for (var i = 0; i < hazirlananMetrajlar_state2.length; i++) {
+      if (hazirlananMetrajlar_state2[i].satirlar.find(x => x.newSelected)) {
+        hasNewSelected = true;
+        break;
+      }
+    }
+    if (!hasNewSelected) {
+      setIsChanged_unReady()
+    }
+
+
+  }
+
+
+  const cancel_unReady = () => {
+    setHazirlananMetrajlar_state(_.cloneDeep(hazirlananMetrajlar_backUp))
+    setIsChanged_unReady()
+    setMode_unReady()
+  }
+
+
+  // Edit Metraj Sayfasının Fonksiyonu
+  const save_unReady = async () => {
+
+    if (isChanged) {
+
+      try {
+
+        await RealmApp?.currentUser.callFunction("update_hazirlananMetrajlar_unReady", ({ _projeId: selectedProje._id, _dugumId: selectedNode_metraj._id, hazirlananMetrajlar_state }))
+
+        queryClient.invalidateQueries(['onaylananMetraj', selectedNode_metraj?._id.toString()])
+        queryClient.invalidateQueries(['hazirlananMetrajlar', selectedNode_metraj?._id.toString()])
+
+        setMode_unReady()
+        setIsChanged_unReady()
+        return
+
+      } catch (err) {
+
+        console.log(err)
+
+        let dialogIcon = "warning"
+        let dialogMessage = "Beklenmedik hata, sayfayı yenileyiniz, sorun devam ederse Rapor7/24 ile irtibata geçiniz.."
+        let onCloseAction = () => setDialogAlert()
+
+        if (err.message.includes("__mesajBaslangic__") && err.message.includes("__mesajBitis__")) {
+          let mesajBaslangic = err.message.indexOf("__mesajBaslangic__") + "__mesajBaslangic__".length
+          let mesajBitis = err.message.indexOf("__mesajBitis__")
+          dialogMessage = err.message.slice(mesajBaslangic, mesajBitis)
+          dialogIcon = "info"
+          onCloseAction = () => {
+            setDialogAlert()
+            queryClient.invalidateQueries(['hazirlananMetrajlar', selectedNode_metraj?._id.toString()])
+          }
+        }
+        setDialogAlert({
+          dialogIcon,
+          dialogMessage,
+          detailText: err?.message ? err.message : null,
+          onCloseAction
+        })
+
+      }
+    }
+
+  }
+
+
+
+
+
+
+
+
+
+
+  // KİŞİLERİN HAZILADIĞI METRAJLARI GÖSTERİP GİZLEME
+
   const toggleShow = ({ userEmail }) => {
 
     let showMetrajYapabilenler2 = _.cloneDeep(showMetrajYapabilenler)
@@ -244,6 +392,14 @@ export default function P_MetrajOnay() {
     setShowMetrajYapabilenler(showMetrajYapabilenler2)
 
   }
+
+
+
+
+
+
+
+
 
 
   // GENEL - bir string değerinin numerik olup olmadığının kontrolü
@@ -320,9 +476,8 @@ export default function P_MetrajOnay() {
       <Grid item sx={{ mt: (Number(subHeaderHeight) + 1) + "rem", }}>
         <HeaderMetrajOnayla
           show={show} setShow={setShow}
-          save={save}
-          cancel={cancel}
-          isChanged={isChanged} setIsChanged={setIsChanged}
+          save={save} cancel={cancel} isChanged={isChanged} setIsChanged={setIsChanged}
+          save_unReady={save_unReady} cancel_unReady={cancel_unReady} isChanged_unReady={isChanged_unReady} setIsChanged_unReady={setIsChanged_unReady} mode_unReady={mode_unReady} setMode_unReady={setMode_unReady}
         />
       </Grid>
 
@@ -468,11 +623,16 @@ export default function P_MetrajOnay() {
                             <React.Fragment key={index}>
 
                               <Box
-                                onClick={() => !oneRow?.isSelected ? handle_satirSec({ oneRow, hazirlayan }) : !oneRow?.isLock ? handle_satirIptal({ oneRow, hazirlayan }) : null}
+                                onClick={() =>
+                                  !mode_unReady && !oneRow?.isSelected ? handle_satirSec({ oneRow, hazirlayan }) :
+                                    !mode_unReady && oneRow?.newSelected ? handle_satirIptal({ oneRow, hazirlayan }) :
+                                      mode_unReady && !oneRow?.isSelected && oneRow?.isReady ? handle_satirSec_unReady({ oneRow, hazirlayan }) :
+                                        mode_unReady && !oneRow?.isReady && handle_satirIptal_unReady({ oneRow, hazirlayan })
+                                }
                                 sx={{
                                   ...css_metrajCetveliSatir,
-                                  cursor: "pointer",
-                                  backgroundColor: oneRow?.isSelected && myTema.renkler.inaktifGri,
+                                  cursor: !oneRow.isSelected || oneRow.newSelected ? "pointer" : null,
+                                  backgroundColor: oneRow?.isSelected ? myTema.renkler.inaktifGri : !oneRow.isReady && "rgba(238, 251, 0, 0.22)",
                                   justifyContent: (oneProperty.includes("satirNo") || oneProperty.includes("aciklama")) ? "start" : oneProperty.includes("carpan") ? "end" : oneProperty.includes("metraj") ? "end" : "center",
                                   minWidth: oneProperty.includes("carpan") ? "5rem" : oneProperty.includes("metraj") ? "5rem" : null,
                                   color: isMinha ? "red" : null
@@ -504,6 +664,9 @@ export default function P_MetrajOnay() {
                           {oneRow?.isSelected && oneRow?.newSelected &&
                             <HourglassFullSharpIcon variant="contained" sx={{ color: "rgba( 255,165,0, 1 )", fontSize: "0.95rem" }} />
                           }
+                          {!oneRow?.isReady &&
+                            <ClearOutlined variant="contained" sx={{ color: "red", fontSize: "1rem" }} />
+                          }
                         </Box>
 
                       </React.Fragment>
@@ -516,89 +679,6 @@ export default function P_MetrajOnay() {
 
             )
           })}
-
-
-          {/* ONAYLANAN METRAJ SATIRLARI GİZLENDİ */}
-          {/* <React.Fragment>
-
-            <React.Fragment>
-
-
-              <Box sx={{ ...css_metrajOnayBaslik, gridColumn: "1/8", justifyContent: "end", pr: "1rem" }}>
-                Onaylanan Metraj
-              </Box>
-
-              <Box sx={{ ...css_metrajOnayBaslik, justifyContent: "end", pr: "0.3rem", color: onaylananMetraj?.metraj < 0 ? "red" : null }}>
-                {onaylananMetraj_state?.metraj ? ikiHane(onaylananMetraj_state?.metraj) : "0,00"}
-              </Box>
-
-              <Box sx={{ ...css_metrajOnayBaslik }}>
-                {pozBirim}
-              </Box>
-
-              <Box></Box>
-
-              <Box sx={{ ...css_metrajOnayBaslik }}>
-                Durum
-              </Box>
-
-            </React.Fragment>
-
-
-            {onaylananMetraj_state?.satirlar.filter(x => !x.isDeactive).map((oneRow, index) => {
-              return (
-                < React.Fragment key={index}>
-
-                  {["satirNo", "aciklama", "carpan1", "carpan2", "carpan3", "carpan4", "carpan5", "metraj", "pozBirim"].map((oneProperty, index) => {
-
-                    let isMinha = oneRow["aciklama"].replace("İ", "i").toLowerCase().includes("minha") ? true : false
-
-                    return (
-                      <React.Fragment key={index}>
-
-                        <Box sx={{
-                          ...css_metrajCetveliSatir,
-                          backgroundColor: (oneRow?.isSelected && !oneRow?.isEdit) ? myTema.renkler.inaktifGri : oneRow?.isEdit ? "rgba(255, 255, 23, 0.12)" : null,
-                          justifyContent: (oneProperty.includes("satirNo") || oneProperty.includes("aciklama")) ? "start" : oneProperty.includes("carpan") ? "end" : oneProperty.includes("metraj") ? "end" : "center",
-                          minWidth: oneProperty.includes("carpan") ? "5rem" : oneProperty.includes("metraj") ? "5rem" : null,
-                          color: isMinha ? "red" : null
-                        }}>
-                          {metrajValue(oneRow, oneProperty, isMinha)}
-                        </Box>
-
-                      </React.Fragment>
-                    )
-
-                  })}
-
-                  <Box></Box>
-
-                  <Box
-                    onClick={() => console.log("deneme")}
-                    sx={{
-                      cursor: "pointer",
-                      display: "grid",
-                      alignItems: "center",
-                      justifyItems: "center",
-                      px: "0.3rem",
-                      border: "1px solid black"
-                    }}>
-                    {!oneRow.isEdit &&
-                      <LockIcon variant="contained" sx={{ color: "gray", fontSize: "1rem" }} />
-                    }
-                    {oneRow.isEdit &&
-                      <HourglassFullSharpIcon variant="contained" sx={{ color: "rgba( 255,165,0, 1 )", fontSize: "0.95rem" }} />
-                    }
-                  </Box>
-
-                </React.Fragment>
-              )
-
-            })}
-
-          </React.Fragment> */}
-
-
 
         </Box >
       }

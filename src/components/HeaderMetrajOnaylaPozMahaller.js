@@ -29,6 +29,7 @@ import FileDownloadDoneIcon from '@mui/icons-material/FileDownloadDone';
 import EditIcon from '@mui/icons-material/Edit';
 import GroupWorkIcon from '@mui/icons-material/GroupWork';
 import SaveIcon from '@mui/icons-material/Save';
+import PersonIcon from '@mui/icons-material/Person';
 
 
 export default function HeaderMetrajOnaylaPozMahaller({
@@ -144,7 +145,7 @@ export default function HeaderMetrajOnaylaPozMahaller({
               {!selectMode && 
                 <Grid item >
                   <IconButton onClick={() => setShow("ShowMetrajYapabilenler")} disabled={false}>
-                    <VisibilityIcon variant="contained" />
+                    <PersonIcon variant="contained" />
                   </IconButton>
                 </Grid>
               }
