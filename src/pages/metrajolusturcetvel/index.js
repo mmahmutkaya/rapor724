@@ -515,7 +515,7 @@ export default function P_MetrajOlusturCetvel() {
                       {!isCellEdit &&
                         <Box sx={{
                           ...css_metrajCetveliSatir,
-                          backgroundColor: oneRow?.isSelected ? myTema.renkler.inaktifGri : oneRow?.isReady && "rgba(46, 172, 63, 0.13)",
+                          backgroundColor: oneRow?.isSelected ? myTema.renkler.inaktifGri : oneRow?.isReady && !oneRow?.isKaydedilecek ? "rgba(46, 172, 63, 0.25)" : oneRow?.isReady && oneRow?.isKaydedilecek && "rgba(191, 202, 34, 0.2)",
                           justifyContent: oneProperty.includes("aciklama") ? "start" : oneProperty.includes("carpan") ? "end" : oneProperty.includes("metraj") ? "end" : "center",
                           minWidth: oneProperty.includes("carpan") ? "5rem" : oneProperty.includes("metraj") ? "5rem" : null,
                           color: isMinha ? "red" : null
@@ -532,7 +532,7 @@ export default function P_MetrajOlusturCetvel() {
                 <Box></Box>
 
                 <Box
-                  onClick={() => show === "Main" && !oneRow.isSelected && !oneRow.isReady ? addRow_ready(oneRow) : show === "Main" && !oneRow.isSelected && oneRow.isReady && removeRow_ready(oneRow)}
+                  onClick={() => show === "Main" && !oneRow.isSelected && !oneRow.isReady ? addRow_ready(oneRow) : show === "Main" && !oneRow.isSelected && oneRow.isReady && oneRow.isKaydedilecek && removeRow_ready(oneRow)}
                   sx={{
                     // backgroundColor: oneRow.isSelected ? null : "rgba(255,255,0, 0.3)",
                     // backgroundColor: "rgba(255,255,0, 0.3)",
@@ -546,8 +546,11 @@ export default function P_MetrajOlusturCetvel() {
                   {oneRow.isSelected &&
                     <LockIcon variant="contained" sx={{ color: "gray", fontSize: "1rem" }} />
                   }
-                  {!oneRow.isSelected && oneRow.isReady &&
+                  {!oneRow.isSelected && oneRow.isReady && !oneRow.isKaydedilecek &&
                     <CheckIcon variant="contained" sx={{ color: "rgba(14, 99, 7, 0.96)", fontSize: "0.95rem" }} />
+                  }
+                  {!oneRow.isSelected && oneRow.isReady && oneRow.isKaydedilecek &&
+                    <CircleIcon variant="contained" sx={{ color: "rgba(15, 99, 7, 0.52)", fontSize: "0.70rem" }} />
                   }
                   {!oneRow.isSelected && !oneRow.isReady &&
                     <HourglassFullSharpIcon variant="contained" sx={{ color: "rgba( 255,165,0, 1 )", fontSize: "0.95rem" }} />

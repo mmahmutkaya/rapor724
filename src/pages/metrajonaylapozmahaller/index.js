@@ -75,6 +75,7 @@ export default function P_MetrajOnaylaPozMahaller() {
   useEffect(() => {
     !selectedPoz_metraj && navigate('/metrajpozlar')
     setDugumler_byPoz_state(_.cloneDeep(data?.dugumler_byPoz))
+    console.log("data?.dugumler_byPoz",data?.dugumler_byPoz)
     setDugumler_byPoz_backup(_.cloneDeep(data?.dugumler_byPoz))
     setLbsMetrajlar(_.cloneDeep(data?.lbsMetrajlar))
     setAnySelectable(data?.anySelectable)
