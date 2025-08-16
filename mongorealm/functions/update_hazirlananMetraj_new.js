@@ -115,13 +115,6 @@ exports = async function ({
                   as: "hazirlananMetraj",
                   cond: { $ne: ["$$hazirlananMetraj.userEmail", userEmail] }
                 }
-              },
-              readyMetrajlar: {
-                $filter: {
-                  input: "$readyMetrajlar",
-                  as: "readyMetraj",
-                  cond: { $ne: ["$$readyMetraj.userEmail", userEmail] }
-                }
               }
             }
           }
@@ -174,13 +167,6 @@ exports = async function ({
                 as: "hazirlananMetraj",
                 cond: { $ne: ["$$hazirlananMetraj.userEmail", userEmail] }
               }
-            },
-            readyMetrajlar: {
-              $filter: {
-                input: "$readyMetrajlar",
-                as: "readyMetraj",
-                cond: { $ne: ["$$readyMetraj.userEmail", userEmail] }
-              }
             }
           }
         },
@@ -191,13 +177,6 @@ exports = async function ({
                 "$hazirlananMetrajlar",
                 [hazirlananMetraj_new]
               ]
-            },
-            readyMetrajlar: {
-              $concatArrays: [
-                "$readyMetrajlar",
-                [{ userEmail: hazirlananMetraj_new.userEmail, metraj: readyMetraj }]
-              ]
-
             }
           }
         }
