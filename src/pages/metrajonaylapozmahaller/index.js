@@ -75,7 +75,7 @@ export default function P_MetrajOnaylaPozMahaller() {
   useEffect(() => {
     !selectedPoz_metraj && navigate('/metrajpozlar')
     setDugumler_byPoz_state(_.cloneDeep(data?.dugumler_byPoz))
-    console.log("data?.dugumler_byPoz",data?.dugumler_byPoz)
+    // console.log("data?.dugumler_byPoz",data?.dugumler_byPoz)
     setDugumler_byPoz_backup(_.cloneDeep(data?.dugumler_byPoz))
     setLbsMetrajlar(_.cloneDeep(data?.lbsMetrajlar))
     setAnySelectable(data?.anySelectable)
@@ -473,7 +473,7 @@ export default function P_MetrajOnaylaPozMahaller() {
                 {mahaller_byPoz_byLbs?.map((oneMahal, index) => {
 
                   let dugum = dugumler_byPoz_state?.find(oneDugum => oneDugum._pozId.toString() === selectedPoz_metraj._id.toString() && oneDugum._mahalId.toString() === oneMahal._id.toString())
-                  let hasOnaylananMetraj = dugum.hazirlananMetrajlar?.find(x => x.hasSelected)
+                  let hasOnaylananMetraj = dugum?.hazirlananMetrajlar?.find(x => x.hasSelected)
 
                   if (!dugum) {
                     console.log("olmayan dugum tespit edildi ve return oldu hata olmaması için")
