@@ -107,14 +107,17 @@ exports = async function ({
     let bulkArray = []
     hazirlananMetrajlar_state.map(oneHazirlanan => {
 
+      let azalacakMetraj = 0
       let oneHazirlanan_unReady_satirNolar = oneHazirlanan.satirlar.filter(x => !x.isReady).map(oneSatir => {
+        azalacakMetraj += Number(oneSatir.metraj)
         return oneSatir.satirNo
       })
+      azalacakMetraj = azalacakMetraj * -1
 
       oneBulk = {
         updateOne: {
           filter: { _id: _dugumId },
-          update: { $set: { "hazirlananMetrajlar.$[oneHazirlanan].satirlar.$[oneSatir].isReady": false } },
+          update: { $set: { "hazirlananMetrajlar.$[oneHazirlanan].satirlar.$[oneSatir].isReady": false }, $inc: { "hazirlananMetrajlar.$[oneHazirlanan].readyMetraj": azalacakMetraj } },
           arrayFilters: [{ "oneHazirlanan.userEmail": oneHazirlanan.userEmail }, { "oneSatir.satirNo": { $in: oneHazirlanan_unReady_satirNolar } }]
         }
       }
