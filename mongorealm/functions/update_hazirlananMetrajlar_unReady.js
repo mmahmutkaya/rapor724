@@ -41,13 +41,15 @@ exports = async function ({
   // const {metrajYapabilenler} = proje.yetki
 
 
-  let iptalEdilecekSatirNolar = []
-  hazirlananMetrajlar_state.map(oneHazirlanan => {
-    let iptalSatirlar = oneHazirlanan.satirlar.filter(x => !x.isReady)
-    iptalSatirlar.map(oneSatir => {
-      iptalEdilecekSatirNolar = [...iptalEdilecekSatirNolar, oneSatir.satirNo]
-    })
-  })
+
+
+  // let iptalEdilecekSatirNolar = []
+  // hazirlananMetrajlar_state.map(oneHazirlanan => {
+  //   let iptalSatirlar = oneHazirlanan.satirlar.filter(x => !x.isReady)
+  //   iptalSatirlar.map(oneSatir => {
+  //     iptalEdilecekSatirNolar = [...iptalEdilecekSatirNolar, oneSatir.satirNo]
+  //   })
+  // })
 
 
   // const result = await collection_Dugumler.aggregate([
@@ -120,7 +122,7 @@ exports = async function ({
 
     })
 
-    const result = await collection_HazirlananMetrajlar.bulkWrite(
+    const result = await collection_Dugumler.bulkWrite(
       bulkArray,
       { ordered: false }
     )
