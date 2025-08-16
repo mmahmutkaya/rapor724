@@ -50,7 +50,7 @@ exports = async function ({
   })
 
 
-  collection_Dugumler.aggregate([
+  const result = await collection_Dugumler.aggregate([
     {
       "$addFields": {
         "hazirlananMetrajlar": {
@@ -94,7 +94,7 @@ exports = async function ({
     }
   ])
 
-
+  return result
 
 
   //   let bulkArray = []
