@@ -473,12 +473,13 @@ export default function P_MetrajOnaylaPozMahaller() {
                 {mahaller_byPoz_byLbs?.map((oneMahal, index) => {
 
                   let dugum = dugumler_byPoz_state?.find(oneDugum => oneDugum._pozId.toString() === selectedPoz_metraj._id.toString() && oneDugum._mahalId.toString() === oneMahal._id.toString())
-                  let hasOnaylananMetraj = dugum?.hazirlananMetrajlar?.find(x => x.hasSelected)
-
                   if (!dugum) {
-                    console.log("olmayan dugum tespit edildi ve return oldu hata olmaması için")
+                    // console.log("olmayan dugum tespit edildi ve return oldu hata olmaması için")
                     return
                   }
+
+                  let hasOnaylananMetraj = dugum?.hazirlananMetrajlar?.find(x => x.hasSelected)
+
                   return (
                     <React.Fragment key={index}>
 
