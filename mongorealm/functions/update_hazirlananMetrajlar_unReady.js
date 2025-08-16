@@ -41,26 +41,105 @@ exports = async function ({
   // const {metrajYapabilenler} = proje.yetki
 
 
-  let dugum
-
-  let hasSelected
-  let hasSelectedFull
-
-  let hazirlananMetrajlar
-  let onaylananMetraj
-
-  let metrajHazirlanan = 0
-  let metrajOnaylanan = 0
+  let iptalEdilecekSatirNolar = []
+  hazirlananMetrajlar_state.map(oneHazirlanan => {
+    let iptalSatirlar = oneHazirlanan.satirlar.filter(x => !x.isReady)
+    iptalSatirlar.map(oneSatir => {
+      iptalEdilecekSatirNolar = [...iptalEdilecekSatirNolar, oneSatir.satirNo]
+    })
+  })
 
 
+  collection_Dugumler.aggregate([
+    {
+      "$addFields": {
+        "hazirlananMetrajlar": {
+          "$map": {
+            "input": "$hazirlananMetrajlar",
+            "as": "oneHazirlanan",
+            "in": {
+              $mergeObjects: [
+                "$$oneHazirlanan",
+                {
+                  "satirlar": {
+                    $map: {
+                      input: "$$oneHazirlanan.satirlar",
+                      as: "oneSatir",
+                      in: {
+                        "$mergeObjects": [
+                          "$$oneSatir",
+                          {
+                            "$cond": {
+                              "if": {
+                                "$$oneSatir.satirNo": { $in: iptalEdilecekSatirNolar }
+                              },
+                              "then": {
+                                isReady: false
+                              },
+                              "else": {
+                                isReady: "$$oneSatir.isReady"
+                              }
+                            }
+                          }
+                        ]
+                      }
+                    }
+                  }
+                }
+              ]
+            }
+          }
+        }
+      }
+    }
+  ])
 
 
-  try {
-    dugum = await collection_Dugumler.findOne({ _id: _dugumId })
-    hazirlananMetrajlar = dugum.hazirlananMetrajlar
-  } catch (error) {
-    throw new Error("MONGO // update_hazirlananMetrajlar_selected // db'den veri çekme" + error);
-  }
+
+
+  //   let bulkArray = []
+  // hazirlananMetrajlar_state.map(oneHazirlanan => {
+
+  //   let unReady_SatirNolar = oneHazirlanan.satirlar.filter(x => !x.isReady).map(oneSatir => {
+  //     return oneSatir.satirNo
+  //   })
+
+  //   oneBulk = {
+  //     updateOne: {
+  //       filter: { _id:_dugumId },
+  //       update: { $set: { "hazirlananMetrajlar.$[oneHazirlanan].satirlar" } },
+  //       arrayFilters: [ { "oneHazirlanan.userEmail": userEmail } ]
+  //     }
+  //   }
+  //   bulkArray = [...bulkArray, oneBulk]
+
+  // })
+
+
+
+
+
+
+  // let dugum
+
+  // let hasSelected
+  // let hasSelectedFull
+
+  // let hazirlananMetrajlar
+  // let onaylananMetraj
+
+  // let metrajHazirlanan = 0
+  // let metrajOnaylanan = 0
+
+
+
+
+  // try {
+  //   dugum = await collection_Dugumler.findOne({ _id: _dugumId })
+  //   hazirlananMetrajlar = dugum.hazirlananMetrajlar
+  // } catch (error) {
+  //   throw new Error("MONGO // update_hazirlananMetrajlar_selected // db'den veri çekme" + error);
+  // }
 
 
   // try {
@@ -77,73 +156,72 @@ exports = async function ({
 
 
 
-  try {
+  // try {
 
-    // let bulkArray = []
-    let newSiraNo = 1
-    hazirlananMetrajlar.map(oneHazirlanan => {
-      oneHazirlanan.satirlar.filter(x => x.isSelected && !x.newSelected).map(oneSatir => {
-        if (oneSatir?.siraNo >= newSiraNo) {
-          newSiraNo = oneSatir?.siraNo + 1
-        }
-      })
-    })
-
-
-    hazirlananMetrajlar = hazirlananMetrajlar.map(oneHazirlanan => {
-      let newSelectedSatirlar = hazirlananMetrajlar_state.find(x => x.userEmail === oneHazirlanan.userEmail).satirlar.filter(x => x.isSelected && x.newSelected)
-      oneHazirlanan.satirlar = oneHazirlanan.satirlar.map(oneSatir => {
-        if (newSelectedSatirlar.find(x => x.satirNo === oneSatir.satirNo)) {
-          oneSatir.isSelected = true
-          oneSatir.siraNo = newSiraNo
-          newSiraNo += 1
-        }
-        return oneSatir
-      })
-
-      return oneHazirlanan
-    })
-
-    hazirlananMetrajlar = hazirlananMetrajlar.map(oneHazirlanan => {
-
-      oneHazirlanan.hasSelected = false
-      oneHazirlanan.hasSelectedFull = false
-
-      let metrajSatirlari = oneHazirlanan.satirlar.filter(x => (x.isSelected && !x.hasSelected) || (x.isSelectedCopy))
-      metrajSatirlari.map(oneSatir => {
-        metrajOnaylanan += oneSatir.metraj
-      })
-      
-      let selectedSatirlar = oneHazirlanan.satirlar.filter(x => x.isSelected)
-      if(selectedSatirlar.length > 0){
-        oneHazirlanan.hasSelected = true
-      }
-      
-      if(selectedSatirlar.length === oneHazirlanan.satirlar.filter(x => x.isReady).length){
-        oneHazirlanan.hasSelectedFull = true
-      }
-      return oneHazirlanan
-    })
-
-    // oneBulk = {
-    //   updateOne: {
-    //     filter: { _dugumId, userEmail: oneHazirlanan.userEmail },
-    //     update: { $set: { ...oneHazirlanan } }
-    //   }
-    // }
-    // bulkArray = [...bulkArray, oneBulk]
+  // let newSiraNo = 1
+  // hazirlananMetrajlar.map(oneHazirlanan => {
+  //   oneHazirlanan.satirlar.filter(x => x.isSelected && !x.newSelected).map(oneSatir => {
+  //     if (oneSatir?.siraNo >= newSiraNo) {
+  //       newSiraNo = oneSatir?.siraNo + 1
+  //     }
+  //   })
+  // })
 
 
-    // collection_HazirlananMetrajlar.bulkWrite(
-    //   bulkArray,
-    //   { ordered: false }
-    // )
+  // hazirlananMetrajlar = hazirlananMetrajlar.map(oneHazirlanan => {
+  //   let newSelectedSatirlar = hazirlananMetrajlar_state.find(x => x.userEmail === oneHazirlanan.userEmail).satirlar.filter(x => x.isSelected && x.newSelected)
+  //   oneHazirlanan.satirlar = oneHazirlanan.satirlar.map(oneSatir => {
+  //     if (newSelectedSatirlar.find(x => x.satirNo === oneSatir.satirNo)) {
+  //       oneSatir.isSelected = true
+  //       oneSatir.siraNo = newSiraNo
+  //       newSiraNo += 1
+  //     }
+  //     return oneSatir
+  //   })
 
-    await collection_Dugumler.updateOne({ _id: _dugumId }, { $set: { hazirlananMetrajlar, onaylananMetraj: metrajOnaylanan } })
+  //   return oneHazirlanan
+  // })
 
-  } catch (error) {
-    throw new Error("MONGO // update_hazirlananMetrajlar_selected // hazirlananMetraj güncelleme " + error);
-  }
+  // hazirlananMetrajlar = hazirlananMetrajlar.map(oneHazirlanan => {
+
+  //   oneHazirlanan.hasSelected = false
+  //   oneHazirlanan.hasSelectedFull = false
+
+  //   let metrajSatirlari = oneHazirlanan.satirlar.filter(x => (x.isSelected && !x.hasSelected) || (x.isSelectedCopy))
+  //   metrajSatirlari.map(oneSatir => {
+  //     metrajOnaylanan += oneSatir.metraj
+  //   })
+
+  //   let selectedSatirlar = oneHazirlanan.satirlar.filter(x => x.isSelected)
+  //   if(selectedSatirlar.length > 0){
+  //     oneHazirlanan.hasSelected = true
+  //   }
+
+  //   if(selectedSatirlar.length === oneHazirlanan.satirlar.filter(x => x.isReady).length){
+  //     oneHazirlanan.hasSelectedFull = true
+  //   }
+  //   return oneHazirlanan
+  // })
+
+  // oneBulk = {
+  //   updateOne: {
+  //     filter: { _dugumId, userEmail: oneHazirlanan.userEmail },
+  //     update: { $set: { ...oneHazirlanan } }
+  //   }
+  // }
+  // bulkArray = [...bulkArray, oneBulk]
+
+
+  // collection_HazirlananMetrajlar.bulkWrite(
+  //   bulkArray,
+  //   { ordered: false }
+  // )
+
+  //   await collection_Dugumler.updateOne({ _id: _dugumId }, { $set: { hazirlananMetrajlar, onaylananMetraj: metrajOnaylanan } })
+
+  // } catch (error) {
+  //   throw new Error("MONGO // update_hazirlananMetrajlar_selected // hazirlananMetraj güncelleme " + error);
+  // }
 
 
 
@@ -223,7 +301,7 @@ exports = async function ({
   //     bulkArray = [...bulkArray, oneBulk]
 
   //   })
-  
+
 
   //   await collection_Dugumler.bulkWrite(
   //     bulkArray,
