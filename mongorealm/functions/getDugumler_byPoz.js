@@ -34,29 +34,125 @@ exports = async function ({
   let dugumler_byPoz
 
 
+  // dugumler_byPoz
   try {
 
+    // dugumler_byPoz = await collection_Dugumler.aggregate([
+    //   { $match: { _pozId, openMetraj: true } },
+    //   {
+    //     $project: {
+    //       _pozId: 1, _mahalId: 1, openMetraj: 1, onaylananMetraj: 1,
+
+    //       hazirlananMetrajlar: {
+    //         $map: {
+    //           input: "$hazirlananMetrajlar",
+    //           as: "hazirlananMetraj",
+    //           in: {
+    //             userEmail: "$$hazirlananMetraj.userEmail",
+    //             metraj: "$$hazirlananMetraj.readyMetraj",
+    //             hasSelected: "$$hazirlananMetraj.hasSelected",
+    //             hasSelectedFull: "$$hazirlananMetraj.hasSelectedFull",
+    //           }
+    //         }
+    //       }
+    //     }
+    //   }
+    // ]).toArray()
+
+
     dugumler_byPoz = await collection_Dugumler.aggregate([
-      { $match: { _pozId, openMetraj: true } },
+      {
+        $match: {
+          openMetraj: true
+        }
+      },
       {
         $project: {
-          _pozId: 1, _mahalId: 1, openMetraj: 1, onaylananMetraj: 1,
-
+          _pozId: 1,
+          _mahalId: 1,
+          openMetraj: 1,
+          onaylananMetraj: 1,
           hazirlananMetrajlar: {
             $map: {
               input: "$hazirlananMetrajlar",
-              as: "hazirlananMetraj",
+              as: "oneHazirlanan",
               in: {
-                userEmail: "$$hazirlananMetraj.userEmail",
-                metraj: "$$hazirlananMetraj.readyMetraj",
-                hasSelected:"$$hazirlananMetraj.hasSelected",
-                hasSelectedFull:"$$hazirlananMetraj.hasSelectedFull",
+                userEmail: "$$oneHazirlanan.userEmail",
+                metraj: "$$oneHazirlanan.readyMetraj",
+                hasSelected: {
+                  "$reduce": {
+                    "input": "$$oneHazirlanan.satirlar",
+                    "initialValue": false,
+                    "in": {
+                      "$cond": {
+                        "if": {
+                          "$and": [
+                            {
+                              $eq: [
+                                "$$value",
+                                false
+                              ]
+                            },
+                            {
+                              $eq: [
+                                "$$this.isSelected",
+                                true
+                              ]
+                            }
+                          ]
+                        },
+                        "then": true,
+                        "else": "$$value"
+                      }
+                    }
+                  }
+                },
+                hasSelectedFull: {
+                  "$reduce": {
+                    "input": "$$oneHazirlanan.satirlar",
+                    "initialValue": true,
+                    "in": {
+                      "$cond": {
+                        "if": {
+                          "$and": [
+                            {
+                              $eq: [
+                                "$$value",
+                                true
+                              ]
+                            },
+                            {
+                              "$and": [
+                                {
+                                  $eq: [
+                                    "$$this.isReady",
+                                    true
+                                  ]
+                                },
+                                {
+                                  $ne: [
+                                    "$$this.isSelected",
+                                    true
+                                  ]
+                                }
+                              ]
+                            }
+                          ]
+                        },
+                        "then": false,
+                        "else": "$$value"
+                      }
+                    }
+                  }
+                }
               }
             }
           }
         }
       }
-    ]).toArray()
+    ])
+
+
 
     if (!dugumler_byPoz.length > 0) {
       throw new Error("MONGO // getDugumler_byPoz // dugumler_byPoz boş ");
@@ -86,6 +182,7 @@ exports = async function ({
 
 
 
+  // lbsMetrajlar
   let proje
   try {
 
