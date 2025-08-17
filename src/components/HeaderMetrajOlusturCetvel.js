@@ -176,7 +176,7 @@ export default function P_HeaderMetrajOlusturCetvel({ show, setShow, isChanged, 
                   </Grid>
 
                   <Grid item >
-                    <IconButton onClick={() => save()} disabled={!isChanged_ready} >
+                    <IconButton onClick={() => save_ready()} disabled={!isChanged_ready} >
                       <SaveIcon variant="contained" />
                     </IconButton>
                   </Grid>

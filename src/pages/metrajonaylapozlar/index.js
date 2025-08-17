@@ -405,7 +405,7 @@ export default function P_MetrajOnaylaPozlar() {
 
                             let oneHazirlanan = onePoz.hazirlananMetrajlar.find(x => x.userEmail === oneYapabilen.userEmail)
 
-                            let hasMetraj = oneHazirlanan?.hasMetraj
+                            let hasReady = oneHazirlanan?.hasReady
                             let hasSelected = oneHazirlanan?.hasSelected
                             let hasSelectedFull = oneHazirlanan?.hasSelectedFull
                             let metraj = oneHazirlanan?.metraj
@@ -413,17 +413,17 @@ export default function P_MetrajOnaylaPozlar() {
                             return (
                               <Box
                                 key={index}
-                                onDoubleClick={() => hasMetraj && goTo_MetrajPozmahaller(onePoz)}
+                                onDoubleClick={() => hasReady && goTo_MetrajPozmahaller(onePoz)}
                                 sx={{
-                                  ...pozNo_css, display: "grid", gridTemplateColumns: "1rem 1fr", justifyContent: "end", cursor: hasMetraj && "pointer",
-                                  backgroundColor: !hasMetraj ? "lightgray" : !hasSelectedFull && "rgba(255, 251, 0, 0.55)",
-                                  "&:hover": hasMetraj && { "& .childClass": { backgroundColor: "red" } }
+                                  ...pozNo_css, display: "grid", gridTemplateColumns: "1rem 1fr", justifyContent: "end", cursor: hasReady && "pointer",
+                                  backgroundColor: !hasReady ? "lightgray" : !hasSelectedFull && "rgba(255, 251, 0, 0.55)",
+                                  "&:hover": hasReady && { "& .childClass": { backgroundColor: "red" } }
                                 }}>
                                 <Box
                                   className="childClass"
                                   sx={{
                                     ml: "-1rem", height: "0.5rem", width: "0.5rem", borderRadius: "50%",
-                                    backgroundColor: !hasMetraj ? "lightgray" : !hasSelectedFull && !hasSelected ? "rgba(255, 251, 0, 0.55)" : !hasSelectedFull && hasSelected && "gray",
+                                    backgroundColor: !hasReady ? "lightgray" : !hasSelectedFull && !hasSelected ? "rgba(255, 251, 0, 0.55)" : !hasSelectedFull && hasSelected && "gray",
                                   }}>
                                 </Box>
                                 <Box sx={{ justifySelf: "end" }}>
