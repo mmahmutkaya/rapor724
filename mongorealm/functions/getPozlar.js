@@ -60,7 +60,7 @@ exports = async function ({
               as: "oneHazirlanan",
               in: {
                 userEmail: "$$oneHazirlanan.userEmail",
-                metraj: "$$oneHazirlanan.readyMetraj",
+                metraj: "$$oneHazirlanan.metraj",
                 hasSelected: {
                   "$reduce": {
                     "input": "$$oneHazirlanan.satirlar",
@@ -78,6 +78,34 @@ exports = async function ({
                             {
                               $eq: [
                                 "$$this.isSelected",
+                                true
+                              ]
+                            }
+                          ]
+                        },
+                        "then": true,
+                        "else": "$$value"
+                      }
+                    }
+                  }
+                },
+                hasReady: {
+                  "$reduce": {
+                    "input": "$$oneHazirlanan.satirlar",
+                    "initialValue": false,
+                    "in": {
+                      "$cond": {
+                        "if": {
+                          "$and": [
+                            {
+                              $eq: [
+                                "$$value",
+                                false
+                              ]
+                            },
+                            {
+                              $eq: [
+                                "$$this.isReady",
                                 true
                               ]
                             }
@@ -169,33 +197,36 @@ exports = async function ({
         onePoz.hazirlananMetrajlar = metrajYapabilenler.map(oneYapabilen => {
 
           let metraj = 0
+          let hasReady_Array = []
           let hasSelected_Array = []
           let hasSelectedFull_Array = []
-          let hasMetraj
+
 
           onePoz2.hazirlananMetrajlar.map(oneArray => {
 
             let oneHazirlanan = oneArray.find(x => x.userEmail === oneYapabilen.userEmail)
 
-            if (oneHazirlanan?.satirlar?.filter(x => x.isReady)) {
-              hasMetraj = true
+            // if (oneHazirlanan?.satirlar?.filter(x => x.isReady).length > 0) {
+            if (oneHazirlanan) {
               let metraj2 = oneHazirlanan?.metraj ? Number(oneHazirlanan?.metraj) : 0
               metraj += metraj2
+              hasReady_Array = [...hasReady_Array, oneHazirlanan?.hasReady]
               hasSelected_Array = [...hasSelected_Array, oneHazirlanan?.hasSelected]
               hasSelectedFull_Array = [...hasSelectedFull_Array, oneHazirlanan?.hasSelectedFull]
             }
 
           })
 
+          let hasReady = hasReady_Array.find(x => x === true)
           let hasSelected = hasSelected_Array.find(x => x === true)
           let hasSelectedFull = hasSelectedFull_Array.length > 0 && hasSelectedFull_Array.length === hasSelectedFull_Array.filter(x => x === true).length ? true : false
 
           return ({
             userEmail: oneYapabilen.userEmail,
             metraj,
+            hasReady,
             hasSelected,
-            hasSelectedFull,
-            hasMetraj
+            hasSelectedFull
           })
 
         })

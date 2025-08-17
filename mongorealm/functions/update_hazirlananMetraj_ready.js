@@ -35,29 +35,39 @@ exports = async function ({
 
 
 
-  let hazirlananMetraj_db
-  let isSilinecek = true
-  let readyMetraj = 0
-  let metraj = 0
+  try {
+
+    let metraj = 0
+    let oneHazirlanan_ready_satirNolar = hazirlananMetraj_state.satirlar.filter(x => x.isReady).map(oneSatir => {
+      metraj += oneSatir.metraj ? Number(oneSatir.metraj) : 0
+      return oneSatir.satirNo
+    })
 
 
 
-  let artacakMetraj = 0
-  let oneHazirlanan_ready_satirNolar = hazirlananMetraj_state.satirlar.filter(x => x.isReady).map(oneSatir => {
-    artacakMetraj += Number(oneSatir.metraj)
-    return oneSatir.satirNo
-  })
+    await collection_Dugumler.updateOne(
+      { _id: _dugumId },
+      {
+        $set: {
+          "hazirlananMetrajlar.$[oneHazirlanan].satirlar.$[oneSatir].isReady": true,
+          "hazirlananMetrajlar.$[oneHazirlanan].metraj": metraj,
+        },
+        $unset: {
+          "hazirlananMetrajlar.$[oneHazirlanan].satirlar.$[oneSatir].newSelected": "",
+          "hazirlananMetrajlar.$[oneHazirlanan].satirlar.$[oneSatir].isPreparing": ""
+        }
+      },
+      { arrayFilters: [{ "oneHazirlanan.userEmail": userEmail }, { "oneSatir.satirNo": { $in: oneHazirlanan_ready_satirNolar } }] }
+    )
+
+  } catch (error) {
+    throw new Error("MONGO // update_hazirlananMetraj_ready // " + error);
+  }
 
 
-  await collection_Dugumler.updateOne(
-    { _id: _dugumId },
-    { $set: { "hazirlananMetrajlar.$[oneHazirlanan].satirlar.$[oneSatir].isReady": true }, $inc: { "hazirlananMetrajlar.$[oneHazirlanan].readyMetraj": artacakMetraj } },
-    { arrayFilters: [{ "oneHazirlanan.userEmail": oneHazirlanan.userEmail }, { "oneSatir.satirNo": { $in: oneHazirlanan_ready_satirNolar } }] }
-  )
 
 
-
-  // try {
+  // try {F
 
 
   //   let bulkArray = []
@@ -90,7 +100,7 @@ exports = async function ({
 
 
   // } catch (error) {
-  //   throw new Error("MONGO // update_hazirlananMetrajlar_selected // " + error);
+  //   throw new Error("MONGO // update_hazirlananMetraj_ready // " + error);
   // }
 
 

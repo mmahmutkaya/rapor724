@@ -49,7 +49,7 @@ exports = async function ({
               as: "oneHazirlanan",
               in: {
                 userEmail: "$$oneHazirlanan.userEmail",
-                metraj: "$$oneHazirlanan.readyMetraj",
+                metraj: "$$oneHazirlanan.metraj",
                 hasSelected: {
                   "$reduce": {
                     "input": "$$oneHazirlanan.satirlar",
@@ -67,6 +67,34 @@ exports = async function ({
                             {
                               $eq: [
                                 "$$this.isSelected",
+                                true
+                              ]
+                            }
+                          ]
+                        },
+                        "then": true,
+                        "else": "$$value"
+                      }
+                    }
+                  }
+                },
+                hasReady: {
+                  "$reduce": {
+                    "input": "$$oneHazirlanan.satirlar",
+                    "initialValue": false,
+                    "in": {
+                      "$cond": {
+                        "if": {
+                          "$and": [
+                            {
+                              $eq: [
+                                "$$value",
+                                false
+                              ]
+                            },
+                            {
+                              $eq: [
+                                "$$this.isReady",
                                 true
                               ]
                             }

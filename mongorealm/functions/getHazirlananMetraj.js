@@ -21,15 +21,44 @@ exports = async function ({
   const collection_Dugumler = context.services.get("mongodb-atlas").db("rapor724_v2").collection("dugumler")
 
 
+  // const result = await collection_Dugumler.aggregate([
+  //   { $match: { _id: _dugumId } },
+  //   {
+  //     $project: {
+  //       hazirlananMetrajlar_filtered: {
+  //         $filter: {
+  //           input: "$hazirlananMetrajlar",
+  //           as: "hazirlananMetraj",
+  //           cond: { $eq: ["$$hazirlananMetraj.userEmail", userEmail] }
+  //         }
+  //       }
+  //     }
+  //   },
+  //   { $limit: 1 }
+  // ]).toArray()
+
+
+  // let { hazirlananMetrajlar_filtered } = result[0]
+  // hazirlananMetraj = hazirlananMetrajlar_filtered[0]
+
+
+
+
   const result = await collection_Dugumler.aggregate([
     { $match: { _id: _dugumId } },
     {
       $project: {
-        hazirlananMetrajlar_filtered: {
-          $filter: {
+        hazirlananMetraj: {
+          $reduce: {
             input: "$hazirlananMetrajlar",
-            as: "hazirlananMetraj",
-            cond: { $eq: ["$$hazirlananMetraj.userEmail", userEmail] }
+            initialValue: null,
+            in: {
+              $cond: {
+                if: { $eq: ["$$this.userEmail", userEmail] },
+                then: "$$this",
+                else: null
+              }
+            }
           }
         }
       }
@@ -38,8 +67,7 @@ exports = async function ({
   ]).toArray()
 
 
-  let { hazirlananMetrajlar_filtered } = result[0]
-  hazirlananMetraj = hazirlananMetrajlar_filtered[0]
+  let { hazirlananMetraj } = result[0]
 
 
   if (!hazirlananMetraj) {
@@ -47,12 +75,13 @@ exports = async function ({
     hazirlananMetraj = {
       userEmail,
       metraj: 0,
+      metrajPre:0,
       satirlar: [
-        { satirNo: userCode + "-" + 1, aciklama: "", carpan1: "", carpan2: "", carpan3: "", carpan4: "", carpan5: "", metraj: "", isPeparing: true },
-        { satirNo: userCode + "-" + 2, aciklama: "", carpan1: "", carpan2: "", carpan3: "", carpan4: "", carpan5: "", metraj: "", isPeparing: true },
-        { satirNo: userCode + "-" + 3, aciklama: "", carpan1: "", carpan2: "", carpan3: "", carpan4: "", carpan5: "", metraj: "", isPeparing: true },
-        { satirNo: userCode + "-" + 4, aciklama: "", carpan1: "", carpan2: "", carpan3: "", carpan4: "", carpan5: "", metraj: "", isPeparing: true },
-        { satirNo: userCode + "-" + 5, aciklama: "", carpan1: "", carpan2: "", carpan3: "", carpan4: "", carpan5: "", metraj: "", isPeparing: true }
+        { satirNo: userCode + "-" + 1, aciklama: "", carpan1: "", carpan2: "", carpan3: "", carpan4: "", carpan5: "", metraj: "", isPreparing: true },
+        { satirNo: userCode + "-" + 2, aciklama: "", carpan1: "", carpan2: "", carpan3: "", carpan4: "", carpan5: "", metraj: "", isPreparing: true },
+        { satirNo: userCode + "-" + 3, aciklama: "", carpan1: "", carpan2: "", carpan3: "", carpan4: "", carpan5: "", metraj: "", isPreparing: true },
+        { satirNo: userCode + "-" + 4, aciklama: "", carpan1: "", carpan2: "", carpan3: "", carpan4: "", carpan5: "", metraj: "", isPreparing: true },
+        { satirNo: userCode + "-" + 5, aciklama: "", carpan1: "", carpan2: "", carpan3: "", carpan4: "", carpan5: "", metraj: "", isPreparing: true }
       ]
     }
 

@@ -15,15 +15,15 @@ exports = async function ({
 
   const mailTeyit = user.custom_data.mailTeyit;
   if (!mailTeyit) {
-    throw new Error("MONGO // update_hazirlananMetrajlar // Öncelikle üyeliğinize ait mail adresinin size ait olduğunu doğrulamalısınız, tekrar giriş yapmayı deneyiniz veya bizimle iletişime geçiniz.");
+    throw new Error("MONGO // update_hazirlananMetraj_peparing // Öncelikle üyeliğinize ait mail adresinin size ait olduğunu doğrulamalısınız, tekrar giriş yapmayı deneyiniz veya bizimle iletişime geçiniz.");
   }
 
   if (!_dugumId) {
-    throw new Error("MONGO // update_hazirlananMetrajlar // '_dugumId' verisi db sorgusuna gelmedi");
+    throw new Error("MONGO // update_hazirlananMetraj_peparing // '_dugumId' verisi db sorgusuna gelmedi");
   }
 
   if (!hazirlananMetraj_state) {
-    throw new Error("MONGO // update_hazirlananMetrajlar // 'hazirlananMetraj_state' verisi db sorgusuna gelmedi");
+    throw new Error("MONGO // update_hazirlananMetraj_peparing // 'hazirlananMetraj_state' verisi db sorgusuna gelmedi");
   }
 
 
@@ -35,13 +35,28 @@ exports = async function ({
 
 
 
-  let hazirlananMetraj_db
+
+
+
+
+  // ready de bir hazırlanan metrajdır, tüm hazırlanan metraj yani
+  // ready'nin metrajını ayrı yapıcaz, ready kısmında
+  // new selected temizleme
+
   let isSilinecek = true
-  let readyMetraj = 0
+  let metrajPre = 0
   let metraj = 0
 
 
+  hazirlananMetraj_state.satirlar = hazirlananMetraj_state.satirlar.map(oneSatir => {
+    delete oneSatir.newSelected
+    metrajPre += Number(oneSatir.metraj) ? Number(oneSatir.metraj) : 0
+    metraj += oneSatir.isReady ? Number(oneSatir.metraj) : 0
+    return oneSatir
+  })
 
+  hazirlananMetraj_state.metraj = metraj
+  hazirlananMetraj_state.metrajPre = metrajPre
 
 
 
@@ -53,6 +68,7 @@ exports = async function ({
 
     try {
 
+
       const result = await collection_Dugumler.updateOne({ _id: _dugumId },
         [
           {
@@ -63,10 +79,18 @@ exports = async function ({
                   as: "oneHazirlanan",
                   in: {
                     $cond: {
-                      if: { $ne: ["$$oneHazirlanan.userEmail", userEmail] },
+                      if: {
+                        $ne: [
+                          "$$oneHazirlanan.userEmail",
+                          userEmail
+                        ]
+                      },
                       then: "$$oneHazirlanan",
                       else: {
-                        $mergeObjects: ["$$oneHazirlanan",
+                        $mergeObjects: [
+                          "$$oneHazirlanan",
+                          { metrajPre },
+                          { metraj },
                           {
                             satirlar: {
                               $concatArrays: [
@@ -74,10 +98,15 @@ exports = async function ({
                                   $filter: {
                                     input: "$$oneHazirlanan.satirlar",
                                     as: "oneSatir",
-                                    cond: { "$$oneSatir.isPreparing": { $exists: false } }
+                                    cond: {
+                                      $ne: [
+                                        "$$oneSatir.isPreparing",
+                                        true
+                                      ]
+                                    }
                                   }
                                 },
-                                [hazirlananMetraj_state.satirlar.filter(x => x.isPreparing)]
+                                hazirlananMetraj_state?.satirlar?.filter(x => x.isPreparing)
                               ]
                             }
                           }
@@ -89,12 +118,14 @@ exports = async function ({
               }
             }
           }
+
         ]
       )
+
       return result
 
     } catch (error) {
-      throw new Error("MONGO // update_hazirlananMetrajlar_new // silinecekse " + error.message);
+      throw new Error("MONGO // update_hazirlananMetraj_peparing_new // ready varken preparing eklenecekse " + error.message);
     }
 
 
@@ -128,13 +159,10 @@ exports = async function ({
             }
           ]
         )
-        return result
 
       } catch (error) {
-        throw new Error("MONGO // update_hazirlananMetrajlar_new // silinecekse " + error.message);
+        throw new Error("MONGO // update_hazirlananMetraj_peparing_new // silinecekse " + error.message);
       }
-
-      return result
 
 
       // güncellenecekse
@@ -165,7 +193,7 @@ exports = async function ({
         return result
 
       } catch (error) {
-        throw new Error("MONGO // update_hazirlananMetrajlar_new // silinecekse " + error.message);
+        throw new Error("MONGO // update_hazirlananMetraj_peparing_new // güncellenecekse " + error.message);
       }
 
 
@@ -207,7 +235,7 @@ exports = async function ({
   //   hazirlananMetraj_db = hazirlananMetrajlar_filtered[0]
 
   // } catch (error) {
-  //   throw new Error("MONGO // update_hazirlananMetrajlar_new // db'deki verinin alınması " + error.message);
+  //   throw new Error("MONGO // update_hazirlananMetraj_peparing_new // db'deki verinin alınması " + error.message);
   // }
 
 
@@ -269,7 +297,7 @@ exports = async function ({
 
 
   // } catch (error) {
-  //   throw new Error("MONGO // update_hazirlananMetrajlar_new // silinecekse " + error.message);
+  //   throw new Error("MONGO // update_hazirlananMetraj_peparing_new // silinecekse " + error.message);
   // }
 
 
@@ -328,7 +356,7 @@ exports = async function ({
 
 
   // } catch (error) {
-  //   throw new Error("MONGO // update_hazirlananMetrajlar_new // mevcut veri güncel veri ile değiştirilecekse veya yeni eklenecekse " + error.message);
+  //   throw new Error("MONGO // update_hazirlananMetraj_peparing_new // mevcut veri güncel veri ile değiştirilecekse veya yeni eklenecekse " + error.message);
   // }
 
 
