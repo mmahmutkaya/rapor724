@@ -83,8 +83,7 @@ exports = async function ({
                                 [hazirlananMetraj_state.satirlar.filter(x => x.isPreparing)]
                               ]
                             },
-                          },
-                          { metrajPre }
+                          }
                         ]
                       }
                     }
@@ -98,7 +97,7 @@ exports = async function ({
       return result
 
     } catch (error) {
-      throw new Error("MONGO // update_hazirlananMetraj_peparing_new // ready varken eklenecekse " + error.message);
+      throw new Error("MONGO // update_hazirlananMetraj_peparing_new // ready varken preparing eklenecekse " + error.message);
     }
 
 
