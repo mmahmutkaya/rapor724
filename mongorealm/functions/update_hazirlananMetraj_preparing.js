@@ -56,11 +56,7 @@ exports = async function ({
   hazirlananMetraj_state.metrajPre = metrajPre
 
 
-  let eklenecekSatirlar = hazirlananMetraj_state?.satirlar?.filter(x => x.isPreparing)
 
-  if (!eklenecekSatirlar.length > 0) {
-    return eklenecekSatirlar
-  }
 
   // isReady varsa yoksa - isReady property false olmuş olsa bile satırı kaybetmeyeceğiz
   // bu false olmuş satırın yeniden kazanılması önemli önce sarı nokta ile kalacak öyle sonra isPreparing yapacağız onu
@@ -68,26 +64,6 @@ exports = async function ({
   if (hazirlananMetraj_state.satirlar.find(x => x.isReady)) {
 
     try {
-
-
-      // let oneHazirlanan_ready_satirNolar = hazirlananMetraj_state.satirlar.filter(x => x.isReady).map(oneSatir => {
-      //   return oneSatir.satirNo
-      // })
-
-
-      // await collection_Dugumler.updateOne(
-      //   { _id: _dugumId },
-      //   {
-      //     $set: {
-      //       "hazirlananMetrajlar.$[oneHazirlanan].satirlar.$[oneSatir].isReady": true
-      //     },
-      //     $unset: {
-      //       "hazirlananMetrajlar.$[oneHazirlanan].satirlar.$[oneSatir].isPeparing": "",
-      //       "hazirlananMetrajlar.$[oneHazirlanan].satirlar.$[oneSatir].newSelected": ""
-      //     }
-      //   },
-      //   { arrayFilters: [{ "oneHazirlanan.userEmail": userEmail }, { $exista "oneSatir.isPreparing": { $eq: oneHazirlanan_ready_satirNolar } }] }
-      // )
 
 
       const result = await collection_Dugumler.updateOne({ _id: _dugumId },
@@ -126,14 +102,12 @@ exports = async function ({
                                   }
                                 },
                                 [
-                                  eklenecekSatirlar
+                                  hazirlananMetraj_state?.satirlar?.filter(x => x.isPreparing)
                                 ]
                               ]
                             }
                           },
-                          {
-                            metrajPre: 1
-                          }
+                          { metrajPre }
                         ]
                       }
                     }
@@ -145,14 +119,6 @@ exports = async function ({
 
         ]
       )
-
-      // {
-      //   $filter: {
-      //     input: "$$oneHazirlanan.satirlar",
-      //     as: "oneSatir",
-      //     cond: { $not: { "$$oneSatir.isReady": { $exists: true } } }
-      //   }
-      // },
 
       return result
 
