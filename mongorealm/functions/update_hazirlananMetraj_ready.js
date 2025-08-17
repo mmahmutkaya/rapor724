@@ -35,36 +35,31 @@ exports = async function ({
 
 
 
-  let hazirlananMetraj_db
-  let isSilinecek = true
-  let readyMetraj = 0
-  let metraj = 0
+  try {
+
+    let oneHazirlanan_ready_satirNolar = hazirlananMetraj_state.satirlar.filter(x => x.isReady).map(oneSatir => {
+      return oneSatir.satirNo
+    })
 
 
-
-  let artacakMetraj = 0
-  let oneHazirlanan_ready_satirNolar = hazirlananMetraj_state.satirlar.filter(x => x.isReady).map(oneSatir => {
-    artacakMetraj += Number(oneSatir.metraj)
-    return oneSatir.satirNo
-  })
-
-
-  await collection_Dugumler.updateOne(
-    { _id: _dugumId },
-    {
-      $set: {
-        "hazirlananMetrajlar.$[oneHazirlanan].satirlar.$[oneSatir].isReady": true
+    await collection_Dugumler.updateOne(
+      { _id: _dugumId },
+      {
+        $set: {
+          "hazirlananMetrajlar.$[oneHazirlanan].satirlar.$[oneSatir].isReady": true
+        },
+        $unset: {
+          "hazirlananMetrajlar.$[oneHazirlanan].satirlar.$[oneSatir].newSelected": "",
+          "hazirlananMetrajlar.$[oneHazirlanan].satirlar.$[oneSatir].isPeparing": ""
+        }
       },
-      $unset: {
-        "hazirlananMetrajlar.$[oneHazirlanan].satirlar.$[oneSatir].isPeparing": "",
-        "hazirlananMetrajlar.$[oneHazirlanan].satirlar.$[oneSatir].newSelected": ""
-      },
-      $inc: {
-        "hazirlananMetrajlar.$[oneHazirlanan].readyMetraj": artacakMetraj
-      }
-    },
-    { arrayFilters: [{ "oneHazirlanan.userEmail": userEmail }, { "oneSatir.satirNo": { $in: oneHazirlanan_ready_satirNolar } }] }
-  )
+      { arrayFilters: [{ "oneHazirlanan.userEmail": userEmail }, { "oneSatir.satirNo": { $in: oneHazirlanan_ready_satirNolar } }] }
+    )
+
+  } catch (error) {
+    throw new Error("MONGO // update_hazirlananMetraj_ready // " + error);
+  }
+
 
 
 
@@ -101,7 +96,7 @@ exports = async function ({
 
 
   // } catch (error) {
-  //   throw new Error("MONGO // update_hazirlananMetrajlar_selected // " + error);
+  //   throw new Error("MONGO // update_hazirlananMetraj_ready // " + error);
   // }
 
 
