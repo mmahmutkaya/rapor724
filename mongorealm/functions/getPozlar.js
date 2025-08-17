@@ -98,7 +98,7 @@ exports = async function ({
                 },
                 hasSelectedFull: {
                   "$reduce": {
-                    "input": "$$oneHazirlanan.satirlar",
+                    "input": "$hasSelectedFull",
                     "initialValue": true,
                     "in": {
                       "$cond": {
