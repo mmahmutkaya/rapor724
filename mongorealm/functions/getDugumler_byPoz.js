@@ -96,18 +96,12 @@ exports = async function ({
                               "$and": [
                                 {
                                   $eq: [
-                                    "$$this.isPreparing",
-                                    true
-                                  ]
-                                },
-                                {
-                                  $eq: [
                                     "$$this.isReady",
                                     true
                                   ]
                                 },
                                 {
-                                  $ne: [
+                                  $eq: [
                                     "$$this.isSelected",
                                     true
                                   ]
@@ -116,7 +110,7 @@ exports = async function ({
                             }
                           ]
                         },
-                        "then": false,
+                        "then": true,
                         "else": "$$value"
                       }
                     }
