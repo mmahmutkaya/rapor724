@@ -54,10 +54,10 @@ exports = async function ({
     return oneSatir
   })
 
-  // let eklenecekSatirlar = hazirlananMetraj_state.satirlar(x => x.isPreparing)
+  let eklenecekSatirlar = hazirlananMetraj_state.satirlar(x => x.isPreparing)
 
 
-
+// hazirlananMetraj_state.satirlar.filter(x => x.isPreparing)
 
   // isReady varsa yoksa - isReady property false olmuş olsa bile satırı kaybetmeyeceğiz
   // bu false olmuş satırın yeniden kazanılması önemli önce sarı nokta ile kalacak öyle sonra isPreparing yapacağız onu
@@ -112,7 +112,8 @@ exports = async function ({
                                 //     cond: { $not: { "$$oneSatir.isReady": { $exists: true } } }
                                 //   }
                                 // },
-                                [hazirlananMetraj_state.satirlar.filter(x => x.isPreparing)]
+                                [1,2,3,4]
+                                [eklenecekSatirlar]
                               ]
                             },
                           },
