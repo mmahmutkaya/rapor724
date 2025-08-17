@@ -49,21 +49,17 @@ exports = async function ({
     {
       $project: {
         hazirlananMetraj: {
-          $mergeObjects: [
-            {
-              $reduce: {
-                input: "$hazirlananMetrajlar",
-                initialValue: null,
-                in: {
-                  $cond: {
-                    if: { $eq: ["$$this.userEmail", userEmail] },
-                    then: "$$this",
-                    else: null
-                  }
-                }
+          $reduce: {
+            input: "$hazirlananMetrajlar",
+            initialValue: null,
+            in: {
+              $cond: {
+                if: { $eq: ["$$this.userEmail", userEmail] },
+                then: "$$this",
+                else: null
               }
             }
-          ]
+          }
         }
       }
     },
