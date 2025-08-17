@@ -35,29 +35,28 @@ exports = async function ({
 
 
 
-  let hazirlananMetraj_db
-  let isSilinecek = true
-  let readyMetraj = 0
-  let metrajPre = 0
+
+
 
 
   // ready de bir hazırlanan metrajdır, tüm hazırlanan metraj yani
   // ready'nin metrajını ayrı yapıcaz, ready kısmında
-  hazirlananMetraj_state.satirlar.map(oneSatir => {
-    metrajPre += Number(oneSatir.metraj)
-  })
-  hazirlananMetraj_state.metrajPre = metrajPre
-
   // new selected temizleme
+
+  let isSilinecek = true
+  let metrajPre = 0
+  let eklenecekSatirlar = []
+
   hazirlananMetraj_state.satirlar = hazirlananMetraj_state.satirlar.map(oneSatir => {
     delete oneSatir.newSelected
+    metrajPre += Number(oneSatir.metraj)
+    eklenecekSatirlar = oneSatir.isPreparing && [...eklenecekSatirlar, oneSatir]
     return oneSatir
   })
 
-  let eklenecekSatirlar = hazirlananMetraj_state.satirlar.filter(x => x.isPreparing)
+  hazirlananMetraj_state.metrajPre = metrajPre
 
 
-  // hazirlananMetraj_state.satirlar.filter(x => x.isPreparing)
 
   // isReady varsa yoksa - isReady property false olmuş olsa bile satırı kaybetmeyeceğiz
   // bu false olmuş satırın yeniden kazanılması önemli önce sarı nokta ile kalacak öyle sonra isPreparing yapacağız onu
@@ -97,22 +96,40 @@ exports = async function ({
                   as: "oneHazirlanan",
                   in: {
                     $cond: {
-                      if: { $ne: ["$$oneHazirlanan.userEmail", userEmail] },
+                      if: {
+                        $ne: [
+                          "$$oneHazirlanan.userEmail",
+                          "mmahmutkaya@gmail.com"
+                        ]
+                      },
                       then: "$$oneHazirlanan",
                       else: {
                         $mergeObjects: [
                           "$$oneHazirlanan",
                           {
-                            satirlar:
-                            {
-                              $map: {
-                                input: "$$oneHazirlanan.satirlar",
-                                as: "oneSatir",
-                                in: "$$onesatir"
-                              }
-                            },
+                            satirlar: {
+                              $concatArrays: [
+                                {
+                                  $filter: {
+                                    input: "$$oneHazirlanan.satirlar",
+                                    as: "oneSatir",
+                                    cond: {
+                                      $ne: [
+                                        "$$oneSatir.isPreparing",
+                                        true
+                                      ]
+                                    }
+                                  }
+                                },
+                                [
+                                  eklenecekSatirlar
+                                ]
+                              ]
+                            }
                           },
-                          { metrajPre }
+                          {
+                            metrajPre: 1
+                          }
                         ]
                       }
                     }
@@ -121,6 +138,7 @@ exports = async function ({
               }
             }
           }
+
         ]
       )
 
