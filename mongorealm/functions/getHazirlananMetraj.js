@@ -21,15 +21,42 @@ exports = async function ({
   const collection_Dugumler = context.services.get("mongodb-atlas").db("rapor724_v2").collection("dugumler")
 
 
-  const result = await collection_Dugumler.aggregate([
+  // const result = await collection_Dugumler.aggregate([
+  //   { $match: { _id: _dugumId } },
+  //   {
+  //     $project: {
+  //       hazirlananMetrajlar_filtered: {
+  //         $filter: {
+  //           input: "$hazirlananMetrajlar",
+  //           as: "hazirlananMetraj",
+  //           cond: { $eq: ["$$hazirlananMetraj.userEmail", userEmail] }
+  //         }
+  //       }
+  //     }
+  //   },
+  //   { $limit: 1 }
+  // ]).toArray()
+
+
+  // let { hazirlananMetrajlar_filtered } = result[0]
+  // hazirlananMetraj = hazirlananMetrajlar_filtered[0]
+
+
+
+
+    const result = await collection_Dugumler.aggregate([
     { $match: { _id: _dugumId } },
     {
       $project: {
-        hazirlananMetrajlar_filtered: {
-          $filter: {
+        hazirlananMetraj: {
+          $reduce: {
             input: "$hazirlananMetrajlar",
-            as: "hazirlananMetraj",
-            cond: { $eq: ["$$hazirlananMetraj.userEmail", userEmail] }
+            initialValue: null,
+            in: {$cond:{
+              if: {$eq: ["$$this.userEmail", userEmail] },
+              then:"$$value",
+              else:null
+            }}
           }
         }
       }
@@ -37,9 +64,8 @@ exports = async function ({
     { $limit: 1 }
   ]).toArray()
 
-
-  let { hazirlananMetrajlar_filtered } = result[0]
-  hazirlananMetraj = hazirlananMetrajlar_filtered[0]
+  
+  let { hazirlananMetraj } = result[0]
 
 
   if (!hazirlananMetraj) {
