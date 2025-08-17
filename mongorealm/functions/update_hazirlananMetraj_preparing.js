@@ -47,6 +47,8 @@ exports = async function ({
     metrajPre += Number(oneSatir.metraj)
   })
   hazirlananMetraj_state.metrajPre = metrajPre
+
+  // new selected temizleme
   hazirlananMetraj_state.satirlar = hazirlananMetraj_state.satirlar.map(oneSatir => {
     delete oneSatir.newSelected
     return oneSatir
@@ -90,8 +92,7 @@ exports = async function ({
                                 [hazirlananMetraj_state.satirlar.filter(x => x.isPreparing)]
                               ]
                             },
-                          },
-                          {metrajPre}
+                          }
                         ]
                       }
                     }
