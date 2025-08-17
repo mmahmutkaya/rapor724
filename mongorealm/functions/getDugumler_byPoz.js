@@ -97,7 +97,7 @@ exports = async function ({
                                 {
                                   $ne: [
                                     "$$this.isReady",
-                                    null
+                                    undefined
                                   ]
                                 },
                                 {
