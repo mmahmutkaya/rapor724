@@ -108,7 +108,7 @@ exports = async function ({
                               $filter: {
                                 input: "$$oneHazirlanan.satirlar",
                                 as: "oneSatir",
-                                cond: { $not: { "$$oneSatir.isReady": { $exists: true } } }
+                                cond: { $gt: ["$$pneSatir.metraj", 0] }
                               }
                             },
                           },
