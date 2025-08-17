@@ -89,6 +89,34 @@ exports = async function ({
                     }
                   }
                 },
+                hasReady: {
+                  "$reduce": {
+                    "input": "$$oneHazirlanan.satirlar",
+                    "initialValue": false,
+                    "in": {
+                      "$cond": {
+                        "if": {
+                          "$and": [
+                            {
+                              $eq: [
+                                "$$value",
+                                false
+                              ]
+                            },
+                            {
+                              $eq: [
+                                "$$this.isReady",
+                                true
+                              ]
+                            }
+                          ]
+                        },
+                        "then": true,
+                        "else": "$$value"
+                      }
+                    }
+                  }
+                },
                 hasSelectedFull: {
                   $filter: {
                     input: "$$oneHazirlanan.satirlar",
@@ -169,9 +197,10 @@ exports = async function ({
         onePoz.hazirlananMetrajlar = metrajYapabilenler.map(oneYapabilen => {
 
           let metraj = 0
+          let hasReady_Array = []
           let hasSelected_Array = []
           let hasSelectedFull_Array = []
-          let hasMetraj
+
 
           onePoz2.hazirlananMetrajlar.map(oneArray => {
 
@@ -179,24 +208,25 @@ exports = async function ({
 
             // if (oneHazirlanan?.satirlar?.filter(x => x.isReady).length > 0) {
             if (oneHazirlanan) {
-              hasMetraj = true
               let metraj2 = oneHazirlanan?.metraj ? Number(oneHazirlanan?.metraj) : 0
               metraj += metraj2
+              hasReady_Array = [...hasReady_Array, oneHazirlanan?.hasReady]
               hasSelected_Array = [...hasSelected_Array, oneHazirlanan?.hasSelected]
               hasSelectedFull_Array = [...hasSelectedFull_Array, oneHazirlanan?.hasSelectedFull]
             }
 
           })
 
+          let hasReady = hasReady_Array.find(x => x === true)
           let hasSelected = hasSelected_Array.find(x => x === true)
           let hasSelectedFull = hasSelectedFull_Array.length > 0 && hasSelectedFull_Array.length === hasSelectedFull_Array.filter(x => x === true).length ? true : false
 
           return ({
             userEmail: oneYapabilen.userEmail,
             metraj,
+            hasReady,
             hasSelected,
-            hasSelectedFull,
-            hasMetraj
+            hasSelectedFull
           })
 
         })
