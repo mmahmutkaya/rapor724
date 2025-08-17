@@ -79,8 +79,15 @@ exports = async function ({
                   }
                 },
                 hasSelectedFull: {
+                  $filter: {
+                    input: "$$oneHazirlanan.satirlar",
+                    as: "oneSatir",
+                    cond: { $ne: ["$$oneSatir.isPreparing", true] }
+                  }
+                },
+                hasSelectedFull: {
                   "$reduce": {
-                    "input": "$$oneHazirlanan.satirlar",
+                    "input": "$hasSelectedFull",
                     "initialValue": true,
                     "in": {
                       "$cond": {

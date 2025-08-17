@@ -56,7 +56,7 @@ exports = async function ({
           onaylananMetraj: 1,
           hazirlananMetrajlar: {
             $map: {
-              input: "$hazirlananMetrajlar",  
+              input: "$hazirlananMetrajlar",
               as: "oneHazirlanan",
               in: {
                 userEmail: "$$oneHazirlanan.userEmail",
@@ -90,8 +90,15 @@ exports = async function ({
                   }
                 },
                 hasSelectedFull: {
+                  $filter: {
+                    input: "$$oneHazirlanan.satirlar",
+                    as: "oneSatir",
+                    cond: { $ne: ["$$oneSatir.isPreparing", true] }
+                  }
+                },
+                hasSelectedFull: {
                   "$reduce": {
-                    "input": "$$oneHazirlanan.satirlar",
+                    "input": "$hasSelectedFull",
                     "initialValue": true,
                     "in": {
                       "$cond": {
@@ -170,7 +177,7 @@ exports = async function ({
 
             let oneHazirlanan = oneArray.find(x => x.userEmail === oneYapabilen.userEmail)
 
-            if (oneHazirlanan) {
+            if (oneHazirlanan?.satirlar?.filter(x => x.isReady)) {
               hasMetraj = true
               let metraj2 = oneHazirlanan?.metraj ? Number(oneHazirlanan?.metraj) : 0
               metraj += metraj2
