@@ -86,14 +86,14 @@ exports = async function ({
                                   $filter: {
                                     input: "$$oneHazirlanan.satirlar",
                                     as: "oneSatir",
-                                    cond: { $eq: ["$$oneSatir.isPreparing", null] }
+                                    cond: { $exists: ["$$oneSatir.isPreparing", false] }
                                   }
                                 },
                                 [hazirlananMetraj_state.satirlar.filter(x => x.isPreparing)]
                               ]
                             },
                           },
-                          {deneme:33}
+                          { metrajPre }
                         ]
                       }
                     }
