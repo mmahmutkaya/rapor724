@@ -54,9 +54,9 @@ exports = async function ({
     return oneSatir
   })
 
-  let eklenecekSatirlar = hazirlananMetraj_state.satirlar(x => x.isPreparing)
+  let eklenecekSatirlar = hazirlananMetraj_state.satirlar.filter(x => x.isPreparing)
 
-  return "buraya geliyor"
+
   // hazirlananMetraj_state.satirlar.filter(x => x.isPreparing)
 
   // isReady varsa yoksa - isReady property false olmuş olsa bile satırı kaybetmeyeceğiz
