@@ -42,6 +42,7 @@ exports = async function ({
 
 
   // ready de bir hazırlanan metrajdır, tüm hazırlanan metraj yani
+  // ready'nin metrajını ayrı yapıcaz, ready kısmında
   hazirlananMetraj_state.satirlar.map(oneSatir => {
     metrajPre += Number(oneSatir.metraj)
   })
