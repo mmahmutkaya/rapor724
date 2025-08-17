@@ -103,10 +103,13 @@ exports = async function ({
                         $mergeObjects: [
                           "$$oneHazirlanan",
                           {
-                            satirlar: {
-                              $concatArrays: [
-                                eklenecekSatirlar
-                              ]
+                            satirlar:
+                            {
+                              $filter: {
+                                input: "$$oneHazirlanan.satirlar",
+                                as: "oneSatir",
+                                cond: { $not: { "$$oneSatir.isReady": { $exists: true } } }
+                              }
                             },
                           },
                           { metrajPre }
