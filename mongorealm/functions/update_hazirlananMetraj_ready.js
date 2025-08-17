@@ -51,13 +51,24 @@ exports = async function ({
 
   await collection_Dugumler.updateOne(
     { _id: _dugumId },
-    { $set: { "hazirlananMetrajlar.$[oneHazirlanan].satirlar.$[oneSatir].isReady": true }, $inc: { "hazirlananMetrajlar.$[oneHazirlanan].readyMetraj": artacakMetraj } },
+    {
+      $set: {
+        "hazirlananMetrajlar.$[oneHazirlanan].satirlar.$[oneSatir].isReady": true
+      },
+      $unset: {
+        "hazirlananMetrajlar.$[oneHazirlanan].satirlar.$[oneSatir].isPeparing": "",
+        "hazirlananMetrajlar.$[oneHazirlanan].satirlar.$[oneSatir].newSelected": ""
+      },
+      $inc: {
+        "hazirlananMetrajlar.$[oneHazirlanan].readyMetraj": artacakMetraj
+      }
+    },
     { arrayFilters: [{ "oneHazirlanan.userEmail": userEmail }, { "oneSatir.satirNo": { $in: oneHazirlanan_ready_satirNolar } }] }
   )
 
 
 
-  // try {
+  // try {F
 
 
   //   let bulkArray = []
