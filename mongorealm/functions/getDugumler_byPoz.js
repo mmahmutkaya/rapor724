@@ -124,95 +124,95 @@ exports = async function ({
     ]).toArray()
 
 
-    dugumler_byPoz = await collection_Dugumler.aggregate([
-      {
-        $match: { _pozId, openMetraj: true },
-      },
-      {
-        $project: {
-          _pozId: 1,
-          _mahalId: 1,
-          openMetraj: 1,
-          onaylananMetraj: 1,
-          hazirlananMetrajlar: {
-            $map: {
-              input: "$hazirlananMetrajlar",
-              as: "oneHazirlanan",
-              in: {
-                userEmail: "$$oneHazirlanan.userEmail",
-                metraj: "$$oneHazirlanan.readyMetraj",
-                hasSelected: {
-                  "$reduce": {
-                    "input": "$$oneHazirlanan.satirlar",
-                    "initialValue": false,
-                    "in": {
-                      "$cond": {
-                        "if": {
-                          "$and": [
-                            {
-                              $eq: [
-                                "$$value",
-                                false
-                              ]
-                            },
-                            {
-                              $eq: [
-                                "$$this.isSelected",
-                                true
-                              ]
-                            }
-                          ]
-                        },
-                        "then": true,
-                        "else": "$$value"
-                      }
-                    }
-                  }
-                },
-                hasSelectedFull: {
-                  "$reduce": {
-                    "input": "$$oneHazirlanan.satirlar",
-                    "initialValue": true,
-                    "in": {
-                      "$cond": {
-                        "if": {
-                          "$and": [
-                            {
-                              $eq: [
-                                "$$value",
-                                true
-                              ]
-                            },
-                            {
-                              "$and": [
-                                {
-                                  $eq: [
-                                    "$$this.isReady",
-                                    true
-                                  ]
-                                },
-                                {
-                                  $ne: [
-                                    "$$this.isSelected",
-                                    true
-                                  ]
-                                }
-                              ]
-                            }
-                          ]
-                        },
-                        "then": false,
-                        "else": "$$value"
-                      }
-                    }
-                  }
-                }
-              }
-            }
-          }
-        }
-      }
-    ])
+    // dugumler_byPoz = await collection_Dugumler.aggregate([
+    //   {
+    //     $match: { _pozId, openMetraj: true },
+    //   },
+    //   {
+    //     $project: {
+    //       _pozId: 1,
+    //       _mahalId: 1,
+    //       openMetraj: 1,
+    //       onaylananMetraj: 1,
+    //       hazirlananMetrajlar: {
+    //         $map: {
+    //           input: "$hazirlananMetrajlar",
+    //           as: "oneHazirlanan",
+    //           in: {
+    //             userEmail: "$$oneHazirlanan.userEmail",
+    //             metraj: "$$oneHazirlanan.readyMetraj",
+    //             hasSelected: {
+    //               "$reduce": {
+    //                 "input": "$$oneHazirlanan.satirlar",
+    //                 "initialValue": false,
+    //                 "in": {
+    //                   "$cond": {
+    //                     "if": {
+    //                       "$and": [
+    //                         {
+    //                           $eq: [
+    //                             "$$value",
+    //                             false
+    //                           ]
+    //                         },
+    //                         {
+    //                           $eq: [
+    //                             "$$this.isSelected",
+    //                             true
+    //                           ]
+    //                         }
+    //                       ]
+    //                     },
+    //                     "then": true,
+    //                     "else": "$$value"
+    //                   }
+    //                 }
+    //               }
+    //             },
+    //             hasSelectedFull: {
+    //               "$reduce": {
+    //                 "input": "$$oneHazirlanan.satirlar",
+    //                 "initialValue": true,
+    //                 "in": {
+    //                   "$cond": {
+    //                     "if": {
+    //                       "$and": [
+    //                         {
+    //                           $eq: [
+    //                             "$$value",
+    //                             true
+    //                           ]
+    //                         },
+    //                         {
+    //                           "$and": [
+    //                             {
+    //                               $eq: [
+    //                                 "$$this.isReady",
+    //                                 true
+    //                               ]
+    //                             },
+    //                             {
+    //                               $ne: [
+    //                                 "$$this.isSelected",
+    //                                 true
+    //                               ]
+    //                             }
+    //                           ]
+    //                         }
+    //                       ]
+    //                     },
+    //                     "then": false,
+    //                     "else": "$$value"
+    //                   }
+    //                 }
+    //               }
+    //             }
+    //           }
+    //         }
+    //       }
+    //     }
+    //   }
+    // ])
 
 
 
