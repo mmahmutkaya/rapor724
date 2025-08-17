@@ -1,3 +1,5 @@
+import { result } from "lodash";
+
 exports = async function ({
   _dugumId,
   hazirlananMetraj_new
@@ -44,7 +46,9 @@ exports = async function ({
 
 
 
-  // isReady varsa 
+  // isReady varsa yoksa - isReady property false olmuş olsa bile satırı kaybetmeyeceğiz
+  // bu false olmuş satırın yeniden kazanılması önemli önce sarı nokta ile kalacak öyle sonra isPreparing yapacağız onu
+
   if (hazirlananMetraj_new.satirlar.find(x => x.isReady)) {
 
     try {
@@ -93,7 +97,86 @@ exports = async function ({
       throw new Error("MONGO // update_hazirlananMetrajlar_new // silinecekse " + error.message);
     }
 
+
+    // isReady yoksa sıkıntı yok toptan yenileyelim ya da boşsa silelim
+  } else {
+
+
+    hazirlananMetraj_new.satirlar.map(oneSatir => {
+      if (!(oneSatir.aciklama === "" && Number(oneSatir.carpan1) === 0 && Number(oneSatir.carpan2) === 0 && Number(oneSatir.carpan3) === 0 && Number(oneSatir.carpan4) === 0 && Number(oneSatir.carpan5) === 0)) {
+        isSilinecek = false
+      }
+    })
+
+
+    if (isSilinecek) {
+
+      try {
+
+        const result = await collection_Dugumler.updateOne({ _id: _dugumId },
+          [
+            {
+              $set: {
+                hazirlananMetrajlar: {
+                  $filter: {
+                    input: "$hazirlananMetrajlar",
+                    as: "oneHazirlanan",
+                    cond: { $ne: ["$$oneHazirlanan.userEmail", userEmail] }
+                  }
+                }
+              }
+            }
+          ]
+        )
+        return result
+
+      } catch (error) {
+        throw new Error("MONGO // update_hazirlananMetrajlar_new // silinecekse " + error.message);
+      }
+
+      return result
+
+
+      // güncellenecekse
+    } else {
+
+      try {
+
+        const result = await collection_Dugumler.updateOne({ _id: _dugumId },
+          [
+            {
+              $set: {
+                hazirlananMetrajlar: {
+                  $concatArrays: [
+                    {
+                      $filter: {
+                        input: "$hazirlananMetrajlar",
+                        as: "oneHazirlanan",
+                        cond: { $ne: ["$$oneHazirlanan.userEmail", userEmail] }
+                      }
+                    },
+                    hazirlananMetraj_new
+                  ]
+                }
+              }
+            }
+          ]
+        )
+        return result
+
+      } catch (error) {
+        throw new Error("MONGO // update_hazirlananMetrajlar_new // silinecekse " + error.message);
+      }
+
+
+    }
+
+
   }
+
+
+
+
 
 
 
