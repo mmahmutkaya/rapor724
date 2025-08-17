@@ -2,7 +2,7 @@ import { result } from "lodash";
 
 exports = async function ({
   _dugumId,
-  hazirlananMetraj_new
+  hazirlananMetraj_state
 }) {
 
 
@@ -22,8 +22,8 @@ exports = async function ({
     throw new Error("MONGO // update_hazirlananMetrajlar // '_dugumId' verisi db sorgusuna gelmedi");
   }
 
-  if (!hazirlananMetraj_new) {
-    throw new Error("MONGO // update_hazirlananMetrajlar // 'hazirlananMetraj_new' verisi db sorgusuna gelmedi");
+  if (!hazirlananMetraj_state) {
+    throw new Error("MONGO // update_hazirlananMetrajlar // 'hazirlananMetraj_state' verisi db sorgusuna gelmedi");
   }
 
 
@@ -49,7 +49,7 @@ exports = async function ({
   // isReady varsa yoksa - isReady property false olmuş olsa bile satırı kaybetmeyeceğiz
   // bu false olmuş satırın yeniden kazanılması önemli önce sarı nokta ile kalacak öyle sonra isPreparing yapacağız onu
 
-  if (hazirlananMetraj_new.satirlar.find(x => x.isReady)) {
+  if (hazirlananMetraj_state.satirlar.find(x => x.isReady)) {
 
     try {
 
@@ -77,7 +77,7 @@ exports = async function ({
                                     cond: { "$$oneSatir.isPreparing": { $exists: false } }
                                   }
                                 },
-                                [hazirlananMetraj_new.satirlar.filter(x => x.isPreparing)]
+                                [hazirlananMetraj_state.satirlar.filter(x => x.isPreparing)]
                               ]
                             }
                           }
@@ -102,7 +102,7 @@ exports = async function ({
   } else {
 
 
-    hazirlananMetraj_new.satirlar.map(oneSatir => {
+    hazirlananMetraj_state.satirlar.map(oneSatir => {
       if (!(oneSatir.aciklama === "" && Number(oneSatir.carpan1) === 0 && Number(oneSatir.carpan2) === 0 && Number(oneSatir.carpan3) === 0 && Number(oneSatir.carpan4) === 0 && Number(oneSatir.carpan5) === 0)) {
         isSilinecek = false
       }
@@ -155,7 +155,7 @@ exports = async function ({
                         cond: { $ne: ["$$oneHazirlanan.userEmail", userEmail] }
                       }
                     },
-                    [hazirlananMetraj_new]
+                    [hazirlananMetraj_state]
                   ]
                 }
               }
@@ -216,7 +216,7 @@ exports = async function ({
   // // silinecekse - fonksiyon burada bitiyor - ya siliniyor - onaylıya taşınmış varsa da silme niyeti geri çeviriliyor
   // try {
 
-  //   hazirlananMetraj_new.satirlar.map(oneSatir => {
+  //   hazirlananMetraj_state.satirlar.map(oneSatir => {
   //     if (!(oneSatir.aciklama === "" && Number(oneSatir.carpan1) === 0 && Number(oneSatir.carpan2) === 0 && Number(oneSatir.carpan3) === 0 && Number(oneSatir.carpan4) === 0 && Number(oneSatir.carpan5) === 0)) {
   //       isSilinecek = false
   //     }
@@ -281,7 +281,7 @@ exports = async function ({
 
   //   // gelen veriden isSelected olmayıp db'de isSelected olan, yani muhtemelen az önce başka kullanıcı tarafından onaylıya taşınmış olan satırlar mevcut
   //   let selectedSatirlar = hazirlananMetraj_db?.satirlar?.filter(x => x.isSelected)
-  //   let unSelectedSatirlar = hazirlananMetraj_new.satirlar?.filter(x => !x.isSelected)
+  //   let unSelectedSatirlar = hazirlananMetraj_state.satirlar?.filter(x => !x.isSelected)
   //   selectedSatirlar?.map(oneSatir => {
   //     if (unSelectedSatirlar.find(x => x.satirNo === oneSatir.satirNo)) {
   //       throw new Error(`__mesajBaslangic__Kaydetmeye çalıştığınız bazı satırlar, siz işlem yaparken, başa kullanıcı tarafından onaylı tarafa alınmış. Kayıt işleminiz gerçekleşmedi. Kontrol edip tekrar deneyiniz.__mesajBitis__`)
@@ -289,14 +289,14 @@ exports = async function ({
   //   })
 
   //   // gelen veride sıkıntı görülmedi olduğu gibi kaydedilecek ama önce metraj verisi alma ve temizlik
-  //   hazirlananMetraj_new.satirlar = hazirlananMetraj_new.satirlar.map(oneSatir => {
+  //   hazirlananMetraj_state.satirlar = hazirlananMetraj_state.satirlar.map(oneSatir => {
   //     metraj += Number(oneSatir.metraj)
   //     readyMetraj += oneSatir.isReady ? Number(oneSatir.metraj) : 0
   //     delete oneSatir.isKaydedilecek
   //     return oneSatir
   //   })
-  //   hazirlananMetraj_new.metraj = metraj
-  //   hazirlananMetraj_new.readyMetraj = readyMetraj
+  //   hazirlananMetraj_state.metraj = metraj
+  //   hazirlananMetraj_state.readyMetraj = readyMetraj
 
 
   //   // sorun olmadığını gördük o zaman önce silelim, bu şekilde eklemek daha kolay, sonra ekleyelim
@@ -318,7 +318,7 @@ exports = async function ({
   //           hazirlananMetrajlar: {
   //             $concatArrays: [
   //               "$hazirlananMetrajlar",
-  //               [hazirlananMetraj_new]
+  //               [hazirlananMetraj_state]
   //             ]
   //           }
   //         }
