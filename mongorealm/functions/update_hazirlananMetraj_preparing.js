@@ -77,7 +77,7 @@ exports = async function ({
                                     cond: { "$$oneSatir.isPreparing": { $exists: false } }
                                   }
                                 },
-                                hazirlananMetraj_new.satirlar.filter(x => x.isPreparing)
+                                [hazirlananMetraj_new.satirlar.filter(x => x.isPreparing)]
                               ]
                             }
                           }
@@ -155,7 +155,7 @@ exports = async function ({
                         cond: { $ne: ["$$oneHazirlanan.userEmail", userEmail] }
                       }
                     },
-                    hazirlananMetraj_new
+                    [hazirlananMetraj_new]
                   ]
                 }
               }
