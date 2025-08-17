@@ -95,7 +95,20 @@ exports = async function ({
                             {
                               "$and": [
                                 {
-                                  "$$this.isReady": { $exists: true }
+                                  $or: [
+                                    {
+                                      $eq: [
+                                        "$$this.isReady",
+                                        true
+                                      ]
+                                    },
+                                    {
+                                      $eq: [
+                                        "$$this.isReady",
+                                        false
+                                      ]
+                                    }
+                                  ]
                                 },
                                 {
                                   $eq: [
