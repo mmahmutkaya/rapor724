@@ -56,7 +56,7 @@ exports = async function ({
 
   hazirlananMetraj_state.metrajPre = metrajPre
 
-
+  return eklenecekSatirlar
 
   // isReady varsa yoksa - isReady property false olmuş olsa bile satırı kaybetmeyeceğiz
   // bu false olmuş satırın yeniden kazanılması önemli önce sarı nokta ile kalacak öyle sonra isPreparing yapacağız onu
