@@ -117,17 +117,10 @@ exports = async function ({
                     }
                   }
                 },
-                hasSelectedFull: {
-                  $filter: {
-                    input: "$$oneHazirlanan.satirlar",
-                    as: "oneSatir",
-                    cond: { $ne: ["$$oneSatir.isPreparing", true] }
-                  }
-                },
-                hasSelectedFull: {
+                hasUnSelected: {
                   "$reduce": {
-                    "input": "$hasSelectedFull",
-                    "initialValue": true,
+                    "input": "$$oneHazirlanan.satirlar",
+                    "initialValue": false,
                     "in": {
                       "$cond": {
                         "if": {
@@ -135,11 +128,11 @@ exports = async function ({
                             {
                               $eq: [
                                 "$$value",
-                                true
+                                false
                               ]
                             },
                             {
-                              "$and": [
+                              $and: [
                                 {
                                   $eq: [
                                     "$$this.isReady",
@@ -156,7 +149,7 @@ exports = async function ({
                             }
                           ]
                         },
-                        "then": false,
+                        "then": true,
                         "else": "$$value"
                       }
                     }
@@ -199,7 +192,7 @@ exports = async function ({
           let metraj = 0
           let hasReady_Array = []
           let hasSelected_Array = []
-          let hasSelectedFull_Array = []
+          let hasUnSelected_Array = []
 
 
           onePoz2.hazirlananMetrajlar.map(oneArray => {
@@ -212,21 +205,22 @@ exports = async function ({
               metraj += metraj2
               hasReady_Array = [...hasReady_Array, oneHazirlanan?.hasReady]
               hasSelected_Array = [...hasSelected_Array, oneHazirlanan?.hasSelected]
-              hasSelectedFull_Array = [...hasSelectedFull_Array, oneHazirlanan?.hasSelectedFull]
+              hasUnSelected_Array = [...hasUnSelected_Array, oneHazirlanan?.hasUnSelected]
             }
 
           })
 
           let hasReady = hasReady_Array.find(x => x === true)
           let hasSelected = hasSelected_Array.find(x => x === true)
-          let hasSelectedFull = hasSelectedFull_Array.length > 0 && hasSelectedFull_Array.length === hasSelectedFull_Array.filter(x => x === true).length ? true : false
+          let hasUnSelected = hasSelected_Array.find(x => x === true)
+          // let hasUnSelected = hasSelectedFull_Array.length > 0 && hasSelectedFull_Array.length === hasSelectedFull_Array.filter(x => x === true).length ? true : false
 
           return ({
             userEmail: oneYapabilen.userEmail,
             metraj,
             hasReady,
             hasSelected,
-            hasSelectedFull
+            hasUnSelected
           })
 
         })
