@@ -105,8 +105,7 @@ exports = async function ({
                           {
                             satirlar: {
                               $concatArrays: [
-                                [1, 2, 3, 4],
-                                [eklenecekSatirlar]
+                                eklenecekSatirlar
                               ]
                             },
                           },
