@@ -504,7 +504,7 @@
         "disable_arg_logs": true
     },
     {
-        "name": "update_hazirlananMetraj_new",
+        "name": "update_hazirlananMetraj_preparing",
         "private": false,
         "run_as_system": true,
         "disable_arg_logs": true
