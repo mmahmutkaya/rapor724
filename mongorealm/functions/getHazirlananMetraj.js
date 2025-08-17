@@ -56,7 +56,7 @@ exports = async function ({
       ]
     }
 
-    await collection_Dugumler.updateOne({ $match: { _id: _dugumId } },
+    await collection_Dugumler.updateOne({ _id: _dugumId },
       [
         {
           $set: {
