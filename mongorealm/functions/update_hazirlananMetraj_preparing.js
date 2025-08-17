@@ -79,7 +79,7 @@ exports = async function ({
                       if: {
                         $ne: [
                           "$$oneHazirlanan.userEmail",
-                          "mmahmutkaya@gmail.com"
+                          userEmail
                         ]
                       },
                       then: "$$oneHazirlanan",
@@ -89,7 +89,7 @@ exports = async function ({
                           {
                             satirlar: {
                               $concatArrays: [
-                                {
+                                [{
                                   $filter: {
                                     input: "$$oneHazirlanan.satirlar",
                                     as: "oneSatir",
@@ -100,7 +100,7 @@ exports = async function ({
                                       ]
                                     }
                                   }
-                                },
+                                }],
                                 [
                                   hazirlananMetraj_state?.satirlar?.filter(x => x.isPreparing)
                                 ]
