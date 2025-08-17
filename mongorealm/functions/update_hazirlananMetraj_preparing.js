@@ -183,6 +183,8 @@ exports = async function ({
 
       try {
 
+        return "buraya geliyor"
+
         const result = await collection_Dugumler.updateOne({ _id: _dugumId },
           [
             {
