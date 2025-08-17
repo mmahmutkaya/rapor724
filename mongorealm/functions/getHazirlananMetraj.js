@@ -61,7 +61,7 @@ exports = async function ({
         {
           $set: {
             hazirlananMetrajlar: {
-              $concatArrays: ["$hazirlananMetrajlar", hazirlananMetraj]
+              $concatArrays: ["$hazirlananMetrajlar", [hazirlananMetraj]]
             }
           }
         }
