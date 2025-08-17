@@ -44,53 +44,56 @@ exports = async function ({
 
 
 
-  try {
+// isReady varsa 
+  if (hazirlananMetraj_new.satirlar.find(x => x.isReady)) {
 
-    const result = await collection_Dugumler.updateOne({ _id: _dugumId },
-      [
-        {
-          $set: {
-            hazirlananMetrajlar: {
-              $map: {
-                input: "$hazirlananMetrajlar",
-                as: "oneHazirlanan",
-                in: {
-                  $cond: {
-                    if: { $ne: ["$$oneHazirlanan.userEmail", userEmail] },
-                    then: "$$oneHazirlanan",
-                    else: {
-                      $mergeObjects: ["$$oneHazirlanan",
-                        {
-                          satirlar: {
-                            $concatArrays: [
-                              {
-                                $filter: {
-                                  input: "$$oneHazirlanan.satirlar",
-                                  as: "oneSatir",
-                                  cond: { $eq: ["$$oneSatir.isReady", true] }
-                                }
-                              },
-                              hazirlananMetraj_new.satirlar.filter(x => !x.isReady)
-                            ]
+    try {
+
+      const result = await collection_Dugumler.updateOne({ _id: _dugumId },
+        [
+          {
+            $set: {
+              hazirlananMetrajlar: {
+                $map: {
+                  input: "$hazirlananMetrajlar",
+                  as: "oneHazirlanan",
+                  in: {
+                    $cond: {
+                      if: { $ne: ["$$oneHazirlanan.userEmail", userEmail] },
+                      then: "$$oneHazirlanan",
+                      else: {
+                        $mergeObjects: ["$$oneHazirlanan",
+                          {
+                            satirlar: {
+                              $concatArrays: [
+                                {
+                                  $filter: {
+                                    input: "$$oneHazirlanan.satirlar",
+                                    as: "oneSatir",
+                                    cond: { "$$oneSatir.isPreparing" :{$exists:false} }
+                                  }
+                                },
+                                hazirlananMetraj_new.satirlar.filter(x => x.isPreparing)
+                              ]
+                            }
                           }
-                        }
-                      ]
+                        ]
+                      }
                     }
                   }
                 }
               }
             }
           }
-        }
-      ]
-    )
-    return result
+        ]
+      )
+      return result
 
-  } catch (error) {
-    throw new Error("MONGO // update_hazirlananMetrajlar_new // silinecekse " + error.message);
+    } catch (error) {
+      throw new Error("MONGO // update_hazirlananMetrajlar_new // silinecekse " + error.message);
+    }
+
   }
-
-
 
 
 
