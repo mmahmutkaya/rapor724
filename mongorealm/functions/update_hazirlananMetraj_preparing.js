@@ -77,7 +77,7 @@ exports = async function ({
                                   $filter: {
                                     input: "$$oneHazirlanan.satirlar",
                                     as: "oneSatir",
-                                    cond: { "$$oneSatir.isPreparing": { $exists: false } }
+                                    cond: { $ne: ["$$oneSatir.isPreparing", true] }
                                   }
                                 },
                                 [hazirlananMetraj_state.satirlar.filter(x => x.isPreparing)]
