@@ -146,7 +146,7 @@ exports = async function ({
     await collection_Dugumler.updateOne({ _id: _dugumId },
       [
         {
-          $addFields: {
+          $set: {
             "hazirlananMetrajlar": {
               $map: {
                 input: "$hazirlananMetrajlar",
@@ -155,7 +155,7 @@ exports = async function ({
                   "$mergeObjects": [
                     "$$oneHazirlanan",
                     {
-                      metraj: {
+                      metraj2: {
                         $sum: {
                           "$map": {
                             "input": "$$oneHazirlanan.satirlar",
