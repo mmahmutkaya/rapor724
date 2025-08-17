@@ -129,9 +129,9 @@ exports = async function ({
                                   ]
                                 },
                                 {
-                                  $eq: [
+                                  $ne: [
                                     "$$this.isSelected",
-                                    false
+                                    true
                                   ]
                                 }
                               ]
