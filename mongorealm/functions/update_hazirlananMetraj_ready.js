@@ -37,16 +37,20 @@ exports = async function ({
 
   try {
 
+    let metraj = 0
     let oneHazirlanan_ready_satirNolar = hazirlananMetraj_state.satirlar.filter(x => x.isReady).map(oneSatir => {
+      metraj += oneSatir.metraj ? Number(oneSatir.metraj) : 0
       return oneSatir.satirNo
     })
+
 
 
     await collection_Dugumler.updateOne(
       { _id: _dugumId },
       {
         $set: {
-          "hazirlananMetrajlar.$[oneHazirlanan].satirlar.$[oneSatir].isReady": true
+          "hazirlananMetrajlar.$[oneHazirlanan].satirlar.$[oneSatir].isReady": true,
+          "hazirlananMetrajlar.$[oneHazirlanan].metraj": metraj,
         },
         $unset: {
           "hazirlananMetrajlar.$[oneHazirlanan].satirlar.$[oneSatir].newSelected": "",
