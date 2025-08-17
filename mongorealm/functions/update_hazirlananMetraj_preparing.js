@@ -41,7 +41,8 @@ exports = async function ({
   let metrajPre = 0
 
 
-  hazirlananMetraj_state.satirlar.filter(x => x.isPreparing).map(oneSatir => {
+  // ready de bir hazırlanan metrajdır, tüm hazırlanan metraj yani
+  hazirlananMetraj_state.satirlar.map(oneSatir => {
     metrajPre += Number(oneSatir.metraj)
   })
   hazirlananMetraj_state.metrajPre = metrajPre
