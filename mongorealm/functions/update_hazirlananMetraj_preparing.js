@@ -105,10 +105,10 @@ exports = async function ({
                           {
                             satirlar:
                             {
-                              $filter: {
+                              $map: {
                                 input: "$$oneHazirlanan.satirlar",
                                 as: "oneSatir",
-                                cond: { $gt: ["$$pneSatir.metraj", 0] }
+                                in: "$$onesatir"
                               }
                             },
                           },
