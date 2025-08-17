@@ -15,15 +15,15 @@ exports = async function ({
 
   const mailTeyit = user.custom_data.mailTeyit;
   if (!mailTeyit) {
-    throw new Error("MONGO // update_hazirlananMetrajlar // Öncelikle üyeliğinize ait mail adresinin size ait olduğunu doğrulamalısınız, tekrar giriş yapmayı deneyiniz veya bizimle iletişime geçiniz.");
+    throw new Error("MONGO // update_hazirlananMetraj_peparing // Öncelikle üyeliğinize ait mail adresinin size ait olduğunu doğrulamalısınız, tekrar giriş yapmayı deneyiniz veya bizimle iletişime geçiniz.");
   }
 
   if (!_dugumId) {
-    throw new Error("MONGO // update_hazirlananMetrajlar // '_dugumId' verisi db sorgusuna gelmedi");
+    throw new Error("MONGO // update_hazirlananMetraj_peparing // '_dugumId' verisi db sorgusuna gelmedi");
   }
 
   if (!hazirlananMetraj_state) {
-    throw new Error("MONGO // update_hazirlananMetrajlar // 'hazirlananMetraj_state' verisi db sorgusuna gelmedi");
+    throw new Error("MONGO // update_hazirlananMetraj_peparing // 'hazirlananMetraj_state' verisi db sorgusuna gelmedi");
   }
 
 
@@ -38,10 +38,13 @@ exports = async function ({
   let hazirlananMetraj_db
   let isSilinecek = true
   let readyMetraj = 0
-  let metraj = 0
+  let metrajPre = 0
 
 
-
+  hazirlananMetraj_state.satirlar.filter(x => x.isPreparing).map(oneSatir => {
+    metrajPre += Number(oneSatir.metraj)
+  })
+  hazirlananMetraj_state.metrajPre = metrajPre
 
 
 
@@ -79,8 +82,9 @@ exports = async function ({
                                 },
                                 [hazirlananMetraj_state.satirlar.filter(x => x.isPreparing)]
                               ]
-                            }
-                          }
+                            },
+                          },
+                          { metrajPre }
                         ]
                       }
                     }
@@ -94,7 +98,7 @@ exports = async function ({
       return result
 
     } catch (error) {
-      throw new Error("MONGO // update_hazirlananMetrajlar_new // silinecekse " + error.message);
+      throw new Error("MONGO // update_hazirlananMetraj_peparing_new // ready varken eklenecekse " + error.message);
     }
 
 
@@ -131,7 +135,7 @@ exports = async function ({
         return result
 
       } catch (error) {
-        throw new Error("MONGO // update_hazirlananMetrajlar_new // silinecekse " + error.message);
+        throw new Error("MONGO // update_hazirlananMetraj_peparing_new // silinecekse " + error.message);
       }
 
       return result
@@ -165,7 +169,7 @@ exports = async function ({
         return result
 
       } catch (error) {
-        throw new Error("MONGO // update_hazirlananMetrajlar_new // silinecekse " + error.message);
+        throw new Error("MONGO // update_hazirlananMetraj_peparing_new // güncellenecekse " + error.message);
       }
 
 
@@ -207,7 +211,7 @@ exports = async function ({
   //   hazirlananMetraj_db = hazirlananMetrajlar_filtered[0]
 
   // } catch (error) {
-  //   throw new Error("MONGO // update_hazirlananMetrajlar_new // db'deki verinin alınması " + error.message);
+  //   throw new Error("MONGO // update_hazirlananMetraj_peparing_new // db'deki verinin alınması " + error.message);
   // }
 
 
@@ -269,7 +273,7 @@ exports = async function ({
 
 
   // } catch (error) {
-  //   throw new Error("MONGO // update_hazirlananMetrajlar_new // silinecekse " + error.message);
+  //   throw new Error("MONGO // update_hazirlananMetraj_peparing_new // silinecekse " + error.message);
   // }
 
 
@@ -328,7 +332,7 @@ exports = async function ({
 
 
   // } catch (error) {
-  //   throw new Error("MONGO // update_hazirlananMetrajlar_new // mevcut veri güncel veri ile değiştirilecekse veya yeni eklenecekse " + error.message);
+  //   throw new Error("MONGO // update_hazirlananMetraj_peparing_new // mevcut veri güncel veri ile değiştirilecekse veya yeni eklenecekse " + error.message);
   // }
 
 
