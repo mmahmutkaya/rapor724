@@ -50,7 +50,7 @@ exports = async function ({
 
   hazirlananMetraj_state.satirlar = hazirlananMetraj_state.satirlar.map(oneSatir => {
     delete oneSatir.newSelected
-    metrajPre += Number(oneSatir.metraj)
+    metrajPre += Number(oneSatir.metraj) ? Number(oneSatir.metraj) : 0
     metraj += oneSatir.isReady ? Number(oneSatir.metraj) : 0
     return oneSatir
   })
