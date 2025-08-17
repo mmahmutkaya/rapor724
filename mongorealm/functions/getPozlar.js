@@ -177,7 +177,7 @@ exports = async function ({
 
             let oneHazirlanan = oneArray.find(x => x.userEmail === oneYapabilen.userEmail)
 
-            if (oneHazirlanan) {
+            if (oneHazirlanan?.satirlar?.filter(x => x.isReady)) {
               hasMetraj = true
               let metraj2 = oneHazirlanan?.metraj ? Number(oneHazirlanan?.metraj) : 0
               metraj += metraj2
