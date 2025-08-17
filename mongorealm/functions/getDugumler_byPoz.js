@@ -95,19 +95,9 @@ exports = async function ({
                             {
                               "$and": [
                                 {
-                                  $or: [
-                                    {
-                                      $eq: [
-                                        "$$this.isReady",
-                                        true
-                                      ]
-                                    },
-                                    {
-                                      $eq: [
-                                        "$$this.isReady",
-                                        false
-                                      ]
-                                    }
+                                  $ne: [
+                                    "$$this.isReady",
+                                    null
                                   ]
                                 },
                                 {
