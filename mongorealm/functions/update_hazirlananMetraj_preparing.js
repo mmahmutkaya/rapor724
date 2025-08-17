@@ -57,7 +57,7 @@ exports = async function ({
   let eklenecekSatirlar = hazirlananMetraj_state.satirlar(x => x.isPreparing)
 
 
-// hazirlananMetraj_state.satirlar.filter(x => x.isPreparing)
+  // hazirlananMetraj_state.satirlar.filter(x => x.isPreparing)
 
   // isReady varsa yoksa - isReady property false olmuş olsa bile satırı kaybetmeyeceğiz
   // bu false olmuş satırın yeniden kazanılması önemli önce sarı nokta ile kalacak öyle sonra isPreparing yapacağız onu
@@ -105,14 +105,7 @@ exports = async function ({
                           {
                             satirlar: {
                               $concatArrays: [
-                                // {
-                                //   $filter: {
-                                //     input: "$$oneHazirlanan.satirlar",
-                                //     as: "oneSatir",
-                                //     cond: { $not: { "$$oneSatir.isReady": { $exists: true } } }
-                                //   }
-                                // },
-                                [1,2,3,4]
+                                [1, 2, 3, 4]
                                 [eklenecekSatirlar]
                               ]
                             },
@@ -129,7 +122,13 @@ exports = async function ({
         ]
       )
 
-
+      // {
+      //   $filter: {
+      //     input: "$$oneHazirlanan.satirlar",
+      //     as: "oneSatir",
+      //     cond: { $not: { "$$oneSatir.isReady": { $exists: true } } }
+      //   }
+      // },
 
       return result
 
