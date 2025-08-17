@@ -230,7 +230,7 @@ export default function P_MetrajOnaylaPozMahaller() {
   const save_select = () => {
 
     console.log("dugumler_byPoz_state", dugumler_byPoz_state)
-    RealmApp?.currentUser.callFunction("update_hazirlananMetrajlar_selectedFull",({}))
+    RealmApp?.currentUser.callFunction("update_hazirlananMetrajlar_selectedFull", ({}))
 
   }
 
@@ -537,7 +537,7 @@ export default function P_MetrajOnaylaPozMahaller() {
                             // let hasSelectedFull = dugum.hazirlananMetrajlar.find(x => x.userEmail === oneYapabilen.userEmail)?.hasSelectedFull
 
                             let oneHazirlanan = dugum?.hazirlananMetrajlar?.find(x => x.userEmail === oneYapabilen.userEmail)
-                            let hasMetraj = oneHazirlanan ? true : false
+                            let hasMetraj = oneHazirlanan?.satirlar?.filter(x => x.isReady).length > 0 ? true : false
                             let hasSelected = oneHazirlanan?.hasSelected
                             let hasSelectedFull = oneHazirlanan?.hasSelectedFull
                             let metraj = oneHazirlanan?.metraj
