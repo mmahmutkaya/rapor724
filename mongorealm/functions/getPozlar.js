@@ -56,7 +56,7 @@ exports = async function ({
           onaylananMetraj: 1,
           hazirlananMetrajlar: {
             $map: {
-              input: "$hazirlananMetrajlar",  
+              input: "$hazirlananMetrajlar",
               as: "oneHazirlanan",
               in: {
                 userEmail: "$$oneHazirlanan.userEmail",
@@ -90,6 +90,13 @@ exports = async function ({
                   }
                 },
                 hasSelectedFull: {
+                  $filter: {
+                    input: "$$oneHazirlanan.satirlar",
+                    as: "oneSatir",
+                    cond: { $ne: ["$$oneSatir.isPreparing", true] }
+                  }
+                },
+                hasSelectedFull: {
                   "$reduce": {
                     "input": "$$oneHazirlanan.satirlar",
                     "initialValue": true,
@@ -105,12 +112,6 @@ exports = async function ({
                             },
                             {
                               "$and": [
-                                {
-                                  $eq: [
-                                    "$$this.isPreparing",
-                                    true
-                                  ]
-                                },
                                 {
                                   $eq: [
                                     "$$this.isReady",
