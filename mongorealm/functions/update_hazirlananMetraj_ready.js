@@ -50,7 +50,7 @@ exports = async function ({
         },
         $unset: {
           "hazirlananMetrajlar.$[oneHazirlanan].satirlar.$[oneSatir].newSelected": "",
-          "hazirlananMetrajlar.$[oneHazirlanan].satirlar.$[oneSatir].isPeparing": ""
+          "hazirlananMetrajlar.$[oneHazirlanan].satirlar.$[oneSatir].isPreparing": ""
         }
       },
       { arrayFilters: [{ "oneHazirlanan.userEmail": userEmail }, { "oneSatir.satirNo": { $in: oneHazirlanan_ready_satirNolar } }] }
