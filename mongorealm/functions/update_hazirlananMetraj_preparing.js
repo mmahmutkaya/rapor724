@@ -105,13 +105,13 @@ exports = async function ({
                           {
                             satirlar: {
                               $concatArrays: [
-                                {
-                                  $filter: {
-                                    input: "$$oneHazirlanan.satirlar",
-                                    as: "oneSatir",
-                                    cond: { $not: { "$$oneSatir.isReady": { $exists: true } } }
-                                  }
-                                },
+                                // {
+                                //   $filter: {
+                                //     input: "$$oneHazirlanan.satirlar",
+                                //     as: "oneSatir",
+                                //     cond: { $not: { "$$oneSatir.isReady": { $exists: true } } }
+                                //   }
+                                // },
                                 [hazirlananMetraj_state.satirlar.filter(x => x.isPreparing)]
                               ]
                             },
