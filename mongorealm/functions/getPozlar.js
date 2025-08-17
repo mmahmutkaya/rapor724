@@ -56,13 +56,77 @@ exports = async function ({
           onaylananMetraj: 1,
           hazirlananMetrajlar: {
             $map: {
-              input: "$hazirlananMetrajlar",
-              as: "hazirlananMetraj",
+              input: "$hazirlananMetrajlar",  
+              as: "oneHazirlanan",
               in: {
-                userEmail: "$$hazirlananMetraj.userEmail",
-                metraj: "$$hazirlananMetraj.readyMetraj",
-                hasSelected: "$$hazirlananMetraj.hasSelected",
-                hasSelectedFull: "$$hazirlananMetraj.hasSelectedFull",
+                userEmail: "$$oneHazirlanan.userEmail",
+                metraj: "$$oneHazirlanan.readyMetraj",
+                hasSelected: {
+                  "$reduce": {
+                    "input": "$$oneHazirlanan.satirlar",
+                    "initialValue": false,
+                    "in": {
+                      "$cond": {
+                        "if": {
+                          "$and": [
+                            {
+                              $eq: [
+                                "$$value",
+                                false
+                              ]
+                            },
+                            {
+                              $eq: [
+                                "$$this.isSelected",
+                                true
+                              ]
+                            }
+                          ]
+                        },
+                        "then": true,
+                        "else": "$$value"
+                      }
+                    }
+                  }
+                },
+                hasSelectedFull: {
+                  "$reduce": {
+                    "input": "$$oneHazirlanan.satirlar",
+                    "initialValue": true,
+                    "in": {
+                      "$cond": {
+                        "if": {
+                          "$and": [
+                            {
+                              $eq: [
+                                "$$value",
+                                true
+                              ]
+                            },
+                            {
+                              "$and": [
+                                {
+                                  $eq: [
+                                    "$$this.isReady",
+                                    true
+                                  ]
+                                },
+                                {
+                                  $ne: [
+                                    "$$this.isSelected",
+                                    true
+                                  ]
+                                }
+                              ]
+                            }
+                          ]
+                        },
+                        "then": false,
+                        "else": "$$value"
+                      }
+                    }
+                  }
+                }
               }
             }
           }
