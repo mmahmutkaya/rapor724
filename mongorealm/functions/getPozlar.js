@@ -60,7 +60,7 @@ exports = async function ({
               as: "oneHazirlanan",
               in: {
                 userEmail: "$$oneHazirlanan.userEmail",
-                metraj: "$$oneHazirlanan.readyMetraj",
+                metraj: "$$oneHazirlanan.metraj",
                 hasSelected: {
                   "$reduce": {
                     "input": "$$oneHazirlanan.satirlar",
