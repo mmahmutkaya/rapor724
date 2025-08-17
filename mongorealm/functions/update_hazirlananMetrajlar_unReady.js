@@ -209,7 +209,7 @@ exports = async function ({
     )
 
   } catch (error) {
-    throw new Error("MONGO // update_hazirlananMetrajlar_unReady // " + error);
+    throw new Error("MONGO // update_hazirlananMetrajlar_unReady // metraj güncelleme" + error);
   }
 
 
