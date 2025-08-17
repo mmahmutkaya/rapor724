@@ -42,7 +42,6 @@ exports = async function ({
     ]).toArray()
 
 
-    
     const pozlar2 = await collection_Dugumler.aggregate([
       {
         $match: {
@@ -178,7 +177,7 @@ exports = async function ({
 
             let oneHazirlanan = oneArray.find(x => x.userEmail === oneYapabilen.userEmail)
 
-            if (oneHazirlanan?.satirlar?.filter(x => x.isReady)) {
+            if (oneHazirlanan?.satirlar?.filter(x => x.isReady).length > 0) {
               hasMetraj = true
               let metraj2 = oneHazirlanan?.metraj ? Number(oneHazirlanan?.metraj) : 0
               metraj += metraj2
