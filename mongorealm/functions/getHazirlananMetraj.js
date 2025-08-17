@@ -64,8 +64,7 @@ exports = async function ({
               $concatArrays: ["$hazirlananMetrajlar", hazirlananMetraj]
             }
           }
-        },
-        { $limit: 1 }
+        }
       ])
 
   }
