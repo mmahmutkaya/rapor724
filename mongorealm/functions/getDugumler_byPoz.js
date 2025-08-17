@@ -95,6 +95,12 @@ exports = async function ({
                             {
                               "$and": [
                                 {
+                                  $ne: [
+                                    "$$this.isPreparing",
+                                    true
+                                  ]
+                                },
+                                {
                                   $eq: [
                                     "$$this.isReady",
                                     true
