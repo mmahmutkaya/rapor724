@@ -45,14 +45,17 @@ exports = async function ({
 
   let isSilinecek = true
   let metrajPre = 0
+  let metraj = 0
 
 
   hazirlananMetraj_state.satirlar = hazirlananMetraj_state.satirlar.map(oneSatir => {
     delete oneSatir.newSelected
     metrajPre += Number(oneSatir.metraj)
+    metraj += oneSatir.isReady ? Number(oneSatir.metraj) : 0
     return oneSatir
   })
 
+  hazirlananMetraj_state.metraj = metraj
   hazirlananMetraj_state.metrajPre = metrajPre
 
 
@@ -86,6 +89,8 @@ exports = async function ({
                       else: {
                         $mergeObjects: [
                           "$$oneHazirlanan",
+                          { metrajPre },
+                          { metraj },
                           {
                             satirlar: {
                               $concatArrays: [
@@ -104,8 +109,7 @@ exports = async function ({
                                 hazirlananMetraj_state?.satirlar?.filter(x => x.isPreparing)
                               ]
                             }
-                          },
-                          { metrajPre }
+                          }
                         ]
                       }
                     }
@@ -155,13 +159,10 @@ exports = async function ({
             }
           ]
         )
-        return result
 
       } catch (error) {
         throw new Error("MONGO // update_hazirlananMetraj_peparing_new // silinecekse " + error.message);
       }
-
-      return result
 
 
       // güncellenecekse
