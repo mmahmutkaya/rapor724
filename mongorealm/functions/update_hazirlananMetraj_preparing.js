@@ -45,18 +45,22 @@ exports = async function ({
 
   let isSilinecek = true
   let metrajPre = 0
-  let eklenecekSatirlar = []
+
 
   hazirlananMetraj_state.satirlar = hazirlananMetraj_state.satirlar.map(oneSatir => {
     delete oneSatir.newSelected
     metrajPre += Number(oneSatir.metraj)
-    eklenecekSatirlar = oneSatir.isPreparing && [...eklenecekSatirlar, oneSatir]
     return oneSatir
   })
 
   hazirlananMetraj_state.metrajPre = metrajPre
 
-  return eklenecekSatirlar
+
+  let eklenecekSatirlar = hazirlananMetraj_state?.satirlar?.filter(x => x.isPreparing)
+
+  if (!eklenecekSatirlar.length > 0) {
+    return eklenecekSatirlar
+  }
 
   // isReady varsa yoksa - isReady property false olmuş olsa bile satırı kaybetmeyeceğiz
   // bu false olmuş satırın yeniden kazanılması önemli önce sarı nokta ile kalacak öyle sonra isPreparing yapacağız onu
