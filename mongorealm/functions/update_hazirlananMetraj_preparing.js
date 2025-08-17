@@ -56,7 +56,7 @@ exports = async function ({
 
   let eklenecekSatirlar = hazirlananMetraj_state.satirlar(x => x.isPreparing)
 
-
+  return "buraya geliyor"
   // hazirlananMetraj_state.satirlar.filter(x => x.isPreparing)
 
   // isReady varsa yoksa - isReady property false olmuş olsa bile satırı kaybetmeyeceğiz
@@ -182,8 +182,6 @@ exports = async function ({
     } else {
 
       try {
-
-        return "buraya geliyor"
 
         const result = await collection_Dugumler.updateOne({ _id: _dugumId },
           [
