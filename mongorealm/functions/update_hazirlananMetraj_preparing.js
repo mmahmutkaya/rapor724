@@ -45,6 +45,10 @@ exports = async function ({
     metrajPre += Number(oneSatir.metraj)
   })
   hazirlananMetraj_state.metrajPre = metrajPre
+  hazirlananMetraj_state.satirlar = hazirlananMetraj_state.satirlar.map(oneSatir => {
+    delete oneSatir.newSelected
+    return oneSatir
+  })
 
 
 
@@ -69,7 +73,8 @@ exports = async function ({
                       if: { $ne: ["$$oneHazirlanan.userEmail", userEmail] },
                       then: "$$oneHazirlanan",
                       else: {
-                        $mergeObjects: ["$$oneHazirlanan",
+                        $mergeObjects: [
+                          "$$oneHazirlanan",
                           {
                             satirlar: {
                               $concatArrays: [
@@ -83,7 +88,8 @@ exports = async function ({
                                 [hazirlananMetraj_state.satirlar.filter(x => x.isPreparing)]
                               ]
                             },
-                          }
+                          },
+                          {metrajPre}
                         ]
                       }
                     }
