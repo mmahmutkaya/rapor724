@@ -44,7 +44,7 @@ exports = async function ({
 
 
 
-    const result = await collection_Dugumler.aggregate([
+  const result = await collection_Dugumler.aggregate([
     { $match: { _id: _dugumId } },
     {
       $project: {
@@ -52,11 +52,35 @@ exports = async function ({
           $reduce: {
             input: "$hazirlananMetrajlar",
             initialValue: null,
-            in: {$cond:{
-              if: {$eq: ["$$this.userEmail", userEmail] },
-              then:"$$this",
-              else:null
-            }}
+            in: {
+              $cond: {
+                if: { $eq: ["$$this.userEmail", userEmail] },
+                then: "$$this",
+                else: null
+              }
+            }
+          }
+        },
+        metraj: {
+          $reduce: {
+            input: "$hazirlananMetraj.satirlar",
+            initialValue: 0,
+            in: { $sum: ["$$this.metraj", "$$value"] }
+
+          }
+        },
+        readyMetraj: {
+          $reduce: {
+            input: "$hazirlananMetraj.satirlar",
+            initialValue: 0,
+            in: {
+              $cond: {
+                if: { $eq: ["$$this.isReady", true] },
+                then: { $sum: ["$$this", "$$value"] },
+                else: null
+              }
+            }
+
           }
         }
       }
@@ -67,13 +91,13 @@ exports = async function ({
 
   let { hazirlananMetraj } = result[0]
 
-  return result
-  
+
   if (!hazirlananMetraj) {
 
     hazirlananMetraj = {
       userEmail,
       metraj: 0,
+      readyMetraj:0,
       satirlar: [
         { satirNo: userCode + "-" + 1, aciklama: "", carpan1: "", carpan2: "", carpan3: "", carpan4: "", carpan5: "", metraj: "", isPeparing: true },
         { satirNo: userCode + "-" + 2, aciklama: "", carpan1: "", carpan2: "", carpan3: "", carpan4: "", carpan5: "", metraj: "", isPeparing: true },
