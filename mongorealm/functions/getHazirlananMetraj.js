@@ -56,16 +56,16 @@ exports = async function ({
       ]
     }
 
-    await collection_Dugumler.updateOne({ _id: _dugumId },
-      [
-        {
-          $set: {
-            hazirlananMetrajlar: {
-              $concatArrays: ["$hazirlananMetrajlar", [hazirlananMetraj]]
-            }
-          }
-        }
-      ])
+    // await collection_Dugumler.updateOne({ _id: _dugumId },
+    //   [
+    //     {
+    //       $set: {
+    //         hazirlananMetrajlar: {
+    //           $concatArrays: ["$hazirlananMetrajlar", [hazirlananMetraj]]
+    //         }
+    //       }
+    //     }
+    //   ])
 
   }
 
