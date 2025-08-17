@@ -155,7 +155,7 @@ exports = async function ({
                   "$mergeObjects": [
                     "$$oneHazirlanan",
                     {
-                      metraj2: {
+                      metraj: {
                         $sum: {
                           "$map": {
                             "input": "$$oneHazirlanan.satirlar",
