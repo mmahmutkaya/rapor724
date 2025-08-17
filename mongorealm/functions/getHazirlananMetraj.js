@@ -75,7 +75,7 @@ exports = async function ({
     hazirlananMetraj = {
       userEmail,
       metraj: 0,
-      readyMetraj: 0,
+      metrajPre:0,
       satirlar: [
         { satirNo: userCode + "-" + 1, aciklama: "", carpan1: "", carpan2: "", carpan3: "", carpan4: "", carpan5: "", metraj: "", isPreparing: true },
         { satirNo: userCode + "-" + 2, aciklama: "", carpan1: "", carpan2: "", carpan3: "", carpan4: "", carpan5: "", metraj: "", isPreparing: true },
