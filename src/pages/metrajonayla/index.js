@@ -324,7 +324,7 @@ export default function P_MetrajOnay() {
   // Edit Metraj Sayfasının Fonksiyonu
   const save_unReady = async () => {
 
-    if (isChanged) {
+    if (isChanged_unReady) {
 
       try {
 
