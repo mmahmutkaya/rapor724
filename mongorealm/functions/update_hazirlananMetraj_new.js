@@ -44,7 +44,7 @@ exports = async function ({
 
 
 
-// isReady varsa 
+  // isReady varsa 
   if (hazirlananMetraj_new.satirlar.find(x => x.isReady)) {
 
     try {
@@ -70,7 +70,7 @@ exports = async function ({
                                   $filter: {
                                     input: "$$oneHazirlanan.satirlar",
                                     as: "oneSatir",
-                                    cond: { "$$oneSatir.isPreparing" :{$exists:false} }
+                                    cond: { "$$oneSatir.isPreparing": { $exists: false } }
                                   }
                                 },
                                 hazirlananMetraj_new.satirlar.filter(x => x.isPreparing)
