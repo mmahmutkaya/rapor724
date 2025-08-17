@@ -52,7 +52,7 @@ exports = async function ({
   await collection_Dugumler.updateOne(
     { _id: _dugumId },
     { $set: { "hazirlananMetrajlar.$[oneHazirlanan].satirlar.$[oneSatir].isReady": true }, $inc: { "hazirlananMetrajlar.$[oneHazirlanan].readyMetraj": artacakMetraj } },
-    { arrayFilters: [{ "oneHazirlanan.userEmail": oneHazirlanan.userEmail }, { "oneSatir.satirNo": { $in: oneHazirlanan_ready_satirNolar } }] }
+    { arrayFilters: [{ "oneHazirlanan.userEmail": userEmail }, { "oneSatir.satirNo": { $in: oneHazirlanan_ready_satirNolar } }] }
   )
 
 
