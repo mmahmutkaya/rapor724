@@ -106,17 +106,10 @@ exports = async function ({
                     }
                   }
                 },
-                hasSelectedFull: {
-                  $filter: {
-                    input: "$$oneHazirlanan.satirlar",
-                    as: "oneSatir",
-                    cond: { $ne: ["$$oneSatir.isPreparing", true] }
-                  }
-                },
-                hasSelectedFull: {
+                hasUnSelected: {
                   "$reduce": {
-                    "input": "$hasSelectedFull",
-                    "initialValue": true,
+                    "input": "$$oneHazirlanan.satirlar",
+                    "initialValue": false,
                     "in": {
                       "$cond": {
                         "if": {
@@ -124,11 +117,11 @@ exports = async function ({
                             {
                               $eq: [
                                 "$$value",
-                                true
+                                false
                               ]
                             },
                             {
-                              "$and": [
+                              $and: [
                                 {
                                   $eq: [
                                     "$$this.isReady",
@@ -136,16 +129,16 @@ exports = async function ({
                                   ]
                                 },
                                 {
-                                  $ne: [
+                                  $eq: [
                                     "$$this.isSelected",
-                                    true
+                                    false
                                   ]
                                 }
                               ]
                             }
                           ]
                         },
-                        "then": false,
+                        "then": true,
                         "else": "$$value"
                       }
                     }
@@ -239,7 +232,7 @@ exports = async function ({
     dugumler_byPoz.map(oneDugum => {
       oneDugum?.hazirlananMetrajlar?.map(oneHazirlanan => {
         if (oneHazirlanan) {
-          if (!oneHazirlanan.hasSelectedFull) {
+          if (oneHazirlanan.hasUnSelected) {
             anySelectable = true
           }
         }
