@@ -143,7 +143,7 @@ exports = async function ({
 
   // metraj güncelleme
   try {
-    await collection_Dugumler.update({ _id: _dugumId },
+    await collection_Dugumler.updateOne({ _id: _dugumId },
       [
         {
           $addFields: {
