@@ -78,6 +78,34 @@ exports = async function ({
                     }
                   }
                 },
+                hasReady: {
+                  "$reduce": {
+                    "input": "$$oneHazirlanan.satirlar",
+                    "initialValue": false,
+                    "in": {
+                      "$cond": {
+                        "if": {
+                          "$and": [
+                            {
+                              $eq: [
+                                "$$value",
+                                false
+                              ]
+                            },
+                            {
+                              $eq: [
+                                "$$this.isReady",
+                                true
+                              ]
+                            }
+                          ]
+                        },
+                        "then": true,
+                        "else": "$$value"
+                      }
+                    }
+                  }
+                },
                 hasSelectedFull: {
                   $filter: {
                     input: "$$oneHazirlanan.satirlar",
