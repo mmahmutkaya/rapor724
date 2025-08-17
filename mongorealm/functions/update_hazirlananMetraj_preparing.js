@@ -54,6 +54,8 @@ exports = async function ({
     return oneSatir
   })
 
+  // let eklenecekSatirlar = hazirlananMetraj_state.satirlar(x => x.isPreparing)
+
 
 
 
@@ -63,6 +65,27 @@ exports = async function ({
   if (hazirlananMetraj_state.satirlar.find(x => x.isReady)) {
 
     try {
+
+
+      // let oneHazirlanan_ready_satirNolar = hazirlananMetraj_state.satirlar.filter(x => x.isReady).map(oneSatir => {
+      //   return oneSatir.satirNo
+      // })
+
+
+      // await collection_Dugumler.updateOne(
+      //   { _id: _dugumId },
+      //   {
+      //     $set: {
+      //       "hazirlananMetrajlar.$[oneHazirlanan].satirlar.$[oneSatir].isReady": true
+      //     },
+      //     $unset: {
+      //       "hazirlananMetrajlar.$[oneHazirlanan].satirlar.$[oneSatir].isPeparing": "",
+      //       "hazirlananMetrajlar.$[oneHazirlanan].satirlar.$[oneSatir].newSelected": ""
+      //     }
+      //   },
+      //   { arrayFilters: [{ "oneHazirlanan.userEmail": userEmail }, { $exista "oneSatir.isPreparing": { $eq: oneHazirlanan_ready_satirNolar } }] }
+      // )
+
 
       const result = await collection_Dugumler.updateOne({ _id: _dugumId },
         [
@@ -86,7 +109,7 @@ exports = async function ({
                                   $filter: {
                                     input: "$$oneHazirlanan.satirlar",
                                     as: "oneSatir",
-                                    cond: { $exists: ["$$oneSatir.isPreparing", false] }
+                                    cond: { $not: { "$$oneSatir.isReady": { $exists: true } } }
                                   }
                                 },
                                 [hazirlananMetraj_state.satirlar.filter(x => x.isPreparing)]
@@ -104,6 +127,9 @@ exports = async function ({
           }
         ]
       )
+
+
+
       return result
 
     } catch (error) {
