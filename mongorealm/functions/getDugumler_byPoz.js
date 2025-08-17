@@ -62,9 +62,7 @@ exports = async function ({
 
     dugumler_byPoz = await collection_Dugumler.aggregate([
       {
-        $match: {
-          openMetraj: true
-        }
+        $match: { _pozId, openMetraj: true },
       },
       {
         $project: {
