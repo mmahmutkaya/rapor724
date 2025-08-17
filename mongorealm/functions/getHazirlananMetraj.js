@@ -54,7 +54,7 @@ exports = async function ({
             initialValue: null,
             in: {$cond:{
               if: {$eq: ["$$this.userEmail", userEmail] },
-              then:"$$value",
+              then:"$$this",
               else:null
             }}
           }
@@ -64,10 +64,11 @@ exports = async function ({
     { $limit: 1 }
   ]).toArray()
 
-  
+
   let { hazirlananMetraj } = result[0]
 
-
+  return result
+  
   if (!hazirlananMetraj) {
 
     hazirlananMetraj = {
