@@ -44,32 +44,23 @@ exports = async function ({
   // new selected temizleme
 
   let isSilinecek = true
-  let metrajPre = 0
-  let metraj = 0
-
 
   hazirlananMetraj_state.satirlar = hazirlananMetraj_state.satirlar.map(oneSatir => {
     delete oneSatir.newSelected
-    metrajPre += Number(oneSatir.metraj) ? Number(oneSatir.metraj) : 0
-    metraj += oneSatir.isReady ? Number(oneSatir.metraj) : 0
     return oneSatir
   })
-
-  hazirlananMetraj_state.metraj = metraj
-  hazirlananMetraj_state.metrajPre = metrajPre
-
 
 
 
   // isReady varsa yoksa - isReady property false olmuş olsa bile satırı kaybetmeyeceğiz
   // bu false olmuş satırın yeniden kazanılması önemli önce sarı nokta ile kalacak öyle sonra isPreparing yapacağız onu
 
-  if (hazirlananMetraj_state.satirlar.find(x => x.isReady)) {
+  if (hazirlananMetraj_state.satirlar.find(x => !x.isPreparing)) {
 
     try {
 
 
-      const result = await collection_Dugumler.updateOne({ _id: _dugumId },
+      await collection_Dugumler.updateOne({ _id: _dugumId },
         [
           {
             $set: {
@@ -167,7 +158,7 @@ exports = async function ({
 
       try {
 
-        const result = await collection_Dugumler.updateOne({ _id: _dugumId },
+        await collection_Dugumler.updateOne({ _id: _dugumId },
           [
             {
               $set: {
