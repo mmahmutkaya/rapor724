@@ -49,13 +49,13 @@ exports = async function ({
     {
       $project: {
         hazirlananMetraj: {
-          $reduce: {
+          $$map: {
             input: "$hazirlananMetrajlar",
-            initialValue: null,
+            as: "oneHazirlanan",
             in: {
               $cond: {
-                if: { $and: [{ $eq: ["$$value", null] }, { $eq: ["$$this.userEmail", userEmail] }] },
-                then: "$$this",
+                if: { $eq: ["$$oneHazirlanan.userEmail", userEmail] },
+                then: "$$oneHazirlanan",
                 else: null
               }
             }
