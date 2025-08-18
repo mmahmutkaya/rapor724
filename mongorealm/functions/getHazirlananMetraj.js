@@ -21,15 +21,44 @@ exports = async function ({
   const collection_Dugumler = context.services.get("mongodb-atlas").db("rapor724_v2").collection("dugumler")
 
 
-  // const result = await collection_Dugumler.aggregate([
+  const result = await collection_Dugumler.aggregate([
+    { $match: { _id: _dugumId } },
+    {
+      $project: {
+        hazirlananMetrajlar_filtered: {
+          $filter: {
+            input: "$hazirlananMetrajlar",
+            as: "hazirlananMetraj",
+            cond: { $eq: ["$$hazirlananMetraj.userEmail", userEmail] }
+          }
+        }
+      }
+    },
+    { $limit: 1 }
+  ]).toArray()
+  
+
+  let { hazirlananMetrajlar_filtered } = result[0]
+  hazirlananMetraj = hazirlananMetrajlar_filtered[0]
+
+  return {hazirlananMetrajlar_filtered,hazirlananMetraj}
+
+
+  // const resultArray = await collection_Dugumler.aggregate([
   //   { $match: { _id: _dugumId } },
   //   {
   //     $project: {
-  //       hazirlananMetrajlar_filtered: {
-  //         $filter: {
+  //       hazirlananMetrajlar: {
+  //         $map: {
   //           input: "$hazirlananMetrajlar",
-  //           as: "hazirlananMetraj",
-  //           cond: { $eq: ["$$hazirlananMetraj.userEmail", userEmail] }
+  //           as: "oneHazirlanan",
+  //           in: {
+  //             $cond: {
+  //               if: { $eq: ["$$oneHazirlanan.userEmail", userEmail] },
+  //               then: "$$oneHazirlanan",
+  //               else: null
+  //             }
+  //           }
   //         }
   //       }
   //     }
@@ -38,38 +67,9 @@ exports = async function ({
   // ]).toArray()
 
 
-  // let { hazirlananMetrajlar_filtered } = result[0]
-  // hazirlananMetraj = hazirlananMetrajlar_filtered[0]
-
-
-
-
-  const resultArray = await collection_Dugumler.aggregate([
-    { $match: { _id: _dugumId } },
-    {
-      $project: {
-        hazirlananMetrajlar: {
-          $map: {
-            input: "$hazirlananMetrajlar",
-            as: "oneHazirlanan",
-            in: {
-              $cond: {
-                if: { $eq: ["$$oneHazirlanan.userEmail", userEmail] },
-                then: "$$oneHazirlanan",
-                else: null
-              }
-            }
-          }
-        }
-      }
-    },
-    { $limit: 1 }
-  ]).toArray()
-
-
-  let result = resultArray[0]
-  let {hazirlananMetrajlar} = result
-  let hazirlananMetraj = hazirlananMetrajlar[0]
+  // let result = resultArray[0]
+  // let {hazirlananMetrajlar} = result
+  // let hazirlananMetraj = hazirlananMetrajlar[0]
   // return {resultArray,result,hazirlananMetraj}
 
   if (!hazirlananMetraj) {
