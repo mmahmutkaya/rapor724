@@ -163,8 +163,8 @@ export default function P_MetrajOnaylaPozMahaller() {
     if (tip === "all") {
       dugumler_byPoz_state2 = dugumler_byPoz_state2?.map(oneDugum => {
         oneDugum?.hazirlananMetrajlar?.map(oneHazirlanan => {
-          if (oneHazirlanan.userEmail === userEmail && !oneHazirlanan.hasSelectedFull) {
-            if (!oneHazirlanan.hasSelectedFull) {
+          if (oneHazirlanan.userEmail === userEmail && oneHazirlanan.hasUnSelected) {
+            if (oneHazirlanan.hasUnSelected) {
               oneHazirlanan.hasSelectedFull_aday = true
               setIsChange_select(true)
             }
@@ -184,8 +184,8 @@ export default function P_MetrajOnaylaPozMahaller() {
         }
         oneDugum?.hazirlananMetrajlar?.map(oneHazirlanan => {
 
-          if (oneHazirlanan.userEmail === userEmail && !oneHazirlanan.hasSelectedFull) {
-            if (!oneHazirlanan.hasSelectedFull) {
+          if (oneHazirlanan.userEmail === userEmail && oneHazirlanan.hasUnSelected) {
+            if (oneHazirlanan.hasUnSelected) {
               oneHazirlanan.hasSelectedFull_aday = true
               setIsChange_select(true)
             }
@@ -205,8 +205,8 @@ export default function P_MetrajOnaylaPozMahaller() {
         }
         oneDugum?.hazirlananMetrajlar?.map(oneHazirlanan => {
 
-          if (oneHazirlanan.userEmail === userEmail && !oneHazirlanan.hasSelectedFull) {
-            if (!oneHazirlanan.hasSelectedFull) {
+          if (oneHazirlanan.userEmail === userEmail && oneHazirlanan.hasUnSelected) {
+            if (oneHazirlanan.hasUnSelected) {
               oneHazirlanan.hasSelectedFull_aday = true
               setIsChange_select(true)
             }
@@ -533,27 +533,24 @@ export default function P_MetrajOnaylaPozMahaller() {
                           <Box> </Box>
                           {showMetrajYapabilenler?.filter(x => x.isShow).map((oneYapabilen, index) => {
 
-                            // let hasSelected = dugum.hazirlananMetrajlar.find(x => x.userEmail === oneYapabilen.userEmail)?.hasSelected
-                            // let hasSelectedFull = dugum.hazirlananMetrajlar.find(x => x.userEmail === oneYapabilen.userEmail)?.hasSelectedFull
-
                             let oneHazirlanan = dugum?.hazirlananMetrajlar?.find(x => x.userEmail === oneYapabilen.userEmail)
                             let hasReady = oneHazirlanan?.hasReady
                             let hasSelected = oneHazirlanan?.hasSelected
-                            let hasSelectedFull = oneHazirlanan?.hasSelectedFull
+                            let hasUnSelected = oneHazirlanan?.hasUnSelected
                             let metraj = oneHazirlanan?.metraj
                             let hasSelectedFull_aday = oneHazirlanan?.hasSelectedFull_aday
 
                             return (
                               <Box
                                 key={index}
-                                onClick={() => selectMode && !hasSelectedFull && addNodes_select({ tip: "mahal", mahal: oneMahal, userEmail: oneYapabilen.userEmail })}
+                                onClick={() => selectMode && hasUnSelected && addNodes_select({ tip: "mahal", mahal: oneMahal, userEmail: oneYapabilen.userEmail })}
                                 onDoubleClick={() => !selectMode && hasReady && goTo_onayCetveli({ dugum, oneMahal, userEmail: oneYapabilen.userEmail })}
                                 sx={{
                                   ...css_mahaller,
                                   justifyContent: "end",
-                                  cursor: !selectMode && hasReady ? "pointer" : (selectMode && !hasSelectedFull) && "pointer",
-                                  // backgroundColor: hasSelectedFull ? "lightgray" : "rgba(255, 251, 0, 0.55)",
-                                  backgroundColor: !hasReady ? "lightgray" : !hasSelectedFull && "rgba(255, 251, 0, 0.55)",
+                                  cursor: !selectMode && hasReady ? "pointer" : (selectMode && hasUnSelected) && "pointer",
+                                  // backgroundColor: !hasUnSelected ? "lightgray" : "rgba(255, 251, 0, 0.55)",
+                                  backgroundColor: !hasReady ? "lightgray" : hasUnSelected && "rgba(255, 251, 0, 0.55)",
                                   display: "grid",
                                   gridTemplateColumns: "1rem 1fr",
                                   "&:hover": hasReady && { "& .childClass": { backgroundColor: "red" } }
@@ -562,35 +559,35 @@ export default function P_MetrajOnaylaPozMahaller() {
                                   <Box
                                     className="childClass"
                                     sx={{
-                                      // backgroundColor: hasSelectedFull ? "lightgray" : hasSelected ? "gray" : "rgba(255, 251, 0, 0.55)",
-                                      backgroundColor: !hasReady ? "lightgray" : !hasSelectedFull && !hasSelected ? "rgba(255, 251, 0, 0.55)" : !hasSelectedFull && hasSelected && "gray",
+                                      // backgroundColor: !hasUnSelected ? "lightgray" : hasSelected ? "gray" : "rgba(255, 251, 0, 0.55)",
+                                      backgroundColor: !hasReady ? "lightgray" : hasUnSelected && !hasSelected ? "rgba(255, 251, 0, 0.55)" : hasUnSelected && hasSelected && "gray",
                                       height: "0.5rem", width: "0.5rem",
                                       borderRadius: "50%"
                                     }}>
                                   </Box>
                                 }
-                                {selectMode && hasSelectedFull &&
+                                {selectMode && !hasUnSelected &&
                                   <Box
                                     // className="childClass"
                                     sx={{
-                                      // backgroundColor: hasSelectedFull ? "lightgray" : hasSelected ? "gray" : "rgba(255, 251, 0, 0.55)",
-                                      backgroundColor: !hasReady ? "lightgray" : !hasSelectedFull && !hasSelected ? "rgba(255, 251, 0, 0.55)" : !hasSelectedFull && hasSelected && "gray",
+                                      // backgroundColor: !hasUnSelected ? "lightgray" : hasSelected ? "gray" : "rgba(255, 251, 0, 0.55)",
+                                      backgroundColor: !hasReady ? "lightgray" : hasUnSelected && !hasSelected ? "rgba(255, 251, 0, 0.55)" : hasUnSelected && hasSelected && "gray",
                                       height: "0.5rem", width: "0.5rem",
                                       borderRadius: "50%"
                                     }}>
                                   </Box>
                                 }
-                                {selectMode && hasReady && !hasSelectedFull && !hasSelectedFull_aday && !hasSelected &&
+                                {selectMode && hasReady && hasUnSelected && !hasSelectedFull_aday && !hasSelected &&
                                   <Box sx={{ display: "grid", alignItems: "center", justifyContent: "center" }}>
                                     <FileDownloadDoneIcon variant="contained" sx={{ fontSize: "1rem", color: "yellow", "&:hover": { color: "red" } }} />
                                   </Box>
                                 }
-                                {selectMode && hasReady && !hasSelectedFull && !hasSelectedFull_aday && hasSelected &&
+                                {selectMode && hasReady && hasUnSelected && !hasSelectedFull_aday && hasSelected &&
                                   <Box sx={{ display: "grid", alignItems: "center", justifyContent: "center" }}>
                                     <CircleIcon variant="contained" sx={{ fontSize: "0.6rem", color: "gray", "&:hover": { color: "gray" } }} />
                                   </Box>
                                 }
-                                {selectMode && hasReady && !hasSelectedFull && hasSelectedFull_aday &&
+                                {selectMode && hasReady && hasUnSelected && hasSelectedFull_aday &&
                                   <Box sx={{ display: "grid", alignItems: "center", justifyContent: "center" }}>
                                     <AddCircleIcon variant="contained" sx={{ fontSize: "0.90rem", color: "green", "&:hover": { color: "green" } }} />
                                   </Box>

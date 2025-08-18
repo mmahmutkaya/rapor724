@@ -407,7 +407,7 @@ export default function P_MetrajOnaylaPozlar() {
 
                             let hasReady = oneHazirlanan?.hasReady
                             let hasSelected = oneHazirlanan?.hasSelected
-                            let hasSelectedFull = oneHazirlanan?.hasSelectedFull
+                            let hasUnSelected = oneHazirlanan?.hasUnSelected
                             let metraj = oneHazirlanan?.metraj
 
                             return (
@@ -416,14 +416,14 @@ export default function P_MetrajOnaylaPozlar() {
                                 onDoubleClick={() => hasReady && goTo_MetrajPozmahaller(onePoz)}
                                 sx={{
                                   ...pozNo_css, display: "grid", gridTemplateColumns: "1rem 1fr", justifyContent: "end", cursor: hasReady && "pointer",
-                                  backgroundColor: !hasReady ? "lightgray" : !hasSelectedFull && "rgba(255, 251, 0, 0.55)",
+                                  backgroundColor: !hasReady ? "lightgray" : hasUnSelected && "rgba(255, 251, 0, 0.55)",
                                   "&:hover": hasReady && { "& .childClass": { backgroundColor: "red" } }
                                 }}>
                                 <Box
                                   className="childClass"
                                   sx={{
                                     ml: "-1rem", height: "0.5rem", width: "0.5rem", borderRadius: "50%",
-                                    backgroundColor: !hasReady ? "lightgray" : !hasSelectedFull && !hasSelected ? "rgba(255, 251, 0, 0.55)" : !hasSelectedFull && hasSelected && "gray",
+                                    backgroundColor: !hasReady ? "lightgray" : hasUnSelected && !hasSelected ? "rgba(255, 251, 0, 0.55)" : hasUnSelected && hasSelected && "gray",
                                   }}>
                                 </Box>
                                 <Box sx={{ justifySelf: "end" }}>

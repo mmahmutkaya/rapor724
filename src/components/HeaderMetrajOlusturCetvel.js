@@ -35,7 +35,12 @@ import { useGetMahaller } from '../hooks/useMongo';
 
 
 
-export default function P_HeaderMetrajOlusturCetvel({ show, setShow, isChanged, cancel, save, isChanged_ready, cancel_ready, save_ready }) {
+export default function P_HeaderMetrajOlusturCetvel({
+  show, setShow,
+  isChanged, cancel, save,
+  isChanged_ready, cancel_ready, save_ready,
+  isChanged_rePreparing, cancel_rePreparing, save_rePreparing
+}) {
 
   const navigate = useNavigate()
 
@@ -45,6 +50,7 @@ export default function P_HeaderMetrajOlusturCetvel({ show, setShow, isChanged, 
 
   const [showEminMisin, setShowEminMisin] = useState(false)
   const [showEminMisin_ready, setShowEminMisin_ready] = useState(false)
+  const [showEminMisin_rePreparing, setShowEminMisin_rePreparing] = useState(false)
 
 
   return (
@@ -77,6 +83,22 @@ export default function P_HeaderMetrajOlusturCetvel({ show, setShow, isChanged, 
           action2={() => {
             cancel_ready()
             setShowEminMisin_ready()
+          }}
+        />
+      }
+
+
+      {showEminMisin_rePreparing &&
+        <DialogAlert
+          dialogIcon={"warning"}
+          dialogMessage={"Yaptığınız değişiklikleri kaybedeceksiniz ?"}
+          onCloseAction={() => setShowEminMisin_rePreparing()}
+          actionText1={"İptal"}
+          action1={() => setShowEminMisin_rePreparing()}
+          actionText2={"Onayla"}
+          action2={() => {
+            cancel_rePreparing()
+            setShowEminMisin_rePreparing()
           }}
         />
       }
@@ -125,7 +147,7 @@ export default function P_HeaderMetrajOlusturCetvel({ show, setShow, isChanged, 
             <Grid container>
 
 
-              {show === "Main" && !isChanged_ready &&
+              {show === "Main" && !isChanged_ready && !isChanged_rePreparing &&
                 <>
 
                   <Grid item >
@@ -145,7 +167,7 @@ export default function P_HeaderMetrajOlusturCetvel({ show, setShow, isChanged, 
               }
 
 
-              {show === "EditMetraj" && !isChanged_ready &&
+              {show === "EditMetraj" && !isChanged_ready && !isChanged_rePreparing &&
 
                 <>
 
@@ -165,7 +187,7 @@ export default function P_HeaderMetrajOlusturCetvel({ show, setShow, isChanged, 
               }
 
 
-              {show === "Main" && isChanged_ready && 
+              {show === "Main" && isChanged_ready &&
 
                 <>
 
@@ -177,6 +199,26 @@ export default function P_HeaderMetrajOlusturCetvel({ show, setShow, isChanged, 
 
                   <Grid item >
                     <IconButton onClick={() => save_ready()} disabled={!isChanged_ready} >
+                      <SaveIcon variant="contained" />
+                    </IconButton>
+                  </Grid>
+
+                </>
+              }
+
+
+              {show === "Main" && isChanged_rePreparing &&
+
+                <>
+
+                  <Grid item >
+                    <IconButton onClick={() => setShowEminMisin_rePreparing(true)}>
+                      <ClearOutlined variant="contained" sx={{ color: "red" }} />
+                    </IconButton>
+                  </Grid>
+
+                  <Grid item >
+                    <IconButton onClick={() => save_rePreparing()} disabled={!isChanged_rePreparing} >
                       <SaveIcon variant="contained" />
                     </IconButton>
                   </Grid>

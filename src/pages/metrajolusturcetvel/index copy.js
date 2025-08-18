@@ -27,7 +27,6 @@ import CircleIcon from '@mui/icons-material/Circle';
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import CheckIcon from '@mui/icons-material/Check';
 import LockIcon from '@mui/icons-material/Lock';
-import ReplyIcon from '@mui/icons-material/Reply';
 
 
 export default function P_MetrajOlusturCetvel() {
@@ -55,7 +54,7 @@ export default function P_MetrajOlusturCetvel() {
   const [hazirlananMetraj_backUp, setHazirlananMetraj_backUp] = useState()
 
   const [isChanged_ready, setIsChanged_ready] = useState()
-  const [isChanged_rePreparing, setIsChanged_rePreparing] = useState()
+  const [isChanged_reReady, setIsChanged_reReady] = useState()
 
 
 
@@ -310,53 +309,52 @@ export default function P_MetrajOlusturCetvel() {
 
 
   //  REREADY FONKSİYONLARI - ADD SATIR - REMOVE SATIR - CANCEL DB - SAVE DB
-  const addRow_rePreparing = (oneRow) => {
+  const addRow_reReady = (oneRow) => {
 
     let hazirlananMetraj_state2 = _.cloneDeep(hazirlananMetraj_state)
     hazirlananMetraj_state2.satirlar = hazirlananMetraj_state2.satirlar.map(oneSatir => {
       if (oneSatir.satirNo === oneRow.satirNo) {
-        oneSatir.isPreparing = true
+        oneSatir.isReReady = true
         // oneSatir.newSelected ? delete oneSatir.newSelected : oneSatir.newSelected = true
         oneSatir.newSelected = true
-        console.log("oneSatir", oneSatir)
       }
       return oneSatir
     })
-    hazirlananMetraj_state2.satirlar.find(x => x.newSelected) ? setIsChanged_rePreparing(true) : setIsChanged_rePreparing()
+    hazirlananMetraj_state2.satirlar.find(x => x.newSelected) ? setIsChanged_reReady(true) : setIsChanged_reReady()
     setHazirlananMetraj_state(hazirlananMetraj_state2)
   }
 
 
-  const removeRow_rePreparing = (oneRow) => {
+  const removeRow_reReady = (oneRow) => {
 
     let hazirlananMetraj_state2 = _.cloneDeep(hazirlananMetraj_state)
     hazirlananMetraj_state2.satirlar = hazirlananMetraj_state2.satirlar.map(oneSatir => {
       if (oneSatir.satirNo === oneRow.satirNo) {
-        delete oneSatir.isPreparing
+        delete oneSatir.isReReady
         // oneSatir.newSelected ? delete oneSatir.newSelected : oneSatir.newSelected = true
         delete oneSatir.newSelected
       }
       return oneSatir
     })
 
-    hazirlananMetraj_state2.satirlar.find(x => x.newSelected) ? setIsChanged_rePreparing(true) : setIsChanged_rePreparing()
+    hazirlananMetraj_state2.satirlar.find(x => x.newSelected) ? setIsChanged_reReady(true) : setIsChanged_reReady()
     setHazirlananMetraj_state(hazirlananMetraj_state2)
   }
 
-  const cancel_rePreparing = () => {
+  const cancel_reReady = () => {
     setHazirlananMetraj_state(_.cloneDeep(hazirlananMetraj_backUp))
-    setIsChanged_rePreparing()
+    setIsChanged_reReady()
   }
 
 
-  const save_rePreparing = async () => {
+  const save_reReady = async () => {
     try {
 
       // console.log("hazirlananMetraj_state",hazirlananMetraj_state)
-      await RealmApp?.currentUser.callFunction("update_hazirlananMetraj_rePreparing", ({ _dugumId: selectedNode_metraj._id, hazirlananMetraj_state }))
+      await RealmApp?.currentUser.callFunction("update_hazirlananMetraj_reReady", ({ _dugumId: selectedNode_metraj._id, hazirlananMetraj_state }))
 
       queryClient.invalidateQueries(['hazirlananMetraj', selectedNode_metraj?._id.toString()])
-      setIsChanged_rePreparing()
+      setIsChanged_reReady()
       return
 
     } catch (err) {
@@ -374,7 +372,7 @@ export default function P_MetrajOlusturCetvel() {
         dialogIcon = "info"
         onCloseAction = () => {
           setDialogAlert()
-          setIsChanged_rePreparing()
+          setIsChanged_reReady()
           queryClient.invalidateQueries(['hazirlananMetrajlar', selectedNode_metraj?._id.toString()])
         }
       }
@@ -472,7 +470,7 @@ export default function P_MetrajOlusturCetvel() {
           show={show} setShow={setShow}
           save={save} cancel={cancel} isChanged={isChanged} setIsChanged={setIsChanged}
           save_ready={save_ready} cancel_ready={cancel_ready} isChanged_ready={isChanged_ready} setIsChanged_ready={setIsChanged_ready}
-          save_rePreparing={save_rePreparing} cancel_rePreparing={cancel_rePreparing} isChanged_rePreparing={isChanged_rePreparing} setIsChanged_rePreparing={setIsChanged_rePreparing}
+          save_reReady={save_reReady} cancel_reReady={cancel_reReady} isChanged_reReady={isChanged_reReady} setIsChanged_reReady={setIsChanged_reReady}
         />
       </Grid>
 
@@ -613,8 +611,7 @@ export default function P_MetrajOlusturCetvel() {
                       {!isCellEdit &&
                         <Box sx={{
                           ...css_metrajCetveliSatir,
-                          // backgroundColor: oneRow?.isSelected ? myTema.renkler.inaktifGri : oneRow?.isReady && !oneRow?.newSelected ? "rgba(46, 172, 63, 0.25)" : oneRow?.isReady && oneRow?.newSelected && "rgba(191, 202, 34, 0.2)",
-                          backgroundColor: oneRow?.isReady ? myTema.renkler.inaktifGri : oneRow.isReady === false && !oneRow.isPreparing ? myTema.renkler.inaktifGri : oneRow.newSelected && oneRow.isPreparing && oneRow.isReady === false && myTema.renkler.inaktifGri,
+                          backgroundColor: oneRow?.isSelected ? myTema.renkler.inaktifGri : oneRow?.isReady && !oneRow?.newSelected ? "rgba(46, 172, 63, 0.25)" : oneRow?.isReady && oneRow?.newSelected && "rgba(191, 202, 34, 0.2)",
                           justifyContent: oneProperty.includes("aciklama") ? "start" : oneProperty.includes("carpan") ? "end" : oneProperty.includes("metraj") ? "end" : "center",
                           minWidth: oneProperty.includes("carpan") ? "5rem" : oneProperty.includes("metraj") ? "5rem" : null,
                           color: isMinha ? "red" : null
@@ -631,13 +628,7 @@ export default function P_MetrajOlusturCetvel() {
                 <Box></Box>
 
                 <Box
-                  onClick={() =>
-                    show === "Main" && !isChanged_rePreparing && oneRow.isPreparing && !oneRow.isReady ? addRow_ready(oneRow) :
-                      show === "Main" && !isChanged_rePreparing && oneRow.isPreparing && oneRow.isReady && oneRow.newSelected ? removeRow_ready(oneRow) :
-                        show === "Main" && !isChanged_ready && oneRow.isReady === false && !oneRow.isPreparing ? addRow_rePreparing(oneRow) :
-                          show === "Main" && !isChanged_ready && oneRow.isReady === false && oneRow.isPreparing === true && oneRow.newSelected ? removeRow_rePreparing(oneRow) :
-                            null
-                  }
+                  onClick={() => show === "Main" && !oneRow.isSelected && !oneRow.isReady ? addRow_ready(oneRow) : show === "Main" && !oneRow.isSelected && oneRow.isReady && oneRow.newSelected && removeRow_ready(oneRow)}
                   sx={{
                     // backgroundColor: oneRow.isSelected ? null : "rgba(255,255,0, 0.3)",
                     // backgroundColor: "rgba(255,255,0, 0.3)",
@@ -648,18 +639,18 @@ export default function P_MetrajOlusturCetvel() {
                     px: "0.3rem",
                     border: "1px solid black"
                   }}>
-                  {oneRow.isReady &&
-                    <LockIcon variant="contained" sx={{ color: oneRow.newSelected ? "rgba( 255,165,0, 1 )" : oneRow.isSelected ? "gray" : "green", fontSize: "1rem" }} />
+                  {oneRow.isSelected &&
+                    <LockIcon variant="contained" sx={{ color: "gray", fontSize: "1rem" }} />
                   }
-                  {oneRow.isReady === false &&
-                    <ReplyIcon variant="contained" sx={{ color: oneRow.newSelected ? "rgba( 255,165,0, 1 )" : oneRow.isPreparing ? "green" : "red", fontSize: "0.95rem" }} />
+                  {!oneRow.isSelected && oneRow.isReady && !oneRow.newSelected &&
+                    <CheckIcon variant="contained" sx={{ color: "rgba(14, 99, 7, 0.96)", fontSize: "0.95rem" }} />
                   }
-                  {/* {!oneRow.isSelected && oneRow.isReady && oneRow.newSelected &&
+                  {!oneRow.isSelected && oneRow.isReady && oneRow.newSelected &&
                     <CircleIcon variant="contained" sx={{ color: "rgba(15, 99, 7, 0.52)", fontSize: "0.70rem" }} />
                   }
                   {!oneRow.isSelected && !oneRow.isReady &&
                     <HourglassFullSharpIcon variant="contained" sx={{ color: "rgba( 255,165,0, 1 )", fontSize: "0.95rem" }} />
-                  } */}
+                  }
                 </Box>
 
               </React.Fragment>
