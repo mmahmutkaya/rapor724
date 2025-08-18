@@ -48,7 +48,7 @@ exports = async function ({
     { $match: { _id: _dugumId } },
     {
       $project: {
-        hazirlananMetraj: {
+        hazirlananMetrajlar: {
           $map: {
             input: "$hazirlananMetrajlar",
             as: "oneHazirlanan",
