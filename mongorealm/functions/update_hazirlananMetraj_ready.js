@@ -37,13 +37,9 @@ exports = async function ({
 
   try {
 
-    let metraj = 0
     let oneHazirlanan_ready_satirNolar = hazirlananMetraj_state.satirlar.filter(x => x.isReady).map(oneSatir => {
-      metraj += oneSatir.metraj ? Number(oneSatir.metraj) : 0
       return oneSatir.satirNo
     })
-
-
 
     await collection_Dugumler.updateOne(
       { _id: _dugumId },
@@ -63,6 +59,82 @@ exports = async function ({
   } catch (error) {
     throw new Error("MONGO // update_hazirlananMetraj_ready // " + error);
   }
+
+
+
+  
+
+  // metraj güncelleme
+  try {
+    await collection_Dugumler.updateOne({ _id: _dugumId },
+      [
+        {
+          $set: {
+            "hazirlananMetrajlar": {
+              $map: {
+                input: "$hazirlananMetrajlar",
+                as: "oneHazirlanan",
+                in: {
+                  "$mergeObjects": [
+                    "$$oneHazirlanan",
+                    {
+                      metraj: {
+                        $sum: {
+                          "$map": {
+                            "input": "$$oneHazirlanan.satirlar",
+                            "as": "oneSatir",
+                            "in": {
+                              "$cond": {
+                                "if": {
+                                  $eq: [
+                                    "$$oneSatir.isReady",
+                                    true
+                                  ]
+                                },
+                                "then": "$$oneSatir.metraj",
+                                "else": 0
+                              }
+                            }
+                          }
+                        }
+                      }
+                    },
+                    {
+                      metrajPre: {
+                        $sum: {
+                          "$map": {
+                            "input": "$$oneHazirlanan.satirlar",
+                            "as": "oneSatir",
+                            "in": {
+                              "$cond": {
+                                "if": {
+                                  $eq: [
+                                    "$$oneSatir.isPreparing",
+                                    true
+                                  ]
+                                },
+                                "then": "$$oneSatir.metraj",
+                                "else": 0
+                              }
+                            }
+                          }
+                        }
+                      }
+                    }
+
+                  ]
+                }
+              }
+            }
+          }
+        }
+      ]
+    )
+
+  } catch (error) {
+    throw new Error("MONGO // update_hazirlananMetrajlar_unReady // metraj güncelleme" + error);
+  }
+
 
 
 
