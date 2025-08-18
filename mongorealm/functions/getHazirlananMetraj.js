@@ -69,7 +69,7 @@ exports = async function ({
 
   let result = resultArray[0]
   let {hazirlananMetraj} = result
-  return {resultArray,result,hazirlananMetraj}
+  // return {resultArray,result,hazirlananMetraj}
 
   if (!hazirlananMetraj) {
 
