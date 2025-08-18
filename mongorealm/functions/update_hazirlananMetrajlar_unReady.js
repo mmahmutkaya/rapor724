@@ -108,7 +108,7 @@ exports = async function ({
     hazirlananMetrajlar_state.map(oneHazirlanan => {
 
       // let azalacakMetraj = 0
-      let oneHazirlanan_unReady_satirNolar = oneHazirlanan.satirlar.filter(x => !x.isReady).map(oneSatir => {
+      let oneHazirlanan_unReady_satirNolar = oneHazirlanan.satirlar.filter(x => x.isReady === false && x.newSelected ).map(oneSatir => {
         // azalacakMetraj += Number(oneSatir.metraj)
         return oneSatir.satirNo
       })
