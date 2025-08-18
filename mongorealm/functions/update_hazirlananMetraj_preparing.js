@@ -89,8 +89,6 @@ exports = async function ({
                       else: {
                         $mergeObjects: [
                           "$$oneHazirlanan",
-                          { metrajPre },
-                          { metraj },
                           {
                             satirlar: {
                               $concatArrays: [
@@ -122,7 +120,6 @@ exports = async function ({
         ]
       )
 
-      return result
 
     } catch (error) {
       throw new Error("MONGO // update_hazirlananMetraj_peparing_new // ready varken preparing eklenecekse " + error.message);
@@ -190,7 +187,6 @@ exports = async function ({
             }
           ]
         )
-        return result
 
       } catch (error) {
         throw new Error("MONGO // update_hazirlananMetraj_peparing_new // güncellenecekse " + error.message);
@@ -204,6 +200,76 @@ exports = async function ({
 
 
 
+  // metraj güncelleme
+  try {
+    await collection_Dugumler.updateOne({ _id: _dugumId },
+      [
+        {
+          $set: {
+            "hazirlananMetrajlar": {
+              $map: {
+                input: "$hazirlananMetrajlar",
+                as: "oneHazirlanan",
+                in: {
+                  "$mergeObjects": [
+                    "$$oneHazirlanan",
+                    {
+                      metraj: {
+                        $sum: {
+                          "$map": {
+                            "input": "$$oneHazirlanan.satirlar",
+                            "as": "oneSatir",
+                            "in": {
+                              "$cond": {
+                                "if": {
+                                  $eq: [
+                                    "$$oneSatir.isReady",
+                                    true
+                                  ]
+                                },
+                                "then": "$$oneSatir.metraj",
+                                "else": 0
+                              }
+                            }
+                          }
+                        }
+                      }
+                    },
+                    {
+                      metrajPre: {
+                        $sum: {
+                          "$map": {
+                            "input": "$$oneHazirlanan.satirlar",
+                            "as": "oneSatir",
+                            "in": {
+                              "$cond": {
+                                "if": {
+                                  $eq: [
+                                    "$$oneSatir.isPreparing",
+                                    true
+                                  ]
+                                },
+                                "then": "$$oneSatir.metraj",
+                                "else": 0
+                              }
+                            }
+                          }
+                        }
+                      }
+                    }
+
+                  ]
+                }
+              }
+            }
+          }
+        }
+      ]
+    )
+
+  } catch (error) {
+    throw new Error("MONGO // update_hazirlananMetrajlar_unReady // metraj güncelleme" + error);
+  }
 
 
 
