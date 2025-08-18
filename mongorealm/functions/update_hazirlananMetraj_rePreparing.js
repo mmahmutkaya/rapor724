@@ -15,15 +15,15 @@ exports = async function ({
 
   const mailTeyit = user.custom_data.mailTeyit;
   if (!mailTeyit) {
-    throw new Error("MONGO // update_hazirlananMetrajlar // Öncelikle üyeliğinize ait mail adresinin size ait olduğunu doğrulamalısınız, tekrar giriş yapmayı deneyiniz veya bizimle iletişime geçiniz.");
+    throw new Error("MONGO // update_hazirlananMetraj_rePreparing // Öncelikle üyeliğinize ait mail adresinin size ait olduğunu doğrulamalısınız, tekrar giriş yapmayı deneyiniz veya bizimle iletişime geçiniz.");
   }
 
   if (!_dugumId) {
-    throw new Error("MONGO // update_hazirlananMetrajlar // '_dugumId' verisi db sorgusuna gelmedi");
+    throw new Error("MONGO // update_hazirlananMetraj_rePreparing // '_dugumId' verisi db sorgusuna gelmedi");
   }
 
   if (!hazirlananMetraj_state) {
-    throw new Error("MONGO // update_hazirlananMetrajlar // 'hazirlananMetraj_state' verisi db sorgusuna gelmedi");
+    throw new Error("MONGO // update_hazirlananMetraj_rePreparing // 'hazirlananMetraj_state' verisi db sorgusuna gelmedi");
   }
 
 
@@ -37,7 +37,7 @@ exports = async function ({
 
   try {
 
-    let oneHazirlanan_ready_satirNolar = hazirlananMetraj_state.satirlar.filter(x => x.isReady).map(oneSatir => {
+    let oneHazirlanan_rePreparing_satirNolar = hazirlananMetraj_state.satirlar.filter(x => x.isPreparing && x.isReady === false && x.newSelected).map(oneSatir => {
       return oneSatir.satirNo
     })
 
@@ -45,15 +45,10 @@ exports = async function ({
       { _id: _dugumId },
       {
         $set: {
-          "hazirlananMetrajlar.$[oneHazirlanan].satirlar.$[oneSatir].isReady": true,
-          "hazirlananMetrajlar.$[oneHazirlanan].metraj": metraj,
-        },
-        $unset: {
-          "hazirlananMetrajlar.$[oneHazirlanan].satirlar.$[oneSatir].newSelected": "",
-          "hazirlananMetrajlar.$[oneHazirlanan].satirlar.$[oneSatir].isPreparing": ""
+          "hazirlananMetrajlar.$[oneHazirlanan].satirlar.$[oneSatir].isPreparing": true
         }
       },
-      { arrayFilters: [{ "oneHazirlanan.userEmail": userEmail }, { "oneSatir.satirNo": { $in: oneHazirlanan_ready_satirNolar } }] }
+      { arrayFilters: [{ "oneHazirlanan.userEmail": userEmail }, { "oneSatir.satirNo": { $in: oneHazirlanan_rePreparing_satirNolar } }] }
     )
 
   } catch (error) {
@@ -132,7 +127,7 @@ exports = async function ({
     )
 
   } catch (error) {
-    throw new Error("MONGO // update_hazirlananMetrajlar_unReady // metraj güncelleme" + error);
+    throw new Error("MONGO // update_hazirlananMetraj_rePreparing_unReady // metraj güncelleme" + error);
   }
 
 
