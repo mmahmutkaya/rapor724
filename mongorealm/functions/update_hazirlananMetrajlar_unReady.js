@@ -42,65 +42,6 @@ exports = async function ({
 
 
 
-
-  // let iptalEdilecekSatirNolar = []
-  // hazirlananMetrajlar_state.map(oneHazirlanan => {
-  //   let iptalSatirlar = oneHazirlanan.satirlar.filter(x => !x.isReady)
-  //   iptalSatirlar.map(oneSatir => {
-  //     iptalEdilecekSatirNolar = [...iptalEdilecekSatirNolar, oneSatir.satirNo]
-  //   })
-  // })
-
-
-  // const result = await collection_Dugumler.aggregate([
-  //   {
-  //     "$addFields": {
-  //       "hazirlananMetrajlar": {
-  //         "$map": {
-  //           "input": "$hazirlananMetrajlar",
-  //           "as": "oneHazirlanan",
-  //           "in": {
-  //             $mergeObjects: [
-  //               "$$oneHazirlanan",
-  //               {
-  //                 "satirlar": {
-  //                   $map: {
-  //                     input: "$$oneHazirlanan.satirlar",
-  //                     as: "oneSatir",
-  //                     in: {
-  //                       "$mergeObjects": [
-  //                         "$$oneSatir",
-  //                         {
-  //                           "$cond": {
-  //                             "if": {
-  //                               "$$oneSatir.satirNo": { $in: iptalEdilecekSatirNolar }
-  //                             },
-  //                             "then": {
-  //                               isReady: false
-  //                             },
-  //                             "else": {
-  //                               isReady: "$$oneSatir.isReady"
-  //                             }
-  //                           }
-  //                         }
-  //                       ]
-  //                     }
-  //                   }
-  //                 }
-  //               }
-  //             ]
-  //           }
-  //         }
-  //       }
-  //     }
-  //   }
-  // ])
-
-  // return result
-
-
-
-
   try {
 
 
@@ -108,7 +49,7 @@ exports = async function ({
     hazirlananMetrajlar_state.map(oneHazirlanan => {
 
       // let azalacakMetraj = 0
-      let oneHazirlanan_unReady_satirNolar = oneHazirlanan.satirlar.filter(x => x.isReady === false && x.newSelected ).map(oneSatir => {
+      let oneHazirlanan_unReady_satirNolar = oneHazirlanan.satirlar.filter(x => x.isReady === false && x.newSelected).map(oneSatir => {
         // azalacakMetraj += Number(oneSatir.metraj)
         return oneSatir.satirNo
       })
@@ -118,7 +59,13 @@ exports = async function ({
         updateOne: {
           filter: { _id: _dugumId },
           update: {
-            $set: { "hazirlananMetrajlar.$[oneHazirlanan].satirlar.$[oneSatir].isReady": false }
+            $unset: {
+              "hazirlananMetrajlar.$[oneHazirlanan].satirlar.$[oneSatir].isReady": ""
+            },
+            $set: {
+              "hazirlananMetrajlar.$[oneHazirlanan].satirlar.$[oneSatir].isPreparing": true,
+              "hazirlananMetrajlar.$[oneHazirlanan].satirlar.$[oneSatir].isReadyBack": true,
+            }
           },
           arrayFilters: [
             { "oneHazirlanan.userEmail": oneHazirlanan.userEmail },
@@ -130,7 +77,7 @@ exports = async function ({
 
     })
 
-    const result = await collection_Dugumler.bulkWrite(
+    await collection_Dugumler.bulkWrite(
       bulkArray,
       { ordered: false }
     )

@@ -37,7 +37,7 @@ exports = async function ({
 
   try {
 
-    let oneHazirlanan_ready_satirNolar = hazirlananMetraj_state.satirlar.filter(x => x.isReady).map(oneSatir => {
+    let oneHazirlanan_ready_satirNolar = hazirlananMetraj_state.satirlar.filter(x => x.isReady && x.newSelected).map(oneSatir => {
       return oneSatir.satirNo
     })
 
@@ -45,11 +45,9 @@ exports = async function ({
       { _id: _dugumId },
       {
         $set: {
-          "hazirlananMetrajlar.$[oneHazirlanan].satirlar.$[oneSatir].isReady": true,
-          "hazirlananMetrajlar.$[oneHazirlanan].metraj": metraj,
+          "hazirlananMetrajlar.$[oneHazirlanan].satirlar.$[oneSatir].isReady": true
         },
         $unset: {
-          "hazirlananMetrajlar.$[oneHazirlanan].satirlar.$[oneSatir].newSelected": "",
           "hazirlananMetrajlar.$[oneHazirlanan].satirlar.$[oneSatir].isPreparing": ""
         }
       },
