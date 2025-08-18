@@ -28,6 +28,8 @@ import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import CheckIcon from '@mui/icons-material/Check';
 import LockIcon from '@mui/icons-material/Lock';
 import ReplyIcon from '@mui/icons-material/Reply';
+import { Circle } from '@mui/icons-material';
+import DoneAllIcon from '@mui/icons-material/DoneAll';
 
 
 export default function P_MetrajOlusturCetvel() {
@@ -55,8 +57,6 @@ export default function P_MetrajOlusturCetvel() {
   const [hazirlananMetraj_backUp, setHazirlananMetraj_backUp] = useState()
 
   const [isChanged_ready, setIsChanged_ready] = useState()
-  const [isChanged_rePreparing, setIsChanged_rePreparing] = useState()
-
 
 
   const [_pozId] = useState()
@@ -122,6 +122,9 @@ export default function P_MetrajOlusturCetvel() {
 
       if (oneRow.satirNo == satirNo) {
 
+        delete oneRow.isReadyBack
+        oneRow.newSelected = true
+
         // önceki satır metrajını çıkartıyoruz, yeni değeri bulunca aşağıda ekleyeceğiz
         hazirlananMetraj_state2["metraj"] = Number(hazirlananMetraj_state2["metraj"]) - Number(oneRow["metraj"])
 
@@ -157,7 +160,7 @@ export default function P_MetrajOlusturCetvel() {
 
       }
 
-      oneRow.newSelected = true
+
       return oneRow
 
     })
@@ -309,91 +312,6 @@ export default function P_MetrajOlusturCetvel() {
 
 
 
-  //  REREADY FONKSİYONLARI - ADD SATIR - REMOVE SATIR - CANCEL DB - SAVE DB
-  const addRow_rePreparing = (oneRow) => {
-
-    let hazirlananMetraj_state2 = _.cloneDeep(hazirlananMetraj_state)
-    hazirlananMetraj_state2.satirlar = hazirlananMetraj_state2.satirlar.map(oneSatir => {
-      if (oneSatir.satirNo === oneRow.satirNo) {
-        oneSatir.isPreparing = true
-        // oneSatir.newSelected ? delete oneSatir.newSelected : oneSatir.newSelected = true
-        oneSatir.newSelected = true
-        console.log("oneSatir", oneSatir)
-      }
-      return oneSatir
-    })
-    hazirlananMetraj_state2.satirlar.find(x => x.newSelected) ? setIsChanged_rePreparing(true) : setIsChanged_rePreparing()
-    setHazirlananMetraj_state(hazirlananMetraj_state2)
-  }
-
-
-  const removeRow_rePreparing = (oneRow) => {
-
-    let hazirlananMetraj_state2 = _.cloneDeep(hazirlananMetraj_state)
-    hazirlananMetraj_state2.satirlar = hazirlananMetraj_state2.satirlar.map(oneSatir => {
-      if (oneSatir.satirNo === oneRow.satirNo) {
-        delete oneSatir.isPreparing
-        // oneSatir.newSelected ? delete oneSatir.newSelected : oneSatir.newSelected = true
-        delete oneSatir.newSelected
-      }
-      return oneSatir
-    })
-
-    hazirlananMetraj_state2.satirlar.find(x => x.newSelected) ? setIsChanged_rePreparing(true) : setIsChanged_rePreparing()
-    setHazirlananMetraj_state(hazirlananMetraj_state2)
-  }
-
-  const cancel_rePreparing = () => {
-    setHazirlananMetraj_state(_.cloneDeep(hazirlananMetraj_backUp))
-    setIsChanged_rePreparing()
-  }
-
-
-  const save_rePreparing = async () => {
-    try {
-
-      // console.log("hazirlananMetraj_state",hazirlananMetraj_state)
-      await RealmApp?.currentUser.callFunction("update_hazirlananMetraj_rePreparing", ({ _dugumId: selectedNode_metraj._id, hazirlananMetraj_state }))
-
-      queryClient.invalidateQueries(['hazirlananMetraj', selectedNode_metraj?._id.toString()])
-      setIsChanged_rePreparing()
-      return
-
-    } catch (err) {
-
-      console.log(err)
-
-      let dialogIcon = "warning"
-      let dialogMessage = "Beklenmedik hata, sayfayı yenileyiniz, sorun devam ederse Rapor7/24 ile irtibata geçiniz.."
-      let onCloseAction = () => setDialogAlert()
-
-      if (err.message.includes("__mesajBaslangic__") && err.message.includes("__mesajBitis__")) {
-        let mesajBaslangic = err.message.indexOf("__mesajBaslangic__") + "__mesajBaslangic__".length
-        let mesajBitis = err.message.indexOf("__mesajBitis__")
-        dialogMessage = err.message.slice(mesajBaslangic, mesajBitis)
-        dialogIcon = "info"
-        onCloseAction = () => {
-          setDialogAlert()
-          setIsChanged_rePreparing()
-          queryClient.invalidateQueries(['hazirlananMetrajlar', selectedNode_metraj?._id.toString()])
-        }
-      }
-      setDialogAlert({
-        dialogIcon,
-        dialogMessage,
-        detailText: err?.message ? err.message : null,
-        onCloseAction
-      })
-    }
-  }
-
-
-
-
-
-
-
-
 
 
 
@@ -472,7 +390,6 @@ export default function P_MetrajOlusturCetvel() {
           show={show} setShow={setShow}
           save={save} cancel={cancel} isChanged={isChanged} setIsChanged={setIsChanged}
           save_ready={save_ready} cancel_ready={cancel_ready} isChanged_ready={isChanged_ready} setIsChanged_ready={setIsChanged_ready}
-          save_rePreparing={save_rePreparing} cancel_rePreparing={cancel_rePreparing} isChanged_rePreparing={isChanged_rePreparing} setIsChanged_rePreparing={setIsChanged_rePreparing}
         />
       </Grid>
 
@@ -545,7 +462,7 @@ export default function P_MetrajOlusturCetvel() {
           </React.Fragment>
 
 
-          {hazirlananMetraj_state.satirlar.map((oneRow, index) => {
+          {hazirlananMetraj_state.satirlar.sort((a, b) => a.satirNo.substring(a.satirNo.indexOf("-") + 1, a.satirNo.length) - b.satirNo.substring(b.satirNo.indexOf("-") + 1, b.satirNo.length)).map((oneRow, index) => {
             return (
               < React.Fragment key={index}>
 
@@ -614,7 +531,7 @@ export default function P_MetrajOlusturCetvel() {
                         <Box sx={{
                           ...css_metrajCetveliSatir,
                           // backgroundColor: oneRow?.isSelected ? myTema.renkler.inaktifGri : oneRow?.isReady && !oneRow?.newSelected ? "rgba(46, 172, 63, 0.25)" : oneRow?.isReady && oneRow?.newSelected && "rgba(191, 202, 34, 0.2)",
-                          backgroundColor: oneRow?.isReady ? myTema.renkler.inaktifGri : oneRow.isReady === false && !oneRow.isPreparing ? myTema.renkler.inaktifGri : oneRow.newSelected && oneRow.isPreparing && oneRow.isReady === false && myTema.renkler.inaktifGri,
+                          backgroundColor: oneRow.isReady && myTema.renkler.inaktifGri,
                           justifyContent: oneProperty.includes("aciklama") ? "start" : oneProperty.includes("carpan") ? "end" : oneProperty.includes("metraj") ? "end" : "center",
                           minWidth: oneProperty.includes("carpan") ? "5rem" : oneProperty.includes("metraj") ? "5rem" : null,
                           color: isMinha ? "red" : null
@@ -631,13 +548,7 @@ export default function P_MetrajOlusturCetvel() {
                 <Box></Box>
 
                 <Box
-                  onClick={() =>
-                    show === "Main" && !isChanged_rePreparing && oneRow.isPreparing && !oneRow.isReady ? addRow_ready(oneRow) :
-                      show === "Main" && !isChanged_rePreparing && oneRow.isPreparing && oneRow.isReady && oneRow.newSelected ? removeRow_ready(oneRow) :
-                        show === "Main" && !isChanged_ready && oneRow.isReady === false && !oneRow.isPreparing ? addRow_rePreparing(oneRow) :
-                          show === "Main" && !isChanged_ready && oneRow.isReady === false && oneRow.isPreparing === true && oneRow.newSelected ? removeRow_rePreparing(oneRow) :
-                            null
-                  }
+                  onClick={() => show === "Main" && !oneRow.isReadyBack && !oneRow.isSelected && !oneRow.isReady ? addRow_ready(oneRow) : show === "Main" && !oneRow.isSelected && oneRow.isReady && oneRow.newSelected && removeRow_ready(oneRow)}
                   sx={{
                     // backgroundColor: oneRow.isSelected ? null : "rgba(255,255,0, 0.3)",
                     // backgroundColor: "rgba(255,255,0, 0.3)",
@@ -648,11 +559,17 @@ export default function P_MetrajOlusturCetvel() {
                     px: "0.3rem",
                     border: "1px solid black"
                   }}>
-                  {oneRow.isReady &&
-                    <LockIcon variant="contained" sx={{ color: oneRow.newSelected ? "rgba( 255,165,0, 1 )" : oneRow.isSelected ? "gray" : "green", fontSize: "1rem" }} />
+                  {oneRow.isSelected &&
+                    <DoneAllIcon variant="contained" sx={{ color: "black", fontSize: "1.2rem" }} />
                   }
-                  {oneRow.isReady === false &&
-                    <ReplyIcon variant="contained" sx={{ color: oneRow.newSelected ? "rgba( 255,165,0, 1 )" : oneRow.isPreparing ? "green" : "red", fontSize: "0.95rem" }} />
+                  {oneRow.isReady && !oneRow.newSelected && !oneRow.isSelected &&
+                    <CheckIcon variant="contained" sx={{ color: "black", fontSize: "1.2rem" }} />
+                  }
+                  {oneRow.isReady && oneRow.newSelected && !oneRow.isSelected &&
+                    <Circle variant="contained" sx={{ color: "rgba( 255,165,0, 1 )", fontSize: "0.70rem" }} />
+                  }
+                  {oneRow.isPreparing && oneRow.isReadyBack &&
+                    <ReplyIcon variant="contained" sx={{ color: "red", fontSize: "0.95rem" }} />
                   }
                   {/* {!oneRow.isSelected && oneRow.isReady && oneRow.newSelected &&
                     <CircleIcon variant="contained" sx={{ color: "rgba(15, 99, 7, 0.52)", fontSize: "0.70rem" }} />
