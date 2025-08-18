@@ -44,7 +44,7 @@ exports = async function ({
 
 
 
-  const result = await collection_Dugumler.aggregate([
+  const resultArray = await collection_Dugumler.aggregate([
     { $match: { _id: _dugumId } },
     {
       $project: {
@@ -67,8 +67,9 @@ exports = async function ({
   ]).toArray()
 
 
-  let { hazirlananMetraj } = result[0][0]
-
+  let result = resultArray[0]
+  let {hazirlananMetraj} = result
+  return {resultArray,result,hazirlananMetraj}
 
   if (!hazirlananMetraj) {
 
