@@ -49,7 +49,7 @@ exports = async function ({
     {
       $project: {
         hazirlananMetraj: {
-          $$map: {
+          $map: {
             input: "$hazirlananMetrajlar",
             as: "oneHazirlanan",
             in: {
