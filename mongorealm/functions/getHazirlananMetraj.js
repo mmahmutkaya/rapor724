@@ -41,7 +41,7 @@ exports = async function ({
   let { hazirlananMetrajlar_filtered } = result[0]
   hazirlananMetraj = hazirlananMetrajlar_filtered[0]
 
-  return {hazirlananMetrajlar_filtered,hazirlananMetraj}
+  // return {hazirlananMetrajlar_filtered,hazirlananMetraj}
 
 
   // const resultArray = await collection_Dugumler.aggregate([
