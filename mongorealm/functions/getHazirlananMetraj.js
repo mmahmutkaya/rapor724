@@ -67,7 +67,7 @@ exports = async function ({
   ]).toArray()
 
 
-  let { hazirlananMetraj } = result[0]
+  let { hazirlananMetraj } = result[0][0]
 
 
   if (!hazirlananMetraj) {
