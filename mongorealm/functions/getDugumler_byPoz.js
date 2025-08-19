@@ -41,7 +41,7 @@ exports = async function ({
       { $match: { _pozId, openMetraj: true } },
       {
         $project: {
-          _pozId: 1, _mahalId: 1, openMetraj: 1, onaylananMetraj: 1,
+          _pozId: 1, _mahalId: 1, openMetraj: 1, metrajPreparing: 1, metrajReady: 1, metrajOnaylanan: 1,
 
           hazirlananMetrajlar: {
             $map: {
