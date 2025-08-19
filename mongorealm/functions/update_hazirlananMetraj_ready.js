@@ -61,7 +61,6 @@ exports = async function ({
 
 
 
-
   // metraj güncelleme
   try {
     await collection_Dugumler.updateOne({ _id: _dugumId },
@@ -76,7 +75,29 @@ exports = async function ({
                   "$mergeObjects": [
                     "$$oneHazirlanan",
                     {
-                      metraj: {
+                      metrajPreparing: {
+                        $sum: {
+                          "$map": {
+                            "input": "$$oneHazirlanan.satirlar",
+                            "as": "oneSatir",
+                            "in": {
+                              "$cond": {
+                                "if": {
+                                  $eq: [
+                                    "$$oneSatir.isPreparing",
+                                    true
+                                  ]
+                                },
+                                "then": "$$oneSatir.metraj",
+                                "else": 0
+                              }
+                            }
+                          }
+                        }
+                      }
+                    },
+                    {
+                      metrajReady: {
                         $sum: {
                           "$map": {
                             "input": "$$oneHazirlanan.satirlar",
@@ -102,14 +123,36 @@ exports = async function ({
               }
             }
           }
-        }
+        },
+        {
+          $set: {
+            "metrajPreparing": {
+              $sum: {
+                "$map": {
+                  "input": "$hazirlananMetrajlar",
+                  "as": "oneHazirlanan",
+                  "in": "$$oneHazirlanan.metrajPreparing"
+                }
+              }
+            },
+            "metrajReady": {
+              $sum: {
+                "$map": {
+                  "input": "$hazirlananMetrajlar",
+                  "as": "oneHazirlanan",
+                  "in": "$$oneHazirlanan.metrajReady"
+                }
+              }
+            }
+          }
+        },
+        
       ]
     )
 
   } catch (error) {
     throw new Error("MONGO // update_hazirlananMetrajlar_unReady // metraj güncelleme" + error);
   }
-
 
 
 

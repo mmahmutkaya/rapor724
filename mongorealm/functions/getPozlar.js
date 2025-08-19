@@ -15,14 +15,17 @@ exports = async function ({
   const collection_Projeler = context.services.get("mongodb-atlas").db("rapor724_v2").collection("projeler")
 
 
-  if (!_projeId) throw new Error("MONGO // getPozlar_metraj // -- sorguya gönderilen --projeId-- türü doğru değil, lütfen Rapor7/24 ile irtibata geçiniz. ")
+  if (!_projeId) throw new Error("MONGO // getPozlar // -- sorguya gönderilen --projeId-- türü doğru değil, lütfen Rapor7/24 ile irtibata geçiniz. ")
 
   const proje = await collection_Projeler.findOne({ _id: _projeId })
 
 
+
+  let pozlar
+
   try {
 
-    let pozlar = await collection_Pozlar.aggregate([
+    pozlar = await collection_Pozlar.aggregate([
       {
         $match: {
           _projeId,
@@ -53,14 +56,19 @@ exports = async function ({
         $project: {
           _pozId: 1,
           _mahalId: 1,
-          onaylananMetraj: 1,
+          openMetraj: 1,
+          metrajPreparing: 1,
+          metrajReady: 1,
+          metrajOnaylanan: 1,
           hazirlananMetrajlar: {
             $map: {
               input: "$hazirlananMetrajlar",
               as: "oneHazirlanan",
               in: {
                 userEmail: "$$oneHazirlanan.userEmail",
-                metraj: "$$oneHazirlanan.metraj",
+                metrajPreparing: "$$oneHazirlanan.metrajPreparing",
+                metrajReady: "$$oneHazirlanan.metrajReady",
+                metrajOnaylanan: "$$oneHazirlanan.metrajOnaylanan",
                 hasSelected: {
                   "$reduce": {
                     "input": "$$oneHazirlanan.satirlar",
@@ -164,10 +172,13 @@ exports = async function ({
         $group: {
           _id: "$_pozId",
           hazirlananMetrajlar: { $push: "$hazirlananMetrajlar" },
-          onaylananMetraj: { $sum: "$onaylananMetraj" }
+          metrajPreparing: { $sum: "$metrajPreparing" },
+          metrajReady: { $sum: "$metrajReady" },
+          metrajOnaylanan: { $sum: "$metrajOnaylanan" }
         }
       }
     ]).toArray()
+
 
 
     let { metrajYapabilenler } = proje.yetki
@@ -185,11 +196,14 @@ exports = async function ({
 
         onePoz.hasDugum = true
 
-        onePoz.onaylananMetraj = onePoz2.onaylananMetraj
+        onePoz.metrajOnaylanan = onePoz2.metrajOnaylanan
         // return onePoz2.hazirlanan
         onePoz.hazirlananMetrajlar = metrajYapabilenler.map(oneYapabilen => {
 
-          let metraj = 0
+          let metrajPreparing = 0
+          let metrajReady = 0
+          let metrajOnaylanan = 0
+
           let hasReady_Array = []
           let hasSelected_Array = []
           let hasUnSelected_Array = []
@@ -201,8 +215,15 @@ exports = async function ({
 
             // if (oneHazirlanan?.satirlar?.filter(x => x.isReady).length > 0) {
             if (oneHazirlanan) {
-              let metraj2 = oneHazirlanan?.metraj ? Number(oneHazirlanan?.metraj) : 0
-              metraj += metraj2
+
+              let metrajPreparing2 = oneHazirlanan?.metrajPreparing ? Number(oneHazirlanan?.metrajPreparing) : 0
+              let metrajReady2 = oneHazirlanan?.metrajReady ? Number(oneHazirlanan?.metrajReady) : 0
+              let metrajOnaylanan2 = oneHazirlanan?.metrajOnaylanan ? Number(oneHazirlanan?.metrajOnaylanan) : 0
+
+              metrajPreparing += metrajPreparing2
+              metrajReady += metrajReady2
+              metrajOnaylanan += metrajOnaylanan2
+
               hasReady_Array = [...hasReady_Array, oneHazirlanan?.hasReady]
               hasSelected_Array = [...hasSelected_Array, oneHazirlanan?.hasSelected]
               hasUnSelected_Array = [...hasUnSelected_Array, oneHazirlanan?.hasUnSelected]
@@ -216,7 +237,9 @@ exports = async function ({
 
           return ({
             userEmail: oneYapabilen.userEmail,
-            metraj,
+            metrajPreparing,
+            metrajReady,
+            metrajOnaylanan,
             hasReady,
             hasSelected,
             hasUnSelected
@@ -230,12 +253,73 @@ exports = async function ({
 
     })
 
-    return pozlar
-
 
   } catch (error) {
-    throw new Error({ hatayeri: "MONGO // getPozlar_metraj // ", error });
+    throw new Error({ hatayeri: "MONGO // getPozlar // ", error });
   }
+
+
+
+  // let wbsMetrajlar
+  // try {
+
+  //   wbsMetrajlar = proje?.wbs.map(oneWbs => {
+
+  //     let pozlar_byWbs = pozlar.filter(x => x._wbsId.toString() === oneWbs._id.toString())
+  //     let metrajPreparing = 0
+  //     let metrajReady = 0
+  //     let metrajOnaylanan = 0
+  //     let hazirlananMetrajlar = proje.yetki.metrajYapabilenler.map(oneYapabilen => {
+  //       return { userEmail: oneYapabilen.userEmail, metrajPreparing: 0, metrajReady: 0, metrajOnaylanan: 0 }
+  //     })
+
+  //     pozlar_byWbs.map(onePoz => {
+  //       // let dugum = dugumler_byPoz.find(x => x._mahalId.toString() === onePoz._id.toString())
+  //       metrajPreparing += onePoz?.metrajPreparing ? onePoz.metrajPreparing : 0
+  //       metrajReady += onePoz?.metrajReady ? onePoz.metrajReady : 0
+  //       metrajOnaylanan += onePoz?.metrajOnaylanan ? onePoz.metrajOnaylanan : 0
+
+  //       hazirlananMetrajlar = hazirlananMetrajlar?.map(oneHazirlanan => {
+  //         let hazirlananMetraj_user = onePoz?.hazirlananMetrajlar?.find(x => x.userEmail === oneHazirlanan.userEmail)
+  //         oneHazirlanan.metrajPreparing += hazirlananMetraj_user?.metrajPreparing ? hazirlananMetraj_user.metrajPreparing : 0
+  //         oneHazirlanan.metrajReady += hazirlananMetraj_user?.metrajReady ? hazirlananMetraj_user.metrajReady : 0
+  //         oneHazirlanan.metrajOnaylanan += hazirlananMetraj_user?.metrajOnaylanan ? hazirlananMetraj_user.metrajOnaylanan : 0
+  //         return oneHazirlanan
+  //       })
+
+  //     })
+  //     return { _id: oneWbs._id, metrajPreparing, metrajReady, metrajOnaylanan, hazirlananMetrajlar }
+  //   })
+
+
+  // } catch (error) {
+  //   throw new Error({ hatayeri: "MONGO // getPozlar // wbsMetrajlar", error });
+  // }
+
+
+
+  let anySelectable
+  try {
+
+    anySelectable
+    pozlar.map(onePoz => {
+      onePoz?.hazirlananMetrajlar?.map(oneHazirlanan => {
+        if (oneHazirlanan) {
+          if (oneHazirlanan.hasUnSelected) {
+            anySelectable = true
+          }
+        }
+      })
+    })
+
+  } catch (error) {
+    throw new Error({ hatayeri: "MONGO // getPozlar // anySelectable", error });
+  }
+
+
+
+  return { pozlar, anySelectable }
+
 
 
 };

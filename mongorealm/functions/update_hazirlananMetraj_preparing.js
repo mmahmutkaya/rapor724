@@ -205,29 +205,7 @@ exports = async function ({
                   "$mergeObjects": [
                     "$$oneHazirlanan",
                     {
-                      metraj: {
-                        $sum: {
-                          "$map": {
-                            "input": "$$oneHazirlanan.satirlar",
-                            "as": "oneSatir",
-                            "in": {
-                              "$cond": {
-                                "if": {
-                                  $eq: [
-                                    "$$oneSatir.isReady",
-                                    true
-                                  ]
-                                },
-                                "then": "$$oneSatir.metraj",
-                                "else": 0
-                              }
-                            }
-                          }
-                        }
-                      }
-                    },
-                    {
-                      metrajPre: {
+                      metrajPreparing: {
                         $sum: {
                           "$map": {
                             "input": "$$oneHazirlanan.satirlar",
@@ -248,8 +226,20 @@ exports = async function ({
                         }
                       }
                     }
-
                   ]
+                }
+              }
+            }
+          }
+        },
+        {
+          $set: {
+            "metrajPreparing": {
+              $sum: {
+                "$map": {
+                  "input": "$hazirlananMetrajlar",
+                  "as": "oneHazirlanan",
+                  "in": "$$oneHazirlanan.metrajPreparing"
                 }
               }
             }

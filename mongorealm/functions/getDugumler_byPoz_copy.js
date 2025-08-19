@@ -41,21 +41,15 @@ exports = async function ({
       { $match: { _pozId, openMetraj: true } },
       {
         $project: {
-          _pozId: 1,
-          _mahalId: 1,
-          openMetraj: 1,
-          metrajPreparing: 1,
-          metrajReady: 1,
-          metrajOnaylanan: 1,
+          _pozId: 1, _mahalId: 1, openMetraj: 1, onaylananMetraj: 1,
+
           hazirlananMetrajlar: {
             $map: {
               input: "$hazirlananMetrajlar",
               as: "oneHazirlanan",
               in: {
                 userEmail: "$$oneHazirlanan.userEmail",
-                metrajPreparing: "$$oneHazirlanan.metrajPreparing",
-                metrajReady: "$$oneHazirlanan.metrajReady",
-                metrajOnaylanan: "$$oneHazirlanan.metrajOnaylanan",
+                metraj: "$$oneHazirlanan.metraj",
                 hasSelected: {
                   "$reduce": {
                     "input": "$$oneHazirlanan.satirlar",
@@ -205,29 +199,23 @@ exports = async function ({
     lbsMetrajlar = proje?.lbs.map(oneLbs => {
 
       let mahaller_byLbs = mahaller.filter(x => x._lbsId.toString() === oneLbs._id.toString())
-      let metrajPreparing = 0
-      let metrajReady = 0
-      let metrajOnaylanan = 0
+      let onaylananMetraj = 0
       let hazirlananMetrajlar = proje.yetki.metrajYapabilenler.map(oneYapabilen => {
-        return { userEmail: oneYapabilen.userEmail, metrajPreparing: 0, metrajReady: 0, metrajOnaylanan: 0 }
+        return { userEmail: oneYapabilen.userEmail, metraj: 0 }
       })
 
       mahaller_byLbs.map(oneMahal => {
         let dugum = dugumler_byPoz.find(x => x._mahalId.toString() === oneMahal._id.toString())
-        metrajPreparing += dugum?.metrajPreparing ? dugum.metrajPreparing : 0
-        metrajReady += dugum?.metrajReady ? dugum.metrajReady : 0
-        metrajOnaylanan += dugum?.metrajOnaylanan ? dugum.metrajOnaylanan : 0
+        onaylananMetraj += dugum?.onaylananMetraj ? dugum.onaylananMetraj : 0
 
         hazirlananMetrajlar = hazirlananMetrajlar?.map(oneHazirlanan => {
           let hazirlananMetraj_user = dugum?.hazirlananMetrajlar?.find(x => x.userEmail === oneHazirlanan.userEmail)
-          oneHazirlanan.metrajPreparing += hazirlananMetraj_user?.metrajPreparing ? hazirlananMetraj_user.metrajPreparing : 0
-          oneHazirlanan.metrajReady += hazirlananMetraj_user?.metrajReady ? hazirlananMetraj_user.metrajReady : 0
-          oneHazirlanan.metrajOnaylanan += hazirlananMetraj_user?.metrajOnaylanan ? hazirlananMetraj_user.metrajOnaylanan : 0
+          oneHazirlanan.metraj += hazirlananMetraj_user?.metraj ? hazirlananMetraj_user.metraj : 0
           return oneHazirlanan
         })
 
       })
-      return { _id: oneLbs._id, metrajPreparing, metrajReady, metrajOnaylanan, hazirlananMetrajlar }
+      return { _id: oneLbs._id, onaylananMetraj, hazirlananMetrajlar }
     })
 
 
