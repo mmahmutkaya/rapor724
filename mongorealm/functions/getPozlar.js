@@ -213,7 +213,6 @@ exports = async function ({
           let hasReady = hasReady_Array.find(x => x === true)
           let hasSelected = hasSelected_Array.find(x => x === true)
           let hasUnSelected = hasUnSelected_Array.find(x => x === true)
-          // let hasUnSelected = hasSelectedFull_Array.length > 0 && hasSelectedFull_Array.length === hasSelectedFull_Array.filter(x => x === true).length ? true : false
 
           return ({
             userEmail: oneYapabilen.userEmail,
