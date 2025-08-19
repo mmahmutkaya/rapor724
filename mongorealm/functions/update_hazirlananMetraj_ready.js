@@ -60,7 +60,7 @@ exports = async function ({
 
 
 
-  
+
 
   // metraj güncelleme
   try {
@@ -96,30 +96,7 @@ exports = async function ({
                           }
                         }
                       }
-                    },
-                    {
-                      metrajPre: {
-                        $sum: {
-                          "$map": {
-                            "input": "$$oneHazirlanan.satirlar",
-                            "as": "oneSatir",
-                            "in": {
-                              "$cond": {
-                                "if": {
-                                  $eq: [
-                                    "$$oneSatir.isPreparing",
-                                    true
-                                  ]
-                                },
-                                "then": "$$oneSatir.metraj",
-                                "else": 0
-                              }
-                            }
-                          }
-                        }
-                      }
                     }
-
                   ]
                 }
               }
