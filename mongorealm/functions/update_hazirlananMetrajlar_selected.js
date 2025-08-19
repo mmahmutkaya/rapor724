@@ -61,12 +61,18 @@ exports = async function ({
               "hazirlananMetrajlar.$[oneHazirlanan].satirlar.$[oneSatir].hasSelectedCopy": false
             }
           },
-          arrayFilters: [{ "oneHazirlanan.userEmail": userEmail }, { "oneSatir.satirNo": { $in: oneHazirlanan_selected_satirNolar } }]
+          arrayFilters: [{ "oneHazirlanan.userEmail": oneHazirlanan.userEmail }, { "oneSatir.satirNo": { $in: oneHazirlanan_selected_satirNolar } }]
         }
       }
       bulkArray = [...bulkArray, oneBulk]
 
     })
+
+
+    collection_Dugumler.bulkWrite(
+      bulkArray,
+      { ordered: false }
+    )
 
 
   } catch (error) {
@@ -100,8 +106,8 @@ exports = async function ({
                               "$cond": {
                                 "if": {
                                   $or: [
-                                    {$and:[{$eq:["$$oneSatir.isSelected",true]},{$eq:["$$oneSatir.hasSelectedCopy",false]}]},
-                                    {$eq:["$$oneSatir.isSelectedCopy",true]}
+                                    { $and: [{ $eq: ["$$oneSatir.isSelected", true] }, { $eq: ["$$oneSatir.hasSelectedCopy", false] }] },
+                                    { $eq: ["$$oneSatir.isSelectedCopy", true] }
                                   ]
                                 },
                                 "then": "$$oneSatir.metraj",
