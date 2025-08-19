@@ -231,6 +231,19 @@ exports = async function ({
               }
             }
           }
+        },
+        {
+          $set: {
+            "metrajPreparing": {
+              $sum: {
+                "$map": {
+                  "input": "$hazirlananMetrajlar",
+                  "as": "oneHazirlanan",
+                  "in": "$$oneHazirlanan.metrajPreparing"
+                }
+              }
+            }
+          }
         }
       ]
     )
