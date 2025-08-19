@@ -145,7 +145,6 @@ exports = async function ({
                         }
                       }
                     }
-
                   ]
                 }
               }
