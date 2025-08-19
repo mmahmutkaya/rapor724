@@ -69,7 +69,7 @@ exports = async function ({
     })
 
 
-    collection_Dugumler.bulkWrite(
+    await collection_Dugumler.bulkWrite(
       bulkArray,
       { ordered: false }
     )
