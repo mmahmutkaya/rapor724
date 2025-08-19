@@ -25,7 +25,7 @@ exports = async function ({
 
   try {
 
-    let pozlar = await collection_Pozlar.aggregate([
+    pozlar = await collection_Pozlar.aggregate([
       {
         $match: {
           _projeId,
