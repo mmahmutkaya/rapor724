@@ -127,7 +127,7 @@ export default function P_MetrajOlusturPozlar() {
   }
 
   const metrajYapabilenlerColumns = " 1rem repeat(" + metrajYapabilenler?.length + ", max-content)"
-  const columns = `max-content minmax(min-content, 3fr)${showMetrajOnaylanan ? " max-content" : ""} max-content${pozAciklamaShow ? " 0.5rem minmax(min-content, 2fr)" : ""}${pozVersiyonShow ? " 0.5rem min-content" : ""}${editNodeMetraj ? " 1.5rem max-content max-content" : ""}`
+  const columns = `max-content minmax(min-content, 3fr)${showMetrajOnaylanan ? " max-content" : ""} max-content${pozAciklamaShow ? " 0.5rem minmax(min-content, 2fr)" : ""}${pozVersiyonShow ? " 0.5rem min-content" : ""}${editNodeMetraj ? " 1rem max-content max-content" : ""}`
 
 
   return (
@@ -386,7 +386,7 @@ export default function P_MetrajOlusturPozlar() {
                               {ikiHane(onePoz?.hazirlananMetrajlar.find(x => x.userEmail === customData.email)?.metrajReady)}
                             </Box>
                           </Box>
-                          
+
                         </>
                       }
 
