@@ -32,8 +32,8 @@ export default function P_MetrajOnaylaPozlar() {
   const navigate = useNavigate()
   const queryClient = useQueryClient()
 
-  let { data: pozlar } = useGetPozlar()
-  pozlar = pozlar?.filter(x => x.hasDugum)
+  let { data } = useGetPozlar()
+  let pozlar = data?.pozlar?.filter(x => x.hasDugum)
   // console.log("pozlar", pozlar)
 
   const { RealmApp, myTema } = useContext(StoreContext)
@@ -250,11 +250,19 @@ export default function P_MetrajOnaylaPozlar() {
 
                   return (
                     <Box key={index} sx={{ ...enUstBaslik_css, borderLeft: "1px solid black", justifyContent: "center" }}>
-                      <Tooltip placement="bottom" title={yetkili.isim + " " + yetkili.soyisim}>
-                        <Box>
+                      {/* <Tooltip placement="bottom" title={yetkili.isim + " " + yetkili.soyisim}> */}
+                      {/* <Box>
                           {yetkililer?.find(oneYetkili => oneYetkili.userEmail === oneYapabilen.userEmail).userCode}
+                        </Box> */}
+                      <Box sx={{ display: "grid", alignItems: "center", justifyItems: "center", fontSize: "0.75rem" }}>
+                        <Box>
+                          {yetkili.isim}
                         </Box>
-                      </Tooltip>
+                        <Box>
+                          {yetkili.soyisim}
+                        </Box>
+                      </Box>
+                      {/* </Tooltip> */}
                     </Box>
                   )
                 })}
@@ -345,7 +353,7 @@ export default function P_MetrajOnaylaPozlar() {
                         <Box className="childClass" sx={{ ml: "-1rem", backgroundColor: !hasOnaylananMetraj ? "lightgray" : "rgba(255, 251, 0, 0.55)", height: "0.5rem", width: "0.5rem", borderRadius: "50%" }}>
                         </Box>
                         <Box sx={{ justifySelf: "end" }}>
-                          {ikiHane(onePoz?.onaylananMetraj)}
+                          {ikiHane(onePoz?.metrajOnaylanan)}
                         </Box>
                       </Box>
                       <Box sx={{ ...pozNo_css }}>
@@ -373,7 +381,7 @@ export default function P_MetrajOnaylaPozlar() {
                       }
 
                       {/* METRAJ DÜZENLEME AÇIKSA - KİŞİNİN HAZIRLADIĞI TOPLAM POZ METRAJ*/}
-                      {editNodeMetraj &&
+                      {/* {editNodeMetraj &&
                         <>
                           <Box />
                           <Box
@@ -392,11 +400,11 @@ export default function P_MetrajOnaylaPozlar() {
                               }}>
                             </Box>
                             <Box sx={{ justifySelf: "end" }}>
-                              {ikiHane(onePoz?.hazirlananMetrajlar.find(x => x.userEmail === customData.email)?.metraj)}
+                              {ikiHane(onePoz?.hazirlananMetrajlar.find(x => x.userEmail === customData.email)?.metrajReady)}
                             </Box>
                           </Box>
                         </>
-                      }
+                      } */}
 
                       {onayNodeMetraj &&
                         <>
@@ -408,7 +416,7 @@ export default function P_MetrajOnaylaPozlar() {
                             let hasReady = oneHazirlanan?.hasReady
                             let hasSelected = oneHazirlanan?.hasSelected
                             let hasUnSelected = oneHazirlanan?.hasUnSelected
-                            let metraj = oneHazirlanan?.metraj
+                            let metraj = oneHazirlanan?.metrajReady
 
                             return (
                               <Box

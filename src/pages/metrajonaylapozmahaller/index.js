@@ -75,7 +75,6 @@ export default function P_MetrajOnaylaPozMahaller() {
   useEffect(() => {
     !selectedPoz_metraj && navigate('/metrajpozlar')
     setDugumler_byPoz_state(_.cloneDeep(data?.dugumler_byPoz))
-    // console.log("data?.dugumler_byPoz",data?.dugumler_byPoz)
     setDugumler_byPoz_backup(_.cloneDeep(data?.dugumler_byPoz))
     setLbsMetrajlar(_.cloneDeep(data?.lbsMetrajlar))
     setAnySelectable(data?.anySelectable)
@@ -391,7 +390,7 @@ export default function P_MetrajOnaylaPozMahaller() {
               Toplam Metraj
             </Box>
             <Box sx={{ ...css_enUstBaslik, justifyContent: "end" }}>
-              {ikiHane(selectedPoz_metraj?.onaylananMetraj)}
+              {ikiHane(selectedPoz_metraj?.metrajOnaylanan)}
             </Box>
             <Box sx={{ ...css_enUstBaslik, justifyContent: "center" }}>
               {pozBirim}
@@ -415,7 +414,7 @@ export default function P_MetrajOnaylaPozMahaller() {
                       onClick={() => selectMode && addNodes_select({ tip: "all", userEmail: oneYapabilen.userEmail })}
                       key={index}
                       sx={{ ...css_enUstBaslik, cursor: selectMode && "pointer", borderLeft: "1px solid black", justifyContent: "end" }}>
-                      {ikiHane(selectedPoz_metraj.hazirlananMetrajlar.find(x => x.userEmail === oneYapabilen.userEmail)?.metraj)}
+                      {ikiHane(selectedPoz_metraj.hazirlananMetrajlar.find(x => x.userEmail === oneYapabilen.userEmail)?.metrajOnaylanan)}
                     </Box>
                   )
                 })}
@@ -438,8 +437,12 @@ export default function P_MetrajOnaylaPozMahaller() {
               <React.Fragment key={index}>
 
                 {/* LBS BAŞLIKLARI */}
-                <Box sx={{ ...css_LbsBaslik, borderLeft: "1px solid black", gridColumn: "1/3" }}> {getLbsName(oneLbs).name}</Box>
-                <Box sx={{ ...css_LbsBaslik, justifyContent: "end" }}>  {ikiHane(lbsMetraj?.onaylananMetraj)} </Box>
+                <Box sx={{ ...css_LbsBaslik, borderLeft: "1px solid black", gridColumn: "1/3" }}>
+                  {getLbsName(oneLbs).name}
+                </Box>
+                <Box sx={{ ...css_LbsBaslik, justifyContent:"end" }}>
+                  {ikiHane(lbsMetraj?.metrajOnaylanan)}
+                </Box>
                 <Box sx={{ ...css_LbsBaslik, justifyContent: "center" }}> {pozBirim} </Box>
 
                 {/* {editNodeMetraj &&
@@ -461,7 +464,7 @@ export default function P_MetrajOnaylaPozMahaller() {
                           key={index}
                           sx={{ ...css_LbsBaslik, cursor: selectMode && "pointer", borderLeft: "1px solid black", justifyContent: "end" }}
                         >
-                          {ikiHane(lbsMetraj?.hazirlananMetrajlar?.find(x => x.userEmail === oneYapabilen.userEmail).metraj)}
+                          {ikiHane(lbsMetraj?.hazirlananMetrajlar?.find(x => x.userEmail === oneYapabilen.userEmail).metrajReady)}
                         </Box>
                       )
                     })}
@@ -495,7 +498,7 @@ export default function P_MetrajOnaylaPozMahaller() {
                         <Box className="childClass" sx={{ backgroundColor: !hasOnaylananMetraj ? "lightgray" : !selectMode && "rgba(255, 251, 0, 0.55)", height: "0.5rem", width: "0.5rem", borderRadius: "50%" }}>
                         </Box>
                         <Box sx={{ justifySelf: "end" }}>
-                          {ikiHane(dugum?.onaylananMetraj)}
+                          {ikiHane(dugum?.metrajOnaylanan)}
                         </Box>
                       </Box>
 
@@ -537,7 +540,7 @@ export default function P_MetrajOnaylaPozMahaller() {
                             let hasReady = oneHazirlanan?.hasReady
                             let hasSelected = oneHazirlanan?.hasSelected
                             let hasUnSelected = oneHazirlanan?.hasUnSelected
-                            let metraj = oneHazirlanan?.metraj
+                            let metraj = oneHazirlanan?.metrajReady
                             let hasSelectedFull_aday = oneHazirlanan?.hasSelectedFull_aday
 
                             return (

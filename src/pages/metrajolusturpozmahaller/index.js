@@ -18,6 +18,7 @@ import Stack from '@mui/material/Stack';
 import Box from '@mui/material/Box';
 import { BorderBottom } from '@mui/icons-material';
 import Tooltip from '@mui/material/Tooltip';
+import { Check } from '@mui/icons-material';
 
 
 export default function P_MetrajOlusturPozMahaller() {
@@ -42,6 +43,7 @@ export default function P_MetrajOlusturPozMahaller() {
 
   const [dugumler_byPoz, setDugumler_byPoz] = useState()
   const [lbsMetrajlar, setLbsMetrajlar] = useState([])
+  const [showMetrajOnaylanan, setShowMetrajOnaylanan] = useState(false)
 
   const navigate = useNavigate()
 
@@ -57,7 +59,6 @@ export default function P_MetrajOlusturPozMahaller() {
     !selectedPoz_metraj && navigate('/metrajpozlar')
     setDugumler_byPoz(_.cloneDeep(data?.dugumler_byPoz))
     setLbsMetrajlar(_.cloneDeep(data?.lbsMetrajlar))
-    // console.log("data?.dugumler_byPoz",data?.dugumler_byPoz)
     return () => {
       // setselectedPoz_metraj()
       // setDugumler_filtered()
@@ -169,9 +170,10 @@ export default function P_MetrajOlusturPozMahaller() {
     border: "1px solid black", px: "0.5rem", display: "grid", justifyContent: "start", alignItems: "center"
   }
 
+
   const metrajYapabilenlerColumns = " 1rem repeat(" + metrajYapabilenler?.length + ", max-content)"
   // const gridTemplateColumns1 = `max-content minmax(min-content, 1fr) max-content max-content${editNodeMetraj ? " 1rem max-content" : ""}${onayNodeMetraj ? metrajYapabilenlerColumns : ""}`
-  const gridTemplateColumns1 = `max-content minmax(min-content, 1fr) max-content max-content${editNodeMetraj ? " 1rem max-content" : ""}`
+  const gridTemplateColumns1 = `max-content minmax(min-content, 1fr)${showMetrajOnaylanan ? " max-content" : ""} max-content${editNodeMetraj ? " 1rem max-content max-content" : ""}`
 
 
   return (
@@ -198,9 +200,12 @@ export default function P_MetrajOlusturPozMahaller() {
             <Box sx={{ ...css_enUstBaslik }}>
               {selectedPoz_metraj.pozName}
             </Box>
-            <Box sx={{ ...css_enUstBaslik, justifyContent: "center" }}>
-              Miktar
-            </Box>
+
+            {showMetrajOnaylanan &&
+              <Box sx={{ ...css_enUstBaslik, justifyContent: "center" }}>
+                Miktar
+              </Box>
+            }
             <Box sx={{ ...css_enUstBaslik, justifyContent: "center" }}>
               Birim
             </Box>
@@ -208,11 +213,15 @@ export default function P_MetrajOlusturPozMahaller() {
             {editNodeMetraj &&
               <>
                 <Box> </Box>
-                <Tooltip placement="top" title={customData.isim + " " + customData.soyisim}>
-                  <Box sx={{ ...css_enUstBaslik, justifyContent: "center" }}>
-                    {customData.userCode}
-                  </Box>
-                </Tooltip>
+
+                <Box sx={{ ...css_enUstBaslik, justifyContent: "center" }}>
+                  Hazırlanan
+                </Box>
+
+                <Box sx={{ ...css_enUstBaslik, justifyContent: "center" }}>
+                  Yayınlanan
+                </Box>
+
               </>
             }
 
@@ -237,9 +246,13 @@ export default function P_MetrajOlusturPozMahaller() {
             <Box sx={{ ...css_enUstBaslik, borderLeft: "1px solid black", gridColumn: "1/3", justifyContent: "end", borderLeft: "1px solid black" }}>
               Toplam Metraj
             </Box>
-            <Box sx={{ ...css_enUstBaslik, justifyContent: "end" }}>
-              {ikiHane(selectedPoz_metraj?.onaylananMetraj)}
-            </Box>
+
+            {showMetrajOnaylanan &&
+              <Box sx={{ ...css_enUstBaslik, justifyContent: "end" }}>
+                {ikiHane(selectedPoz_metraj?.metrajOnaylanan)}
+              </Box>
+            }
+
             <Box sx={{ ...css_enUstBaslik, justifyContent: "center" }}>
               {pozBirim}
             </Box>
@@ -248,7 +261,10 @@ export default function P_MetrajOlusturPozMahaller() {
               <>
                 <Box> </Box>
                 <Box sx={{ ...css_enUstBaslik, justifyContent: "end", borderLeft: "1px solid black" }}>
-                  {ikiHane(selectedPoz_metraj?.hazirlananMetrajlar?.find(x => x.userEmail === customData.email)?.metraj)}
+                  {ikiHane(selectedPoz_metraj?.hazirlananMetrajlar?.find(x => x.userEmail === customData.email)?.metrajPreparing)}
+                </Box>
+                <Box sx={{ ...css_enUstBaslik, justifyContent: "end", borderLeft: "1px solid black" }}>
+                  {ikiHane(selectedPoz_metraj?.hazirlananMetrajlar?.find(x => x.userEmail === customData.email)?.metrajReady)}
                 </Box>
               </>
             }
@@ -277,20 +293,30 @@ export default function P_MetrajOlusturPozMahaller() {
           {openLbsArray?.map((oneLbs, index) => {
 
             const mahaller_byPoz_byLbs = mahaller_byPoz?.filter(x => x._lbsId.toString() === oneLbs._id.toString())
+            const lbsMetraj = lbsMetrajlar.find(x => x._id.toString() === oneLbs._id.toString())
 
             return (
               <React.Fragment key={index}>
 
                 {/* LBS BAŞLIKLARI */}
                 <Box sx={{ ...css_LbsBaslik, borderLeft: "1px solid black", gridColumn: "1/3" }}> {getLbsName(oneLbs).name}</Box>
-                <Box sx={{ ...css_LbsBaslik }}>  {"lbs miktar"} </Box>
+
+                {showMetrajOnaylanan &&
+                  <Box sx={{ ...css_LbsBaslik, justifyContent: "end" }}>
+                    {ikiHane(lbsMetraj?.metrajOnaylanan)}
+                  </Box>
+                }
+
                 <Box sx={{ ...css_LbsBaslik, justifyContent: "center" }}> {pozBirim} </Box>
 
                 {editNodeMetraj &&
                   <>
                     <Box> </Box>
-                    <Box sx={{ ...css_LbsBaslik, borderLeft: "1px solid black", justifyContent: "center" }}>
-                      {"deneme"}
+                    <Box sx={{ ...css_LbsBaslik, borderLeft: "1px solid black", justifyContent: "end" }}>
+                      {ikiHane(lbsMetraj?.hazirlananMetrajlar?.find(x => x.userEmail === customData.email).metrajPreparing)}
+                    </Box>
+                    <Box sx={{ ...css_LbsBaslik, borderLeft: "1px solid black", justifyContent: "end" }}>
+                      {ikiHane(lbsMetraj?.hazirlananMetrajlar?.find(x => x.userEmail === customData.email).metrajReady)}
                     </Box>
                   </>
                 }
@@ -333,9 +359,12 @@ export default function P_MetrajOlusturPozMahaller() {
                         </Box>
                       </Box> */}
 
-                      <Box sx={{ ...css_mahaller, justifyContent: "end" }}>
-                        {ikiHane(dugum?.onaylananMetraj)}
-                      </Box>
+
+                      {showMetrajOnaylanan &&
+                        <Box sx={{ ...css_mahaller, justifyContent: "end" }}>
+                          {ikiHane(dugum?.metrajOnaylanan)}
+                        </Box>
+                      }
 
                       <Box sx={{ ...css_mahaller, justifyContent: "center" }}>
                         {pozBirim}
@@ -346,6 +375,7 @@ export default function P_MetrajOlusturPozMahaller() {
                       {editNodeMetraj &&
                         <>
                           <Box />
+
                           <Box
                             onDoubleClick={() => goto_metrajOlusturCetvel(dugum, oneMahal)}
                             sx={{
@@ -361,9 +391,28 @@ export default function P_MetrajOlusturPozMahaller() {
                             <Box className="childClass" sx={{ backgroundColor: "yellow", height: "0.5rem", width: "0.5rem", borderRadius: "50%" }}>
                             </Box>
                             <Box sx={{ justifySelf: "end" }}>
-                              {ikiHane(dugum?.hazirlananMetrajlar?.find(x => x.userEmail === customData.email)?.metraj)}
+                              {ikiHane(dugum?.hazirlananMetrajlar?.find(x => x.userEmail === customData.email)?.metrajPreparing)}
                             </Box>
                           </Box>
+
+                          <Box
+                            // onDoubleClick={() => goto_metrajOlusturCetvel(dugum, oneMahal)}
+                            sx={{
+                              ...css_mahaller,
+                              display: "grid",
+                              gridTemplateColumns: "1rem 1fr",
+                              alignItems: "center",
+                              // justifyContent: "end",
+                              // cursor: "pointer",
+                              // backgroundColor: "rgba(66, 66, 66, 0.12)",
+                              // "&:hover": { "& .childClass": { backgroundColor: "red" } }
+                            }}>
+                            <Check sx={{ ml: "0.2rem", color: "black", fontSize: "0.95rem" }} />
+                            <Box sx={{ justifySelf: "end" }}>
+                              {ikiHane(dugum?.hazirlananMetrajlar?.find(x => x.userEmail === customData.email)?.metrajReady)}
+                            </Box>
+                          </Box>
+
                         </>
                       }
 

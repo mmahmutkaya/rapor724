@@ -93,8 +93,8 @@ export default function P_MetrajOlusturCetvel() {
     !selectedNode_metraj && navigate("/metrajpozmahaller")
     setHazirlananMetraj_state(_.cloneDeep(hazirlananMetraj))
     setHazirlananMetraj_backUp(_.cloneDeep(hazirlananMetraj))
-    console.log("hazirlananMetraj", hazirlananMetraj)
   }, [hazirlananMetraj])
+
 
 
 
@@ -125,16 +125,13 @@ export default function P_MetrajOlusturCetvel() {
         delete oneRow.isReadyBack
         oneRow.newSelected = true
 
-        // önceki satır metrajını çıkartıyoruz, yeni değeri bulunca aşağıda ekleyeceğiz
-        hazirlananMetraj_state2["metraj"] = Number(hazirlananMetraj_state2["metraj"]) - Number(oneRow["metraj"])
-
         oneRow[oneProperty] = event.target.value
 
         let isMinha = oneRow["aciklama"].replace("İ", "i").toLowerCase().includes("minha") ? true : false
 
+        // ya burdan dönüyor
         if (oneRow.carpan1 == "" && oneRow.carpan2 == "" && oneRow.carpan3 == "" && oneRow.carpan4 == "" && oneRow.carpan5 == "") {
           oneRow.metraj = ""
-          // hazirlananMetraj_state2["metraj"] ı güncelleyecek bir durum yok, önceki değeri yukarıda çıkarmıştık, yenisi zaten sıfır çıktı
           return oneRow
         }
 
@@ -146,24 +143,30 @@ export default function P_MetrajOlusturCetvel() {
           (oneRow.carpan5 == "" ? 1 : oneRow.carpan5)
         )
 
+        // ya burdan ya da alttakinden dönüyor
         if (isMinha) {
           oneRow.metraj = oneRowMetraj * -1
-          hazirlananMetraj_state2["metraj"] = hazirlananMetraj_state2["metraj"] + Number(oneRow.metraj)
-          // metraj = oneRowMetraj > 0 ? Number(metraj) - Number(oneRowMetraj) : Number(metraj)
           return oneRow
         } else {
           oneRow.metraj = oneRowMetraj
-          // metraj = Number(oneRowMetraj) > 0 ? Number(metraj) + Number(oneRowMetraj) : Number(metraj)
-          hazirlananMetraj_state2["metraj"] = hazirlananMetraj_state2["metraj"] + Number(oneRow.metraj)
           return oneRow
         }
 
       }
 
-
+      // işlenmeyecek bir satursa da burdan dönüyor
       return oneRow
 
     })
+
+    let metrajPreparing = 0
+    let metrajReady = 0
+    hazirlananMetraj_state2.satirlar.map(oneSatir => {
+      metrajPreparing += oneSatir.isPreparing ? Number(oneSatir.metraj) : 0
+      metrajReady += oneSatir.isReady ? Number(oneSatir.metraj) : 0
+    })
+    hazirlananMetraj_state2.metrajPreparing = metrajPreparing
+    hazirlananMetraj_state2.metrajReady = metrajReady
 
     setHazirlananMetraj_state(hazirlananMetraj_state2)
     // alttaki kod sadece react component render yapılması için biyerde kullanılmıyor -- (sonra bunada gerek kalmadı)
@@ -240,6 +243,16 @@ export default function P_MetrajOlusturCetvel() {
       }
       return oneSatir
     })
+
+    let metrajPreparing = 0
+    let metrajReady = 0
+    hazirlananMetraj_state2.satirlar.map(oneSatir => {
+      metrajPreparing += oneSatir.isPreparing ? Number(oneSatir.metraj) : 0
+      metrajReady += oneSatir.isReady ? Number(oneSatir.metraj) : 0
+    })
+    hazirlananMetraj_state2.metrajPreparing = metrajPreparing
+    hazirlananMetraj_state2.metrajReady = metrajReady
+
     hazirlananMetraj_state2.satirlar.find(x => x.newSelected) ? setIsChanged_ready(true) : setIsChanged_ready()
     setHazirlananMetraj_state(hazirlananMetraj_state2)
   }
@@ -256,6 +269,16 @@ export default function P_MetrajOlusturCetvel() {
       }
       return oneSatir
     })
+
+
+    let metrajPreparing = 0
+    let metrajReady = 0
+    hazirlananMetraj_state2.satirlar.map(oneSatir => {
+      metrajPreparing += oneSatir.isPreparing ? Number(oneSatir.metraj) : 0
+      metrajReady += oneSatir.isReady ? Number(oneSatir.metraj) : 0
+    })
+    hazirlananMetraj_state2.metrajPreparing = metrajPreparing
+    hazirlananMetraj_state2.metrajReady = metrajReady
 
     hazirlananMetraj_state2.satirlar.find(x => x.newSelected) ? setIsChanged_ready(true) : setIsChanged_ready()
     setHazirlananMetraj_state(hazirlananMetraj_state2)
@@ -355,11 +378,15 @@ export default function P_MetrajOlusturCetvel() {
 
   // CSS
   const css_enUstBaslik = {
-    px: "0.3rem", border: "1px solid black", backgroundColor: "lightgray", display: "grid", alignItems: "center", justifyContent: "center"
+    mb: "1rem", px: "0.3rem", border: "1px solid black", backgroundColor: "lightgray", display: "grid", alignItems: "center", justifyContent: "center"
+  }
+
+  const css_metrajCetveliBaslik_Yayinlanan = {
+    px: "0.3rem", border: "1px solid black", backgroundColor: myTema.renkler.inaktifGri, display: "grid", alignItems: "center", justifyContent: "center"
   }
 
   const css_metrajCetveliBaslik = {
-    mt: "1rem", px: "0.3rem", border: "1px solid black", backgroundColor: "rgba( 253, 197, 123 , 0.6 )", display: "grid", alignItems: "center", justifyContent: "center"
+    px: "0.3rem", border: "1px solid black", borderBottom: "3px solid black", backgroundColor: "rgba( 253, 197, 123 , 0.6 )", display: "grid", alignItems: "center", justifyContent: "center"
   }
 
   const css_metrajCetveliSatir = {
@@ -441,12 +468,35 @@ export default function P_MetrajOlusturCetvel() {
           {/* Metraj Cetveli Başlık Satırı */}
           <React.Fragment>
 
+            <Box sx={{ ...css_metrajCetveliBaslik_Yayinlanan, gridColumn: "1/8", justifyContent: "end", pr: "1rem" }}>
+              Yayınlanan Metraj
+            </Box>
+
+            <Box sx={{ ...css_metrajCetveliBaslik_Yayinlanan, justifyContent: "end", pr: "0.3rem", color: hazirlananMetraj_state["metraj"] < 0 ? "red" : null }}>
+              {ikiHane(hazirlananMetraj_state["metrajReady"])}
+            </Box>
+
+            <Box sx={{ ...css_metrajCetveliBaslik_Yayinlanan }}>
+              {pozBirim}
+            </Box>
+
+            <Box></Box>
+
+            <Box>
+            </Box>
+
+          </React.Fragment>
+
+
+          {/* Metraj Cetveli Başlık Satırı */}
+          <React.Fragment>
+
             <Box sx={{ ...css_metrajCetveliBaslik, gridColumn: "1/8", justifyContent: "end", pr: "1rem" }}>
-              {"name gelecek"}
+              Hazirlanmakta Olan Metraj
             </Box>
 
             <Box sx={{ ...css_metrajCetveliBaslik, justifyContent: "end", pr: "0.3rem", color: hazirlananMetraj_state["metraj"] < 0 ? "red" : null }}>
-              {ikiHane(hazirlananMetraj_state["metraj"])}
+              {ikiHane(hazirlananMetraj_state["metrajPreparing"])}
             </Box>
 
             <Box sx={{ ...css_metrajCetveliBaslik }}>

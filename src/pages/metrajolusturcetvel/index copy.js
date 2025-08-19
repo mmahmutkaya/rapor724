@@ -27,6 +27,9 @@ import CircleIcon from '@mui/icons-material/Circle';
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import CheckIcon from '@mui/icons-material/Check';
 import LockIcon from '@mui/icons-material/Lock';
+import ReplyIcon from '@mui/icons-material/Reply';
+import { Circle } from '@mui/icons-material';
+import DoneAllIcon from '@mui/icons-material/DoneAll';
 
 
 export default function P_MetrajOlusturCetvel() {
@@ -54,8 +57,6 @@ export default function P_MetrajOlusturCetvel() {
   const [hazirlananMetraj_backUp, setHazirlananMetraj_backUp] = useState()
 
   const [isChanged_ready, setIsChanged_ready] = useState()
-  const [isChanged_reReady, setIsChanged_reReady] = useState()
-
 
 
   const [_pozId] = useState()
@@ -121,6 +122,9 @@ export default function P_MetrajOlusturCetvel() {
 
       if (oneRow.satirNo == satirNo) {
 
+        delete oneRow.isReadyBack
+        oneRow.newSelected = true
+
         // önceki satır metrajını çıkartıyoruz, yeni değeri bulunca aşağıda ekleyeceğiz
         hazirlananMetraj_state2["metraj"] = Number(hazirlananMetraj_state2["metraj"]) - Number(oneRow["metraj"])
 
@@ -156,7 +160,7 @@ export default function P_MetrajOlusturCetvel() {
 
       }
 
-      oneRow.newSelected = true
+
       return oneRow
 
     })
@@ -308,90 +312,6 @@ export default function P_MetrajOlusturCetvel() {
 
 
 
-  //  REREADY FONKSİYONLARI - ADD SATIR - REMOVE SATIR - CANCEL DB - SAVE DB
-  const addRow_reReady = (oneRow) => {
-
-    let hazirlananMetraj_state2 = _.cloneDeep(hazirlananMetraj_state)
-    hazirlananMetraj_state2.satirlar = hazirlananMetraj_state2.satirlar.map(oneSatir => {
-      if (oneSatir.satirNo === oneRow.satirNo) {
-        oneSatir.isReReady = true
-        // oneSatir.newSelected ? delete oneSatir.newSelected : oneSatir.newSelected = true
-        oneSatir.newSelected = true
-      }
-      return oneSatir
-    })
-    hazirlananMetraj_state2.satirlar.find(x => x.newSelected) ? setIsChanged_reReady(true) : setIsChanged_reReady()
-    setHazirlananMetraj_state(hazirlananMetraj_state2)
-  }
-
-
-  const removeRow_reReady = (oneRow) => {
-
-    let hazirlananMetraj_state2 = _.cloneDeep(hazirlananMetraj_state)
-    hazirlananMetraj_state2.satirlar = hazirlananMetraj_state2.satirlar.map(oneSatir => {
-      if (oneSatir.satirNo === oneRow.satirNo) {
-        delete oneSatir.isReReady
-        // oneSatir.newSelected ? delete oneSatir.newSelected : oneSatir.newSelected = true
-        delete oneSatir.newSelected
-      }
-      return oneSatir
-    })
-
-    hazirlananMetraj_state2.satirlar.find(x => x.newSelected) ? setIsChanged_reReady(true) : setIsChanged_reReady()
-    setHazirlananMetraj_state(hazirlananMetraj_state2)
-  }
-
-  const cancel_reReady = () => {
-    setHazirlananMetraj_state(_.cloneDeep(hazirlananMetraj_backUp))
-    setIsChanged_reReady()
-  }
-
-
-  const save_reReady = async () => {
-    try {
-
-      // console.log("hazirlananMetraj_state",hazirlananMetraj_state)
-      await RealmApp?.currentUser.callFunction("update_hazirlananMetraj_reReady", ({ _dugumId: selectedNode_metraj._id, hazirlananMetraj_state }))
-
-      queryClient.invalidateQueries(['hazirlananMetraj', selectedNode_metraj?._id.toString()])
-      setIsChanged_reReady()
-      return
-
-    } catch (err) {
-
-      console.log(err)
-
-      let dialogIcon = "warning"
-      let dialogMessage = "Beklenmedik hata, sayfayı yenileyiniz, sorun devam ederse Rapor7/24 ile irtibata geçiniz.."
-      let onCloseAction = () => setDialogAlert()
-
-      if (err.message.includes("__mesajBaslangic__") && err.message.includes("__mesajBitis__")) {
-        let mesajBaslangic = err.message.indexOf("__mesajBaslangic__") + "__mesajBaslangic__".length
-        let mesajBitis = err.message.indexOf("__mesajBitis__")
-        dialogMessage = err.message.slice(mesajBaslangic, mesajBitis)
-        dialogIcon = "info"
-        onCloseAction = () => {
-          setDialogAlert()
-          setIsChanged_reReady()
-          queryClient.invalidateQueries(['hazirlananMetrajlar', selectedNode_metraj?._id.toString()])
-        }
-      }
-      setDialogAlert({
-        dialogIcon,
-        dialogMessage,
-        detailText: err?.message ? err.message : null,
-        onCloseAction
-      })
-    }
-  }
-
-
-
-
-
-
-
-
 
 
 
@@ -470,7 +390,6 @@ export default function P_MetrajOlusturCetvel() {
           show={show} setShow={setShow}
           save={save} cancel={cancel} isChanged={isChanged} setIsChanged={setIsChanged}
           save_ready={save_ready} cancel_ready={cancel_ready} isChanged_ready={isChanged_ready} setIsChanged_ready={setIsChanged_ready}
-          save_reReady={save_reReady} cancel_reReady={cancel_reReady} isChanged_reReady={isChanged_reReady} setIsChanged_reReady={setIsChanged_reReady}
         />
       </Grid>
 
@@ -543,7 +462,7 @@ export default function P_MetrajOlusturCetvel() {
           </React.Fragment>
 
 
-          {hazirlananMetraj_state.satirlar.map((oneRow, index) => {
+          {hazirlananMetraj_state.satirlar.sort((a, b) => a.satirNo.substring(a.satirNo.indexOf("-") + 1, a.satirNo.length) - b.satirNo.substring(b.satirNo.indexOf("-") + 1, b.satirNo.length)).map((oneRow, index) => {
             return (
               < React.Fragment key={index}>
 
@@ -611,7 +530,8 @@ export default function P_MetrajOlusturCetvel() {
                       {!isCellEdit &&
                         <Box sx={{
                           ...css_metrajCetveliSatir,
-                          backgroundColor: oneRow?.isSelected ? myTema.renkler.inaktifGri : oneRow?.isReady && !oneRow?.newSelected ? "rgba(46, 172, 63, 0.25)" : oneRow?.isReady && oneRow?.newSelected && "rgba(191, 202, 34, 0.2)",
+                          // backgroundColor: oneRow?.isSelected ? myTema.renkler.inaktifGri : oneRow?.isReady && !oneRow?.newSelected ? "rgba(46, 172, 63, 0.25)" : oneRow?.isReady && oneRow?.newSelected && "rgba(191, 202, 34, 0.2)",
+                          backgroundColor: oneRow.isReady && myTema.renkler.inaktifGri,
                           justifyContent: oneProperty.includes("aciklama") ? "start" : oneProperty.includes("carpan") ? "end" : oneProperty.includes("metraj") ? "end" : "center",
                           minWidth: oneProperty.includes("carpan") ? "5rem" : oneProperty.includes("metraj") ? "5rem" : null,
                           color: isMinha ? "red" : null
@@ -628,7 +548,7 @@ export default function P_MetrajOlusturCetvel() {
                 <Box></Box>
 
                 <Box
-                  onClick={() => show === "Main" && !oneRow.isSelected && !oneRow.isReady ? addRow_ready(oneRow) : show === "Main" && !oneRow.isSelected && oneRow.isReady && oneRow.newSelected && removeRow_ready(oneRow)}
+                  onClick={() => show === "Main" && !oneRow.isReadyBack && !oneRow.isSelected && !oneRow.isReady ? addRow_ready(oneRow) : show === "Main" && !oneRow.isSelected && oneRow.isReady && oneRow.newSelected && removeRow_ready(oneRow)}
                   sx={{
                     // backgroundColor: oneRow.isSelected ? null : "rgba(255,255,0, 0.3)",
                     // backgroundColor: "rgba(255,255,0, 0.3)",
@@ -640,17 +560,23 @@ export default function P_MetrajOlusturCetvel() {
                     border: "1px solid black"
                   }}>
                   {oneRow.isSelected &&
-                    <LockIcon variant="contained" sx={{ color: "gray", fontSize: "1rem" }} />
+                    <DoneAllIcon variant="contained" sx={{ color: "black", fontSize: "1.2rem" }} />
                   }
-                  {!oneRow.isSelected && oneRow.isReady && !oneRow.newSelected &&
-                    <CheckIcon variant="contained" sx={{ color: "rgba(14, 99, 7, 0.96)", fontSize: "0.95rem" }} />
+                  {oneRow.isReady && !oneRow.newSelected && !oneRow.isSelected &&
+                    <CheckIcon variant="contained" sx={{ color: "black", fontSize: "1.2rem" }} />
                   }
-                  {!oneRow.isSelected && oneRow.isReady && oneRow.newSelected &&
+                  {oneRow.isReady && oneRow.newSelected && !oneRow.isSelected &&
+                    <Circle variant="contained" sx={{ color: "rgba( 255,165,0, 1 )", fontSize: "0.70rem" }} />
+                  }
+                  {oneRow.isPreparing && oneRow.isReadyBack &&
+                    <ReplyIcon variant="contained" sx={{ color: "red", fontSize: "0.95rem" }} />
+                  }
+                  {/* {!oneRow.isSelected && oneRow.isReady && oneRow.newSelected &&
                     <CircleIcon variant="contained" sx={{ color: "rgba(15, 99, 7, 0.52)", fontSize: "0.70rem" }} />
                   }
                   {!oneRow.isSelected && !oneRow.isReady &&
                     <HourglassFullSharpIcon variant="contained" sx={{ color: "rgba( 255,165,0, 1 )", fontSize: "0.95rem" }} />
-                  }
+                  } */}
                 </Box>
 
               </React.Fragment>

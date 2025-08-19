@@ -23,6 +23,7 @@ import { Button, TextField, Typography } from '@mui/material';
 import Box from '@mui/material/Box';
 import InfoIcon from '@mui/icons-material/Info';
 import Tooltip from '@mui/material/Tooltip';
+import { Check } from '@mui/icons-material';
 
 
 
@@ -31,8 +32,8 @@ export default function P_MetrajOlusturPozlar() {
   const navigate = useNavigate()
   const queryClient = useQueryClient()
 
-  let { data: pozlar } = useGetPozlar()
-  pozlar = pozlar?.filter(x => x.hasDugum)
+  let { data } = useGetPozlar()
+  let pozlar = data?.pozlar?.filter(x => x.hasDugum)
 
   const { RealmApp, myTema } = useContext(StoreContext)
   const { customData } = RealmApp.currentUser
@@ -42,6 +43,7 @@ export default function P_MetrajOlusturPozlar() {
   const yetkililer = selectedProje?.yetki.yetkililer
 
   const { selectedPoz_metraj, setSelectedPoz_metraj } = useContext(StoreContext)
+  const [showMetrajOnaylanan, setShowMetrajOnaylanan] = useState(false)
   // const { editNodeMetraj, onayNodeMetraj } = useContext(StoreContext)
   let editNodeMetraj = true
 
@@ -89,7 +91,6 @@ export default function P_MetrajOlusturPozlar() {
 
 
   const wbsBaslik_css = {
-    gridColumn: "1 / span 4",
     display: "grid",
     alignItems: "center",
     justifyItems: "start",
@@ -126,7 +127,7 @@ export default function P_MetrajOlusturPozlar() {
   }
 
   const metrajYapabilenlerColumns = " 1rem repeat(" + metrajYapabilenler?.length + ", max-content)"
-  const columns = `max-content minmax(min-content, 3fr) max-content max-content${pozAciklamaShow ? " 0.5rem minmax(min-content, 2fr)" : ""}${pozVersiyonShow ? " 0.5rem min-content" : ""}${editNodeMetraj ? " 0.5rem max-content" : ""}`
+  const columns = `max-content minmax(min-content, 3fr)${showMetrajOnaylanan ? " max-content" : ""} max-content${pozAciklamaShow ? " 0.5rem minmax(min-content, 2fr)" : ""}${pozVersiyonShow ? " 0.5rem min-content" : ""}${editNodeMetraj ? " 1.5rem max-content max-content" : ""}`
 
 
   return (
@@ -187,11 +188,13 @@ export default function P_MetrajOlusturPozlar() {
               Poz İsmi
             </Box>
 
-            {/* BAŞLIK - POZ BİRİM  */}
-            <Box sx={{ ...enUstBaslik_css }}>
-              Miktar
-            </Box>
 
+            {/* BAŞLIK - POZ BİRİM  */}
+            {showMetrajOnaylanan &&
+              < Box sx={{ ...enUstBaslik_css }}>
+                Miktar
+              </Box>
+            }
 
             {/* BAŞLIK - POZ BİRİM  */}
             <Box sx={{ ...enUstBaslik_css }}>
@@ -222,11 +225,13 @@ export default function P_MetrajOlusturPozlar() {
             {editNodeMetraj &&
               <>
                 <Box></Box>
-                <Tooltip placement="top" title={customData.isim + " " + customData.soyisim}>
-                  <Box sx={{ ...enUstBaslik_css }}>
-                    {customData.userCode}
-                  </Box>
-                </Tooltip>
+
+                <Box sx={{ ...enUstBaslik_css }}>
+                  Hazırlanan
+                </Box>
+                <Box sx={{ ...enUstBaslik_css }}>
+                  Yayınlanan
+                </Box>
 
               </>
             }
@@ -259,7 +264,7 @@ export default function P_MetrajOlusturPozlar() {
                 {/* WBS BAŞLIĞININ OLDUĞU TÜM SATIR */}
                 <>
                   {/* WBS BAŞLIĞI */}
-                  <Box sx={{ ...wbsBaslik_css }}>
+                  <Box sx={{ ...wbsBaslik_css, gridColumn: showMetrajOnaylanan ? "1 / span 4" : "1 / span 3" }}>
                     <Box sx={{ display: "grid", gridAutoFlow: "column" }} >
                       {getWbsName({ wbsArray: wbsArray_hasMahal, oneWbs }).name}
                     </Box>
@@ -286,6 +291,7 @@ export default function P_MetrajOlusturPozlar() {
                   {editNodeMetraj &&
                     <>
                       <Box />
+                      <Box sx={{ ...wbsBaslik_css2 }} />
                       <Box sx={{ ...wbsBaslik_css2 }} />
                     </>
                   }
@@ -330,9 +336,13 @@ export default function P_MetrajOlusturPozlar() {
                           {ikiHane(onePoz?.onaylananMetraj)}
                         </Box>
                       </Box> */}
-                      <Box sx={{ ...pozNo_css, justifyContent: "end" }}>
-                        {ikiHane(onePoz?.onaylananMetraj)}
-                      </Box>
+
+                      {showMetrajOnaylanan &&
+                        <Box sx={{ ...pozNo_css, justifyContent: "end" }}>
+                          {ikiHane(onePoz?.metrajOnaylanan)}
+                        </Box>
+                      }
+
                       <Box sx={{ ...pozNo_css }}>
                         {pozBirimleri.find(x => x.id === onePoz.pozBirimId).name}
                       </Box>
@@ -361,13 +371,22 @@ export default function P_MetrajOlusturPozlar() {
                       {editNodeMetraj &&
                         <>
                           <Box />
+
                           <Box onDoubleClick={() => goTo_MetrajPozmahaller(onePoz)} sx={{ ...pozNo_css, justifyContent: "end", cursor: "pointer", backgroundColor: "yellow", display: "grid", gridTemplateColumns: "1rem 1fr", "&:hover": { "& .childClass": { backgroundColor: "red" } } }}>
                             <Box className="childClass" sx={{ ml: "-1rem", backgroundColor: "yellow", height: "0.5rem", width: "0.5rem", borderRadius: "50%" }}>
                             </Box>
                             <Box sx={{ justifySelf: "end" }}>
-                              {ikiHane(onePoz?.hazirlananMetrajlar.find(x => x.userEmail === customData.email)?.metraj)}
+                              {ikiHane(onePoz?.hazirlananMetrajlar.find(x => x.userEmail === customData.email)?.metrajPreparing)}
                             </Box>
                           </Box>
+
+                          <Box sx={{ ...pozNo_css, display: "grid", gridTemplateColumns: "auto 1fr" }}>
+                            <Check sx={{ ml: "0.2rem", color: "black", fontSize: "0.95rem" }} />
+                            <Box sx={{ justifySelf: "end" }}>
+                              {ikiHane(onePoz?.hazirlananMetrajlar.find(x => x.userEmail === customData.email)?.metrajReady)}
+                            </Box>
+                          </Box>
+                          
                         </>
                       }
 
@@ -404,7 +423,7 @@ export default function P_MetrajOlusturPozlar() {
         </Box>
       }
 
-    </Box>
+    </Box >
 
   )
 

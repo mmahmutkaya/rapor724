@@ -23,6 +23,7 @@ import AlignHorizontalRightOutlinedIcon from '@mui/icons-material/AlignHorizonta
 import AlignHorizontalCenterOutlinedIcon from '@mui/icons-material/AlignHorizontalCenterOutlined';
 import FileDownloadDoneIcon from '@mui/icons-material/FileDownloadDone';
 import EditIcon from '@mui/icons-material/Edit';
+import PersonIcon from '@mui/icons-material/Person';
 
 
 export default function HeaderMetrajOnaylaPozlar({ setShow }) {
@@ -94,7 +95,7 @@ export default function HeaderMetrajOnaylaPozlar({ setShow }) {
 
                 <Grid item >
                   <IconButton onClick={() => setShow("ShowMetrajYapabilenler")} disabled={false}>
-                    <VisibilityIcon variant="contained" />
+                    <PersonIcon variant="contained" />
                   </IconButton>
                 </Grid>
 
