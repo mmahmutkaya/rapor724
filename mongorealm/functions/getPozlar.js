@@ -60,7 +60,9 @@ exports = async function ({
               as: "oneHazirlanan",
               in: {
                 userEmail: "$$oneHazirlanan.userEmail",
-                metraj: "$$oneHazirlanan.metraj",
+                metrajPreparing: "$$oneHazirlanan.metrajPreparing",
+                metrajReady: "$$oneHazirlanan.metrajReady",
+                metrajOnaylanan: "$$oneHazirlanan.metrajOnaylanan",
                 hasSelected: {
                   "$reduce": {
                     "input": "$$oneHazirlanan.satirlar",
@@ -164,7 +166,9 @@ exports = async function ({
         $group: {
           _id: "$_pozId",
           hazirlananMetrajlar: { $push: "$hazirlananMetrajlar" },
-          onaylananMetraj: { $sum: "$onaylananMetraj" }
+          metrajPreparing: { $sum: "$metrajPreparing" },
+          metrajReady: { $sum: "$metrajReady" },
+          metrajOnaylanan: { $sum: "$metrajOnaylanan" }
         }
       }
     ]).toArray()
@@ -185,11 +189,14 @@ exports = async function ({
 
         onePoz.hasDugum = true
 
-        onePoz.onaylananMetraj = onePoz2.onaylananMetraj
+        onePoz.metrajOnaylanan = onePoz2.metrajOnaylanan
         // return onePoz2.hazirlanan
         onePoz.hazirlananMetrajlar = metrajYapabilenler.map(oneYapabilen => {
 
-          let metraj = 0
+          let metrajPreparing = 0
+          let metrajReady = 0
+          let metrajOnaylanan = 0
+
           let hasReady_Array = []
           let hasSelected_Array = []
           let hasUnSelected_Array = []
@@ -201,8 +208,15 @@ exports = async function ({
 
             // if (oneHazirlanan?.satirlar?.filter(x => x.isReady).length > 0) {
             if (oneHazirlanan) {
-              let metraj2 = oneHazirlanan?.metraj ? Number(oneHazirlanan?.metraj) : 0
-              metraj += metraj2
+
+              let metrajPreparing2 = oneHazirlanan?.metrajPreparing ? Number(oneHazirlanan?.metrajPreparing) : 0
+              let metrajReady2 = oneHazirlanan?.metrajReady ? Number(oneHazirlanan?.metrajReady) : 0
+              let metrajOnaylanan2 = oneHazirlanan?.metrajOnaylanan ? Number(oneHazirlanan?.metrajOnaylanan) : 0
+
+              metrajPreparing += metrajPreparing2
+              metrajReady += metrajReady2
+              metrajOnaylanan += metrajOnaylanan2
+
               hasReady_Array = [...hasReady_Array, oneHazirlanan?.hasReady]
               hasSelected_Array = [...hasSelected_Array, oneHazirlanan?.hasSelected]
               hasUnSelected_Array = [...hasUnSelected_Array, oneHazirlanan?.hasUnSelected]
@@ -216,7 +230,9 @@ exports = async function ({
 
           return ({
             userEmail: oneYapabilen.userEmail,
-            metraj,
+            metrajPreparing,
+            metrajReady,
+            metrajOnaylanan,
             hasReady,
             hasSelected,
             hasUnSelected
