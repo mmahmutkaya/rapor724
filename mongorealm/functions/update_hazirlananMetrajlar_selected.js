@@ -57,7 +57,8 @@ exports = async function ({
           filter: { _id: _dugumId },
           update: {
             $set: {
-              "hazirlananMetrajlar.$[oneHazirlanan].satirlar.$[oneSatir].isSelected": true
+              "hazirlananMetrajlar.$[oneHazirlanan].satirlar.$[oneSatir].isSelected": true,
+              "hazirlananMetrajlar.$[oneHazirlanan].satirlar.$[oneSatir].hasSelectedCopy": false
             }
           },
           arrayFilters: [{ "oneHazirlanan.userEmail": userEmail }, { "oneSatir.satirNo": { $in: oneHazirlanan_selected_satirNolar } }]
@@ -90,7 +91,7 @@ exports = async function ({
                   "$mergeObjects": [
                     "$$oneHazirlanan",
                     {
-                      metraj: {
+                      metrajOnaylanan: {
                         $sum: {
                           "$map": {
                             "input": "$$oneHazirlanan.satirlar",
@@ -98,9 +99,9 @@ exports = async function ({
                             "in": {
                               "$cond": {
                                 "if": {
-                                  $eq: [
-                                    "$$oneSatir.isReady",
-                                    true
+                                  $or: [
+                                    {$and:[{$eq:["$$oneSatir.isSelected",true]},{$eq:["$$oneSatir.hasSelectedCopy",false]}]},
+                                    {$eq:["$$oneSatir.isSelectedCopy",true]}
                                   ]
                                 },
                                 "then": "$$oneSatir.metraj",
@@ -110,7 +111,7 @@ exports = async function ({
                           }
                         }
                       }
-                    },
+                    }
                   ]
                 }
               }
@@ -119,12 +120,12 @@ exports = async function ({
         },
         {
           $set: {
-            "onaylananMetraj": {
+            "metrajOnaylanan": {
               $sum: {
                 "$map": {
                   "input": "$hazirlananMetrajlar",
                   "as": "oneHazirlanan",
-                  "in": "$$oneHazirlanan.metraj"
+                  "in": "$$oneHazirlanan.metrajOnaylanan"
                 }
               }
             }
