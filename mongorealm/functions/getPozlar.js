@@ -56,7 +56,10 @@ exports = async function ({
         $project: {
           _pozId: 1,
           _mahalId: 1,
-          onaylananMetraj: 1,
+          openMetraj: 1,
+          metrajPreparing: 1,
+          metrajReady: 1,
+          metrajOnaylanan: 1,
           hazirlananMetrajlar: {
             $map: {
               input: "$hazirlananMetrajlar",
@@ -257,41 +260,41 @@ exports = async function ({
 
 
 
-  let wbsMetrajlar
-  try {
+  // let wbsMetrajlar
+  // try {
 
-    wbsMetrajlar = proje?.wbs.map(oneWbs => {
+  //   wbsMetrajlar = proje?.wbs.map(oneWbs => {
 
-      let pozlar_byWbs = pozlar.filter(x => x._wbsId.toString() === oneWbs._id.toString())
-      let metrajPreparing = 0
-      let metrajReady = 0
-      let metrajOnaylanan = 0
-      let hazirlananMetrajlar = proje.yetki.metrajYapabilenler.map(oneYapabilen => {
-        return { userEmail: oneYapabilen.userEmail, metrajPreparing: 0, metrajReady: 0, metrajOnaylanan: 0 }
-      })
+  //     let pozlar_byWbs = pozlar.filter(x => x._wbsId.toString() === oneWbs._id.toString())
+  //     let metrajPreparing = 0
+  //     let metrajReady = 0
+  //     let metrajOnaylanan = 0
+  //     let hazirlananMetrajlar = proje.yetki.metrajYapabilenler.map(oneYapabilen => {
+  //       return { userEmail: oneYapabilen.userEmail, metrajPreparing: 0, metrajReady: 0, metrajOnaylanan: 0 }
+  //     })
 
-      pozlar_byWbs.map(onePoz => {
-        // let dugum = dugumler_byPoz.find(x => x._mahalId.toString() === onePoz._id.toString())
-        metrajPreparing += onePoz?.metrajPreparing ? onePoz.metrajPreparing : 0
-        metrajReady += onePoz?.metrajReady ? onePoz.metrajReady : 0
-        metrajOnaylanan += onePoz?.metrajOnaylanan ? onePoz.metrajOnaylanan : 0
+  //     pozlar_byWbs.map(onePoz => {
+  //       // let dugum = dugumler_byPoz.find(x => x._mahalId.toString() === onePoz._id.toString())
+  //       metrajPreparing += onePoz?.metrajPreparing ? onePoz.metrajPreparing : 0
+  //       metrajReady += onePoz?.metrajReady ? onePoz.metrajReady : 0
+  //       metrajOnaylanan += onePoz?.metrajOnaylanan ? onePoz.metrajOnaylanan : 0
 
-        hazirlananMetrajlar = hazirlananMetrajlar?.map(oneHazirlanan => {
-          let hazirlananMetraj_user = onePoz?.hazirlananMetrajlar?.find(x => x.userEmail === oneHazirlanan.userEmail)
-          oneHazirlanan.metrajPreparing += hazirlananMetraj_user?.metrajPreparing ? hazirlananMetraj_user.metrajPreparing : 0
-          oneHazirlanan.metrajReady += hazirlananMetraj_user?.metrajReady ? hazirlananMetraj_user.metrajReady : 0
-          oneHazirlanan.metrajOnaylanan += hazirlananMetraj_user?.metrajOnaylanan ? hazirlananMetraj_user.metrajOnaylanan : 0
-          return oneHazirlanan
-        })
+  //       hazirlananMetrajlar = hazirlananMetrajlar?.map(oneHazirlanan => {
+  //         let hazirlananMetraj_user = onePoz?.hazirlananMetrajlar?.find(x => x.userEmail === oneHazirlanan.userEmail)
+  //         oneHazirlanan.metrajPreparing += hazirlananMetraj_user?.metrajPreparing ? hazirlananMetraj_user.metrajPreparing : 0
+  //         oneHazirlanan.metrajReady += hazirlananMetraj_user?.metrajReady ? hazirlananMetraj_user.metrajReady : 0
+  //         oneHazirlanan.metrajOnaylanan += hazirlananMetraj_user?.metrajOnaylanan ? hazirlananMetraj_user.metrajOnaylanan : 0
+  //         return oneHazirlanan
+  //       })
 
-      })
-      return { _id: oneWbs._id, metrajPreparing, metrajReady, metrajOnaylanan, hazirlananMetrajlar }
-    })
+  //     })
+  //     return { _id: oneWbs._id, metrajPreparing, metrajReady, metrajOnaylanan, hazirlananMetrajlar }
+  //   })
 
 
-  } catch (error) {
-    throw new Error({ hatayeri: "MONGO // getPozlar // wbsMetrajlar", error });
-  }
+  // } catch (error) {
+  //   throw new Error({ hatayeri: "MONGO // getPozlar // wbsMetrajlar", error });
+  // }
 
 
 
@@ -315,7 +318,7 @@ exports = async function ({
 
 
 
-  return { pozlar, wbsMetrajlar, anySelectable }
+  return { pozlar, anySelectable }
 
 
 
