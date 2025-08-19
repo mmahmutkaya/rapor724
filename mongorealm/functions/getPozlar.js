@@ -15,10 +15,13 @@ exports = async function ({
   const collection_Projeler = context.services.get("mongodb-atlas").db("rapor724_v2").collection("projeler")
 
 
-  if (!_projeId) throw new Error("MONGO // getPozlar_metraj // -- sorguya gönderilen --projeId-- türü doğru değil, lütfen Rapor7/24 ile irtibata geçiniz. ")
+  if (!_projeId) throw new Error("MONGO // getPozlar // -- sorguya gönderilen --projeId-- türü doğru değil, lütfen Rapor7/24 ile irtibata geçiniz. ")
 
   const proje = await collection_Projeler.findOne({ _id: _projeId })
 
+
+
+  let pozlar
 
   try {
 
@@ -174,6 +177,7 @@ exports = async function ({
     ]).toArray()
 
 
+
     let { metrajYapabilenler } = proje.yetki
 
 
@@ -246,12 +250,73 @@ exports = async function ({
 
     })
 
-    return pozlar
+
+  } catch (error) {
+    throw new Error({ hatayeri: "MONGO // getPozlar // ", error });
+  }
+
+
+
+  let wbsMetrajlar
+  try {
+
+    wbsMetrajlar = proje?.wbs.map(oneWbs => {
+
+      let pozlar_byWbs = pozlar.filter(x => x._wbsId.toString() === oneWbs._id.toString())
+      let metrajPreparing = 0
+      let metrajReady = 0
+      let metrajOnaylanan = 0
+      let hazirlananMetrajlar = proje.yetki.metrajYapabilenler.map(oneYapabilen => {
+        return { userEmail: oneYapabilen.userEmail, metrajPreparing: 0, metrajReady: 0, metrajOnaylanan: 0 }
+      })
+
+      pozlar_byWbs.map(onePoz => {
+        // let dugum = dugumler_byPoz.find(x => x._mahalId.toString() === onePoz._id.toString())
+        metrajPreparing += onePoz?.metrajPreparing ? onePoz.metrajPreparing : 0
+        metrajReady += onePoz?.metrajReady ? onePoz.metrajReady : 0
+        metrajOnaylanan += onePoz?.metrajOnaylanan ? onePoz.metrajOnaylanan : 0
+
+        hazirlananMetrajlar = hazirlananMetrajlar?.map(oneHazirlanan => {
+          let hazirlananMetraj_user = onePoz?.hazirlananMetrajlar?.find(x => x.userEmail === oneHazirlanan.userEmail)
+          oneHazirlanan.metrajPreparing += hazirlananMetraj_user?.metrajPreparing ? hazirlananMetraj_user.metrajPreparing : 0
+          oneHazirlanan.metrajReady += hazirlananMetraj_user?.metrajReady ? hazirlananMetraj_user.metrajReady : 0
+          oneHazirlanan.metrajOnaylanan += hazirlananMetraj_user?.metrajOnaylanan ? hazirlananMetraj_user.metrajOnaylanan : 0
+          return oneHazirlanan
+        })
+
+      })
+      return { _id: oneWbs._id, metrajPreparing, metrajReady, metrajOnaylanan, hazirlananMetrajlar }
+    })
 
 
   } catch (error) {
-    throw new Error({ hatayeri: "MONGO // getPozlar_metraj // ", error });
+    throw new Error({ hatayeri: "MONGO // getPozlar // wbsMetrajlar", error });
   }
+
+
+
+  let anySelectable
+  try {
+
+    anySelectable
+    pozlar.map(onePoz => {
+      onePoz?.hazirlananMetrajlar?.map(oneHazirlanan => {
+        if (oneHazirlanan) {
+          if (oneHazirlanan.hasUnSelected) {
+            anySelectable = true
+          }
+        }
+      })
+    })
+
+  } catch (error) {
+    throw new Error({ hatayeri: "MONGO // getPozlar // anySelectable", error });
+  }
+
+
+
+  return { pozlar, wbsMetrajlar, anySelectable }
+
 
 
 };
