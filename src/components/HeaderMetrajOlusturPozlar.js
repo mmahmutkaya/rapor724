@@ -78,7 +78,7 @@ export default function HeaderMetrajOlusturPozlar({ setShow }) {
               variant="h6"
               fontWeight="bold"
             >
-              Metraj
+              Metraj Oluştur
             </Typography>
           </Grid>
 

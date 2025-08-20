@@ -118,7 +118,15 @@ export default function P_HeaderMetrajOnaylaCetvel({
 
           {/* sol kısım (başlık) */}
           <Grid item xs>
-            <Box sx={{ display: "grid", gridAutoFlow: "column", justifyContent: "start", columnGap: "0.5rem" }}>
+            <Box sx={{ display: "grid", gridAutoFlow: "column", alignItems: "center", justifyContent: "start", columnGap: "0.5rem" }}>
+
+              <IconButton sx={{ m: 0, p: 0 }}
+                onClick={() => {
+                  navigate("/metrajonaylapozmahaller")
+                }} aria-label="lbsUncliced">
+                <ReplyIcon variant="contained" sx={{ color: "gray" }} />
+              </IconButton>
+
               <Box>
                 {selectedPoz_metraj?.pozName}
               </Box>
@@ -140,7 +148,7 @@ export default function P_HeaderMetrajOnaylaCetvel({
 
 
 
-              {show == "Main" && !isChanged_unLock && !showHasSelectedCopy &&
+              {/* {show == "Main" && !isChanged_unLock && !showHasSelectedCopy &&
                 <>
                   <Grid item >
                     <IconButton onClick={() => {
@@ -150,7 +158,7 @@ export default function P_HeaderMetrajOnaylaCetvel({
                     </IconButton>
                   </Grid>
                 </>
-              }
+              } */}
 
               {show !== "EditMetraj" && !showHasSelectedCopy &&
                 <Grid item >

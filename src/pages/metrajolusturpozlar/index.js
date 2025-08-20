@@ -227,10 +227,10 @@ export default function P_MetrajOlusturPozlar() {
                 <Box></Box>
 
                 <Box sx={{ ...enUstBaslik_css }}>
-                  Hazırlanan
+                  Hazırlanıyor
                 </Box>
-                <Box sx={{ ...enUstBaslik_css }}>
-                  Yayınlanan
+                <Box sx={{ ...enUstBaslik_css, minWidth: "6rem" }}>
+                  Hazır
                 </Box>
 
               </>
@@ -381,7 +381,9 @@ export default function P_MetrajOlusturPozlar() {
                           </Box>
 
                           <Box sx={{ ...pozNo_css, display: "grid", gridTemplateColumns: "auto 1fr" }}>
-                            <Check sx={{ ml: "0.2rem", color: "black", fontSize: "0.95rem" }} />
+                            <Box sx={{ pl: "0.2rem", pr: "0.4rem", mb: "-0.3rem" }}>
+                              <Check sx={{ color: "black", fontSize: "0.95rem" }} />
+                            </Box>
                             <Box sx={{ justifySelf: "end" }}>
                               {ikiHane(onePoz?.hazirlananMetrajlar.find(x => x.userEmail === customData.email)?.metrajReady)}
                             </Box>

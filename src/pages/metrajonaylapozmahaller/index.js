@@ -414,7 +414,7 @@ export default function P_MetrajOnaylaPozMahaller() {
                       onClick={() => selectMode && addNodes_select({ tip: "all", userEmail: oneYapabilen.userEmail })}
                       key={index}
                       sx={{ ...css_enUstBaslik, cursor: selectMode && "pointer", borderLeft: "1px solid black", justifyContent: "end" }}>
-                      {ikiHane(selectedPoz_metraj.hazirlananMetrajlar.find(x => x.userEmail === oneYapabilen.userEmail)?.metrajOnaylanan)}
+                      {ikiHane(selectedPoz_metraj.hazirlananMetrajlar.find(x => x.userEmail === oneYapabilen.userEmail)?.metrajReady)}
                     </Box>
                   )
                 })}

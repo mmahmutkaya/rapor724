@@ -111,16 +111,29 @@ export default function P_HeaderMetrajOnay({
 
           {/* sol kısım (başlık) */}
           <Grid item xs>
-            <Box sx={{ display: "grid", gridAutoFlow: "column", justifyContent: "start", columnGap: "0.5rem" }}>
+            <Box sx={{ display: "grid", gridAutoFlow: "column", alignItems: "center", justifyContent: "start", columnGap: "0.5rem" }}>
+
+              <IconButton
+                sx={{ mx: 0, px: 0 }}
+                onClick={() => {
+                  navigate("/metrajonaylapozmahaller")
+                }} aria-label="lbsUncliced">
+                <ReplyIcon variant="contained" sx={{ color: "gray" }} />
+              </IconButton>
+
+
               <Box>
                 {selectedPoz_metraj?.pozName}
               </Box>
+
               <Box sx={{ color: "#8B0000", fontWeight: "600" }}>
                 {" > "}
               </Box>
+
               <Box>
                 {selectedMahal_metraj?.mahalName}
               </Box>
+
             </Box>
           </Grid>
 
@@ -133,13 +146,6 @@ export default function P_HeaderMetrajOnay({
 
               {!isChanged && !mode_unReady &&
                 <>
-                  <Grid item >
-                    <IconButton onClick={() => {
-                      navigate("/metrajonaylapozmahaller")
-                    }} aria-label="lbsUncliced">
-                      <ReplyIcon variant="contained" sx={{ color: "gray" }} />
-                    </IconButton>
-                  </Grid>
 
                   <Grid item >
                     <IconButton onClick={() => setShow("ShowMetrajYapabilenler")} >

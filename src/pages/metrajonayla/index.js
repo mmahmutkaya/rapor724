@@ -623,12 +623,12 @@ export default function P_MetrajOnay() {
                             <React.Fragment key={index}>
 
                               <Box
-                                onClick={() =>
-                                  !mode_unReady && !oneRow?.isSelected ? handle_satirSec({ oneRow, hazirlayan }) :
-                                    !mode_unReady && oneRow?.newSelected ? handle_satirIptal({ oneRow, hazirlayan }) :
-                                      mode_unReady && !oneRow?.isSelected && oneRow?.isReady ? handle_satirSec_unReady({ oneRow, hazirlayan }) :
-                                        mode_unReady && !oneRow?.isReady && handle_satirIptal_unReady({ oneRow, hazirlayan })
-                                }
+                                // onClick={() =>
+                                //   !mode_unReady && !oneRow?.isSelected ? handle_satirSec({ oneRow, hazirlayan }) :
+                                //     !mode_unReady && oneRow?.newSelected ? handle_satirIptal({ oneRow, hazirlayan }) :
+                                //       mode_unReady && !oneRow?.isSelected && oneRow?.isReady ? handle_satirSec_unReady({ oneRow, hazirlayan }) :
+                                //         mode_unReady && !oneRow?.isReady && handle_satirIptal_unReady({ oneRow, hazirlayan })
+                                // }
                                 sx={{
                                   ...css_metrajCetveliSatir,
                                   cursor: !oneRow.isSelected || oneRow.newSelected ? "pointer" : null,
@@ -648,7 +648,16 @@ export default function P_MetrajOnay() {
                         <Box></Box>
 
                         <Box
+
+                          onClick={() =>
+                            !mode_unReady && !oneRow?.isSelected ? handle_satirSec({ oneRow, hazirlayan }) :
+                              !mode_unReady && oneRow?.newSelected ? handle_satirIptal({ oneRow, hazirlayan }) :
+                                mode_unReady && !oneRow?.isSelected && oneRow?.isReady ? handle_satirSec_unReady({ oneRow, hazirlayan }) :
+                                  mode_unReady && !oneRow?.isReady && handle_satirIptal_unReady({ oneRow, hazirlayan })
+                          }
+
                           sx={{
+
                             // backgroundColor: oneRow.isSelected ? null : "rgba(255,255,0, 0.3)",
                             // backgroundColor: "rgba(255,255,0, 0.3)",
                             cursor: "pointer",
@@ -662,11 +671,14 @@ export default function P_MetrajOnay() {
                             <LockIcon variant="contained" sx={{ color: "gray", fontSize: "1rem" }} />
                           }
                           {oneRow?.isSelected && oneRow?.newSelected &&
-                            <HourglassFullSharpIcon variant="contained" sx={{ color: "rgba( 255,165,0, 1 )", fontSize: "0.95rem" }} />
+                            <CircleIcon variant="contained" sx={{ color: "rgba( 255,165,0, 1 )", fontSize: "0.75rem" }} />
                           }
-                          {!oneRow?.isReady &&
+                          {!oneRow?.isSelected && oneRow?.newSelected &&
                             <ClearOutlined variant="contained" sx={{ color: "red", fontSize: "1rem" }} />
                           }
+                          {/* {oneRow?.isReady && !oneRow?.newSelected &&
+                            <ClearOutlined variant="contained" sx={{ color: "red", fontSize: "1rem" }} />
+                          } */}
                         </Box>
 
                       </React.Fragment>

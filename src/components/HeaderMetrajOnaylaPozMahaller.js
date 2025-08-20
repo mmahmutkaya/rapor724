@@ -99,7 +99,18 @@ export default function HeaderMetrajOnaylaPozMahaller({
           </Grid> */}
 
           <Grid item xs>
-            <Box sx={{ display: "grid", gridAutoFlow: "column", justifyContent: "start", columnGap: "0.5rem" }}>
+            <Box sx={{ display: "grid", gridAutoFlow: "column", alignItems: "center", justifyContent: "start", columnGap: "0.5rem" }}>
+
+              <IconButton sx={{ m: 0, p: 0 }}
+                onClick={() => {
+                  navigate("/metrajonaylapozlar")
+                  setSelectedPoz_metraj()
+                }}
+                aria-label="wbsUncliced">
+                <ReplyIcon variant="contained"
+                  sx={{ color: "gray" }} />
+              </IconButton>
+
               <Box>
                 {selectedPoz_metraj?.pozName}
               </Box>
@@ -107,7 +118,7 @@ export default function HeaderMetrajOnaylaPozMahaller({
                 {" > "}
               </Box>
               <Box>
-                {"Mahal Listesinde Bu Poz İçin Açılmış Tüm Mahaller"}
+                {"(Poza Açık Tüm Mahaller)"}
               </Box>
             </Box>
           </Grid>
@@ -120,7 +131,7 @@ export default function HeaderMetrajOnaylaPozMahaller({
             <Grid container>
 
 
-              {!selectMode &&
+              {/* {!selectMode &&
                 <Grid item >
                   <IconButton
                     onClick={() => {
@@ -132,17 +143,17 @@ export default function HeaderMetrajOnaylaPozMahaller({
                       sx={{ color: "gray" }} />
                   </IconButton>
                 </Grid>
-              }
+              } */}
 
               {!selectMode &&
                 <Grid item sx={{ cursor: "pointer" }}>
                   <IconButton onClick={() => setSelectMode(x => !x)} disabled={!anySelectable}>
-                    <GroupWorkIcon variant="contained" sx={{ color: anySelectable ? "gray" : "lightgray"}} />
+                    <GroupWorkIcon variant="contained" sx={{ color: anySelectable ? "gray" : "lightgray" }} />
                   </IconButton>
                 </Grid>
               }
 
-              {!selectMode && 
+              {!selectMode &&
                 <Grid item >
                   <IconButton onClick={() => setShow("ShowMetrajYapabilenler")} disabled={false}>
                     <PersonIcon variant="contained" />

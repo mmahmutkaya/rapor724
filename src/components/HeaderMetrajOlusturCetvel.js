@@ -107,16 +107,27 @@ export default function P_HeaderMetrajOlusturCetvel({
 
           {/* sol kısım (başlık) */}
           <Grid item xs>
-            <Box sx={{ display: "grid", gridAutoFlow: "column", justifyContent: "start", columnGap: "0.5rem" }}>
+            <Box sx={{ display: "grid", gridAutoFlow: "column", alignItems: "center", justifyContent: "start", columnGap: "0.5rem" }}>
+
+              <Box >
+                <IconButton sx={{ m: 0, p: 0 }}
+                  onClick={() => navigate("/metrajolusturpozmahaller")}>
+                  <ReplyIcon variant="contained" sx={{ color: "gray" }} />
+                </IconButton>
+              </Box>
+
               <Box>
                 {selectedPoz_metraj?.pozName}
               </Box>
+
               <Box sx={{ color: "#8B0000", fontWeight: "600" }}>
                 {" > "}
               </Box>
+
               <Box>
                 {selectedMahal_metraj?.mahalName}
               </Box>
+
             </Box>
           </Grid>
 
@@ -131,11 +142,11 @@ export default function P_HeaderMetrajOlusturCetvel({
               {show === "Main" && !isChanged_ready &&
                 <>
 
-                  <Grid item >
+                  {/* <Grid item >
                     <IconButton onClick={() => navigate("/metrajolusturpozmahaller")}>
                       <ReplyIcon variant="contained" sx={{ color: "gray" }} />
                     </IconButton>
-                  </Grid>
+                  </Grid> */}
 
                   <Grid item onClick={() => setShow("EditMetraj")} sx={{ cursor: "pointer" }}>
                     <IconButton disabled={false} >

@@ -71,15 +71,22 @@ export default function HeaderMahalListesi({ isChanged, cancelChange, saveChange
 
           {/* sol kısım (başlık) */}
           <Grid item xs>
-            <Box sx={{ display: "grid", gridAutoFlow: "column", justifyContent: "start", columnGap: "0.5rem" }}>
+            <Box sx={{ display: "grid", gridAutoFlow: "column", alignItems: "center", justifyContent: "start", columnGap: "0.5rem" }}>
+
+              <IconButton
+                sx={{ mx: 0, px: 0 }}
+                onClick={() => navigate('/mahallistesipozlar')} disabled={false}>
+                <ReplyIcon variant="contained" sx={{ color: "gray" }} />
+              </IconButton>
+
               <Box>
                 {selectedPoz_mahalListesi?.pozName}
               </Box>
-              <Box sx={{ color: "#8B0000", fontWeight: "600" }}>
+              {/* <Box sx={{ color: "#8B0000", fontWeight: "600" }}>
                 {" > "}
-              </Box>
+              </Box> */}
               <Box>
-                {"Tüm Mahaller"}
+                {/* {"Tüm Mahaller"} */}
               </Box>
             </Box>
           </Grid>
@@ -92,7 +99,7 @@ export default function HeaderMahalListesi({ isChanged, cancelChange, saveChange
             <Grid container>
 
 
-              {!isChanged &&
+              {/* {!isChanged &&
                 <>
 
                   <Grid item>
@@ -102,7 +109,7 @@ export default function HeaderMahalListesi({ isChanged, cancelChange, saveChange
                   </Grid>
 
                 </>
-              }
+              } */}
 
 
               {isChanged &&

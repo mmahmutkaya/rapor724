@@ -163,7 +163,7 @@ export default function P_MetrajOlusturCetvel() {
     let metrajReady = 0
     hazirlananMetraj_state2.satirlar.map(oneSatir => {
       metrajPreparing += oneSatir.isPreparing ? Number(oneSatir.metraj) : 0
-      metrajReady += oneSatir.isReady ? Number(oneSatir.metraj) : 0
+      metrajReady += oneSatir.isReady || oneSatir.isSelected || oneSatir.hasSelectedCopy ? Number(oneSatir.metraj) : 0
     })
     hazirlananMetraj_state2.metrajPreparing = metrajPreparing
     hazirlananMetraj_state2.metrajReady = metrajReady
@@ -248,7 +248,7 @@ export default function P_MetrajOlusturCetvel() {
     let metrajReady = 0
     hazirlananMetraj_state2.satirlar.map(oneSatir => {
       metrajPreparing += oneSatir.isPreparing ? Number(oneSatir.metraj) : 0
-      metrajReady += oneSatir.isReady ? Number(oneSatir.metraj) : 0
+      metrajReady += oneSatir.isReady || oneSatir.isSelected || oneSatir.hasSelectedCopy ? Number(oneSatir.metraj) : 0
     })
     hazirlananMetraj_state2.metrajPreparing = metrajPreparing
     hazirlananMetraj_state2.metrajReady = metrajReady
@@ -275,7 +275,7 @@ export default function P_MetrajOlusturCetvel() {
     let metrajReady = 0
     hazirlananMetraj_state2.satirlar.map(oneSatir => {
       metrajPreparing += oneSatir.isPreparing ? Number(oneSatir.metraj) : 0
-      metrajReady += oneSatir.isReady ? Number(oneSatir.metraj) : 0
+      metrajReady += oneSatir.isReady || oneSatir.isSelected || oneSatir.hasSelectedCopy ? Number(oneSatir.metraj) : 0
     })
     hazirlananMetraj_state2.metrajPreparing = metrajPreparing
     hazirlananMetraj_state2.metrajReady = metrajReady
@@ -384,7 +384,7 @@ export default function P_MetrajOlusturCetvel() {
   const css_metrajCetveliBaslik = {
     px: "0.3rem", border: "1px solid black", backgroundColor: "rgba( 253, 197, 123 , 0.6 )", display: "grid", alignItems: "center", justifyContent: "center"
   }
-  
+
   const css_metrajCetveliBaslik_Yayinlanan = {
     px: "0.3rem", border: "1px solid black", borderBottom: "3px solid black", backgroundColor: myTema.renkler.inaktifGri, display: "grid", alignItems: "center", justifyContent: "center"
   }
@@ -470,7 +470,7 @@ export default function P_MetrajOlusturCetvel() {
           <React.Fragment>
 
             <Box sx={{ ...css_metrajCetveliBaslik, gridColumn: "1/8", justifyContent: "end", pr: "1rem" }}>
-              Hazirlanmakta Olan Metraj
+              Hazırlık Aşamasındaki Metraj
             </Box>
 
             <Box sx={{ ...css_metrajCetveliBaslik, justifyContent: "end", pr: "0.3rem", color: hazirlananMetraj_state["metraj"] < 0 ? "red" : null }}>
@@ -494,7 +494,7 @@ export default function P_MetrajOlusturCetvel() {
           <React.Fragment>
 
             <Box sx={{ ...css_metrajCetveliBaslik_Yayinlanan, gridColumn: "1/8", justifyContent: "end", pr: "1rem" }}>
-              Yayınlanan Metraj
+              Hazırlanmış Metraj
             </Box>
 
             <Box sx={{ ...css_metrajCetveliBaslik_Yayinlanan, justifyContent: "end", pr: "0.3rem", color: hazirlananMetraj_state["metraj"] < 0 ? "red" : null }}>
@@ -529,7 +529,7 @@ export default function P_MetrajOlusturCetvel() {
                       {isCellEdit &&
                         <Box sx={{
                           ...css_metrajCetveliSatir,
-                          backgroundColor: !oneRow.isSelected && oneProperty.includes("aciklama") ? "rgba(255,255,0, 0.2)" : !oneRow.isSelected && oneProperty.includes("carpan") ? "rgba(255,255,0, 0.3)" : null,
+                          backgroundColor: !oneRow.isSelected && oneProperty.includes("aciklama") ? "rgba(255,255,0, 0.3)" : !oneRow.isSelected && oneProperty.includes("carpan") ? "rgba(255,255,0, 0.3)" : null,
                           minWidth: oneProperty.includes("aciklama") ? "10rem" : oneProperty.includes("1") || oneProperty.includes("2") ? "4rem" : "6rem"
                         }}>
                           <Input
@@ -582,8 +582,8 @@ export default function P_MetrajOlusturCetvel() {
                       {!isCellEdit &&
                         <Box sx={{
                           ...css_metrajCetveliSatir,
-                          // backgroundColor: oneRow?.isSelected ? myTema.renkler.inaktifGri : oneRow?.isReady && !oneRow?.newSelected ? "rgba(46, 172, 63, 0.25)" : oneRow?.isReady && oneRow?.newSelected && "rgba(191, 202, 34, 0.2)",
-                          backgroundColor: oneRow.isReady && myTema.renkler.inaktifGri,
+                          backgroundColor: (oneRow.isReady || oneRow.isSelected) ? myTema.renkler.inaktifGri : null,
+                          // backgroundColor: oneRow.isPreparing && "rgba( 253, 197, 123 , 0.2 )",
                           justifyContent: oneProperty.includes("aciklama") ? "start" : oneProperty.includes("carpan") ? "end" : oneProperty.includes("metraj") ? "end" : "center",
                           minWidth: oneProperty.includes("carpan") ? "5rem" : oneProperty.includes("metraj") ? "5rem" : null,
                           color: isMinha ? "red" : null

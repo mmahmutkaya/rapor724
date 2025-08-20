@@ -107,16 +107,33 @@ export default function HeaderMetrajOlusturPozMahaller() {
           </Grid> */}
 
           <Grid item xs>
-            <Box sx={{ display: "grid", gridAutoFlow: "column", justifyContent: "start", columnGap: "0.5rem" }}>
+            <Box sx={{ display: "grid", gridAutoFlow: "column", alignItems: "center", justifyContent: "start", columnGap: "0.5rem" }}>
+
+
+              <IconButton
+                sx={{ mx: 0, px: 0 }}
+                onClick={() => {
+                  navigate("/metrajolusturpozlar")
+                  setSelectedPoz_metraj()
+                }}
+                aria-label="wbsUncliced">
+                <ReplyIcon variant="contained"
+                  sx={{ color: "gray" }} />
+              </IconButton>
+
+
               <Box>
                 {selectedPoz_metraj?.pozName}
               </Box>
+
               <Box sx={{ color: "#8B0000", fontWeight: "600" }}>
                 {" > "}
               </Box>
+
               <Box>
                 {"Tüm Açık Mahaller"}
               </Box>
+
             </Box>
           </Grid>
 
@@ -127,7 +144,7 @@ export default function HeaderMetrajOlusturPozMahaller() {
           <Grid item xs="auto">
             <Grid container>
 
-              <Grid item >
+              {/* <Grid item >
                 <IconButton
                   onClick={() => {
                     navigate("/metrajolusturpozlar")
@@ -137,7 +154,7 @@ export default function HeaderMetrajOlusturPozMahaller() {
                   <ReplyIcon variant="contained"
                     sx={{ color: "gray" }} />
                 </IconButton>
-              </Grid>
+              </Grid> */}
 
               {/* <Grid item onClick={() => toggleEdit()} sx={{ cursor: "pointer" }}>
                 <IconButton disabled={false} >

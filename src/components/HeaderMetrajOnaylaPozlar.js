@@ -68,7 +68,7 @@ export default function HeaderMetrajOnaylaPozlar({ setShow }) {
               variant="h6"
               fontWeight="bold"
             >
-              Metraj
+              Metraj Onayla
             </Typography>
           </Grid>
 
