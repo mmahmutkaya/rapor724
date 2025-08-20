@@ -35,8 +35,6 @@ exports = async function ({
   let { hazirlananMetrajlar } = dugum
 
 
-
-
   if (hazirlananMetrajlar.length > 0) {
 
     try {
@@ -54,6 +52,9 @@ exports = async function ({
             update: {
               $unset: {
                 "hazirlananMetrajlar.$[oneHazirlanan].satirlar.$[oneSatir].isReadyUnSeen": ""
+              },
+               $set: {
+                "hazirlananMetrajlar.$[oneHazirlanan].satirlar.$[oneSatir].isReadyUnSeensfs": "deneme"
               }
             },
             arrayFilters: [
@@ -86,7 +87,6 @@ exports = async function ({
 
   hazirlananMetrajlar = hazirlananMetrajlar.map(oneHazirlanan => {
     oneHazirlanan.satirlar = oneHazirlanan.satirlar.filter(x => x.isReady || x.isSelected)
-    oneHazirlanan.metraj = oneHazirlanan.readyMetraj
     return oneHazirlanan
   })
 
