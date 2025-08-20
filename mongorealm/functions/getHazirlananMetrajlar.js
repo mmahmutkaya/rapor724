@@ -53,7 +53,7 @@ exports = async function ({
             filter: { _id: _dugumId },
             update: {
               $set: {
-                "hazirlananMetrajlar.$[oneHazirlanan].satirlar.$[oneSatir].isSeen": true
+                "hazirlananMetrajlar.$[oneHazirlanan].satirlar.$[oneSatir].isReadySeen": true
               }
             },
             arrayFilters: [
