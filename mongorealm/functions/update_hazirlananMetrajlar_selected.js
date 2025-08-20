@@ -58,13 +58,17 @@ exports = async function ({
           update: {
             $set: {
               "hazirlananMetrajlar.$[oneHazirlanan].satirlar.$[oneSatir].isSelected": true,
-              "hazirlananMetrajlar.$[oneHazirlanan].satirlar.$[oneSatir].hasSelectedCopy": false
+              "hazirlananMetrajlar.$[oneHazirlanan].satirlar.$[oneSatir].hasSelectedCopy": false,
+              "hazirlananMetrajlar.$[oneHazirlanan].satirlar.$[oneSatir].isReady": false,
+            },
+            $unset: {
+              "hazirlananMetrajlar.$[oneHazirlanan].satirlar.$[oneSatir].isReady": ""
             }
           },
           arrayFilters: [
             { "oneHazirlanan.userEmail": oneHazirlanan.userEmail },
             { "oneSatir.satirNo": { $in: oneHazirlanan_selected_satirNolar } },
-            { "oneSatir.isPreparing": { $ne: true } }
+            { "oneSatir.isReady": true },
           ]
         }
       }

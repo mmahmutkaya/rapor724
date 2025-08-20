@@ -51,7 +51,13 @@ exports = async function ({
           "hazirlananMetrajlar.$[oneHazirlanan].satirlar.$[oneSatir].isPreparing": ""
         }
       },
-      { arrayFilters: [{ "oneHazirlanan.userEmail": userEmail }, { "oneSatir.satirNo": { $in: oneHazirlanan_ready_satirNolar } }] }
+      {
+        arrayFilters: [
+          { "oneHazirlanan.userEmail": userEmail },
+          { "oneSatir.satirNo": { $in: oneHazirlanan_ready_satirNolar } },
+          { "oneSatir.isPreparing": true },
+        ]
+      }
     )
 
   } catch (error) {
@@ -146,7 +152,7 @@ exports = async function ({
             }
           }
         },
-        
+
       ]
     )
 
