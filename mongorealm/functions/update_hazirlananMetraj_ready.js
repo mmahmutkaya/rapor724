@@ -59,7 +59,7 @@ exports = async function ({
           {
             "oneSatir.satirNo": { $in: oneHazirlanan_ready_satirNolar },
             "oneSatir.isPreparing": true 
-          },
+          }
         ]
       }
     )
