@@ -68,11 +68,11 @@ exports = async function ({
             }
           },
           arrayFilters: [
-            { 
-              "oneHazirlanan.userEmail": oneHazirlanan.userEmail 
+            {
+              "oneHazirlanan.userEmail": oneHazirlanan.userEmail
             },
-            { 
-              "oneSatir.satirNo": { $in: oneHazirlanan_unReady_satirNolar } ,
+            {
+              "oneSatir.satirNo": { $in: oneHazirlanan_unReady_satirNolar },
               "oneSatir.isReady": true
             },
           ]
@@ -138,9 +138,10 @@ exports = async function ({
                             "in": {
                               "$cond": {
                                 "if": {
-                                  $eq: [
-                                    "$$oneSatir.isReady",
-                                    true
+                                  $or: [
+                                    { $eq: ["$$oneSatir.isReady", true] },
+                                    { $eq: ["$$oneSatir.isSelected", true] },
+                                    { $eq: ["$$oneSatir.hasSelectedCopy", true] }
                                   ]
                                 },
                                 "then": "$$oneSatir.metraj",
