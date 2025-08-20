@@ -115,9 +115,10 @@ exports = async function ({
                             "in": {
                               "$cond": {
                                 "if": {
-                                  $eq: [
-                                    "$$oneSatir.isReady",
-                                    true
+                                  $or: [
+                                    {$eq:["$$oneSatir.isReady",true]},
+                                    {$eq:["$$oneSatir.isSelected",true]},
+                                    {$eq:["$$oneSatir.hasSelectedCopy",true]}
                                   ]
                                 },
                                 "then": "$$oneSatir.metraj",
