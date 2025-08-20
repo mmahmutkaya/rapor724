@@ -56,34 +56,6 @@ exports = async function ({
                 metrajPreparing: "$$oneHazirlanan.metrajPreparing",
                 metrajReady: "$$oneHazirlanan.metrajReady",
                 metrajOnaylanan: "$$oneHazirlanan.metrajOnaylanan",
-                hasSelected: {
-                  "$reduce": {
-                    "input": "$$oneHazirlanan.satirlar",
-                    "initialValue": false,
-                    "in": {
-                      "$cond": {
-                        "if": {
-                          "$and": [
-                            {
-                              $eq: [
-                                "$$value",
-                                false
-                              ]
-                            },
-                            {
-                              $eq: [
-                                "$$this.isSelected",
-                                true
-                              ]
-                            }
-                          ]
-                        },
-                        "then": true,
-                        "else": "$$value"
-                      }
-                    }
-                  }
-                },
                 hasReadyUnSeen: {
                   "$reduce": {
                     "input": "$$oneHazirlanan.satirlar",
@@ -112,7 +84,7 @@ exports = async function ({
                     }
                   }
                 },
-                hasUnSelected: {
+                hasReady: {
                   "$reduce": {
                     "input": "$$oneHazirlanan.satirlar",
                     "initialValue": false,
@@ -127,19 +99,37 @@ exports = async function ({
                               ]
                             },
                             {
-                              $and: [
-                                {
-                                  $eq: [
-                                    "$$this.isReady",
-                                    true
-                                  ]
-                                },
-                                {
-                                  $ne: [
-                                    "$$this.isSelected",
-                                    true
-                                  ]
-                                }
+                              $eq: [
+                                "$$this.isReady",
+                                true
+                              ]
+                            }
+                          ]
+                        },
+                        "then": true,
+                        "else": "$$value"
+                      }
+                    }
+                  }
+                },
+                hasSelected: {
+                  "$reduce": {
+                    "input": "$$oneHazirlanan.satirlar",
+                    "initialValue": false,
+                    "in": {
+                      "$cond": {
+                        "if": {
+                          "$and": [
+                            {
+                              $eq: [
+                                "$$value",
+                                false
+                              ]
+                            },
+                            {
+                              $eq: [
+                                "$$this.isSelected",
+                                true
                               ]
                             }
                           ]
@@ -150,6 +140,44 @@ exports = async function ({
                     }
                   }
                 }
+                // hasUnSelected: {
+                //   "$reduce": {
+                //     "input": "$$oneHazirlanan.satirlar",
+                //     "initialValue": false,
+                //     "in": {
+                //       "$cond": {
+                //         "if": {
+                //           "$and": [
+                //             {
+                //               $eq: [
+                //                 "$$value",
+                //                 false
+                //               ]
+                //             },
+                //             {
+                //               $and: [
+                //                 {
+                //                   $eq: [
+                //                     "$$this.isReady",
+                //                     true
+                //                   ]
+                //                 },
+                //                 {
+                //                   $ne: [
+                //                     "$$this.isSelected",
+                //                     true
+                //                   ]
+                //                 }
+                //               ]
+                //             }
+                //           ]
+                //         },
+                //         "then": true,
+                //         "else": "$$value"
+                //       }
+                //     }
+                //   }
+                // }
               }
             }
           }
