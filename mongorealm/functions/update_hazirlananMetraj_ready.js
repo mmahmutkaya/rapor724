@@ -45,7 +45,8 @@ exports = async function ({
       { _id: _dugumId },
       {
         $set: {
-          "hazirlananMetrajlar.$[oneHazirlanan].satirlar.$[oneSatir].isReady": true
+          "hazirlananMetrajlar.$[oneHazirlanan].satirlar.$[oneSatir].isReady": true,
+          "hazirlananMetrajlar.$[oneHazirlanan].satirlar.$[oneSatir].isReadyUnseen": true
         },
         $unset: {
           "hazirlananMetrajlar.$[oneHazirlanan].satirlar.$[oneSatir].isPreparing": ""
