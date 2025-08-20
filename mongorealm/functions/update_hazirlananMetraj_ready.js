@@ -53,9 +53,13 @@ exports = async function ({
       },
       {
         arrayFilters: [
-          { "oneHazirlanan.userEmail": userEmail },
-          { "oneSatir.satirNo": { $in: oneHazirlanan_ready_satirNolar } },
-          { "oneSatir.isPreparing": true },
+          {
+            "oneHazirlanan.userEmail": userEmail
+          },
+          {
+            "oneSatir.satirNo": { $in: oneHazirlanan_ready_satirNolar },
+            "oneSatir.isPreparing": true 
+          },
         ]
       }
     )
