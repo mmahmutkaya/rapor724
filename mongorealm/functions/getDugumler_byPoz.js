@@ -84,34 +84,34 @@ exports = async function ({
                     }
                   }
                 },
-                // hasReady: {
-                //   "$reduce": {
-                //     "input": "$$oneHazirlanan.satirlar",
-                //     "initialValue": false,
-                //     "in": {
-                //       "$cond": {
-                //         "if": {
-                //           "$and": [
-                //             {
-                //               $eq: [
-                //                 "$$value",
-                //                 false
-                //               ]
-                //             },
-                //             {
-                //               $eq: [
-                //                 "$$this.isReady",
-                //                 true
-                //               ]
-                //             }
-                //           ]
-                //         },
-                //         "then": true,
-                //         "else": "$$value"
-                //       }
-                //     }
-                //   }
-                // },
+                hasReadyUnSeen: {
+                  "$reduce": {
+                    "input": "$$oneHazirlanan.satirlar",
+                    "initialValue": false,
+                    "in": {
+                      "$cond": {
+                        "if": {
+                          "$and": [
+                            {
+                              $eq: [
+                                "$$value",
+                                false
+                              ]
+                            },
+                            {
+                              $eq: [
+                                "$$this.isReadyUnSeen",
+                                true
+                              ]
+                            }
+                          ]
+                        },
+                        "then": true,
+                        "else": "$$value"
+                      }
+                    }
+                  }
+                },
                 hasUnSelected: {
                   "$reduce": {
                     "input": "$$oneHazirlanan.satirlar",
