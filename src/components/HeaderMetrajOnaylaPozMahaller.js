@@ -146,17 +146,17 @@ export default function HeaderMetrajOnaylaPozMahaller({
               } */}
 
               {!selectMode &&
-                <Grid item sx={{ cursor: "pointer" }}>
-                  <IconButton onClick={() => setSelectMode(x => !x)} disabled={!anySelectable}>
-                    <GroupWorkIcon variant="contained" sx={{ color: anySelectable ? "gray" : "lightgray" }} />
+                <Grid item >
+                  <IconButton onClick={() => setShow("ShowMetrajYapabilenler")} disabled={false}>
+                    <PersonIcon variant="contained" />
                   </IconButton>
                 </Grid>
               }
 
               {!selectMode &&
-                <Grid item >
-                  <IconButton onClick={() => setShow("ShowMetrajYapabilenler")} disabled={false}>
-                    <PersonIcon variant="contained" />
+                <Grid item sx={{ cursor: "pointer" }}>
+                  <IconButton onClick={() => setSelectMode(x => !x)} disabled={!anySelectable}>
+                    <GroupWorkIcon variant="contained" sx={{ color: anySelectable ? "gray" : "lightgray" }} />
                   </IconButton>
                 </Grid>
               }

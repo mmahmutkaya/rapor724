@@ -76,6 +76,7 @@ export default function P_MetrajOnaylaPozMahaller() {
     !selectedPoz_metraj && navigate('/metrajpozlar')
     setDugumler_byPoz_state(_.cloneDeep(data?.dugumler_byPoz))
     setDugumler_byPoz_backup(_.cloneDeep(data?.dugumler_byPoz))
+    // console.log("dugumler_byPoz",data?.dugumler_byPoz)
     setLbsMetrajlar(_.cloneDeep(data?.lbsMetrajlar))
     setAnySelectable(data?.anySelectable)
     return () => {
@@ -440,7 +441,7 @@ export default function P_MetrajOnaylaPozMahaller() {
                 <Box sx={{ ...css_LbsBaslik, borderLeft: "1px solid black", gridColumn: "1/3" }}>
                   {getLbsName(oneLbs).name}
                 </Box>
-                <Box sx={{ ...css_LbsBaslik, justifyContent:"end" }}>
+                <Box sx={{ ...css_LbsBaslik, justifyContent: "end" }}>
                   {ikiHane(lbsMetraj?.metrajOnaylanan)}
                 </Box>
                 <Box sx={{ ...css_LbsBaslik, justifyContent: "center" }}> {pozBirim} </Box>
@@ -542,59 +543,68 @@ export default function P_MetrajOnaylaPozMahaller() {
                             let hasUnSelected = oneHazirlanan?.hasUnSelected
                             let metraj = oneHazirlanan?.metrajReady
                             let hasSelectedFull_aday = oneHazirlanan?.hasSelectedFull_aday
+                            let clickAble = hasUnSelected || hasSelected || hasReady ? true : false
 
                             return (
                               <Box
                                 key={index}
                                 onClick={() => selectMode && hasUnSelected && addNodes_select({ tip: "mahal", mahal: oneMahal, userEmail: oneYapabilen.userEmail })}
-                                onDoubleClick={() => !selectMode && hasReady && goTo_onayCetveli({ dugum, oneMahal, userEmail: oneYapabilen.userEmail })}
+                                onDoubleClick={() => !selectMode && clickAble && goTo_onayCetveli({ dugum, oneMahal, userEmail: oneYapabilen.userEmail })}
                                 sx={{
                                   ...css_mahaller,
                                   justifyContent: "end",
-                                  cursor: !selectMode && hasReady ? "pointer" : (selectMode && hasUnSelected) && "pointer",
+                                  cursor: clickAble && "pointer",
                                   // backgroundColor: !hasUnSelected ? "lightgray" : "rgba(255, 251, 0, 0.55)",
-                                  backgroundColor: !hasReady ? "lightgray" : hasUnSelected && "rgba(255, 251, 0, 0.55)",
+                                  backgroundColor: hasUnSelected ? "rgba(255, 251, 0, 0.55)" : !clickAble && "lightgray",
                                   display: "grid",
                                   gridTemplateColumns: "1rem 1fr",
-                                  "&:hover": hasReady && { "& .childClass": { backgroundColor: "red" } }
+                                  "&:hover":
+                                    !selectMode && clickAble ? { "& .childClass": { color: "red" } } :
+                                    selectMode && hasUnSelected && { "& .childClass": { color: "red" } }
                                 }}>
-                                {!selectMode &&
+
+                                {/* {!selectMode &&
                                   <Box
                                     className="childClass"
                                     sx={{
                                       // backgroundColor: !hasUnSelected ? "lightgray" : hasSelected ? "gray" : "rgba(255, 251, 0, 0.55)",
-                                      backgroundColor: !hasReady ? "lightgray" : hasUnSelected && !hasSelected ? "rgba(255, 251, 0, 0.55)" : hasUnSelected && hasSelected && "gray",
+                                      backgroundColor: hasSelected && hasUnSelected && "gray",
                                       height: "0.5rem", width: "0.5rem",
                                       borderRadius: "50%"
                                     }}>
                                   </Box>
-                                }
-                                {selectMode && !hasUnSelected &&
-                                  <Box
-                                    // className="childClass"
-                                    sx={{
-                                      // backgroundColor: !hasUnSelected ? "lightgray" : hasSelected ? "gray" : "rgba(255, 251, 0, 0.55)",
-                                      backgroundColor: !hasReady ? "lightgray" : hasUnSelected && !hasSelected ? "rgba(255, 251, 0, 0.55)" : hasUnSelected && hasSelected && "gray",
-                                      height: "0.5rem", width: "0.5rem",
-                                      borderRadius: "50%"
-                                    }}>
-                                  </Box>
-                                }
-                                {selectMode && hasReady && hasUnSelected && !hasSelectedFull_aday && !hasSelected &&
+                                } */}
+
+
+                                {!hasSelectedFull_aday &&
                                   <Box sx={{ display: "grid", alignItems: "center", justifyContent: "center" }}>
-                                    <FileDownloadDoneIcon variant="contained" sx={{ fontSize: "1rem", color: "yellow", "&:hover": { color: "red" } }} />
+                                    <CircleIcon variant="contained" className="childClass" sx={{
+                                      mr: "0.3rem", fontSize: "0.65rem",
+                                      color:
+                                        hasSelected && !hasUnSelected ? "white" :
+                                          hasSelected && hasUnSelected ? "gray" :
+                                            !hasSelected && hasUnSelected ? "rgba(255, 251, 0, 0.55)" :
+                                              !hasReady && !hasSelected && "lightgray"
+                                    }} />
                                   </Box>
                                 }
-                                {selectMode && hasReady && hasUnSelected && !hasSelectedFull_aday && hasSelected &&
+
+                                {selectMode && hasSelectedFull_aday &&
+                                  <Box sx={{ display: "grid", alignItems: "center", justifyContent: "center" }}>
+                                    <AddCircleIcon variant="contained" sx={{ mr: "0.3rem", fontSize: "0.80rem", color: "green" }} />
+                                  </Box>
+                                }
+
+                                {/* {selectMode && hasSelected &&
                                   <Box sx={{ display: "grid", alignItems: "center", justifyContent: "center" }}>
                                     <CircleIcon variant="contained" sx={{ fontSize: "0.6rem", color: "gray", "&:hover": { color: "gray" } }} />
                                   </Box>
-                                }
-                                {selectMode && hasReady && hasUnSelected && hasSelectedFull_aday &&
+                                } */}
+                                {/* {selectMode && hasReady && hasUnSelected && hasSelectedFull_aday &&
                                   <Box sx={{ display: "grid", alignItems: "center", justifyContent: "center" }}>
                                     <AddCircleIcon variant="contained" sx={{ fontSize: "0.90rem", color: "green", "&:hover": { color: "green" } }} />
                                   </Box>
-                                }
+                                } */}
 
                                 <Box sx={{ justifySelf: "end" }}>
                                   {ikiHane(metraj)}

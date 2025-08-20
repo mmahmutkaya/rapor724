@@ -417,21 +417,22 @@ export default function P_MetrajOnaylaPozlar() {
                             let hasSelected = oneHazirlanan?.hasSelected
                             let hasUnSelected = oneHazirlanan?.hasUnSelected
                             let metraj = oneHazirlanan?.metrajReady
+                            let clickAble = hasUnSelected || hasSelected || hasReady ? true : false
 
                             return (
                               <Box
                                 key={index}
-                                onDoubleClick={() => hasReady && goTo_MetrajPozmahaller(onePoz)}
+                                onDoubleClick={() => clickAble && goTo_MetrajPozmahaller(onePoz)}
                                 sx={{
-                                  ...pozNo_css, display: "grid", gridTemplateColumns: "1rem 1fr", justifyContent: "end", cursor: hasReady && "pointer",
-                                  backgroundColor: !hasReady ? "lightgray" : hasUnSelected && "rgba(255, 251, 0, 0.55)",
-                                  "&:hover": hasReady && { "& .childClass": { backgroundColor: "red" } }
+                                  ...pozNo_css, display: "grid", gridTemplateColumns: "1rem 1fr", justifyContent: "end", cursor: clickAble && "pointer",
+                                  backgroundColor: hasUnSelected ? "rgba(255, 251, 0, 0.55)" : !clickAble && "lightgray",
+                                  "&:hover": clickAble && { "& .childClass": { backgroundColor: "red" } },
                                 }}>
                                 <Box
                                   className="childClass"
                                   sx={{
                                     ml: "-1rem", height: "0.5rem", width: "0.5rem", borderRadius: "50%",
-                                    backgroundColor: !hasReady ? "lightgray" : hasUnSelected && !hasSelected ? "rgba(255, 251, 0, 0.55)" : hasUnSelected && hasSelected && "gray",
+                                    backgroundColor: hasSelected && hasUnSelected && "gray",
                                   }}>
                                 </Box>
                                 <Box sx={{ justifySelf: "end" }}>
