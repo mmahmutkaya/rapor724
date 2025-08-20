@@ -21,21 +21,11 @@ exports = async function ({
   }
 
   const collection_Dugumler = context.services.get("mongodb-atlas").db("rapor724_v2").collection("dugumler")
-  // const collection_Projeler = context.services.get("mongodb-atlas").db("rapor724_v2").collection("projeler")
 
-  // let proje = await collection_Projeler.findOne({ _id: _projeId }, { yetki: 1 })
-
-  // let hazirlananMetrajlar = await collection_Dugumler.aggregate({ _dugumId }, { hazirlananMetrajlar: 1 }).toArray()
-
-  // let dugum = await collection_Dugumler.aggregate([
-  //   { $match: { _id: _dugumId, isDeleted: false } },
-  //   { $project: { _pozId: 1, _mahalId: 1, hazirlananMetrajlar: 1, onaylananMetraj: 1 } },
-  //   { $limit: 1 }
-  // ]).toArray()
 
   const result = await collection_Dugumler.aggregate([
     { $match: { _id: _dugumId } },
-    { $project: { _pozId: 1, _mahalId: 1, hazirlananMetrajlar: 1, onaylananMetraj: 1 } },
+    { $project: { _pozId: 1, _mahalId: 1, hazirlananMetrajlar: 1, metrajPreparing: 1 , metrajReady: 1 , metrajOnaylanan: 1 } },
     { $limit: 1 }
   ]).toArray()
 
@@ -46,7 +36,7 @@ exports = async function ({
 
   if (hazirlananMetrajlar.length > 0) {
     hazirlananMetrajlar = hazirlananMetrajlar.map(oneHazirlanan => {
-      oneHazirlanan.satirlar = oneHazirlanan.satirlar.filter(x => x.isReady === true)
+      oneHazirlanan.satirlar = oneHazirlanan.satirlar.filter(x => x.isReady || x.isSelected)
       oneHazirlanan.metraj = oneHazirlanan.readyMetraj
       return oneHazirlanan
     })

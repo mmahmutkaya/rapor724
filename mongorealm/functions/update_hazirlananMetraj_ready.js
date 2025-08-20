@@ -51,7 +51,17 @@ exports = async function ({
           "hazirlananMetrajlar.$[oneHazirlanan].satirlar.$[oneSatir].isPreparing": ""
         }
       },
-      { arrayFilters: [{ "oneHazirlanan.userEmail": userEmail }, { "oneSatir.satirNo": { $in: oneHazirlanan_ready_satirNolar } }] }
+      {
+        arrayFilters: [
+          {
+            "oneHazirlanan.userEmail": userEmail
+          },
+          {
+            "oneSatir.satirNo": { $in: oneHazirlanan_ready_satirNolar },
+            "oneSatir.isPreparing": true 
+          }
+        ]
+      }
     )
 
   } catch (error) {
@@ -105,9 +115,10 @@ exports = async function ({
                             "in": {
                               "$cond": {
                                 "if": {
-                                  $eq: [
-                                    "$$oneSatir.isReady",
-                                    true
+                                  $or: [
+                                    {$eq:["$$oneSatir.isReady",true]},
+                                    {$eq:["$$oneSatir.isSelected",true]},
+                                    {$eq:["$$oneSatir.hasSelectedCopy",true]}
                                   ]
                                 },
                                 "then": "$$oneSatir.metraj",
@@ -146,7 +157,7 @@ exports = async function ({
             }
           }
         },
-        
+
       ]
     )
 

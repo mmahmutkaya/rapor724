@@ -59,9 +59,20 @@ exports = async function ({
             $set: {
               "hazirlananMetrajlar.$[oneHazirlanan].satirlar.$[oneSatir].isSelected": true,
               "hazirlananMetrajlar.$[oneHazirlanan].satirlar.$[oneSatir].hasSelectedCopy": false
+            },
+            $unset: {
+              "hazirlananMetrajlar.$[oneHazirlanan].satirlar.$[oneSatir].isReady": ""
             }
           },
-          arrayFilters: [{ "oneHazirlanan.userEmail": oneHazirlanan.userEmail }, { "oneSatir.satirNo": { $in: oneHazirlanan_selected_satirNolar } }]
+          arrayFilters: [
+            {
+              "oneHazirlanan.userEmail": oneHazirlanan.userEmail
+            },
+            {
+              "oneSatir.satirNo": { $in: oneHazirlanan_selected_satirNolar },
+              "oneSatir.isReady": true
+            }
+          ]
         }
       }
       bulkArray = [...bulkArray, oneBulk]
