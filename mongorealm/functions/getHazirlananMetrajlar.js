@@ -25,7 +25,7 @@ exports = async function ({
 
   const result = await collection_Dugumler.aggregate([
     { $match: { _id: _dugumId } },
-    { $project: { _pozId: 1, _mahalId: 1, hazirlananMetrajlar: 1, metrajPreparing: 1 , metrajReady: 1 , metrajOnaylanan: 1 } },
+    { $project: { _pozId: 1, _mahalId: 1, hazirlananMetrajlar: 1, metrajPreparing: 1, metrajReady: 1, metrajOnaylanan: 1 } },
     { $limit: 1 }
   ]).toArray()
 
@@ -34,14 +34,61 @@ exports = async function ({
 
   let { hazirlananMetrajlar } = dugum
 
+
+
+
   if (hazirlananMetrajlar.length > 0) {
-    hazirlananMetrajlar = hazirlananMetrajlar.map(oneHazirlanan => {
-      oneHazirlanan.satirlar = oneHazirlanan.satirlar.filter(x => x.isReady || x.isSelected)
-      oneHazirlanan.metraj = oneHazirlanan.readyMetraj
-      return oneHazirlanan
-    })
+
+    try {
+
+      let bulkArray = []
+      hazirlananMetrajlar.map(oneHazirlanan => {
+
+        let oneHazirlanan_isSeen_satirNolar = oneHazirlanan.satirlar.filter(x => x.isReady).map(oneSatir => {
+          return oneSatir.satirNo
+        })
+
+        oneBulk = {
+          updateOne: {
+            filter: { _id: _dugumId },
+            update: {
+              $set: {
+                "hazirlananMetrajlar.$[oneHazirlanan].satirlar.$[oneSatir].isSeen": true
+              }
+            },
+            arrayFilters: [
+              {
+                "oneHazirlanan.userEmail": oneHazirlanan.userEmail
+              },
+              {
+                "oneSatir.satirNo": { $in: oneHazirlanan_isSeen_satirNolar },
+                "oneSatir.isReady": true
+              }
+            ]
+          }
+        }
+        bulkArray = [...bulkArray, oneBulk]
+
+      })
+
+      await collection_Dugumler.bulkWrite(
+        bulkArray,
+        { ordered: false }
+      )
+
+    } catch (error) {
+      throw new Error("MONGO // getHazirlananMetrajlar / isSeen // " + error);
+    }
+
+
   }
 
+
+  hazirlananMetrajlar = hazirlananMetrajlar.map(oneHazirlanan => {
+    oneHazirlanan.satirlar = oneHazirlanan.satirlar.filter(x => x.isReady || x.isSelected)
+    oneHazirlanan.metraj = oneHazirlanan.readyMetraj
+    return oneHazirlanan
+  })
 
   return { hazirlananMetrajlar }
 
