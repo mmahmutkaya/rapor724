@@ -52,7 +52,8 @@ exports = async function ({
                   "hazirlananMetrajlar.$[oneHazirlanan].satirlar.$[oneSatir].hasSelectedCopy": false
                 },
                 $inc: {
-                  "hazirlananMetrajlar.$[oneHazirlanan].metrajOnaylanan": { $sum: "$hazirlananMetrajlar.$[oneHazirlanan].satirlar.$[oneSatir].metraj" }
+                  // "hazirlananMetrajlar.$[oneHazirlanan].metrajOnaylanan": { $sum: "$hazirlananMetrajlar.$[oneHazirlanan].satirlar.$[oneSatir].metraj" }
+                  "hazirlananMetrajlar.$[oneHazirlanan].metrajOnaylanan": 44
                 },
                 $unset: {
                   "hazirlananMetrajlar.$[oneHazirlanan].satirlar.$[oneSatir].isReady": "",
