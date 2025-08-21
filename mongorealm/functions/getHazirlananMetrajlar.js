@@ -52,9 +52,6 @@ exports = async function ({
             update: {
               $unset: {
                 "hazirlananMetrajlar.$[oneHazirlanan].satirlar.$[oneSatir].isReadyUnSeen": ""
-              },
-               $set: {
-                "hazirlananMetrajlar.$[oneHazirlanan].satirlar.$[oneSatir].isReadyUnSeensfs": "deneme"
               }
             },
             arrayFilters: [

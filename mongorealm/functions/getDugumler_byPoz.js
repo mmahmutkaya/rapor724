@@ -56,7 +56,7 @@ exports = async function ({
                 metrajPreparing: "$$oneHazirlanan.metrajPreparing",
                 metrajReady: "$$oneHazirlanan.metrajReady",
                 metrajOnaylanan: "$$oneHazirlanan.metrajOnaylanan",
-                hasSelected: {
+                hasReadyUnSeen: {
                   "$reduce": {
                     "input": "$$oneHazirlanan.satirlar",
                     "initialValue": false,
@@ -72,7 +72,7 @@ exports = async function ({
                             },
                             {
                               $eq: [
-                                "$$this.isSelected",
+                                "$$this.isReadyUnSeen",
                                 true
                               ]
                             }
@@ -101,6 +101,34 @@ exports = async function ({
                             {
                               $eq: [
                                 "$$this.isReady",
+                                true
+                              ]
+                            }
+                          ]
+                        },
+                        "then": true,
+                        "else": "$$value"
+                      }
+                    }
+                  }
+                },
+                hasSelected: {
+                  "$reduce": {
+                    "input": "$$oneHazirlanan.satirlar",
+                    "initialValue": false,
+                    "in": {
+                      "$cond": {
+                        "if": {
+                          "$and": [
+                            {
+                              $eq: [
+                                "$$value",
+                                false
+                              ]
+                            },
+                            {
+                              $eq: [
+                                "$$this.isSelected",
                                 true
                               ]
                             }
