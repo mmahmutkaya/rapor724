@@ -61,7 +61,8 @@ exports = async function ({
               "hazirlananMetrajlar.$[oneHazirlanan].satirlar.$[oneSatir].hasSelectedCopy": false
             },
             $unset: {
-              "hazirlananMetrajlar.$[oneHazirlanan].satirlar.$[oneSatir].isReady": ""
+              "hazirlananMetrajlar.$[oneHazirlanan].satirlar.$[oneSatir].isReady": "",
+              "hazirlananMetrajlar.$[oneHazirlanan].satirlar.$[oneSatir].isReadyUnSeen": ""
             }
           },
           arrayFilters: [
