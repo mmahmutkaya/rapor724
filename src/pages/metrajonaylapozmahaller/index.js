@@ -19,7 +19,7 @@ import Grid from '@mui/material/Grid';
 import Alert from '@mui/material/Alert';
 import Stack from '@mui/material/Stack';
 import Box from '@mui/material/Box';
-import { BorderBottom } from '@mui/icons-material';
+import { BorderBottom, Check } from '@mui/icons-material';
 import Tooltip from '@mui/material/Tooltip';
 import FileDownloadDoneIcon from '@mui/icons-material/FileDownloadDone';
 import CircleIcon from '@mui/icons-material/Circle';
@@ -154,46 +154,121 @@ export default function P_MetrajOnaylaPozMahaller() {
 
 
 
-  //  selectedNode toplu onaylama fınksiyonları
+
+
+
+
+  //  SELECTED FULL - FONKSİYONLARI - ADD - REMOVE - CANCEL - SAVE
 
   const addNodes_select = ({ tip, mahaller, mahal, userEmail }) => {
 
     let dugumler_byPoz_state2 = _.cloneDeep(dugumler_byPoz_state)
 
+
     if (tip === "all") {
-      dugumler_byPoz_state2 = dugumler_byPoz_state2?.map(oneDugum => {
-        oneDugum?.hazirlananMetrajlar?.map(oneHazirlanan => {
-          if (oneHazirlanan.userEmail === userEmail && oneHazirlanan.hasUnSelected) {
-            if (oneHazirlanan.hasUnSelected) {
-              oneHazirlanan.hasSelectedFull_aday = true
-              setIsChange_select(true)
-            }
+
+
+      // içinde seçilmemiş varsa hepsini seçiçez - önce bir tarayalım
+      let isAllSelected = true
+      outerLoop: for (let i = 0; i < dugumler_byPoz_state2.length; i++) {
+        let oneDugum = dugumler_byPoz_state2[i]
+        for (let j = 0; j < oneDugum?.hazirlananMetrajlar.length; j++) {
+          let oneHazirlanan = oneDugum?.hazirlananMetrajlar[j]
+          if (!(oneHazirlanan?.userEmail === userEmail && oneHazirlanan?.hasUnSelected)) {
+            continue
           }
-          return oneHazirlanan
+          if (!oneHazirlanan.hasSelectedFull_aday) {
+            isAllSelected = false
+            break outerLoop; // Exits both loops
+          }
+        }
+      }
+
+
+      if (!isAllSelected) {
+
+        dugumler_byPoz_state2 = dugumler_byPoz_state2?.map(oneDugum => {
+          oneDugum?.hazirlananMetrajlar?.map(oneHazirlanan => {
+            if (oneHazirlanan.userEmail === userEmail && oneHazirlanan.hasUnSelected) {
+              oneHazirlanan.hasSelectedFull_aday = true
+            }
+            return oneHazirlanan
+          })
+          return oneDugum
         })
-        return oneDugum
-      })
+
+      } else {
+
+        dugumler_byPoz_state2 = dugumler_byPoz_state2?.map(oneDugum => {
+          oneDugum?.hazirlananMetrajlar?.map(oneHazirlanan => {
+            if (oneHazirlanan.userEmail === userEmail && oneHazirlanan.hasSelectedFull_aday) {
+              delete oneHazirlanan.hasSelectedFull_aday
+            }
+            return oneHazirlanan
+          })
+          return oneDugum
+        })
+
+      }
+
     }
 
 
     if (tip === "mahaller_byPoz_byLbs") {
 
-      dugumler_byPoz_state2 = dugumler_byPoz_state2?.map(oneDugum => {
-        if (!mahaller.find(x => x._id.toString() === oneDugum._mahalId.toString())) {
-          return oneDugum
-        }
-        oneDugum?.hazirlananMetrajlar?.map(oneHazirlanan => {
 
-          if (oneHazirlanan.userEmail === userEmail && oneHazirlanan.hasUnSelected) {
-            if (oneHazirlanan.hasUnSelected) {
-              oneHazirlanan.hasSelectedFull_aday = true
-              setIsChange_select(true)
-            }
+      // içinde seçilmemiş varsa hepsini seçiçez - önce bir tarayalım
+      let isAllSelected = true
+      outerLoop: for (let i = 0; i < dugumler_byPoz_state2.length; i++) {
+        let oneDugum = dugumler_byPoz_state2[i]
+        if (!mahaller.find(x => x._id.toString() === oneDugum._mahalId.toString())) {
+          continue
+        }
+        for (let j = 0; j < oneDugum?.hazirlananMetrajlar.length; j++) {
+          let oneHazirlanan = oneDugum?.hazirlananMetrajlar[j]
+          if (!(oneHazirlanan?.userEmail === userEmail && oneHazirlanan?.hasUnSelected)) {
+            continue
           }
-          return oneHazirlanan
+          if (!oneHazirlanan.hasSelectedFull_aday) {
+            isAllSelected = false
+            break outerLoop; // Exits both loops
+          }
+        }
+      }
+
+
+      if (!isAllSelected) {
+
+        dugumler_byPoz_state2 = dugumler_byPoz_state2?.map(oneDugum => {
+          if (!mahaller.find(x => x._id.toString() === oneDugum._mahalId.toString())) {
+            return oneDugum
+          }
+          oneDugum?.hazirlananMetrajlar?.map(oneHazirlanan => {
+            if (oneHazirlanan.userEmail === userEmail && oneHazirlanan.hasUnSelected) {
+              oneHazirlanan.hasSelectedFull_aday = true
+            }
+            return oneHazirlanan
+          })
+          return oneDugum
         })
-        return oneDugum
-      })
+
+      } else {
+
+        dugumler_byPoz_state2 = dugumler_byPoz_state2?.map(oneDugum => {
+          if (!mahaller.find(x => x._id.toString() === oneDugum._mahalId.toString())) {
+            return oneDugum
+          }
+          oneDugum?.hazirlananMetrajlar?.map(oneHazirlanan => {
+            if (oneHazirlanan.userEmail === userEmail && oneHazirlanan.hasSelectedFull_aday) {
+              delete oneHazirlanan.hasSelectedFull_aday
+            }
+            return oneHazirlanan
+          })
+          return oneDugum
+        })
+
+      }
+
     }
 
 
@@ -204,22 +279,38 @@ export default function P_MetrajOnaylaPozMahaller() {
           return oneDugum
         }
         oneDugum?.hazirlananMetrajlar?.map(oneHazirlanan => {
-
-          if (oneHazirlanan.userEmail === userEmail && oneHazirlanan.hasUnSelected) {
-            if (oneHazirlanan.hasUnSelected) {
-              oneHazirlanan.hasSelectedFull_aday = true
-              setIsChange_select(true)
-            }
+          if (!(oneHazirlanan.userEmail === userEmail && oneHazirlanan.hasUnSelected)) {
+            return oneHazirlanan
+          }
+          if (!oneHazirlanan.hasSelectedFull_aday) {
+            oneHazirlanan.hasSelectedFull_aday = true
+          } else {
+            delete oneHazirlanan.hasSelectedFull_aday
           }
           return oneHazirlanan
         })
         return oneDugum
       })
+
+
+    }
+
+    setIsChange_select(false)
+    outerLoop: for (let i = 0; i < dugumler_byPoz_state2.length; i++) {
+      let oneDugum = dugumler_byPoz_state2[i]
+      for (let j = 0; j < oneDugum.hazirlananMetrajlar.length; j++) {
+        let oneHazirlanan = oneDugum.hazirlananMetrajlar[j]
+        if (oneHazirlanan?.hasSelectedFull_aday) {
+          setIsChange_select(true)
+          break outerLoop; // Exits both loops
+        }
+      }
     }
 
     setDugumler_byPoz_state(dugumler_byPoz_state2)
 
   }
+
 
   const cancel_select = () => {
     setDugumler_byPoz_state(_.cloneDeep(dugumler_byPoz_backUp))
@@ -538,30 +629,42 @@ export default function P_MetrajOnaylaPozMahaller() {
                           {showMetrajYapabilenler?.filter(x => x.isShow).map((oneYapabilen, index) => {
 
                             let oneHazirlanan = dugum?.hazirlananMetrajlar?.find(x => x.userEmail === oneYapabilen.userEmail)
-                            let hasReady = oneHazirlanan?.hasReady
-                            let hasSelected = oneHazirlanan?.hasSelected
+                            // let hasReadyUnSeen = oneHazirlanan?.hasReadyUnSeen
+                            // let hasSelected = oneHazirlanan?.hasSelected
                             let hasUnSelected = oneHazirlanan?.hasUnSelected
-                            let metraj = oneHazirlanan?.metrajReady
+                            let metrajReady = oneHazirlanan?.metrajReady
+                            let clickAble = oneHazirlanan?.hasReady || oneHazirlanan?.hasSelected || oneHazirlanan?.hasUnSelected
+                            let allSelected = oneHazirlanan?.hasSelected && !oneHazirlanan?.hasUnSelected
+                            let someSelected = oneHazirlanan?.hasSelected && oneHazirlanan?.hasUnSelected
+                            let hasReadyUnSeen = oneHazirlanan?.hasReadyUnSeen
                             let hasSelectedFull_aday = oneHazirlanan?.hasSelectedFull_aday
-                            let clickAble = hasUnSelected || hasSelected || hasReady ? true : false
 
                             return (
+
                               <Box
                                 key={index}
-                                onClick={() => selectMode && hasUnSelected && addNodes_select({ tip: "mahal", mahal: oneMahal, userEmail: oneYapabilen.userEmail })}
-                                onDoubleClick={() => !selectMode && clickAble && goTo_onayCetveli({ dugum, oneMahal, userEmail: oneYapabilen.userEmail })}
+                                // onClick={() =>
+                                //   selectMode && hasUnSelected && !hasSelectedFull_aday ? addNodes_select({ tip: "mahal", mahal: oneMahal, userEmail: oneYapabilen.userEmail }) :
+                                //     selectMode && hasUnSelected && hasSelectedFull_aday ? removeNodes_select({ tip: "mahal", mahal: oneMahal, userEmail: oneYapabilen.userEmail }) :
+                                //       !selectMode && clickAble && goTo_onayCetveli({ dugum, oneMahal, userEmail: oneYapabilen.userEmail })
+                                // }
+                                onClick={() =>
+                                  selectMode && hasUnSelected ? addNodes_select({ tip: "mahal", mahal: oneMahal, userEmail: oneYapabilen.userEmail }) :
+                                    !selectMode && clickAble && goTo_onayCetveli({ dugum, oneMahal, userEmail: oneYapabilen.userEmail })
+                                }
                                 sx={{
                                   ...css_mahaller,
                                   justifyContent: "end",
                                   cursor: clickAble && "pointer",
                                   // backgroundColor: !hasUnSelected ? "lightgray" : "rgba(255, 251, 0, 0.55)",
-                                  backgroundColor: hasUnSelected ? "rgba(255, 251, 0, 0.55)" : !clickAble && "lightgray",
+                                  backgroundColor: hasReadyUnSeen ? "rgba(255, 251, 0, 0.55)" : !clickAble && "lightgray",
                                   display: "grid",
                                   gridTemplateColumns: "1rem 1fr",
                                   "&:hover":
                                     !selectMode && clickAble ? { "& .childClass": { color: "red" } } :
-                                    selectMode && hasUnSelected && { "& .childClass": { color: "red" } }
-                                }}>
+                                      selectMode && hasUnSelected && { "& .childClass": { color: "red" } }
+                                }}
+                              >
 
                                 {/* {!selectMode &&
                                   <Box
@@ -576,16 +679,26 @@ export default function P_MetrajOnaylaPozMahaller() {
                                 } */}
 
 
+                                {/* metrajın solundaki ikon */}
                                 {!hasSelectedFull_aday &&
-                                  <Box sx={{ display: "grid", alignItems: "center", justifyContent: "center" }}>
-                                    <CircleIcon variant="contained" className="childClass" sx={{
-                                      mr: "0.3rem", fontSize: "0.65rem",
-                                      color:
-                                        hasSelected && !hasUnSelected ? "white" :
-                                          hasSelected && hasUnSelected ? "gray" :
-                                            !hasSelected && hasUnSelected ? "rgba(255, 251, 0, 0.55)" :
-                                              !hasReady && !hasSelected && "lightgray"
-                                    }} />
+                                  <Box sx={{ px: "0.5rem", display: "grid", alignItems: "center", justifyContent: "center" }}>
+
+                                    {someSelected &&
+                                      <CircleIcon variant="contained" className="childClass"
+                                        sx={{
+                                          mr: "0.3rem", fontSize: "0.60rem",
+                                          color: "gray"
+                                        }} />
+                                    }
+
+                                    {allSelected &&
+                                      <Check variant="contained" className="childClass"
+                                        sx={{
+                                          mr: "0.3rem", fontSize: "1rem",
+                                          color: "black"
+                                        }} />
+                                    }
+
                                   </Box>
                                 }
 
@@ -607,7 +720,7 @@ export default function P_MetrajOnaylaPozMahaller() {
                                 } */}
 
                                 <Box sx={{ justifySelf: "end" }}>
-                                  {ikiHane(metraj)}
+                                  {ikiHane(metrajReady)}
                                 </Box>
                               </Box>
                               // <Box key={index} sx={{ ...css_mahaller, backgroundColor: "rgb(143,206,0,0.3)", borderLeft: "1px solid black", justifyContent: "end" }}>

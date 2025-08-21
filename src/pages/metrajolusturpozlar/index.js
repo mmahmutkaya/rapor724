@@ -372,7 +372,7 @@ export default function P_MetrajOlusturPozlar() {
                         <>
                           <Box />
 
-                          <Box onDoubleClick={() => goTo_MetrajPozmahaller(onePoz)} sx={{ ...pozNo_css, justifyContent: "end", cursor: "pointer", backgroundColor: "yellow", display: "grid", gridTemplateColumns: "1rem 1fr", "&:hover": { "& .childClass": { backgroundColor: "red" } } }}>
+                          <Box onClick={() => goTo_MetrajPozmahaller(onePoz)} sx={{ ...pozNo_css, justifyContent: "end", cursor: "pointer", backgroundColor: "yellow", display: "grid", gridTemplateColumns: "1rem 1fr", "&:hover": { "& .childClass": { backgroundColor: "red" } } }}>
                             <Box className="childClass" sx={{ ml: "-1rem", backgroundColor: "yellow", height: "0.5rem", width: "0.5rem", borderRadius: "50%" }}>
                             </Box>
                             <Box sx={{ justifySelf: "end" }}>
@@ -380,14 +380,18 @@ export default function P_MetrajOlusturPozlar() {
                             </Box>
                           </Box>
 
-                          <Box sx={{ ...pozNo_css, display: "grid", gridTemplateColumns: "auto 1fr" }}>
-                            <Box sx={{ pl: "0.2rem", pr: "0.4rem", mb: "-0.3rem" }}>
+                          <Box sx={{ ...pozNo_css, justifyContent: "end" }}>
+                            {ikiHane(onePoz?.hazirlananMetrajlar.find(x => x.userEmail === customData.email)?.metrajReady)}
+                          </Box>
+
+                          {/* <Box sx={{ ...pozNo_css, display: "grid", gridTemplateColumns: "auto 1fr" }}>
+                            <Box sx={{ ml: "-0.2rem", pr: "0.4rem", mb: "-0.3rem" }}>
                               <Check sx={{ color: "black", fontSize: "0.95rem" }} />
                             </Box>
                             <Box sx={{ justifySelf: "end" }}>
                               {ikiHane(onePoz?.hazirlananMetrajlar.find(x => x.userEmail === customData.email)?.metrajReady)}
                             </Box>
-                          </Box>
+                          </Box> */}
 
                         </>
                       }

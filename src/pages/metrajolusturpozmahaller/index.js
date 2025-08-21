@@ -218,7 +218,7 @@ export default function P_MetrajOlusturPozMahaller() {
                   Hazırlanıyor
                 </Box>
 
-                <Box sx={{ ...css_enUstBaslik, minWidth:"6rem" ,justifyContent: "center" }}>
+                <Box sx={{ ...css_enUstBaslik, minWidth: "6rem", justifyContent: "center" }}>
                   Hazır
                 </Box>
 
@@ -377,7 +377,7 @@ export default function P_MetrajOlusturPozMahaller() {
                           <Box />
 
                           <Box
-                            onDoubleClick={() => goto_metrajOlusturCetvel(dugum, oneMahal)}
+                            onClick={() => goto_metrajOlusturCetvel(dugum, oneMahal)}
                             sx={{
                               ...css_mahaller,
                               display: "grid",
@@ -395,7 +395,15 @@ export default function P_MetrajOlusturPozMahaller() {
                             </Box>
                           </Box>
 
-                          <Box
+
+
+
+                          <Box sx={{ ...css_mahaller, justifyContent: "end" }}>
+                            {ikiHane(dugum?.hazirlananMetrajlar?.find(x => x.userEmail === customData.email)?.metrajReady)}
+                          </Box>
+
+
+                          {/* <Box
                             // onDoubleClick={() => goto_metrajOlusturCetvel(dugum, oneMahal)}
                             sx={{
                               ...css_mahaller,
@@ -407,13 +415,13 @@ export default function P_MetrajOlusturPozMahaller() {
                               // backgroundColor: "rgba(66, 66, 66, 0.12)",
                               // "&:hover": { "& .childClass": { backgroundColor: "red" } }
                             }}>
-                            <Box sx={{ pl: "0.2rem", pr: "0.4rem", mb: "-0.3rem" }}>
+                            <Box sx={{ ml: "-0.2rem", pr: "0.4rem", mb: "-0.3rem" }}>
                               <Check sx={{ color: "black", fontSize: "0.95rem" }} />
                             </Box>
                             <Box sx={{ justifySelf: "end" }}>
                               {ikiHane(dugum?.hazirlananMetrajlar?.find(x => x.userEmail === customData.email)?.metrajReady)}
                             </Box>
-                          </Box>
+                          </Box> */}
 
                         </>
                       }

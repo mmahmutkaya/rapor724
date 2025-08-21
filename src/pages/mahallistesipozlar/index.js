@@ -237,20 +237,24 @@ export default function P_MahalListesiPozlar() {
                   return (
                     // <Box key={index} onDoubleClick={() => navigate('/metrajpozmahaller')} onClick={() => setSelectedPoz_metraj(onePoz)} sx={{ "&:hover": { "& .childClass": { display: "block" } }, cursor: "pointer", display: "grid", }}>
                     <React.Fragment key={index} >
-                      <Box onDoubleClick={() => gotToMahalListesiPozMahaller({ onePoz })} sx={{ ...pozNo_css, backgroundColor: !hasMahal && inactiveGray }}  >
+
+                      <Box onClick={() => gotToMahalListesiPozMahaller({ onePoz })} sx={{ ...pozNo_css, backgroundColor: !hasMahal && inactiveGray }}  >
                         {onePoz.pozNo}
                       </Box>
-                      <Box onDoubleClick={() => gotToMahalListesiPozMahaller({ onePoz })} sx={{ ...pozNo_css, justifyItems: "start", pl: "0.5rem", backgroundColor: !hasMahal && inactiveGray }} >
-                        {onePoz.pozName}
-                      </Box>
-                      <Box onDoubleClick={() => gotToMahalListesiPozMahaller({ onePoz })} sx={{ ...pozNo_css, cursor: "pointer", display: "grid", gridTemplateColumns: "1rem 1fr", backgroundColor: !hasMahal && inactiveGray, "&:hover": { "& .childClass": { backgroundColor: "red" } } }}>
-                        <Box className="childClass" sx={{ ml: "-1rem", height: "0.5rem", width: "0.5rem", borderRadius: "50%" }}>
+
+                      <Box onClick={() => gotToMahalListesiPozMahaller({ onePoz })} sx={{ ...pozNo_css, cursor: "pointer", display: "grid", gridAutoFlow: "column", justifyContent: "start", backgroundColor: !hasMahal && inactiveGray, "&:hover": { "& .childClass": { backgroundColor: "red" } } }}>
+                        <Box sx={{ justifySelf: "start" }}>
+                          {onePoz.pozName}
                         </Box>
-                        <Box onDoubleClick={() => gotToMahalListesiPozMahaller({ onePoz })} sx={{ justifySelf: "end" }}>
-                          {ikiHane(onePoz?.onaylananMetraj)}
+                        <Box className="childClass" sx={{ ml: "1rem", height: "0.5rem", width: "0.5rem", borderRadius: "50%" }}>
                         </Box>
                       </Box>
-                      <Box onDoubleClick={() => gotToMahalListesiPozMahaller({ onePoz })} sx={{ ...pozNo_css, backgroundColor: !hasMahal && inactiveGray }}>
+
+                      <Box onClick={() => gotToMahalListesiPozMahaller({ onePoz })} sx={{ ...pozNo_css, justifyItems: "start", pl: "0.5rem", backgroundColor: !hasMahal && inactiveGray }} >
+                        {ikiHane(onePoz?.onaylananMetraj)}
+                      </Box>
+
+                      <Box onClick={() => gotToMahalListesiPozMahaller({ onePoz })} sx={{ ...pozNo_css, backgroundColor: !hasMahal && inactiveGray }}>
                         {selectedProje?.pozBirimleri.find(x => x.id === onePoz.pozBirimId).name}
                       </Box>
 

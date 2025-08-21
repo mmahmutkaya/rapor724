@@ -101,7 +101,7 @@ export default function P_MahalListesiPozMahaller() {
     justifyItems: "center",
     border: "1px solid black",
     px: "0.7rem",
-    cursor:"pointer"
+    cursor: "pointer"
   }
 
 
@@ -273,19 +273,23 @@ export default function P_MahalListesiPozMahaller() {
                   return (
                     // <Box key={index} onDoubleClick={() => navigate('/metrajpozmahaller')} onClick={() => setSelectedPoz_metraj(oneMahal)} sx={{ "&:hover": { "& .childClass": { display: "block" } }, cursor: "pointer", display: "grid", }}>
                     <React.Fragment key={index} >
+
                       <Box onClick={() => handleDugumToggle({ oneMahal, toggleValue: !hasDugum })} sx={{ ...mahalNo_css, backgroundColor: !hasDugum && inactiveGray }} >
                         {oneMahal.mahalNo}
                       </Box>
+
+                      <Box onClick={() => handleDugumToggle({ oneMahal, toggleValue: !hasDugum })} sx={{ ...mahalNo_css, cursor: "pointer", display: "grid", gridAutoFlow: "column", justifyContent: "start", backgroundColor: !hasDugum && inactiveGray, "&:hover": { "& .childClass": { backgroundColor: "red" } } }}>
+                        <Box sx={{ justifySelf: "start" }}>
+                          {oneMahal.mahalName}
+                        </Box>
+                        <Box className="childClass" sx={{ ml: "1rem", height: "0.5rem", width: "0.5rem", borderRadius: "50%" }}>
+                        </Box>
+                      </Box>
+
                       <Box onClick={() => handleDugumToggle({ oneMahal, toggleValue: !hasDugum })} sx={{ ...mahalNo_css, justifyItems: "start", pl: "0.5rem", backgroundColor: !hasDugum && inactiveGray }} >
-                        {oneMahal.mahalName}
+                        {ikiHane(oneMahal?.onaylananMetraj)}
                       </Box>
-                      <Box onClick={() => handleDugumToggle({ oneMahal, toggleValue: !hasDugum })} sx={{ ...mahalNo_css, cursor: "pointer", display: "grid", gridTemplateColumns: "1rem 1fr", backgroundColor: !hasDugum && inactiveGray, "&:hover": { "& .childClass": { backgroundColor: "red" } } }}>
-                        <Box className="childClass" sx={{ ml: "-1rem", height: "0.5rem", width: "0.5rem", borderRadius: "50%" }}>
-                        </Box>
-                        <Box sx={{ justifySelf: "end" }}>
-                          {ikiHane(oneMahal?.onaylananMetraj)}
-                        </Box>
-                      </Box>
+
                       <Box onClick={() => handleDugumToggle({ oneMahal, toggleValue: !hasDugum })} sx={{ ...mahalNo_css, backgroundColor: !hasDugum && inactiveGray }}>
                         {selectedProje?.pozBirimleri.find(x => x.id === selectedPoz_mahalListesi.pozBirimId).name}
                       </Box>

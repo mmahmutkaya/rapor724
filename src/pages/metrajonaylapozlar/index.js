@@ -422,7 +422,7 @@ export default function P_MetrajOnaylaPozlar() {
                             return (
                               <Box
                                 key={index}
-                                onDoubleClick={() => clickAble && goTo_MetrajPozmahaller(onePoz)}
+                                onClick={() => clickAble && goTo_MetrajPozmahaller(onePoz)}
                                 sx={{
                                   ...pozNo_css, display: "grid", gridTemplateColumns: "1rem 1fr", justifyContent: "end", cursor: clickAble && "pointer",
                                   backgroundColor: hasUnSelected ? "rgba(255, 251, 0, 0.55)" : !clickAble && "lightgray",
