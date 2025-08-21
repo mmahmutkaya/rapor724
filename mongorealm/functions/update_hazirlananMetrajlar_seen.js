@@ -48,7 +48,7 @@ exports = async function ({
     let bulkArray = []
     hazirlananMetrajlar_state.map(oneHazirlanan => {
 
-      let oneHazirlanan_seen_satirNolar = oneHazirlanan.satirlar.filter(x => x.isSelected && x.newSelected).map(oneSatir => {
+      let oneHazirlanan_seen_satirNolar = oneHazirlanan.satirlar.filter(x => x.isReady && !x.isReadyUnSeen && x.newSelected).map(oneSatir => {
         return oneSatir.satirNo
       })
 
