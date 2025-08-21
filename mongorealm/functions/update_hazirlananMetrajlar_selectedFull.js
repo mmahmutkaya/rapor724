@@ -51,7 +51,28 @@ exports = async function ({
                   "hazirlananMetrajlar.$[oneHazirlanan].satirlar.$[oneSatir].isSelected": true,
                   "hazirlananMetrajlar.$[oneHazirlanan].satirlar.$[oneSatir].hasSelectedCopy": false
                 },
-                $inc:{"hazirlananMetrajlar.$[oneHazirlanan].metrajOnaylanan":40},
+                $set: {
+                  "hazirlananMetrajlar.$[oneHazirlanan].metrajOnaylanan": {
+                    $sum: {
+                      "$map": {
+                        "input": "hazirlananMetrajlar.$[oneHazirlanan].satirlar",
+                        "as": "oneSatir",
+                        "in": {
+                          "$cond": {
+                            "if": {
+                              $or: [
+                                { $and: [{ $eq: ["$$oneSatir.isSelected", true] }, { $eq: ["$$oneSatir.hasSelectedCopy", false] }] },
+                                { $eq: ["$$oneSatir.isSelectedCopy", true] }
+                              ]
+                            },
+                            "then": "$$oneSatir.metraj",
+                            "else": 0
+                          }
+                        }
+                      }
+                    }
+                  }
+                },
                 // $inc:{"hazirlananMetrajlar.$[oneHazirlanan].metrajOnaylanan":{ $sum: "$hazirlananMetrajlar.$[oneHazirlanan].satirlar.$[oneSatir].metraj" }},
                 $unset: {
                   "hazirlananMetrajlar.$[oneHazirlanan].satirlar.$[oneSatir].isReady": "",
