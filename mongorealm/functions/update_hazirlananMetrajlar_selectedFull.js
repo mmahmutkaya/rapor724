@@ -47,10 +47,10 @@ exports = async function ({
             updateOne: {
               filter: { _id: oneDugum._id },
               update: {
-                "hazirlananMetrajlar.$[oneHazirlanan].metrajOnaylanan": { $sum: "hazirlananMetrajlar.$[oneHazirlanan].satirlar.$[oneSatir].metraj" },
                 $set: {
                   "hazirlananMetrajlar.$[oneHazirlanan].satirlar.$[oneSatir].isSelected": true,
-                  "hazirlananMetrajlar.$[oneHazirlanan].satirlar.$[oneSatir].hasSelectedCopy": false
+                  "hazirlananMetrajlar.$[oneHazirlanan].satirlar.$[oneSatir].hasSelectedCopy": false,
+                  "hazirlananMetrajlar.$[oneHazirlanan].metrajOnaylanan": { $sum: ["hazirlananMetrajlar.$[oneHazirlanan].satirlar.$[oneSatir].metraj"] }
                 },
                 $unset: {
                   "hazirlananMetrajlar.$[oneHazirlanan].satirlar.$[oneSatir].isReady": "",
