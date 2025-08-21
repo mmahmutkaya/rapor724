@@ -51,10 +51,9 @@ exports = async function ({
                   "hazirlananMetrajlar.$[oneHazirlanan].satirlar.$[oneSatir].isSelected": true,
                   "hazirlananMetrajlar.$[oneHazirlanan].satirlar.$[oneSatir].hasSelectedCopy": false
                 },
-                $inc: {
-                  // "hazirlananMetrajlar.$[oneHazirlanan].metrajOnaylanan": { $sum: "$hazirlananMetrajlar.$[oneHazirlanan].satirlar.$[oneSatir].metraj" }
-                  "hazirlananMetrajlar.$[oneHazirlanan].metrajOnaylanan": 44
-                },
+                // $inc: {
+                //   "hazirlananMetrajlar.$[oneHazirlanan].metrajOnaylanan": { $sum: "$hazirlananMetrajlar.$[oneHazirlanan].satirlar.$[oneSatir].metraj" }
+                // },
                 $unset: {
                   "hazirlananMetrajlar.$[oneHazirlanan].satirlar.$[oneSatir].isReady": "",
                   "hazirlananMetrajlar.$[oneHazirlanan].satirlar.$[oneSatir].isReadyUnSeen": ""
@@ -94,68 +93,70 @@ exports = async function ({
 
 
 
+  let metrajGuncellenecekDugumIdler = dugumler_byPoz_state.map(oneDugum => {
+    return oneDugum._id
+  })
 
+  // metraj güncelleme
+  try {
+    await collection_Dugumler.updateMany({ _id: { $in: metrajGuncellenecekDugumIdler } },
+      [
+        {
+          $set: {
+            "hazirlananMetrajlar": {
+              $map: {
+                input: "$hazirlananMetrajlar",
+                as: "oneHazirlanan",
+                in: {
+                  "$mergeObjects": [
+                    "$$oneHazirlanan",
+                    {
+                      metrajOnaylanan: {
+                        $sum: {
+                          "$map": {
+                            "input": "$$oneHazirlanan.satirlar",
+                            "as": "oneSatir",
+                            "in": {
+                              "$cond": {
+                                "if": {
+                                  $or: [
+                                    { $and: [{ $eq: ["$$oneSatir.isSelected", true] }, { $eq: ["$$oneSatir.hasSelectedCopy", false] }] },
+                                    { $eq: ["$$oneSatir.isSelectedCopy", true] }
+                                  ]
+                                },
+                                "then": "$$oneSatir.metraj",
+                                "else": 0
+                              }
+                            }
+                          }
+                        }
+                      }
+                    }
+                  ]
+                }
+              }
+            }
+          }
+        },
+        {
+          $set: {
+            "metrajOnaylanan": {
+              $sum: {
+                "$map": {
+                  "input": "$hazirlananMetrajlar",
+                  "as": "oneHazirlanan",
+                  "in": "$$oneHazirlanan.metrajOnaylanan"
+                }
+              }
+            }
+          }
+        }
+      ]
+    )
 
-  // // metraj güncelleme
-  // try {
-  //   await collection_Dugumler.updateOne({ _id: _dugumId },
-  //     [
-  //       {
-  //         $set: {
-  //           "hazirlananMetrajlar": {
-  //             $map: {
-  //               input: "$hazirlananMetrajlar",
-  //               as: "oneHazirlanan",
-  //               in: {
-  //                 "$mergeObjects": [
-  //                   "$$oneHazirlanan",
-  //                   {
-  //                     metrajOnaylanan: {
-  //                       $sum: {
-  //                         "$map": {
-  //                           "input": "$$oneHazirlanan.satirlar",
-  //                           "as": "oneSatir",
-  //                           "in": {
-  //                             "$cond": {
-  //                               "if": {
-  //                                 $or: [
-  //                                   { $and: [{ $eq: ["$$oneSatir.isSelected", true] }, { $eq: ["$$oneSatir.hasSelectedCopy", false] }] },
-  //                                   { $eq: ["$$oneSatir.isSelectedCopy", true] }
-  //                                 ]
-  //                               },
-  //                               "then": "$$oneSatir.metraj",
-  //                               "else": 0
-  //                             }
-  //                           }
-  //                         }
-  //                       }
-  //                     }
-  //                   }
-  //                 ]
-  //               }
-  //             }
-  //           }
-  //         }
-  //       },
-  //       {
-  //         $set: {
-  //           "metrajOnaylanan": {
-  //             $sum: {
-  //               "$map": {
-  //                 "input": "$hazirlananMetrajlar",
-  //                 "as": "oneHazirlanan",
-  //                 "in": "$$oneHazirlanan.metrajOnaylanan"
-  //               }
-  //             }
-  //           }
-  //         }
-  //       }
-  //     ]
-  //   )
-
-  // } catch (error) {
-  //   throw new Error("MONGO // update_hazirlananMetrajlar_unReady // metraj güncelleme" + error);
-  // }
+  } catch (error) {
+    throw new Error("MONGO // update_hazirlananMetrajlar_unReady // metraj güncelleme" + error);
+  }
 
 
 
