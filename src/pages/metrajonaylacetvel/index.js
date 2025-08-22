@@ -578,7 +578,7 @@ export default function P_MetrajCetveliOnaylanan() {
             </Box>
 
             <Box sx={{ ...css_metrajCetveliBaslik, justifyContent: "end", pr: "0.3rem", color: onaylananMetraj_state["metraj"] < 0 ? "red" : null }}>
-              {ikiHane(onaylananMetraj_state["metraj"])}
+              {ikiHane(onaylananMetraj_state.metrajOnaylanan)}
             </Box>
 
             <Box sx={{ ...css_metrajCetveliBaslik }}>
