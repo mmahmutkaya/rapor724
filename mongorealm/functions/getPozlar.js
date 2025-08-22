@@ -69,7 +69,7 @@ exports = async function ({
                 metrajPreparing: "$$oneHazirlanan.metrajPreparing",
                 metrajReady: "$$oneHazirlanan.metrajReady",
                 metrajOnaylanan: "$$oneHazirlanan.metrajOnaylanan",
-                hasSelected: {
+                hasReadyUnSeen: {
                   "$reduce": {
                     "input": "$$oneHazirlanan.satirlar",
                     "initialValue": false,
@@ -85,7 +85,7 @@ exports = async function ({
                             },
                             {
                               $eq: [
-                                "$$this.isSelected",
+                                "$$this.isReadyUnSeen",
                                 true
                               ]
                             }
@@ -114,6 +114,34 @@ exports = async function ({
                             {
                               $eq: [
                                 "$$this.isReady",
+                                true
+                              ]
+                            }
+                          ]
+                        },
+                        "then": true,
+                        "else": "$$value"
+                      }
+                    }
+                  }
+                },
+                hasSelected: {
+                  "$reduce": {
+                    "input": "$$oneHazirlanan.satirlar",
+                    "initialValue": false,
+                    "in": {
+                      "$cond": {
+                        "if": {
+                          "$and": [
+                            {
+                              $eq: [
+                                "$$value",
+                                false
+                              ]
+                            },
+                            {
+                              $eq: [
+                                "$$this.isSelected",
                                 true
                               ]
                             }
@@ -204,6 +232,7 @@ exports = async function ({
           let metrajReady = 0
           let metrajOnaylanan = 0
 
+          let hasReadyUnSeen_Array = []
           let hasReady_Array = []
           let hasSelected_Array = []
           let hasUnSelected_Array = []
@@ -224,6 +253,7 @@ exports = async function ({
               metrajReady += metrajReady2
               metrajOnaylanan += metrajOnaylanan2
 
+              hasReadyUnSeen_Array = [...hasReadyUnSeen_Array, oneHazirlanan?.hasReadyUnSeen]
               hasReady_Array = [...hasReady_Array, oneHazirlanan?.hasReady]
               hasSelected_Array = [...hasSelected_Array, oneHazirlanan?.hasSelected]
               hasUnSelected_Array = [...hasUnSelected_Array, oneHazirlanan?.hasUnSelected]
@@ -231,6 +261,7 @@ exports = async function ({
 
           })
 
+          let hasReadyUnSeen = hasReadyUnSeen_Array.find(x => x === true)
           let hasReady = hasReady_Array.find(x => x === true)
           let hasSelected = hasSelected_Array.find(x => x === true)
           let hasUnSelected = hasUnSelected_Array.find(x => x === true)
@@ -240,6 +271,7 @@ exports = async function ({
             metrajPreparing,
             metrajReady,
             metrajOnaylanan,
+            hasReadyUnSeen,
             hasReady,
             hasSelected,
             hasUnSelected

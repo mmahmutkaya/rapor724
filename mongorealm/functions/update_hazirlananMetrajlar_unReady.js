@@ -60,7 +60,8 @@ exports = async function ({
           filter: { _id: _dugumId },
           update: {
             $unset: {
-              "hazirlananMetrajlar.$[oneHazirlanan].satirlar.$[oneSatir].isReady": ""
+              "hazirlananMetrajlar.$[oneHazirlanan].satirlar.$[oneSatir].isReady": "",
+              "hazirlananMetrajlar.$[oneHazirlanan].satirlar.$[oneSatir].isReadyUnSeen": "",
             },
             $set: {
               "hazirlananMetrajlar.$[oneHazirlanan].satirlar.$[oneSatir].isPreparing": true,

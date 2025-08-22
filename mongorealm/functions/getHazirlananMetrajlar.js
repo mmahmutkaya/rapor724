@@ -35,51 +35,51 @@ exports = async function ({
   let { hazirlananMetrajlar } = dugum
 
 
-  if (hazirlananMetrajlar.length > 0) {
+  // if (hazirlananMetrajlar.length > 0) {
 
-    try {
+  //   try {
 
-      let bulkArray = []
-      hazirlananMetrajlar.map(oneHazirlanan => {
+  //     let bulkArray = []
+  //     hazirlananMetrajlar.map(oneHazirlanan => {
 
-        let oneHazirlanan_isSeen_satirNolar = oneHazirlanan.satirlar.filter(x => x.isReady).map(oneSatir => {
-          return oneSatir.satirNo
-        })
+  //       let oneHazirlanan_isSeen_satirNolar = oneHazirlanan.satirlar.filter(x => x.isReady).map(oneSatir => {
+  //         return oneSatir.satirNo
+  //       })
 
-        oneBulk = {
-          updateOne: {
-            filter: { _id: _dugumId },
-            update: {
-              $unset: {
-                "hazirlananMetrajlar.$[oneHazirlanan].satirlar.$[oneSatir].isReadyUnSeen": ""
-              }
-            },
-            arrayFilters: [
-              {
-                "oneHazirlanan.userEmail": oneHazirlanan.userEmail
-              },
-              {
-                "oneSatir.satirNo": { $in: oneHazirlanan_isSeen_satirNolar },
-                "oneSatir.isReady": true
-              }
-            ]
-          }
-        }
-        bulkArray = [...bulkArray, oneBulk]
+  //       oneBulk = {
+  //         updateOne: {
+  //           filter: { _id: _dugumId },
+  //           update: {
+  //             $unset: {
+  //               "hazirlananMetrajlar.$[oneHazirlanan].satirlar.$[oneSatir].isReadyUnSeen": ""
+  //             }
+  //           },
+  //           arrayFilters: [
+  //             {
+  //               "oneHazirlanan.userEmail": oneHazirlanan.userEmail
+  //             },
+  //             {
+  //               "oneSatir.satirNo": { $in: oneHazirlanan_isSeen_satirNolar },
+  //               "oneSatir.isReady": true
+  //             }
+  //           ]
+  //         }
+  //       }
+  //       bulkArray = [...bulkArray, oneBulk]
 
-      })
+  //     })
 
-      await collection_Dugumler.bulkWrite(
-        bulkArray,
-        { ordered: false }
-      )
+  //     await collection_Dugumler.bulkWrite(
+  //       bulkArray,
+  //       { ordered: false }
+  //     )
 
-    } catch (error) {
-      throw new Error("MONGO // getHazirlananMetrajlar / isSeen // " + error);
-    }
+  //   } catch (error) {
+  //     throw new Error("MONGO // getHazirlananMetrajlar / isSeen // " + error);
+  //   }
 
 
-  }
+  // }
 
 
   hazirlananMetrajlar = hazirlananMetrajlar.map(oneHazirlanan => {
