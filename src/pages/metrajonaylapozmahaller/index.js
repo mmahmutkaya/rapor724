@@ -765,7 +765,7 @@ export default function P_MetrajOnaylaPozMahaller() {
                                       <CircleIcon variant="contained" className="childClass"
                                         sx={{
                                           mr: "0.3rem", fontSize: "0.6rem",
-                                          color: hasReadyUnSeen ? "rgba(255, 251, 0, 0.55)" : "black"
+                                          color: hasReadyUnSeen ? "rgba(255, 251, 0, 0.55)" : "white"
                                         }} />
                                     }
 

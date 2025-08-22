@@ -105,9 +105,10 @@ export default function P_MetrajOnay() {
 
     setHazirlananMetrajlar_state(_.cloneDeep(data?.hazirlananMetrajlar))
     setHazirlananMetrajlar_backUp(_.cloneDeep(data?.hazirlananMetrajlar))
-    // console.log("data?.hazirlananMetrajlar",data?.hazirlananMetrajlar)
-    // console.log("data",data)
+
     setIsChanged_select()
+    setIsChanged_unReady()
+    setIsChanged_seen()
   }, [data])
 
   // console.log("onaylananMetrajlar_state", onaylananMetrajlar_state)
@@ -121,7 +122,67 @@ export default function P_MetrajOnay() {
 
 
 
+
+
   // SELECT FONKSİYONLARI - SELECT - UNSELECT - CANCEL - SAVE
+
+  const add_OneRow_select_all = ({ userEmail }) => {
+
+    let hazirlananMetrajlar_state2 = _.cloneDeep(hazirlananMetrajlar_state)
+
+    let isIslemYapildi
+
+    hazirlananMetrajlar_state2 = hazirlananMetrajlar_state2.map(oneHazirlanan => {
+      if (oneHazirlanan.userEmail === userEmail) {
+        oneHazirlanan.satirlar.map(oneSatir => {
+          if (oneSatir.isReady && !oneSatir.isSelected) {
+            oneSatir.isSelected = true
+            delete oneSatir.isReady
+            oneSatir.newSelected = true
+            isIslemYapildi = true
+          }
+          return oneSatir
+        })
+      }
+      return oneHazirlanan
+    })
+
+
+
+    if (!isIslemYapildi) {
+      hazirlananMetrajlar_state2 = hazirlananMetrajlar_state2.map(oneHazirlanan => {
+        if (oneHazirlanan.userEmail === userEmail) {
+          oneHazirlanan.satirlar.map(oneSatir => {
+            if (!oneSatir.isReady && oneSatir.newSelected) {
+              delete oneSatir.isSelected
+              oneSatir.isReady = true
+              delete oneSatir.newSelected
+            }
+            return oneSatir
+          })
+        }
+        return oneHazirlanan
+      })
+    }
+
+
+    setIsChanged_select()
+    outerLoop: for (let i = 0; i < hazirlananMetrajlar_state2.length; i++) {
+      let oneHazirlanan = hazirlananMetrajlar_state2[i]
+      for (let j = 0; j < oneHazirlanan.satirlar.length; j++) {
+        let oneSatir = oneHazirlanan.satirlar[j]
+        if (oneSatir.isSelected && oneSatir.newSelected) {
+          setIsChanged_select(true)
+          break outerLoop; // Exits both loops
+        }
+      }
+    }
+
+    setHazirlananMetrajlar_state(hazirlananMetrajlar_state2)
+
+  }
+
+
 
   const add_OneRow_select = ({ oneRow, hazirlayan }) => {
 
@@ -256,7 +317,63 @@ export default function P_MetrajOnay() {
   // UNREADY FONKSİYONLARI - SELECT - UNSELECT - CANCEL - SAVE
 
 
-  const handle_satirSec_unReady = ({ oneRow, hazirlayan }) => {
+  const add_OneRow_unReady_all = ({ userEmail }) => {
+
+    let hazirlananMetrajlar_state2 = _.cloneDeep(hazirlananMetrajlar_state)
+
+    let isIslemYapildi
+
+    hazirlananMetrajlar_state2 = hazirlananMetrajlar_state2.map(oneHazirlanan => {
+      if (oneHazirlanan.userEmail === userEmail) {
+        oneHazirlanan.satirlar.map(oneSatir => {
+          if (oneSatir.isReady) {
+            oneSatir.isReady = false
+            oneSatir.newSelected = true
+            isIslemYapildi = true
+          }
+          return oneSatir
+        })
+      }
+      return oneHazirlanan
+    })
+
+
+
+    if (!isIslemYapildi) {
+      hazirlananMetrajlar_state2 = hazirlananMetrajlar_state2.map(oneHazirlanan => {
+        if (oneHazirlanan.userEmail === userEmail) {
+          oneHazirlanan.satirlar.map(oneSatir => {
+            if (oneSatir.isReady === false && oneSatir.newSelected) {
+              oneSatir.isReady = true
+              delete oneSatir.newSelected
+            }
+            return oneSatir
+          })
+        }
+        return oneHazirlanan
+      })
+    }
+
+
+    setIsChanged_unReady()
+    outerLoop: for (let i = 0; i < hazirlananMetrajlar_state2.length; i++) {
+      let oneHazirlanan = hazirlananMetrajlar_state2[i]
+      for (let j = 0; j < oneHazirlanan.satirlar.length; j++) {
+        let oneSatir = oneHazirlanan.satirlar[j]
+        if (oneSatir.isReady === false && oneSatir.newSelected) {
+          setIsChanged_unReady(true)
+          break outerLoop; // Exits both loops
+        }
+      }
+    }
+
+    setHazirlananMetrajlar_state(hazirlananMetrajlar_state2)
+
+  }
+
+
+
+  const add_OneRow_unReady = ({ oneRow, hazirlayan }) => {
 
     if (!isChanged_unReady) {
       setIsChanged_unReady(true)
@@ -283,7 +400,7 @@ export default function P_MetrajOnay() {
 
 
 
-  const handle_satirIptal_unReady = ({ oneRow, hazirlayan }) => {
+  const remove_OneRow_unReady = ({ oneRow, hazirlayan }) => {
 
     if (!oneRow.newSelected) {
       return
@@ -391,7 +508,63 @@ export default function P_MetrajOnay() {
   // SEEN FONKSİYONLARI - SELECT - UNSELECT - CANCEL - SAVE
 
 
-  const handle_satirSec_seen = ({ oneRow, hazirlayan }) => {
+  const add_OneRow_seen_all = ({ userEmail }) => {
+
+    let hazirlananMetrajlar_state2 = _.cloneDeep(hazirlananMetrajlar_state)
+
+    let isIslemYapildi
+
+    hazirlananMetrajlar_state2 = hazirlananMetrajlar_state2.map(oneHazirlanan => {
+      if (oneHazirlanan.userEmail === userEmail) {
+        oneHazirlanan.satirlar.map(oneSatir => {
+          if (oneSatir.isReadyUnSeen) {
+            oneSatir.isReadyUnSeen = false
+            oneSatir.newSelected = true
+            isIslemYapildi = true
+          }
+          return oneSatir
+        })
+      }
+      return oneHazirlanan
+    })
+
+
+
+    if (!isIslemYapildi) {
+      hazirlananMetrajlar_state2 = hazirlananMetrajlar_state2.map(oneHazirlanan => {
+        if (oneHazirlanan.userEmail === userEmail) {
+          oneHazirlanan.satirlar.map(oneSatir => {
+            if (oneSatir.isReadyUnSeen === false && oneSatir.newSelected) {
+              oneSatir.isReadyUnSeen = true
+              delete oneSatir.newSelected
+            }
+            return oneSatir
+          })
+        }
+        return oneHazirlanan
+      })
+    }
+
+
+    setIsChanged_seen()
+    outerLoop: for (let i = 0; i < hazirlananMetrajlar_state2.length; i++) {
+      let oneHazirlanan = hazirlananMetrajlar_state2[i]
+      for (let j = 0; j < oneHazirlanan.satirlar.length; j++) {
+        let oneSatir = oneHazirlanan.satirlar[j]
+        if (oneSatir.isReadyUnSeen === false && oneSatir.newSelected) {
+          setIsChanged_seen(true)
+          break outerLoop; // Exits both loops
+        }
+      }
+    }
+
+    setHazirlananMetrajlar_state(hazirlananMetrajlar_state2)
+
+  }
+
+
+
+  const add_OneRow_seen = ({ oneRow, hazirlayan }) => {
 
     if (!isChanged_seen) {
       setIsChanged_seen(true)
@@ -418,7 +591,7 @@ export default function P_MetrajOnay() {
 
 
 
-  const handle_satirIptal_seen = ({ oneRow, hazirlayan }) => {
+  const remove_OneRow_seen = ({ oneRow, hazirlayan }) => {
 
     if (!oneRow.newSelected) {
       return
@@ -743,7 +916,7 @@ export default function P_MetrajOnay() {
                   <Box></Box>
 
 
-                  {/* ALLTAKİ 3 TANEDEN BİRİ GÖSTERİLİYOR */}
+                  {/* ALLTAKİ 4 TANEDEN BİRİ GÖSTERİLİYOR */}
                   {!mode_seen && !mode_select && !mode_unReady &&
                     <Box sx={{ ...css_metrajCetveliBaslik }}>
                       Durum
@@ -751,20 +924,20 @@ export default function P_MetrajOnay() {
                   }
 
                   {mode_seen &&
-                    <Box sx={{ ...css_metrajCetveliBaslik }}>
-                      Durum
+                    <Box onClick={() => add_OneRow_seen_all({ userEmail: oneYapabilen.userEmail })} sx={{ ...css_metrajCetveliBaslik, cursor: "pointer" }}>
+                      <Visibility variant="contained" sx={{ minWidth: "3.05rem", color: "gray", fontSize: "1rem" }} />
                     </Box>
                   }
 
                   {mode_select &&
-                    <Box sx={{ ...css_metrajCetveliBaslik }}>
-                      <DoneAllIcon variant="contained" sx={{ minWidth:"3.05rem", color: "gray", fontSize: "1rem" }} />
+                    <Box onClick={() => add_OneRow_select_all({ userEmail: oneYapabilen.userEmail })} sx={{ ...css_metrajCetveliBaslik, cursor: "pointer" }}>
+                      <DoneAllIcon variant="contained" sx={{ minWidth: "3.05rem", color: "gray", fontSize: "1rem" }} />
                     </Box>
                   }
 
                   {mode_unReady &&
-                    <Box sx={{ ...css_metrajCetveliBaslik }}>
-                      Durum
+                    <Box onClick={() => add_OneRow_unReady_all({ userEmail: oneYapabilen.userEmail })} sx={{ ...css_metrajCetveliBaslik, cursor: "pointer" }}>
+                      <ReplyIcon variant="contained" sx={{ minWidth: "3.05rem", color: "gray", fontSize: "1rem" }} />
                     </Box>
                   }
 
@@ -816,10 +989,10 @@ export default function P_MetrajOnay() {
                           onClick={() =>
                             mode_select && !mode_unReady && !mode_seen && !oneRow?.isSelected ? add_OneRow_select({ oneRow, hazirlayan }) :
                               mode_select && !mode_unReady && !mode_seen && oneRow?.newSelected ? remove_OneRow_select({ oneRow, hazirlayan }) :
-                                mode_unReady && !mode_seen && !mode_select && !oneRow?.isSelected && oneRow?.isReady ? handle_satirSec_unReady({ oneRow, hazirlayan }) :
-                                  mode_unReady && !mode_seen && !mode_select && oneRow?.newSelected ? handle_satirIptal_unReady({ oneRow, hazirlayan }) :
-                                    mode_seen && oneRow?.isReadyUnSeen ? handle_satirSec_seen({ oneRow, hazirlayan }) :
-                                      mode_seen && oneRow?.newSelected && handle_satirIptal_seen({ oneRow, hazirlayan })
+                                mode_unReady && !mode_seen && !mode_select && !oneRow?.isSelected && oneRow?.isReady ? add_OneRow_unReady({ oneRow, hazirlayan }) :
+                                  mode_unReady && !mode_seen && !mode_select && oneRow?.newSelected ? remove_OneRow_unReady({ oneRow, hazirlayan }) :
+                                    mode_seen && oneRow?.isReadyUnSeen ? add_OneRow_seen({ oneRow, hazirlayan }) :
+                                      mode_seen && oneRow?.newSelected && remove_OneRow_seen({ oneRow, hazirlayan })
                           }
 
                           sx={{
@@ -834,7 +1007,7 @@ export default function P_MetrajOnay() {
                             border: "1px solid black"
                           }}>
                           {oneRow?.isSelected &&
-                            <DoneAllIcon variant="contained" sx={{ color: oneRow.newSelected ? "rgba(196, 95, 33, 1)" : "gray", fontSize: "1rem" }} />
+                            <DoneAllIcon variant="contained" sx={{ color: oneRow.newSelected ? "orange" : "gray", fontSize: "1rem" }} />
                           }
                           {oneRow?.isReady === false &&
                             <ReplyIcon variant="contained" sx={{ color: "red", fontSize: "1rem" }} />

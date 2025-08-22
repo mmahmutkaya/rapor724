@@ -52,10 +52,11 @@ export default function P_MetrajOlusturCetvel() {
 
   const [dialogAlert, setDialogAlert] = useState()
   const [show, setShow] = useState("Main")
-  const [isChanged, setIsChanged] = useState(0)
   const [hazirlananMetraj_state, setHazirlananMetraj_state] = useState()
   const [hazirlananMetraj_backUp, setHazirlananMetraj_backUp] = useState()
+  
 
+  const [isChanged, setIsChanged] = useState()
   const [isChanged_ready, setIsChanged_ready] = useState()
 
 
@@ -619,7 +620,7 @@ export default function P_MetrajOlusturCetvel() {
                   {oneRow.isReady && !oneRow.isReadyUnSeen &&
                     <Visibility variant="contained" sx={{ color: "gray", fontSize: "1rem" }} />
                   }
-                  {oneRow.isReady && !oneRow.isSelected &&
+                  {oneRow.isReady && !oneRow.isSelected && oneRow.isReadyUnSeen &&
                     <Circle variant="contained" sx={{ color: oneRow.newSelected ? "rgba( 255,165,0, 1 )" : "rgba(94, 90, 90, 0.49)", fontSize: "0.70rem" }} />
                   }
                   {oneRow.isPreparing && oneRow.isReadyBack &&
