@@ -83,7 +83,7 @@ exports = async function ({
 
 
   hazirlananMetrajlar = hazirlananMetrajlar.map(oneHazirlanan => {
-    oneHazirlanan.satirlar = oneHazirlanan.satirlar.filter(x => x.isReady || x.isSelected)
+    oneHazirlanan.satirlar = oneHazirlanan.satirlar.filter(x => x.isReady || x.isSelected || x.hasSelectedCopy)
     return oneHazirlanan
   })
 
