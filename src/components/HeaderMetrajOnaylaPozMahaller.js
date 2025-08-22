@@ -30,11 +30,14 @@ import EditIcon from '@mui/icons-material/Edit';
 import GroupWorkIcon from '@mui/icons-material/GroupWork';
 import SaveIcon from '@mui/icons-material/Save';
 import PersonIcon from '@mui/icons-material/Person';
+import CheckCircleIcon from '@mui/icons-material/CheckCircle';
+
+
 
 
 export default function HeaderMetrajOnaylaPozMahaller({
   setShow, anySelectable,
-  selectMode, setSelectMode, isChange_select, setIsChange_select, save_select, cancel_select
+  mode_select, setMode_select, isChange_select, setIsChange_select, save_select, cancel_select
 }) {
 
   const navigate = useNavigate()
@@ -131,7 +134,7 @@ export default function HeaderMetrajOnaylaPozMahaller({
             <Grid container>
 
 
-              {/* {!selectMode &&
+              {/* {!mode_select &&
                 <Grid item >
                   <IconButton
                     onClick={() => {
@@ -145,7 +148,8 @@ export default function HeaderMetrajOnaylaPozMahaller({
                 </Grid>
               } */}
 
-              {!selectMode &&
+
+              {!mode_select &&
                 <Grid item >
                   <IconButton onClick={() => setShow("ShowMetrajYapabilenler")} disabled={false}>
                     <PersonIcon variant="contained" />
@@ -153,16 +157,17 @@ export default function HeaderMetrajOnaylaPozMahaller({
                 </Grid>
               }
 
-              {!selectMode &&
+
+              {!isChange_select &&
                 <Grid item sx={{ cursor: "pointer" }}>
-                  <IconButton onClick={() => setSelectMode(x => !x)} disabled={!anySelectable}>
-                    <GroupWorkIcon variant="contained" sx={{ color: anySelectable ? "gray" : "lightgray" }} />
+                  <IconButton onClick={() => setMode_select(x => !x)} disabled={!anySelectable}>
+                    <CheckCircleIcon variant="contained" sx={{ color: mode_select ? "gray" : "lightgray" }} />
                   </IconButton>
                 </Grid>
               }
 
 
-              {selectMode &&
+              {isChange_select &&
 
                 <>
 

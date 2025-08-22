@@ -459,7 +459,7 @@ export default function P_MetrajOnaylaPozlar() {
                                     }} />
                                 }
 
-                                {clickAble &&
+                                {!someSelected && !allSelected && clickAble &&
                                   <CircleIcon variant="contained" className="childClass"
                                     sx={{
                                       mr: "0.3rem", fontSize: "0.6rem",

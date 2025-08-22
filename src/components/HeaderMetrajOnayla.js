@@ -41,7 +41,7 @@ import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 
 export default function P_HeaderMetrajOnay({
   show, setShow,
-  isChanged, cancel, save,
+  isChanged_select, cancel_select, save_select, mode_select, setMode_select,
   isChanged_unReady, cancel_unReady, save_unReady, mode_unReady, setMode_unReady,
   isChanged_seen, cancel_seen, save_seen, mode_seen, setMode_seen
 }) {
@@ -52,7 +52,7 @@ export default function P_HeaderMetrajOnay({
 
   const { selectedPoz_metraj, selectedMahal_metraj } = useContext(StoreContext)
 
-  const [showEminMisin, setShowEminMisin] = useState(false)
+  const [showEminMisin_select, setShowEminMisin_select] = useState(false)
 
   const [showEminMisin_unReady, setShowEminMisin_unReady] = useState(false)
 
@@ -62,17 +62,17 @@ export default function P_HeaderMetrajOnay({
   return (
     <Paper >
 
-      {showEminMisin &&
+      {showEminMisin_select &&
         <DialogAlert
           dialogIcon={"warning"}
           dialogMessage={"Yaptığınız değişiklikleri kaybedeceksiniz ?"}
-          onCloseAction={() => setShowEminMisin()}
+          onCloseAction={() => setShowEminMisin_select()}
           actionText1={"İptal"}
-          action1={() => setShowEminMisin()}
+          action1={() => setShowEminMisin_select()}
           actionText2={"Onayla"}
           action2={() => {
-            cancel()
-            setShowEminMisin()
+            cancel_select()
+            setShowEminMisin_select()
           }}
         />
       }
@@ -164,27 +164,17 @@ export default function P_HeaderMetrajOnay({
 
 
 
-              {!isChanged && !mode_unReady && !mode_seen &&
-                <>
+              {!isChanged_select && !mode_unReady && !mode_seen && !mode_select &&
+                <Grid item >
+                  <IconButton onClick={() => setShow("ShowMetrajYapabilenler")} >
+                    <PersonIcon variant="contained" />
+                  </IconButton>
+                </Grid>
 
-                  <Grid item >
-                    <IconButton onClick={() => setShow("ShowMetrajYapabilenler")} >
-                      <PersonIcon variant="contained" />
-                    </IconButton>
-                  </Grid>
-
-                  {/* <Grid item >
-                    <IconButton onClick={() => console.log("mode_unReady", mode_unReady)}                    >
-                      <TuneIcon variant="contained" sx={{ color: mode_unReady ? "red" : "lightpink" }} />
-                    </IconButton>
-                  </Grid> */}
-
-
-                </>
               }
 
 
-              {!isChanged && !isChanged_unReady && !isChanged_seen && !mode_seen &&
+              {!isChanged_select && !isChanged_unReady && !isChanged_seen && !mode_seen && !mode_select &&
                 < Grid item >
                   <IconButton onClick={() => setMode_unReady(x => !x)}                    >
                     <DeleteIcon variant="contained" sx={{ color: mode_unReady ? "red" : "lightpink" }} />
@@ -193,7 +183,7 @@ export default function P_HeaderMetrajOnay({
               }
 
 
-              {!isChanged && !isChanged_unReady && !isChanged_seen && !mode_unReady &&
+              {!isChanged_select && !isChanged_unReady && !isChanged_seen && !mode_unReady && !mode_select &&
                 < Grid item >
                   <IconButton onClick={() => setMode_seen(x => !x)}                    >
                     <VisibilityIcon variant="contained" sx={{ color: mode_seen ? "gray" : "lightgray" }} />
@@ -202,26 +192,26 @@ export default function P_HeaderMetrajOnay({
               }
 
 
-              {/* {!isChanged && !isChanged_unReady && !isChanged_seen && !mode_unReady &&
+              {!isChanged_select && !isChanged_unReady && !isChanged_seen && !mode_unReady && !mode_seen &&
                 < Grid item >
-                  <IconButton onClick={() => setMode_appr(x => !x)}                    >
-                    <CheckCircleIcon variant="contained" sx={{ color: mode_seen ? "gray" : "lightgray" }} />
+                  <IconButton onClick={() => setMode_select(x => !x)}                    >
+                    <CheckCircleIcon variant="contained" sx={{ color: mode_select ? "gray" : "lightgray" }} />
                   </IconButton>
                 </Grid>
-              } */}
+              }
 
 
 
 
 
-              {isChanged &&
+              {isChanged_select &&
 
                 <>
 
                   <Grid item >
                     <IconButton onClick={() => {
-                      if (isChanged) {
-                        setShowEminMisin(true)
+                      if (isChanged_select) {
+                        setShowEminMisin_select(true)
                       } else {
                         setShow("Main")
                       }
@@ -232,7 +222,7 @@ export default function P_HeaderMetrajOnay({
 
                   <Grid item >
                     <IconButton onClick={() => {
-                      save()
+                      save_select()
                     }} aria-label="lbsUncliced">
                       <SaveIcon variant="contained" />
                     </IconButton>

@@ -55,12 +55,16 @@ export default function P_MetrajOnay() {
 
   const [dialogAlert, setDialogAlert] = useState()
   const [show, setShow] = useState("Main")
-  const [isChanged, setIsChanged] = useState()
-  const [isChanged_seen, setIsChanged_seen] = useState()
 
+
+  const [isChanged_select, setIsChanged_select] = useState()
+  const [isChanged_seen, setIsChanged_seen] = useState()
   const [isChanged_unReady, setIsChanged_unReady] = useState()
+
+
   const [mode_unReady, setMode_unReady] = useState()
   const [mode_seen, setMode_seen] = useState()
+  const [mode_select, setMode_select] = useState()
 
 
 
@@ -103,7 +107,7 @@ export default function P_MetrajOnay() {
     setHazirlananMetrajlar_backUp(_.cloneDeep(data?.hazirlananMetrajlar))
     // console.log("data?.hazirlananMetrajlar",data?.hazirlananMetrajlar)
     // console.log("data",data)
-    setIsChanged()
+    setIsChanged_select()
   }, [data])
 
   // console.log("onaylananMetrajlar_state", onaylananMetrajlar_state)
@@ -119,10 +123,10 @@ export default function P_MetrajOnay() {
 
   // SELECT FONKSİYONLARI - SELECT - UNSELECT - CANCEL - SAVE
 
-  const handle_satirSec = ({ oneRow, hazirlayan }) => {
+  const add_OneRow_select = ({ oneRow, hazirlayan }) => {
 
-    if (!isChanged) {
-      setIsChanged(true)
+    if (!isChanged_select) {
+      setIsChanged_select(true)
     }
 
     let hazirlananMetrajlar_state2 = _.cloneDeep(hazirlananMetrajlar_state)
@@ -146,14 +150,14 @@ export default function P_MetrajOnay() {
 
 
 
-  const handle_satirIptal = ({ oneRow, hazirlayan }) => {
+  const remove_OneRow_select = ({ oneRow, hazirlayan }) => {
 
     if (!oneRow.newSelected) {
       return
     }
 
-    if (!isChanged) {
-      setIsChanged(true)
+    if (!isChanged_select) {
+      setIsChanged_select(true)
     }
 
 
@@ -183,23 +187,23 @@ export default function P_MetrajOnay() {
       }
     }
     if (!hasNewSelected) {
-      setIsChanged()
+      setIsChanged_select()
     }
 
 
   }
 
 
-  const cancel = () => {
+  const cancel_select = () => {
     setHazirlananMetrajlar_state(_.cloneDeep(hazirlananMetrajlar_backUp))
-    setIsChanged()
+    setIsChanged_select()
   }
 
 
   // Edit Metraj Sayfasının Fonksiyonu
-  const save = async () => {
+  const save_select = async () => {
 
-    if (isChanged) {
+    if (isChanged_select) {
 
       try {
 
@@ -209,7 +213,7 @@ export default function P_MetrajOnay() {
         queryClient.invalidateQueries(['hazirlananMetrajlar', selectedNode_metraj?._id.toString()])
 
         setShow("Main")
-        setIsChanged()
+        setIsChanged_select()
         return
 
       } catch (err) {
@@ -619,7 +623,7 @@ export default function P_MetrajOnay() {
       <Grid item sx={{ mt: (Number(subHeaderHeight) + 1) + "rem", }}>
         <HeaderMetrajOnayla
           show={show} setShow={setShow}
-          save={save} cancel={cancel} isChanged={isChanged} setIsChanged={setIsChanged}
+          save_select={save_select} cancel_select={cancel_select} isChanged_select={isChanged_select} setIsChanged_select={setIsChanged_select} mode_select={mode_select} setMode_select={setMode_select}
           save_unReady={save_unReady} cancel_unReady={cancel_unReady} isChanged_unReady={isChanged_unReady} setIsChanged_unReady={setIsChanged_unReady} mode_unReady={mode_unReady} setMode_unReady={setMode_unReady}
           save_seen={save_seen} cancel_seen={cancel_seen} isChanged_seen={isChanged_seen} setIsChanged_seen={setIsChanged_seen} mode_seen={mode_seen} setMode_seen={setMode_seen}
         />
@@ -738,9 +742,31 @@ export default function P_MetrajOnay() {
 
                   <Box></Box>
 
-                  <Box sx={{ ...css_metrajCetveliBaslik }}>
-                    Durum
-                  </Box>
+
+                  {/* ALLTAKİ 3 TANEDEN BİRİ GÖSTERİLİYOR */}
+                  {!mode_seen && !mode_select && !mode_unReady &&
+                    <Box sx={{ ...css_metrajCetveliBaslik }}>
+                      Durum
+                    </Box>
+                  }
+
+                  {mode_seen &&
+                    <Box sx={{ ...css_metrajCetveliBaslik }}>
+                      Durum
+                    </Box>
+                  }
+
+                  {mode_select &&
+                    <Box sx={{ ...css_metrajCetveliBaslik }}>
+                      <DoneAllIcon variant="contained" sx={{ minWidth:"3.05rem", color: "gray", fontSize: "1rem" }} />
+                    </Box>
+                  }
+
+                  {mode_unReady &&
+                    <Box sx={{ ...css_metrajCetveliBaslik }}>
+                      Durum
+                    </Box>
+                  }
 
                 </React.Fragment>
 
@@ -788,10 +814,10 @@ export default function P_MetrajOnay() {
                         <Box
 
                           onClick={() =>
-                            !mode_unReady && !mode_seen && !oneRow?.isSelected ? handle_satirSec({ oneRow, hazirlayan }) :
-                              !mode_unReady && !mode_seen &&  oneRow?.newSelected ? handle_satirIptal({ oneRow, hazirlayan }) :
-                                mode_unReady && !mode_seen && !oneRow?.isSelected && oneRow?.isReady ? handle_satirSec_unReady({ oneRow, hazirlayan }) :
-                                  mode_unReady && !mode_seen && oneRow?.newSelected ? handle_satirIptal_unReady({ oneRow, hazirlayan }) :
+                            mode_select && !mode_unReady && !mode_seen && !oneRow?.isSelected ? add_OneRow_select({ oneRow, hazirlayan }) :
+                              mode_select && !mode_unReady && !mode_seen && oneRow?.newSelected ? remove_OneRow_select({ oneRow, hazirlayan }) :
+                                mode_unReady && !mode_seen && !mode_select && !oneRow?.isSelected && oneRow?.isReady ? handle_satirSec_unReady({ oneRow, hazirlayan }) :
+                                  mode_unReady && !mode_seen && !mode_select && oneRow?.newSelected ? handle_satirIptal_unReady({ oneRow, hazirlayan }) :
                                     mode_seen && oneRow?.isReadyUnSeen ? handle_satirSec_seen({ oneRow, hazirlayan }) :
                                       mode_seen && oneRow?.newSelected && handle_satirIptal_seen({ oneRow, hazirlayan })
                           }

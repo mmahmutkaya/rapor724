@@ -44,20 +44,23 @@ export default function P_MetrajOnaylaPozMahaller() {
 
   const { selectedNode_metraj, setSelectedNode_metraj } = useContext(StoreContext)
   const { selectedMahal_metraj, setSelectedMahal_metraj } = useContext(StoreContext)
+
+  
   let editNodeMetraj = false
   let onayNodeMetraj = true
-
+  
   const customData = RealmApp.currentUser.customData
-
+  
   // useEffect(() => {
-  //   setShowMetrajYapabilenler(RealmApp.currentUser.customData.customSettings.showMetrajYapabilenler)
-  // }, [])
+    //   setShowMetrajYapabilenler(RealmApp.currentUser.customData.customSettings.showMetrajYapabilenler)
+    // }, [])
+    
 
 
 
   const [show, setShow] = useState("Main")
 
-  const [selectMode, setSelectMode] = useState(false)
+  const [mode_select, setMode_select] = useState(false)
   const [isChange_select, setIsChange_select] = useState(false)
   const [dugumler_byPoz_state, setDugumler_byPoz_state] = useState()
   const [dugumler_byPoz_backUp, setDugumler_byPoz_backup] = useState()
@@ -322,7 +325,7 @@ export default function P_MetrajOnaylaPozMahaller() {
   const cancel_select = () => {
     setDugumler_byPoz_state(_.cloneDeep(dugumler_byPoz_backUp))
     setIsChange_select()
-    setSelectMode()
+    setMode_select()
   }
 
 
@@ -456,7 +459,7 @@ export default function P_MetrajOnaylaPozMahaller() {
         <HeaderMetrajOnaylaPozMahaller
           setShow={setShow}
           anySelectable={anySelectable}
-          setSelectMode={setSelectMode} selectMode={selectMode}
+          setMode_select={setMode_select} mode_select={mode_select}
           isChange_select={isChange_select} setIsChange_select={setIsChange_select} cancel_select={cancel_select} save_select={save_select}
         />
       </Grid>
@@ -562,9 +565,9 @@ export default function P_MetrajOnaylaPozMahaller() {
                 {showMetrajYapabilenler?.filter(x => x.isShow).map((oneYapabilen, index) => {
                   return (
                     <Box
-                      onClick={() => selectMode && addNodes_select({ tip: "all", userEmail: oneYapabilen.userEmail })}
+                      onClick={() => mode_select && addNodes_select({ tip: "all", userEmail: oneYapabilen.userEmail })}
                       key={index}
-                      sx={{ ...css_enUstBaslik, cursor: selectMode && "pointer", borderLeft: "1px solid black", justifyContent: "end" }}>
+                      sx={{ ...css_enUstBaslik, cursor: mode_select && "pointer", borderLeft: "1px solid black", justifyContent: "end" }}>
                       {ikiHane(selectedPoz_metraj.hazirlananMetrajlar.find(x => x.userEmail === oneYapabilen.userEmail)?.metrajReady)}
                     </Box>
                   )
@@ -611,9 +614,9 @@ export default function P_MetrajOnaylaPozMahaller() {
                     {showMetrajYapabilenler?.filter(x => x.isShow).map((oneYapabilen, index) => {
                       return (
                         <Box
-                          onClick={() => selectMode && addNodes_select({ tip: "mahaller_byPoz_byLbs", mahaller: mahaller_byPoz_byLbs, userEmail: oneYapabilen.userEmail })}
+                          onClick={() => mode_select && addNodes_select({ tip: "mahaller_byPoz_byLbs", mahaller: mahaller_byPoz_byLbs, userEmail: oneYapabilen.userEmail })}
                           key={index}
-                          sx={{ ...css_LbsBaslik, cursor: selectMode && "pointer", borderLeft: "1px solid black", justifyContent: "end" }}
+                          sx={{ ...css_LbsBaslik, cursor: mode_select && "pointer", borderLeft: "1px solid black", justifyContent: "end" }}
                         >
                           {ikiHane(lbsMetraj?.hazirlananMetrajlar?.find(x => x.userEmail === oneYapabilen.userEmail).metrajReady)}
                         </Box>
@@ -645,8 +648,8 @@ export default function P_MetrajOnaylaPozMahaller() {
                         {oneMahal.mahalName}
                       </Box>
 
-                      <Box onDoubleClick={() => hasOnaylananMetraj && !selectMode && goTo_MetrajOnaylaCetvel({ dugum, oneMahal })} sx={{ ...css_mahaller, cursor: hasOnaylananMetraj && !selectMode && "pointer", display: "grid", alignItems: "center", gridTemplateColumns: "1rem 1fr", backgroundColor: !hasOnaylananMetraj ? "lightgray" : !selectMode && "rgba(255, 251, 0, 0.55)", "&:hover": hasOnaylananMetraj && !selectMode && { "& .childClass": { backgroundColor: "red" } } }}>
-                        <Box className="childClass" sx={{ backgroundColor: !hasOnaylananMetraj ? "lightgray" : !selectMode && "rgba(255, 251, 0, 0.55)", height: "0.5rem", width: "0.5rem", borderRadius: "50%" }}>
+                      <Box onDoubleClick={() => hasOnaylananMetraj && !mode_select && goTo_MetrajOnaylaCetvel({ dugum, oneMahal })} sx={{ ...css_mahaller, cursor: hasOnaylananMetraj && !mode_select && "pointer", display: "grid", alignItems: "center", gridTemplateColumns: "1rem 1fr", backgroundColor: !hasOnaylananMetraj ? "lightgray" : !mode_select && "rgba(255, 251, 0, 0.55)", "&:hover": hasOnaylananMetraj && !mode_select && { "& .childClass": { backgroundColor: "red" } } }}>
+                        <Box className="childClass" sx={{ backgroundColor: !hasOnaylananMetraj ? "lightgray" : !mode_select && "rgba(255, 251, 0, 0.55)", height: "0.5rem", width: "0.5rem", borderRadius: "50%" }}>
                         </Box>
                         <Box sx={{ justifySelf: "end" }}>
                           {ikiHane(dugum?.metrajOnaylanan)}
@@ -703,13 +706,13 @@ export default function P_MetrajOnaylaPozMahaller() {
                               <Box
                                 key={index}
                                 // onClick={() =>
-                                //   selectMode && hasUnSelected && !hasSelectedFull_aday ? addNodes_select({ tip: "mahal", mahal: oneMahal, userEmail: oneYapabilen.userEmail }) :
-                                //     selectMode && hasUnSelected && hasSelectedFull_aday ? removeNodes_select({ tip: "mahal", mahal: oneMahal, userEmail: oneYapabilen.userEmail }) :
-                                //       !selectMode && clickAble && goTo_onayCetveli({ dugum, oneMahal, userEmail: oneYapabilen.userEmail })
+                                //   mode_select && hasUnSelected && !hasSelectedFull_aday ? addNodes_select({ tip: "mahal", mahal: oneMahal, userEmail: oneYapabilen.userEmail }) :
+                                //     mode_select && hasUnSelected && hasSelectedFull_aday ? removeNodes_select({ tip: "mahal", mahal: oneMahal, userEmail: oneYapabilen.userEmail }) :
+                                //       !mode_select && clickAble && goTo_onayCetveli({ dugum, oneMahal, userEmail: oneYapabilen.userEmail })
                                 // }
                                 onClick={() =>
-                                  selectMode && hasUnSelected ? addNodes_select({ tip: "mahal", mahal: oneMahal, userEmail: oneYapabilen.userEmail }) :
-                                    !selectMode && clickAble && goTo_onayCetveli({ dugum, oneMahal, userEmail: oneYapabilen.userEmail })
+                                  mode_select && hasUnSelected ? addNodes_select({ tip: "mahal", mahal: oneMahal, userEmail: oneYapabilen.userEmail }) :
+                                    !mode_select && clickAble && goTo_onayCetveli({ dugum, oneMahal, userEmail: oneYapabilen.userEmail })
                                 }
                                 sx={{
                                   ...css_mahaller,
@@ -720,12 +723,12 @@ export default function P_MetrajOnaylaPozMahaller() {
                                   display: "grid",
                                   gridTemplateColumns: "1rem 1fr",
                                   "&:hover":
-                                    !selectMode && clickAble ? { "& .childClass": { color: "red" } } :
-                                      selectMode && hasUnSelected && { "& .childClass": { color: "red" } }
+                                    !mode_select && clickAble ? { "& .childClass": { color: "red" } } :
+                                      mode_select && hasUnSelected && { "& .childClass": { color: "red" } }
                                 }}
                               >
 
-                                {/* {!selectMode &&
+                                {/* {!mode_select &&
                                   <Box
                                     className="childClass"
                                     sx={{
@@ -739,7 +742,7 @@ export default function P_MetrajOnaylaPozMahaller() {
 
 
                                 {/* metrajın solundaki ikon */}
-                                {!hasSelectedFull_aday &&
+                                {!hasSelectedFull_aday && 
                                   <Box sx={{ px: "0.5rem", display: "grid", alignItems: "center", justifyContent: "center" }}>
 
                                     {someSelected &&
@@ -758,29 +761,29 @@ export default function P_MetrajOnaylaPozMahaller() {
                                         }} />
                                     }
 
-                                    {clickAble &&
+                                    {!someSelected && !allSelected && clickAble &&
                                       <CircleIcon variant="contained" className="childClass"
                                         sx={{
                                           mr: "0.3rem", fontSize: "0.6rem",
-                                          color: hasReadyUnSeen ? "rgba(255, 251, 0, 0.55)" : "white"
+                                          color: hasReadyUnSeen ? "rgba(255, 251, 0, 0.55)" : "black"
                                         }} />
                                     }
 
                                   </Box>
                                 }
 
-                                {selectMode && hasSelectedFull_aday &&
+                                {mode_select && hasSelectedFull_aday &&
                                   <Box sx={{ display: "grid", alignItems: "center", justifyContent: "center" }}>
                                     <AddCircleIcon variant="contained" sx={{ mr: "0.3rem", fontSize: "0.80rem", color: "green" }} />
                                   </Box>
                                 }
 
-                                {/* {selectMode && hasSelected &&
+                                {/* {mode_select && hasSelected &&
                                   <Box sx={{ display: "grid", alignItems: "center", justifyContent: "center" }}>
                                     <CircleIcon variant="contained" sx={{ fontSize: "0.6rem", color: "gray", "&:hover": { color: "gray" } }} />
                                   </Box>
                                 } */}
-                                {/* {selectMode && hasReady && hasUnSelected && hasSelectedFull_aday &&
+                                {/* {mode_select && hasReady && hasUnSelected && hasSelectedFull_aday &&
                                   <Box sx={{ display: "grid", alignItems: "center", justifyContent: "center" }}>
                                     <AddCircleIcon variant="contained" sx={{ fontSize: "0.90rem", color: "green", "&:hover": { color: "green" } }} />
                                   </Box>
