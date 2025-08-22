@@ -56,6 +56,7 @@ export default function P_MetrajCetveliOnaylanan() {
 
   const [_pozId] = useState()
   const [isChanged_unLock, setIsChanged_unLock] = useState()
+  const [mode_unLock, setMode_unLock] = useState()
   // const [satirNolar_lock, setSatirNolar_lock] = useState([])
   // const [satirNolar_unLock, setSatirNolar_unLock] = useState([])
 
@@ -74,11 +75,9 @@ export default function P_MetrajCetveliOnaylanan() {
     setOnaylananMetraj_state(_.cloneDeep(onaylananMetraj))
     setOnaylananMetraj_backUp(_.cloneDeep(onaylananMetraj))
     setHasSelectedCopySatirlar(onaylananMetraj?.satirlar.find(x => x.hasSelectedCopy) ? true : false)
-    console.log("onaylananMetraj",onaylananMetraj)
+    // console.log("onaylananMetraj",onaylananMetraj)
     setShow("Main")
   }, [onaylananMetraj])
-
-
 
 
 
@@ -123,7 +122,7 @@ export default function P_MetrajCetveliOnaylanan() {
       if (oneRow.satirNo === originalSatirNo) {
 
         oneRow.hasSelectedCopy = true
-        // onaylananMetraj_state2["metraj"] = Number(onaylananMetraj_state2["metraj"]) - Number(iptalRow["metraj"])
+        // onaylananMetraj_state2["metraj"] = Number(onaylananMetraj_state2["metraj"]) - Number(oneRow["metraj"])
 
         // oneRow.isChange = true
 
@@ -325,28 +324,24 @@ export default function P_MetrajCetveliOnaylanan() {
   // ORJİNAK SATIRLARI VE REVİZELERİ SİLME FONKSİYONU
 
 
-  const update_state_unLock = (iptalRow) => {
-
-    if (!isChanged_unLock) {
-      setIsChanged_unLock(true)
-    }
+  const update_state_unLock = (oneRow) => {
 
 
     let onaylananMetraj_state2 = _.cloneDeep(onaylananMetraj_state)
 
     // reviz edilmiş bir satırsa
-    if (iptalRow.isSelectedCopy) {
+    if (oneRow.isSelectedCopy) {
 
       //  metrajını ve kendisini önce bi çıkartalım
-      onaylananMetraj_state2.satirlar = onaylananMetraj_state2.satirlar.filter(x => x.satirNo !== iptalRow.satirNo)
+      onaylananMetraj_state2.satirlar = onaylananMetraj_state2.satirlar.filter(x => x.satirNo !== oneRow.satirNo)
 
-      let leftPart = iptalRow.satirNo.substring(0, iptalRow.satirNo.indexOf(".") + 1)
-      // let rightPart = iptalRow.satirNo.substring(iptalRow.satirNo.indexOf(".") + 1, iptalRow.satirNo.length)
+      let leftPart = oneRow.satirNo.substring(0, oneRow.satirNo.indexOf(".") + 1)
+      // let rightPart = oneRow.satirNo.substring(oneRow.satirNo.indexOf(".") + 1, oneRow.satirNo.length)
 
       // orjinale ait başka revize satır kalmamışsa orjinali devreye sokmak için hasSelected property siliyoruz, metrajını da ekliyoruz, setHasSelectedCopySatirlar değişmiş olabilir onu da güncelliyoruz
       if (!onaylananMetraj_state2.satirlar.find(x => x.satirNo.includes(leftPart))) {
 
-        let orjinalSatirNo = iptalRow.satirNo.substring(0, iptalRow.satirNo.indexOf("."))
+        let orjinalSatirNo = oneRow.satirNo.substring(0, oneRow.satirNo.indexOf("."))
 
         onaylananMetraj_state2.satirlar = onaylananMetraj_state2.satirlar.map(oneSatir => {
           if (oneSatir.satirNo === orjinalSatirNo) {
@@ -360,9 +355,9 @@ export default function P_MetrajCetveliOnaylanan() {
     }
 
     // orjinal satırsa direk silebiliyoruz, hasSekected güncellemesine de gerek yok
-    if (iptalRow.isSelected && !iptalRow.hasSelected) {
-      onaylananMetraj_state2["metraj"] = Number(onaylananMetraj_state2["metraj"]) - Number(iptalRow["metraj"])
-      onaylananMetraj_state2.satirlar = onaylananMetraj_state2.satirlar.filter(x => x.satirNo !== iptalRow.satirNo)
+    if (oneRow.isSelected && !oneRow.hasSelected) {
+      onaylananMetraj_state2["metraj"] = Number(onaylananMetraj_state2["metraj"]) - Number(oneRow["metraj"])
+      onaylananMetraj_state2.satirlar = onaylananMetraj_state2.satirlar.filter(x => x.satirNo !== oneRow.satirNo)
     }
 
     let metraj = 0
@@ -595,8 +590,14 @@ export default function P_MetrajCetveliOnaylanan() {
           </React.Fragment>
 
 
-          {onaylananMetraj_state.satirlar.filter(x => showHasSelectedCopy ? x : !x.hasSelectedCopy).sort((a, b) => a.siraNo - b.siraNo).map((oneRow, index) => {
+          {onaylananMetraj_state.satirlar.filter(x => showHasSelectedCopy ? x : !x.hasSelectedCopy).sort((a, b) => {
 
+            let a1 = a.satirNo.substring(a.satirNo.indexOf("-") + 1, a.satirNo.length)
+            let b1 = b.satirNo.substring(b.satirNo.indexOf("-") + 1, b.satirNo.length)
+
+            return a1.localeCompare(b1, undefined, { numeric: true, sensitivity: 'base' });
+
+          }).map((oneRow, index) => {
 
             return (
               < React.Fragment key={index}>
