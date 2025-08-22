@@ -33,6 +33,9 @@ import DoneAllIcon from '@mui/icons-material/DoneAll';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import ExpandLessIcon from '@mui/icons-material/ExpandLess';
 import ClearOutlined from '@mui/icons-material/ClearOutlined';
+import { DeleteOutline, Replay, Visibility } from '@mui/icons-material';
+import DeleteIcon from '@mui/icons-material/Delete';
+import ReplyIcon from '@mui/icons-material/Reply';
 
 
 export default function P_MetrajOnay() {
@@ -53,9 +56,11 @@ export default function P_MetrajOnay() {
   const [dialogAlert, setDialogAlert] = useState()
   const [show, setShow] = useState("Main")
   const [isChanged, setIsChanged] = useState()
+  const [isChanged_seen, setIsChanged_seen] = useState()
 
   const [isChanged_unReady, setIsChanged_unReady] = useState()
   const [mode_unReady, setMode_unReady] = useState()
+  const [mode_seen, setMode_seen] = useState()
 
 
 
@@ -106,8 +111,13 @@ export default function P_MetrajOnay() {
 
 
 
-  // SELECT FONKSİYONLARI - SELECT - UNSELECT - CANCEL - SAVE
 
+
+
+
+
+
+  // SELECT FONKSİYONLARI - SELECT - UNSELECT - CANCEL - SAVE
 
   const handle_satirSec = ({ oneRow, hazirlayan }) => {
 
@@ -121,6 +131,7 @@ export default function P_MetrajOnay() {
         oneHazirlanan.satirlar.map(oneSatir => {
           if (oneSatir.satirNo === oneRow.satirNo) {
             oneSatir.isSelected = true
+            delete oneSatir.isReady
             oneSatir.newSelected = true
           }
           return oneSatir
@@ -135,10 +146,6 @@ export default function P_MetrajOnay() {
 
 
 
-
-
-
-
   const handle_satirIptal = ({ oneRow, hazirlayan }) => {
 
     if (!oneRow.newSelected) {
@@ -150,13 +157,13 @@ export default function P_MetrajOnay() {
     }
 
 
-
     let hazirlananMetrajlar_state2 = _.cloneDeep(hazirlananMetrajlar_state)
     hazirlananMetrajlar_state2 = hazirlananMetrajlar_state2.map(oneHazirlanan => {
       if (oneHazirlanan.userEmail === hazirlayan.userEmail) {
         oneHazirlanan.satirlar.map(oneSatir => {
           if (oneSatir.satirNo === oneRow.satirNo) {
             delete oneSatir.isSelected
+            oneSatir.isReady = true
             delete oneSatir.newSelected
           }
           return oneSatir
@@ -376,6 +383,142 @@ export default function P_MetrajOnay() {
 
 
 
+
+  // SEEN FONKSİYONLARI - SELECT - UNSELECT - CANCEL - SAVE
+
+
+  const handle_satirSec_seen = ({ oneRow, hazirlayan }) => {
+
+    if (!isChanged_seen) {
+      setIsChanged_seen(true)
+    }
+
+    let hazirlananMetrajlar_state2 = _.cloneDeep(hazirlananMetrajlar_state)
+    hazirlananMetrajlar_state2 = hazirlananMetrajlar_state2.map(oneHazirlanan => {
+      if (oneHazirlanan.userEmail === hazirlayan.userEmail) {
+        oneHazirlanan.satirlar.map(oneSatir => {
+          if (oneSatir.satirNo === oneRow.satirNo) {
+            oneSatir.isReadyUnSeen = false
+            oneSatir.newSelected = true
+          }
+          return oneSatir
+        })
+      }
+      return oneHazirlanan
+    })
+
+    setHazirlananMetrajlar_state(hazirlananMetrajlar_state2)
+
+  }
+
+
+
+
+  const handle_satirIptal_seen = ({ oneRow, hazirlayan }) => {
+
+    if (!oneRow.newSelected) {
+      return
+    }
+
+    if (!isChanged_seen) {
+      setIsChanged_seen(true)
+    }
+
+    let hazirlananMetrajlar_state2 = _.cloneDeep(hazirlananMetrajlar_state)
+    hazirlananMetrajlar_state2 = hazirlananMetrajlar_state2.map(oneHazirlanan => {
+      if (oneHazirlanan.userEmail === hazirlayan.userEmail) {
+        oneHazirlanan.satirlar.map(oneSatir => {
+          if (oneSatir.satirNo === oneRow.satirNo) {
+            oneSatir.isReadyUnSeen = true
+            delete oneSatir.newSelected
+          }
+          return oneSatir
+        })
+      }
+      return oneHazirlanan
+    })
+    setHazirlananMetrajlar_state(hazirlananMetrajlar_state2)
+
+
+    // kaydetme tuşunu pasif hale getirme
+    let hasNewSelected = false;
+    for (var i = 0; i < hazirlananMetrajlar_state2.length; i++) {
+      if (hazirlananMetrajlar_state2[i].satirlar.find(x => x.newSelected)) {
+        hasNewSelected = true;
+        break;
+      }
+    }
+    if (!hasNewSelected) {
+      setIsChanged_seen()
+    }
+
+
+  }
+
+
+  const cancel_seen = () => {
+    setHazirlananMetrajlar_state(_.cloneDeep(hazirlananMetrajlar_backUp))
+    setIsChanged_seen()
+    setMode_seen()
+  }
+
+
+  // Edit Metraj Sayfasının Fonksiyonu
+  const save_seen = async () => {
+
+    if (isChanged_seen) {
+
+      try {
+
+        await RealmApp?.currentUser.callFunction("update_hazirlananMetrajlar_seen", ({ _projeId: selectedProje._id, _dugumId: selectedNode_metraj._id, hazirlananMetrajlar_state }))
+
+        queryClient.invalidateQueries(['hazirlananMetrajlar', selectedNode_metraj?._id.toString()])
+
+        setMode_seen()
+        setIsChanged_seen()
+        return
+
+      } catch (err) {
+
+        console.log(err)
+
+        let dialogIcon = "warning"
+        let dialogMessage = "Beklenmedik hata, sayfayı yenileyiniz, sorun devam ederse Rapor7/24 ile irtibata geçiniz.."
+        let onCloseAction = () => setDialogAlert()
+
+        if (err.message.includes("__mesajBaslangic__") && err.message.includes("__mesajBitis__")) {
+          let mesajBaslangic = err.message.indexOf("__mesajBaslangic__") + "__mesajBaslangic__".length
+          let mesajBitis = err.message.indexOf("__mesajBitis__")
+          dialogMessage = err.message.slice(mesajBaslangic, mesajBitis)
+          dialogIcon = "info"
+          onCloseAction = () => {
+            setDialogAlert()
+            queryClient.invalidateQueries(['hazirlananMetrajlar', selectedNode_metraj?._id.toString()])
+          }
+        }
+        setDialogAlert({
+          dialogIcon,
+          dialogMessage,
+          detailText: err?.message ? err.message : null,
+          onCloseAction
+        })
+
+      }
+    }
+
+  }
+
+
+
+
+
+
+
+
+
+
+
+
   // KİŞİLERİN HAZILADIĞI METRAJLARI GÖSTERİP GİZLEME
 
   const toggleShow = ({ userEmail }) => {
@@ -478,6 +621,7 @@ export default function P_MetrajOnay() {
           show={show} setShow={setShow}
           save={save} cancel={cancel} isChanged={isChanged} setIsChanged={setIsChanged}
           save_unReady={save_unReady} cancel_unReady={cancel_unReady} isChanged_unReady={isChanged_unReady} setIsChanged_unReady={setIsChanged_unReady} mode_unReady={mode_unReady} setMode_unReady={setMode_unReady}
+          save_seen={save_seen} cancel_seen={cancel_seen} isChanged_seen={isChanged_seen} setIsChanged_seen={setIsChanged_seen} mode_seen={mode_seen} setMode_seen={setMode_seen}
         />
       </Grid>
 
@@ -585,7 +729,7 @@ export default function P_MetrajOnay() {
                   </Box>
 
                   <Box sx={{ ...css_metrajCetveliBaslik, justifyContent: "end", pr: "0.3rem", color: oneHazirlanan?.metraj < 0 ? "red" : null }}>
-                    {oneHazirlanan?.metraj ? ikiHane(oneHazirlanan?.metraj) : ""}
+                    {oneHazirlanan?.metrajReady ? ikiHane(oneHazirlanan?.metrajReady) : ""}
                   </Box>
 
                   <Box sx={{ ...css_metrajCetveliBaslik }}>
@@ -623,12 +767,6 @@ export default function P_MetrajOnay() {
                             <React.Fragment key={index}>
 
                               <Box
-                                // onClick={() =>
-                                //   !mode_unReady && !oneRow?.isSelected ? handle_satirSec({ oneRow, hazirlayan }) :
-                                //     !mode_unReady && oneRow?.newSelected ? handle_satirIptal({ oneRow, hazirlayan }) :
-                                //       mode_unReady && !oneRow?.isSelected && oneRow?.isReady ? handle_satirSec_unReady({ oneRow, hazirlayan }) :
-                                //         mode_unReady && !oneRow?.isReady && handle_satirIptal_unReady({ oneRow, hazirlayan })
-                                // }
                                 sx={{
                                   ...css_metrajCetveliSatir,
                                   cursor: !oneRow.isSelected || oneRow.newSelected ? "pointer" : null,
@@ -650,10 +788,12 @@ export default function P_MetrajOnay() {
                         <Box
 
                           onClick={() =>
-                            !mode_unReady && !oneRow?.isSelected ? handle_satirSec({ oneRow, hazirlayan }) :
-                              !mode_unReady && oneRow?.newSelected ? handle_satirIptal({ oneRow, hazirlayan }) :
-                                mode_unReady && !oneRow?.isSelected && oneRow?.isReady ? handle_satirSec_unReady({ oneRow, hazirlayan }) :
-                                  mode_unReady && !oneRow?.isReady && handle_satirIptal_unReady({ oneRow, hazirlayan })
+                            !mode_unReady && !mode_seen && !oneRow?.isSelected ? handle_satirSec({ oneRow, hazirlayan }) :
+                              !mode_unReady && !mode_seen &&  oneRow?.newSelected ? handle_satirIptal({ oneRow, hazirlayan }) :
+                                mode_unReady && !mode_seen && !oneRow?.isSelected && oneRow?.isReady ? handle_satirSec_unReady({ oneRow, hazirlayan }) :
+                                  mode_unReady && !mode_seen && oneRow?.newSelected ? handle_satirIptal_unReady({ oneRow, hazirlayan }) :
+                                    mode_seen && oneRow?.isReadyUnSeen ? handle_satirSec_seen({ oneRow, hazirlayan }) :
+                                      mode_seen && oneRow?.newSelected && handle_satirIptal_seen({ oneRow, hazirlayan })
                           }
 
                           sx={{
@@ -667,14 +807,14 @@ export default function P_MetrajOnay() {
                             px: "0.3rem",
                             border: "1px solid black"
                           }}>
-                          {oneRow?.isSelected && !oneRow?.newSelected &&
-                            <LockIcon variant="contained" sx={{ color: "gray", fontSize: "1rem" }} />
+                          {oneRow?.isSelected &&
+                            <DoneAllIcon variant="contained" sx={{ color: oneRow.newSelected ? "rgba(196, 95, 33, 1)" : "gray", fontSize: "1rem" }} />
                           }
-                          {oneRow?.isSelected && oneRow?.newSelected &&
-                            <CircleIcon variant="contained" sx={{ color: "rgba( 255,165,0, 1 )", fontSize: "0.75rem" }} />
+                          {oneRow?.isReady === false &&
+                            <ReplyIcon variant="contained" sx={{ color: "red", fontSize: "1rem" }} />
                           }
-                          {!oneRow?.isSelected && oneRow?.newSelected &&
-                            <ClearOutlined variant="contained" sx={{ color: "red", fontSize: "1rem" }} />
+                          {!oneRow?.isSelected && oneRow?.isReady && !oneRow.isReadyUnSeen &&
+                            <Visibility variant="contained" sx={{ color: oneRow.newSelected ? "rgba( 255,165,0, 1 )" : "gray", fontSize: "1rem" }} />
                           }
                           {/* {oneRow?.isReady && !oneRow?.newSelected &&
                             <ClearOutlined variant="contained" sx={{ color: "red", fontSize: "1rem" }} />

@@ -34,13 +34,16 @@ import TaskAltIcon from '@mui/icons-material/TaskAlt';
 import ForwardIcon from '@mui/icons-material/Forward';
 import SaveIcon from '@mui/icons-material/Save';
 import PersonIcon from '@mui/icons-material/Person';
+import CheckCircleIcon from '@mui/icons-material/CheckCircle';
+
 
 
 
 export default function P_HeaderMetrajOnay({
   show, setShow,
   isChanged, cancel, save,
-  isChanged_unReady, cancel_unReady, save_unReady, mode_unReady, setMode_unReady
+  isChanged_unReady, cancel_unReady, save_unReady, mode_unReady, setMode_unReady,
+  isChanged_seen, cancel_seen, save_seen, mode_seen, setMode_seen
 }) {
 
   const navigate = useNavigate()
@@ -52,6 +55,8 @@ export default function P_HeaderMetrajOnay({
   const [showEminMisin, setShowEminMisin] = useState(false)
 
   const [showEminMisin_unReady, setShowEminMisin_unReady] = useState(false)
+
+  const [showEminMisin_seen, setShowEminMisin_seen] = useState(false)
 
 
   return (
@@ -84,6 +89,21 @@ export default function P_HeaderMetrajOnay({
           action2={() => {
             cancel_unReady()
             setShowEminMisin_unReady()
+          }}
+        />
+      }
+
+      {showEminMisin_seen &&
+        <DialogAlert
+          dialogIcon={"warning"}
+          dialogMessage={"Yaptığınız değişiklikleri kaybedeceksiniz ?"}
+          onCloseAction={() => setShowEminMisin_seen()}
+          actionText1={"İptal"}
+          action1={() => setShowEminMisin_seen()}
+          actionText2={"Onayla"}
+          action2={() => {
+            cancel_seen()
+            setShowEminMisin_seen()
           }}
         />
       }
@@ -144,7 +164,7 @@ export default function P_HeaderMetrajOnay({
 
 
 
-              {!isChanged && !mode_unReady &&
+              {!isChanged && !mode_unReady && !mode_seen &&
                 <>
 
                   <Grid item >
@@ -164,7 +184,7 @@ export default function P_HeaderMetrajOnay({
               }
 
 
-              {!isChanged && !isChanged_unReady &&
+              {!isChanged && !isChanged_unReady && !isChanged_seen && !mode_seen &&
                 < Grid item >
                   <IconButton onClick={() => setMode_unReady(x => !x)}                    >
                     <DeleteIcon variant="contained" sx={{ color: mode_unReady ? "red" : "lightpink" }} />
@@ -173,30 +193,24 @@ export default function P_HeaderMetrajOnay({
               }
 
 
-              {isChanged_unReady &&
-                <>
-
-                  <Grid item >
-                    <IconButton onClick={() => {
-                      if (isChanged_unReady) {
-                        setShowEminMisin_unReady(true)
-                      } else {
-                        setMode_unReady()
-                      }
-                    }} aria-label="lbsUncliced">
-                      <ClearOutlined variant="contained" sx={{ color: "red" }} />
-                    </IconButton>
-                  </Grid>
-
-                  <Grid item >
-                    <IconButton onClick={() => { save_unReady() }} >
-                      <SaveIcon variant="contained" />
-                    </IconButton>
-                  </Grid>
-
-
-                </>
+              {!isChanged && !isChanged_unReady && !isChanged_seen && !mode_unReady &&
+                < Grid item >
+                  <IconButton onClick={() => setMode_seen(x => !x)}                    >
+                    <VisibilityIcon variant="contained" sx={{ color: mode_seen ? "gray" : "lightgray" }} />
+                  </IconButton>
+                </Grid>
               }
+
+
+              {/* {!isChanged && !isChanged_unReady && !isChanged_seen && !mode_unReady &&
+                < Grid item >
+                  <IconButton onClick={() => setMode_appr(x => !x)}                    >
+                    <CheckCircleIcon variant="contained" sx={{ color: mode_seen ? "gray" : "lightgray" }} />
+                  </IconButton>
+                </Grid>
+              } */}
+
+
 
 
 
@@ -226,6 +240,67 @@ export default function P_HeaderMetrajOnay({
 
                 </>
               }
+
+
+
+
+              {isChanged_unReady &&
+                <>
+
+                  <Grid item >
+                    <IconButton onClick={() => {
+                      if (isChanged_unReady) {
+                        setShowEminMisin_unReady(true)
+                      } else {
+                        setMode_unReady()
+                      }
+                    }} aria-label="lbsUncliced">
+                      <ClearOutlined variant="contained" sx={{ color: "red" }} />
+                    </IconButton>
+                  </Grid>
+
+                  <Grid item >
+                    <IconButton onClick={() => { save_unReady() }} >
+                      <SaveIcon variant="contained" />
+                    </IconButton>
+                  </Grid>
+
+
+                </>
+              }
+
+
+
+
+
+
+              {isChanged_seen &&
+                <>
+
+                  <Grid item >
+                    <IconButton onClick={() => {
+                      if (isChanged_seen) {
+                        setShowEminMisin_seen(true)
+                      } else {
+                        setMode_seen()
+                      }
+                    }} aria-label="lbsUncliced">
+                      <ClearOutlined variant="contained" sx={{ color: "red" }} />
+                    </IconButton>
+                  </Grid>
+
+                  <Grid item >
+                    <IconButton onClick={() => { save_seen() }} >
+                      <SaveIcon variant="contained" />
+                    </IconButton>
+                  </Grid>
+
+
+                </>
+              }
+
+
+
 
 
 

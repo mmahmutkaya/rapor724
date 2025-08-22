@@ -28,7 +28,7 @@ import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import CheckIcon from '@mui/icons-material/Check';
 import LockIcon from '@mui/icons-material/Lock';
 import ReplyIcon from '@mui/icons-material/Reply';
-import { Circle } from '@mui/icons-material';
+import { Circle, Visibility } from '@mui/icons-material';
 import DoneAllIcon from '@mui/icons-material/DoneAll';
 
 
@@ -238,6 +238,7 @@ export default function P_MetrajOlusturCetvel() {
     hazirlananMetraj_state2.satirlar = hazirlananMetraj_state2.satirlar.map(oneSatir => {
       if (oneSatir.satirNo === oneRow.satirNo) {
         oneSatir.isReady = true
+        oneSatir.isReadyUnSeen = true
         // oneSatir.newSelected ? delete oneSatir.newSelected : oneSatir.newSelected = true
         oneSatir.newSelected = true
       }
@@ -264,6 +265,7 @@ export default function P_MetrajOlusturCetvel() {
     hazirlananMetraj_state2.satirlar = hazirlananMetraj_state2.satirlar.map(oneSatir => {
       if (oneSatir.satirNo === oneRow.satirNo) {
         delete oneSatir.isReady
+        delete oneSatir.isReadyUnSeen
         // oneSatir.newSelected ? delete oneSatir.newSelected : oneSatir.newSelected = true
         delete oneSatir.newSelected
       }
@@ -612,13 +614,13 @@ export default function P_MetrajOlusturCetvel() {
                     border: "1px solid black"
                   }}>
                   {oneRow.isSelected &&
-                    <DoneAllIcon variant="contained" sx={{ color: "black", fontSize: "1.2rem" }} />
+                    <CheckIcon variant="contained" sx={{ color: !oneRow.hasSelectedCopy ? "black" : "red", fontSize: "1.2rem" }} />
                   }
-                  {oneRow.isReady && !oneRow.newSelected && !oneRow.isSelected &&
-                    <CheckIcon variant="contained" sx={{ color: "black", fontSize: "1.2rem" }} />
+                  {oneRow.isReady && !oneRow.isReadyUnSeen &&
+                    <Visibility variant="contained" sx={{ color: "gray", fontSize: "1rem" }} />
                   }
-                  {oneRow.isReady && oneRow.newSelected && !oneRow.isSelected &&
-                    <Circle variant="contained" sx={{ color: "rgba( 255,165,0, 1 )", fontSize: "0.70rem" }} />
+                  {oneRow.isReady && !oneRow.isSelected &&
+                    <Circle variant="contained" sx={{ color: oneRow.newSelected ? "rgba( 255,165,0, 1 )" : "rgba(94, 90, 90, 0.49)", fontSize: "0.70rem" }} />
                   }
                   {oneRow.isPreparing && oneRow.isReadyBack &&
                     <ReplyIcon variant="contained" sx={{ color: "red", fontSize: "0.95rem" }} />

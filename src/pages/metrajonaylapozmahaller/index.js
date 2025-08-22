@@ -6,6 +6,9 @@ import { useApp } from "../../components/useApp";
 import FormPozCreate from '../../components/FormPozCreate'
 import EditPozBaslik from '../../components/EditPozBaslik'
 import FormPozBaslikCreate from '../../components/FormPozBaslikCreate'
+import { DialogAlert } from '../../components/general/DialogAlert.js';
+import { useQuery, useQueryClient } from '@tanstack/react-query'
+
 import _ from 'lodash';
 
 
@@ -19,7 +22,7 @@ import Grid from '@mui/material/Grid';
 import Alert from '@mui/material/Alert';
 import Stack from '@mui/material/Stack';
 import Box from '@mui/material/Box';
-import { BorderBottom, Check } from '@mui/icons-material';
+import { Check } from '@mui/icons-material';
 import Tooltip from '@mui/material/Tooltip';
 import FileDownloadDoneIcon from '@mui/icons-material/FileDownloadDone';
 import CircleIcon from '@mui/icons-material/Circle';
@@ -28,7 +31,11 @@ import AddCircleIcon from '@mui/icons-material/AddCircle';
 
 export default function P_MetrajOnaylaPozMahaller() {
 
+  const queryClient = useQueryClient()
+
   const { RealmApp, myTema } = useContext(StoreContext)
+
+  const [dialogAlert, setDialogAlert] = useState()
 
   const { selectedProje, selectedPoz_metraj } = useContext(StoreContext)
   const { showMetrajYapabilenler, setShowMetrajYapabilenler } = useContext(StoreContext)
@@ -318,12 +325,54 @@ export default function P_MetrajOnaylaPozMahaller() {
     setSelectMode()
   }
 
-  const save_select = () => {
 
-    console.log("dugumler_byPoz_state", dugumler_byPoz_state)
-    RealmApp?.currentUser.callFunction("update_hazirlananMetrajlar_selectedFull", ({}))
+  // Edit Metraj Sayfasının Fonksiyonu
+  const save_select = async () => {
+
+    if (isChange_select) {
+
+      try {
+
+        await RealmApp?.currentUser.callFunction("update_hazirlananMetrajlar_selectedFull", ({ dugumler_byPoz_state }))
+
+        // queryClient.invalidateQueries(['onaylananMetraj', selectedNode_metraj?._id.toString()])
+        // queryClient.invalidateQueries(['hazirlananMetrajlar', selectedNode_metraj?._id.toString()])
+        queryClient.invalidateQueries(['dugumler_byPoz'])
+
+        setIsChange_select()
+        return
+
+      } catch (err) {
+
+        console.log(err)
+
+        let dialogIcon = "warning"
+        let dialogMessage = "Beklenmedik hata, sayfayı yenileyiniz, sorun devam ederse Rapor7/24 ile irtibata geçiniz.."
+        let onCloseAction = () => setDialogAlert()
+
+        if (err.message.includes("__mesajBaslangic__") && err.message.includes("__mesajBitis__")) {
+          let mesajBaslangic = err.message.indexOf("__mesajBaslangic__") + "__mesajBaslangic__".length
+          let mesajBitis = err.message.indexOf("__mesajBitis__")
+          dialogMessage = err.message.slice(mesajBaslangic, mesajBitis)
+          dialogIcon = "info"
+          onCloseAction = () => {
+            setDialogAlert()
+            queryClient.invalidateQueries(['hazirlananMetrajlar', selectedNode_metraj?._id.toString()])
+          }
+        }
+        setDialogAlert({
+          dialogIcon,
+          dialogMessage,
+          detailText: err?.message ? err.message : null,
+          onCloseAction
+        })
+
+      }
+    }
 
   }
+
+
 
 
 
@@ -392,6 +441,16 @@ export default function P_MetrajOnaylaPozMahaller() {
   return (
 
     <Box sx={{ m: "0rem", maxWidth: "60rem" }}>
+
+
+      {dialogAlert &&
+        <DialogAlert
+          dialogIcon={dialogAlert.dialogIcon}
+          dialogMessage={dialogAlert.dialogMessage}
+          detailText={dialogAlert.detailText}
+          onCloseAction={dialogAlert.onCloseAction}
+        />
+      }
 
       <Grid item >
         <HeaderMetrajOnaylaPozMahaller
@@ -696,6 +755,14 @@ export default function P_MetrajOnaylaPozMahaller() {
                                         sx={{
                                           mr: "0.3rem", fontSize: "1rem",
                                           color: "black"
+                                        }} />
+                                    }
+
+                                    {clickAble &&
+                                      <CircleIcon variant="contained" className="childClass"
+                                        sx={{
+                                          mr: "0.3rem", fontSize: "0.6rem",
+                                          color: hasReadyUnSeen ? "rgba(255, 251, 0, 0.55)" : "white"
                                         }} />
                                     }
 

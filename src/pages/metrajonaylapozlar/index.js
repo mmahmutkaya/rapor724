@@ -24,6 +24,8 @@ import { Button, TextField, Typography } from '@mui/material';
 import Box from '@mui/material/Box';
 import InfoIcon from '@mui/icons-material/Info';
 import Tooltip from '@mui/material/Tooltip';
+import CircleIcon from '@mui/icons-material/Circle';
+import { Check } from '@mui/icons-material';
 
 
 
@@ -34,7 +36,7 @@ export default function P_MetrajOnaylaPozlar() {
 
   let { data } = useGetPozlar()
   let pozlar = data?.pozlar?.filter(x => x.hasDugum)
-  // console.log("pozlar", pozlar)
+  console.log("pozlar", pozlar)
 
   const { RealmApp, myTema } = useContext(StoreContext)
   const { showMetrajYapabilenler, setShowMetrajYapabilenler } = useContext(StoreContext)
@@ -418,6 +420,11 @@ export default function P_MetrajOnaylaPozlar() {
                             let hasUnSelected = oneHazirlanan?.hasUnSelected
                             let metraj = oneHazirlanan?.metrajReady
                             let clickAble = hasUnSelected || hasSelected || hasReady ? true : false
+                            let hasReadyUnSeen = oneHazirlanan?.hasReadyUnSeen
+                            let allSelected = oneHazirlanan?.hasSelected && !oneHazirlanan?.hasUnSelected
+                            let someSelected = oneHazirlanan?.hasSelected && oneHazirlanan?.hasUnSelected
+
+
 
                             return (
                               <Box
@@ -425,19 +432,45 @@ export default function P_MetrajOnaylaPozlar() {
                                 onClick={() => clickAble && goTo_MetrajPozmahaller(onePoz)}
                                 sx={{
                                   ...pozNo_css, display: "grid", gridTemplateColumns: "1rem 1fr", justifyContent: "end", cursor: clickAble && "pointer",
-                                  backgroundColor: hasUnSelected ? "rgba(255, 251, 0, 0.55)" : !clickAble && "lightgray",
-                                  "&:hover": clickAble && { "& .childClass": { backgroundColor: "red" } },
+                                  backgroundColor: hasReadyUnSeen ? "rgba(255, 251, 0, 0.55)" : !clickAble && "lightgray",
+                                  "&:hover": clickAble && { "& .childClass": { color: "red" } },
                                 }}>
-                                <Box
+                                {/* <Box
                                   className="childClass"
                                   sx={{
                                     ml: "-1rem", height: "0.5rem", width: "0.5rem", borderRadius: "50%",
                                     backgroundColor: hasSelected && hasUnSelected && "gray",
                                   }}>
-                                </Box>
+                                </Box> */}
+
+                                {someSelected &&
+                                  <CircleIcon variant="contained" className="childClass"
+                                    sx={{
+                                      mr: "0.3rem", fontSize: "0.60rem",
+                                      color: "gray"
+                                    }} />
+                                }
+
+                                {allSelected &&
+                                  <Check variant="contained" className="childClass"
+                                    sx={{
+                                      mr: "0.3rem", fontSize: "1rem",
+                                      color: "black"
+                                    }} />
+                                }
+
+                                {clickAble &&
+                                  <CircleIcon variant="contained" className="childClass"
+                                    sx={{
+                                      mr: "0.3rem", fontSize: "0.6rem",
+                                      color: hasReadyUnSeen ? "rgba(255, 251, 0, 0.55)" : "white"
+                                    }} />
+                                }
+
                                 <Box sx={{ justifySelf: "end" }}>
                                   {ikiHane(metraj)}
                                 </Box>
+
                               </Box>
                             )
                           })}
