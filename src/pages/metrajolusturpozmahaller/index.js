@@ -339,6 +339,8 @@ export default function P_MetrajOlusturPozMahaller() {
                 {mahaller_byPoz_byLbs?.map((oneMahal, index) => {
 
                   let dugum = dugumler_byPoz?.find(oneDugum => oneDugum._pozId.toString() === selectedPoz_metraj._id.toString() && oneDugum._mahalId.toString() === oneMahal._id.toString())
+                  let oneHazirlanan = dugum?.hazirlananMetrajlar?.find(x => x.userEmail === customData.email)
+
 
                   return (
                     <React.Fragment key={index}>
@@ -391,15 +393,15 @@ export default function P_MetrajOlusturPozMahaller() {
                             <Box className="childClass" sx={{ backgroundColor: "yellow", height: "0.5rem", width: "0.5rem", borderRadius: "50%" }}>
                             </Box>
                             <Box sx={{ justifySelf: "end" }}>
-                              {ikiHane(dugum?.hazirlananMetrajlar?.find(x => x.userEmail === customData.email)?.metrajPreparing)}
+                              {ikiHane(oneHazirlanan?.metrajPreparing)}
                             </Box>
                           </Box>
 
 
 
 
-                          <Box sx={{ ...css_mahaller, justifyContent: "end" }}>
-                            {ikiHane(dugum?.hazirlananMetrajlar?.find(x => x.userEmail === customData.email)?.metrajReady)}
+                          <Box sx={{ ...css_mahaller, justifyContent: "end" , backgroundColor: oneHazirlanan.hasReady && "rgba(255, 255, 0, 0.24)" }}>
+                            {ikiHane(oneHazirlanan?.metrajReady)}
                           </Box>
 
 

@@ -32,12 +32,14 @@ import TaskAltIcon from '@mui/icons-material/TaskAlt';
 import ForwardIcon from '@mui/icons-material/Forward';
 import SaveIcon from '@mui/icons-material/Save';
 import { useGetMahaller } from '../hooks/useMongo';
-
+import CheckCircleIcon from '@mui/icons-material/CheckCircle';
+import { Circle } from '@mui/icons-material';
 
 
 export default function P_HeaderMetrajOlusturCetvel({
   show, setShow,
-  isChanged, cancel, save,
+  mode_edit, setMode_edit, mode_ready, setMode_ready,
+  isChanged_edit, cancel_edit, save_edit,
   isChanged_ready, cancel_ready, save_ready
 }) {
 
@@ -47,24 +49,24 @@ export default function P_HeaderMetrajOlusturCetvel({
 
   const { selectedPoz_metraj, selectedMahal_metraj } = useContext(StoreContext)
 
-  const [showEminMisin, setShowEminMisin] = useState(false)
+  const [showEminMisin_edit, setShowEminMisin_edit] = useState(false)
   const [showEminMisin_ready, setShowEminMisin_ready] = useState(false)
 
 
   return (
     <Paper >
 
-      {showEminMisin &&
+      {showEminMisin_edit &&
         <DialogAlert
           dialogIcon={"warning"}
           dialogMessage={"Yaptığınız değişiklikleri kaybedeceksiniz ?"}
-          onCloseAction={() => setShowEminMisin()}
+          onCloseAction={() => setShowEminMisin_edit()}
           actionText1={"İptal"}
-          action1={() => setShowEminMisin()}
+          action1={() => setShowEminMisin_edit()}
           actionText2={"Onayla"}
           action2={() => {
-            cancel()
-            setShowEminMisin()
+            cancel_edit()
+            setShowEminMisin_edit()
           }}
         />
       }
@@ -139,38 +141,35 @@ export default function P_HeaderMetrajOlusturCetvel({
             <Grid container>
 
 
-              {show === "Main" && !isChanged_ready &&
-                <>
+              {!isChanged_edit && !isChanged_ready && !mode_ready &&
+                <Grid item onClick={() => setMode_edit(x => !x)} sx={{ cursor: "pointer" }}>
+                  <IconButton disabled={false} >
+                    <EditIcon variant="contained" sx={{ color: mode_edit ? "black" : "gray" }} />
+                  </IconButton>
+                </Grid>
+              }
 
-                  {/* <Grid item >
-                    <IconButton onClick={() => navigate("/metrajolusturpozmahaller")}>
-                      <ReplyIcon variant="contained" sx={{ color: "gray" }} />
-                    </IconButton>
-                  </Grid> */}
-
-                  <Grid item onClick={() => setShow("EditMetraj")} sx={{ cursor: "pointer" }}>
-                    <IconButton disabled={false} >
-                      <EditIcon variant="contained" sx={{ color: "gray" }} />
-                    </IconButton>
-                  </Grid>
-
-                </>
-
+              {!isChanged_edit && !isChanged_ready && !mode_edit &&
+                <Grid item onClick={() => setMode_ready(x => !x)} sx={{ cursor: "pointer" }}>
+                  <IconButton disabled={false} >
+                    <CheckCircleIcon variant="contained" sx={{ color: mode_ready ? "black" : "gray" }} />
+                  </IconButton>
+                </Grid>
               }
 
 
-              {show === "EditMetraj" && !isChanged_ready &&
+              {isChanged_edit &&
 
                 <>
 
                   <Grid item >
-                    <IconButton onClick={() => isChanged ? setShowEminMisin(true) : setShow("Main")}>
+                    <IconButton onClick={() => setShowEminMisin_edit(true)}>
                       <ClearOutlined variant="contained" sx={{ color: "red" }} />
                     </IconButton>
                   </Grid>
 
                   <Grid item >
-                    <IconButton onClick={() => save()} disabled={!isChanged} >
+                    <IconButton onClick={() => save_edit()} disabled={!isChanged_edit} >
                       <SaveIcon variant="contained" />
                     </IconButton>
                   </Grid>
@@ -179,7 +178,7 @@ export default function P_HeaderMetrajOlusturCetvel({
               }
 
 
-              {show === "Main" && isChanged_ready &&
+              {isChanged_ready &&
 
                 <>
 

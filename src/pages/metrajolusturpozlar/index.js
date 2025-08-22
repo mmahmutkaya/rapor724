@@ -315,6 +315,8 @@ export default function P_MetrajOlusturPozlar() {
                 {/* WBS'İN POZLARI */}
                 {pozlar?.filter(x => x._wbsId.toString() === oneWbs._id.toString()).map((onePoz, index) => {
 
+                  let oneHazirlanan = onePoz.hazirlananMetrajlar.find(x => x.userEmail === customData.email)
+
                   let isSelected = false
 
                   if (selectedPoz_metraj?._id.toString() === onePoz._id.toString()) {
@@ -376,12 +378,12 @@ export default function P_MetrajOlusturPozlar() {
                             <Box className="childClass" sx={{ ml: "-1rem", backgroundColor: "yellow", height: "0.5rem", width: "0.5rem", borderRadius: "50%" }}>
                             </Box>
                             <Box sx={{ justifySelf: "end" }}>
-                              {ikiHane(onePoz?.hazirlananMetrajlar.find(x => x.userEmail === customData.email)?.metrajPreparing)}
+                              {ikiHane(oneHazirlanan?.metrajPreparing)}
                             </Box>
                           </Box>
 
-                          <Box sx={{ ...pozNo_css, justifyContent: "end" }}>
-                            {ikiHane(onePoz?.hazirlananMetrajlar.find(x => x.userEmail === customData.email)?.metrajReady)}
+                          <Box sx={{ ...pozNo_css, justifyContent: "end", backgroundColor: oneHazirlanan.hasReady && "rgba(255, 255, 0, 0.24)" }}>
+                            {ikiHane(oneHazirlanan?.metrajReady)}
                           </Box>
 
                           {/* <Box sx={{ ...pozNo_css, display: "grid", gridTemplateColumns: "auto 1fr" }}>

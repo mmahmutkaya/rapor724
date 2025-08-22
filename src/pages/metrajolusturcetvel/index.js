@@ -54,10 +54,13 @@ export default function P_MetrajOlusturCetvel() {
   const [show, setShow] = useState("Main")
   const [hazirlananMetraj_state, setHazirlananMetraj_state] = useState()
   const [hazirlananMetraj_backUp, setHazirlananMetraj_backUp] = useState()
-  
 
-  const [isChanged, setIsChanged] = useState()
+
+  const [isChanged_edit, setIsChanged_edit] = useState()
   const [isChanged_ready, setIsChanged_ready] = useState()
+
+  const [mode_edit, setMode_edit] = useState()
+  const [mode_ready, setMode_ready] = useState()
 
 
   const [_pozId] = useState()
@@ -112,8 +115,8 @@ export default function P_MetrajOlusturCetvel() {
   // Edit Metraj Sayfasının Fonksiyonu
   const handle_input_onChange = (event, satirNo, oneProperty) => {
 
-    if (!isChanged) {
-      setIsChanged(true)
+    if (!isChanged_edit) {
+      setIsChanged_edit(true)
     }
 
     let hazirlananMetraj_state2 = { ...hazirlananMetraj_state }
@@ -175,24 +178,25 @@ export default function P_MetrajOlusturCetvel() {
   }
 
 
-  const cancel = () => {
+  const cancel_edit = () => {
     setHazirlananMetraj_state(_.cloneDeep(hazirlananMetraj_backUp))
-    setIsChanged()
+    setIsChanged_edit()
     setShow("Main")
+    setMode_edit()
   }
 
 
   // Edit Metraj Sayfasının Fonksiyonu
-  const save = async () => {
+  const save_edit = async () => {
 
-    if (isChanged || isChanged_ready) {
+    if (isChanged_edit || isChanged_ready) {
       try {
 
         await RealmApp?.currentUser.callFunction("update_hazirlananMetraj_preparing", ({ _dugumId: selectedNode_metraj._id, hazirlananMetraj_state }))
 
         queryClient.invalidateQueries(['hazirlananMetraj', selectedNode_metraj?._id.toString()])
-        setIsChanged()
-        setIsChanged_ready()
+        setIsChanged_edit()
+        setMode_edit()
         setShow("Main")
         return
 
@@ -211,9 +215,9 @@ export default function P_MetrajOlusturCetvel() {
           dialogIcon = "info"
           onCloseAction = () => {
             setDialogAlert()
-            setIsChanged()
-            setShow("Main")
-            queryClient.invalidateQueries(['hazirlananMetrajlar', selectedNode_metraj?._id.toString()])
+            setIsChanged_edit()
+            setMode_edit()
+            queryClient.invalidateQueries(['hazirlananMetraj', selectedNode_metraj?._id.toString()])
           }
         }
         setDialogAlert({
@@ -232,7 +236,61 @@ export default function P_MetrajOlusturCetvel() {
 
 
 
+
+
+
+
+
+
   //  READY FONKSİYONLARI - ADD SATIR - REMOVE SATIR - CANCEL DB - SAVE DB
+
+
+
+
+  const add_OneRow_ready_all = () => {
+
+    let hazirlananMetraj_state2 = _.cloneDeep(hazirlananMetraj_state)
+
+    let isIslemYapildi
+
+    hazirlananMetraj_state2.satirlar = hazirlananMetraj_state2.satirlar.map(oneSatir => {
+      if (!oneSatir.isReady && !oneSatir.isReadyBack) {
+        oneSatir.isReady = true
+        oneSatir.isReadyUnSeen = true
+        oneSatir.newSelected = true
+        isIslemYapildi = true
+      }
+      return oneSatir
+    })
+
+
+    if (!isIslemYapildi) {
+      hazirlananMetraj_state2.satirlar = hazirlananMetraj_state2.satirlar.map(oneSatir => {
+        if (oneSatir.isReady && oneSatir.newSelected) {
+          delete oneSatir.isReady
+          delete oneSatir.isReadyUnSeen
+          delete oneSatir.newSelected
+        }
+        return oneSatir
+      })
+    }
+
+
+    setIsChanged_ready()
+
+    for (let j = 0; j < hazirlananMetraj_state2.satirlar?.length; j++) {
+      let oneSatir = hazirlananMetraj_state2.satirlar[j]
+      if (oneSatir.isReady && oneSatir.isReadyUnSeen) {
+        setIsChanged_ready(true)
+        break
+      }
+    }
+
+    setHazirlananMetraj_state(hazirlananMetraj_state2)
+  }
+
+
+
   const addRow_ready = (oneRow) => {
 
     let hazirlananMetraj_state2 = _.cloneDeep(hazirlananMetraj_state)
@@ -240,7 +298,6 @@ export default function P_MetrajOlusturCetvel() {
       if (oneSatir.satirNo === oneRow.satirNo) {
         oneSatir.isReady = true
         oneSatir.isReadyUnSeen = true
-        // oneSatir.newSelected ? delete oneSatir.newSelected : oneSatir.newSelected = true
         oneSatir.newSelected = true
       }
       return oneSatir
@@ -290,6 +347,7 @@ export default function P_MetrajOlusturCetvel() {
   const cancel_ready = () => {
     setHazirlananMetraj_state(_.cloneDeep(hazirlananMetraj_backUp))
     setIsChanged_ready()
+    setMode_ready()
   }
 
 
@@ -301,6 +359,7 @@ export default function P_MetrajOlusturCetvel() {
 
       queryClient.invalidateQueries(['hazirlananMetraj', selectedNode_metraj?._id.toString()])
       setIsChanged_ready()
+      setMode_ready()
       return
 
     } catch (err) {
@@ -319,6 +378,7 @@ export default function P_MetrajOlusturCetvel() {
         onCloseAction = () => {
           setDialogAlert()
           setIsChanged_ready()
+          setMode_ready()
           queryClient.invalidateQueries(['hazirlananMetrajlar', selectedNode_metraj?._id.toString()])
         }
       }
@@ -367,7 +427,7 @@ export default function P_MetrajOlusturCetvel() {
   const metrajValue = (oneRow, oneProperty, isMinha) => {
 
     if (oneProperty == "pozBirim") return pozBirim
-    if (oneProperty.includes("carpan")) return show !== "EditMetraj" ? ikiHane(oneRow[oneProperty]) : oneRow[oneProperty]
+    if (oneProperty.includes("carpan")) return !mode_edit ? ikiHane(oneRow[oneProperty]) : oneRow[oneProperty]
     if (oneProperty == "metraj") return ikiHane(oneRow[oneProperty])
 
     // yukarıdaki hiçbiri değilse
@@ -418,7 +478,11 @@ export default function P_MetrajOlusturCetvel() {
       <Grid name="metrajCetveliHeader" item sx={{ mt: (parseFloat(subHeaderHeight) + 1) + "rem", }}>
         <HeaderMetrajOlusturCetvel
           show={show} setShow={setShow}
-          save={save} cancel={cancel} isChanged={isChanged} setIsChanged={setIsChanged}
+
+          mode_edit={mode_edit} setMode_edit={setMode_edit}
+          mode_ready={mode_ready} setMode_ready={setMode_ready}
+
+          save_edit={save_edit} cancel_edit={cancel_edit} isChanged_edit={isChanged_edit} setIsChanged_edit={setIsChanged_edit}
           save_ready={save_ready} cancel_ready={cancel_ready} isChanged_ready={isChanged_ready} setIsChanged_ready={setIsChanged_ready}
         />
       </Grid>
@@ -510,9 +574,21 @@ export default function P_MetrajOlusturCetvel() {
 
             <Box></Box>
 
-            <Box sx={{ ...css_metrajCetveliBaslik_Yayinlanan }}>
-              Durum
-            </Box>
+
+            {/* ALLTAKİ 4 TANEDEN BİRİ GÖSTERİLİYOR */}
+            {!mode_ready &&
+              <Box sx={{ ...css_metrajCetveliBaslik_Yayinlanan }}>
+                Durum
+              </Box>
+            }
+
+            {mode_ready &&
+              <Box onClick={() => add_OneRow_ready_all()} sx={{ ...css_metrajCetveliBaslik_Yayinlanan, cursor: "pointer" }}>
+                <Circle variant="contained" sx={{ minWidth: "3.05rem", color: "gray", fontSize: "1rem" }} />
+              </Box>
+            }
+
+
 
           </React.Fragment>
 
@@ -523,7 +599,7 @@ export default function P_MetrajOlusturCetvel() {
 
                 {["satirNo", "aciklama", "carpan1", "carpan2", "carpan3", "carpan4", "carpan5", "metraj", "pozBirim"].map((oneProperty, index) => {
                   // let isCellEdit = (oneProperty === "satirNo" || oneProperty === "pozBirim" || oneProperty === "metraj") ? false : true
-                  let isCellEdit = show === "EditMetraj" && !oneRow.isSelected && !oneRow.isReady && (oneProperty.includes("aciklama") || oneProperty.includes("carpan")) ? true : false
+                  let isCellEdit = mode_edit && !oneRow.isSelected && !oneRow.isReady && (oneProperty.includes("aciklama") || oneProperty.includes("carpan")) ? true : false
                   let isMinha = oneRow["aciklama"].replace("İ", "i").toLowerCase().includes("minha") ? true : false
 
                   return (
@@ -603,7 +679,11 @@ export default function P_MetrajOlusturCetvel() {
                 <Box></Box>
 
                 <Box
-                  onClick={() => show === "Main" && !oneRow.isReadyBack && !oneRow.isSelected && !oneRow.isReady ? addRow_ready(oneRow) : show === "Main" && !oneRow.isSelected && oneRow.isReady && oneRow.newSelected && removeRow_ready(oneRow)}
+                  onClick={() =>
+                    mode_ready && !oneRow.isReadyBack && !oneRow.isSelected && !oneRow.isReady ? addRow_ready(oneRow) :
+                      mode_ready && !oneRow.isSelected && oneRow.isReady && oneRow.newSelected && removeRow_ready(oneRow)
+
+                  }
                   sx={{
                     // backgroundColor: oneRow.isSelected ? null : "rgba(255,255,0, 0.3)",
                     // backgroundColor: "rgba(255,255,0, 0.3)",
