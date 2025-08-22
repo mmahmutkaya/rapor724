@@ -74,6 +74,7 @@ export default function P_MetrajCetveliOnaylanan() {
     setOnaylananMetraj_state(_.cloneDeep(onaylananMetraj))
     setOnaylananMetraj_backUp(_.cloneDeep(onaylananMetraj))
     setHasSelectedCopySatirlar(onaylananMetraj?.satirlar.find(x => x.hasSelectedCopy) ? true : false)
+    console.log("onaylananMetraj",onaylananMetraj)
     setShow("Main")
   }, [onaylananMetraj])
 

@@ -37,7 +37,6 @@ import { Circle } from '@mui/icons-material';
 
 
 export default function P_HeaderMetrajOlusturCetvel({
-  show, setShow,
   mode_edit, setMode_edit, mode_ready, setMode_ready,
   isChanged_edit, cancel_edit, save_edit,
   isChanged_ready, cancel_ready, save_ready

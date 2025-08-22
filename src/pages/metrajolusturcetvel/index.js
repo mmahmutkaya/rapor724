@@ -51,7 +51,6 @@ export default function P_MetrajOlusturCetvel() {
 
 
   const [dialogAlert, setDialogAlert] = useState()
-  const [show, setShow] = useState("Main")
   const [hazirlananMetraj_state, setHazirlananMetraj_state] = useState()
   const [hazirlananMetraj_backUp, setHazirlananMetraj_backUp] = useState()
 
@@ -181,7 +180,6 @@ export default function P_MetrajOlusturCetvel() {
   const cancel_edit = () => {
     setHazirlananMetraj_state(_.cloneDeep(hazirlananMetraj_backUp))
     setIsChanged_edit()
-    setShow("Main")
     setMode_edit()
   }
 
@@ -197,7 +195,6 @@ export default function P_MetrajOlusturCetvel() {
         queryClient.invalidateQueries(['hazirlananMetraj', selectedNode_metraj?._id.toString()])
         setIsChanged_edit()
         setMode_edit()
-        setShow("Main")
         return
 
       } catch (err) {
@@ -477,7 +474,6 @@ export default function P_MetrajOlusturCetvel() {
 
       <Grid name="metrajCetveliHeader" item sx={{ mt: (parseFloat(subHeaderHeight) + 1) + "rem", }}>
         <HeaderMetrajOlusturCetvel
-          show={show} setShow={setShow}
 
           mode_edit={mode_edit} setMode_edit={setMode_edit}
           mode_ready={mode_ready} setMode_ready={setMode_ready}
