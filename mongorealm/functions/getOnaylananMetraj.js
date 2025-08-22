@@ -20,55 +20,40 @@ exports = async function ({
     throw new Error("MONGO // getOnaylananMetraj // '_dugumId' verisi db sorgusuna gelmedi");
   }
 
-  
-  const collection_HazirlananMetrajlar = context.services.get("mongodb-atlas").db("rapor724_v2").collection("hazirlananMetrajlar")
-  const collection_OnaylananMetrajlar = context.services.get("mongodb-atlas").db("rapor724_v2").collection("onaylananMetrajlar")
+
+  const collection_Dugumler = context.services.get("mongodb-atlas").db("rapor724_v2").collection("dugumler")
 
 
-  const _versionId = new BSON.ObjectId()
+  const result = await collection_Dugumler.aggregate([
+    { $match: { _id: _dugumId } },
+    {
+      $project: {
+        hazirlananMetrajlar: 1
+      }
+    },
+    { $limit: 1 }
+  ]).toArray()
 
-  try {
-    await collection_HazirlananMetrajlar.updateMany({ _dugumId }, { $set: { _versionId } })
-  } catch (error) {
-    throw new Error({ hatayeri: "MONGO // getOnaylananMetraj // hazirlananMetrajlar _versionId güncelleme sırasında hata oluştu", error });
+
+  let { hazirlananMetrajlar } = result[0]
+
+  let satirlar = []
+  metrajOnaylanan = 0
+  hazirlananMetrajlar.map(oneHazirlanan => {
+    let userEmail = oneHazirlanan.userEmail
+    let onayliSatirlar = oneHazirlanan.satirlar.filter(x => x.isSelected || x.hasSelectedCopy || x.isSelectedCopy).map(oneSatir => {
+      oneSatir.userEmail = userEmail
+      metrajOnaylanan += oneSatir.metraj ? Number(oneSatir.metraj) : 0
+      return oneSatir
+    })
+    satirlar = [...satirlar, ...onayliSatirlar]
+  })
+
+  let onaylananMetraj = {
+    metrajOnaylanan,
+    satirlar
   }
 
-
-  let result_updateVersiyonId_onaylanan
-  try {
-    result_updateVersiyonId_onaylanan = await collection_OnaylananMetrajlar.updateOne({ _dugumId }, { $set: { _versionId } })
-  } catch (error) {
-    throw new Error({ hatayeri: "MONGO // getOnaylananMetraj // onaylananMetraj _versionId güncelleme sırasında hata oluştu", error });
-  }
-
-
-  try {
-    if (!result_updateVersiyonId_onaylanan.matchedCount) {
-      await collection_OnaylananMetrajlar.insertOne({ _dugumId, _versionId, satirlar:[], metraj:0 })
-    }
-  } catch (error) {
-    throw new Error({ hatayeri: "MONGO // getOnaylananMetraj // onaylananMetraj oluşturma sırasında hata oluştu", error });
-  }
-
-
-  // let hazirlananMetrajlar
-  // try {
-  //   hazirlananMetrajlar = await collection_HazirlananMetrajlar.find({ _dugumId })
-  // } catch (error) {
-  //   throw new Error({ hatayeri: "MONGO // getOnaylananMetraj // get hazirlananMetrajlar sırasında hata oluştu", error });
-  // }
-
-
-  let onaylananMetraj
-  try {
-    onaylananMetraj = await collection_OnaylananMetrajlar.findOne({ _dugumId })
-  } catch (error) {
-    throw new Error({ hatayeri: "MONGO // getOnaylananMetraj // get onaylananMetraj sırasında hata oluştu", error });
-  }
-
-
-  // çok ince bir düşünce yukarıda kopyaladık zaten ama bizim kopyalamamız ile veri alma süremiz arasında bir kayıt olmuşsa diye
-  onaylananMetraj._versionId = _versionId
   return onaylananMetraj
 
 
