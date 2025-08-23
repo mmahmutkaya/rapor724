@@ -36,7 +36,7 @@ exports = async function ({
   ]).toArray()
 
 
-  let { hazirlananMetrajlar } = result[0]
+  let { hazirlananMetrajlar, revizeMetrajlar } = result[0]
 
   let satirlar = []
   metrajOnaylanan = 0
