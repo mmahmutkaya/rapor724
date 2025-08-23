@@ -79,7 +79,7 @@ exports = async function ({
         return oneSatir.satirNo
       })
 
-      revizeMetrajOriginalSatirNolar = [...revizeMetrajOriginalSatirNolar, hasSelectedCopySatirNolar]
+      revizeMetrajOriginalSatirNolar = [...revizeMetrajOriginalSatirNolar, ...hasSelectedCopySatirNolar]
 
       oneBulk = {
         updateOne: {
