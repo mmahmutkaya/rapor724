@@ -90,6 +90,8 @@ exports = async function ({
 
       })
 
+      revizeMetrajSatirNolar = [...revizeMetrajSatirNolar, hasSelectedCopySatirNolar]
+
       oneBulk = {
         updateOne: {
           filter: { _id: _dugumId },
@@ -135,19 +137,18 @@ exports = async function ({
       [
         {
           $set: {
-            revizeMetrajlar
-            // revizeMetrajlar: {
-            //   $concatArrays: [
-            //     {
-            //       $filter: {
-            //         input: "$revizeMetrajlar",
-            //         as: "oneMetraj",
-            //         cond: { $nin: revizeMetrajOriginalSatirNolar }
-            //       }
-            //     },
-            //     revizemetrajlar
-            //   ]
-            // }
+            revizeMetrajlar: {
+              $concatArrays: [
+                {
+                  $filter: {
+                    input: "$revizeMetrajlar",
+                    as: "oneMetraj",
+                    cond: { $nin: revizeMetrajSatirNolar }
+                  }
+                },
+                revizeMetrajlar
+              ]
+            }
           }
         }
 
