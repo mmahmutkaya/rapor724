@@ -62,6 +62,8 @@ exports = async function ({
   // })
 
 
+  let revizemetrajlar = []
+  let revizeMetrajOriginalSatirNolar = []
 
   try {
 
@@ -69,19 +71,22 @@ exports = async function ({
     dugum.hazirlananMetrajlar.map(oneHazirlanan => {
 
       let hasSelectedCopySatirNolar = onaylananMetraj_state.satirlar.filter(x => x.userEmail === oneHazirlanan.userEmail && x.hasSelectedCopy && x.newSelected).map(oneSatir => {
+        let oneMetraj = {
+          originalSatirNo: oneSatir.satirNo,
+          satirlar: onaylananMetraj_state.satirlar(x => x.originalSatirNo)
+        }
+        revizemetrajlar = [...revizemetrajlar, oneMetraj]
         return oneSatir.satirNo
       })
 
-      let isSelctedCopySatirlar = onaylananMetraj_state.satirlar.filter(x => x.userEmail === oneHazirlanan.userEmail && x.isSelectedCopy)
-
+      revizeMetrajOriginalSatirNolar = [...revizeMetrajOriginalSatirNolar, hasSelectedCopySatirNolar]
 
       oneBulk = {
         updateOne: {
           filter: { _id: _dugumId },
           update: {
             $set: {
-              "hazirlananMetrajlar.$[oneHazirlanan].satirlar.$[oneSatir].hasSelectedCopy": true,
-              "revizeMetrajlar.$[oneHazirlanan].satirlar": isSelctedCopySatirlar
+              "hazirlananMetrajlar.$[oneHazirlanan].satirlar.$[oneSatir].hasSelectedCopy": true
             },
             $unset: {
               "hazirlananMetrajlar.$[oneHazirlanan].satirlar.$[oneSatir].isSelected": ""
@@ -98,6 +103,7 @@ exports = async function ({
           ]
         }
       }
+
       bulkArray = [...bulkArray, oneBulk]
 
     })
@@ -112,6 +118,37 @@ exports = async function ({
     throw new Error("MONGO // update_onaylananMetraj_revize // hazirlananMetraj güncelleme " + error);
   }
 
+
+
+  try {
+
+    await collection_Dugumler.updateOne({ _id: _dugumId },
+      [
+        {
+          $set: {
+            revizeMetrajlar: {
+              $concatArrays: [
+                {
+                  $filter: {
+                    input: "$revizeMetrajlar",
+                    as: "oneMetraj",
+                    cond: { $nin: revizeMetrajOriginalSatirNolar }
+                  }
+                },
+                revizemetrajlar
+              ]
+
+            }
+          }
+        }
+
+      ]
+    )
+
+
+  } catch (error) {
+    throw new Error("MONGO // update_onaylananMetraj_revize // " + error.message);
+  }
 
 
   // try {
