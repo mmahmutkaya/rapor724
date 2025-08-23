@@ -39,27 +39,27 @@ exports = async function ({
 
 
 
-  let revisedSavedButOtherUser
+  // let revisedSavedButOtherUser
 
   const dugum = await collection_Dugumler.findOne({ _id: _dugumId })
 
 
 
-  dugum.hazirlananMetrajlar.map(oneHazirlanan => {
+  // dugum.hazirlananMetrajlar.map(oneHazirlanan => {
 
-    let hasSelectedCopySatirNolar = onaylananMetraj_state.satirlar.filter(x => x.userEmail === oneHazirlanan.userEmail && x.hasSelectedCopy && x.newSelected).map(oneSatir => {
-      return oneSatir.satirNo
-    })
+  //   let hasSelectedCopySatirNolar = onaylananMetraj_state.satirlar.filter(x => x.userEmail === oneHazirlanan.userEmail && x.hasSelectedCopy && x.newSelected).map(oneSatir => {
+  //     return oneSatir.satirNo
+  //   })
 
-    oneHazirlanan.satirlar.map(oneSatir => {
-      if (hasSelectedCopySatirNolar.find(x => x === oneSatir.satirNo)) {
-        if (!oneSatir.isSelected) {
-          throw new Error("MONGO // update_onaylananMetraj_revize // hazirlananMetraj güncelleme " + error);
-        }
-      }
-    })
+  //   oneHazirlanan.satirlar.map(oneSatir => {
+  //     if (hasSelectedCopySatirNolar.find(x => x === oneSatir.satirNo)) {
+  //       if (!oneSatir.isSelected) {
+  //         throw new Error("MONGO // update_onaylananMetraj_revize // hazirlananMetraj güncelleme " + error);
+  //       }
+  //     }
+  //   })
 
-  })
+  // })
 
 
 
@@ -90,10 +90,6 @@ exports = async function ({
           arrayFilters: [
             {
               "oneHazirlanan.userEmail": userEmail
-            },
-            {
-              "oneSatir.satirNo": { $in: hasSelectedCopySatirNolar },
-              "oneSatir.isSelected": true
             },
             {
               "oneSatir.satirNo": { $in: hasSelectedCopySatirNolar },
