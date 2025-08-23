@@ -80,17 +80,20 @@ exports = async function ({
 
       let hasSelectedCopySatirNolar = onaylananMetraj_state.satirlar.filter(x => x.hasSelectedCopy && x.newSelected && x.userEmail === oneEmail).map(oneSatir => {
 
-        let oneMetraj = {
-          satirNo: oneSatir.satirNo,
-          satirlar: onaylananMetraj_state.satirlar.filter(x => x.originalSatirNo === oneSatir.satirNo)
+        if (oneSatir) {
+          let oneMetraj = {
+            satirNo: oneSatir.satirNo,
+            satirlar: onaylananMetraj_state.satirlar.filter(x => x.originalSatirNo === oneSatir.satirNo)
+          }
+          revizeMetrajlar = [...revizeMetrajlar, oneMetraj]
+          return oneSatir.satirNo
         }
-        revizeMetrajlar = [...revizeMetrajlar, oneMetraj]
-
-        return oneSatir.satirNo
 
       })
 
-      revizeMetrajSatirNolar = [...revizeMetrajSatirNolar, ...hasSelectedCopySatirNolar]
+      if (hasSelectedCopySatirNolar.length > 0) {
+        revizeMetrajSatirNolar = [...revizeMetrajSatirNolar, ...hasSelectedCopySatirNolar]
+      }
 
       oneBulk = {
         updateOne: {
@@ -131,34 +134,36 @@ exports = async function ({
 
 
 
-  try {
+  if (revizeMetrajSatirNolar) {
+    try {
 
-    await collection_Dugumler.updateOne({ _id: _dugumId },
-      [
-        {
-          $set: {
-            revizeMetrajlar: {
-              $concatArrays: [
-                {
-                  $filter: {
-                    input: "$revizeMetrajlar",
-                    as: "oneMetraj",
-                    cond: { $in: ["$$oneMetraj.satirNo", revizeMetrajSatirNolar] }
-                  }
-                },
-                revizeMetrajlar
-              ]
+      await collection_Dugumler.updateOne({ _id: _dugumId },
+        [
+          {
+            $set: {
+              revizeMetrajlar: {
+                $concatArrays: [
+                  {
+                    $filter: {
+                      input: "$revizeMetrajlar",
+                      as: "oneMetraj",
+                      cond: { $in: ["$$oneMetraj.satirNo", revizeMetrajSatirNolar] }
+                    }
+                  },
+                  revizeMetrajlar
+                ]
+              }
             }
           }
-        }
-      ]
-    )
+        ]
+      )
 
 
-  } catch (error) {
-    throw new Error("MONGO // update_onaylananMetraj_revize // " + error.message);
+    } catch (error) {
+      throw new Error("MONGO // update_onaylananMetraj_revize // " + error.message);
+    }
+
   }
-
 
   // try {
 
