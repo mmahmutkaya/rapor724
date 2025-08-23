@@ -136,7 +136,7 @@ exports = async function ({
     await collection_Dugumler.updateOne({ _id: _dugumId },
       [
         {
-          $set: {
+          $project: {
             revizeMetrajlar: {
               $concatArrays: [
                 {
