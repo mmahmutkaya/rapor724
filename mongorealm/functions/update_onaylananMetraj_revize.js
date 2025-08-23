@@ -136,14 +136,14 @@ exports = async function ({
     await collection_Dugumler.updateOne({ _id: _dugumId },
       [
         {
-          $project: {
+          $set: {
             revizeMetrajlar: {
               $concatArrays: [
                 {
                   $filter: {
                     input: "$revizeMetrajlar",
                     as: "oneMetraj",
-                    cond: { $nin: ["$$oneMetraj.satirNo", revizeMetrajSatirNolar] }
+                    cond: { $in: ["$$oneMetraj.satirNo", revizeMetrajSatirNolar] }
                   }
                 },
                 revizeMetrajlar
