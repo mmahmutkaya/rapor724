@@ -81,7 +81,7 @@ exports = async function ({
           {
             updateOne: {
               filter: { _projeId, _mahalId: oneMahal._id, _pozId, hazirlananMetrajlar: { $exists: false } },
-              update: { $set: { hazirlananMetrajlar: [] } },
+              update: { $set: { hazirlananMetrajlar: [], revizeMetrajlar: [] } },
             }
           }
         )
