@@ -90,7 +90,7 @@ exports = async function ({
 
       })
 
-      revizeMetrajSatirNolar = [...revizeMetrajSatirNolar, hasSelectedCopySatirNolar]
+      revizeMetrajSatirNolar = [...revizeMetrajSatirNolar, ...hasSelectedCopySatirNolar]
 
       oneBulk = {
         updateOne: {
