@@ -41,10 +41,11 @@ exports = async function ({
 
   let revisedSavedButOtherUser
 
-  let hazirlananMetrajlar = await collection_Dugumler.findOne({ _id: _dugumId })
+  const dugum = await collection_Dugumler.findOne({ _id: _dugumId })
 
 
-  hazirlananMetrajlar.map(oneHazirlanan => {
+
+  dugum.hazirlananMetrajlar.map(oneHazirlanan => {
 
     let hasSelectedCopySatirNolar = onaylananMetraj_state.satirlar.filter(x => x.userEmail === oneHazirlanan.userEmail && x.hasSelectedCopy && x.newSelected).map(oneSatir => {
       return oneSatir.satirNo
@@ -53,7 +54,7 @@ exports = async function ({
     oneHazirlanan.satirlar.map(oneSatir => {
       if (hasSelectedCopySatirNolar.find(x => x === oneSatir.satirNo)) {
         if (!oneSatir.isSelected) {
-          revisedSavedButOtherUser = true
+          throw new Error("MONGO // update_onaylananMetraj_revize // hazirlananMetraj güncelleme " + error);
         }
       }
     })
