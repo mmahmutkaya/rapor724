@@ -62,7 +62,7 @@ exports = async function ({
   // })
 
 
-  let revizemetrajlar = []
+  let revizeMetrajlar = []
   let revizeMetrajOriginalSatirNolar = []
 
   try {
@@ -75,7 +75,7 @@ exports = async function ({
           originalSatirNo: oneSatir.satirNo,
           satirlar: onaylananMetraj_state.satirlar(x => x.originalSatirNo)
         }
-        revizemetrajlar = [...revizemetrajlar, oneMetraj]
+        revizeMetrajlar = [...revizeMetrajlar, oneMetraj]
         return oneSatir.satirNo
       })
 
@@ -126,19 +126,19 @@ exports = async function ({
       [
         {
           $set: {
-            revizeMetrajlar: {
-              $concatArrays: [
-                {
-                  $filter: {
-                    input: "$revizeMetrajlar",
-                    as: "oneMetraj",
-                    cond: { $nin: revizeMetrajOriginalSatirNolar }
-                  }
-                },
-                revizemetrajlar
-              ]
-
-            }
+            revizeMetrajlar
+            // revizeMetrajlar: {
+            //   $concatArrays: [
+            //     {
+            //       $filter: {
+            //         input: "$revizeMetrajlar",
+            //         as: "oneMetraj",
+            //         cond: { $nin: revizeMetrajOriginalSatirNolar }
+            //       }
+            //     },
+            //     revizemetrajlar
+            //   ]
+            // }
           }
         }
 
