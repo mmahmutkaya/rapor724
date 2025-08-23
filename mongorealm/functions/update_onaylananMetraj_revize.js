@@ -94,7 +94,7 @@ exports = async function ({
           },
           arrayFilters: [
             {
-              "oneHazirlanan.userEmail": userEmail
+              "oneHazirlanan.userEmail": oneHazirlanan.userEmail
             },
             {
               "oneSatir.satirNo": { $in: hasSelectedCopySatirNolar },
