@@ -105,14 +105,27 @@ export default function P_MetrajCetveliOnaylanan() {
     // console.log("onaylananMetraj_state2", onaylananMetraj_state2)
 
 
-    // orjinal satır değiştirilmeye başladığında satır numaraları ile kopyası oluşturulur
+    // eğer düzenlenmeye başlanan satır orjinal satır ise düzenlemeler yapılarak kopyası oluşturulur ve satirlar array'ine eklenir
     let originalSatirNo
-    if (!oneSatir.isSelectedCopy) {
+    if (!oneSatir.satirNo.includes(".")) {
       originalSatirNo = oneSatir.satirNo
       oneSatir.satirNo = originalSatirNo + ".1"
-    }
-    if (!onaylananMetraj_state2.satirlar.find(x => x.satirNo === oneSatir.satirNo)) {
-      onaylananMetraj_state2.satirlar = [...onaylananMetraj_state2.satirlar, { ...oneSatir, isSelected: false, isSelectedCopy: true, isFirstCopy: true, isLastCopy: true }]
+
+      // }
+      // if (!onaylananMetraj_state2.satirlar.find(x => x.satirNo === oneSatir.satirNo)) {
+
+      delete oneSatir.hasSelectedCopy
+      delete oneSatir.isSelected
+      oneSatir.originalSatirNo = originalSatirNo
+      oneSatir.isSelectedCopy = true
+      oneSatir.isFirstCopy = true
+      oneSatir.isLastCopy = true
+
+      onaylananMetraj_state2.satirlar = [...onaylananMetraj_state2.satirlar, { ...oneSatir }]
+
+      // düzenlenmeye başlanan zaten revize bir satırsa orjinal satır numarası tespit edilir ve db de işlem yapmak için aşağıda newSelected=true değeri atanır, 
+    } else {
+      originalSatirNo = oneSatir.satirNo.substring(0, oneSatir.satirNo.indexOf("."))
     }
 
     // map ile tarayarak, state kısmındaki datanın ilgili satırını güncelliyoruz, ayrıca tüm satırların toplam metrajını, önce önceki değeri çıkartıp yeni değeri ekleyerek
@@ -120,32 +133,16 @@ export default function P_MetrajCetveliOnaylanan() {
 
       // orjinal satırın değiştirilmesi ile yapılmışsa originalSatır diye bişey var yoksa alttan devam edecek
       if (oneRow.satirNo === originalSatirNo) {
-
+        // ilk iki satır ilk kopyası oluşturulurken gereki ama olsun
         oneRow.hasSelectedCopy = true
-        // onaylananMetraj_state2["metraj"] = Number(onaylananMetraj_state2["metraj"]) - Number(oneRow["metraj"])
-
-        // oneRow.isChange = true
-
-        // let userEmail = oneRow.userEmail
-        // // db ye göndereeğimiz 'revizeEdilenler' henüz hiç oluşmamışsa
-        // let satirNolar_lock2 = _.cloneDeep(satirNolar_lock)
-        // if (satirNolar_lock2?.find(x => x.userEmail === userEmail)) {
-        //   satirNolar_lock2 = satirNolar_lock2.map(oneHazirlanan => {
-        //     if (oneHazirlanan.userEmail === userEmail) {
-        //       if (!oneHazirlanan.satirNolar.find(x => x === originalSatirNo))
-        //         oneHazirlanan.satirNolar = [...oneHazirlanan.satirNolar, originalSatirNo]
-        //     }
-        //     return oneHazirlanan
-        //   })
-        // } else {
-        //   satirNolar_lock2 = [...satirNolar_lock2, { userEmail, satirNolar: [originalSatirNo] }]
-        // }
-
-        // setSatirNolar_lock(satirNolar_lock2)
+        delete oneRow.isSelected
+        //  bu da db işlemi için gerekli
+        oneRow.newSelected = true
 
       }
 
       // yukarıda satırno değiştirdik kopyasına yeni satır numarası verdik noktalı
+      // bu revizenin ilk kopyası sonraki kopyalar aşağıdaki fonksiyonda oluşuyor
       if (oneRow.satirNo === oneSatir.satirNo) {
 
         setSelectedRow(oneRow)
@@ -190,14 +187,14 @@ export default function P_MetrajCetveliOnaylanan() {
 
     })
 
-    let metraj = 0
+    let metrajOnaylanan = 0
     onaylananMetraj_state2.satirlar.filter(x => x.isSelected && !x.hasSelectedCopy).map(oneSatir => {
-      metraj += Number(oneSatir.metraj)
+      metrajOnaylanan += Number(oneSatir.metraj)
     })
     onaylananMetraj_state2.satirlar.filter(x => x.isSelectedCopy).map(oneSatir => {
-      metraj += Number(oneSatir.metraj)
+      metrajOnaylanan += Number(oneSatir.metraj)
     })
-    onaylananMetraj_state2.metraj = metraj
+    onaylananMetraj_state2.metrajOnaylanan = metrajOnaylanan
 
     setOnaylananMetraj_state(onaylananMetraj_state2)
     // alttaki kod sadece react component render yapılması için biyerde kullanılmıyor -- (sonra bunada gerek kalmadı)
@@ -275,7 +272,7 @@ export default function P_MetrajCetveliOnaylanan() {
 
       try {
 
-        await RealmApp?.currentUser.callFunction("update_onaylananMetraj", ({ _dugumId: selectedNode_metraj._id, onaylananMetraj_state }))
+        await RealmApp?.currentUser.callFunction("update_onaylananMetraj_revize", ({ _dugumId: selectedNode_metraj._id, onaylananMetraj_state }))
         setShow("Main")
         queryClient.invalidateQueries(['onaylananMetraj', selectedNode_metraj?._id.toString()])
         setIsChanged()
@@ -321,7 +318,7 @@ export default function P_MetrajCetveliOnaylanan() {
 
 
 
-  // ORJİNAK SATIRLARI VE REVİZELERİ SİLME FONKSİYONU
+  // ORJİNAL SATIRLARI VE REVİZELERİ SİLME FONKSİYONU
 
 
   const update_state_unLock = (oneRow) => {
@@ -333,7 +330,13 @@ export default function P_MetrajCetveliOnaylanan() {
     if (oneRow.isSelectedCopy) {
 
       //  metrajını ve kendisini önce bi çıkartalım
-      onaylananMetraj_state2.satirlar = onaylananMetraj_state2.satirlar.filter(x => x.satirNo !== oneRow.satirNo)
+      onaylananMetraj_state2.satirlar = onaylananMetraj_state2.satirlar.map(oneSatir => {
+        if (!oneSatir.newSelected) {
+          oneSatir.newSelected = true
+        } else {
+          delete oneSatir.newSelected
+        }
+      })
 
       let leftPart = oneRow.satirNo.substring(0, oneRow.satirNo.indexOf(".") + 1)
       // let rightPart = oneRow.satirNo.substring(oneRow.satirNo.indexOf(".") + 1, oneRow.satirNo.length)

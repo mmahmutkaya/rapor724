@@ -400,7 +400,7 @@ export default function P_MetrajOlusturPozMahaller() {
 
 
 
-                          <Box sx={{ ...css_mahaller, justifyContent: "end" , backgroundColor: oneHazirlanan.hasReady && "rgba(255, 255, 0, 0.24)" }}>
+                          <Box sx={{ ...css_mahaller, justifyContent: "end" , backgroundColor: oneHazirlanan?.hasReady && "rgba(255, 255, 0, 0.24)" }}>
                             {ikiHane(oneHazirlanan?.metrajReady)}
                           </Box>
 

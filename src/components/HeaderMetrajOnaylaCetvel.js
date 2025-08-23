@@ -201,15 +201,15 @@ export default function P_HeaderMetrajOnaylaCetvel({
 
                 <>
 
-                  {hasSelectedCopySatirlar &&
-                    <Grid item >
-                      <IconButton onClick={() => {
+                  <Grid item >
+                    <IconButton
+                      disabled={!hasSelectedCopySatirlar}
+                      onClick={() => {
                         copySelectedRow()
                       }} aria-label="lbsUncliced">
-                        <AddCircleOutlineIcon variant="contained" sx={{ color: "rgba(70, 140, 55, 0.6)" }} />
-                      </IconButton>
-                    </Grid>
-                  }
+                      <AddCircleOutlineIcon variant="contained" sx={{ color: "rgba(70, 140, 55, 0.6)" }} />
+                    </IconButton>
+                  </Grid>
 
                   <Grid item >
                     <IconButton onClick={() => {
