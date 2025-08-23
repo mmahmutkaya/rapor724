@@ -41,7 +41,7 @@ exports = async function ({
 
   // let revisedSavedButOtherUser
 
-  const dugum = await collection_Dugumler.findOne({ _id: _dugumId })
+  // const dugum = await collection_Dugumler.findOne({ _id: _dugumId })
 
 
 
@@ -61,25 +61,34 @@ exports = async function ({
 
   // })
 
+  let emails = []
+  onaylananMetraj_state.satirlar.filter(x => x.hasSelectedCopy && x.newSelected).map(oneSatir => {
+    if (!emails.find(x => x === oneSatir.userEmail)) (
+      emails = [...emails, oneSatir.userEmail]
+    )
+  })
+
 
   let revizeMetrajlar = []
-  let revizeMetrajOriginalSatirNolar = []
+  let revizeMetrajSatirNolar = []
+
 
   try {
 
     let bulkArray = []
-    dugum.hazirlananMetrajlar.map(oneHazirlanan => {
+    emails.map(oneEmail => {
 
-      let hasSelectedCopySatirNolar = onaylananMetraj_state.satirlar.filter(x => x.userEmail === oneHazirlanan.userEmail && x.hasSelectedCopy && x.newSelected).map(oneSatir => {
+      let hasSelectedCopySatirNolar = onaylananMetraj_state.satirlar.filter(x => x.hasSelectedCopy && x.newSelected && x.userEmail === oneEmail).map(oneSatir => {
+
         let oneMetraj = {
-          originalSatirNo: oneSatir.satirNo,
-          satirlar: onaylananMetraj_state.satirlar(x => x.originalSatirNo)
+          satirNo: oneSatir.satirNo,
+          satirlar: onaylananMetraj_state.satirlar.filter(x => x.originalSatirNo === oneSatir.satirNo)
         }
         revizeMetrajlar = [...revizeMetrajlar, oneMetraj]
-        return oneSatir.satirNo
-      })
 
-      revizeMetrajOriginalSatirNolar = [...revizeMetrajOriginalSatirNolar, ...hasSelectedCopySatirNolar]
+        return oneSatir.satirNo
+
+      })
 
       oneBulk = {
         updateOne: {
@@ -94,7 +103,7 @@ exports = async function ({
           },
           arrayFilters: [
             {
-              "oneHazirlanan.userEmail": oneHazirlanan.userEmail
+              "oneHazirlanan.userEmail": oneEmail
             },
             {
               "oneSatir.satirNo": { $in: hasSelectedCopySatirNolar },
