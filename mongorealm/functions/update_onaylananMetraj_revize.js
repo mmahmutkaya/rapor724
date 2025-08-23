@@ -66,7 +66,7 @@ exports = async function ({
   try {
 
     let bulkArray = []
-    hazirlananMetrajlar.map(oneHazirlanan => {
+    dugum.hazirlananMetrajlar.map(oneHazirlanan => {
 
       let hasSelectedCopySatirNolar = onaylananMetraj_state.satirlar.filter(x => x.userEmail === oneHazirlanan.userEmail && x.hasSelectedCopy && x.newSelected).map(oneSatir => {
         return oneSatir.satirNo
