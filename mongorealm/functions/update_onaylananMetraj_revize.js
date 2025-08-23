@@ -146,7 +146,7 @@ exports = async function ({
                     cond: { $nin: ["$$oneMetraj.satirNo", revizeMetrajSatirNolar] }
                   }
                 },
-                [revizeMetrajlar]
+                revizeMetrajlar
               ]
             }
           }
