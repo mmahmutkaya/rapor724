@@ -126,7 +126,7 @@ exports = async function ({
     )
 
   } catch (error) {
-    throw new Error("MONGO // update_onaylananMetraj_revize // hazirlananMetraj güncelleme " + error);
+    // throw new Error("MONGO // update_onaylananMetraj_revize // hazirlananMetraj güncelleme " + error);
   }
 
 
