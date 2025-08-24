@@ -28,6 +28,7 @@ exports = async function ({
     { $match: { _id: _dugumId } },
     {
       $project: {
+        metrajOnaylanan: 1,
         hazirlananMetrajlar: 1,
         revizeMetrajlar: 1
       }
@@ -36,7 +37,7 @@ exports = async function ({
   ]).toArray()
 
 
-  let { hazirlananMetrajlar, revizeMetrajlar } = result[0]
+  let { metrajOnaylanan, hazirlananMetrajlar, revizeMetrajlar } = result[0]
 
 
   let satirlar = []
@@ -46,7 +47,7 @@ exports = async function ({
     let userEmail = oneHazirlanan.userEmail
     let onayliSatirlar = oneHazirlanan.satirlar.filter(x => x.isSelected || x.hasSelectedCopy).map(oneSatir => {
       oneSatir.userEmail = userEmail
-      metrajOnaylanan += oneSatir.metraj ? Number(oneSatir.metraj) : 0
+      // metrajOnaylanan += oneSatir.metraj ? Number(oneSatir.metraj) : 0
       return oneSatir
     })
     if (onayliSatirlar.length > 0) {
@@ -57,13 +58,14 @@ exports = async function ({
   revizeMetrajlar?.map(oneMetraj => {
     if (satirlar.filter(x => x.hasSelectedCopy).find(x => x.satirNo === oneMetraj.satirNo)) {
       oneMetraj.satirlar.map(oneSatir => {
-        metrajOnaylanan += oneSatir.metraj ? Number(oneSatir.metraj) : 0
+        // metrajOnaylanan += oneSatir.metraj ? Number(oneSatir.metraj) : 0
       })
       if (oneMetraj.satirlar.length > 0) {
         satirlar = [...satirlar, ...oneMetraj.satirlar]
       }
     }
   })
+
 
   let onaylananMetraj = {
     metrajOnaylanan,
