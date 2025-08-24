@@ -59,12 +59,11 @@ exports = async function ({
       oneMetraj.satirlar.map(oneSatir => {
         metrajOnaylanan += oneSatir.metraj ? Number(oneSatir.metraj) : 0
       })
-      if (onayliSatirlar.length > 0) {
+      if (oneMetraj.satirlar.length > 0) {
         satirlar = [...satirlar, ...oneMetraj.satirlar]
       }
     }
   })
-
 
   let onaylananMetraj = {
     metrajOnaylanan,
