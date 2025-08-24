@@ -147,7 +147,7 @@ exports = async function ({
                     $filter: {
                       input: "$revizeMetrajlar",
                       as: "oneMetraj",
-                      cond: { $in: ["$$oneMetraj.satirNo", revizeMetrajSatirNolar] }
+                      cond: { "$$oneMetraj.satirNo": {$nin: existingStudents}},
                     }
                   },
                   revizeMetrajlar
