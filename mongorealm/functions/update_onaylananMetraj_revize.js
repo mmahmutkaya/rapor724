@@ -34,32 +34,6 @@ exports = async function ({
   // const collection_Projeler = context.services.get("mongodb-atlas").db("rapor724_v2").collection("projeler")
   const collection_Dugumler = context.services.get("mongodb-atlas").db("rapor724_v2").collection("dugumler")
 
-  // const proje = await collection_Projeler.findOne({ _id: _projeId })
-  // const {metrajYapabilenler} = proje.yetki
-
-
-
-  // let revisedSavedButOtherUser
-
-  // const dugum = await collection_Dugumler.findOne({ _id: _dugumId })
-
-
-
-  // dugum.hazirlananMetrajlar.map(oneHazirlanan => {
-
-  //   let hasSelectedCopySatirNolar = onaylananMetraj_state.satirlar.filter(x => x.userEmail === oneHazirlanan.userEmail && x.hasSelectedCopy && x.newSelected).map(oneSatir => {
-  //     return oneSatir.satirNo
-  //   })
-
-  //   oneHazirlanan.satirlar.map(oneSatir => {
-  //     if (hasSelectedCopySatirNolar.find(x => x === oneSatir.satirNo)) {
-  //       if (!oneSatir.isSelected) {
-  //         throw new Error("MONGO // update_onaylananMetraj_revize // hazirlananMetraj güncelleme " + error);
-  //       }
-  //     }
-  //   })
-
-  // })
 
   let emails = []
   onaylananMetraj_state.satirlar.filter(x => x.hasSelectedCopy && x.newSelected).map(oneSatir => {
@@ -164,7 +138,70 @@ exports = async function ({
 
   }
 
-  
-  // return { revizeMetrajSatirNolar, revizeMetrajlar }
+
+
+
+  // metraj güncelleme
+  try {
+    await collection_Dugumler.updateOne({ _id: _dugumId },
+      [
+        {
+          $set: {
+            "hazirlananMetrajlar": {
+              $map: {
+                input: "$hazirlananMetrajlar",
+                as: "oneHazirlanan",
+                in: {
+                  "$mergeObjects": [
+                    "$$oneHazirlanan",
+                    {
+                      metrajOnaylanan: {
+                        $sum: {
+                          "$map": {
+                            "input": "$$oneHazirlanan.satirlar",
+                            "as": "oneSatir",
+                            "in": {
+                              "$cond": {
+                                "if": {
+                                  $or: [
+                                    { $and: [{ $eq: ["$$oneSatir.isSelected", true] }, { $eq: ["$$oneSatir.hasSelectedCopy", false] }] },
+                                    { $eq: ["$$oneSatir.isSelectedCopy", true] }
+                                  ]
+                                },
+                                "then": "$$oneSatir.metraj",
+                                "else": 0
+                              }
+                            }
+                          }
+                        }
+                      }
+                    }
+                  ]
+                }
+              }
+            }
+          }
+        },
+        {
+          $set: {
+            "metrajOnaylanan": {
+              $sum: {
+                "$map": {
+                  "input": "$hazirlananMetrajlar",
+                  "as": "oneHazirlanan",
+                  "in": "$$oneHazirlanan.metrajOnaylanan"
+                }
+              }
+            }
+          }
+        }
+      ]
+    )
+
+  } catch (error) {
+    throw new Error("MONGO // update_onaylananMetraj_revize // metraj güncelleme" + error);
+  }
+
+
 
 };
