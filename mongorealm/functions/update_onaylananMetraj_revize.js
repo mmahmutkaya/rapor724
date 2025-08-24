@@ -157,22 +157,72 @@ exports = async function ({
                     {
                       metrajOnaylanan: {
                         $sum: {
-                          "$map": {
-                            "input": "$$oneHazirlanan.satirlar",
-                            "as": "oneSatir",
-                            "in": {
-                              "$cond": {
-                                "if": {
-                                  $or: [
-                                    { $and: [{ $eq: ["$$oneSatir.isSelected", true] }, { $eq: ["$$oneSatir.hasSelectedCopy", false] }] },
-                                    { $eq: ["$$oneSatir.isSelectedCopy", true] }
-                                  ]
-                                },
-                                "then": "$$oneSatir.metraj",
-                                "else": 0
+                          $concatArrays: [
+                            {
+                              "$map": {
+                                "input": "$$oneHazirlanan.satirlar",
+                                "as": "oneSatir",
+                                "in": {
+                                  "$cond": {
+                                    "if": {
+                                      $or: [
+                                        { $and: [{ $eq: ["$$oneSatir.isSelected", true] }, { $eq: ["$$oneSatir.hasSelectedCopy", false] }] }
+                                        // { $eq: ["$$oneSatir.isSelectedCopy", true] }
+                                      ]
+                                    },
+                                    "then": "$$oneSatir.metraj",
+                                    "else": 0
+                                  }
+                                }
                               }
+                            },
+                            {
+                              "$concatArrays": [
+                                {
+                                  "$map": {
+                                    "input": "$revizeMetrajlar",
+                                    "as": "oneMetraj",
+                                    "in": {
+                                      "$cond": {
+                                        "if": {
+                                          $ne: [
+                                            "$$oneMetraj.isPasif",
+                                            true
+                                          ]
+                                        },
+                                        "then": {
+                                          "$reduce": {
+                                            "input": "$$oneMetraj.satirlar",
+                                            "initialValue": 0,
+                                            "in": {
+                                              $add: [
+                                                "$$value",
+                                                {
+                                                  "$cond": {
+                                                    "if": {
+                                                      $ne: [
+                                                        "$$this.metraj",
+                                                        ""
+                                                      ]
+                                                    },
+                                                    "then": {
+                                                      "$toDouble": "$$this.metraj"
+                                                    },
+                                                    "else": 0
+                                                  }
+                                                }
+                                              ]
+                                            }
+                                          }
+                                        },
+                                        "else": 0
+                                      }
+                                    }
+                                  }
+                                }
+                              ]
                             }
-                          }
+                          ]
                         }
                       }
                     }
