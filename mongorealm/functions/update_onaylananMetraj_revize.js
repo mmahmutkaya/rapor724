@@ -134,7 +134,7 @@ exports = async function ({
 
 
 
-  if (revizeMetrajSatirNolar) {
+  if (revizeMetrajSatirNolar.length > 0) {
     try {
 
       await collection_Dugumler.updateOne({ _id: _dugumId },
@@ -147,7 +147,7 @@ exports = async function ({
                     $filter: {
                       input: "$revizeMetrajlar",
                       as: "oneMetraj",
-                      cond: {$not: { $in: ["$$oneMetraj.satirNo", revizeMetrajSatirNolar] }},
+                      cond: { $not: { $in: ["$$oneMetraj.satirNo", revizeMetrajSatirNolar] } },
                     }
                   },
                   revizeMetrajlar
@@ -164,92 +164,6 @@ exports = async function ({
 
   }
 
-  // try {
-
-  //   // let newSiraNo = 1
-  //   // onaylananMetraj.satirlar.map(oneSatir => {
-  //   //   if (oneSatir.siraNo >= newSiraNo) {
-  //   //     newSiraNo = oneSatir.siraNo + 1
-  //   //   }
-  //   // })
-
-  //   // hazirlananMetrajlar.map(oneHazirlanan => {
-
-  //   //   let hazirlayanEmail = oneHazirlanan.userEmail
-
-  //   //   oneHazirlanan.satirlar.filter(x => x.isSelected).map(oneSatir => {
-  //   //     if (!onaylananMetraj.satirlar.find(x => x.satirNo === oneSatir.satirNo)) {
-  //   //       onaylananMetraj.satirlar = [...onaylananMetraj.satirlar, { ...oneSatir, siraNo: newSiraNo, userEmail: hazirlayanEmail }]
-  //   //       newSiraNo += 1
-  //   //     }
-  //   //   })
-  //   // })
-
-
-  //   // ö2 aşamada metraj tespiti
-  //   onaylananMetraj_state.satirlar.filter(x => x.isSelected && !x.hasSelectedCopy).map(oneSatir => {
-  //     metrajOnaylanan += Number(oneSatir.metraj)
-  //   })
-  //   onaylananMetraj_state.satirlar.filter(x => x.isSelectedCopy).map(oneSatir => {
-  //     metrajOnaylanan += Number(oneSatir.metraj)
-  //   })
-
-  //   await collection_OnaylananMetrajlar.updateOne(
-  //     { _dugumId },
-  //     { $set: { satirlar: onaylananMetraj_state.satirlar, metraj: metrajOnaylanan } }
-  //   )
-
-
-  // } catch (error) {
-  //   throw new Error("MONGO // update_onaylananMetraj_revize // onaylananMetraj güncelleme " + error);
-  // }
-
-
-
-  // try {
-
-  //   let bulkArray = []
-
-  //   hazirlananMetrajlar.map(oneHazirlanan => {
-  //     let hasSelected
-  //     let hasSelectedFull
-  //     let userEmail = oneHazirlanan.userEmail
-  //     let metraj = 0
-  //     oneHazirlanan.satirlar.map(oneSatir => {
-  //       metraj += Number(oneSatir.metraj)
-  //     })
-  //     if (oneHazirlanan.satirlar.find(x => x.isSelected)) {
-  //       hasSelected = true
-  //       if (oneHazirlanan.satirlar.filter(x => x.isSelected).length === oneHazirlanan.satirlar.length) {
-  //         hasSelectedFull = true
-  //       }
-  //     }
-
-  //     oneBulk = {
-  //       updateOne: {
-  //         filter: { _id: _dugumId },
-  //         update: {
-  //           $set: {
-  //             onaylananMetraj: metrajOnaylanan,
-  //             "hazirlananMetrajlar.$[elem].hasSelected": hasSelected,
-  //             "hazirlananMetrajlar.$[elem].hasSelectedFull": hasSelectedFull,
-  //           }
-  //         },
-  //         arrayFilters: [{ "elem.userEmail": userEmail }],
-  //       }
-  //     }
-  //     bulkArray = [...bulkArray, oneBulk]
-
-  //   })
-
-  //   await collection_Dugumler.bulkWrite(
-  //     bulkArray,
-  //     { ordered: false }
-  //   )
-
-  // } catch (error) {
-  //   throw new Error("MONGO // update_onaylananMetraj_revize // dugum güncelleme " + error);
-  // }
-
+  return { revizeMetrajSatirNolar, revizeMetrajlar }
 
 };
