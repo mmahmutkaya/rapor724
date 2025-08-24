@@ -38,26 +38,30 @@ exports = async function ({
 
   let { hazirlananMetrajlar, revizeMetrajlar } = result[0]
 
-  
+
   let satirlar = []
   metrajOnaylanan = 0
 
-  hazirlananMetrajlar.map(oneHazirlanan => {
+  hazirlananMetrajlar?.map(oneHazirlanan => {
     let userEmail = oneHazirlanan.userEmail
     let onayliSatirlar = oneHazirlanan.satirlar.filter(x => x.isSelected || x.hasSelectedCopy).map(oneSatir => {
       oneSatir.userEmail = userEmail
       metrajOnaylanan += oneSatir.metraj ? Number(oneSatir.metraj) : 0
       return oneSatir
     })
-    satirlar = [...satirlar, ...onayliSatirlar]
+    if (onayliSatirlar.length > 0) {
+      satirlar = [...satirlar, ...onayliSatirlar]
+    }
   })
 
-  revizeMetrajlar.map(oneMetraj => {
+  revizeMetrajlar?.map(oneMetraj => {
     if (satirlar.filter(x => x.hasSelectedCopy).find(x => x.satirNo === oneMetraj.satirNo)) {
       oneMetraj.satirlar.map(oneSatir => {
         metrajOnaylanan += oneSatir.metraj ? Number(oneSatir.metraj) : 0
       })
-      satirlar = [...satirlar, ...oneMetraj.satirlar]
+      if (onayliSatirlar.length > 0) {
+        satirlar = [...satirlar, ...oneMetraj.satirlar]
+      }
     }
   })
 
