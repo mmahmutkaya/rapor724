@@ -164,6 +164,7 @@ exports = async function ({
 
   }
 
-  return { revizeMetrajSatirNolar, revizeMetrajlar }
+  
+  // return { revizeMetrajSatirNolar, revizeMetrajlar }
 
 };
