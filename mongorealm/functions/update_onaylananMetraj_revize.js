@@ -147,7 +147,7 @@ exports = async function ({
                     $filter: {
                       input: "$revizeMetrajlar",
                       as: "oneMetraj",
-                      cond: { "$$oneMetraj.satirNo": {$nin: revizeMetrajSatirNolar}},
+                      cond: {$not: {"$$oneMetraj.satirNo": {$in: revizeMetrajSatirNolar}}},
                     }
                   },
                   revizeMetrajlar
@@ -157,7 +157,6 @@ exports = async function ({
           }
         ]
       )
-
 
     } catch (error) {
       throw new Error("MONGO // update_onaylananMetraj_revize // " + error.message);
