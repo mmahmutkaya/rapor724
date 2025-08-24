@@ -147,7 +147,7 @@ exports = async function ({
                     $filter: {
                       input: "$revizeMetrajlar",
                       as: "oneMetraj",
-                      cond: {"$$oneMetraj.satirNo": {$not: {$in:revizeMetrajSatirNolar}}},
+                      cond: {$not: { $in: ["$$oneMetraj.satirNo", revizeMetrajSatirNolar] }},
                     }
                   },
                   revizeMetrajlar
