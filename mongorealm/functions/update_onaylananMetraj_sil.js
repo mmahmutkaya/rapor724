@@ -156,15 +156,16 @@ exports = async function ({
     }
 
 
-    // yukarıda silinecekleri ele aldık, slinmeyecek olanları bir ele alalım
+    // yukarıda silinecekleri ele aldık, slinmeyecek olanları bir ele alalım, belki içinde silinecek revize satırlar vardır
     onaylananMetraj_state.satirlar.filter(x => x.hasSelectedCopy && !x.newSelected).map(oneSatir => {
 
       let originalSatirNo = oneSatir.satirNo
-      let silinmeyecekBirSatır = onaylananMetraj_state.satirlar.find(x => x.originalSatirNo === originalSatirNo && x.newSelected)
-      let userEmail = silinmeyecekBirSatır.userEmail
-
       // revize satırlarında silinecek olan var mı bakalım
-      if (silinmeyecekBirSatır) {
+      let silinecekBirSatir = onaylananMetraj_state.satirlar.find(x => x.originalSatirNo === originalSatirNo && x.newSelected)
+
+      if (silinecekBirSatir) {
+
+        let userEmail = silinecekBirSatir.userEmail
 
         let silinmeyecekSatirlar = onaylananMetraj_state.satirlar.filter(x => x.originalSatirNo === originalSatirNo && !x.newSelected)
 
