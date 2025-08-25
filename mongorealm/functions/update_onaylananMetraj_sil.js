@@ -160,24 +160,24 @@ exports = async function ({
     onaylananMetraj_state.satirlar.filter(x => x.hasSelectedCopy && !x.newSelected).map(oneSatir => {
 
       let originalSatirNo = oneSatir.satirNo
-      let silinecekBirRevizeSatir = onaylananMetraj_state.satirlar.find(x => x.originalSatirNo === originalSatirNo && x.newSelected)
-      let userEmail = silinecekBirRevizeSatir.userEmail
+      let silinemeyecekBirSatır = onaylananMetraj_state.satirlar.find(x => x.originalSatirNo === originalSatirNo && x.newSelected)
+      let userEmail = silinemeyecekBirSatır.userEmail
 
       // revize satırlarında silinecek olan var mı bakalım
-      if (silinecekBirRevizeSatir) {
+      if (silinemeyecekBirSatır) {
 
-        let satirlar = onaylananMetraj_state.satirlar.filter(x => x.originalSatirNo === originalSatirNo && !x.newSelected)
+        let silinmeyecekSatirlar = onaylananMetraj_state.satirlar.filter(x => x.originalSatirNo === originalSatirNo && !x.newSelected)
 
         // revize satırların bir kısmı duruyorsa
-        if (satirlar.length > 0) {
+        if (silinmeyecekSatirlar.length > 0) {
 
           let siraNo = 1
-          satirlar = satirlar.map(oneSatir => {
+          silinmeyecekSatirlar = silinmeyecekSatirlar.map(oneSatir => {
             oneSatir.satirNo = originalSatirNo + "." + siraNo
             siraNo += 1
             return oneSatir
           })
-          let oneMetraj = { satirNo: originalSatirNo, satirlar }
+          let oneMetraj = { satirNo: originalSatirNo, satirlar: silinmeyecekSatirlar }
           // revizeMetrajlar = [...revizeMetrajlar, oneMetraj]
           // revizeMetrajSatirNolar = [...revizeMetrajSatirNolar, satirNo]
 
@@ -192,7 +192,7 @@ exports = async function ({
               },
               arrayFilters: [
                 {
-                  "oneMetraj.satirNo": satirNo,
+                  "oneMetraj.satirNo": originalSatirNo,
                 }
               ]
             }
@@ -216,10 +216,10 @@ exports = async function ({
               },
               arrayFilters: [
                 {
-                  "oneSatir.satirNo": userEmail,
+                  "oneHazirlanan.userEmail": userEmail,
                 },
                 {
-                  "oneHazirlanan.userEmail": originalSatirNo,
+                  "oneSatir.satirNo": originalSatirNo,
                 },
                 {
                   "oneMetraj.satirNo": originalSatirNo,
