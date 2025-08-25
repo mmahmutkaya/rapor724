@@ -97,7 +97,25 @@ exports = async function ({
     })
 
 
-    collection_Dugumler.bulkWrite(
+    oneBulk = {
+      updateOne: {
+        filter: { _id: _dugumId },
+        update: {
+          $set: {
+            "revizeMetrajlar.$[oneMetraj].isAktif": true
+          }
+        },
+        arrayFilters: [
+          {
+            "oneMetraj.satirNo": { $in: revizeMetrajSatirNolar }
+          }
+        ]
+      }
+    }
+    bulkArray = [...bulkArray, oneBulk]
+
+
+    await collection_Dugumler.bulkWrite(
       bulkArray,
       { ordered: false }
     )
@@ -180,8 +198,8 @@ exports = async function ({
                                     "in": {
                                       "$cond": {
                                         "if": {
-                                          $ne: [
-                                            "$$oneMetraj.isPasif",
+                                          $eq: [
+                                            "$$oneMetraj.isAktif",
                                             true
                                           ]
                                         },
