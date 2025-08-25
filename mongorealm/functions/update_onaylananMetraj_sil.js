@@ -97,7 +97,8 @@ exports = async function ({
                 "hazirlananMetrajlar.$[oneHazirlanan].satirlar.$[oneSatir].isReady": true
               },
               $unset: {
-                "hazirlananMetrajlar.$[oneHazirlanan].satirlar.$[oneSatir].hasSelectedCopy": ""
+                "hazirlananMetrajlar.$[oneHazirlanan].satirlar.$[oneSatir].hasSelectedCopy": "",
+                "hazirlananMetrajlar.$[oneHazirlanan].satirlar.$[oneSatir].isSelected": ""
               }
             },
             arrayFilters: [
@@ -105,8 +106,8 @@ exports = async function ({
                 "oneHazirlanan.userEmail": oneEmail
               },
               {
-                "oneSatir.satirNo": { $in: hasSelectedCopySatirNolar_silinecek },
-                "oneSatir.hasSelectedCopy": true
+                "oneSatir.satirNo": { $in: isSelectedSatirNolar_silinecek },
+                "oneSatir.isSelected": true
               }
             ]
           }
@@ -116,9 +117,16 @@ exports = async function ({
 
     })
 
+    if (bulkArray.length > 0) {
+      await collection_Dugumler.bulkWrite(
+        bulkArray,
+        { ordered: false }
+      )
+    }
+
 
   } catch (error) {
-    throw new Error({ hatayeri: "MONGO // update_onaylananMetraj_sil // hazirlanan metrajlar isUsed guncelleme //", error });
+    throw new Error({ hatayeri: "MONGO // update_onaylananMetraj_sil // ilk aşama //", error });
   }
 
 
