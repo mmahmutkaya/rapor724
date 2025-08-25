@@ -69,37 +69,43 @@ exports = async function ({
         revizeMetrajSatirNolar = [...revizeMetrajSatirNolar, ...hasSelectedCopySatirNolar]
       }
 
-      oneBulk = {
-        updateOne: {
-          filter: { _id: _dugumId },
-          update: {
-            $set: {
-              "hazirlananMetrajlar.$[oneHazirlanan].satirlar.$[oneSatir].hasSelectedCopy": true
-            },
-            $unset: {
-              "hazirlananMetrajlar.$[oneHazirlanan].satirlar.$[oneSatir].isSelected": ""
-            }
-          },
-          arrayFilters: [
-            {
-              "oneHazirlanan.userEmail": oneEmail
-            },
-            {
-              "oneSatir.satirNo": { $in: hasSelectedCopySatirNolar },
-              "oneSatir.isSelected": true
-            }
-          ]
-        }
-      }
+      if (hasSelectedCopySatirNolar.length > 0) {
 
-      bulkArray = [...bulkArray, oneBulk]
+        oneBulk = {
+          updateOne: {
+            filter: { _id: _dugumId },
+            update: {
+              $set: {
+                "hazirlananMetrajlar.$[oneHazirlanan].satirlar.$[oneSatir].hasSelectedCopy": true
+              },
+              $unset: {
+                "hazirlananMetrajlar.$[oneHazirlanan].satirlar.$[oneSatir].isSelected": ""
+              }
+            },
+            arrayFilters: [
+              {
+                "oneHazirlanan.userEmail": oneEmail
+              },
+              {
+                "oneSatir.satirNo": { $in: hasSelectedCopySatirNolar },
+                "oneSatir.isSelected": true
+              }
+            ]
+          }
+        }
+
+        bulkArray = [...bulkArray, oneBulk]
+
+      }
 
     })
 
-    await collection_Dugumler.bulkWrite(
-      bulkArray,
-      { ordered: false }
-    )
+    if (bulkArray.length > 0) {
+      await collection_Dugumler.bulkWrite(
+        bulkArray,
+        { ordered: false }
+      )
+    }
 
   } catch (error) {
     // throw new Error("MONGO // update_onaylananMetraj_revize // hazirlananMetraj güncelleme " + error);
@@ -131,28 +137,6 @@ exports = async function ({
         ]
       )
 
-      let bulkArray = []
-      oneBulk = {
-        updateOne: {
-          filter: { _id: _dugumId },
-          update: {
-            $set: {
-              "revizeMetrajlar.$[oneMetraj].isAktif": true
-            }
-          },
-          arrayFilters: [
-            {
-              "oneMetraj.satirNo": { $in: revizeMetrajSatirNolar }
-            }
-          ]
-        }
-      }
-      bulkArray = [...bulkArray, oneBulk]
-
-      await collection_Dugumler.bulkWrite(
-        bulkArray,
-        { ordered: false }
-      )
 
     } catch (error) {
       throw new Error("MONGO // update_onaylananMetraj_revize // " + error.message);
@@ -202,8 +186,8 @@ exports = async function ({
                                     "in": {
                                       "$cond": {
                                         "if": {
-                                          $eq: [
-                                            "$$oneMetraj.isAktif",
+                                          $ne: [
+                                            "$$oneMetraj.isPasif",
                                             true
                                           ]
                                         },
