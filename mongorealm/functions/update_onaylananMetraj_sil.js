@@ -74,7 +74,7 @@ exports = async function ({
                 "oneSatir.hasSelectedCopy": true
               },
               {
-                "oneMetraj.satirNo": { $in: hasSelectedCopySatirNolar_silinecek },e
+                "oneMetraj.satirNo": { $in: hasSelectedCopySatirNolar_silinecek }
               }
             ]
           }
