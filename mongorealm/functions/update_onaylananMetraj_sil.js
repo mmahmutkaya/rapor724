@@ -158,9 +158,6 @@ exports = async function ({
             siraNo += 1
             return oneSatir
           })
-          let oneMetraj = { satirNo: originalSatirNo, satirlar: silinmeyecekSatirlar }
-          // revizeMetrajlar = [...revizeMetrajlar, oneMetraj]
-          // revizeMetrajSatirNolar = [...revizeMetrajSatirNolar, satirNo]
 
 
           oneBulk = {
@@ -168,7 +165,8 @@ exports = async function ({
               filter: { _id: _dugumId },
               update: {
                 $set: {
-                  "revizeMetrajlar.$[oneMetraj]": oneMetraj,
+                  "revizeMetrajlar.$[oneMetraj].satirlar": silinmeyecekSatirlar,
+                  "revizeMetrajlar.$[oneMetraj].satirNo": originalSatirNo,
                 }
               },
               arrayFilters: [
