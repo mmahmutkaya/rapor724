@@ -38,7 +38,7 @@ exports = async function ({
     )
   })
 
-  let revizeMetrajlar_silinecek = []
+  let revizeMetrajSatirNolar_silinecek = []
 
   try {
 
@@ -51,7 +51,7 @@ exports = async function ({
 
       if (hasSelectedCopySatirNolar_silinecek.length > 0) {
 
-        revizeMetrajlar_silinecek = [...revizeMetrajlar_silinecek, ...hasSelectedCopySatirNolar_silinecek]
+        revizeMetrajSatirNolar_silinecek = [...revizeMetrajSatirNolar_silinecek, ...hasSelectedCopySatirNolar_silinecek]
 
         oneBulk = {
           updateOne: {
@@ -131,65 +131,200 @@ exports = async function ({
 
 
 
-  // try {
+  try {
 
-  //   let bulkArray1
-  //   if (revizeEdilenler) {
+    let bulkArray = []
+    if (revizeMetrajSatirNolar_silinecek.length > 0) {
 
-  //     bulkArray1 = revizeEdilenler.map(oneRevizeEdilen => {
-  //       return (
-  //         {
-  //           updateOne: {
-  //             filter: { _dugumId, userEmail: oneRevizeEdilen.userEmail },
-  //             update: { $set: { "satirlar.$[elem].isRevize": false } },
-  //             arrayFilters: [
-  //               { "elem.satirNo": { $in: oneRevizeEdilen.satirNolar } },
-  //             ]
-  //           }
-  //         }
-  //       )
-  //     })
+      oneBulk = {
+        updateOne: {
+          filter: { _id: _dugumId },
+          update: {
+            $unset: {
+              "revizeMetrajlar.$[oneMetraj]": "",
+            }
+          },
+          arrayFilters: [
+            {
+              "oneMetraj.satirNo": { $in: revizeMetrajSatirNolar_silinecek },
+            }
+          ]
+        }
+      }
+      bulkArray = [...bulkArray, oneBulk]
 
-  //   }
-
-  //   // let bulkArray2
-  //   // if (hazirlananlar_unUsed) {
-
-  //   //   bulkArray2 = hazirlananlar_unUsed.map(oneHazirlanan => {
-  //   //     return (
-  //   //       {
-  //   //         updateOne: {
-  //   //           filter: { _dugumId, userEmail: oneHazirlanan.userEmail },
-  //   //           update: { $set: { "satirlar.$[elem].isUsed": false } },
-  //   //           arrayFilters: [
-  //   //             { "elem.satirNo": { $in: oneHazirlanan.satirNolar } },
-  //   //           ]
-  //   //         }
-  //   //       }
-  //   //     )
-  //   //   })
-
-  //   // }
-
-  //   let bulkArray = []
-  //   if (bulkArray1) {
-  //     bulkArray = [...bulkArray, ...bulkArray1]
-  //   }
-  //   // if (bulkArray2) {
-  //   //   bulkArray = [...bulkArray, ...bulkArray2]
-  //   // }
+    }
 
 
-  //   if (bulkArray.length > 0) {
-  //     await collection_hazirlananMetrajlar.bulkWrite(
-  //       bulkArray,
-  //       { ordered: false }
-  //     )
-  //   }
+    // let revizeMetrajSatirNolar = []
+    // let revizeMetrajlar = []
+    onaylananMetraj_state.satirlar.filter(x => x.hasSelectedCopy && !x.newSelected).map(oneSatir => {
 
-  // } catch (error) {
-  //   throw new Error({ hatayeri: "MONGO // update_onaylananMetraj_sil // hazirlanan metrajlar isUsed guncelleme //", error });
-  // }
+
+      if (onaylananMetraj_state.satirlar.find(x => x.originalSatirNo === oneSatir.satirNo && x.newSelected)) {
+        let satirlar = onaylananMetraj_state.satirlar.filter(x => x.originalSatirNo === oneSatir.satirNo && !x.newSelected)
+        let siraNo = 1
+        satirlar = satirlar.map(oneSatir => {
+          oneSatir.satirNo = oneSatir + "." + siraNo
+          siraNo += 1
+        })
+        satirNo = oneSatir.satirNo
+        let oneMetraj = { satirNo, satirlar }
+        // revizeMetrajlar = [...revizeMetrajlar, oneMetraj]
+        // revizeMetrajSatirNolar = [...revizeMetrajSatirNolar, satirNo]
+
+
+        oneBulk = {
+          updateOne: {
+            filter: { _id: _dugumId },
+            update: {
+              $set: {
+                "revizeMetrajlar.$[oneMetraj]": oneMetraj,
+              }
+            },
+            arrayFilters: [
+              {
+                "oneMetraj.satirNo": satirNo,
+              }
+            ]
+          }
+        }
+        bulkArray = [...bulkArray, oneBulk]
+
+
+      }
+
+
+    })
+
+
+
+    if (bulkArray.length > 0) {
+      await collection_Dugumler.bulkWrite(
+        bulkArray,
+        { ordered: false }
+      )
+    }
+
+  } catch (error) {
+    throw new Error({ hatayeri: "MONGO // update_onaylananMetraj_sil // ikinci aşama //", error });
+  }
+
+
+
+
+
+
+
+  // metraj güncelleme
+  try {
+    await collection_Dugumler.updateOne({ _id: _dugumId },
+      [
+        {
+          $set: {
+            "hazirlananMetrajlar": {
+              $map: {
+                input: "$hazirlananMetrajlar",
+                as: "oneHazirlanan",
+                in: {
+                  "$mergeObjects": [
+                    "$$oneHazirlanan",
+                    {
+                      metrajOnaylanan: {
+                        $sum: {
+                          $concatArrays: [
+                            {
+                              "$map": {
+                                "input": "$$oneHazirlanan.satirlar",
+                                "as": "oneSatir",
+                                "in": {
+                                  "$cond": {
+                                    "if": { $and: [{ $eq: ["$$oneSatir.isSelected", true] }, { $ne: ["$$oneSatir.hasSelectedCopy", true] }] },
+                                    "then": "$$oneSatir.metraj",
+                                    "else": 0
+                                  }
+                                }
+                              }
+                            },
+                            {
+                              "$concatArrays": [
+                                {
+                                  "$map": {
+                                    "input": "$revizeMetrajlar",
+                                    "as": "oneMetraj",
+                                    "in": {
+                                      "$cond": {
+                                        "if": {
+                                          $ne: [
+                                            "$$oneMetraj.isPasif",
+                                            true
+                                          ]
+                                        },
+                                        "then": {
+                                          "$reduce": {
+                                            "input": "$$oneMetraj.satirlar",
+                                            "initialValue": 0,
+                                            "in": {
+                                              $add: [
+                                                "$$value",
+                                                {
+                                                  "$cond": {
+                                                    "if": {
+                                                      $ne: [
+                                                        "$$this.metraj",
+                                                        ""
+                                                      ]
+                                                    },
+                                                    "then": {
+                                                      "$toDouble": "$$this.metraj"
+                                                    },
+                                                    "else": 0
+                                                  }
+                                                }
+                                              ]
+                                            }
+                                          }
+                                        },
+                                        "else": 0
+                                      }
+                                    }
+                                  }
+                                }
+                              ]
+                            }
+                          ]
+                        }
+                      }
+                    }
+                  ]
+                }
+              }
+            }
+          }
+        },
+        {
+          $set: {
+            "metrajOnaylanan": {
+              $sum: {
+                "$map": {
+                  "input": "$hazirlananMetrajlar",
+                  "as": "oneHazirlanan",
+                  "in": "$$oneHazirlanan.metrajOnaylanan"
+                }
+              }
+            }
+          }
+        }
+      ]
+    )
+
+  } catch (error) {
+    throw new Error("MONGO // update_onaylananMetraj_revize // metraj güncelleme" + error);
+  }
+
+
+
+
 
 
 
