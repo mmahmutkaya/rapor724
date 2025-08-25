@@ -60,6 +60,7 @@ exports = async function ({
               $set: {
                 "hazirlananMetrajlar.$[oneHazirlanan].satirlar.$[oneSatir].isReady": true,
                 "revizeMetrajlar.$[oneMetraj].isPasif": true,
+                "revizeMetrajlar.$[oneMetraj].satirlar": [],
               },
               $unset: {
                 "hazirlananMetrajlar.$[oneHazirlanan].satirlar.$[oneSatir].hasSelectedCopy": ""
@@ -134,27 +135,6 @@ exports = async function ({
   try {
 
     let bulkArray = []
-    if (revizeMetrajSatirNolar_silinecek.length > 0) {
-
-      oneBulk = {
-        updateOne: {
-          filter: { _id: _dugumId },
-          update: {
-            $unset: {
-              "revizeMetrajlar.$[oneMetraj]": "",
-            }
-          },
-          arrayFilters: [
-            {
-              "oneMetraj.satirNo": { $in: revizeMetrajSatirNolar_silinecek },
-            }
-          ]
-        }
-      }
-      bulkArray = [...bulkArray, oneBulk]
-
-    }
-
 
     // yukarıda silinecekleri ele aldık, slinmeyecek olanları bir ele alalım, belki içinde silinecek revize satırlar vardır
     onaylananMetraj_state.satirlar.filter(x => x.hasSelectedCopy && !x.newSelected).map(oneSatir => {
@@ -209,10 +189,9 @@ exports = async function ({
               update: {
                 $set: {
                   "hazirlananMetrajlar.$[oneHazirlanan].satirlar.$[oneSatir].isSelected": true,
-                  "hazirlananMetrajlar.$[oneHazirlanan].satirlar.$[oneSatir].hasSelectedCopy": false
-                },
-                $unset: {
-                  "revizeMetrajlar.$[oneMetraj]": "",
+                  "hazirlananMetrajlar.$[oneHazirlanan].satirlar.$[oneSatir].hasSelectedCopy": false,
+                  "revizeMetrajlar.$[oneMetraj].isPasif": true,
+                  "revizeMetrajlar.$[oneMetraj].satirlar": []
                 }
               },
               arrayFilters: [
