@@ -156,42 +156,80 @@ exports = async function ({
     }
 
 
-    // let revizeMetrajSatirNolar = []
-    // let revizeMetrajlar = []
+    // yukarıda silinecekleri ele aldık, slinmeyecek olanları bir ele alalım
     onaylananMetraj_state.satirlar.filter(x => x.hasSelectedCopy && !x.newSelected).map(oneSatir => {
 
+      let originalSatirNo = oneSatir.satirNo
+      let silinecekBirRevizeSatir = onaylananMetraj_state.satirlar.find(x => x.originalSatirNo === originalSatirNo && x.newSelected)
+      let userEmail = silinecekBirRevizeSatir.userEmail
 
-      if (onaylananMetraj_state.satirlar.find(x => x.originalSatirNo === oneSatir.satirNo && x.newSelected)) {
-        let satirlar = onaylananMetraj_state.satirlar.filter(x => x.originalSatirNo === oneSatir.satirNo && !x.newSelected)
-        let siraNo = 1
-        satirlar = satirlar.map(oneSatir => {
-          oneSatir.satirNo = oneSatir + "." + siraNo
-          siraNo += 1
-          return oneSatir
-        })
-        satirNo = oneSatir.satirNo
-        let oneMetraj = { satirNo, satirlar }
-        // revizeMetrajlar = [...revizeMetrajlar, oneMetraj]
-        // revizeMetrajSatirNolar = [...revizeMetrajSatirNolar, satirNo]
+      // revize satırlarında silinecek olan var mı bakalım
+      if (silinecekBirRevizeSatir) {
+
+        let satirlar = onaylananMetraj_state.satirlar.filter(x => x.originalSatirNo === originalSatirNo && !x.newSelected)
+
+        // revize satırların bir kısmı duruyorsa
+        if (satirlar.length > 0) {
+
+          let siraNo = 1
+          satirlar = satirlar.map(oneSatir => {
+            oneSatir.satirNo = originalSatirNo + "." + siraNo
+            siraNo += 1
+            return oneSatir
+          })
+          let oneMetraj = { satirNo: originalSatirNo, satirlar }
+          // revizeMetrajlar = [...revizeMetrajlar, oneMetraj]
+          // revizeMetrajSatirNolar = [...revizeMetrajSatirNolar, satirNo]
 
 
-        oneBulk = {
-          updateOne: {
-            filter: { _id: _dugumId },
-            update: {
-              $set: {
-                "revizeMetrajlar.$[oneMetraj]": oneMetraj,
-              }
-            },
-            arrayFilters: [
-              {
-                "oneMetraj.satirNo": satirNo,
-              }
-            ]
+          oneBulk = {
+            updateOne: {
+              filter: { _id: _dugumId },
+              update: {
+                $set: {
+                  "revizeMetrajlar.$[oneMetraj]": oneMetraj,
+                }
+              },
+              arrayFilters: [
+                {
+                  "oneMetraj.satirNo": satirNo,
+                }
+              ]
+            }
           }
-        }
-        bulkArray = [...bulkArray, oneBulk]
+          bulkArray = [...bulkArray, oneBulk]
 
+          // revize satırların tamamı silinecek, ana satır devreye alınacaksa
+        } else {
+
+          oneBulk = {
+            updateOne: {
+              filter: { _id: _dugumId },
+              update: {
+                $set: {
+                  "hazirlananMetrajlar.$[oneHazirlanan].satirlar.$[oneSatir].isSelected": true,
+                  "hazirlananMetrajlar.$[oneHazirlanan].satirlar.$[oneSatir].hasSelectedCopy": false
+                },
+                $unset: {
+                  "revizeMetrajlar.$[oneMetraj]": "",
+                }
+              },
+              arrayFilters: [
+                {
+                  "oneSatir.satirNo": userEmail,
+                },
+                {
+                  "oneHazirlanan.userEmail": originalSatirNo,
+                },
+                {
+                  "oneMetraj.satirNo": originalSatirNo,
+                }
+              ]
+            }
+          }
+          bulkArray = [...bulkArray, oneBulk]
+
+        }
 
       }
 
