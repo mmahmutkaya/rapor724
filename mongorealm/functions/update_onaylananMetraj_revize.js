@@ -96,25 +96,6 @@ exports = async function ({
 
     })
 
-
-    oneBulk = {
-      updateOne: {
-        filter: { _id: _dugumId },
-        update: {
-          $set: {
-            "revizeMetrajlar.$[oneMetraj].isAktif": true
-          }
-        },
-        arrayFilters: [
-          {
-            "oneMetraj.satirNo": { $in: revizeMetrajSatirNolar }
-          }
-        ]
-      }
-    }
-    bulkArray = [...bulkArray, oneBulk]
-
-
     await collection_Dugumler.bulkWrite(
       bulkArray,
       { ordered: false }
@@ -148,6 +129,29 @@ exports = async function ({
             }
           }
         ]
+      )
+
+      let bulkArray = []
+      oneBulk = {
+        updateOne: {
+          filter: { _id: _dugumId },
+          update: {
+            $set: {
+              "revizeMetrajlar.$[oneMetraj].isAktif": true
+            }
+          },
+          arrayFilters: [
+            {
+              "oneMetraj.satirNo": { $in: revizeMetrajSatirNolar }
+            }
+          ]
+        }
+      }
+      bulkArray = [...bulkArray, oneBulk]
+
+      await collection_Dugumler.bulkWrite(
+        bulkArray,
+        { ordered: false }
       )
 
     } catch (error) {
