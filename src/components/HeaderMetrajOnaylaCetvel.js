@@ -43,8 +43,8 @@ export default function P_HeaderMetrajOnaylaCetvel({
   isChanged, cancel, save,
   copySelectedRow,
   hasSelectedCopySatirlar,
-  showHasSelectedCopy, setShowHasSelectedCopy,
-  isChanged_unLock, cancel_unLock, save_unLock
+  mode_sil, setMode_sil,
+  isChanged_sil, cancel_sil, save_sil
 }) {
 
   const navigate = useNavigate()
@@ -57,7 +57,7 @@ export default function P_HeaderMetrajOnaylaCetvel({
 
   const [showEminMisin, setShowEminMisin] = useState(false)
 
-  const [showEminMisin_unLock, setShowEminMisin_unLock] = useState(false)
+  const [showEminMisin_sil, setShowEminMisin_sil] = useState(false)
 
 
   return (
@@ -80,17 +80,17 @@ export default function P_HeaderMetrajOnaylaCetvel({
 
 
 
-      {showEminMisin_unLock &&
+      {showEminMisin_sil &&
         <DialogAlert
           dialogIcon={"warning"}
           dialogMessage={"Yaptığınız değişiklikleri kaybedeceksiniz ?"}
-          onCloseAction={() => setShowEminMisin_unLock()}
+          onCloseAction={() => setShowEminMisin_sil()}
           actionText1={"İptal"}
-          action1={() => setShowEminMisin_unLock()}
+          action1={() => setShowEminMisin_sil()}
           actionText2={"Onayla"}
           action2={() => {
-            cancel_unLock()
-            setShowEminMisin_unLock()
+            cancel_sil()
+            setShowEminMisin_sil()
           }}
         />
       }
@@ -147,50 +147,29 @@ export default function P_HeaderMetrajOnaylaCetvel({
             <Grid container>
 
 
-
-              {/* {show == "Main" && !isChanged_unLock && !showHasSelectedCopy &&
-                <>
-                  <Grid item >
-                    <IconButton onClick={() => {
-                      navigate("/metrajonaylapozmahaller")
-                    }} aria-label="lbsUncliced">
-                      <ReplyIcon variant="contained" sx={{ color: "gray" }} />
-                    </IconButton>
-                  </Grid>
-                </>
-              } */}
-
-              {show !== "EditMetraj" && !showHasSelectedCopy &&
+              {show !== "EditMetraj" && !mode_sil &&
                 <Grid item >
                   <IconButton onClick={() => {
                     setShow("EditMetraj")
-                    setShowHasSelectedCopy()
+                    setMode_sil()
                   }} aria-label="lbsUncliced">
                     <EditIcon variant="contained" />
                   </IconButton>
                 </Grid>
               }
 
-              {/* {!isChanged_unLock && show !== "EditMetraj" &&
+              {!isChanged_sil && show !== "EditMetraj" && mode_sil &&
                 <Grid item >
-                  <IconButton onClick={() => setShowHasSelectedCopy(x => !x)} >
-                    <DeleteForeverIcon variant="contained" sx={{ color: showHasSelectedCopy ? "red" : "rgba(200, 17, 17, 0.33)" }} />
-                  </IconButton>
-                </Grid>
-              } */}
-
-              {!isChanged_unLock && show !== "EditMetraj" && showHasSelectedCopy &&
-                <Grid item >
-                  <IconButton onClick={() => setShowHasSelectedCopy(x => !x)} >
-                    <DeleteForeverIcon variant="contained" sx={{ color: "red" }} />
+                  <IconButton onClick={() => setMode_sil(x => !x)} >
+                    <DeleteIcon variant="contained" sx={{ color: "red" }} />
                   </IconButton>
                 </Grid>
               }
 
-              {!isChanged_unLock && show !== "EditMetraj" && !showHasSelectedCopy &&
+              {!isChanged_sil && show !== "EditMetraj" && !mode_sil &&
                 <Grid item >
-                  <IconButton onClick={() => setShowHasSelectedCopy(x => !x)} >
-                    <VisibilityIcon variant="contained" sx={{ color: "rgba(209, 17, 17, 0.31)" }} />
+                  <IconButton onClick={() => setMode_sil(x => !x)} >
+                    <DeleteIcon variant="contained" sx={{ color: "rgba(209, 17, 17, 0.31)" }} />
                   </IconButton>
                 </Grid>
               }
@@ -234,14 +213,14 @@ export default function P_HeaderMetrajOnaylaCetvel({
 
 
 
-              {isChanged_unLock &&
+              {isChanged_sil &&
 
                 <>
 
                   <Grid item >
                     <IconButton onClick={() => {
-                      if (isChanged_unLock) {
-                        setShowEminMisin_unLock(true)
+                      if (isChanged_sil) {
+                        setShowEminMisin_sil(true)
                       } else {
                         setShow("Main")
                       }
@@ -251,7 +230,7 @@ export default function P_HeaderMetrajOnaylaCetvel({
                   </Grid>
 
                   <Grid item >
-                    <IconButton onClick={() => save_unLock()} disabled={!isChanged_unLock}>
+                    <IconButton onClick={() => save_sil()} disabled={!isChanged_sil}>
                       <SaveIcon variant="contained" />
                     </IconButton>
                   </Grid>

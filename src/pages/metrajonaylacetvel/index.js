@@ -51,16 +51,12 @@ export default function P_MetrajCetveliOnaylanan() {
   const [onaylananMetraj_state, setOnaylananMetraj_state] = useState()
   const [onaylananMetraj_backUp, setOnaylananMetraj_backUp] = useState()
 
-  const [showHasSelectedCopy, setShowHasSelectedCopy] = useState()
   const [hasSelectedCopySatirlar, setHasSelectedCopySatirlar] = useState()
 
   const [_pozId] = useState()
-  const [isChanged_unLock, setIsChanged_unLock] = useState()
-  const [mode_unLock, setMode_unLock] = useState()
-  // const [satirNolar_lock, setSatirNolar_lock] = useState([])
-  // const [satirNolar_unLock, setSatirNolar_unLock] = useState([])
+  const [isChanged_sil, setIsChanged_sil] = useState()
 
-  // const [isHovered, setIsHovered] = useState(false);
+  const [mode_sil, setMode_sil] = useState()
 
 
   let pozBirim
@@ -188,11 +184,10 @@ export default function P_MetrajCetveliOnaylanan() {
     })
 
     let metrajOnaylanan = 0
-    onaylananMetraj_state2.satirlar.filter(x => x.isSelected && !x.hasSelectedCopy).map(oneSatir => {
-      metrajOnaylanan += Number(oneSatir.metraj)
-    })
-    onaylananMetraj_state2.satirlar.filter(x => x.isSelectedCopy).map(oneSatir => {
-      metrajOnaylanan += Number(oneSatir.metraj)
+    onaylananMetraj_state2.satirlar.map(oneSatir => {
+      if (!oneSatir.hasSelectedCopy) {
+        metrajOnaylanan += oneSatir.metraj ? Number(oneSatir.metraj) : 0
+      }
     })
     onaylananMetraj_state2.metrajOnaylanan = metrajOnaylanan
 
@@ -321,83 +316,168 @@ export default function P_MetrajCetveliOnaylanan() {
   // ORJİNAL SATIRLARI VE REVİZELERİ SİLME FONKSİYONU
 
 
-  const update_state_unLock = (oneRow) => {
+  const toggle_sil_all = () => {
 
+    let onaylananMetraj_state2 = _.cloneDeep(onaylananMetraj_state)
+
+    let copySatirlar = onaylananMetraj_state2.satirlar.filter(x => x.isSelectedCopy)
+
+    if (copySatirlar.length > 0) {
+      if (copySatirlar.find(x => !x.newSelected)) {
+        onaylananMetraj_state2.satirlar = onaylananMetraj_state2.satirlar.map(oneSatir => {
+          if (oneSatir.isSelectedCopy) {
+            oneSatir.newSelected = true
+          }
+          if (oneSatir.isSelected || oneSatir.hasSelectedCopy) {
+            delete oneSatir.newSelected
+          }
+          return oneSatir
+        })
+      } else {
+        if (onaylananMetraj_state2.satirlar.find(x => !x.newSelected)) {
+          onaylananMetraj_state2.satirlar = onaylananMetraj_state2.satirlar.map(oneSatir => {
+            oneSatir.newSelected = true
+            return oneSatir
+          })
+        } else {
+          onaylananMetraj_state2.satirlar = onaylananMetraj_state2.satirlar.map(oneSatir => {
+            delete oneSatir.newSelected
+            return oneSatir
+          })
+        }
+      }
+
+    } else {
+      if (onaylananMetraj_state2.satirlar.find(x => !x.newSelected)) {
+        onaylananMetraj_state2.satirlar = onaylananMetraj_state2.satirlar.map(oneSatir => {
+          oneSatir.newSelected = true
+          return oneSatir
+        })
+      } else {
+        onaylananMetraj_state2.satirlar = onaylananMetraj_state2.satirlar.map(oneSatir => {
+          delete oneSatir.newSelected
+          return oneSatir
+        })
+      }
+    }
+
+
+    setIsChanged_sil()
+    if (onaylananMetraj_state2.satirlar.find(x => x.newSelected)) {
+      setIsChanged_sil(true)
+    }
+
+    setOnaylananMetraj_state(onaylananMetraj_state2)
+  }
+
+
+  const update_onaylananMetraj_sil = (oneRow) => {
 
     let onaylananMetraj_state2 = _.cloneDeep(onaylananMetraj_state)
 
     // reviz edilmiş bir satırsa
-    if (oneRow.isSelectedCopy) {
+    if (oneRow.isSelected) {
 
-      //  metrajını ve kendisini önce bi çıkartalım
-      onaylananMetraj_state2.satirlar = onaylananMetraj_state2.satirlar.map(oneSatir => {
-        if (!oneSatir.newSelected) {
-          oneSatir.newSelected = true
-        } else {
-          delete oneSatir.newSelected
-        }
-      })
-
-      let leftPart = oneRow.satirNo.substring(0, oneRow.satirNo.indexOf(".") + 1)
-      // let rightPart = oneRow.satirNo.substring(oneRow.satirNo.indexOf(".") + 1, oneRow.satirNo.length)
-
-      // orjinale ait başka revize satır kalmamışsa orjinali devreye sokmak için hasSelected property siliyoruz, metrajını da ekliyoruz, setHasSelectedCopySatirlar değişmiş olabilir onu da güncelliyoruz
-      if (!onaylananMetraj_state2.satirlar.find(x => x.satirNo.includes(leftPart))) {
-
-        let orjinalSatirNo = oneRow.satirNo.substring(0, oneRow.satirNo.indexOf("."))
-
+      if (!oneRow.newSelected) {
         onaylananMetraj_state2.satirlar = onaylananMetraj_state2.satirlar.map(oneSatir => {
-          if (oneSatir.satirNo === orjinalSatirNo) {
-            delete oneSatir.hasSelectedCopy
+          if (oneSatir.satirNo === oneRow.satirNo) {
+            oneSatir.newSelected = true
           }
           return oneSatir
         })
-
+      } else {
+        onaylananMetraj_state2.satirlar = onaylananMetraj_state2.satirlar.map(oneSatir => {
+          if (oneSatir.satirNo === oneRow.satirNo) {
+            delete oneSatir.newSelected
+          }
+          return oneSatir
+        })
       }
 
     }
 
-    // orjinal satırsa direk silebiliyoruz, hasSekected güncellemesine de gerek yok
-    if (oneRow.isSelected && !oneRow.hasSelected) {
-      onaylananMetraj_state2["metraj"] = Number(onaylananMetraj_state2["metraj"]) - Number(oneRow["metraj"])
-      onaylananMetraj_state2.satirlar = onaylananMetraj_state2.satirlar.filter(x => x.satirNo !== oneRow.satirNo)
+    if (oneRow.isSelectedCopy) {
+
+      if (!oneRow.newSelected) {
+        onaylananMetraj_state2.satirlar = onaylananMetraj_state2.satirlar.map(oneSatir => {
+          if (oneSatir.satirNo === oneRow.satirNo) {
+            oneSatir.newSelected = true
+          }
+          return oneSatir
+        })
+      } else {
+        onaylananMetraj_state2.satirlar = onaylananMetraj_state2.satirlar.map(oneSatir => {
+          if (oneSatir.satirNo === oneRow.satirNo) {
+            delete oneSatir.newSelected
+          }
+          if (oneSatir.satirNo === oneRow.originalSatirNo) {
+            delete oneSatir.newSelected
+          }
+          return oneSatir
+        })
+      }
+
     }
 
-    let metraj = 0
-    onaylananMetraj_state2.satirlar.filter(x => x.isSelected && !x.hasSelectedCopy).map(oneSatir => {
-      metraj += Number(oneSatir.metraj)
-    })
-    onaylananMetraj_state2.satirlar.filter(x => x.isSelectedCopy).map(oneSatir => {
-      metraj += Number(oneSatir.metraj)
-    })
-    onaylananMetraj_state2.metraj = metraj
+    if (oneRow.hasSelectedCopy) {
+
+      let originalSatirNo = oneRow.satirNo
+
+      if (!oneRow.newSelected) {
+        onaylananMetraj_state2.satirlar = onaylananMetraj_state2.satirlar.map(oneSatir => {
+          if (oneSatir.satirNo === oneRow.satirNo) {
+            oneSatir.newSelected = true
+          }
+          if (oneSatir.originalSatirNo === originalSatirNo) {
+            oneSatir.newSelected = true
+          }
+          return oneSatir
+        })
+      } else {
+        onaylananMetraj_state2.satirlar = onaylananMetraj_state2.satirlar.map(oneSatir => {
+          if (oneSatir.satirNo === oneRow.satirNo) {
+            delete oneSatir.newSelected
+          }
+          if (oneSatir.originalSatirNo === originalSatirNo) {
+            delete oneSatir.newSelected
+          }
+
+          return oneSatir
+        })
+      }
+
+    }
+
+    setIsChanged_sil()
+    if (onaylananMetraj_state2.satirlar.find(x => x.newSelected)) {
+      setIsChanged_sil(true)
+    }
 
     setOnaylananMetraj_state(onaylananMetraj_state2)
-    setHasSelectedCopySatirlar(onaylananMetraj_state2?.satirlar.find(x => x.hasSelectedCopy) ? true : false)
-
 
   }
 
 
 
 
-  const cancel_unLock = () => {
+  const cancel_sil = () => {
     setOnaylananMetraj_state(_.cloneDeep(onaylananMetraj_backUp))
-    setHasSelectedCopySatirlar(onaylananMetraj_backUp?.satirlar.find(x => x.hasSelectedCopy) ? true : false)
-    setIsChanged_unLock()
+    // setHasSelectedCopySatirlar(onaylananMetraj_backUp?.satirlar.find(x => x.hasSelectedCopy) ? true : false)
+    setIsChanged_sil()
+    setMode_sil()
     setShow("Main")
   }
 
 
-  const save_unLock = async () => {
+  const save_sil = async () => {
 
     try {
 
-      await RealmApp?.currentUser.callFunction("update_onaylananMetraj", ({ _dugumId: selectedNode_metraj._id, onaylananMetraj_state }))
+      await RealmApp?.currentUser.callFunction("update_onaylananMetraj_sil", ({ _dugumId: selectedNode_metraj._id, onaylananMetraj_state }))
       queryClient.invalidateQueries(['onaylananMetraj', selectedNode_metraj?._id.toString()])
       setShow("Main")
-      setIsChanged_unLock()
-      setShowHasSelectedCopy()
+      setIsChanged_sil()
+      setMode_sil()
       return
 
     } catch (err) {
@@ -417,7 +497,7 @@ export default function P_MetrajCetveliOnaylanan() {
           setDialogAlert()
           setIsChanged()
           setShow("DugumMetrajlari")
-          setShowHasSelectedCopy()
+          setMode_sil()
           queryClient.invalidateQueries(['onaylananMetraj', selectedNode_metraj?._id.toString()])
         }
       }
@@ -431,7 +511,7 @@ export default function P_MetrajCetveliOnaylanan() {
     }
 
     setHasSelectedCopySatirlar(onaylananMetraj_state?.satirlar.find(x => x.hasSelectedCopy) ? true : false)
-    setIsChanged_unLock()
+    setIsChanged_sil()
   }
 
 
@@ -511,7 +591,7 @@ export default function P_MetrajCetveliOnaylanan() {
       <Grid name="metrajCetveliHeader" item sx={{ mt: (parseFloat(subHeaderHeight) + 1) + "rem", }}>
         <HeaderMetrajOnaylaCetvel
           show={show} setShow={setShow}
-          showHasSelectedCopy={showHasSelectedCopy} setShowHasSelectedCopy={setShowHasSelectedCopy}
+          mode_sil={mode_sil} setMode_sil={setMode_sil}
 
           save={save} cancel={cancel}
           isChanged={isChanged} setIsChanged={setIsChanged}
@@ -519,8 +599,8 @@ export default function P_MetrajCetveliOnaylanan() {
 
           hasSelectedCopySatirlar={hasSelectedCopySatirlar}
           onaylananMetraj_state={onaylananMetraj_state}
-          save_unLock={save_unLock} cancel_unLock={cancel_unLock}
-          isChanged_unLock={isChanged_unLock} setIsChanged_unLock={setIsChanged_unLock}
+          save_sil={save_sil} cancel_sil={cancel_sil}
+          isChanged_sil={isChanged_sil} setIsChanged_sil={setIsChanged_sil}
         />
       </Grid>
 
@@ -586,14 +666,25 @@ export default function P_MetrajCetveliOnaylanan() {
 
             <Box></Box>
 
-            <Box sx={{ ...css_metrajCetveliBaslik }}>
-              Durum
-            </Box>
+
+            {/* ALLTAKİ 4 TANEDEN BİRİ GÖSTERİLİYOR */}
+            {!mode_sil &&
+              <Box sx={{ ...css_metrajCetveliBaslik }}>
+                Durum
+              </Box>
+            }
+
+            {mode_sil &&
+              <Box onClick={() => toggle_sil_all()} sx={{ ...css_metrajCetveliBaslik, cursor: "pointer" }}>
+                <DeleteIcon variant="contained" sx={{ minWidth: "3.05rem", color: "gray", fontSize: "1rem" }} />
+              </Box>
+            }
+
 
           </React.Fragment>
 
 
-          {onaylananMetraj_state.satirlar.filter(x => showHasSelectedCopy ? x : !x.hasSelectedCopy).sort((a, b) => {
+          {onaylananMetraj_state.satirlar.filter(x => mode_sil ? x : !x.hasSelectedCopy).sort((a, b) => {
 
             let a1 = a.satirNo.substring(a.satirNo.indexOf("-") + 1, a.satirNo.length)
             let b1 = b.satirNo.substring(b.satirNo.indexOf("-") + 1, b.satirNo.length)
@@ -671,14 +762,16 @@ export default function P_MetrajCetveliOnaylanan() {
                       }
 
                       {!isCellEdit &&
-                        <Box sx={{
-                          ...css_metrajCetveliSatir, borderBottom: oneRow.isLastCopy && "2px solid black", borderTop: oneRow.isFirstCopy && "2px solid black",
-                          backgroundColor: showHasSelectedCopy && oneRow?.isSelected ? "rgba(0, 0, 0, 0.12)" : showHasSelectedCopy && oneRow?.isSelectedCopy ? "rgba(255, 234, 0, 0.22)" : null,
-                          justifyContent: (oneProperty.includes("satirNo") || oneProperty.includes("aciklama")) ? "start" : oneProperty.includes("carpan") ? "end" : oneProperty.includes("metraj") ? "end" : "center",
-                          minWidth: oneProperty.includes("carpan") ? "5rem" : oneProperty.includes("metraj") ? "5rem" : null,
-                          color: isMinha ? "red" : null,
-                          fontWeight: oneRow.hasSelectedCopy ? "400" : oneProperty === "metraj" ? "700" : null
-                        }}>
+                        <Box
+                          sx={{
+                            ...css_metrajCetveliSatir, borderBottom: oneRow.isLastCopy && "2px solid black", borderTop: oneRow.isFirstCopy && "2px solid black",
+                            backgroundColor: (mode_sil) && (oneRow.isSelected || oneRow.hasSelectedCopy) ? "rgba(0, 0, 0, 0.12)" :
+                              mode_sil && oneRow?.isSelectedCopy ? "rgba(255, 234, 0, 0.22)" : null,
+                            justifyContent: (oneProperty.includes("satirNo") || oneProperty.includes("aciklama")) ? "start" : oneProperty.includes("carpan") ? "end" : oneProperty.includes("metraj") ? "end" : "center",
+                            minWidth: oneProperty.includes("carpan") ? "5rem" : oneProperty.includes("metraj") ? "5rem" : null,
+                            color: isMinha ? "red" : null,
+                            fontWeight: oneRow.hasSelectedCopy ? "400" : oneProperty === "metraj" ? "700" : null
+                          }}>
                           {metrajValue(oneRow, oneProperty, isMinha)}
                         </Box>
                       }
@@ -691,9 +784,9 @@ export default function P_MetrajCetveliOnaylanan() {
                 <Box></Box>
 
                 <Box
-                  onClick={() => showHasSelectedCopy && !oneRow.hasSelectedCopy && update_state_unLock(oneRow)}
-                  // onMouseEnter={() => showHasSelectedCopy && setIsHovered(true)}
-                  // onMouseLeave={() => showHasSelectedCopy && setIsHovered(false)}
+                  onClick={() => mode_sil && update_onaylananMetraj_sil(oneRow)}
+                  // onMouseEnter={() => mode_sil && setIsHovered(true)}
+                  // onMouseLeave={() => mode_sil && setIsHovered(false)}
                   sx={{
                     // backgroundColor: oneRow.isSelected ? null : "rgba(255,255,0, 0.3)",
                     // backgroundColor: "rgba(255,255,0, 0.3)",
@@ -706,23 +799,23 @@ export default function P_MetrajCetveliOnaylanan() {
                     borderBottom: oneRow.isLastCopy && "2px solid black",
                   }}
                 >
-                  {!showHasSelectedCopy && oneRow.isSelected && !oneRow.hasSelectedCopy &&
+                  {!mode_sil && oneRow.isSelected && !oneRow.hasSelectedCopy &&
                     <LockIcon
                       variant="contained"
                       sx={{ color: "gray", fontSize: "0.9rem" }} />
                   }
-                  {!showHasSelectedCopy && oneRow.isSelectedCopy && !showHasSelectedCopy &&
+                  {!mode_sil && oneRow.isSelectedCopy && !mode_sil &&
                     <EditIcon variant="contained" sx={{ color: "rgba(255, 132, 0, 1)", fontSize: "0.9rem" }} />
                   }
 
-                  {showHasSelectedCopy && oneRow.isSelected &&
+                  {mode_sil && oneRow.newSelected &&
                     <ReplyIcon
                       variant="contained"
-                      sx={{ color: oneRow.hasSelectedCopy ? "lightgray" : "gray", fontSize: "0.9rem" }} />
+                      sx={{ color: "red", fontSize: "0.9rem" }} />
                   }
-                  {showHasSelectedCopy && oneRow.isSelectedCopy &&
+                  {/* {mode_sil && oneRow.isSelectedCopy &&
                     <ReplyIcon variant="contained" sx={{ color: "rgba(255, 132, 0, 1)", fontSize: "0.9rem" }} />
-                  }
+                  } */}
 
                 </Box>
 
