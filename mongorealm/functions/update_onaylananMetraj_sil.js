@@ -167,6 +167,7 @@ exports = async function ({
         satirlar = satirlar.map(oneSatir => {
           oneSatir.satirNo = oneSatir + "." + siraNo
           siraNo += 1
+          return oneSatir
         })
         satirNo = oneSatir.satirNo
         let oneMetraj = { satirNo, satirlar }
