@@ -456,7 +456,6 @@ exports = async function ({
 
 
 
-
   // metraj güncelleme
   try {
     await collection_Dugumler.updateOne({ _id: _dugumId },
