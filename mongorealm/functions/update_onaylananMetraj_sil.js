@@ -124,6 +124,8 @@ exports = async function ({
       )
     }
 
+    return {bulkArray}
+
 
   } catch (error) {
     throw new Error({ hatayeri: "MONGO // update_onaylananMetraj_sil // ilk aşama //", error });
