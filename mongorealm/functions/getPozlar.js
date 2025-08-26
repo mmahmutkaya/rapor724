@@ -139,12 +139,7 @@ exports = async function ({
                                 false
                               ]
                             },
-                            {
-                              $eq: [
-                                "$$this.isSelected",
-                                true
-                              ]
-                            }
+                            { $or: [ { $eq: [ "$$this.isSelected", true] }, { $eq: [ "$$this.hasSelectedCopy", true] }] }
                           ]
                         },
                         "then": true,
