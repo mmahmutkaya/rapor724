@@ -204,7 +204,7 @@ exports = async function ({
     )
 
   } catch (error) {
-    throw new Error("MONGO // update_onaylananMetraj_revize // metraj güncelleme" + error);
+    throw new Error("MONGO // update_hazirlananMetrajlar_selected // metraj güncelleme" + error);
   }
 
 
