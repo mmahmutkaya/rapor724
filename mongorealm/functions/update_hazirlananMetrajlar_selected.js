@@ -59,7 +59,7 @@ exports = async function ({
             $set: {
               "hazirlananMetrajlar.$[oneHazirlanan].satirlar.$[oneSatir].isSelected": true,
               "hazirlananMetrajlar.$[oneHazirlanan].satirlar.$[oneSatir].hasSelectedCopy": false,
-              "revizeMetrajlar.$[oneMetraj].isAktif": true,
+              // "revizeMetrajlar.$[oneMetraj].isAktif": true,
             },
             $unset: {
               "hazirlananMetrajlar.$[oneHazirlanan].satirlar.$[oneSatir].isReady": "",
@@ -74,9 +74,9 @@ exports = async function ({
               "oneSatir.satirNo": { $in: oneHazirlanan_selected_satirNolar },
               "oneSatir.isReady": true
             },
-            {
-              "oneMetraj.satirNo": { $in: oneHazirlanan_selected_satirNolar },
-            }
+            // {
+            //   "oneMetraj.satirNo": { $in: oneHazirlanan_selected_satirNolar },
+            // }
 
           ]
         }
@@ -140,8 +140,8 @@ exports = async function ({
                                     "in": {
                                       "$cond": {
                                         "if": {
-                                          $eq: [
-                                            "$$oneMetraj.isAktif",
+                                          $ne: [
+                                            "$$oneMetraj.isPasif",
                                             true
                                           ]
                                         },
