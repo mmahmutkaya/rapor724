@@ -58,7 +58,7 @@ exports = async function ({
             update: {
               $set: {
                 "hazirlananMetrajlar.$[oneHazirlanan].satirlar.$[oneSatir].isReady": true,
-                "revizeMetrajlar.$[oneMetraj].isPasif": true,
+                "revizeMetrajlar.$[oneMetraj].isAktif": false,
                 "revizeMetrajlar.$[oneMetraj].satirlar": [],
               },
               $unset: {
@@ -95,7 +95,7 @@ exports = async function ({
             update: {
               $set: {
                 "hazirlananMetrajlar.$[oneHazirlanan].satirlar.$[oneSatir].isReady": true,
-                "revizeMetrajlar.$[oneMetraj].isPasif": true,
+                "revizeMetrajlar.$[oneMetraj].isAktif": false,
                 "revizeMetrajlar.$[oneMetraj].satirlar": [],
               },
               $unset: {
@@ -191,19 +191,18 @@ exports = async function ({
                 $set: {
                   "hazirlananMetrajlar.$[oneHazirlanan].satirlar.$[oneSatir].isSelected": true,
                   "hazirlananMetrajlar.$[oneHazirlanan].satirlar.$[oneSatir].hasSelectedCopy": false,
-                  "revizeMetrajlar.$[oneMetraj].isPasif": true,
                   "revizeMetrajlar.$[oneMetraj].satirlar": []
                 }
               },
               arrayFilters: [
                 {
-                  "oneHazirlanan.userEmail": userEmail,
+                  "oneHazirlanan.userEmail": userEmail
                 },
                 {
-                  "oneSatir.satirNo": originalSatirNo,
+                  "oneSatir.satirNo": originalSatirNo
                 },
                 {
-                  "oneMetraj.satirNo": originalSatirNo,
+                  "oneMetraj.satirNo": originalSatirNo
                 }
               ]
             }
@@ -216,7 +215,6 @@ exports = async function ({
 
 
     })
-
 
 
     if (bulkArray.length > 0) {
