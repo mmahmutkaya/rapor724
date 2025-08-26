@@ -4,7 +4,6 @@ exports = async function ({
 }) {
 
 
-
   const user = context.user;
   const _userId = new BSON.ObjectId(user.id)
   const userEmail = context.user.data.email
