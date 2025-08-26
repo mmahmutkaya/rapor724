@@ -71,7 +71,7 @@ exports = async function ({
               "hazirlananMetrajlar.$[oneHazirlanan].satirlar.$[oneSatir]": "",
             },
             $pull: {
-              "hazirlananMetrajlar.$[oneHazirlanan].satirlar.$[oneSatir]": null,
+              "hazirlananMetrajlar.$[oneHazirlanan].satirlar": null,
             },
           },
           arrayFilters: [
