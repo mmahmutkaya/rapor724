@@ -31,7 +31,7 @@ exports = async function ({
 
 
   let emails = []
-  onaylananMetraj_state.satirlar.filter(x => x.hasSelectedCopy && x.newSelected).map(oneSatir => {
+  onaylananMetraj_state.satirlar.filter(x => x.newSelected).map(oneSatir => {
     if (!emails.find(x => x === oneSatir.userEmail)) (
       emails = [...emails, oneSatir.userEmail]
     )
@@ -123,6 +123,8 @@ exports = async function ({
         { ordered: false }
       )
     }
+
+    return {bulkArray}
 
 
   } catch (error) {

@@ -76,7 +76,8 @@ exports = async function ({
             filter: { _id: _dugumId },
             update: {
               $set: {
-                "hazirlananMetrajlar.$[oneHazirlanan].satirlar.$[oneSatir].hasSelectedCopy": true
+                "hazirlananMetrajlar.$[oneHazirlanan].satirlar.$[oneSatir].hasSelectedCopy": true,
+                "revizeMetrajlar.$[oneMetraj].isPasif": false,
               },
               $unset: {
                 "hazirlananMetrajlar.$[oneHazirlanan].satirlar.$[oneSatir].isSelected": ""
@@ -89,6 +90,9 @@ exports = async function ({
               {
                 "oneSatir.satirNo": { $in: hasSelectedCopySatirNolar },
                 "oneSatir.isSelected": true
+              },
+              {
+                "oneMetraj.satirNo": { $in: hasSelectedCopySatirNolar },
               }
             ]
           }
