@@ -46,10 +46,12 @@ exports = async function ({
       {
         $set: {
           "hazirlananMetrajlar.$[oneHazirlanan].satirlar.$[oneSatir].isReady": true,
-          "hazirlananMetrajlar.$[oneHazirlanan].satirlar.$[oneSatir].isReadyUnSeen": true
+          "hazirlananMetrajlar.$[oneHazirlanan].satirlar.$[oneSatir].isReadyUnSeen": true,
+          "hazirlananMetrajlar.revizeMetrajlar.$[oneSatir].isReady": true,
         },
         $unset: {
-          "hazirlananMetrajlar.$[oneHazirlanan].satirlar.$[oneSatir].isPreparing": ""
+          "hazirlananMetrajlar.$[oneHazirlanan].satirlar.$[oneSatir].isPreparing": "",
+          "hazirlananMetrajlar.revizeMetrajlar.$[oneSatir].isPreparing": "",
         }
       },
       {
