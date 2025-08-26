@@ -50,26 +50,14 @@ exports = async function ({
   try {
 
     let bulkArray = []
-    emails.map(oneEmail => {
 
-      let hasSelectedCopySatirNolar = onaylananMetraj_state.satirlar.filter(x => x.hasSelectedCopy && x.newSelected && x.userEmail === oneEmail).map(oneSatir => {
+    onaylananMetraj_state.satirlar.filter(x => x.hasSelectedCopy && x.newSelected && x.userEmail === oneEmail).map(oneSatir => {
 
-        if (oneSatir) {
-          let oneMetraj = {
-            satirNo: oneSatir.satirNo,
-            satirlar: onaylananMetraj_state.satirlar.filter(x => x.originalSatirNo === oneSatir.satirNo)
-          }
-          revizeMetrajlar = [...revizeMetrajlar, oneMetraj]
-          return oneSatir.satirNo
-        }
+      if (oneSatir) {
 
-      })
-
-      if (hasSelectedCopySatirNolar.length > 0) {
-        revizeMetrajSatirNolar = [...revizeMetrajSatirNolar, ...hasSelectedCopySatirNolar]
-      }
-
-      if (hasSelectedCopySatirNolar.length > 0) {
+        let originalSatirNo = oneSatir.satirNo
+        let satirlar = onaylananMetraj_state.satirlar.filter(x => x.originalSatirNo === originalSatirNo)
+        let userEmail = oneSatir.userEmail
 
         oneBulk = {
           updateOne: {
@@ -77,7 +65,7 @@ exports = async function ({
             update: {
               $set: {
                 "hazirlananMetrajlar.$[oneHazirlanan].satirlar.$[oneSatir].hasSelectedCopy": true,
-                "revizeMetrajlar.$[oneMetraj].isPasif": false,
+                "revizeMetrajlar.$[oneMetraj].satirlar": satirlar,
               },
               $unset: {
                 "hazirlananMetrajlar.$[oneHazirlanan].satirlar.$[oneSatir].isSelected": ""
@@ -85,14 +73,15 @@ exports = async function ({
             },
             arrayFilters: [
               {
-                "oneHazirlanan.userEmail": oneEmail
+                "oneHazirlanan.userEmail": userEmail
               },
               {
                 "oneSatir.satirNo": { $in: hasSelectedCopySatirNolar },
                 "oneSatir.isSelected": true
               },
               {
-                "oneMetraj.satirNo": { $in: hasSelectedCopySatirNolar },
+                "oneMetraj.satirNo": originalSatirNo,
+                "oneMetraj.isAktif": true,
               }
             ]
           }
@@ -101,8 +90,8 @@ exports = async function ({
         bulkArray = [...bulkArray, oneBulk]
 
       }
-
     })
+
 
     if (bulkArray.length > 0) {
       await collection_Dugumler.bulkWrite(
@@ -112,41 +101,9 @@ exports = async function ({
     }
 
   } catch (error) {
-    // throw new Error("MONGO // update_onaylananMetraj_revize // hazirlananMetraj güncelleme " + error);
+    throw new Error("MONGO // update_onaylananMetraj_revize // 1 " + error);
   }
 
-
-
-  if (revizeMetrajSatirNolar.length > 0) {
-    try {
-
-      await collection_Dugumler.updateOne({ _id: _dugumId },
-        [
-          {
-            $set: {
-              revizeMetrajlar: {
-                $concatArrays: [
-                  {
-                    $filter: {
-                      input: "$revizeMetrajlar",
-                      as: "oneMetraj",
-                      cond: { $not: { $or: [{ $in: ["$$oneMetraj.satirNo", revizeMetrajSatirNolar] }, { $eq: ["$$oneMetraj", null] }] } },
-                    }
-                  },
-                  revizeMetrajlar
-                ]
-              }
-            }
-          }
-        ]
-      )
-
-
-    } catch (error) {
-      throw new Error("MONGO // update_onaylananMetraj_revize // " + error.message);
-    }
-
-  }
 
 
 
@@ -190,8 +147,8 @@ exports = async function ({
                                     "in": {
                                       "$cond": {
                                         "if": {
-                                          $ne: [
-                                            "$$oneMetraj.isPasif",
+                                          $eq: [
+                                            "$$oneMetraj.isAktif",
                                             true
                                           ]
                                         },
