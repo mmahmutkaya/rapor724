@@ -496,8 +496,8 @@ exports = async function ({
                                     "in": {
                                       "$cond": {
                                         "if": {
-                                          $ne: [
-                                            "$$oneMetraj.isPasif",
+                                          $eq: [
+                                            "$$oneMetraj.isSelected",
                                             true
                                           ]
                                         },
