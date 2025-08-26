@@ -25,7 +25,7 @@ import FileDownloadDoneIcon from '@mui/icons-material/FileDownloadDone';
 import EditIcon from '@mui/icons-material/Edit';
 
 
-export default function HeaderPozlar({ setShow }) {
+export default function HeaderMetrajPozlar({ setShow }) {
 
   const { drawerWidth, topBarHeight } = useContext(StoreContext)
   const { selectedPoz_metraj, setSelectedPoz_metraj } = useContext(StoreContext)
@@ -101,11 +101,11 @@ export default function HeaderPozlar({ setShow }) {
                 </IconButton>
               </Grid> */}
 
-              <Grid item >
+              {/* <Grid item >
                 <IconButton onClick={() => setShow("ShowBaslik")} disabled={false}>
                   <VisibilityIcon variant="contained" />
                 </IconButton>
-              </Grid>
+              </Grid> */}
 
 
 

@@ -13,7 +13,7 @@ import _ from 'lodash';
 
 
 import ShowMetrajYapabilenler from '../../components/ShowMetrajYapabilenler'
-import HeaderMetrajOnaylaPozMahaller from '../../components/HeaderMetrajOnaylaPozMahaller'
+import HeaderMetrajPozMahaller from '../../components/HeaderMetrajPozMahaller'
 
 
 import { useGetPozlar, useGetDugumler_byPoz, useGetMahaller } from '../../hooks/useMongo';
@@ -47,7 +47,7 @@ export default function P_MetrajPozMahaller() {
 
   
   let editNodeMetraj = false
-  let onayNodeMetraj = true
+  let onayNodeMetraj = false
   
   const customData = RealmApp.currentUser.customData
   
@@ -388,7 +388,7 @@ export default function P_MetrajPozMahaller() {
   const goTo_MetrajOnaylaCetvel = ({ dugum, oneMahal }) => {
     setSelectedNode_metraj(dugum)
     setSelectedMahal_metraj(oneMahal)
-    navigate('/metrajonaylacetvel')
+    navigate('/metrajcetvel')
   }
 
 
@@ -457,7 +457,7 @@ export default function P_MetrajPozMahaller() {
       }
 
       <Grid item >
-        <HeaderMetrajOnaylaPozMahaller
+        <HeaderMetrajPozMahaller
           setShow={setShow}
           anySelectable={anySelectable}
           setMode_select={setMode_select} mode_select={mode_select}

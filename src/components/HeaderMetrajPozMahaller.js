@@ -110,7 +110,20 @@ export default function HeaderMetrajPozMahaller() {
           </Grid> */}
 
           <Grid item xs>
-            <Box sx={{ display: "grid", gridAutoFlow: "column", justifyContent: "start", columnGap: "0.5rem" }}>
+            <Box sx={{ display: "grid", gridAutoFlow: "column", alignItems: "center", justifyContent: "start", columnGap: "0.5rem" }}>
+
+
+              <IconButton sx={{ m: 0, py: "0.3rem" }}
+                onClick={() => {
+                  navigate("/metrajpozlar")
+                  setSelectedPoz_metraj()
+                }}
+                aria-label="wbsUncliced">
+                <ReplyIcon variant="contained"
+                  // sx={{ color: "lightgray", "&:hover": { color: "gray" } }} />
+                  sx={{ color: "gray" }} />
+              </IconButton>
+
               <Box>
                 {selectedPoz_metraj?.pozName}
               </Box>
@@ -120,6 +133,8 @@ export default function HeaderMetrajPozMahaller() {
               <Box>
                 {"Mahal Listesinde Bu Poz İçin Açılmış Tüm Mahaller"}
               </Box>
+
+
             </Box>
           </Grid>
 
@@ -130,18 +145,6 @@ export default function HeaderMetrajPozMahaller() {
           <Grid item xs="auto">
             <Grid container>
 
-              <Grid item >
-                <IconButton
-                  onClick={() => {
-                    navigate("/metrajpozlar")
-                    setSelectedPoz_metraj()
-                  }}
-                  aria-label="wbsUncliced">
-                  <ReplyIcon variant="contained"
-                    // sx={{ color: "lightgray", "&:hover": { color: "gray" } }} />
-                    sx={{ color: "gray" }} />
-                </IconButton>
-              </Grid>
 
               {/* <Grid item onClick={() => toggleEdit()} sx={{ cursor: "pointer" }}>
                 <IconButton disabled={false} >
