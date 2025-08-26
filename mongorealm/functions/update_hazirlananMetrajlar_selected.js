@@ -140,8 +140,8 @@ exports = async function ({
                                     "in": {
                                       "$cond": {
                                         "if": {
-                                          $ne: [
-                                            "$$oneMetraj.isPasif",
+                                          $eq: [
+                                            "$$oneMetraj.isAktif",
                                             true
                                           ]
                                         },
