@@ -59,11 +59,14 @@ exports = async function ({
             $set: {
               "hazirlananMetrajlar.$[oneHazirlanan].satirlar.$[oneSatir].isSelected": true,
               "hazirlananMetrajlar.$[oneHazirlanan].satirlar.$[oneSatir].hasSelectedCopy": false,
-              // "revizeMetrajlar.$[oneMetraj].isAktif": true,
+              "hazirlananMetrajlar.$[oneSatir].satirlar": true,
+              "revizeMetrajlar.$[oneMetraj].isSelected": true,
+              "revizeMetrajlar.$[oneMetraj].satirlar": [],
             },
             $unset: {
               "hazirlananMetrajlar.$[oneHazirlanan].satirlar.$[oneSatir].isReady": "",
-              "hazirlananMetrajlar.$[oneHazirlanan].satirlar.$[oneSatir].isReadyUnSeen": ""
+              "hazirlananMetrajlar.$[oneHazirlanan].satirlar.$[oneSatir].isReadyUnSeen": "",
+              "revizeMetrajlar.$[oneMetraj].isReady": "",
             }
           },
           arrayFilters: [
@@ -74,10 +77,10 @@ exports = async function ({
               "oneSatir.satirNo": { $in: oneHazirlanan_selected_satirNolar },
               "oneSatir.isReady": true
             },
-            // {
-            //   "oneMetraj.satirNo": { $in: oneHazirlanan_selected_satirNolar },
-            // }
-
+            {
+              "oneMetraj.satirNo": { $in: oneHazirlanan_selected_satirNolar },
+              "oneMetraj.isReady": true
+            }
           ]
         }
       }
