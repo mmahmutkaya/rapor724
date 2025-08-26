@@ -29,13 +29,15 @@ exports = async function ({
     {
       $project: {
         metrajOnaylanan: 1,
-        hazirlananMetrajlar: 1
+        hazirlananMetrajlar: 1,
+        // revizeMetrajlar: 1
       }
     },
     { $limit: 1 }
   ]).toArray()
 
 
+  // let { metrajOnaylanan, hazirlananMetrajlar, revizeMetrajlar } = result[0]
   let { metrajOnaylanan, hazirlananMetrajlar } = result[0]
 
 
@@ -43,6 +45,7 @@ exports = async function ({
 
   hazirlananMetrajlar?.map(oneHazirlanan => {
     let userEmail = oneHazirlanan.userEmail
+    // let onayliSatirlar = oneHazirlanan.satirlar.filter(x => x.isSelected || x.hasSelectedCopy).map(oneSatir => {
     let onayliSatirlar = oneHazirlanan.satirlar.filter(x => x.isSelected || x.hasSelectedCopy || x.isSelectedCopy).map(oneSatir => {
       oneSatir.userEmail = userEmail
       return oneSatir
