@@ -36,6 +36,7 @@ export default function P_MetrajOnaylaPozlar() {
 
   let { data } = useGetPozlar()
   let pozlar = data?.pozlar?.filter(x => x.hasDugum)
+  console.log("pozşar", pozlar)
 
 
   const { RealmApp, myTema } = useContext(StoreContext)

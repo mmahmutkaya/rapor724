@@ -770,7 +770,7 @@ export default function P_MetrajCetveliOnaylanan() {
                             justifyContent: (oneProperty.includes("satirNo") || oneProperty.includes("aciklama")) ? "start" : oneProperty.includes("carpan") ? "end" : oneProperty.includes("metraj") ? "end" : "center",
                             minWidth: oneProperty.includes("carpan") ? "5rem" : oneProperty.includes("metraj") ? "5rem" : null,
                             color: isMinha ? "red" : null,
-                            fontWeight: oneRow.hasSelectedCopy ? "400" : oneProperty === "metraj" ? "700" : null
+                            fontWeight: oneProperty === "metraj" && "700",
                           }}>
                           {metrajValue(oneRow, oneProperty, isMinha)}
                         </Box>
