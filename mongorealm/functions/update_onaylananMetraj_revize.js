@@ -94,7 +94,7 @@ exports = async function ({
         }
         bulkArray1 = [...bulkArray1, oneBulk]
 
-        
+
         oneBulk = {
           updateOne: {
             filter: { _id: _dugumId },
@@ -106,9 +106,6 @@ exports = async function ({
             arrayFilters: [
               {
                 "oneHazirlanan.userEmail": userEmail
-              },
-              {
-                "oneSatir.originalSatirNo": originalSatirNo
               }
             ]
           }
