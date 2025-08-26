@@ -58,8 +58,7 @@ exports = async function ({
               "oneHazirlanan.userEmail": userEmail
             },
             {
-              "oneSatir.satirNo": originalSatirNo,
-              "oneSatir.hasSelectedCopy": true
+              "oneSatir.satirNo": originalSatirNo
             },
             {
               "oneMetraj.satirNo": originalSatirNo,
