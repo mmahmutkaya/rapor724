@@ -51,7 +51,7 @@ exports = async function ({
 
     let bulkArray = []
 
-    onaylananMetraj_state.satirlar.filter(x => x.hasSelectedCopy && x.newSelected && x.userEmail === oneEmail).map(oneSatir => {
+    onaylananMetraj_state.satirlar.filter(x => x.hasSelectedCopy && x.newSelected).map(oneSatir => {
 
       if (oneSatir) {
 
