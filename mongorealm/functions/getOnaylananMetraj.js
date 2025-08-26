@@ -30,23 +30,21 @@ exports = async function ({
       $project: {
         metrajOnaylanan: 1,
         hazirlananMetrajlar: 1,
-        // revizeMetrajlar: 1
+        revizeMetrajlar: 1
       }
     },
     { $limit: 1 }
   ]).toArray()
 
 
-  // let { metrajOnaylanan, hazirlananMetrajlar, revizeMetrajlar } = result[0]
-  let { metrajOnaylanan, hazirlananMetrajlar } = result[0]
+  let { metrajOnaylanan, hazirlananMetrajlar, revizeMetrajlar } = result[0]
 
 
   let satirlar = []
 
   hazirlananMetrajlar?.map(oneHazirlanan => {
     let userEmail = oneHazirlanan.userEmail
-    // let onayliSatirlar = oneHazirlanan.satirlar.filter(x => x.isSelected || x.hasSelectedCopy).map(oneSatir => {
-    let onayliSatirlar = oneHazirlanan.satirlar.filter(x => x.isSelected || x.hasSelectedCopy || x.isSelectedCopy).map(oneSatir => {
+    let onayliSatirlar = oneHazirlanan.satirlar.filter(x => x.isSelected).map(oneSatir => {
       oneSatir.userEmail = userEmail
       return oneSatir
     })
@@ -55,13 +53,13 @@ exports = async function ({
     }
   })
 
-  // revizeMetrajlar?.map(oneMetraj => {
-  //   if (satirlar.filter(x => x.hasSelectedCopy).find(x => x.satirNo === oneMetraj.satirNo)) {
-  //     if (oneMetraj.satirlar.length > 0) {
-  //       satirlar = [...satirlar, ...oneMetraj.satirlar]
-  //     }
-  //   }
-  // })
+  revizeMetrajlar?.map(oneMetraj => {
+    if (satirlar.filter(x => x.hasSelectedCopy).find(x => x.satirNo === oneMetraj.satirNo)) {
+      if (oneMetraj.satirlar.length > 0) {
+        satirlar = [...satirlar, ...oneMetraj.satirlar]
+      }
+    }
+  })
 
 
   let onaylananMetraj = {
