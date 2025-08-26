@@ -69,7 +69,10 @@ exports = async function ({
           update: {
             $unset: {
               "hazirlananMetrajlar.$[oneHazirlanan].satirlar.$[oneSatir]": "",
-            }
+            },
+            $pull: {
+              "hazirlananMetrajlar.$[oneHazirlanan].satirlar.$[oneSatir]": null,
+            },
           },
           arrayFilters: [
             {
