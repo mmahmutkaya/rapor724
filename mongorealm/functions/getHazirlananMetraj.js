@@ -87,11 +87,11 @@ exports = async function ({
         { satirNo: userCode + "-" + 5, aciklama: "", carpan1: "", carpan2: "", carpan3: "", carpan4: "", carpan5: "", metraj: "", isPreparing: true }
       ],
        revizeMetrajlar: [
-        { satirNo: userCode + "-" + 1, satirlar:[]},
-        { satirNo: userCode + "-" + 2, satirlar:[]},
-        { satirNo: userCode + "-" + 3, satirlar:[]},
-        { satirNo: userCode + "-" + 4, satirlar:[]},
-        { satirNo: userCode + "-" + 5, satirlar:[]}
+        { satirNo: userCode + "-" + 1, isPreparing:true, satirlar:[]},
+        { satirNo: userCode + "-" + 2, isPreparing:true, satirlar:[]},
+        { satirNo: userCode + "-" + 3, isPreparing:true, satirlar:[]},
+        { satirNo: userCode + "-" + 4, isPreparing:true, satirlar:[]},
+        { satirNo: userCode + "-" + 5, isPreparing:true, satirlar:[]}
       ]
     }
 
