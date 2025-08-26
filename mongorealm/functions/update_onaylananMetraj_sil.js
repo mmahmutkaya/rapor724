@@ -34,7 +34,7 @@ exports = async function ({
 
     let bulkArray = []
     let oneBulk
-    onaylananMetraj_state.satirlar.filter(x => x.hasSelectedCopy && x.newSelected && x.userEmail === oneEmail).map(oneSatir => {
+    onaylananMetraj_state.satirlar.filter(x => x.hasSelectedCopy && x.newSelected).map(oneSatir => {
 
       let userEmail = oneSatir.userEmail
       let originalSatirNo = oneSatir.satirNo
@@ -84,8 +84,6 @@ exports = async function ({
       bulkArray = [...bulkArray, oneBulk]
 
     })
-
-    return {bulkArray}
 
     if (bulkArray.length > 0) {
       await collection_Dugumler.bulkWrite(
