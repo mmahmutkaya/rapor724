@@ -80,9 +80,6 @@ exports = async function ({
             update: {
               $unset: {
                 "hazirlananMetrajlar.$[oneHazirlanan].satirlar.$[oneSatir]": "",
-              },
-              $pull: {
-                "hazirlananMetrajlar.$[oneHazirlanan].satirlar": null,
               }
             },
             arrayFilters: [
@@ -97,6 +94,22 @@ exports = async function ({
         }
         bulkArray1 = [...bulkArray1, oneBulk]
 
+        oneBulk = {
+          updateOne: {
+            filter: { _id: _dugumId },
+            update: {
+              $pull: {
+                "hazirlananMetrajlar.$[oneHazirlanan].satirlar": null,
+              }
+            },
+            arrayFilters: [
+              {
+                "oneHazirlanan.userEmail": userEmail
+              }
+            ]
+          }
+        }
+        bulkArray1 = [...bulkArray1, oneBulk]
 
         oneBulk = {
           updateOne: {
@@ -113,7 +126,6 @@ exports = async function ({
             ]
           }
         }
-
         bulkArray2 = [...bulkArray2, oneBulk]
 
       }
