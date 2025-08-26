@@ -35,17 +35,6 @@ exports = async function ({
   const collection_Dugumler = context.services.get("mongodb-atlas").db("rapor724_v2").collection("dugumler")
 
 
-  let emails = []
-  onaylananMetraj_state.satirlar.filter(x => x.hasSelectedCopy && x.newSelected).map(oneSatir => {
-    if (!emails.find(x => x === oneSatir.userEmail)) (
-      emails = [...emails, oneSatir.userEmail]
-    )
-  })
-
-
-  let revizeMetrajlar = []
-  let revizeMetrajSatirNolar = []
-
 
   try {
 
@@ -64,11 +53,14 @@ exports = async function ({
             filter: { _id: _dugumId },
             update: {
               $set: {
-                "hazirlananMetrajlar.$[oneHazirlanan].satirlar.$[oneSatir].hasSelectedCopy": true,
-                "revizeMetrajlar.$[oneMetraj].satirlar": satirlar,
+                "hazirlananMetrajlar.$[oneHazirlanan].satirlar.$[oneSatir].hasSelectedCopy": true
               },
               $unset: {
-                "hazirlananMetrajlar.$[oneHazirlanan].satirlar.$[oneSatir].isSelected": ""
+                "hazirlananMetrajlar.$[oneHazirlanan].satirlar.$[oneSatir].isSelected": "",
+                "hazirlananMetrajlar.$[oneHazirlanan].satirlar.$[oneSilinecek]": "",
+              },
+              $push: {
+                "hazirlananMetrajlar.$[oneHazirlanan].satirlar": { $each: satirlar },
               }
             },
             arrayFilters: [
@@ -76,13 +68,15 @@ exports = async function ({
                 "oneHazirlanan.userEmail": userEmail
               },
               {
-                "oneSatir.satirNo": { $in: hasSelectedCopySatirNolar },
+                "oneSatir.satirNo": originalSatirNo,
                 "oneSatir.isSelected": true
               },
               {
-                "oneMetraj.satirNo": originalSatirNo,
-                "oneMetraj.isAktif": true,
-              }
+                "oneSilinecek.originalSatirNo": originalSatirNo
+              },
+              // {
+              //   "oneMetraj.satirNo": originalSatirNo
+              // }
             ]
           }
         }
@@ -103,6 +97,70 @@ exports = async function ({
   } catch (error) {
     throw new Error("MONGO // update_onaylananMetraj_revize // 1 " + error);
   }
+
+
+
+
+
+
+  // try {
+
+  //   let bulkArray = []
+
+  //   onaylananMetraj_state.satirlar.filter(x => x.hasSelectedCopy && x.newSelected).map(oneSatir => {
+
+  //     if (oneSatir) {
+
+  //       let originalSatirNo = oneSatir.satirNo
+  //       let satirlar = onaylananMetraj_state.satirlar.filter(x => x.originalSatirNo === originalSatirNo)
+  //       let userEmail = oneSatir.userEmail
+
+  //       oneBulk = {
+  //         updateOne: {
+  //           filter: { _id: _dugumId },
+  //           update: {
+  //             $set: {
+  //               "hazirlananMetrajlar.$[oneHazirlanan].satirlar.$[oneSatir].hasSelectedCopy": true,
+  //               "revizeMetrajlar.$[oneMetraj].satirlar": satirlar,
+  //             },
+  //             $unset: {
+  //               "hazirlananMetrajlar.$[oneHazirlanan].satirlar.$[oneSatir].isSelected": ""
+  //             }
+  //           },
+  //           arrayFilters: [
+  //             {
+  //               "oneHazirlanan.userEmail": userEmail
+  //             },
+  //             {
+  //               "oneSatir.satirNo": originalSatirNo,
+  //               "oneSatir.isSelected": true
+  //             },
+  //             {
+  //               "oneMetraj.satirNo": originalSatirNo
+  //             }
+  //           ]
+  //         }
+  //       }
+
+  //       bulkArray = [...bulkArray, oneBulk]
+
+  //     }
+  //   })
+
+
+  //   if (bulkArray.length > 0) {
+  //     await collection_Dugumler.bulkWrite(
+  //       bulkArray,
+  //       { ordered: false }
+  //     )
+  //   }
+
+  // } catch (error) {
+  //   throw new Error("MONGO // update_onaylananMetraj_revize // 1 " + error);
+  // }
+
+
+
 
 
 
