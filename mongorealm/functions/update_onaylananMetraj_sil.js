@@ -96,7 +96,6 @@ exports = async function ({
               $set: {
                 "hazirlananMetrajlar.$[oneHazirlanan].satirlar.$[oneSatir].isReady": true,
                 "revizeMetrajlar.$[oneMetraj].isPasif": true,
-                "revizeMetrajlar.$[oneMetraj].isReady": true,
                 "revizeMetrajlar.$[oneMetraj].satirlar": [],
               },
               $unset: {
