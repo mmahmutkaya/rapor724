@@ -64,7 +64,7 @@ exports = async function ({
             "oneSatir.isPreparing": true 
           },
           {
-            "oneMetraj": { $in: oneHazirlanan_ready_satirNolar },
+            "oneMetraj.satirNo": { $in: oneHazirlanan_ready_satirNolar },
             "oneMetraj.isPreparing": true 
           }
         ]
