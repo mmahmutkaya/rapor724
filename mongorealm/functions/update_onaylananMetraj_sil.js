@@ -59,6 +59,7 @@ exports = async function ({
               $set: {
                 "hazirlananMetrajlar.$[oneHazirlanan].satirlar.$[oneSatir].isReady": true,
                 "revizeMetrajlar.$[oneMetraj].isPasif": true,
+                "revizeMetrajlar.$[oneMetraj].isReady": true,
                 "revizeMetrajlar.$[oneMetraj].satirlar": [],
               },
               $unset: {
@@ -94,7 +95,10 @@ exports = async function ({
             filter: { _id: _dugumId },
             update: {
               $set: {
-                "hazirlananMetrajlar.$[oneHazirlanan].satirlar.$[oneSatir].isReady": true
+                "hazirlananMetrajlar.$[oneHazirlanan].satirlar.$[oneSatir].isReady": true,
+                "revizeMetrajlar.$[oneMetraj].isPasif": true,
+                "revizeMetrajlar.$[oneMetraj].isReady": true,
+                "revizeMetrajlar.$[oneMetraj].satirlar": [],
               },
               $unset: {
                 "hazirlananMetrajlar.$[oneHazirlanan].satirlar.$[oneSatir].hasSelectedCopy": "",
@@ -108,6 +112,9 @@ exports = async function ({
               {
                 "oneSatir.satirNo": { $in: isSelectedSatirNolar_silinecek },
                 "oneSatir.isSelected": true
+              },
+              {
+                "oneMetraj.satirNo": { $in: isSelectedSatirNolar_silinecek }
               }
             ]
           }
@@ -123,9 +130,6 @@ exports = async function ({
         { ordered: false }
       )
     }
-
-    return {bulkArray}
-
 
   } catch (error) {
     throw new Error({ hatayeri: "MONGO // update_onaylananMetraj_sil // ilk aşama //", error });
