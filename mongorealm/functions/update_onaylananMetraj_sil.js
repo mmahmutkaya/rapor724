@@ -44,7 +44,9 @@ exports = async function ({
           filter: { _id: _dugumId },
           update: {
             $set: {
-              "hazirlananMetrajlar.$[oneHazirlanan].satirlar.$[oneSatir].isReady": true
+              "hazirlananMetrajlar.$[oneHazirlanan].satirlar.$[oneSatir].isReady": true,
+              "revizeMetrajlar.$[oneMetraj].isReady": true,
+              "revizeMetrajlar.$[oneMetraj].satirlar": [],
             },
             $unset: {
               "hazirlananMetrajlar.$[oneHazirlanan].satirlar.$[oneSatir].hasSelectedCopy": ""
@@ -57,44 +59,10 @@ exports = async function ({
             {
               "oneSatir.satirNo": originalSatirNo,
               "oneSatir.hasSelectedCopy": true
-            }
-          ]
-        }
-      }
-      bulkArray = [...bulkArray, oneBulk]
-
-      oneBulk = {
-        updateOne: {
-          filter: { _id: _dugumId },
-          update: {
-            $unset: {
-              "hazirlananMetrajlar.$[oneHazirlanan].satirlar.$[oneSatir]": "",
-            }
-          },
-          arrayFilters: [
-            {
-              "oneHazirlanan.userEmail": userEmail
             },
             {
-              "oneSatir.originalSatirNo": originalSatirNo
-            }
-          ]
-        }
-      }
-      bulkArray = [...bulkArray, oneBulk]
-
-
-      oneBulk = {
-        updateOne: {
-          filter: { _id: _dugumId },
-          update: {
-            $pull: {
-              "hazirlananMetrajlar.$[oneHazirlanan].satirlar": null,
-            }
-          },
-          arrayFilters: [
-            {
-              "oneHazirlanan.userEmail": userEmail
+              "oneMetraj.satirNo": originalSatirNo,
+              "oneMetraj.isSelected": true
             }
           ]
         }
@@ -116,6 +84,92 @@ exports = async function ({
   }
 
 
+
+
+  // try {
+
+  //   let bulkArray = []
+  //   let oneBulk
+  //   onaylananMetraj_state.satirlar.filter(x => x.hasSelectedCopy && x.newSelected).map(oneSatir => {
+
+  //     let userEmail = oneSatir.userEmail
+  //     let originalSatirNo = oneSatir.satirNo
+
+  //     oneBulk = {
+  //       updateOne: {
+  //         filter: { _id: _dugumId },
+  //         update: {
+  //           $set: {
+  //             "hazirlananMetrajlar.$[oneHazirlanan].satirlar.$[oneSatir].isReady": true
+  //           },
+  //           $unset: {
+  //             "hazirlananMetrajlar.$[oneHazirlanan].satirlar.$[oneSatir].hasSelectedCopy": ""
+  //           }
+  //         },
+  //         arrayFilters: [
+  //           {
+  //             "oneHazirlanan.userEmail": userEmail
+  //           },
+  //           {
+  //             "oneSatir.satirNo": originalSatirNo,
+  //             "oneSatir.hasSelectedCopy": true
+  //           }
+  //         ]
+  //       }
+  //     }
+  //     bulkArray = [...bulkArray, oneBulk]
+
+  //     oneBulk = {
+  //       updateOne: {
+  //         filter: { _id: _dugumId },
+  //         update: {
+  //           $unset: {
+  //             "hazirlananMetrajlar.$[oneHazirlanan].satirlar.$[oneSatir]": "",
+  //           }
+  //         },
+  //         arrayFilters: [
+  //           {
+  //             "oneHazirlanan.userEmail": userEmail
+  //           },
+  //           {
+  //             "oneSatir.originalSatirNo": originalSatirNo
+  //           }
+  //         ]
+  //       }
+  //     }
+  //     bulkArray = [...bulkArray, oneBulk]
+
+
+  //     oneBulk = {
+  //       updateOne: {
+  //         filter: { _id: _dugumId },
+  //         update: {
+  //           $pull: {
+  //             "hazirlananMetrajlar.$[oneHazirlanan].satirlar": null,
+  //           }
+  //         },
+  //         arrayFilters: [
+  //           {
+  //             "oneHazirlanan.userEmail": userEmail
+  //           }
+  //         ]
+  //       }
+  //     }
+  //     bulkArray = [...bulkArray, oneBulk]
+
+  //   })
+
+  //   if (bulkArray.length > 0) {
+  //     await collection_Dugumler.bulkWrite(
+  //       bulkArray,
+  //       { ordered: false }
+  //     )
+  //   }
+
+
+  // } catch (error) {
+  //   throw new Error("MONGO // update_onaylananMetraj_sil // isSelected olanların silinmesi ");
+  // }
 
 
   // let emails = []
