@@ -83,6 +83,31 @@ exports = async function ({
           }
         }
 
+
+        oneBulk = {
+          updateOne: {
+            filter: { _id: _dugumId },
+            update: {
+              $unset: {
+                "hazirlananMetrajlar.$[oneHazirlanan].satirlar.$[oneSilinecek]": ""
+              },
+              $push: {
+                "hazirlananMetrajlar.$[oneHazirlanan].satirlar": { $each: satirlar },
+              }
+            },
+            arrayFilters: [
+              {
+                "oneHazirlanan.userEmail": userEmail
+              },
+              {
+                "oneSilinecek.originalSatirNo": originalSatirNo
+              }
+            ]
+          }
+        }
+
+        
+
         bulkArray = [...bulkArray, oneBulk]
 
       }
