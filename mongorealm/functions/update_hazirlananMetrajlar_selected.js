@@ -58,7 +58,9 @@ exports = async function ({
           update: {
             $set: {
               "hazirlananMetrajlar.$[oneHazirlanan].satirlar.$[oneSatir].isSelected": true,
-              "hazirlananMetrajlar.$[oneHazirlanan].satirlar.$[oneSatir].hasSelectedCopy": false
+              "hazirlananMetrajlar.$[oneHazirlanan].satirlar.$[oneSatir].hasSelectedCopy": false,
+              "revizeMetrajlar.$[oneMetraj].satirlar":[],
+              "revizeMetrajlar.$[oneMetraj].isPasif":false
             },
             $unset: {
               "hazirlananMetrajlar.$[oneHazirlanan].satirlar.$[oneSatir].isReady": "",
@@ -72,6 +74,9 @@ exports = async function ({
             {
               "oneSatir.satirNo": { $in: oneHazirlanan_selected_satirNolar },
               "oneSatir.isReady": true
+            },
+            {
+              "oneMetraj.satirNo": { $in: oneHazirlanan_selected_satirNolar },
             }
           ]
         }
@@ -95,6 +100,7 @@ exports = async function ({
 
 
 
+
   // metraj güncelleme
   try {
     await collection_Dugumler.updateOne({ _id: _dugumId },
@@ -111,22 +117,67 @@ exports = async function ({
                     {
                       metrajOnaylanan: {
                         $sum: {
-                          "$map": {
-                            "input": "$$oneHazirlanan.satirlar",
-                            "as": "oneSatir",
-                            "in": {
-                              "$cond": {
-                                "if": {
-                                  $or: [
-                                    { $and: [{ $eq: ["$$oneSatir.isSelected", true] }, { $eq: ["$$oneSatir.hasSelectedCopy", false] }] },
-                                    { $eq: ["$$oneSatir.isSelectedCopy", true] }
-                                  ]
-                                },
-                                "then": "$$oneSatir.metraj",
-                                "else": 0
+                          $concatArrays: [
+                            {
+                              "$map": {
+                                "input": "$$oneHazirlanan.satirlar",
+                                "as": "oneSatir",
+                                "in": {
+                                  "$cond": {
+                                    "if": { $and: [{ $eq: ["$$oneSatir.isSelected", true] }, { $ne: ["$$oneSatir.hasSelectedCopy", true] }] },
+                                    "then": "$$oneSatir.metraj",
+                                    "else": 0
+                                  }
+                                }
                               }
+                            },
+                            {
+                              "$concatArrays": [
+                                {
+                                  "$map": {
+                                    "input": "$revizeMetrajlar",
+                                    "as": "oneMetraj",
+                                    "in": {
+                                      "$cond": {
+                                        "if": {
+                                          $ne: [
+                                            "$$oneMetraj.isPasif",
+                                            true
+                                          ]
+                                        },
+                                        "then": {
+                                          "$reduce": {
+                                            "input": "$$oneMetraj.satirlar",
+                                            "initialValue": 0,
+                                            "in": {
+                                              $add: [
+                                                "$$value",
+                                                {
+                                                  "$cond": {
+                                                    "if": {
+                                                      $ne: [
+                                                        "$$this.metraj",
+                                                        ""
+                                                      ]
+                                                    },
+                                                    "then": {
+                                                      "$toDouble": "$$this.metraj"
+                                                    },
+                                                    "else": 0
+                                                  }
+                                                }
+                                              ]
+                                            }
+                                          }
+                                        },
+                                        "else": 0
+                                      }
+                                    }
+                                  }
+                                }
+                              ]
                             }
-                          }
+                          ]
                         }
                       }
                     }
@@ -153,8 +204,9 @@ exports = async function ({
     )
 
   } catch (error) {
-    throw new Error("MONGO // update_hazirlananMetrajlar_unReady // metraj güncelleme" + error);
+    throw new Error("MONGO // update_onaylananMetraj_revize // metraj güncelleme" + error);
   }
+
 
 
 
