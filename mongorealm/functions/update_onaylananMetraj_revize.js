@@ -38,7 +38,9 @@ exports = async function ({
 
   try {
 
-    let bulkArray = []
+    let bulkArray1 = []
+    let bulkArray2 = []
+    let oneBulk
 
     onaylananMetraj_state.satirlar.filter(x => x.hasSelectedCopy && x.newSelected).map(oneSatir => {
 
@@ -70,7 +72,7 @@ exports = async function ({
             ]
           }
         }
-
+        bulkArray1 = [...bulkArray1, oneBulk]
 
         oneBulk = {
           updateOne: {
@@ -90,8 +92,9 @@ exports = async function ({
             ]
           }
         }
+        bulkArray1 = [...bulkArray1, oneBulk]
 
-
+        
         oneBulk = {
           updateOne: {
             filter: { _id: _dugumId },
@@ -103,24 +106,34 @@ exports = async function ({
             arrayFilters: [
               {
                 "oneHazirlanan.userEmail": userEmail
+              },
+              {
+                "oneSatir.originalSatirNo": originalSatirNo
               }
             ]
           }
         }
 
-
-        bulkArray = [...bulkArray, oneBulk]
+        bulkArray2 = [...bulkArray2, oneBulk]
 
       }
     })
 
 
-    if (bulkArray.length > 0) {
+    if (bulkArray1.length > 0) {
       await collection_Dugumler.bulkWrite(
-        bulkArray,
+        bulkArray1,
         { ordered: false }
       )
     }
+
+    if (bulkArray2.length > 0) {
+      await collection_Dugumler.bulkWrite(
+        bulkArray2,
+        { ordered: false }
+      )
+    }
+
 
   } catch (error) {
     throw new Error("MONGO // update_onaylananMetraj_revize // 1 " + error);
