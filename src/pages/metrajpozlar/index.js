@@ -10,8 +10,9 @@ import { useGetPozlar } from '../../hooks/useMongo';
 import getWbsName from '../../functions/getWbsName';
 
 
-import ShowMetrajPozlarBaslik from '../../components/ShowMetrajPozlarBaslik'
-import HeaderMetrajPozlar from '../../components/HeaderMetrajPozlar'
+import HeaderMetrajOnaylaPozlar from '../../components/HeaderMetrajOnaylaPozlar'
+import ShowMetrajYapabilenler from '../../components/ShowMetrajYapabilenler'
+import ShowMetrajOnaylaPozlarBaslik from '../../components/ShowMetrajOnaylaPozlarBaslik'
 
 
 import { borderLeft, fontWeight, grid, styled } from '@mui/system';
@@ -22,6 +23,9 @@ import Stack from '@mui/material/Stack';
 import { Button, TextField, Typography } from '@mui/material';
 import Box from '@mui/material/Box';
 import InfoIcon from '@mui/icons-material/Info';
+import Tooltip from '@mui/material/Tooltip';
+import CircleIcon from '@mui/icons-material/Circle';
+import { Check } from '@mui/icons-material';
 
 
 
@@ -30,18 +34,25 @@ export default function P_MetrajPozlar() {
   const navigate = useNavigate()
   const queryClient = useQueryClient()
 
-  let { data: pozlar } = useGetPozlar()
-  pozlar = pozlar?.filter(x => x.hasDugum)
+  let { data } = useGetPozlar()
+  let pozlar = data?.pozlar?.filter(x => x.hasDugum)
+  // console.log("pozşar", pozlar)
+
 
   const { RealmApp, myTema } = useContext(StoreContext)
+  const { showMetrajYapabilenler, setShowMetrajYapabilenler } = useContext(StoreContext)
+
   const { customData } = RealmApp.currentUser
 
   const { selectedProje } = useContext(StoreContext)
   const metrajYapabilenler = selectedProje?.yetki?.metrajYapabilenler
+
   const yetkililer = selectedProje?.yetki.yetkililer
 
   const { selectedPoz_metraj, setSelectedPoz_metraj } = useContext(StoreContext)
-  const { editNodeMetraj, onayNodeMetraj } = useContext(StoreContext)
+  // const { editNodeMetraj, onayNodeMetraj } = useContext(StoreContext)
+  let editNodeMetraj = false
+  let onayNodeMetraj = showMetrajYapabilenler?.find(x => x.isShow) ? true : false
 
   // console.log("selectedProje", selectedProje)
   const pozBirimleri = selectedProje?.pozBirimleri
@@ -119,19 +130,19 @@ export default function P_MetrajPozlar() {
 
 
   const goTo_MetrajPozmahaller = (onePoz) => {
-    navigate('/metrajpozmahaller')
+    navigate('/metrajonaylapozmahaller')
     setSelectedPoz_metraj(onePoz)
   }
 
-  const metrajYapabilenlerColumns = " 1rem repeat(" + metrajYapabilenler?.length + ", max-content)"
-  const columns = `max-content minmax(min-content, 3fr) max-content max-content${pozAciklamaShow ? " 0.5rem minmax(min-content, 2fr)" : ""}${pozVersiyonShow ? " 0.5rem min-content" : ""}${editNodeMetraj ? " 0.5rem max-content" : ""}${onayNodeMetraj ? metrajYapabilenlerColumns : ""}`
+  const showMetrajYapabilenlerColumns = " 1rem repeat(" + showMetrajYapabilenler?.filter(x => x.isShow).length + ", max-content)"
+  const columns = `max-content minmax(min-content, 3fr) max-content max-content${pozAciklamaShow ? " 0.5rem minmax(min-content, 2fr)" : ""}${pozVersiyonShow ? " 0.5rem min-content" : ""}${editNodeMetraj ? " 0.5rem max-content" : ""}${onayNodeMetraj ? showMetrajYapabilenlerColumns : ""}`
 
 
   return (
     <Box sx={{ m: "0rem", maxWidth: "60rem" }}>
 
       {/* BAŞLIK */}
-      <HeaderMetrajPozlar
+      <HeaderMetrajOnaylaPozlar
         show={show}
         setShow={setShow}
       />
@@ -139,9 +150,16 @@ export default function P_MetrajPozlar() {
 
       {/* BAŞLIK GÖSTER / GİZLE */}
       {show == "ShowBaslik" &&
-        <ShowMetrajPozlarBaslik
+        <ShowMetrajOnaylaPozlarBaslik
           setShow={setShow}
           basliklar={basliklar} setBasliklar={setBasliklar}
+        />
+      }
+
+      {/* BAŞLIK GÖSTER / GİZLE */}
+      {show == "ShowMetrajYapabilenler" &&
+        <ShowMetrajYapabilenler
+          setShow={setShow}
         />
       }
 
@@ -229,10 +247,25 @@ export default function P_MetrajPozlar() {
             {onayNodeMetraj &&
               <>
                 <Box> </Box>
-                {metrajYapabilenler.map((oneYapabilen, index) => {
+                {showMetrajYapabilenler?.filter(x => x.isShow).map((oneYapabilen, index) => {
+
+                  let yetkili = yetkililer?.find(oneYetkili => oneYetkili.userEmail === oneYapabilen?.userEmail)
+
                   return (
                     <Box key={index} sx={{ ...enUstBaslik_css, borderLeft: "1px solid black", justifyContent: "center" }}>
-                      {yetkililer?.find(oneYetkili => oneYetkili.userEmail === oneYapabilen.userEmail).userCode}
+                      {/* <Tooltip placement="bottom" title={yetkili.isim + " " + yetkili.soyisim}> */}
+                      {/* <Box>
+                          {yetkililer?.find(oneYetkili => oneYetkili.userEmail === oneYapabilen.userEmail).userCode}
+                        </Box> */}
+                      <Box sx={{ display: "grid", alignItems: "center", justifyItems: "center", fontSize: "0.75rem" }}>
+                        <Box>
+                          {yetkili.isim}
+                        </Box>
+                        <Box>
+                          {yetkili.soyisim}
+                        </Box>
+                      </Box>
+                      {/* </Tooltip> */}
                     </Box>
                   )
                 })}
@@ -288,7 +321,7 @@ export default function P_MetrajPozlar() {
                   {onayNodeMetraj &&
                     <>
                       <Box> </Box>
-                      {metrajYapabilenler.map((oneYapabilen, index) => {
+                      {showMetrajYapabilenler?.filter(x => x.isShow).map((oneYapabilen, index) => {
                         return (
                           <Box key={index} sx={{ ...wbsBaslik_css2, borderLeft: "1px solid black", justifyContent: "center" }}>
 
@@ -303,6 +336,7 @@ export default function P_MetrajPozlar() {
 
                 {/* WBS'İN POZLARI */}
                 {pozlar?.filter(x => x._wbsId.toString() === oneWbs._id.toString()).map((onePoz, index) => {
+                  let hasOnaylananMetraj = onePoz?.hazirlananMetrajlar.find(x => x.hasSelected)
 
                   let isSelected = false
 
@@ -311,7 +345,6 @@ export default function P_MetrajPozlar() {
                   }
 
                   return (
-                    // <Box key={index} onDoubleClick={() => navigate('/metrajpozmahaller')} onClick={() => setSelectedPoz_metraj(onePoz)} sx={{ "&:hover": { "& .childClass": { display: "block" } }, cursor: "pointer", display: "grid", }}>
                     <React.Fragment key={index} >
                       <Box sx={{ ...pozNo_css }} >
                         {onePoz.pozNo}
@@ -319,11 +352,11 @@ export default function P_MetrajPozlar() {
                       <Box sx={{ ...pozNo_css, justifyItems: "start", pl: "0.5rem" }} >
                         {onePoz.pozName}
                       </Box>
-                      <Box onDoubleClick={() => goTo_MetrajPozmahaller(onePoz)} sx={{ ...pozNo_css, cursor: "pointer", display: "grid", gridTemplateColumns: "1rem 1fr", "&:hover": { "& .childClass": { backgroundColor: "red" } } }}>
-                        <Box className="childClass" sx={{ ml: "-1rem", backgroundColor: "white", height: "0.5rem", width: "0.5rem", borderRadius: "50%" }}>
+                      <Box onClick={() => hasOnaylananMetraj && goTo_MetrajPozmahaller(onePoz)} sx={{ ...pozNo_css, backgroundColor: !hasOnaylananMetraj ? "lightgray" : "rgba(255, 251, 0, 0.55)", cursor: hasOnaylananMetraj && "pointer", display: "grid", gridTemplateColumns: "1rem 1fr", "&:hover": hasOnaylananMetraj && { "& .childClass": { backgroundColor: "red" } } }}>
+                        <Box className="childClass" sx={{ ml: "-1rem", backgroundColor: !hasOnaylananMetraj ? "lightgray" : "rgba(255, 251, 0, 0.55)", height: "0.5rem", width: "0.5rem", borderRadius: "50%" }}>
                         </Box>
                         <Box sx={{ justifySelf: "end" }}>
-                          {ikiHane(onePoz?.onaylananMetraj)}
+                          {ikiHane(onePoz?.metrajOnaylanan)}
                         </Box>
                       </Box>
                       <Box sx={{ ...pozNo_css }}>
@@ -351,30 +384,94 @@ export default function P_MetrajPozlar() {
                       }
 
                       {/* METRAJ DÜZENLEME AÇIKSA - KİŞİNİN HAZIRLADIĞI TOPLAM POZ METRAJ*/}
-                      {editNodeMetraj &&
+                      {/* {editNodeMetraj &&
                         <>
                           <Box />
-                          <Box onDoubleClick={() => goTo_MetrajPozmahaller(onePoz)} sx={{ ...pozNo_css, justifyContent: "end", cursor: "pointer", backgroundColor: "yellow", display: "grid", gridTemplateColumns: "1rem 1fr", "&:hover": { "& .childClass": { backgroundColor: "red" } } }}>
-                            <Box className="childClass" sx={{ ml: "-1rem", backgroundColor: "yellow", height: "0.5rem", width: "0.5rem", borderRadius: "50%" }}>
+                          <Box
+                            onDoubleClick={() => goTo_MetrajPozmahaller(onePoz)}
+                            sx={{
+                              ...pozNo_css,
+                              display: "grid", gridTemplateColumns: "1rem 1fr", justifyContent: "end", cursor: "pointer",
+                              backgroundColor: "rgba(255, 251, 0, 0.55)",
+                              "&:hover": { "& .childClass": { backgroundColor: "red" } }
+                            }}>
+                            <Box
+                              className="childClass"
+                              sx={{
+                                ml: "-1rem", height: "0.5rem", width: "0.5rem", borderRadius: "50%",
+                                backgroundColor: "rgba(255, 251, 0, 0.55)",
+                              }}>
                             </Box>
                             <Box sx={{ justifySelf: "end" }}>
-                              {ikiHane(onePoz?.hazirlananMetrajlar.find(x => x.userEmail === customData.email)?.metraj)}
+                              {ikiHane(onePoz?.hazirlananMetrajlar.find(x => x.userEmail === customData.email)?.metrajReady)}
                             </Box>
                           </Box>
                         </>
-                      }
+                      } */}
 
                       {onayNodeMetraj &&
                         <>
                           <Box> </Box>
-                          {metrajYapabilenler.map((oneYapabilen, index) => {
+                          {showMetrajYapabilenler?.filter(x => x.isShow).map((oneYapabilen, index) => {
+
+                            let oneHazirlanan = onePoz.hazirlananMetrajlar.find(x => x.userEmail === oneYapabilen.userEmail)
+
+                            let hasReady = oneHazirlanan?.hasReady
+                            let hasSelected = oneHazirlanan?.hasSelected
+                            let hasUnSelected = oneHazirlanan?.hasUnSelected
+                            let metraj = oneHazirlanan?.metrajReady
+                            let clickAble = hasUnSelected || hasSelected || hasReady ? true : false
+                            let hasReadyUnSeen = oneHazirlanan?.hasReadyUnSeen
+                            let allSelected = oneHazirlanan?.hasSelected && !oneHazirlanan?.hasUnSelected
+                            let someSelected = oneHazirlanan?.hasSelected && oneHazirlanan?.hasUnSelected
+
+
+
                             return (
-                              <Box key={index} onDoubleClick={() => goTo_MetrajPozmahaller(onePoz)} sx={{ ...pozNo_css, justifyContent: "end", cursor: "pointer", backgroundColor: "rgb(143,206,0,0.3)", display: "grid", gridTemplateColumns: "1rem 1fr", "&:hover": { "& .childClass": { backgroundColor: "red" } } }}>
-                                <Box className="childClass" sx={{ color: "rgb(143,206,0,0.3)", ml: "-1rem", height: "0.5rem", width: "0.5rem", borderRadius: "50%" }}>
-                                </Box>
+                              <Box
+                                key={index}
+                                onClick={() => clickAble && goTo_MetrajPozmahaller(onePoz)}
+                                sx={{
+                                  ...pozNo_css, display: "grid", gridTemplateColumns: "1rem 1fr", justifyContent: "end", cursor: clickAble && "pointer",
+                                  backgroundColor: hasReadyUnSeen ? "rgba(255, 251, 0, 0.55)" : !clickAble && "lightgray",
+                                  "&:hover": clickAble && { "& .childClass": { color: "red" } },
+                                }}>
+                                {/* <Box
+                                  className="childClass"
+                                  sx={{
+                                    ml: "-1rem", height: "0.5rem", width: "0.5rem", borderRadius: "50%",
+                                    backgroundColor: hasSelected && hasUnSelected && "gray",
+                                  }}>
+                                </Box> */}
+
+                                {someSelected &&
+                                  <CircleIcon variant="contained" className="childClass"
+                                    sx={{
+                                      mr: "0.3rem", fontSize: "0.60rem",
+                                      color: "gray"
+                                    }} />
+                                }
+
+                                {allSelected &&
+                                  <Check variant="contained" className="childClass"
+                                    sx={{
+                                      mr: "0.3rem", fontSize: "1rem",
+                                      color: "black"
+                                    }} />
+                                }
+
+                                {!someSelected && !allSelected && clickAble &&
+                                  <CircleIcon variant="contained" className="childClass"
+                                    sx={{
+                                      mr: "0.3rem", fontSize: "0.6rem",
+                                      color: hasReadyUnSeen ? "rgba(255, 251, 0, 0.55)" : "white"
+                                    }} />
+                                }
+
                                 <Box sx={{ justifySelf: "end" }}>
-                                  {ikiHane(onePoz?.hazirlananMetrajlar.find(x => x.userEmail === oneYapabilen.userEmail)?.metraj)}
+                                  {ikiHane(metraj)}
                                 </Box>
+
                               </Box>
                             )
                           })}

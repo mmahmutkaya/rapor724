@@ -692,7 +692,7 @@ export default function P_MetrajOlusturCetvel() {
                     px: "0.3rem",
                     border: "1px solid black"
                   }}>
-                  {oneRow.isSelected &&
+                  {oneRow.isSelected && !oneRow.hasSelectedCopy &&
                     <DoneAllIcon variant="contained" sx={{ color: "black", fontSize: "1.2rem" }} />
                   }
                   {oneRow.hasSelectedCopy &&
