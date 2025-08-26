@@ -51,7 +51,7 @@ exports = async function ({
         },
         $unset: {
           "hazirlananMetrajlar.$[oneHazirlanan].satirlar.$[oneSatir].isPreparing": "",
-          "hazirlananMetrajlar.revizeMetrajlar.$[oneSatir].isPreparing": "",
+          "revizeMetrajlar.$[oneMetraj].isPreparing": "",
         }
       },
       {
