@@ -289,7 +289,7 @@ export default function P_MetrajCetveliOnaylanan() {
           onCloseAction = () => {
             setDialogAlert()
             setIsChanged()
-            setShow("DugumMetrajlari")
+            setShow("Main")
             queryClient.invalidateQueries(['onaylananMetraj', selectedNode_metraj?._id.toString()])
           }
         }
@@ -495,7 +495,7 @@ export default function P_MetrajCetveliOnaylanan() {
         dialogIcon = "info"
         onCloseAction = () => {
           setDialogAlert()
-          setIsChanged()
+          setIsChanged_sil()
           setShow("DugumMetrajlari")
           setMode_sil()
           queryClient.invalidateQueries(['onaylananMetraj', selectedNode_metraj?._id.toString()])

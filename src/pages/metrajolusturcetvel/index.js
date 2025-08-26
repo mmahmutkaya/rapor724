@@ -30,6 +30,7 @@ import LockIcon from '@mui/icons-material/Lock';
 import ReplyIcon from '@mui/icons-material/Reply';
 import { Circle, Visibility } from '@mui/icons-material';
 import DoneAllIcon from '@mui/icons-material/DoneAll';
+import EditIcon from '@mui/icons-material/Edit';
 
 
 export default function P_MetrajOlusturCetvel() {
@@ -96,6 +97,7 @@ export default function P_MetrajOlusturCetvel() {
     !selectedNode_metraj && navigate("/metrajpozmahaller")
     setHazirlananMetraj_state(_.cloneDeep(hazirlananMetraj))
     setHazirlananMetraj_backUp(_.cloneDeep(hazirlananMetraj))
+    // console.log("hazirlananMetraj", hazirlananMetraj)
   }, [hazirlananMetraj])
 
 
@@ -580,7 +582,7 @@ export default function P_MetrajOlusturCetvel() {
 
             {mode_ready &&
               <Box onClick={() => add_OneRow_ready_all()} sx={{ ...css_metrajCetveliBaslik_Yayinlanan, cursor: "pointer" }}>
-                <Circle variant="contained" sx={{ minWidth: "3.05rem", color: "gray", fontSize: "1rem" }} />
+                <CheckCircleIcon variant="contained" sx={{ minWidth: "3.05rem", color: "gray", fontSize: "1.1rem" }} />
               </Box>
             }
 
@@ -595,7 +597,7 @@ export default function P_MetrajOlusturCetvel() {
 
                 {["satirNo", "aciklama", "carpan1", "carpan2", "carpan3", "carpan4", "carpan5", "metraj", "pozBirim"].map((oneProperty, index) => {
                   // let isCellEdit = (oneProperty === "satirNo" || oneProperty === "pozBirim" || oneProperty === "metraj") ? false : true
-                  let isCellEdit = mode_edit && !oneRow.isSelected && !oneRow.isReady && (oneProperty.includes("aciklama") || oneProperty.includes("carpan")) ? true : false
+                  let isCellEdit = mode_edit && !oneRow.hasSelectedCopy && !oneRow.isSelected && !oneRow.isReady && (oneProperty.includes("aciklama") || oneProperty.includes("carpan")) ? true : false
                   let isMinha = oneRow["aciklama"].replace("İ", "i").toLowerCase().includes("minha") ? true : false
 
                   return (
@@ -657,7 +659,7 @@ export default function P_MetrajOlusturCetvel() {
                       {!isCellEdit &&
                         <Box sx={{
                           ...css_metrajCetveliSatir,
-                          backgroundColor: (oneRow.isReady || oneRow.isSelected) ? myTema.renkler.inaktifGri : null,
+                          backgroundColor: (oneRow.isReady || oneRow.isSelected || oneRow.hasSelectedCopy) ? myTema.renkler.inaktifGri : null,
                           // backgroundColor: oneRow.isPreparing && "rgba( 253, 197, 123 , 0.2 )",
                           justifyContent: oneProperty.includes("aciklama") ? "start" : oneProperty.includes("carpan") ? "end" : oneProperty.includes("metraj") ? "end" : "center",
                           minWidth: oneProperty.includes("carpan") ? "5rem" : oneProperty.includes("metraj") ? "5rem" : null,
@@ -691,13 +693,19 @@ export default function P_MetrajOlusturCetvel() {
                     border: "1px solid black"
                   }}>
                   {oneRow.isSelected &&
-                    <CheckIcon variant="contained" sx={{ color: !oneRow.hasSelectedCopy ? "black" : "red", fontSize: "1.2rem" }} />
+                    <DoneAllIcon variant="contained" sx={{ color: "black", fontSize: "1.2rem" }} />
+                  }
+                  {oneRow.hasSelectedCopy &&
+                    <DoneAllIcon variant="contained" sx={{ color: "gray", fontSize: "1rem" }} />
                   }
                   {oneRow.isReady && !oneRow.isReadyUnSeen &&
                     <Visibility variant="contained" sx={{ color: "gray", fontSize: "1rem" }} />
                   }
-                  {oneRow.isReady && !oneRow.isSelected && oneRow.isReadyUnSeen &&
-                    <Circle variant="contained" sx={{ color: oneRow.newSelected ? "rgba( 255,165,0, 1 )" : "rgba(94, 90, 90, 0.49)", fontSize: "0.70rem" }} />
+                  {oneRow.isReady && !oneRow.isSelected && oneRow.isReadyUnSeen && oneRow.newSelected &&
+                    <Circle variant="contained" sx={{ color: "gray", fontSize: "0.8rem" }} />
+                  }
+                  {oneRow.isReady && !oneRow.isSelected && oneRow.isReadyUnSeen && !oneRow.newSelected &&
+                    <CheckIcon variant="contained" sx={{ color: "black", fontSize: "1.2rem" }} />
                   }
                   {oneRow.isPreparing && oneRow.isReadyBack &&
                     <ReplyIcon variant="contained" sx={{ color: "red", fontSize: "0.95rem" }} />

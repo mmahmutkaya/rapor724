@@ -106,9 +106,10 @@ export default function P_MetrajOnay() {
     setHazirlananMetrajlar_state(_.cloneDeep(data?.hazirlananMetrajlar))
     setHazirlananMetrajlar_backUp(_.cloneDeep(data?.hazirlananMetrajlar))
 
-    setIsChanged_select()
-    setIsChanged_unReady()
-    setIsChanged_seen()
+    setMode_seen()
+    setMode_select()
+    setMode_unReady()
+
   }, [data])
 
   // console.log("onaylananMetrajlar_state", onaylananMetrajlar_state)
@@ -258,6 +259,7 @@ export default function P_MetrajOnay() {
   const cancel_select = () => {
     setHazirlananMetrajlar_state(_.cloneDeep(hazirlananMetrajlar_backUp))
     setIsChanged_select()
+    setMode_select()
   }
 
 
@@ -274,6 +276,7 @@ export default function P_MetrajOnay() {
         queryClient.invalidateQueries(['hazirlananMetrajlar', selectedNode_metraj?._id.toString()])
 
         setShow("Main")
+        setMode_select()
         setIsChanged_select()
         return
 
@@ -969,7 +972,7 @@ export default function P_MetrajOnay() {
                                 sx={{
                                   ...css_metrajCetveliSatir,
                                   cursor: !oneRow.isSelected || oneRow.newSelected ? "pointer" : null,
-                                  backgroundColor: oneRow?.isSelected ? myTema.renkler.inaktifGri : !oneRow.isReady && "rgba(238, 251, 0, 0.22)",
+                                  backgroundColor: oneRow?.isSelected || oneRow?.hasSelectedCopy ? myTema.renkler.inaktifGri : !oneRow.isReady && "rgba(238, 251, 0, 0.22)",
                                   justifyContent: (oneProperty.includes("satirNo") || oneProperty.includes("aciklama")) ? "start" : oneProperty.includes("carpan") ? "end" : oneProperty.includes("metraj") ? "end" : "center",
                                   minWidth: oneProperty.includes("carpan") ? "5rem" : oneProperty.includes("metraj") ? "5rem" : null,
                                   color: isMinha ? "red" : null
@@ -1007,7 +1010,10 @@ export default function P_MetrajOnay() {
                             border: "1px solid black"
                           }}>
                           {oneRow?.isSelected &&
-                            <DoneAllIcon variant="contained" sx={{ color: oneRow.newSelected ? "orange" : "gray", fontSize: "1rem" }} />
+                            <DoneAllIcon variant="contained" sx={{ color: oneRow.newSelected ? "orange" : "black", fontSize: "1rem" }} />
+                          }
+                          {oneRow?.hasSelectedCopy &&
+                            <DoneAllIcon variant="contained" sx={{ color: "gray", fontSize: "1rem" }} />
                           }
                           {oneRow?.isReady === false &&
                             <ReplyIcon variant="contained" sx={{ color: "red", fontSize: "1rem" }} />
