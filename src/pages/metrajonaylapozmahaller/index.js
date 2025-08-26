@@ -343,6 +343,7 @@ export default function P_MetrajOnaylaPozMahaller() {
         queryClient.invalidateQueries(['dugumler_byPoz'])
 
         setIsChange_select()
+        setMode_select()
         return
 
       } catch (err) {
@@ -360,7 +361,7 @@ export default function P_MetrajOnaylaPozMahaller() {
           dialogIcon = "info"
           onCloseAction = () => {
             setDialogAlert()
-            queryClient.invalidateQueries(['hazirlananMetrajlar', selectedNode_metraj?._id.toString()])
+            queryClient.invalidateQueries(['dugumler_byPoz'])
           }
         }
         setDialogAlert({

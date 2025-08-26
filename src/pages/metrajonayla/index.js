@@ -105,21 +105,12 @@ export default function P_MetrajOnay() {
 
     setHazirlananMetrajlar_state(_.cloneDeep(data?.hazirlananMetrajlar))
     setHazirlananMetrajlar_backUp(_.cloneDeep(data?.hazirlananMetrajlar))
-
+    console.log("hazirlananMetrajlar",data?.hazirlananMetrajlar)
     setMode_seen()
     setMode_select()
     setMode_unReady()
 
   }, [data])
-
-  // console.log("onaylananMetrajlar_state", onaylananMetrajlar_state)
-  // console.log("hazirlananMetrajlar_state", hazirlananMetrajlar_state)
-
-
-
-
-
-
 
 
 
