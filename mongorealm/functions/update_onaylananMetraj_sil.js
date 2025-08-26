@@ -83,6 +83,24 @@ exports = async function ({
       }
       bulkArray = [...bulkArray, oneBulk]
 
+
+      oneBulk = {
+        updateOne: {
+          filter: { _id: _dugumId },
+          update: {
+            $pull: {
+              "hazirlananMetrajlar.$[oneHazirlanan].satirlar": null,
+            }
+          },
+          arrayFilters: [
+            {
+              "oneHazirlanan.userEmail": userEmail
+            }
+          ]
+        }
+      }
+      bulkArray = [...bulkArray, oneBulk]
+
     })
 
     if (bulkArray.length > 0) {
