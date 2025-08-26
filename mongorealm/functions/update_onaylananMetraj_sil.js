@@ -85,6 +85,8 @@ exports = async function ({
 
     })
 
+    return {bulkArray}
+
     if (bulkArray.length > 0) {
       await collection_Dugumler.bulkWrite(
         bulkArray,
