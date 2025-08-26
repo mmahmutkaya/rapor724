@@ -59,8 +59,7 @@ exports = async function ({
             $set: {
               "hazirlananMetrajlar.$[oneHazirlanan].satirlar.$[oneSatir].isSelected": true,
               "hazirlananMetrajlar.$[oneHazirlanan].satirlar.$[oneSatir].hasSelectedCopy": false,
-              "revizeMetrajlar.$[oneMetraj].satirlar":[],
-              "revizeMetrajlar.$[oneMetraj].isPasif":false
+              "revizeMetrajlar.$[oneMetraj].satirlar":[]
             },
             $unset: {
               "hazirlananMetrajlar.$[oneHazirlanan].satirlar.$[oneSatir].isReady": "",
