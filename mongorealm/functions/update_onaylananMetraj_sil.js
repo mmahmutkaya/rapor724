@@ -51,6 +51,7 @@ exports = async function ({
             $unset: {
               "hazirlananMetrajlar.$[oneHazirlanan].satirlar.$[oneSatir].hasSelectedCopy": "",
               "hazirlananMetrajlar.$[oneHazirlanan].satirlar.$[oneSatir].isSelected": "",
+              "revizeMetrajlar.$[oneMetraj].isSelected": "",
             }
           },
           arrayFilters: [
@@ -58,7 +59,8 @@ exports = async function ({
               "oneHazirlanan.userEmail": userEmail
             },
             {
-              "oneSatir.satirNo": originalSatirNo
+              "oneSatir.satirNo": originalSatirNo,
+              "oneSatir.isSelected": true
             },
             {
               "oneMetraj.satirNo": originalSatirNo,
