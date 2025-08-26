@@ -107,9 +107,6 @@ export default function P_MetrajCetveliOnaylanan() {
       originalSatirNo = oneSatir.satirNo
       oneSatir.satirNo = originalSatirNo + ".1"
 
-      // }
-      // if (!onaylananMetraj_state2.satirlar.find(x => x.satirNo === oneSatir.satirNo)) {
-
       delete oneSatir.hasSelectedCopy
       delete oneSatir.isSelected
       oneSatir.originalSatirNo = originalSatirNo
@@ -131,7 +128,6 @@ export default function P_MetrajCetveliOnaylanan() {
       if (oneRow.satirNo === originalSatirNo) {
         // ilk iki satır ilk kopyası oluşturulurken gereki ama olsun
         oneRow.hasSelectedCopy = true
-        delete oneRow.isSelected
         //  bu da db işlemi için gerekli
         oneRow.newSelected = true
 

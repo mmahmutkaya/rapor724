@@ -1009,7 +1009,7 @@ export default function P_MetrajOnay() {
                             px: "0.3rem",
                             border: "1px solid black"
                           }}>
-                          {oneRow?.isSelected &&
+                          {oneRow?.isSelected && !oneRow?.hasSelectedCopy &&
                             <DoneAllIcon variant="contained" sx={{ color: oneRow.newSelected ? "orange" : "black", fontSize: "1rem" }} />
                           }
                           {oneRow?.hasSelectedCopy &&
