@@ -36,7 +36,7 @@ exports = async function ({
     },
     { $limit: 1 }
   ]).toArray()
-  
+
 
   let { hazirlananMetrajlar_filtered } = result[0]
   hazirlananMetraj = hazirlananMetrajlar_filtered[0]
@@ -85,26 +85,28 @@ exports = async function ({
         { satirNo: userCode + "-" + 3, aciklama: "", carpan1: "", carpan2: "", carpan3: "", carpan4: "", carpan5: "", metraj: "", isPreparing: true },
         { satirNo: userCode + "-" + 4, aciklama: "", carpan1: "", carpan2: "", carpan3: "", carpan4: "", carpan5: "", metraj: "", isPreparing: true },
         { satirNo: userCode + "-" + 5, aciklama: "", carpan1: "", carpan2: "", carpan3: "", carpan4: "", carpan5: "", metraj: "", isPreparing: true }
-      ],
-       revizeMetrajlar: [
-        { satirNo: userCode + "-" + 1, isPreparing:true, satirlar:[]},
-        { satirNo: userCode + "-" + 2, isPreparing:true, satirlar:[]},
-        { satirNo: userCode + "-" + 3, isPreparing:true, satirlar:[]},
-        { satirNo: userCode + "-" + 4, isPreparing:true, satirlar:[]},
-        { satirNo: userCode + "-" + 5, isPreparing:true, satirlar:[]}
       ]
     }
 
-    // await collection_Dugumler.updateOne({ _id: _dugumId },
-    //   [
-    //     {
-    //       $set: {
-    //         hazirlananMetrajlar: {
-    //           $concatArrays: ["$hazirlananMetrajlar", [hazirlananMetraj]]
-    //         }
-    //       }
-    //     }
-    //   ])
+    await collection_Dugumler.updateOne({ _id: _dugumId },
+      [
+        {
+          $set: {
+            revizeMetrajlar: {
+              $concatArrays: [
+                "$revizeMetrajlar",
+                [
+                  { satirNo: userCode + "-" + 1, isPreparing: true, satirlar: [] },
+                  { satirNo: userCode + "-" + 2, isPreparing: true, satirlar: [] },
+                  { satirNo: userCode + "-" + 3, isPreparing: true, satirlar: [] },
+                  { satirNo: userCode + "-" + 4, isPreparing: true, satirlar: [] },
+                  { satirNo: userCode + "-" + 5, isPreparing: true, satirlar: [] }
+                ]
+              ]
+            }
+          }
+        }
+      ])
 
   }
 
