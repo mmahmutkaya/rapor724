@@ -46,8 +46,7 @@ exports = async function ({
       {
         $set: {
           "hazirlananMetrajlar.$[oneHazirlanan].satirlar.$[oneSatir].isReady": true,
-          "hazirlananMetrajlar.$[oneHazirlanan].satirlar.$[oneSatir].isReadyUnSeen": true,
-          "revizeMetrajlar.$[oneMetraj].satirlar": [],
+          "hazirlananMetrajlar.$[oneHazirlanan].satirlar.$[oneSatir].isReadyUnSeen": true
         },
         $unset: {
           "hazirlananMetrajlar.$[oneHazirlanan].satirlar.$[oneSatir].isPreparing": ""
@@ -61,9 +60,6 @@ exports = async function ({
           {
             "oneSatir.satirNo": { $in: oneHazirlanan_ready_satirNolar },
             "oneSatir.isPreparing": true 
-          },
-          {
-            "oneMetraj.satirNo": { $in: oneHazirlanan_ready_satirNolar }
           }
 
         ]
