@@ -758,7 +758,7 @@ export default function P_MetrajOnay() {
 
 
   const css_metrajCetveliBaslik = {
-    mt: "1.5rem", px: "0.3rem", border: "1px solid black", backgroundColor: "rgba( 253, 197, 123 , 0.6 )", display: "grid", alignItems: "center", justifyContent: "center"
+    mt: "1.2rem", px: "0.3rem", border: "1px solid black", backgroundColor: "rgba( 253, 197, 123 , 0.6 )", display: "grid", alignItems: "center", justifyContent: "center"
   }
 
   const css_metrajCetveliSatir = {
@@ -830,7 +830,7 @@ export default function P_MetrajOnay() {
 
         < Box sx={{ width: "65rem", display: "grid", gridTemplateColumns: gridTemplateColumns1, mt: subHeaderHeight, mb: "1rem", mx: "1rem" }}>
 
-          <Box sx={{ mt: "0rem", mb: "1rem", gridColumn: "1/12", fontWeight: "600" }}>
+          <Box sx={{ mt: "0.7rem", mb: "0.7rem", gridColumn: "1/12", fontWeight: "600" }}>
             Hazırlanan Metrajlar
           </Box>
 
@@ -1010,7 +1010,7 @@ export default function P_MetrajOnay() {
                             <ReplyIcon variant="contained" sx={{ color: "red", fontSize: "1rem" }} />
                           }
                           {!oneRow?.isSelected && oneRow?.isReady && !oneRow.isReadyUnSeen &&
-                            <Visibility variant="contained" sx={{ color: oneRow.newSelected ? "rgba( 255,165,0, 1 )" : "gray", fontSize: "1rem" }} />
+                            <Visibility variant="contained" sx={{ color: oneRow.newSelected ? "rgba( 255,165,0, 1 )" : "lightgray", fontSize: "1rem" }} />
                           }
                           {/* {oneRow?.isReady && !oneRow?.newSelected &&
                             <ClearOutlined variant="contained" sx={{ color: "red", fontSize: "1rem" }} />

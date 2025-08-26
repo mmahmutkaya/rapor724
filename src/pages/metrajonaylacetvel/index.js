@@ -795,13 +795,13 @@ export default function P_MetrajCetveliOnaylanan() {
                     borderBottom: oneRow.isLastCopy && "2px solid black",
                   }}
                 >
-                  {!mode_sil && oneRow.isSelected && !oneRow.hasSelectedCopy &&
+                  {/* {!mode_sil && oneRow.isSelected && !oneRow.hasSelectedCopy &&
                     <LockIcon
                       variant="contained"
                       sx={{ color: "gray", fontSize: "0.9rem" }} />
-                  }
-                  {!mode_sil && oneRow.isSelectedCopy && !mode_sil &&
-                    <EditIcon variant="contained" sx={{ color: "rgba(255, 132, 0, 1)", fontSize: "0.9rem" }} />
+                  } */}
+                  {oneRow.isSelectedCopy && !oneRow.newSelected &&
+                    <EditIcon variant="contained" sx={{ color: mode_sil ? "lightgray" : "gray", fontSize: "0.9rem" }} />
                   }
 
                   {mode_sil && oneRow.newSelected &&
