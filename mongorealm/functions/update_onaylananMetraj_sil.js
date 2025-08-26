@@ -34,7 +34,7 @@ exports = async function ({
 
     let bulkArray = []
     let oneBulk
-    onaylananMetraj_state.satirlar.filter(x => x.hasSelectedCopy && x.newSelected).map(oneSatir => {
+    onaylananMetraj_state.satirlar.filter(x => x.isSelected && x.newSelected).map(oneSatir => {
 
       let userEmail = oneSatir.userEmail
       let originalSatirNo = oneSatir.satirNo
@@ -44,10 +44,14 @@ exports = async function ({
           filter: { _id: _dugumId },
           update: {
             $set: {
-              "hazirlananMetrajlar.$[oneHazirlanan].satirlar.$[oneSatir].isReady": true
+              "hazirlananMetrajlar.$[oneHazirlanan].satirlar.$[oneSatir].isReady": true,
+              "revizeMetrajlar.$[oneMetraj].isReady": true,
+              "revizeMetrajlar.$[oneMetraj].satirlar": [],
             },
             $unset: {
-              "hazirlananMetrajlar.$[oneHazirlanan].satirlar.$[oneSatir].hasSelectedCopy": ""
+              "hazirlananMetrajlar.$[oneHazirlanan].satirlar.$[oneSatir].hasSelectedCopy": "",
+              "hazirlananMetrajlar.$[oneHazirlanan].satirlar.$[oneSatir].isSelected": "",
+              "revizeMetrajlar.$[oneMetraj].isSelected": "",
             }
           },
           arrayFilters: [
@@ -56,45 +60,11 @@ exports = async function ({
             },
             {
               "oneSatir.satirNo": originalSatirNo,
-              "oneSatir.hasSelectedCopy": true
-            }
-          ]
-        }
-      }
-      bulkArray = [...bulkArray, oneBulk]
-
-      oneBulk = {
-        updateOne: {
-          filter: { _id: _dugumId },
-          update: {
-            $unset: {
-              "hazirlananMetrajlar.$[oneHazirlanan].satirlar.$[oneSatir]": "",
-            }
-          },
-          arrayFilters: [
-            {
-              "oneHazirlanan.userEmail": userEmail
+              "oneSatir.isSelected": true
             },
             {
-              "oneSatir.originalSatirNo": originalSatirNo
-            }
-          ]
-        }
-      }
-      bulkArray = [...bulkArray, oneBulk]
-
-
-      oneBulk = {
-        updateOne: {
-          filter: { _id: _dugumId },
-          update: {
-            $pull: {
-              "hazirlananMetrajlar.$[oneHazirlanan].satirlar": null,
-            }
-          },
-          arrayFilters: [
-            {
-              "oneHazirlanan.userEmail": userEmail
+              "oneMetraj.satirNo": originalSatirNo,
+              "oneMetraj.isSelected": true
             }
           ]
         }
@@ -116,6 +86,170 @@ exports = async function ({
   }
 
 
+  try {
+
+    let bulkArray = []
+    let oneBulk
+    onaylananMetraj_state.satirlar.filter(x => x.hasSelectedCopy && !x.newSelected).map(oneSatir => {
+
+      let originalSatirNo = oneSatir.satirNo
+      let userEmail = oneSatir.userEmail
+      let silinecekSatir = onaylananMetraj_state.satirlar.find(x => x.originalSatirNo === originalSatirNo && x.newSelected)
+      let silinmeyecekSatirlar = onaylananMetraj_state.satirlar.filter(x => x.originalSatirNo === originalSatirNo && !x.newSelected)
+
+      if (silinecekSatir) {
+
+        // revizelerin bazısı siliniyorsa
+        if (silinmeyecekSatirlar.length > 0) {
+
+          oneBulk = {
+            updateOne: {
+              filter: { _id: _dugumId },
+              update: {
+                $set: {
+                  "revizeMetrajlar.$[oneMetraj].satirlar": silinmeyecekSatirlar,
+                }
+              },
+              arrayFilters: [
+                {
+                  "oneMetraj.satirNo": originalSatirNo,
+                  "oneMetraj.isSelected": true
+                }
+              ]
+            }
+          }
+          bulkArray = [...bulkArray, oneBulk]
+
+
+          // revizelerin hepsi siliniyorsa
+        } else {
+          oneBulk = {
+            updateOne: {
+              filter: { _id: _dugumId },
+              update: {
+                $set: {
+                  "hazirlananMetrajlar.$[oneHazirlanan].satirlar.$[oneSatir].hasSelectedCopy": false,
+                  "revizeMetrajlar.$[oneMetraj].satirlar": [],
+                }
+              },
+              arrayFilters: [
+                {
+                  "oneHazirlanan.userEmail": userEmail
+                },
+                {
+                  "oneSatir.satirNo": originalSatirNo,
+                  "oneSatir.isSelected": true
+                },
+                {
+                  "oneMetraj.satirNo": originalSatirNo,
+                  "oneMetraj.isSelected": true
+                }
+              ]
+            }
+          }
+          bulkArray = [...bulkArray, oneBulk]
+        }
+      }
+
+    })
+
+    if (bulkArray.length > 0) {
+      await collection_Dugumler.bulkWrite(
+        bulkArray,
+        { ordered: false }
+      )
+    }
+
+
+  } catch (error) {
+    throw new Error("MONGO // update_onaylananMetraj_sil // bazı revizelerin silinmesi ");
+  }
+
+
+  // try {
+
+  //   let bulkArray = []
+  //   let oneBulk
+  //   onaylananMetraj_state.satirlar.filter(x => x.hasSelectedCopy && x.newSelected).map(oneSatir => {
+
+  //     let userEmail = oneSatir.userEmail
+  //     let originalSatirNo = oneSatir.satirNo
+
+  //     oneBulk = {
+  //       updateOne: {
+  //         filter: { _id: _dugumId },
+  //         update: {
+  //           $set: {
+  //             "hazirlananMetrajlar.$[oneHazirlanan].satirlar.$[oneSatir].isReady": true
+  //           },
+  //           $unset: {
+  //             "hazirlananMetrajlar.$[oneHazirlanan].satirlar.$[oneSatir].hasSelectedCopy": ""
+  //           }
+  //         },
+  //         arrayFilters: [
+  //           {
+  //             "oneHazirlanan.userEmail": userEmail
+  //           },
+  //           {
+  //             "oneSatir.satirNo": originalSatirNo,
+  //             "oneSatir.hasSelectedCopy": true
+  //           }
+  //         ]
+  //       }
+  //     }
+  //     bulkArray = [...bulkArray, oneBulk]
+
+  //     oneBulk = {
+  //       updateOne: {
+  //         filter: { _id: _dugumId },
+  //         update: {
+  //           $unset: {
+  //             "hazirlananMetrajlar.$[oneHazirlanan].satirlar.$[oneSatir]": "",
+  //           }
+  //         },
+  //         arrayFilters: [
+  //           {
+  //             "oneHazirlanan.userEmail": userEmail
+  //           },
+  //           {
+  //             "oneSatir.originalSatirNo": originalSatirNo
+  //           }
+  //         ]
+  //       }
+  //     }
+  //     bulkArray = [...bulkArray, oneBulk]
+
+
+  //     oneBulk = {
+  //       updateOne: {
+  //         filter: { _id: _dugumId },
+  //         update: {
+  //           $pull: {
+  //             "hazirlananMetrajlar.$[oneHazirlanan].satirlar": null,
+  //           }
+  //         },
+  //         arrayFilters: [
+  //           {
+  //             "oneHazirlanan.userEmail": userEmail
+  //           }
+  //         ]
+  //       }
+  //     }
+  //     bulkArray = [...bulkArray, oneBulk]
+
+  //   })
+
+  //   if (bulkArray.length > 0) {
+  //     await collection_Dugumler.bulkWrite(
+  //       bulkArray,
+  //       { ordered: false }
+  //     )
+  //   }
+
+
+  // } catch (error) {
+  //   throw new Error("MONGO // update_onaylananMetraj_sil // isSelected olanların silinmesi ");
+  // }
 
 
   // let emails = []

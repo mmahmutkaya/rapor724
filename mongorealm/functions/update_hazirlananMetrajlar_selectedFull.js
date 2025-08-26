@@ -49,14 +49,14 @@ exports = async function ({
               update: {
                 $set: {
                   "hazirlananMetrajlar.$[oneHazirlanan].satirlar.$[oneSatir].isSelected": true,
-                  "hazirlananMetrajlar.$[oneHazirlanan].satirlar.$[oneSatir].hasSelectedCopy": false
+                  "hazirlananMetrajlar.$[oneHazirlanan].satirlar.$[oneSatir].hasSelectedCopy": false,
+                  "revizeMetrajlar.$[oneMetraj].isSelected": true,
+                  "revizeMetrajlar.$[oneMetraj].satirlar": [],
                 },
-                // $inc: {
-                //   "hazirlananMetrajlar.$[oneHazirlanan].metrajOnaylanan": { $sum: "$hazirlananMetrajlar.$[oneHazirlanan].satirlar.$[oneSatir].metraj" }
-                // },
                 $unset: {
                   "hazirlananMetrajlar.$[oneHazirlanan].satirlar.$[oneSatir].isReady": "",
-                  "hazirlananMetrajlar.$[oneHazirlanan].satirlar.$[oneSatir].isReadyUnSeen": ""
+                  "hazirlananMetrajlar.$[oneHazirlanan].satirlar.$[oneSatir].isReadyUnSeen": "",
+                  "revizeMetrajlar.$[oneMetraj].isReady": "",
                 }
               },
               arrayFilters: [
@@ -65,6 +65,9 @@ exports = async function ({
                 },
                 {
                   "oneSatir.isReady": true
+                },
+                {
+                  "oneMetraj.isReady": true
                 }
               ]
             }

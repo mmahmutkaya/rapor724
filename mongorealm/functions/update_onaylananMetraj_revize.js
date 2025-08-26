@@ -38,8 +38,7 @@ exports = async function ({
 
   try {
 
-    let bulkArray1 = []
-    let bulkArray2 = []
+    let bulkArray = []
     let oneBulk
 
     onaylananMetraj_state.satirlar.filter(x => x.hasSelectedCopy && x.newSelected).map(oneSatir => {
@@ -55,10 +54,8 @@ exports = async function ({
             filter: { _id: _dugumId },
             update: {
               $set: {
-                "hazirlananMetrajlar.$[oneHazirlanan].satirlar.$[oneSatir].hasSelectedCopy": true
-              },
-              $unset: {
-                "hazirlananMetrajlar.$[oneHazirlanan].satirlar.$[oneSatir].isSelected": "",
+                "hazirlananMetrajlar.$[oneHazirlanan].satirlar.$[oneSatir].hasSelectedCopy": true,
+                "revizeMetrajlar.$[oneMetraj].satirlar": satirlar,
               }
             },
             arrayFilters: [
@@ -68,80 +65,23 @@ exports = async function ({
               {
                 "oneSatir.satirNo": originalSatirNo,
                 "oneSatir.isSelected": true
-              }
-            ]
-          }
-        }
-        bulkArray1 = [...bulkArray1, oneBulk]
-
-        oneBulk = {
-          updateOne: {
-            filter: { _id: _dugumId },
-            update: {
-              $unset: {
-                "hazirlananMetrajlar.$[oneHazirlanan].satirlar.$[oneSatir]": "",
-              }
-            },
-            arrayFilters: [
-              {
-                "oneHazirlanan.userEmail": userEmail
               },
               {
-                "oneSatir.originalSatirNo": originalSatirNo
+                "oneMetraj.satirNo": originalSatirNo,
+                "oneMetraj.isSelected": true
               }
             ]
           }
         }
-        bulkArray1 = [...bulkArray1, oneBulk]
-
-        oneBulk = {
-          updateOne: {
-            filter: { _id: _dugumId },
-            update: {
-              $pull: {
-                "hazirlananMetrajlar.$[oneHazirlanan].satirlar": null,
-              }
-            },
-            arrayFilters: [
-              {
-                "oneHazirlanan.userEmail": userEmail
-              }
-            ]
-          }
-        }
-        bulkArray1 = [...bulkArray1, oneBulk]
-
-        oneBulk = {
-          updateOne: {
-            filter: { _id: _dugumId },
-            update: {
-              $push: {
-                "hazirlananMetrajlar.$[oneHazirlanan].satirlar": { $each: satirlar },
-              }
-            },
-            arrayFilters: [
-              {
-                "oneHazirlanan.userEmail": userEmail
-              }
-            ]
-          }
-        }
-        bulkArray2 = [...bulkArray2, oneBulk]
+        bulkArray = [...bulkArray, oneBulk]
 
       }
     })
 
 
-    if (bulkArray1.length > 0) {
+    if (bulkArray.length > 0) {
       await collection_Dugumler.bulkWrite(
-        bulkArray1,
-        { ordered: false }
-      )
-    }
-
-    if (bulkArray2.length > 0) {
-      await collection_Dugumler.bulkWrite(
-        bulkArray2,
+        bulkArray,
         { ordered: false }
       )
     }
