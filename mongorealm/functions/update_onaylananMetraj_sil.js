@@ -33,6 +33,7 @@ exports = async function ({
   try {
 
     let bulkArray = []
+    let oneBulk
     onaylananMetraj_state.satirlar.filter(x => x.hasSelectedCopy && x.newSelected && x.userEmail === oneEmail).map(oneSatir => {
 
       let userEmail = oneSatir.userEmail
@@ -48,7 +49,6 @@ exports = async function ({
             $unset: {
               "hazirlananMetrajlar.$[oneHazirlanan].satirlar.$[oneSatir].hasSelectedCopy": ""
             }
-
           },
           arrayFilters: [
             {
@@ -84,6 +84,13 @@ exports = async function ({
       bulkArray = [...bulkArray, oneBulk]
 
     })
+
+    if (bulkArray.length > 0) {
+      await collection_Dugumler.bulkWrite(
+        bulkArray,
+        { ordered: false }
+      )
+    }
 
 
   } catch (error) {
