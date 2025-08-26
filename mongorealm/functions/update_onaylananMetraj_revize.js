@@ -56,13 +56,7 @@ exports = async function ({
                 "hazirlananMetrajlar.$[oneHazirlanan].satirlar.$[oneSatir].hasSelectedCopy": true
               },
               $unset: {
-                "hazirlananMetrajlar.$[oneHazirlanan].satirlar.$[oneSatir].isSelected": ""
-              },
-              $unset: {
-                "hazirlananMetrajlar.$[oneHazirlanan].satirlar.$[oneSilinecek]": ""
-              },
-              $push: {
-                "hazirlananMetrajlar.$[oneHazirlanan].satirlar": { $each: satirlar },
+                "hazirlananMetrajlar.$[oneHazirlanan].satirlar.$[oneSatir].isSelected": "",
               }
             },
             arrayFilters: [
@@ -72,13 +66,7 @@ exports = async function ({
               {
                 "oneSatir.satirNo": originalSatirNo,
                 "oneSatir.isSelected": true
-              },
-              {
-                "oneSilinecek.originalSatirNo": originalSatirNo
-              },
-              // {
-              //   "oneMetraj.satirNo": originalSatirNo
-              // }
+              }
             ]
           }
         }
@@ -89,10 +77,7 @@ exports = async function ({
             filter: { _id: _dugumId },
             update: {
               $unset: {
-                "hazirlananMetrajlar.$[oneHazirlanan].satirlar.$[oneSilinecek]": ""
-              },
-              $push: {
-                "hazirlananMetrajlar.$[oneHazirlanan].satirlar": { $each: satirlar },
+                "hazirlananMetrajlar.$[oneHazirlanan].satirlar.$[oneSatir]": "",
               }
             },
             arrayFilters: [
@@ -100,13 +85,29 @@ exports = async function ({
                 "oneHazirlanan.userEmail": userEmail
               },
               {
-                "oneSilinecek.originalSatirNo": originalSatirNo
+                "oneSatir.originalSatirNo": originalSatirNo
               }
             ]
           }
         }
 
-        
+
+        oneBulk = {
+          updateOne: {
+            filter: { _id: _dugumId },
+            update: {
+              $push: {
+                "hazirlananMetrajlar.$[oneHazirlanan].satirlar": { $each: satirlar },
+              }
+            },
+            arrayFilters: [
+              {
+                "oneHazirlanan.userEmail": userEmail
+              }
+            ]
+          }
+        }
+
 
         bulkArray = [...bulkArray, oneBulk]
 
