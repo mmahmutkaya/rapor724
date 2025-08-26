@@ -132,7 +132,7 @@ exports = async function ({
 
       try {
 
-        const result = await collection_Dugumler.updateOne({ _id: _dugumId },
+        await collection_Dugumler.updateOne({ _id: _dugumId },
           [
             {
               $set: {
