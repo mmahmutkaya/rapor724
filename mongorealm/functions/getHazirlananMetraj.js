@@ -85,6 +85,13 @@ exports = async function ({
         { satirNo: userCode + "-" + 3, aciklama: "", carpan1: "", carpan2: "", carpan3: "", carpan4: "", carpan5: "", metraj: "", isPreparing: true },
         { satirNo: userCode + "-" + 4, aciklama: "", carpan1: "", carpan2: "", carpan3: "", carpan4: "", carpan5: "", metraj: "", isPreparing: true },
         { satirNo: userCode + "-" + 5, aciklama: "", carpan1: "", carpan2: "", carpan3: "", carpan4: "", carpan5: "", metraj: "", isPreparing: true }
+      ],
+       revizeMetrajlar: [
+        { satirNo: userCode + "-" + 1, satirlar:[]},
+        { satirNo: userCode + "-" + 2, satirlar:[]},
+        { satirNo: userCode + "-" + 3, satirlar:[]},
+        { satirNo: userCode + "-" + 4, satirlar:[]},
+        { satirNo: userCode + "-" + 5, satirlar:[]}
       ]
     }
 
