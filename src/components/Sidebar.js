@@ -220,7 +220,7 @@ export default function Sidebar({ setMobileOpen }) {
 
             <ListItemButton
               onClick={() => navigate('/metrajpozlar')}
-              sx={{ backgroundColor: pathname.includes("/metrajpoz") ? seciliSayfaRengi : null, '&:hover': { backgroundColor: seciliSayfaRengi } }}
+              sx={{ backgroundColor: pathname.includes("/metrajpoz") || pathname.includes("/metrajcetvel") ? seciliSayfaRengi : null, '&:hover': { backgroundColor: seciliSayfaRengi } }}
             >
               <ListItemIcon>
                 <SendIcon />

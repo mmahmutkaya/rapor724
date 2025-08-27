@@ -38,23 +38,23 @@ export default function P_MetrajPozMahaller() {
   const [dialogAlert, setDialogAlert] = useState()
 
   const { selectedProje, selectedPoz_metraj } = useContext(StoreContext)
-  const { showMetrajYapabilenler, setShowMetrajYapabilenler } = useContext(StoreContext)
+  let showMetrajYapabilenler
 
   const yetkililer = selectedProje?.yetki.yetkililer
 
   const { selectedNode_metraj, setSelectedNode_metraj } = useContext(StoreContext)
   const { selectedMahal_metraj, setSelectedMahal_metraj } = useContext(StoreContext)
 
-  
+
   let editNodeMetraj = false
   let onayNodeMetraj = false
-  
+
   const customData = RealmApp.currentUser.customData
-  
+
   // useEffect(() => {
-    //   setShowMetrajYapabilenler(RealmApp.currentUser.customData.customSettings.showMetrajYapabilenler)
-    // }, [])
-    
+  //   setShowMetrajYapabilenler(RealmApp.currentUser.customData.customSettings.showMetrajYapabilenler)
+  // }, [])
+
 
 
 
@@ -410,9 +410,7 @@ export default function P_MetrajPozMahaller() {
       return oneYapabilen
     })
 
-    setShowMetrajYapabilenler(showMetrajYapabilenler2)
-
-    navigate('/metrajonayla')
+    navigate('/metrajcetvel')
   }
 
 
@@ -466,12 +464,12 @@ export default function P_MetrajPozMahaller() {
       </Grid>
 
 
-      {/* BAŞLIK GÖSTER / GİZLE */}
+      {/* BAŞLIK GÖSTER / GİZLE
       {show == "ShowMetrajYapabilenler" &&
         <ShowMetrajYapabilenler
           setShow={setShow}
         />
-      }
+      } */}
 
 
       {!openLbsArray?.length > 0 && <Box>henüz herhangi bir LBS mahal eklemeye açılmamış</Box>}
@@ -649,8 +647,8 @@ export default function P_MetrajPozMahaller() {
                         {oneMahal.mahalName}
                       </Box>
 
-                      <Box onClick={() => hasOnaylananMetraj && !mode_select && goTo_MetrajOnaylaCetvel({ dugum, oneMahal })} sx={{ ...css_mahaller, cursor: hasOnaylananMetraj && !mode_select && "pointer", display: "grid", alignItems: "center", gridTemplateColumns: "1rem 1fr", backgroundColor: !hasOnaylananMetraj ? "lightgray" : !mode_select && "rgba(255, 251, 0, 0.55)", "&:hover": hasOnaylananMetraj && !mode_select && { "& .childClass": { backgroundColor: "red" } } }}>
-                        <Box className="childClass" sx={{ backgroundColor: !hasOnaylananMetraj ? "lightgray" : !mode_select && "rgba(255, 251, 0, 0.55)", height: "0.5rem", width: "0.5rem", borderRadius: "50%" }}>
+                      <Box onClick={() => hasOnaylananMetraj && !mode_select && goTo_MetrajOnaylaCetvel({ dugum, oneMahal })} sx={{ ...css_mahaller, cursor: hasOnaylananMetraj && !mode_select && "pointer", display: "grid", alignItems: "center", gridTemplateColumns: "1rem 1fr", backgroundColor: !hasOnaylananMetraj ? "white" : !mode_select && "white", "&:hover": hasOnaylananMetraj && !mode_select && { "& .childClass": { backgroundColor: "red" } } }}>
+                        <Box className="childClass" sx={{ backgroundColor: !hasOnaylananMetraj ? "white" : !mode_select && "white", height: "0.5rem", width: "0.5rem", borderRadius: "50%" }}>
                         </Box>
                         <Box sx={{ justifySelf: "end" }}>
                           {ikiHane(dugum?.metrajOnaylanan)}
@@ -743,7 +741,7 @@ export default function P_MetrajPozMahaller() {
 
 
                                 {/* metrajın solundaki ikon */}
-                                {!hasSelectedFull_aday && 
+                                {!hasSelectedFull_aday &&
                                   <Box sx={{ px: "0.5rem", display: "grid", alignItems: "center", justifyContent: "center" }}>
 
                                     {someSelected &&
