@@ -157,12 +157,7 @@ exports = async function ({
                                                 "$$value",
                                                 {
                                                   "$cond": {
-                                                    "if": {
-                                                      $ne: [
-                                                        "$$this.metraj",
-                                                        ""
-                                                      ]
-                                                    },
+                                                    "if": { $and: [{ $ne: ["$$this.metraj", ""] }, { $eq: ["$$this.userEmail", "$$oneHazirlanan.userEmail"] }] },
                                                     "then": {
                                                       "$toDouble": "$$this.metraj"
                                                     },
