@@ -43,7 +43,6 @@ exports = async function ({
   // ready'nin metrajını ayrı yapıcaz, ready kısmında
   // new selected temizleme
 
-  let isSilinecek = true
 
   hazirlananMetraj_state.satirlar = hazirlananMetraj_state.satirlar.map(oneSatir => {
     delete oneSatir.newSelected
@@ -52,142 +51,204 @@ exports = async function ({
 
 
 
-  // isReady varsa yoksa - isReady property false olmuş olsa bile satırı kaybetmeyeceğiz
-  // bu false olmuş satırın yeniden kazanılması önemli önce sarı nokta ile kalacak öyle sonra isPreparing yapacağız onu
+  try {
 
-  if (hazirlananMetraj_state.satirlar.find(x => !x.isPreparing)) {
-
-    try {
-
-
-      await collection_Dugumler.updateOne({ _id: _dugumId },
-        [
-          {
-            $set: {
-              hazirlananMetrajlar: {
-                $map: {
-                  input: "$hazirlananMetrajlar",
-                  as: "oneHazirlanan",
-                  in: {
-                    $cond: {
-                      if: {
-                        $ne: [
-                          "$$oneHazirlanan.userEmail",
-                          userEmail
-                        ]
-                      },
-                      then: "$$oneHazirlanan",
-                      else: {
-                        $mergeObjects: [
-                          "$$oneHazirlanan",
-                          {
-                            satirlar: {
-                              $concatArrays: [
-                                {
-                                  $filter: {
-                                    input: "$$oneHazirlanan.satirlar",
-                                    as: "oneSatir",
-                                    cond: {
-                                      $ne: [
-                                        "$$oneSatir.isPreparing",
-                                        true
-                                      ]
-                                    }
+    await collection_Dugumler.updateOne({ _id: _dugumId },
+      [
+        {
+          $set: {
+            hazirlananMetrajlar: {
+              $map: {
+                input: "$hazirlananMetrajlar",
+                as: "oneHazirlanan",
+                in: {
+                  $cond: {
+                    if: {
+                      $ne: [
+                        "$$oneHazirlanan.userEmail",
+                        userEmail
+                      ]
+                    },
+                    then: "$$oneHazirlanan",
+                    else: {
+                      $mergeObjects: [
+                        "$$oneHazirlanan",
+                        {
+                          satirlar: {
+                            $concatArrays: [
+                              {
+                                $filter: {
+                                  input: "$$oneHazirlanan.satirlar",
+                                  as: "oneSatir",
+                                  cond: {
+                                    $ne: [
+                                      "$$oneSatir.isPreparing",
+                                      true
+                                    ]
                                   }
-                                },
-                                hazirlananMetraj_state?.satirlar?.filter(x => x.isPreparing)
-                              ]
-                            }
+                                }
+                              },
+                              hazirlananMetraj_state?.satirlar?.filter(x => x.isPreparing)
+                            ]
                           }
-                        ]
-                      }
+                        }
+                      ]
                     }
                   }
                 }
               }
             }
           }
+        }
 
-        ]
-      )
-
-
-    } catch (error) {
-      throw new Error("MONGO // update_hazirlananMetraj_peparing_new // ready varken preparing eklenecekse " + error.message);
-    }
+      ]
+    )
 
 
-    // isReady yoksa sıkıntı yok toptan yenileyelim ya da boşsa silelim
-  } else {
-
-
-    hazirlananMetraj_state.satirlar.map(oneSatir => {
-      if (!(oneSatir.aciklama === "" && Number(oneSatir.carpan1) === 0 && Number(oneSatir.carpan2) === 0 && Number(oneSatir.carpan3) === 0 && Number(oneSatir.carpan4) === 0 && Number(oneSatir.carpan5) === 0)) {
-        isSilinecek = false
-      }
-    })
-
-
-    if (isSilinecek) {
-
-      try {
-
-        await collection_Dugumler.updateOne({ _id: _dugumId },
-          [
-            {
-              $set: {
-                hazirlananMetrajlar: {
-                  $filter: {
-                    input: "$hazirlananMetrajlar",
-                    as: "oneHazirlanan",
-                    cond: { $ne: ["$$oneHazirlanan.userEmail", userEmail] }
-                  }
-                }
-              }
-            }
-          ]
-        )
-
-      } catch (error) {
-        throw new Error("MONGO // update_hazirlananMetraj_peparing_new // silinecekse " + error.message);
-      }
-
-
-      // güncellenecekse
-    } else {
-
-      try {
-
-        await collection_Dugumler.updateOne({ _id: _dugumId },
-          [
-            {
-              $set: {
-                hazirlananMetrajlar: {
-                  $concatArrays: [
-                    {
-                      $filter: {
-                        input: "$hazirlananMetrajlar",
-                        as: "oneHazirlanan",
-                        cond: { $ne: ["$$oneHazirlanan.userEmail", userEmail] }
-                      }
-                    },
-                    [hazirlananMetraj_state]
-                  ]
-                }
-              }
-            }
-          ]
-        )
-
-      } catch (error) {
-        throw new Error("MONGO // update_hazirlananMetraj_peparing_new // güncellenecekse " + error.message);
-      }
-
-
-    }
-
-
+  } catch (error) {
+    throw new Error("MONGO // update_hazirlananMetraj_peparing_new // ready varken preparing eklenecekse " + error.message);
   }
+
+
+
+
+
+
+  // isReady varsa yoksa - isReady property false olmuş olsa bile satırı kaybetmeyeceğiz
+  // bu false olmuş satırın yeniden kazanılması önemli önce sarı nokta ile kalacak öyle sonra isPreparing yapacağız onu
+
+  // if (hazirlananMetraj_state.satirlar.find(x => !x.isPreparing)) {
+
+  //   try {
+
+  //     await collection_Dugumler.updateOne({ _id: _dugumId },
+  //       [
+  //         {
+  //           $set: {
+  //             hazirlananMetrajlar: {
+  //               $map: {
+  //                 input: "$hazirlananMetrajlar",
+  //                 as: "oneHazirlanan",
+  //                 in: {
+  //                   $cond: {
+  //                     if: {
+  //                       $ne: [
+  //                         "$$oneHazirlanan.userEmail",
+  //                         userEmail
+  //                       ]
+  //                     },
+  //                     then: "$$oneHazirlanan",
+  //                     else: {
+  //                       $mergeObjects: [
+  //                         "$$oneHazirlanan",
+  //                         {
+  //                           satirlar: {
+  //                             $concatArrays: [
+  //                               {
+  //                                 $filter: {
+  //                                   input: "$$oneHazirlanan.satirlar",
+  //                                   as: "oneSatir",
+  //                                   cond: {
+  //                                     $ne: [
+  //                                       "$$oneSatir.isPreparing",
+  //                                       true
+  //                                     ]
+  //                                   }
+  //                                 }
+  //                               },
+  //                               hazirlananMetraj_state?.satirlar?.filter(x => x.isPreparing)
+  //                             ]
+  //                           }
+  //                         }
+  //                       ]
+  //                     }
+  //                   }
+  //                 }
+  //               }
+  //             }
+  //           }
+  //         }
+
+  //       ]
+  //     )
+
+
+  //   } catch (error) {
+  //     throw new Error("MONGO // update_hazirlananMetraj_peparing_new // ready varken preparing eklenecekse " + error.message);
+  //   }
+
+
+  //   // isReady yoksa sıkıntı yok toptan yenileyelim ya da boşsa silelim
+  // } else {
+
+
+  //   hazirlananMetraj_state.satirlar.map(oneSatir => {
+  //     if (!(oneSatir.aciklama === "" && Number(oneSatir.carpan1) === 0 && Number(oneSatir.carpan2) === 0 && Number(oneSatir.carpan3) === 0 && Number(oneSatir.carpan4) === 0 && Number(oneSatir.carpan5) === 0)) {
+  //       isSilinecek = false
+  //     }
+  //   })
+
+
+  //   if (isSilinecek) {
+
+  //     try {
+
+  //       await collection_Dugumler.updateOne({ _id: _dugumId },
+  //         [
+  //           {
+  //             $set: {
+  //               hazirlananMetrajlar: {
+  //                 $filter: {
+  //                   input: "$hazirlananMetrajlar",
+  //                   as: "oneHazirlanan",
+  //                   cond: { $ne: ["$$oneHazirlanan.userEmail", userEmail] }
+  //                 }
+  //               }
+  //             }
+  //           }
+  //         ]
+  //       )
+
+  //     } catch (error) {
+  //       throw new Error("MONGO // update_hazirlananMetraj_peparing_new // silinecekse " + error.message);
+  //     }
+
+
+  //     // güncellenecekse
+  //   } else {
+
+  //     try {
+
+  //       await collection_Dugumler.updateOne({ _id: _dugumId },
+  //         [
+  //           {
+  //             $set: {
+  //               hazirlananMetrajlar: {
+  //                 $concatArrays: [
+  //                   {
+  //                     $filter: {
+  //                       input: "$hazirlananMetrajlar",
+  //                       as: "oneHazirlanan",
+  //                       cond: { $ne: ["$$oneHazirlanan.userEmail", userEmail] }
+  //                     }
+  //                   },
+  //                   [hazirlananMetraj_state]
+  //                 ]
+  //               }
+  //             }
+  //           }
+  //         ]
+  //       )
+
+  //     } catch (error) {
+  //       throw new Error("MONGO // update_hazirlananMetraj_peparing_new // güncellenecekse " + error.message);
+  //     }
+
+
+  //   }
+
+
+  // }
 
 
 
