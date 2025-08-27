@@ -682,10 +682,33 @@ export default function P_MetrajCetveliOnaylanan() {
 
           {onaylananMetraj_state.satirlar.filter(x => mode_sil ? x : !x.hasSelectedCopy).sort((a, b) => {
 
-            let a1 = a.satirNo.substring(a.satirNo.indexOf("-") + 1, a.satirNo.length)
-            let b1 = b.satirNo.substring(b.satirNo.indexOf("-") + 1, b.satirNo.length)
+            let a1 = a.satirNo.substring(0, a.satirNo.indexOf("-"))
+            let b1 = b.satirNo.substring(0, b.satirNo.indexOf("-"))
+            // console.log("a1", a1)
 
-            return a1.localeCompare(b1, undefined, { numeric: true, sensitivity: 'base' });
+
+            // let a2 = a.satirNo.substring(a.satirNo.indexOf("-") + 1, a.satirNo.includes(".") ? a.satirNo.indexOf(".") : a.satirNo.length)
+            // let b2 = b.satirNo.substring(b.satirNo.indexOf("-") + 1, b.satirNo.includes(".") ? b.satirNo.indexOf(".") : b.satirNo.length)
+            // const satirNoComparison = a2 - b2
+            // if (satirNoComparison !== 0) {
+            //   return satirNoComparison;
+            // }
+
+            // let a3 = a.satirNo.includes(".") ? a.satirNo.substring(a.satirNo.indexOf(".") + 1, a.satirNo.length) : 1
+            // let b3 = b.satirNo.includes(".") ? b.satirNo.substring(a.satirNo.indexOf(".") + 1, b.satirNo.length) : 1
+            // const revizeSatirNoComparison = a3 - b3
+            // if (revizeSatirNoComparison !== 0) {
+            //   return revizeSatirNoComparison;
+            // }
+
+            let a4 = a.satirNo.substring(a.satirNo.indexOf("-") + 1, a.satirNo.length)
+            let b4 = b.satirNo.substring(b.satirNo.indexOf("-") + 1, b.satirNo.length)
+            // const revizeSatirNoComparison = a4 - b4
+            // if (revizeSatirNoComparison !== 0) {
+            //   return revizeSatirNoComparison;
+            // }
+            // console.log("b4", b4)
+            return a1.localeCompare(b1) || a4.localeCompare(b4, undefined, { numeric: true, sensitivity: 'base' })
 
           }).map((oneRow, index) => {
 
