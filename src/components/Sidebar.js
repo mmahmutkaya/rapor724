@@ -74,7 +74,7 @@ export default function Sidebar({ setMobileOpen }) {
             </ListItemButton>
 
 
-            <ListItemButton
+            {/* <ListItemButton
               onClick={() => navigate('/firmawbs')}
               sx={{ backgroundColor: pathname == "/firmawbs" ? seciliSayfaRengi : null, '&:hover': { backgroundColor: seciliSayfaRengi } }}
             >
@@ -82,10 +82,10 @@ export default function Sidebar({ setMobileOpen }) {
                 <SendIcon />
               </ListItemIcon>
               <ListItemText primary="Firma Poz Başlıkları" />
-            </ListItemButton>
+            </ListItemButton> */}
 
 
-            <ListItemButton
+            {/* <ListItemButton
               onClick={() => navigate('/firmapozlari')}
               sx={{ backgroundColor: pathname == "/firmapozlari" ? seciliSayfaRengi : null, '&:hover': { backgroundColor: seciliSayfaRengi } }}
             >
@@ -93,10 +93,10 @@ export default function Sidebar({ setMobileOpen }) {
                 <SendIcon />
               </ListItemIcon>
               <ListItemText primary="Firma Pozları" />
-            </ListItemButton>
+            </ListItemButton> */}
 
 
-            <ListItemButton
+            {/* <ListItemButton
               onClick={() => navigate('/firmakadrosu')}
               sx={{ backgroundColor: pathname == "/firmakadrosu" ? seciliSayfaRengi : null, '&:hover': { backgroundColor: seciliSayfaRengi } }}
             >
@@ -104,7 +104,7 @@ export default function Sidebar({ setMobileOpen }) {
                 <SendIcon />
               </ListItemIcon>
               <ListItemText primary="Kadro" />
-            </ListItemButton>
+            </ListItemButton> */}
 
 
           </List>
@@ -120,7 +120,7 @@ export default function Sidebar({ setMobileOpen }) {
         <Grid item onClick={(() => setMobileOpen(false))}>
           <List>
 
-            <ListItemButton
+            {/* <ListItemButton
               onClick={() => navigate('/dashboard')}
               sx={{ backgroundColor: pathname == "/dashboard" ? seciliSayfaRengi : null, '&:hover': { backgroundColor: seciliSayfaRengi } }}
             >
@@ -128,10 +128,10 @@ export default function Sidebar({ setMobileOpen }) {
                 <SendIcon />
               </ListItemIcon>
               <ListItemText primary="Dashboard" />
-            </ListItemButton>
+            </ListItemButton> */}
 
 
-
+{/* 
             <ListItemButton
               onClick={() => navigate('/pozhavuzu')}
               sx={{ backgroundColor: pathname == "/pozhavuzu" ? seciliSayfaRengi : null, '&:hover': { backgroundColor: seciliSayfaRengi } }}
@@ -140,7 +140,7 @@ export default function Sidebar({ setMobileOpen }) {
                 <SendIcon />
               </ListItemIcon>
               <ListItemText primary="Poz Havuzu" />
-            </ListItemButton>
+            </ListItemButton> */}
 
 
             <ListItemButton
@@ -229,7 +229,7 @@ export default function Sidebar({ setMobileOpen }) {
             </ListItemButton>
 
 
-            <ListItemButton
+            {/* <ListItemButton
               onClick={() => navigate('/kisilerproject')}
               sx={{ backgroundColor: pathname == "/kisilerproject" ? seciliSayfaRengi : null, '&:hover': { backgroundColor: seciliSayfaRengi } }}
             >
@@ -237,10 +237,10 @@ export default function Sidebar({ setMobileOpen }) {
                 <SendIcon />
               </ListItemIcon>
               <ListItemText primary="Proje Kişileri" />
-            </ListItemButton>
+            </ListItemButton> */}
 
 
-            <ListItemButton
+            {/* <ListItemButton
               onClick={() => navigate('/raporlar')}
               sx={{ backgroundColor: pathname == "/raporlar" ? seciliSayfaRengi : null, '&:hover': { backgroundColor: seciliSayfaRengi } }}
             >
@@ -248,7 +248,7 @@ export default function Sidebar({ setMobileOpen }) {
                 <SendIcon />
               </ListItemIcon>
               <ListItemText primary="Raporlar" />
-            </ListItemButton>
+            </ListItemButton> */}
 
 
           </List>

@@ -426,7 +426,7 @@ export default function P_MetrajOlusturCetvel() {
   const metrajValue = (oneRow, oneProperty, isMinha) => {
 
     if (oneProperty == "pozBirim") return pozBirim
-    if (oneProperty.includes("carpan")) return !mode_edit ? ikiHane(oneRow[oneProperty]) : oneRow[oneProperty]
+    if (oneProperty.includes("carpan")) return mode_edit && oneRow.isPreparing ? oneRow[oneProperty] : ikiHane(oneRow[oneProperty])
     if (oneProperty == "metraj") return ikiHane(oneRow[oneProperty])
 
     // yukarıdaki hiçbiri değilse
