@@ -41,36 +41,6 @@ exports = async function ({
   let { hazirlananMetrajlar_filtered } = result[0]
   hazirlananMetraj = hazirlananMetrajlar_filtered[0]
 
-  // return {hazirlananMetrajlar_filtered,hazirlananMetraj}
-
-
-  // const resultArray = await collection_Dugumler.aggregate([
-  //   { $match: { _id: _dugumId } },
-  //   {
-  //     $project: {
-  //       hazirlananMetrajlar: {
-  //         $map: {
-  //           input: "$hazirlananMetrajlar",
-  //           as: "oneHazirlanan",
-  //           in: {
-  //             $cond: {
-  //               if: { $eq: ["$$oneHazirlanan.userEmail", userEmail] },
-  //               then: "$$oneHazirlanan",
-  //               else: null
-  //             }
-  //           }
-  //         }
-  //       }
-  //     }
-  //   },
-  //   { $limit: 1 }
-  // ]).toArray()
-
-
-  // let result = resultArray[0]
-  // let {hazirlananMetrajlar} = result
-  // let hazirlananMetraj = hazirlananMetrajlar[0]
-  // return {resultArray,result,hazirlananMetraj}
 
   if (!hazirlananMetraj) {
 
@@ -88,25 +58,35 @@ exports = async function ({
       ]
     }
 
+    revizeMetrajlar = [
+      { satirNo: userCode + "-" + 1, isPreparing: true, satirlar: [] },
+      { satirNo: userCode + "-" + 2, isPreparing: true, satirlar: [] },
+      { satirNo: userCode + "-" + 3, isPreparing: true, satirlar: [] },
+      { satirNo: userCode + "-" + 4, isPreparing: true, satirlar: [] },
+      { satirNo: userCode + "-" + 5, isPreparing: true, satirlar: [] }
+    ]
+
+
     await collection_Dugumler.updateOne({ _id: _dugumId },
       [
         {
           $set: {
+            hazirlananMetrajlar: {
+              $concatArrays: [
+                "$hazirlananMetrajlar",
+                [hazirlananMetraj]
+              ]
+            },
             revizeMetrajlar: {
               $concatArrays: [
                 "$revizeMetrajlar",
-                [
-                  { satirNo: userCode + "-" + 1, isPreparing: true, satirlar: [] },
-                  { satirNo: userCode + "-" + 2, isPreparing: true, satirlar: [] },
-                  { satirNo: userCode + "-" + 3, isPreparing: true, satirlar: [] },
-                  { satirNo: userCode + "-" + 4, isPreparing: true, satirlar: [] },
-                  { satirNo: userCode + "-" + 5, isPreparing: true, satirlar: [] }
-                ]
+                revizeMetrajlar
               ]
             }
           }
         }
-      ])
+      ]
+    )
 
   }
 
