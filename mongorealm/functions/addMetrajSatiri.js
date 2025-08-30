@@ -50,6 +50,8 @@ exports = async function ({
     }
   })
 
+  return siraNo
+
 
 
   let satirlar = [
