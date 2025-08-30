@@ -51,11 +51,9 @@ export default function P_HeaderMetrajOlusturCetvel({
   const { drawerWidth, topBarHeight } = useContext(StoreContext)
 
   const { RealmApp, selectedPoz_metraj, selectedMahal_metraj, selectedNode_metraj } = useContext(StoreContext)
-  console.log(selectedNode_metraj, selectedNode_metraj)
 
   const [showEminMisin_edit, setShowEminMisin_edit] = useState(false)
   const [showEminMisin_ready, setShowEminMisin_ready] = useState(false)
-
 
 
   const satirEkle = async () => {
