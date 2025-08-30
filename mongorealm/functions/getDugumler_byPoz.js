@@ -303,6 +303,6 @@ exports = async function ({
 
 
 
-  return { dugumler_byPoz, lbsMetrajlar, anySelectable, metrajOnaylanan }
+  return { dugumler_byPoz, lbsMetrajlar, anySelectable, metrajOnaylanan, hazirlananMetrajlar }
 
 };
