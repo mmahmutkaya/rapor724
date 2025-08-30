@@ -52,18 +52,16 @@ exports = async function ({
 
 
 
-
-
   let satirlar = [
     { satirNo: userCode + "-" + siraNo, aciklama: "", carpan1: "", carpan2: "", carpan3: "", carpan4: "", carpan5: "", metraj: "", isPreparing: true },
-    { satirNo: userCode + "-" + siraNo + 1, aciklama: "", carpan1: "", carpan2: "", carpan3: "", carpan4: "", carpan5: "", metraj: "", isPreparing: true },
-    { satirNo: userCode + "-" + siraNo + 2, aciklama: "", carpan1: "", carpan2: "", carpan3: "", carpan4: "", carpan5: "", metraj: "", isPreparing: true }
+    { satirNo: userCode + "-" + (siraNo + 1), aciklama: "", carpan1: "", carpan2: "", carpan3: "", carpan4: "", carpan5: "", metraj: "", isPreparing: true },
+    { satirNo: userCode + "-" + (siraNo + 2), aciklama: "", carpan1: "", carpan2: "", carpan3: "", carpan4: "", carpan5: "", metraj: "", isPreparing: true }
   ]
 
   let revizeMetrajlar = [
     { satirNo: userCode + "-" + siraNo, isPreparing: true, satirlar: [] },
-    { satirNo: userCode + "-" + siraNo + 1, isPreparing: true, satirlar: [] },
-    { satirNo: userCode + "-" + siraNo + 2, isPreparing: true, satirlar: [] }
+    { satirNo: userCode + "-" + (siraNo + 1), isPreparing: true, satirlar: [] },
+    { satirNo: userCode + "-" + (siraNo + 2), isPreparing: true, satirlar: [] }
   ]
 
 
@@ -79,7 +77,19 @@ exports = async function ({
                 $cond: {
                   if: { $eq: ["$$oneHazirlanan.userEmail", userEmail] },
                   else: "$$oneHazirlanan",
-                  then: { $concatArrays: ["$$oneHazirlanan.satirlar", satirlar] }
+                  then: {
+                    $mergeObjects: [
+                      "$$oneHazirlanan",
+                      {
+                        satirlar: {
+                          $concatArrays: [
+                            "$$oneHazirlanan.satirlar",
+                            satirlar
+                          ]
+                        }
+                      }
+                    ]
+                  }
                 }
               }
             }
