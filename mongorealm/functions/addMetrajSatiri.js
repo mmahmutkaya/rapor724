@@ -58,6 +58,7 @@ exports = async function ({
       ]
     }
 
+    
     revizeMetrajlar = [
       { satirNo: userCode + "-" + 1, isPreparing: true, satirlar: [] },
       { satirNo: userCode + "-" + 2, isPreparing: true, satirlar: [] },
