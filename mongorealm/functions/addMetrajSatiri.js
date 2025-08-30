@@ -41,56 +41,69 @@ exports = async function ({
   let { hazirlananMetrajlar_filtered } = result[0]
   hazirlananMetraj = hazirlananMetrajlar_filtered[0]
 
-
-  if (!hazirlananMetraj) {
-
-    hazirlananMetraj = {
-      userEmail,
-      metrajPreparing: 0,
-      metrajReady: 0,
-      metrajOnaylanan: 0,
-      satirlar: [
-        { satirNo: userCode + "-" + 1, aciklama: "", carpan1: "", carpan2: "", carpan3: "", carpan4: "", carpan5: "", metraj: "", isPreparing: true },
-        { satirNo: userCode + "-" + 2, aciklama: "", carpan1: "", carpan2: "", carpan3: "", carpan4: "", carpan5: "", metraj: "", isPreparing: true },
-        { satirNo: userCode + "-" + 3, aciklama: "", carpan1: "", carpan2: "", carpan3: "", carpan4: "", carpan5: "", metraj: "", isPreparing: true },
-        { satirNo: userCode + "-" + 4, aciklama: "", carpan1: "", carpan2: "", carpan3: "", carpan4: "", carpan5: "", metraj: "", isPreparing: true },
-        { satirNo: userCode + "-" + 5, aciklama: "", carpan1: "", carpan2: "", carpan3: "", carpan4: "", carpan5: "", metraj: "", isPreparing: true }
-      ]
+  let siraNo = 1
+  hazirlananMetraj.satirlar.map(oneSatir => {
+    let satirNo = oneSatir.satirNo
+    let siraNo2 = satirNo.substring(satirNo.indexOf("-") + 1, satirNo.length)
+    if (Number(siraNo2) >= siraNo) {
+      siraNo = Number(siraNo2) + 1
     }
-
-    
-    revizeMetrajlar = [
-      { satirNo: userCode + "-" + 1, isPreparing: true, satirlar: [] },
-      { satirNo: userCode + "-" + 2, isPreparing: true, satirlar: [] },
-      { satirNo: userCode + "-" + 3, isPreparing: true, satirlar: [] },
-      { satirNo: userCode + "-" + 4, isPreparing: true, satirlar: [] },
-      { satirNo: userCode + "-" + 5, isPreparing: true, satirlar: [] }
-    ]
+  })
 
 
-    await collection_Dugumler.updateOne({ _id: _dugumId },
-      [
-        {
-          $set: {
-            hazirlananMetrajlar: {
-              $concatArrays: [
-                "$hazirlananMetrajlar",
-                [hazirlananMetraj]
-              ]
-            },
-            revizeMetrajlar: {
-              $concatArrays: [
-                "$revizeMetrajlar",
-                revizeMetrajlar
-              ]
+
+  let satirlar = [
+    { satirNo: userCode + "-" + siraNo, aciklama: "", carpan1: "", carpan2: "", carpan3: "", carpan4: "", carpan5: "", metraj: "", isPreparing: true },
+    { satirNo: userCode + "-" + (siraNo + 1), aciklama: "", carpan1: "", carpan2: "", carpan3: "", carpan4: "", carpan5: "", metraj: "", isPreparing: true },
+    { satirNo: userCode + "-" + (siraNo + 2), aciklama: "", carpan1: "", carpan2: "", carpan3: "", carpan4: "", carpan5: "", metraj: "", isPreparing: true }
+  ]
+
+  let revizeMetrajlar = [
+    { satirNo: userCode + "-" + siraNo, isPreparing: true, satirlar: [] },
+    { satirNo: userCode + "-" + (siraNo + 1), isPreparing: true, satirlar: [] },
+    { satirNo: userCode + "-" + (siraNo + 2), isPreparing: true, satirlar: [] }
+  ]
+
+
+  await collection_Dugumler.updateOne({ _id: _dugumId },
+    [
+      {
+        $set: {
+          hazirlananMetrajlar: {
+            $map: {
+              input: "$hazirlananMetrajlar",
+              as: "oneHazirlanan",
+              in: {
+                $cond: {
+                  if: { $eq: ["$$oneHazirlanan.userEmail", userEmail] },
+                  else: "$$oneHazirlanan",
+                  then: {
+                    $mergeObjects: [
+                      "$$oneHazirlanan",
+                      {
+                        satirlar: {
+                          $concatArrays: [
+                            "$$oneHazirlanan.satirlar",
+                            satirlar
+                          ]
+                        }
+                      }
+                    ]
+                  }
+                }
+              }
             }
+          },
+          revizeMetrajlar: {
+            $concatArrays: [
+              "$revizeMetrajlar",
+              revizeMetrajlar
+            ]
           }
         }
-      ]
-    )
+      }
+    ]
+  )
 
-  }
-
-  return hazirlananMetraj
 
 };
