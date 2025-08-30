@@ -113,7 +113,7 @@ export default function HeaderMetrajPozMahaller() {
             <Box sx={{ display: "grid", gridAutoFlow: "column", alignItems: "center", justifyContent: "start", columnGap: "0.5rem" }}>
 
 
-              <IconButton sx={{ m: 0, py: "0.3rem" }}
+              <IconButton sx={{ m: 0, py: "0.3rem", px:0 }}
                 onClick={() => {
                   navigate("/metrajpozlar")
                   setSelectedPoz_metraj()

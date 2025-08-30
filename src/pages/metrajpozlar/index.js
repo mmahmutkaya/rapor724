@@ -14,16 +14,9 @@ import HeaderMetrajPozlar from '../../components/HeaderMetrajPozlar'
 import ShowMetrajYapabilenler from '../../components/ShowMetrajYapabilenler'
 
 
-
-import { borderLeft, fontWeight, grid, styled } from '@mui/system';
-import Grid from '@mui/material/Grid';
-import Input from '@mui/material/Input';
 import Alert from '@mui/material/Alert';
 import Stack from '@mui/material/Stack';
-import { Button, TextField, Typography } from '@mui/material';
 import Box from '@mui/material/Box';
-import InfoIcon from '@mui/icons-material/Info';
-import Tooltip from '@mui/material/Tooltip';
 import CircleIcon from '@mui/icons-material/Circle';
 import { Check } from '@mui/icons-material';
 
@@ -45,7 +38,6 @@ export default function P_MetrajPozlar() {
   const { customData } = RealmApp.currentUser
 
   const { selectedProje } = useContext(StoreContext)
-  const metrajYapabilenler = selectedProje?.yetki?.metrajYapabilenler
 
   const yetkililer = selectedProje?.yetki.yetkililer
 
