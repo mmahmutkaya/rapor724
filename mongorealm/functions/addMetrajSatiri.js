@@ -45,7 +45,7 @@ exports = async function ({
   hazirlananMetraj.satirlar.map(oneSatir => {
     let satirNo = oneSatir.satirNo
     let siraNo2 = satirNo.substring(satirNo.indexOf("-") + 1, satirNo.length)
-    if (siraNo2 >= siraNo) {
+    if (Number(siraNo2) >= siraNo) {
       siraNo = siraNo2 + 1
     }
   })
