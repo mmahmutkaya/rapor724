@@ -466,7 +466,7 @@ export default function P_MetrajOnaylaPozMahaller() {
       </Grid>
 
 
-      {/* BAŞLIK GÖSTER / GİZLE */}
+      {/* BAŞLIK GÖSTER / GİZLE DIALOG PENCERESİ*/}
       {show == "ShowMetrajYapabilenler" &&
         <ShowMetrajYapabilenler
           setShow={setShow}
@@ -545,7 +545,7 @@ export default function P_MetrajOnaylaPozMahaller() {
               Toplam Metraj
             </Box>
             <Box sx={{ ...css_enUstBaslik, justifyContent: "end" }}>
-              {ikiHane(selectedPoz_metraj?.metrajOnaylanan)}
+              {ikiHane(data?.metrajOnaylanan)}
             </Box>
             <Box sx={{ ...css_enUstBaslik, justifyContent: "center" }}>
               {pozBirim}
@@ -569,7 +569,7 @@ export default function P_MetrajOnaylaPozMahaller() {
                       onClick={() => mode_select && addNodes_select({ tip: "all", userEmail: oneYapabilen.userEmail })}
                       key={index}
                       sx={{ ...css_enUstBaslik, cursor: mode_select && "pointer", borderLeft: "1px solid black", justifyContent: "end" }}>
-                      {ikiHane(selectedPoz_metraj.hazirlananMetrajlar.find(x => x.userEmail === oneYapabilen.userEmail)?.metrajReady)}
+                      {ikiHane(data?.hazirlananMetrajlar.find(x => x.userEmail === oneYapabilen.userEmail)?.metrajReady)}
                     </Box>
                   )
                 })}

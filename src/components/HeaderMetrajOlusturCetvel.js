@@ -1,7 +1,7 @@
 import React from 'react'
 
 import { useNavigate } from "react-router-dom";
-import { useQuery } from '@tanstack/react-query'
+import { useQueryClient } from '@tanstack/react-query'
 
 import { useState, useContext } from 'react';
 import { StoreContext } from './store'
@@ -44,16 +44,73 @@ export default function P_HeaderMetrajOlusturCetvel({
 
   const navigate = useNavigate()
 
+  const queryClient = useQueryClient()
+
+  const [dialogAlert, setDialogAlert] = useState()
+
   const { drawerWidth, topBarHeight } = useContext(StoreContext)
 
-  const { selectedPoz_metraj, selectedMahal_metraj } = useContext(StoreContext)
+  const { RealmApp, selectedPoz_metraj, selectedMahal_metraj, selectedNode_metraj } = useContext(StoreContext)
+  console.log(selectedNode_metraj, selectedNode_metraj)
 
   const [showEminMisin_edit, setShowEminMisin_edit] = useState(false)
   const [showEminMisin_ready, setShowEminMisin_ready] = useState(false)
 
 
+
+  const satirEkle = async () => {
+
+    try {
+
+      // console.log("hazirlananMetraj_state",hazirlananMetraj_state)
+      await RealmApp?.currentUser.callFunction("addMetrajSatiri", ({ _dugumId: selectedNode_metraj._id }))
+      queryClient.invalidateQueries(['hazirlananMetraj', selectedNode_metraj?._id.toString()])
+      return
+
+    } catch (err) {
+
+      console.log(err)
+
+      let dialogIcon = "warning"
+      let dialogMessage = "Beklenmedik hata, sayfayı yenileyiniz, sorun devam ederse Rapor7/24 ile irtibata geçiniz.."
+      let onCloseAction = () => setDialogAlert()
+
+      if (err.message.includes("__mesajBaslangic__") && err.message.includes("__mesajBitis__")) {
+        let mesajBaslangic = err.message.indexOf("__mesajBaslangic__") + "__mesajBaslangic__".length
+        let mesajBitis = err.message.indexOf("__mesajBitis__")
+        dialogMessage = err.message.slice(mesajBaslangic, mesajBitis)
+        dialogIcon = "info"
+        onCloseAction = () => {
+          setDialogAlert()
+          queryClient.invalidateQueries(['hazirlananMetraj', selectedNode_metraj?._id.toString()])
+        }
+      }
+      setDialogAlert({
+        dialogIcon,
+        dialogMessage,
+        detailText: err?.message ? err.message : null,
+        onCloseAction
+      })
+    }
+
+  }
+
+
+
+
+
+
   return (
     <Paper >
+
+      {dialogAlert &&
+        <DialogAlert
+          dialogIcon={dialogAlert.dialogIcon}
+          dialogMessage={dialogAlert.dialogMessage}
+          detailText={dialogAlert.detailText}
+          onCloseAction={dialogAlert.onCloseAction}
+        />
+      }
 
       {showEminMisin_edit &&
         <DialogAlert
@@ -152,6 +209,14 @@ export default function P_HeaderMetrajOlusturCetvel({
                 <Grid item onClick={() => setMode_ready(x => !x)} sx={{ cursor: "pointer" }}>
                   <IconButton disabled={false} >
                     <CheckCircleIcon variant="contained" sx={{ color: mode_ready ? "black" : "gray" }} />
+                  </IconButton>
+                </Grid>
+              }
+
+              {!isChanged_edit && !isChanged_ready && mode_edit &&
+                <Grid item onClick={() => satirEkle()} sx={{ cursor: "pointer" }}>
+                  <IconButton disabled={false} >
+                    <AddCircleOutlineIcon variant="contained" sx={{ color: mode_ready ? "black" : "gray" }} />
                   </IconButton>
                 </Grid>
               }

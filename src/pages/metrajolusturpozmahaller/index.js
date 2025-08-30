@@ -249,7 +249,7 @@ export default function P_MetrajOlusturPozMahaller() {
 
             {showMetrajOnaylanan &&
               <Box sx={{ ...css_enUstBaslik, justifyContent: "end" }}>
-                {ikiHane(selectedPoz_metraj?.metrajOnaylanan)}
+                {ikiHane(data?.metrajOnaylanan)}
               </Box>
             }
 
@@ -261,10 +261,10 @@ export default function P_MetrajOlusturPozMahaller() {
               <>
                 <Box> </Box>
                 <Box sx={{ ...css_enUstBaslik, justifyContent: "end", borderLeft: "1px solid black" }}>
-                  {ikiHane(selectedPoz_metraj?.hazirlananMetrajlar?.find(x => x.userEmail === customData.email)?.metrajPreparing)}
+                  {ikiHane(data?.hazirlananMetrajlar?.find(x => x.userEmail === customData.email)?.metrajPreparing)}
                 </Box>
                 <Box sx={{ ...css_enUstBaslik, justifyContent: "end", borderLeft: "1px solid black" }}>
-                  {ikiHane(selectedPoz_metraj?.hazirlananMetrajlar?.find(x => x.userEmail === customData.email)?.metrajReady)}
+                  {ikiHane(data?.hazirlananMetrajlar?.find(x => x.userEmail === customData.email)?.metrajReady)}
                 </Box>
               </>
             }

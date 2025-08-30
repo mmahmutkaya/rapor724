@@ -29,7 +29,7 @@ export default function P_Pozlar() {
   const navigate = useNavigate()
   const queryClient = useQueryClient()
 
-  const { data: pozlar } = useGetPozlar()
+  const { data } = useGetPozlar()
   // console.log("pozlar",pozlar)
   const { RealmApp, myTema } = useContext(StoreContext)
   const { selectedProje } = useContext(StoreContext)
@@ -44,7 +44,7 @@ export default function P_Pozlar() {
     !selectedProje && navigate('/projeler')
   }, [])
 
-  const [basliklar, setBasliklar] = useState(RealmApp.currentUser.customData.customSettings.pages.pozlar.basliklar)
+  const [basliklar, setBasliklar] = useState(RealmApp.currentUser.customData.customSettings.pages.data?.pozlar.basliklar)
 
   // sayfadaki "visibility" tuşunun aktif olup olmamasını ayarlamak için
   const anyBaslikShow = basliklar?.find(x => x.visible) ? true : false
@@ -117,7 +117,7 @@ export default function P_Pozlar() {
 
 
       {/* EĞER POZ YOKSA */}
-      {show == "Main" && selectedProje?.wbs?.find(x => x.openForPoz === true) && !pozlar?.length > 0 &&
+      {show == "Main" && selectedProje?.wbs?.find(x => x.openForPoz === true) && !data?.pozlar?.length > 0 &&
         <Stack sx={{ width: '100%', m: "0rem", p: "1rem" }} spacing={2}>
           <Alert severity="info">
             Menüler yardımı ile poz oluşturmaya başlayabilirsiniz.
@@ -128,7 +128,7 @@ export default function P_Pozlar() {
 
       {/* ANA SAYFA - POZLAR VARSA */}
 
-      {show == "Main" && selectedProje?.wbs?.find(x => x.openForPoz === true) && pozlar?.length > 0 &&
+      {show == "Main" && selectedProje?.wbs?.find(x => x.openForPoz === true) && data?.pozlar?.length > 0 &&
         <Box sx={{ m: "1rem", display: "grid", gridTemplateColumns: columns }}>
 
 
@@ -261,7 +261,7 @@ export default function P_Pozlar() {
 
 
                 {/* WBS'İN POZLARI */}
-                {pozlar?.filter(x => x._wbsId.toString() === oneWbs._id.toString()).map((onePoz, index) => {
+                {data?.pozlar?.filter(x => x._wbsId.toString() === oneWbs._id.toString()).map((onePoz, index) => {
 
                   return (
                     // <Box key={index} sx={{ display: "grid", gridTemplateColumns: columns, gridTemplateAreas: gridAreas_pozSatir }}>
