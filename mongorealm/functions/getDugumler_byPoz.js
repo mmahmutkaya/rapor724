@@ -280,10 +280,21 @@ exports = async function ({
 
 
   let metrajOnaylanan = 0
+  let hazirlananMetrajlar = proje.yetki.metrajYapabilenler.map(oneYapabilen => {
+    return { userEmail: oneYapabilen.userEmail, metrajPreparing: 0, metrajReady: 0, metrajOnaylanan: 0 }
+  })
+  
   try {
     // lbsMetrajlar, dugumler_byPoz dan daha az satur içerdiği için loop için seçildi
     lbsMetrajlar.map(oneLbs => {
       metrajOnaylanan += oneLbs.metrajOnaylanan
+      hazirlananMetrajlar = hazirlananMetrajlar?.map(oneHazirlanan => {
+        let hazirlananMetraj_user = oneLbs?.hazirlananMetrajlar?.find(x => x.userEmail === oneHazirlanan.userEmail)
+        oneHazirlanan.metrajPreparing += hazirlananMetraj_user?.metrajPreparing ? hazirlananMetraj_user.metrajPreparing : 0
+        oneHazirlanan.metrajReady += hazirlananMetraj_user?.metrajReady ? hazirlananMetraj_user.metrajReady : 0
+        oneHazirlanan.metrajOnaylanan += hazirlananMetraj_user?.metrajOnaylanan ? hazirlananMetraj_user.metrajOnaylanan : 0
+        return oneHazirlanan
+      })
     })
 
   } catch (error) {
