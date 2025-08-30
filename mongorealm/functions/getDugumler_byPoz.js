@@ -279,6 +279,19 @@ exports = async function ({
   }
 
 
-  return { dugumler_byPoz, lbsMetrajlar, anySelectable }
+  let metrajOnaylanan = 0
+  try {
+    // lbsMetrajlar, dugumler_byPoz dan daha az satur içerdiği için loop için seçildi
+    lbsMetrajlar.map(oneLbs => {
+      metrajOnaylanan += oneLbs.metrajOnaylanan
+    })
+
+  } catch (error) {
+    throw new Error({ hatayeri: "MONGO // getDugumler_byPoz // metrajOnaylanan", error });
+  }
+
+
+
+  return { dugumler_byPoz, lbsMetrajlar, anySelectable, metrajOnaylanan }
 
 };
