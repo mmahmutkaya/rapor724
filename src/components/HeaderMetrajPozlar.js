@@ -1,8 +1,8 @@
 import React from 'react'
 import { useState, useContext, useEffect } from 'react';
 import { useNavigate } from "react-router-dom";
-
 import { StoreContext } from './store'
+import { DialogAlert } from './general/DialogAlert';
 
 
 import AppBar from '@mui/material/AppBar';
@@ -10,6 +10,7 @@ import Typography from '@mui/material/Typography';
 import Chip from '@mui/material/Chip';
 import Grid from '@mui/material/Grid';
 import Paper from '@mui/material/Paper';
+import Avatar from '@mui/material/Avatar';
 import IconButton from '@mui/material/IconButton';
 import DeleteIcon from '@mui/icons-material/Delete';
 import AddCircleOutlineIcon from '@mui/icons-material/AddCircleOutline';
@@ -25,31 +26,44 @@ import FileDownloadDoneIcon from '@mui/icons-material/FileDownloadDone';
 import EditIcon from '@mui/icons-material/Edit';
 
 
-export default function HeaderMetrajPozlar({ setShow }) {
+export default function HeaderMetrajPozlar({ createVersiyon_metraj }) {
 
   const { drawerWidth, topBarHeight } = useContext(StoreContext)
-  const { selectedPoz_metraj, setSelectedPoz_metraj } = useContext(StoreContext)
+  const { selectedProje } = useContext(StoreContext)
+  const versiyonlar = selectedProje?.versiyonlar?.metraj
 
-  const { editNodeMetraj, setEditNodeMetraj } = useContext(StoreContext)
-  const { onayNodeMetraj, setOnayNodeMetraj } = useContext(StoreContext)
+
+  const [showEminMisin_versiyon, setShowEminMisin_versiyon] = useState(false)
 
   const navigate = useNavigate()
 
 
-  const toggleEdit = () => {
-    setEditNodeMetraj(editNodeMetraj => !editNodeMetraj)
-    setOnayNodeMetraj()
-  }
 
 
-  const toggleOnay = () => {
-    setOnayNodeMetraj(onayNodeMetraj => !onayNodeMetraj)
-    setEditNodeMetraj()
+  const showVersiyon = () => {
+    if (!versiyonlar) {
+      console.log("selectedProje", selectedProje)
+    }
   }
 
 
   return (
     <Paper >
+
+      {showEminMisin_versiyon &&
+        <DialogAlert
+          dialogIcon={"info"}
+          dialogMessage={"Mevcut metrajlar 'v1' olarak kaydedilsin mi?"}
+          onCloseAction={() => setShowEminMisin_versiyon()}
+          actionText1={"İptal"}
+          action1={() => setShowEminMisin_versiyon()}
+          actionText2={"Onayla"}
+          action2={() => {
+            createVersiyon_metraj()
+            setShowEminMisin_versiyon()
+          }}
+        />
+      }
 
       <AppBar
         position="fixed"
@@ -89,11 +103,10 @@ export default function HeaderMetrajPozlar({ setShow }) {
 
 
 
-              {/* <Grid item onClick={() => toggleEdit()} sx={{ cursor: "pointer" }}>
-                <IconButton disabled={false} >
-                  <EditIcon variant="contained" sx={{ color: editNodeMetraj ? "gray" : "lightgray", "&:hover": { color: "gray" } }} />
-                </IconButton>
-              </Grid> */}
+              <Grid item onClick={() => showVersiyon()} sx={{ cursor: "pointer" }}>
+                {/* <EditIcon variant="contained" sx={{ color: editNodeMetraj ? "gray" : "lightgray", "&:hover": { color: "gray" } }} /> */}
+                <Avatar sx={{ height: "1.7rem", width: "1.7rem", fontSize: "0.8rem", fontWeight: 600, color: "black" }}>V</Avatar>
+              </Grid>
 
               {/* <Grid item onClick={() => toggleOnay()} sx={{ cursor: "pointer" }}>
                 <IconButton disabled={false} >

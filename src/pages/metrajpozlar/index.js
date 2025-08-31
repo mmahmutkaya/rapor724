@@ -8,6 +8,7 @@ import { useNavigate } from "react-router-dom";
 import { StoreContext } from '../../components/store'
 import { useGetPozlar } from '../../hooks/useMongo';
 import getWbsName from '../../functions/getWbsName';
+import { DialogAlert } from '../../components/general/DialogAlert.js';
 
 
 import HeaderMetrajPozlar from '../../components/HeaderMetrajPozlar'
@@ -29,25 +30,25 @@ export default function P_MetrajPozlar() {
 
   let { data } = useGetPozlar()
   let pozlar = data?.pozlar?.filter(x => x.hasDugum)
+
+  const [dialogAlert, setDialogAlert] = useState()
   // console.log("pozşar", pozlar)
 
 
   const { RealmApp, myTema } = useContext(StoreContext)
   const { showMetrajYapabilenler, setShowMetrajYapabilenler } = useContext(StoreContext)
-
-  const { customData } = RealmApp.currentUser
-
+  const { selectedPoz_metraj, setSelectedPoz_metraj } = useContext(StoreContext)
   const { selectedProje } = useContext(StoreContext)
 
+
+  const versiyonlar = selectedProje?.versiyonlar?.metraj
+  const pozBirimleri = selectedProje?.pozBirimleri
   const yetkililer = selectedProje?.yetki.yetkililer
 
-  const { selectedPoz_metraj, setSelectedPoz_metraj } = useContext(StoreContext)
-  // const { editNodeMetraj, onayNodeMetraj } = useContext(StoreContext)
-  let editNodeMetraj = false
   let onayNodeMetraj = false
 
+
   // console.log("selectedProje", selectedProje)
-  const pozBirimleri = selectedProje?.pozBirimleri
   // console.log("pozBirimleri", pozBirimleri)
 
   const [show, setShow] = useState("Main")
@@ -63,6 +64,50 @@ export default function P_MetrajPozlar() {
   const pozVersiyonShow = basliklar?.find(x => x.id === "versiyon").show
 
   const wbsArray_hasMahal = selectedProje?.wbs.filter(oneWbs => pozlar?.find(onePoz => onePoz._wbsId.toString() === oneWbs._id.toString()))
+
+
+
+  // Edit Metraj Sayfasının Fonksiyonu
+  const createVersiyon_metraj = async () => {
+
+    try {
+
+      await RealmApp?.currentUser.callFunction("createVersiyon_metraj", ({ _projeId: selectedProje?._id }))
+      queryClient.invalidateQueries(['pozlar'])
+      return
+
+    } catch (err) {
+
+      console.log(err)
+
+      let dialogIcon = "warning"
+      let dialogMessage = "Beklenmedik hata, sayfayı yenileyiniz, sorun devam ederse Rapor7/24 ile irtibata geçiniz.."
+      let onCloseAction = () => {
+        setDialogAlert()
+        queryClient.invalidateQueries(['pozlar'])
+      }
+
+      if (err.message.includes("__mesajBaslangic__") && err.message.includes("__mesajBitis__")) {
+        let mesajBaslangic = err.message.indexOf("__mesajBaslangic__") + "__mesajBaslangic__".length
+        let mesajBitis = err.message.indexOf("__mesajBitis__")
+        dialogMessage = err.message.slice(mesajBaslangic, mesajBitis)
+        dialogIcon = "info"
+      }
+      setDialogAlert({
+        dialogIcon,
+        dialogMessage,
+        detailText: err?.message ? err.message : null,
+        onCloseAction
+      })
+
+    }
+
+
+  }
+
+
+
+
 
 
 
@@ -127,16 +172,24 @@ export default function P_MetrajPozlar() {
   }
 
   const showMetrajYapabilenlerColumns = " 1rem repeat(" + showMetrajYapabilenler?.filter(x => x.isShow).length + ", max-content)"
-  const columns = `max-content minmax(min-content, 3fr) max-content max-content${pozAciklamaShow ? " 0.5rem minmax(min-content, 2fr)" : ""}${pozVersiyonShow ? " 0.5rem min-content" : ""}${editNodeMetraj ? " 0.5rem max-content" : ""}${onayNodeMetraj ? showMetrajYapabilenlerColumns : ""}`
+  const columns = `max-content minmax(min-content, 3fr) max-content max-content${pozAciklamaShow ? " 0.5rem minmax(min-content, 2fr)" : ""}${pozVersiyonShow ? " 0.5rem min-content" : ""}`
 
 
   return (
     <Box sx={{ m: "0rem", maxWidth: "60rem" }}>
 
+      {dialogAlert &&
+        <DialogAlert
+          dialogIcon={dialogAlert.dialogIcon}
+          dialogMessage={dialogAlert.dialogMessage}
+          detailText={dialogAlert.detailText}
+          onCloseAction={dialogAlert.onCloseAction}
+        />
+      }
+
       {/* BAŞLIK */}
       <HeaderMetrajPozlar
-        show={show}
-        setShow={setShow}
+        createVersiyon_metraj={createVersiyon_metraj}
       />
 
 
@@ -218,15 +271,6 @@ export default function P_MetrajPozlar() {
               </>
             }
 
-            {/* METRAJ DÜZENLEME AÇIKSA */}
-            {editNodeMetraj &&
-              <>
-                <Box></Box>
-                <Box sx={{ ...enUstBaslik_css }}>
-                  {customData.userCode}
-                </Box>
-              </>
-            }
 
             {onayNodeMetraj &&
               <>
@@ -294,13 +338,6 @@ export default function P_MetrajPozlar() {
                     </>
                   }
 
-                  {/* METRAJ DÜZENLEME AÇIKSA */}
-                  {editNodeMetraj &&
-                    <>
-                      <Box />
-                      <Box sx={{ ...wbsBaslik_css2 }} />
-                    </>
-                  }
 
                   {onayNodeMetraj &&
                     <>

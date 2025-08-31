@@ -77,7 +77,7 @@ export default ({ children }) => {
   const [mahalListesi, setMahalListesi] = useState()
   const [projectNames, setProjectNames] = useState()
 
-  const [showMetrajYapabilenler, setShowMetrajYapabilenler] = useState(Realm.getApp("rapor724_v2-cykom").currentUser.customData.customSettings.showMetrajYapabilenler)
+  const [showMetrajYapabilenler, setShowMetrajYapabilenler] = useState(RealmApp?.currentUser.customData.customSettings.showMetrajYapabilenler)
 
 
   const [pageMetraj_show, pageMetraj_setShow] = useState("Pozlar")
