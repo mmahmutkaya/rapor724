@@ -28,10 +28,27 @@ exports = async function ({
   const proje = await collection_Projeler.findOne({ _id: _projeId })
   const { metrajVersiyonlar } = proje
 
-  let versiyonNumber
+
+
+  // aşağıda else kısmında değişebiliyor
+  let versiyonNumber = 1
   if (!metrajVersiyonlar) {
 
-    versiyonNumber = 1
+    collection_Projeler.updateOne({ _id: _projeId }, [
+      {
+        $set: {
+          metrajVersiyonlar: [{ versiyonNumber, createdAt: currentTime }]
+        }
+      }
+    ])
+
+  } else {
+
+    metrajVersiyonlar.map(oneVersiyon => {
+      if (oneVersiyon.versiyonNumber >= versiyonNumber) {
+        versiyonNumber = oneVersiyon.versiyonNumber + 1
+      }
+    })
 
     collection_Projeler.updateOne({ _id: _projeId }, [
       {
