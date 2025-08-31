@@ -112,37 +112,37 @@ exports = async function ({
               }
             }
           },
-          // revizeMetrajlar: {
-          //   $map: {
-          //     input: "revizeMetrajlar",
-          //     as: "oneMetraj",
-          //     in: {
-          //       $mergeObjects: [
-          //         "$$oneMetraj",
-          //         {
-          //           satirlar: {
-          //             $map: {
-          //               input: "$$oneMetraj.satirlar",
-          //               as: "oneSatir",
-          //               in: {
-          //                 $cond: {
-          //                   if: { $in: [0, "$$oneSatir.versiyonlar"] },
-          //                   else: "$$oneSatir",
-          //                   then: {
-          //                     $mergeObjects: [
-          //                       "$$oneSatir",
-          //                       { versiyonlar: { $concatArrays: ["$$oneSatir.versiyonlar", [versiyonNumber]] } }
-          //                     ]
-          //                   }
-          //                 }
-          //               }
-          //             }
-          //           }
-          //         }
-          //       ]
-          //     }
-          //   }
-          // }
+          revizeMetrajlar: {
+            $map: {
+              input: "revizeMetrajlar",
+              as: "oneMetraj",
+              in: {
+                $mergeObjects: [
+                  "$$oneMetraj",
+                  {
+                    satirlar: {
+                      $map: {
+                        input: "$$oneMetraj.satirlar",
+                        as: "oneSatir",
+                        in: {
+                          $cond: {
+                            if: { $and: [{ $ne: ["$$oneSatir", []] }, { $in: [0, "$$oneSatir.versiyonlar"] }] },
+                            else: "$$oneSatir",
+                            then: {
+                              $mergeObjects: [
+                                "$$oneSatir",
+                                { versiyonlar: { $concatArrays: ["$$oneSatir.versiyonlar", [versiyonNumber]] } }
+                              ]
+                            }
+                          }
+                        }
+                      }
+                    }
+                  }
+                ]
+              }
+            }
+          }
         }
       }
     ])
