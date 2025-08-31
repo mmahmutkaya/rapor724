@@ -53,7 +53,12 @@ exports = async function ({
     collection_Projeler.updateOne({ _id: _projeId }, [
       {
         $set: {
-          metrajVersiyonlar: [{ versiyonNumber, createdAt: currentTime }]
+          metrajVersiyonlar: {
+            $concatArrays: [
+              "$metrajVersiyonlar",
+              [{ versiyonNumber, createdAt: currentTime }]
+            ]
+          }
         }
       }
     ])
