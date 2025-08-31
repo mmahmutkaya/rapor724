@@ -32,36 +32,92 @@ exports = async function ({
 
   // aşağıda else kısmında değişebiliyor
   let versiyonNumber = 1
-  if (!metrajVersiyonlar) {
 
-    collection_Projeler.updateOne({ _id: _projeId }, [
-      {
-        $set: {
-          metrajVersiyonlar: [{ versiyonNumber, createdAt: currentTime }]
+  try {
+
+
+    if (!metrajVersiyonlar) {
+
+      collection_Projeler.updateOne({ _id: _projeId }, [
+        {
+          $set: {
+            metrajVersiyonlar: [{ versiyonNumber, createdAt: currentTime }]
+          }
         }
-      }
-    ])
+      ])
 
-  } else {
+    } else {
 
-    metrajVersiyonlar.map(oneVersiyon => {
-      if (oneVersiyon.versiyonNumber >= versiyonNumber) {
-        versiyonNumber = oneVersiyon.versiyonNumber + 1
-      }
-    })
+      metrajVersiyonlar.map(oneVersiyon => {
+        if (oneVersiyon.versiyonNumber >= versiyonNumber) {
+          versiyonNumber = oneVersiyon.versiyonNumber + 1
+        }
+      })
 
-    collection_Projeler.updateOne({ _id: _projeId }, [
+      collection_Projeler.updateOne({ _id: _projeId }, [
+        {
+          $set: {
+            metrajVersiyonlar: {
+              $concatArrays: [
+                "$metrajVersiyonlar",
+                [{ versiyonNumber, createdAt: currentTime }]
+              ]
+            }
+          }
+        }
+      ])
+
+    }
+
+
+  } catch (error) {
+    throw new Error("MONGO // createVersiyon_metraj // 1 " + error);
+  }
+
+
+
+  try {
+
+    collection_Dugumler.updateMany({ _projeId }, [
       {
         $set: {
-          metrajVersiyonlar: {
-            $concatArrays: [
-              "$metrajVersiyonlar",
-              [{ versiyonNumber, createdAt: currentTime }]
-            ]
+          revizeMetrajlar: {
+            $map: {
+              input: "revizeMetrajlar",
+              as: "oneMetraj",
+              in: {
+                $mergeObjects: [
+                  "$$oneMetraj",
+                  {
+                    satirlar: {
+                      $map: {
+                        input: "$$oneMetraj.satirlar",
+                        as: "oneSatir",
+                        in: {
+                          $cond: {
+                            if: { $in: [0, "$$oneSatir.versiyonlar"] },
+                            else: "$$oneSatir",
+                            then: {
+                              $mergeObjects: [
+                                "$$oneSatir",
+                                { versiyonlar: { $concatArrays: ["$$oneSatir.versiyonlar", [versiyonNumber]] } }
+                              ]
+                            }
+                          }
+                        }
+                      }
+                    }
+                  }
+                ]
+              }
+            }
           }
         }
       }
     ])
+
+
+  } catch (error) {
 
   }
 
@@ -121,7 +177,69 @@ exports = async function ({
 
 
   // } catch (error) {
-  //   throw new Error("MONGO // update_hazirlananMetraj_ready // " + error);
+  //   throw new Error("MONGO // createVersiyon_metraj // " + error);
+  // }
+
+
+
+
+
+
+
+  // try {
+
+  //   let bulkArray = []
+  //   hazirlananMetrajlar_state.map(oneHazirlanan => {
+
+  //     let oneHazirlanan_selected_satirNolar = oneHazirlanan.satirlar.filter(x => x.isSelected && x.newSelected).map(oneSatir => {
+  //       return oneSatir.satirNo
+  //     })
+
+  //     oneBulk = {
+  //       updateOne: {
+  //         filter: { _id: _dugumId },
+  //         update: {
+  //           $set: {
+  //             "hazirlananMetrajlar.$[oneHazirlanan].satirlar.$[oneSatir].isSelected": true,
+  //             "hazirlananMetrajlar.$[oneHazirlanan].satirlar.$[oneSatir].hasSelectedCopy": false,
+  //             "hazirlananMetrajlar.$[oneSatir].satirlar": true,
+  //             "revizeMetrajlar.$[oneMetraj].isSelected": true,
+  //             "revizeMetrajlar.$[oneMetraj].satirlar": [],
+  //           },
+  //           $unset: {
+  //             "hazirlananMetrajlar.$[oneHazirlanan].satirlar.$[oneSatir].isReady": "",
+  //             "hazirlananMetrajlar.$[oneHazirlanan].satirlar.$[oneSatir].isReadyUnSeen": "",
+  //             "revizeMetrajlar.$[oneMetraj].isReady": "",
+  //           }
+  //         },
+  //         arrayFilters: [
+  //           {
+  //             "oneHazirlanan.userEmail": oneHazirlanan.userEmail
+  //           },
+  //           {
+  //             "oneSatir.satirNo": { $in: oneHazirlanan_selected_satirNolar },
+  //             "oneSatir.isReady": true
+  //           },
+  //           {
+  //             "oneMetraj.satirNo": { $in: oneHazirlanan_selected_satirNolar },
+  //             "oneMetraj.isReady": true
+  //           }
+  //         ]
+  //       }
+  //     }
+  //     bulkArray = [...bulkArray, oneBulk]
+
+  //   })
+
+
+  //   await collection_Dugumler.bulkWrite(
+  //     bulkArray,
+  //     { ordered: false }
+  //   )
+
+
+  // } catch (error) {
+  //   throw new Error("MONGO // createVersiyon_metraj // " + error);
   // }
 
 
