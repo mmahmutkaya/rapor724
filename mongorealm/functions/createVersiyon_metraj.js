@@ -26,7 +26,7 @@ exports = async function ({
   const collection_Dugumler = context.services.get("mongodb-atlas").db("rapor724_v2").collection("dugumler")
 
   const proje = await collection_Projeler.findOne({ _id: _projeId })
-  const { metrajVersiyonlar } = proje?.metrajVersiyonlar
+  const { metrajVersiyonlar } = proje
 
   if (!metrajVersiyonlar) {
 
