@@ -26,19 +26,14 @@ exports = async function ({
   const collection_Dugumler = context.services.get("mongodb-atlas").db("rapor724_v2").collection("dugumler")
 
   const proje = await collection_Projeler.findOne({ _id: _projeId })
-  const { versiyonlar } = proje.versiyonlar?.metrajVersiyonlar
+  const { metrajVersiyonlar } = proje.metrajVersiyonlar
 
-  if (!versiyonlar || !versiyonlar?.metraj) {
+  if (!metrajVersiyonlar) {
 
     collection_Projeler.updateOne({ _id: _projeId }, [
       {
         $set: {
-          versiyonlar: {
-            $mergeObjects: [
-              "$versiyonlar",
-              { metrajVersiyonlar: [{ versiyonNumber: 1, createdAt: currentTime }] }
-            ]
-          }
+          metrajVersiyonlar: [{ versiyonNumber: 1, createdAt: currentTime }]
         }
       }
     ])
