@@ -50,20 +50,20 @@ exports = async function ({
       metrajReady: 0,
       metrajOnaylanan: 0,
       satirlar: [
-        { satirNo: userCode + "-" + 1, aciklama: "", carpan1: "", carpan2: "", carpan3: "", carpan4: "", carpan5: "", metraj: "", isPreparing: true },
-        { satirNo: userCode + "-" + 2, aciklama: "", carpan1: "", carpan2: "", carpan3: "", carpan4: "", carpan5: "", metraj: "", isPreparing: true },
-        { satirNo: userCode + "-" + 3, aciklama: "", carpan1: "", carpan2: "", carpan3: "", carpan4: "", carpan5: "", metraj: "", isPreparing: true },
-        { satirNo: userCode + "-" + 4, aciklama: "", carpan1: "", carpan2: "", carpan3: "", carpan4: "", carpan5: "", metraj: "", isPreparing: true },
-        { satirNo: userCode + "-" + 5, aciklama: "", carpan1: "", carpan2: "", carpan3: "", carpan4: "", carpan5: "", metraj: "", isPreparing: true }
+        { satirNo: userCode + "-" + 1, aciklama: "", carpan1: "", carpan2: "", carpan3: "", carpan4: "", carpan5: "", metraj: "", isPreparing: true, versiyonlar: [0] },
+        { satirNo: userCode + "-" + 2, aciklama: "", carpan1: "", carpan2: "", carpan3: "", carpan4: "", carpan5: "", metraj: "", isPreparing: true, versiyonlar: [0] },
+        { satirNo: userCode + "-" + 3, aciklama: "", carpan1: "", carpan2: "", carpan3: "", carpan4: "", carpan5: "", metraj: "", isPreparing: true, versiyonlar: [0] },
+        { satirNo: userCode + "-" + 4, aciklama: "", carpan1: "", carpan2: "", carpan3: "", carpan4: "", carpan5: "", metraj: "", isPreparing: true, versiyonlar: [0] },
+        { satirNo: userCode + "-" + 5, aciklama: "", carpan1: "", carpan2: "", carpan3: "", carpan4: "", carpan5: "", metraj: "", isPreparing: true, versiyonlar: [0] }
       ]
     }
 
     revizeMetrajlar = [
-      { satirNo: userCode + "-" + 1, isPreparing: true, satirlar: [] },
-      { satirNo: userCode + "-" + 2, isPreparing: true, satirlar: [] },
-      { satirNo: userCode + "-" + 3, isPreparing: true, satirlar: [] },
-      { satirNo: userCode + "-" + 4, isPreparing: true, satirlar: [] },
-      { satirNo: userCode + "-" + 5, isPreparing: true, satirlar: [] }
+      { satirNo: userCode + "-" + 1, isPreparing: true, satirlar: [], versiyonlar: [0] },
+      { satirNo: userCode + "-" + 2, isPreparing: true, satirlar: [], versiyonlar: [0] },
+      { satirNo: userCode + "-" + 3, isPreparing: true, satirlar: [], versiyonlar: [0] },
+      { satirNo: userCode + "-" + 4, isPreparing: true, satirlar: [], versiyonlar: [0] },
+      { satirNo: userCode + "-" + 5, isPreparing: true, satirlar: [], versiyonlar: [0] }
     ]
 
 
