@@ -107,6 +107,7 @@ exports = async function ({
           silinmeyecekSatirlar = silinmeyecekSatirlar.map(oneSatir => {
             oneSatir.satirNo = originalSatirNo + "." + siraNo
             siraNo += 1
+            return oneSatir
           })
 
           oneBulk = {
