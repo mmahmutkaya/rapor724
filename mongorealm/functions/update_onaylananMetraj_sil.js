@@ -103,6 +103,12 @@ exports = async function ({
         // revizelerin bazısı siliniyorsa
         if (silinmeyecekSatirlar.length > 0) {
 
+          let siraNo = 1
+          silinmeyecekSatirlar = silinmeyecekSatirlar.map(oneSatir => {
+            oneSatir.satirNo = originalSatirNo + "." + siraNo
+            siraNo += 1
+          })
+
           oneBulk = {
             updateOne: {
               filter: { _id: _dugumId },
