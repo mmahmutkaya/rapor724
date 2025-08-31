@@ -114,7 +114,7 @@ exports = async function ({
           },
           revizeMetrajlar: {
             $map: {
-              input: "revizeMetrajlar",
+              input: "$revizeMetrajlar",
               as: "oneMetraj",
               in: {
                 $mergeObjects: [
