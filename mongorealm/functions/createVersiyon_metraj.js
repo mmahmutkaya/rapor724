@@ -81,6 +81,37 @@ exports = async function ({
     collection_Dugumler.updateMany({ _projeId }, [
       {
         $set: {
+          hazirlananMetrajlar: {
+            $map: {
+              input: "$hazirlananMetrajlar",
+              as: "oneHazirlanan",
+              in: {
+                $mergeObjects: [
+                  "$$oneHazirlanan",
+                  {
+                    satirlar: {
+                      $map: {
+                        input: "$$oneHazirlanan.satirlar",
+                        as: "oneSatir",
+                        in: {
+                          $cond: {
+                            if: { $in: [0, "$$oneSatir.versiyonlar"] },
+                            else: "$$oneSatir",
+                            then: {
+                              $mergeObjects: [
+                                "$$oneSatir",
+                                { versiyonlar: { $concatArrays: ["$$oneSatir.versiyonlar", [versiyonNumber]] } }
+                              ]
+                            }
+                          }
+                        }
+                      }
+                    }
+                  }
+                ]
+              }
+            }
+          },
           revizeMetrajlar: {
             $map: {
               input: "revizeMetrajlar",
