@@ -112,37 +112,37 @@ exports = async function ({
               }
             }
           },
-          revizeMetrajlar: {
-            $map: {
-              input: "revizeMetrajlar",
-              as: "oneMetraj",
-              in: {
-                $mergeObjects: [
-                  "$$oneMetraj",
-                  {
-                    satirlar: {
-                      $map: {
-                        input: "$$oneMetraj.satirlar",
-                        as: "oneSatir",
-                        in: {
-                          $cond: {
-                            if: { $in: [0, "$$oneSatir.versiyonlar"] },
-                            else: "$$oneSatir",
-                            then: {
-                              $mergeObjects: [
-                                "$$oneSatir",
-                                { versiyonlar: { $concatArrays: ["$$oneSatir.versiyonlar", [versiyonNumber]] } }
-                              ]
-                            }
-                          }
-                        }
-                      }
-                    }
-                  }
-                ]
-              }
-            }
-          }
+          // revizeMetrajlar: {
+          //   $map: {
+          //     input: "revizeMetrajlar",
+          //     as: "oneMetraj",
+          //     in: {
+          //       $mergeObjects: [
+          //         "$$oneMetraj",
+          //         {
+          //           satirlar: {
+          //             $map: {
+          //               input: "$$oneMetraj.satirlar",
+          //               as: "oneSatir",
+          //               in: {
+          //                 $cond: {
+          //                   if: { $in: [0, "$$oneSatir.versiyonlar"] },
+          //                   else: "$$oneSatir",
+          //                   then: {
+          //                     $mergeObjects: [
+          //                       "$$oneSatir",
+          //                       { versiyonlar: { $concatArrays: ["$$oneSatir.versiyonlar", [versiyonNumber]] } }
+          //                     ]
+          //                   }
+          //                 }
+          //               }
+          //             }
+          //           }
+          //         }
+          //       ]
+          //     }
+          //   }
+          // }
         }
       }
     ])
@@ -151,68 +151,6 @@ exports = async function ({
   } catch (error) {
 
   }
-
-
-
-
-  // try {
-
-  //   let bulkArray = []
-  //   hazirlananMetrajlar_state.map(oneHazirlanan => {
-
-  //     let oneHazirlanan_selected_satirNolar = oneHazirlanan.satirlar.filter(x => x.isSelected && x.newSelected).map(oneSatir => {
-  //       return oneSatir.satirNo
-  //     })
-
-  //     oneBulk = {
-  //       updateOne: {
-  //         filter: { _id: _dugumId },
-  //         update: {
-  //           $set: {
-  //             "hazirlananMetrajlar.$[oneHazirlanan].satirlar.$[oneSatir].isSelected": true,
-  //             "hazirlananMetrajlar.$[oneHazirlanan].satirlar.$[oneSatir].hasSelectedCopy": false,
-  //             "hazirlananMetrajlar.$[oneSatir].satirlar": true,
-  //             "revizeMetrajlar.$[oneMetraj].isSelected": true,
-  //             "revizeMetrajlar.$[oneMetraj].satirlar": [],
-  //           },
-  //           $unset: {
-  //             "hazirlananMetrajlar.$[oneHazirlanan].satirlar.$[oneSatir].isReady": "",
-  //             "hazirlananMetrajlar.$[oneHazirlanan].satirlar.$[oneSatir].isReadyUnSeen": "",
-  //             "revizeMetrajlar.$[oneMetraj].isReady": "",
-  //           }
-  //         },
-  //         arrayFilters: [
-  //           {
-  //             "oneHazirlanan.userEmail": oneHazirlanan.userEmail
-  //           },
-  //           {
-  //             "oneSatir.satirNo": { $in: oneHazirlanan_selected_satirNolar },
-  //             "oneSatir.isReady": true
-  //           },
-  //           {
-  //             "oneMetraj.satirNo": { $in: oneHazirlanan_selected_satirNolar },
-  //             "oneMetraj.isReady": true
-  //           }
-  //         ]
-  //       }
-  //     }
-  //     bulkArray = [...bulkArray, oneBulk]
-
-  //   })
-
-
-  //   await collection_Dugumler.bulkWrite(
-  //     bulkArray,
-  //     { ordered: false }
-  //   )
-
-
-  // } catch (error) {
-  //   throw new Error("MONGO // createVersiyon_metraj // " + error);
-  // }
-
-
-
 
 
 
