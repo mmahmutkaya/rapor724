@@ -59,11 +59,11 @@ exports = async function ({
     }
 
     revizeMetrajlar = [
-      { satirNo: userCode + "-" + 1, isPreparing: true, satirlar: [], versiyonlar: [0] },
-      { satirNo: userCode + "-" + 2, isPreparing: true, satirlar: [], versiyonlar: [0] },
-      { satirNo: userCode + "-" + 3, isPreparing: true, satirlar: [], versiyonlar: [0] },
-      { satirNo: userCode + "-" + 4, isPreparing: true, satirlar: [], versiyonlar: [0] },
-      { satirNo: userCode + "-" + 5, isPreparing: true, satirlar: [], versiyonlar: [0] }
+      { satirNo: userCode + "-" + 1, isPreparing: true, satirlar: [] },
+      { satirNo: userCode + "-" + 2, isPreparing: true, satirlar: [] },
+      { satirNo: userCode + "-" + 3, isPreparing: true, satirlar: [] },
+      { satirNo: userCode + "-" + 4, isPreparing: true, satirlar: [] },
+      { satirNo: userCode + "-" + 5, isPreparing: true, satirlar: [] }
     ]
 
 
