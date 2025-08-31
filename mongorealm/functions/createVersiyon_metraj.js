@@ -28,12 +28,15 @@ exports = async function ({
   const proje = await collection_Projeler.findOne({ _id: _projeId })
   const { metrajVersiyonlar } = proje
 
+  let versiyonNumber
   if (!metrajVersiyonlar) {
+
+    versiyonNumber = 1
 
     collection_Projeler.updateOne({ _id: _projeId }, [
       {
         $set: {
-          metrajVersiyonlar: [{ versiyonNumber: 1, createdAt: currentTime }]
+          metrajVersiyonlar: [{ versiyonNumber, createdAt: currentTime }]
         }
       }
     ])
