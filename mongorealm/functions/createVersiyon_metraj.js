@@ -126,7 +126,8 @@ exports = async function ({
                         as: "oneSatir",
                         in: {
                           $cond: {
-                            if: { $and: [{ $ne: ["$$oneSatir", []] }, { $in: [0, "$$oneSatir.versiyonlar"] }] },
+                            // if: { $and: [{ $ne: ["$$oneSatir", []] }, { $in: [0, "$$oneSatir.versiyonlar"] }] },
+                            if: { $in: [0, "$$oneSatir.versiyonlar"] },
                             else: "$$oneSatir",
                             then: {
                               $mergeObjects: [
