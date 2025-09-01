@@ -199,92 +199,6 @@ exports = async function ({
 
 
 
-  // versiyon öncesi çalışan 
-  //   try {
-
-  //   let bulkArray = []
-  //   let oneBulk
-  //   onaylananMetraj_state.satirlar.filter(x => x.hasSelectedCopy && !x.newSelected).map(oneSatir => {
-
-  //     let originalSatirNo = oneSatir.satirNo
-  //     let userEmail = oneSatir.userEmail
-  //     let silinecekSatir = onaylananMetraj_state.satirlar.find(x => x.originalSatirNo === originalSatirNo && x.newSelected)
-  //     let silinmeyecekSatirlar = onaylananMetraj_state.satirlar.filter(x => x.originalSatirNo === originalSatirNo && !x.newSelected)
-
-  //     if (silinecekSatir) {
-
-  //       // revizelerin bazısı siliniyorsa
-  //       if (silinmeyecekSatirlar.length > 0) {
-
-  //         let siraNo = 1
-  //         silinmeyecekSatirlar = silinmeyecekSatirlar.map(oneSatir => {
-  //           oneSatir.satirNo = originalSatirNo + "." + siraNo
-  //           siraNo += 1
-  //           return oneSatir
-  //         })
-
-  //         oneBulk = {
-  //           updateOne: {
-  //             filter: { _id: _dugumId },
-  //             update: {
-  //               $set: {
-  //                 "revizeMetrajlar.$[oneMetraj].satirlar": silinmeyecekSatirlar,
-  //               }
-  //             },
-  //             arrayFilters: [
-  //               {
-  //                 "oneMetraj.satirNo": originalSatirNo,
-  //                 "oneMetraj.isSelected": true
-  //               }
-  //             ]
-  //           }
-  //         }
-  //         bulkArray = [...bulkArray, oneBulk]
-
-
-  //         // revizelerin hepsi siliniyorsa
-  //       } else {
-  //         oneBulk = {
-  //           updateOne: {
-  //             filter: { _id: _dugumId },
-  //             update: {
-  //               $set: {
-  //                 "hazirlananMetrajlar.$[oneHazirlanan].satirlar.$[oneSatir].hasSelectedCopy": false,
-  //                 "revizeMetrajlar.$[oneMetraj].satirlar": [],
-  //               }
-  //             },
-  //             arrayFilters: [
-  //               {
-  //                 "oneHazirlanan.userEmail": userEmail
-  //               },
-  //               {
-  //                 "oneSatir.satirNo": originalSatirNo,
-  //                 "oneSatir.isSelected": true
-  //               },
-  //               {
-  //                 "oneMetraj.satirNo": originalSatirNo,
-  //                 "oneMetraj.isSelected": true
-  //               }
-  //             ]
-  //           }
-  //         }
-  //         bulkArray = [...bulkArray, oneBulk]
-  //       }
-  //     }
-
-  //   })
-
-  //   if (bulkArray.length > 0) {
-  //     await collection_Dugumler.bulkWrite(
-  //       bulkArray,
-  //       { ordered: false }
-  //     )
-  //   }
-
-
-  // } catch (error) {
-  //   throw new Error("MONGO // update_onaylananMetraj_sil // bazı revizelerin silinmesi ");
-  // }
 
 
 
@@ -341,7 +255,13 @@ exports = async function ({
                                                 "$$value",
                                                 {
                                                   "$cond": {
-                                                    "if": { $and: [{ $ne: ["$$this.metraj", ""] }, { $eq: ["$$this.userEmail", "$$oneHazirlanan.userEmail"] }] },
+                                                    "if": {
+                                                      $and: [
+                                                        { $ne: ["$$this.metraj", ""] },
+                                                        { $eq: ["$$this.userEmail", "$$oneHazirlanan.userEmail"] },
+                                                        { $ne: ["$$this.isPasif", true] }
+                                                      ]
+                                                    },
                                                     "then": {
                                                       "$toDouble": "$$this.metraj"
                                                     },
@@ -384,6 +304,7 @@ exports = async function ({
         }
       ]
     )
+
 
   } catch (error) {
     throw new Error("MONGO // update_onaylananMetraj_revize // metraj güncelleme" + error);
