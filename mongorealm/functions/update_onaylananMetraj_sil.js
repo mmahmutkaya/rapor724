@@ -37,42 +37,45 @@ exports = async function ({
     let oneBulk
     onaylananMetraj_state.satirlar.filter(x => x.isSelected && x.newSelected).map(oneSatir => {
 
-      let userEmail = oneSatir.userEmail
-      let originalSatirNo = oneSatir.satirNo
+      if (oneSatir) {
+        let userEmail = oneSatir.userEmail
+        let originalSatirNo = oneSatir.satirNo
 
-      oneBulk = {
-        updateOne: {
-          filter: { _id: _dugumId },
-          update: {
-            $set: {
-              "hazirlananMetrajlar.$[oneHazirlanan].satirlar.$[oneSatir].isReady": true,
-              "revizeMetrajlar.$[oneMetraj].isReady": true,
-              "revizeMetrajlar.$[oneMetraj].satirlar": [],
+        oneBulk = {
+          updateOne: {
+            filter: { _id: _dugumId },
+            update: {
+              $set: {
+                "hazirlananMetrajlar.$[oneHazirlanan].satirlar.$[oneSatir].isReady": true,
+                "revizeMetrajlar.$[oneMetraj].isReady": true,
+                "revizeMetrajlar.$[oneMetraj].satirlar": [],
+              },
+              $unset: {
+                "hazirlananMetrajlar.$[oneHazirlanan].satirlar.$[oneSatir].hasSelectedCopy": "",
+                "hazirlananMetrajlar.$[oneHazirlanan].satirlar.$[oneSatir].isSelected": "",
+                "hazirlananMetrajlar.$[oneHazirlanan].satirlar.$[oneSatir].versiyon": "",
+                "revizeMetrajlar.$[oneMetraj].isSelected": "",
+              }
             },
-            $unset: {
-              "hazirlananMetrajlar.$[oneHazirlanan].satirlar.$[oneSatir].hasSelectedCopy": "",
-              "hazirlananMetrajlar.$[oneHazirlanan].satirlar.$[oneSatir].isSelected": "",
-              "hazirlananMetrajlar.$[oneHazirlanan].satirlar.$[oneSatir].versiyon": "",
-              "revizeMetrajlar.$[oneMetraj].isSelected": "",
-            }
-          },
-          arrayFilters: [
-            {
-              "oneHazirlanan.userEmail": userEmail
-            },
-            {
-              "oneSatir.satirNo": originalSatirNo,
-              "oneSatir.isSelected": true,
-              "oneSatir.versiyon":0
-            },
-            {
-              "oneMetraj.satirNo": originalSatirNo,
-              "oneMetraj.isSelected": true
-            }
-          ]
+            arrayFilters: [
+              {
+                "oneHazirlanan.userEmail": userEmail
+              },
+              {
+                "oneSatir.satirNo": originalSatirNo,
+                "oneSatir.isSelected": true,
+                "oneSatir.versiyon": 0
+              },
+              {
+                "oneMetraj.satirNo": originalSatirNo,
+                "oneMetraj.isSelected": true
+              }
+            ]
+          }
         }
+        bulkArray = [...bulkArray, oneBulk]
+
       }
-      bulkArray = [...bulkArray, oneBulk]
 
     })
 
@@ -97,10 +100,20 @@ exports = async function ({
 
       let originalSatirNo = oneSatir.satirNo
       let userEmail = oneSatir.userEmail
-      let silinecekSatir = onaylananMetraj_state.satirlar.find(x => x.originalSatirNo === originalSatirNo && x.newSelected)
+      let silinecekSatirlar = onaylananMetraj_state.satirlar.filter(x => x.originalSatirNo === originalSatirNo && x.newSelected)
       let silinmeyecekSatirlar = onaylananMetraj_state.satirlar.filter(x => x.originalSatirNo === originalSatirNo && !x.newSelected)
+      
+      silinmeyecekSatirlar = silinmeyecekSatirlar.map(oneSatir => {
+        let silinecekSatir = silinecekSatirlar.find(x => x.satirNo === oneSatir.satirNo)
+        let silinecekSatirNo = silinecekSatir?.satirNo
+        let pasifEdilenVersiyon = silinecekSatir?.pasifEdilenVersiyon
+        if (oneSatir.satirNo === silinecekSatirNo && pasifEdilenVersiyon === oneSatir.versiyon) {
+          delete oneSatir.isPasif
+        }
+        return oneSatir
+      })
 
-      if (silinecekSatir) {
+      if (silinecekSatirlar.length > 0) {
 
         // revizelerin bazısı siliniyorsa
         if (silinmeyecekSatirlar.length > 0) {
@@ -175,6 +188,94 @@ exports = async function ({
     throw new Error("MONGO // update_onaylananMetraj_sil // bazı revizelerin silinmesi ");
   }
 
+
+
+  // versiyon öncesi çalışan 
+  //   try {
+
+  //   let bulkArray = []
+  //   let oneBulk
+  //   onaylananMetraj_state.satirlar.filter(x => x.hasSelectedCopy && !x.newSelected).map(oneSatir => {
+
+  //     let originalSatirNo = oneSatir.satirNo
+  //     let userEmail = oneSatir.userEmail
+  //     let silinecekSatir = onaylananMetraj_state.satirlar.find(x => x.originalSatirNo === originalSatirNo && x.newSelected)
+  //     let silinmeyecekSatirlar = onaylananMetraj_state.satirlar.filter(x => x.originalSatirNo === originalSatirNo && !x.newSelected)
+
+  //     if (silinecekSatir) {
+
+  //       // revizelerin bazısı siliniyorsa
+  //       if (silinmeyecekSatirlar.length > 0) {
+
+  //         let siraNo = 1
+  //         silinmeyecekSatirlar = silinmeyecekSatirlar.map(oneSatir => {
+  //           oneSatir.satirNo = originalSatirNo + "." + siraNo
+  //           siraNo += 1
+  //           return oneSatir
+  //         })
+
+  //         oneBulk = {
+  //           updateOne: {
+  //             filter: { _id: _dugumId },
+  //             update: {
+  //               $set: {
+  //                 "revizeMetrajlar.$[oneMetraj].satirlar": silinmeyecekSatirlar,
+  //               }
+  //             },
+  //             arrayFilters: [
+  //               {
+  //                 "oneMetraj.satirNo": originalSatirNo,
+  //                 "oneMetraj.isSelected": true
+  //               }
+  //             ]
+  //           }
+  //         }
+  //         bulkArray = [...bulkArray, oneBulk]
+
+
+  //         // revizelerin hepsi siliniyorsa
+  //       } else {
+  //         oneBulk = {
+  //           updateOne: {
+  //             filter: { _id: _dugumId },
+  //             update: {
+  //               $set: {
+  //                 "hazirlananMetrajlar.$[oneHazirlanan].satirlar.$[oneSatir].hasSelectedCopy": false,
+  //                 "revizeMetrajlar.$[oneMetraj].satirlar": [],
+  //               }
+  //             },
+  //             arrayFilters: [
+  //               {
+  //                 "oneHazirlanan.userEmail": userEmail
+  //               },
+  //               {
+  //                 "oneSatir.satirNo": originalSatirNo,
+  //                 "oneSatir.isSelected": true
+  //               },
+  //               {
+  //                 "oneMetraj.satirNo": originalSatirNo,
+  //                 "oneMetraj.isSelected": true
+  //               }
+  //             ]
+  //           }
+  //         }
+  //         bulkArray = [...bulkArray, oneBulk]
+  //       }
+  //     }
+
+  //   })
+
+  //   if (bulkArray.length > 0) {
+  //     await collection_Dugumler.bulkWrite(
+  //       bulkArray,
+  //       { ordered: false }
+  //     )
+  //   }
+
+
+  // } catch (error) {
+  //   throw new Error("MONGO // update_onaylananMetraj_sil // bazı revizelerin silinmesi ");
+  // }
 
 
 
