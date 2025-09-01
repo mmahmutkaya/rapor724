@@ -102,16 +102,6 @@ exports = async function ({
       let userEmail = oneSatir.userEmail
       let silinecekSatirlar = onaylananMetraj_state.satirlar.filter(x => x.originalSatirNo === originalSatirNo && x.newSelected)
       let silinmeyecekSatirlar = onaylananMetraj_state.satirlar.filter(x => x.originalSatirNo === originalSatirNo && !x.newSelected)
-      
-      silinmeyecekSatirlar = silinmeyecekSatirlar.map(oneSatir => {
-        let silinecekSatir = silinecekSatirlar.find(x => x.satirNo === oneSatir.satirNo)
-        let silinecekSatirNo = silinecekSatir?.satirNo
-        let pasifEdilenVersiyon = silinecekSatir?.pasifEdilenVersiyon
-        if (oneSatir.satirNo === silinecekSatirNo && pasifEdilenVersiyon === oneSatir.versiyon) {
-          delete oneSatir.isPasif
-        }
-        return oneSatir
-      })
 
       if (silinecekSatirlar.length > 0) {
 
@@ -120,6 +110,18 @@ exports = async function ({
 
           let siraNo = 1
           silinmeyecekSatirlar = silinmeyecekSatirlar.map(oneSatir => {
+            let silinecekSatir = silinecekSatirlar.find(x => x.satirNo === oneSatir.satirNo)
+            let silinecekSatirNo = silinecekSatir?.satirNo
+            let pasifEdilenVersiyon = silinecekSatir?.pasifEdilenVersiyon
+            if (oneSatir.satirNo === silinecekSatirNo && pasifEdilenVersiyon === oneSatir.versiyon) {
+              delete oneSatir.isPasif
+            }
+            if (oneSatir.versiyon !== 0 && oneSatir.satirNo >= siraNo) {
+              return oneSatir
+            }
+          })
+
+          silinmeyecekSatirlar = silinmeyecekSatirlar.filter(x => x.versiyon !== 0).map(oneSatir => {
             oneSatir.satirNo = originalSatirNo + "." + siraNo
             siraNo += 1
             return oneSatir
