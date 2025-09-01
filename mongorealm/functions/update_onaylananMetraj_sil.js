@@ -109,6 +109,7 @@ exports = async function ({
         if (silinmeyecekSatirlar.length > 0) {
 
           let siraNo = 1
+          // versiyon 0 olup silinecek satırlar içerisinde  
           silinmeyecekSatirlar = silinmeyecekSatirlar.map(oneSatir => {
             let silinecekSatir = silinecekSatirlar.find(x => x.satirNo === oneSatir.satirNo)
             let silinecekSatirNo = silinecekSatir?.satirNo
@@ -116,14 +117,20 @@ exports = async function ({
             if (oneSatir.satirNo === silinecekSatirNo && pasifEdilenVersiyon === oneSatir.versiyon) {
               delete oneSatir.isPasif
             }
-            if (oneSatir.versiyon !== 0 && oneSatir.satirNo >= siraNo) {
-              return oneSatir
+            if (oneSatir.versiyon !== 0) {
+              let siraNo2 = oneSatir.satirNo.substring(oneSatir.satirNo.indexOf(".") + 1, oneSatir.satirNo.length)
+              if (siraNo2 >= siraNo) {
+                siraNo = siraNo2 + 1
+              }
             }
+            return oneSatir
           })
 
-          silinmeyecekSatirlar = silinmeyecekSatirlar.filter(x => x.versiyon !== 0).map(oneSatir => {
-            oneSatir.satirNo = originalSatirNo + "." + siraNo
-            siraNo += 1
+          silinmeyecekSatirlar = silinmeyecekSatirlar.map(oneSatir => {
+            if (oneSatir.versiyon === 0) {
+              oneSatir.satirNo = originalSatirNo + "." + siraNo
+              siraNo += 1
+            }
             return oneSatir
           })
 
