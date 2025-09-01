@@ -95,7 +95,6 @@ exports = async function ({
 
 
 
-
   // metraj güncelleme
   try {
     await collection_Dugumler.updateOne({ _id: _dugumId },
@@ -149,7 +148,13 @@ exports = async function ({
                                                 "$$value",
                                                 {
                                                   "$cond": {
-                                                    "if": { $and: [{ $ne: ["$$this.metraj", ""] }, { $eq: ["$$this.userEmail", "$$oneHazirlanan.userEmail"] }] },
+                                                    "if": {
+                                                      $and: [
+                                                        { $ne: ["$$this.metraj", ""] },
+                                                        { $eq: ["$$this.userEmail", "$$oneHazirlanan.userEmail"] },
+                                                        { $ne: ["$$this.isPasif", true] }
+                                                      ]
+                                                    },
                                                     "then": {
                                                       "$toDouble": "$$this.metraj"
                                                     },
