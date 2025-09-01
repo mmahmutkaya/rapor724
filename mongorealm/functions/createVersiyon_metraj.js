@@ -95,12 +95,12 @@ exports = async function ({
                         as: "oneSatir",
                         in: {
                           $cond: {
-                            if: { $in: [0, "$$oneSatir.versiyonlar"] },
+                            if: { $eq: ["$$oneSatir.versiyon", 0] },
                             else: "$$oneSatir",
                             then: {
                               $mergeObjects: [
                                 "$$oneSatir",
-                                { versiyonlar: { $concatArrays: ["$$oneSatir.versiyonlar", [versiyonNumber]] } }
+                                { versiyon: versiyonNumber }
                               ]
                             }
                           }
@@ -127,12 +127,12 @@ exports = async function ({
                         in: {
                           $cond: {
                             // if: { $and: [{ $ne: ["$$oneSatir", []] }, { $in: [0, "$$oneSatir.versiyonlar"] }] },
-                            if: { $in: [0, "$$oneSatir.versiyonlar"] },
+                            if: { $eq: ["$$oneSatir.versiyon", 0] },
                             else: "$$oneSatir",
                             then: {
                               $mergeObjects: [
                                 "$$oneSatir",
-                                { versiyonlar: { $concatArrays: ["$$oneSatir.versiyonlar", [versiyonNumber]] } }
+                                { versiyon: versiyonNumber }
                               ]
                             }
                           }
