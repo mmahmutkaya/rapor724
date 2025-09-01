@@ -52,6 +52,7 @@ exports = async function ({
             $unset: {
               "hazirlananMetrajlar.$[oneHazirlanan].satirlar.$[oneSatir].hasSelectedCopy": "",
               "hazirlananMetrajlar.$[oneHazirlanan].satirlar.$[oneSatir].isSelected": "",
+              "hazirlananMetrajlar.$[oneHazirlanan].satirlar.$[oneSatir].versiyon": "",
               "revizeMetrajlar.$[oneMetraj].isSelected": "",
             }
           },
@@ -61,7 +62,8 @@ exports = async function ({
             },
             {
               "oneSatir.satirNo": originalSatirNo,
-              "oneSatir.isSelected": true
+              "oneSatir.isSelected": true,
+              "oneSatir.versiyon":0
             },
             {
               "oneMetraj.satirNo": originalSatirNo,
