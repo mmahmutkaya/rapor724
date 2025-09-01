@@ -108,7 +108,7 @@ exports = async function ({
 
   // metraj güncelleme
   try {
-    await collection_Dugumler.updateOne({ _id: _dugumId },
+    await collection_Dugumler.updateMany({ _id: { $in: metrajGuncellenecekDugumIdler } },
       [
         {
           $set: {
