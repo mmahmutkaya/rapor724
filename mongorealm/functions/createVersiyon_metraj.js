@@ -126,7 +126,6 @@ exports = async function ({
                         as: "oneSatir",
                         in: {
                           $cond: {
-                            // if: { $and: [{ $ne: ["$$oneSatir", []] }, { $in: [0, "$$oneSatir.versiyonlar"] }] },
                             if: { $eq: ["$$oneSatir.versiyon", 0] },
                             else: "$$oneSatir",
                             then: {
@@ -143,7 +142,8 @@ exports = async function ({
                 ]
               }
             }
-          }
+          },
+          metrajVersiyonlari: {$concatArrays:["$metrajVersiyonlari",[{versiyonNumber,metrajOnaylanan:"$metrajOnaylanan"}]]}
         }
       }
     ])
