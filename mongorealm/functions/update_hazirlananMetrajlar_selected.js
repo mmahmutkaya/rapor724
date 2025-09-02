@@ -59,6 +59,7 @@ exports = async function ({
             $set: {
               "hazirlananMetrajlar.$[oneHazirlanan].satirlar.$[oneSatir].isSelected": true,
               "hazirlananMetrajlar.$[oneHazirlanan].satirlar.$[oneSatir].hasSelectedCopy": false,
+              "hazirlananMetrajlar.$[oneHazirlanan].satirlar.$[oneSatir].versiyon": 0,
               "hazirlananMetrajlar.$[oneSatir].satirlar": true,
               "revizeMetrajlar.$[oneMetraj].isSelected": true,
               "revizeMetrajlar.$[oneMetraj].satirlar": [],
@@ -157,7 +158,13 @@ exports = async function ({
                                                 "$$value",
                                                 {
                                                   "$cond": {
-                                                    "if": { $and: [{ $ne: ["$$this.metraj", ""] }, { $eq: ["$$this.userEmail", "$$oneHazirlanan.userEmail"] }] },
+                                                    "if": {
+                                                      $and: [
+                                                        { $ne: ["$$this.metraj", ""] },
+                                                        { $eq: ["$$this.userEmail", "$$oneHazirlanan.userEmail"] },
+                                                        { $ne: ["$$this.isPasif", true] }
+                                                      ]
+                                                    },
                                                     "then": {
                                                       "$toDouble": "$$this.metraj"
                                                     },

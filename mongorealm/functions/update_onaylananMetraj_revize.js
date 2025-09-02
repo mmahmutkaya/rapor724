@@ -95,70 +95,6 @@ exports = async function ({
 
 
 
-
-  // try {
-
-  //   let bulkArray = []
-
-  //   onaylananMetraj_state.satirlar.filter(x => x.hasSelectedCopy && x.newSelected).map(oneSatir => {
-
-  //     if (oneSatir) {
-
-  //       let originalSatirNo = oneSatir.satirNo
-  //       let satirlar = onaylananMetraj_state.satirlar.filter(x => x.originalSatirNo === originalSatirNo)
-  //       let userEmail = oneSatir.userEmail
-
-  //       oneBulk = {
-  //         updateOne: {
-  //           filter: { _id: _dugumId },
-  //           update: {
-  //             $set: {
-  //               "hazirlananMetrajlar.$[oneHazirlanan].satirlar.$[oneSatir].hasSelectedCopy": true,
-  //               "revizeMetrajlar.$[oneMetraj].satirlar": satirlar,
-  //             },
-  //             $unset: {
-  //               "hazirlananMetrajlar.$[oneHazirlanan].satirlar.$[oneSatir].isSelected": ""
-  //             }
-  //           },
-  //           arrayFilters: [
-  //             {
-  //               "oneHazirlanan.userEmail": userEmail
-  //             },
-  //             {
-  //               "oneSatir.satirNo": originalSatirNo,
-  //               "oneSatir.isSelected": true
-  //             },
-  //             {
-  //               "oneMetraj.satirNo": originalSatirNo
-  //             }
-  //           ]
-  //         }
-  //       }
-
-  //       bulkArray = [...bulkArray, oneBulk]
-
-  //     }
-  //   })
-
-
-  //   if (bulkArray.length > 0) {
-  //     await collection_Dugumler.bulkWrite(
-  //       bulkArray,
-  //       { ordered: false }
-  //     )
-  //   }
-
-  // } catch (error) {
-  //   throw new Error("MONGO // update_onaylananMetraj_revize // 1 " + error);
-  // }
-
-
-
-
-
-
-
-
   // metraj güncelleme
   try {
     await collection_Dugumler.updateOne({ _id: _dugumId },
@@ -212,7 +148,13 @@ exports = async function ({
                                                 "$$value",
                                                 {
                                                   "$cond": {
-                                                    "if": { $and: [{ $ne: ["$$this.metraj", ""] }, { $eq: ["$$this.userEmail", "$$oneHazirlanan.userEmail"] }] },
+                                                    "if": {
+                                                      $and: [
+                                                        { $ne: ["$$this.metraj", ""] },
+                                                        { $eq: ["$$this.userEmail", "$$oneHazirlanan.userEmail"] },
+                                                        { $ne: ["$$this.isPasif", true] }
+                                                      ]
+                                                    },
                                                     "then": {
                                                       "$toDouble": "$$this.metraj"
                                                     },

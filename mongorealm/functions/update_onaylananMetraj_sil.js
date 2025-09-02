@@ -37,40 +37,45 @@ exports = async function ({
     let oneBulk
     onaylananMetraj_state.satirlar.filter(x => x.isSelected && x.newSelected).map(oneSatir => {
 
-      let userEmail = oneSatir.userEmail
-      let originalSatirNo = oneSatir.satirNo
+      if (oneSatir) {
+        let userEmail = oneSatir.userEmail
+        let originalSatirNo = oneSatir.satirNo
 
-      oneBulk = {
-        updateOne: {
-          filter: { _id: _dugumId },
-          update: {
-            $set: {
-              "hazirlananMetrajlar.$[oneHazirlanan].satirlar.$[oneSatir].isReady": true,
-              "revizeMetrajlar.$[oneMetraj].isReady": true,
-              "revizeMetrajlar.$[oneMetraj].satirlar": [],
+        oneBulk = {
+          updateOne: {
+            filter: { _id: _dugumId },
+            update: {
+              $set: {
+                "hazirlananMetrajlar.$[oneHazirlanan].satirlar.$[oneSatir].isReady": true,
+                "revizeMetrajlar.$[oneMetraj].isReady": true,
+                "revizeMetrajlar.$[oneMetraj].satirlar": [],
+              },
+              $unset: {
+                "hazirlananMetrajlar.$[oneHazirlanan].satirlar.$[oneSatir].hasSelectedCopy": "",
+                "hazirlananMetrajlar.$[oneHazirlanan].satirlar.$[oneSatir].isSelected": "",
+                "hazirlananMetrajlar.$[oneHazirlanan].satirlar.$[oneSatir].versiyon": "",
+                "revizeMetrajlar.$[oneMetraj].isSelected": "",
+              }
             },
-            $unset: {
-              "hazirlananMetrajlar.$[oneHazirlanan].satirlar.$[oneSatir].hasSelectedCopy": "",
-              "hazirlananMetrajlar.$[oneHazirlanan].satirlar.$[oneSatir].isSelected": "",
-              "revizeMetrajlar.$[oneMetraj].isSelected": "",
-            }
-          },
-          arrayFilters: [
-            {
-              "oneHazirlanan.userEmail": userEmail
-            },
-            {
-              "oneSatir.satirNo": originalSatirNo,
-              "oneSatir.isSelected": true
-            },
-            {
-              "oneMetraj.satirNo": originalSatirNo,
-              "oneMetraj.isSelected": true
-            }
-          ]
+            arrayFilters: [
+              {
+                "oneHazirlanan.userEmail": userEmail
+              },
+              {
+                "oneSatir.satirNo": originalSatirNo,
+                "oneSatir.isSelected": true,
+                "oneSatir.versiyon": 0
+              },
+              {
+                "oneMetraj.satirNo": originalSatirNo,
+                "oneMetraj.isSelected": true
+              }
+            ]
+          }
         }
+        bulkArray = [...bulkArray, oneBulk]
+
       }
-      bulkArray = [...bulkArray, oneBulk]
 
     })
 
@@ -95,13 +100,39 @@ exports = async function ({
 
       let originalSatirNo = oneSatir.satirNo
       let userEmail = oneSatir.userEmail
-      let silinecekSatir = onaylananMetraj_state.satirlar.find(x => x.originalSatirNo === originalSatirNo && x.newSelected)
+      let silinecekSatirlar = onaylananMetraj_state.satirlar.filter(x => x.originalSatirNo === originalSatirNo && x.newSelected)
       let silinmeyecekSatirlar = onaylananMetraj_state.satirlar.filter(x => x.originalSatirNo === originalSatirNo && !x.newSelected)
 
-      if (silinecekSatir) {
+      if (silinecekSatirlar.length > 0) {
 
         // revizelerin bazısı siliniyorsa
         if (silinmeyecekSatirlar.length > 0) {
+
+          let siraNo = 1
+          // versiyon 0 olup silinecek satırlar içerisinde  
+          silinmeyecekSatirlar = silinmeyecekSatirlar.map(oneSatir => {
+            let silinecekSatir = silinecekSatirlar.find(x => x.satirNo === oneSatir.satirNo)
+            let silinecekSatirNo = silinecekSatir?.satirNo
+            let pasifEdilenVersiyon = silinecekSatir?.pasifEdilenVersiyon
+            if (oneSatir.satirNo === silinecekSatirNo && pasifEdilenVersiyon === oneSatir.versiyon) {
+              delete oneSatir.isPasif
+            }
+            if (oneSatir.versiyon !== 0) {
+              let siraNo2 = oneSatir.satirNo.substring(oneSatir.satirNo.indexOf(".") + 1, oneSatir.satirNo.length)
+              if (siraNo2 >= siraNo) {
+                siraNo = siraNo2 + 1
+              }
+            }
+            return oneSatir
+          })
+
+          silinmeyecekSatirlar = silinmeyecekSatirlar.map(oneSatir => {
+            if (oneSatir.versiyon === 0) {
+              oneSatir.satirNo = originalSatirNo + "." + siraNo
+              siraNo += 1
+            }
+            return oneSatir
+          })
 
           oneBulk = {
             updateOne: {
@@ -167,291 +198,6 @@ exports = async function ({
   }
 
 
-  // try {
-
-  //   let bulkArray = []
-  //   let oneBulk
-  //   onaylananMetraj_state.satirlar.filter(x => x.hasSelectedCopy && x.newSelected).map(oneSatir => {
-
-  //     let userEmail = oneSatir.userEmail
-  //     let originalSatirNo = oneSatir.satirNo
-
-  //     oneBulk = {
-  //       updateOne: {
-  //         filter: { _id: _dugumId },
-  //         update: {
-  //           $set: {
-  //             "hazirlananMetrajlar.$[oneHazirlanan].satirlar.$[oneSatir].isReady": true
-  //           },
-  //           $unset: {
-  //             "hazirlananMetrajlar.$[oneHazirlanan].satirlar.$[oneSatir].hasSelectedCopy": ""
-  //           }
-  //         },
-  //         arrayFilters: [
-  //           {
-  //             "oneHazirlanan.userEmail": userEmail
-  //           },
-  //           {
-  //             "oneSatir.satirNo": originalSatirNo,
-  //             "oneSatir.hasSelectedCopy": true
-  //           }
-  //         ]
-  //       }
-  //     }
-  //     bulkArray = [...bulkArray, oneBulk]
-
-  //     oneBulk = {
-  //       updateOne: {
-  //         filter: { _id: _dugumId },
-  //         update: {
-  //           $unset: {
-  //             "hazirlananMetrajlar.$[oneHazirlanan].satirlar.$[oneSatir]": "",
-  //           }
-  //         },
-  //         arrayFilters: [
-  //           {
-  //             "oneHazirlanan.userEmail": userEmail
-  //           },
-  //           {
-  //             "oneSatir.originalSatirNo": originalSatirNo
-  //           }
-  //         ]
-  //       }
-  //     }
-  //     bulkArray = [...bulkArray, oneBulk]
-
-
-  //     oneBulk = {
-  //       updateOne: {
-  //         filter: { _id: _dugumId },
-  //         update: {
-  //           $pull: {
-  //             "hazirlananMetrajlar.$[oneHazirlanan].satirlar": null,
-  //           }
-  //         },
-  //         arrayFilters: [
-  //           {
-  //             "oneHazirlanan.userEmail": userEmail
-  //           }
-  //         ]
-  //       }
-  //     }
-  //     bulkArray = [...bulkArray, oneBulk]
-
-  //   })
-
-  //   if (bulkArray.length > 0) {
-  //     await collection_Dugumler.bulkWrite(
-  //       bulkArray,
-  //       { ordered: false }
-  //     )
-  //   }
-
-
-  // } catch (error) {
-  //   throw new Error("MONGO // update_onaylananMetraj_sil // isSelected olanların silinmesi ");
-  // }
-
-
-  // let emails = []
-  // onaylananMetraj_state.satirlar.filter(x => x.newSelected).map(oneSatir => {
-  //   if (!emails.find(x => x === oneSatir.userEmail)) (
-  //     emails = [...emails, oneSatir.userEmail]
-  //   )
-  // })
-
-  // let revizeMetrajSatirNolar_silinecek = []
-
-  // try {
-
-  //   let bulkArray = []
-  //   emails.map(oneEmail => {
-
-  //     let hasSelectedCopySatirNolar_silinecek = onaylananMetraj_state.satirlar.filter(x => x.hasSelectedCopy && x.newSelected && x.userEmail === oneEmail).map(oneSatir => {
-  //       return oneSatir.satirNo
-  //     })
-
-  //     if (hasSelectedCopySatirNolar_silinecek.length > 0) {
-
-  //       revizeMetrajSatirNolar_silinecek = [...revizeMetrajSatirNolar_silinecek, ...hasSelectedCopySatirNolar_silinecek]
-
-  //       oneBulk = {
-  //         updateOne: {
-  //           filter: { _id: _dugumId },
-  //           update: {
-  //             $set: {
-  //               "hazirlananMetrajlar.$[oneHazirlanan].satirlar.$[oneSatir].isReady": true,
-  //               "revizeMetrajlar.$[oneMetraj].isAktif": false,
-  //               "revizeMetrajlar.$[oneMetraj].satirlar": [],
-  //             },
-  //             $unset: {
-  //               "hazirlananMetrajlar.$[oneHazirlanan].satirlar.$[oneSatir].hasSelectedCopy": ""
-  //             }
-  //           },
-  //           arrayFilters: [
-  //             {
-  //               "oneHazirlanan.userEmail": oneEmail
-  //             },
-  //             {
-  //               "oneSatir.satirNo": { $in: hasSelectedCopySatirNolar_silinecek },
-  //               "oneSatir.hasSelectedCopy": true
-  //             },
-  //             {
-  //               "oneMetraj.satirNo": { $in: hasSelectedCopySatirNolar_silinecek }
-  //             }
-  //           ]
-  //         }
-  //       }
-  //       bulkArray = [...bulkArray, oneBulk]
-  //     }
-
-
-  //     let isSelectedSatirNolar_silinecek = onaylananMetraj_state.satirlar.filter(x => x.isSelected && x.newSelected && x.userEmail === oneEmail).map(oneSatir => {
-  //       return oneSatir.satirNo
-  //     })
-
-  //     if (isSelectedSatirNolar_silinecek.length > 0) {
-
-  //       oneBulk = {
-  //         updateOne: {
-  //           filter: { _id: _dugumId },
-  //           update: {
-  //             $set: {
-  //               "hazirlananMetrajlar.$[oneHazirlanan].satirlar.$[oneSatir].isReady": true,
-  //               "revizeMetrajlar.$[oneMetraj].isAktif": false,
-  //               "revizeMetrajlar.$[oneMetraj].satirlar": [],
-  //             },
-  //             $unset: {
-  //               "hazirlananMetrajlar.$[oneHazirlanan].satirlar.$[oneSatir].hasSelectedCopy": "",
-  //               "hazirlananMetrajlar.$[oneHazirlanan].satirlar.$[oneSatir].isSelected": ""
-  //             }
-  //           },
-  //           arrayFilters: [
-  //             {
-  //               "oneHazirlanan.userEmail": oneEmail
-  //             },
-  //             {
-  //               "oneSatir.satirNo": { $in: isSelectedSatirNolar_silinecek },
-  //               "oneSatir.isSelected": true
-  //             },
-  //             {
-  //               "oneMetraj.satirNo": { $in: isSelectedSatirNolar_silinecek }
-  //             }
-  //           ]
-  //         }
-  //       }
-  //       bulkArray = [...bulkArray, oneBulk]
-  //     }
-
-  //   })
-
-  //   if (bulkArray.length > 0) {
-  //     await collection_Dugumler.bulkWrite(
-  //       bulkArray,
-  //       { ordered: false }
-  //     )
-  //   }
-
-  // } catch (error) {
-  //   throw new Error({ hatayeri: "MONGO // update_onaylananMetraj_sil // ilk aşama //", error });
-  // }
-
-
-
-  // try {
-
-  //   let bulkArray = []
-
-  //   // yukarıda silinecekleri ele aldık, slinmeyecek olanları bir ele alalım, belki içinde silinecek revize satırlar vardır
-  //   onaylananMetraj_state.satirlar.filter(x => x.hasSelectedCopy && !x.newSelected).map(oneSatir => {
-
-  //     let originalSatirNo = oneSatir.satirNo
-  //     // revize satırlarında silinecek olan var mı bakalım
-  //     let silinecekBirSatir = onaylananMetraj_state.satirlar.find(x => x.originalSatirNo === originalSatirNo && x.newSelected)
-
-  //     if (silinecekBirSatir) {
-
-  //       let userEmail = silinecekBirSatir.userEmail
-
-  //       let silinmeyecekSatirlar = onaylananMetraj_state.satirlar.filter(x => x.originalSatirNo === originalSatirNo && !x.newSelected)
-
-  //       // revize satırların bir kısmı duruyorsa
-  //       if (silinmeyecekSatirlar.length > 0) {
-
-  //         let siraNo = 1
-  //         silinmeyecekSatirlar = silinmeyecekSatirlar.map(oneSatir => {
-  //           oneSatir.satirNo = originalSatirNo + "." + siraNo
-  //           siraNo += 1
-  //           return oneSatir
-  //         })
-
-
-  //         oneBulk = {
-  //           updateOne: {
-  //             filter: { _id: _dugumId },
-  //             update: {
-  //               $set: {
-  //                 "revizeMetrajlar.$[oneMetraj].satirlar": silinmeyecekSatirlar,
-  //                 "revizeMetrajlar.$[oneMetraj].satirNo": originalSatirNo,
-  //               }
-  //             },
-  //             arrayFilters: [
-  //               {
-  //                 "oneMetraj.satirNo": originalSatirNo,
-  //               }
-  //             ]
-  //           }
-  //         }
-  //         bulkArray = [...bulkArray, oneBulk]
-
-  //         // revize satırların tamamı silinecek, ana satır devreye alınacaksa
-  //       } else {
-
-  //         oneBulk = {
-  //           updateOne: {
-  //             filter: { _id: _dugumId },
-  //             update: {
-  //               $set: {
-  //                 "hazirlananMetrajlar.$[oneHazirlanan].satirlar.$[oneSatir].isSelected": true,
-  //                 "hazirlananMetrajlar.$[oneHazirlanan].satirlar.$[oneSatir].hasSelectedCopy": false,
-  //                 "revizeMetrajlar.$[oneMetraj].satirlar": []
-  //               }
-  //             },
-  //             arrayFilters: [
-  //               {
-  //                 "oneHazirlanan.userEmail": userEmail
-  //               },
-  //               {
-  //                 "oneSatir.satirNo": originalSatirNo
-  //               },
-  //               {
-  //                 "oneMetraj.satirNo": originalSatirNo
-  //               }
-  //             ]
-  //           }
-  //         }
-  //         bulkArray = [...bulkArray, oneBulk]
-
-  //       }
-
-  //     }
-
-
-  //   })
-
-
-  //   if (bulkArray.length > 0) {
-  //     await collection_Dugumler.bulkWrite(
-  //       bulkArray,
-  //       { ordered: false }
-  //     )
-  //   }
-
-  // } catch (error) {
-  //   throw new Error({ hatayeri: "MONGO // update_onaylananMetraj_sil // ikinci aşama //", error });
-  // }
-
-
 
 
 
@@ -509,7 +255,13 @@ exports = async function ({
                                                 "$$value",
                                                 {
                                                   "$cond": {
-                                                    "if": { $and: [{ $ne: ["$$this.metraj", ""] }, { $eq: ["$$this.userEmail", "$$oneHazirlanan.userEmail"] }] },
+                                                    "if": {
+                                                      $and: [
+                                                        { $ne: ["$$this.metraj", ""] },
+                                                        { $eq: ["$$this.userEmail", "$$oneHazirlanan.userEmail"] },
+                                                        { $ne: ["$$this.isPasif", true] }
+                                                      ]
+                                                    },
                                                     "then": {
                                                       "$toDouble": "$$this.metraj"
                                                     },
@@ -552,6 +304,7 @@ exports = async function ({
         }
       ]
     )
+
 
   } catch (error) {
     throw new Error("MONGO // update_onaylananMetraj_revize // metraj güncelleme" + error);
