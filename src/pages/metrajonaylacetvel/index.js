@@ -12,7 +12,7 @@ import { BSON } from "realm-web"
 import { useGetOnaylananMetraj } from '../../hooks/useMongo.js';
 
 
-import { styled } from '@mui/system';
+import { borderBottom, styled } from '@mui/system';
 import Grid from '@mui/material/Grid';
 import Input from '@mui/material/Input';
 import Alert from '@mui/material/Alert';
@@ -71,7 +71,7 @@ export default function P_MetrajCetveliOnaylanan() {
     setOnaylananMetraj_state(_.cloneDeep(onaylananMetraj))
     setOnaylananMetraj_backUp(_.cloneDeep(onaylananMetraj))
     setHasSelectedCopySatirlar(onaylananMetraj?.satirlar.find(x => x.hasSelectedCopy) ? true : false)
-    // console.log("onaylananMetraj",onaylananMetraj)
+    // console.log("onaylananMetraj", onaylananMetraj)
     setShow("Main")
   }, [onaylananMetraj])
 
@@ -101,7 +101,7 @@ export default function P_MetrajCetveliOnaylanan() {
     // console.log("onaylananMetraj_state2", onaylananMetraj_state2)
 
 
-    // eğer düzenlenmeye başlanan satır orjinal satır ise düzenlemeler yapılarak kopyası oluşturulur ve satirlar array'ine eklenir
+    // eğer düzenlenmeye başlanan satır orjinal satır ise düzenlemeler yapılarak ilk revize kopyası oluşturulur ve satirlar array'ine eklenir
     let originalSatirNo
     if (!oneSatir.satirNo.includes(".")) {
       originalSatirNo = oneSatir.satirNo
@@ -113,6 +113,7 @@ export default function P_MetrajCetveliOnaylanan() {
       oneSatir.isSelectedCopy = true
       oneSatir.isFirstCopy = true
       oneSatir.isLastCopy = true
+      oneSatir.versiyon = 0
 
       onaylananMetraj_state2.satirlar = [...onaylananMetraj_state2.satirlar, { ...oneSatir }]
 
@@ -122,34 +123,54 @@ export default function P_MetrajCetveliOnaylanan() {
     }
 
     // map ile tarayarak, state kısmındaki datanın ilgili satırını güncelliyoruz, ayrıca tüm satırların toplam metrajını, önce önceki değeri çıkartıp yeni değeri ekleyerek
+    let oncekiVersiyon_originalSatir
+    let oncekiVersiyon_revizeSatir
     onaylananMetraj_state2["satirlar"] = onaylananMetraj_state2["satirlar"].map(oneRow => {
 
       // orjinal satırın değiştirilmesi ile yapılmışsa originalSatır diye bişey var yoksa alttan devam edecek
       if (oneRow.satirNo === originalSatirNo) {
-        // ilk iki satır ilk kopyası oluşturulurken gereki ama olsun
+
+        // eğer önceki versiyonlarda yer alan bir satır ise güncel vrsiyondan çıkartıp
+        // kopyasını alıp map döngüsü bitince aşağıda ekliyoruz
+        // yeni kopyaya güncel versiyon veriyoruz 0
+        // if (oneRow.versiyon !== 0) {
+        //   oncekiVersiyon_originalSatir = { ...oneRow, isPasif: true }
+        //   oneRow.pasifEdilenVersiyon = oneRow.versiyon
+        //   oneRow.versiyon = 0
+        // }
+
+        // ilk satır ilk kopyası oluşturulurken gereki ama olsun
         oneRow.hasSelectedCopy = true
         //  bu da db işlemi için gerekli
         oneRow.newSelected = true
-
+        // original satırdaki değişiklilerimizi yaptık map içine gönderiyoruz
+        return oneRow
       }
 
       // yukarıda satırno değiştirdik kopyasına yeni satır numarası verdik noktalı
       // bu revizenin ilk kopyası sonraki kopyalar aşağıdaki fonksiyonda oluşuyor
-      if (oneRow.satirNo === oneSatir.satirNo) {
+      if (oneRow.satirNo === oneSatir.satirNo && !oneRow.isPasif) {
 
+        // eğer önceki versiyonlarda yer alan bir satır ise güncel vrsiyondan çıkartıp
+        // kopyasını alıp map döngüsü bitince aşağıda ekliyoruz
+        // yeni kopyaya güncel versiyon veriyoruz 0
+        if (oneRow.versiyon !== 0) {
+          oncekiVersiyon_revizeSatir = { ...oneRow, isPasif: true }
+          oneRow.pasifEdilenVersiyon = oneRow.versiyon
+          oneRow.versiyon = 0
+        }
+
+        // + tuşuna basılıp satır çoğaltma yapılması işlemi için gerekli
         setSelectedRow(oneRow)
         setHasSelectedCopySatirlar(true)
 
-        // önceki satır metrajını çıkartıyoruz, yeni değeri bulunca aşağıda ekleyeceğiz
-        // onaylananMetraj_state2["metraj"] = Number(onaylananMetraj_state2["metraj"]) - Number(oneRow["metraj"])
-
         oneRow[oneProperty] = event.target.value
+
 
         let isMinha = oneRow["aciklama"].replace("İ", "i").toLowerCase().includes("minha") ? true : false
 
         if (oneRow.carpan1 == "" && oneRow.carpan2 == "" && oneRow.carpan3 == "" && oneRow.carpan4 == "" && oneRow.carpan5 == "") {
           oneRow.metraj = ""
-          // onaylananMetraj_state2["metraj"] ı güncelleyecek bir durum yok, önceki değeri yukarıda çıkarmıştık, yenisi zaten sıfır çıktı
           return oneRow
         }
 
@@ -163,13 +184,9 @@ export default function P_MetrajCetveliOnaylanan() {
 
         if (isMinha) {
           oneRow.metraj = oneRowMetraj * -1
-          // onaylananMetraj_state2["metraj"] = onaylananMetraj_state2["metraj"] + Number(oneRow.metraj)
-          // metraj = oneRowMetraj > 0 ? Number(metraj) - Number(oneRowMetraj) : Number(metraj)
           return oneRow
         } else {
           oneRow.metraj = oneRowMetraj
-          // metraj = Number(oneRowMetraj) > 0 ? Number(metraj) + Number(oneRowMetraj) : Number(metraj)
-          // onaylananMetraj_state2["metraj"] = onaylananMetraj_state2["metraj"] + Number(oneRow.metraj)
           return oneRow
         }
 
@@ -179,9 +196,17 @@ export default function P_MetrajCetveliOnaylanan() {
 
     })
 
+    if (oncekiVersiyon_originalSatir) {
+      onaylananMetraj_state2.satirlar = [...onaylananMetraj_state2.satirlar, oncekiVersiyon_originalSatir]
+    }
+
+    if (oncekiVersiyon_revizeSatir) {
+      onaylananMetraj_state2.satirlar = [...onaylananMetraj_state2.satirlar, oncekiVersiyon_revizeSatir]
+    }
+
     let metrajOnaylanan = 0
     onaylananMetraj_state2.satirlar.map(oneSatir => {
-      if (!oneSatir.hasSelectedCopy) {
+      if (!oneSatir.hasSelectedCopy && !oneSatir.isPasif) {
         metrajOnaylanan += oneSatir.metraj ? Number(oneSatir.metraj) : 0
       }
     })
@@ -213,6 +238,8 @@ export default function P_MetrajCetveliOnaylanan() {
     oneRow.carpan4 = ""
     oneRow.carpan5 = ""
     oneRow.metraj = ""
+    oneRow.versiyon = 0
+    delete oneRow.pasifEdilenVersiyon
     delete oneRow.isFirstCopy
 
 
@@ -316,12 +343,12 @@ export default function P_MetrajCetveliOnaylanan() {
 
     let onaylananMetraj_state2 = _.cloneDeep(onaylananMetraj_state)
 
-    let copySatirlar = onaylananMetraj_state2.satirlar.filter(x => x.isSelectedCopy)
+    let copySatirlar = onaylananMetraj_state2.satirlar.filter(x => x.isSelectedCopy && x.versiyon === 0)
 
     if (copySatirlar.length > 0) {
       if (copySatirlar.find(x => !x.newSelected)) {
         onaylananMetraj_state2.satirlar = onaylananMetraj_state2.satirlar.map(oneSatir => {
-          if (oneSatir.isSelectedCopy) {
+          if (oneSatir.isSelectedCopy && oneSatir.versiyon === 0) {
             oneSatir.newSelected = true
           }
           if (oneSatir.isSelected || oneSatir.hasSelectedCopy) {
@@ -330,9 +357,11 @@ export default function P_MetrajCetveliOnaylanan() {
           return oneSatir
         })
       } else {
-        if (onaylananMetraj_state2.satirlar.find(x => !x.newSelected)) {
+        if (onaylananMetraj_state2.satirlar.find(x => !x.newSelected && x.versiyon === 0)) {
           onaylananMetraj_state2.satirlar = onaylananMetraj_state2.satirlar.map(oneSatir => {
-            oneSatir.newSelected = true
+            if (oneSatir.versiyon === 0) {
+              oneSatir.newSelected = true
+            }
             return oneSatir
           })
         } else {
@@ -344,9 +373,11 @@ export default function P_MetrajCetveliOnaylanan() {
       }
 
     } else {
-      if (onaylananMetraj_state2.satirlar.find(x => !x.newSelected)) {
+      if (onaylananMetraj_state2.satirlar.find(x => !x.newSelected && x.versiyon === 0)) {
         onaylananMetraj_state2.satirlar = onaylananMetraj_state2.satirlar.map(oneSatir => {
-          oneSatir.newSelected = true
+          if (oneSatir.versiyon === 0) {
+            oneSatir.newSelected = true
+          }
           return oneSatir
         })
       } else {
@@ -372,18 +403,18 @@ export default function P_MetrajCetveliOnaylanan() {
     let onaylananMetraj_state2 = _.cloneDeep(onaylananMetraj_state)
 
     // reviz edilmiş bir satırsa
-    if (oneRow.isSelected) {
+    if (oneRow.isSelected && !oneRow.hasSelectedCopy && oneRow.versiyon === 0) {
 
       if (!oneRow.newSelected) {
         onaylananMetraj_state2.satirlar = onaylananMetraj_state2.satirlar.map(oneSatir => {
-          if (oneSatir.satirNo === oneRow.satirNo) {
+          if (oneSatir.satirNo === oneRow.satirNo && oneSatir.versiyon === 0) {
             oneSatir.newSelected = true
           }
           return oneSatir
         })
       } else {
         onaylananMetraj_state2.satirlar = onaylananMetraj_state2.satirlar.map(oneSatir => {
-          if (oneSatir.satirNo === oneRow.satirNo) {
+          if (oneSatir.satirNo === oneRow.satirNo && oneSatir.versiyon === 0) {
             delete oneSatir.newSelected
           }
           return oneSatir
@@ -392,18 +423,18 @@ export default function P_MetrajCetveliOnaylanan() {
 
     }
 
-    if (oneRow.isSelectedCopy) {
+    if (oneRow.isSelectedCopy && oneRow.versiyon === 0) {
 
       if (!oneRow.newSelected) {
         onaylananMetraj_state2.satirlar = onaylananMetraj_state2.satirlar.map(oneSatir => {
-          if (oneSatir.satirNo === oneRow.satirNo) {
+          if (oneSatir.satirNo === oneRow.satirNo && oneSatir.versiyon === 0) {
             oneSatir.newSelected = true
           }
           return oneSatir
         })
       } else {
         onaylananMetraj_state2.satirlar = onaylananMetraj_state2.satirlar.map(oneSatir => {
-          if (oneSatir.satirNo === oneRow.satirNo) {
+          if (oneSatir.satirNo === oneRow.satirNo && oneSatir.versiyon === 0) {
             delete oneSatir.newSelected
           }
           if (oneSatir.satirNo === oneRow.originalSatirNo) {
@@ -415,26 +446,26 @@ export default function P_MetrajCetveliOnaylanan() {
 
     }
 
-    if (oneRow.hasSelectedCopy) {
+    if (oneRow.hasSelectedCopy && oneRow.versiyon === 0) {
 
       let originalSatirNo = oneRow.satirNo
 
       if (!oneRow.newSelected) {
         onaylananMetraj_state2.satirlar = onaylananMetraj_state2.satirlar.map(oneSatir => {
-          if (oneSatir.satirNo === oneRow.satirNo) {
+          if (oneSatir.satirNo === oneRow.satirNo && oneSatir.versiyon === 0) {
             oneSatir.newSelected = true
           }
-          if (oneSatir.originalSatirNo === originalSatirNo) {
+          if (oneSatir.originalSatirNo === originalSatirNo && oneSatir.versiyon === 0) {
             oneSatir.newSelected = true
           }
           return oneSatir
         })
       } else {
         onaylananMetraj_state2.satirlar = onaylananMetraj_state2.satirlar.map(oneSatir => {
-          if (oneSatir.satirNo === oneRow.satirNo) {
+          if (oneSatir.satirNo === oneRow.satirNo && oneSatir.versiyon === 0) {
             delete oneSatir.newSelected
           }
-          if (oneSatir.originalSatirNo === originalSatirNo) {
+          if (oneSatir.originalSatirNo === originalSatirNo && oneSatir.versiyon === 0) {
             delete oneSatir.newSelected
           }
 
@@ -570,6 +601,7 @@ export default function P_MetrajCetveliOnaylanan() {
 
   pozBirim = selectedProje?.pozBirimleri.find(item => item.id == selectedPoz_metraj?.pozBirimId)?.name
 
+  let emailAdress
 
   return (
 
@@ -680,37 +712,25 @@ export default function P_MetrajCetveliOnaylanan() {
           </React.Fragment>
 
 
-          {onaylananMetraj_state.satirlar.filter(x => mode_sil ? x : !x.hasSelectedCopy).sort((a, b) => {
+          {onaylananMetraj_state.satirlar.filter(x => !x.isPasif).filter(x => mode_sil ? x : !x.hasSelectedCopy).sort((a, b) => {
 
             let a1 = a.satirNo.substring(0, a.satirNo.indexOf("-"))
             let b1 = b.satirNo.substring(0, b.satirNo.indexOf("-"))
-            // console.log("a1", a1)
 
+            let a2 = a.satirNo.substring(a.satirNo.indexOf("-") + 1, a.satirNo.length)
+            let b2 = b.satirNo.substring(b.satirNo.indexOf("-") + 1, b.satirNo.length)
 
-            // let a2 = a.satirNo.substring(a.satirNo.indexOf("-") + 1, a.satirNo.includes(".") ? a.satirNo.indexOf(".") : a.satirNo.length)
-            // let b2 = b.satirNo.substring(b.satirNo.indexOf("-") + 1, b.satirNo.includes(".") ? b.satirNo.indexOf(".") : b.satirNo.length)
-            // const satirNoComparison = a2 - b2
-            // if (satirNoComparison !== 0) {
-            //   return satirNoComparison;
-            // }
-
-            // let a3 = a.satirNo.includes(".") ? a.satirNo.substring(a.satirNo.indexOf(".") + 1, a.satirNo.length) : 1
-            // let b3 = b.satirNo.includes(".") ? b.satirNo.substring(a.satirNo.indexOf(".") + 1, b.satirNo.length) : 1
-            // const revizeSatirNoComparison = a3 - b3
-            // if (revizeSatirNoComparison !== 0) {
-            //   return revizeSatirNoComparison;
-            // }
-
-            let a4 = a.satirNo.substring(a.satirNo.indexOf("-") + 1, a.satirNo.length)
-            let b4 = b.satirNo.substring(b.satirNo.indexOf("-") + 1, b.satirNo.length)
-            // const revizeSatirNoComparison = a4 - b4
-            // if (revizeSatirNoComparison !== 0) {
-            //   return revizeSatirNoComparison;
-            // }
-            // console.log("b4", b4)
-            return a1.localeCompare(b1) || a4.localeCompare(b4, undefined, { numeric: true, sensitivity: 'base' })
+            return a1.localeCompare(b1) || a2.localeCompare(b2, undefined, { numeric: true, sensitivity: 'base' })
 
           }).map((oneRow, index) => {
+
+            // console.log("oneRow", oneRow)
+
+            let kullaniciDegisti
+            if (index !== 0 && oneRow.userEmail !== emailAdress) {
+              kullaniciDegisti = true
+            }
+            emailAdress = oneRow.userEmail
 
             return (
               < React.Fragment key={index}>
@@ -729,7 +749,9 @@ export default function P_MetrajCetveliOnaylanan() {
                         <Box
                           onClick={() => setSelectedRow(oneRow)}
                           sx={{
-                            ...css_metrajCetveliSatir, borderBottom: oneRow.isLastCopy && "2px solid black", borderTop: oneRow.isFirstCopy && "2px solid black",
+                            ...css_metrajCetveliSatir,
+                            borderBottom: oneRow.isLastCopy && "2px solid black",
+                            borderTop: kullaniciDegisti ? "2px solid red" : oneRow.isFirstCopy && "2px solid black",
                             backgroundColor: oneRow.isSelectedCopy && (oneProperty.includes("aciklama") || oneProperty.includes("carpan")) ? "rgba(255,255,0, 0.3)" : "rgba(255,255,0, 0.1)",
                             minWidth: oneProperty.includes("aciklama") ? "10rem" : oneProperty.includes("1") || oneProperty.includes("2") ? "4rem" : "6rem"
                           }}>
@@ -783,9 +805,12 @@ export default function P_MetrajCetveliOnaylanan() {
                       {!isCellEdit &&
                         <Box
                           sx={{
-                            ...css_metrajCetveliSatir, borderBottom: oneRow.isLastCopy && "2px solid black", borderTop: oneRow.isFirstCopy && "2px solid black",
+                            ...css_metrajCetveliSatir,
+                            borderBottom: oneRow.isLastCopy && "2px solid black",
+                            borderTop: kullaniciDegisti ? "2px solid red" : oneRow.isFirstCopy && "2px solid black",
                             backgroundColor: (mode_sil) && (oneRow.isSelected || oneRow.hasSelectedCopy) ? "rgba(0, 0, 0, 0.12)" :
-                              mode_sil && oneRow?.isSelectedCopy ? "rgba(255, 234, 0, 0.22)" : null,
+                              mode_sil && oneRow?.isSelectedCopy && oneRow?.versiyon !== 0 ? "rgba(255, 234, 0, 0.22)" :
+                                mode_sil && oneRow?.isSelectedCopy && oneRow?.versiyon === 0 && "rgba(255, 234, 0, 0.22)",
                             justifyContent: (oneProperty.includes("satirNo") || oneProperty.includes("aciklama")) ? "start" : oneProperty.includes("carpan") ? "end" : oneProperty.includes("metraj") ? "end" : "center",
                             minWidth: oneProperty.includes("carpan") ? "5rem" : oneProperty.includes("metraj") ? "5rem" : null,
                             color: isMinha ? "red" : null,
@@ -816,6 +841,7 @@ export default function P_MetrajCetveliOnaylanan() {
                     px: "0.3rem",
                     border: "1px solid black",
                     borderBottom: oneRow.isLastCopy && "2px solid black",
+                    borderTop: kullaniciDegisti ? "2px solid red" : oneRow.isFirstCopy && "2px solid black",
                   }}
                 >
                   {/* {!mode_sil && oneRow.isSelected && !oneRow.hasSelectedCopy &&
@@ -823,11 +849,19 @@ export default function P_MetrajCetveliOnaylanan() {
                       variant="contained"
                       sx={{ color: "gray", fontSize: "0.9rem" }} />
                   } */}
-                  {oneRow.isSelectedCopy && !oneRow.newSelected &&
+                  {mode_sil && oneRow.versiyon !== 0 &&
+                    <Box sx={{ fontSize: "0.7rem" }}>v{oneRow.versiyon}</Box>
+                  }
+
+                  {!mode_sil && oneRow.isSelectedCopy && oneRow.versiyon !== 0 &&
                     <EditIcon variant="contained" sx={{ color: mode_sil ? "lightgray" : "gray", fontSize: "0.9rem" }} />
                   }
 
-                  {mode_sil && oneRow.newSelected &&
+                  {oneRow.isSelectedCopy && !oneRow.newSelected && oneRow.versiyon === 0 &&
+                    <EditIcon variant="contained" sx={{ color: mode_sil ? "lightgray" : "gray", fontSize: "0.9rem" }} />
+                  }
+
+                  {mode_sil && oneRow.newSelected && oneRow.versiyon == 0 &&
                     <ReplyIcon
                       variant="contained"
                       sx={{ color: "red", fontSize: "0.9rem" }} />

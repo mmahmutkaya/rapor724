@@ -26,6 +26,8 @@ export const DialogAlert = ({ dialogIcon, dialogMessage, onCloseAction, actionTe
         return <CheckCircleIcon variant="contained" color="success" pr={3} />
       case "info":
         return <InfoIcon variant="contained" color="info" pr={3} />
+      case "none":
+        return
       default:
         return <InfoIcon variant="contained" color="info" pr={3} />
     }

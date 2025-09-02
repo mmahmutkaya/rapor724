@@ -570,6 +570,8 @@ export default function P_MetrajCetveliOnaylanan() {
 
   pozBirim = selectedProje?.pozBirimleri.find(item => item.id == selectedPoz_metraj?.pozBirimId)?.name
 
+  let emailAdress
+
 
   return (
 
@@ -669,14 +671,24 @@ export default function P_MetrajCetveliOnaylanan() {
           </React.Fragment>
 
 
-          {onaylananMetraj_state.satirlar.filter(x => mode_sil ? x : !x.hasSelectedCopy).sort((a, b) => {
+          {onaylananMetraj_state.satirlar.filter(x => !x.isPasif).filter(x => mode_sil ? x : !x.hasSelectedCopy).sort((a, b) => {
 
-            let a1 = a.satirNo.substring(a.satirNo.indexOf("-") + 1, a.satirNo.length)
-            let b1 = b.satirNo.substring(b.satirNo.indexOf("-") + 1, b.satirNo.length)
+            let a1 = a.satirNo.substring(0, a.satirNo.indexOf("-"))
+            let b1 = b.satirNo.substring(0, b.satirNo.indexOf("-"))
 
-            return a1.localeCompare(b1, undefined, { numeric: true, sensitivity: 'base' });
+            let a2 = a.satirNo.substring(a.satirNo.indexOf("-") + 1, a.satirNo.length)
+            let b2 = b.satirNo.substring(b.satirNo.indexOf("-") + 1, b.satirNo.length)
+
+            return a1.localeCompare(b1) || a2.localeCompare(b2, undefined, { numeric: true, sensitivity: 'base' })
 
           }).map((oneRow, index) => {
+
+            let kullaniciDegisti
+            if (index !== 0 && oneRow.userEmail !== emailAdress) {
+              kullaniciDegisti = true
+            }
+            emailAdress = oneRow.userEmail
+
 
             return (
               < React.Fragment key={index}>
@@ -695,7 +707,9 @@ export default function P_MetrajCetveliOnaylanan() {
                         <Box
                           onClick={() => setSelectedRow(oneRow)}
                           sx={{
-                            ...css_metrajCetveliSatir, borderBottom: oneRow.isLastCopy && "2px solid black", borderTop: oneRow.isFirstCopy && "2px solid black",
+                            ...css_metrajCetveliSatir,
+                            borderBottom: oneRow.isLastCopy && "2px solid black",
+                            borderTop: kullaniciDegisti ? "2px solid red" : oneRow.isFirstCopy && "2px solid black",
                             backgroundColor: oneRow.isSelectedCopy && (oneProperty.includes("aciklama") || oneProperty.includes("carpan")) ? "rgba(255,255,0, 0.3)" : "rgba(255,255,0, 0.1)",
                             minWidth: oneProperty.includes("aciklama") ? "10rem" : oneProperty.includes("1") || oneProperty.includes("2") ? "4rem" : "6rem"
                           }}>
@@ -749,7 +763,9 @@ export default function P_MetrajCetveliOnaylanan() {
                       {!isCellEdit &&
                         <Box
                           sx={{
-                            ...css_metrajCetveliSatir, borderBottom: oneRow.isLastCopy && "2px solid black", borderTop: oneRow.isFirstCopy && "2px solid black",
+                            ...css_metrajCetveliSatir,
+                            borderBottom: oneRow.isLastCopy && "2px solid black",
+                            borderTop: kullaniciDegisti ? "2px solid red" : oneRow.isFirstCopy && "2px solid black",
                             backgroundColor: (mode_sil) && (oneRow.isSelected || oneRow.hasSelectedCopy) ? "rgba(0, 0, 0, 0.12)" :
                               mode_sil && oneRow?.isSelectedCopy ? "rgba(255, 234, 0, 0.22)" : null,
                             justifyContent: (oneProperty.includes("satirNo") || oneProperty.includes("aciklama")) ? "start" : oneProperty.includes("carpan") ? "end" : oneProperty.includes("metraj") ? "end" : "center",
@@ -782,6 +798,7 @@ export default function P_MetrajCetveliOnaylanan() {
                     px: "0.3rem",
                     border: "1px solid black",
                     borderBottom: oneRow.isLastCopy && "2px solid black",
+                    borderTop: kullaniciDegisti ? "2px solid red" : oneRow.isFirstCopy && "2px solid black",
                   }}
                 >
                   {/* {!mode_sil && oneRow.isSelected && !oneRow.hasSelectedCopy &&
@@ -789,8 +806,12 @@ export default function P_MetrajCetveliOnaylanan() {
                       variant="contained"
                       sx={{ color: "gray", fontSize: "0.9rem" }} />
                   } */}
-                  {oneRow.isSelectedCopy && !oneRow.newSelected &&
+                  {!mode_sil && oneRow.isSelectedCopy &&
                     <EditIcon variant="contained" sx={{ color: mode_sil ? "gray" : "gray", fontSize: "0.9rem" }} />
+                  }
+
+                  {mode_sil && oneRow.versiyon !== 0 &&
+                    <Box sx={{ fontSize: "0.7rem" }}>v{oneRow.versiyon}</Box>
                   }
 
                   {mode_sil && oneRow.newSelected &&

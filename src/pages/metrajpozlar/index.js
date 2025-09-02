@@ -38,7 +38,7 @@ export default function P_MetrajPozlar() {
   const { RealmApp, myTema } = useContext(StoreContext)
   const { showMetrajYapabilenler, setShowMetrajYapabilenler } = useContext(StoreContext)
   const { selectedPoz_metraj, setSelectedPoz_metraj } = useContext(StoreContext)
-  const { selectedProje } = useContext(StoreContext)
+  const { selectedProje, setSelectedProje } = useContext(StoreContext)
 
 
   const versiyonlar = selectedProje?.versiyonlar?.metraj
@@ -72,8 +72,9 @@ export default function P_MetrajPozlar() {
 
     try {
 
-      await RealmApp?.currentUser.callFunction("createVersiyon_metraj", ({ _projeId: selectedProje?._id }))
+      const resultProje = await RealmApp?.currentUser.callFunction("createVersiyon_metraj", ({ _projeId: selectedProje?._id }))
       queryClient.invalidateQueries(['pozlar'])
+      setSelectedProje(resultProje)
       return
 
     } catch (err) {

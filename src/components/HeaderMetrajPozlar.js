@@ -30,20 +30,14 @@ export default function HeaderMetrajPozlar({ createVersiyon_metraj }) {
 
   const { drawerWidth, topBarHeight } = useContext(StoreContext)
   const { selectedProje } = useContext(StoreContext)
-  const versiyonlar = selectedProje?.versiyonlar?.metraj
-
 
   const [showEminMisin_versiyon, setShowEminMisin_versiyon] = useState(false)
 
   const navigate = useNavigate()
 
 
-
-
   const showVersiyon = () => {
-    if (!versiyonlar) {
-      console.log("selectedProje", selectedProje)
-    }
+    setShowEminMisin_versiyon(true)
   }
 
 
@@ -52,8 +46,8 @@ export default function HeaderMetrajPozlar({ createVersiyon_metraj }) {
 
       {showEminMisin_versiyon &&
         <DialogAlert
-          dialogIcon={"info"}
-          dialogMessage={"Mevcut metrajlar 'v1' olarak kaydedilsin mi?"}
+          dialogIcon={"none"}
+          dialogMessage={"Mevcut metrajlar yeni versiyon olarak kaydedilsin mi?"}
           onCloseAction={() => setShowEminMisin_versiyon()}
           actionText1={"İptal"}
           action1={() => setShowEminMisin_versiyon()}
