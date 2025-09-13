@@ -97,10 +97,10 @@ exports = async function ({
 
 
     const paraBirimleri = [
-      { id: "TRY", name: "Türk Lirası", isActive: null },
-      { id: "USD", name: "Amerikan Doları", isActive: null },
-      { id: "EUR", name: "Euro", isActive: null },
-      { id: "UZS", name: "Özbekistan Sum", isActive: null }
+      { id: "TRY", name: "Türk Lirası", isActive: false },
+      { id: "USD", name: "Amerikan Doları", isActive: false },
+      { id: "EUR", name: "Euro", isActive: false },
+      { id: "UZS", name: "Özbekistan Sum", isActive: false }
     ]
 
 
