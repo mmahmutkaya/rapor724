@@ -96,17 +96,12 @@ exports = async function ({
     // ]
 
 
-    // const mahalBirimleri = [
-    //   { id: "mt", name: "mt" },
-    //   { id: "m2", name: "m2" },
-    //   { id: "m3", name: "m3" },
-    //   { id: "ad", name: "ad" },
-    //   { id: "set", name: "set" },
-    //   { id: "tl", name: "TL" },
-    //   { id: "usd", name: "USD" },
-    //   { id: "eur", name: "EUR" },
-    //   { id: "tarih", name: "TARİH" },
-    // ]
+    const paraBirimleri = [
+      { id: "TRY", nama: "Türk Lirası", isActive: null },
+      { id: "USD", nama: "Amerikan Doları", isActive: null },
+      { id: "EUR", nama: "Euro", isActive: null },
+      { id: "UZS", nama: "Özbekistan Sum", isActive: null }
+    ]
 
 
     // const veriTurleri = [
@@ -152,6 +147,7 @@ exports = async function ({
       name: firmaName,
       // wbs: [], // henüz herhangi bir başlık yok fakat yok ama bu property şimdi olmazsa ilk wbs kaydında bir hata yaşıyoruz
       // lbs: [], // henüz herhangi bir başlık yok fakat yok ama bu property şimdi olmazsa ilk wbs kaydında bir hata yaşıyoruz
+      paraBirimleri,
       pozMetrajTipleri,
       pozBirimleri,
       yetkiliKisiler: [{ email: userEmail, yetki: "owner" },{ email: "mmahmutkaya@gmail.com", yetki: "owner" },{ email: "mahmutkaya999@gmail.com", yetki: "owner" }],
