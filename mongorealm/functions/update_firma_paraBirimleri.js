@@ -55,35 +55,37 @@ exports = async function ({
 
   } else {
 
-    let paraBiriminiKullananProje = await collection_Projeler.findOne(
-      {
-        _firmaId,
-        paraBirimleri: { id: paraBirimiId, isActive: true }
-      },
-      {
-        _id: 0, name: 1
-      }
+
+    // let paraBiriminiKullananProje = await collection_Projeler.findOne(
+    //   {
+    //     _firmaId,
+    //     paraBirimleri: { id: paraBirimiId, isActive: true }
+    //   },
+    //   {
+    //     _id: 0, name: 1
+    //   }
+    // )
+
+    await collection_Firmalar.updateOne(
+      { _id: _firmaId },
+      { $set: { "paraBirimleri.$[oneBirim].isActive": false } },
+      { arrayFilters: [{ "oneBirim.id": paraBirimiId }] }
     )
-    if (paraBiriminiKullananProje) {
-      throw new Error(
-        `MONGO // customSettings_update --  Kaldırmak istediğiniz para birimi "'${paraBiriminiKullananProje.name}'" projesi tarafından kullanılmakta`
-      );
 
-    } else {
 
-      await collection_Firmalar.updateOne(
-        { _id: _firmaId },
-        { $set: { "paraBirimleri.$[oneBirim].isActive": false } },
-        { arrayFilters: [{ "oneBirim.id": paraBirimiId }] }
-      )
-
-      await collection_Projeler.updateMany(
-        { _firmaId },
-        { $unset: { "paraBirimleri.$[oneBirim]": "" } },
-        { arrayFilters: [{ "oneBirim.id": paraBirimiId }] }
-      )
-
-    }
+    await collection_Projeler.updateMany({ _firmaId }, [
+      {
+        $set: {
+          paraBirimleri: {
+            $filter: {
+              input: "$paraBirimleri",
+              as: "oneBirim",
+              cond: { $and: [{ $ne: ["$$oneBirim.id", paraBirimiId] }, { $ne: ["$$oneBirim.isActive", true] }] }
+            }
+          }
+        }
+      }
+    ])
 
 
   }
