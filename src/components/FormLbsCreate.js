@@ -184,26 +184,6 @@ export default function P_FormLbsCreate({ setShow, selectedLbs, setSelectedLbs }
             }
 
 
-            <Box onClick={() => setLbsCodeNameError(false)}>
-              <TextField
-                variant="standard"
-                // InputProps={{ sx: { height:"2rem", fontSize: "1.5rem" } }}
-                onChange={(e) => setLbsCodeName(() => e.target.value.replace("i", "İ").toUpperCase())}
-                value={lbsCodeName}
-                margin="normal"
-                id="lbsCodeName"
-                name="lbsCodeName"
-                // autoFocus
-                error={lbsCodeNameError ? true : false}
-                helperText={lbsCodeNameError ? lbsCodeNameError : "Örnek : KABA İNŞAAT --> KAB"}
-                // margin="dense"
-                label="Lbs Kod Adı"
-                type="text"
-                fullWidth
-              />
-            </Box>
-
-
             <Box onClick={() => setLbsNameError(false)}>
               <TextField
                 variant="standard"
@@ -217,11 +197,34 @@ export default function P_FormLbsCreate({ setShow, selectedLbs, setSelectedLbs }
                 error={lbsNameError ? true : false}
                 helperText={lbsNameError ? lbsNameError : ""}
                 // margin="dense"
-                label="Lbs Adı"
+                label="Mahal Başlık İsmi"
                 type="text"
                 fullWidth
               />
             </Box>
+
+
+            <Box onClick={() => setLbsCodeNameError(false)}>
+              <TextField
+                variant="standard"
+                // InputProps={{ sx: { height:"2rem", fontSize: "1.5rem" } }}
+                onChange={(e) => setLbsCodeName(() => e.target.value.replace("i", "İ").toUpperCase())}
+                value={lbsCodeName}
+                margin="normal"
+                id="lbsCodeName"
+                name="lbsCodeName"
+                // autoFocus
+                error={lbsCodeNameError ? true : false}
+                helperText={lbsCodeNameError ? lbsCodeNameError : "Örnek : KABA İNŞAAT --> KAB"}
+                // margin="dense"
+                label="Başlık İsminin Kısaltması"
+                type="text"
+                fullWidth
+              />
+            </Box>
+
+
+
 
           </DialogContent>
 

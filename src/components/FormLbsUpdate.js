@@ -170,7 +170,7 @@ export default function P_FormLbsUpdate({ setShow, selectedLbs, setSelectedLbs }
                 error={lbsNameError ? true : false}
                 helperText={lbsNameError ? lbsNameError : ""}
                 // margin="dense"
-                label="Lbs Adı"
+                label="Mahal Başlık İsmi"
                 type="text"
                 fullWidth
               />
@@ -190,7 +190,7 @@ export default function P_FormLbsUpdate({ setShow, selectedLbs, setSelectedLbs }
                 error={lbsCodeNameError ? true : false}
                 helperText={lbsCodeNameError ? lbsCodeNameError : "Örnek : KABA İNŞAAT --> KAB"}
                 // margin="dense"
-                label="Lbs Kod Adı"
+                label="Başlık İsminin Kısaltması"
                 type="text"
                 fullWidth
               />

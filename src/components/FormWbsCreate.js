@@ -188,6 +188,26 @@ export default function P_FormWbsCreate({ setShow, selectedWbs, setSelectedWbs }
               </DialogContentText>
             }
 
+            <Box onClick={() => setWbsNameError(false)}>
+              <TextField
+                variant="standard"
+                // InputProps={{ sx: { height:"2rem", fontSize: "1.5rem" } }}
+                onChange={(e) => setWbsName(() => e.target.value.replace("i", "İ").toUpperCase())}
+                value={wbsName}
+                margin="normal"
+                id="wbsName"
+                name="wbsName"
+                autoFocus
+                error={wbsNameError ? true : false}
+                helperText={wbsNameError ? wbsNameError : ""}
+                // margin="dense"
+                label="Poz Başlık İsmi"
+                type="text"
+                fullWidth
+              />
+            </Box>
+
+
 
             <Box onClick={() => setWbsCodeNameError(false)}>
               <TextField
@@ -202,31 +222,13 @@ export default function P_FormWbsCreate({ setShow, selectedWbs, setSelectedWbs }
                 error={wbsCodeNameError ? true : false}
                 helperText={wbsCodeNameError ? wbsCodeNameError : "Örnek : KABA İNŞAAT --> KAB"}
                 // margin="dense"
-                label="Wbs Kod Adı"
+                label="Başlık İsminin Kısaltması"
                 type="text"
                 fullWidth
               />
             </Box>
 
 
-            <Box onClick={() => setWbsNameError(false)}>
-              <TextField
-                variant="standard"
-                // InputProps={{ sx: { height:"2rem", fontSize: "1.5rem" } }}
-                onChange={(e) => setWbsName(() => e.target.value.replace("i", "İ").toUpperCase())}
-                value={wbsName}
-                margin="normal"
-                id="wbsName"
-                name="wbsName"
-                autoFocus
-                error={wbsNameError ? true : false}
-                helperText={wbsNameError ? wbsNameError : ""}
-                // margin="dense"
-                label="Wbs Adı"
-                type="text"
-                fullWidth
-              />
-            </Box>
 
 
           </DialogContent>

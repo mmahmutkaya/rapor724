@@ -165,7 +165,7 @@ export default function P_FormWbsUpdate({ setShow, selectedWbs, setSelectedWbs }
                 error={wbsNameError ? true : false}
                 helperText={wbsNameError ? wbsNameError : ""}
                 // margin="dense"
-                label="Wbs Adı"
+                label="Poz Başlık İsmi"
                 type="text"
                 fullWidth
               />
@@ -183,7 +183,7 @@ export default function P_FormWbsUpdate({ setShow, selectedWbs, setSelectedWbs }
                 error={wbsCodeNameError ? true : false}
                 helperText={wbsCodeNameError ? wbsCodeNameError : "Örnek : KABA İNŞAAT --> KAB"}
                 // margin="dense"
-                label="Wbs Kod Adı"
+                label="Başlık İsminin Kısaltması"
                 type="text"
                 fullWidth
               />
