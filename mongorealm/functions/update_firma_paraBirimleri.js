@@ -1,6 +1,7 @@
 exports = async function ({
   _firmaId,
   paraBirimiId,
+  paraBirimiName,
   showValue
 }) {
   const user = await context.user;
@@ -33,11 +34,24 @@ exports = async function ({
       { arrayFilters: [{ "oneBirim.id": paraBirimiId }] }
     )
 
-    await collection_Projeler.updateMany(
-      { _firmaId },
-      { $set: { "paraBirimleri.$[oneBirim].isActive": false } },
-      { arrayFilters: [{ "oneBirim.id": paraBirimiId }] }
-    )
+    await collection_Projeler.updateMany({ _firmaId }, [
+      {
+        $set: {
+          paraBirimleri: {
+            $concatArrays: [
+              {
+                $filter: {
+                  input: "$paraBirimleri",
+                  as: "oneBirim",
+                  cond: { $ne: ["$$oneBirim.id", paraBirimiId] }
+                }
+              },
+              [{ id: paraBirimiId, name: paraBirimiName, isActive: false }]
+            ]
+          }
+        }
+      }
+    ])
 
   } else {
 
