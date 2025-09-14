@@ -10,6 +10,7 @@ import { useGetPozlar } from '../../hooks/useMongo';
 
 import FormPozCreate from '../../components/FormPozCreate'
 import ShowPozBaslik from '../../components/ShowPozBaslik'
+import ShowPozParaBirimleri from '../../components/ShowPozParaBirimleri'
 import HeaderPozlar from '../../components/HeaderPozlar'
 
 
@@ -104,6 +105,9 @@ export default function P_Pozlar() {
 
       {/* BAŞLIK GÖSTER / GİZLE */}
       {show == "ShowBaslik" && <ShowPozBaslik setShow={setShow} basliklar={basliklar} setBasliklar={setBasliklar} />}
+
+      {/* BAŞLIK GÖSTER / GİZLE */}
+      {show == "ShowPozParaBirimleri" && <ShowPozParaBirimleri setShow={setShow} basliklar={basliklar} setBasliklar={setBasliklar} />}
 
 
       {/* EĞER POZ BAŞLIĞI YOKSA */}

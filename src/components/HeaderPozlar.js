@@ -20,7 +20,8 @@ import AlignHorizontalRightOutlinedIcon from '@mui/icons-material/AlignHorizonta
 import AlignHorizontalCenterOutlinedIcon from '@mui/icons-material/AlignHorizontalCenterOutlined';
 import FileDownloadDoneIcon from '@mui/icons-material/FileDownloadDone';
 import EditIcon from '@mui/icons-material/Edit';
-
+import Avatar from '@mui/material/Avatar';
+import CurrencyLiraIcon from '@mui/icons-material/CurrencyLira';
 
 export default function HeaderPozlar({ show, setShow, anyBaslikShow }) {
 
@@ -53,8 +54,13 @@ export default function HeaderPozlar({ show, setShow, anyBaslikShow }) {
 
         {/* sağ kısım - (tuşlar)*/}
         <Grid item xs="auto">
-          <Grid container spacing={1}>
+          <Grid container spacing={1} sx={{alignItems:"center"}}>
 
+            <Grid item >
+              <IconButton onClick={() => setShow("ShowPozParaBirimleri")} aria-label="wbsUncliced">
+                <CurrencyLiraIcon variant="contained" />
+              </IconButton>
+            </Grid>
 
             <Grid item >
               <IconButton onClick={() => setShow("ShowBaslik")} aria-label="wbsUncliced" disabled={!anyBaslikShow}>

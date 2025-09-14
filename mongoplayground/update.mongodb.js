@@ -1,11 +1,5 @@
 // use('rapor724_v2');
 
-// Select the database to use.
-// import { useApp } from "../src/components/useApp.js";
-
-
-// const RealmApp = useApp()
-
 // const pozBasliklari = [
 // 	{
 // 		"id": new ObjectId(),
@@ -141,7 +135,6 @@
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-// Select the database to use.
 
 // const pozBasliklari = [
 //   { _id: 1, platform: "web", sira: 1, referans: "pozNo", goster: true, sabit: true, genislik: 7, paddingInfo: "0px 1rem 0px 0px", yatayHiza: "center", name: "Poz No", dataType: "metin" },
@@ -176,3 +169,20 @@
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 
+let paraBirimleri = [
+  { id: "TRY", name: "Türk Lirası", isActive: false },
+  { id: "USD", name: "Amerikan Doları", isActive: false },
+  { id: "EUR", name: "Euro", isActive: false },
+  { id: "UZS", name: "Özbekistan Sum", isActive: false }
+]
+
+
+use('rapor724_v2');
+db["firmalar"].updateMany(
+  {},
+  { $set: { paraBirimleri } }
+)
+
+
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////

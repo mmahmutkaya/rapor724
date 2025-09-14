@@ -8,6 +8,7 @@ import P_Firmalar from './pages/firmalar'
 
 import P_Projects from './pages/projects'
 import P_Projeler from './pages/projeler'
+import P_ParaBirimleri from './pages/parabirimleri'
 import P_FirmaPozlari from './pages/firmapozlari'
 import P_FirmaWbs from './pages/firmawbs'
 import P_FirmaKadrosu from './pages/firmakadrosu'
@@ -52,6 +53,7 @@ function App() {
       <Route path='/projeler' element={<P_Projeler/>} />
 
       <Route path='/projects' element={<P_Projects />} />
+      <Route path='/parabirimleri' element={<P_ParaBirimleri />} />
       <Route path='/firmawbs' element={<P_FirmaWbs />} />
       <Route path='/firmapozlari' element={<P_FirmaPozlari />} />
       <Route path='/firmakadrosu' element={<P_FirmaKadrosu />} />

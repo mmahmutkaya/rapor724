@@ -74,15 +74,15 @@ export default function Sidebar({ setMobileOpen }) {
             </ListItemButton>
 
 
-            {/* <ListItemButton
-              onClick={() => navigate('/firmawbs')}
-              sx={{ backgroundColor: pathname == "/firmawbs" ? seciliSayfaRengi : null, '&:hover': { backgroundColor: seciliSayfaRengi } }}
+            <ListItemButton
+              onClick={() => navigate('/parabirimleri')}
+              sx={{ backgroundColor: pathname == "/parabirimleri" ? seciliSayfaRengi : null, '&:hover': { backgroundColor: seciliSayfaRengi } }}
             >
               <ListItemIcon>
                 <SendIcon />
               </ListItemIcon>
-              <ListItemText primary="Firma Poz Başlıkları" />
-            </ListItemButton> */}
+              <ListItemText primary="Para Birimleri" />
+            </ListItemButton>
 
 
             {/* <ListItemButton
