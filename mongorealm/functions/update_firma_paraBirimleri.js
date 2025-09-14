@@ -80,7 +80,12 @@ exports = async function ({
             $filter: {
               input: "$paraBirimleri",
               as: "oneBirim",
-              cond: { $and: [{ $ne: ["$$oneBirim.id", paraBirimiId] }, { $ne: ["$$oneBirim.isActive", true] }] }
+              cond: {
+                $or: [
+                  { $ne: ["$$oneBirim.id", paraBirimiId] },
+                  { $and: [{ $eq: ["$$oneBirim.id", paraBirimiId] }, { $eq: ["$$oneBirim.isActive", true] }] }
+                ]
+              }
             }
           }
         }
