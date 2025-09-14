@@ -30,8 +30,7 @@ export default function ShowPozParaBirimleri({ setShow, setBasliklar }) {
 
 
 
-
-  const baslikUpdate = async ({ baslikId, showValue }) => {
+  const baslikUpdate = async ({ baslikId, paraBirimiName, showValue }) => {
 
 
     try {
@@ -47,7 +46,7 @@ export default function ShowPozParaBirimleri({ setShow, setBasliklar }) {
       setParaBirimleri(paraBirimleri2)
 
       // db ye gönderme işlemi
-      await RealmApp?.currentUser.callFunction("update_firma_paraBirimleri", ({ _firmaId: selectedFirma._id, paraBirimiId: baslikId, showValue }))
+      await RealmApp?.currentUser.callFunction("update_firma_paraBirimleri", ({ _firmaId: selectedFirma._id, paraBirimiId: baslikId, paraBirimiName, showValue }))
       // await RealmApp?.currentUser.refreshCustomData()
 
       return
@@ -65,6 +64,8 @@ export default function ShowPozParaBirimleri({ setShow, setBasliklar }) {
     }
 
   }
+
+
 
 
 
@@ -101,7 +102,7 @@ export default function ShowPozParaBirimleri({ setShow, setBasliklar }) {
               <React.Fragment key={index}>
                 <Box sx={{ my: "0.2rem", justifySelf: "start" }}>{oneBirim.id}</Box>
                 <Box sx={{ my: "0.2rem", justifySelf: "start" }}>{oneBirim.name}</Box>
-                <Box sx={{ justifySelf: "end" }}><Switch checked={oneBirim.isActive} onChange={() => baslikUpdate({ baslikId: oneBirim.id, showValue: !oneBirim.isActive })} /></Box>
+                <Box sx={{ justifySelf: "end" }}><Switch checked={oneBirim.isActive} onChange={() => baslikUpdate({ baslikId: oneBirim.id, paraBirimiName: oneBirim.name, showValue: !oneBirim.isActive })} /></Box>
               </React.Fragment>
             )
 

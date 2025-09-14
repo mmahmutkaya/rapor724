@@ -31,7 +31,11 @@ export default function P_ParaBirimleri() {
   const { selectedFirma, setSelectedFirma } = useContext(StoreContext)
 
   const [show, setShow] = useState("Main")
+
   const [dialogAlert, setDialogAlert] = useState()
+
+  const [showEminMisin, setShowEminMisin] = useState()
+
   const [paraBirimleri, setParaBirimleri] = useState(selectedFirma?.paraBirimleri)
 
   const navigate = useNavigate()
@@ -45,6 +49,9 @@ export default function P_ParaBirimleri() {
 
   const baslikUpdate = async ({ baslikId, showValue }) => {
 
+    if (!showValue) {
+      setShowEminMisin(true)
+    }
 
     try {
 
@@ -82,6 +89,21 @@ export default function P_ParaBirimleri() {
   return (
     <Box>
 
+      {
+        showEminMisin &&
+        <DialogAlert
+          dialogIcon={"info"}
+          dialogMessage={"Bu para birimini kullanmış olan projeler kullanmaya devam edecektir. Henüz kullanmamış olan ve yeni oluşturulan projelerde bu para birimi kullanılmayacaktır."}
+          onCloseAction={() => {
+            setShowEminMisin()
+          }}
+          actionText1={"OK"}
+          action1={() => {
+            setShowEminMisin()
+          }}
+        />
+      }
+
       {dialogAlert &&
         <DialogAlert
           dialogIcon={dialogAlert.dialogIcon}
@@ -107,7 +129,7 @@ export default function P_ParaBirimleri() {
               variant="h6"
               fontWeight="bold"
             >
-              Projeler
+              Para Birimleri
             </Typography>
           </Grid>
 
