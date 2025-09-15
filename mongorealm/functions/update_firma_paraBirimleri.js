@@ -1,9 +1,13 @@
 exports = async function ({
   _firmaId,
-  paraBirimiId,
-  paraBirimiName,
+  oneBirim,
   showValue
 }) {
+
+  
+  let paraBirimiId = oneBirim.id
+  let paraBirimiName = oneBirim.name
+  
   const user = await context.user;
   const userEmail = context.user.data.email;
 
