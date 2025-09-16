@@ -32,7 +32,7 @@ export default function FormPozCreate({ setShow }) {
   const { RealmApp, myTema } = useContext(StoreContext)
 
   const { selectedFirma, selectedProje } = useContext(StoreContext)
-  const { data: pozlar } = useGetPozlar()
+  const { data } = useGetPozlar()
 
   const [dialogAlert, setDialogAlert] = useState()
 
@@ -119,7 +119,7 @@ export default function FormPozCreate({ setShow }) {
         }
       }
 
-      if (pozlar?.find(x => x.pozName === newPoz.pozName) && !pozNameError) {
+      if (data?.pozlar?.length > 0 && data?.pozlar.find(x => x.pozName === newPoz.pozName) && !pozNameError) {
         setPozNameError(`Bu poz ismi kullanılmış`)
         pozNameError = true
         isFormError = true
@@ -132,7 +132,10 @@ export default function FormPozCreate({ setShow }) {
         isFormError = true
       }
 
-      let pozFinded = pozlar?.find(x => x.pozNo === newPoz.pozNo)
+      let pozFinded
+      if (data?.pozlar?.length > 0) {
+        pozFinded = data?.pozlar.find(x => x.pozNo === newPoz.pozNo)
+      }
       if (pozFinded && !pozNoError) {
         setPozNoError(`Bu poz numarası kullanılmış`)
         pozNoError = true
@@ -186,8 +189,11 @@ export default function FormPozCreate({ setShow }) {
         throw new Error("Kayıt işlemi gerçekleşmedi, sayfayı yenileyiniz, sorun devam ederse Rapor7/24 ile irtibata geçiniz..")
       }
 
-      queryClient.setQueryData(['pozlar'], (pozlar) => {
-        return [...pozlar, {...result.newPoz}]
+      // {pozlar} ile data içindeki object pozlar veriis alınıyor
+      queryClient.setQueryData(['pozlar'], (data) => {
+        let pozlar = [...data.pozlar, { ...result.newPoz }]
+        data.pozlar = pozlar
+        return data
       })
 
       setShow("Main")

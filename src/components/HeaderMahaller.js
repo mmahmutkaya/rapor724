@@ -50,7 +50,6 @@ export default function HeaderMahaller({ setShow, anyBaslikShow }) {
 
 
 
-
         {/* sağ kısım - (tuşlar)*/}
         <Grid item xs="auto">
           <Grid container spacing={1}>
