@@ -19,8 +19,6 @@ exports = async function ({
     )
   }
 
-
-  const collection_Firmalar = context.services.get("mongodb-atlas").db("rapor724_v2").collection("firmalar");
   const collection_Projeler = context.services.get("mongodb-atlas").db("rapor724_v2").collection("projeler");
 
 
