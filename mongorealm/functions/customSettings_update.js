@@ -74,12 +74,17 @@ exports = async function ({
       );
     }
 
+    // { $set: { ["customSettings.pages." + sayfaName + '.paraBirimleri.$[baslik].show']: showValue } },
+    // { arrayFilters: [{ 'baslik.id': baslikId }] }
 
-    const result = await collection_Users.updateOne(
-      { email: userEmail },
-      { $set: { ["customSettings.pages." + sayfaName + '.paraBirimleri.$[baslik].show']: showValue } },
-      { arrayFilters: [{ 'baslik.id': baslikId }] }
-    )
+    let paraBirimleri = "customSettings.pages." + sayfaName + '.paraBirimleri'
+
+    const result = await collection_Users.updateOne({ email: userEmail }, [
+      {
+        $set:
+          { [paraBirimleri]: "333" }
+      }
+    ])
 
     return { result }
 
