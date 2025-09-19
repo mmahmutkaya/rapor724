@@ -89,7 +89,7 @@ exports = async function ({
                 $filter: {
                   input: '$customSettings.pages.' + sayfaName + '.paraBirimleri',
                   as: "oneBirim",
-                  cond: { $ne: ["oneBirim.id", baslikId] }
+                  cond: { $ne: ["$$oneBirim.id", baslikId] }
                 }
               },
               [{ id: baslikId, show: showValue }]
