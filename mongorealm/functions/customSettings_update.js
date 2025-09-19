@@ -4,7 +4,7 @@ exports = async function ({
   baslikId,
   showValue,
   showMetrajYapabilenler
-  
+
 }) {
   const user = await context.user;
   const userEmail = context.user.data.email;
@@ -51,6 +51,41 @@ exports = async function ({
     return { result }
 
   }
+
+
+
+  if (functionName == "paraBirimiBasliklari") {
+
+    if (!sayfaName) {
+      throw new Error(
+        "MONGO // customSettings_update --  Başlık güncellemesi yapmak istediniz fakat 'sayfaName' göndermediniz, sayfayı yenileyiniz, sorun devam ederse lütfen iletişime geçiniz."
+      );
+    }
+
+    if (!baslikId) {
+      throw new Error(
+        "MONGO // customSettings_update --  Başlık güncellemesi yapmak istediniz fakat db ye 'başlıkId' gelmedi, sayfayı yenileyiniz, sorun devam ederse lütfen Rapor724 ile iletişime geçiniz."
+      );
+    }
+
+    if (!(showValue === true || showValue === false)) {
+      throw new Error(
+        "MONGO // customSettings_update --  Başlık güncellemesi yapmak istediniz fakat db ye 'showValue' gelmedi, sayfayı yenileyiniz, sorun devam ederse lütfen Rapor 724 ile iletişime geçiniz."
+      );
+    }
+
+
+    const result = await collection_Users.updateOne(
+      { email: userEmail },
+      { $set: { ["customSettings.pages." + sayfaName + '.paraBirimleri.$[baslik].show']: showValue } },
+      { arrayFilters: [{ 'baslik.id': baslikId }] }
+    )
+
+    return { result }
+
+  }
+
+
 
 
   if (functionName == "toggle_showHasMahal") {
@@ -110,10 +145,10 @@ exports = async function ({
     // }
 
 
-    
+
     const result = await collection_Users.updateOne(
-      { userId:user.id },
-      { $set: { ["customSettings.showMetrajYapabilenler"] : showMetrajYapabilenler } }
+      { userId: user.id },
+      { $set: { ["customSettings.showMetrajYapabilenler"]: showMetrajYapabilenler } }
     )
 
     return { result }
