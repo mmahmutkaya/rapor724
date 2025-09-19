@@ -77,12 +77,25 @@ exports = async function ({
     // { $set: { ["customSettings.pages." + sayfaName + '.paraBirimleri.$[baslik].show']: showValue } },
     // { arrayFilters: [{ 'baslik.id': baslikId }] }
 
-    let paraBirimleri = "customSettings.pages." + sayfaName + '.paraBirimleri'
+    let paraBirimleri = 'customSettings.pages.' + sayfaName + '.paraBirimleri'
 
     const result = await collection_Users.updateOne({ email: userEmail }, [
       {
         $set:
-          { [paraBirimleri]: "333" }
+        {
+          [paraBirimleri]: {
+            $concatArrays: [
+              {
+                $filter: {
+                  input: '$customSettings.pages.' + sayfaName + '.paraBirimleri',
+                  as: "oneBirim",
+                  cond: { $ne: ["oneBirim.id", baslikId] }
+                }
+              },
+              [{ id: baslikId, show: showValue }]
+            ]
+          }
+        }
       }
     ])
 
