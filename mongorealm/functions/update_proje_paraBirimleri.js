@@ -1,5 +1,5 @@
 exports = async function ({
-  _firmaId,
+  _projeId,
   oneBirim,
   showValue
 }) {
@@ -15,28 +15,35 @@ exports = async function ({
   const mailTeyit = user.custom_data.mailTeyit;
   if (!mailTeyit) {
     throw new Error(
-      "MONGO // customSettings_update --  Öncelikle üyeliğinize ait mail adresinin size ait olduğunu doğrulamalısınız, tekrar giriş yapmayı deneyiniz veya bizimle iletişime geçiniz."
+      "MONGO // update_proje_paraBirimleri_show --  Öncelikle üyeliğinize ait mail adresinin size ait olduğunu doğrulamalısınız, tekrar giriş yapmayı deneyiniz veya bizimle iletişime geçiniz."
     )
   }
 
   const collection_Projeler = context.services.get("mongodb-atlas").db("rapor724_v2").collection("projeler");
+  const collection_Users = context.services.get("mongodb-atlas").db("rapor724_v2").collection("users");
 
+
+  if (!_projeId) {
+    throw new Error(
+      "MONGO // update_proje_paraBirimleri_show --  DB sorgusuna '_projeId' verisi gelmedi,"
+    );
+  }
 
   if (!(showValue === true || showValue === false)) {
     throw new Error(
-      "MONGO // customSettings_update --  Para birimini aktif ya da pasif etmek istediniz fakat db ye 'showValue' gelmedi, sayfayı yenileyiniz, sorun devam ederse lütfen Rapor 724 ile iletişime geçiniz."
+      "MONGO // update_proje_paraBirimleri_show --  Para birimini aktif ya da pasif etmek istediniz fakat db ye 'showValue' gelmedi, sayfayı yenileyiniz, sorun devam ederse lütfen Rapor 724 ile iletişime geçiniz."
     );
   }
 
   if (showValue) {
 
-    await collection_Firmalar.updateOne(
-      { _id: _firmaId },
-      { $set: { "paraBirimleri.$[oneBirim].isActive": true } },
-      { arrayFilters: [{ "oneBirim.id": paraBirimiId }] }
-    )
+    // await collection_Projeler.updateOne(
+    //   { _id: _projeId },
+    //   { $set: { "paraBirimleri.$[oneBirim].isActive": true } },
+    //   { arrayFilters: [{ "oneBirim.id": paraBirimiId }] }
+    // )
 
-    await collection_Projeler.updateMany(
+    await collection_Users.updateOne(
       { _firmaId, "paraBirimleri.id": { $nin: [paraBirimiId] } },
       { $addToSet: { paraBirimleri: { id: paraBirimiId, name: paraBirimiName, isActive: false } } }
     )
