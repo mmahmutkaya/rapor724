@@ -43,7 +43,7 @@ exports = async function ({
           filter: { _id: onePoz._id },
           update: {
             $set: {
-              "paraBirimleri": onePoz.paraBirimleri,
+              "birimFiyatlar": onePoz.birimFiyatlar,
             }
           },
         }
