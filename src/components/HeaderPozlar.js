@@ -23,10 +23,11 @@ import FileDownloadDoneIcon from '@mui/icons-material/FileDownloadDone';
 import EditIcon from '@mui/icons-material/Edit';
 import Avatar from '@mui/material/Avatar';
 import CurrencyLiraIcon from '@mui/icons-material/CurrencyLira';
+import SaveIcon from '@mui/icons-material/Save';
 
 export default function HeaderPozlar({
   show, setShow, anyBaslikShow,
-  save_para, cancel_para
+  isChanged_para, setIsChangedPara, paraEdit, setParaEdit, save_para, cancel_para
 }) {
 
   const { selectedProje } = useContext(StoreContext)
@@ -77,29 +78,59 @@ export default function HeaderPozlar({
         <Grid item xs="auto">
           <Grid container spacing={1} sx={{ alignItems: "center" }}>
 
-            <Grid item >
-              <IconButton onClick={() => setShow("ShowPozParaBirimleri")} aria-label="wbsUncliced">
-                <CurrencyLiraIcon variant="contained" />
-              </IconButton>
-            </Grid>
 
-            <Grid item >
-              <IconButton onClick={() => setShow("ShowBaslik")} aria-label="wbsUncliced" disabled={!anyBaslikShow}>
-                <VisibilityIcon variant="contained" />
-              </IconButton>
-            </Grid>
+            {!paraEdit &&
+              <>
+                < Grid item >
+                  <IconButton onClick={() => setShow("ShowPozParaBirimleri")} aria-label="wbsUncliced">
+                    <CurrencyLiraIcon variant="contained" />
+                  </IconButton>
+                </Grid>
 
-            <Grid item >
-              <IconButton onClick={() => setShow("PozCreate")} aria-label="wbsUncliced" disabled={!selectedProje?.wbs?.find(x => x.openForPoz === true)}>
-                <AddCircleOutlineIcon variant="contained" />
-              </IconButton>
-            </Grid>
+                <Grid item >
+                  <IconButton onClick={() => setShow("ShowBaslik")} aria-label="wbsUncliced" disabled={!anyBaslikShow}>
+                    <VisibilityIcon variant="contained" />
+                  </IconButton>
+                </Grid>
+
+                <Grid item >
+                  <IconButton onClick={() => setShow("PozCreate")} aria-label="wbsUncliced" disabled={!selectedProje?.wbs?.find(x => x.openForPoz === true)}>
+                    <AddCircleOutlineIcon variant="contained" />
+                  </IconButton>
+                </Grid>
+              </>
+            }
+
+            {paraEdit &&
+
+              <>
+
+                <Grid item >
+                  <IconButton onClick={() => {
+                    if (isChanged_para) {
+                      setShowEminMisin_para(true)
+                    } else {
+                      setParaEdit()
+                    }
+                  }} aria-label="lbsUncliced">
+                    <ClearOutlined variant="contained" sx={{ color: "red" }} />
+                  </IconButton>
+                </Grid>
+
+                <Grid item >
+                  <IconButton onClick={() => save_para()} disabled={!isChanged_para}>
+                    <SaveIcon variant="contained" />
+                  </IconButton>
+                </Grid>
+
+              </>
+            }
 
           </Grid>
         </Grid>
 
       </Grid>
 
-    </Paper>
+    </Paper >
   )
 }

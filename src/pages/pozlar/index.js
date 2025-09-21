@@ -53,8 +53,8 @@ export default function P_Pozlar() {
     !selectedProje && navigate('/projeler')
     setPozlar_state(_.cloneDeep(data?.pozlar))
     setPozlar_backUp(_.cloneDeep(data?.pozlar))
-    // console.log("onaylananMetraj", onaylananMetraj)
-    setShow("Main")
+    // console.log("pozlar", data?.pozlar)
+    // setShow("Main")
   }, [data])
 
 
@@ -116,9 +116,8 @@ export default function P_Pozlar() {
 
       if (onePoz._id.toString() === _onePozId) {
         onePoz.newSelected_para = true
-        onePoz.birimFiyatlar.filter(x => x.id !== paraBirimiId)
+        onePoz.birimFiyatlar = onePoz.birimFiyatlar?.filter(x => x.id !== paraBirimiId)
         onePoz.birimFiyatlar = [...onePoz.birimFiyatlar, { id: paraBirimiId, fiyat: birimFiyat }]
-
       }
       return onePoz
 
@@ -143,17 +142,18 @@ export default function P_Pozlar() {
 
         let pozlar_newPara = pozlar_state.map(onePoz => {
           if (onePoz.newSelected_para) {
-            return { _id: onePoz._id, paraBirimleri: onePoz.paraBirimleri }
+            return { _id: onePoz._id, birimFiyatlar: onePoz.birimFiyatlar }
           }
         })
         // undefined olanları temizliyoruz
-        pozlar_newPara = pozlar_newPara.filter(x => !x)
+        pozlar_newPara = pozlar_newPara.filter(x => x)
+        // console.log("pozlar_newPara", pozlar_newPara)
 
         await RealmApp?.currentUser.callFunction("update_pozlar_para", ({ pozlar_newPara }))
 
         queryClient.invalidateQueries(['pozlar'])
         setIsChanged_para()
-        paraEdit()
+        setParaEdit()
         return
 
       } catch (err) {
@@ -165,7 +165,7 @@ export default function P_Pozlar() {
         let onCloseAction = () => {
           setDialogAlert()
           setIsChanged_para()
-          paraEdit()
+          setParaEdit()
           queryClient.invalidateQueries(['pozlar'])
         }
         if (err.message.includes("__mesajBaslangic__") && err.message.includes("__mesajBitis__")) {
@@ -252,7 +252,7 @@ export default function P_Pozlar() {
       }
 
       {/* BAŞLIK */}
-      <HeaderPozlar show={show} setShow={setShow} anyBaslikShow={anyBaslikShow} />
+      <HeaderPozlar show={show} setShow={setShow} anyBaslikShow={anyBaslikShow} paraEdit={paraEdit} setParaEdit={setParaEdit} save_para={save_para} cancel_para={cancel_para} isChanged_para={isChanged_para} setIsChanged_para={setIsChanged_para} />
 
 
       {/* POZ OLUŞTURULACAKSA */}
@@ -491,13 +491,13 @@ export default function P_Pozlar() {
 
                             if (!paraEdit) {
                               return (
-                                <Box key={index} sx={{ ...pozNo_css }}>
-                                  {ikiHane(onePoz.paraBirimleri?.find(x => x.id === oneBirim.id)?.fiyat)}
+                                <Box key={index} sx={{ ...pozNo_css, justifyContent:"end",minWidth: "6rem" }}>
+                                  {ikiHane(onePoz.birimFiyatlar?.find(x => x.id === oneBirim.id)?.fiyat)}
                                 </Box>
                               )
                             } else {
                               return (
-                                <Box key={onePoz._id.toString() + index} sx={{ ...pozNo_css, minWidth: "max-content", backgroundColor: "rgba(255,255,0, 0.3)" }}>
+                                <Box key={onePoz._id.toString() + index} sx={{ ...pozNo_css, width: "8rem", backgroundColor: "rgba(255,255,0, 0.3)" }}>
 
                                   <Input
                                     // autoFocus={autoFocus.baslikId == oneBaslik.id && autoFocus.mahalId == oneMahal._id.toString()}
@@ -528,10 +528,10 @@ export default function P_Pozlar() {
                                         MozAppearance: "textfield",
                                       },
                                     }}
-                                    value={onePoz.paraBirimleri?.find(x => x.id === oneBirim.id)?.fiyat}
+                                    value={onePoz.birimFiyatlar?.find(x => x.id === oneBirim.id)?.fiyat}
                                     inputProps={{
                                       style: {
-                                        // boxSizing: "border-box",
+                                        boxSizing: "border-box",
                                         // width: "min-content",
                                         // fontWeight: oneProperty === "metraj" && "700",
                                         // mt: "0.5rem",

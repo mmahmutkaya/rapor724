@@ -5,6 +5,7 @@ import deleteLastSpace from '../functions/deleteLastSpace.js';
 import { DialogAlert } from './general/DialogAlert.js';
 import { useGetPozlar } from '../hooks/useMongo.js';
 import { useQueryClient } from '@tanstack/react-query'
+import _ from 'lodash';
 
 
 
@@ -58,9 +59,9 @@ export default function FormPozCreate({ setShow }) {
     try {
 
       // formdan gelen text verilerini alma - (çoktan seçmeliler seçildiği anda useState() kısmında güncelleniyor)
-      const data = new FormData(event.currentTarget);
-      const pozName = deleteLastSpace(data.get('pozName'))
-      const pozNo = deleteLastSpace(data.get('pozNo'))
+      const formData = new FormData(event.currentTarget);
+      const pozName = deleteLastSpace(formData.get('pozName'))
+      const pozNo = deleteLastSpace(formData.get('pozNo'))
 
       const newPoz = {
         _firmaId: selectedFirma._id,
@@ -190,11 +191,9 @@ export default function FormPozCreate({ setShow }) {
       }
 
       // {pozlar} ile data içindeki object pozlar veriis alınıyor
-      queryClient.setQueryData(['pozlar'], (data) => {
-        let pozlar = [...data.pozlar, { ...result.newPoz }]
-        data.pozlar = pozlar
-        return data
-      })
+      let data2 = _.cloneDeep(data)
+      data2.pozlar = [...data2.pozlar, { ...result.newPoz }]
+      queryClient.setQueryData(['pozlar'], data2)
 
       setShow("Main")
 

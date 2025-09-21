@@ -67,8 +67,11 @@ export default function P_MetrajOnaylaPozlar() {
   const [basliklar, setBasliklar] = useState(RealmApp.currentUser.customData.customSettings.pages.metrajpozlar.basliklar)
 
 
-  const pozAciklamaShow = basliklar?.find(x => x.id === "aciklama").show
-  const pozVersiyonShow = basliklar?.find(x => x.id === "versiyon").show
+  // const pozAciklamaShow = basliklar?.find(x => x.id === "aciklama").show
+  // const pozVersiyonShow = basliklar?.find(x => x.id === "versiyon").show
+
+  const pozAciklamaShow = false
+  const pozVersiyonShow = false
 
   const wbsArray_hasMahal = selectedProje?.wbs.filter(oneWbs => pozlar?.find(onePoz => onePoz._wbsId.toString() === oneWbs._id.toString()))
 
