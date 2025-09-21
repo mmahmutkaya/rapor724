@@ -1,8 +1,7 @@
-import { result } from "lodash";
+// import { result } from "lodash";
 
 exports = async function ({
-  _dugumId,
-  hazirlananMetraj_state
+  pozlar_state
 }) {
 
 

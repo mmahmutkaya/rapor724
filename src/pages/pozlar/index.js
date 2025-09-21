@@ -3,6 +3,7 @@ import React from 'react'
 import { useState, useContext, useEffect } from 'react';
 import { useQueryClient } from '@tanstack/react-query'
 import { useNavigate } from "react-router-dom";
+import { DialogAlert } from '../../components/general/DialogAlert.js';
 import _ from 'lodash';
 
 
@@ -30,6 +31,7 @@ export default function P_Pozlar() {
 
   const navigate = useNavigate()
   const queryClient = useQueryClient()
+  const [dialogAlert, setDialogAlert] = useState()
 
   const { data } = useGetPozlar()
   const { RealmApp, myTema } = useContext(StoreContext)
@@ -115,7 +117,7 @@ export default function P_Pozlar() {
       if (onePoz._id.toString() === _onePozId) {
         onePoz.newSelected_para = true
         onePoz.birimFiyatlar.filter(x => x.id !== paraBirimiId)
-        onePoz.birimFiyatlar = [...onePoz.birimFiyatlar, { id, fiyat: birimFiyat }]
+        onePoz.birimFiyatlar = [...onePoz.birimFiyatlar, { id: paraBirimiId, fiyat: birimFiyat }]
 
       }
       return onePoz
@@ -139,11 +141,19 @@ export default function P_Pozlar() {
     if (isChanged_para) {
       try {
 
-        await RealmApp?.currentUser.callFunction("update_pozlar_para", ({ pozlar_state }))
+        let pozlar_newPara = pozlar_state.map(onePoz => {
+          if (onePoz.newSelected_para) {
+            return { _id: onePoz._id, paraBirimleri: onePoz.paraBirimleri }
+          }
+        })
+        // undefined olanları temizliyoruz
+        pozlar_newPara = pozlar_newPara.filter(x => !x)
+
+        await RealmApp?.currentUser.callFunction("update_pozlar_para", ({ pozlar_newPara }))
 
         queryClient.invalidateQueries(['pozlar'])
-        setIsChanged_edit()
-        setMode_edit()
+        setIsChanged_para()
+        paraEdit()
         return
 
       } catch (err) {
@@ -152,19 +162,17 @@ export default function P_Pozlar() {
 
         let dialogIcon = "warning"
         let dialogMessage = "Beklenmedik hata, sayfayı yenileyiniz, sorun devam ederse Rapor7/24 ile irtibata geçiniz.."
-        let onCloseAction = () => setDialogAlert()
-
+        let onCloseAction = () => {
+          setDialogAlert()
+          setIsChanged_para()
+          paraEdit()
+          queryClient.invalidateQueries(['pozlar'])
+        }
         if (err.message.includes("__mesajBaslangic__") && err.message.includes("__mesajBitis__")) {
           let mesajBaslangic = err.message.indexOf("__mesajBaslangic__") + "__mesajBaslangic__".length
           let mesajBitis = err.message.indexOf("__mesajBitis__")
           dialogMessage = err.message.slice(mesajBaslangic, mesajBitis)
           dialogIcon = "info"
-          onCloseAction = () => {
-            setDialogAlert()
-            setIsChanged_edit()
-            setMode_edit()
-            queryClient.invalidateQueries(['hazirlananMetraj', selectedNode_metraj?._id.toString()])
-          }
         }
         setDialogAlert({
           dialogIcon,
@@ -233,6 +241,15 @@ export default function P_Pozlar() {
 
   return (
     <Box sx={{ m: "0rem" }}>
+
+      {dialogAlert &&
+        <DialogAlert
+          dialogIcon={dialogAlert.dialogIcon}
+          dialogMessage={dialogAlert.dialogMessage}
+          detailText={dialogAlert.detailText}
+          onCloseAction={dialogAlert.onCloseAction}
+        />
+      }
 
       {/* BAŞLIK */}
       <HeaderPozlar show={show} setShow={setShow} anyBaslikShow={anyBaslikShow} />
