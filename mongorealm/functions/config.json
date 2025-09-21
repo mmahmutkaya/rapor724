@@ -610,5 +610,11 @@
         "private": false,
         "run_as_system": true,
         "disable_arg_logs": true
+    },
+    {
+        "name": "copy/update_hazirlananMetraj_ready",
+        "private": false,
+        "run_as_system": true,
+        "disable_arg_logs": true
     }
 ]

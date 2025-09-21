@@ -123,6 +123,7 @@ exports = async function ({
 
   newPoz = {
     ...newPoz,
+    birimFiyatlar:[],
     createdAt:dateNow,
     createdBy:userEmail,
     isDeleted:false

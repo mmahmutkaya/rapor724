@@ -40,7 +40,7 @@ exports = async function ({
 
     await collection_Projeler.updateMany(
       { _firmaId, "paraBirimleri.id": { $nin: [paraBirimiId] } },
-      { $addToSet: { paraBirimleri: { id: paraBirimiId, name: paraBirimiName, isActive: false } } }
+      { $addToSet: { paraBirimleri: { id: paraBirimiId, name: paraBirimiName, isActive: false, show:false } } }
     )
 
 
