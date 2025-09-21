@@ -1,6 +1,7 @@
 import React from 'react'
 import { useState, useContext, useEffect } from 'react';
 import { useNavigate } from "react-router-dom";
+import { DialogAlert } from './general/DialogAlert';
 
 import { StoreContext } from './store'
 
@@ -23,13 +24,33 @@ import EditIcon from '@mui/icons-material/Edit';
 import Avatar from '@mui/material/Avatar';
 import CurrencyLiraIcon from '@mui/icons-material/CurrencyLira';
 
-export default function HeaderPozlar({ show, setShow, anyBaslikShow }) {
+export default function HeaderPozlar({
+  show, setShow, anyBaslikShow,
+  save_para, cancel_para
+}) {
 
   const { selectedProje } = useContext(StoreContext)
+  const [showEminMisin_para, setShowEminMisin_para] = useState(false)
+
   const navigate = useNavigate()
 
   return (
     <Paper >
+
+      {showEminMisin_para &&
+        <DialogAlert
+          dialogIcon={"warning"}
+          dialogMessage={"Yaptığınız değişiklikleri kaybedeceksiniz ?"}
+          onCloseAction={() => setShowEminMisin_para()}
+          actionText1={"İptal"}
+          action1={() => setShowEminMisin_para()}
+          actionText2={"Onayla"}
+          action2={() => {
+            cancel_para()
+            setShowEminMisin_para()
+          }}
+        />
+      }
 
       <Grid
         container
@@ -54,7 +75,7 @@ export default function HeaderPozlar({ show, setShow, anyBaslikShow }) {
 
         {/* sağ kısım - (tuşlar)*/}
         <Grid item xs="auto">
-          <Grid container spacing={1} sx={{alignItems:"center"}}>
+          <Grid container spacing={1} sx={{ alignItems: "center" }}>
 
             <Grid item >
               <IconButton onClick={() => setShow("ShowPozParaBirimleri")} aria-label="wbsUncliced">

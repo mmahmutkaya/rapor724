@@ -3,6 +3,7 @@ import React from 'react'
 import { useState, useContext, useEffect } from 'react';
 import { useQueryClient } from '@tanstack/react-query'
 import { useNavigate } from "react-router-dom";
+import _ from 'lodash';
 
 
 import { StoreContext } from '../../components/store'
@@ -31,21 +32,44 @@ export default function P_Pozlar() {
   const queryClient = useQueryClient()
 
   const { data } = useGetPozlar()
-  // console.log("pozlar",pozlar)
   const { RealmApp, myTema } = useContext(StoreContext)
   const { selectedProje } = useContext(StoreContext)
 
-  // console.log("selectedProje", selectedProje)
   const pozBirimleri = selectedProje?.pozBirimleri
-  // console.log("pozBirimleri", pozBirimleri)
+
 
   const [show, setShow] = useState("Main")
+  const [pozlar_state, setPozlar_state] = useState()
+  const [pozlar_backUp, setPozlar_backUp] = useState()
+
+  const [paraEdit, setParaEdit] = useState(false)
+  const [isChanged_para, setIsChanged_para] = useState()
+
+
 
   useEffect(() => {
     !selectedProje && navigate('/projeler')
-  }, [])
+    setPozlar_state(_.cloneDeep(data?.pozlar))
+    setPozlar_backUp(_.cloneDeep(data?.pozlar))
+    // console.log("onaylananMetraj", onaylananMetraj)
+    setShow("Main")
+  }, [data])
 
-  const [basliklar, setBasliklar] = useState(RealmApp.currentUser.customData.customSettings.pages.data?.pozlar.basliklar)
+
+  const [basliklar, setBasliklar] = useState(RealmApp?.currentUser.customData.customSettings.pages.pozlar.basliklar)
+
+  const [paraBirimleri, setParaBirimleri] = useState(previousData => {
+    let paraBirimleri = selectedProje?.paraBirimleri
+    let paraBirimleri2 = RealmApp?.currentUser.customData.customSettings.pages.pozlar.paraBirimleri
+    paraBirimleri = paraBirimleri?.map(oneBirim => {
+      let showValue = paraBirimleri2?.find(x => x.id === oneBirim.id)?.show
+      if (showValue) {
+        oneBirim.show = true
+      }
+      return oneBirim
+    })
+    return paraBirimleri
+  })
 
   // sayfadaki "visibility" tuşunun aktif olup olmamasını ayarlamak için
   const anyBaslikShow = basliklar?.find(x => x.visible) ? true : false
@@ -53,7 +77,109 @@ export default function P_Pozlar() {
   const pozAciklamaShow = basliklar?.find(x => x.id === "aciklama").show
   const pozVersiyonShow = basliklar?.find(x => x.id === "versiyon").show
 
-  const columns = `max-content minmax(min-content, 35rem) max-content${pozAciklamaShow ? " 1rem minmax(min-content, 10rem)" : ""}${pozVersiyonShow ? " 1rem max-content" : ""}`
+  let paraBirimiAdet = paraBirimleri?.filter(x => x?.show).length
+
+  const columns =
+    `max-content 
+  minmax(min-content, 35rem) 
+  max-content
+  ${pozAciklamaShow ? " 0.4rem minmax(min-content, 10rem)" : ""}
+  ${pozVersiyonShow ? " 0.4rem max-content" : ""}
+  ${paraBirimiAdet === 1 ? " 0.4rem max-content" : paraBirimiAdet > 1 ? " 0.4rem repeat(" + paraBirimiAdet + ", max-content)" : ""}
+    `
+
+
+
+  // Edit Poz Para Birimi Input Fonksiyonu
+  const handle_input_onKey = async (event) => {
+    if (event.key == "e" || event.key == "E" || event.key == "+" || event.key == "-" || event.keyCode == "38" || event.keyCode == "40") {
+      // console.log("'e' - 'E' - '+' - '-' - 'up' - 'down' - kullanılmasın")
+      return event.preventDefault()
+    }
+  }
+
+
+
+  // Edit Metraj Sayfasının Fonksiyonu
+  const handle_input_onChange = ({ birimFiyat, _onePozId, paraBirimiId }) => {
+
+    if (!isChanged_para) {
+      setIsChanged_para(true)
+    }
+
+    let pozlar_state2 = _.cloneDeep(pozlar_state)
+
+    // map ile tarayarak, state kısmındaki datanın ilgili satırını güncelliyoruz, ayrıca tüm satırların toplam metrajını, önce önceki değeri çıkartıp yeni değeri ekleyerek
+    pozlar_state2.map(onePoz => {
+
+      if (onePoz._id.toString() === _onePozId) {
+        onePoz.newSelected_para = true
+        onePoz.birimFiyatlar.filter(x => x.id !== paraBirimiId)
+        onePoz.birimFiyatlar = [...onePoz.birimFiyatlar, { id, fiyat: birimFiyat }]
+
+      }
+      return onePoz
+
+    })
+
+    setPozlar_state(pozlar_state2)
+  }
+
+
+  const cancel_para = () => {
+    setPozlar_state(_.cloneDeep(pozlar_backUp))
+    setIsChanged_para()
+    setParaEdit()
+  }
+
+
+  // Edit Metraj Sayfasının Fonksiyonu
+  const save_para = async () => {
+
+    if (isChanged_para) {
+      try {
+
+        await RealmApp?.currentUser.callFunction("update_pozlar_para", ({ pozlar_state }))
+
+        queryClient.invalidateQueries(['pozlar'])
+        setIsChanged_edit()
+        setMode_edit()
+        return
+
+      } catch (err) {
+
+        console.log(err)
+
+        let dialogIcon = "warning"
+        let dialogMessage = "Beklenmedik hata, sayfayı yenileyiniz, sorun devam ederse Rapor7/24 ile irtibata geçiniz.."
+        let onCloseAction = () => setDialogAlert()
+
+        if (err.message.includes("__mesajBaslangic__") && err.message.includes("__mesajBitis__")) {
+          let mesajBaslangic = err.message.indexOf("__mesajBaslangic__") + "__mesajBaslangic__".length
+          let mesajBitis = err.message.indexOf("__mesajBitis__")
+          dialogMessage = err.message.slice(mesajBaslangic, mesajBitis)
+          dialogIcon = "info"
+          onCloseAction = () => {
+            setDialogAlert()
+            setIsChanged_edit()
+            setMode_edit()
+            queryClient.invalidateQueries(['hazirlananMetraj', selectedNode_metraj?._id.toString()])
+          }
+        }
+        setDialogAlert({
+          dialogIcon,
+          dialogMessage,
+          detailText: err?.message ? err.message : null,
+          onCloseAction
+        })
+      }
+    }
+
+  }
+
+
+
+
 
 
   const enUstBaslik_css = {
@@ -88,6 +214,19 @@ export default function P_Pozlar() {
 
 
 
+  // GENEL - bir fonksiyon, ortak kullanılıyor olabilir
+  const ikiHane = (value) => {
+    if (!value || value === "") {
+      return value
+    }
+    if (value != "") {
+      return new Intl.NumberFormat("de-DE", { minimumFractionDigits: 2, maximumFractionDigits: 2, }).format(value)
+    }
+    return value
+  }
+
+
+
   let wbsCode
   let wbsName
   let cOunt
@@ -107,7 +246,7 @@ export default function P_Pozlar() {
       {show == "ShowBaslik" && <ShowPozBaslik setShow={setShow} basliklar={basliklar} setBasliklar={setBasliklar} />}
 
       {/* BAŞLIK GÖSTER / GİZLE */}
-      {show == "ShowPozParaBirimleri" && <ShowPozParaBirimleri setShow={setShow} basliklar={basliklar} setBasliklar={setBasliklar} />}
+      {show == "ShowPozParaBirimleri" && <ShowPozParaBirimleri setShow={setShow} paraBirimleri={paraBirimleri} setParaBirimleri={setParaBirimleri} paraEdit={paraEdit} setParaEdit={setParaEdit} />}
 
 
       {/* EĞER POZ BAŞLIĞI YOKSA */}
@@ -121,7 +260,7 @@ export default function P_Pozlar() {
 
 
       {/* EĞER POZ YOKSA */}
-      {show == "Main" && selectedProje?.wbs?.find(x => x.openForPoz === true) && !data?.pozlar?.length > 0 &&
+      {show == "Main" && selectedProje?.wbs?.find(x => x.openForPoz === true) && !pozlar_state?.length > 0 &&
         <Stack sx={{ width: '100%', m: "0rem", p: "1rem" }} spacing={2}>
           <Alert severity="info">
             Menüler yardımı ile poz oluşturmaya başlayabilirsiniz.
@@ -132,7 +271,7 @@ export default function P_Pozlar() {
 
       {/* ANA SAYFA - POZLAR VARSA */}
 
-      {show == "Main" && selectedProje?.wbs?.find(x => x.openForPoz === true) && data?.pozlar?.length > 0 &&
+      {show == "Main" && selectedProje?.wbs?.find(x => x.openForPoz === true) && pozlar_state?.length > 0 &&
         <Box sx={{ m: "1rem", display: "grid", gridTemplateColumns: columns }}>
 
 
@@ -173,6 +312,20 @@ export default function P_Pozlar() {
                 <Box sx={{ ...enUstBaslik_css }}>
                   Versiyon
                 </Box>
+              </>
+            }
+
+            {/* PARA BİRİMLERİ */}
+            {paraBirimiAdet > 0 &&
+              <>
+                <Box></Box>
+                {paraBirimleri?.filter(x => x.show).map((oneBirim, index) => {
+                  return (
+                    <Box key={index} sx={{ ...enUstBaslik_css }}>
+                      {oneBirim.id}
+                    </Box>
+                  )
+                })}
               </>
             }
 
@@ -261,11 +414,24 @@ export default function P_Pozlar() {
                   </>
                 }
 
+                {/* PARA BİRİMLERİ */}
+                {paraBirimiAdet > 0 &&
+                  <>
+                    <Box></Box>
+                    {paraBirimleri?.filter(x => x.show).map((oneBirim, index) => {
+                      return (
+                        <Box key={index} sx={{ ...wbsBaslik_css }}>
+
+                        </Box>
+                      )
+                    })}
+                  </>
+                }
 
 
 
                 {/* WBS'İN POZLARI */}
-                {data?.pozlar?.filter(x => x._wbsId.toString() === oneWbs._id.toString()).map((onePoz, index) => {
+                {pozlar_state?.filter(x => x._wbsId.toString() === oneWbs._id.toString()).map((onePoz, index) => {
 
                   return (
                     // <Box key={index} sx={{ display: "grid", gridTemplateColumns: columns, gridTemplateAreas: gridAreas_pozSatir }}>
@@ -299,6 +465,75 @@ export default function P_Pozlar() {
                           </Box>
                         </>
                       }
+
+                      {/* PARA BİRİMLERİ */}
+                      {paraBirimiAdet > 0 &&
+                        <>
+                          <Box></Box>
+                          {paraBirimleri?.filter(x => x.show).map((oneBirim, index) => {
+
+                            if (!paraEdit) {
+                              return (
+                                <Box key={index} sx={{ ...pozNo_css }}>
+                                  {ikiHane(onePoz.paraBirimleri?.find(x => x.id === oneBirim.id)?.fiyat)}
+                                </Box>
+                              )
+                            } else {
+                              return (
+                                <Box key={onePoz._id.toString() + index} sx={{ ...pozNo_css, minWidth: "max-content", backgroundColor: "rgba(255,255,0, 0.3)" }}>
+
+                                  <Input
+                                    // autoFocus={autoFocus.baslikId == oneBaslik.id && autoFocus.mahalId == oneMahal._id.toString()}
+                                    // autoFocus={autoFocus.mahalId == oneMahal._id.toString()}
+                                    // autoFocus={true}
+                                    autoComplete='off'
+                                    id={onePoz._id.toString() + index}
+                                    name={onePoz._id.toString() + index}
+                                    // readOnly={oneRow.isSelected}
+                                    disableUnderline={true}
+                                    // size="small"
+                                    type={"number"}
+                                    // type={"text"}
+                                    // onChange={(e) => parseFloat(e.target.value).toFixed(1)}
+                                    // onKeyDown={(evt) => ilaveYasaklilar.some(elem => evt.target.value.includes(elem)) && ilaveYasaklilar.find(item => item == evt.key) && evt.preventDefault()}
+                                    // onKeyDown={oneProperty.includes("carpan") ? (event) => handle_input_onKey(event) : null}
+                                    onKeyDown={(event) => handle_input_onKey(event)}
+                                    onChange={(event) => handle_input_onChange({ birimFiyat: event.target.value, _onePozId: onePoz._id.toString(), paraBirimiId: oneBirim.id })}
+                                    sx={{
+                                      // height: "100%",
+                                      // pt: "0.3rem",
+                                      // color: isMinha ? "red" : null,
+                                      // justifyItems: oneBaslik.yatayHiza,
+                                      "& input::-webkit-outer-spin-button, & input::-webkit-inner-spin-button": {
+                                        display: "none",
+                                      },
+                                      "& input[type=number]": {
+                                        MozAppearance: "textfield",
+                                      },
+                                    }}
+                                    value={onePoz.paraBirimleri?.find(x => x.id === oneBirim.id)?.fiyat}
+                                    inputProps={{
+                                      style: {
+                                        // boxSizing: "border-box",
+                                        // width: "min-content",
+                                        // fontWeight: oneProperty === "metraj" && "700",
+                                        // mt: "0.5rem",
+                                        // height: "0.95rem",
+                                        // minWidth: oneProperty.includes("aciklama") ? "min-content" : "4rem",
+                                        textAlign: "end"
+                                      },
+                                      step: "0.1", lang: "en-US"
+                                    }}
+                                  />
+                                </Box>
+                              )
+                            }
+
+                          })}
+                        </>
+                      }
+
+
 
                     </React.Fragment>
                   )

@@ -169,19 +169,57 @@
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 
-let paraBirimleri = [
-  { id: "TRY", name: "Türk Lirası", isActive: false },
-  { id: "USD", name: "Amerikan Doları", isActive: false },
-  { id: "EUR", name: "Euro", isActive: false },
-  { id: "UZS", name: "Özbekistan Sum", isActive: false }
-]
+//   const customSettings = {
+//     pages: {
+//       firmapozlari: {
+//         basliklar: [
+//           { id: "aciklama", baslikName: "Açıklama", visible: true, show: true },
+//           { id: "versiyon", baslikName: "Versiyon", visible: true, show: true }
+//         ]
+//       },
+//       pozlar: {
+//         basliklar: [
+//           { id: "aciklama", baslikName: "Açıklama", visible: true, show: true },
+//           { id: "versiyon", baslikName: "Versiyon", visible: true, show: true }
+//         ],
+//         paraBirimleri: []
+//       },
+//       mahaller: {
+//         basliklar: [
+//           { id: "aciklama", baslikName: "Açıklama", visible: true, show: true },
+//           { id: "versiyon", baslikName: "Versiyon", visible: true, show: true }
+//         ]
+//       },
+//       metrajpozlar: {
+//         basliklar: [
+//           { id: "aciklama", baslikName: "Açıklama", visible: true, show: true },
+//           { id: "versiyon", baslikName: "Versiyon", visible: true, show: true }
+//         ],
+//         showHasMahal: true
+//       }
+//     }
+//   }
+
+
+// use('rapor724_v2');
+// db["users"].updateMany(
+//   {},
+//   { $set: { customSettings } }
+// )
+
+
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+
 
 
 use('rapor724_v2');
-db["firmalar"].updateMany(
+db["pozlar"].updateMany(
   {},
-  { $set: { paraBirimleri } }
+  { $set: { birimFiyatlar: [] } }
 )
+
 
 
 
