@@ -43,6 +43,9 @@ import P_MetrajCetvel from './pages/metrajcetvel'
 
 import P_MetrajEdit from './pages/metrajedit'
 
+import P_Kesif from './pages/kesif'
+
+
 function App() {
 
   return (
@@ -59,9 +62,9 @@ function App() {
       <Route path='/firmakadrosu' element={<P_FirmaKadrosu />} />
 
       {/* projects */}
-      <Route path='/dashboard' element={<P_Dashboard />} />
+      {/* <Route path='/dashboard' element={<P_Dashboard />} /> */}
       <Route path='/wbs' element={<P_Wbs />} />
-      <Route path='/pozhavuzu' element={<P_PozHavuzu />} />
+      {/* <Route path='/pozhavuzu' element={<P_PozHavuzu />} /> */}
       <Route path='/pozlar' element={<P_Pozlar />} />
       <Route path='/lbs' element={<P_Lbs />} />
       <Route path='/mahaller' element={<P_Mahaller />} />
@@ -69,13 +72,9 @@ function App() {
       <Route path='/mahallistesipozlar' element={<P_MahalListesiPozlar />} />
       <Route path='/mahallistesipozmahaller' element={<P_MahalListesiPozMahaller />} />
 
-      <Route path='/mahalmetraj' element={<P_MahalMetraj />} />
+      {/* <Route path='/mahalmetraj' element={<P_MahalMetraj />} />
       <Route path='/kisilerproject' element={<P_KisilerProject />} />
-      <Route path='/raporlar' element={<P_Raporlar />} />
-
-      <Route path='/metrajpozlar' element={<P_MetrajPozlar />} />
-      <Route path='/metrajpozmahaller' element={<P_MetrajPozMahaller />} />
-      <Route path='/metrajcetvel' element={<P_MetrajCetvel />} />
+      <Route path='/raporlar' element={<P_Raporlar />} /> */}
 
       <Route path='/metrajolusturpozlar' element={<P_MetrajOlusturPozlar />} />
       <Route path='/metrajolusturpozmahaller' element={<P_MetrajOlusturPozMahaller />} />
@@ -86,7 +85,13 @@ function App() {
       <Route path='/metrajonayla' element={<P_MetrajOnayla />} />
       <Route path='/metrajonaylacetvel' element={<P_MetrajOnaylaCetvel />} />
       
-      <Route path='/metrajedit' element={<P_MetrajEdit />} />
+      {/* <Route path='/metrajedit' element={<P_MetrajEdit />} /> */}
+
+      <Route path='/metrajpozlar' element={<P_MetrajPozlar />} />
+      <Route path='/metrajpozmahaller' element={<P_MetrajPozMahaller />} />
+      <Route path='/metrajcetvel' element={<P_MetrajCetvel />} />
+
+      <Route path='/kesif' element={<P_Kesif />} />
 
     </Routes>
   );
