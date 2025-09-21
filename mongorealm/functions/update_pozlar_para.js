@@ -63,6 +63,7 @@ exports = async function ({
     throw new Error("MONGO // update_pozlar_para // " + error);
   }
 
+    return bulkArray
 
 
 };
