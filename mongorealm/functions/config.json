@@ -618,7 +618,7 @@
         "disable_arg_logs": true
     },
     {
-        "name": "getIsPaketBasliklari",
+        "name": "create_isPaketBaslik",
         "private": false,
         "run_as_system": true,
         "disable_arg_logs": true
