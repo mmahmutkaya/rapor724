@@ -171,6 +171,8 @@ exports = async function ({
       // wbs: [], // henüz herhangi bir başlık yok fakat yok ama bu property şimdi olmazsa ilk wbs kaydında bir hata yaşıyoruz
       // lbs: [], // henüz herhangi bir başlık yok fakat yok ama bu property şimdi olmazsa ilk wbs kaydında bir hata yaşıyoruz
       paraBirimleri:[],
+      isPaketBasliklari:[],
+      isPaketleri:[],
       // pozBasliklari,
       // mahalBasliklari,
       yetki,
