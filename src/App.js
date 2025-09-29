@@ -43,7 +43,7 @@ import P_MetrajCetvel from './pages/metrajcetvel'
 
 import P_MetrajEdit from './pages/metrajedit'
 
-import P_Kesif from './pages/kesif'
+import P_IsPaketleri from './pages/ispaketleri'
 
 
 function App() {
@@ -91,7 +91,7 @@ function App() {
       <Route path='/metrajpozmahaller' element={<P_MetrajPozMahaller />} />
       <Route path='/metrajcetvel' element={<P_MetrajCetvel />} />
 
-      <Route path='/kesif' element={<P_Kesif />} />
+      <Route path='/ispaketleri' element={<P_IsPaketleri />} />
 
     </Routes>
   );
