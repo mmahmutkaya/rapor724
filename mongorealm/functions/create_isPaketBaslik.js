@@ -1,4 +1,4 @@
-exports = async function ({ _projeId, baslikName }) {
+exports = async function ({ _projeId, baslikName, aciklama }) {
 
 
   const user = context.user
@@ -29,10 +29,17 @@ exports = async function ({ _projeId, baslikName }) {
   }
 
 
+  if (typeof aciklama != "string") {
+    throw new Error("MONGO // create_isPaketBaslik // sorguya gönderilen 'açıklama' türü doğru değil, lütfen Rapor7/24 ile irtibata geçiniz. ")
+  }
+
+
   const errorFormObj = {}
 
 
   //form verisi -- yukarıda  "" const errorFormObj = {} ""  yazan satırdan önceki açıklamaları oku
+
+  // baslikName
   typeof baslikName != "string" && errorFormObj.baslikName === null ? errorFormObj.baslikName = "MONGO // create_isPaketBaslik //  --  baslikName -- sorguya, string formatında gönderilmemiş, lütfen Rapor7/24 ile irtibata geçiniz. " : null
   baslikName = await context.functions.execute("functions_deleteLastSpace", baslikName)
   if (!baslikName.length) !errorFormObj.baslikName ? errorFormObj.baslikName = "MONGO // create_isPaketBaslik //  --  baslikName -- sorguya, gönderilmemiş, lütfen Rapor7/24 ile irtibata geçiniz." : null
@@ -40,6 +47,7 @@ exports = async function ({ _projeId, baslikName }) {
   if (proje.isPaketBasliklar.find(x => x.name === baslikName && errorFormObj.baslikName === null)) {
     errorFormObj.baslikName = "Bu projede bu başlık ismi kullanılmış."
   }
+
 
   // form veri girişlerinden en az birinde hata tespit edildiği için form objesi dönderiyoruz, formun ilgili alanlarında gösterilecek
   // errorFormObj - aşağıda tekrar gönderiliyor
@@ -50,17 +58,18 @@ exports = async function ({ _projeId, baslikName }) {
   const currentTime = new Date()
 
   let newBaslik = {
-    _id:new BSON.ObjectId(),
-    name:baslikName,
-    createdAt:currentTime,
-    createdBy:userEmail
+    _id: new BSON.ObjectId(),
+    name: baslikName,
+    aciklama,
+    createdAt: currentTime,
+    createdBy: userEmail
   }
 
   try {
 
     await collection_Proje.updateOne(
       { _id: _projeId },
-      { $push: { "isPaketBasliklar": newBaslik }}
+      { $push: { "isPaketBasliklar": newBaslik } }
     );
 
     // return newWbsItem[0].code
