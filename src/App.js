@@ -62,7 +62,7 @@ function App() {
       <Route path='/firmakadrosu' element={<P_FirmaKadrosu />} />
 
       {/* projects */}
-      {/* <Route path='/dashboard' element={<P_Dashboard />} /> */}
+      <Route path='/dashboard' element={<P_Dashboard />} />
       <Route path='/wbs' element={<P_Wbs />} />
       {/* <Route path='/pozhavuzu' element={<P_PozHavuzu />} /> */}
       <Route path='/pozlar' element={<P_Pozlar />} />

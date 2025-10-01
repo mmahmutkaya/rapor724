@@ -1,9 +1,10 @@
-import React, { useState, useContext, useRef, useEffect } from 'react';
+import React, { useState, useContext } from 'react';
 import { StoreContext } from './store'
 import { useQueryClient } from '@tanstack/react-query'
 // import { useGetIsPaketBasliklari } from '../hooks/useMongo';
 import { DialogAlert } from './general/DialogAlert'
 import deleteLastSpace from '../functions/deleteLastSpace'
+import _ from 'lodash';
 
 
 //mui
@@ -32,16 +33,18 @@ import PlayArrowIcon from '@mui/icons-material/PlayArrow';
 export default function Form_IsPaketBasligi_Create({ setShow }) {
 
   const queryClient = useQueryClient()
-  const { RealmApp, selectedProje } = useContext(StoreContext)
+  const { RealmApp, selectedProje, setSelectedProje } = useContext(StoreContext)
 
   const [baslikName, setBaslikName] = useState("")
+  const [aciklama, setAciklama] = useState("")
 
   const [baslikNameError, setBaslikNameError] = useState(false)
+  const [aciklamaError, setAciklamaError] = useState(false)
 
   const [dialogAlert, setDialogAlert] = useState()
 
 
-  const isPaketBasliklari = selectedProje?.isPaketBasliklari
+  const isPaketBasliklar = selectedProje?.isPaketBasliklar
 
 
   async function handleSubmit(event) {
@@ -59,6 +62,10 @@ export default function Form_IsPaketBasligi_Create({ setShow }) {
       // VALIDATE KONTROL
       let isError
       let baslikNameError
+      let aciklamaError
+
+
+      // baslikName
 
       if (typeof baslikName != "string" && !baslikNameError) {
         setBaslikNameError("Başlık 'yazı' türünde değil")
@@ -79,15 +86,25 @@ export default function Form_IsPaketBasligi_Create({ setShow }) {
       }
 
 
-      if (isPaketBasliklari?.length > 0 && !baslikNameError) {
-        kesiflerNames_byProje.map(oneKesif => {
-          if (oneKesif.name == baslikName) {
-            setBaslikNameError("Bu projede bu keşif ismi kullanılmış")
+      if (isPaketBasliklar?.length > 0 && !baslikNameError) {
+        isPaketBasliklar.map(oneBaslik => {
+          if (oneBaslik.name == baslikName) {
+            setBaslikNameError("Bu projede bu başlık kullanılmış")
             baslikNameError = true
             isError = true
           }
         })
       }
+
+
+
+      // aciklama
+      if (typeof aciklama != "string" && !aciklamaError) {
+        setAciklamaError("Açıklama 'yazı' türünde değil")
+        aciklamaError = true
+        isError = true
+      }
+
 
       if (isError) {
         console.log("frontend de durdu alt satırda")
@@ -99,16 +116,19 @@ export default function Form_IsPaketBasligi_Create({ setShow }) {
       // console.log(_firmaId, baslikName)
 
 
-      const result_newKesif = await RealmApp.currentUser.callFunction("createKesif", { _projeId, baslikName });
+      const result_newBaslik = await RealmApp.currentUser.callFunction("create_isPaketBaslik", { _projeId, baslikName, aciklama });
 
-      if (result_newKesif.errorObject) {
-        setBaslikNameError(result_newKesif.errorObject.baslikNameError)
+      if (result_newBaslik.errorObject) {
+        setBaslikNameError(result_newBaslik.errorObject.baslikNameError)
+        setAciklamaError(result_newBaslik.errorObject.aciklamaError)
         console.log("backend den dönen errorObject hata ile durdu")
         return
       }
 
-      if (result_newKesif._id) {
-        queryClient.setQueryData(['kesiflerNames_byProje'], (kesifler) => [...kesifler, result_newKesif])
+      if (result_newBaslik._id) {
+        let proje = _.cloneDeep(selectedProje)
+        proje.isPaketBasliklar = [...proje.isPaketBasliklar, result_newBaslik]
+        setSelectedProje(proje)
         setShow("Main")
         return
       }
@@ -117,10 +137,23 @@ export default function Form_IsPaketBasligi_Create({ setShow }) {
 
       console.log(err)
 
+      let dialogIcon = "warning"
+      let dialogMessage = "Beklenmedik hata, sayfayı yenileyiniz, sorun devam ederse Rapor7/24 ile irtibata geçiniz.."
+      let onCloseAction = () => {
+        setDialogAlert()
+      }
+      if (err.message.includes("__mesajBaslangic__") && err.message.includes("__mesajBitis__")) {
+        let mesajBaslangic = err.message.indexOf("__mesajBaslangic__") + "__mesajBaslangic__".length
+        let mesajBitis = err.message.indexOf("__mesajBitis__")
+        dialogMessage = err.message.slice(mesajBaslangic, mesajBitis)
+        dialogIcon = "info"
+
+      }
       setDialogAlert({
-        dialogIcon: "warning",
-        dialogMessage: "Beklenmedik hata, Rapor7/24 ile irtibata geçiniz..",
-        detailText: err?.message ? err.message : null
+        dialogIcon,
+        dialogMessage,
+        detailText: err?.message ? err.message : null,
+        onCloseAction
       })
 
     }
@@ -153,7 +186,7 @@ export default function Form_IsPaketBasligi_Create({ setShow }) {
 
             <DialogContentText sx={{ fontWeight: "bold", paddingBottom: "1rem" }}>
               {/* <Typography sx> */}
-              Keşif Oluştur
+              İş Paket Başlığı Oluştur
               {/* </Typography> */}
             </DialogContentText>
 
@@ -169,7 +202,26 @@ export default function Form_IsPaketBasligi_Create({ setShow }) {
                 error={baslikNameError ? true : false}
                 helperText={baslikNameError ? baslikNameError : ""}
                 // margin="dense"
-                label="Proje Adı"
+                label="İş Paketi Başlık Adı"
+                type="text"
+                fullWidth
+              />
+            </Box>
+
+            <Box onClick={() => setAciklamaError(false)}>
+              <TextField
+                multiline
+                // rows={2}
+                variant="standard"
+                margin="normal"
+                id="aciklama"
+                name="aciklama"
+                onChange={(e) => setAciklama(() => e.target.value)}
+                value={aciklama}
+                error={aciklamaError ? true : false}
+                helperText={aciklamaError ? aciklamaError : ""}
+                // margin="dense"
+                label="Açıklama"
                 type="text"
                 fullWidth
               />

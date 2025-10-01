@@ -86,6 +86,7 @@ export default function Layout({ window, children }) {
   }
 
   if (!RealmApp?.currentUser && Layout_Show === "login") {
+    console.log("RealmApp", RealmApp)
     return (
       <FormSignIn />
     )
@@ -316,12 +317,12 @@ export default function Layout({ window, children }) {
 
   return (
 
-    <Box sx={{ display: 'flex'  }}>
+    <Box sx={{ display: 'flex' }}>
       <CssBaseline />
 
 
       {/* AppBar */}
-      <Box sx={{ display: 'flex'}}>
+      <Box sx={{ display: 'flex' }}>
         <AppBar
           position="fixed"
           sx={{

@@ -1,10 +1,11 @@
 
-import { useState, useEffect, useContext } from 'react';
+import React, { useState, useEffect, useContext } from 'react';
 import { StoreContext } from '../../components/store'
-import FormProjeCreate from '../../components/FormProjeCreate'
+import FormIsPaketBasligiCreate from '../../components/FormIsPaketBasligiCreate'
 import { useNavigate } from "react-router-dom";
-import { useGetProjelerNames_byFirma } from '../../hooks/useMongo';
+// import { useGetProjelerNames_byFirma } from '../../hooks/useMongo';
 import { DialogAlert } from '../../components/general/DialogAlert'
+import ShowIsPaketBasliklar from '../../components/ShowIsPaketBasliklar'
 
 
 import Paper from '@mui/material/Paper';
@@ -19,6 +20,7 @@ import FolderIcon from '@mui/icons-material/Folder';
 import IconButton from '@mui/material/IconButton';
 import DeleteIcon from '@mui/icons-material/Delete';
 import AddCircleOutlineIcon from '@mui/icons-material/AddCircleOutline';
+import VisibilityIcon from '@mui/icons-material/Visibility';
 
 
 export default function P_IsPaketleri() {
@@ -29,6 +31,8 @@ export default function P_IsPaketleri() {
 
   const [dialogAlert, setDialogAlert] = useState()
 
+  const [basliklar, setBasliklar] = useState(RealmApp?.currentUser.customData.customSettings.pages.ispaketleri.basliklar)
+
   const navigate = useNavigate()
 
   useEffect(() => {
@@ -37,9 +41,11 @@ export default function P_IsPaketleri() {
 
 
 
+
   const [show, setShow] = useState("Main")
 
-  const { data: projelerNames_byFirma } = useGetProjelerNames_byFirma()
+  // const { data: projelerNames_byFirma } = useGetProjelerNames_byFirma()
+  const isPaketBasliklar = selectedProje?.isPaketBasliklar
 
 
   const handleProjeClick = async (oneProje) => {
@@ -61,6 +67,24 @@ export default function P_IsPaketleri() {
   }
 
 
+  const aciklamaShow = basliklar?.find(x => x.id === "aciklama").show
+
+
+  // const columns2 =
+  //   `max-content 
+  // minmax(min-content, 35rem) 
+  // max-content
+  // ${pozAciklamaShow ? " 0.4rem minmax(min-content, 10rem)" : ""}
+  // ${pozVersiyonShow ? " 0.4rem max-content" : ""}
+  // ${paraBirimiAdet === 1 ? " 0.4rem max-content" : paraBirimiAdet > 1 ? " 0.4rem repeat(" + paraBirimiAdet + ", max-content)" : ""}
+  //   `
+
+
+  // iş paket başlığı - açıklama  
+  // sıra - iş paketi - keşif - bütçe - güncel iş sonu - gerçekleşen - kalan 
+  const columns = "repeat(7, max-content)"
+
+
   return (
     <Box>
 
@@ -72,6 +96,10 @@ export default function P_IsPaketleri() {
           onCloseAction={() => setDialogAlert()}
         />
       }
+
+      {/* BAŞLIK GÖSTER / GİZLE */}
+      {show == "ShowBaslik" && <ShowIsPaketBasliklar setShow={setShow} basliklar={basliklar} setBasliklar={setBasliklar} />}
+
 
       {/* BAŞLIK */}
       <Paper >
@@ -89,10 +117,9 @@ export default function P_IsPaketleri() {
               variant="h6"
               fontWeight="bold"
             >
-              Projeler
+              İş Paketleri
             </Typography>
           </Grid>
-
 
           {/* sağ kısım - (tuşlar)*/}
           <Grid item xs="auto">
@@ -106,8 +133,16 @@ export default function P_IsPaketleri() {
                 </IconButton>
               </Grid>
 
+
+              <Grid item >
+                <IconButton onClick={() => setShow("ShowBaslik")}>
+                  <VisibilityIcon variant="contained" />
+                </IconButton>
+              </Grid>
+
+
               <Grid item>
-                <IconButton onClick={() => setShow("FormProjeCreate")} aria-label="addWbs">
+                <IconButton onClick={() => setShow("FormIsPaketBasligiCreate")} aria-label="addWbs">
                   <AddCircleOutlineIcon variant="contained" color="success" />
                 </IconButton>
               </Grid>
@@ -120,63 +155,43 @@ export default function P_IsPaketleri() {
 
 
 
-      {show == "FormProjeCreate" &&
+      {show == "FormIsPaketBasligiCreate" &&
         <Box>
-          <FormProjeCreate setShow={setShow} />
+          <FormIsPaketBasligiCreate setShow={setShow} />
         </Box>
       }
 
-      {show == "Main" && !projelerNames_byFirma?.length > 0 &&
+      {show == "Main" && !isPaketBasliklar?.length > 0 &&
         <Stack sx={{ width: '100%', padding: "1rem" }} spacing={2}>
           <Alert severity="info">
-            Firmaya ait proje oluşturmak için menüyü kullanabilirsiniz.
+            Bir iş paketi başlığı oluşturmak için (+) tuşuna basınız..
           </Alert>
         </Stack>
       }
 
-      {show == "Main" && projelerNames_byFirma?.length > 0 &&
-        <Stack sx={{ width: '100%', padding: "1rem" }} spacing={0}>
-          {
-            projelerNames_byFirma.map((oneProje, index) => (
+      {show == "Main" && isPaketBasliklar?.length > 0 &&
+        <Stack sx={{ width: '100%', padding: "1rem", display: "grid", gridTemplateColumns: columns }}>
 
-              <Box
-                key={index}
-                onClick={() => handleProjeClick(oneProje)}
-                sx={{
-                  display: "grid",
-                  gridTemplateColumns: "auto 1fr",
-                  "&:hover": {
-                    color: "black",
-                    "& .childClass": {
-                      color: "black",
-                    }
-                  },
-                  alignItems: "center",
-                  padding: "0.2rem 1rem",
-                  cursor: "pointer"
-                }}
-              >
+          {/* iş paket başlığı */}
+          {isPaketBasliklar.map((oneProje, index) => (
 
-                <Box className="childClass" sx={{ pr: "1rem", color: "gray" }}>
-                  <FolderIcon />
-                </Box>
-
-                <Box className="childClass" sx={{ pr: "1rem", color: "gray" }}>
-                  <Typography>
-                    {oneProje.name}
-                  </Typography>
-                </Box>
-                {/* 
-                <Box className="childClass" sx={{ pr: "1rem", color: "gray" }}>
-                  <Typography>
-                    {oneProje.yetkiliKisiler.find(oneKisi => oneKisi.email === RealmApp.currentUser._profile.data.email && oneKisi.yetki === "owner") ? "sahip" : "diğer"}
-                  </Typography>
-                </Box> */}
-
+            <React.Fragment key={index}>
+              <Box sx={{ gridColumn: "1/8", color: "black", fontWeight: 700 }}>
+                {oneProje.name}
               </Box>
 
-            ))
-          }
+              {
+                aciklamaShow &&
+                <Box sx={{ gridColumn: "1/8", color: "gray" }}>
+                  {oneProje.aciklama}
+                </Box>
+              }
+
+            </React.Fragment>
+
+            // iş paketleri
+
+          ))}
 
 
         </Stack>
