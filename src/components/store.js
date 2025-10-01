@@ -1,6 +1,6 @@
 import { createContext, useState } from 'react'
 // import { useApp } from "./useApp.js";
-import * as Realm from "realm-web";
+// import * as Realm from "realm-web";
 
 export const StoreContext = createContext(null)
 
@@ -64,7 +64,7 @@ export default ({ children }) => {
   
   const [detailMode, setDetailMode] = useState()
 
-  const [RealmApp, setRealmApp] = useState(Realm.getApp("rapor724_v2-cykom"))
+  // const [RealmApp, setRealmApp] = useState(Realm.getApp("rapor724_v2-cykom"))
   const [selectedFirma, setSelectedFirma] = useState()
   const [selectedProje, setSelectedProje] = useState()
   const [firmaProject, setFirmaProject] = useState()
@@ -77,7 +77,8 @@ export default ({ children }) => {
   const [mahalListesi, setMahalListesi] = useState()
   const [projectNames, setProjectNames] = useState()
 
-  const [showMetrajYapabilenler, setShowMetrajYapabilenler] = useState(RealmApp?.currentUser?.customData.customSettings.showMetrajYapabilenler)
+  // const [showMetrajYapabilenler, setShowMetrajYapabilenler] = useState(RealmApp?.currentUser?.customData.customSettings.showMetrajYapabilenler)
+  const [showMetrajYapabilenler, setShowMetrajYapabilenler] = useState()
 
 
   const [pageMetraj_show, pageMetraj_setShow] = useState("Pozlar")
@@ -110,7 +111,7 @@ export default ({ children }) => {
     detailMode, setDetailMode,
 
 
-    RealmApp, setRealmApp,
+    // RealmApp, setRealmApp,
     selectedFirma, setSelectedFirma,
     selectedProje, setSelectedProje,
     firmaProject, setFirmaProject,

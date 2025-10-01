@@ -79,11 +79,11 @@ export default function Layout({ window, children }) {
 
 
 
-  if (!RealmApp) {
-    return (
-      <div>Üzgünüz, bir problem var (RealmApp yok), sayfayı yenilemeyi deneyiniz, problem devam ederse lütfen bizi bilgilendiriniz... Hata (COMPONENT:Layout - MESSAGE:RealmApp yok)</div>
-    )
-  }
+  // if (!RealmApp) {
+  //   return (
+  //     <div>Üzgünüz, bir problem var (RealmApp yok), sayfayı yenilemeyi deneyiniz, problem devam ederse lütfen bizi bilgilendiriniz... Hata (COMPONENT:Layout - MESSAGE:RealmApp yok)</div>
+  //   )
+  // }
 
   if (!RealmApp?.currentUser && Layout_Show === "login") {
     console.log("RealmApp", RealmApp)
