@@ -55,6 +55,7 @@ export default function FormMailTeyit() {
   const navigate = useNavigate()
   const { RealmApp, selectedProje, setSelectedProje } = useContext(StoreContext)
   const { Layout_Show, setLayout_Show } = useContext(StoreContext)
+  const { appUser, setAppUser } = useContext(StoreContext)
 
   const [pageSituation, setPageSituation] = useState(0)
 
@@ -62,6 +63,7 @@ export default function FormMailTeyit() {
   const [detailText, setDetailText] = useState()
 
   const [email, setEmail] = useState()
+
 
   useEffect(() => {
     RealmApp?.currentUser && setEmail(RealmApp?.currentUser?._profile?.data?.email)
@@ -191,7 +193,7 @@ export default function FormMailTeyit() {
             </Typography>
             <Box component="form" onSubmit={handleSubmit} noValidate sx={{ mt: 1 }}>
 
-              {email &&
+              {appUser?.email &&
                 <TextField
                   // onClick={() => setEmailError()}
                   // error={emailError ? true : false}
@@ -204,7 +206,7 @@ export default function FormMailTeyit() {
                   // autoComplete="email"
                   // autoFocus
                   disabled={true}
-                  defaultValue={email}
+                  defaultValue={appUser?.email}
                 />
               }
 
@@ -227,7 +229,7 @@ export default function FormMailTeyit() {
               </Typography>
 
 
-              {email &&
+              {appUser?.email &&
                 <Button
                   type="submit"
                   fullWidth
@@ -247,9 +249,10 @@ export default function FormMailTeyit() {
                 <Grid item sx={{ display: "grid", justifyContent: "end" }}>
                   <Link
                     onClick={() => {
-                      RealmApp?.currentUser?.logOut()
+                      setAppUser()
+                      localStorage.removeItem('appUser')
                       // setLayout_Show("newUser")
-                      navigate(0)
+                      // navigate(0)
                     }}
                     sx={{}}
                     href="#"

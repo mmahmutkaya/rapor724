@@ -1,5 +1,6 @@
 import { useEffect, useState, useContext } from 'react';
 import { StoreContext } from './store.js'
+import { DialogAlert } from './general/DialogAlert.js';
 
 import * as Realm from "realm-web";
 import { useApp } from "./useApp.js";
@@ -47,10 +48,12 @@ export default function SignIn() {
   const navigate = useNavigate()
   const { selectedProje, setSelectedProje } = useContext(StoreContext)
   const { Layout_Show, setLayout_Show } = useContext(StoreContext)
+  const { setAppUser } = useContext(StoreContext)
 
   const [emailError, setEmailError] = useState()
   const [passwordError, setPasswordError] = useState()
   const [subtextError, setSubtextError] = useState()
+  const [dialogAlert, setDialogAlert] = useState()
 
 
   async function handleSubmit(event) {
@@ -89,8 +92,8 @@ export default function SignIn() {
 
 
       //  Password frontend kontrolü
-      if (password.length < 6) {
-        setPasswordError("En az 6 karakter kullanmalısınız") // biz kabul etsek mongodb oluşturmuyor kullanıcıyı 6 haneden az şifre ile
+      if (password.length < 8) {
+        setPasswordError("En az 8 karakter kullanmalısınız") // biz kabul etsek mongodb oluşturmuyor kullanıcıyı 6 haneden az şifre ile
         isError = true
       }
 
@@ -109,27 +112,70 @@ export default function SignIn() {
       }
 
 
-      const credentials = Realm.Credentials.emailPassword(email, password);
-      await RealmApp.logIn(credentials);
-      if (RealmApp.currentUser) {
-        console.log("Giriş işlemi başarılı")
-        navigate(0)
-        return
+      // const credentials = Realm.Credentials.emailPassword(email, password);
+      // await RealmApp.logIn(credentials);
+      // if (RealmApp.currentUser) {
+      //   console.log("Giriş işlemi başarılı")
+      //   navigate(0)
+      //   return
+      // }
+
+
+      const response = await fetch('/api/user/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, password })
+      })
+
+
+      if (!response.ok) {
+        const responseJson = await response.json()
+        throw new Error(responseJson.error);
       }
 
-      setSubtextError("Kullanıcı adı veya şifre hatalı")
-      isError = true
+      if (response.ok) {
+
+        const responseJson = await response.json()
+
+        // form validation - backend
+        if (responseJson.errorObject) {
+          let { errorObject } = responseJson
+          setEmailError(errorObject.emailError)
+          setPasswordError(errorObject.passwordError)
+          return
+        }
+
+        // save the user to local storage
+        localStorage.setItem('appUser', JSON.stringify(responseJson))
+
+        // save the user to react context
+        setAppUser(responseJson)
+        // navigate(0)
+      }
+
 
     } catch (error) {
 
-      console.log("error.message", error.message)
+      console.log(error)
 
-      if (error.message.includes("unauthorized")) {
-        setSubtextError("Kullanıcı adı veya şifre hatalı")
-        isError = true
+      let dialogIcon = "warning"
+      let dialogMessage = "Beklenmedik hata, sayfayı yenileyiniz, sorun devam ederse Rapor7/24 ile irtibata geçiniz.."
+      let onCloseAction = () => {
+        setDialogAlert()
       }
 
-      return
+      if (error.message.includes("__mesajBaslangic__") && error.message.includes("__mesajBitis__")) {
+        let mesajBaslangic = error.message.indexOf("__mesajBaslangic__") + "__mesajBaslangic__".length
+        let mesajBitis = error.message.indexOf("__mesajBitis__")
+        dialogMessage = error.message.slice(mesajBaslangic, mesajBitis)
+        dialogIcon = "info"
+      }
+      setDialogAlert({
+        dialogIcon,
+        dialogMessage,
+        detailText: error?.message ? error.message : null,
+        onCloseAction
+      })
 
     }
 
@@ -138,6 +184,16 @@ export default function SignIn() {
 
   return (
     <ThemeProvider theme={theme}>
+
+      {dialogAlert &&
+        <DialogAlert
+          dialogIcon={dialogAlert.dialogIcon}
+          dialogMessage={dialogAlert.dialogMessage}
+          detailText={dialogAlert.detailText}
+          onCloseAction={dialogAlert.onCloseAction}
+        />
+      }
+
       {/* <Grid container  > */}
       {/* 
         <Grid item sx={{ zIndex: "-1", }} >
@@ -179,7 +235,8 @@ export default function SignIn() {
               required
               fullWidth
               id="email"
-              label={emailError ? emailError : "Email"}
+              label={"Email"}
+              helperText={emailError ? emailError : null}
               name="email"
               autoComplete="email"
               autoFocus
@@ -198,7 +255,8 @@ export default function SignIn() {
               required
               fullWidth
               name="password"
-              label={passwordError ? passwordError : "Şifre"}
+              label={"Şifre"}
+              helperText={passwordError ? passwordError : null}
               type="password"
               id="password"
               // value={password}

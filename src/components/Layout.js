@@ -56,7 +56,7 @@ export default function Layout({ window, children }) {
   const { drawerWidth, topBarHeight } = useContext(StoreContext)
   const { Layout_Show, setLayout_Show } = useContext(StoreContext)
 
-  const { RealmApp, selectedFirma, selectedProje, setSelectedProje } = useContext(StoreContext)
+  const { appUser, selectedFirma, selectedProje, setSelectedProje } = useContext(StoreContext)
 
   const { setSelectedFirma, setSelectedLbs, setSelectedMahal, setSelectedMahalBaslik, setSelectedWbs, setSelectedPoz, setSelectedPozBaslik, setSelectedNode, pageMetraj_setShow } = useContext(StoreContext)
 
@@ -85,21 +85,21 @@ export default function Layout({ window, children }) {
   //   )
   // }
 
-  if (!RealmApp?.currentUser && Layout_Show === "login") {
-    console.log("RealmApp", RealmApp)
+
+  if (!appUser && Layout_Show === "login") {
     return (
       <FormSignIn />
     )
   }
 
-  if (!RealmApp?.currentUser && Layout_Show === "newUser") {
+  if (!appUser && Layout_Show === "newUser") {
     return (
       <FormSignUp />
     )
   }
 
 
-  if (!RealmApp?.currentUser && Layout_Show === "sifreYenileme") {
+  if (!appUser && Layout_Show === "sifreYenileme") {
     return (
       <FormSifreYenileme />
     )
@@ -108,7 +108,7 @@ export default function Layout({ window, children }) {
 
 
   // mongo realm bu fonksiyonu name değeri yoksa bile name:$undefined:true gibi birşey oluşturuyor sonuçta $undefined:true olarak döndürüyor
-  if (!RealmApp?.currentUser?.customData?.mailTeyit) {
+  if (!appUser?.customData?.mailTeyit) {
     return (
       <FormMailTeyit />
     )
@@ -117,8 +117,8 @@ export default function Layout({ window, children }) {
 
   // mongo realm bu fonksiyonu name değeri yoksa bile name:$undefined:true gibi birşey oluşturuyor sonuçta $undefined:true olarak döndürüyor
   if (
-    !RealmApp?.currentUser?.customData?.isim ||
-    !RealmApp?.currentUser?.customData?.soyisim
+    !appUser?.customData?.isim ||
+    !appUser?.customData?.soyisim
   ) {
     return (
       <FormNewUserNecessaryData />
@@ -128,8 +128,8 @@ export default function Layout({ window, children }) {
 
 
   // // mongo realm bu fonksiyonu name değeri yoksa bile name:$undefined:true gibi birşey oluşturuyor sonuçta $undefined:true olarak döndürüyor
-  // const isName = typeof RealmApp?.currentUser?.customData?.name === "string" && RealmApp?.currentUser?.customData?.name.length > 0
-  // // const mailTeyit = typeof RealmApp?.currentUser.customData.mailTeyit === true
+  // const isName = typeof appUser?.customData?.name === "string" && appUser?.customData?.name.length > 0
+  // // const mailTeyit = typeof appUser.customData.mailTeyit === true
   // if (!isName) {
   //   return (
   //     <>
@@ -172,7 +172,7 @@ export default function Layout({ window, children }) {
   const clickLogOut = async () => {
     setAnchorEl(null);
     handleMobileMenuClose();
-    await RealmApp?.currentUser.logOut()
+    await appUser.logOut()
     setBegan(prev => !prev)
   }
 
@@ -237,7 +237,7 @@ export default function Layout({ window, children }) {
       open={isMenuOpen}
       onClose={handleMenuClose}
     >
-      <MenuItem onClick={handleProfilim}>{RealmApp.currentUser._profile.data.email}</MenuItem>
+      <MenuItem onClick={handleProfilim}>{appUser?.email}</MenuItem>
       {/* <MenuItem onClick={handleMenuClose}>My account</MenuItem> */}
       <MenuItem onClick={clickLogOut}>Çıkış Yap</MenuItem>
     </Menu>
@@ -484,7 +484,7 @@ export default function Layout({ window, children }) {
             '& .MuiDrawer-paper': { boxSizing: 'border-box', width: drawerWidth },
           }}
         >
-          <Sidebar RealmApp={RealmApp} setMobileOpen={setMobileOpen} />
+          <Sidebar setMobileOpen={setMobileOpen} />
           {/* {drawer} */}
         </Drawer>
         <Drawer

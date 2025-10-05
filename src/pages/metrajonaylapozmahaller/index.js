@@ -45,16 +45,16 @@ export default function P_MetrajOnaylaPozMahaller() {
   const { selectedNode_metraj, setSelectedNode_metraj } = useContext(StoreContext)
   const { selectedMahal_metraj, setSelectedMahal_metraj } = useContext(StoreContext)
 
-  
+
   let editNodeMetraj = false
   let onayNodeMetraj = true
-  
+
   const customData = RealmApp.currentUser.customData
-  
+
   // useEffect(() => {
-    //   setShowMetrajYapabilenler(RealmApp.currentUser.customData.customSettings.showMetrajYapabilenler)
-    // }, [])
-    
+  //   setShowMetrajYapabilenler(RealmApp.currentUser.customData.customSettings.showMetrajYapabilenler)
+  // }, [])
+
 
 
 
@@ -352,17 +352,16 @@ export default function P_MetrajOnaylaPozMahaller() {
 
         let dialogIcon = "warning"
         let dialogMessage = "Beklenmedik hata, sayfayı yenileyiniz, sorun devam ederse Rapor7/24 ile irtibata geçiniz.."
-        let onCloseAction = () => setDialogAlert()
+        let onCloseAction = () => {
+          setDialogAlert()
+          queryClient.invalidateQueries(['dugumler_byPoz'])
+        }
 
         if (err.message.includes("__mesajBaslangic__") && err.message.includes("__mesajBitis__")) {
           let mesajBaslangic = err.message.indexOf("__mesajBaslangic__") + "__mesajBaslangic__".length
           let mesajBitis = err.message.indexOf("__mesajBitis__")
           dialogMessage = err.message.slice(mesajBaslangic, mesajBitis)
           dialogIcon = "info"
-          onCloseAction = () => {
-            setDialogAlert()
-            queryClient.invalidateQueries(['dugumler_byPoz'])
-          }
         }
         setDialogAlert({
           dialogIcon,
@@ -743,7 +742,7 @@ export default function P_MetrajOnaylaPozMahaller() {
 
 
                                 {/* metrajın solundaki ikon */}
-                                {!hasSelectedFull_aday && 
+                                {!hasSelectedFull_aday &&
                                   <Box sx={{ px: "0.5rem", display: "grid", alignItems: "center", justifyContent: "center" }}>
 
                                     {someSelected &&

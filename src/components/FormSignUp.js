@@ -1,5 +1,6 @@
 import { useEffect, useState, useContext } from 'react';
 import { StoreContext } from './store.js'
+import { DialogAlert } from './general/DialogAlert.js';
 
 import * as Realm from "realm-web";
 import { useApp } from "./useApp.js";
@@ -40,16 +41,17 @@ function Copyright(props) {
 const theme = createTheme();
 
 
-
 export default function FormSignUp() {
 
   const RealmApp = useApp();
   const navigate = useNavigate()
   const { Layout_Show, setLayout_Show } = useContext(StoreContext)
+  const { setAppUser } = useContext(StoreContext)
 
 
   const [emailError, setEmailError] = useState()
   const [passwordError, setPasswordError] = useState()
+  const [dialogAlert, setDialogAlert] = useState()
 
 
   async function handleSubmit(event) {
@@ -64,7 +66,6 @@ export default function FormSignUp() {
       const email = data.get('email')
       const password = data.get('password')
       const password2 = data.get('password2')
-
 
 
       //  Email frontend kontrolü
@@ -90,8 +91,8 @@ export default function FormSignUp() {
 
 
       //  Password frontend kontrolü
-      if (password.length < 6) {
-        setPasswordError("En az 6 karakter kullanmalısınız")
+      if (password.length < 8) {
+        setPasswordError("En az 8 karakter kullanmalısınız")
         isError = true
       }
 
@@ -118,37 +119,73 @@ export default function FormSignUp() {
       }
 
 
+      // console.log("email", email)
+      // console.log("password", password)
+      // console.log("password2", password2)
 
-      console.log("email", email)
-      console.log("password", password)
-      console.log("password2", password2)
+
+      // await RealmApp.emailPasswordAuth.registerUser({ email, password });
+      // const credentials = Realm.Credentials.emailPassword(email, password);
+      // await RealmApp.logIn(credentials);
 
 
-      await RealmApp.emailPasswordAuth.registerUser({ email, password });
-      const credentials = Realm.Credentials.emailPassword(email, password);
-      await RealmApp.logIn(credentials);
-      console.log("Kullanıcı kayıt işlemi başarılı")
-      navigate(0)
+      const response = await fetch('/api/user/signup', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, password })
+      })
 
+
+      if (!response.ok) {
+        const responseJson = await response.json()
+        throw new Error(responseJson.error);
+      }
+
+      if (response.ok) {
+
+        const responseJson = await response.json()
+
+        // console.log("responseJson",responseJson)
+
+        // form validation - backend
+        if (responseJson.errorObject) {
+          let { errorObject } = responseJson
+          setEmailError(errorObject.emailError)
+          setPasswordError(errorObject.passwordError)
+          return
+        }
+
+        // save the user to local storage
+        localStorage.setItem('appUser', JSON.stringify(responseJson))
+
+        // save the user to react context
+        setAppUser(responseJson)
+        // navigate(0)
+      }
 
 
     } catch (error) {
 
-      console.log("error", error)
+      console.log(error)
 
-      if (error.message.includes("name already in use")) {
-        setEmailError("Bu mail adresi zaten kayıtlı")
+      let dialogIcon = "warning"
+      let dialogMessage = "Beklenmedik hata, sayfayı yenileyiniz, sorun devam ederse Rapor7/24 ile irtibata geçiniz.."
+      let onCloseAction = () => {
+        setDialogAlert()
       }
 
-      if (error.message.includes("failed to confirm user")) {
-        setEmailError("Mail adresinizin doğruluğunu kontrol ediniz")
+      if (error.message.includes("__mesajBaslangic__") && error.message.includes("__mesajBitis__")) {
+        let mesajBaslangic = error.message.indexOf("__mesajBaslangic__") + "__mesajBaslangic__".length
+        let mesajBitis = error.message.indexOf("__mesajBitis__")
+        dialogMessage = error.message.slice(mesajBaslangic, mesajBitis)
+        dialogIcon = "info"
       }
-
-      if (error.message.includes("password must be between 6 and 128 characters")) {
-        setPasswordError("Şireniz en az 6 karakter olmalı")
-      }
-
-      return
+      setDialogAlert({
+        dialogIcon,
+        dialogMessage,
+        detailText: error?.message ? error.message : null,
+        onCloseAction
+      })
 
     }
 
@@ -157,6 +194,17 @@ export default function FormSignUp() {
 
   return (
     <ThemeProvider theme={theme}>
+
+      {dialogAlert &&
+        <DialogAlert
+          dialogIcon={dialogAlert.dialogIcon}
+          dialogMessage={dialogAlert.dialogMessage}
+          detailText={dialogAlert.detailText}
+          onCloseAction={dialogAlert.onCloseAction}
+        />
+      }
+
+
       {/* <Grid container  > */}
       {/* 
         <Grid item sx={{ zIndex: "-1", }} >
@@ -179,8 +227,7 @@ export default function FormSignUp() {
             display: 'flex',
             flexDirection: 'column',
             alignItems: 'center',
-            backgroundColor: "white",
-
+            backgroundColor: "white"
           }}
         >
           <Avatar sx={{ m: 1, bgcolor: 'secondary.main' }}>
@@ -200,7 +247,8 @@ export default function FormSignUp() {
               required
               fullWidth
               id="email"
-              label={emailError ? emailError : "Email"}
+              label={"Email"}
+              helperText={emailError ? emailError : null}
               name="email"
               autoComplete="email"
               autoFocus
@@ -217,7 +265,8 @@ export default function FormSignUp() {
               required
               fullWidth
               name="password"
-              label={passwordError ? passwordError : "Şifre"}
+              label={"Şifre"}
+              helperText={passwordError ? passwordError : null}
               type="password"
               id="password"
               // value={password}
@@ -234,7 +283,8 @@ export default function FormSignUp() {
               required
               fullWidth
               name="password2"
-              label={passwordError ? passwordError : "Şifre Tekrarı"}
+              label={"Şifre Tekrarı"}
+              helperText={passwordError ? passwordError : null}
               type="password"
               id="password2"
               // value={password2}
@@ -253,6 +303,7 @@ export default function FormSignUp() {
             >
               Gönder
             </Button>
+
 
             <Grid container>
               <Grid item xs>

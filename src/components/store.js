@@ -40,6 +40,7 @@ export default ({ children }) => {
 
 
   const [custom, setCustom] = useState()
+  const [appUser, setAppUser] = useState(JSON.parse(localStorage.getItem('appUser')))
   const [Layout_Show, setLayout_Show] = useState("login")
 
   const [selectedLbs, setSelectedLbs] = useState()
@@ -86,6 +87,7 @@ export default ({ children }) => {
   const store = {
     custom, setCustom,
 
+    appUser, setAppUser,
     Layout_Show, setLayout_Show,
 
     selectedLbs, setSelectedLbs,
