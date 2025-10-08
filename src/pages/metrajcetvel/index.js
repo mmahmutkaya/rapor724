@@ -62,6 +62,7 @@ export default function P_MetrajCetveliOnaylanan() {
   let pozBirim
 
 
+
   // const { data: onaylananMetraj } = useGetOnaylananMetraj()
   const { data: onaylananMetraj } = useGetOnaylananMetraj()
 
@@ -74,7 +75,6 @@ export default function P_MetrajCetveliOnaylanan() {
     // console.log("onaylananMetraj",onaylananMetraj)
     setShow("Main")
   }, [onaylananMetraj])
-
 
 
 

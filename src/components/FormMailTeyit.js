@@ -57,6 +57,7 @@ export default function FormMailTeyit() {
   const { Layout_Show, setLayout_Show } = useContext(StoreContext)
   const { appUser, setAppUser } = useContext(StoreContext)
 
+
   const [pageSituation, setPageSituation] = useState(0)
 
   const [mailCodeError, setMailCodeError] = useState()
@@ -80,10 +81,31 @@ export default function FormMailTeyit() {
       try {
 
         setPageSituation(1)
-        const resultMailSended = await RealmApp.currentUser.callFunction("auth_SendConfirmationCode")
-        console.log("resultMailSended", resultMailSended)
-        setPageSituation(3)
-        return
+        // const resultMailSended = await RealmApp.currentUser.callFunction("auth_SendConfirmationCode")
+        // console.log("resultMailSended", resultMailSended)
+
+        const response = await fetch('/api/user/sendmailcode', {
+          method: 'POST',
+          headers: {
+            'email': appUser.email,
+            'token': appUser.token,
+            'Content-Type': 'application/json'
+          }
+        })
+
+
+        if (!response.ok) {
+          const responseJson = await response.json()
+          throw new Error(responseJson.error);
+        }
+
+        if (response.ok) {
+          // const responseJson = await response.json()
+          // console.log("responseJson", responseJson)
+          setPageSituation(3)
+          return
+        }
+
 
       } catch (error) {
         console.log("error", error)
@@ -102,11 +124,11 @@ export default function FormMailTeyit() {
         const mailCode = data.get('mailCode')
 
 
-        //  Mail code frontend kontrolü
-        if (mailCode.length < 6) {
-          setMailCodeError("En az 6 karakter kullanmalısınız") // biz kabul etsek mongodb oluşturmuyor kullanıcıyı 6 haneden az şifre ile
-          isError = true
-        }
+        // //  Mail code frontend kontrolü
+        // if (mailCode.length < 6) {
+        //   setMailCodeError("En az 6 karakter kullanmalısınız") // biz kabul etsek mongodb oluşturmuyor kullanıcıyı 6 haneden az şifre ile
+        //   isError = true
+        // }
 
         if (!mailCode.length) {
           setMailCodeError("Mailinize gelen kodu giriniz")
@@ -122,18 +144,45 @@ export default function FormMailTeyit() {
         }
 
         setPageSituation(4)
-        const resultConfirmation = await RealmApp.currentUser.callFunction("auth_ConfirmationMail", mailCode);
-        if (resultConfirmation.includes("teyit edildi")) {
-          await RealmApp.currentUser.refreshCustomData()
-          console.log("başarılı, navigate(0) yapılacak")
-          navigate(0)
+
+        const response = await fetch('/api/user/confirmmailcode', {
+          method: 'POST',
+          headers: {
+            'email': appUser.email,
+            'token': appUser.token,
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({ mailCode })
+        })
+
+
+        const responseJson = await response.json()
+        // console.log("responseJson", responseJson)
+
+
+        if (!response.ok) {
+          throw new Error(responseJson.error);
         }
-        if (resultConfirmation.includes("mail kodu doğru girilmedi")) {
-          console.log("mail kodu doğru girilmedi")
-          setMailCodeError("Mail kodu doğru girilmedi, kontrol ediniz")
+
+
+        if (responseJson.errorObject) {
+          setMailCodeError(responseJson.errorObject.mailCodeError)
           setPageSituation(3)
         }
+
+
+        if (responseJson.user) {
+
+          // save the user to local storage
+          localStorage.setItem('appUser', JSON.stringify(responseJson.user))
+
+          // save the user to react context
+          setAppUser(responseJson.user)
+          // navigate(0)
+        }
+
         return
+
 
       } catch (error) {
 

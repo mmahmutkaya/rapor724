@@ -2,6 +2,7 @@ import { useEffect, useState, useContext } from 'react';
 import { StoreContext } from './store.js'
 import { DialogAlert } from './general/DialogAlert.js';
 
+
 import * as Realm from "realm-web";
 import { useApp } from "./useApp.js";
 
@@ -53,6 +54,7 @@ export default function SignIn() {
   const [emailError, setEmailError] = useState()
   const [passwordError, setPasswordError] = useState()
   const [subtextError, setSubtextError] = useState()
+
   const [dialogAlert, setDialogAlert] = useState()
 
 
@@ -120,8 +122,7 @@ export default function SignIn() {
       //   return
       // }
 
-
-      const response = await fetch('/api/user/login', {
+      const response = await fetch(`/api/user/login` , {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email, password })
@@ -145,12 +146,16 @@ export default function SignIn() {
           return
         }
 
-        // save the user to local storage
-        localStorage.setItem('appUser', JSON.stringify(responseJson))
+        if (responseJson.user) {
+          // console.log("user", responseJson.user)
 
-        // save the user to react context
-        setAppUser(responseJson)
-        // navigate(0)
+          // save the user to local storage
+          localStorage.setItem('appUser', JSON.stringify(responseJson.user))
+
+          // save the user to react context
+          setAppUser(responseJson.user)
+          // navigate(0)
+        }
       }
 
 

@@ -3,9 +3,8 @@ import { useState, useEffect, useContext } from 'react';
 import { StoreContext } from '../../components/store'
 import { useApp } from "../../components/useApp";
 import FormFirmaCreate from '../../components/FormFirmaCreate'
-// import FirmalarHeader from '../../components/FirmalarHeader'
 import { useNavigate } from "react-router-dom";
-import { useGetFirmalarNames_byUser } from '../../hooks/useMongo';
+import { useGetFirmalar } from '../../hooks/useMongo';
 import { DialogAlert } from '../../components/general/DialogAlert'
 
 
@@ -27,31 +26,58 @@ import AddCircleOutlineIcon from '@mui/icons-material/AddCircleOutline';
 
 export default function P_Firmalar() {
 
-  // const RealmApp = useApp();
-  const { RealmApp } = useContext(StoreContext)
+  const { appUser } = useContext(StoreContext)
   const { setSelectedFirma } = useContext(StoreContext)
 
   const [dialogAlert, setDialogAlert] = useState()
+
 
   useEffect(() => {
     setSelectedFirma()
   }, []);
 
-
   const navigate = useNavigate()
 
   const [show, setShow] = useState("Main")
 
-  const { data: firmalarNames_byUser } = useGetFirmalarNames_byUser()
+  const { data } = useGetFirmalar()
 
 
   const handleFirmaClick = async (oneFirma) => {
+
     try {
-      const firma = await RealmApp.currentUser.callFunction("getFirma", { _firmaId: oneFirma._id })
-      if (firma._id) {
-        setSelectedFirma(firma)
+
+      // const firma = await RealmApp.currentUser.callFunction("getFirma", { _firmaId: oneFirma._id })
+
+      const response = await fetch(`/api/firmalar/${oneFirma._id.toString()}`, {
+        method: 'GET',
+        headers: {
+          email: appUser.email,
+          token: appUser.token,
+          'Content-Type': 'application/json'
+        },
+        // body: JSON.stringify({ firmaName })
+      })
+
+      const responseJson = await response.json()
+
+      if (responseJson.error) {
+        throw new Error(responseJson.error);
+      }
+
+      // if (responseJson.errorObject) {
+      //   setFirmaNameError(responseJson.errorObject.firmaNameError)
+      //   console.log("backend den gelen hata ile durdu")
+      //   return
+      // }
+
+      if (responseJson.firma) {
+        setSelectedFirma(responseJson.firma)
         navigate("/projeler")
       }
+
+
+
     } catch (err) {
       console.log(err)
       setDialogAlert({
@@ -77,6 +103,7 @@ export default function P_Firmalar() {
 
       {/* BAŞLIK */}
       <Paper >
+
         <Grid
           container
           justifyContent="space-between"
@@ -100,13 +127,13 @@ export default function P_Firmalar() {
           <Grid item xs="auto">
             <Grid container spacing={1}>
 
-              <Grid item>
+              {/* <Grid item>
                 <IconButton onClick={() => console.log("deleted clicked")} aria-label="addWbs">
                   <DeleteIcon
                     variant="contained" color="error"
                   />
                 </IconButton>
-              </Grid>
+              </Grid> */}
 
               <Grid item>
                 <IconButton onClick={() => setShow("FormFirmaCreate")} aria-label="addWbs">
@@ -128,7 +155,7 @@ export default function P_Firmalar() {
         </Box>
       }
 
-      {show == "Main" && !firmalarNames_byUser?.length > 0 &&
+      {show == "Main" && !data?.firmalar?.length > 0 &&
         <Stack sx={{ width: '100%', padding: "1rem" }} spacing={2}>
           <Alert severity="info">
             Dahil olduğunuz herhangi bir firma bulunamadı, menüler yardımı ile oluşturabilirsiniz.
@@ -136,10 +163,10 @@ export default function P_Firmalar() {
         </Stack>
       }
 
-      {show == "Main" && firmalarNames_byUser?.length > 0 &&
+      {show == "Main" && data?.firmalar?.length > 0 &&
         <Stack sx={{ width: '100%', padding: "1rem" }} spacing={0}>
           {
-            firmalarNames_byUser.map((oneFirma, index) => (
+            data.firmalar.map((oneFirma, index) => (
 
               <Box
                 key={index}

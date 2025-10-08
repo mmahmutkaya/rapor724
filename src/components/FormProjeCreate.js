@@ -1,7 +1,7 @@
 import React, { useState, useContext, useRef, useEffect } from 'react';
 import { StoreContext } from './store'
 import { useQueryClient } from '@tanstack/react-query'
-import { useGetProjelerNames_byFirma } from '../hooks/useMongo';
+import { useGetProjeler_byFirma } from '../hooks/useMongo';
 import { DialogAlert } from './general/DialogAlert'
 import deleteLastSpace from '../functions/deleteLastSpace'
 
@@ -41,7 +41,7 @@ export default function P_FormProjeCreate({ setShow }) {
   const [dialogAlert, setDialogAlert] = useState()
 
 
-  const { data: projelerNames_byFirma } = useGetProjelerNames_byFirma()
+  const { data: projelerNames_byFirma } = useGetProjeler_byFirma()
 
 
   async function handleSubmit(event) {

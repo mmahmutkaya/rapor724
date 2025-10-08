@@ -155,12 +155,16 @@ export default function FormSignUp() {
           return
         }
 
-        // save the user to local storage
-        localStorage.setItem('appUser', JSON.stringify(responseJson))
+        if (responseJson.user) {
+          // save the user to local storage
+          localStorage.setItem('appUser', JSON.stringify(responseJson.user))
 
-        // save the user to react context
-        setAppUser(responseJson)
-        // navigate(0)
+          // save the user to react context
+          setAppUser(responseJson.user)
+          // navigate(0)
+          return
+        }
+
       }
 
 

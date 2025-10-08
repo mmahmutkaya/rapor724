@@ -29,13 +29,13 @@ const theme = createTheme();
 export default function FormSifreYenileme() {
 
   // const RealmApp = useApp();
-  const { RealmApp } = useContext(StoreContext)
+  const { appUser, setAppUser } = useContext(StoreContext)
   const navigate = useNavigate()
 
   const [dialogAlert, setDialogAlert] = useState()
 
-  const [isim, setIsim] = useState(RealmApp.currentUser.customData.isim ? RealmApp.currentUser.customData.isim : "")
-  const [soyisim, setSoyisim] = useState(RealmApp.currentUser.customData.soyisim ? RealmApp.currentUser.customData.soyisim : "")
+  const [isim, setIsim] = useState(appUser?.isim ? appUser.isim : "")
+  const [soyisim, setSoyisim] = useState(appUser?.soyisim ? appUser.soyisim : "")
 
   const [isimError, setIsimError] = useState()
   const [soyisimError, setSoyisimError] = useState()
@@ -128,27 +128,48 @@ export default function FormSifreYenileme() {
 
         // sorgu olacaksa
         setPageSituation(2)
-        const result = await RealmApp.currentUser.callFunction("auth_newUserNecessaryData", { isim, soyisim })
 
-        if (result.isError) {
 
-          setPageSituation(1)
+        const response = await fetch('/api/user/savenecessaryuserdata', {
+          method: 'POST',
+          headers: {
+            'email': appUser.email,
+            'token': appUser.token,
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({ isim, soyisim })
+        })
 
-          if (result.hasOwnProperty('isimError')) {
-            setIsimError(result.isimError)
-          }
+        const responseJson = await response.json()
 
-          if (result.hasOwnProperty('soyisimError')) {
-            setSoyisimError(result.soyisimError)
-          }
 
-          return
+        if (!response.ok) {
+          throw new Error(responseJson.error);
         }
 
-        console.log("result",result) 
-        await RealmApp.currentUser.refreshCustomData()
+
+        if (responseJson.errorObject) {
+          setIsimError(responseJson.errorObject.isimError)
+          setSoyisimError(responseJson.errorObject.soyisimError)
+          setPageSituation(1)
+        }
+
+
+        if (responseJson.user) {
+
+          // save the user to local storage
+          localStorage.setItem('appUser', JSON.stringify(responseJson.user))
+
+          // save the user to react context
+          setAppUser(responseJson.user)
+          // navigate(0)
+        }
+
+
+        // console.log("result", result)
+        // await RealmApp.currentUser.refreshCustomData()
         navigate('/firmalar')
-        
+
         return
 
       } catch (error) {
@@ -365,8 +386,8 @@ export default function FormSifreYenileme() {
                 <Grid item sx={{ display: "grid", justifyContent: "end" }}>
                   <Link
                     onClick={() => {
-                      RealmApp?.currentUser?.logOut()
-                      // setLayout_Show("newUser")
+                      setAppUser()
+                      localStorage.removeItem('appUser')
                       navigate(0)
                     }}
                     sx={{}}

@@ -3,7 +3,7 @@ import { useState, useEffect, useContext } from 'react';
 import { StoreContext } from '../../components/store'
 import FormProjeCreate from '../../components/FormProjeCreate'
 import { useNavigate } from "react-router-dom";
-import { useGetProjelerNames_byFirma } from '../../hooks/useMongo';
+import { useGetProjeler_byFirma } from '../../hooks/useMongo';
 import { DialogAlert } from '../../components/general/DialogAlert'
 
 
@@ -40,7 +40,7 @@ export default function P_Projeler() {
 
   const [show, setShow] = useState("Main")
 
-  const { data: projelerNames_byFirma } = useGetProjelerNames_byFirma()
+  const { queryData } = useGetProjeler_byFirma()
 
 
   const handleProjeClick = async (oneProje) => {
@@ -127,7 +127,7 @@ export default function P_Projeler() {
         </Box>
       }
 
-      {show == "Main" && !projelerNames_byFirma?.length > 0 &&
+      {show == "Main" && !queryData?.projelerNames_byFirma?.length > 0 &&
         <Stack sx={{ width: '100%', padding: "1rem" }} spacing={2}>
           <Alert severity="info">
             Firmaya ait proje oluşturmak için menüyü kullanabilirsiniz.
@@ -135,10 +135,10 @@ export default function P_Projeler() {
         </Stack>
       }
 
-      {show == "Main" && projelerNames_byFirma?.length > 0 &&
+      {show == "Main" && queryData?.projelerNames_byFirma?.length > 0 &&
         <Stack sx={{ width: '100%', padding: "1rem" }} spacing={0}>
           {
-            projelerNames_byFirma.map((oneProje, index) => (
+            queryData?.projelerNames_byFirma.map((oneProje, index) => (
 
               <Box
                 key={index}

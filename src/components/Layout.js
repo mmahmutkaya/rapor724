@@ -108,7 +108,7 @@ export default function Layout({ window, children }) {
 
 
   // mongo realm bu fonksiyonu name değeri yoksa bile name:$undefined:true gibi birşey oluşturuyor sonuçta $undefined:true olarak döndürüyor
-  if (!appUser?.customData?.mailTeyit) {
+  if (!appUser?.mailTeyit) {
     return (
       <FormMailTeyit />
     )
@@ -117,8 +117,8 @@ export default function Layout({ window, children }) {
 
   // mongo realm bu fonksiyonu name değeri yoksa bile name:$undefined:true gibi birşey oluşturuyor sonuçta $undefined:true olarak döndürüyor
   if (
-    !appUser?.customData?.isim ||
-    !appUser?.customData?.soyisim
+    !appUser?.isim ||
+    !appUser?.soyisim
   ) {
     return (
       <FormNewUserNecessaryData />

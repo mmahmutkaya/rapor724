@@ -1,9 +1,10 @@
 import React, { useState, useContext } from 'react';
 import { StoreContext } from './store'
 import { useQueryClient } from '@tanstack/react-query'
-import { useGetFirmalarNames_byUser } from '../hooks/useMongo';
+import { useGetFirmalar } from '../hooks/useMongo';
 import { DialogAlert } from '../../src/components/general/DialogAlert'
 import deleteLastSpace from '../functions/deleteLastSpace'
+import _ from 'lodash';
 
 
 
@@ -34,8 +35,7 @@ export default function P_FormFirmaCreate({ setShow }) {
 
   const queryClient = useQueryClient()
 
-  const { RealmApp } = useContext(StoreContext)
-  const RealmUserEmail = RealmApp.currentUser._profile.data.email
+  const { appUser } = useContext(StoreContext)
 
   const [firmaName, setFirmaName] = useState("")
 
@@ -43,8 +43,7 @@ export default function P_FormFirmaCreate({ setShow }) {
 
   const [dialogAlert, setDialogAlert] = useState()
 
-  const { data: firmalarNames_byUser } = useGetFirmalarNames_byUser()
-
+  const { data: queryData } = useGetFirmalar()
 
   async function handleSubmit(event) {
 
@@ -55,7 +54,7 @@ export default function P_FormFirmaCreate({ setShow }) {
       const data = new FormData(event.currentTarget);
       const firmaName = deleteLastSpace(data.get('firmaName'))
 
-      
+
       // VALIDATE KONTROL
       let isError
       let firmaNameError
@@ -79,8 +78,9 @@ export default function P_FormFirmaCreate({ setShow }) {
       }
 
 
-      if (firmalarNames_byUser?.length > 0 && !firmaNameError) {
-        firmalarNames_byUser?.filter(oneFirma => oneFirma.yetkiliKisiler?.find(oneKisi => oneKisi.email === RealmUserEmail && oneKisi.yetki == "owner")).map(oneFirma => {
+      if (queryData?.firmalar?.length > 0 && !firmaNameError) {
+        let filteredFirmalar = queryData?.firmalar?.filter(oneFirma => oneFirma.yetkiliKisiler?.find(oneKisi => oneKisi.email === appUser.email && oneKisi.yetki == "owner"))
+        filteredFirmalar.map(oneFirma => {
           if (oneFirma.name == firmaName && !firmaNameError) {
             setFirmaNameError("Bu isimde firmanız mevcut")
             firmaNameError = true
@@ -97,20 +97,36 @@ export default function P_FormFirmaCreate({ setShow }) {
 
       // VALIDATE KONTROL -- SONU 
 
-      const result_newFirma = await RealmApp.currentUser.callFunction("createFirma", { firmaName });
+      const response = await fetch(`/api/firmalar`, {
+        method: 'POST',
+        headers: {
+          email: appUser.email,
+          token: appUser.token,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ firmaName })
+      })
 
+      const responseJson = await response.json()
 
-      if (result_newFirma.errorObject) {
-        setFirmaNameError(result_newFirma.errorObject.firmaNameError)
+      if (responseJson.error) {
+        throw new Error(responseJson.error);
+      }
+
+      if (responseJson.errorObject) {
+        setFirmaNameError(responseJson.errorObject.firmaNameError)
         console.log("backend den gelen hata ile durdu")
         return
       }
 
-      if (result_newFirma._id) {
-        queryClient.setQueryData(['firmalarNames_byUser'], (firmalarNames) => [...firmalarNames, result_newFirma])
+      if (responseJson.newFirma) {
+        let queryData2 = _.cloneDeep(queryData)
+        queryData2.firmalar = [...queryData2?.firmalar, responseJson.newFirma]
+        queryClient.setQueryData(['firmalar'], queryData2)
         setShow("Main")
         return
       }
+
 
 
     } catch (err) {

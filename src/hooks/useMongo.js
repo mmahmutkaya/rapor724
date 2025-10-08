@@ -10,15 +10,24 @@ import { useApp } from "../components/useApp"
 
 
 // MONGO FONKSİYON - getFirmalarNames
-export const useGetFirmalarNames_byUser = (onSuccess, onError) => {
+export const useGetFirmalar = (onSuccess, onError) => {
 
-  // const RealmApp = useApp();
-  const { RealmApp } = useContext(StoreContext)
+  const { appUser } = useContext(StoreContext)
 
   return useQuery({
-    queryKey: ['firmalarNames_byUser'],
-    queryFn: () => RealmApp?.currentUser.callFunction("getFirmalarNames_byUser"),
-    enabled: !!RealmApp,
+    queryKey: ['firmalar'],
+    queryFn: async () => {
+      const response = await fetch('api/firmalar', {
+        method: 'GET',
+        headers: {
+          email: appUser.email,
+          token: appUser.token,
+          'Content-Type': 'application/json'
+        }
+      })
+      return await response.json()
+    },
+    enabled: !!appUser,
     onSuccess,
     onError,
     refetchOnMount: true,
@@ -49,15 +58,26 @@ export const useGetFirmaPozlar = (onSuccess, onError) => {
 
 
 // MONGO FONKSİYON - getProjelerNames_byFirma
-export const useGetProjelerNames_byFirma = (onSuccess, onError) => {
+export const useGetProjeler_byFirma = (onSuccess, onError) => {
 
   // const RealmApp = useApp();
-  const { RealmApp, selectedFirma } = useContext(StoreContext)
+  const { appUser, selectedFirma } = useContext(StoreContext)
 
   return useQuery({
-    queryKey: ['projelerNames_byFirma'],
-    queryFn: () => RealmApp?.currentUser.callFunction("getProjelerNames_byFirma", { _firmaId: selectedFirma._id }),
-    enabled: !!RealmApp,
+    queryKey: ['projeler'],
+    queryFn: async () => {
+      const response = await fetch('api/projelerbyfirma', {
+        method: 'GET',
+        headers: {
+          email: appUser.email,
+          token: appUser.token,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ firmaId:selectedFirma._id.toString() })
+      })
+      return await response.json()
+    },
+    enabled: !!appUser,
     onSuccess,
     onError,
     refetchOnMount: true,
