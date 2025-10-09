@@ -127,7 +127,7 @@ export default function P_Projeler() {
         </Box>
       }
 
-      {show == "Main" && !queryData?.projelerNames_byFirma?.length > 0 &&
+      {show == "Main" && !queryData?.projeler_byFirma?.length > 0 &&
         <Stack sx={{ width: '100%', padding: "1rem" }} spacing={2}>
           <Alert severity="info">
             Firmaya ait proje oluşturmak için menüyü kullanabilirsiniz.
@@ -135,10 +135,10 @@ export default function P_Projeler() {
         </Stack>
       }
 
-      {show == "Main" && queryData?.projelerNames_byFirma?.length > 0 &&
+      {show == "Main" && queryData?.projeler_byFirma?.length > 0 &&
         <Stack sx={{ width: '100%', padding: "1rem" }} spacing={0}>
           {
-            queryData?.projelerNames_byFirma.map((oneProje, index) => (
+            queryData?.projeler_byFirma.map((oneProje, index) => (
 
               <Box
                 key={index}

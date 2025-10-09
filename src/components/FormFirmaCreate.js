@@ -78,16 +78,16 @@ export default function P_FormFirmaCreate({ setShow }) {
       }
 
 
-      if (queryData?.firmalar?.length > 0 && !firmaNameError) {
-        let filteredFirmalar = queryData?.firmalar?.filter(oneFirma => oneFirma.yetkiliKisiler?.find(oneKisi => oneKisi.email === appUser.email && oneKisi.yetki == "owner"))
-        filteredFirmalar.map(oneFirma => {
-          if (oneFirma.name == firmaName && !firmaNameError) {
-            setFirmaNameError("Bu isimde firmanız mevcut")
-            firmaNameError = true
-            isError = true
-          }
-        })
-      }
+      // if (queryData?.firmalar?.length > 0 && !firmaNameError) {
+      //   let filteredFirmalar = queryData?.firmalar?.filter(oneFirma => oneFirma.yetkiliKisiler?.find(oneKisi => oneKisi.email === appUser.email && oneKisi.yetki == "owner"))
+      //   filteredFirmalar.map(oneFirma => {
+      //     if (oneFirma.name == firmaName && !firmaNameError) {
+      //       setFirmaNameError("Bu isimde firmanız mevcut")
+      //       firmaNameError = true
+      //       isError = true
+      //     }
+      //   })
+      // }
 
 
       if (isError) {

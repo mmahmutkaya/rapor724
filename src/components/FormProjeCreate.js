@@ -32,7 +32,8 @@ import PlayArrowIcon from '@mui/icons-material/PlayArrow';
 export default function P_FormProjeCreate({ setShow }) {
 
   const queryClient = useQueryClient()
-  const { RealmApp, selectedFirma } = useContext(StoreContext)
+
+  const { appUser, selectedFirma } = useContext(StoreContext)
 
   const [projeName, setProjeName] = useState("")
 
@@ -41,7 +42,7 @@ export default function P_FormProjeCreate({ setShow }) {
   const [dialogAlert, setDialogAlert] = useState()
 
 
-  const { data: projelerNames_byFirma } = useGetProjeler_byFirma()
+  const { queryData } = useGetProjeler_byFirma()
 
 
   async function handleSubmit(event) {
@@ -49,12 +50,6 @@ export default function P_FormProjeCreate({ setShow }) {
     event.preventDefault();
 
     try {
-
-      // const data = new FormData(event.currentTarget);
-      // const projeName = deleteLastSpace(data.get('projeName')).toUpperCase()
-
-      let _firmaId = selectedFirma?._id
-
 
       // VALIDATE KONTROL
       let isError
@@ -79,8 +74,8 @@ export default function P_FormProjeCreate({ setShow }) {
       }
 
 
-      if (projelerNames_byFirma?.filter(oneProje => oneProje.yetkiliFirmalar).length > 0 && !projeNameError) {
-        projelerNames_byFirma.map(proje => {
+      if (queryData?.projeler_byFirma?.filter(oneProje => oneProje.yetkiliFirmalar).length > 0 && !projeNameError) {
+        queryData?.projeler_byFirma.map(proje => {
           if (proje.name == projeName && !projeNameError) {
             setProjeNameError("Firmanın bu isimde projesi mevcut")
             projeNameError = true
@@ -96,22 +91,31 @@ export default function P_FormProjeCreate({ setShow }) {
 
       // VALIDATE KONTROL -- SONU
 
-      console.log(_firmaId, projeName)
+      // console.log(_firmaId, projeName)
+
+      // const result_newProje = await RealmApp.currentUser.callFunction("createProje", { _firmaId, projeName })
+      const response = await fetch(`/api/firmalar`, {
+        method: 'POST',
+        headers: {
+          email: appUser.email,
+          token: appUser.token,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ firmaId:selectedFirma._id.toString() })
+      })
 
 
-      const result_newProje = await RealmApp.currentUser.callFunction("createProje", { _firmaId, projeName });
+      // if (result_newProje.errorObject) {
+      //   setProjeNameError(result_newProje.errorObject.projeNameError)
+      //   console.log("backend den dönen errorObject hata ile durdu")
+      //   return
+      // }
 
-      if (result_newProje.errorObject) {
-        setProjeNameError(result_newProje.errorObject.projeNameError)
-        console.log("backend den dönen errorObject hata ile durdu")
-        return
-      }
-
-      if (result_newProje._id) {
-        queryClient.setQueryData(['projelerNames_byFirma'], (firmaProjeleri) => [...firmaProjeleri, result_newProje])
-        setShow("Main")
-        return
-      }
+      // if (result_newProje._id) {
+      //   queryClient.setQueryData(['projeler'], (firmaProjeleri) => [...firmaProjeleri, result_newProje])
+      //   setShow("Main")
+      //   return
+      // }
 
     } catch (err) {
 
