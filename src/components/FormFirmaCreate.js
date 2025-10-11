@@ -78,16 +78,16 @@ export default function P_FormFirmaCreate({ setShow }) {
       }
 
 
-      // if (queryData?.firmalar?.length > 0 && !firmaNameError) {
-      //   let filteredFirmalar = queryData?.firmalar?.filter(oneFirma => oneFirma.yetkiliKisiler?.find(oneKisi => oneKisi.email === appUser.email && oneKisi.yetki == "owner"))
-      //   filteredFirmalar.map(oneFirma => {
-      //     if (oneFirma.name == firmaName && !firmaNameError) {
-      //       setFirmaNameError("Bu isimde firmanız mevcut")
-      //       firmaNameError = true
-      //       isError = true
-      //     }
-      //   })
-      // }
+      if (queryData?.firmalar?.length > 0 && !firmaNameError) {
+        let filteredFirmalar = queryData?.firmalar?.filter(oneFirma => oneFirma.yetkiliKisiler?.find(oneKisi => oneKisi.email === appUser.email && oneKisi.yetkiler.find(x => x.name == "owner")))
+        filteredFirmalar.map(oneFirma => {
+          if (oneFirma.name == firmaName && !firmaNameError) {
+            setFirmaNameError("Bu isimde firmanız mevcut")
+            firmaNameError = true
+            isError = true
+          }
+        })
+      }
 
 
       if (isError) {
@@ -185,7 +185,7 @@ export default function P_FormFirmaCreate({ setShow }) {
                 // onChange={(e) => console.log(e.target.value)}
                 // onChange={(e) => setFirmaNameError(e.target.value)}
                 error={firmaNameError ? true : false}
-                helperText={firmaNameError ? firmaNameError : ""}
+                helperText={firmaNameError ? firmaNameError : " "}
                 // margin="dense"
                 label="Firma Adı"
                 type="text"
@@ -196,7 +196,7 @@ export default function P_FormFirmaCreate({ setShow }) {
 
           </DialogContent>
 
-          <DialogActions sx={{ padding: "1.5rem" }}>
+          <DialogActions sx={{ pr: "1.25rem", pb:"1.25rem" }}>
             <Button onClick={() => setShow("Main")}>İptal</Button>
             <Button type="submit">Oluştur</Button>
           </DialogActions>
