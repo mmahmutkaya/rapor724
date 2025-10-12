@@ -15,6 +15,7 @@ import Stack from '@mui/material/Stack';
 import { Typography } from '@mui/material';
 import List from '@mui/material/List';
 import Box from '@mui/material/Box';
+import LinearProgress from '@mui/material/LinearProgress';
 
 import FolderIcon from '@mui/icons-material/Folder';
 import IconButton from '@mui/material/IconButton';
@@ -26,28 +27,33 @@ import AddCircleOutlineIcon from '@mui/icons-material/AddCircleOutline';
 
 export default function P_Firmalar() {
 
-  const { appUser } = useContext(StoreContext)
+  const { appUser, setAppUser } = useContext(StoreContext)
   const { setSelectedFirma } = useContext(StoreContext)
 
   const [dialogAlert, setDialogAlert] = useState()
 
-
-  useEffect(() => {
-    setSelectedFirma()
-  }, []);
+  const { data, error, isLoading } = useGetFirmalar()
 
   const navigate = useNavigate()
 
   const [show, setShow] = useState("Main")
 
 
-  const onSuccess = (err) => {
-    console.log("err", err)
-  }
-  const onError = (err) => {
-    console.log("err", err)
-  }
-  const { data } = useGetFirmalar(onSuccess, onError)
+  useEffect(() => {
+
+    setSelectedFirma()
+
+    if (error) {
+      console.log("error", error)
+      setDialogAlert({
+        dialogIcon: "warning",
+        dialogMessage: "Beklenmedik hata, Rapor7/24 ile irtibata geçiniz..",
+        detailText: error?.message ? error.message : null
+      })
+    }
+
+  }, [error]);
+
 
 
   const handleFirmaClick = async (oneFirma) => {
@@ -108,6 +114,7 @@ export default function P_Firmalar() {
         />
       }
 
+
       {/* BAŞLIK */}
       <Paper >
 
@@ -162,7 +169,14 @@ export default function P_Firmalar() {
         </Box>
       }
 
-      {show == "Main" && !data?.firmalar?.length > 0 &&
+
+      {isLoading &&
+        <Box sx={{ m: "1rem", color:'gray' }}>
+          <LinearProgress color='inherit'/>
+        </Box>
+      }
+
+      {!isLoading && show == "Main" && !data?.firmalar?.length > 0 &&
         <Stack sx={{ width: '100%', padding: "1rem" }} spacing={2}>
           <Alert severity="info">
             Dahil olduğunuz herhangi bir firma bulunamadı, menüler yardımı ile oluşturabilirsiniz.
@@ -170,7 +184,7 @@ export default function P_Firmalar() {
         </Stack>
       }
 
-      {show == "Main" && data?.firmalar?.length > 0 &&
+      {!isLoading && show == "Main" && data?.firmalar?.length > 0 &&
         <Stack sx={{ width: '100%', padding: "1rem" }} spacing={0}>
           {
             data.firmalar.map((oneFirma, index) => (

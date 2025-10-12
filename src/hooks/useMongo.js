@@ -2,6 +2,8 @@ import { useContext } from 'react';
 import { useQuery, useQueryClient, useMutation } from '@tanstack/react-query'
 import { StoreContext } from '../components/store'
 import { useApp } from "../components/useApp"
+import { useNavigate } from "react-router-dom";
+
 
 
 
@@ -10,9 +12,11 @@ import { useApp } from "../components/useApp"
 
 
 // MONGO FONKSİYON - getFirmalarNames
-export const useGetFirmalar = (onSuccess, onError) => {
+export const useGetFirmalar = () => {
 
-  const { appUser } = useContext(StoreContext)
+  const navigate = useNavigate()
+
+  const { appUser, setAppUser } = useContext(StoreContext)
 
   return useQuery({
     queryKey: ['firmalar'],
@@ -20,21 +24,31 @@ export const useGetFirmalar = (onSuccess, onError) => {
       const response = await fetch('api/firmalar', {
         method: 'GET',
         headers: {
-          // email: appUser.email,
+          email: appUser.email,
           token: appUser.token,
           'Content-Type': 'application/json'
         }
       })
+
       const responseJson = await response.json()
+
       if (responseJson.error) {
-        console.log("errorBu", responseJson)
-        throw new Error(responseJson.error)
+
+        // console.log("responseJson.error",responseJson.error)
+
+        if (responseJson.error.includes("expired")) {
+          setAppUser()
+          localStorage.removeItem('appUser')
+          navigate('/')
+          window.location.reload()
+        }
+
+        throw new Error(responseJson.error);
       }
       return responseJson
+
     },
     enabled: !!appUser,
-    onSuccess,
-    onError: (err) => onError(err),
     refetchOnMount: true,
     refetchOnWindowFocus: false
   })

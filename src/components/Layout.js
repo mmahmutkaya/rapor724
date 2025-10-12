@@ -56,7 +56,7 @@ export default function Layout({ window, children }) {
   const { drawerWidth, topBarHeight } = useContext(StoreContext)
   const { Layout_Show, setLayout_Show } = useContext(StoreContext)
 
-  const { appUser, selectedFirma, selectedProje, setSelectedProje } = useContext(StoreContext)
+  const { appUser, setAppUser, selectedFirma, selectedProje, setSelectedProje } = useContext(StoreContext)
 
   const { setSelectedFirma, setSelectedLbs, setSelectedMahal, setSelectedMahalBaslik, setSelectedWbs, setSelectedPoz, setSelectedPozBaslik, setSelectedNode, pageMetraj_setShow } = useContext(StoreContext)
 
@@ -108,7 +108,7 @@ export default function Layout({ window, children }) {
 
 
   // mongo realm bu fonksiyonu name değeri yoksa bile name:$undefined:true gibi birşey oluşturuyor sonuçta $undefined:true olarak döndürüyor
-  if (!appUser?.mailTeyit) {
+  if (appUser?.email && !appUser?.mailTeyit) {
     return (
       <FormMailTeyit />
     )
@@ -117,6 +117,7 @@ export default function Layout({ window, children }) {
 
   // mongo realm bu fonksiyonu name değeri yoksa bile name:$undefined:true gibi birşey oluşturuyor sonuçta $undefined:true olarak döndürüyor
   if (
+    appUser?.mailTeyit &&
     !appUser?.isim ||
     !appUser?.soyisim
   ) {
@@ -172,7 +173,8 @@ export default function Layout({ window, children }) {
   const clickLogOut = async () => {
     setAnchorEl(null);
     handleMobileMenuClose();
-    await appUser.logOut()
+    setAppUser()
+    localStorage.removeItem('appUser')
     setBegan(prev => !prev)
   }
 

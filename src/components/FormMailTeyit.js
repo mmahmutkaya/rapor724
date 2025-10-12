@@ -58,6 +58,7 @@ export default function FormMailTeyit() {
   const { appUser, setAppUser } = useContext(StoreContext)
 
 
+  const [dialogAlert, setDialogAlert] = useState()
   const [pageSituation, setPageSituation] = useState(0)
 
   const [mailCodeError, setMailCodeError] = useState()
@@ -80,6 +81,8 @@ export default function FormMailTeyit() {
     if (pageSituation == 0) {
       try {
 
+
+        // buton da "kod gönderiliyor" yazıyor ve inaktif
         setPageSituation(1)
         // const resultMailSended = await RealmApp.currentUser.callFunction("auth_SendConfirmationCode")
         // console.log("resultMailSended", resultMailSended)
@@ -102,20 +105,37 @@ export default function FormMailTeyit() {
         if (response.ok) {
           // const responseJson = await response.json()
           // console.log("responseJson", responseJson)
+
+          // buton da "kod gönder" yazıyor, boton aktif
           setPageSituation(3)
           return
         }
 
 
       } catch (error) {
+
         console.log("error", error)
-        setDetailText(error.message)
-        console.log("mongo fonksiyon - auth_SendConfirmationCode")
-        setPageSituation(2)
-        return
+
+        setDialogAlert({
+          dialogIcon: "warning",
+          dialogMessage: "Beklenmedik hata, sayfayı yenileyiniz, sorun devam ederse Rapor7/24 ile irtibata geçiniz..",
+          detailText: error?.message ? error.message : null,
+          onCloseAction: () => {
+            setDialogAlert()
+            setPageSituation(0)
+          }
+        })
+
+        // console.log("error", error)
+        // setDetailText(error.message)
+        // console.log("mongo fonksiyon - auth_SendConfirmationCode")
+        // setPageSituation(2)
+        // return
+
       }
     }
 
+    // buton da "kod gönder" yazarken basılmışsa
     if (pageSituation == 3) {
 
       try {
@@ -143,6 +163,7 @@ export default function FormMailTeyit() {
           return
         }
 
+        // buton da "kod doğrulanıyor" yazıyor ve inaktif
         setPageSituation(4)
 
         const response = await fetch('/api/user/confirmmailcode', {
@@ -187,10 +208,23 @@ export default function FormMailTeyit() {
       } catch (error) {
 
         console.log("error", error)
-        setDetailText(error.message)
-        console.log("Giriş esnasında hata oluştu, sayfayı yenileyiniz, sorun devam ederse lütfen iletişime geçiniz..")
-        setPageSituation(2)
-        return
+
+        setDialogAlert({
+          dialogIcon: "warning",
+          dialogMessage: "Beklenmedik hata, sayfayı yenileyiniz, sorun devam ederse Rapor7/24 ile irtibata geçiniz..",
+          detailText: error?.message ? error.message : null,
+          onCloseAction: () => {
+            setPageSituation(3)
+            setDialogAlert()
+          }
+        })
+
+        // console.log("error", error)
+        // setDetailText(error.message)
+        // console.log("Giriş esnasında hata oluştu, sayfayı yenileyiniz, sorun devam ederse lütfen iletişime geçiniz..")
+        // setPageSituation(2)
+        // return
+
       }
     }
   }
@@ -198,12 +232,21 @@ export default function FormMailTeyit() {
 
   return (
     <>
-      {pageSituation === 2 &&
+      {/* {pageSituation === 2 &&
         < DialogAlert
           dialogIcon={"warning"}
           dialogMessage={"Mail adresine kod gönderirken beklenmedik bir hata oluştu, sorun devam ederse bizimle irtibata geçiniz."}
           onCloseAction={() => navigate(0)}
           detailText={detailText}
+        />
+      } */}
+
+      {dialogAlert &&
+        <DialogAlert
+          dialogIcon={dialogAlert.dialogIcon}
+          dialogMessage={dialogAlert.dialogMessage}
+          detailText={dialogAlert.detailText}
+          onCloseAction={dialogAlert.onCloseAction}
         />
       }
 
@@ -242,22 +285,21 @@ export default function FormMailTeyit() {
             </Typography>
             <Box component="form" onSubmit={handleSubmit} noValidate sx={{ mt: 1 }}>
 
-              {appUser?.email &&
-                <TextField
-                  // onClick={() => setEmailError()}
-                  // error={emailError ? true : false}
-                  margin="normal"
-                  // required
-                  fullWidth
-                  // id="email"
-                  // label={emailError ? emailError : "Email"}
-                  // name="email"
-                  // autoComplete="email"
-                  // autoFocus
-                  disabled={true}
-                  defaultValue={appUser?.email}
-                />
-              }
+              <TextField
+                // onClick={() => setEmailError()}
+                // error={emailError ? true : false}
+                margin="normal"
+                // required
+                fullWidth
+                // id="email"
+                // label={emailError ? emailError : "Email"}
+                // name="email"
+                // autoComplete="email"
+                // autoFocus
+                disabled={true}
+                defaultValue={appUser?.email}
+              />
+
 
               <TextField
                 onKeyDown={() => setMailCodeError()}
@@ -278,20 +320,19 @@ export default function FormMailTeyit() {
               </Typography>
 
 
-              {appUser?.email &&
-                <Button
-                  type="submit"
-                  fullWidth
-                  variant="contained"
-                  sx={{ mt: 2, mb: 2 }}
-                  disabled={pageSituation === 1 || pageSituation === 4}
-                >
-                  {pageSituation === 0 && "Mail Adresime Kod Gönder"}
-                  {pageSituation === 1 && "Mail Gönderiliyor"}
-                  {pageSituation === 3 && "Doğrula"}
-                  {pageSituation === 4 && "Kod Doğrulanıyor"}
-                </Button>
-              }
+              <Button
+                type="submit"
+                fullWidth
+                variant="contained"
+                sx={{ mt: 2, mb: 2 }}
+                disabled={pageSituation === 1 || pageSituation === 4}
+              >
+                {pageSituation === 0 && "Mail Adresime Kod Gönder"}
+                {pageSituation === 1 && "Mail Gönderiliyor"}
+                {pageSituation === 3 && "Doğrula"}
+                {pageSituation === 4 && "Kod Doğrulanıyor"}
+              </Button>
+
 
               <Grid container sx={{ display: "grid", justifyContent: "end" }}>
 

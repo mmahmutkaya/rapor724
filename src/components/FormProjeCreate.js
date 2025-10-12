@@ -95,7 +95,7 @@ export default function P_FormProjeCreate({ setShow }) {
       const response = await fetch(`/api/projeler`, {
         method: 'POST',
         headers: {
-          // email: appUser.email,
+          email: appUser.email,
           token: appUser.token,
           'Content-Type': 'application/json'
         },
