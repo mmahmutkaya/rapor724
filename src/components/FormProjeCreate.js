@@ -74,13 +74,11 @@ export default function P_FormProjeCreate({ setShow }) {
       }
 
 
-      if (queryData?.projeler_byFirma?.filter(oneProje => oneProje.yetkiliFirmalar).length > 0 && !projeNameError) {
+      if (queryData?.projeler_byFirma?.find(oneProje => oneProje.name === projeName) && !projeNameError) {
         queryData?.projeler_byFirma.map(proje => {
-          if (proje.name == projeName && !projeNameError) {
-            setProjeNameError("Firmanın bu isimde projesi mevcut")
-            projeNameError = true
-            isError = true
-          }
+          setProjeNameError("Firmanın bu isimde projesi mevcut")
+          projeNameError = true
+          isError = true
         })
       }
 
@@ -94,22 +92,30 @@ export default function P_FormProjeCreate({ setShow }) {
       // console.log(_firmaId, projeName)
 
       // const result_newProje = await RealmApp.currentUser.callFunction("createProje", { _firmaId, projeName })
-      const response = await fetch(`/api/firmalar`, {
+      const response = await fetch(`/api/projeler`, {
         method: 'POST',
         headers: {
-          email: appUser.email,
+          // email: appUser.email,
           token: appUser.token,
           'Content-Type': 'application/json'
         },
-        body: JSON.stringify({ firmaId:selectedFirma._id.toString() })
       })
+      // body: JSON.stringify({ firmaId: selectedFirma._id.toString(), projeName })
 
 
-      // if (result_newProje.errorObject) {
-      //   setProjeNameError(result_newProje.errorObject.projeNameError)
-      //   console.log("backend den dönen errorObject hata ile durdu")
-      //   return
-      // }
+      const responseJson = await response.json()
+      console.log("responseJson", responseJson)
+      
+
+      if (responseJson.error) {
+        throw new Error(responseJson.error);
+      }
+
+      if (responseJson.errorObject) {
+        setProjeNameError(responseJson.errorObject.projeNameError)
+        return
+      }
+
 
       // if (result_newProje._id) {
       //   queryClient.setQueryData(['projeler'], (firmaProjeleri) => [...firmaProjeleri, result_newProje])
@@ -117,14 +123,16 @@ export default function P_FormProjeCreate({ setShow }) {
       //   return
       // }
 
-    } catch (err) {
 
-      console.log(err)
+    } catch (error) {
 
+      console.log("error", error)
+      
       setDialogAlert({
         dialogIcon: "warning",
         dialogMessage: "Beklenmedik hata, Rapor7/24 ile irtibata geçiniz..",
-        detailText: err?.message ? err.message : null
+        detailText: error?.message.includes("is not valid JSON") ? "Server hatası" : 
+        error.message ? error.message : null
       })
 
     }

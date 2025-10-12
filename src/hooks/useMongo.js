@@ -20,21 +20,32 @@ export const useGetFirmalar = (onSuccess, onError) => {
       const response = await fetch('api/firmalar', {
         method: 'GET',
         headers: {
-          email: appUser.email,
+          // email: appUser.email,
           token: appUser.token,
           'Content-Type': 'application/json'
         }
       })
-      return await response.json()
+      const responseJson = await response.json()
+      if (responseJson.error) {
+        console.log("errorBu", responseJson)
+        throw new Error(responseJson.error)
+      }
+      return responseJson
     },
     enabled: !!appUser,
     onSuccess,
-    onError,
+    onError: (err) => onError(err),
     refetchOnMount: true,
     refetchOnWindowFocus: false
   })
 
 }
+
+
+
+
+
+
 
 
 export const useGetFirmaPozlar = (onSuccess, onError) => {
@@ -73,7 +84,7 @@ export const useGetProjeler_byFirma = (onSuccess, onError) => {
           token: appUser.token,
           'Content-Type': 'application/json'
         },
-        body: JSON.stringify({ firmaId:selectedFirma._id.toString() })
+        body: JSON.stringify({ firmaId: selectedFirma._id.toString() })
       })
       return await response.json()
     },

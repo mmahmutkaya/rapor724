@@ -40,7 +40,14 @@ export default function P_Firmalar() {
 
   const [show, setShow] = useState("Main")
 
-  const { data } = useGetFirmalar()
+
+  const onSuccess = (err) => {
+    console.log("err", err)
+  }
+  const onError = (err) => {
+    console.log("err", err)
+  }
+  const { data } = useGetFirmalar(onSuccess, onError)
 
 
   const handleFirmaClick = async (oneFirma) => {
