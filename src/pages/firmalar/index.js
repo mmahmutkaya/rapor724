@@ -75,21 +75,19 @@ export default function P_Firmalar() {
       const responseJson = await response.json()
 
       if (responseJson.error) {
+        if (responseJson.error.includes("expired")) {
+          setAppUser()
+          localStorage.removeItem('appUser')
+          navigate('/')
+          window.location.reload()
+        }
         throw new Error(responseJson.error);
       }
-
-      // if (responseJson.errorObject) {
-      //   setFirmaNameError(responseJson.errorObject.firmaNameError)
-      //   console.log("backend den gelen hata ile durdu")
-      //   return
-      // }
 
       if (responseJson.firma) {
         setSelectedFirma(responseJson.firma)
         navigate("/projeler")
       }
-
-
 
     } catch (err) {
       console.log(err)

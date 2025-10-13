@@ -4,6 +4,7 @@ import { useQueryClient } from '@tanstack/react-query'
 import { useGetFirmalar } from '../hooks/useMongo';
 import { DialogAlert } from '../../src/components/general/DialogAlert'
 import deleteLastSpace from '../functions/deleteLastSpace'
+import { useNavigate } from "react-router-dom";
 import _ from 'lodash';
 
 
@@ -34,8 +35,9 @@ import PlayArrowIcon from '@mui/icons-material/PlayArrow';
 export default function P_FormFirmaCreate({ setShow }) {
 
   const queryClient = useQueryClient()
+  const navigate = useNavigate()
 
-  const { appUser } = useContext(StoreContext)
+  const { appUser, setAppUser } = useContext(StoreContext)
 
   const [firmaName, setFirmaName] = useState("")
 
@@ -110,6 +112,12 @@ export default function P_FormFirmaCreate({ setShow }) {
       const responseJson = await response.json()
 
       if (responseJson.error) {
+        if (responseJson.error.includes("expired")) {
+          setAppUser()
+          localStorage.removeItem('appUser')
+          navigate('/')
+          window.location.reload()
+        }
         throw new Error(responseJson.error);
       }
 
@@ -196,7 +204,7 @@ export default function P_FormFirmaCreate({ setShow }) {
 
           </DialogContent>
 
-          <DialogActions sx={{ pr: "1.25rem", pb:"1.25rem" }}>
+          <DialogActions sx={{ pr: "1.25rem", pb: "1.25rem" }}>
             <Button onClick={() => setShow("Main")}>İptal</Button>
             <Button type="submit">Oluştur</Button>
           </DialogActions>

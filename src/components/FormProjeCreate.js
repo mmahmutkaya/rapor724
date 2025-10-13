@@ -3,6 +3,7 @@ import { StoreContext } from './store'
 import { useQueryClient } from '@tanstack/react-query'
 import { useGetProjeler_byFirma } from '../hooks/useMongo';
 import { DialogAlert } from './general/DialogAlert'
+import { useNavigate } from "react-router-dom";
 import deleteLastSpace from '../functions/deleteLastSpace'
 
 
@@ -32,8 +33,9 @@ import PlayArrowIcon from '@mui/icons-material/PlayArrow';
 export default function P_FormProjeCreate({ setShow }) {
 
   const queryClient = useQueryClient()
+  const navigate = useNavigate()
 
-  const { appUser, selectedFirma } = useContext(StoreContext)
+  const { appUser, setAppUser, selectedFirma } = useContext(StoreContext)
 
   const [projeName, setProjeName] = useState("")
 
@@ -99,15 +101,19 @@ export default function P_FormProjeCreate({ setShow }) {
           token: appUser.token,
           'Content-Type': 'application/json'
         },
+        body: JSON.stringify({ firmaId: selectedFirma._id.toString(), projeName })
       })
-      // body: JSON.stringify({ firmaId: selectedFirma._id.toString(), projeName })
 
 
       const responseJson = await response.json()
-      console.log("responseJson", responseJson)
-      
 
       if (responseJson.error) {
+        if (responseJson.error.includes("expired")) {
+          setAppUser()
+          localStorage.removeItem('appUser')
+          navigate('/')
+          window.location.reload()
+        }
         throw new Error(responseJson.error);
       }
 
@@ -127,12 +133,12 @@ export default function P_FormProjeCreate({ setShow }) {
     } catch (error) {
 
       console.log("error", error)
-      
+
       setDialogAlert({
         dialogIcon: "warning",
         dialogMessage: "Beklenmedik hata, Rapor7/24 ile irtibata geçiniz..",
-        detailText: error?.message.includes("is not valid JSON") ? "Server hatası" : 
-        error.message ? error.message : null
+        detailText: error?.message.includes("is not valid JSON") ? "Server hatası" :
+          error.message ? error.message : null
       })
 
     }

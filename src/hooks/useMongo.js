@@ -33,18 +33,15 @@ export const useGetFirmalar = () => {
       const responseJson = await response.json()
 
       if (responseJson.error) {
-
-        // console.log("responseJson.error",responseJson.error)
-
         if (responseJson.error.includes("expired")) {
           setAppUser()
           localStorage.removeItem('appUser')
           navigate('/')
           window.location.reload()
         }
-
         throw new Error(responseJson.error);
       }
+
       return responseJson
 
     },
