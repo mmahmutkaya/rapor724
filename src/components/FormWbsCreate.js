@@ -64,7 +64,6 @@ export default function P_FormWbsCreate({ setShow, selectedWbs, setSelectedWbs }
       }
 
       if (wbsCodeName.includes(" ")) {
-        ;
         setWbsCodeNameError("Boşluk kullanmayınız")
         isError = true
         console.log("wbsCodeName", "yok -- error")

@@ -44,7 +44,22 @@ export default function P_FormProjeCreate({ setShow }) {
   const [dialogAlert, setDialogAlert] = useState()
 
 
-  const { queryData } = useGetProjeler_byFirma()
+  const { data, error } = useGetProjeler_byFirma()
+
+  useEffect(() => {
+
+    if (error) {
+      console.log("error", error)
+      setDialogAlert({
+        dialogIcon: "warning",
+        dialogMessage: "Beklenmedik hata, Rapor7/24 ile irtibata geçiniz..",
+        detailText: error?.message ? error.message : null
+      })
+
+    }
+
+  }, [error]);
+
 
 
   async function handleSubmit(event) {
@@ -76,13 +91,14 @@ export default function P_FormProjeCreate({ setShow }) {
       }
 
 
-      if (queryData?.projeler_byFirma?.find(oneProje => oneProje.name === projeName) && !projeNameError) {
-        queryData?.projeler_byFirma.map(proje => {
+      if (data?.projeler?.find(oneProje => oneProje.name === projeName && oneProje._firmaId === selectedFirma._id.toString()) && !projeNameError) {
+        data?.projeler.map(proje => {
           setProjeNameError("Firmanın bu isimde projesi mevcut")
           projeNameError = true
           isError = true
         })
       }
+
 
       if (isError) {
         console.log("frontend de durdu alt satırda")
@@ -121,13 +137,6 @@ export default function P_FormProjeCreate({ setShow }) {
         setProjeNameError(responseJson.errorObject.projeNameError)
         return
       }
-
-
-      // if (result_newProje._id) {
-      //   queryClient.setQueryData(['projeler'], (firmaProjeleri) => [...firmaProjeleri, result_newProje])
-      //   setShow("Main")
-      //   return
-      // }
 
 
     } catch (error) {
@@ -185,7 +194,7 @@ export default function P_FormProjeCreate({ setShow }) {
                 onChange={(e) => setProjeName(() => e.target.value.replace("i", "İ").toUpperCase())}
                 value={projeName}
                 error={projeNameError ? true : false}
-                helperText={projeNameError ? projeNameError : ""}
+                helperText={projeNameError ? projeNameError : " "}
                 // margin="dense"
                 label="Proje Adı"
                 type="text"
@@ -216,7 +225,7 @@ export default function P_FormProjeCreate({ setShow }) {
 
           </DialogContent>
 
-          <DialogActions sx={{ padding: "1.5rem" }}>
+          <DialogActions sx={{ pb: "1.5rem", pr: "1.5rem" }}>
             <Button onClick={() => setShow("Main")}>İptal</Button>
             <Button type="submit">Oluştur</Button>
           </DialogActions>

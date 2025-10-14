@@ -169,8 +169,8 @@ export default function P_Firmalar() {
 
 
       {isLoading &&
-        <Box sx={{ m: "1rem", color:'gray' }}>
-          <LinearProgress color='inherit'/>
+        <Box sx={{ m: "1rem", color: 'gray' }}>
+          <LinearProgress color='inherit' />
         </Box>
       }
 

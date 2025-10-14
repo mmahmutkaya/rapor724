@@ -15,7 +15,6 @@ import { useNavigate } from "react-router-dom";
 export const useGetFirmalar = () => {
 
   const navigate = useNavigate()
-
   const { appUser, setAppUser } = useContext(StoreContext)
 
   return useQuery({
@@ -80,29 +79,41 @@ export const useGetFirmaPozlar = (onSuccess, onError) => {
 
 
 // MONGO FONKSİYON - getProjelerNames_byFirma
-export const useGetProjeler_byFirma = (onSuccess, onError) => {
+export const useGetProjeler_byFirma = () => {
 
-  // const RealmApp = useApp();
-  const { appUser, selectedFirma } = useContext(StoreContext)
+  const navigate = useNavigate()
+  const { appUser, setAppUser, selectedFirma } = useContext(StoreContext)
 
   return useQuery({
     queryKey: ['projeler'],
     queryFn: async () => {
-      const response = await fetch('api/projelerbyfirma', {
+      const response = await fetch(`api/projeler/byfirma/${selectedFirma._id.toString()}`, {
         method: 'GET',
         headers: {
           email: appUser.email,
           token: appUser.token,
           'Content-Type': 'application/json'
         },
-        body: JSON.stringify({ firmaId: selectedFirma._id.toString() })
       })
-      return await response.json()
+      // body: JSON.stringify({ firmaId: selectedFirma._id.toString() })
+
+      const responseJson = await response.json()
+
+      if (responseJson.error) {
+        if (responseJson.error.includes("expired")) {
+          setAppUser()
+          localStorage.removeItem('appUser')
+          navigate('/')
+          window.location.reload()
+        }
+        throw new Error(responseJson.error);
+      }
+
+      return responseJson
+
     },
     enabled: !!appUser,
-    onSuccess,
-    onError,
-    refetchOnMount: true,
+    refetchOnMount: false,
     refetchOnWindowFocus: false
   })
 

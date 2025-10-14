@@ -19,38 +19,75 @@ import FolderIcon from '@mui/icons-material/Folder';
 import IconButton from '@mui/material/IconButton';
 import DeleteIcon from '@mui/icons-material/Delete';
 import AddCircleOutlineIcon from '@mui/icons-material/AddCircleOutline';
+import LinearProgress from '@mui/material/LinearProgress';
+
 
 
 export default function P_Projeler() {
 
-  // const RealmApp = useApp();
-  const { RealmApp } = useContext(StoreContext)
+  const { appUser, setAppUser } = useContext(StoreContext)
   const { selectedFirma, setSelectedProje } = useContext(StoreContext)
 
   const [dialogAlert, setDialogAlert] = useState()
 
   const navigate = useNavigate()
 
-  useEffect(() => {
-    setSelectedProje()
-    if (!selectedFirma) navigate("/firmalar")
-  }, []);
-
-
-
   const [show, setShow] = useState("Main")
 
-  const { queryData } = useGetProjeler_byFirma()
+  const { data, error, isLoading } = useGetProjeler_byFirma()
+
+
+  useEffect(() => {
+
+    if (!selectedFirma) navigate("/firmalar")
+
+    setSelectedProje()
+
+    if (error) {
+      console.log("error", error)
+      setDialogAlert({
+        dialogIcon: "warning",
+        dialogMessage: "Beklenmedik hata, Rapor7/24 ile irtibata geçiniz..",
+        detailText: error?.message ? error.message : null
+      })
+
+    }
+
+  }, [error]);
+
+
+
 
 
   const handleProjeClick = async (oneProje) => {
-    // console.log("oneProje", oneProje)
     try {
-      const proje = await RealmApp.currentUser.callFunction("getProje", { _projeId: oneProje._id })
-      if (proje._id) {
-        setSelectedProje(proje)
-        navigate("/dashboard")
+
+      const response = await fetch(`/api/projeler/${oneProje._id.toString()}`, {
+        method: 'GET',
+        headers: {
+          email: appUser.email,
+          token: appUser.token,
+          'Content-Type': 'application/json'
+        },
+      })
+
+      const responseJson = await response.json()
+
+      if (responseJson.error) {
+        if (responseJson.error.includes("expired")) {
+          setAppUser()
+          localStorage.removeItem('appUser')
+          navigate('/')
+          window.location.reload()
+        }
+        throw new Error(responseJson.error);
       }
+
+      if (responseJson.proje) {
+        setSelectedProje(responseJson.proje)
+        navigate("/wbs")
+      }
+
     } catch (err) {
       console.log(err)
       setDialogAlert({
@@ -127,7 +164,13 @@ export default function P_Projeler() {
         </Box>
       }
 
-      {show == "Main" && !queryData?.projeler_byFirma?.length > 0 &&
+      {isLoading &&
+        <Box sx={{ m: "1rem", color: 'gray' }}>
+          <LinearProgress color='inherit' />
+        </Box>
+      }
+
+      {!isLoading && show == "Main" && !data?.projeler?.length > 0 &&
         <Stack sx={{ width: '100%', padding: "1rem" }} spacing={2}>
           <Alert severity="info">
             Firmaya ait proje oluşturmak için menüyü kullanabilirsiniz.
@@ -135,10 +178,10 @@ export default function P_Projeler() {
         </Stack>
       }
 
-      {show == "Main" && queryData?.projeler_byFirma?.length > 0 &&
+      {!isLoading && show == "Main" && data?.projeler?.length > 0 &&
         <Stack sx={{ width: '100%', padding: "1rem" }} spacing={0}>
           {
-            queryData?.projeler_byFirma.map((oneProje, index) => (
+            data?.projeler.map((oneProje, index) => (
 
               <Box
                 key={index}
@@ -167,12 +210,7 @@ export default function P_Projeler() {
                     {oneProje.name}
                   </Typography>
                 </Box>
-                {/* 
-                <Box className="childClass" sx={{ pr: "1rem", color: "gray" }}>
-                  <Typography>
-                    {oneProje.yetkiliKisiler.find(oneKisi => oneKisi.email === RealmApp.currentUser._profile.data.email && oneKisi.yetki === "owner") ? "sahip" : "diğer"}
-                  </Typography>
-                </Box> */}
+
 
               </Box>
 
