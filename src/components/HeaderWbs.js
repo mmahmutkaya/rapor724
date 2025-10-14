@@ -34,7 +34,7 @@ export default function HeaderWbs({ setShow, nameMode, setNameMode, codeMode, se
 
   const navigate = useNavigate()
 
-  const { RealmApp, drawerWidth, topBarHeight, subHeaderHeight } = useContext(StoreContext)
+  const { RealmApp, appUser, setAppUser, drawerWidth, topBarHeight, subHeaderHeight } = useContext(StoreContext)
 
   const [dialogAlert, setDialogAlert] = useState()
 
@@ -152,107 +152,68 @@ export default function HeaderWbs({ setShow, nameMode, setNameMode, codeMode, se
 
   async function handleSwitchForPoz(event) {
 
-    // console.log(selectedWbs)
-    // console.log("event.target.checked", event.target.checked)
+    try {
 
-    // wbs poza açık hale getirilecekse
-    if (event.target.checked === true) {
-
-      try {
-
-        if (!selectedWbs) {
-          console.log("alttaki satırda --return-- oldu")
-          return
-        }
-
-        // bu kontrol backend de ayrıca yapılıyor
-        let text = selectedWbs.code + "."
-        if (selectedProje.wbs.find(item => item.code.indexOf(text) === 0)) {
-          // throw new Error("\"" + selectedWbs.name + "\" isimli başlığın bir veya daha fazla alt başlığı mevcut, bu sebeple direk poz eklemeye açık hale getirilemez, mevcut alt başlıklar uygun değilse, yeni bir alt başlık oluşturup, o başlığı poz eklemeye açabilirsiniz.")
-          throw new Error("__mesajBaslangic__ Alt başlığı bulunan başlıklar poz eklemeye açılamaz. __mesajBitis__")
-        }
-
-        const result = await RealmApp.currentUser.callFunction("collection_projeler__wbs", { functionName: "openWbsForPoz", _projeId: selectedProje._id, _wbsId: selectedWbs._id });
-
-        if (result.wbs) {
-          setSelectedProje(proje => {
-            proje.wbs = result.wbs
-            return proje
-          })
-        }
-
-        // switch on-off gösterim durumunu güncellemesi için 
-        setSelectedWbs(result.wbs.find(item => item._id.toString() === selectedWbs._id.toString()))
-
+      if (!selectedWbs) {
+        console.log("alttaki satırda --return-- oldu")
         return
-
-      } catch (err) {
-
-        console.log(err)
-
-        let dialogMessage = "Beklenmedik hata, sayfayı yenileyiniz, sorun devam ederse Rapor7/24 ile irtibata geçiniz.."
-        if (err.message.includes("__mesajBaslangic__") && err.message.includes("__mesajBitis__")) {
-          let mesajBaslangic = err.message.indexOf("__mesajBaslangic__") + "__mesajBaslangic__".length
-          let mesajBitis = err.message.indexOf("__mesajBitis__")
-          dialogMessage = err.message.slice(mesajBaslangic, mesajBitis)
-        }
-
-        setDialogAlert({
-          dialogIcon: "warning",
-          dialogMessage,
-          detailText: err?.message ? err.message : null
-        })
-
-        return
-
       }
-    }
 
-
-    // wbs poza kapalı hale getirilecekse
-    if (event.target.checked === false) {
-
-      try {
-
-        if (!selectedWbs) {
-          console.log("alttaki satırda --return-- oldu")
-          return
-        }
-
-        const result = await RealmApp.currentUser.callFunction("collection_projeler__wbs", { functionName: "closeWbsForPoz", _projeId: selectedProje._id, _wbsId: selectedWbs._id });
-
-        if (result.wbs) {
-          setSelectedProje(proje => {
-            proje.wbs = result.wbs
-            return proje
-          })
-        }
-
-        // switch on-off gösterim durumunu güncellemesi için 
-        setSelectedWbs(result.wbs.find(item => item._id.toString() === selectedWbs._id.toString()))
-
-        return
-
-      } catch (err) {
-
-        console.log(err)
-
-        let dialogMessage = "Beklenmedik hata, sayfayı yenileyiniz, sorun devam ederse Rapor7/24 ile irtibata geçiniz.."
-        if (err.message.includes("__mesajBaslangic__") && err.message.includes("__mesajBitis__")) {
-          let mesajBaslangic = err.message.indexOf("__mesajBaslangic__") + "__mesajBaslangic__".length
-          let mesajBitis = err.message.indexOf("__mesajBitis__")
-          dialogMessage = err.message.slice(mesajBaslangic, mesajBitis)
-        }
-
-        setDialogAlert({
-          dialogIcon: "warning",
-          dialogMessage,
-          detailText: err?.message ? err.message : null
-        })
-
-        return
-
+      // bu kontrol backend de ayrıca yapılıyor
+      let text = selectedWbs.code + "."
+      if (selectedProje.wbs.find(item => item.code.indexOf(text) === 0)) {
+        throw new Error("Alt başlığı bulunan başlıklar poz eklemeye açılamaz.")
       }
+
+      const response = await fetch(`/api/projeler/togglewbsforpoz`, {
+        method: 'POST',
+        headers: {
+          email: appUser.email,
+          token: appUser.token,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ projeId: selectedProje._id, wbsId: selectedWbs._id, switchValue: event.target.checked ? true : false })
+      })
+
+
+      const responseJson = await response.json()
+
+      if (responseJson.error) {
+        if (responseJson.error.includes("expired")) {
+          setAppUser()
+          localStorage.removeItem('appUser')
+          navigate('/')
+          window.location.reload()
+        }
+        throw new Error(responseJson.error);
+      }
+
+
+      if (responseJson.wbs) {
+        setSelectedProje(proje => {
+          proje.wbs = responseJson.wbs
+          return proje
+        })
+      }
+
+
+      // switch on-off gösterim durumunu güncellemesi için 
+      setSelectedWbs(responseJson.wbs.find(item => item._id.toString() === selectedWbs._id.toString()))
+
+      return
+
+    } catch (err) {
+
+      console.log(err)
+
+      setDialogAlert({
+        dialogIcon: "warning",
+        dialogMessage: "Beklenmedik hata, sayfayı yenileyiniz, sorun devam ederse Rapor7/24 ile irtibata geçiniz..",
+        detailText: err?.message ? err.message : null
+      })
+
+      return
+
     }
 
   }
@@ -271,7 +232,7 @@ export default function HeaderWbs({ setShow, nameMode, setNameMode, codeMode, se
 
       // bu kontrol backend de ayrıca yapılıyor
       if (selectedWbs.openForPoz) {
-        throw new Error("__mesajBaslangic__ Poz eklemeye açık başlıklar silinemez, öncelikle poz eklemeye kapatınız. __mesajBitis__")
+        throw new Error("Poz eklemeye açık başlıklar silinemez, öncelikle poz eklemeye kapatınız.")
       }
 
       const result = await RealmApp.currentUser.callFunction("collection_projeler__wbs", { functionName: "deleteWbs", _projeId: selectedProje._id, _wbsId: selectedWbs._id });
@@ -291,16 +252,9 @@ export default function HeaderWbs({ setShow, nameMode, setNameMode, codeMode, se
 
       console.log(err)
 
-      let dialogMessage = "Beklenmedik hata, sayfayı yenileyiniz, sorun devam ederse Rapor7/24 ile irtibata geçiniz.."
-      if (err.message.includes("__mesajBaslangic__") && err.message.includes("__mesajBitis__")) {
-        let mesajBaslangic = err.message.indexOf("__mesajBaslangic__") + "__mesajBaslangic__".length
-        let mesajBitis = err.message.indexOf("__mesajBitis__")
-        dialogMessage = err.message.slice(mesajBaslangic, mesajBitis)
-      }
-
       setDialogAlert({
         dialogIcon: "warning",
-        dialogMessage,
+        dialogMessage: "Beklenmedik hata, sayfayı yenileyiniz, sorun devam ederse Rapor7/24 ile irtibata geçiniz..",
         detailText: err?.message ? err.message : null
       })
 

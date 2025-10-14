@@ -3,6 +3,8 @@ import { StoreContext } from '../components/store.js'
 import { useApp } from "./useApp.js";
 import deleteLastSpace from '../functions/deleteLastSpace.js';
 import { DialogAlert } from './general/DialogAlert.js'
+import { useNavigate } from "react-router-dom";
+
 
 
 //mui
@@ -19,6 +21,8 @@ import { Typography } from '@mui/material';
 
 export default function P_FormWbsCreate({ setShow, selectedWbs, setSelectedWbs }) {
 
+  const navigate = useNavigate()
+  const { appUser, setAppUser } = useContext(StoreContext)
   const { selectedProje, setSelectedProje } = useContext(StoreContext)
 
   if (!selectedProje?._id) {
@@ -27,8 +31,8 @@ export default function P_FormWbsCreate({ setShow, selectedWbs, setSelectedWbs }
 
   const [dialogAlert, setDialogAlert] = useState(false)
 
-  const [wbsName, setWbsName] = useState()
-  const [wbsCodeName, setWbsCodeName] = useState()
+  const [wbsName, setWbsName] = useState("")
+  const [wbsCodeName, setWbsCodeName] = useState("")
 
   const [wbsNameError, setWbsNameError] = useState()
   const [wbsCodeNameError, setWbsCodeNameError] = useState()
@@ -82,26 +86,47 @@ export default function P_FormWbsCreate({ setShow, selectedWbs, setSelectedWbs }
       // useQuery ile oluşturduğumuz pozlar cash datamızı güncelliyoruz
       // sorgudan wbs datası güncellenmiş proje dödürüp, gelen data ile aşağıda react useContext deki projeyi update ediyoruz
       const newWbsItem = {
-        _projeId: selectedProje._id,
+        projeId: selectedProje._id,
         upWbsId: selectedWbs ? selectedWbs._id : "0",
         newWbsName: wbsName,
         newWbsCodeName: wbsCodeName
       }
 
-      const result = await RealmApp.currentUser.callFunction("collection_projeler__wbs", { functionName: "createWbs", ...newWbsItem });
+      // const result = await RealmApp.currentUser.callFunction("collection_projeler__wbs", { functionName: "createWbs", ...newWbsItem });
+      const response = await fetch(`/api/projeler/createwbs`, {
+        method: 'POST',
+        headers: {
+          email: appUser.email,
+          token: appUser.token,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ ...newWbsItem })
+      })
 
-      // console.log("result", result)
-      if (result.errorObject) {
-        setWbsNameError(result.errorObject.wbsNameError)
-        setWbsCodeNameError(result.errorObject.wbsCodeNameError)
+
+      const responseJson = await response.json()
+
+      if (responseJson.error) {
+        if (responseJson.error.includes("expired")) {
+          setAppUser()
+          localStorage.removeItem('appUser')
+          navigate('/')
+          window.location.reload()
+        }
+        throw new Error(responseJson.error);
+      }
+
+      if (responseJson.errorObject) {
+        setWbsNameError(responseJson.errorObject.wbsNameError)
+        setWbsCodeNameError(responseJson.errorObject.wbsCodeNameError)
         console.log("backend den gelen hata ile durdu")
         return
       }
 
 
-      if (result.wbs) {
+      if (responseJson.wbs) {
         setSelectedProje(proje => {
-          proje.wbs = result.wbs
+          proje.wbs = responseJson.wbs
           return proje
         })
       }

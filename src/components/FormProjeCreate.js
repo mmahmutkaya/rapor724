@@ -109,7 +109,6 @@ export default function P_FormProjeCreate({ setShow }) {
 
       // console.log(_firmaId, projeName)
 
-      // const result_newProje = await RealmApp.currentUser.callFunction("createProje", { _firmaId, projeName })
       const response = await fetch(`/api/projeler`, {
         method: 'POST',
         headers: {
