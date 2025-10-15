@@ -23,16 +23,23 @@ import VisibilityIcon from '@mui/icons-material/Visibility';
 import PinIcon from '@mui/icons-material/Pin';
 import EditIcon from '@mui/icons-material/Edit';
 import FontDownloadIcon from '@mui/icons-material/FontDownload';
+import Snackbar from '@mui/material/Snackbar'
+import Alert from '@mui/material/Alert';
+import CloseIcon from '@mui/icons-material/Close';
 
 import Divider from '@mui/material/Divider';
 import { AppBar, Select } from '@mui/material';
 import Switch from '@mui/material/Switch';
 import { styled } from '@mui/material/styles';
+import { green } from '@mui/material/colors';
 
 
 export default function HeaderWbs({ setShow, nameMode, setNameMode, codeMode, setCodeMode }) {
 
   const navigate = useNavigate()
+  const [openSnackBar, setOpenSnackBar] = useState(false)
+  const [snackBarMessage, setSnackBarMessage] = useState("")
+  const [isPending, setIsPending] = useState()
 
   const { RealmApp, appUser, setAppUser, drawerWidth, topBarHeight, subHeaderHeight } = useContext(StoreContext)
 
@@ -162,8 +169,12 @@ export default function HeaderWbs({ setShow, nameMode, setNameMode, codeMode, se
       // bu kontrol backend de ayrıca yapılıyor
       let text = selectedWbs.code + "."
       if (selectedProje.wbs.find(item => item.code.indexOf(text) === 0)) {
-        throw new Error("Alt başlığı bulunan başlıklar poz eklemeye açılamaz.")
+        setOpenSnackBar(true)
+        setSnackBarMessage("Alt başlığı bulunan başlıklar poz eklemeye açılamaz.")
+        return
       }
+
+      setIsPending(true)
 
       const response = await fetch(`/api/projeler/togglewbsforpoz`, {
         method: 'POST',
@@ -196,9 +207,9 @@ export default function HeaderWbs({ setShow, nameMode, setNameMode, codeMode, se
         })
       }
 
-
-      // switch on-off gösterim durumunu güncellemesi için 
+      // switch on-off gösterim durumunu güncellemesi için
       setSelectedWbs(responseJson.wbs.find(item => item._id.toString() === selectedWbs._id.toString()))
+      setIsPending(false)
 
       return
 
@@ -212,6 +223,7 @@ export default function HeaderWbs({ setShow, nameMode, setNameMode, codeMode, se
         detailText: err?.message ? err.message : null
       })
 
+      setIsPending(false)
       return
 
     }
@@ -231,17 +243,52 @@ export default function HeaderWbs({ setShow, nameMode, setNameMode, codeMode, se
     try {
 
       // bu kontrol backend de ayrıca yapılıyor
-      if (selectedWbs.openForPoz) {
-        throw new Error("Poz eklemeye açık başlıklar silinemez, öncelikle poz eklemeye kapatınız.")
+      if (selectedProje?.wbs.find(item => item.code.indexOf(selectedWbs.code + ".") === 0)) {
+        setOpenSnackBar(true)
+        setSnackBarMessage("Alt başlığı bulunan başlıklar silinemez.")
+        return
       }
 
-      const result = await RealmApp.currentUser.callFunction("collection_projeler__wbs", { functionName: "deleteWbs", _projeId: selectedProje._id, _wbsId: selectedWbs._id });
-      if (result.wbs) {
+      // bu kontrol backend de ayrıca yapılıyor
+      if (selectedWbs.openForPoz) {
+        setOpenSnackBar(true)
+        setSnackBarMessage("Poz eklemeye açık başlıklar silinemez.")
+        return
+      }
+
+      // const result = await RealmApp.currentUser.callFunction("collection_projeler__wbs", { functionName: "deleteWbs", _projeId: selectedProje._id, _wbsId: selectedWbs._id });
+
+      const response = await fetch(`/api/projeler/deletewbs`, {
+        method: 'POST',
+        headers: {
+          email: appUser.email,
+          token: appUser.token,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ projeId: selectedProje._id, wbsId: selectedWbs._id })
+      })
+
+
+      const responseJson = await response.json()
+
+      if (responseJson.error) {
+        if (responseJson.error.includes("expired")) {
+          setAppUser()
+          localStorage.removeItem('appUser')
+          navigate('/')
+          window.location.reload()
+        }
+        throw new Error(responseJson.error);
+      }
+
+
+      if (responseJson.wbs) {
         setSelectedProje(proje => {
-          proje.wbs = result.wbs
+          proje.wbs = responseJson.wbs
           return proje
         })
       }
+
 
       // switch on-off gösterim durumunu güncellemesi için 
       setSelectedWbs()
@@ -251,6 +298,18 @@ export default function HeaderWbs({ setShow, nameMode, setNameMode, codeMode, se
     } catch (err) {
 
       console.log(err)
+
+      if (err.message.includes("Alt başlığı bulunan")) {
+        setOpenSnackBar(true)
+        setSnackBarMessage("Alt başlığı bulunan başlıklar silinemez.")
+        return
+      }
+
+      if (err.message.includes("Poz eklemeye açık")) {
+        setOpenSnackBar(true)
+        setSnackBarMessage("Poz eklemeye açık başlıklar silinemez")
+        return
+      }
 
       setDialogAlert({
         dialogIcon: "warning",
@@ -289,16 +348,41 @@ export default function HeaderWbs({ setShow, nameMode, setNameMode, codeMode, se
         return
       }
 
-      const result = await RealmApp.currentUser.callFunction("collection_projeler__wbs", { functionName: "moveWbsUp", _projeId: selectedProje._id, _wbsId: selectedWbs._id });
-      if (result.wbs) {
+      // const result = await RealmApp.currentUser.callFunction("collection_projeler__wbs", { functionName: "moveWbsUp", _projeId: selectedProje._id, _wbsId: selectedWbs._id });
+      const response = await fetch(`/api/projeler/movewbsup`, {
+        method: 'POST',
+        headers: {
+          email: appUser.email,
+          token: appUser.token,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ projeId: selectedProje._id, wbsId: selectedWbs._id })
+      })
+
+
+      const responseJson = await response.json()
+
+      if (responseJson.error) {
+        if (responseJson.error.includes("expired")) {
+          setAppUser()
+          localStorage.removeItem('appUser')
+          navigate('/')
+          window.location.reload()
+        }
+        throw new Error(responseJson.error);
+      }
+
+
+      if (responseJson.wbs) {
         setSelectedProje(proje => {
-          proje.wbs = result.wbs
+          proje.wbs = responseJson.wbs
           return proje
         })
       }
 
+
       // switch on-off gösterim durumunu güncellemesi için 
-      setSelectedWbs(result.wbs.find(item => item._id.toString() === selectedWbs._id.toString()))
+      setSelectedWbs(responseJson.wbs.find(item => item._id.toString() === selectedWbs._id.toString()))
 
       return
 
@@ -490,8 +574,34 @@ export default function HeaderWbs({ setShow, nameMode, setNameMode, codeMode, se
 
 
 
+  const handleClose = (event, reason) => {
+    if (reason === 'clickaway') {
+      return;
+    }
+    setOpenSnackBar(false);
+  };
+
+
+
+
   return (
     <Paper>
+
+      <Snackbar
+        open={openSnackBar}
+        autoHideDuration={6000}
+        onClose={handleClose}
+        anchorOrigin={{ vertical: "bottom", horizontal: "center" }}
+      >
+        <Alert
+          onClose={handleClose}
+          severity="error"
+          variant="filled"
+          sx={{ width: '100%' }}
+        >
+          {snackBarMessage}
+        </Alert>
+      </Snackbar>
 
 
       {dialogAlert &&
@@ -583,7 +693,7 @@ export default function HeaderWbs({ setShow, nameMode, setNameMode, codeMode, se
                     <Typography sx={{ color: !selectedWbs ? "lightgray" : "rgb(24,24,24)" }} >poz</Typography>
                   </Grid>
                   <Grid item >
-                    <AntSwitch disabled={!selectedWbs} checked={selectedWbs?.openForPoz ? true : false} onChange={handleSwitchForPoz} />
+                    <AntSwitch disabled={!selectedWbs || isPending} checked={selectedWbs?.openForPoz ? true : false} onChange={handleSwitchForPoz} />
                   </Grid>
                 </Grid>
               </Grid>
