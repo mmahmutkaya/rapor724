@@ -3,6 +3,8 @@ import { StoreContext } from '../components/store.js'
 import { useApp } from "./useApp.js";
 import deleteLastSpace from '../functions/deleteLastSpace.js';
 import { DialogAlert } from './general/DialogAlert.js'
+import { useNavigate } from "react-router-dom";
+
 
 
 //mui
@@ -17,9 +19,11 @@ import DialogContentText from '@mui/material/DialogContentText';
 import { Typography } from '@mui/material';
 
 
-export default function P_FormLbsCreate({ setShow, selectedLbs, setSelectedLbs }) {
+export default function P_FormLbsCreate({ setShow, selectedLbs, setSelectedLbs, setOpenSnackBar, setSnackBarMessage }) {
 
-  const { RealmApp, selectedProje, setSelectedProje } = useContext(StoreContext)
+  const navigate = useNavigate()
+  const { appUser, setAppUser } = useContext(StoreContext)
+  const { selectedProje, setSelectedProje } = useContext(StoreContext)
 
   if (!selectedProje?._id) {
     throw new Error("Lbs oluşturulacak projenin database kaydı için _projeId belirtilmemiş, sayfayı yeniden yükleyin, sorun devam ederse Rapor7/24 ile irtibata geçiniz.")
@@ -27,11 +31,13 @@ export default function P_FormLbsCreate({ setShow, selectedLbs, setSelectedLbs }
 
   const [dialogAlert, setDialogAlert] = useState(false)
 
-  const [lbsName, setLbsName] = useState()
-  const [lbsCodeName, setLbsCodeName] = useState()
+  const [lbsName, setLbsName] = useState("")
+  const [lbsCodeName, setLbsCodeName] = useState("")
 
   const [lbsNameError, setLbsNameError] = useState()
   const [lbsCodeNameError, setLbsCodeNameError] = useState()
+
+  const RealmApp = useApp();
 
   async function handleSubmit(event) {
 
@@ -62,7 +68,6 @@ export default function P_FormLbsCreate({ setShow, selectedLbs, setSelectedLbs }
       }
 
       if (lbsCodeName.includes(" ")) {
-        ;
         setLbsCodeNameError("Boşluk kullanmayınız")
         isError = true
         console.log("lbsCodeName", "yok -- error")
@@ -77,27 +82,57 @@ export default function P_FormLbsCreate({ setShow, selectedLbs, setSelectedLbs }
       }
 
 
+      // yukarıdaki yapılan _id kontrolü tamamsa bu veri db de kaydolmuş demektir, refetch_mahaller() yapıp db yi yormaya gerek yok
+      // useQuery ile oluşturduğumuz mahaller cash datamızı güncelliyoruz
+      // sorgudan lbs datası güncellenmiş proje dödürüp, gelen data ile aşağıda react useContext deki projeyi update ediyoruz
       const newLbsItem = {
-        _projeId: selectedProje._id,
+        projeId: selectedProje._id,
         upLbsId: selectedLbs ? selectedLbs._id : "0",
         newLbsName: lbsName,
         newLbsCodeName: lbsCodeName
       }
 
-      const result = await RealmApp.currentUser.callFunction("collection_projeler__lbs", { functionName: "createLbs", ...newLbsItem });
+      // const result = await RealmApp.currentUser.callFunction("collection_projeler__lbs", { functionName: "createLbs", ...newLbsItem });
+      const response = await fetch(`/api/projeler/createlbs`, {
+        method: 'POST',
+        headers: {
+          email: appUser.email,
+          token: appUser.token,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ ...newLbsItem })
+      })
 
-      // console.log("result", result)
-      if (result.errorObject) {
-        setLbsNameError(result.errorObject.lbsNameError)
-        setLbsCodeNameError(result.errorObject.lbsCodeNameError)
+
+      const responseJson = await response.json()
+
+      if (responseJson.error) {
+        if (responseJson.error.includes("expired")) {
+          setAppUser()
+          localStorage.removeItem('appUser')
+          navigate('/')
+          window.location.reload()
+        }
+        throw new Error(responseJson.error);
+      }
+
+      if (responseJson.errorObject) {
+        setLbsNameError(responseJson.errorObject.lbsNameError)
+        setLbsCodeNameError(responseJson.errorObject.lbsCodeNameError)
         console.log("backend den gelen hata ile durdu")
         return
       }
 
+      if (responseJson.snackMessage) {
+        setOpenSnackBar(true)
+        setSnackBarMessage(responseJson.snackMessage)
+        return
+      }
 
-      if (result.lbs) {
+
+      if (responseJson.lbs) {
         setSelectedProje(proje => {
-          proje.lbs = result.lbs
+          proje.lbs = responseJson.lbs
           return proje
         })
       }
@@ -183,7 +218,6 @@ export default function P_FormLbsCreate({ setShow, selectedLbs, setSelectedLbs }
               </DialogContentText>
             }
 
-
             <Box onClick={() => setLbsNameError(false)}>
               <TextField
                 variant="standard"
@@ -202,6 +236,7 @@ export default function P_FormLbsCreate({ setShow, selectedLbs, setSelectedLbs }
                 fullWidth
               />
             </Box>
+
 
 
             <Box onClick={() => setLbsCodeNameError(false)}>

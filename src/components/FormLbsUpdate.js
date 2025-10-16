@@ -2,6 +2,7 @@ import { useState, useContext } from 'react';
 import { StoreContext } from '../components/store.js'
 import deleteLastSpace from '../functions/deleteLastSpace.js';
 import { DialogAlert } from './general/DialogAlert.js'
+import { useNavigate } from "react-router-dom";
 
 
 //mui
@@ -14,17 +15,16 @@ import DialogContent from '@mui/material/DialogContent';
 import DialogContentText from '@mui/material/DialogContentText';
 
 
-export default function P_FormLbsUpdate({ setShow, selectedLbs, setSelectedLbs }) {
+export default function P_FormLbsUpdate({ setShow, selectedLbs, setSelectedLbs, setOpenSnackBar, setSnackBarMessage }) {
 
-  const { RealmApp, selectedProje, setSelectedProje } = useContext(StoreContext)
+  const navigate = useNavigate()
+
+  const { appUser, setAppUser, selectedProje, setSelectedProje } = useContext(StoreContext)
 
   const [dialogAlert, setDialogAlert] = useState(false)
 
-  const [lbsName, setLbsName] = useState()
-  const [lbsCodeName, setLbsCodeName] = useState()
-
-  const [lbsNameError, setLbsNameError] = useState()
-  const [lbsCodeNameError, setLbsCodeNameError] = useState()
+  const [lbsNameError, setLbsNameError] = useState("")
+  const [lbsCodeNameError, setLbsCodeNameError] = useState("")
 
 
   async function handleSubmit(event) {
@@ -71,30 +71,58 @@ export default function P_FormLbsUpdate({ setShow, selectedLbs, setSelectedLbs }
 
 
       const willBeUpdatedLbs = {
-        _projeId: selectedProje._id,
-        _lbsId:selectedLbs._id,
+        projeId: selectedProje._id,
+        lbsId: selectedLbs._id,
         newLbsName: lbsName,
         newLbsCodeName: lbsCodeName
       }
 
 
-      const result = await RealmApp.currentUser.callFunction("collection_projeler__lbs", { functionName: "updateLbs", ...willBeUpdatedLbs });
+      const response = await fetch(`/api/projeler/updatelbs`, {
+        method: 'POST',
+        headers: {
+          email: appUser.email,
+          token: appUser.token,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ ...willBeUpdatedLbs })
+      })
 
-      // console.log("result", result)
-      if (result.errorObject) {
-        setLbsNameError(result.errorObject.lbsNameError)
-        setLbsCodeNameError(result.errorObject.lbsCodeNameError)
+
+      const responseJson = await response.json()
+
+      if (responseJson.error) {
+        if (responseJson.error.includes("expired")) {
+          setAppUser()
+          localStorage.removeItem('appUser')
+          navigate('/')
+          window.location.reload()
+        }
+        throw new Error(responseJson.error);
+      }
+
+      if (responseJson.errorObject) {
+        setLbsNameError(responseJson.errorObject.lbsNameError)
+        setLbsCodeNameError(responseJson.errorObject.lbsCodeNameError)
         console.log("backend den gelen hata ile durdu")
         return
       }
 
 
-      if (result.lbs) {
+      if (responseJson.snackMessage) {
+        setOpenSnackBar(true)
+        setSnackBarMessage(responseJson.snackMessage)
+        return
+      }
+
+
+      if (responseJson.lbs) {
         setSelectedProje(proje => {
-          proje.lbs = result.lbs
+          proje.lbs = responseJson.lbs
           return proje
         })
       }
+
 
       // sorgu işleminden önce seçilen lbs varsa, temizliyoruz, en büyük gerekçe seçilen lbs silinmiş olabilir, onunla işlem db de hata verir
       setSelectedLbs(null)
@@ -107,16 +135,9 @@ export default function P_FormLbsUpdate({ setShow, selectedLbs, setSelectedLbs }
 
       console.log(err)
 
-      let dialogMessage = "Beklenmedik hata, sayfayı yenileyiniz, sorun devam ederse Rapor7/24 ile irtibata geçiniz.."
-      if (err.message.includes("__mesajBaslangic__") && err.message.includes("__mesajBitis__")) {
-        let mesajBaslangic = err.message.indexOf("__mesajBaslangic__") + "__mesajBaslangic__".length
-        let mesajBitis = err.message.indexOf("__mesajBitis__")
-        dialogMessage = err.message.slice(mesajBaslangic, mesajBitis)
-      }
-
       setDialogAlert({
         dialogIcon: "warning",
-        dialogMessage,
+        dialogMessage: "Beklenmedik hata, sayfayı yenileyiniz, sorun devam ederse Rapor7/24 ile irtibata geçiniz..",
         detailText: err?.message ? err.message : null
       })
 
@@ -160,8 +181,6 @@ export default function P_FormLbsUpdate({ setShow, selectedLbs, setSelectedLbs }
               <TextField
                 variant="standard"
                 // InputProps={{ sx: { height:"2rem", fontSize: "1.5rem" } }}
-                onChange={(e) => setLbsName(() => e.target.value.replace("i", "İ").toUpperCase())}
-                value={lbsName}
                 defaultValue={selectedLbs.name}
                 margin="normal"
                 id="lbsName"
@@ -180,8 +199,6 @@ export default function P_FormLbsUpdate({ setShow, selectedLbs, setSelectedLbs }
               <TextField
                 variant="standard"
                 // InputProps={{ sx: { height:"2rem", fontSize: "1.5rem" } }}
-                onChange={(e) => setLbsCodeName(() => e.target.value.replace("i", "İ").toUpperCase())}
-                value={lbsCodeName}
                 defaultValue={selectedLbs.codeName}
                 margin="normal"
                 id="lbsCodeName"

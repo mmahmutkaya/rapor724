@@ -24,17 +24,20 @@ import PinIcon from '@mui/icons-material/Pin';
 import EditIcon from '@mui/icons-material/Edit';
 import FontDownloadIcon from '@mui/icons-material/FontDownload';
 
+
 import Divider from '@mui/material/Divider';
 import { AppBar, Select } from '@mui/material';
 import Switch from '@mui/material/Switch';
 import { styled } from '@mui/material/styles';
+import { green } from '@mui/material/colors';
 
 
-export default function HeaderLbs({ setShow, nameMode, setNameMode, codeMode, setCodeMode }) {
+export default function HeaderLbs({ setShow, nameMode, setNameMode, codeMode, setCodeMode, openSnackBar, setOpenSnackBar, snackBarMessage, setSnackBarMessage }) {
 
   const navigate = useNavigate()
+  const [isPending, setIsPending] = useState()
 
-  const { RealmApp, drawerWidth, topBarHeight, subHeaderHeight } = useContext(StoreContext)
+  const { RealmApp, appUser, setAppUser, drawerWidth, topBarHeight, subHeaderHeight } = useContext(StoreContext)
 
   const [dialogAlert, setDialogAlert] = useState()
 
@@ -152,107 +155,78 @@ export default function HeaderLbs({ setShow, nameMode, setNameMode, codeMode, se
 
   async function handleSwitchForMahal(event) {
 
-    // console.log(selectedLbs)
-    // console.log("event.target.checked", event.target.checked)
+    try {
 
-    // lbs mahale açık hale getirilecekse
-    if (event.target.checked === true) {
-
-      try {
-
-        if (!selectedLbs) {
-          console.log("alttaki satırda --return-- oldu")
-          return
-        }
-
-        // bu kontrol backend de ayrıca yapılıyor
-        let text = selectedLbs.code + "."
-        if (selectedProje.lbs.find(item => item.code.indexOf(text) === 0)) {
-          // throw new Error("\"" + selectedLbs.name + "\" isimli başlığın bir veya daha fazla alt başlığı mevcut, bu sebeple direk mahal eklemeye açık hale getirilemez, mevcut alt başlıklar uygun değilse, yeni bir alt başlık oluşturup, o başlığı mahal eklemeye açabilirsiniz.")
-          throw new Error("__mesajBaslangic__ Alt başlığı bulunan başlıklar mahal eklemeye açılamaz. __mesajBitis__")
-        }
-
-        const result = await RealmApp.currentUser.callFunction("collection_projeler__lbs", { functionName: "openLbsForMahal", _projeId: selectedProje._id, _lbsId: selectedLbs._id });
-
-        if (result.lbs) {
-          setSelectedProje(proje => {
-            proje.lbs = result.lbs
-            return proje
-          })
-        }
-
-        // switch on-off gösterim durumunu güncellemesi için 
-        setSelectedLbs(result.lbs.find(item => item._id.toString() === selectedLbs._id.toString()))
-
+      if (!selectedLbs) {
+        console.log("alttaki satırda --return-- oldu")
         return
-
-      } catch (err) {
-
-        console.log(err)
-
-        let dialogMessage = "Beklenmedik hata, sayfayı yenileyiniz, sorun devam ederse Rapor7/24 ile irtibata geçiniz.."
-        if (err.message.includes("__mesajBaslangic__") && err.message.includes("__mesajBitis__")) {
-          let mesajBaslangic = err.message.indexOf("__mesajBaslangic__") + "__mesajBaslangic__".length
-          let mesajBitis = err.message.indexOf("__mesajBitis__")
-          dialogMessage = err.message.slice(mesajBaslangic, mesajBitis)
-        }
-
-        setDialogAlert({
-          dialogIcon: "warning",
-          dialogMessage,
-          detailText: err?.message ? err.message : null
-        })
-
-        return
-
       }
-    }
 
-
-    // lbs mahale kapalı hale getirilecekse
-    if (event.target.checked === false) {
-
-      try {
-
-        if (!selectedLbs) {
-          console.log("alttaki satırda --return-- oldu")
-          return
-        }
-
-        const result = await RealmApp.currentUser.callFunction("collection_projeler__lbs", { functionName: "closeLbsForMahal", _projeId: selectedProje._id, _lbsId: selectedLbs._id });
-
-        if (result.lbs) {
-          setSelectedProje(proje => {
-            proje.lbs = result.lbs
-            return proje
-          })
-        }
-
-        // switch on-off gösterim durumunu güncellemesi için 
-        setSelectedLbs(result.lbs.find(item => item._id.toString() === selectedLbs._id.toString()))
-
+      // bu kontrol backend de ayrıca yapılıyor
+      let text = selectedLbs.code + "."
+      if (selectedProje.lbs.find(item => item.code.indexOf(text) === 0)) {
+        setOpenSnackBar(true)
+        setSnackBarMessage("Alt başlığı bulunan başlıklar mahal eklemeye açılamaz.")
         return
-
-      } catch (err) {
-
-        console.log(err)
-
-        let dialogMessage = "Beklenmedik hata, sayfayı yenileyiniz, sorun devam ederse Rapor7/24 ile irtibata geçiniz.."
-        if (err.message.includes("__mesajBaslangic__") && err.message.includes("__mesajBitis__")) {
-          let mesajBaslangic = err.message.indexOf("__mesajBaslangic__") + "__mesajBaslangic__".length
-          let mesajBitis = err.message.indexOf("__mesajBitis__")
-          dialogMessage = err.message.slice(mesajBaslangic, mesajBitis)
-        }
-
-        setDialogAlert({
-          dialogIcon: "warning",
-          dialogMessage,
-          detailText: err?.message ? err.message : null
-        })
-
-        return
-
       }
+
+      setIsPending(true)
+
+      const response = await fetch(`/api/projeler/togglelbsformahal`, {
+        method: 'POST',
+        headers: {
+          email: appUser.email,
+          token: appUser.token,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ projeId: selectedProje._id, lbsId: selectedLbs._id, switchValue: event.target.checked ? true : false })
+      })
+
+
+      const responseJson = await response.json()
+
+      if (responseJson.error) {
+        if (responseJson.error.includes("expired")) {
+          setAppUser()
+          localStorage.removeItem('appUser')
+          navigate('/')
+          window.location.reload()
+        }
+        throw new Error(responseJson.error);
+      }
+
+      if (responseJson.snackMessage) {
+        setOpenSnackBar(true)
+        setSnackBarMessage(responseJson.snackMessage)
+        return
+      }
+
+      if (responseJson.lbs) {
+        setSelectedProje(proje => {
+          proje.lbs = responseJson.lbs
+          return proje
+        })
+      }
+
+      // switch on-off gösterim durumunu güncellemesi için
+      setSelectedLbs(responseJson.lbs.find(item => item._id.toString() === selectedLbs._id.toString()))
+      setIsPending(false)
+
+      return
+
+    } catch (err) {
+
+      console.log(err)
+
+      setDialogAlert({
+        dialogIcon: "warning",
+        dialogMessage: "Beklenmedik hata, sayfayı yenileyiniz, sorun devam ederse Rapor7/24 ile irtibata geçiniz..",
+        detailText: err?.message ? err.message : null
+      })
+
+      setIsPending(false)
+      return
+
     }
 
   }
@@ -270,17 +244,58 @@ export default function HeaderLbs({ setShow, nameMode, setNameMode, codeMode, se
     try {
 
       // bu kontrol backend de ayrıca yapılıyor
-      if (selectedLbs.openForMahal) {
-        throw new Error("__mesajBaslangic__ Mahal eklemeye açık başlıklar silinemez, öncelikle mahal eklemeye kapatınız. __mesajBitis__")
+      if (selectedProje?.lbs.find(item => item.code.indexOf(selectedLbs.code + ".") === 0)) {
+        setOpenSnackBar(true)
+        setSnackBarMessage("Alt başlığı bulunan başlıklar silinemez.")
+        return
       }
 
-      const result = await RealmApp.currentUser.callFunction("collection_projeler__lbs", { functionName: "deleteLbs", _projeId: selectedProje._id, _lbsId: selectedLbs._id });
-      if (result.lbs) {
+      // bu kontrol backend de ayrıca yapılıyor
+      if (selectedLbs.openForMahal) {
+        setOpenSnackBar(true)
+        setSnackBarMessage("Mahal eklemeye açık başlıklar silinemez.")
+        return
+      }
+
+      // const result = await RealmApp.currentUser.callFunction("collection_projeler__lbs", { functionName: "deleteLbs", _projeId: selectedProje._id, _lbsId: selectedLbs._id });
+
+      const response = await fetch(`/api/projeler/deletelbs`, {
+        method: 'POST',
+        headers: {
+          email: appUser.email,
+          token: appUser.token,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ projeId: selectedProje._id, lbsId: selectedLbs._id })
+      })
+
+
+      const responseJson = await response.json()
+
+      if (responseJson.error) {
+        if (responseJson.error.includes("expired")) {
+          setAppUser()
+          localStorage.removeItem('appUser')
+          navigate('/')
+          window.location.reload()
+        }
+        throw new Error(responseJson.error);
+      }
+
+      if (responseJson.snackMessage) {
+        setOpenSnackBar(true)
+        setSnackBarMessage(responseJson.snackMessage)
+        return
+      }
+
+
+      if (responseJson.lbs) {
         setSelectedProje(proje => {
-          proje.lbs = result.lbs
+          proje.lbs = responseJson.lbs
           return proje
         })
       }
+
 
       // switch on-off gösterim durumunu güncellemesi için 
       setSelectedLbs()
@@ -291,16 +306,9 @@ export default function HeaderLbs({ setShow, nameMode, setNameMode, codeMode, se
 
       console.log(err)
 
-      let dialogMessage = "Beklenmedik hata, sayfayı yenileyiniz, sorun devam ederse Rapor7/24 ile irtibata geçiniz.."
-      if (err.message.includes("__mesajBaslangic__") && err.message.includes("__mesajBitis__")) {
-        let mesajBaslangic = err.message.indexOf("__mesajBaslangic__") + "__mesajBaslangic__".length
-        let mesajBitis = err.message.indexOf("__mesajBitis__")
-        dialogMessage = err.message.slice(mesajBaslangic, mesajBitis)
-      }
-
       setDialogAlert({
         dialogIcon: "warning",
-        dialogMessage,
+        dialogMessage: "Beklenmedik hata, sayfayı yenileyiniz, sorun devam ederse Rapor7/24 ile irtibata geçiniz..",
         detailText: err?.message ? err.message : null
       })
 
@@ -335,16 +343,46 @@ export default function HeaderLbs({ setShow, nameMode, setNameMode, codeMode, se
         return
       }
 
-      const result = await RealmApp.currentUser.callFunction("collection_projeler__lbs", { functionName: "moveLbsUp", _projeId: selectedProje._id, _lbsId: selectedLbs._id });
-      if (result.lbs) {
+      // const result = await RealmApp.currentUser.callFunction("collection_projeler__lbs", { functionName: "moveLbsUp", _projeId: selectedProje._id, _lbsId: selectedLbs._id });
+      const response = await fetch(`/api/projeler/movelbsup`, {
+        method: 'POST',
+        headers: {
+          email: appUser.email,
+          token: appUser.token,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ projeId: selectedProje._id, lbsId: selectedLbs._id })
+      })
+
+
+      const responseJson = await response.json()
+
+      if (responseJson.error) {
+        if (responseJson.error.includes("expired")) {
+          setAppUser()
+          localStorage.removeItem('appUser')
+          navigate('/')
+          window.location.reload()
+        }
+        throw new Error(responseJson.error);
+      }
+
+      if (responseJson.snackMessage) {
+        setOpenSnackBar(true)
+        setSnackBarMessage(responseJson.snackMessage)
+        return
+      }
+
+      if (responseJson.lbs) {
         setSelectedProje(proje => {
-          proje.lbs = result.lbs
+          proje.lbs = responseJson.lbs
           return proje
         })
       }
 
+
       // switch on-off gösterim durumunu güncellemesi için 
-      setSelectedLbs(result.lbs.find(item => item._id.toString() === selectedLbs._id.toString()))
+      setSelectedLbs(responseJson.lbs.find(item => item._id.toString() === selectedLbs._id.toString()))
 
       return
 
@@ -352,16 +390,9 @@ export default function HeaderLbs({ setShow, nameMode, setNameMode, codeMode, se
 
       console.log(err)
 
-      let dialogMessage = "Beklenmedik hata, sayfayı yenileyiniz, sorun devam ederse Rapor7/24 ile irtibata geçiniz.."
-      if (err.message.includes("__mesajBaslangic__") && err.message.includes("__mesajBitis__")) {
-        let mesajBaslangic = err.message.indexOf("__mesajBaslangic__") + "__mesajBaslangic__".length
-        let mesajBitis = err.message.indexOf("__mesajBitis__")
-        dialogMessage = err.message.slice(mesajBaslangic, mesajBitis)
-      }
-
       setDialogAlert({
         dialogIcon: "warning",
-        dialogMessage,
+        dialogMessage: "Beklenmedik hata, sayfayı yenileyiniz, sorun devam ederse Rapor7/24 ile irtibata geçiniz..",
         detailText: err?.message ? err.message : null
       })
 
@@ -405,16 +436,46 @@ export default function HeaderLbs({ setShow, nameMode, setNameMode, codeMode, se
         return
       }
 
-      const result = await RealmApp.currentUser.callFunction("collection_projeler__lbs", { functionName: "moveLbsDown", _projeId: selectedProje._id, _lbsId: selectedLbs._id });
-      if (result.lbs) {
+
+      const response = await fetch(`/api/projeler/movelbsdown`, {
+        method: 'POST',
+        headers: {
+          email: appUser.email,
+          token: appUser.token,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ projeId: selectedProje._id, lbsId: selectedLbs._id })
+      })
+
+
+      const responseJson = await response.json()
+
+      if (responseJson.error) {
+        if (responseJson.error.includes("expired")) {
+          setAppUser()
+          localStorage.removeItem('appUser')
+          navigate('/')
+          window.location.reload()
+        }
+        throw new Error(responseJson.error);
+      }
+
+      if (responseJson.snackMessage) {
+        setOpenSnackBar(true)
+        setSnackBarMessage(responseJson.snackMessage)
+        return
+      }
+
+      if (responseJson.lbs) {
         setSelectedProje(proje => {
-          proje.lbs = result.lbs
+          proje.lbs = responseJson.lbs
           return proje
         })
       }
 
+
       // switch on-off gösterim durumunu güncellemesi için 
-      setSelectedLbs(result.lbs.find(item => item._id.toString() === selectedLbs._id.toString()))
+      setSelectedLbs(responseJson.lbs.find(item => item._id.toString() === selectedLbs._id.toString()))
 
       return
 
@@ -422,16 +483,9 @@ export default function HeaderLbs({ setShow, nameMode, setNameMode, codeMode, se
 
       console.log(err)
 
-      let dialogMessage = "Beklenmedik hata, sayfayı yenileyiniz, sorun devam ederse Rapor7/24 ile irtibata geçiniz.."
-      if (err.message.includes("__mesajBaslangic__") && err.message.includes("__mesajBitis__")) {
-        let mesajBaslangic = err.message.indexOf("__mesajBaslangic__") + "__mesajBaslangic__".length
-        let mesajBitis = err.message.indexOf("__mesajBitis__")
-        dialogMessage = err.message.slice(mesajBaslangic, mesajBitis)
-      }
-
       setDialogAlert({
         dialogIcon: "warning",
-        dialogMessage,
+        dialogMessage: "Beklenmedik hata, sayfayı yenileyiniz, sorun devam ederse Rapor7/24 ile irtibata geçiniz..",
         detailText: err?.message ? err.message : null
       })
 
@@ -452,16 +506,45 @@ export default function HeaderLbs({ setShow, nameMode, setNameMode, codeMode, se
 
     try {
 
-      const result = await RealmApp.currentUser.callFunction("collection_projeler__lbs", { functionName: "moveLbsLeft", _projeId: selectedProje._id, _lbsId: selectedLbs._id });
-      if (result.lbs) {
+      const response = await fetch(`/api/projeler/movelbsleft`, {
+        method: 'POST',
+        headers: {
+          email: appUser.email,
+          token: appUser.token,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ projeId: selectedProje._id, lbsId: selectedLbs._id })
+      })
+
+
+      const responseJson = await response.json()
+
+      if (responseJson.error) {
+        if (responseJson.error.includes("expired")) {
+          setAppUser()
+          localStorage.removeItem('appUser')
+          navigate('/')
+          window.location.reload()
+        }
+        throw new Error(responseJson.error);
+      }
+
+      if (responseJson.snackMessage) {
+        setOpenSnackBar(true)
+        setSnackBarMessage(responseJson.snackMessage)
+        return
+      }
+
+      if (responseJson.lbs) {
         setSelectedProje(proje => {
-          proje.lbs = result.lbs
+          proje.lbs = responseJson.lbs
           return proje
         })
       }
 
+
       // switch on-off gösterim durumunu güncellemesi için 
-      setSelectedLbs(result.lbs.find(item => item._id.toString() === selectedLbs._id.toString()))
+      setSelectedLbs(responseJson.lbs.find(item => item._id.toString() === selectedLbs._id.toString()))
 
       return
 
@@ -469,16 +552,9 @@ export default function HeaderLbs({ setShow, nameMode, setNameMode, codeMode, se
 
       console.log(err)
 
-      let dialogMessage = "Beklenmedik hata, sayfayı yenileyiniz, sorun devam ederse Rapor7/24 ile irtibata geçiniz.."
-      if (err.message.includes("__mesajBaslangic__") && err.message.includes("__mesajBitis__")) {
-        let mesajBaslangic = err.message.indexOf("__mesajBaslangic__") + "__mesajBaslangic__".length
-        let mesajBitis = err.message.indexOf("__mesajBitis__")
-        dialogMessage = err.message.slice(mesajBaslangic, mesajBitis)
-      }
-
       setDialogAlert({
         dialogIcon: "warning",
-        dialogMessage,
+        dialogMessage: "Beklenmedik hata, sayfayı yenileyiniz, sorun devam ederse Rapor7/24 ile irtibata geçiniz..",
         detailText: err?.message ? err.message : null
       })
 
@@ -499,16 +575,45 @@ export default function HeaderLbs({ setShow, nameMode, setNameMode, codeMode, se
 
     try {
 
-      const result = await RealmApp.currentUser.callFunction("collection_projeler__lbs", { functionName: "moveLbsRight", _projeId: selectedProje._id, _lbsId: selectedLbs._id });
-      if (result.lbs) {
+      const response = await fetch(`/api/projeler/movelbsright`, {
+        method: 'POST',
+        headers: {
+          email: appUser.email,
+          token: appUser.token,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ projeId: selectedProje._id, lbsId: selectedLbs._id })
+      })
+
+
+      const responseJson = await response.json()
+
+      if (responseJson.error) {
+        if (responseJson.error.includes("expired")) {
+          setAppUser()
+          localStorage.removeItem('appUser')
+          navigate('/')
+          window.location.reload()
+        }
+        throw new Error(responseJson.error);
+      }
+
+      if (responseJson.snackMessage) {
+        setOpenSnackBar(true)
+        setSnackBarMessage(responseJson.snackMessage)
+        return
+      }
+
+      if (responseJson.lbs) {
         setSelectedProje(proje => {
-          proje.lbs = result.lbs
+          proje.lbs = responseJson.lbs
           return proje
         })
       }
 
+
       // switch on-off gösterim durumunu güncellemesi için 
-      setSelectedLbs(result.lbs.find(item => item._id.toString() === selectedLbs._id.toString()))
+      setSelectedLbs(responseJson.lbs.find(item => item._id.toString() === selectedLbs._id.toString()))
 
       return
 
@@ -516,16 +621,9 @@ export default function HeaderLbs({ setShow, nameMode, setNameMode, codeMode, se
 
       console.log(err)
 
-      let dialogMessage = "Beklenmedik hata, sayfayı yenileyiniz, sorun devam ederse Rapor7/24 ile irtibata geçiniz.."
-      if (err.message.includes("__mesajBaslangic__") && err.message.includes("__mesajBitis__")) {
-        let mesajBaslangic = err.message.indexOf("__mesajBaslangic__") + "__mesajBaslangic__".length
-        let mesajBitis = err.message.indexOf("__mesajBitis__")
-        dialogMessage = err.message.slice(mesajBaslangic, mesajBitis)
-      }
-
       setDialogAlert({
         dialogIcon: "warning",
-        dialogMessage,
+        dialogMessage: "Beklenmedik hata, sayfayı yenileyiniz, sorun devam ederse Rapor7/24 ile irtibata geçiniz..",
         detailText: err?.message ? err.message : null
       })
 
@@ -535,10 +633,25 @@ export default function HeaderLbs({ setShow, nameMode, setNameMode, codeMode, se
 
 
 
+  const openLbsCreateForm = () => {
+    if (selectedLbs?.openForMahal) {
+      setOpenSnackBar(true)
+      setSnackBarMessage("Mahal eklemeye açılan başlıklara alt başlık eklenemez.")
+      return
+    }
+    if (selectedLbs?.code?.split(".").length === 8) {
+      setOpenSnackBar(true)
+      setSnackBarMessage("Daha fazla alt başlık ekleyemezsiniz")
+      return
+    }
+    setShow("FormLbsCreate")
+  }
+
+
+
 
   return (
     <Paper>
-
 
       {dialogAlert &&
         <DialogAlert
@@ -629,7 +742,7 @@ export default function HeaderLbs({ setShow, nameMode, setNameMode, codeMode, se
                     <Typography sx={{ color: !selectedLbs ? "lightgray" : "rgb(24,24,24)" }} >mahal</Typography>
                   </Grid>
                   <Grid item >
-                    <AntSwitch disabled={!selectedLbs} checked={selectedLbs?.openForMahal ? true : false} onChange={handleSwitchForMahal} />
+                    <AntSwitch disabled={!selectedLbs || isPending} checked={selectedLbs?.openForMahal ? true : false} onChange={handleSwitchForMahal} />
                   </Grid>
                 </Grid>
               </Grid>
@@ -671,7 +784,7 @@ export default function HeaderLbs({ setShow, nameMode, setNameMode, codeMode, se
               </Grid>
 
               <Grid item>
-                <IconButton onClick={() => setShow("FormLbsCreate")} disabled={selectedLbs?.code.split(".").length == 8 ? true : false} aria-label="addLbs">
+                <IconButton onClick={() => openLbsCreateForm()} disabled={selectedLbs?.code.split(".").length == 8 ? true : false} aria-label="addLbs">
                   <AddCircleOutlineIcon variant="contained" color={selectedLbs?.code.split(".").length == 8 ? " lightgray" : "success"} />
                 </IconButton>
               </Grid>

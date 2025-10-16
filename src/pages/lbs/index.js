@@ -10,15 +10,19 @@ import HeaderLbs from '../../components/HeaderLbs'
 
 import Grid from '@mui/material/Grid';
 import Box from '@mui/material/Box';
-import Alert from '@mui/material/Alert';
 import Stack from '@mui/material/Stack';
+import Snackbar from '@mui/material/Snackbar'
+import Alert from '@mui/material/Alert';
 
 
 export default function P_Lbs() {
 
   const navigate = useNavigate()
 
-  const { RealmApp, subHeaderHeight } = useContext(StoreContext)
+  const [openSnackBar, setOpenSnackBar] = useState(false)
+  const [snackBarMessage, setSnackBarMessage] = useState("")
+
+  const { subHeaderHeight } = useContext(StoreContext)
 
   const { selectedProje, setSelectedProje } = useContext(StoreContext)
   const { selectedLbs, setSelectedLbs } = useContext(StoreContext)
@@ -39,30 +43,71 @@ export default function P_Lbs() {
 
   let level
 
+
+  const handleClose = (event, reason) => {
+    if (reason === 'clickaway') {
+      return;
+    }
+    setOpenSnackBar(false);
+  };
+
+  //   const [openSnackBar, setOpenSnackBar] = useState(false)
+  // const [snackBarMessage, setSnackBarMessage] = useState("")
+
+
+
   return (
     <Grid container direction="column" spacing={0} sx={{ mt: subHeaderHeight }}>
+
+      <Snackbar
+        open={openSnackBar}
+        autoHideDuration={6000}
+        onClose={handleClose}
+        anchorOrigin={{ vertical: "bottom", horizontal: "center" }}
+      >
+        <Alert
+          onClose={handleClose}
+          severity="error"
+          variant="filled"
+          sx={{ width: '100%' }}
+        >
+          {snackBarMessage}
+        </Alert>
+      </Snackbar>
+
 
       <Grid item  >
         <HeaderLbs
           setShow={setShow}
           nameMode={nameMode} setNameMode={setNameMode}
           codeMode={codeMode} setCodeMode={setCodeMode}
+          openSnackBar={openSnackBar} setOpenSnackBar={setOpenSnackBar}
+          snackBarMessage={snackBarMessage} setSnackBarMessage={setSnackBarMessage}
         />
       </Grid>
 
-      {/* <Grid item >
-        <LbsMain />
-      </Grid> */}
 
       {show == "FormLbsCreate" &&
         <Grid item >
-          <FormLbsCreate setShow={setShow} selectedProje={selectedProje} setSelectedProje={setSelectedProje} selectedLbs={selectedLbs} setSelectedLbs={setSelectedLbs} />
+          <FormLbsCreate
+            setShow={setShow}
+            selectedProje={selectedProje} setSelectedProje={setSelectedProje}
+            selectedLbs={selectedLbs} setSelectedLbs={setSelectedLbs}
+            setOpenSnackBar={setOpenSnackBar}
+            setSnackBarMessage={setSnackBarMessage}
+          />
         </Grid>
       }
 
       {show == "FormLbsUpdate" &&
         <Grid item >
-          <FormLbsUpdate setShow={setShow} selectedProje={selectedProje} setSelectedProje={setSelectedProje} selectedLbs={selectedLbs} setSelectedLbs={setSelectedLbs} />
+          <FormLbsUpdate
+            setShow={setShow}
+            selectedProje={selectedProje} setSelectedProje={setSelectedProje}
+            selectedLbs={selectedLbs} setSelectedLbs={setSelectedLbs}
+            setOpenSnackBar={setOpenSnackBar}
+            setSnackBarMessage={setSnackBarMessage}
+          />
         </Grid>
       }
 
@@ -139,7 +184,7 @@ export default function P_Lbs() {
                       })}
 
 
-                      <Box sx={{ position: "relative", backgroundColor: color(level).bg, borderLeft: "1px solid " + color("border") }}>
+                      <Box sx={{ position: "relative", backgroundColor: color(level)?.bg, borderLeft: "1px solid " + color("border") }}>
 
                         {theLbs.openForMahal &&
                           // lbs mahale açıksa - var olan mevcut kutunun içinde beliren sarı kutu
@@ -293,7 +338,9 @@ function color(index) {
     case 6:
       return { bg: "#2929bc", co: "#e6e6e6" }
     case 7:
-      return { bg: "#267347", co: "#e6e6e6" }
+      return { bg: "#00853E", co: "#e6e6e6" }
+    case 8:
+      return { bg: "#4B5320", co: "#e6e6e6" }
     case "border":
       return "gray"
     case "font":
