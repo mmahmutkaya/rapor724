@@ -23,9 +23,7 @@ import VisibilityIcon from '@mui/icons-material/Visibility';
 import PinIcon from '@mui/icons-material/Pin';
 import EditIcon from '@mui/icons-material/Edit';
 import FontDownloadIcon from '@mui/icons-material/FontDownload';
-import Snackbar from '@mui/material/Snackbar'
-import Alert from '@mui/material/Alert';
-import CloseIcon from '@mui/icons-material/Close';
+
 
 import Divider from '@mui/material/Divider';
 import { AppBar, Select } from '@mui/material';
@@ -34,11 +32,9 @@ import { styled } from '@mui/material/styles';
 import { green } from '@mui/material/colors';
 
 
-export default function HeaderWbs({ setShow, nameMode, setNameMode, codeMode, setCodeMode }) {
+export default function HeaderWbs({ setShow, nameMode, setNameMode, codeMode, setCodeMode, openSnackBar, setOpenSnackBar, snackBarMessage, setSnackBarMessage }) {
 
   const navigate = useNavigate()
-  const [openSnackBar, setOpenSnackBar] = useState(false)
-  const [snackBarMessage, setSnackBarMessage] = useState("")
   const [isPending, setIsPending] = useState()
 
   const { RealmApp, appUser, setAppUser, drawerWidth, topBarHeight, subHeaderHeight } = useContext(StoreContext)
@@ -199,6 +195,11 @@ export default function HeaderWbs({ setShow, nameMode, setNameMode, codeMode, se
         throw new Error(responseJson.error);
       }
 
+      if (responseJson.snackMessage) {
+        setOpenSnackBar(true)
+        setSnackBarMessage(responseJson.snackMessage)
+        return
+      }
 
       if (responseJson.wbs) {
         setSelectedProje(proje => {
@@ -242,19 +243,19 @@ export default function HeaderWbs({ setShow, nameMode, setNameMode, codeMode, se
 
     try {
 
-      // bu kontrol backend de ayrıca yapılıyor
-      if (selectedProje?.wbs.find(item => item.code.indexOf(selectedWbs.code + ".") === 0)) {
-        setOpenSnackBar(true)
-        setSnackBarMessage("Alt başlığı bulunan başlıklar silinemez.")
-        return
-      }
+      // // bu kontrol backend de ayrıca yapılıyor
+      // if (selectedProje?.wbs.find(item => item.code.indexOf(selectedWbs.code + ".") === 0)) {
+      //   setOpenSnackBar(true)
+      //   setSnackBarMessage("Alt başlığı bulunan başlıklar silinemez.")
+      //   return
+      // }
 
-      // bu kontrol backend de ayrıca yapılıyor
-      if (selectedWbs.openForPoz) {
-        setOpenSnackBar(true)
-        setSnackBarMessage("Poz eklemeye açık başlıklar silinemez.")
-        return
-      }
+      // // bu kontrol backend de ayrıca yapılıyor
+      // if (selectedWbs.openForPoz) {
+      //   setOpenSnackBar(true)
+      //   setSnackBarMessage("Poz eklemeye açık başlıklar silinemez.")
+      //   return
+      // }
 
       // const result = await RealmApp.currentUser.callFunction("collection_projeler__wbs", { functionName: "deleteWbs", _projeId: selectedProje._id, _wbsId: selectedWbs._id });
 
@@ -281,6 +282,12 @@ export default function HeaderWbs({ setShow, nameMode, setNameMode, codeMode, se
         throw new Error(responseJson.error);
       }
 
+      if (responseJson.snackMessage) {
+        setOpenSnackBar(true)
+        setSnackBarMessage(responseJson.snackMessage)
+        return
+      }
+
 
       if (responseJson.wbs) {
         setSelectedProje(proje => {
@@ -298,18 +305,6 @@ export default function HeaderWbs({ setShow, nameMode, setNameMode, codeMode, se
     } catch (err) {
 
       console.log(err)
-
-      if (err.message.includes("Alt başlığı bulunan")) {
-        setOpenSnackBar(true)
-        setSnackBarMessage("Alt başlığı bulunan başlıklar silinemez.")
-        return
-      }
-
-      if (err.message.includes("Poz eklemeye açık")) {
-        setOpenSnackBar(true)
-        setSnackBarMessage("Poz eklemeye açık başlıklar silinemez")
-        return
-      }
 
       setDialogAlert({
         dialogIcon: "warning",
@@ -372,6 +367,11 @@ export default function HeaderWbs({ setShow, nameMode, setNameMode, codeMode, se
         throw new Error(responseJson.error);
       }
 
+      if (responseJson.snackMessage) {
+        setOpenSnackBar(true)
+        setSnackBarMessage(responseJson.snackMessage)
+        return
+      }
 
       if (responseJson.wbs) {
         setSelectedProje(proje => {
@@ -390,16 +390,9 @@ export default function HeaderWbs({ setShow, nameMode, setNameMode, codeMode, se
 
       console.log(err)
 
-      let dialogMessage = "Beklenmedik hata, sayfayı yenileyiniz, sorun devam ederse Rapor7/24 ile irtibata geçiniz.."
-      if (err.message.includes("__mesajBaslangic__") && err.message.includes("__mesajBitis__")) {
-        let mesajBaslangic = err.message.indexOf("__mesajBaslangic__") + "__mesajBaslangic__".length
-        let mesajBitis = err.message.indexOf("__mesajBitis__")
-        dialogMessage = err.message.slice(mesajBaslangic, mesajBitis)
-      }
-
       setDialogAlert({
         dialogIcon: "warning",
-        dialogMessage,
+        dialogMessage: "Beklenmedik hata, sayfayı yenileyiniz, sorun devam ederse Rapor7/24 ile irtibata geçiniz..",
         detailText: err?.message ? err.message : null
       })
 
@@ -443,16 +436,46 @@ export default function HeaderWbs({ setShow, nameMode, setNameMode, codeMode, se
         return
       }
 
-      const result = await RealmApp.currentUser.callFunction("collection_projeler__wbs", { functionName: "moveWbsDown", _projeId: selectedProje._id, _wbsId: selectedWbs._id });
-      if (result.wbs) {
+
+      const response = await fetch(`/api/projeler/movewbsdown`, {
+        method: 'POST',
+        headers: {
+          email: appUser.email,
+          token: appUser.token,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ projeId: selectedProje._id, wbsId: selectedWbs._id })
+      })
+
+
+      const responseJson = await response.json()
+
+      if (responseJson.error) {
+        if (responseJson.error.includes("expired")) {
+          setAppUser()
+          localStorage.removeItem('appUser')
+          navigate('/')
+          window.location.reload()
+        }
+        throw new Error(responseJson.error);
+      }
+
+      if (responseJson.snackMessage) {
+        setOpenSnackBar(true)
+        setSnackBarMessage(responseJson.snackMessage)
+        return
+      }
+
+      if (responseJson.wbs) {
         setSelectedProje(proje => {
-          proje.wbs = result.wbs
+          proje.wbs = responseJson.wbs
           return proje
         })
       }
 
+
       // switch on-off gösterim durumunu güncellemesi için 
-      setSelectedWbs(result.wbs.find(item => item._id.toString() === selectedWbs._id.toString()))
+      setSelectedWbs(responseJson.wbs.find(item => item._id.toString() === selectedWbs._id.toString()))
 
       return
 
@@ -460,16 +483,9 @@ export default function HeaderWbs({ setShow, nameMode, setNameMode, codeMode, se
 
       console.log(err)
 
-      let dialogMessage = "Beklenmedik hata, sayfayı yenileyiniz, sorun devam ederse Rapor7/24 ile irtibata geçiniz.."
-      if (err.message.includes("__mesajBaslangic__") && err.message.includes("__mesajBitis__")) {
-        let mesajBaslangic = err.message.indexOf("__mesajBaslangic__") + "__mesajBaslangic__".length
-        let mesajBitis = err.message.indexOf("__mesajBitis__")
-        dialogMessage = err.message.slice(mesajBaslangic, mesajBitis)
-      }
-
       setDialogAlert({
         dialogIcon: "warning",
-        dialogMessage,
+        dialogMessage: "Beklenmedik hata, sayfayı yenileyiniz, sorun devam ederse Rapor7/24 ile irtibata geçiniz..",
         detailText: err?.message ? err.message : null
       })
 
@@ -490,16 +506,45 @@ export default function HeaderWbs({ setShow, nameMode, setNameMode, codeMode, se
 
     try {
 
-      const result = await RealmApp.currentUser.callFunction("collection_projeler__wbs", { functionName: "moveWbsLeft", _projeId: selectedProje._id, _wbsId: selectedWbs._id });
-      if (result.wbs) {
+      const response = await fetch(`/api/projeler/movewbsleft`, {
+        method: 'POST',
+        headers: {
+          email: appUser.email,
+          token: appUser.token,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ projeId: selectedProje._id, wbsId: selectedWbs._id })
+      })
+
+
+      const responseJson = await response.json()
+
+      if (responseJson.error) {
+        if (responseJson.error.includes("expired")) {
+          setAppUser()
+          localStorage.removeItem('appUser')
+          navigate('/')
+          window.location.reload()
+        }
+        throw new Error(responseJson.error);
+      }
+
+      if (responseJson.snackMessage) {
+        setOpenSnackBar(true)
+        setSnackBarMessage(responseJson.snackMessage)
+        return
+      }
+
+      if (responseJson.wbs) {
         setSelectedProje(proje => {
-          proje.wbs = result.wbs
+          proje.wbs = responseJson.wbs
           return proje
         })
       }
 
+
       // switch on-off gösterim durumunu güncellemesi için 
-      setSelectedWbs(result.wbs.find(item => item._id.toString() === selectedWbs._id.toString()))
+      setSelectedWbs(responseJson.wbs.find(item => item._id.toString() === selectedWbs._id.toString()))
 
       return
 
@@ -507,16 +552,9 @@ export default function HeaderWbs({ setShow, nameMode, setNameMode, codeMode, se
 
       console.log(err)
 
-      let dialogMessage = "Beklenmedik hata, sayfayı yenileyiniz, sorun devam ederse Rapor7/24 ile irtibata geçiniz.."
-      if (err.message.includes("__mesajBaslangic__") && err.message.includes("__mesajBitis__")) {
-        let mesajBaslangic = err.message.indexOf("__mesajBaslangic__") + "__mesajBaslangic__".length
-        let mesajBitis = err.message.indexOf("__mesajBitis__")
-        dialogMessage = err.message.slice(mesajBaslangic, mesajBitis)
-      }
-
       setDialogAlert({
         dialogIcon: "warning",
-        dialogMessage,
+        dialogMessage: "Beklenmedik hata, sayfayı yenileyiniz, sorun devam ederse Rapor7/24 ile irtibata geçiniz..",
         detailText: err?.message ? err.message : null
       })
 
@@ -537,16 +575,45 @@ export default function HeaderWbs({ setShow, nameMode, setNameMode, codeMode, se
 
     try {
 
-      const result = await RealmApp.currentUser.callFunction("collection_projeler__wbs", { functionName: "moveWbsRight", _projeId: selectedProje._id, _wbsId: selectedWbs._id });
-      if (result.wbs) {
+      const response = await fetch(`/api/projeler/movewbsright`, {
+        method: 'POST',
+        headers: {
+          email: appUser.email,
+          token: appUser.token,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ projeId: selectedProje._id, wbsId: selectedWbs._id })
+      })
+
+
+      const responseJson = await response.json()
+
+      if (responseJson.error) {
+        if (responseJson.error.includes("expired")) {
+          setAppUser()
+          localStorage.removeItem('appUser')
+          navigate('/')
+          window.location.reload()
+        }
+        throw new Error(responseJson.error);
+      }
+
+      if (responseJson.snackMessage) {
+        setOpenSnackBar(true)
+        setSnackBarMessage(responseJson.snackMessage)
+        return
+      }
+
+      if (responseJson.wbs) {
         setSelectedProje(proje => {
-          proje.wbs = result.wbs
+          proje.wbs = responseJson.wbs
           return proje
         })
       }
 
+
       // switch on-off gösterim durumunu güncellemesi için 
-      setSelectedWbs(result.wbs.find(item => item._id.toString() === selectedWbs._id.toString()))
+      setSelectedWbs(responseJson.wbs.find(item => item._id.toString() === selectedWbs._id.toString()))
 
       return
 
@@ -554,16 +621,9 @@ export default function HeaderWbs({ setShow, nameMode, setNameMode, codeMode, se
 
       console.log(err)
 
-      let dialogMessage = "Beklenmedik hata, sayfayı yenileyiniz, sorun devam ederse Rapor7/24 ile irtibata geçiniz.."
-      if (err.message.includes("__mesajBaslangic__") && err.message.includes("__mesajBitis__")) {
-        let mesajBaslangic = err.message.indexOf("__mesajBaslangic__") + "__mesajBaslangic__".length
-        let mesajBitis = err.message.indexOf("__mesajBitis__")
-        dialogMessage = err.message.slice(mesajBaslangic, mesajBitis)
-      }
-
       setDialogAlert({
         dialogIcon: "warning",
-        dialogMessage,
+        dialogMessage: "Beklenmedik hata, sayfayı yenileyiniz, sorun devam ederse Rapor7/24 ile irtibata geçiniz..",
         detailText: err?.message ? err.message : null
       })
 
@@ -573,36 +633,25 @@ export default function HeaderWbs({ setShow, nameMode, setNameMode, codeMode, se
 
 
 
-
-  const handleClose = (event, reason) => {
-    if (reason === 'clickaway') {
-      return;
+  const openWbsCreateForm = () => {
+    if (selectedWbs.openForPoz) {
+      setOpenSnackBar(true)
+      setSnackBarMessage("Poz eklemeye açılan başlıklara alt başlık eklenemez.")
+      return
     }
-    setOpenSnackBar(false);
-  };
+    if (selectedWbs?.code?.split(".").length === 8) {
+      setOpenSnackBar(true)
+      setSnackBarMessage("Daha fazla alt başlık ekleyemezsiniz")
+      return
+    }
+    setShow("FormWbsCreate")
+  }
 
 
 
 
   return (
     <Paper>
-
-      <Snackbar
-        open={openSnackBar}
-        autoHideDuration={6000}
-        onClose={handleClose}
-        anchorOrigin={{ vertical: "bottom", horizontal: "center" }}
-      >
-        <Alert
-          onClose={handleClose}
-          severity="error"
-          variant="filled"
-          sx={{ width: '100%' }}
-        >
-          {snackBarMessage}
-        </Alert>
-      </Snackbar>
-
 
       {dialogAlert &&
         <DialogAlert
@@ -735,7 +784,7 @@ export default function HeaderWbs({ setShow, nameMode, setNameMode, codeMode, se
               </Grid>
 
               <Grid item>
-                <IconButton onClick={() => setShow("FormWbsCreate")} disabled={selectedWbs?.code.split(".").length == 8 ? true : false} aria-label="addWbs">
+                <IconButton onClick={() => openWbsCreateForm()} disabled={selectedWbs?.code.split(".").length == 8 ? true : false} aria-label="addWbs">
                   <AddCircleOutlineIcon variant="contained" color={selectedWbs?.code.split(".").length == 8 ? " lightgray" : "success"} />
                 </IconButton>
               </Grid>

@@ -19,7 +19,7 @@ import DialogContentText from '@mui/material/DialogContentText';
 import { Typography } from '@mui/material';
 
 
-export default function P_FormWbsCreate({ setShow, selectedWbs, setSelectedWbs }) {
+export default function P_FormWbsCreate({ setShow, selectedWbs, setSelectedWbs, openSnackBar, setOpenSnackBar, snackBarMessage, setSnackBarMessage }) {
 
   const navigate = useNavigate()
   const { appUser, setAppUser } = useContext(StoreContext)
@@ -120,6 +120,12 @@ export default function P_FormWbsCreate({ setShow, selectedWbs, setSelectedWbs }
         setWbsNameError(responseJson.errorObject.wbsNameError)
         setWbsCodeNameError(responseJson.errorObject.wbsCodeNameError)
         console.log("backend den gelen hata ile durdu")
+        return
+      }
+
+      if (responseJson.snackMessage) {
+        setOpenSnackBar(true)
+        setSnackBarMessage(responseJson.snackMessage)
         return
       }
 

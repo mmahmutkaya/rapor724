@@ -10,15 +10,19 @@ import HeaderWbs from '../../components/HeaderWbs'
 
 import Grid from '@mui/material/Grid';
 import Box from '@mui/material/Box';
-import Alert from '@mui/material/Alert';
 import Stack from '@mui/material/Stack';
+import Snackbar from '@mui/material/Snackbar'
+import Alert from '@mui/material/Alert';
 
 
 export default function P_Wbs() {
 
   const navigate = useNavigate()
 
-  const { RealmApp, subHeaderHeight } = useContext(StoreContext)
+  const [openSnackBar, setOpenSnackBar] = useState(false)
+  const [snackBarMessage, setSnackBarMessage] = useState("")
+
+  const { subHeaderHeight } = useContext(StoreContext)
 
   const { selectedProje, setSelectedProje } = useContext(StoreContext)
   const { selectedWbs, setSelectedWbs } = useContext(StoreContext)
@@ -39,24 +43,59 @@ export default function P_Wbs() {
 
   let level
 
+
+  const handleClose = (event, reason) => {
+    if (reason === 'clickaway') {
+      return;
+    }
+    setOpenSnackBar(false);
+  };
+
+  //   const [openSnackBar, setOpenSnackBar] = useState(false)
+  // const [snackBarMessage, setSnackBarMessage] = useState("")
+
+
+
   return (
     <Grid container direction="column" spacing={0} sx={{ mt: subHeaderHeight }}>
+
+      <Snackbar
+        open={openSnackBar}
+        autoHideDuration={6000}
+        onClose={handleClose}
+        anchorOrigin={{ vertical: "bottom", horizontal: "center" }}
+      >
+        <Alert
+          onClose={handleClose}
+          severity="error"
+          variant="filled"
+          sx={{ width: '100%' }}
+        >
+          {snackBarMessage}
+        </Alert>
+      </Snackbar>
+
 
       <Grid item  >
         <HeaderWbs
           setShow={setShow}
           nameMode={nameMode} setNameMode={setNameMode}
           codeMode={codeMode} setCodeMode={setCodeMode}
+          openSnackBar={openSnackBar} setOpenSnackBar={setOpenSnackBar}
+          snackBarMessage={snackBarMessage} setSnackBarMessage={setSnackBarMessage}
         />
       </Grid>
 
-      {/* <Grid item >
-        <WbsMain />
-      </Grid> */}
 
       {show == "FormWbsCreate" &&
         <Grid item >
-          <FormWbsCreate setShow={setShow} selectedProje={selectedProje} setSelectedProje={setSelectedProje} selectedWbs={selectedWbs} setSelectedWbs={setSelectedWbs} />
+          <FormWbsCreate
+            setShow={setShow}
+            selectedProje={selectedProje} setSelectedProje={setSelectedProje}
+            selectedWbs={selectedWbs} setSelectedWbs={setSelectedWbs}
+            openSnackBar={openSnackBar} setOpenSnackBar={setOpenSnackBar}
+            snackBarMessage={snackBarMessage} setSnackBarMessage={setSnackBarMessage}
+          />
         </Grid>
       }
 
