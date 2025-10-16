@@ -93,15 +93,21 @@ export default function P_Wbs() {
             setShow={setShow}
             selectedProje={selectedProje} setSelectedProje={setSelectedProje}
             selectedWbs={selectedWbs} setSelectedWbs={setSelectedWbs}
-            openSnackBar={openSnackBar} setOpenSnackBar={setOpenSnackBar}
-            snackBarMessage={snackBarMessage} setSnackBarMessage={setSnackBarMessage}
+            setOpenSnackBar={setOpenSnackBar}
+            setSnackBarMessage={setSnackBarMessage}
           />
         </Grid>
       }
 
       {show == "FormWbsUpdate" &&
         <Grid item >
-          <FormWbsUpdate setShow={setShow} selectedProje={selectedProje} setSelectedProje={setSelectedProje} selectedWbs={selectedWbs} setSelectedWbs={setSelectedWbs} />
+          <FormWbsUpdate
+            setShow={setShow}
+            selectedProje={selectedProje} setSelectedProje={setSelectedProje}
+            selectedWbs={selectedWbs} setSelectedWbs={setSelectedWbs}
+            setOpenSnackBar={setOpenSnackBar}
+            setSnackBarMessage={setSnackBarMessage}
+          />
         </Grid>
       }
 

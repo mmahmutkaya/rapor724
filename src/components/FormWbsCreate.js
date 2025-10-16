@@ -19,7 +19,7 @@ import DialogContentText from '@mui/material/DialogContentText';
 import { Typography } from '@mui/material';
 
 
-export default function P_FormWbsCreate({ setShow, selectedWbs, setSelectedWbs, openSnackBar, setOpenSnackBar, snackBarMessage, setSnackBarMessage }) {
+export default function P_FormWbsCreate({ setShow, selectedWbs, setSelectedWbs, setOpenSnackBar, setSnackBarMessage }) {
 
   const navigate = useNavigate()
   const { appUser, setAppUser } = useContext(StoreContext)

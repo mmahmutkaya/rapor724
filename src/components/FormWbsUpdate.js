@@ -15,7 +15,7 @@ import DialogContent from '@mui/material/DialogContent';
 import DialogContentText from '@mui/material/DialogContentText';
 
 
-export default function P_FormWbsUpdate({ setShow, selectedWbs, setSelectedWbs }) {
+export default function P_FormWbsUpdate({ setShow, selectedWbs, setSelectedWbs, setOpenSnackBar, setSnackBarMessage }) {
 
   const navigate = useNavigate()
 
@@ -105,6 +105,13 @@ export default function P_FormWbsUpdate({ setShow, selectedWbs, setSelectedWbs }
         setWbsNameError(responseJson.errorObject.wbsNameError)
         setWbsCodeNameError(responseJson.errorObject.wbsCodeNameError)
         console.log("backend den gelen hata ile durdu")
+        return
+      }
+
+
+      if (responseJson.snackMessage) {
+        setOpenSnackBar(true)
+        setSnackBarMessage(responseJson.snackMessage)
         return
       }
 
