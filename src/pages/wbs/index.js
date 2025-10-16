@@ -178,7 +178,7 @@ export default function P_Wbs() {
                       })}
 
 
-                      <Box sx={{ position: "relative", backgroundColor: color(level).bg, borderLeft: "1px solid " + color("border") }}>
+                      <Box sx={{ position: "relative", backgroundColor: color(level)?.bg, borderLeft: "1px solid " + color("border") }}>
 
                         {theWbs.openForPoz &&
                           // wbs poza açıksa - var olan mevcut kutunun içinde beliren sarı kutu
@@ -332,7 +332,9 @@ function color(index) {
     case 6:
       return { bg: "#2929bc", co: "#e6e6e6" }
     case 7:
-      return { bg: "#267347", co: "#e6e6e6" }
+      return { bg: "#00853E", co: "#e6e6e6" }
+    case 8:
+      return { bg: "#4B5320", co: "#e6e6e6" }
     case "border":
       return "gray"
     case "font":

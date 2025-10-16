@@ -243,19 +243,19 @@ export default function HeaderWbs({ setShow, nameMode, setNameMode, codeMode, se
 
     try {
 
-      // // bu kontrol backend de ayrıca yapılıyor
-      // if (selectedProje?.wbs.find(item => item.code.indexOf(selectedWbs.code + ".") === 0)) {
-      //   setOpenSnackBar(true)
-      //   setSnackBarMessage("Alt başlığı bulunan başlıklar silinemez.")
-      //   return
-      // }
+      // bu kontrol backend de ayrıca yapılıyor
+      if (selectedProje?.wbs.find(item => item.code.indexOf(selectedWbs.code + ".") === 0)) {
+        setOpenSnackBar(true)
+        setSnackBarMessage("Alt başlığı bulunan başlıklar silinemez.")
+        return
+      }
 
-      // // bu kontrol backend de ayrıca yapılıyor
-      // if (selectedWbs.openForPoz) {
-      //   setOpenSnackBar(true)
-      //   setSnackBarMessage("Poz eklemeye açık başlıklar silinemez.")
-      //   return
-      // }
+      // bu kontrol backend de ayrıca yapılıyor
+      if (selectedWbs.openForPoz) {
+        setOpenSnackBar(true)
+        setSnackBarMessage("Poz eklemeye açık başlıklar silinemez.")
+        return
+      }
 
       // const result = await RealmApp.currentUser.callFunction("collection_projeler__wbs", { functionName: "deleteWbs", _projeId: selectedProje._id, _wbsId: selectedWbs._id });
 
@@ -634,7 +634,7 @@ export default function HeaderWbs({ setShow, nameMode, setNameMode, codeMode, se
 
 
   const openWbsCreateForm = () => {
-    if (selectedWbs.openForPoz) {
+    if (selectedWbs?.openForPoz) {
       setOpenSnackBar(true)
       setSnackBarMessage("Poz eklemeye açılan başlıklara alt başlık eklenemez.")
       return
