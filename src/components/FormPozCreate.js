@@ -5,6 +5,7 @@ import deleteLastSpace from '../functions/deleteLastSpace.js';
 import { DialogAlert } from './general/DialogAlert.js';
 import { useGetPozlar } from '../hooks/useMongo.js';
 import { useQueryClient } from '@tanstack/react-query'
+import { useNavigate } from "react-router-dom";
 import _ from 'lodash';
 
 
@@ -29,8 +30,8 @@ import ArrowForwardIcon from '@mui/icons-material/ArrowForward';
 export default function FormPozCreate({ setShow }) {
 
   const queryClient = useQueryClient()
-  // const RealmApp = useApp();
-  const { RealmApp, myTema } = useContext(StoreContext)
+  const navigate = useNavigate()
+  const { appUser, setAppUser, myTema } = useContext(StoreContext)
 
   const { selectedFirma, selectedProje } = useContext(StoreContext)
   const { data } = useGetPozlar()
@@ -63,7 +64,7 @@ export default function FormPozCreate({ setShow }) {
       const pozName = deleteLastSpace(formData.get('pozName'))
       const pozNo = deleteLastSpace(formData.get('pozNo'))
 
-      const newPoz = {
+      let newPoz = {
         _firmaId: selectedFirma._id,
         _projeId: selectedProje._id,
         _wbsId: wbsId,
@@ -168,31 +169,49 @@ export default function FormPozCreate({ setShow }) {
       // return
       // form verileri kontrolden geçti - db ye göndermeyi deniyoruz
 
-      const result = await RealmApp?.currentUser.callFunction("createPoz", ({ newPoz }))
+      const response = await fetch(`/api/pozlar`, {
+        method: 'POST',
+        headers: {
+          email: appUser.email,
+          token: appUser.token,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ newPoz })
+      })
 
-      // console.log("result", result)
+      const responseJson = await response.json()
+
+      if (responseJson.error) {
+        if (responseJson.error.includes("expired")) {
+          setAppUser()
+          localStorage.removeItem('appUser')
+          navigate('/')
+          window.location.reload()
+        }
+        throw new Error(responseJson.error);
+      }
 
       // form validation - backend
-      if (result.errorObject) {
-        setWbsIdError(result.errorObject.wbsIdError)
-        setPozNameError(result.errorObject.pozNameError)
-        setPozNoError(result.errorObject.pozNoError)
-        setPozBirimIdError(result.errorObject.pozBirimIdError)
-        setPozMetrajTipIdError(result.errorObject.pozMetrajTipIdError)
-        console.log("result.errorObject", result.errorObject)
+      if (responseJson.errorObject) {
+        setWbsIdError(responseJson.errorObject.wbsIdError)
+        setPozNameError(responseJson.errorObject.pozNameError)
+        setPozNoError(responseJson.errorObject.pozNoError)
+        setPozBirimIdError(responseJson.errorObject.pozBirimIdError)
+        setPozMetrajTipIdError(responseJson.errorObject.pozMetrajTipIdError)
+        console.log("responseJson.errorObject", responseJson.errorObject)
         console.log("alt satırda backend den gelen hata ile durdu")
         return
       }
-      // console.log("form validation - hata yok - backend")
 
-      if (!result.newPoz) {
-        console.log("result", result)
+
+      if (!responseJson.newPoz) {
+        console.log("responseJson", responseJson)
         throw new Error("Kayıt işlemi gerçekleşmedi, sayfayı yenileyiniz, sorun devam ederse Rapor7/24 ile irtibata geçiniz..")
       }
 
       // {pozlar} ile data içindeki object pozlar veriis alınıyor
       let data2 = _.cloneDeep(data)
-      data2.pozlar = [...data2.pozlar, { ...result.newPoz }]
+      data2.pozlar = [...data2.pozlar, { ...responseJson.newPoz }]
       queryClient.setQueryData(['pozlar'], data2)
 
       setShow("Main")

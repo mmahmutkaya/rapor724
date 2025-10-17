@@ -101,7 +101,7 @@ export default function FormSifreYenileme() {
           isError = true
         }
         if (!isim.length) {
-          setIsimError("İsim giriniz")
+          setIsimError("Boş bırakılamaz")
           isError = true
         }
 
@@ -113,7 +113,7 @@ export default function FormSifreYenileme() {
           isError = true
         }
         if (!soyisim.length) {
-          setSoyisimError("Soyisim giriniz")
+          setSoyisimError("Boş bırakılamaz")
           isError = true
         }
 
@@ -252,7 +252,8 @@ export default function FormSifreYenileme() {
                 required
                 fullWidth
                 id="isim"
-                label={isimError ? isimError : "İsim"}
+                label={"İsim"}
+                helperText={isimError ? isimError : " "}
                 name="isim"
                 autoComplete="off"
                 autoFocus
@@ -272,7 +273,8 @@ export default function FormSifreYenileme() {
                 required
                 fullWidth
                 name="soyisim"
-                label={soyisimError ? soyisimError : "Soyisim"}
+                label={"Soyisim"}
+                helperText={soyisimError ? soyisimError : " "}
                 type="text"
                 id="soyisim"
                 disabled={pageSituation !== 1}

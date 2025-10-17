@@ -124,24 +124,67 @@ export const useGetProjeler_byFirma = () => {
 
 
 
+// MONGO FONKSİYON - getFirmalarNames
+export const useGetPozlar = () => {
 
-
-export const useGetPozlar = (onSuccess, onError) => {
-
-  // const RealmApp = useApp();
-  const { RealmApp, selectedProje } = useContext(StoreContext)
+  const navigate = useNavigate()
+  const { appUser, setAppUser, selectedProje } = useContext(StoreContext)
 
   return useQuery({
     queryKey: ['pozlar'],
-    queryFn: () => RealmApp?.currentUser.callFunction("getPozlar", ({ _projeId: selectedProje?._id })),
-    enabled: !!RealmApp && !!selectedProje,
-    onSuccess,
-    onError,
+    queryFn: async () => {
+      const response = await fetch('api/pozlar', {
+        method: 'GET',
+        headers: {
+          email: appUser.email,
+          token: appUser.token,
+          projeid: selectedProje._id,
+          'Content-Type': 'application/json'
+        }
+      })
+
+      const responseJson = await response.json()
+
+      if (responseJson.error) {
+        if (responseJson.error.includes("expired")) {
+          setAppUser()
+          localStorage.removeItem('appUser')
+          navigate('/')
+          window.location.reload()
+        }
+        throw new Error(responseJson.error);
+      }
+
+      return responseJson
+
+    },
+    enabled: !!appUser,
     refetchOnMount: true,
     refetchOnWindowFocus: false
   })
 
 }
+
+
+
+
+
+// export const useGetPozlar = (onSuccess, onError) => {
+
+//   // const RealmApp = useApp();
+//   const { RealmApp, selectedProje } = useContext(StoreContext)
+
+//   return useQuery({
+//     queryKey: ['pozlar'],
+//     queryFn: () => RealmApp?.currentUser.callFunction("getPozlar", ({ _projeId: selectedProje?._id })),
+//     enabled: !!RealmApp && !!selectedProje,
+//     onSuccess,
+//     onError,
+//     refetchOnMount: true,
+//     refetchOnWindowFocus: false
+//   })
+
+// }
 
 
 

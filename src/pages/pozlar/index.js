@@ -21,9 +21,9 @@ import Grid from '@mui/material/Grid';
 import Input from '@mui/material/Input';
 import Alert from '@mui/material/Alert';
 import Stack from '@mui/material/Stack';
-import { Button, TextField, Typography } from '@mui/material';
+import LinearProgress from '@mui/material/LinearProgress';
 import Box from '@mui/material/Box';
-import InfoIcon from '@mui/icons-material/Info';
+
 
 
 
@@ -33,7 +33,7 @@ export default function P_Pozlar() {
   const queryClient = useQueryClient()
   const [dialogAlert, setDialogAlert] = useState()
 
-  const { data } = useGetPozlar()
+  const { data, error, isLoading } = useGetPozlar()
   const { RealmApp, myTema } = useContext(StoreContext)
   const { selectedProje } = useContext(StoreContext)
 
@@ -53,9 +53,21 @@ export default function P_Pozlar() {
     !selectedProje && navigate('/projeler')
     setPozlar_state(_.cloneDeep(data?.pozlar))
     setPozlar_backUp(_.cloneDeep(data?.pozlar))
-    // console.log("pozlar", data?.pozlar)
-    // setShow("Main")
   }, [data])
+
+
+  useEffect(() => {
+    if (error) {
+      console.log("error", error)
+      setDialogAlert({
+        dialogIcon: "warning",
+        dialogMessage: "Beklenmedik hata, Rapor7/24 ile irtibata geçiniz..",
+        detailText: error?.message ? error.message : null
+      })
+    }
+  }, [error]);
+
+
 
 
   const [basliklar, setBasliklar] = useState(RealmApp?.currentUser.customData.customSettings.pages.pozlar.basliklar)
@@ -82,9 +94,9 @@ export default function P_Pozlar() {
   let paraBirimiAdet = paraBirimleri?.filter(x => x?.show).length
 
   const columns =
-    `max-content 
-  minmax(min-content, 35rem) 
-  max-content
+    `min-content
+  minmax(min-content, 40rem) 
+  min-content
   ${pozAciklamaShow ? " 0.4rem minmax(min-content, 10rem)" : ""}
   ${pozVersiyonShow ? " 0.4rem max-content" : ""}
   ${paraBirimiAdet === 1 ? " 0.4rem max-content" : paraBirimiAdet > 1 ? " 0.4rem repeat(" + paraBirimiAdet + ", max-content)" : ""}
@@ -266,8 +278,15 @@ export default function P_Pozlar() {
       {show == "ShowPozParaBirimleri" && <ShowPozParaBirimleri setShow={setShow} paraBirimleri={paraBirimleri} setParaBirimleri={setParaBirimleri} paraEdit={paraEdit} setParaEdit={setParaEdit} />}
 
 
+
+      {isLoading &&
+        <Box sx={{ m: "1rem", color: 'gray' }}>
+          <LinearProgress color='inherit' />
+        </Box>
+      }
+
       {/* EĞER POZ BAŞLIĞI YOKSA */}
-      {show == "Main" && !selectedProje?.wbs?.find(x => x.openForPoz === true) &&
+      {!isLoading && show == "Main" && !selectedProje?.wbs?.find(x => x.openForPoz === true) &&
         <Stack sx={{ width: '100%', m: "0rem", p: "1rem" }} spacing={2}>
           <Alert severity="info">
             Öncelikle poz oluşturmaya açık poz başlığı oluşturmalısınız.
@@ -277,7 +296,7 @@ export default function P_Pozlar() {
 
 
       {/* EĞER POZ YOKSA */}
-      {show == "Main" && selectedProje?.wbs?.find(x => x.openForPoz === true) && !pozlar_state?.length > 0 &&
+      {!isLoading && show == "Main" && selectedProje?.wbs?.find(x => x.openForPoz === true) && !pozlar_state?.length > 0 &&
         <Stack sx={{ width: '100%', m: "0rem", p: "1rem" }} spacing={2}>
           <Alert severity="info">
             Menüler yardımı ile poz oluşturmaya başlayabilirsiniz.
@@ -297,7 +316,7 @@ export default function P_Pozlar() {
           <React.Fragment >
 
             {/* BAŞLIK - POZ NO */}
-            <Box sx={{ ...enUstBaslik_css }}>
+            <Box sx={{ ...enUstBaslik_css, textWrap: "nowrap" }}>
               Poz No
             </Box>
 
@@ -308,7 +327,7 @@ export default function P_Pozlar() {
 
 
             {/* BAŞLIK - POZ BİRİM  */}
-            <Box sx={{ ...enUstBaslik_css }}>
+            <Box sx={{ ...enUstBaslik_css, textWrap: "nowrap" }}>
               Birim
             </Box>
 
@@ -396,26 +415,25 @@ export default function P_Pozlar() {
                 }
 
                 {/* wbsName hazır aslında ama aralarındaki ok işaretini kırmızıya boyamak için */}
-                <Box sx={{ gridColumn: "1/4", ...wbsBaslik_css, display: "grid", gridAutoFlow: "column" }} >
+                <Box sx={{ gridColumn: "1/4", ...wbsBaslik_css, display: "grid", gridAutoFlow: "column", justifyContent: "start", columnGap: "0.2rem", textWrap: "nowrap", pr: "1rem" }} >
 
-                  {wbsName.split(">").map((item, index) => (
-
-                    <Box key={index} sx={{ display: "grid", gridAutoFlow: "column" }} >
-                      {item}
+                  {/* {wbsName.split(">").map((item, index) => (
+                    <React.Fragment key={index}>
+                      <Box sx={{}}>{item}</Box>
                       {index + 1 !== wbsName.split(">").length &&
-                        <Box sx={{ color: myTema.renkler.baslik2_ayrac, mx: "0.2rem" }} >{">"}</Box>
+                        <Box sx={{ color: myTema.renkler.baslik2_ayrac }} >{">"}</Box>
                       }
-                    </Box>
+                    </React.Fragment>                    
+                  ))} */}
 
-                  ))}
-
+                  <Box>deneme</Box>
                   {/* <Typography>{wbsName}</Typography> */}
                 </Box>
 
 
 
 
-                {/* BAŞLIK - POZ BİRİM  */}
+                {/* BAŞLIK - AÇIKLAMA  */}
                 {pozAciklamaShow &&
                   <>
                     <Box></Box>
@@ -491,7 +509,7 @@ export default function P_Pozlar() {
 
                             if (!paraEdit) {
                               return (
-                                <Box key={index} sx={{ ...pozNo_css, justifyContent:"end",minWidth: "6rem" }}>
+                                <Box key={index} sx={{ ...pozNo_css, justifyContent: "end", minWidth: "6rem" }}>
                                   {ikiHane(onePoz.birimFiyatlar?.find(x => x.id === oneBirim.id)?.fiyat)}
                                 </Box>
                               )

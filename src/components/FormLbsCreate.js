@@ -150,16 +150,9 @@ export default function P_FormLbsCreate({ setShow, selectedLbs, setSelectedLbs, 
 
       console.log(err)
 
-      let dialogMessage = "Beklenmedik hata, sayfayı yenileyiniz, sorun devam ederse Rapor7/24 ile irtibata geçiniz.."
-      if (err.message.includes("__mesajBaslangic__") && err.message.includes("__mesajBitis__")) {
-        let mesajBaslangic = err.message.indexOf("__mesajBaslangic__") + "__mesajBaslangic__".length
-        let mesajBitis = err.message.indexOf("__mesajBitis__")
-        dialogMessage = err.message.slice(mesajBaslangic, mesajBitis)
-      }
-
       setDialogAlert({
         dialogIcon: "warning",
-        dialogMessage,
+        dialogMessage:"Beklenmedik hata, sayfayı yenileyiniz, sorun devam ederse Rapor7/24 ile irtibata geçiniz..",
         detailText: err?.message ? err.message : null
       })
 
