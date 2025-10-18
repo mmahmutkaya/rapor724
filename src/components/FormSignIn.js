@@ -71,6 +71,10 @@ export default function SignIn() {
       const password = data.get('password')
 
 
+      let emailError
+      let passwordError
+
+
       //  Email frontend kontrolü
       const validateEmail = (email) => {
         return String(email)
@@ -80,13 +84,15 @@ export default function SignIn() {
           );
       };
 
-      if (!validateEmail(email)) {
+      if (!validateEmail(email) && !emailError) {
         setEmailError("Email adresinizi kontrol ediniz")
+        emailError = true
         isError = true
       }
 
-      if (!email.length) {
-        setEmailError("Email giriniz")
+      if (!email.length && !emailError) {
+        setEmailError("Boş bırakılamaz")
+        emailError = true
         isError = true
       }
 
@@ -94,13 +100,15 @@ export default function SignIn() {
 
 
       //  Password frontend kontrolü
-      if (password.length < 8) {
-        setPasswordError("En az 8 karakter kullanmalısınız") // biz kabul etsek mongodb oluşturmuyor kullanıcıyı 6 haneden az şifre ile
+      if (password.length < 8 && !passwordError) {
+        setPasswordError("En az 8 karakter kullanmalısınız")
+        passwordError = true
         isError = true
       }
 
-      if (!password.length) {
-        setPasswordError("Şifre giriniz")
+      if (!password.length && !passwordError) {
+        setPasswordError("Boş bırakılamaz")
+        passwordError = true
         isError = true
       }
 
@@ -122,64 +130,48 @@ export default function SignIn() {
       //   return
       // }
 
-      const response = await fetch(`/api/user/login` , {
+      const response = await fetch(`/api/user/login`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email, password })
       })
 
+      const responseJson = await response.json()
 
-      if (!response.ok) {
-        const responseJson = await response.json()
+      if (responseJson.error) {
         throw new Error(responseJson.error);
       }
 
-      if (response.ok) {
 
-        const responseJson = await response.json()
-
-        // form validation - backend
-        if (responseJson.errorObject) {
-          let { errorObject } = responseJson
-          setEmailError(errorObject.emailError)
-          setPasswordError(errorObject.passwordError)
-          return
-        }
-
-        if (responseJson.user) {
-          // console.log("user", responseJson.user)
-
-          // save the user to local storage
-          localStorage.setItem('appUser', JSON.stringify(responseJson.user))
-
-          // save the user to react context
-          setAppUser(responseJson.user)
-          // navigate(0)
-        }
+      // form validation - backend
+      if (responseJson.errorObject) {
+        let { errorObject } = responseJson
+        setEmailError(errorObject.emailError)
+        setPasswordError(errorObject.passwordError)
+        return
       }
 
 
-    } catch (error) {
 
-      console.log(error)
+      if (responseJson.user) {
 
-      let dialogIcon = "warning"
-      let dialogMessage = "Beklenmedik hata, sayfayı yenileyiniz, sorun devam ederse Rapor7/24 ile irtibata geçiniz.."
-      let onCloseAction = () => {
-        setDialogAlert()
+        // save the user to local storage
+        localStorage.setItem('appUser', JSON.stringify(responseJson.user))
+
+        // save the user to react context
+        setAppUser(responseJson.user)
+        // navigate(0)
       }
 
-      if (error.message.includes("__mesajBaslangic__") && error.message.includes("__mesajBitis__")) {
-        let mesajBaslangic = error.message.indexOf("__mesajBaslangic__") + "__mesajBaslangic__".length
-        let mesajBitis = error.message.indexOf("__mesajBitis__")
-        dialogMessage = error.message.slice(mesajBaslangic, mesajBitis)
-        dialogIcon = "info"
-      }
+
+    } catch (err) {
+
+      console.log(err)
+
       setDialogAlert({
-        dialogIcon,
-        dialogMessage,
-        detailText: error?.message ? error.message : null,
-        onCloseAction
+        dialogIcon: "warning",
+        dialogMessage: "Beklenmedik hata, sayfayı yenileyiniz, sorun devam ederse Rapor7/24 ile irtibata geçiniz..",
+        detailText: err?.message ? err.message : null
       })
 
     }
@@ -195,7 +187,7 @@ export default function SignIn() {
           dialogIcon={dialogAlert.dialogIcon}
           dialogMessage={dialogAlert.dialogMessage}
           detailText={dialogAlert.detailText}
-          onCloseAction={dialogAlert.onCloseAction}
+          onCloseAction={() => setDialogAlert()}
         />
       }
 

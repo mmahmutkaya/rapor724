@@ -51,6 +51,7 @@ export default function FormSignUp() {
 
   const [emailError, setEmailError] = useState()
   const [passwordError, setPasswordError] = useState()
+  const [passwordError2, setPasswordError2] = useState()
   const [dialogAlert, setDialogAlert] = useState()
 
 
@@ -68,6 +69,11 @@ export default function FormSignUp() {
       const password2 = data.get('password2')
 
 
+      let emailError
+      let passwordError
+      let passwordError2
+
+
       //  Email frontend kontrolü
       const validateEmail = (email) => {
         return String(email)
@@ -77,13 +83,16 @@ export default function FormSignUp() {
           );
       };
 
-      if (!validateEmail(email)) {
+
+      if (!validateEmail(email) && !emailError) {
         setEmailError("Email adresinizi kontrol ediniz")
+        emailError = true
         isError = true
       }
 
-      if (!email.length) {
-        setEmailError("Email giriniz")
+      if (!email.length && !emailError) {
+        setEmailError("Boş bırakılamaz")
+        emailError = true
         isError = true
       }
 
@@ -91,21 +100,30 @@ export default function FormSignUp() {
 
 
       //  Password frontend kontrolü
-      if (password.length < 8) {
+      if (password.length < 8 && !passwordError) {
         setPasswordError("En az 8 karakter kullanmalısınız")
+        passwordError = true
         isError = true
       }
 
-      if (!password.length) {
-        setPasswordError("Şifre giriniz")
+      if (!password.length && !passwordError) {
+        setPasswordError("Boş bırakılamaz")
+        passwordError = true
         isError = true
       }
 
+
+      if (!password2.length && !passwordError2) {
+        setPasswordError2("Boş bırakılamaz")
+        passwordError2 = true
+        isError = true
+      }
 
 
       //  Password2 frontend kontrolü
-      if (password !== password2) {
-        setPasswordError("Şifreler uyuşmuyor")
+      if (password !== password2 && !passwordError2) {
+        setPasswordError2("Şifreler uyuşmuyor")
+        passwordError2 = true
         isError = true
       }
 
@@ -136,59 +154,43 @@ export default function FormSignUp() {
       })
 
 
-      if (!response.ok) {
-        const responseJson = await response.json()
+      const responseJson = await response.json()
+
+      if (responseJson.error) {
         throw new Error(responseJson.error);
       }
 
-      if (response.ok) {
 
-        const responseJson = await response.json()
-
-        // console.log("responseJson",responseJson)
-
-        // form validation - backend
-        if (responseJson.errorObject) {
-          let { errorObject } = responseJson
-          setEmailError(errorObject.emailError)
-          setPasswordError(errorObject.passwordError)
-          return
-        }
-
-        if (responseJson.user) {
-          // save the user to local storage
-          localStorage.setItem('appUser', JSON.stringify(responseJson.user))
-
-          // save the user to react context
-          setAppUser(responseJson.user)
-          // navigate(0)
-          return
-        }
-
+      // form validation - backend
+      if (responseJson.errorObject) {
+        let { errorObject } = responseJson
+        setEmailError(errorObject.emailError)
+        setPasswordError(errorObject.passwordError)
+        setPasswordError2(errorObject.passwordError2)
+        return
       }
 
 
-    } catch (error) {
 
-      console.log(error)
+      if (responseJson.user) {
 
-      let dialogIcon = "warning"
-      let dialogMessage = "Beklenmedik hata, sayfayı yenileyiniz, sorun devam ederse Rapor7/24 ile irtibata geçiniz.."
-      let onCloseAction = () => {
-        setDialogAlert()
+        // save the user to local storage
+        localStorage.setItem('appUser', JSON.stringify(responseJson.user))
+
+        // save the user to react context
+        setAppUser(responseJson.user)
+        // navigate(0)
       }
 
-      if (error.message.includes("__mesajBaslangic__") && error.message.includes("__mesajBitis__")) {
-        let mesajBaslangic = error.message.indexOf("__mesajBaslangic__") + "__mesajBaslangic__".length
-        let mesajBitis = error.message.indexOf("__mesajBitis__")
-        dialogMessage = error.message.slice(mesajBaslangic, mesajBitis)
-        dialogIcon = "info"
-      }
+
+    } catch (err) {
+
+      console.log(err)
+
       setDialogAlert({
-        dialogIcon,
-        dialogMessage,
-        detailText: error?.message ? error.message : null,
-        onCloseAction
+        dialogIcon: "warning",
+        dialogMessage: "Beklenmedik hata, sayfayı yenileyiniz, sorun devam ederse Rapor7/24 ile irtibata geçiniz..",
+        detailText: err?.message ? err.message : null
       })
 
     }
@@ -204,7 +206,7 @@ export default function FormSignUp() {
           dialogIcon={dialogAlert.dialogIcon}
           dialogMessage={dialogAlert.dialogMessage}
           detailText={dialogAlert.detailText}
-          onCloseAction={dialogAlert.onCloseAction}
+          onCloseAction={() => setDialogAlert()}
         />
       }
 
@@ -252,7 +254,7 @@ export default function FormSignUp() {
               fullWidth
               id="email"
               label={"Email"}
-              helperText={emailError ? emailError : null}
+              helperText={emailError ? emailError : " "}
               name="email"
               autoComplete="email"
               autoFocus
@@ -270,7 +272,7 @@ export default function FormSignUp() {
               fullWidth
               name="password"
               label={"Şifre"}
-              helperText={passwordError ? passwordError : null}
+              helperText={passwordError ? passwordError : " "}
               type="password"
               id="password"
               // value={password}
@@ -282,17 +284,17 @@ export default function FormSignUp() {
 
             <TextField
               // onClick={() => setPasswordError2()}
-              error={passwordError ? true : false}
+              error={passwordError2 ? true : false}
               margin="normal"
               required
               fullWidth
               name="password2"
               label={"Şifre Tekrarı"}
-              helperText={passwordError ? passwordError : null}
+              helperText={passwordError2 ? passwordError2 : " "}
               type="password"
               id="password2"
               // value={password2}
-              onKeyDown={() => setPasswordError()}
+              onKeyDown={() => setPasswordError2()}
             // onChange={(e) => setPassword2(e.target.value)}
             // autoComplete="current-password"
             />
