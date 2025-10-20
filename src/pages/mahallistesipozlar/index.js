@@ -20,6 +20,7 @@ import Alert from '@mui/material/Alert';
 import Stack from '@mui/material/Stack';
 import { Button, TextField, Typography } from '@mui/material';
 import Box from '@mui/material/Box';
+import LinearProgress from '@mui/material/LinearProgress';
 
 
 
@@ -28,7 +29,7 @@ export default function P_MahalListesiPozlar() {
   const navigate = useNavigate()
   const queryClient = useQueryClient()
 
-  const { data: pozlar } = useGetMahalListesi_pozlar()
+  const { data: dataPozlar, error, isLoading } = useGetMahalListesi_pozlar()
 
   const { RealmApp, myTema } = useContext(StoreContext)
   const { selectedProje } = useContext(StoreContext)
@@ -44,6 +45,17 @@ export default function P_MahalListesiPozlar() {
     !selectedProje && navigate('/projeler')
   }, [])
 
+
+  useEffect(() => {
+    if (error) {
+      console.log("error", error)
+      setDialogAlert({
+        dialogIcon: "warning",
+        dialogMessage: "Beklenmedik hata, Rapor7/24 ile irtibata geçiniz..",
+        detailText: error?.message ? error.message : null
+      })
+    }
+  }, [error]);
 
 
   const ikiHane = (value) => {
@@ -157,8 +169,17 @@ export default function P_MahalListesiPozlar() {
       </Grid>
 
 
+
+      {isLoading &&
+        <Box sx={{ mt: "4.5rem", ml:"1rem", color: 'gray' }}>
+          <LinearProgress color='inherit' />
+        </Box>
+      }
+
+
+
       {/* EĞER POZ BAŞLIĞI YOKSA */}
-      {show == "Main" && false &&
+      {!isLoading && show == "Main" && false &&
         <Stack sx={{ width: '100%', mt: "3.5rem", p: "1rem" }} spacing={2}>
           <Alert severity="info">
             Öncelikle poz oluşturmaya açık poz başlığı oluşturmalısınız.
@@ -170,7 +191,7 @@ export default function P_MahalListesiPozlar() {
 
       {/* ANA SAYFA - POZLAR VARSA */}
 
-      {show == "Main" && pozlar?.length > 0 &&
+      {!isLoading && show == "Main" && dataPozlar?.pozlar?.length > 0 &&
 
         <Box sx={{ m: "1rem", mt: "4.5rem", display: "grid", gridTemplateColumns: columns }}>
 
@@ -223,7 +244,7 @@ export default function P_MahalListesiPozlar() {
 
 
                 {/* WBS'İN POZLARI */}
-                {pozlar?.filter(x => x._wbsId.toString() === oneWbs._id.toString()).map((onePoz, index) => {
+                {dataPozlar?.pozlar?.filter(x => x._wbsId.toString() === oneWbs._id.toString()).map((onePoz, index) => {
 
                   // let isSelected = false
 

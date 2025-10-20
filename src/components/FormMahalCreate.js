@@ -1,11 +1,13 @@
 
 import { useState, useContext } from 'react';
 import { useQueryClient } from '@tanstack/react-query'
+import { useNavigate } from "react-router-dom";
+import _ from 'lodash';
+
 
 import { StoreContext } from './store.js'
 import deleteLastSpace from '../functions/deleteLastSpace.js';
 
-import { DialogAlert } from './general/DialogAlert.js';
 import { useGetMahaller } from '../hooks/useMongo.js';
 
 
@@ -28,16 +30,15 @@ import ArrowForwardIcon from '@mui/icons-material/ArrowForward';
 
 
 
-export default function FormMahalCreate({ setShow }) {
+export default function FormMahalCreate({ setShow, setDialogAlert }) {
 
   const queryClient = useQueryClient()
-  // const RealmApp = useApp();
-  const { RealmApp, myTema } = useContext(StoreContext)
+  const navigate = useNavigate()
+
+  const { appUser, setAppUser, myTema } = useContext(StoreContext)
 
   const { selectedFirma, selectedProje } = useContext(StoreContext)
-  const { data: mahaller } = useGetMahaller()
-
-  const [dialogAlert, setDialogAlert] = useState()
+  const { data: dataMahaller } = useGetMahaller()
 
   const [lbsIdError, setLbsIdError] = useState()
   const [mahalNameError, setMahalNameError] = useState()
@@ -54,9 +55,9 @@ export default function FormMahalCreate({ setShow }) {
     try {
 
       // formdan gelen text verilerini alma - (çoktan seçmeliler seçildiği anda useState() kısmında güncelleniyor)
-      const data = new FormData(event.currentTarget);
-      const mahalName = deleteLastSpace(data.get('mahalName'))
-      const mahalNo = deleteLastSpace(data.get('mahalNo'))
+      const formData = new FormData(event.currentTarget);
+      const mahalName = deleteLastSpace(formData.get('mahalName'))
+      const mahalNo = deleteLastSpace(formData.get('mahalNo'))
 
       const newMahal = {
         _firmaId: selectedFirma._id,
@@ -107,7 +108,7 @@ export default function FormMahalCreate({ setShow }) {
         }
       }
 
-      if (mahaller?.find(x => x.mahalName === newMahal.mahalName) && !mahalNameError) {
+      if (dataMahaller?.mahaller?.find(x => x.mahalName === newMahal.mahalName) && !mahalNameError) {
         setMahalNameError(`Bu mahal ismi kullanılmış`)
         mahalNameError = true
         isFormError = true
@@ -120,7 +121,7 @@ export default function FormMahalCreate({ setShow }) {
         isFormError = true
       }
 
-      let mahalFinded = mahaller?.find(x => x.mahalNo === newMahal.mahalNo)
+      let mahalFinded = dataMahaller?.mahaller?.find(x => x.mahalNo === newMahal.mahalNo)
       if (mahalFinded && !mahalNoError) {
         setMahalNoError(`Bu mahal numarası kullanılmış`)
         mahalNoError = true
@@ -139,29 +140,48 @@ export default function FormMahalCreate({ setShow }) {
       // return
       // form verileri kontrolden geçti - db ye göndermeyi deniyoruz
 
-      const result = await RealmApp?.currentUser.callFunction("createMahal", ({ newMahal }))
+      const response = await fetch(`/api/mahaller`, {
+        method: 'POST',
+        headers: {
+          email: appUser.email,
+          token: appUser.token,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ newMahal })
+      })
 
-      // console.log("result", result)
+      const responseJson = await response.json()
+
+      if (responseJson.error) {
+        if (responseJson.error.includes("expired")) {
+          setAppUser()
+          localStorage.removeItem('appUser')
+          navigate('/')
+          window.location.reload()
+        }
+        throw new Error(responseJson.error);
+      }
 
       // form validation - backend
-      if (result.errorObject) {
-        setLbsIdError(result.errorObject.lbsIdError)
-        setMahalNameError(result.errorObject.mahalNameError)
-        setMahalNoError(result.errorObject.mahalNoError)
-        console.log("result.errorObject", result.errorObject)
+      if (responseJson.errorObject) {
+        setLbsIdError(responseJson.errorObject.lbsIdError)
+        setMahalNameError(responseJson.errorObject.mahalNameError)
+        setMahalNoError(responseJson.errorObject.mahalNoError)
+        console.log("responseJson.errorObject", responseJson.errorObject)
         console.log("alt satırda backend den gelen hata ile durdu")
         return
       }
-      // console.log("form validation - hata yok - backend")
 
-      if (!result.newMahal) {
-        console.log("result", result)
+
+      if (!responseJson.newMahal) {
+        console.log("result", responseJson)
         throw new Error("Kayıt işlemi gerçekleşmedi, sayfayı yenileyiniz, sorun devam ederse Rapor7/24 ile irtibata geçiniz..")
       }
 
-      queryClient.setQueryData(['mahaller'], (mahaller) => {
-        return [...mahaller, {...result.newMahal}]
-      })
+
+      let dataMahaller2 = _.cloneDeep(dataMahaller)
+      dataMahaller2.mahaller = [...dataMahaller2.mahaller, { ...responseJson.newMahal }]
+      queryClient.setQueryData(['dataMahaller'], dataMahaller2)
 
       setShow("Main")
 
@@ -198,16 +218,6 @@ export default function FormMahalCreate({ setShow }) {
 
   return (
     <div>
-
-      {dialogAlert &&
-        <DialogAlert
-          dialogIcon={dialogAlert.dialogIcon}
-          dialogMessage={dialogAlert.dialogMessage}
-          detailText={dialogAlert.detailText}
-          onCloseAction={() => setDialogAlert()}
-        />
-      }
-
 
       <Dialog
         PaperProps={{ sx: { width: "80%", position: "fixed", top: "10rem" } }}

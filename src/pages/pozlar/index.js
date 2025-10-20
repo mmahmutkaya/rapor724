@@ -33,7 +33,7 @@ export default function P_Pozlar() {
   const queryClient = useQueryClient()
   const [dialogAlert, setDialogAlert] = useState()
 
-  const { data, error, isLoading } = useGetPozlar()
+  const { data: dataPozlar, error, isLoading } = useGetPozlar()
   const { RealmApp, myTema } = useContext(StoreContext)
   const { selectedProje } = useContext(StoreContext)
 
@@ -51,9 +51,9 @@ export default function P_Pozlar() {
 
   useEffect(() => {
     !selectedProje && navigate('/projeler')
-    setPozlar_state(_.cloneDeep(data?.pozlar))
-    setPozlar_backUp(_.cloneDeep(data?.pozlar))
-  }, [data])
+    setPozlar_state(_.cloneDeep(dataPozlar?.pozlar))
+    setPozlar_backUp(_.cloneDeep(dataPozlar?.pozlar))
+  }, [dataPozlar])
 
 
   useEffect(() => {
@@ -93,14 +93,14 @@ export default function P_Pozlar() {
 
   let paraBirimiAdet = paraBirimleri?.filter(x => x?.show).length
 
-  const columns =
-    `min-content
-  minmax(min-content, 40rem) 
-  min-content
-  ${pozAciklamaShow ? " 0.4rem minmax(min-content, 10rem)" : ""}
-  ${pozVersiyonShow ? " 0.4rem max-content" : ""}
-  ${paraBirimiAdet === 1 ? " 0.4rem max-content" : paraBirimiAdet > 1 ? " 0.4rem repeat(" + paraBirimiAdet + ", max-content)" : ""}
-    `
+  const columns = `
+    min-content
+    minmax(min-content, 45rem) 
+    min-content
+    ${pozAciklamaShow ? " 0.4rem minmax(min-content, 10rem)" : ""}
+    ${pozVersiyonShow ? " 0.4rem max-content" : ""}
+    ${paraBirimiAdet === 1 ? " 0.4rem max-content" : paraBirimiAdet > 1 ? " 0.4rem repeat(" + paraBirimiAdet + ", max-content)" : ""}
+  `
 
 
 
@@ -180,12 +180,7 @@ export default function P_Pozlar() {
           setParaEdit()
           queryClient.invalidateQueries(['pozlar'])
         }
-        if (err.message.includes("__mesajBaslangic__") && err.message.includes("__mesajBitis__")) {
-          let mesajBaslangic = err.message.indexOf("__mesajBaslangic__") + "__mesajBaslangic__".length
-          let mesajBitis = err.message.indexOf("__mesajBitis__")
-          dialogMessage = err.message.slice(mesajBaslangic, mesajBitis)
-          dialogIcon = "info"
-        }
+
         setDialogAlert({
           dialogIcon,
           dialogMessage,
@@ -307,7 +302,7 @@ export default function P_Pozlar() {
 
       {/* ANA SAYFA - POZLAR VARSA */}
 
-      {show == "Main" && selectedProje?.wbs?.find(x => x.openForPoz === true) && pozlar_state?.length > 0 &&
+      {!isLoading && show == "Main" && selectedProje?.wbs?.find(x => x.openForPoz === true) && pozlar_state?.length > 0 &&
         <Box sx={{ m: "1rem", display: "grid", gridTemplateColumns: columns }}>
 
 
@@ -417,16 +412,16 @@ export default function P_Pozlar() {
                 {/* wbsName hazır aslında ama aralarındaki ok işaretini kırmızıya boyamak için */}
                 <Box sx={{ gridColumn: "1/4", ...wbsBaslik_css, display: "grid", gridAutoFlow: "column", justifyContent: "start", columnGap: "0.2rem", textWrap: "nowrap", pr: "1rem" }} >
 
-                  {/* {wbsName.split(">").map((item, index) => (
+                  {wbsName.split(">").map((item, index) => (
                     <React.Fragment key={index}>
                       <Box sx={{}}>{item}</Box>
                       {index + 1 !== wbsName.split(">").length &&
                         <Box sx={{ color: myTema.renkler.baslik2_ayrac }} >{">"}</Box>
                       }
-                    </React.Fragment>                    
-                  ))} */}
+                    </React.Fragment>
+                  ))}
 
-                  <Box>deneme</Box>
+                  {/* <Box>deneme</Box> */}
                   {/* <Typography>{wbsName}</Typography> */}
                 </Box>
 

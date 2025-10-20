@@ -3,6 +3,7 @@ import React from 'react'
 import { useState, useContext, useEffect } from 'react';
 import { useQueryClient } from '@tanstack/react-query'
 import { useNavigate } from "react-router-dom";
+import { DialogAlert } from '../../components/general/DialogAlert.js';
 
 
 import { StoreContext } from '../../components/store'
@@ -24,25 +25,24 @@ import Box from '@mui/material/Box';
 import InfoIcon from '@mui/icons-material/Info';
 import Tooltip from '@mui/material/Tooltip';
 import { Check } from '@mui/icons-material';
-
+import LinearProgress from '@mui/material/LinearProgress';
 
 
 export default function P_MetrajOlusturPozlar() {
 
   const navigate = useNavigate()
   const queryClient = useQueryClient()
+  const [dialogAlert, setDialogAlert] = useState()
 
-  let { data } = useGetPozlar()
-  let pozlar = data?.pozlar?.filter(x => x.hasDugum)
+  let { data: dataPozlar, error, isLoading } = useGetPozlar()
+  let pozlar = dataPozlar?.pozlar?.filter(x => x.hasDugum)
+  // console.log("pozlar", pozlar)
 
-  const { RealmApp, myTema } = useContext(StoreContext)
-  const { customData } = RealmApp.currentUser
-
-  const { selectedProje } = useContext(StoreContext)
-  const metrajYapabilenler = selectedProje?.yetki?.metrajYapabilenler
-  const yetkililer = selectedProje?.yetki.yetkililer
-
+  const { appUser, setAppUser, RealmApp, selectedProje, myTema } = useContext(StoreContext)
   const { selectedPoz_metraj, setSelectedPoz_metraj } = useContext(StoreContext)
+
+  const metrajYapabilenler = selectedProje?.yetkiliKisiler.filter(x => x.yetkiler.find(x => x.name === "owner"))
+
   const [showMetrajOnaylanan, setShowMetrajOnaylanan] = useState(false)
   // const { editNodeMetraj, onayNodeMetraj } = useContext(StoreContext)
   let editNodeMetraj = true
@@ -53,11 +53,24 @@ export default function P_MetrajOlusturPozlar() {
 
   const [show, setShow] = useState("Main")
 
+
   useEffect(() => {
     !selectedProje && navigate('/projeler')
   }, [])
 
-  const [basliklar, setBasliklar] = useState(RealmApp.currentUser.customData.customSettings.pages.metrajpozlar.basliklar)
+  useEffect(() => {
+    if (error) {
+      console.log("error", error)
+      setDialogAlert({
+        dialogIcon: "warning",
+        dialogMessage: "Beklenmedik hata, Rapor7/24 ile irtibata geçiniz..",
+        detailText: error?.message ? error.message : null
+      })
+    }
+  }, [error]);
+
+
+  const [basliklar, setBasliklar] = useState(RealmApp?.currentUser.customData.customSettings.pages.metrajpozlar.basliklar)
 
 
   // const pozAciklamaShow = basliklar?.find(x => x.id === "aciklama").show
@@ -136,6 +149,15 @@ export default function P_MetrajOlusturPozlar() {
   return (
     <Box sx={{ m: "0rem", maxWidth: "60rem" }}>
 
+      {dialogAlert &&
+        <DialogAlert
+          dialogIcon={dialogAlert.dialogIcon}
+          dialogMessage={dialogAlert.dialogMessage}
+          detailText={dialogAlert.detailText}
+          onCloseAction={dialogAlert.onCloseAction}
+        />
+      }
+
       {/* BAŞLIK */}
       <HeaderMetrajOlusturPozlar
         show={show}
@@ -152,8 +174,15 @@ export default function P_MetrajOlusturPozlar() {
       }
 
 
+      {isLoading &&
+        <Box sx={{ mt: "5rem", ml: "1rem", color: 'gray' }}>
+          <LinearProgress color='inherit' />
+        </Box>
+      }
+
+
       {/* EĞER POZ BAŞLIĞI YOKSA */}
-      {show == "Main" && !selectedProje?.wbs?.find(x => x.openForPoz === true) &&
+      {!isLoading && show == "Main" && !selectedProje?.wbs?.find(x => x.openForPoz === true) &&
         <Stack sx={{ width: '100%', mt: "3.5rem", p: "1rem" }} spacing={2}>
           <Alert severity="info">
             Öncelikle poz oluşturmaya açık poz başlığı oluşturmalısınız.
@@ -163,7 +192,7 @@ export default function P_MetrajOlusturPozlar() {
 
 
       {/* EĞER POZ YOKSA */}
-      {show == "Main" && selectedProje?.wbs?.find(x => x.openForPoz === true) && !pozlar?.length > 0 &&
+      {!isLoading && show == "Main" && selectedProje?.wbs?.find(x => x.openForPoz === true) && !pozlar?.length > 0 &&
         <Stack sx={{ width: '100%', mt: "3.5rem", p: "1rem" }} spacing={2}>
           <Alert severity="info">
             Herhangi bir mahal, herhangi bir poz ile henüz eşleştirilmemiş, 'mahallistesi' menüsüne gidiniz.
@@ -318,7 +347,7 @@ export default function P_MetrajOlusturPozlar() {
                 {/* WBS'İN POZLARI */}
                 {pozlar?.filter(x => x._wbsId.toString() === oneWbs._id.toString()).map((onePoz, index) => {
 
-                  let oneHazirlanan = onePoz.hazirlananMetrajlar.find(x => x.userEmail === customData.email)
+                  let oneHazirlanan = onePoz.hazirlananMetrajlar.find(x => x.userEmail === appUser.email)
 
                   let isSelected = false
 
@@ -394,7 +423,7 @@ export default function P_MetrajOlusturPozlar() {
                               <Check sx={{ color: "black", fontSize: "0.95rem" }} />
                             </Box>
                             <Box sx={{ justifySelf: "end" }}>
-                              {ikiHane(onePoz?.hazirlananMetrajlar.find(x => x.userEmail === customData.email)?.metrajReady)}
+                              {ikiHane(onePoz?.hazirlananMetrajlar.find(x => x.userEmail === appUser.email)?.metrajReady)}
                             </Box>
                           </Box> */}
 

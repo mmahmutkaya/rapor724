@@ -3,6 +3,8 @@ import React from 'react'
 import { useState, useContext, useEffect } from 'react';
 import { useQueryClient } from '@tanstack/react-query'
 import { useNavigate } from "react-router-dom";
+import { DialogAlert } from '../../components/general/DialogAlert';
+
 
 
 import { StoreContext } from '../../components/store'
@@ -21,6 +23,7 @@ import Stack from '@mui/material/Stack';
 import { Button, TextField, Typography } from '@mui/material';
 import Box from '@mui/material/Box';
 import InfoIcon from '@mui/icons-material/Info';
+import LinearProgress from '@mui/material/LinearProgress';
 
 
 
@@ -28,7 +31,9 @@ export default function P_Mahaller() {
 
   const navigate = useNavigate()
 
-  const { data: mahaller } = useGetMahaller()
+  const [dialogAlert, setDialogAlert] = useState()
+
+  const { data: dataMahaller, error, isLoading } = useGetMahaller()
 
   const { RealmApp, myTema } = useContext(StoreContext)
   const { selectedProje } = useContext(StoreContext)
@@ -41,7 +46,18 @@ export default function P_Mahaller() {
     !selectedProje && navigate('/projeler')
   }, [])
 
-  const [basliklar, setBasliklar] = useState(RealmApp.currentUser.customData.customSettings.pages.mahaller.basliklar)
+  useEffect(() => {
+    if (error) {
+      console.log("error", error)
+      setDialogAlert({
+        dialogIcon: "warning",
+        dialogMessage: "Beklenmedik hata, Rapor7/24 ile irtibata geçiniz..",
+        detailText: error?.message ? error.message : null
+      })
+    }
+  }, [error]);
+
+  const [basliklar, setBasliklar] = useState(RealmApp?.currentUser.customData.customSettings.pages.mahaller.basliklar)
 
   // sayfadaki "visibility" tuşunun aktif olup olmamasını ayarlamak için
   const anyBaslikShow = basliklar?.find(x => x.visible) ? true : false
@@ -49,7 +65,12 @@ export default function P_Mahaller() {
   const mahalAciklamaShow = basliklar?.find(x => x.id === "aciklama").show
   const mahalVersiyonShow = basliklar?.find(x => x.id === "versiyon").show
 
-  const columns = `max-content minmax(min-content, 35rem) ${mahalAciklamaShow ? " 1rem minmax(min-content, 10rem)" : ""}${mahalVersiyonShow ? " 1rem max-content" : ""}`
+  const columns = `
+    min-content
+    minmax(min-content, 45rem) 
+    ${mahalAciklamaShow ? " 1rem minmax(min-content, 10rem)" : ""}
+    ${mahalVersiyonShow ? " 1rem max-content" : ""}
+  `
 
 
   const enUstBaslik_css = {
@@ -91,20 +112,38 @@ export default function P_Mahaller() {
   return (
     <Box sx={{ m: "0rem" }}>
 
+
+      {dialogAlert &&
+        <DialogAlert
+          dialogIcon={dialogAlert.dialogIcon}
+          dialogMessage={dialogAlert.dialogMessage}
+          detailText={dialogAlert.detailText}
+          onCloseAction={() => setDialogAlert()}
+        />
+      }
+
+
       {/* BAŞLIK */}
       <HeaderMahaller show={show} setShow={setShow} anyBaslikShow={anyBaslikShow} />
 
 
       {/* MAHAL OLUŞTURULACAKSA */}
-      {show == "MahalCreate" && <FormMahalCreate setShow={setShow} />}
+      {show == "MahalCreate" && <FormMahalCreate setShow={setShow} dialogAlert={dialogAlert} setDialogAlert={setDialogAlert} />}
 
 
       {/* BAŞLIK GÖSTER / GİZLE */}
       {show == "ShowBaslik" && <ShowMahalBaslik setShow={setShow} basliklar={basliklar} setBasliklar={setBasliklar} />}
 
 
+      {isLoading &&
+        <Box sx={{ m: "1rem", color: 'gray' }}>
+          <LinearProgress color='inherit' />
+        </Box>
+      }
+
+
       {/* EĞER MAHAL BAŞLIĞI YOKSA */}
-      {show == "Main" && !selectedProje?.lbs?.find(x => x.openForMahal === true) &&
+      {!isLoading && show == "Main" && !selectedProje?.lbs?.find(x => x.openForMahal === true) &&
         <Stack sx={{ width: '100%', m: "0rem", p: "1rem" }} spacing={2}>
           <Alert severity="info">
             Öncelikle mahal oluşturmaya açık mahal başlığı oluşturmalısınız.
@@ -114,7 +153,7 @@ export default function P_Mahaller() {
 
 
       {/* EĞER MAHAL YOKSA */}
-      {show == "Main" && selectedProje?.lbs?.find(x => x.openForMahal === true) && !mahaller?.length > 0 &&
+      {!isLoading && show == "Main" && selectedProje?.lbs?.find(x => x.openForMahal === true) && !dataMahaller?.mahaller?.length > 0 &&
         <Stack sx={{ width: '100%', m: "0rem", p: "1rem" }} spacing={2}>
           <Alert severity="info">
             Menüler yardımı ile mahal oluşturmaya başlayabilirsiniz.
@@ -125,7 +164,7 @@ export default function P_Mahaller() {
 
       {/* ANA SAYFA - MAHALLAR VARSA */}
 
-      {show == "Main" && selectedProje?.lbs?.find(x => x.openForMahal === true) && mahaller?.length > 0 &&
+      {!isLoading && show == "Main" && selectedProje?.lbs?.find(x => x.openForMahal === true) && dataMahaller?.mahaller?.length > 0 &&
         <Box sx={{ m: "1rem", display: "grid", gridTemplateColumns: columns }}>
 
 
@@ -134,7 +173,7 @@ export default function P_Mahaller() {
           <React.Fragment >
 
             {/* BAŞLIK - MAHAL NO */}
-            <Box sx={{ ...enUstBaslik_css }}>
+            <Box sx={{ ...enUstBaslik_css, textWrap: "nowrap" }}>
               Mahal No
             </Box>
 
@@ -216,17 +255,15 @@ export default function P_Mahaller() {
                   }
 
                   {/* lbsName hazır aslında ama aralarındaki ok işaretini kırmızıya boyamak için */}
-                  <Box sx={{ gridColumn: "1/3", ...lbsBaslik_css, display: "grid", gridAutoFlow: "column" }} >
+                  <Box sx={{ gridColumn: "1/3", ...lbsBaslik_css, display: "grid", gridAutoFlow: "column", justifyContent: "start", columnGap: "0.2rem", textWrap: "nowrap", pr: "1rem" }} >
 
                     {lbsName.split(">").map((item, index) => (
-
-                      <Box key={index} sx={{ display: "grid", gridAutoFlow: "column" }} >
-                        {item}
+                      <React.Fragment key={index}>
+                        <Box sx={{}}>{item}</Box>
                         {index + 1 !== lbsName.split(">").length &&
-                          <Box sx={{ color: myTema.renkler.baslik2_ayrac, mx: "0.2rem" }} >{">"}</Box>
+                          <Box sx={{ color: myTema.renkler.baslik2_ayrac }} >{">"}</Box>
                         }
-                      </Box>
-
+                      </React.Fragment>
                     ))}
 
                     {/* <Typography>{lbsName}</Typography> */}
@@ -254,7 +291,7 @@ export default function P_Mahaller() {
 
 
                 {/* LBS'İN MAHALLERİ */}
-                {mahaller?.filter(x => x._lbsId.toString() === oneLbs._id.toString()).map((oneMahal, index) => {
+                {dataMahaller?.mahaller?.filter(x => x._lbsId?.toString() === oneLbs._id?.toString()).map((oneMahal, index) => {
 
                   return (
                     // <Box key={index} sx={{ display: "grid", gridTemplateColumns: columns, gridTemplateAreas: gridAreas_mahalSatir }}>

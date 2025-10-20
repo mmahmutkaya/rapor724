@@ -19,7 +19,7 @@ import Grid from '@mui/material/Grid';
 import Input from '@mui/material/Input';
 import Alert from '@mui/material/Alert';
 import Stack from '@mui/material/Stack';
-import { Button, TextField, Typography } from '@mui/material';
+import LinearProgress from '@mui/material/LinearProgress';
 import Box from '@mui/material/Box';
 
 
@@ -29,10 +29,11 @@ export default function P_MahalListesiPozMahaller() {
   const navigate = useNavigate()
   const queryClient = useQueryClient()
 
-  const { data: mahaller_query } = useGetMahalListesi_mahaller_byPoz()
+  const { data: dataMahaller, error, isLoading } = useGetMahalListesi_mahaller_byPoz()
   const [mahaller_state, setMahaller_state] = useState()
+  const [mahaller_backUp, setMahaller_backUp] = useState()
 
-  const { RealmApp, myTema } = useContext(StoreContext)
+  const { appUser, setAppUser, myTema } = useContext(StoreContext)
   const { selectedProje } = useContext(StoreContext)
   const { selectedPoz_mahalListesi } = useContext(StoreContext)
   const { selectedMahal_mahalListesi, setSelectedMahal_mahalListesi } = useContext(StoreContext)
@@ -45,8 +46,21 @@ export default function P_MahalListesiPozMahaller() {
 
   useEffect(() => {
     !selectedProje && navigate('/projeler')
-    setMahaller_state(_.cloneDeep(mahaller_query))
-  }, [mahaller_query])
+    setMahaller_state(_.cloneDeep(dataMahaller?.mahaller))
+    setMahaller_backUp(_.cloneDeep(dataMahaller?.mahaller))
+  }, [dataMahaller])
+
+
+  useEffect(() => {
+    if (error) {
+      console.log("error", error)
+      setDialogAlert({
+        dialogIcon: "warning",
+        dialogMessage: "Beklenmedik hata, Rapor7/24 ile irtibata geçiniz..",
+        detailText: error?.message ? error.message : null
+      })
+    }
+  }, [error]);
 
 
 
@@ -124,7 +138,7 @@ export default function P_MahalListesiPozMahaller() {
 
 
   const cancelChange = () => {
-    queryClient.invalidateQueries(['mahalListesi_mahaller_byPoz'])
+    setMahaller_state(mahaller_backUp)
     setIsChanged()
   }
 
@@ -134,13 +148,48 @@ export default function P_MahalListesiPozMahaller() {
     try {
 
       const mahaller = mahaller_state.filter(x => x.isChanged)
-      const result = await RealmApp.currentUser.callFunction("updateDugumler_openMetraj", { functionName: "mahaller_byPozId", _projeId: selectedProje._id, mahaller, _pozId: selectedPoz_mahalListesi._id });
 
-      if (result.ok) {
-        queryClient.invalidateQueries(['mahalListesi_mahaller_byPoz'])
+      // const result = await RealmApp.currentUser.callFunction("updateDugumler_openMetraj", { functionName: "mahaller_byPozId", _projeId: selectedProje._id, mahaller, _pozId: selectedPoz_mahalListesi._id });
+
+
+      const response = await fetch(`/api/dugumler`, {
+        method: 'POST',
+        headers: {
+          email: appUser.email,
+          token: appUser.token,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          projeId: selectedProje._id,
+          pozId: selectedPoz_mahalListesi._id,
+          mahaller
+        })
+      })
+
+      const responseJson = await response.json()
+
+      if (responseJson.error) {
+        if (responseJson.error.includes("expired")) {
+          setAppUser()
+          localStorage.removeItem('appUser')
+          navigate('/')
+          window.location.reload()
+        }
+        throw new Error(responseJson.error);
       }
 
-      setIsChanged()
+
+      if (responseJson.ok) {
+
+        queryClient.invalidateQueries(['dataMahalListesi_pozlar'])
+        queryClient.invalidateQueries(['dataMahalListesi_mahaller_byPoz'])
+        setIsChanged()
+
+      } else {
+        console.log("result", responseJson)
+        throw new Error("Kayıt işlemi gerçekleşmedi, sayfayı yenileyiniz, sorun devam ederse Rapor7/24 ile irtibata geçiniz..")
+      }
+
 
     } catch (err) {
 
@@ -191,8 +240,17 @@ export default function P_MahalListesiPozMahaller() {
       </Grid>
 
 
+
+      {isLoading &&
+        <Box sx={{ mt: "4.5rem", ml: "1rem", color: 'gray' }}>
+          <LinearProgress color='inherit' />
+        </Box>
+      }
+
+
+
       {/* EĞER POZ BAŞLIĞI YOKSA */}
-      {show == "Main" && false &&
+      {!isLoading && show == "Main" && false &&
         <Stack sx={{ width: '100%', mt: "3.5rem", p: "1rem" }} spacing={2}>
           <Alert severity="info">
             Öncelikle poz oluşturmaya açık poz başlığı oluşturmalısınız.
@@ -204,7 +262,7 @@ export default function P_MahalListesiPozMahaller() {
 
       {/* ANA SAYFA - POZLAR VARSA */}
 
-      {show == "Main" && mahaller_state?.length > 0 &&
+      {!isLoading && show == "Main" && mahaller_state?.length > 0 &&
 
         <Box sx={{ m: "1rem", mt: "4.5rem", display: "grid", gridTemplateColumns: columns }}>
 

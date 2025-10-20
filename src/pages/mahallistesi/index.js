@@ -28,7 +28,7 @@ export default function P_MahalListesi() {
   const navigate = useNavigate()
   const queryClient = useQueryClient()
 
-  const { data: pozlar } = useGetMahalListesi_pozlar()
+  const { data: pozlar, error } = useGetMahalListesi_pozlar()
 
   const { RealmApp, myTema } = useContext(StoreContext)
   const { selectedProje } = useContext(StoreContext)
@@ -44,6 +44,18 @@ export default function P_MahalListesi() {
   useEffect(() => {
     !selectedProje && navigate('/projeler')
   }, [])
+
+
+  useEffect(() => {
+    if (error) {
+      console.log("error", error)
+      setDialogAlert({
+        dialogIcon: "warning",
+        dialogMessage: "Beklenmedik hata, Rapor7/24 ile irtibata geçiniz..",
+        detailText: error?.message ? error.message : null
+      })
+    }
+  }, [error]);
 
 
 

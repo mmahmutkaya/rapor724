@@ -169,15 +169,151 @@ export const useGetPozlar = () => {
 
 
 
-// export const useGetPozlar = (onSuccess, onError) => {
+// MONGO FONKSİYON - getFirmalarNames
+export const useGetMahaller = () => {
+
+  const navigate = useNavigate()
+  const { appUser, setAppUser, selectedProje } = useContext(StoreContext)
+
+  return useQuery({
+    queryKey: ['dataMahaller'],
+    queryFn: async () => {
+      const response = await fetch('api/mahaller', {
+        method: 'GET',
+        headers: {
+          email: appUser.email,
+          token: appUser.token,
+          projeid: selectedProje._id,
+          'Content-Type': 'application/json'
+        }
+      })
+
+      const responseJson = await response.json()
+
+      if (responseJson.error) {
+        if (responseJson.error.includes("expired")) {
+          setAppUser()
+          localStorage.removeItem('appUser')
+          navigate('/')
+          window.location.reload()
+        }
+        throw new Error(responseJson.error);
+      }
+
+      return responseJson
+
+    },
+    enabled: !!appUser,
+    refetchOnMount: true,
+    refetchOnWindowFocus: false
+  })
+
+}
+
+
+
+
+
+// MONGO FONKSİYON - getFirmalarNames
+export const useGetMahalListesi_pozlar = () => {
+
+  const navigate = useNavigate()
+  const { appUser, setAppUser, selectedProje } = useContext(StoreContext)
+
+  return useQuery({
+    queryKey: ['dataMahallistesi_pozlar'],
+    queryFn: async () => {
+      const response = await fetch('api/dugumler/pozlar', {
+        method: 'GET',
+        headers: {
+          email: appUser.email,
+          token: appUser.token,
+          projeid: selectedProje._id,
+          'Content-Type': 'application/json'
+        }
+      })
+
+      const responseJson = await response.json()
+
+      if (responseJson.error) {
+        if (responseJson.error.includes("expired")) {
+          setAppUser()
+          localStorage.removeItem('appUser')
+          navigate('/')
+          window.location.reload()
+        }
+        throw new Error(responseJson.error);
+      }
+
+      return responseJson
+
+    },
+    enabled: !!appUser,
+    refetchOnMount: true,
+    refetchOnWindowFocus: false
+  })
+
+}
+
+
+
+
+
+
+// MONGO FONKSİYON - getFirmalarNames
+export const useGetMahalListesi_mahaller_byPoz = () => {
+
+  const navigate = useNavigate()
+  const { appUser, setAppUser, selectedProje, selectedPoz_mahalListesi } = useContext(StoreContext)
+
+  return useQuery({
+    queryKey: ['dataMahalListesi_mahaller_byPoz'],
+    queryFn: async () => {
+      const response = await fetch('api/dugumler/mahallerbypoz', {
+        method: 'GET',
+        headers: {
+          email: appUser.email,
+          token: appUser.token,
+          projeid: selectedProje._id,
+          pozid: selectedPoz_mahalListesi._id,
+          'Content-Type': 'application/json'
+        }
+      })
+
+      const responseJson = await response.json()
+
+      if (responseJson.error) {
+        if (responseJson.error.includes("expired")) {
+          setAppUser()
+          localStorage.removeItem('appUser')
+          navigate('/')
+          window.location.reload()
+        }
+        throw new Error(responseJson.error);
+      }
+
+      return responseJson
+
+    },
+    enabled: !!appUser,
+    refetchOnMount: true,
+    refetchOnWindowFocus: false
+  })
+
+}
+
+
+
+
+// export const useGetMahalListesi_mahaller_byPoz = (onSuccess, onError) => {
 
 //   // const RealmApp = useApp();
-//   const { RealmApp, selectedProje } = useContext(StoreContext)
+//   const { RealmApp, selectedProje, selectedPoz_mahalListesi } = useContext(StoreContext)
 
 //   return useQuery({
-//     queryKey: ['pozlar'],
-//     queryFn: () => RealmApp?.currentUser.callFunction("getPozlar", ({ _projeId: selectedProje?._id })),
-//     enabled: !!RealmApp && !!selectedProje,
+//     queryKey: ['dataMahalListesi_mahaller_byPoz'],
+//     queryFn: () => RealmApp?.currentUser.callFunction("getMahalListesi_mahaller_byPoz", ({ _projeId: selectedProje?._id, _pozId: selectedPoz_mahalListesi._id })),
+//     enabled: !!RealmApp && !!selectedProje && !!selectedPoz_mahalListesi,
 //     onSuccess,
 //     onError,
 //     refetchOnMount: true,
@@ -185,67 +321,6 @@ export const useGetPozlar = () => {
 //   })
 
 // }
-
-
-
-
-export const useGetMahaller = (onSuccess, onError) => {
-
-  // const RealmApp = useApp();
-  const { RealmApp, selectedProje } = useContext(StoreContext)
-
-  return useQuery({
-    queryKey: ['mahaller'],
-    queryFn: () => RealmApp?.currentUser.callFunction("getMahaller", ({ _projeId: selectedProje?._id })),
-    enabled: !!RealmApp && !!selectedProje,
-    onSuccess,
-    onError,
-    refetchOnMount: true,
-    refetchOnWindowFocus: false
-  })
-
-}
-
-
-
-
-
-export const useGetMahalListesi_pozlar = (onSuccess, onError) => {
-
-  // const RealmApp = useApp();
-  const { RealmApp, selectedProje } = useContext(StoreContext)
-
-  return useQuery({
-    queryKey: ['mahallistesi_pozlar'],
-    queryFn: () => RealmApp?.currentUser.callFunction("getMahalListesi_pozlar", ({ _projeId: selectedProje?._id })),
-    enabled: !!RealmApp && !!selectedProje,
-    onSuccess,
-    onError,
-    refetchOnMount: true,
-    refetchOnWindowFocus: false
-  })
-
-}
-
-
-
-
-export const useGetMahalListesi_mahaller_byPoz = (onSuccess, onError) => {
-
-  // const RealmApp = useApp();
-  const { RealmApp, selectedProje, selectedPoz_mahalListesi } = useContext(StoreContext)
-
-  return useQuery({
-    queryKey: ['mahalListesi_mahaller_byPoz'],
-    queryFn: () => RealmApp?.currentUser.callFunction("getMahalListesi_mahaller_byPoz", ({ _projeId: selectedProje?._id, _pozId: selectedPoz_mahalListesi._id })),
-    enabled: !!RealmApp && !!selectedProje && !!selectedPoz_mahalListesi,
-    onSuccess,
-    onError,
-    refetchOnMount: true,
-    refetchOnWindowFocus: false
-  })
-
-}
 
 
 
