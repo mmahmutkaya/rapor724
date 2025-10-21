@@ -368,21 +368,73 @@ export const useGetDugumler = () => {
 }
 
 
+
+
+
+
+
+
+
+
+
+
 export const useGetDugumler_byPoz = () => {
 
-  // const RealmApp = useApp();
-  const { RealmApp, selectedProje, selectedPoz_metraj } = useContext(StoreContext)
+  const navigate = useNavigate()
+  const { appUser, setAppUser, selectedProje, selectedPoz_metraj } = useContext(StoreContext)
 
   return useQuery({
-    queryKey: ['dugumler_byPoz'],
-    queryFn: () => RealmApp?.currentUser.callFunction("getDugumler_byPoz", ({ _projeId: selectedProje?._id, _pozId: selectedPoz_metraj?._id })),
-    enabled: !!RealmApp && !!selectedPoz_metraj,
+    queryKey: ['dataMahalListesi_byPoz'],
+    queryFn: async () => {
+      const response = await fetch('api/dugumler/bypoz', {
+        method: 'GET',
+        headers: {
+          email: appUser.email,
+          token: appUser.token,
+          projeid: selectedProje._id,
+          pozid: selectedPoz_metraj._id,
+          'Content-Type': 'application/json'
+        }
+      })
+
+      const responseJson = await response.json()
+
+      if (responseJson.error) {
+        if (responseJson.error.includes("expired")) {
+          setAppUser()
+          localStorage.removeItem('appUser')
+          navigate('/')
+          window.location.reload()
+        }
+        throw new Error(responseJson.error);
+      }
+
+      return responseJson
+
+    },
+    enabled: !!appUser,
     refetchOnMount: true,
-    refetchOnWindowFocus: false,
-    // select: (data) => data.mahalListesi,
+    refetchOnWindowFocus: false
   })
 
 }
+
+
+// export const useGetDugumler_byPoz = () => {
+
+//   // const RealmApp = useApp();
+//   const { RealmApp, selectedProje, selectedPoz_metraj } = useContext(StoreContext)
+
+//   return useQuery({
+//     queryKey: ['dugumler_byPoz'],
+//     queryFn: () => RealmApp?.currentUser.callFunction("getDugumler_byPoz", ({ _projeId: selectedProje?._id, _pozId: selectedPoz_metraj?._id })),
+//     enabled: !!RealmApp && !!selectedPoz_metraj,
+//     refetchOnMount: true,
+//     refetchOnWindowFocus: false,
+//     // select: (data) => data.mahalListesi,
+//   })
+
+// }
 
 
 
@@ -405,23 +457,73 @@ export const useGetMahalListesi = () => {
 }
 
 
-export const useGetHazirlananMetraj = (onError) => {
 
-  // const RealmApp = useApp();
-  const { RealmApp, selectedNode_metraj } = useContext(StoreContext)
+
+
+
+export const useGetHazirlananMetraj = () => {
+
+  const navigate = useNavigate()
+  const { appUser, setAppUser, selectedNode_metraj } = useContext(StoreContext)
 
   return useQuery({
-    // queryKey: ['hazirlananMetraj', selectedNode_metraj?._id.toString() + `--` + RealmApp.currentUser.customData.email],
-    queryKey: ['hazirlananMetraj', selectedNode_metraj?._id.toString()],
-    queryFn: () => RealmApp?.currentUser.callFunction("getHazirlananMetraj", ({ _dugumId: selectedNode_metraj._id })),
-    enabled: !!RealmApp && !!selectedNode_metraj,
-    onError,
+    queryKey: ['dataHazirlananMetraj'],
+    queryFn: async () => {
+      const response = await fetch('api/dugumler/hazirlananmetraj', {
+        method: 'GET',
+        headers: {
+          email: appUser.email,
+          token: appUser.token,
+          dugumid: selectedNode_metraj._id,
+          'Content-Type': 'application/json'
+        }
+      })
+
+      const responseJson = await response.json()
+
+      if (responseJson.error) {
+        if (responseJson.error.includes("expired")) {
+          setAppUser()
+          localStorage.removeItem('appUser')
+          navigate('/')
+          window.location.reload()
+        }
+        throw new Error(responseJson.error);
+      }
+
+      return responseJson
+
+    },
+    enabled: !!appUser,
     refetchOnMount: true,
-    refetchOnWindowFocus: false,
-    // select: (data) => data.mahalListesi,
+    refetchOnWindowFocus: false
   })
 
 }
+
+
+
+
+
+
+
+// export const useGetHazirlananMetraj = (onError) => {
+
+//   // const RealmApp = useApp();
+//   const { RealmApp, selectedNode_metraj } = useContext(StoreContext)
+
+//   return useQuery({
+//     // queryKey: ['hazirlananMetraj', selectedNode_metraj?._id.toString() + `--` + RealmApp.currentUser.customData.email],
+//     queryKey: ['hazirlananMetraj', selectedNode_metraj?._id.toString()],
+//     queryFn: () => RealmApp?.currentUser.callFunction("getHazirlananMetraj", ({ _dugumId: selectedNode_metraj._id })),
+//     enabled: !!RealmApp && !!selectedNode_metraj,
+//     onError,
+//     refetchOnMount: true,
+//     refetchOnWindowFocus: false,
+//     // select: (data) => data.mahalListesi,
+//   })
+
+// }
 
 
 

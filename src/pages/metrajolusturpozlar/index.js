@@ -7,7 +7,7 @@ import { DialogAlert } from '../../components/general/DialogAlert.js';
 
 
 import { StoreContext } from '../../components/store'
-import { useGetPozlar } from '../../hooks/useMongo';
+import { useGetMahalListesi_pozlar } from '../../hooks/useMongo';
 import getWbsName from '../../functions/getWbsName';
 
 
@@ -34,9 +34,9 @@ export default function P_MetrajOlusturPozlar() {
   const queryClient = useQueryClient()
   const [dialogAlert, setDialogAlert] = useState()
 
-  let { data: dataPozlar, error, isLoading } = useGetPozlar()
+  let { data: dataPozlar, error, isLoading } = useGetMahalListesi_pozlar()
   let pozlar = dataPozlar?.pozlar?.filter(x => x.hasDugum)
-  // console.log("pozlar", pozlar)
+  // console.log("dataPozlar.pozlar", dataPozlar?.pozlar)
 
   const { appUser, setAppUser, RealmApp, selectedProje, myTema } = useContext(StoreContext)
   const { selectedPoz_metraj, setSelectedPoz_metraj } = useContext(StoreContext)
@@ -80,6 +80,7 @@ export default function P_MetrajOlusturPozlar() {
   const pozVersiyonShow = false
 
   const wbsArray_hasMahal = selectedProje?.wbs.filter(oneWbs => pozlar?.find(onePoz => onePoz._wbsId.toString() === oneWbs._id.toString()))
+  // console.log("wbsArray_hasMahal",wbsArray_hasMahal)
 
 
 
@@ -296,10 +297,10 @@ export default function P_MetrajOlusturPozlar() {
                 {/* WBS BAŞLIĞININ OLDUĞU TÜM SATIR */}
                 <>
                   {/* WBS BAŞLIĞI */}
-                  <Box sx={{ ...wbsBaslik_css, gridColumn: showMetrajOnaylanan ? "1 / span 4" : "1 / span 3" }}>
-                    <Box sx={{ display: "grid", gridAutoFlow: "column" }} >
-                      {getWbsName({ wbsArray: wbsArray_hasMahal, oneWbs }).name}
-                    </Box>
+                  <Box sx={{ ...wbsBaslik_css, gridColumn: showMetrajOnaylanan ? "1 / span 4" : "1 / span 3", textWrap: "nowrap" }}>
+                    {/* <Box sx={{ display: "grid", gridAutoFlow: "column" }} > */}
+                    {getWbsName({ wbsArray: selectedProje?.wbs, oneWbs }).name}
+                    {/* </Box> */}
                   </Box>
 
 

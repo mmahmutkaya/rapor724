@@ -23,18 +23,14 @@ import { Check } from '@mui/icons-material';
 
 export default function P_MetrajOlusturPozMahaller() {
 
-  const { RealmApp, myTema } = useContext(StoreContext)
+  const { appUser, myTema } = useContext(StoreContext)
 
   const { selectedProje, selectedPoz_metraj } = useContext(StoreContext)
   const metrajYapabilenler = selectedProje?.yetki?.metrajYapabilenler
-  const yetkililer = selectedProje?.yetki.yetkililer
   let editNodeMetraj = true
 
   const { selectedNode_metraj, setSelectedNode_metraj } = useContext(StoreContext)
   const { selectedMahal_metraj, setSelectedMahal_metraj } = useContext(StoreContext)
-
-  const customData = RealmApp.currentUser.customData
-
 
   const [show, setShow] = useState("Main")
   const [editPoz, setEditPoz] = useState(false)
@@ -50,10 +46,10 @@ export default function P_MetrajOlusturPozMahaller() {
   const pozBirim = selectedProje?.pozBirimleri.find(x => x.id == selectedPoz_metraj?.pozBirimId)?.name
 
 
-  const { data: mahaller } = useGetMahaller()
+  const { data: dataMahaller } = useGetMahaller()
   const { data } = useGetDugumler_byPoz()
 
-  const mahaller_byPoz = mahaller?.filter(oneMahal => dugumler_byPoz?.find(oneDugum => oneDugum._mahalId.toString() === oneMahal._id.toString()))
+  const mahaller_byPoz = dataMahaller?.mahaller?.filter(oneMahal => dugumler_byPoz?.find(oneDugum => oneDugum._mahalId.toString() === oneMahal._id.toString()))
 
   useEffect(() => {
     !selectedPoz_metraj && navigate('/metrajpozlar')
@@ -261,10 +257,10 @@ export default function P_MetrajOlusturPozMahaller() {
               <>
                 <Box> </Box>
                 <Box sx={{ ...css_enUstBaslik, justifyContent: "end", borderLeft: "1px solid black" }}>
-                  {ikiHane(data?.hazirlananMetrajlar?.find(x => x.userEmail === customData.email)?.metrajPreparing)}
+                  {ikiHane(data?.hazirlananMetrajlar?.find(x => x.userEmail === appUser.email)?.metrajPreparing)}
                 </Box>
                 <Box sx={{ ...css_enUstBaslik, justifyContent: "end", borderLeft: "1px solid black" }}>
-                  {ikiHane(data?.hazirlananMetrajlar?.find(x => x.userEmail === customData.email)?.metrajReady)}
+                  {ikiHane(data?.hazirlananMetrajlar?.find(x => x.userEmail === appUser.email)?.metrajReady)}
                 </Box>
               </>
             }
@@ -313,10 +309,10 @@ export default function P_MetrajOlusturPozMahaller() {
                   <>
                     <Box> </Box>
                     <Box sx={{ ...css_LbsBaslik, borderLeft: "1px solid black", justifyContent: "end" }}>
-                      {ikiHane(lbsMetraj?.hazirlananMetrajlar?.find(x => x.userEmail === customData.email).metrajPreparing)}
+                      {ikiHane(lbsMetraj?.hazirlananMetrajlar?.find(x => x.userEmail === appUser.email).metrajPreparing)}
                     </Box>
                     <Box sx={{ ...css_LbsBaslik, borderLeft: "1px solid black", justifyContent: "end" }}>
-                      {ikiHane(lbsMetraj?.hazirlananMetrajlar?.find(x => x.userEmail === customData.email).metrajReady)}
+                      {ikiHane(lbsMetraj?.hazirlananMetrajlar?.find(x => x.userEmail === appUser.email).metrajReady)}
                     </Box>
                   </>
                 }
@@ -339,7 +335,7 @@ export default function P_MetrajOlusturPozMahaller() {
                 {mahaller_byPoz_byLbs?.map((oneMahal, index) => {
 
                   let dugum = dugumler_byPoz?.find(oneDugum => oneDugum._pozId.toString() === selectedPoz_metraj._id.toString() && oneDugum._mahalId.toString() === oneMahal._id.toString())
-                  let oneHazirlanan = dugum?.hazirlananMetrajlar?.find(x => x.userEmail === customData.email)
+                  let oneHazirlanan = dugum?.hazirlananMetrajlar?.find(x => x.userEmail === appUser.email)
 
 
                   return (
@@ -400,7 +396,7 @@ export default function P_MetrajOlusturPozMahaller() {
 
 
 
-                          <Box sx={{ ...css_mahaller, justifyContent: "end" , backgroundColor: oneHazirlanan?.hasReady && "rgba(255, 255, 0, 0.24)" }}>
+                          <Box sx={{ ...css_mahaller, justifyContent: "end", backgroundColor: oneHazirlanan?.hasReady && "rgba(255, 255, 0, 0.24)" }}>
                             {ikiHane(oneHazirlanan?.metrajReady)}
                           </Box>
 
@@ -421,7 +417,7 @@ export default function P_MetrajOlusturPozMahaller() {
                               <Check sx={{ color: "black", fontSize: "0.95rem" }} />
                             </Box>
                             <Box sx={{ justifySelf: "end" }}>
-                              {ikiHane(dugum?.hazirlananMetrajlar?.find(x => x.userEmail === customData.email)?.metrajReady)}
+                              {ikiHane(dugum?.hazirlananMetrajlar?.find(x => x.userEmail === appUser.email)?.metrajReady)}
                             </Box>
                           </Box> */}
 

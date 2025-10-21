@@ -37,9 +37,8 @@ export default function P_MetrajOlusturCetvel() {
 
   const queryClient = useQueryClient()
 
-  const { RealmApp, selectedProje, setSelectedProje } = useContext(StoreContext)
-  const { customData } = RealmApp.currentUser
-  const { custom, setCustom } = useContext(StoreContext)
+  const { selectedProje, setSelectedProje } = useContext(StoreContext)
+  const { appUser, setAppUser } = useContext(StoreContext)
   const { selectedMahal, setSelectedMahal } = useContext(StoreContext)
   const { selectedPoz_metraj, setSelectedPoz_metraj } = useContext(StoreContext)
   const { selectedMahal_metraj } = useContext(StoreContext)
@@ -88,17 +87,16 @@ export default function P_MetrajOlusturCetvel() {
   const hazirlananKilitliSatir_color = "rgba( 128, 128, 128, 0.3 )" // gri
 
 
-  const { data: hazirlananMetraj } = useGetHazirlananMetraj()
+  const { data: dataHazirlananMetraj } = useGetHazirlananMetraj()
 
 
 
   const navigate = useNavigate()
   useEffect(() => {
     !selectedNode_metraj && navigate("/metrajpozmahaller")
-    setHazirlananMetraj_state(_.cloneDeep(hazirlananMetraj))
-    setHazirlananMetraj_backUp(_.cloneDeep(hazirlananMetraj))
-    // console.log("hazirlananMetraj", hazirlananMetraj)
-  }, [hazirlananMetraj])
+    setHazirlananMetraj_state(_.cloneDeep(dataHazirlananMetraj?.hazirlananMetraj))
+    setHazirlananMetraj_backUp(_.cloneDeep(dataHazirlananMetraj?.hazirlananMetraj))
+  }, [dataHazirlananMetraj])
 
 
 
@@ -192,9 +190,38 @@ export default function P_MetrajOlusturCetvel() {
     if (isChanged_edit || isChanged_ready) {
       try {
 
-        await RealmApp?.currentUser.callFunction("update_hazirlananMetraj_preparing", ({ _dugumId: selectedNode_metraj._id, hazirlananMetraj_state }))
+        // await RealmApp?.currentUser.callFunction("update_hazirlananMetraj_preparing", ({ _dugumId: selectedNode_metraj._id, hazirlananMetraj_state }))
+        const response = await fetch(`api/dugumler/updatehazirlananmetrajpreparing`, {
+          method: 'POST',
+          headers: {
+            email: appUser.email,
+            token: appUser.token,
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            dugumId: selectedNode_metraj._id,
+            hazirlananMetraj_state
+          })
+        })
 
-        queryClient.invalidateQueries(['hazirlananMetraj', selectedNode_metraj?._id.toString()])
+        const responseJson = await response.json()
+
+        if (responseJson.error) {
+          if (responseJson.error.includes("expired")) {
+            setAppUser()
+            localStorage.removeItem('appUser')
+            navigate('/')
+            window.location.reload()
+          }
+          throw new Error(responseJson.error);
+        }
+
+        if (!responseJson.ok) {
+          console.log("responseJson", responseJson)
+          throw new Error("Kayıt işlemi gerçekleşmedi, sayfayı yenileyiniz, sorun devam ederse Rapor7/24 ile irtibata geçiniz..")
+        }
+
+        queryClient.invalidateQueries(['dataHazirlananMetraj'])
         setIsChanged_edit()
         setMode_edit()
         return
@@ -203,27 +230,16 @@ export default function P_MetrajOlusturCetvel() {
 
         console.log(err)
 
-        let dialogIcon = "warning"
-        let dialogMessage = "Beklenmedik hata, sayfayı yenileyiniz, sorun devam ederse Rapor7/24 ile irtibata geçiniz.."
-        let onCloseAction = () => setDialogAlert()
-
-        if (err.message.includes("__mesajBaslangic__") && err.message.includes("__mesajBitis__")) {
-          let mesajBaslangic = err.message.indexOf("__mesajBaslangic__") + "__mesajBaslangic__".length
-          let mesajBitis = err.message.indexOf("__mesajBitis__")
-          dialogMessage = err.message.slice(mesajBaslangic, mesajBitis)
-          dialogIcon = "info"
-          onCloseAction = () => {
+        setDialogAlert({
+          dialogIcon: "warning",
+          dialogMessage: "Beklenmedik hata, sayfayı yenileyiniz, sorun devam ederse Rapor7/24 ile irtibata geçiniz..",
+          detailText: err?.message ? err.message : null,
+          onCloseAction: () => {
             setDialogAlert()
             setIsChanged_edit()
             setMode_edit()
-            queryClient.invalidateQueries(['hazirlananMetraj', selectedNode_metraj?._id.toString()])
+            queryClient.invalidateQueries(['dataHazirlananMetraj'])
           }
-        }
-        setDialogAlert({
-          dialogIcon,
-          dialogMessage,
-          detailText: err?.message ? err.message : null,
-          onCloseAction
         })
       }
     }
@@ -354,9 +370,40 @@ export default function P_MetrajOlusturCetvel() {
     try {
 
       // console.log("hazirlananMetraj_state",hazirlananMetraj_state)
-      await RealmApp?.currentUser.callFunction("update_hazirlananMetraj_ready", ({ _dugumId: selectedNode_metraj._id, hazirlananMetraj_state }))
+      // await RealmApp?.currentUser.callFunction("update_hazirlananMetraj_ready", ({ _dugumId: selectedNode_metraj._id, hazirlananMetraj_state }))
 
-      queryClient.invalidateQueries(['hazirlananMetraj', selectedNode_metraj?._id.toString()])
+      const response = await fetch(`api/dugumler/updatehazirlananmetrajready`, {
+        method: 'POST',
+        headers: {
+          email: appUser.email,
+          token: appUser.token,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          dugumId: selectedNode_metraj._id,
+          hazirlananMetraj_state
+        })
+      })
+
+      const responseJson = await response.json()
+
+      if (responseJson.error) {
+        if (responseJson.error.includes("expired")) {
+          setAppUser()
+          localStorage.removeItem('appUser')
+          navigate('/')
+          window.location.reload()
+        }
+        throw new Error(responseJson.error);
+      }
+
+      if (!responseJson.ok) {
+        console.log("responseJson", responseJson)
+        throw new Error("Kayıt işlemi gerçekleşmedi, sayfayı yenileyiniz, sorun devam ederse Rapor7/24 ile irtibata geçiniz..")
+      }
+
+
+      queryClient.invalidateQueries(['dataHazirlananMetraj'])
       setIsChanged_ready()
       setMode_ready()
       return
@@ -365,27 +412,16 @@ export default function P_MetrajOlusturCetvel() {
 
       console.log(err)
 
-      let dialogIcon = "warning"
-      let dialogMessage = "Beklenmedik hata, sayfayı yenileyiniz, sorun devam ederse Rapor7/24 ile irtibata geçiniz.."
-      let onCloseAction = () => setDialogAlert()
-
-      if (err.message.includes("__mesajBaslangic__") && err.message.includes("__mesajBitis__")) {
-        let mesajBaslangic = err.message.indexOf("__mesajBaslangic__") + "__mesajBaslangic__".length
-        let mesajBitis = err.message.indexOf("__mesajBitis__")
-        dialogMessage = err.message.slice(mesajBaslangic, mesajBitis)
-        dialogIcon = "info"
-        onCloseAction = () => {
+      setDialogAlert({
+        dialogIcon: "warning",
+        dialogMessage: "Beklenmedik hata, sayfayı yenileyiniz, sorun devam ederse Rapor7/24 ile irtibata geçiniz..",
+        detailText: err?.message ? err.message : null,
+        onCloseAction: () => {
           setDialogAlert()
           setIsChanged_ready()
           setMode_ready()
-          queryClient.invalidateQueries(['hazirlananMetrajlar', selectedNode_metraj?._id.toString()])
+          queryClient.invalidateQueries(['dataHazirlananMetraj'])
         }
-      }
-      setDialogAlert({
-        dialogIcon,
-        dialogMessage,
-        detailText: err?.message ? err.message : null,
-        onCloseAction
       })
     }
   }

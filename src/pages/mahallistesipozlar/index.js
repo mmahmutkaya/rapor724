@@ -138,9 +138,6 @@ export default function P_MahalListesiPozlar() {
   }
 
 
-
-
-
   // const columns = `auto 1fr auto auto${editNodeMetraj ? " 1rem auto" : ""}`
   const columns = `max-content minmax(min-content, 1fr) max-content max-content`
 
