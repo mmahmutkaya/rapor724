@@ -169,43 +169,51 @@
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 
-//   const customSettings = {
-//     pages: {
-//       firmapozlari: {
-//         basliklar: [
-//           { id: "aciklama", baslikName: "Açıklama", visible: true, show: true },
-//           { id: "versiyon", baslikName: "Versiyon", visible: true, show: true }
-//         ]
-//       },
-//       pozlar: {
-//         basliklar: [
-//           { id: "aciklama", baslikName: "Açıklama", visible: true, show: true },
-//           { id: "versiyon", baslikName: "Versiyon", visible: true, show: true }
-//         ],
-//         paraBirimleri: []
-//       },
-//       mahaller: {
-//         basliklar: [
-//           { id: "aciklama", baslikName: "Açıklama", visible: true, show: true },
-//           { id: "versiyon", baslikName: "Versiyon", visible: true, show: true }
-//         ]
-//       },
-//       metrajpozlar: {
-//         basliklar: [
-//           { id: "aciklama", baslikName: "Açıklama", visible: true, show: true },
-//           { id: "versiyon", baslikName: "Versiyon", visible: true, show: true }
-//         ],
-//         showHasMahal: true
-//       }
-//     }
-//   }
+    const customSettings = {
+      pages: {
+        firmapozlari: {
+          basliklar: [
+            { id: "aciklama", baslikName: "Açıklama", visible: true, show: true },
+            { id: "versiyon", baslikName: "Versiyon", visible: true, show: true }
+          ]
+        },
+        pozlar: {
+          basliklar: [
+            { id: "aciklama", baslikName: "Açıklama", visible: true, show: true },
+            { id: "versiyon", baslikName: "Versiyon", visible: true, show: true }
+          ],
+          paraBirimleri: []
+        },
+        mahaller: {
+          basliklar: [
+            { id: "aciklama", baslikName: "Açıklama", visible: true, show: true },
+            { id: "versiyon", baslikName: "Versiyon", visible: true, show: true }
+          ]
+        },
+        metrajpozlar: {
+          basliklar: [
+            { id: "aciklama", baslikName: "Açıklama", visible: true, show: true },
+            { id: "versiyon", baslikName: "Versiyon", visible: true, show: true }
+          ],
+          showHasMahal: true
+        },
+        metrajOnayla: {
+          basliklar: [
+            { id: "aciklama", baslikName: "Açıklama", visible: true, show: true },
+            { id: "versiyon", baslikName: "Versiyon", visible: true, show: true }
+          ],
+          showMetrajYapabilenler: []
+        }
+      }
+    }
 
 
-// use('rapor724_v2');
-// db["users"].updateMany(
-//   {},
-//   { $set: { customSettings } }
-// )
+
+use('rapor724_v2');
+db["users"].updateMany(
+  {},
+  { $set: { customSettings } }
+)
 
 
 

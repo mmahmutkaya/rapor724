@@ -23,10 +23,10 @@ export default function ShowMetrajYapabilenler({ setShow }) {
   const { appUser, setAppUser, selectedProje } = useContext(StoreContext)
 
   const { showMetrajYapabilenler, setShowMetrajYapabilenler } = useContext(StoreContext)
-  useEffect(() => {
-    // setShowMetrajYapabilenler(RealmApp.currentUser.customData.customSettings.showMetrajYapabilenler)
-    setShowMetrajYapabilenler(appUser?.customSettings?.showMetrajYapabilenler)
-  }, [appUser])
+  // useEffect(() => {
+  //   // setShowMetrajYapabilenler(RealmApp.currentUser.customData.customSettings.showMetrajYapabilenler)
+  //   setShowMetrajYapabilenler(appUser.customSettings.pages.metrajOnayla.showMetrajYapabilenler)
+  // }, [appUser])
 
 
   let metrajYapabilenler = selectedProje.yetkiliKisiler.filter(x => x.yetkiler.find(x => x.name === "owner"))
@@ -85,11 +85,7 @@ export default function ShowMetrajYapabilenler({ setShow }) {
       if (responseJson.ok) {
 
         let appUser2 = _.cloneDeep(appUser)
-        if (appUser2.customSettings) {
-          appUser2.customSettings.showMetrajYapabilenler = showMetrajYapabilenler2
-        } else {
-          appUser2.customSettings = { showMetrajYapabilenler: showMetrajYapabilenler2 }
-        }
+        appUser2.customSettings.pages.metrajOnayla.showMetrajYapabilenler = showMetrajYapabilenler2
         setAppUser(appUser2)
         localStorage.setItem('appUser', JSON.stringify(appUser2))
         return

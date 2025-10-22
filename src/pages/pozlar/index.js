@@ -68,8 +68,6 @@ export default function P_Pozlar() {
   }, [error]);
 
 
-
-
   const [basliklar, setBasliklar] = useState(RealmApp?.currentUser.customData.customSettings.pages.pozlar.basliklar)
 
   const [paraBirimleri, setParaBirimleri] = useState(previousData => {

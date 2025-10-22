@@ -41,7 +41,6 @@ export default function P_MetrajOnaylaPozlar() {
   let pozlar = data?.pozlar?.filter(x => x.hasDugum)
   // console.log("pozşar", pozlar)
 
-
   const { RealmApp, appUser, setAppUser, myTema } = useContext(StoreContext)
   const { showMetrajYapabilenler, setShowMetrajYapabilenler } = useContext(StoreContext)
 
@@ -76,7 +75,7 @@ export default function P_MetrajOnaylaPozlar() {
     }
   }, [error]);
 
-  const [basliklar, setBasliklar] = useState(appUser.customSettings.pages.metrajpozlar.basliklar)
+  const [basliklar, setBasliklar] = useState(appUser.customSettings.pages.metrajOnayla.basliklar)
 
 
   // const pozAciklamaShow = basliklar?.find(x => x.id === "aciklama").show

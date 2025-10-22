@@ -13,6 +13,8 @@ export default ({ children }) => {
   // const [sharing, setSharing] = useState([])
   // const [help, setHelp] = useState([])
 
+  const appUser_localStorage = JSON.parse(localStorage.getItem('appUser'))
+
 
   const myTema_ = {
     renkler: {
@@ -40,7 +42,7 @@ export default ({ children }) => {
 
 
   const [custom, setCustom] = useState()
-  const [appUser, setAppUser] = useState(JSON.parse(localStorage.getItem('appUser')))
+  const [appUser, setAppUser] = useState(appUser_localStorage)
   const [Layout_Show, setLayout_Show] = useState("login")
 
   const [selectedLbs, setSelectedLbs] = useState()
@@ -79,7 +81,7 @@ export default ({ children }) => {
   const [projectNames, setProjectNames] = useState()
 
   // const [showMetrajYapabilenler, setShowMetrajYapabilenler] = useState(RealmApp?.currentUser?.customData.customSettings.showMetrajYapabilenler)
-  const [showMetrajYapabilenler, setShowMetrajYapabilenler] = useState()
+  const [showMetrajYapabilenler, setShowMetrajYapabilenler] = useState(appUser_localStorage?.customSettings?.pages.metrajOnayla.showMetrajYapabilenler)
 
 
   const [pageMetraj_show, pageMetraj_setShow] = useState("Pozlar")

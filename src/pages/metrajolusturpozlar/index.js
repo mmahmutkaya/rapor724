@@ -415,7 +415,7 @@ export default function P_MetrajOlusturPozlar() {
                             </Box>
                           </Box>
 
-                          <Box sx={{ ...pozNo_css, justifyContent: "end", backgroundColor: oneHazirlanan.hasReady && "rgba(255, 255, 0, 0.24)" }}>
+                          <Box sx={{ ...pozNo_css, justifyContent: "end", backgroundColor: oneHazirlanan?.hasReady && "rgba(255, 255, 0, 0.24)" }}>
                             {ikiHane(oneHazirlanan?.metrajReady)}
                           </Box>
 
