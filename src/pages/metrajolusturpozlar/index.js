@@ -36,7 +36,7 @@ export default function P_MetrajOlusturPozlar() {
 
   let { data: dataPozlar, error, isLoading } = useGetMahalListesi_pozlar()
   let pozlar = dataPozlar?.pozlar?.filter(x => x.hasDugum)
-  // console.log("dataPozlar.pozlar", dataPozlar?.pozlar)
+  console.log("dataPozlar.pozlar", dataPozlar?.pozlar)
 
   const { appUser, setAppUser, RealmApp, selectedProje, myTema } = useContext(StoreContext)
   const { selectedPoz_metraj, setSelectedPoz_metraj } = useContext(StoreContext)

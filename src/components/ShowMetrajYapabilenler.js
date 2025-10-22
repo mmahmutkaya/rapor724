@@ -5,6 +5,8 @@ import { StoreContext } from './store.js'
 import { DialogAlert } from './general/DialogAlert.js';
 import Divider from '@mui/material/Divider';
 import _ from 'lodash';
+import { useNavigate } from "react-router-dom";
+
 
 //mui
 import Box from '@mui/material/Box';
@@ -17,20 +19,19 @@ import { DialogTitle, Typography } from '@mui/material';
 
 export default function ShowMetrajYapabilenler({ setShow }) {
 
-  const { RealmApp, selectedProje } = useContext(StoreContext)
+  const navigate = useNavigate()
+  const { appUser, setAppUser, selectedProje } = useContext(StoreContext)
 
   const { showMetrajYapabilenler, setShowMetrajYapabilenler } = useContext(StoreContext)
   useEffect(() => {
-    setShowMetrajYapabilenler(RealmApp.currentUser.customData.customSettings.showMetrajYapabilenler)
-  }, [RealmApp])
+    // setShowMetrajYapabilenler(RealmApp.currentUser.customData.customSettings.showMetrajYapabilenler)
+    setShowMetrajYapabilenler(appUser?.customSettings?.showMetrajYapabilenler)
+  }, [appUser])
 
 
-
-
-  let metrajYapabilenler = selectedProje?.yetki.metrajYapabilenler
+  let metrajYapabilenler = selectedProje.yetkiliKisiler.filter(x => x.yetkiler.find(x => x.name === "owner"))
 
   const [dialogAlert, setDialogAlert] = useState()
-
 
   const update_state = async ({ userEmail, isShow }) => {
 
@@ -56,10 +57,46 @@ export default function ShowMetrajYapabilenler({ setShow }) {
       setShowMetrajYapabilenler(showMetrajYapabilenler2)
       // console.log("showMetrajYapabilenler2", showMetrajYapabilenler2)
 
-      await RealmApp?.currentUser.callFunction("customSettings_update", ({ functionName: "showMetrajYapabilenler", showMetrajYapabilenler: showMetrajYapabilenler2 }))
-      await RealmApp?.currentUser.refreshCustomData()
+      // await RealmApp?.currentUser.callFunction("customSettings_update", ({ functionName: "showMetrajYapabilenler", showMetrajYapabilenler: showMetrajYapabilenler2 }))
+      // await RealmApp?.currentUser.refreshCustomData()
 
-      return
+      const response = await fetch(`/api/user/customsettings/showmetrajyapabilenler`, {
+        method: 'POST',
+        headers: {
+          email: appUser.email,
+          token: appUser.token,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ showMetrajYapabilenler: showMetrajYapabilenler2 })
+      })
+
+      const responseJson = await response.json()
+
+      if (responseJson.error) {
+        if (responseJson.error.includes("expired")) {
+          setAppUser()
+          localStorage.removeItem('appUser')
+          navigate('/')
+          window.location.reload()
+        }
+        throw new Error(responseJson.error);
+      }
+
+      if (responseJson.ok) {
+
+        let appUser2 = _.cloneDeep(appUser)
+        if (appUser2.customSettings) {
+          appUser2.customSettings.showMetrajYapabilenler = showMetrajYapabilenler2
+        } else {
+          appUser2.customSettings = { showMetrajYapabilenler: showMetrajYapabilenler2 }
+        }
+        setAppUser(appUser2)
+        localStorage.setItem('appUser', JSON.stringify(appUser2))
+        return
+
+      } else {
+        throw new Error("Kayıt gerçekleşmedi, sayfayı yenileyiniz, sorun devam ederse Rapor7/24 ile iletişime geçiniz.")
+      }
 
     } catch (err) {
 
