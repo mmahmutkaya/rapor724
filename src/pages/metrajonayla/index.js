@@ -44,6 +44,7 @@ export default function P_MetrajOnay() {
   const queryClient = useQueryClient()
 
   const {
+    appUser, setAppUser,
     RealmApp,
     subHeaderHeight, myTema,
     selectedProje, selectedPoz_metraj, selectedNode_metraj
@@ -105,7 +106,7 @@ export default function P_MetrajOnay() {
 
 
   useEffect(() => {
-    !selectedNode_metraj && navigate("/metrajpozmahaller")
+    !selectedNode_metraj && navigate("/metrajonaylapozlar")
 
     setHazirlananMetrajlar_state(_.cloneDeep(data?.hazirlananMetrajlar))
     setHazirlananMetrajlar_backUp(_.cloneDeep(data?.hazirlananMetrajlar))
@@ -279,39 +280,62 @@ export default function P_MetrajOnay() {
 
       try {
 
-        await RealmApp?.currentUser.callFunction("update_hazirlananMetrajlar_selected", ({ _projeId: selectedProje._id, _dugumId: selectedNode_metraj._id, hazirlananMetrajlar_state }))
+        // await RealmApp?.currentUser.callFunction("update_hazirlananMetrajlar_selected", ({ _projeId: selectedProje._id, _dugumId: selectedNode_metraj._id, hazirlananMetrajlar_state }))
 
-        queryClient.invalidateQueries(['onaylananMetraj', selectedNode_metraj?._id.toString()])
-        queryClient.invalidateQueries(['hazirlananMetrajlar', selectedNode_metraj?._id.toString()])
+        const response = await fetch(`/api/dugumler/updatehazirlananmetrajlarselected`, {
+          method: 'POST',
+          headers: {
+            email: appUser.email,
+            token: appUser.token,
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            dugumId: selectedNode_metraj._id,
+            hazirlananMetrajlar_state
+          })
+        })
 
-        setShow("Main")
-        setMode_select()
-        setIsChanged_select()
-        return
+        const responseJson = await response.json()
+
+        if (responseJson.error) {
+          if (responseJson.error.includes("expired")) {
+            setAppUser()
+            localStorage.removeItem('appUser')
+            navigate('/')
+            window.location.reload()
+          }
+          throw new Error(responseJson.error);
+        }
+
+        if (responseJson.ok) {
+          queryClient.invalidateQueries(['onaylananMetraj'])
+          queryClient.invalidateQueries(['dataHazirlananMetrajlar'])
+          setShow("Main")
+          setMode_select()
+          setIsChanged_select()
+        } else {
+          throw new Error("Kayıt işleminde hata oluştu, sayfayı yenileyiniz, sorun devam ederse, Rapor7/24 ile iletişime geçiniz.")
+        }
 
       } catch (err) {
 
         console.log(err)
 
-        let dialogIcon = "warning"
-        let dialogMessage = "Beklenmedik hata, sayfayı yenileyiniz, sorun devam ederse Rapor7/24 ile irtibata geçiniz.."
-        let onCloseAction = () => setDialogAlert()
-
-        if (err.message.includes("__mesajBaslangic__") && err.message.includes("__mesajBitis__")) {
-          let mesajBaslangic = err.message.indexOf("__mesajBaslangic__") + "__mesajBaslangic__".length
-          let mesajBitis = err.message.indexOf("__mesajBitis__")
-          dialogMessage = err.message.slice(mesajBaslangic, mesajBitis)
-          dialogIcon = "info"
-          onCloseAction = () => {
-            setDialogAlert()
-            queryClient.invalidateQueries(['hazirlananMetrajlar', selectedNode_metraj?._id.toString()])
-          }
-        }
         setDialogAlert({
-          dialogIcon,
-          dialogMessage,
+          dialogIcon: "warning",
+          dialogMessage: "Beklenmedik hata, sayfayı yenileyiniz, sorun devam ederse Rapor7/24 ile irtibata geçiniz..",
           detailText: err?.message ? err.message : null,
-          onCloseAction
+          onCloseAction: () => {
+            setShow("Main")
+            setMode_select()
+            setIsChanged_select()
+            setDialogAlert()
+            queryClient.resetQueries(['onaylananMetraj'])
+            queryClient.resetQueries(['dataHazirlananMetrajlar'])
+            setShow("Main")
+            setMode_select()
+            setIsChanged_select()
+          }
         })
 
       }
