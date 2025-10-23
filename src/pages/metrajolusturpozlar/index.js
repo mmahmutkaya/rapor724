@@ -7,7 +7,7 @@ import { DialogAlert } from '../../components/general/DialogAlert.js';
 
 
 import { StoreContext } from '../../components/store'
-import { useGetMahalListesi_pozlar } from '../../hooks/useMongo';
+import { useGetPozlar } from '../../hooks/useMongo';
 import getWbsName from '../../functions/getWbsName';
 
 
@@ -34,9 +34,11 @@ export default function P_MetrajOlusturPozlar() {
   const queryClient = useQueryClient()
   const [dialogAlert, setDialogAlert] = useState()
 
-  let { data: dataPozlar, error, isLoading } = useGetMahalListesi_pozlar()
-  let pozlar = dataPozlar?.pozlar?.filter(x => x.hasDugum)
-  console.log("dataPozlar.pozlar", dataPozlar?.pozlar)
+  // let { data: dataPozlar, error, isLoading } = useGetMahalListesi_pozlar()
+  // let pozlar = dataPozlar?.pozlar?.filter(x => x.hasDugum)
+  let { data, error, isLoading } = useGetPozlar()
+  let pozlar = data?.pozlar?.filter(x => x.hasDugum)
+  // console.log("dataPozlar.pozlar", dataPozlar?.pozlar)
 
   const { appUser, setAppUser, RealmApp, selectedProje, myTema } = useContext(StoreContext)
   const { selectedPoz_metraj, setSelectedPoz_metraj } = useContext(StoreContext)

@@ -5,6 +5,7 @@ import { useGetProjeler_byFirma } from '../hooks/useMongo';
 import { DialogAlert } from './general/DialogAlert'
 import { useNavigate } from "react-router-dom";
 import deleteLastSpace from '../functions/deleteLastSpace'
+import _ from 'lodash';
 
 
 //mui
@@ -135,6 +136,16 @@ export default function P_FormProjeCreate({ setShow }) {
       if (responseJson.errorObject) {
         setProjeNameError(responseJson.errorObject.projeNameError)
         return
+      }
+
+      if (responseJson.newProje) {
+        let data2 = _.cloneDeep(data)
+        data2.projeler = [...data2?.projeler, responseJson.newProje]
+        queryClient.setQueryData(['dataProjeler'], data2)
+        setShow("Main")
+        return
+      } else {
+        throw new Error("Kayıt işlemi gerçekleşmedi, sayfayı yenileyiniz, sorun devam ederse Rapor7/24 ile iletişime geçiniz.");
       }
 
 

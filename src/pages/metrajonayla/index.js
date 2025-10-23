@@ -36,6 +36,7 @@ import ClearOutlined from '@mui/icons-material/ClearOutlined';
 import { DeleteOutline, Replay, Visibility } from '@mui/icons-material';
 import DeleteIcon from '@mui/icons-material/Delete';
 import ReplyIcon from '@mui/icons-material/Reply';
+import LinearProgress from '@mui/material/LinearProgress';
 
 
 export default function P_MetrajOnay() {
@@ -49,8 +50,8 @@ export default function P_MetrajOnay() {
   } = useContext(StoreContext)
 
   const { showMetrajYapabilenler, setShowMetrajYapabilenler } = useContext(StoreContext)
-  const yetkililer = selectedProje?.yetki.yetkililer
-  const metrajYapabilenler = selectedProje?.yetki.metrajYapabilenler
+  const yetkililer = selectedProje?.yetkiliKisiler
+  const metrajYapabilenler = selectedProje?.yetkiliKisiler.filter(x => x.yetkiler.find(x => x.name === "owner"))
 
 
   const [dialogAlert, setDialogAlert] = useState()
@@ -96,10 +97,13 @@ export default function P_MetrajOnay() {
   const hazirlananKilitliSatir_color = "rgba( 128, 128, 128, 0.3 )" // gri
 
 
-  const { data } = useGetHazirlananMetrajlar()
+  const { data, error, isLoading } = useGetHazirlananMetrajlar()
+  // console.log("data", data)
 
 
   const navigate = useNavigate()
+
+
   useEffect(() => {
     !selectedNode_metraj && navigate("/metrajpozmahaller")
 
@@ -111,6 +115,19 @@ export default function P_MetrajOnay() {
     setMode_unReady()
 
   }, [data])
+
+
+
+  useEffect(() => {
+    if (error) {
+      console.log("error", error)
+      setDialogAlert({
+        dialogIcon: "warning",
+        dialogMessage: "Beklenmedik hata, Rapor7/24 ile irtibata geçiniz..",
+        detailText: error?.message ? error.message : null
+      })
+    }
+  }, [error]);
 
 
 
@@ -183,6 +200,7 @@ export default function P_MetrajOnay() {
     }
 
     let hazirlananMetrajlar_state2 = _.cloneDeep(hazirlananMetrajlar_state)
+
     hazirlananMetrajlar_state2 = hazirlananMetrajlar_state2.map(oneHazirlanan => {
       if (oneHazirlanan.userEmail === hazirlayan.userEmail) {
         oneHazirlanan.satirlar.map(oneSatir => {
@@ -805,8 +823,15 @@ export default function P_MetrajOnay() {
       }
 
 
+      {isLoading &&
+        <Box sx={{ width: '100%', px: "1rem", mt: "5rem", color: 'gray' }}>
+          <LinearProgress color='inherit' />
+        </Box >
+      }
 
-      {!metrajYapabilenler?.length > 0 &&
+
+      {
+        !isLoading && !metrajYapabilenler?.length > 0 &&
         <Stack sx={{ width: '100%', padding: "1rem" }} spacing={2}>
           <Alert severity="info">
             Bu projede metraj yapabilecek bir kişi oluşturulmamış
@@ -815,7 +840,8 @@ export default function P_MetrajOnay() {
       }
 
 
-      {metrajYapabilenler?.length > 0 && !showMetrajYapabilenler?.filter(x => x.isShow).length > 0 &&
+      {
+        !isLoading && metrajYapabilenler?.length > 0 && !showMetrajYapabilenler?.filter(x => x.isShow).length > 0 &&
         <Stack sx={{ width: '100%', padding: "1rem" }} spacing={2}>
           <Alert severity="info">
             Metraj yapabilenlerin tümünü gösterime kapattınız.
@@ -825,7 +851,8 @@ export default function P_MetrajOnay() {
 
 
 
-      {showMetrajYapabilenler?.filter(x => x.isShow).length > 0 &&
+      {
+        !isLoading && showMetrajYapabilenler?.filter(x => x.isShow).length > 0 &&
 
 
         < Box sx={{ width: "65rem", display: "grid", gridTemplateColumns: gridTemplateColumns1, mt: subHeaderHeight, mb: "1rem", mx: "1rem" }}>

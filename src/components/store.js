@@ -81,7 +81,7 @@ export default ({ children }) => {
   const [projectNames, setProjectNames] = useState()
 
   // const [showMetrajYapabilenler, setShowMetrajYapabilenler] = useState(RealmApp?.currentUser?.customData.customSettings.showMetrajYapabilenler)
-  const [showMetrajYapabilenler, setShowMetrajYapabilenler] = useState(appUser_localStorage?.customSettings?.pages.metrajOnayla.showMetrajYapabilenler)
+  const [showMetrajYapabilenler, setShowMetrajYapabilenler] = useState()
 
 
   const [pageMetraj_show, pageMetraj_setShow] = useState("Pozlar")

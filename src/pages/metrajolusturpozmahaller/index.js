@@ -9,6 +9,8 @@ import FormPozBaslikCreate from '../../components/FormPozBaslikCreate'
 import HeaderMetrajOlusturPozMahaller from '../../components/HeaderMetrajOlusturPozMahaller'
 import { BSON } from "realm-web"
 import _ from 'lodash';
+import { DialogAlert } from '../../components/general/DialogAlert.js';
+
 
 import { useGetPozlar, useGetDugumler_byPoz, useGetMahaller } from '../../hooks/useMongo';
 
@@ -19,11 +21,14 @@ import Box from '@mui/material/Box';
 import { BorderBottom } from '@mui/icons-material';
 import Tooltip from '@mui/material/Tooltip';
 import { Check } from '@mui/icons-material';
+import LinearProgress from '@mui/material/LinearProgress';
 
 
 export default function P_MetrajOlusturPozMahaller() {
 
   const { appUser, myTema } = useContext(StoreContext)
+  const [dialogAlert, setDialogAlert] = useState()
+
 
   const { selectedProje, selectedPoz_metraj } = useContext(StoreContext)
   const metrajYapabilenler = selectedProje?.yetki?.metrajYapabilenler
@@ -46,8 +51,8 @@ export default function P_MetrajOlusturPozMahaller() {
   const pozBirim = selectedProje?.pozBirimleri.find(x => x.id == selectedPoz_metraj?.pozBirimId)?.name
 
 
-  const { data: dataMahaller } = useGetMahaller()
-  const { data } = useGetDugumler_byPoz()
+  const { data: dataMahaller, error: error1, isLoading: isLoading1 } = useGetMahaller()
+  const { data, error: error2, isLoading: isLoading2 } = useGetDugumler_byPoz()
 
   const mahaller_byPoz = dataMahaller?.mahaller?.filter(oneMahal => dugumler_byPoz?.find(oneDugum => oneDugum._mahalId.toString() === oneMahal._id.toString()))
 
@@ -60,6 +65,28 @@ export default function P_MetrajOlusturPozMahaller() {
       // setDugumler_filtered()
     }
   }, [data])
+
+
+  useEffect(() => {
+    if (error1) {
+      console.log("error", error1)
+      setDialogAlert({
+        dialogIcon: "warning",
+        dialogMessage: "Beklenmedik hata, Rapor7/24 ile irtibata geçiniz..",
+        detailText: error1?.message ? error1.message : null
+      })
+    }
+    if (error2) {
+      console.log("error", error2)
+      setDialogAlert({
+        dialogIcon: "warning",
+        dialogMessage: "Beklenmedik hata, Rapor7/24 ile irtibata geçiniz..",
+        detailText: error2?.message ? error2.message : null
+      })
+    }
+  }, [error1, error2]);
+
+
 
 
   const ikiHane = (value) => {
@@ -176,14 +203,34 @@ export default function P_MetrajOlusturPozMahaller() {
 
     <Box sx={{ m: "0rem", maxWidth: "60rem" }}>
 
+      {dialogAlert &&
+        <DialogAlert
+          dialogIcon={dialogAlert.dialogIcon}
+          dialogMessage={dialogAlert.dialogMessage}
+          detailText={dialogAlert.detailText}
+          onCloseAction={dialogAlert.onCloseAction}
+        />
+      }
+
       <Grid item >
         <HeaderMetrajOlusturPozMahaller show={show} setShow={setShow} />
       </Grid>
 
 
-      {!openLbsArray?.length > 0 && <Box>henüz herhangi bir LBS mahal eklemeye açılmamış</Box>}
+      {(isLoading1 || isLoading2) &&
+        <Box sx={{ width: '100%', px: "1rem", mt: "5rem", color: 'gray' }}>
+          <LinearProgress color='inherit' />
+        </Box >
+      }
 
-      {openLbsArray?.length > 0 &&
+
+      {!(isLoading1 || isLoading2) && !openLbsArray?.length > 0 &&
+        <Box>
+          henüz herhangi bir LBS mahal eklemeye açılmamış
+        </Box>
+      }
+
+      {!(isLoading1 || isLoading2) && openLbsArray?.length > 0 &&
 
         <Box sx={{ m: "1rem", mt: "4.5rem", display: "grid", gridTemplateColumns: gridTemplateColumns1 }}>
 
@@ -309,10 +356,10 @@ export default function P_MetrajOlusturPozMahaller() {
                   <>
                     <Box> </Box>
                     <Box sx={{ ...css_LbsBaslik, borderLeft: "1px solid black", justifyContent: "end" }}>
-                      {ikiHane(lbsMetraj?.hazirlananMetrajlar?.find(x => x.userEmail === appUser.email).metrajPreparing)}
+                      {ikiHane(lbsMetraj?.hazirlananMetrajlar?.find(x => x.userEmail === appUser.email)?.metrajPreparing)}
                     </Box>
                     <Box sx={{ ...css_LbsBaslik, borderLeft: "1px solid black", justifyContent: "end" }}>
-                      {ikiHane(lbsMetraj?.hazirlananMetrajlar?.find(x => x.userEmail === appUser.email).metrajReady)}
+                      {ikiHane(lbsMetraj?.hazirlananMetrajlar?.find(x => x.userEmail === appUser.email)?.metrajReady)}
                     </Box>
                   </>
                 }
