@@ -161,7 +161,7 @@ export default function P_Pozlar() {
 
         await RealmApp?.currentUser.callFunction("update_pozlar_para", ({ pozlar_newPara }))
 
-        queryClient.invalidateQueries(['pozlar'])
+        queryClient.invalidateQueries(['dataPozlar'])
         setIsChanged_para()
         setParaEdit()
         return
@@ -176,7 +176,7 @@ export default function P_Pozlar() {
           setDialogAlert()
           setIsChanged_para()
           setParaEdit()
-          queryClient.invalidateQueries(['pozlar'])
+          queryClient.invalidateQueries(['dataPozlar'])
         }
 
         setDialogAlert({
@@ -252,7 +252,7 @@ export default function P_Pozlar() {
           dialogIcon={dialogAlert.dialogIcon}
           dialogMessage={dialogAlert.dialogMessage}
           detailText={dialogAlert.detailText}
-          onCloseAction={dialogAlert.onCloseAction}
+          onCloseAction={dialogAlert.onCloseAction ? dialogAlert.onCloseAction : () => setDialogAlert()}
         />
       }
 

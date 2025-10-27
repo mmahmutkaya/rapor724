@@ -20,6 +20,7 @@ import Stack from '@mui/material/Stack';
 import Box from '@mui/material/Box';
 import CircleIcon from '@mui/icons-material/Circle';
 import { Check } from '@mui/icons-material';
+import LinearProgress from '@mui/material/LinearProgress';
 
 
 
@@ -28,14 +29,14 @@ export default function P_MetrajPozlar() {
   const navigate = useNavigate()
   const queryClient = useQueryClient()
 
-  let { data } = useGetPozlar()
+  let { data, error, isFetching } = useGetPozlar()
   let pozlar = data?.pozlar?.filter(x => x.hasDugum)
 
   const [dialogAlert, setDialogAlert] = useState()
   // console.log("pozşar", pozlar)
 
 
-  const { RealmApp, myTema } = useContext(StoreContext)
+  const { appUser, setAppUser, RealmApp, myTema } = useContext(StoreContext)
   const { showMetrajYapabilenler, setShowMetrajYapabilenler } = useContext(StoreContext)
   const { selectedPoz_metraj, setSelectedPoz_metraj } = useContext(StoreContext)
   const { selectedProje, setSelectedProje } = useContext(StoreContext)
@@ -43,7 +44,7 @@ export default function P_MetrajPozlar() {
 
   const versiyonlar = selectedProje?.versiyonlar?.metraj
   const pozBirimleri = selectedProje?.pozBirimleri
-  const yetkililer = selectedProje?.yetki.yetkililer
+  const yetkililer = selectedProje?.yetkiliKisiler
 
   let onayNodeMetraj = false
 
@@ -57,7 +58,20 @@ export default function P_MetrajPozlar() {
     !selectedProje && navigate('/projeler')
   }, [])
 
-  const [basliklar, setBasliklar] = useState(RealmApp.currentUser.customData.customSettings.pages.metrajpozlar.basliklar)
+
+  useEffect(() => {
+    if (error) {
+      console.log("error", error)
+      setDialogAlert({
+        dialogIcon: "warning",
+        dialogMessage: "Beklenmedik hata, Rapor7/24 ile irtibata geçiniz..",
+        detailText: error?.message ? error.message : null
+      })
+    }
+  }, [error]);
+
+
+  const [basliklar, setBasliklar] = useState(appUser.customSettings.pages.metrajpozlar.basliklar)
 
 
   // const pozAciklamaShow = basliklar?.find(x => x.id === "aciklama").show
@@ -75,39 +89,61 @@ export default function P_MetrajPozlar() {
 
     try {
 
-      const resultProje = await RealmApp?.currentUser.callFunction("createVersiyon_metraj", ({ _projeId: selectedProje?._id }))
-      queryClient.invalidateQueries(['pozlar'])
-      setSelectedProje(resultProje)
-      return
+      // const resultProje = await RealmApp?.currentUser.callFunction("createVersiyon_metraj", ({ _projeId: selectedProje?._id }))
+
+      const response = await fetch(`api/versiyon/metraj`, {
+        method: 'POST',
+        headers: {
+          email: appUser.email,
+          token: appUser.token,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          projeId: selectedProje?._id
+        })
+      })
+
+      const responseJson = await response.json()
+
+      if (responseJson.error) {
+        if (responseJson.error.includes("expired")) {
+          setAppUser()
+          localStorage.removeItem('appUser')
+          navigate('/')
+          window.location.reload()
+        }
+        throw new Error(responseJson.error);
+      }
+
+      if (responseJson.proje) {
+        queryClient.invalidateQueries(['dataPozlar'])
+        setSelectedProje(responseJson.proje)
+      } else {
+        console.log("responseJson", responseJson)
+        throw new Error("Kayıt işlemi gerçekleşmedi, sayfayı yenileyiniz, sorun devam ederse Rapor7/24 ile irtibata geçiniz..")
+      }
+
 
     } catch (err) {
 
       console.log(err)
 
-      let dialogIcon = "warning"
-      let dialogMessage = "Beklenmedik hata, sayfayı yenileyiniz, sorun devam ederse Rapor7/24 ile irtibata geçiniz.."
-      let onCloseAction = () => {
-        setDialogAlert()
-        queryClient.invalidateQueries(['pozlar'])
-      }
-
-      if (err.message.includes("__mesajBaslangic__") && err.message.includes("__mesajBitis__")) {
-        let mesajBaslangic = err.message.indexOf("__mesajBaslangic__") + "__mesajBaslangic__".length
-        let mesajBitis = err.message.indexOf("__mesajBitis__")
-        dialogMessage = err.message.slice(mesajBaslangic, mesajBitis)
-        dialogIcon = "info"
-      }
       setDialogAlert({
-        dialogIcon,
-        dialogMessage,
+        dialogIcon: "warning",
+        dialogMessage: "Beklenmedik hata, sayfayı yenileyiniz, sorun devam ederse Rapor7/24 ile irtibata geçiniz..",
         detailText: err?.message ? err.message : null,
-        onCloseAction
+        onCloseAction: () => {
+          setDialogAlert()
+          queryClient.invalidateQueries(['dataPozlar'])
+        }
       })
-
     }
-
-
   }
+
+
+
+
+
 
 
 
@@ -187,7 +223,7 @@ export default function P_MetrajPozlar() {
           dialogIcon={dialogAlert.dialogIcon}
           dialogMessage={dialogAlert.dialogMessage}
           detailText={dialogAlert.detailText}
-          onCloseAction={dialogAlert.onCloseAction}
+          onCloseAction={dialogAlert.onCloseAction ? dialogAlert.onCloseAction : () => setDialogAlert()}
         />
       }
 
@@ -205,8 +241,16 @@ export default function P_MetrajPozlar() {
       }
 
 
+      {isFetching &&
+        <Box sx={{ width: '100%', px: "1rem", mt: "5rem", color: 'gray' }}>
+          <LinearProgress color='inherit' />
+        </Box >
+      }
+
+
+
       {/* EĞER POZ BAŞLIĞI YOKSA */}
-      {show == "Main" && !selectedProje?.wbs?.find(x => x.openForPoz === true) &&
+      {!isFetching && show == "Main" && !selectedProje?.wbs?.find(x => x.openForPoz === true) &&
         <Stack sx={{ width: '100%', mt: "3.5rem", p: "1rem" }} spacing={2}>
           <Alert severity="info">
             Öncelikle poz oluşturmaya açık poz başlığı oluşturmalısınız.
@@ -216,7 +260,7 @@ export default function P_MetrajPozlar() {
 
 
       {/* EĞER POZ YOKSA */}
-      {show == "Main" && selectedProje?.wbs?.find(x => x.openForPoz === true) && !pozlar?.length > 0 &&
+      {!isFetching && show == "Main" && selectedProje?.wbs?.find(x => x.openForPoz === true) && !pozlar?.length > 0 &&
         <Stack sx={{ width: '100%', mt: "3.5rem", p: "1rem" }} spacing={2}>
           <Alert severity="info">
             Herhangi bir mahal, herhangi bir poz ile henüz eşleştirilmemiş, 'mahallistesi' menüsüne gidiniz.
@@ -227,7 +271,7 @@ export default function P_MetrajPozlar() {
 
       {/* ANA SAYFA - POZLAR VARSA */}
 
-      {show == "Main" && wbsArray_hasMahal && pozlar?.length > 0 &&
+      {!isFetching && show == "Main" && wbsArray_hasMahal && pozlar?.length > 0 &&
 
         <Box sx={{ m: "1rem", mt: "4.5rem", display: "grid", gridTemplateColumns: columns }}>
 

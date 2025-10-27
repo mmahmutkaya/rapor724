@@ -208,7 +208,7 @@ export default function P_MetrajOlusturPozMahaller() {
           dialogIcon={dialogAlert.dialogIcon}
           dialogMessage={dialogAlert.dialogMessage}
           detailText={dialogAlert.detailText}
-          onCloseAction={dialogAlert.onCloseAction}
+          onCloseAction={dialogAlert.onCloseAction ? dialogAlert.onCloseAction : () => setDialogAlert()}
         />
       }
 

@@ -169,7 +169,7 @@ export default function Form_IsPaketBasligi_Create({ setShow }) {
           dialogIcon={dialogAlert.dialogIcon}
           dialogMessage={dialogAlert.dialogMessage}
           detailText={dialogAlert.detailText}
-          onCloseAction={() => setDialogAlert()}
+          onCloseAction={dialogAlert.onCloseAction ? dialogAlert.onCloseAction : () => setDialogAlert()}
         />
       }
 

@@ -119,9 +119,7 @@ export default function ShowMetrajYapabilenler({ setShow }) {
           dialogIcon={dialogAlert.dialogIcon}
           dialogMessage={dialogAlert.dialogMessage}
           detailText={dialogAlert.detailText}
-          onCloseAction={() => {
-            setDialogAlert()
-          }}
+          onCloseAction={dialogAlert.onCloseAction ? dialogAlert.onCloseAction : () => setDialogAlert()}
         />
       }
 

@@ -63,10 +63,6 @@ export default function MetrajPozlarHeader({ show, setShow }) {
 
       if (result.deletedCount) {
 
-        // const oldPozlar = queryClient.getQueryData(["pozlar"])
-        // const newPozlar = oldPozlar.filter(item => item._id.toString() !== mahal._id.toString())
-        // queryClient.setQueryData(["pozlar"], newPozlar)
-
         setPozlar(oldPozlar => oldPozlar.filter(item => item._id.toString() !== mahal._id.toString()))
 
       }
@@ -120,10 +116,6 @@ export default function MetrajPozlarHeader({ show, setShow }) {
       const result = await RealmApp.currentUser.callFunction("deletePozBaslik", { mahalId: mahal._id });
 
       if (result.deletedCount) {
-
-        // const oldPozlar = queryClient.getQueryData(["pozlar"])
-        // const newPozlar = oldPozlar.filter(item => item._id.toString() !== mahal._id.toString())
-        // queryClient.setQueryData(["pozlar"], newPozlar)
 
         setPozlar(oldPozlar => oldPozlar.filter(item => item._id.toString() !== mahal._id.toString()))
 

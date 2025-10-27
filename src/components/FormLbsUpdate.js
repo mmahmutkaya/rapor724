@@ -157,7 +157,7 @@ export default function P_FormLbsUpdate({ setShow, selectedLbs, setSelectedLbs, 
           dialogIcon={dialogAlert.dialogIcon}
           dialogMessage={dialogAlert.dialogMessage}
           detailText={dialogAlert.detailText}
-          onCloseAction={() => setDialogAlert()}
+          onCloseAction={dialogAlert.onCloseAction ? dialogAlert.onCloseAction : () => setDialogAlert()}
         />
       }
 

@@ -212,7 +212,7 @@ export default function FormPozCreate({ setShow }) {
       // {pozlar} ile data içindeki object pozlar veriis alınıyor
       let data2 = _.cloneDeep(data)
       data2.pozlar = [...data2.pozlar, { ...responseJson.newPoz }]
-      queryClient.setQueryData(['pozlar'], data2)
+      queryClient.setQueryData(['dataPozlar'], data2)
 
       setShow("Main")
 
@@ -270,7 +270,7 @@ export default function FormPozCreate({ setShow }) {
           dialogIcon={dialogAlert.dialogIcon}
           dialogMessage={dialogAlert.dialogMessage}
           detailText={dialogAlert.detailText}
-          onCloseAction={() => setDialogAlert()}
+          onCloseAction={dialogAlert.onCloseAction ? dialogAlert.onCloseAction : () => setDialogAlert()}
         />
       }
 

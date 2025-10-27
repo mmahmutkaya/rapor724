@@ -34,7 +34,7 @@ export default function P_MetrajOnaylaPozMahaller() {
 
   const queryClient = useQueryClient()
 
-  const { RealmApp, myTema } = useContext(StoreContext)
+  const { appUser, setAppUser, myTema } = useContext(StoreContext)
 
   const [dialogAlert, setDialogAlert] = useState()
 
@@ -75,24 +75,24 @@ export default function P_MetrajOnaylaPozMahaller() {
   const pozBirim = selectedProje?.pozBirimleri.find(x => x.id == selectedPoz_metraj?.pozBirimId)?.name
 
 
-  const { data: dataMahaller, error: error1, isLoading: isLoading1 } = useGetMahaller()
-  const { data, error: error2, isLoading: isLoading2 } = useGetDugumler_byPoz()
+  const { data: dataMahaller, error: error1, isFetching: isLoading1 } = useGetMahaller()
+  const { data: dataMahalListesi_byPoz, error: error2, isFetching: isLoading2 } = useGetDugumler_byPoz()
 
 
   const mahaller_byPoz = dataMahaller?.mahaller?.filter(oneMahal => dugumler_byPoz_state?.find(oneDugum => oneDugum._mahalId.toString() === oneMahal._id.toString()))
 
   useEffect(() => {
     !selectedPoz_metraj && navigate('/metrajpozlar')
-    setDugumler_byPoz_state(_.cloneDeep(data?.dugumler_byPoz))
-    setDugumler_byPoz_backup(_.cloneDeep(data?.dugumler_byPoz))
-    // console.log("dugumler_byPoz",data?.dugumler_byPoz)
-    setLbsMetrajlar(_.cloneDeep(data?.lbsMetrajlar))
-    setAnySelectable(data?.anySelectable)
+    setDugumler_byPoz_state(_.cloneDeep(dataMahalListesi_byPoz?.dugumler_byPoz))
+    setDugumler_byPoz_backup(_.cloneDeep(dataMahalListesi_byPoz?.dugumler_byPoz))
+    // console.log("dugumler_byPoz",dataMahalListesi_byPoz?.dugumler_byPoz)
+    setLbsMetrajlar(_.cloneDeep(dataMahalListesi_byPoz?.lbsMetrajlar))
+    setAnySelectable(dataMahalListesi_byPoz?.anySelectable)
     return () => {
       // setselectedPoz_metraj()
       // setDugumler_filtered()
     }
-  }, [data])
+  }, [dataMahalListesi_byPoz])
 
 
   useEffect(() => {
@@ -134,7 +134,7 @@ export default function P_MetrajOnaylaPozMahaller() {
       var nums2 = b.code.split(".");
 
       for (var i = 0; i < nums1.length; i++) {
-        if (nums2[i]) { // assuming 5..2 is invalid
+        if (nums2[i]) {
           if (nums1[i] !== nums2[i]) {
             return nums1[i] - nums2[i];
           } // else continue
@@ -356,38 +356,56 @@ export default function P_MetrajOnaylaPozMahaller() {
 
       try {
 
-        await RealmApp?.currentUser.callFunction("update_hazirlananMetrajlar_selectedFull", ({ dugumler_byPoz_state }))
+        // await RealmApp?.currentUser.callFunction("update_hazirlananMetrajlar_selectedFull", ({ dugumler_byPoz_state }))
 
-        // queryClient.invalidateQueries(['onaylananMetraj', selectedNode_metraj?._id.toString()])
-        // queryClient.invalidateQueries(['hazirlananMetrajlar', selectedNode_metraj?._id.toString()])
-        queryClient.invalidateQueries(['dugumler_byPoz'])
+        const response = await fetch(`/api/dugumler/updatehazirlananmetrajlarselectedfull`, {
+          method: 'POST',
+          headers: {
+            email: appUser.email,
+            token: appUser.token,
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            dugumler_byPoz_state
+          })
+        })
 
-        setIsChange_select()
-        setMode_select()
-        return
+        const responseJson = await response.json()
+
+        if (responseJson.error) {
+          if (responseJson.error.includes("expired")) {
+            setAppUser()
+            localStorage.removeItem('appUser')
+            navigate('/')
+            window.location.reload()
+          }
+          throw new Error(responseJson.error);
+        }
+
+        if (responseJson.ok) {
+          setShow("Main")
+          setIsChange_select()
+          setMode_select()
+          queryClient.invalidateQueries(['dataMahalListesi_byPoz'])
+        } else {
+          throw new Error("Kayıt işleminde hata oluştu, sayfayı yenileyiniz, sorun devam ederse, Rapor7/24 ile iletişime geçiniz.")
+        }
 
       } catch (err) {
 
         console.log(err)
 
-        let dialogIcon = "warning"
-        let dialogMessage = "Beklenmedik hata, sayfayı yenileyiniz, sorun devam ederse Rapor7/24 ile irtibata geçiniz.."
-        let onCloseAction = () => {
-          setDialogAlert()
-          queryClient.invalidateQueries(['dugumler_byPoz'])
-        }
-
-        if (err.message.includes("__mesajBaslangic__") && err.message.includes("__mesajBitis__")) {
-          let mesajBaslangic = err.message.indexOf("__mesajBaslangic__") + "__mesajBaslangic__".length
-          let mesajBitis = err.message.indexOf("__mesajBitis__")
-          dialogMessage = err.message.slice(mesajBaslangic, mesajBitis)
-          dialogIcon = "info"
-        }
         setDialogAlert({
-          dialogIcon,
-          dialogMessage,
+          dialogIcon: "warning",
+          dialogMessage: "Beklenmedik hata, sayfayı yenileyiniz, sorun devam ederse Rapor7/24 ile irtibata geçiniz..",
           detailText: err?.message ? err.message : null,
-          onCloseAction
+          onCloseAction: () => {
+            setShow("Main")
+            setIsChange_select()
+            setMode_select()
+            queryClient.invalidateQueries(['dataMahalListesi_byPoz'])
+            setDialogAlert()
+          }
         })
 
       }
@@ -471,7 +489,7 @@ export default function P_MetrajOnaylaPozMahaller() {
           dialogIcon={dialogAlert.dialogIcon}
           dialogMessage={dialogAlert.dialogMessage}
           detailText={dialogAlert.detailText}
-          onCloseAction={dialogAlert.onCloseAction}
+          onCloseAction={dialogAlert.onCloseAction ? dialogAlert.onCloseAction : () => setDialogAlert()}
         />
       }
 
@@ -574,7 +592,7 @@ export default function P_MetrajOnaylaPozMahaller() {
               Toplam Metraj
             </Box>
             <Box sx={{ ...css_enUstBaslik, justifyContent: "end" }}>
-              {ikiHane(data?.metrajOnaylanan)}
+              {ikiHane(dataMahalListesi_byPoz?.metrajOnaylanan)}
             </Box>
             <Box sx={{ ...css_enUstBaslik, justifyContent: "center" }}>
               {pozBirim}
@@ -598,7 +616,7 @@ export default function P_MetrajOnaylaPozMahaller() {
                       onClick={() => mode_select && addNodes_select({ tip: "all", userEmail: oneYapabilen.userEmail })}
                       key={index}
                       sx={{ ...css_enUstBaslik, cursor: mode_select && "pointer", borderLeft: "1px solid black", justifyContent: "end" }}>
-                      {ikiHane(data?.hazirlananMetrajlar.find(x => x.userEmail === oneYapabilen.userEmail)?.metrajReady)}
+                      {ikiHane(dataMahalListesi_byPoz?.hazirlananMetrajlar.find(x => x.userEmail === oneYapabilen.userEmail)?.metrajReady)}
                     </Box>
                   )
                 })}

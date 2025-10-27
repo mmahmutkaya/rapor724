@@ -52,10 +52,6 @@ export default function PozHeader({ setShow }) {
 
       if (result.deletedCount) {
 
-        // const oldPozlar = queryClient.getQueryData(["pozlar"])
-        // const newPozlar = oldPozlar.filter(item => item._id.toString() !== poz._id.toString())
-        // queryClient.setQueryData(["pozlar"], newPozlar)
-
         setPozlar(oldPozlar => oldPozlar.filter(item => item._id.toString() !== poz._id.toString()))
 
       }

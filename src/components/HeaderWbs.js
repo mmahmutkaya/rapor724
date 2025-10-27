@@ -658,7 +658,7 @@ export default function HeaderWbs({ setShow, nameMode, setNameMode, codeMode, se
           dialogIcon={dialogAlert.dialogIcon}
           dialogMessage={dialogAlert.dialogMessage}
           detailText={dialogAlert.detailText}
-          onCloseAction={() => setDialogAlert()}
+          onCloseAction={dialogAlert.onCloseAction ? dialogAlert.onCloseAction : () => setDialogAlert()}
         />
       }
 

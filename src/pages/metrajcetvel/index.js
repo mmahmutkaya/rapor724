@@ -30,9 +30,7 @@ import LockIcon from '@mui/icons-material/Lock';
 import StarIcon from '@mui/icons-material/Star';
 import ReplyIcon from '@mui/icons-material/Reply';
 import EditIcon from '@mui/icons-material/Edit';
-import DeleteIcon from '@mui/icons-material/Delete';
-import DeleteForeverIcon from '@mui/icons-material/DeleteForever';
-
+import LinearProgress from '@mui/material/LinearProgress';
 
 
 export default function P_MetrajCetveliOnaylanan() {
@@ -41,7 +39,6 @@ export default function P_MetrajCetveliOnaylanan() {
 
   const { RealmApp, myTema, subHeaderHeight } = useContext(StoreContext)
   const { selectedProje, selectedPoz_metraj, selectedNode_metraj } = useContext(StoreContext)
-  const yetkililer = selectedProje?.yetki.yetkililer
 
   const [dialogAlert, setDialogAlert] = useState()
   const [show, setShow] = useState("Main")
@@ -63,20 +60,28 @@ export default function P_MetrajCetveliOnaylanan() {
 
 
 
-  // const { data: onaylananMetraj } = useGetOnaylananMetraj()
-  const { data: onaylananMetraj } = useGetOnaylananMetraj()
+  const { data: dataOnaylananMetraj, error, isFetching } = useGetOnaylananMetraj()
 
   const navigate = useNavigate()
   useEffect(() => {
     !selectedNode_metraj && navigate("/metrajonaylapozlar")
-    setOnaylananMetraj_state(_.cloneDeep(onaylananMetraj))
-    setOnaylananMetraj_backUp(_.cloneDeep(onaylananMetraj))
-    setHasSelectedCopySatirlar(onaylananMetraj?.satirlar.find(x => x.hasSelectedCopy) ? true : false)
-    // console.log("onaylananMetraj",onaylananMetraj)
+    setOnaylananMetraj_state(_.cloneDeep(dataOnaylananMetraj?.onaylananMetraj))
+    setOnaylananMetraj_backUp(_.cloneDeep(dataOnaylananMetraj?.onaylananMetraj))
+    setHasSelectedCopySatirlar(dataOnaylananMetraj?.onaylananMetraj?.satirlar.find(x => x.hasSelectedCopy) ? true : false)
+    // console.log("dataOnaylananMetraj?.onaylananMetraj",dataOnaylananMetraj?.onaylananMetraj)
     setShow("Main")
-  }, [onaylananMetraj])
+  }, [dataOnaylananMetraj])
 
-
+  useEffect(() => {
+    if (error) {
+      console.log("error", error)
+      setDialogAlert({
+        dialogIcon: "warning",
+        dialogMessage: "Beklenmedik hata, Rapor7/24 ile irtibata geçiniz..",
+        detailText: error?.message ? error.message : null
+      })
+    }
+  }, [error]);
 
 
   // METRAJ REVİZE ETME FONKSİYONLARI
@@ -248,9 +253,8 @@ export default function P_MetrajCetveliOnaylanan() {
 
 
   const cancel = () => {
-    // queryClient.invalidateQueries(['onaylananMetraj'])
     setOnaylananMetraj_state(_.cloneDeep(onaylananMetraj_backUp))
-    setHasSelectedCopySatirlar(onaylananMetraj?.satirlar.find(x => x.hasSelectedCopy) ? true : false)
+    setHasSelectedCopySatirlar(onaylananMetraj_backUp?.satirlar.find(x => x.hasSelectedCopy) ? true : false)
     setIsChanged()
     setShow("Main")
   }
@@ -265,7 +269,7 @@ export default function P_MetrajCetveliOnaylanan() {
 
         await RealmApp?.currentUser.callFunction("update_onaylananMetraj_revize", ({ _dugumId: selectedNode_metraj._id, onaylananMetraj_state }))
         setShow("Main")
-        queryClient.invalidateQueries(['onaylananMetraj', selectedNode_metraj?._id.toString()])
+        queryClient.invalidateQueries(['dataOnaylananMetraj', selectedNode_metraj?._id.toString()])
         setIsChanged()
         return
 
@@ -286,7 +290,7 @@ export default function P_MetrajCetveliOnaylanan() {
             setDialogAlert()
             setIsChanged()
             setShow("Main")
-            queryClient.invalidateQueries(['onaylananMetraj', selectedNode_metraj?._id.toString()])
+            queryClient.invalidateQueries(['dataOnaylananMetraj', selectedNode_metraj?._id.toString()])
           }
         }
         setDialogAlert({
@@ -470,7 +474,7 @@ export default function P_MetrajCetveliOnaylanan() {
     try {
 
       await RealmApp?.currentUser.callFunction("update_onaylananMetraj_sil", ({ _dugumId: selectedNode_metraj._id, onaylananMetraj_state }))
-      queryClient.invalidateQueries(['onaylananMetraj', selectedNode_metraj?._id.toString()])
+      queryClient.invalidateQueries(['dataOnaylananMetraj', selectedNode_metraj?._id.toString()])
       setShow("Main")
       setIsChanged_sil()
       setMode_sil()
@@ -494,7 +498,7 @@ export default function P_MetrajCetveliOnaylanan() {
           setIsChanged_sil()
           setShow("DugumMetrajlari")
           setMode_sil()
-          queryClient.invalidateQueries(['onaylananMetraj', selectedNode_metraj?._id.toString()])
+          queryClient.invalidateQueries(['dataOnaylananMetraj', selectedNode_metraj?._id.toString()])
         }
       }
       setDialogAlert({
@@ -582,7 +586,7 @@ export default function P_MetrajCetveliOnaylanan() {
           dialogIcon={dialogAlert.dialogIcon}
           dialogMessage={dialogAlert.dialogMessage}
           detailText={dialogAlert.detailText}
-          onCloseAction={dialogAlert.onCloseAction}
+          onCloseAction={dialogAlert.onCloseAction ? dialogAlert.onCloseAction : () => setDialogAlert()}
         />
       }
 
@@ -603,7 +607,14 @@ export default function P_MetrajCetveliOnaylanan() {
       </Grid>
 
 
-      {onaylananMetraj_state &&
+      {(isFetching) &&
+        <Box sx={{ width: '100%', px: "1rem", mt: "5rem", color: 'gray' }}>
+          <LinearProgress color='inherit' />
+        </Box >
+      }
+
+
+      {!isFetching && onaylananMetraj_state &&
 
         < Box sx={{ maxWidth: "65rem", display: "grid", gridTemplateColumns: gridTemplateColumns1, mt: subHeaderHeight, mb: "1rem", mx: "1rem" }}>
 

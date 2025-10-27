@@ -308,11 +308,11 @@ export default function P_MetrajOnay() {
         }
 
         if (responseJson.ok) {
-          queryClient.invalidateQueries(['onaylananMetraj'])
-          queryClient.invalidateQueries(['dataHazirlananMetrajlar'])
           setShow("Main")
           setMode_select()
           setIsChanged_select()
+          queryClient.invalidateQueries(['dataOnaylananMetraj'])
+          queryClient.invalidateQueries(['dataHazirlananMetrajlar'])
         } else {
           throw new Error("Kayıt işleminde hata oluştu, sayfayı yenileyiniz, sorun devam ederse, Rapor7/24 ile iletişime geçiniz.")
         }
@@ -329,12 +329,9 @@ export default function P_MetrajOnay() {
             setShow("Main")
             setMode_select()
             setIsChanged_select()
-            setDialogAlert()
-            queryClient.resetQueries(['onaylananMetraj'])
+            queryClient.resetQueries(['dataOnaylananMetraj'])
             queryClient.resetQueries(['dataHazirlananMetrajlar'])
-            setShow("Main")
-            setMode_select()
-            setIsChanged_select()
+            setDialogAlert()
           }
         })
 
@@ -492,38 +489,59 @@ export default function P_MetrajOnay() {
 
       try {
 
-        await RealmApp?.currentUser.callFunction("update_hazirlananMetrajlar_unReady", ({ _projeId: selectedProje._id, _dugumId: selectedNode_metraj._id, hazirlananMetrajlar_state }))
+        // await RealmApp?.currentUser.callFunction("update_hazirlananMetrajlar_unReady", ({ _projeId: selectedProje._id, _dugumId: selectedNode_metraj._id, hazirlananMetrajlar_state }))
 
-        queryClient.invalidateQueries(['onaylananMetraj', selectedNode_metraj?._id.toString()])
-        queryClient.invalidateQueries(['hazirlananMetrajlar', selectedNode_metraj?._id.toString()])
+        const response = await fetch(`/api/dugumler/updatehazirlananmetrajlarunready`, {
+          method: 'POST',
+          headers: {
+            email: appUser.email,
+            token: appUser.token,
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            dugumId: selectedNode_metraj._id,
+            hazirlananMetrajlar_state
+          })
+        })
 
-        setMode_unReady()
-        setIsChanged_unReady()
-        return
+        const responseJson = await response.json()
+
+        if (responseJson.error) {
+          if (responseJson.error.includes("expired")) {
+            setAppUser()
+            localStorage.removeItem('appUser')
+            navigate('/')
+            window.location.reload()
+          }
+          throw new Error(responseJson.error);
+        }
+
+        if (responseJson.ok) {
+          setShow("Main")
+          setMode_unReady()
+          setIsChanged_unReady()
+          queryClient.invalidateQueries(['dataOnaylananMetraj'])
+          queryClient.invalidateQueries(['dataHazirlananMetrajlar'])
+        } else {
+          throw new Error("Kayıt işleminde hata oluştu, sayfayı yenileyiniz, sorun devam ederse, Rapor7/24 ile iletişime geçiniz.")
+        }
 
       } catch (err) {
 
         console.log(err)
 
-        let dialogIcon = "warning"
-        let dialogMessage = "Beklenmedik hata, sayfayı yenileyiniz, sorun devam ederse Rapor7/24 ile irtibata geçiniz.."
-        let onCloseAction = () => setDialogAlert()
-
-        if (err.message.includes("__mesajBaslangic__") && err.message.includes("__mesajBitis__")) {
-          let mesajBaslangic = err.message.indexOf("__mesajBaslangic__") + "__mesajBaslangic__".length
-          let mesajBitis = err.message.indexOf("__mesajBitis__")
-          dialogMessage = err.message.slice(mesajBaslangic, mesajBitis)
-          dialogIcon = "info"
-          onCloseAction = () => {
-            setDialogAlert()
-            queryClient.invalidateQueries(['hazirlananMetrajlar', selectedNode_metraj?._id.toString()])
-          }
-        }
         setDialogAlert({
-          dialogIcon,
-          dialogMessage,
+          dialogIcon: "warning",
+          dialogMessage: "Beklenmedik hata, sayfayı yenileyiniz, sorun devam ederse Rapor7/24 ile irtibata geçiniz..",
           detailText: err?.message ? err.message : null,
-          onCloseAction
+          onCloseAction: () => {
+            setShow("Main")
+            setMode_unReady()
+            setIsChanged_unReady()
+            queryClient.resetQueries(['dataOnaylananMetraj'])
+            queryClient.resetQueries(['dataHazirlananMetrajlar'])
+            setDialogAlert()
+          }
         })
 
       }
@@ -683,37 +701,57 @@ export default function P_MetrajOnay() {
 
       try {
 
-        await RealmApp?.currentUser.callFunction("update_hazirlananMetrajlar_seen", ({ _projeId: selectedProje._id, _dugumId: selectedNode_metraj._id, hazirlananMetrajlar_state }))
+        // await RealmApp?.currentUser.callFunction("update_hazirlananMetrajlar_seen", ({ _projeId: selectedProje._id, _dugumId: selectedNode_metraj._id, hazirlananMetrajlar_state }))
 
-        queryClient.invalidateQueries(['hazirlananMetrajlar', selectedNode_metraj?._id.toString()])
+        const response = await fetch(`/api/dugumler/updatehazirlananmetrajlarseen`, {
+          method: 'POST',
+          headers: {
+            email: appUser.email,
+            token: appUser.token,
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            dugumId: selectedNode_metraj._id,
+            hazirlananMetrajlar_state
+          })
+        })
 
-        setMode_seen()
-        setIsChanged_seen()
-        return
+        const responseJson = await response.json()
+
+        if (responseJson.error) {
+          if (responseJson.error.includes("expired")) {
+            setAppUser()
+            localStorage.removeItem('appUser')
+            navigate('/')
+            window.location.reload()
+          }
+          throw new Error(responseJson.error);
+        }
+
+        if (responseJson.ok) {
+          setShow("Main")
+          setMode_seen()
+          setIsChanged_seen()
+          queryClient.invalidateQueries(['dataHazirlananMetrajlar'])
+        } else {
+          throw new Error("Kayıt işleminde hata oluştu, sayfayı yenileyiniz, sorun devam ederse, Rapor7/24 ile iletişime geçiniz.")
+        }
 
       } catch (err) {
 
         console.log(err)
 
-        let dialogIcon = "warning"
-        let dialogMessage = "Beklenmedik hata, sayfayı yenileyiniz, sorun devam ederse Rapor7/24 ile irtibata geçiniz.."
-        let onCloseAction = () => setDialogAlert()
-
-        if (err.message.includes("__mesajBaslangic__") && err.message.includes("__mesajBitis__")) {
-          let mesajBaslangic = err.message.indexOf("__mesajBaslangic__") + "__mesajBaslangic__".length
-          let mesajBitis = err.message.indexOf("__mesajBitis__")
-          dialogMessage = err.message.slice(mesajBaslangic, mesajBitis)
-          dialogIcon = "info"
-          onCloseAction = () => {
-            setDialogAlert()
-            queryClient.invalidateQueries(['hazirlananMetrajlar', selectedNode_metraj?._id.toString()])
-          }
-        }
         setDialogAlert({
-          dialogIcon,
-          dialogMessage,
+          dialogIcon: "warning",
+          dialogMessage: "Beklenmedik hata, sayfayı yenileyiniz, sorun devam ederse Rapor7/24 ile irtibata geçiniz..",
           detailText: err?.message ? err.message : null,
-          onCloseAction
+          onCloseAction: () => {
+            setShow("Main")
+            setMode_seen()
+            setIsChanged_seen()
+            queryClient.resetQueries(['dataHazirlananMetrajlar'])
+            setDialogAlert()
+          }
         })
 
       }
@@ -825,7 +863,7 @@ export default function P_MetrajOnay() {
           dialogIcon={dialogAlert.dialogIcon}
           dialogMessage={dialogAlert.dialogMessage}
           detailText={dialogAlert.detailText}
-          onCloseAction={dialogAlert.onCloseAction}
+          onCloseAction={dialogAlert.onCloseAction ? dialogAlert.onCloseAction : () => setDialogAlert()}
         />
       }
 

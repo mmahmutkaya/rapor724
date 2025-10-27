@@ -32,6 +32,7 @@ import ReplyIcon from '@mui/icons-material/Reply';
 import EditIcon from '@mui/icons-material/Edit';
 import DeleteIcon from '@mui/icons-material/Delete';
 import DeleteForeverIcon from '@mui/icons-material/DeleteForever';
+import LinearProgress from '@mui/material/LinearProgress';
 
 
 
@@ -39,9 +40,8 @@ export default function P_MetrajCetveliOnaylanan() {
 
   const queryClient = useQueryClient()
 
-  const { RealmApp, myTema, subHeaderHeight } = useContext(StoreContext)
+  const { appUser, setAppUser, RealmApp, myTema, subHeaderHeight } = useContext(StoreContext)
   const { selectedProje, selectedPoz_metraj, selectedNode_metraj } = useContext(StoreContext)
-  const yetkililer = selectedProje?.yetki.yetkililer
 
   const [dialogAlert, setDialogAlert] = useState()
   const [show, setShow] = useState("Main")
@@ -62,19 +62,28 @@ export default function P_MetrajCetveliOnaylanan() {
   let pozBirim
 
 
-  // const { data: onaylananMetraj } = useGetOnaylananMetraj()
-  const { data: onaylananMetraj } = useGetOnaylananMetraj()
+  const { data: dataOnaylananMetraj, error, isFetching } = useGetOnaylananMetraj()
 
   const navigate = useNavigate()
   useEffect(() => {
     !selectedNode_metraj && navigate("/metrajonaylapozlar")
-    setOnaylananMetraj_state(_.cloneDeep(onaylananMetraj))
-    setOnaylananMetraj_backUp(_.cloneDeep(onaylananMetraj))
-    setHasSelectedCopySatirlar(onaylananMetraj?.satirlar.find(x => x.hasSelectedCopy) ? true : false)
-    // console.log("onaylananMetraj", onaylananMetraj)
+    setOnaylananMetraj_state(_.cloneDeep(dataOnaylananMetraj?.onaylananMetraj))
+    setOnaylananMetraj_backUp(_.cloneDeep(dataOnaylananMetraj?.onaylananMetraj))
+    setHasSelectedCopySatirlar(dataOnaylananMetraj?.onaylananMetraj?.satirlar.find(x => x.hasSelectedCopy) ? true : false)
+    // console.log("dataOnaylananMetraj?.onaylananMetraj", dataOnaylananMetraj?.onaylananMetraj)
     setShow("Main")
-  }, [onaylananMetraj])
+  }, [dataOnaylananMetraj])
 
+  useEffect(() => {
+    if (error) {
+      console.log("error", error)
+      setDialogAlert({
+        dialogIcon: "warning",
+        dialogMessage: "Beklenmedik hata, Rapor7/24 ile irtibata geçiniz..",
+        detailText: error?.message ? error.message : null
+      })
+    }
+  }, [error]);
 
 
 
@@ -275,9 +284,8 @@ export default function P_MetrajCetveliOnaylanan() {
 
 
   const cancel = () => {
-    // queryClient.invalidateQueries(['onaylananMetraj'])
     setOnaylananMetraj_state(_.cloneDeep(onaylananMetraj_backUp))
-    setHasSelectedCopySatirlar(onaylananMetraj?.satirlar.find(x => x.hasSelectedCopy) ? true : false)
+    setHasSelectedCopySatirlar(onaylananMetraj_backUp?.satirlar.find(x => x.hasSelectedCopy) ? true : false)
     setIsChanged()
     setShow("Main")
   }
@@ -290,43 +298,63 @@ export default function P_MetrajCetveliOnaylanan() {
 
       try {
 
-        await RealmApp?.currentUser.callFunction("update_onaylananMetraj_revize", ({ _dugumId: selectedNode_metraj._id, onaylananMetraj_state }))
-        setShow("Main")
-        queryClient.invalidateQueries(['onaylananMetraj', selectedNode_metraj?._id.toString()])
-        setIsChanged()
-        return
+
+        // await RealmApp?.currentUser.callFunction("update_onaylananMetraj_revize", ({ _dugumId: selectedNode_metraj._id, onaylananMetraj_state }))
+
+        const response = await fetch(`/api/dugumler/updateonaylananmetrajrevize`, {
+          method: 'POST',
+          headers: {
+            email: appUser.email,
+            token: appUser.token,
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            dugumId: selectedNode_metraj._id,
+            onaylananMetraj_state
+          })
+        })
+
+        const responseJson = await response.json()
+
+        if (responseJson.error) {
+          if (responseJson.error.includes("expired")) {
+            setAppUser()
+            localStorage.removeItem('appUser')
+            navigate('/')
+            window.location.reload()
+          }
+          throw new Error(responseJson.error);
+        }
+
+        if (responseJson.ok) {
+          setShow("Main")
+          setIsChanged()
+          queryClient.invalidateQueries(['dataOnaylananMetraj'])
+        } else {
+          throw new Error("Kayıt işleminde hata oluştu, sayfayı yenileyiniz, sorun devam ederse, Rapor7/24 ile iletişime geçiniz.")
+        }
 
       } catch (err) {
 
         console.log(err)
 
-        let dialogIcon = "warning"
-        let dialogMessage = "Beklenmedik hata, sayfayı yenileyiniz, sorun devam ederse Rapor7/24 ile irtibata geçiniz.."
-        let onCloseAction = () => setDialogAlert()
-
-        if (err.message.includes("__mesajBaslangic__") && err.message.includes("__mesajBitis__")) {
-          let mesajBaslangic = err.message.indexOf("__mesajBaslangic__") + "__mesajBaslangic__".length
-          let mesajBitis = err.message.indexOf("__mesajBitis__")
-          dialogMessage = err.message.slice(mesajBaslangic, mesajBitis)
-          dialogIcon = "info"
-          onCloseAction = () => {
-            setDialogAlert()
-            setIsChanged()
-            setShow("Main")
-            queryClient.invalidateQueries(['onaylananMetraj', selectedNode_metraj?._id.toString()])
-          }
-        }
         setDialogAlert({
-          dialogIcon,
-          dialogMessage,
+          dialogIcon: "warning",
+          dialogMessage: "Beklenmedik hata, sayfayı yenileyiniz, sorun devam ederse Rapor7/24 ile irtibata geçiniz..",
           detailText: err?.message ? err.message : null,
-          onCloseAction
+          onCloseAction: () => {
+            setShow("Main")
+            setIsChanged()
+            queryClient.resetQueries(['dataOnaylananMetraj'])
+            setDialogAlert()
+          }
         })
 
       }
     }
 
   }
+
 
 
 
@@ -500,45 +528,63 @@ export default function P_MetrajCetveliOnaylanan() {
 
     try {
 
-      await RealmApp?.currentUser.callFunction("update_onaylananMetraj_sil", ({ _dugumId: selectedNode_metraj._id, onaylananMetraj_state }))
-      queryClient.invalidateQueries(['onaylananMetraj', selectedNode_metraj?._id.toString()])
-      setShow("Main")
-      setIsChanged_sil()
-      setMode_sil()
-      return
+      // await RealmApp?.currentUser.callFunction("update_onaylananMetraj_sil", ({ _dugumId: selectedNode_metraj._id, onaylananMetraj_state }))
+
+      setHasSelectedCopySatirlar(onaylananMetraj_state?.satirlar.find(x => x.hasSelectedCopy) ? true : false)
+
+      const response = await fetch(`/api/dugumler/updateonaylananmetrajsil`, {
+        method: 'POST',
+        headers: {
+          email: appUser.email,
+          token: appUser.token,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          dugumId: selectedNode_metraj._id,
+          onaylananMetraj_state
+        })
+      })
+
+      const responseJson = await response.json()
+
+      if (responseJson.error) {
+        if (responseJson.error.includes("expired")) {
+          setAppUser()
+          localStorage.removeItem('appUser')
+          navigate('/')
+          window.location.reload()
+        }
+        throw new Error(responseJson.error);
+      }
+
+      if (responseJson.ok) {
+        setShow("Main")
+        setIsChanged_sil()
+        setMode_sil()
+        queryClient.invalidateQueries(['dataOnaylananMetraj'])
+      } else {
+        throw new Error("Kayıt işleminde hata oluştu, sayfayı yenileyiniz, sorun devam ederse, Rapor7/24 ile iletişime geçiniz.")
+      }
 
     } catch (err) {
 
       console.log(err)
 
-      let dialogIcon = "warning"
-      let dialogMessage = "Beklenmedik hata, sayfayı yenileyiniz, sorun devam ederse Rapor7/24 ile irtibata geçiniz.."
-      let onCloseAction = () => setDialogAlert()
-
-      if (err.message.includes("__mesajBaslangic__") && err.message.includes("__mesajBitis__")) {
-        let mesajBaslangic = err.message.indexOf("__mesajBaslangic__") + "__mesajBaslangic__".length
-        let mesajBitis = err.message.indexOf("__mesajBitis__")
-        dialogMessage = err.message.slice(mesajBaslangic, mesajBitis)
-        dialogIcon = "info"
-        onCloseAction = () => {
-          setDialogAlert()
-          setIsChanged_sil()
-          setShow("DugumMetrajlari")
-          setMode_sil()
-          queryClient.invalidateQueries(['onaylananMetraj', selectedNode_metraj?._id.toString()])
-        }
-      }
       setDialogAlert({
-        dialogIcon,
-        dialogMessage,
+        dialogIcon: "warning",
+        dialogMessage: "Beklenmedik hata, sayfayı yenileyiniz, sorun devam ederse Rapor7/24 ile irtibata geçiniz..",
         detailText: err?.message ? err.message : null,
-        onCloseAction
+        onCloseAction: () => {
+          setShow("Main")
+          setIsChanged_sil()
+          setMode_sil()
+          queryClient.resetQueries(['dataOnaylananMetraj'])
+
+          setDialogAlert()
+        }
       })
 
     }
-
-    setHasSelectedCopySatirlar(onaylananMetraj_state?.satirlar.find(x => x.hasSelectedCopy) ? true : false)
-    setIsChanged_sil()
   }
 
 
@@ -612,7 +658,7 @@ export default function P_MetrajCetveliOnaylanan() {
           dialogIcon={dialogAlert.dialogIcon}
           dialogMessage={dialogAlert.dialogMessage}
           detailText={dialogAlert.detailText}
-          onCloseAction={dialogAlert.onCloseAction}
+          onCloseAction={dialogAlert.onCloseAction ? dialogAlert.onCloseAction : () => setDialogAlert()}
         />
       }
 
@@ -633,7 +679,14 @@ export default function P_MetrajCetveliOnaylanan() {
       </Grid>
 
 
-      {onaylananMetraj_state &&
+      {(isFetching) &&
+        <Box sx={{ width: '100%', px: "1rem", mt: "5rem", color: 'gray' }}>
+          <LinearProgress color='inherit' />
+        </Box >
+      }
+
+
+      {!isFetching && onaylananMetraj_state &&
 
         < Box sx={{ maxWidth: "65rem", display: "grid", gridTemplateColumns: gridTemplateColumns1, mt: subHeaderHeight, mb: "1rem", mx: "1rem" }}>
 

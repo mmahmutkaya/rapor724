@@ -16,7 +16,7 @@ import ShowMetrajYapabilenler from '../../components/ShowMetrajYapabilenler'
 import HeaderMetrajPozMahaller from '../../components/HeaderMetrajPozMahaller'
 
 
-import { useGetPozlar, useGetDugumler_byPoz, useGetMahaller } from '../../hooks/useMongo';
+import { useGetDugumler_byPoz, useGetMahaller } from '../../hooks/useMongo';
 
 import Grid from '@mui/material/Grid';
 import Alert from '@mui/material/Alert';
@@ -27,6 +27,7 @@ import Tooltip from '@mui/material/Tooltip';
 import FileDownloadDoneIcon from '@mui/icons-material/FileDownloadDone';
 import CircleIcon from '@mui/icons-material/Circle';
 import AddCircleIcon from '@mui/icons-material/AddCircle';
+import LinearProgress from '@mui/material/LinearProgress';
 
 
 export default function P_MetrajPozMahaller() {
@@ -40,7 +41,7 @@ export default function P_MetrajPozMahaller() {
   const { selectedProje, selectedPoz_metraj } = useContext(StoreContext)
   let showMetrajYapabilenler
 
-  const yetkililer = selectedProje?.yetki.yetkililer
+  const yetkililer = selectedProje?.yetkiliKisiler
 
   const { selectedNode_metraj, setSelectedNode_metraj } = useContext(StoreContext)
   const { selectedMahal_metraj, setSelectedMahal_metraj } = useContext(StoreContext)
@@ -49,7 +50,7 @@ export default function P_MetrajPozMahaller() {
   let editNodeMetraj = false
   let onayNodeMetraj = false
 
-  const customData = RealmApp.currentUser.customData
+  // const customData = RealmApp.currentUser.customData
 
   // useEffect(() => {
   //   setShowMetrajYapabilenler(RealmApp.currentUser.customData.customSettings.showMetrajYapabilenler)
@@ -76,24 +77,45 @@ export default function P_MetrajPozMahaller() {
   const pozBirim = selectedProje?.pozBirimleri.find(x => x.id == selectedPoz_metraj?.pozBirimId)?.name
 
 
-  const { data: mahaller } = useGetMahaller()
-  const { data } = useGetDugumler_byPoz()
+  const { data: dataMahaller, error: error1, isFetching: isFetching1 } = useGetMahaller()
+  const { data: dataGetDugumler_byPoz, error: error2, isFetching: isFetching2 } = useGetDugumler_byPoz()
 
 
-  const mahaller_byPoz = mahaller?.filter(oneMahal => dugumler_byPoz_state?.find(oneDugum => oneDugum._mahalId.toString() === oneMahal._id.toString()))
+  const mahaller_byPoz = dataMahaller?.mahaller?.filter(oneMahal => dugumler_byPoz_state?.find(oneDugum => oneDugum._mahalId.toString() === oneMahal._id.toString()))
 
   useEffect(() => {
     !selectedPoz_metraj && navigate('/metrajpozlar')
-    setDugumler_byPoz_state(_.cloneDeep(data?.dugumler_byPoz))
-    setDugumler_byPoz_backup(_.cloneDeep(data?.dugumler_byPoz))
-    // console.log("dugumler_byPoz",data?.dugumler_byPoz)
-    setLbsMetrajlar(_.cloneDeep(data?.lbsMetrajlar))
-    setAnySelectable(data?.anySelectable)
+    setDugumler_byPoz_state(_.cloneDeep(dataGetDugumler_byPoz?.dugumler_byPoz))
+    setDugumler_byPoz_backup(_.cloneDeep(dataGetDugumler_byPoz?.dugumler_byPoz))
+    // console.log("dugumler_byPoz",dataGetDugumler_byPoz?.dugumler_byPoz)
+    setLbsMetrajlar(_.cloneDeep(dataGetDugumler_byPoz?.lbsMetrajlar))
+    setAnySelectable(dataGetDugumler_byPoz?.anySelectable)
     return () => {
       // setselectedPoz_metraj()
       // setDugumler_filtered()
     }
-  }, [data])
+  }, [dataMahaller, dataGetDugumler_byPoz])
+
+
+  useEffect(() => {
+    if (error1) {
+      console.log("error", error1)
+      setDialogAlert({
+        dialogIcon: "warning",
+        dialogMessage: "Beklenmedik hata, Rapor7/24 ile irtibata geçiniz..",
+        detailText: error1?.message ? error1.message : null
+      })
+    }
+    if (error2) {
+      console.log("error", error2)
+      setDialogAlert({
+        dialogIcon: "warning",
+        dialogMessage: "Beklenmedik hata, Rapor7/24 ile irtibata geçiniz..",
+        detailText: error2?.message ? error2.message : null
+      })
+    }
+  }, [error1, error2]);
+
 
 
   const ikiHane = (value) => {
@@ -450,16 +472,16 @@ export default function P_MetrajPozMahaller() {
           dialogIcon={dialogAlert.dialogIcon}
           dialogMessage={dialogAlert.dialogMessage}
           detailText={dialogAlert.detailText}
-          onCloseAction={dialogAlert.onCloseAction}
+          onCloseAction={dialogAlert.onCloseAction ? dialogAlert.onCloseAction : () => setDialogAlert()}
         />
       }
 
       <Grid item >
         <HeaderMetrajPozMahaller
-          setShow={setShow}
-          anySelectable={anySelectable}
-          setMode_select={setMode_select} mode_select={mode_select}
-          isChange_select={isChange_select} setIsChange_select={setIsChange_select} cancel_select={cancel_select} save_select={save_select}
+          // setShow={setShow}
+          // anySelectable={anySelectable}
+          // setMode_select={setMode_select} mode_select={mode_select}
+          // isChange_select={isChange_select} setIsChange_select={setIsChange_select} cancel_select={cancel_select} save_select={save_select}
         />
       </Grid>
 
@@ -472,10 +494,21 @@ export default function P_MetrajPozMahaller() {
       } */}
 
 
-      {!openLbsArray?.length > 0 && <Box>henüz herhangi bir LBS mahal eklemeye açılmamış</Box>}
+      {(isFetching1 || isFetching2) &&
+        <Box sx={{ width: '100%', px: "1rem", mt: "5rem", color: 'gray' }}>
+          <LinearProgress color='inherit' />
+        </Box >
+      }
 
 
-      {openLbsArray?.length > 0 &&
+      {!(isFetching1 || isFetching2) && !openLbsArray?.length > 0 &&
+        <Box>
+          henüz herhangi bir LBS mahal eklemeye açılmamış
+        </Box>
+      }
+
+
+      {!(isFetching1 || isFetching2) && openLbsArray?.length > 0 &&
 
         <Box sx={{ m: "1rem", mt: "4.5rem", display: "grid", gridTemplateColumns: gridTemplateColumns1 }}>
 

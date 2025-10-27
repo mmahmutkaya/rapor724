@@ -131,7 +131,7 @@ export const useGetPozlar = () => {
   const { appUser, setAppUser, selectedProje } = useContext(StoreContext)
 
   return useQuery({
-    queryKey: ['pozlar'],
+    queryKey: ['dataPozlar'],
     queryFn: async () => {
       const response = await fetch('api/pozlar', {
         method: 'GET',
@@ -386,7 +386,7 @@ export const useGetDugumler_byPoz = () => {
   return useQuery({
     queryKey: ['dataMahalListesi_byPoz'],
     queryFn: async () => {
-      const response = await fetch('api/dugumler/bypoz', {
+      const response = await fetch('api/dugumler/bypoz2', {
         method: 'GET',
         headers: {
           email: appUser.email,
@@ -614,21 +614,80 @@ export const useGetHazirlananMetrajlar = () => {
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
 export const useGetOnaylananMetraj = () => {
 
-  // const RealmApp = useApp();
-  const { selectedProje, RealmApp, selectedNode_metraj } = useContext(StoreContext)
+  const navigate = useNavigate()
+  const { appUser, setAppUser, selectedNode_metraj } = useContext(StoreContext)
 
   return useQuery({
-    queryKey: ['onaylananMetraj', selectedNode_metraj?._id.toString()],
-    queryFn: () => RealmApp?.currentUser.callFunction("getOnaylananMetraj", ({ _dugumId: selectedNode_metraj?._id })),
-    enabled: !!RealmApp && !!selectedProje && !!selectedNode_metraj,
+    queryKey: ['dataOnaylananMetraj'],
+    queryFn: async () => {
+      const response = await fetch('api/dugumler/onaylananmetraj', {
+        method: 'GET',
+        headers: {
+          email: appUser.email,
+          token: appUser.token,
+          dugumid: selectedNode_metraj._id,
+          'Content-Type': 'application/json'
+        }
+      })
+
+      const responseJson = await response.json()
+
+      if (responseJson.error) {
+        if (responseJson.error.includes("expired")) {
+          setAppUser()
+          localStorage.removeItem('appUser')
+          navigate('/')
+          window.location.reload()
+        }
+        throw new Error(responseJson.error);
+      }
+
+      return responseJson
+
+    },
+    enabled: !!appUser,
     refetchOnMount: true,
-    refetchOnWindowFocus: false,
-    staleTime: 5 * 60 * 1000,
+    refetchOnWindowFocus: false
   })
 
 }
+
+
+
+
+
+
+
+
+// export const useGetOnaylananMetraj = () => {
+
+//   // const RealmApp = useApp();
+//   const { selectedProje, RealmApp, selectedNode_metraj } = useContext(StoreContext)
+
+//   return useQuery({
+//     queryKey: ['dataOnaylananMetraj'],
+//     queryFn: () => RealmApp?.currentUser.callFunction("getOnaylananMetraj", ({ _dugumId: selectedNode_metraj?._id })),
+//     enabled: !!RealmApp && !!selectedProje && !!selectedNode_metraj,
+//     refetchOnMount: true,
+//     refetchOnWindowFocus: false,
+//     staleTime: 5 * 60 * 1000,
+//   })
+
+// }
 
 
 
