@@ -9,7 +9,7 @@ import getWbsName from '../../functions/getWbsName.js';
 import { DialogAlert } from '../../components/general/DialogAlert.js';
 
 import { StoreContext } from '../../components/store.js'
-import { useGetMahalListesi_pozlar } from '../../hooks/useMongo.js';
+import { useGetPozlar } from '../../hooks/useMongo.js';
 
 
 
@@ -29,7 +29,7 @@ export default function P_MahalListesiPozlar() {
   const navigate = useNavigate()
   const queryClient = useQueryClient()
 
-  const { data: dataPozlar, error, isLoading } = useGetMahalListesi_pozlar()
+  const { data: dataPozlar, error, isLoading } = useGetPozlar()
 
   const { RealmApp, myTema } = useContext(StoreContext)
   const { selectedProje } = useContext(StoreContext)
@@ -268,8 +268,8 @@ export default function P_MahalListesiPozlar() {
                         </Box>
                       </Box>
 
-                      <Box onClick={() => gotToMahalListesiPozMahaller({ onePoz })} sx={{ ...pozNo_css, justifyItems: "start", pl: "0.5rem", backgroundColor: !hasMahal && inactiveGray }} >
-                        {ikiHane(onePoz?.onaylananMetraj)}
+                      <Box onClick={() => gotToMahalListesiPozMahaller({ onePoz })} sx={{ ...pozNo_css, justifyItems: "end", pl: "0.5rem", backgroundColor: !hasMahal && inactiveGray }} >
+                        {ikiHane(onePoz?.metrajOnaylanan)}
                       </Box>
 
                       <Box onClick={() => gotToMahalListesiPozMahaller({ onePoz })} sx={{ ...pozNo_css, backgroundColor: !hasMahal && inactiveGray }}>

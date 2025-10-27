@@ -10,7 +10,7 @@ import _ from 'lodash';
 import { DialogAlert } from '../../components/general/DialogAlert.js';
 
 import { StoreContext } from '../../components/store.js'
-import { useGetPozlar, useGetMahalListesi_mahaller_byPoz } from '../../hooks/useMongo.js';
+import { useGetDugumler_byPoz, useGetMahaller, useGetMahalListesi_mahaller_byPoz } from '../../hooks/useMongo.js';
 
 
 
@@ -30,6 +30,10 @@ export default function P_MahalListesiPozMahaller() {
   const queryClient = useQueryClient()
 
   const { data: dataMahaller, error, isLoading } = useGetMahalListesi_mahaller_byPoz()
+  const { data: dataMahaller2, error: error1, isFetching: isFetching1 } = useGetMahaller()
+  const { data: dataGetDugumler_byPoz, error: error2, isFetching: isFetching2 } = useGetDugumler_byPoz()
+
+
   const [mahaller_state, setMahaller_state] = useState()
   const [mahaller_backUp, setMahaller_backUp] = useState()
 
@@ -344,8 +348,8 @@ export default function P_MahalListesiPozMahaller() {
                         </Box>
                       </Box>
 
-                      <Box onClick={() => handleDugumToggle({ oneMahal, toggleValue: !hasDugum })} sx={{ ...mahalNo_css, justifyItems: "start", pl: "0.5rem", backgroundColor: !hasDugum && inactiveGray }} >
-                        {ikiHane(oneMahal?.onaylananMetraj)}
+                      <Box onClick={() => handleDugumToggle({ oneMahal, toggleValue: !hasDugum })} sx={{ ...mahalNo_css, justifyItems: "end", pl: "0.5rem", backgroundColor: !hasDugum && inactiveGray }} >
+                        {ikiHane(oneMahal?.metrajOnaylanan)}
                       </Box>
 
                       <Box onClick={() => handleDugumToggle({ oneMahal, toggleValue: !hasDugum })} sx={{ ...mahalNo_css, backgroundColor: !hasDugum && inactiveGray }}>
