@@ -386,7 +386,7 @@ export const useGetDugumler_byPoz = () => {
   return useQuery({
     queryKey: ['dataMahalListesi_byPoz'],
     queryFn: async () => {
-      const response = await fetch('api/dugumler/bypoz2', {
+      const response = await fetch('api/dugumler/bypoz', {
         method: 'GET',
         headers: {
           email: appUser.email,
