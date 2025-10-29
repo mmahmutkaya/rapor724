@@ -26,7 +26,7 @@ import FileDownloadDoneIcon from '@mui/icons-material/FileDownloadDone';
 import EditIcon from '@mui/icons-material/Edit';
 
 
-export default function HeaderMetrajPozlar({ createVersiyon_metraj }) {
+export default function HeaderMetrajPozlar() {
 
   const { drawerWidth, topBarHeight } = useContext(StoreContext)
   const { selectedProje } = useContext(StoreContext)
@@ -36,28 +36,10 @@ export default function HeaderMetrajPozlar({ createVersiyon_metraj }) {
   const navigate = useNavigate()
 
 
-  const showVersiyon = () => {
-    setShowEminMisin_versiyon(true)
-  }
 
 
   return (
     <Paper >
-
-      {showEminMisin_versiyon &&
-        <DialogAlert
-          dialogIcon={"none"}
-          dialogMessage={"Mevcut metrajlar yeni versiyon olarak kaydedilsin mi?"}
-          onCloseAction={() => setShowEminMisin_versiyon()}
-          actionText1={"İptal"}
-          action1={() => setShowEminMisin_versiyon()}
-          actionText2={"Onayla"}
-          action2={() => {
-            createVersiyon_metraj()
-            setShowEminMisin_versiyon()
-          }}
-        />
-      }
 
       <AppBar
         position="fixed"
@@ -95,12 +77,6 @@ export default function HeaderMetrajPozlar({ createVersiyon_metraj }) {
             <Grid container >
 
 
-
-
-              <Grid item onClick={() => showVersiyon()} sx={{ cursor: "pointer" }}>
-                {/* <EditIcon variant="contained" sx={{ color: editNodeMetraj ? "gray" : "lightgray", "&:hover": { color: "gray" } }} /> */}
-                <Avatar sx={{ height: "1.7rem", width: "1.7rem", fontSize: "0.8rem", fontWeight: 600, color: "black" }}>V</Avatar>
-              </Grid>
 
               {/* <Grid item onClick={() => toggleOnay()} sx={{ cursor: "pointer" }}>
                 <IconButton disabled={false} >

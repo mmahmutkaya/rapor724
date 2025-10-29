@@ -84,73 +84,6 @@ export default function P_MetrajPozlar() {
 
 
 
-  // Edit Metraj Sayfasının Fonksiyonu
-  const createVersiyon_metraj = async () => {
-
-    try {
-
-      // const resultProje = await RealmApp?.currentUser.callFunction("createVersiyon_metraj", ({ _projeId: selectedProje?._id }))
-
-      const response = await fetch(`api/versiyon/metraj`, {
-        method: 'POST',
-        headers: {
-          email: appUser.email,
-          token: appUser.token,
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-          projeId: selectedProje?._id
-        })
-      })
-
-      const responseJson = await response.json()
-
-      if (responseJson.error) {
-        if (responseJson.error.includes("expired")) {
-          setAppUser()
-          localStorage.removeItem('appUser')
-          navigate('/')
-          window.location.reload()
-        }
-        throw new Error(responseJson.error);
-      }
-
-      if (responseJson.proje) {
-        queryClient.invalidateQueries(['dataPozlar'])
-        setSelectedProje(responseJson.proje)
-      } else {
-        console.log("responseJson", responseJson)
-        throw new Error("Kayıt işlemi gerçekleşmedi, sayfayı yenileyiniz, sorun devam ederse Rapor7/24 ile irtibata geçiniz..")
-      }
-
-
-    } catch (err) {
-
-      console.log(err)
-
-      setDialogAlert({
-        dialogIcon: "warning",
-        dialogMessage: "Beklenmedik hata, sayfayı yenileyiniz, sorun devam ederse Rapor7/24 ile irtibata geçiniz..",
-        detailText: err?.message ? err.message : null,
-        onCloseAction: () => {
-          setDialogAlert()
-          queryClient.invalidateQueries(['dataPozlar'])
-        }
-      })
-    }
-  }
-
-
-
-
-
-
-
-
-
-
-
-
   const ikiHane = (value) => {
     if (!value) {
       return ""
@@ -229,7 +162,6 @@ export default function P_MetrajPozlar() {
 
       {/* BAŞLIK */}
       <HeaderMetrajPozlar
-        createVersiyon_metraj={createVersiyon_metraj}
       />
 
 

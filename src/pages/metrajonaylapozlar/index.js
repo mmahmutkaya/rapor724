@@ -41,7 +41,7 @@ export default function P_MetrajOnaylaPozlar() {
   let pozlar = data?.pozlar?.filter(x => x.hasDugum)
   // console.log("pozşar", pozlar)
 
-  const { RealmApp, appUser, setAppUser, myTema } = useContext(StoreContext)
+  const { setSelectedProje, appUser, setAppUser, myTema } = useContext(StoreContext)
   const { showMetrajYapabilenler, setShowMetrajYapabilenler } = useContext(StoreContext)
 
   // const { customData } = RealmApp?.currentUser
@@ -86,6 +86,64 @@ export default function P_MetrajOnaylaPozlar() {
   const pozVersiyonShow = false
 
   const wbsArray_hasMahal = selectedProje?.wbs.filter(oneWbs => pozlar?.find(onePoz => onePoz._wbsId.toString() === oneWbs._id.toString()))
+
+
+
+  const createVersiyon_metraj = async () => {
+
+    try {
+
+      // const resultProje = await RealmApp?.currentUser.callFunction("createVersiyon_metraj", ({ _projeId: selectedProje?._id }))
+
+      const response = await fetch(`api/versiyon/metraj`, {
+        method: 'POST',
+        headers: {
+          email: appUser.email,
+          token: appUser.token,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          projeId: selectedProje?._id
+        })
+      })
+
+      const responseJson = await response.json()
+
+      if (responseJson.error) {
+        if (responseJson.error.includes("expired")) {
+          setAppUser()
+          localStorage.removeItem('appUser')
+          navigate('/')
+          window.location.reload()
+        }
+        throw new Error(responseJson.error);
+      }
+
+      if (responseJson.proje) {
+        queryClient.invalidateQueries(['dataPozlar'])
+        setSelectedProje(responseJson.proje)
+      } else {
+        console.log("responseJson", responseJson)
+        throw new Error("Kayıt işlemi gerçekleşmedi, sayfayı yenileyiniz, sorun devam ederse Rapor7/24 ile irtibata geçiniz..")
+      }
+
+
+    } catch (err) {
+
+      console.log(err)
+
+      setDialogAlert({
+        dialogIcon: "warning",
+        dialogMessage: "Beklenmedik hata, sayfayı yenileyiniz, sorun devam ederse Rapor7/24 ile irtibata geçiniz..",
+        detailText: err?.message ? err.message : null,
+        onCloseAction: () => {
+          setDialogAlert()
+          queryClient.invalidateQueries(['dataPozlar'])
+        }
+      })
+    }
+  }
+
 
 
 
@@ -169,6 +227,7 @@ export default function P_MetrajOnaylaPozlar() {
       <HeaderMetrajOnaylaPozlar
         show={show}
         setShow={setShow}
+        createVersiyon_metraj={createVersiyon_metraj}
       />
 
 

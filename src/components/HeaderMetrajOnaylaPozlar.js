@@ -1,6 +1,7 @@
 import React from 'react'
 import { useState, useContext, useEffect } from 'react';
 import { useNavigate } from "react-router-dom";
+import { DialogAlert } from './general/DialogAlert';
 
 import { StoreContext } from './store'
 
@@ -23,13 +24,22 @@ import AlignHorizontalRightOutlinedIcon from '@mui/icons-material/AlignHorizonta
 import AlignHorizontalCenterOutlinedIcon from '@mui/icons-material/AlignHorizontalCenterOutlined';
 import FileDownloadDoneIcon from '@mui/icons-material/FileDownloadDone';
 import EditIcon from '@mui/icons-material/Edit';
+import Avatar from '@mui/material/Avatar';
 import PersonIcon from '@mui/icons-material/Person';
 
 
-export default function HeaderMetrajOnaylaPozlar({ setShow }) {
+export default function HeaderMetrajOnaylaPozlar({ setShow, createVersiyon_metraj }) {
 
   const { drawerWidth, topBarHeight } = useContext(StoreContext)
   const { selectedPoz, setSelectedPoz } = useContext(StoreContext)
+
+  const [showEminMisin_versiyon, setShowEminMisin_versiyon] = useState(false)
+
+
+  const showVersiyon = () => {
+    setShowEminMisin_versiyon(true)
+  }
+
 
   // const { editNodeMetraj, setEditNodeMetraj } = useContext(StoreContext)
   // const { onayNodeMetraj, setOnayNodeMetraj } = useContext(StoreContext)
@@ -41,6 +51,21 @@ export default function HeaderMetrajOnaylaPozlar({ setShow }) {
 
   return (
     <Paper >
+
+      {showEminMisin_versiyon &&
+        <DialogAlert
+          dialogIcon={"none"}
+          dialogMessage={"Mevcut metrajlar yeni versiyon olarak kaydedilsin mi?"}
+          onCloseAction={() => setShowEminMisin_versiyon()}
+          actionText1={"İptal"}
+          action1={() => setShowEminMisin_versiyon()}
+          actionText2={"Onayla"}
+          action2={() => {
+            createVersiyon_metraj()
+            setShowEminMisin_versiyon()
+          }}
+        />
+      }
 
       <AppBar
         position="fixed"
@@ -98,6 +123,14 @@ export default function HeaderMetrajOnaylaPozlar({ setShow }) {
                     <PersonIcon variant="contained" />
                   </IconButton>
                 </Grid>
+
+                <Grid item >
+                  <IconButton onClick={() => showVersiyon()} disabled={false}>
+                    <Avatar sx={{ height: "1.5rem", width: "1.5rem", fontSize: "0.7rem", fontWeight: 600, color: "black" }}>V</Avatar>
+                  </IconButton>
+                </Grid>
+
+
 
               </>
 
