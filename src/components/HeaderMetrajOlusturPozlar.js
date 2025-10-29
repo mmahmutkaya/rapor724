@@ -28,7 +28,7 @@ import EditIcon from '@mui/icons-material/Edit';
 export default function HeaderMetrajOlusturPozlar({ setShow }) {
 
   const { drawerWidth, topBarHeight } = useContext(StoreContext)
-  const { selectedPoz_metraj, setSelectedPoz_metraj } = useContext(StoreContext)
+  const { selectedPoz, setSelectedPoz } = useContext(StoreContext)
 
   // const { editNodeMetraj, setEditNodeMetraj } = useContext(StoreContext)
   // const { onayNodeMetraj, setOnayNodeMetraj } = useContext(StoreContext)
@@ -88,7 +88,7 @@ export default function HeaderMetrajOlusturPozlar({ setShow }) {
             <Grid container >
 
 
-              {!selectedPoz_metraj &&
+              {!selectedPoz &&
                 <>
 
                   {/* <Grid item onClick={() => toggleEdit()} sx={{ cursor: "pointer" }}>
@@ -112,10 +112,10 @@ export default function HeaderMetrajOlusturPozlar({ setShow }) {
                 </>
               }
 
-              {/* {selectedPoz_metraj &&
+              {/* {selectedPoz &&
                 <>
                   <Grid item >
-                    <IconButton onClick={() => setSelectedPoz_metraj()}>
+                    <IconButton onClick={() => setSelectedPoz()}>
                       <ClearOutlined variant="contained" sx={{ color: "red" }} />
                     </IconButton>
                   </Grid>

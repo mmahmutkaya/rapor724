@@ -332,7 +332,7 @@ export const useGetMahalListesi_byPoz = () => {
   const { selectedProje, RealmApp, selectedPoz_forMahalListesi } = useContext(StoreContext)
 
   return useQuery({
-    queryKey: ['mahalListesi_byPoz'],
+    queryKey: ['selectedPoz'],
     queryFn: () => RealmApp?.currentUser.callFunction("getMahalListesi_byPoz", ({ _projeId: selectedProje?._id, _pozId: selectedPoz_forMahalListesi._id })),
     enabled: !!RealmApp && !!selectedProje && !!selectedPoz_forMahalListesi,
     refetchOnMount: true,
@@ -381,7 +381,7 @@ export const useGetDugumler = () => {
 export const useGetDugumler_byPoz = () => {
 
   const navigate = useNavigate()
-  const { appUser, setAppUser, selectedProje, selectedPoz_metraj } = useContext(StoreContext)
+  const { appUser, setAppUser, selectedProje, selectedPoz } = useContext(StoreContext)
 
   return useQuery({
     queryKey: ['dataMahalListesi_byPoz'],
@@ -392,7 +392,7 @@ export const useGetDugumler_byPoz = () => {
           email: appUser.email,
           token: appUser.token,
           projeid: selectedProje._id,
-          pozid: selectedPoz_metraj._id,
+          pozid: selectedPoz._id,
           'Content-Type': 'application/json'
         }
       })
@@ -423,12 +423,12 @@ export const useGetDugumler_byPoz = () => {
 // export const useGetDugumler_byPoz = () => {
 
 //   // const RealmApp = useApp();
-//   const { RealmApp, selectedProje, selectedPoz_metraj } = useContext(StoreContext)
+//   const { RealmApp, selectedProje, selectedPoz } = useContext(StoreContext)
 
 //   return useQuery({
 //     queryKey: ['dugumler_byPoz'],
-//     queryFn: () => RealmApp?.currentUser.callFunction("getDugumler_byPoz", ({ _projeId: selectedProje?._id, _pozId: selectedPoz_metraj?._id })),
-//     enabled: !!RealmApp && !!selectedPoz_metraj,
+//     queryFn: () => RealmApp?.currentUser.callFunction("getDugumler_byPoz", ({ _projeId: selectedProje?._id, _pozId: selectedPoz?._id })),
+//     enabled: !!RealmApp && !!selectedPoz,
 //     refetchOnMount: true,
 //     refetchOnWindowFocus: false,
 //     // select: (data) => data.mahalListesi,
@@ -464,7 +464,7 @@ export const useGetMahalListesi = () => {
 export const useGetHazirlananMetraj = () => {
 
   const navigate = useNavigate()
-  const { appUser, setAppUser, selectedNode_metraj } = useContext(StoreContext)
+  const { appUser, setAppUser, selectedNode } = useContext(StoreContext)
 
   return useQuery({
     queryKey: ['dataHazirlananMetraj'],
@@ -474,7 +474,7 @@ export const useGetHazirlananMetraj = () => {
         headers: {
           email: appUser.email,
           token: appUser.token,
-          dugumid: selectedNode_metraj._id,
+          dugumid: selectedNode._id,
           'Content-Type': 'application/json'
         }
       })
@@ -510,13 +510,13 @@ export const useGetHazirlananMetraj = () => {
 // export const useGetHazirlananMetraj = (onError) => {
 
 //   // const RealmApp = useApp();
-//   const { RealmApp, selectedNode_metraj } = useContext(StoreContext)
+//   const { RealmApp, selectedNode } = useContext(StoreContext)
 
 //   return useQuery({
-//     // queryKey: ['hazirlananMetraj', selectedNode_metraj?._id.toString() + `--` + RealmApp.currentUser.customData.email],
-//     queryKey: ['hazirlananMetraj', selectedNode_metraj?._id.toString()],
-//     queryFn: () => RealmApp?.currentUser.callFunction("getHazirlananMetraj", ({ _dugumId: selectedNode_metraj._id })),
-//     enabled: !!RealmApp && !!selectedNode_metraj,
+//     // queryKey: ['hazirlananMetraj', selectedNode?._id.toString() + `--` + RealmApp.currentUser.customData.email],
+//     queryKey: ['hazirlananMetraj', selectedNode?._id.toString()],
+//     queryFn: () => RealmApp?.currentUser.callFunction("getHazirlananMetraj", ({ _dugumId: selectedNode._id })),
+//     enabled: !!RealmApp && !!selectedNode,
 //     onError,
 //     refetchOnMount: true,
 //     refetchOnWindowFocus: false,
@@ -533,7 +533,7 @@ export const useGetHazirlananMetraj = () => {
 export const useGetHazirlananMetrajlar = () => {
 
   const navigate = useNavigate()
-  const { appUser, setAppUser, selectedNode_metraj } = useContext(StoreContext)
+  const { appUser, setAppUser, selectedNode } = useContext(StoreContext)
 
   return useQuery({
     queryKey: ['dataHazirlananMetrajlar'],
@@ -543,7 +543,7 @@ export const useGetHazirlananMetrajlar = () => {
         headers: {
           email: appUser.email,
           token: appUser.token,
-          dugumid: selectedNode_metraj._id,
+          dugumid: selectedNode._id,
           'Content-Type': 'application/json'
         }
       })
@@ -578,12 +578,12 @@ export const useGetHazirlananMetrajlar = () => {
 // export const useGetHazirlananMetrajlar = () => {
 
 //   // const RealmApp = useApp();
-//   const { selectedProje, RealmApp, selectedNode_metraj } = useContext(StoreContext)
+//   const { selectedProje, RealmApp, selectedNode } = useContext(StoreContext)
 
 //   return useQuery({
-//     queryKey: ['hazirlananMetrajlar', selectedNode_metraj?._id.toString()],
-//     queryFn: () => RealmApp?.currentUser.callFunction("getHazirlananMetrajlar", ({ _projeId: selectedProje._id, _dugumId: selectedNode_metraj?._id })),
-//     enabled: !!RealmApp && !!selectedProje && !!selectedNode_metraj,
+//     queryKey: ['hazirlananMetrajlar', selectedNode?._id.toString()],
+//     queryFn: () => RealmApp?.currentUser.callFunction("getHazirlananMetrajlar", ({ _projeId: selectedProje._id, _dugumId: selectedNode?._id })),
+//     enabled: !!RealmApp && !!selectedProje && !!selectedNode,
 //     refetchOnMount: true,
 //     refetchOnWindowFocus: false
 //     // staleTime: 5 * 60 * 1000,
@@ -598,12 +598,12 @@ export const useGetHazirlananMetrajlar = () => {
 // export const useGetHazirlananVeOnaylananMetrajlar = () => {
 
 //   // const RealmApp = useApp();
-//   const { selectedProje, RealmApp, selectedNode_metraj } = useContext(StoreContext)
+//   const { selectedProje, RealmApp, selectedNode } = useContext(StoreContext)
 
 //   return useQuery({
-//     queryKey: ['hazirlananVeOnaylananMetrajlar', selectedNode_metraj?._id.toString()],
-//     queryFn: () => RealmApp?.currentUser.callFunction("getHazirlananVeOnaylananMetrajlar", ({ _dugumId: selectedNode_metraj?._id })),
-//     enabled: !!RealmApp && !!selectedProje && !!selectedNode_metraj,
+//     queryKey: ['hazirlananVeOnaylananMetrajlar', selectedNode?._id.toString()],
+//     queryFn: () => RealmApp?.currentUser.callFunction("getHazirlananVeOnaylananMetrajlar", ({ _dugumId: selectedNode?._id })),
+//     enabled: !!RealmApp && !!selectedProje && !!selectedNode,
 //     refetchOnMount: true,
 //     refetchOnWindowFocus: false,
 //     staleTime: 5 * 60 * 1000,
@@ -629,7 +629,7 @@ export const useGetHazirlananMetrajlar = () => {
 export const useGetOnaylananMetraj = () => {
 
   const navigate = useNavigate()
-  const { appUser, setAppUser, selectedNode_metraj } = useContext(StoreContext)
+  const { appUser, setAppUser, selectedNode } = useContext(StoreContext)
 
   return useQuery({
     queryKey: ['dataOnaylananMetraj'],
@@ -639,7 +639,7 @@ export const useGetOnaylananMetraj = () => {
         headers: {
           email: appUser.email,
           token: appUser.token,
-          dugumid: selectedNode_metraj._id,
+          dugumid: selectedNode._id,
           'Content-Type': 'application/json'
         }
       })
@@ -676,12 +676,12 @@ export const useGetOnaylananMetraj = () => {
 // export const useGetOnaylananMetraj = () => {
 
 //   // const RealmApp = useApp();
-//   const { selectedProje, RealmApp, selectedNode_metraj } = useContext(StoreContext)
+//   const { selectedProje, RealmApp, selectedNode } = useContext(StoreContext)
 
 //   return useQuery({
 //     queryKey: ['dataOnaylananMetraj'],
-//     queryFn: () => RealmApp?.currentUser.callFunction("getOnaylananMetraj", ({ _dugumId: selectedNode_metraj?._id })),
-//     enabled: !!RealmApp && !!selectedProje && !!selectedNode_metraj,
+//     queryFn: () => RealmApp?.currentUser.callFunction("getOnaylananMetraj", ({ _dugumId: selectedNode?._id })),
+//     enabled: !!RealmApp && !!selectedProje && !!selectedNode,
 //     refetchOnMount: true,
 //     refetchOnWindowFocus: false,
 //     staleTime: 5 * 60 * 1000,

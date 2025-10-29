@@ -116,10 +116,10 @@ export default function HeaderMetrajPozlar({ createVersiyon_metraj }) {
 
 
 
-              {/* {selectedPoz_metraj &&
+              {/* {selectedPoz &&
                 <>
                   <Grid item >
-                    <IconButton onClick={() => setSelectedPoz_metraj()}>
+                    <IconButton onClick={() => setSelectedPoz()}>
                       <ClearOutlined variant="contained" sx={{ color: "red" }} />
                     </IconButton>
                   </Grid>

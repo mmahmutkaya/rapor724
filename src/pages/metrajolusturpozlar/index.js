@@ -41,7 +41,7 @@ export default function P_MetrajOlusturPozlar() {
   // console.log("dataPozlar.pozlar", dataPozlar?.pozlar)
 
   const { appUser, setAppUser, RealmApp, selectedProje, myTema } = useContext(StoreContext)
-  const { selectedPoz_metraj, setSelectedPoz_metraj } = useContext(StoreContext)
+  const { selectedPoz, setSelectedPoz } = useContext(StoreContext)
 
   const metrajYapabilenler = selectedProje?.yetkiliKisiler.filter(x => x.yetkiler.find(x => x.name === "owner"))
 
@@ -142,7 +142,7 @@ export default function P_MetrajOlusturPozlar() {
 
   const goTo_MetrajPozmahaller = (onePoz) => {
     navigate('/metrajolusturpozmahaller')
-    setSelectedPoz_metraj(onePoz)
+    setSelectedPoz(onePoz)
   }
 
   const metrajYapabilenlerColumns = " 1rem repeat(" + metrajYapabilenler?.length + ", max-content)"
@@ -354,7 +354,7 @@ export default function P_MetrajOlusturPozlar() {
 
                   let isSelected = false
 
-                  if (selectedPoz_metraj?._id.toString() === onePoz._id.toString()) {
+                  if (selectedPoz?._id.toString() === onePoz._id.toString()) {
                     isSelected = true
                   }
 

@@ -41,7 +41,7 @@ export default function P_MetrajCetveliOnaylanan() {
   const queryClient = useQueryClient()
 
   const { appUser, setAppUser, RealmApp, myTema, subHeaderHeight } = useContext(StoreContext)
-  const { selectedProje, selectedPoz_metraj, selectedNode_metraj } = useContext(StoreContext)
+  const { selectedProje, selectedPoz, selectedNode_metraj } = useContext(StoreContext)
 
   const [dialogAlert, setDialogAlert] = useState()
   const [show, setShow] = useState("Main")
@@ -645,7 +645,7 @@ export default function P_MetrajCetveliOnaylanan() {
 
   const gridTemplateColumns1 = 'max-content minmax(min-content, 5fr) repeat(7, minmax(min-content, 1fr)) 0.5rem max-content'
 
-  pozBirim = selectedProje?.pozBirimleri.find(item => item.id == selectedPoz_metraj?.pozBirimId)?.name
+  pozBirim = selectedProje?.pozBirimleri.find(item => item.id == selectedPoz?.pozBirimId)?.name
 
   let emailAdress
 

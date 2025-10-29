@@ -38,13 +38,13 @@ export default function P_MetrajPozMahaller() {
 
   const [dialogAlert, setDialogAlert] = useState()
 
-  const { selectedProje, selectedPoz_metraj } = useContext(StoreContext)
+  const { selectedProje, selectedPoz } = useContext(StoreContext)
   let showMetrajYapabilenler
 
   const yetkililer = selectedProje?.yetkiliKisiler
 
-  const { selectedNode_metraj, setSelectedNode_metraj } = useContext(StoreContext)
-  const { selectedMahal_metraj, setSelectedMahal_metraj } = useContext(StoreContext)
+  const { selectedNode, setSelectedNode } = useContext(StoreContext)
+  const { selectedMahal, setSelectedMahal } = useContext(StoreContext)
 
 
   let editNodeMetraj = false
@@ -74,7 +74,7 @@ export default function P_MetrajPozMahaller() {
 
   const navigate = useNavigate()
 
-  const pozBirim = selectedProje?.pozBirimleri.find(x => x.id == selectedPoz_metraj?.pozBirimId)?.name
+  const pozBirim = selectedProje?.pozBirimleri.find(x => x.id == selectedPoz?.pozBirimId)?.name
 
 
   const { data: dataMahaller, error: error1, isFetching: isFetching1 } = useGetMahaller()
@@ -84,16 +84,12 @@ export default function P_MetrajPozMahaller() {
   const mahaller_byPoz = dataMahaller?.mahaller?.filter(oneMahal => dugumler_byPoz_state?.find(oneDugum => oneDugum._mahalId.toString() === oneMahal._id.toString()))
 
   useEffect(() => {
-    !selectedPoz_metraj && navigate('/metrajpozlar')
+    !selectedPoz && navigate('/metrajpozlar')
     setDugumler_byPoz_state(_.cloneDeep(dataGetDugumler_byPoz?.dugumler_byPoz))
     setDugumler_byPoz_backup(_.cloneDeep(dataGetDugumler_byPoz?.dugumler_byPoz))
     // console.log("dugumler_byPoz",dataGetDugumler_byPoz?.dugumler_byPoz)
     setLbsMetrajlar(_.cloneDeep(dataGetDugumler_byPoz?.lbsMetrajlar))
     setAnySelectable(dataGetDugumler_byPoz?.anySelectable)
-    return () => {
-      // setselectedPoz_metraj()
-      // setDugumler_filtered()
-    }
   }, [dataMahaller, dataGetDugumler_byPoz])
 
 
@@ -360,8 +356,8 @@ export default function P_MetrajPozMahaller() {
 
         await RealmApp?.currentUser.callFunction("update_hazirlananMetrajlar_selectedFull", ({ dugumler_byPoz_state }))
 
-        // queryClient.invalidateQueries(['onaylananMetraj', selectedNode_metraj?._id.toString()])
-        // queryClient.invalidateQueries(['hazirlananMetrajlar', selectedNode_metraj?._id.toString()])
+        // queryClient.invalidateQueries(['onaylananMetraj', selectedNode?._id.toString()])
+        // queryClient.invalidateQueries(['hazirlananMetrajlar', selectedNode?._id.toString()])
         queryClient.invalidateQueries(['dugumler_byPoz'])
 
         setIsChange_select()
@@ -408,8 +404,8 @@ export default function P_MetrajPozMahaller() {
 
 
   const goTo_MetrajOnaylaCetvel = ({ dugum, oneMahal }) => {
-    setSelectedNode_metraj(dugum)
-    setSelectedMahal_metraj(oneMahal)
+    setSelectedNode(dugum)
+    setSelectedMahal(oneMahal)
     navigate('/metrajcetvel')
   }
 
@@ -418,8 +414,8 @@ export default function P_MetrajPozMahaller() {
 
   const goTo_onayCetveli = ({ dugum, oneMahal, userEmail }) => {
     // console.log("userEmail", userEmail)
-    setSelectedNode_metraj(dugum)
-    setSelectedMahal_metraj(oneMahal)
+    setSelectedNode(dugum)
+    setSelectedMahal(oneMahal)
 
     let showMetrajYapabilenler2 = _.cloneDeep(showMetrajYapabilenler)
 
@@ -516,10 +512,10 @@ export default function P_MetrajPozMahaller() {
           <>
 
             <Box sx={{ ...css_enUstBaslik, borderLeft: "1px solid black", justifyContent: "start" }}>
-              {selectedPoz_metraj.pozNo}
+              {selectedPoz.pozNo}
             </Box>
             <Box sx={{ ...css_enUstBaslik }}>
-              {selectedPoz_metraj.pozName}
+              {selectedPoz.pozName}
             </Box>
             <Box sx={{ ...css_enUstBaslik, justifyContent: "center" }}>
               Miktar
@@ -576,7 +572,7 @@ export default function P_MetrajPozMahaller() {
               Toplam Metraj
             </Box>
             <Box sx={{ ...css_enUstBaslik, justifyContent: "end" }}>
-              {ikiHane(selectedPoz_metraj?.metrajOnaylanan)}
+              {ikiHane(selectedPoz?.metrajOnaylanan)}
             </Box>
             <Box sx={{ ...css_enUstBaslik, justifyContent: "center" }}>
               {pozBirim}
@@ -586,7 +582,7 @@ export default function P_MetrajPozMahaller() {
               <>
                 <Box> </Box>
                 <Box sx={{ ...css_enUstBaslik, justifyContent: "end", borderLeft: "1px solid black" }}>
-                  {ikiHane(selectedPoz_metraj?.hazirlananMetrajlar?.find(x => x.userEmail === customData.email)?.metraj)}
+                  {ikiHane(selectedPoz?.hazirlananMetrajlar?.find(x => x.userEmail === customData.email)?.metraj)}
                 </Box>
               </>
             } */}
@@ -600,7 +596,7 @@ export default function P_MetrajPozMahaller() {
                       onClick={() => mode_select && addNodes_select({ tip: "all", userEmail: oneYapabilen.userEmail })}
                       key={index}
                       sx={{ ...css_enUstBaslik, cursor: mode_select && "pointer", borderLeft: "1px solid black", justifyContent: "end" }}>
-                      {ikiHane(selectedPoz_metraj.hazirlananMetrajlar.find(x => x.userEmail === oneYapabilen.userEmail)?.metrajReady)}
+                      {ikiHane(selectedPoz.hazirlananMetrajlar.find(x => x.userEmail === oneYapabilen.userEmail)?.metrajReady)}
                     </Box>
                   )
                 })}
@@ -661,7 +657,7 @@ export default function P_MetrajPozMahaller() {
                 {/* MAHAL SATIRLARI */}
                 {mahaller_byPoz_byLbs?.map((oneMahal, index) => {
 
-                  let dugum = dugumler_byPoz_state?.find(oneDugum => oneDugum._pozId.toString() === selectedPoz_metraj._id.toString() && oneDugum._mahalId.toString() === oneMahal._id.toString())
+                  let dugum = dugumler_byPoz_state?.find(oneDugum => oneDugum._pozId.toString() === selectedPoz._id.toString() && oneDugum._mahalId.toString() === oneMahal._id.toString())
                   if (!dugum) {
                     // console.log("olmayan dugum tespit edildi ve return oldu hata olmaması için")
                     return

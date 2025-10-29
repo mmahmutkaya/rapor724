@@ -46,7 +46,7 @@ export default function HeaderMetrajPozMahaller() {
   // const RealmApp = useApp();
   const { RealmApp } = useContext(StoreContext)
 
-  const { selectedPoz_metraj, setSelectedPoz_metraj } = useContext(StoreContext)
+  const { selectedPoz, setSelectedPoz } = useContext(StoreContext)
   const { selectedPoz_metrajBaslik, setSelectedPoz_metrajBaslik } = useContext(StoreContext)
 
   const [willBeUpdate_mahalBaslik, setWillBeUpdate_mahalBaslik] = useState(false)
@@ -105,7 +105,7 @@ export default function HeaderMetrajPozMahaller() {
               variant="h6"
               fontWeight="bold"
             >
-              {selectedPoz_metraj?.pozName}
+              {selectedPoz?.pozName}
             </Typography>
           </Grid> */}
 
@@ -116,7 +116,7 @@ export default function HeaderMetrajPozMahaller() {
               <IconButton sx={{ m: 0, py: "0.3rem", px:0 }}
                 onClick={() => {
                   navigate("/metrajpozlar")
-                  setSelectedPoz_metraj()
+                  setSelectedPoz()
                 }}
                 aria-label="wbsUncliced">
                 <ReplyIcon variant="contained"
@@ -125,7 +125,7 @@ export default function HeaderMetrajPozMahaller() {
               </IconButton>
 
               <Box>
-                {selectedPoz_metraj?.pozName}
+                {selectedPoz?.pozName}
               </Box>
               <Box sx={{ color: "#8B0000", fontWeight: "600" }}>
                 {" > "}
@@ -158,7 +158,7 @@ export default function HeaderMetrajPozMahaller() {
                 </IconButton>
               </Grid> */}
 
-              {/* <Grid item onClick={() => console.log("selectedPoz_metraj", selectedPoz_metraj)} sx={{ cursor: "pointer" }}>
+              {/* <Grid item onClick={() => console.log("selectedPoz", selectedPoz)} sx={{ cursor: "pointer" }}>
                 <IconButton aria-label="addPoz">
                   <VisibilityIcon variant="contained" sx={{ color: "gray" }} />
                 </IconButton>

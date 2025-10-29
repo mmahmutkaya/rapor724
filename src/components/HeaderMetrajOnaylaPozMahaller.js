@@ -44,7 +44,7 @@ export default function HeaderMetrajOnaylaPozMahaller({
 
   const { drawerWidth, topBarHeight } = useContext(StoreContext)
 
-  const { selectedPoz_metraj, setSelectedPoz_metraj } = useContext(StoreContext)
+  const { selectedPoz, setSelectedPoz } = useContext(StoreContext)
 
   const [showEminMisin_select, setShowEminMisin_select] = useState(false)
 
@@ -97,7 +97,7 @@ export default function HeaderMetrajOnaylaPozMahaller({
               variant="h6"
               fontWeight="bold"
             >
-              {selectedPoz_metraj?.pozName}
+              {selectedPoz?.pozName}
             </Typography>
           </Grid> */}
 
@@ -107,7 +107,7 @@ export default function HeaderMetrajOnaylaPozMahaller({
               <IconButton sx={{ m: 0, p: 0 }}
                 onClick={() => {
                   navigate("/metrajonaylapozlar")
-                  setSelectedPoz_metraj()
+                  setSelectedPoz()
                 }}
                 aria-label="wbsUncliced">
                 <ReplyIcon variant="contained"
@@ -115,7 +115,7 @@ export default function HeaderMetrajOnaylaPozMahaller({
               </IconButton>
 
               <Box>
-                {selectedPoz_metraj?.pozName}
+                {selectedPoz?.pozName}
               </Box>
               <Box sx={{ color: "#8B0000", fontWeight: "600" }}>
                 {" > "}
@@ -139,7 +139,7 @@ export default function HeaderMetrajOnaylaPozMahaller({
                   <IconButton
                     onClick={() => {
                       navigate("/metrajonaylapozlar")
-                      setSelectedPoz_metraj()
+                      setSelectedPoz()
                     }}
                     aria-label="wbsUncliced">
                     <ReplyIcon variant="contained"

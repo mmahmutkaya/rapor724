@@ -53,7 +53,7 @@ export default function P_HeaderMetrajOnaylaCetvel({
 
   const { detailMode, setDetailMode } = useContext(StoreContext)
 
-  const { selectedPoz_metraj, selectedMahal_metraj } = useContext(StoreContext)
+  const { selectedPoz, selectedMahal_metraj } = useContext(StoreContext)
 
   const [showEminMisin, setShowEminMisin] = useState(false)
 
@@ -128,7 +128,7 @@ export default function P_HeaderMetrajOnaylaCetvel({
               </IconButton>
 
               <Box>
-                {selectedPoz_metraj?.pozName}
+                {selectedPoz?.pozName}
               </Box>
               <Box sx={{ color: "#8B0000", fontWeight: "600" }}>
                 {" > "}

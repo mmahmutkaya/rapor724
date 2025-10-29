@@ -47,7 +47,7 @@ export default function P_MetrajOnay() {
     appUser, setAppUser,
     RealmApp,
     subHeaderHeight, myTema,
-    selectedProje, selectedPoz_metraj, selectedNode_metraj
+    selectedProje, selectedPoz, selectedNode_metraj
   } = useContext(StoreContext)
 
   const { showMetrajYapabilenler, setShowMetrajYapabilenler } = useContext(StoreContext)
@@ -851,7 +851,7 @@ export default function P_MetrajOnay() {
 
   const gridTemplateColumns1 = 'max-content minmax(min-content, 5fr) repeat(7, minmax(min-content, 1fr)) 1rem max-content'
 
-  pozBirim = selectedProje?.pozBirimleri.find(item => item.id == selectedPoz_metraj?.pozBirimId)?.name
+  pozBirim = selectedProje?.pozBirimleri.find(item => item.id == selectedPoz?.pozBirimId)?.name
 
 
   return (

@@ -32,7 +32,7 @@ export default function P_MahalListesi() {
 
   const { RealmApp, myTema } = useContext(StoreContext)
   const { selectedProje } = useContext(StoreContext)
-  const { selectedPoz_metraj, setSelected_metraj } = useContext(StoreContext)
+  const { selectedPoz, setSelected_metraj } = useContext(StoreContext)
 
   const [dialogAlert, setDialogAlert] = useState()
 
@@ -250,7 +250,7 @@ export default function P_MahalListesi() {
 
                   // let isSelected = false
 
-                  // if (selectedPoz_metraj?._id.toString() === onePoz._id.toString()) {
+                  // if (selectedPoz?._id.toString() === onePoz._id.toString()) {
                   //   isSelected = true
                   // }
 
@@ -258,7 +258,7 @@ export default function P_MahalListesi() {
                   let { inactiveGray } = myTema.renkler
 
                   return (
-                    // <Box key={index} onDoubleClick={() => navigate('/metrajpozmahaller')} onClick={() => setSelectedPoz_metraj(onePoz)} sx={{ "&:hover": { "& .childClass": { display: "block" } }, cursor: "pointer", display: "grid", }}>
+                    // <Box key={index} onDoubleClick={() => navigate('/metrajpozmahaller')} onClick={() => setSelectedPoz(onePoz)} sx={{ "&:hover": { "& .childClass": { display: "block" } }, cursor: "pointer", display: "grid", }}>
                     <React.Fragment key={index} >
                       <Box sx={{ ...pozNo_css, backgroundColor: !hasMahal && inactiveGray }} >
                         {onePoz.pozNo}

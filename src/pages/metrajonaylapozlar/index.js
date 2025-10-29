@@ -49,7 +49,7 @@ export default function P_MetrajOnaylaPozlar() {
   const { selectedProje } = useContext(StoreContext)
   const metrajYapabilenler = selectedProje?.yetki?.metrajYapabilenler
 
-  const { selectedPoz_metraj, setSelectedPoz_metraj } = useContext(StoreContext)
+  const { selectedPoz, setSelectedPoz } = useContext(StoreContext)
   // const { editNodeMetraj, onayNodeMetraj } = useContext(StoreContext)
   let editNodeMetraj = false
   let onayNodeMetraj = showMetrajYapabilenler?.find(x => x.isShow) ? true : false
@@ -146,7 +146,7 @@ export default function P_MetrajOnaylaPozlar() {
 
   const goTo_MetrajPozmahaller = (onePoz) => {
     navigate('/metrajonaylapozmahaller')
-    setSelectedPoz_metraj(onePoz)
+    setSelectedPoz(onePoz)
   }
 
   const showMetrajYapabilenlerColumns = " 1rem repeat(" + showMetrajYapabilenler?.filter(x => x.isShow).length + ", max-content)"
@@ -370,7 +370,7 @@ export default function P_MetrajOnaylaPozlar() {
 
                   let isSelected = false
 
-                  if (selectedPoz_metraj?._id.toString() === onePoz._id.toString()) {
+                  if (selectedPoz?._id.toString() === onePoz._id.toString()) {
                     isSelected = true
                   }
 

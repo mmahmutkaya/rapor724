@@ -29,7 +29,7 @@ import PersonIcon from '@mui/icons-material/Person';
 export default function HeaderMetrajOnaylaPozlar({ setShow }) {
 
   const { drawerWidth, topBarHeight } = useContext(StoreContext)
-  const { selectedPoz_metraj, setSelectedPoz_metraj } = useContext(StoreContext)
+  const { selectedPoz, setSelectedPoz } = useContext(StoreContext)
 
   // const { editNodeMetraj, setEditNodeMetraj } = useContext(StoreContext)
   // const { onayNodeMetraj, setOnayNodeMetraj } = useContext(StoreContext)
@@ -102,10 +102,10 @@ export default function HeaderMetrajOnaylaPozlar({ setShow }) {
               </>
 
 
-              {/* {selectedPoz_metraj &&
+              {/* {selectedPoz &&
                 <>
                   <Grid item >
-                    <IconButton onClick={() => setSelectedPoz_metraj()}>
+                    <IconButton onClick={() => setSelectedPoz()}>
                       <ClearOutlined variant="contained" sx={{ color: "red" }} />
                     </IconButton>
                   </Grid>

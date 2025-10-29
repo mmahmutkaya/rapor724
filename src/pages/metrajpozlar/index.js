@@ -38,7 +38,7 @@ export default function P_MetrajPozlar() {
 
   const { appUser, setAppUser, RealmApp, myTema } = useContext(StoreContext)
   const { showMetrajYapabilenler, setShowMetrajYapabilenler } = useContext(StoreContext)
-  const { selectedPoz_metraj, setSelectedPoz_metraj } = useContext(StoreContext)
+  const { selectedPoz, setSelectedPoz } = useContext(StoreContext)
   const { selectedProje, setSelectedProje } = useContext(StoreContext)
 
 
@@ -208,7 +208,7 @@ export default function P_MetrajPozlar() {
 
   const goTo_MetrajPozmahaller = (onePoz) => {
     navigate('/metrajpozmahaller')
-    setSelectedPoz_metraj(onePoz)
+    setSelectedPoz(onePoz)
   }
 
   const showMetrajYapabilenlerColumns = " 1rem repeat(" + showMetrajYapabilenler?.filter(x => x.isShow).length + ", max-content)"
@@ -409,7 +409,7 @@ export default function P_MetrajPozlar() {
 
                   let isSelected = false
 
-                  if (selectedPoz_metraj?._id.toString() === onePoz._id.toString()) {
+                  if (selectedPoz?._id.toString() === onePoz._id.toString()) {
                     isSelected = true
                   }
 

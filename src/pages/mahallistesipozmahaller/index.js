@@ -1,70 +1,108 @@
-import HeaderMahalListesiPozMahaller from '../../components/HeaderMahalListesiPozMahaller.js'
 
-import React from 'react'
-import { useState, useContext, useEffect } from 'react';
-import { useQueryClient } from '@tanstack/react-query'
+import React, { useState, useContext, useEffect, Fragment } from 'react';
 import { useNavigate } from "react-router-dom";
-import getLbsName from '../../functions/getLbsName.js';
+import { StoreContext } from '../../components/store'
+import { useApp } from "../../components/useApp";
+import FormPozCreate from '../../components/FormPozCreate'
+import EditPozBaslik from '../../components/EditPozBaslik'
+import FormPozBaslikCreate from '../../components/FormPozBaslikCreate'
+import { DialogAlert } from '../../components/general/DialogAlert.js';
+import { useQuery, useQueryClient } from '@tanstack/react-query'
+
 import _ from 'lodash';
 
-import { DialogAlert } from '../../components/general/DialogAlert.js';
 
-import { StoreContext } from '../../components/store.js'
-import { useGetDugumler_byPoz, useGetMahaller, useGetMahalListesi_mahaller_byPoz } from '../../hooks/useMongo.js';
+import ShowMetrajYapabilenler from '../../components/ShowMetrajYapabilenler'
+import HeaderMetrajPozMahaller from '../../components/HeaderMetrajPozMahaller'
+import HeaderMahalListesiPozMahaller from '../../components/HeaderMahalListesiPozMahaller.js'
 
 
 
+import { useGetDugumler_byPoz, useGetMahaller } from '../../hooks/useMongo';
 
 import Grid from '@mui/material/Grid';
-import Input from '@mui/material/Input';
 import Alert from '@mui/material/Alert';
 import Stack from '@mui/material/Stack';
-import LinearProgress from '@mui/material/LinearProgress';
 import Box from '@mui/material/Box';
+import { Check } from '@mui/icons-material';
+import Tooltip from '@mui/material/Tooltip';
+import FileDownloadDoneIcon from '@mui/icons-material/FileDownloadDone';
+import CircleIcon from '@mui/icons-material/Circle';
+import AddCircleIcon from '@mui/icons-material/AddCircle';
+import LinearProgress from '@mui/material/LinearProgress';
 
 
+export default function P_MehalListesiPozMahaller() {
 
-export default function P_MahalListesiPozMahaller() {
-
-  const navigate = useNavigate()
   const queryClient = useQueryClient()
 
-  const { data: dataMahaller, error, isLoading } = useGetMahalListesi_mahaller_byPoz()
-  const { data: dataMahaller2, error: error1, isFetching: isFetching1 } = useGetMahaller()
-  const { data: dataGetDugumler_byPoz, error: error2, isFetching: isFetching2 } = useGetDugumler_byPoz()
-
-
-  const [mahaller_state, setMahaller_state] = useState()
-  const [mahaller_backUp, setMahaller_backUp] = useState()
-
-  const { appUser, setAppUser, myTema } = useContext(StoreContext)
-  const { selectedProje } = useContext(StoreContext)
-  const { selectedPoz_mahalListesi } = useContext(StoreContext)
-  const { selectedMahal_mahalListesi, setSelectedMahal_mahalListesi } = useContext(StoreContext)
+  const { appUser, setAppUser, RealmApp, myTema } = useContext(StoreContext)
 
   const [dialogAlert, setDialogAlert] = useState()
+
+  const { selectedProje } = useContext(StoreContext)
+  let showMetrajYapabilenler
+
+  const yetkililer = selectedProje?.yetkiliKisiler
+
+  const { selectedPoz, setSelectedPoz } = useContext(StoreContext)
+  const { selectedNode, setSelectedNode } = useContext(StoreContext)
+  const { selectedMahal, setSelectedMahal } = useContext(StoreContext)
+
+
 
   const [show, setShow] = useState("Main")
   const [isChanged, setIsChanged] = useState()
 
 
+  const [isChange_select, setIsChange_select] = useState(false)
+  const [dugumler_byPoz_state, setDugumler_byPoz_state] = useState()
+  const [dugumler_byPoz_backUp, setDugumler_byPoz_backup] = useState()
+  const [anySelectable, setAnySelectable] = useState()
+
+  const [mahaller_state, setMahaller_state] = useState()
+
+  const [lbsMetrajlar, setLbsMetrajlar] = useState([])
+  const [autoFocus, setAutoFocus] = useState({ baslikId: null, pozId: null })
+
+  const navigate = useNavigate()
+
+  const pozBirim = selectedProje?.pozBirimleri.find(x => x.id == selectedPoz?.pozBirimId)?.name
+
+
+  const { data: dataMahaller, error: error1, isFetching: isFetching1 } = useGetMahaller()
+  const { data: dataGetDugumler_byPoz, error: error2, isFetching: isFetching2 } = useGetDugumler_byPoz()
+
+
+  // const mahaller = dataMahaller?.mahaller?.filter(oneMahal => dugumler_byPoz_state?.find(oneDugum => oneDugum._mahalId.toString() === oneMahal._id.toString()))
+
   useEffect(() => {
-    !selectedProje && navigate('/projeler')
+    !selectedPoz && navigate('/mahallistesipozlar')
     setMahaller_state(_.cloneDeep(dataMahaller?.mahaller))
-    setMahaller_backUp(_.cloneDeep(dataMahaller?.mahaller))
+    return () => {
+      setMahaller_state()
+    }
   }, [dataMahaller])
 
 
   useEffect(() => {
-    if (error) {
-      console.log("error", error)
+    if (error1) {
+      console.log("error", error1)
       setDialogAlert({
         dialogIcon: "warning",
         dialogMessage: "Beklenmedik hata, Rapor7/24 ile irtibata geçiniz..",
-        detailText: error?.message ? error.message : null
+        detailText: error1?.message ? error1.message : null
       })
     }
-  }, [error]);
+    if (error2) {
+      console.log("error", error2)
+      setDialogAlert({
+        dialogIcon: "warning",
+        dialogMessage: "Beklenmedik hata, Rapor7/24 ile irtibata geçiniz..",
+        detailText: error2?.message ? error2.message : null
+      })
+    }
+  }, [error1, error2]);
 
 
 
@@ -78,71 +116,96 @@ export default function P_MahalListesiPozMahaller() {
     return value
   }
 
+  let openLbsArray = selectedProje?.lbs
+    .filter(oneLbs => oneLbs.openForMahal)
+    .sort(function (a, b) {
+      var nums1 = a.code.split(".");
+      var nums2 = b.code.split(".");
 
-  // CSS
-  const enUstBaslik_css = {
-    display: "grid",
-    alignItems: "center",
-    justifyItems: "center",
-    backgroundColor: myTema.renkler.baslik1,
-    fontWeight: 600,
-    border: "1px solid black",
-    px: "0.7rem"
-  }
-
-
-  const lbsBaslik_css = {
-    gridColumn: "1 / 5",
-    display: "grid",
-    alignItems: "center",
-    justifyItems: "start",
-    backgroundColor: myTema.renkler.baslik2,
-    fontWeight: 600,
-    pl: "0.5rem",
-    border: "1px solid black",
-    mt: "1rem",
-    px: "0.7rem"
-  }
-
-  const lbsBaslik_css2 = {
-    backgroundColor: myTema.renkler.baslik2,
-    border: "1px solid black",
-    mt: "1rem",
-    px: "0.7rem"
-  }
+      for (var i = 0; i < nums1.length; i++) {
+        if (nums2[i]) { // assuming 5..2 is invalid
+          if (nums1[i] !== nums2[i]) {
+            return nums1[i] - nums2[i];
+          } // else continue
+        } else {
+          return 1; // no second number in b
+        }
+      }
+      return -1; // was missing case b.len > a.len
+    })
 
 
 
-  const mahalNo_css = {
-    display: "grid",
-    alignItems: "center",
-    justifyItems: "center",
-    border: "1px solid black",
-    px: "0.7rem",
-    cursor: "pointer"
+
+  let getLbsName = (oneLbs) => {
+
+    let cOunt = oneLbs.code.split(".").length
+    let name
+    let code
+
+    oneLbs.code.split(".").map((codePart, index) => {
+
+      if (index == 0 && cOunt == 1) {
+        code = codePart
+        name = selectedProje?.lbs.find(item => item.code == code).name
+      }
+
+      if (index == 0 && cOunt !== 1) {
+        code = codePart
+        name = selectedProje?.lbs.find(item => item.code == code).codeName
+      }
+
+      if (index !== 0 && index + 1 !== cOunt && cOunt !== 1) {
+        code = code + "." + codePart
+        name = name + " > " + selectedProje?.lbs.find(item => item.code == code).codeName
+      }
+
+      if (index !== 0 && index + 1 == cOunt && cOunt !== 1) {
+        code = code + "." + codePart
+        name = name + " > " + selectedProje?.lbs.find(item => item.code == code).name
+      }
+
+    })
+
+    return { name, code }
+
   }
 
 
 
 
   const handleDugumToggle = ({ oneMahal, toggleValue }) => {
+
     // console.log("oneMahal",oneMahal)
-    let mahaller2 = mahaller_state
-    mahaller2 = mahaller2.map(oneMahal2 => {
-      if (oneMahal2._id.toString() === oneMahal._id.toString()) {
-        oneMahal2.isChanged = true
-        oneMahal2.hasDugum = toggleValue
-      }
-      return oneMahal2
-    })
-    setIsChanged(true)
-    setMahaller_state(mahaller2)
+    // let dugumler_byPoz_state2 = _.cloneDeep(dugumler_byPoz_state)
+    console.log("oneMahal", oneMahal)
+    console.log("toggleValue", toggleValue)
+
   }
 
 
 
+
+  // const handleDugumToggle = ({ oneMahal, toggleValue }) => {
+
+  //   // console.log("oneMahal",oneMahal)
+  //   let dugumler_byPoz_state2 = _.cloneDeep(dugumler_byPoz_state)
+
+  //   dugumler_byPoz_state2 = dugumler_byPoz_state2.map(oneMahal2 => {
+  //     if (oneMahal2._id.toString() === oneMahal._id.toString()) {
+  //       oneMahal2.isChanged = true
+  //       oneMahal2.hasDugum = toggleValue
+  //     }
+  //     return oneMahal2
+  //   })
+  //   setIsChanged(true)
+  //   setMahaller_state(mahaller2)
+  // }
+
+
+
   const cancelChange = () => {
-    setMahaller_state(mahaller_backUp)
+    setMahaller_state(dataMahaller?.mahaller)
     setIsChanged()
   }
 
@@ -153,7 +216,7 @@ export default function P_MahalListesiPozMahaller() {
 
       const mahaller = mahaller_state.filter(x => x.isChanged)
 
-      // const result = await RealmApp.currentUser.callFunction("updateDugumler_openMetraj", { functionName: "mahaller_byPozId", _projeId: selectedProje._id, mahaller, _pozId: selectedPoz_mahalListesi._id });
+      // const result = await RealmApp.currentUser.callFunction("updateDugumler_openMetraj", { functionName: "mahaller_byPozId", _projeId: selectedProje._id, mahaller, _pozId: selectedPoz._id });
 
 
       const response = await fetch(`/api/dugumler`, {
@@ -165,7 +228,7 @@ export default function P_MahalListesiPozMahaller() {
         },
         body: JSON.stringify({
           projeId: selectedProje._id,
-          pozId: selectedPoz_mahalListesi._id,
+          pozId: selectedPoz._id,
           mahaller
         })
       })
@@ -208,20 +271,50 @@ export default function P_MahalListesiPozMahaller() {
 
 
 
-  const handleEdit = (oneMahal) => {
-    setSelectedMahal_mahalListesi(oneMahal)
 
+
+
+
+
+  const goTo_MetrajOnaylaCetvel = ({ dugum, oneMahal }) => {
+    setSelectedNode(dugum)
+    setSelectedMahal(oneMahal)
+    navigate('/metrajcetvel')
   }
 
 
 
 
-  // const columns = `auto 1fr auto auto${editNodeMetraj ? " 1rem auto" : ""}`
-  const columns = `max-content minmax(min-content, 1fr) max-content max-content`
+
+  // CSS
+  const css_enUstBaslik = {
+    display: "grid",
+    fontWeight: "600",
+    border: "1px solid black",
+    borderLeft: "none",
+    py: "0.05rem",
+    px: "0.5rem",
+    justifyContent: "start",
+    alignItems: "center",
+    backgroundColor: "#415a77",
+    color: "#e0e1dd"
+  }
+
+  const css_LbsBaslik = {
+    border: "1px solid black", borderLeft: "none", mt: "1rem", px: "0.5rem", display: "grid", justifyContent: "start", backgroundColor: myTema.renkler.metrajOnaylananBaslik
+  }
+
+  const css_mahaller = {
+    border: "1px solid black", px: "0.5rem", display: "grid", justifyContent: "start", alignItems: "center"
+  }
+
+  const gridTemplateColumns1 = `max-content minmax(min-content, 1fr) max-content max-content}`
 
 
   return (
+
     <Box sx={{ m: "0rem", maxWidth: "60rem" }}>
+
 
       {dialogAlert &&
         <DialogAlert
@@ -232,150 +325,150 @@ export default function P_MahalListesiPozMahaller() {
         />
       }
 
-      {/* BAŞLIK */}
-
       <Grid item >
         <HeaderMahalListesiPozMahaller
-          show={show} setShow={setShow}
-          isChanged={isChanged}
-          cancelChange={cancelChange}
-          saveChange={saveChange}
+        // show={show} setShow={setShow}
+        // isChanged={isChanged}
+        // cancelChange={cancelChange}
+        // saveChange={saveChange}
         />
       </Grid>
 
 
+      {/* BAŞLIK GÖSTER / GİZLE
+      {show == "ShowMetrajYapabilenler" &&
+        <ShowMetrajYapabilenler
+          setShow={setShow}
+        />
+      } */}
 
-      {isLoading &&
-        <Box sx={{ mt: "4.5rem", ml: "1rem", color: 'gray' }}>
+
+      {(isFetching1 || isFetching2) &&
+        <Box sx={{ width: '100%', px: "1rem", mt: "5rem", color: 'gray' }}>
           <LinearProgress color='inherit' />
+        </Box >
+      }
+
+
+      {!(isFetching1 || isFetching2) && !openLbsArray?.length > 0 &&
+        <Box>
+          Henüz herhangi bir başlık mahal eklemeye açılmamış
         </Box>
       }
 
 
+      {!(isFetching1 || isFetching2) && openLbsArray?.length > 0 &&
 
-      {/* EĞER POZ BAŞLIĞI YOKSA */}
-      {!isLoading && show == "Main" && false &&
-        <Stack sx={{ width: '100%', mt: "3.5rem", p: "1rem" }} spacing={2}>
-          <Alert severity="info">
-            Öncelikle poz oluşturmaya açık poz başlığı oluşturmalısınız.
-          </Alert>
-        </Stack>
-      }
+        <Box sx={{ m: "1rem", mt: "4.5rem", display: "grid", gridTemplateColumns: gridTemplateColumns1 }}>
 
-
-
-      {/* ANA SAYFA - POZLAR VARSA */}
-
-      {!isLoading && show == "Main" && mahaller_state?.length > 0 &&
-
-        <Box sx={{ m: "1rem", mt: "4.5rem", display: "grid", gridTemplateColumns: columns }}>
-
-          {/*   EN ÜST BAŞLIK */}
+          {/* EN ÜST BAŞLIĞIN ÜST SATIRI - HANGİ POZ İLE İŞLEM YAPILIYORSA - POZ İSMİ VE TOPLAM METRAJI */}
           <>
 
-            {/* BAŞLIK - POZ NO */}
-            <Box sx={{ ...enUstBaslik_css }}>
-              Mahal No
+            <Box sx={{ ...css_enUstBaslik, borderLeft: "1px solid black", justifyContent: "start" }}>
+              {selectedPoz.pozNo}
             </Box>
-
-            {/* BAŞLIK - POZ İSMİ */}
-            <Box sx={{ ...enUstBaslik_css }}>
-              Mahal İsmi
+            <Box sx={{ ...css_enUstBaslik }}>
+              {selectedPoz.pozName}
             </Box>
-
-            {/* BAŞLIK - POZ BİRİM  */}
-            <Box sx={{ ...enUstBaslik_css }}>
+            <Box sx={{ ...css_enUstBaslik, justifyContent: "center" }}>
               Miktar
             </Box>
-
-
-            {/* BAŞLIK - POZ BİRİM  */}
-            <Box sx={{ ...enUstBaslik_css }}>
+            <Box sx={{ ...css_enUstBaslik, justifyContent: "center" }}>
               Birim
             </Box>
 
           </>
 
 
+          {/* EN ÜST BAŞLIĞIN ALT SATIRI - HANGİ POZ İLE İŞLEM YAPILIYORSA - POZ İSMİ VE TOPLAM METRAJI */}
+          <>
+            <Box sx={{ ...css_enUstBaslik, borderLeft: "1px solid black", gridColumn: "1/3", justifyContent: "end", borderLeft: "1px solid black" }}>
+              Toplam Metraj
+            </Box>
+            <Box sx={{ ...css_enUstBaslik, justifyContent: "end" }}>
+              {ikiHane(selectedPoz?.metrajOnaylanan)}
+            </Box>
+            <Box sx={{ ...css_enUstBaslik, justifyContent: "center" }}>
+              {pozBirim}
+            </Box>
 
-          {/* LBS BAŞLIĞI ve ALTINDA POZLARI*/}
+          </>
 
-          {selectedProje?.lbs.filter(x => x.openForMahal).map((oneLbs, index) => {
+
+
+
+          {/* LBS BAŞLIK BİLGİLERİ SATIRI */}
+
+          {openLbsArray?.map((oneLbs, index) => {
+
+            const mahaller_byLbs = dataMahaller?.mahaller.filter(x => x._lbsId.toString() === oneLbs._id.toString())
+            if (!mahaller_byLbs.length > 0) {
+              return
+            }
+
+            const lbsMetraj = lbsMetrajlar?.find(x => x._id.toString() === oneLbs._id.toString())
 
             return (
-
               <React.Fragment key={index}>
 
-                {/* LBS BAŞLIĞININ OLDUĞU TÜM SATIR */}
-                <>
-                  {/* LBS BAŞLIĞI */}
-                  <Box sx={{ ...lbsBaslik_css }}>
-                    <Box sx={{ display: "grid", gridAutoFlow: "column" }} >
-                      {getLbsName({ lbsArray: selectedProje?.lbs, oneLbs }).name}
-                    </Box>
-                  </Box>
-
-                </>
-
-
-                {/* LBS'İN POZLARI */}
-                {/* {mahaller_state?.filter(x => x._lbsId.toString() === oneLbs._id.toString()).map((oneMahal, index) => { */}
-                {mahaller_state?.filter(x => x._lbsId.toString() === oneLbs._id.toString()).map((oneMahal, index) => {
+                {/* LBS BAŞLIKLARI */}
+                <Box sx={{ ...css_LbsBaslik, borderLeft: "1px solid black", gridColumn: "1/3" }}>
+                  {getLbsName(oneLbs).name}
+                </Box>
+                <Box sx={{ ...css_LbsBaslik, justifyContent: "end" }}>
+                  {ikiHane(lbsMetraj?.metrajOnaylanan)}
+                </Box>
+                <Box sx={{ ...css_LbsBaslik, justifyContent: "center" }}>
+                  {pozBirim}
+                </Box>
 
 
-                  // let isSelected = false
+                {/* MAHAL SATIRLARI */}
+                {mahaller_byLbs?.map((oneMahal, index) => {
 
-                  // if (selectedPoz_mahalListesi?._id.toString() === oneMahal._id.toString()) {
-                  //   isSelected = true
-                  // }
-
-                  let hasDugum = oneMahal.hasDugum
-                  let { inactiveGray } = myTema.renkler
+                  let dugum = dugumler_byPoz_state?.find(oneDugum => oneDugum._mahalId.toString() === oneMahal._id.toString())
+                  if (dugum) {
+                    oneMahal.hasDugum = true
+                  }
 
                   return (
-                    // <Box key={index} onDoubleClick={() => navigate('/metrajpozmahaller')} onClick={() => setSelectedPoz_metraj(oneMahal)} sx={{ "&:hover": { "& .childClass": { display: "block" } }, cursor: "pointer", display: "grid", }}>
-                    <React.Fragment key={index} >
+                    <React.Fragment key={index}>
 
-                      <Box onClick={() => handleDugumToggle({ oneMahal, toggleValue: !hasDugum })} sx={{ ...mahalNo_css, backgroundColor: !hasDugum && inactiveGray }} >
+                      <Box onClick={() => handleDugumToggle({ oneMahal, toggleValue: !oneMahal.hasDugum })} sx={{ ...css_mahaller, backgroundColor: !oneMahal.hasDugum ? "lightgray" : null, borderLeft: "1px solid black" }}>
                         {oneMahal.mahalNo}
                       </Box>
 
-                      <Box onClick={() => handleDugumToggle({ oneMahal, toggleValue: !hasDugum })} sx={{ ...mahalNo_css, cursor: "pointer", display: "grid", gridAutoFlow: "column", justifyContent: "start", backgroundColor: !hasDugum && inactiveGray, "&:hover": { "& .childClass": { backgroundColor: "red" } } }}>
+                      <Box onClick={() => handleDugumToggle({ oneMahal, toggleValue: !oneMahal.hasDugum })} sx={{ ...css_mahaller, backgroundColor: !oneMahal.hasDugum ? "lightgray" : null, cursor: "pointer", display: "grid", alignItems: "center", gridTemplateColumns: "1fr 1rem", "&:hover": { "& .childClass": { backgroundColor: "red" } } }}>
                         <Box sx={{ justifySelf: "start" }}>
                           {oneMahal.mahalName}
                         </Box>
-                        <Box className="childClass" sx={{ ml: "1rem", height: "0.5rem", width: "0.5rem", borderRadius: "50%" }}>
+                        <Box className="childClass" sx={{ height: "0.5rem", width: "0.5rem", borderRadius: "50%" }}>
                         </Box>
                       </Box>
 
-                      <Box onClick={() => handleDugumToggle({ oneMahal, toggleValue: !hasDugum })} sx={{ ...mahalNo_css, justifyItems: "end", pl: "0.5rem", backgroundColor: !hasDugum && inactiveGray }} >
-                        {ikiHane(oneMahal?.metrajOnaylanan)}
+                      <Box onClick={() => handleDugumToggle({ oneMahal, toggleValue: !oneMahal.hasDugum })} sx={{ ...css_mahaller, backgroundColor: !oneMahal.hasDugum ? "lightgray" : null, justifyContent: "end" }}>
+                        {ikiHane(dugum?.metrajOnaylanan)}
                       </Box>
 
-                      <Box onClick={() => handleDugumToggle({ oneMahal, toggleValue: !hasDugum })} sx={{ ...mahalNo_css, backgroundColor: !hasDugum && inactiveGray }}>
-                        {selectedProje?.pozBirimleri.find(x => x.id === selectedPoz_mahalListesi.pozBirimId).name}
+                      <Box onClick={() => handleDugumToggle({ oneMahal, toggleValue: !oneMahal.hasDugum })} sx={{ ...css_mahaller, backgroundColor: !oneMahal.hasDugum ? "lightgray" : null, justifyContent: "center" }}>
+                        {pozBirim}
                       </Box>
-
 
                     </React.Fragment>
                   )
                 })}
 
-
               </React.Fragment>
-
-
             )
-          })}
+          })
+          }
 
+        </Box >
 
-        </Box>
       }
-
     </Box >
 
   )
 
 }
-
 

@@ -24,7 +24,7 @@ export default function HeaderMahalListesi({ isChanged, cancelChange, saveChange
   const navigate = useNavigate()
 
   const { drawerWidth, topBarHeight } = useContext(StoreContext)
-  const { selectedPoz_mahalListesi } = useContext(StoreContext)
+  const { selectedPoz } = useContext(StoreContext)
 
   const [showEminMisin, setShowEminMisin] = useState(false)
 
@@ -80,7 +80,7 @@ export default function HeaderMahalListesi({ isChanged, cancelChange, saveChange
               </IconButton>
 
               <Box>
-                {selectedPoz_mahalListesi?.pozName}
+                {selectedPoz?.pozName}
               </Box>
               {/* <Box sx={{ color: "#8B0000", fontWeight: "600" }}>
                 {" > "}

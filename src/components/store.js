@@ -51,8 +51,6 @@ export default ({ children }) => {
   const [selectedWbs, setSelectedWbs] = useState()
 
   const [selectedPoz, setSelectedPoz] = useState()
-  const [selectedPoz_metraj, setSelectedPoz_metraj] = useState()
-  const [selectedPoz_mahalListesi, setSelectedPoz_mahalListesi] = useState()
   const [selectedPozBaslik, setSelectedPozBaslik] = useState()
 
   const [selectedMahal_metraj, setSelectedMahal_metraj] = useState()
@@ -98,8 +96,6 @@ export default ({ children }) => {
     selectedWbs, setSelectedWbs,
 
     selectedPoz, setSelectedPoz,
-    selectedPoz_metraj, setSelectedPoz_metraj,
-    selectedPoz_mahalListesi, setSelectedPoz_mahalListesi,
     selectedPozBaslik, setSelectedPozBaslik,
 
     selectedMahal_metraj, setSelectedMahal_metraj,

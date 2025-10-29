@@ -50,7 +50,7 @@ export default function P_HeaderMetrajOlusturCetvel({
 
   const { appUser, setAppUser, drawerWidth, topBarHeight } = useContext(StoreContext)
 
-  const { selectedPoz_metraj, selectedMahal_metraj, selectedNode_metraj } = useContext(StoreContext)
+  const { selectedPoz, selectedMahal_metraj, selectedNode_metraj } = useContext(StoreContext)
 
   const [showEminMisin_edit, setShowEminMisin_edit] = useState(false)
   const [showEminMisin_ready, setShowEminMisin_ready] = useState(false)
@@ -191,7 +191,7 @@ export default function P_HeaderMetrajOlusturCetvel({
               </Box>
 
               <Box>
-                {selectedPoz_metraj?.pozName}
+                {selectedPoz?.pozName}
               </Box>
 
               <Box sx={{ color: "#8B0000", fontWeight: "600" }}>

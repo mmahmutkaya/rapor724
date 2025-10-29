@@ -30,7 +30,7 @@ export default function P_MetrajOlusturPozMahaller() {
   const [dialogAlert, setDialogAlert] = useState()
 
 
-  const { selectedProje, selectedPoz_metraj } = useContext(StoreContext)
+  const { selectedProje, selectedPoz } = useContext(StoreContext)
   const metrajYapabilenler = selectedProje?.yetki?.metrajYapabilenler
   let editNodeMetraj = true
 
@@ -48,7 +48,7 @@ export default function P_MetrajOlusturPozMahaller() {
 
   const navigate = useNavigate()
 
-  const pozBirim = selectedProje?.pozBirimleri.find(x => x.id == selectedPoz_metraj?.pozBirimId)?.name
+  const pozBirim = selectedProje?.pozBirimleri.find(x => x.id == selectedPoz?.pozBirimId)?.name
 
 
   const { data: dataMahaller, error: error1, isLoading: isLoading1 } = useGetMahaller()
@@ -57,7 +57,7 @@ export default function P_MetrajOlusturPozMahaller() {
   const mahaller_byPoz = dataMahaller?.mahaller?.filter(oneMahal => dugumler_byPoz?.find(oneDugum => oneDugum._mahalId.toString() === oneMahal._id.toString()))
 
   useEffect(() => {
-    !selectedPoz_metraj && navigate('/metrajpozlar')
+    !selectedPoz && navigate('/metrajpozlar')
     setDugumler_byPoz(_.cloneDeep(data?.dugumler_byPoz))
     setLbsMetrajlar(_.cloneDeep(data?.lbsMetrajlar))
     return () => {
@@ -238,10 +238,10 @@ export default function P_MetrajOlusturPozMahaller() {
           <>
 
             <Box sx={{ ...css_enUstBaslik, borderLeft: "1px solid black", justifyContent: "start" }}>
-              {selectedPoz_metraj.pozNo}
+              {selectedPoz.pozNo}
             </Box>
             <Box sx={{ ...css_enUstBaslik }}>
-              {selectedPoz_metraj.pozName}
+              {selectedPoz.pozName}
             </Box>
 
             {showMetrajOnaylanan &&
@@ -318,7 +318,7 @@ export default function P_MetrajOlusturPozMahaller() {
                 {metrajYapabilenler.map((oneYapabilen, index) => {
                   return (
                     <Box key={index} sx={{ ...css_enUstBaslik, borderLeft: "1px solid black", justifyContent: "end" }}>
-                      {ikiHane(selectedPoz_metraj.hazirlananMetrajlar.find(x => x.userEmail === oneYapabilen.userEmail)?.metraj)}
+                      {ikiHane(selectedPoz.hazirlananMetrajlar.find(x => x.userEmail === oneYapabilen.userEmail)?.metraj)}
                     </Box>
                   )
                 })}
@@ -381,7 +381,7 @@ export default function P_MetrajOlusturPozMahaller() {
                 {/* MAHAL SATIRLARI */}
                 {mahaller_byPoz_byLbs?.map((oneMahal, index) => {
 
-                  let dugum = dugumler_byPoz?.find(oneDugum => oneDugum._pozId.toString() === selectedPoz_metraj._id.toString() && oneDugum._mahalId.toString() === oneMahal._id.toString())
+                  let dugum = dugumler_byPoz?.find(oneDugum => oneDugum._pozId.toString() === selectedPoz._id.toString() && oneDugum._mahalId.toString() === oneMahal._id.toString())
                   let oneHazirlanan = dugum?.hazirlananMetrajlar?.find(x => x.userEmail === appUser.email)
 
 

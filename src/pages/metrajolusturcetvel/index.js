@@ -40,7 +40,7 @@ export default function P_MetrajOlusturCetvel() {
   const { selectedProje, setSelectedProje } = useContext(StoreContext)
   const { appUser, setAppUser } = useContext(StoreContext)
   const { selectedMahal, setSelectedMahal } = useContext(StoreContext)
-  const { selectedPoz_metraj, setSelectedPoz_metraj } = useContext(StoreContext)
+  const { selectedPoz, setSelectedPoz } = useContext(StoreContext)
   const { selectedMahal_metraj } = useContext(StoreContext)
   const { myTema, setMyTema } = useContext(StoreContext)
   const { selectedNode_metraj, setSelectedNode_metraj } = useContext(StoreContext)
@@ -494,7 +494,7 @@ export default function P_MetrajOlusturCetvel() {
 
   const gridTemplateColumns1 = 'max-content minmax(min-content, 5fr) repeat(7, minmax(min-content, 1fr)) 0.5rem max-content'
 
-  pozBirim = selectedProje?.pozBirimleri.find(item => item.id == selectedPoz_metraj?.pozBirimId)?.name
+  pozBirim = selectedProje?.pozBirimleri.find(item => item.id == selectedPoz?.pozBirimId)?.name
 
 
   return (
