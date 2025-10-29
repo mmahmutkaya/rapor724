@@ -174,33 +174,33 @@ export default function P_MehalListesiPozMahaller() {
 
 
 
-  const handleDugumToggle = ({ oneMahal, toggleValue }) => {
-
-    // console.log("oneMahal",oneMahal)
-    // let dugumler_byPoz_state2 = _.cloneDeep(dugumler_byPoz_state)
-    console.log("oneMahal", oneMahal)
-    console.log("toggleValue", toggleValue)
-
-  }
-
-
-
-
   // const handleDugumToggle = ({ oneMahal, toggleValue }) => {
 
   //   // console.log("oneMahal",oneMahal)
-  //   let dugumler_byPoz_state2 = _.cloneDeep(dugumler_byPoz_state)
+  //   // let dugumler_byPoz_state2 = _.cloneDeep(dugumler_byPoz_state)
+  //   console.log("oneMahal", oneMahal)
+  //   console.log("toggleValue", toggleValue)
 
-  //   dugumler_byPoz_state2 = dugumler_byPoz_state2.map(oneMahal2 => {
-  //     if (oneMahal2._id.toString() === oneMahal._id.toString()) {
-  //       oneMahal2.isChanged = true
-  //       oneMahal2.hasDugum = toggleValue
-  //     }
-  //     return oneMahal2
-  //   })
-  //   setIsChanged(true)
-  //   setMahaller_state(mahaller2)
   // }
+
+
+
+
+  const handleDugumToggle = ({ oneMahal, toggleValue }) => {
+
+    // console.log("oneMahal",oneMahal)
+    let mahaller_state2 = _.cloneDeep(mahaller_state)
+
+    mahaller_state2 = mahaller_state2.map(oneMahal2 => {
+      if (oneMahal2._id.toString() === oneMahal._id.toString()) {
+        oneMahal2.newSelected = true
+        oneMahal2.hasDugum = toggleValue
+      }
+      return oneMahal2
+    })
+    setIsChanged(true)
+    setMahaller_state(mahaller_state2)
+  }
 
 
 
@@ -214,7 +214,7 @@ export default function P_MehalListesiPozMahaller() {
 
     try {
 
-      const mahaller = mahaller_state.filter(x => x.isChanged)
+      const mahaller = mahaller_state.filter(x => x.newSelected)
 
       // const result = await RealmApp.currentUser.callFunction("updateDugumler_openMetraj", { functionName: "mahaller_byPozId", _projeId: selectedProje._id, mahaller, _pozId: selectedPoz._id });
 
@@ -245,13 +245,10 @@ export default function P_MehalListesiPozMahaller() {
         throw new Error(responseJson.error);
       }
 
-
       if (responseJson.ok) {
-
-        queryClient.invalidateQueries(['dataMahalListesi_pozlar'])
-        queryClient.invalidateQueries(['dataMahalListesi_mahaller_byPoz'])
+        queryClient.invalidateQueries(['dataMahaller'])
+        queryClient.invalidateQueries(['dataMahalListesi_byPoz'])
         setIsChanged()
-
       } else {
         console.log("result", responseJson)
         throw new Error("Kayıt işlemi gerçekleşmedi, sayfayı yenileyiniz, sorun devam ederse Rapor7/24 ile irtibata geçiniz..")
@@ -263,23 +260,16 @@ export default function P_MehalListesiPozMahaller() {
       setDialogAlert({
         dialogIcon: "warning",
         dialogMessage: "Beklenmedik hata, Rapor7/24 ile irtibata geçiniz..",
-        detailText: err?.message ? err.message : null
+        detailText: err?.message ? err.message : null,
+        onCloseAction: () => {
+          queryClient.invalidateQueries(['dataMahaller'])
+          queryClient.invalidateQueries(['dataMahalListesi_byPoz'])
+          setIsChanged()
+          setDialogAlert()
+        }
       })
 
     }
-  }
-
-
-
-
-
-
-
-
-  const goTo_MetrajOnaylaCetvel = ({ dugum, oneMahal }) => {
-    setSelectedNode(dugum)
-    setSelectedMahal(oneMahal)
-    navigate('/metrajcetvel')
   }
 
 
@@ -327,10 +317,10 @@ export default function P_MehalListesiPozMahaller() {
 
       <Grid item >
         <HeaderMahalListesiPozMahaller
-        // show={show} setShow={setShow}
-        // isChanged={isChanged}
-        // cancelChange={cancelChange}
-        // saveChange={saveChange}
+          show={show} setShow={setShow}
+          isChanged={isChanged}
+          cancelChange={cancelChange}
+          saveChange={saveChange}
         />
       </Grid>
 
@@ -353,6 +343,12 @@ export default function P_MehalListesiPozMahaller() {
       {!(isFetching1 || isFetching2) && !openLbsArray?.length > 0 &&
         <Box>
           Henüz herhangi bir başlık mahal eklemeye açılmamış
+        </Box>
+      }
+
+      {!(isFetching1 || isFetching2) && !mahaller_state?.length > 0 &&
+        <Box>
+          Henüz herhangi bir mahal oluşturulmamış
         </Box>
       }
 
@@ -401,12 +397,12 @@ export default function P_MehalListesiPozMahaller() {
 
           {openLbsArray?.map((oneLbs, index) => {
 
-            const mahaller_byLbs = dataMahaller?.mahaller.filter(x => x._lbsId.toString() === oneLbs._id.toString())
+            const mahaller_byLbs = mahaller_state?.filter(x => x._lbsId.toString() === oneLbs._id.toString())
             if (!mahaller_byLbs.length > 0) {
               return
             }
 
-            const lbsMetraj = lbsMetrajlar?.find(x => x._id.toString() === oneLbs._id.toString())
+            const lbsMetraj = dataGetDugumler_byPoz?.lbsMetrajlar?.find(x => x._id.toString() === oneLbs._id.toString())
 
             return (
               <React.Fragment key={index}>
@@ -426,8 +422,8 @@ export default function P_MehalListesiPozMahaller() {
                 {/* MAHAL SATIRLARI */}
                 {mahaller_byLbs?.map((oneMahal, index) => {
 
-                  let dugum = dugumler_byPoz_state?.find(oneDugum => oneDugum._mahalId.toString() === oneMahal._id.toString())
-                  if (dugum) {
+                  let dugum = dataGetDugumler_byPoz?.dugumler_byPoz?.find(oneDugum => oneDugum._mahalId.toString() === oneMahal._id.toString())
+                  if (!oneMahal.newSelected && dugum) {
                     oneMahal.hasDugum = true
                   }
 

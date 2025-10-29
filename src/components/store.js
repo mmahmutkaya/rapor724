@@ -57,7 +57,6 @@ export default ({ children }) => {
   const [selectedMahal_mahalListesi, setSelectedMahal_mahalListesi] = useState()
 
   const [selectedNode, setSelectedNode] = useState()
-  const [selectedNode, setSelectedNode] = useState()
   const [editNodeMetraj, setEditNodeMetraj] = useState()
   const [onayNodeMetraj, setOnayNodeMetraj] = useState()
   const [showNodeMetraj, setShowNodeMetraj] = useState()
@@ -101,7 +100,6 @@ export default ({ children }) => {
     selectedMahal_metraj, setSelectedMahal_metraj,
     selectedMahal_mahalListesi, setSelectedMahal_mahalListesi,
 
-    selectedNode, setSelectedNode,
     selectedNode, setSelectedNode,
 
     editNodeMetraj, setEditNodeMetraj,
