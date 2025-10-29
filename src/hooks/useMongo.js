@@ -332,7 +332,7 @@ export const useGetMahalListesi_byPoz = () => {
   const { selectedProje, RealmApp, selectedPoz_forMahalListesi } = useContext(StoreContext)
 
   return useQuery({
-    queryKey: ['selectedPoz'],
+    queryKey: ['dataMahalListesi_byPoz2'],
     queryFn: () => RealmApp?.currentUser.callFunction("getMahalListesi_byPoz", ({ _projeId: selectedProje?._id, _pozId: selectedPoz_forMahalListesi._id })),
     enabled: !!RealmApp && !!selectedProje && !!selectedPoz_forMahalListesi,
     refetchOnMount: true,

@@ -41,7 +41,7 @@ export default function P_MetrajCetveliOnaylanan() {
   const queryClient = useQueryClient()
 
   const { appUser, setAppUser, RealmApp, myTema, subHeaderHeight } = useContext(StoreContext)
-  const { selectedProje, selectedPoz, selectedNode_metraj } = useContext(StoreContext)
+  const { selectedProje, selectedPoz, selectedNode } = useContext(StoreContext)
 
   const [dialogAlert, setDialogAlert] = useState()
   const [show, setShow] = useState("Main")
@@ -66,7 +66,7 @@ export default function P_MetrajCetveliOnaylanan() {
 
   const navigate = useNavigate()
   useEffect(() => {
-    !selectedNode_metraj && navigate("/metrajonaylapozlar")
+    !selectedNode && navigate("/metrajonaylapozlar")
     setOnaylananMetraj_state(_.cloneDeep(dataOnaylananMetraj?.onaylananMetraj))
     setOnaylananMetraj_backUp(_.cloneDeep(dataOnaylananMetraj?.onaylananMetraj))
     setHasSelectedCopySatirlar(dataOnaylananMetraj?.onaylananMetraj?.satirlar.find(x => x.hasSelectedCopy) ? true : false)
@@ -299,7 +299,7 @@ export default function P_MetrajCetveliOnaylanan() {
       try {
 
 
-        // await RealmApp?.currentUser.callFunction("update_onaylananMetraj_revize", ({ _dugumId: selectedNode_metraj._id, onaylananMetraj_state }))
+        // await RealmApp?.currentUser.callFunction("update_onaylananMetraj_revize", ({ _dugumId: selectedNode._id, onaylananMetraj_state }))
 
         const response = await fetch(`/api/dugumler/updateonaylananmetrajrevize`, {
           method: 'POST',
@@ -309,7 +309,7 @@ export default function P_MetrajCetveliOnaylanan() {
             'Content-Type': 'application/json'
           },
           body: JSON.stringify({
-            dugumId: selectedNode_metraj._id,
+            dugumId: selectedNode._id,
             onaylananMetraj_state
           })
         })
@@ -528,7 +528,7 @@ export default function P_MetrajCetveliOnaylanan() {
 
     try {
 
-      // await RealmApp?.currentUser.callFunction("update_onaylananMetraj_sil", ({ _dugumId: selectedNode_metraj._id, onaylananMetraj_state }))
+      // await RealmApp?.currentUser.callFunction("update_onaylananMetraj_sil", ({ _dugumId: selectedNode._id, onaylananMetraj_state }))
 
       setHasSelectedCopySatirlar(onaylananMetraj_state?.satirlar.find(x => x.hasSelectedCopy) ? true : false)
 
@@ -540,7 +540,7 @@ export default function P_MetrajCetveliOnaylanan() {
           'Content-Type': 'application/json'
         },
         body: JSON.stringify({
-          dugumId: selectedNode_metraj._id,
+          dugumId: selectedNode._id,
           onaylananMetraj_state
         })
       })

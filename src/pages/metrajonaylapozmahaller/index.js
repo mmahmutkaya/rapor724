@@ -43,7 +43,7 @@ export default function P_MetrajOnaylaPozMahaller() {
 
   const yetkililer = selectedProje?.yetkiliKisiler
 
-  const { selectedNode_metraj, setSelectedNode_metraj } = useContext(StoreContext)
+  const { selectedNode, setSelectedNode } = useContext(StoreContext)
   const { selectedMahal_metraj, setSelectedMahal_metraj } = useContext(StoreContext)
 
 
@@ -423,7 +423,7 @@ export default function P_MetrajOnaylaPozMahaller() {
 
 
   const goTo_MetrajOnaylaCetvel = ({ dugum, oneMahal }) => {
-    setSelectedNode_metraj(dugum)
+    setSelectedNode(dugum)
     setSelectedMahal_metraj(oneMahal)
     navigate('/metrajonaylacetvel')
   }
@@ -433,7 +433,7 @@ export default function P_MetrajOnaylaPozMahaller() {
 
   const goTo_onayCetveli = ({ dugum, oneMahal, userEmail }) => {
     // console.log("userEmail", userEmail)
-    setSelectedNode_metraj(dugum)
+    setSelectedNode(dugum)
     setSelectedMahal_metraj(oneMahal)
 
     let showMetrajYapabilenler2 = _.cloneDeep(showMetrajYapabilenler)

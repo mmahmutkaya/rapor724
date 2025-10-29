@@ -38,7 +38,7 @@ export default function P_MetrajCetveliOnaylanan() {
   const queryClient = useQueryClient()
 
   const { RealmApp, myTema, subHeaderHeight } = useContext(StoreContext)
-  const { selectedProje, selectedPoz, selectedNode_metraj } = useContext(StoreContext)
+  const { selectedProje, selectedPoz, selectedNode } = useContext(StoreContext)
 
   const [dialogAlert, setDialogAlert] = useState()
   const [show, setShow] = useState("Main")
@@ -64,7 +64,7 @@ export default function P_MetrajCetveliOnaylanan() {
 
   const navigate = useNavigate()
   useEffect(() => {
-    !selectedNode_metraj && navigate("/metrajonaylapozlar")
+    !selectedNode && navigate("/metrajonaylapozlar")
     setOnaylananMetraj_state(_.cloneDeep(dataOnaylananMetraj?.onaylananMetraj))
     setOnaylananMetraj_backUp(_.cloneDeep(dataOnaylananMetraj?.onaylananMetraj))
     setHasSelectedCopySatirlar(dataOnaylananMetraj?.onaylananMetraj?.satirlar.find(x => x.hasSelectedCopy) ? true : false)
@@ -267,9 +267,9 @@ export default function P_MetrajCetveliOnaylanan() {
 
       try {
 
-        await RealmApp?.currentUser.callFunction("update_onaylananMetraj_revize", ({ _dugumId: selectedNode_metraj._id, onaylananMetraj_state }))
+        await RealmApp?.currentUser.callFunction("update_onaylananMetraj_revize", ({ _dugumId: selectedNode._id, onaylananMetraj_state }))
         setShow("Main")
-        queryClient.invalidateQueries(['dataOnaylananMetraj', selectedNode_metraj?._id.toString()])
+        queryClient.invalidateQueries(['dataOnaylananMetraj', selectedNode?._id.toString()])
         setIsChanged()
         return
 
@@ -290,7 +290,7 @@ export default function P_MetrajCetveliOnaylanan() {
             setDialogAlert()
             setIsChanged()
             setShow("Main")
-            queryClient.invalidateQueries(['dataOnaylananMetraj', selectedNode_metraj?._id.toString()])
+            queryClient.invalidateQueries(['dataOnaylananMetraj', selectedNode?._id.toString()])
           }
         }
         setDialogAlert({
@@ -473,8 +473,8 @@ export default function P_MetrajCetveliOnaylanan() {
 
     try {
 
-      await RealmApp?.currentUser.callFunction("update_onaylananMetraj_sil", ({ _dugumId: selectedNode_metraj._id, onaylananMetraj_state }))
-      queryClient.invalidateQueries(['dataOnaylananMetraj', selectedNode_metraj?._id.toString()])
+      await RealmApp?.currentUser.callFunction("update_onaylananMetraj_sil", ({ _dugumId: selectedNode._id, onaylananMetraj_state }))
+      queryClient.invalidateQueries(['dataOnaylananMetraj', selectedNode?._id.toString()])
       setShow("Main")
       setIsChanged_sil()
       setMode_sil()
@@ -498,7 +498,7 @@ export default function P_MetrajCetveliOnaylanan() {
           setIsChanged_sil()
           setShow("DugumMetrajlari")
           setMode_sil()
-          queryClient.invalidateQueries(['dataOnaylananMetraj', selectedNode_metraj?._id.toString()])
+          queryClient.invalidateQueries(['dataOnaylananMetraj', selectedNode?._id.toString()])
         }
       }
       setDialogAlert({

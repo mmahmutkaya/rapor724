@@ -34,7 +34,7 @@ export default function P_MetrajOlusturPozMahaller() {
   const metrajYapabilenler = selectedProje?.yetki?.metrajYapabilenler
   let editNodeMetraj = true
 
-  const { selectedNode_metraj, setSelectedNode_metraj } = useContext(StoreContext)
+  const { selectedNode, setSelectedNode } = useContext(StoreContext)
   const { selectedMahal_metraj, setSelectedMahal_metraj } = useContext(StoreContext)
 
   const [show, setShow] = useState("Main")
@@ -157,7 +157,7 @@ export default function P_MetrajOlusturPozMahaller() {
 
 
   const goto_metrajOlusturCetvel = (dugum, oneMahal) => {
-    setSelectedNode_metraj(dugum)
+    setSelectedNode(dugum)
     setSelectedMahal_metraj(oneMahal)
     navigate('/metrajolusturcetvel')
   }
@@ -165,7 +165,7 @@ export default function P_MetrajOlusturPozMahaller() {
 
 
   const goTo_onayCetveli = ({ dugum, oneMahal }) => {
-    setSelectedNode_metraj(dugum)
+    setSelectedNode(dugum)
     setSelectedMahal_metraj(oneMahal)
     navigate('/metrajonay')
   }

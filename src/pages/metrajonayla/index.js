@@ -47,7 +47,7 @@ export default function P_MetrajOnay() {
     appUser, setAppUser,
     RealmApp,
     subHeaderHeight, myTema,
-    selectedProje, selectedPoz, selectedNode_metraj
+    selectedProje, selectedPoz, selectedNode
   } = useContext(StoreContext)
 
   const { showMetrajYapabilenler, setShowMetrajYapabilenler } = useContext(StoreContext)
@@ -106,7 +106,7 @@ export default function P_MetrajOnay() {
 
 
   useEffect(() => {
-    !selectedNode_metraj && navigate("/metrajonaylapozlar")
+    !selectedNode && navigate("/metrajonaylapozlar")
 
     setHazirlananMetrajlar_state(_.cloneDeep(data?.hazirlananMetrajlar))
     setHazirlananMetrajlar_backUp(_.cloneDeep(data?.hazirlananMetrajlar))
@@ -280,7 +280,7 @@ export default function P_MetrajOnay() {
 
       try {
 
-        // await RealmApp?.currentUser.callFunction("update_hazirlananMetrajlar_selected", ({ _projeId: selectedProje._id, _dugumId: selectedNode_metraj._id, hazirlananMetrajlar_state }))
+        // await RealmApp?.currentUser.callFunction("update_hazirlananMetrajlar_selected", ({ _projeId: selectedProje._id, _dugumId: selectedNode._id, hazirlananMetrajlar_state }))
 
         const response = await fetch(`/api/dugumler/updatehazirlananmetrajlarselected`, {
           method: 'POST',
@@ -290,7 +290,7 @@ export default function P_MetrajOnay() {
             'Content-Type': 'application/json'
           },
           body: JSON.stringify({
-            dugumId: selectedNode_metraj._id,
+            dugumId: selectedNode._id,
             hazirlananMetrajlar_state
           })
         })
@@ -489,7 +489,7 @@ export default function P_MetrajOnay() {
 
       try {
 
-        // await RealmApp?.currentUser.callFunction("update_hazirlananMetrajlar_unReady", ({ _projeId: selectedProje._id, _dugumId: selectedNode_metraj._id, hazirlananMetrajlar_state }))
+        // await RealmApp?.currentUser.callFunction("update_hazirlananMetrajlar_unReady", ({ _projeId: selectedProje._id, _dugumId: selectedNode._id, hazirlananMetrajlar_state }))
 
         const response = await fetch(`/api/dugumler/updatehazirlananmetrajlarunready`, {
           method: 'POST',
@@ -499,7 +499,7 @@ export default function P_MetrajOnay() {
             'Content-Type': 'application/json'
           },
           body: JSON.stringify({
-            dugumId: selectedNode_metraj._id,
+            dugumId: selectedNode._id,
             hazirlananMetrajlar_state
           })
         })
@@ -701,7 +701,7 @@ export default function P_MetrajOnay() {
 
       try {
 
-        // await RealmApp?.currentUser.callFunction("update_hazirlananMetrajlar_seen", ({ _projeId: selectedProje._id, _dugumId: selectedNode_metraj._id, hazirlananMetrajlar_state }))
+        // await RealmApp?.currentUser.callFunction("update_hazirlananMetrajlar_seen", ({ _projeId: selectedProje._id, _dugumId: selectedNode._id, hazirlananMetrajlar_state }))
 
         const response = await fetch(`/api/dugumler/updatehazirlananmetrajlarseen`, {
           method: 'POST',
@@ -711,7 +711,7 @@ export default function P_MetrajOnay() {
             'Content-Type': 'application/json'
           },
           body: JSON.stringify({
-            dugumId: selectedNode_metraj._id,
+            dugumId: selectedNode._id,
             hazirlananMetrajlar_state
           })
         })

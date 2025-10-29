@@ -50,7 +50,7 @@ export default function P_HeaderMetrajOlusturCetvel({
 
   const { appUser, setAppUser, drawerWidth, topBarHeight } = useContext(StoreContext)
 
-  const { selectedPoz, selectedMahal_metraj, selectedNode_metraj } = useContext(StoreContext)
+  const { selectedPoz, selectedMahal_metraj, selectedNode } = useContext(StoreContext)
 
   const [showEminMisin_edit, setShowEminMisin_edit] = useState(false)
   const [showEminMisin_ready, setShowEminMisin_ready] = useState(false)
@@ -61,7 +61,7 @@ export default function P_HeaderMetrajOlusturCetvel({
     try {
 
       // console.log("hazirlananMetraj_state",hazirlananMetraj_state)
-      // await RealmApp?.currentUser.callFunction("addMetrajSatiri", ({ _dugumId: selectedNode_metraj._id }))
+      // await RealmApp?.currentUser.callFunction("addMetrajSatiri", ({ _dugumId: selectedNode._id }))
       const response = await fetch(`/api/dugumler/addmetrajsatiri`, {
         method: 'POST',
         headers: {
@@ -70,7 +70,7 @@ export default function P_HeaderMetrajOlusturCetvel({
           'Content-Type': 'application/json'
         },
         body: JSON.stringify({
-          dugumId: selectedNode_metraj._id
+          dugumId: selectedNode._id
         })
       })
 
@@ -104,7 +104,7 @@ export default function P_HeaderMetrajOlusturCetvel({
         detailText: err?.message ? err.message : null,
         onCloseAction: () => {
           setDialogAlert()
-          queryClient.invalidateQueries(['hazirlananMetraj', selectedNode_metraj?._id.toString()])
+          queryClient.invalidateQueries(['hazirlananMetraj', selectedNode?._id.toString()])
         }
       })
     }

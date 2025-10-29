@@ -43,7 +43,7 @@ export default function P_MetrajOlusturCetvel() {
   const { selectedPoz, setSelectedPoz } = useContext(StoreContext)
   const { selectedMahal_metraj } = useContext(StoreContext)
   const { myTema, setMyTema } = useContext(StoreContext)
-  const { selectedNode_metraj, setSelectedNode_metraj } = useContext(StoreContext)
+  const { selectedNode, setSelectedNode } = useContext(StoreContext)
   const { drawerWidth, topBarHeight, subHeaderHeight } = useContext(StoreContext)
   const { editNodeMetraj, setEditNodeMetraj } = useContext(StoreContext)
   const { showNodeMetraj, setShowNodeMetraj } = useContext(StoreContext)
@@ -93,7 +93,7 @@ export default function P_MetrajOlusturCetvel() {
 
   const navigate = useNavigate()
   useEffect(() => {
-    !selectedNode_metraj && navigate("/metrajpozmahaller")
+    !selectedNode && navigate("/metrajpozmahaller")
     setHazirlananMetraj_state(_.cloneDeep(dataHazirlananMetraj?.hazirlananMetraj))
     setHazirlananMetraj_backUp(_.cloneDeep(dataHazirlananMetraj?.hazirlananMetraj))
   }, [dataHazirlananMetraj])
@@ -190,7 +190,7 @@ export default function P_MetrajOlusturCetvel() {
     if (isChanged_edit || isChanged_ready) {
       try {
 
-        // await RealmApp?.currentUser.callFunction("update_hazirlananMetraj_preparing", ({ _dugumId: selectedNode_metraj._id, hazirlananMetraj_state }))
+        // await RealmApp?.currentUser.callFunction("update_hazirlananMetraj_preparing", ({ _dugumId: selectedNode._id, hazirlananMetraj_state }))
         const response = await fetch(`api/dugumler/updatehazirlananmetrajpreparing`, {
           method: 'POST',
           headers: {
@@ -199,7 +199,7 @@ export default function P_MetrajOlusturCetvel() {
             'Content-Type': 'application/json'
           },
           body: JSON.stringify({
-            dugumId: selectedNode_metraj._id,
+            dugumId: selectedNode._id,
             hazirlananMetraj_state
           })
         })
@@ -370,7 +370,7 @@ export default function P_MetrajOlusturCetvel() {
     try {
 
       // console.log("hazirlananMetraj_state",hazirlananMetraj_state)
-      // await RealmApp?.currentUser.callFunction("update_hazirlananMetraj_ready", ({ _dugumId: selectedNode_metraj._id, hazirlananMetraj_state }))
+      // await RealmApp?.currentUser.callFunction("update_hazirlananMetraj_ready", ({ _dugumId: selectedNode._id, hazirlananMetraj_state }))
 
       const response = await fetch(`api/dugumler/updatehazirlananmetrajready`, {
         method: 'POST',
@@ -380,7 +380,7 @@ export default function P_MetrajOlusturCetvel() {
           'Content-Type': 'application/json'
         },
         body: JSON.stringify({
-          dugumId: selectedNode_metraj._id,
+          dugumId: selectedNode._id,
           hazirlananMetraj_state
         })
       })
