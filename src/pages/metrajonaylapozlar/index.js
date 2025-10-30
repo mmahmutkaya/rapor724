@@ -39,7 +39,7 @@ export default function P_MetrajOnaylaPozlar() {
 
   let { data, error, isLoading } = useGetPozlar()
   let pozlar = data?.pozlar?.filter(x => x.hasDugum)
-  // console.log("pozşar", pozlar)
+  // console.log("data?.pozlar", data?.pozlar)
 
   const { setSelectedProje, appUser, setAppUser, myTema } = useContext(StoreContext)
   const { showMetrajYapabilenler, setShowMetrajYapabilenler } = useContext(StoreContext)
@@ -441,8 +441,8 @@ export default function P_MetrajOnaylaPozlar() {
                       <Box sx={{ ...pozNo_css, justifyItems: "start", pl: "0.5rem" }} >
                         {onePoz.pozName}
                       </Box>
-                      <Box onClick={() => hasOnaylananMetraj && goTo_MetrajPozmahaller(onePoz)} sx={{ ...pozNo_css, backgroundColor: !hasOnaylananMetraj ? "lightgray" : "rgba(255, 251, 0, 0.55)", cursor: hasOnaylananMetraj && "pointer", display: "grid", gridTemplateColumns: "1rem 1fr", "&:hover": hasOnaylananMetraj && { "& .childClass": { backgroundColor: "red" } } }}>
-                        <Box className="childClass" sx={{ ml: "-1rem", backgroundColor: !hasOnaylananMetraj ? "lightgray" : "rgba(255, 251, 0, 0.55)", height: "0.5rem", width: "0.5rem", borderRadius: "50%" }}>
+                      <Box onClick={() => hasOnaylananMetraj && goTo_MetrajPozmahaller(onePoz)} sx={{ ...pozNo_css, backgroundColor: onePoz?.hasVersiyonZero ? "rgba(255, 251, 0, 0.55)" : null, cursor: hasOnaylananMetraj && "pointer", display: "grid", gridTemplateColumns: "1rem 1fr", "&:hover": hasOnaylananMetraj && { "& .childClass": { backgroundColor: "red" } } }}>
+                        <Box className="childClass" sx={{ ml: "-1rem", backgroundColor: onePoz?.hasVersiyonZero ? "rgba(255, 251, 0, 0.55)" : null, height: "0.5rem", width: "0.5rem", borderRadius: "50%" }}>
                         </Box>
                         <Box sx={{ justifySelf: "end" }}>
                           {ikiHane(onePoz?.metrajOnaylanan)}

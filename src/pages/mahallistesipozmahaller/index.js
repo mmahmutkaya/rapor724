@@ -398,7 +398,7 @@ export default function P_MehalListesiPozMahaller() {
           {openLbsArray?.map((oneLbs, index) => {
 
             const mahaller_byLbs = mahaller_state?.filter(x => x._lbsId.toString() === oneLbs._id.toString())
-            if (!mahaller_byLbs.length > 0) {
+            if (!mahaller_byLbs?.length > 0) {
               return
             }
 

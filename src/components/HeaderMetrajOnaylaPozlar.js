@@ -130,8 +130,6 @@ export default function HeaderMetrajOnaylaPozlar({ setShow, createVersiyon_metra
                   </IconButton>
                 </Grid>
 
-
-
               </>
 
 

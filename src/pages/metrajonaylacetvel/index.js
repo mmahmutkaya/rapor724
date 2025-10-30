@@ -613,6 +613,7 @@ export default function P_MetrajCetveliOnaylanan() {
 
 
 
+
   // GENEL - bir fonksiyon, ortak kullanılıyor olabilir
   const metrajValue = (oneRow, oneProperty, isMinha) => {
 
@@ -624,7 +625,6 @@ export default function P_MetrajCetveliOnaylanan() {
     return oneRow[oneProperty]
 
   }
-
 
 
 
@@ -764,8 +764,8 @@ export default function P_MetrajCetveliOnaylanan() {
 
           </React.Fragment>
 
-
-          {onaylananMetraj_state.satirlar.filter(x => !x.isPasif).filter(x => mode_sil ? x : !x.hasSelectedCopy).sort((a, b) => {
+          
+          {onaylananMetraj_state.satirlar.filter(x => !mode_sil ? !x.isPasif : x).filter(x => mode_sil ? x : !x.hasSelectedCopy).sort((a, b) => {
 
             let a1 = a.satirNo.substring(0, a.satirNo.indexOf("-"))
             let b1 = b.satirNo.substring(0, b.satirNo.indexOf("-"))
