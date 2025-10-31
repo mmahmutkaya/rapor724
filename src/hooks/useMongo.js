@@ -138,7 +138,7 @@ export const useGetPozlar = () => {
         headers: {
           email: appUser.email,
           token: appUser.token,
-          projeid: selectedProje._id,
+          projeid: selectedProje?._id,
           'Content-Type': 'application/json'
         }
       })
