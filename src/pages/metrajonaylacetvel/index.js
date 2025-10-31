@@ -882,6 +882,7 @@ export default function P_MetrajCetveliOnaylanan() {
                             />
                           </Box>
                         }
+                        
 
                         {!isCellEdit &&
                           <Box
