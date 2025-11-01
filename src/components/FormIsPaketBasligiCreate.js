@@ -30,7 +30,7 @@ import PlayArrowIcon from '@mui/icons-material/PlayArrow';
 
 
 
-export default function Form_IsPaketBasligi_Create({ setShow }) {
+export default function FormIsPaketBasligiCreate({ setShow }) {
 
   const queryClient = useQueryClient()
   const { RealmApp, selectedProje, setSelectedProje } = useContext(StoreContext)
