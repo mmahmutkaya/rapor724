@@ -682,164 +682,181 @@ export default function P_MetrajCetveliOnaylanan() {
           </React.Fragment>
 
 
-          {onaylananMetraj_state.satirlar.filter(x => !x.isPasif).filter(x => mode_sil ? x : !x.hasSelectedCopy).sort((a, b) => {
+          {onaylananMetraj_state.satirlar.filter(x => !mode_sil ? !x.isPasif : x).filter(x => mode_sil ? x : !x.hasSelectedCopy)
+            .sort((a, b) => {
+              // let a1 = a?.dizi?.substring(1, a?.dizi?.length)
+              // let b1 = b?.dizi?.substring(1, b?.dizi?.length)
+              let a1 = a?.dizi
+              let b1 = b?.dizi
+              return a1?.localeCompare(b1, 'en', { numeric: true })
+            })
+            .sort((a, b) => {
 
-            let a1 = a.satirNo.substring(0, a.satirNo.indexOf("-"))
-            let b1 = b.satirNo.substring(0, b.satirNo.indexOf("-"))
+              let a1 = a.satirNo.substring(0, a.satirNo.indexOf("-"))
+              let b1 = b.satirNo.substring(0, b.satirNo.indexOf("-"))
 
-            let a2 = a.satirNo.substring(a.satirNo.indexOf("-") + 1, a.satirNo.length)
-            let b2 = b.satirNo.substring(b.satirNo.indexOf("-") + 1, b.satirNo.length)
+              let a2 = a.satirNo.substring(a.satirNo.indexOf("-") + 1, a.satirNo.length)
+              let b2 = b.satirNo.substring(b.satirNo.indexOf("-") + 1, b.satirNo.length)
 
-            return a1.localeCompare(b1) || a2.localeCompare(b2, undefined, { numeric: true, sensitivity: 'base' })
+              return a1.localeCompare(b1) || a2.localeCompare(b2, undefined, { numeric: true, sensitivity: 'base' })
 
-          }).map((oneRow, index) => {
+            }).sort().map((oneRow, index) => {
 
-            let kullaniciDegisti
-            if (index !== 0 && oneRow.userEmail !== emailAdress) {
-              kullaniciDegisti = true
-            }
-            emailAdress = oneRow.userEmail
+              // console.log("oneRow", oneRow)
 
+              let kullaniciDegisti
+              if (index !== 0 && oneRow.userEmail !== emailAdress) {
+                kullaniciDegisti = true
+              }
+              emailAdress = oneRow.userEmail
 
-            return (
-              < React.Fragment key={index}>
+              return (
+                < React.Fragment key={index}>
 
-                {["satirNo", "aciklama", "carpan1", "carpan2", "carpan3", "carpan4", "carpan5", "metraj", "pozBirim"].map((oneProperty, index) => {
-                  // let isCellEdit = (oneProperty === "satirNo" || oneProperty === "pozBirim" || oneProperty === "metraj") ? false : true
-                  // let isCellEdit = show === "EditMetraj" && !oneRow.isSelected && (oneProperty.includes("aciklama") || oneProperty.includes("carpan")) ? true : false
-                  let isCellEdit = show === "EditMetraj" && (oneProperty.includes("aciklama") || oneProperty.includes("carpan")) ? true : false
-                  let isMinha = oneRow["aciklama"].replace("İ", "i").toLowerCase().includes("minha") ? true : false
+                  {["satirNo", "aciklama", "carpan1", "carpan2", "carpan3", "carpan4", "carpan5", "metraj", "pozBirim"].map((oneProperty, index) => {
+                    // let isCellEdit = (oneProperty === "satirNo" || oneProperty === "pozBirim" || oneProperty === "metraj") ? false : true
+                    // let isCellEdit = show === "EditMetraj" && !oneRow.isSelected && (oneProperty.includes("aciklama") || oneProperty.includes("carpan")) ? true : false
+                    let isCellEdit = show === "EditMetraj" && (oneProperty.includes("aciklama") || oneProperty.includes("carpan")) ? true : false
+                    let isMinha = oneRow["aciklama"].replace("İ", "i").toLowerCase().includes("minha") ? true : false
 
-                  return (
-                    <React.Fragment key={index}>
+                    return (
+                      <React.Fragment key={index}>
 
-                      {isCellEdit &&
+                        {isCellEdit &&
 
-                        <Box
-                          onClick={() => setSelectedRow(oneRow)}
-                          sx={{
-                            ...css_metrajCetveliSatir,
-                            borderBottom: oneRow.isLastCopy && "2px solid black",
-                            borderTop: kullaniciDegisti ? "2px solid red" : oneRow.isFirstCopy && "2px solid black",
-                            backgroundColor: oneRow.isSelectedCopy && (oneProperty.includes("aciklama") || oneProperty.includes("carpan")) ? "rgba(255,255,0, 0.3)" : "rgba(255,255,0, 0.1)",
-                            minWidth: oneProperty.includes("aciklama") ? "10rem" : oneProperty.includes("1") || oneProperty.includes("2") ? "4rem" : "6rem"
-                          }}>
-                          <Input
-                            // autoFocus={autoFocus.baslikId == oneBaslik.id && autoFocus.mahalId == oneMahal._id.toString()}
-                            // autoFocus={autoFocus.mahalId == oneMahal._id.toString()}
-                            // autoFocus={true}
-                            autoComplete='off'
-                            id={oneRow.satirNo + oneProperty}
-                            name={oneRow.satirNo + oneProperty}
-                            // readOnly={oneRow.isSelected}
-                            disableUnderline={true}
-                            // size="small"
-                            type={oneProperty.includes("carpan") ? "number" : "text"}
-                            // type={"text"}
-                            // onChange={(e) => parseFloat(e.target.value).toFixed(1)}
-                            // onKeyDown={(evt) => ilaveYasaklilar.some(elem => evt.target.value.includes(elem)) && ilaveYasaklilar.find(item => item == evt.key) && evt.preventDefault()}
-                            onKeyDown={oneProperty.includes("carpan") ? (event) => handle_input_onKey(event) : null}
-                            onChange={(event) => handle_input_onChange(event, oneRow, oneProperty)}
+                          <Box
+                            onClick={() => setSelectedRow(oneRow)}
                             sx={{
-                              // height: "100%",
-                              // pt: "0.3rem",
+                              ...css_metrajCetveliSatir,
+                              borderBottom: oneRow.isLastCopy && "2px solid black",
+                              borderTop: kullaniciDegisti ? "2px solid red" : oneRow.isFirstCopy && "2px solid black",
+                              backgroundColor: oneRow.isSelectedCopy && (oneProperty.includes("aciklama") || oneProperty.includes("carpan")) ? "rgba(255,255,0, 0.3)" : "rgba(255,255,0, 0.1)",
+                              minWidth: oneProperty.includes("aciklama") ? "10rem" : oneProperty.includes("1") || oneProperty.includes("2") ? "4rem" : "6rem"
+                            }}>
+                            <Input
+                              // autoFocus={autoFocus.baslikId == oneBaslik.id && autoFocus.mahalId == oneMahal._id.toString()}
+                              // autoFocus={autoFocus.mahalId == oneMahal._id.toString()}
+                              // autoFocus={true}
+                              autoComplete='off'
+                              id={oneRow.satirNo + oneProperty}
+                              name={oneRow.satirNo + oneProperty}
+                              // readOnly={oneRow.isSelected}
+                              disableUnderline={true}
+                              // size="small"
+                              type={oneProperty.includes("carpan") ? "number" : "text"}
+                              // type={"text"}
+                              // onChange={(e) => parseFloat(e.target.value).toFixed(1)}
+                              // onKeyDown={(evt) => ilaveYasaklilar.some(elem => evt.target.value.includes(elem)) && ilaveYasaklilar.find(item => item == evt.key) && evt.preventDefault()}
+                              onKeyDown={oneProperty.includes("carpan") ? (event) => handle_input_onKey(event) : null}
+                              onChange={(event) => handle_input_onChange(event, oneRow, oneProperty)}
+                              sx={{
+                                // height: "100%",
+                                // pt: "0.3rem",
+                                color: isMinha ? "red" : null,
+                                // justifyItems: oneBaslik.yatayHiza,
+                                "& input::-webkit-outer-spin-button, & input::-webkit-inner-spin-button": {
+                                  display: "none",
+                                },
+                                "& input[type=number]": {
+                                  MozAppearance: "textfield",
+                                },
+                              }}
+                              // metrajValue={oneRow[oneProperty]}
+                              // value={metrajValue(oneRow, oneProperty, isMinha)}
+                              value={metrajValue(oneRow, oneProperty, isMinha)}
+                              inputProps={{
+                                style: {
+                                  boxSizing: "border-box",
+                                  fontWeight: oneProperty === "metraj" && "700",
+                                  // mt: "0.5rem",
+                                  // height: "0.95rem",
+                                  // minWidth: oneProperty.includes("aciklama") ? "min-content" : "4rem",
+                                  // width: "min-content",
+                                  textAlign: oneProperty.includes("carpan") || oneProperty.includes("metraj") ? "end" : oneProperty.includes("aciklama") ? "start" : "center"
+                                },
+                                step: "0.1", lang: "en-US"
+                              }}
+                            />
+                          </Box>
+                        }
+                        
+
+                        {!isCellEdit &&
+                          <Box
+                            sx={{
+                              ...css_metrajCetveliSatir,
+                              borderBottom: oneRow.isLastCopy && "2px solid black",
+                              borderTop: kullaniciDegisti ? "2px solid red" : oneRow.isFirstCopy && "2px solid black",
+                              // backgroundColor: (mode_sil) && (oneRow.isSelected || oneRow.hasSelectedCopy) ? "rgba(0, 0, 0, 0.15)" :
+                              //   mode_sil && oneRow?.isSelectedCopy && oneRow?.versiyon !== 0 && oneRow.isPasif ? "rgba(0, 0, 0, 0.15)" :
+                              //     mode_sil && oneRow?.isSelectedCopy && oneRow?.versiyon === 0 && "rgba(255, 234, 0, 0.22)",
+                              backgroundColor: oneRow?.versiyon === 0 ? "rgba(255, 234, 0, 0.22)" :
+                                (oneRow?.isPasif || oneRow.hasSelectedCopy) && "rgba(0, 0, 0, 0.15)",
+                              justifyContent: (oneProperty.includes("satirNo") || oneProperty.includes("aciklama")) ? "start" : oneProperty.includes("carpan") ? "end" : oneProperty.includes("metraj") ? "end" : "center",
+                              minWidth: oneProperty.includes("carpan") ? "5rem" : oneProperty.includes("metraj") ? "5rem" : null,
                               color: isMinha ? "red" : null,
-                              // justifyItems: oneBaslik.yatayHiza,
-                              "& input::-webkit-outer-spin-button, & input::-webkit-inner-spin-button": {
-                                display: "none",
-                              },
-                              "& input[type=number]": {
-                                MozAppearance: "textfield",
-                              },
-                            }}
-                            // metrajValue={oneRow[oneProperty]}
-                            // value={metrajValue(oneRow, oneProperty, isMinha)}
-                            value={metrajValue(oneRow, oneProperty, isMinha)}
-                            inputProps={{
-                              style: {
-                                boxSizing: "border-box",
-                                fontWeight: oneProperty === "metraj" && "700",
-                                // mt: "0.5rem",
-                                // height: "0.95rem",
-                                // minWidth: oneProperty.includes("aciklama") ? "min-content" : "4rem",
-                                // width: "min-content",
-                                textAlign: oneProperty.includes("carpan") || oneProperty.includes("metraj") ? "end" : oneProperty.includes("aciklama") ? "start" : "center"
-                              },
-                              step: "0.1", lang: "en-US"
-                            }}
-                          />
-                        </Box>
-                      }
+                              fontWeight: (oneRow.isSelected || oneRow.hasSelectedCopy) && "700",
+                            }}>
+                            {metrajValue(oneRow, oneProperty, isMinha)}
+                          </Box>
+                        }
 
-                      {!isCellEdit &&
-                        <Box
-                          sx={{
-                            ...css_metrajCetveliSatir,
-                            borderBottom: oneRow.isLastCopy && "2px solid black",
-                            borderTop: kullaniciDegisti ? "2px solid red" : oneRow.isFirstCopy && "2px solid black",
-                            backgroundColor: (mode_sil) && (oneRow.isSelected || oneRow.hasSelectedCopy) ? "rgba(0, 0, 0, 0.12)" :
-                              mode_sil && oneRow?.isSelectedCopy ? "rgba(255, 234, 0, 0.22)" : null,
-                            justifyContent: (oneProperty.includes("satirNo") || oneProperty.includes("aciklama")) ? "start" : oneProperty.includes("carpan") ? "end" : oneProperty.includes("metraj") ? "end" : "center",
-                            minWidth: oneProperty.includes("carpan") ? "5rem" : oneProperty.includes("metraj") ? "5rem" : null,
-                            color: isMinha ? "red" : null,
-                            fontWeight: oneProperty === "metraj" && "700",
-                          }}>
-                          {metrajValue(oneRow, oneProperty, isMinha)}
-                        </Box>
-                      }
+                      </React.Fragment>
+                    )
 
-                    </React.Fragment>
-                  )
+                  })}
 
-                })}
+                  <Box></Box>
 
-                <Box></Box>
-
-                <Box
-                  // onClick={() => mode_sil && update_onaylananMetraj_sil(oneRow)}
-                  // onMouseEnter={() => mode_sil && setIsHovered(true)}
-                  // onMouseLeave={() => mode_sil && setIsHovered(false)}
-                  sx={{
-                    // backgroundColor: oneRow.isSelected ? null : "rgba(255,255,0, 0.3)",
-                    // backgroundColor: "rgba(255,255,0, 0.3)",
-                    // cursor: "pointer",
-                    display: "grid",
-                    alignItems: "center",
-                    justifyItems: "center",
-                    px: "0.3rem",
-                    border: "1px solid black",
-                    borderBottom: oneRow.isLastCopy && "2px solid black",
-                    borderTop: kullaniciDegisti ? "2px solid red" : oneRow.isFirstCopy && "2px solid black",
-                  }}
-                >
-                  {/* {!mode_sil && oneRow.isSelected && !oneRow.hasSelectedCopy &&
+                  <Box
+                    onClick={() => mode_sil && update_onaylananMetraj_sil(oneRow)}
+                    // onMouseEnter={() => mode_sil && setIsHovered(true)}
+                    // onMouseLeave={() => mode_sil && setIsHovered(false)}
+                    sx={{
+                      // backgroundColor: oneRow.isSelected ? null : "rgba(255,255,0, 0.3)",
+                      // backgroundColor: "rgba(255,255,0, 0.3)",
+                      cursor: "pointer",
+                      display: "grid",
+                      alignItems: "center",
+                      justifyItems: "center",
+                      px: "0.3rem",
+                      border: "1px solid black",
+                      borderBottom: oneRow.isLastCopy && "2px solid black",
+                      borderTop: kullaniciDegisti ? "2px solid red" : oneRow.isFirstCopy && "2px solid black",
+                    }}
+                  >
+                    {/* {!mode_sil && oneRow.isSelected && !oneRow.hasSelectedCopy &&
                     <LockIcon
                       variant="contained"
                       sx={{ color: "gray", fontSize: "0.9rem" }} />
                   } */}
-                  {!mode_sil && oneRow.isSelectedCopy &&
-                    <EditIcon variant="contained" sx={{ color: mode_sil ? "gray" : "gray", fontSize: "0.9rem" }} />
-                  }
+                    {mode_sil && oneRow.versiyon !== 0 &&
+                      <Box sx={{ fontSize: "0.7rem", fontWeight: (oneRow.isSelected || oneRow.hasSelectedCopy) && "700" }}>v{oneRow.versiyon}</Box>
+                    }
 
-                  {mode_sil && oneRow.versiyon !== 0 &&
-                    <Box sx={{ fontSize: "0.7rem" }}>v{oneRow.versiyon}</Box>
-                  }
+                    {!mode_sil && oneRow.isSelectedCopy && oneRow.versiyon !== 0 &&
+                      <EditIcon variant="contained" sx={{ color: mode_sil ? "lightgray" : "gray", fontSize: "0.9rem" }} />
+                    }
 
-                  {mode_sil && oneRow.newSelected &&
-                    <ReplyIcon
-                      variant="contained"
-                      sx={{ color: "red", fontSize: "0.9rem" }} />
-                  }
-                  {/* {mode_sil && oneRow.isSelectedCopy &&
+                    {oneRow.isSelectedCopy && !oneRow.newSelected && oneRow.versiyon === 0 &&
+                      <EditIcon variant="contained" sx={{ color: mode_sil ? "lightgray" : "gray", fontSize: "0.9rem" }} />
+                    }
+
+                    {mode_sil && oneRow.newSelected && oneRow.versiyon == 0 &&
+                      <ReplyIcon
+                        variant="contained"
+                        sx={{ color: "red", fontSize: "0.9rem" }} />
+                    }
+                    {/* {mode_sil && oneRow.isSelectedCopy &&
                     <ReplyIcon variant="contained" sx={{ color: "rgba(255, 132, 0, 1)", fontSize: "0.9rem" }} />
                   } */}
 
-                </Box>
+                  </Box>
 
-              </React.Fragment>
-            )
+                </React.Fragment>
+              )
 
-          })}
+            })}
 
 
         </Box >

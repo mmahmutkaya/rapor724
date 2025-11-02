@@ -25,7 +25,7 @@ export default ({ children }) => {
       editMetraj: "yellow",
       inaktifGri: "rgb(225,225,225)",
       inactiveGray: "rgb(225,225,225)",
-      metrajOnaylananBaslik:"rgba(202, 240, 248, 1)"
+      metrajOnaylananBaslik: "rgba(202, 240, 248, 1)"
     },
     firstColor: "#3c4245",
     secondColor: "rgba(85, 210, 221, 1)",
@@ -49,6 +49,8 @@ export default ({ children }) => {
   const [selectedMahal, setSelectedMahal] = useState()
   const [selectedMahalBaslik, setSelectedMahalBaslik] = useState()
   const [selectedWbs, setSelectedWbs] = useState()
+  const [selectedIsPaketBaslik, setSelectedIsPaketBaslik] = useState()
+  const [selectedIsPaket, setSelectedIsPaket] = useState()
 
   const [selectedPoz, setSelectedPoz] = useState()
   const [selectedPozBaslik, setSelectedPozBaslik] = useState()
@@ -61,7 +63,7 @@ export default ({ children }) => {
   const [onayNodeMetraj, setOnayNodeMetraj] = useState()
   const [showNodeMetraj, setShowNodeMetraj] = useState()
   const [nodeMetrajlar, setNodeMetrajlar] = useState()
-  
+
   const [detailMode, setDetailMode] = useState()
 
   // const [RealmApp, setRealmApp] = useState(Realm.getApp("rapor724_v2-cykom"))
@@ -93,6 +95,9 @@ export default ({ children }) => {
     selectedMahal, setSelectedMahal,
     selectedMahalBaslik, setSelectedMahalBaslik,
     selectedWbs, setSelectedWbs,
+    selectedIsPaketBaslik, setSelectedIsPaketBaslik,
+    selectedIsPaket, setSelectedIsPaket,
+
 
     selectedPoz, setSelectedPoz,
     selectedPozBaslik, setSelectedPozBaslik,

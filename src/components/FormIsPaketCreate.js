@@ -30,17 +30,17 @@ import PlayArrowIcon from '@mui/icons-material/PlayArrow';
 
 
 
-export default function FormIsPaketBasligiCreate({ setShow }) {
+export default function FormIsPaketCreate({ setShow }) {
 
   const queryClient = useQueryClient()
   const navigate = useNavigate()
 
   const { appUser, setAppUser, selectedProje, setSelectedProje } = useContext(StoreContext)
 
-  const [baslikName, setBaslikName] = useState("")
+  const [isPaketName, setIsPaketName] = useState("")
   const [aciklama, setAciklama] = useState("")
 
-  const [baslikNameError, setBaslikNameError] = useState(false)
+  const [isPaketNameError, setIsPaketNameError] = useState(false)
   const [aciklamaError, setAciklamaError] = useState(false)
 
   const [dialogAlert, setDialogAlert] = useState()
@@ -56,48 +56,47 @@ export default function FormIsPaketBasligiCreate({ setShow }) {
     try {
 
       // const data = new FormData(event.currentTarget);
-      // const baslikName = deleteLastSpace(data.get('baslikName')).toUpperCase()
+      // const isPaketName = deleteLastSpace(data.get('isPaketName')).toUpperCase()
 
       let projeId = selectedProje?._id
 
 
       // VALIDATE KONTROL
       let isError
-      let baslikNameError
+      let isPaketNameError
       let aciklamaError
 
 
-      // baslikName
+      // isPaketName
 
-      if (typeof baslikName != "string" && !baslikNameError) {
-        setBaslikNameError("Başlık 'yazı' türünde değil")
-        baslikNameError = true
+      if (typeof isPaketName != "string" && !isPaketNameError) {
+        setIsPaketNameError("Başlık 'yazı' türünde değil")
+        isPaketNameError = true
         isError = true
       }
 
-      if (baslikName.length == 0 && !baslikNameError) {
-        setBaslikNameError("Başlık adı girilmemiş")
-        baslikNameError = true
+      if (isPaketName.length == 0 && !isPaketNameError) {
+        setIsPaketNameError("Başlık adı girilmemiş")
+        isPaketNameError = true
         isError = true
       }
 
-      if (baslikName.length < 3 && !baslikNameError) {
-        setBaslikNameError("Başlık adı çok kısa")
-        baslikNameError = true
+      if (isPaketName.length < 3 && !isPaketNameError) {
+        setIsPaketNameError("Başlık adı çok kısa")
+        isPaketNameError = true
         isError = true
       }
 
 
-      if (isPaketBasliklari?.length > 0 && !baslikNameError) {
+      if (isPaketBasliklari?.length > 0 && !isPaketNameError) {
         isPaketBasliklari.map(oneBaslik => {
-          if (oneBaslik.name == baslikName) {
-            setBaslikNameError("Bu projede bu başlık kullanılmış")
-            baslikNameError = true
+          if (oneBaslik.name == isPaketName) {
+            setIsPaketNameError("Bu projede bu başlık kullanılmış")
+            isPaketNameError = true
             isError = true
           }
         })
       }
-
 
 
       // aciklama
@@ -115,13 +114,13 @@ export default function FormIsPaketBasligiCreate({ setShow }) {
 
       // VALIDATE KONTROL -- SONU
 
-      // console.log(_firmaId, baslikName)
+      // console.log(_firmaId, isPaketName)
 
 
-      // const result_newBaslik = await RealmApp.currentUser.callFunction("create_isPaketBaslik", { projeId, baslikName, aciklama });
+      // const result_newBaslik = await RealmApp.currentUser.callFunction("create_isPaketBaslik", { projeId, isPaketName, aciklama });
 
       // if (result_newBaslik.errorObject) {
-      //   setBaslikNameError(result_newBaslik.errorObject.baslikNameError)
+      //   setIsPaketNameError(result_newBaslik.errorObject.isPaketNameError)
       //   setAciklamaError(result_newBaslik.errorObject.aciklamaError)
       //   console.log("backend den dönen errorObject hata ile durdu")
       //   return
@@ -135,14 +134,14 @@ export default function FormIsPaketBasligiCreate({ setShow }) {
       //   return
       // }
 
-      const response = await fetch(`/api/projeler/createispaketbaslik`, {
+      const response = await fetch(`/api/projeler/createisbaslik`, {
         method: 'POST',
         headers: {
           email: appUser.email,
           token: appUser.token,
           'Content-Type': 'application/json'
         },
-        body: JSON.stringify({ projeId, baslikName, aciklama })
+        body: JSON.stringify({ projeId, isPaketName, aciklama })
       })
 
       const responseJson = await response.json()
@@ -158,7 +157,7 @@ export default function FormIsPaketBasligiCreate({ setShow }) {
       }
 
       if (responseJson.errorObject) {
-        setBaslikNameError(responseJson.errorObject.baslikNameError)
+        setIsPaketNameError(responseJson.errorObject.isPaketNameError)
         setAciklamaError(responseJson.errorObject.aciklamaError)
         console.log("backend den dönen errorObject hata ile durdu")
         return
@@ -166,12 +165,7 @@ export default function FormIsPaketBasligiCreate({ setShow }) {
 
       if (responseJson.newBaslik) {
         let proje = _.cloneDeep(selectedProje)
-        proje.isPaketleri = proje.isPaketleri.map(onePaket => {
-          if (onePaket.versiyon === 0) {
-            onePaket.basliklar = [...onePaket.basliklar, responseJson.newBaslik]
-          }
-          return onePaket
-        })
+        proje.isPaketBasliklari = [...proje.isPaketBasliklari, responseJson.newBaslik]
         setSelectedProje(proje)
         setShow("Main")
         return
@@ -225,16 +219,16 @@ export default function FormIsPaketBasligiCreate({ setShow }) {
             </DialogContentText>
 
 
-            <Box onClick={() => setBaslikNameError(false)}>
+            <Box onClick={() => setIsPaketNameError(false)}>
               <TextField
                 variant="standard"
                 margin="normal"
-                id="baslikName"
-                name="baslikName"
-                onChange={(e) => setBaslikName(() => e.target.value.replace("i", "İ").toUpperCase())}
-                value={baslikName}
-                error={baslikNameError ? true : false}
-                helperText={baslikNameError ? baslikNameError : ""}
+                id="isPaketName"
+                name="isPaketName"
+                onChange={(e) => setIsPaketName(() => e.target.value.replace("i", "İ").toUpperCase())}
+                value={isPaketName}
+                error={isPaketNameError ? true : false}
+                helperText={isPaketNameError ? isPaketNameError : ""}
                 // margin="dense"
                 label="İş Paketi Başlık Adı"
                 type="text"

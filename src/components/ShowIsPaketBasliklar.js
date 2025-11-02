@@ -4,6 +4,9 @@ import { useApp } from "./useApp.js";
 import { StoreContext } from './store.js'
 import { DialogAlert } from './general/DialogAlert.js';
 import Divider from '@mui/material/Divider';
+import { useNavigate } from "react-router-dom";
+import _ from 'lodash';
+
 
 
 //mui
@@ -17,9 +20,10 @@ import { DialogTitle, Typography } from '@mui/material';
 
 export default function ShowPozBaslik({ setShow, basliklar, setBasliklar }) {
 
-  const RealmApp = useApp();
-  const [dialogAlert, setDialogAlert] = useState()
+  const navigate = useNavigate()
+  const { appUser, setAppUser } = useContext(StoreContext)
 
+  const [dialogAlert, setDialogAlert] = useState()
 
 
   const baslikUpdate = async ({ baslikId, showValue }) => {
@@ -38,10 +42,47 @@ export default function ShowPozBaslik({ setShow, basliklar, setBasliklar }) {
       setBasliklar(basliklar2)
 
       // db ye gönderme işlemi
-      await RealmApp?.currentUser.callFunction("customSettings_update", ({ functionName: "sayfaBasliklari", sayfaName: "ispaketleri", baslikId, showValue }))
-      await RealmApp?.currentUser.refreshCustomData()
+      // await RealmApp?.currentUser.callFunction("customSettings_update", ({ functionName: "sayfaBasliklari", sayfaName: "ispaketleri", baslikId, showValue }))
+      // await RealmApp?.currentUser.refreshCustomData()
 
-      return
+
+      const response = await fetch(`/api/user/customsettingspagessetdata`, {
+        method: 'POST',
+        headers: {
+          email: appUser.email,
+          token: appUser.token,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          pageName: "ispaketleri",
+          dataName: "basliklar",
+          setData: basliklar2
+        })
+      })
+
+      const responseJson = await response.json()
+
+      if (responseJson.error) {
+        if (responseJson.error.includes("expired")) {
+          setAppUser()
+          localStorage.removeItem('appUser')
+          navigate('/')
+          window.location.reload()
+        }
+        throw new Error(responseJson.error);
+      }
+
+      if (responseJson.ok) {
+
+        let appUser2 = _.cloneDeep(appUser)
+        appUser2.customSettings.pages.ispaketleri.basliklar = basliklar2
+        setAppUser(appUser2)
+        localStorage.setItem('appUser', JSON.stringify(appUser2))
+        return
+
+      } else {
+        throw new Error("Kayıt gerçekleşmedi, sayfayı yenileyiniz, sorun devam ederse Rapor7/24 ile iletişime geçiniz.")
+      }
 
     } catch (err) {
 
@@ -56,6 +97,8 @@ export default function ShowPozBaslik({ setShow, basliklar, setBasliklar }) {
     }
 
   }
+
+
 
 
   return (

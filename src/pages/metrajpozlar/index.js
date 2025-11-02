@@ -71,7 +71,7 @@ export default function P_MetrajPozlar() {
   }, [error]);
 
 
-  const [basliklar, setBasliklar] = useState(appUser.customSettings.pages.metrajpozlar.basliklar)
+  const [basliklar, setBasliklar] = useState(appUser.customSettings.pages.metraj.basliklar)
 
 
   // const pozAciklamaShow = basliklar?.find(x => x.id === "aciklama").show
