@@ -167,9 +167,9 @@ export default function FormIsPaketCreate({ setShow }) {
 
       if (responseJson.altBaslik) {
         let proje = _.cloneDeep(selectedProje)
-        proje.isPaketleri = proje.isPaketleri.map(oneBaslik => {
-          if (oneBaslik.versiyon === 0) {
-            oneBaslik.basliklar.map(oneBaslik => {
+        proje.isPaketleri = proje.isPaketleri.map(onePaket => {
+          if (onePaket.versiyon === 0) {
+            onePaket.basliklar.map(oneBaslik => {
               if (oneBaslik._id.toString() === selectedIsPaketBaslik._id.toString()) {
                 oneBaslik.altBasliklar = [...oneBaslik.altBasliklar, responseJson.altBaslik]
               }
