@@ -36,6 +36,8 @@ export default function FormIsPaketCreate({ setShow }) {
   const navigate = useNavigate()
 
   const { appUser, setAppUser, selectedProje, setSelectedProje } = useContext(StoreContext)
+  const { selectedIsPaketBaslik } = useContext(StoreContext)
+
 
   const [isPaketName, setIsPaketName] = useState("")
   const [aciklama, setAciklama] = useState("")
@@ -134,7 +136,7 @@ export default function FormIsPaketCreate({ setShow }) {
       //   return
       // }
 
-      const response = await fetch(`/api/projeler/createisbaslik`, {
+      const response = await fetch(`/api/projeler/createispaket`, {
         method: 'POST',
         headers: {
           email: appUser.email,
@@ -163,9 +165,19 @@ export default function FormIsPaketCreate({ setShow }) {
         return
       }
 
-      if (responseJson.newBaslik) {
+      if (responseJson.altBaslik) {
         let proje = _.cloneDeep(selectedProje)
-        proje.isPaketBasliklari = [...proje.isPaketBasliklari, responseJson.newBaslik]
+        proje.isPaketleri = proje.isPaketleri.map(oneBaslik => {
+          if (oneBaslik.versiyon === 0) {
+            oneBaslik.basliklar.map(oneBaslik => {
+              if (oneBaslik._id.toString() === selectedIsPaketBaslik._id.toString()) {
+                oneBaslik.altBasliklar = [...oneBaslik.altBasliklar, responseJson.altBaslik]
+              }
+              return oneBaslik
+            })
+          }
+          return onePaket
+        })
         setSelectedProje(proje)
         setShow("Main")
         return
@@ -214,7 +226,7 @@ export default function FormIsPaketCreate({ setShow }) {
 
             <DialogContentText sx={{ fontWeight: "bold", paddingBottom: "1rem" }}>
               {/* <Typography sx> */}
-              İş Paket Başlığı Oluştur
+              İş Paketi Oluştur
               {/* </Typography> */}
             </DialogContentText>
 
@@ -230,7 +242,7 @@ export default function FormIsPaketCreate({ setShow }) {
                 error={isPaketNameError ? true : false}
                 helperText={isPaketNameError ? isPaketNameError : ""}
                 // margin="dense"
-                label="İş Paketi Başlık Adı"
+                label="İş Paketi Adı"
                 type="text"
                 fullWidth
               />
