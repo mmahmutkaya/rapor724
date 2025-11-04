@@ -76,7 +76,11 @@ export default function P_IsPaketleri() {
 
 
   const css_IsPaketleriBaslik = {
-    display: "grid", px: "0.5rem", backgroundColor: "lightgray", fontWeight: 700, textWrap: "nowrap"
+    display: "grid", px: "0.5rem", backgroundColor: "lightgray", fontWeight: 700, textWrap: "nowrap", border: "1px solid black"
+  }
+
+  const css_IsPaketleri = {
+    display: "grid", px: "0.5rem", border: "1px solid black", alignItems: "center"
   }
 
   // const columns2 =
@@ -91,7 +95,7 @@ export default function P_IsPaketleri() {
 
   // iş paket başlığı - açıklama  
   // sıra - iş paketi - keşif - bütçe - güncel iş sonu - gerçekleşen - kalan 
-  const columns = "repeat(7, min-content)"
+  const columns = "min-content min-content repeat(5, min-content)"
 
 
   return (
@@ -278,6 +282,47 @@ export default function P_IsPaketleri() {
                   </Box>
 
                 </React.Fragment>
+
+
+                {/* iş paketleri verileri */}
+                {oneBaslik.altBasliklar.map(oneAltBaslik => {
+
+                  return (
+                    <React.Fragment>
+
+                      <Box sx={{ ...css_IsPaketleri, justifyContent:"center"}}>
+                        {index + 1}
+                      </Box>
+
+                      <Box sx={{ ...css_IsPaketleri }}>
+                        {oneAltBaslik.name}
+                      </Box>
+
+                      <Box sx={{ ...css_IsPaketleri }}>
+                        Keşif
+                      </Box>
+
+                      <Box sx={{ ...css_IsPaketleri }}>
+                        Bütçe
+                      </Box>
+
+                      <Box sx={{ ...css_IsPaketleri }}>
+                        İş Sonu
+                      </Box>
+
+                      <Box sx={{ ...css_IsPaketleri }}>
+                        Gerçekleşen
+                      </Box>
+
+                      <Box sx={{ ...css_IsPaketleri }}>
+                        Kalan
+                      </Box>
+
+                    </React.Fragment>
+                  )
+
+                })}
+
 
 
               </React.Fragment>

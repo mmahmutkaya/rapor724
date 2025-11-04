@@ -143,7 +143,7 @@ export default function FormIsPaketCreate({ setShow }) {
           token: appUser.token,
           'Content-Type': 'application/json'
         },
-        body: JSON.stringify({ projeId, baslikName: selectedIsPaketBaslik.name, isPaketName, aciklama })
+        body: JSON.stringify({ projeId, baslikId: selectedIsPaketBaslik._id, isPaketName, aciklama })
       })
 
       const responseJson = await response.json()

@@ -88,14 +88,10 @@ export default function FormIsPaketBasligiCreate({ setShow }) {
       }
 
 
-      if (isPaketBasliklari?.length > 0 && !baslikNameError) {
-        isPaketBasliklari.map(oneBaslik => {
-          if (oneBaslik.name == baslikName) {
-            setBaslikNameError("Bu projede bu başlık kullanılmış")
-            baslikNameError = true
-            isError = true
-          }
-        })
+      if (selectedProje.isPaketleri?.find(onePaket => onePaket.versiyon === 0 && onePaket.basliklar.find(oneBaslik => oneBaslik.name === baslikName) && !baslikNameError)) {
+        setBaslikNameError("Bu projede, bu başlık ismi kullanılmış.")
+        baslikNameError = true
+        isError = true
       }
 
 
@@ -115,25 +111,6 @@ export default function FormIsPaketBasligiCreate({ setShow }) {
 
       // VALIDATE KONTROL -- SONU
 
-      // console.log(_firmaId, baslikName)
-
-
-      // const result_newBaslik = await RealmApp.currentUser.callFunction("create_isPaketBaslik", { projeId, baslikName, aciklama });
-
-      // if (result_newBaslik.errorObject) {
-      //   setBaslikNameError(result_newBaslik.errorObject.baslikNameError)
-      //   setAciklamaError(result_newBaslik.errorObject.aciklamaError)
-      //   console.log("backend den dönen errorObject hata ile durdu")
-      //   return
-      // }
-
-      // if (result_newBaslik._id) {
-      //   let proje = _.cloneDeep(selectedProje)
-      //   proje.isPaketBasliklari = [...proje.isPaketBasliklari, result_newBaslik]
-      //   setSelectedProje(proje)
-      //   setShow("Main")
-      //   return
-      // }
 
       const response = await fetch(`/api/projeler/createispaketbaslik`, {
         method: 'POST',
