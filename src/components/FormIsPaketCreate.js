@@ -89,17 +89,12 @@ export default function FormIsPaketCreate({ setShow }) {
         isError = true
       }
 
-
-      if (isPaketBasliklari?.length > 0 && !isPaketNameError) {
-        isPaketBasliklari.map(oneBaslik => {
-          if (oneBaslik.name == isPaketName) {
-            setIsPaketNameError("Bu projede bu başlık kullanılmış")
-            isPaketNameError = true
-            isError = true
-          }
-        })
+      let theBaslik = selectedProje?.isPaketleri?.find(onePaket => onePaket.versiyon === 0).basliklar.find(oneBaslik => oneBaslik._id.toString() === selectedIsPaketBaslik._id.toString())
+      if (theBaslik.altBasliklar.find(altBaslik => altBaslik.name === isPaketName) && !isPaketNameError) {
+        setIsPaketNameError("Bu başlık altında bu 'iş paket' ismi kullanılmış.")
+        isPaketNameError = true
+        isError = true
       }
-
 
       // aciklama
       if (typeof aciklama != "string" && !aciklamaError) {
@@ -115,26 +110,6 @@ export default function FormIsPaketCreate({ setShow }) {
       }
 
       // VALIDATE KONTROL -- SONU
-
-      // console.log(_firmaId, isPaketName)
-
-
-      // const result_newBaslik = await RealmApp.currentUser.callFunction("create_isPaketBaslik", { projeId, isPaketName, aciklama });
-
-      // if (result_newBaslik.errorObject) {
-      //   setIsPaketNameError(result_newBaslik.errorObject.isPaketNameError)
-      //   setAciklamaError(result_newBaslik.errorObject.aciklamaError)
-      //   console.log("backend den dönen errorObject hata ile durdu")
-      //   return
-      // }
-
-      // if (result_newBaslik._id) {
-      //   let proje = _.cloneDeep(selectedProje)
-      //   proje.isPaketBasliklari = [...proje.isPaketBasliklari, result_newBaslik]
-      //   setSelectedProje(proje)
-      //   setShow("Main")
-      //   return
-      // }
 
       const response = await fetch(`/api/projeler/createispaket`, {
         method: 'POST',

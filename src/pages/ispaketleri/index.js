@@ -95,7 +95,7 @@ export default function P_IsPaketleri() {
 
   // iş paket başlığı - açıklama  
   // sıra - iş paketi - keşif - bütçe - güncel iş sonu - gerçekleşen - kalan 
-  const columns = "min-content min-content repeat(5, min-content)"
+  const columns = "max-content minmax(min-content, 20rem) repeat(5, max-content)"
 
 
   return (
@@ -285,12 +285,12 @@ export default function P_IsPaketleri() {
 
 
                 {/* iş paketleri verileri */}
-                {oneBaslik.altBasliklar.map(oneAltBaslik => {
+                {oneBaslik.altBasliklar.map((oneAltBaslik, index) => {
 
                   return (
-                    <React.Fragment>
+                    <React.Fragment key={index}>
 
-                      <Box sx={{ ...css_IsPaketleri, justifyContent:"center"}}>
+                      <Box sx={{ ...css_IsPaketleri, justifyContent: "center" }}>
                         {index + 1}
                       </Box>
 
