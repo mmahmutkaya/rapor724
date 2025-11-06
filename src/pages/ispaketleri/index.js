@@ -1,7 +1,7 @@
 
 import React, { useState, useEffect, useContext } from 'react';
 import { StoreContext } from '../../components/store'
-import FormIsPaketBasligiCreate from '../../components/FormIsPaketBasligiCreate'
+import FormIsPaketBaslikCreate from '../../components/FormIsPaketBaslikCreate'
 import FormIsPaketCreate from '../../components/FormIsPaketCreate'
 import { useNavigate } from "react-router-dom";
 // import { useGetProjelerNames_byFirma } from '../../hooks/useMongo';
@@ -50,7 +50,7 @@ export default function P_IsPaketleri() {
   const [show, setShow] = useState("Main")
 
   // const { data: projelerNames_byFirma } = useGetProjelerNames_byFirma()
-  const isPaketBasliklari = selectedProje?.isPaketleri?.find(x => x.versiyon === 0).basliklar
+  const isPaketBasliklar = selectedProje?.isPaketVersiyonlar?.find(x => x.versiyon === 0).basliklar
   const aciklamaShow = basliklar?.find(x => x.id === "aciklama").show
 
 
@@ -174,7 +174,7 @@ export default function P_IsPaketleri() {
                   </Grid>
 
                   <Grid item>
-                    <IconButton onClick={() => setShow("FormIsPaketBasligiCreate")} aria-label="addWbs">
+                    <IconButton onClick={() => setShow("FormIsPaketBaslikCreate")} aria-label="addWbs">
                       <AddCircleOutlineIcon variant="contained" color="success" />
                     </IconButton>
                   </Grid>
@@ -189,9 +189,9 @@ export default function P_IsPaketleri() {
 
 
 
-      {show == "FormIsPaketBasligiCreate" &&
+      {show == "FormIsPaketBaslikCreate" &&
         <Box>
-          <FormIsPaketBasligiCreate setShow={setShow} />
+          <FormIsPaketBaslikCreate setShow={setShow} />
         </Box>
       }
 
@@ -201,7 +201,7 @@ export default function P_IsPaketleri() {
         </Box>
       }
 
-      {show == "Main" && !isPaketBasliklari?.length > 0 &&
+      {show == "Main" && !isPaketBasliklar?.length > 0 &&
         <Stack sx={{ width: '100%', padding: "1rem" }} spacing={2}>
           <Alert severity="info">
             Bir iş paketi başlığı oluşturmak için (+) tuşuna basınız..
@@ -209,11 +209,11 @@ export default function P_IsPaketleri() {
         </Stack>
       }
 
-      {show == "Main" && isPaketBasliklari?.length > 0 &&
+      {show == "Main" && isPaketBasliklar?.length > 0 &&
         <Stack sx={{ width: '100%', padding: "1rem", display: "grid", gridTemplateColumns: columns }}>
 
           {/* iş paket başlığı adı - en üst satır*/}
-          {isPaketBasliklari.map((oneBaslik, index) => {
+          {isPaketBasliklar.map((oneBaslik, index) => {
 
             let isBaslikSelected
             if (oneBaslik._id.toString() === selectedIsPaketBaslik?._id.toString()) {
@@ -249,43 +249,43 @@ export default function P_IsPaketleri() {
                 </React.Fragment>
 
 
-                {/* iş paketleri başlığı */}
-
-                <React.Fragment>
-
-                  <Box sx={{ ...css_IsPaketleriBaslik, }}>
-                    Sıra
-                  </Box>
-
-                  <Box sx={{ ...css_IsPaketleriBaslik }}>
-                    İş Paketi
-                  </Box>
-
-                  <Box sx={{ ...css_IsPaketleriBaslik }}>
-                    Keşif
-                  </Box>
-
-                  <Box sx={{ ...css_IsPaketleriBaslik }}>
-                    Bütçe
-                  </Box>
-
-                  <Box sx={{ ...css_IsPaketleriBaslik }}>
-                    İş Sonu
-                  </Box>
-
-                  <Box sx={{ ...css_IsPaketleriBaslik }}>
-                    Gerçekleşen
-                  </Box>
-
-                  <Box sx={{ ...css_IsPaketleriBaslik }}>
-                    Kalan
-                  </Box>
-
-                </React.Fragment>
-
-
                 {/* iş paketleri verileri */}
-                {oneBaslik.altBasliklar.map((oneAltBaslik, index) => {
+                {oneBaslik.isPaketleri.length > 0 && oneBaslik.isPaketleri.map((onePaket, index) => {
+
+                  {/* iş paketleri başlığı */ }
+                  <React.Fragment>
+
+                    <Box sx={{ ...css_IsPaketleriBaslik, }}>
+                      Sıra
+                    </Box>
+
+                    <Box sx={{ ...css_IsPaketleriBaslik }}>
+                      İş Paketi
+                    </Box>
+
+                    <Box sx={{ ...css_IsPaketleriBaslik }}>
+                      Keşif
+                    </Box>
+
+                    <Box sx={{ ...css_IsPaketleriBaslik }}>
+                      Bütçe
+                    </Box>
+
+                    <Box sx={{ ...css_IsPaketleriBaslik }}>
+                      İş Sonu
+                    </Box>
+
+                    <Box sx={{ ...css_IsPaketleriBaslik }}>
+                      Gerçekleşen
+                    </Box>
+
+                    <Box sx={{ ...css_IsPaketleriBaslik }}>
+                      Kalan
+                    </Box>
+
+                  </React.Fragment>
+
+
 
                   return (
                     <React.Fragment key={index}>
@@ -295,7 +295,7 @@ export default function P_IsPaketleri() {
                       </Box>
 
                       <Box sx={{ ...css_IsPaketleri }}>
-                        {oneAltBaslik.name}
+                        {onePaket.name}
                       </Box>
 
                       <Box sx={{ ...css_IsPaketleri }}>

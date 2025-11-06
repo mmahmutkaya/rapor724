@@ -89,8 +89,8 @@ export default function FormIsPaketCreate({ setShow }) {
         isError = true
       }
 
-      let theBaslik = selectedProje?.isPaketleri?.find(onePaket => onePaket.versiyon === 0).basliklar.find(oneBaslik => oneBaslik._id.toString() === selectedIsPaketBaslik._id.toString())
-      if (theBaslik.altBasliklar.find(altBaslik => altBaslik.name === isPaketName) && !isPaketNameError) {
+      let theBaslik = selectedProje?.isPaketVersiyonlar?.find(oneVersiyon => oneVersiyon.versiyon === 0).basliklar.find(oneBaslik => oneBaslik._id.toString() === selectedIsPaketBaslik._id.toString())
+      if (theBaslik.isPaketleri.find(onePaket => onePaket.name === isPaketName) && !isPaketNameError) {
         setIsPaketNameError("Bu başlık altında bu 'iş paket' ismi kullanılmış.")
         isPaketNameError = true
         isError = true
@@ -140,18 +140,18 @@ export default function FormIsPaketCreate({ setShow }) {
         return
       }
 
-      if (responseJson.altBaslik) {
+      if (responseJson.newPaket) {
         let proje = _.cloneDeep(selectedProje)
-        proje.isPaketleri = proje.isPaketleri.map(onePaket => {
-          if (onePaket.versiyon === 0) {
-            onePaket.basliklar.map(oneBaslik => {
+        proje.isPaketVersiyonlar = proje.isPaketVersiyonlar.map(oneVersiyon => {
+          if (oneVersiyon.versiyon === 0) {
+            oneVersiyon.basliklar.map(oneBaslik => {
               if (oneBaslik._id.toString() === selectedIsPaketBaslik._id.toString()) {
-                oneBaslik.altBasliklar = [...oneBaslik.altBasliklar, responseJson.altBaslik]
+                oneBaslik.isPaketleri = [...oneBaslik.isPaketleri, responseJson.newPaket]
               }
               return oneBaslik
             })
           }
-          return onePaket
+          return oneVersiyon
         })
         setSelectedProje(proje)
         setShow("Main")

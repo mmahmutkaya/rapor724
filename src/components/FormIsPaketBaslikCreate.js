@@ -30,7 +30,7 @@ import PlayArrowIcon from '@mui/icons-material/PlayArrow';
 
 
 
-export default function FormIsPaketBasligiCreate({ setShow }) {
+export default function FormIsPaketBaslikCreate({ setShow }) {
 
   const queryClient = useQueryClient()
   const navigate = useNavigate()
@@ -88,7 +88,7 @@ export default function FormIsPaketBasligiCreate({ setShow }) {
       }
 
 
-      if (selectedProje.isPaketleri?.find(onePaket => onePaket.versiyon === 0 && onePaket.basliklar.find(oneBaslik => oneBaslik.name === baslikName) && !baslikNameError)) {
+      if (selectedProje.isPaketVersiyonlar?.find(oneVersiyon => oneVersiyon.versiyon === 0 && oneVersiyon.basliklar.find(oneBaslik => oneBaslik.name === baslikName) && !baslikNameError)) {
         setBaslikNameError("Bu projede, bu başlık ismi kullanılmış.")
         baslikNameError = true
         isError = true
@@ -143,11 +143,11 @@ export default function FormIsPaketBasligiCreate({ setShow }) {
 
       if (responseJson.newBaslik) {
         let proje = _.cloneDeep(selectedProje)
-        proje.isPaketleri = proje.isPaketleri.map(onePaket => {
-          if (onePaket.versiyon === 0) {
-            onePaket.basliklar = [...onePaket.basliklar, responseJson.newBaslik]
+        proje.isPaketVersiyonlar = proje.isPaketVersiyonlar.map(oneVersiyon => {
+          if (oneVersiyon.versiyon === 0) {
+            oneVersiyon.basliklar = [...oneVersiyon.basliklar, responseJson.newBaslik]
           }
-          return onePaket
+          return oneVersiyon
         })
         setSelectedProje(proje)
         setShow("Main")
