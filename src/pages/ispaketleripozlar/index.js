@@ -5,26 +5,30 @@ import { useQueryClient } from '@tanstack/react-query'
 import { useNavigate } from "react-router-dom";
 
 
-import { StoreContext } from '../../components/store'
-import { useGetPozlar } from '../../hooks/useMongo';
-import getWbsName from '../../functions/getWbsName';
+import { StoreContext } from '../../components/store.js'
+import { useGetPozlar } from '../../hooks/useMongo.js';
+import getWbsName from '../../functions/getWbsName.js';
 import { DialogAlert } from '../../components/general/DialogAlert.js';
 
 
-import HeaderMetrajPozlar from '../../components/HeaderMetrajPozlar'
-import ShowMetrajYapabilenler from '../../components/ShowMetrajYapabilenler'
+
+import HeaderMetrajPozlar from '../../components/HeaderMetrajPozlar.js'
+import ShowMetrajYapabilenler from '../../components/ShowMetrajYapabilenler.js'
 
 
+import Grid from '@mui/material/Grid';
 import Alert from '@mui/material/Alert';
 import Stack from '@mui/material/Stack';
 import Box from '@mui/material/Box';
 import CircleIcon from '@mui/icons-material/Circle';
 import { Check } from '@mui/icons-material';
 import LinearProgress from '@mui/material/LinearProgress';
+import AppBar from '@mui/material/AppBar';
+import Typography from '@mui/material/Typography';
 
 
 
-export default function P_MetrajPozlar() {
+export default function P_IsPaketleriPozlar() {
 
   const navigate = useNavigate()
   const queryClient = useQueryClient()
@@ -36,7 +40,7 @@ export default function P_MetrajPozlar() {
   // console.log("pozşar", pozlar)
 
 
-  const { appUser, setAppUser, RealmApp, myTema } = useContext(StoreContext)
+  const { appUser, setAppUser, RealmApp, myTema, drawerWidth, topBarHeight } = useContext(StoreContext)
   const { showMetrajYapabilenler, setShowMetrajYapabilenler } = useContext(StoreContext)
   const { selectedPoz, setSelectedPoz } = useContext(StoreContext)
   const { selectedProje, setSelectedProje } = useContext(StoreContext)
@@ -47,10 +51,6 @@ export default function P_MetrajPozlar() {
   const yetkililer = selectedProje?.yetkiliKisiler
 
   let onayNodeMetraj = false
-
-
-  // console.log("selectedProje", selectedProje)
-  // console.log("pozBirimleri", pozBirimleri)
 
   const [show, setShow] = useState("Main")
 
@@ -161,8 +161,51 @@ export default function P_MetrajPozlar() {
       }
 
       {/* BAŞLIK */}
-      <HeaderMetrajPozlar
-      />
+      <Box >
+
+        <AppBar
+          position="fixed"
+          sx={{
+            backgroundColor: "white",
+            color: "black",
+            width: { md: `calc(100% - ${drawerWidth}px)` },
+            mt: topBarHeight,
+            // pt:"3rem",
+            ml: { md: `${drawerWidth}px` }
+          }}
+        >
+
+          <Grid
+            container
+            justifyContent="space-between"
+            alignItems="center"
+            sx={{ padding: "0.5rem 1rem", maxHeight: "5rem" }}
+          >
+
+            {/* sol kısım (başlık) */}
+            <Grid item xs>
+              <Typography
+                // nowrap={true}
+                variant="h6"
+                fontWeight="bold"
+              >
+                Metraj
+              </Typography>
+            </Grid>
+
+
+            {/* sağ kısım - (tuşlar)*/}
+            <Grid item xs="auto">
+              <Grid container >
+
+              </Grid>
+            </Grid>
+
+          </Grid>
+
+        </AppBar>
+
+      </Box >
 
 
       {/* BAŞLIK GÖSTER / GİZLE */}

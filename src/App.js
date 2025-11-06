@@ -44,6 +44,7 @@ import P_MetrajCetvel from './pages/metrajcetvel'
 import P_MetrajEdit from './pages/metrajedit'
 
 import P_IsPaketleri from './pages/ispaketleri'
+import P_IsPaketleriPozlar from './pages/ispaketleripozlar'
 
 
 function App() {
@@ -92,6 +93,7 @@ function App() {
       <Route path='/metrajcetvel' element={<P_MetrajCetvel />} />
 
       <Route path='/ispaketleri' element={<P_IsPaketleri />} />
+      <Route path='/ispaketleripozlar' element={<P_IsPaketleriPozlar />} />
 
     </Routes>
   );

@@ -24,6 +24,7 @@ import AddCircleOutlineIcon from '@mui/icons-material/AddCircleOutline';
 import VisibilityIcon from '@mui/icons-material/Visibility';
 import LensIcon from '@mui/icons-material/Lens';
 import ClearOutlined from '@mui/icons-material/ClearOutlined';
+import InfoIcon from '@mui/icons-material/Info';
 
 
 
@@ -224,9 +225,12 @@ export default function P_IsPaketleri() {
 
               <React.Fragment key={index}>
 
+                {/* AYRAÇ */}
+                <Box sx={{ display: index === 0 && "none", gridColumn: "1/-1", mt: "1rem", backgroundColor: "darkred", height: "0.2rem" }}></Box>
+
                 <React.Fragment >
 
-                  <Box onClick={() => setSelectedIsPaketBaslik(oneBaslik)} sx={{ gridColumn: "1/8", fontWeight: 700, cursor: "pointer", mt: index !== 0 && "1rem" }}>
+                  <Box onClick={() => setSelectedIsPaketBaslik(oneBaslik)} sx={{ gridColumn: "1/-1", fontWeight: 700, cursor: "pointer", mt: index !== 0 && "1rem" }}>
                     <Box sx={{ display: "grid", gridAutoFlow: "column", justifyContent: "start" }}>
                       <Box>
                         {oneBaslik.name}
@@ -241,18 +245,25 @@ export default function P_IsPaketleri() {
 
                   {
                     aciklamaShow &&
-                    <Box sx={{ gridColumn: "1/8", color: "gray" }}>
-                      {oneBaslik.aciklama}
+                    <Box sx={{ gridColumn: "1/8", display: "grid", alignItems: "center", color: "gray", mb: "0.3rem" }}>
+                      {" - "} {oneBaslik.aciklama}
                     </Box>
                   }
 
                 </React.Fragment>
 
 
-                {/* iş paketleri verileri */}
-                {oneBaslik.isPaketleri.length > 0 && oneBaslik.isPaketleri.map((onePaket, index) => {
+                {/* iş paketleri henüz oluşturulmamış ise */}
+                {!oneBaslik.isPaketleri.length > 0 &&
+                  <Box onClick={() => setSelectedIsPaketBaslik(oneBaslik)} sx={{ gridColumn: "1/-1", cursor: "pointer", display: "grid", gridAutoFlow: "column", backgroundColor: "rgba(122, 217, 227, 0.28)", alignItems: "center", justifyContent: "start" }}>
+                    <InfoIcon variant="contained" sx={{ color: "rgba(79, 141, 148, 1)", fontSize: "1.2rem", m: "0.3rem" }} />
+                    <Box>
+                      Bu başlık altında henüz iş paketi oluşturulmamış.
+                    </Box>
+                  </Box>
+                }
 
-                  {/* iş paketleri başlığı */ }
+                {oneBaslik.isPaketleri.length > 0 &&
                   <React.Fragment>
 
                     <Box sx={{ ...css_IsPaketleriBaslik, }}>
@@ -284,11 +295,15 @@ export default function P_IsPaketleri() {
                     </Box>
 
                   </React.Fragment>
+                }
 
-
+                {/* iş paketleri verileri */}
+                {oneBaslik.isPaketleri.length > 0 && oneBaslik.isPaketleri.map((onePaket, index) => {
 
                   return (
-                    <React.Fragment key={index}>
+
+                    // iş paketleri başlığı
+                    <React.Fragment key={index} >
 
                       <Box sx={{ ...css_IsPaketleri, justifyContent: "center" }}>
                         {index + 1}
@@ -298,7 +313,7 @@ export default function P_IsPaketleri() {
                         {onePaket.name}
                       </Box>
 
-                      <Box sx={{ ...css_IsPaketleri }}>
+                      <Box onClick={() => navigate("/ispaketleripozlar")} sx={{ ...css_IsPaketleri, cursor: "pointer" }}>
                         Keşif
                       </Box>
 
@@ -323,8 +338,6 @@ export default function P_IsPaketleri() {
 
                 })}
 
-
-
               </React.Fragment>
 
             )
@@ -336,7 +349,7 @@ export default function P_IsPaketleri() {
         </Stack>
       }
 
-    </Box>
+    </Box >
 
   )
 
