@@ -34,7 +34,7 @@ export default function P_Pozlar() {
   const [dialogAlert, setDialogAlert] = useState()
 
   const { data: dataPozlar, error, isLoading } = useGetPozlar()
-  const { RealmApp, myTema } = useContext(StoreContext)
+  const { myTema, appUser, setAppUser } = useContext(StoreContext)
   const { selectedProje } = useContext(StoreContext)
 
   const pozBirimleri = selectedProje?.pozBirimleri
@@ -68,11 +68,11 @@ export default function P_Pozlar() {
   }, [error]);
 
 
-  const [basliklar, setBasliklar] = useState(RealmApp?.currentUser.customData.customSettings.pages.pozlar.basliklar)
+  const [basliklar, setBasliklar] = useState(appUser.customSettings.pages.pozlar.basliklar)
 
   const [paraBirimleri, setParaBirimleri] = useState(previousData => {
     let paraBirimleri = selectedProje?.paraBirimleri
-    let paraBirimleri2 = RealmApp?.currentUser.customData.customSettings.pages.pozlar.paraBirimleri
+    let paraBirimleri2 = appUser.customSettings.pages.pozlar.paraBirimleri
     paraBirimleri = paraBirimleri?.map(oneBirim => {
       let showValue = paraBirimleri2?.find(x => x.id === oneBirim.id)?.show
       if (showValue) {
@@ -93,13 +93,12 @@ export default function P_Pozlar() {
 
   const columns = `
     min-content
-    minmax(min-content, 45rem) 
+    minmax(min-content, 35rem) 
     min-content
     ${pozAciklamaShow ? " 0.4rem minmax(min-content, 10rem)" : ""}
     ${pozVersiyonShow ? " 0.4rem max-content" : ""}
     ${paraBirimiAdet === 1 ? " 0.4rem max-content" : paraBirimiAdet > 1 ? " 0.4rem repeat(" + paraBirimiAdet + ", max-content)" : ""}
   `
-
 
 
   // Edit Poz Para Birimi Input Fonksiyonu
@@ -263,10 +262,11 @@ export default function P_Pozlar() {
       {/* POZ OLUŞTURULACAKSA */}
       {show == "PozCreate" && <FormPozCreate setShow={setShow} />}
 
-
+      
       {/* BAŞLIK GÖSTER / GİZLE */}
       {show == "ShowBaslik" && <ShowPozBaslik setShow={setShow} basliklar={basliklar} setBasliklar={setBasliklar} />}
 
+     
       {/* BAŞLIK GÖSTER / GİZLE */}
       {show == "ShowPozParaBirimleri" && <ShowPozParaBirimleri setShow={setShow} paraBirimleri={paraBirimleri} setParaBirimleri={setParaBirimleri} paraEdit={paraEdit} setParaEdit={setParaEdit} />}
 
@@ -277,6 +277,7 @@ export default function P_Pozlar() {
           <LinearProgress color='inherit' />
         </Box>
       }
+
 
       {/* EĞER POZ BAŞLIĞI YOKSA */}
       {!isLoading && show == "Main" && !selectedProje?.wbs?.find(x => x.openForPoz === true) &&
@@ -309,7 +310,7 @@ export default function P_Pozlar() {
           <React.Fragment >
 
             {/* BAŞLIK - POZ NO */}
-            <Box sx={{ ...enUstBaslik_css, textWrap: "nowrap" }}>
+            <Box sx={{ ...enUstBaslik_css}}>
               Poz No
             </Box>
 

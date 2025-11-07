@@ -27,7 +27,7 @@ import AddCircleOutlineIcon from '@mui/icons-material/AddCircleOutline';
 export default function P_ParaBirimleri() {
 
   // const RealmApp = useApp();
-  const { RealmApp } = useContext(StoreContext)
+  const { appUser, setAppUser } = useContext(StoreContext)
   const { selectedFirma, setSelectedFirma } = useContext(StoreContext)
 
   const [show, setShow] = useState("Main")
@@ -47,8 +47,10 @@ export default function P_ParaBirimleri() {
 
 
 
-  const baslikUpdate = async ({ oneBirim, showValue }) => {
+  const paraBirimiUpdate = async ({ oneBirim, showValue }) => {
 
+    // para birimi iptal ediliyorsa aşağıdaki uyarı çıkacak
+    // "Bu para birimini kullanmış olan projeler kullanmaya devam edecektir. Henüz kullanmamış olan ve yeni oluşturulan projelerde bu para birimi kullanılmayacaktır."
     if (!showValue) {
       setShowEminMisin(true)
     }
@@ -63,11 +65,37 @@ export default function P_ParaBirimleri() {
       })
 
       // önce frontend deki veri güncelleme
-      setParaBirimleri(paraBirimleri2)
-
+      
       // db ye gönderme işlemi
-      await RealmApp?.currentUser.callFunction("update_firma_paraBirimleri", ({ _firmaId: selectedFirma._id, oneBirim, showValue }))
-      // await RealmApp?.currentUser.refreshCustomData()
+      // await RealmApp?.currentUser.callFunction("update_firma_paraBirimleri", ({ _firmaId: selectedFirma._id, oneBirim, showValue }))
+
+      const response = await fetch(`/api/firmalar/parabirimleri`, {
+        method: 'PATCH',
+        headers: {
+          email: appUser.email,
+          token: appUser.token,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ firmaId: selectedFirma._id, oneBirim, showValue })
+      })
+
+      const responseJson = await response.json()
+
+      if (responseJson.error) {
+        if (responseJson.error.includes("expired")) {
+          setAppUser()
+          localStorage.removeItem('appUser')
+          navigate('/')
+          window.location.reload()
+        }
+        throw new Error(responseJson.error);
+      }
+
+      if (!responseJson.ok) {
+        throw new Error("Kayıt işlemi gerçekleşmedi, sayfayı yenileyiniz, sorun devam ederse Rapor7/24 ile iletişime geçiniz.")
+      }
+
+      setParaBirimleri(paraBirimleri2)
 
       return
 
@@ -171,7 +199,7 @@ export default function P_ParaBirimleri() {
               <React.Fragment key={index}>
                 <Box sx={{ my: "0.2rem", justifySelf: "start" }}>{oneBirim.id}</Box>
                 <Box sx={{ my: "0.2rem", justifySelf: "start" }}>{oneBirim.name}</Box>
-                <Box sx={{ justifySelf: "end" }}><Switch checked={oneBirim.isActive} onChange={() => baslikUpdate({ oneBirim, showValue: !oneBirim.isActive })} /></Box>
+                <Box sx={{ justifySelf: "end" }}><Switch checked={oneBirim.isActive} onChange={() => paraBirimiUpdate({ oneBirim, showValue: !oneBirim.isActive })} /></Box>
               </React.Fragment>
             )
 

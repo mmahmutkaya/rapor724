@@ -11,8 +11,6 @@ import getWbsName from '../../functions/getWbsName.js';
 import { DialogAlert } from '../../components/general/DialogAlert.js';
 
 
-
-import HeaderMetrajPozlar from '../../components/HeaderMetrajPozlar.js'
 import ShowMetrajYapabilenler from '../../components/ShowMetrajYapabilenler.js'
 
 
