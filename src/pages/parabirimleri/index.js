@@ -64,8 +64,6 @@ export default function P_ParaBirimleri() {
         return oneBaslik
       })
 
-      // önce frontend deki veri güncelleme
-      
       // db ye gönderme işlemi
       // await RealmApp?.currentUser.callFunction("update_firma_paraBirimleri", ({ _firmaId: selectedFirma._id, oneBirim, showValue }))
 

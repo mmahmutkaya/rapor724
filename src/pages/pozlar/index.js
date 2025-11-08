@@ -158,7 +158,34 @@ export default function P_Pozlar() {
         pozlar_newPara = pozlar_newPara.filter(x => x)
         // console.log("pozlar_newPara", pozlar_newPara)
 
-        await RealmApp?.currentUser.callFunction("update_pozlar_para", ({ pozlar_newPara }))
+        // await RealmApp?.currentUser.callFunction("update_pozlar_para", ({ pozlar_newPara }))
+
+        const response = await fetch(`/api/pozlar/parabirimleri`, {
+          method: 'PATCH',
+          headers: {
+            email: appUser.email,
+            token: appUser.token,
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({ firmaId: selectedFirma._id, oneBirim, showValue })
+        })
+
+        const responseJson = await response.json()
+
+        if (responseJson.error) {
+          if (responseJson.error.includes("expired")) {
+            setAppUser()
+            localStorage.removeItem('appUser')
+            navigate('/')
+            window.location.reload()
+          }
+          throw new Error(responseJson.error);
+        }
+
+        if (!responseJson.ok) {
+          throw new Error("Kayıt işlemi gerçekleşmedi, sayfayı yenileyiniz, sorun devam ederse Rapor7/24 ile iletişime geçiniz.")
+        }
+
 
         queryClient.invalidateQueries(['dataPozlar'])
         setIsChanged_para()
@@ -262,11 +289,11 @@ export default function P_Pozlar() {
       {/* POZ OLUŞTURULACAKSA */}
       {show == "PozCreate" && <FormPozCreate setShow={setShow} />}
 
-      
+
       {/* BAŞLIK GÖSTER / GİZLE */}
       {show == "ShowBaslik" && <ShowPozBaslik setShow={setShow} basliklar={basliklar} setBasliklar={setBasliklar} />}
 
-     
+
       {/* BAŞLIK GÖSTER / GİZLE */}
       {show == "ShowPozParaBirimleri" && <ShowPozParaBirimleri setShow={setShow} paraBirimleri={paraBirimleri} setParaBirimleri={setParaBirimleri} paraEdit={paraEdit} setParaEdit={setParaEdit} />}
 
@@ -310,7 +337,7 @@ export default function P_Pozlar() {
           <React.Fragment >
 
             {/* BAŞLIK - POZ NO */}
-            <Box sx={{ ...enUstBaslik_css}}>
+            <Box sx={{ ...enUstBaslik_css }}>
               Poz No
             </Box>
 

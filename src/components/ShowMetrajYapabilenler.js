@@ -54,7 +54,6 @@ export default function ShowMetrajYapabilenler({ setShow }) {
         showMetrajYapabilenler2 = [...showMetrajYapabilenler2, { userEmail, isShow }]
       }
 
-      setShowMetrajYapabilenler(showMetrajYapabilenler2)
       // console.log("showMetrajYapabilenler2", showMetrajYapabilenler2)
 
       // await RealmApp?.currentUser.callFunction("customSettings_update", ({ functionName: "showMetrajYapabilenler", showMetrajYapabilenler: showMetrajYapabilenler2 }))
@@ -98,6 +97,9 @@ export default function ShowMetrajYapabilenler({ setShow }) {
       }
 
       if (responseJson.ok) {
+
+        // frontend deki veri güncelleme
+        setShowMetrajYapabilenler(showMetrajYapabilenler2)
 
         let appUser2 = _.cloneDeep(appUser)
         appUser2.customSettings.pages.metrajOnayla.showMetrajYapabilenler = showMetrajYapabilenler2

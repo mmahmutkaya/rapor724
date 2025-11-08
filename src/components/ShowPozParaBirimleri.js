@@ -3,6 +3,8 @@ import { useEffect, useState, useContext } from 'react';
 import { useApp } from "./useApp.js";
 import { StoreContext } from './store.js'
 import { DialogAlert } from './general/DialogAlert.js';
+import _ from 'lodash';
+import { useNavigate } from "react-router-dom";
 
 
 //mui
@@ -19,9 +21,9 @@ import { DialogTitle, Typography } from '@mui/material';
 
 export default function ShowPozParaBirimleri({ setShow, paraBirimleri, setParaBirimleri, paraEdit, setParaEdit }) {
 
+  const navigate = useNavigate()
 
-  const RealmApp = useApp();
-  const { selectedFirma } = useContext(StoreContext)
+  const { appUser, setAppUser } = useContext(StoreContext)
   const { selectedProje, setSelectedProje } = useContext(StoreContext)
 
 
@@ -41,14 +43,53 @@ export default function ShowPozParaBirimleri({ setShow, paraBirimleri, setParaBi
         return oneBirim2
       })
 
-      // önce frontend deki veri güncelleme
-      setParaBirimleri(paraBirimleri2)
 
       // db ye gönderme işlemi
-      await RealmApp?.currentUser.callFunction("customSettings_update", ({ functionName: "paraBirimiBasliklari", sayfaName: "pozlar", baslikId, showValue }))
-      await RealmApp?.currentUser.refreshCustomData()
+      // await RealmApp?.currentUser.callFunction("customSettings_update", ({ functionName: "paraBirimiBasliklari", sayfaName: "pozlar", baslikId, showValue }))
+      // await RealmApp?.currentUser.refreshCustomData()
 
-      return
+      const response = await fetch(`/api/user/customsettingspagessetdata`, {
+        method: 'POST',
+        headers: {
+          email: appUser.email,
+          token: appUser.token,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          pageName: "pozlar",
+          dataName: "paraBirimleri",
+          setData: paraBirimleri2
+        })
+      })
+
+
+      const responseJson = await response.json()
+
+      if (responseJson.error) {
+        if (responseJson.error.includes("expired")) {
+          setAppUser()
+          localStorage.removeItem('appUser')
+          navigate('/')
+          window.location.reload()
+        }
+        throw new Error(responseJson.error);
+      }
+
+      if (responseJson.ok) {
+
+        // frontend deki veri güncelleme
+        setParaBirimleri(paraBirimleri2)
+
+        let appUser2 = _.cloneDeep(appUser)
+        appUser2.customSettings.pages.metrajOnayla.showMetrajYapabilenler = showMetrajYapabilenler2
+        setAppUser(appUser2)
+        localStorage.setItem('appUser', JSON.stringify(appUser2))
+        return
+
+      } else {
+        throw new Error("Kayıt gerçekleşmedi, sayfayı yenileyiniz, sorun devam ederse Rapor7/24 ile iletişime geçiniz.")
+      }
+
 
     } catch (err) {
 
