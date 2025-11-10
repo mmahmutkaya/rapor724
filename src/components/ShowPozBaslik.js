@@ -4,6 +4,8 @@ import { useApp } from "./useApp.js";
 import { StoreContext } from './store.js'
 import { DialogAlert } from './general/DialogAlert.js';
 import Divider from '@mui/material/Divider';
+import _ from 'lodash';
+import { useNavigate } from "react-router-dom";
 
 
 //mui
@@ -17,7 +19,9 @@ import { DialogTitle, Typography } from '@mui/material';
 
 export default function ShowPozBaslik({ setShow, basliklar, setBasliklar }) {
 
-  const RealmApp = useApp();
+  const navigate = useNavigate()
+
+  const { appUser, setAppUser } = useContext(StoreContext)
   const [dialogAlert, setDialogAlert] = useState()
 
 
@@ -33,12 +37,55 @@ export default function ShowPozBaslik({ setShow, basliklar, setBasliklar }) {
         return oneBaslik
       })
 
-      // önce frontend deki veri güncelleme
-      setBasliklar(basliklar2)
 
       // db ye gönderme işlemi
-      await RealmApp?.currentUser.callFunction("customSettings_update", ({ functionName: "sayfaBasliklari", sayfaName: "pozlar", baslikId, showValue }))
-      await RealmApp?.currentUser.refreshCustomData()
+      // await RealmApp?.currentUser.callFunction("customSettings_update", ({ functionName: "sayfaBasliklari", sayfaName: "pozlar", baslikId, showValue }))
+      // await RealmApp?.currentUser.refreshCustomData()
+
+      let pageName = "pozlar"
+      let dataName = "basliklar"
+      let setData = basliklar2
+
+      const response = await fetch(`/api/user/customsettingspagessetdata`, {
+        method: 'POST',
+        headers: {
+          email: appUser.email,
+          token: appUser.token,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          pageName,
+          dataName,
+          setData
+        })
+      })
+
+      const responseJson = await response.json()
+
+      if (responseJson.error) {
+        if (responseJson.error.includes("expired")) {
+          setAppUser()
+          localStorage.removeItem('appUser')
+          navigate('/')
+          window.location.reload()
+        }
+        throw new Error(responseJson.error);
+      }
+
+      if (responseJson.ok) {
+
+        // önce frontend deki veri güncelleme
+        setBasliklar(basliklar2)
+
+        let appUser2 = _.cloneDeep(appUser)
+        appUser2.customSettings.pages[pageName][dataName] = setData
+        setAppUser(appUser2)
+        localStorage.setItem('appUser', JSON.stringify(appUser2))
+        return
+
+      } else {
+        throw new Error("Kayıt gerçekleşmedi, sayfayı yenileyiniz, sorun devam ederse Rapor7/24 ile iletişime geçiniz.")
+      }
 
       return
 

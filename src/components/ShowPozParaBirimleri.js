@@ -16,6 +16,8 @@ import Divider from '@mui/material/Divider';
 import EditIcon from '@mui/icons-material/Edit';
 import IconButton from '@mui/material/IconButton';
 import { DialogTitle, Typography } from '@mui/material';
+import Avatar from '@mui/material/Avatar';
+
 
 
 
@@ -24,7 +26,6 @@ export default function ShowPozParaBirimleri({ setShow, paraBirimleri, setParaBi
   const navigate = useNavigate()
 
   const { appUser, setAppUser } = useContext(StoreContext)
-  const { selectedProje, setSelectedProje } = useContext(StoreContext)
 
 
   const [dialogAlert, setDialogAlert] = useState()
@@ -48,6 +49,10 @@ export default function ShowPozParaBirimleri({ setShow, paraBirimleri, setParaBi
       // await RealmApp?.currentUser.callFunction("customSettings_update", ({ functionName: "paraBirimiBasliklari", sayfaName: "pozlar", baslikId, showValue }))
       // await RealmApp?.currentUser.refreshCustomData()
 
+      let pageName = "pozlar"
+      let dataName = "paraBirimleri"
+      let setData = paraBirimleri2
+
       const response = await fetch(`/api/user/customsettingspagessetdata`, {
         method: 'POST',
         headers: {
@@ -56,12 +61,11 @@ export default function ShowPozParaBirimleri({ setShow, paraBirimleri, setParaBi
           'Content-Type': 'application/json'
         },
         body: JSON.stringify({
-          pageName: "pozlar",
-          dataName: "paraBirimleri",
-          setData: paraBirimleri2
+          pageName,
+          dataName,
+          setData
         })
       })
-
 
       const responseJson = await response.json()
 
@@ -81,7 +85,7 @@ export default function ShowPozParaBirimleri({ setShow, paraBirimleri, setParaBi
         setParaBirimleri(paraBirimleri2)
 
         let appUser2 = _.cloneDeep(appUser)
-        appUser2.customSettings.pages.metrajOnayla.showMetrajYapabilenler = showMetrajYapabilenler2
+        appUser2.customSettings.pages[pageName][dataName] = setData
         setAppUser(appUser2)
         localStorage.setItem('appUser', JSON.stringify(appUser2))
         return
@@ -148,16 +152,30 @@ export default function ShowPozParaBirimleri({ setShow, paraBirimleri, setParaBi
           onClose={() => setShow("Main")}
         >
 
-          <Box sx={{ width: '100%', padding: "1rem", display: "grid", gridTemplateColumns: "1fr max-content", columnGap: "2rem", alignItems: "center" }} spacing={0}>
+          <Box sx={{ width: '100%', padding: "1rem", display: "grid", gridTemplateColumns: "1fr max-content max-content", alignItems: "center" }} spacing={0}>
 
-            <Typography variant="subtitle1" sx={{ mb: "0.5rem", fontWeight: "600" }}>
+            <Typography variant="subtitle1" sx={{ fontWeight: "600" }}>
               Para Birimleri
             </Typography>
 
-            <Box onClick={() => setParaEdit(x => !x)} sx={{ justifySelf: "end", color: paraEdit ? "rgba(0, 0, 0, 0.81)" : "rgba(0, 0, 0, 0.4)", mr: "0.5rem", cursor: "pointer" }}>
-              {/* <IconButton onClick={() => setParaEdit(true)} disabled={false}> */}
+            <Box
+              onClick={() => setParaEdit(x => {
+                setShow("Main")
+                return !x
+              })}
+              sx={{ mr: "0.5rem", cursor: "pointer" }}
+            >
+              <Avatar sx={{ height:"2rem", width:"2rem", mr:"0.5rem",fontSize: "0.9rem", fontWeight: 600, color: "black" }}>V</Avatar>
+            </Box>
+
+            <Box
+              onClick={() => setParaEdit(x => {
+                setShow("Main")
+                return !x
+              })}
+              sx={{ cursor: "pointer", mt:"0.2rem" }}
+            >
               <EditIcon variant="contained" />
-              {/* </IconButton> */}
             </Box>
 
 

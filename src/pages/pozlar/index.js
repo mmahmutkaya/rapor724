@@ -44,6 +44,8 @@ export default function P_Pozlar() {
   const [pozlar_state, setPozlar_state] = useState()
   const [pozlar_backUp, setPozlar_backUp] = useState()
 
+  const [usedParaIds, setUsedParaIds] = useState([])
+
   const [paraEdit, setParaEdit] = useState(false)
   const [isChanged_para, setIsChanged_para] = useState()
 
@@ -92,9 +94,9 @@ export default function P_Pozlar() {
   let paraBirimiAdet = paraBirimleri?.filter(x => x?.show).length
 
   const columns = `
-    min-content
+    max-content
     minmax(min-content, 35rem) 
-    min-content
+    max-content
     ${pozAciklamaShow ? " 0.4rem minmax(min-content, 10rem)" : ""}
     ${pozVersiyonShow ? " 0.4rem max-content" : ""}
     ${paraBirimiAdet === 1 ? " 0.4rem max-content" : paraBirimiAdet > 1 ? " 0.4rem repeat(" + paraBirimiAdet + ", max-content)" : ""}
@@ -132,6 +134,11 @@ export default function P_Pozlar() {
 
     })
 
+    let usedParaIds2 = _.cloneDeep(usedParaIds)
+    usedParaIds2 = usedParaIds2.filter(x => x !== paraBirimiId)
+    usedParaIds2 = [...usedParaIds2, paraBirimiId]
+    setUsedParaIds(usedParaIds2)
+
     setPozlar_state(pozlar_state2)
   }
 
@@ -149,6 +156,20 @@ export default function P_Pozlar() {
     if (isChanged_para) {
       try {
 
+        let paraBirimleri = _.cloneDeep(selectedProje).paraBirimleri
+
+        let isProjeUpdate
+        usedParaIds.map(paraId => {
+          paraBirimleri = paraBirimleri.map(onePara => {
+            if (onePara.id === paraId && !onePara.isActive) {
+              onePara.isActive = true
+              isProjeUpdate = true
+            }
+            return onePara
+          })
+        })
+
+
         let pozlar_newPara = pozlar_state.map(onePoz => {
           if (onePoz.newSelected_para) {
             return { _id: onePoz._id, birimFiyatlar: onePoz.birimFiyatlar }
@@ -160,15 +181,20 @@ export default function P_Pozlar() {
 
         // await RealmApp?.currentUser.callFunction("update_pozlar_para", ({ pozlar_newPara }))
 
-        const response = await fetch(`/api/pozlar/parabirimleri`, {
+        const response = await fetch(`/api/pozlar/birimfiyatlar`, {
           method: 'PATCH',
           headers: {
             email: appUser.email,
             token: appUser.token,
             'Content-Type': 'application/json'
           },
-          body: JSON.stringify({ firmaId: selectedFirma._id, oneBirim, showValue })
+          body: JSON.stringify({
+            pozlar_newPara,
+            projeId:selectedProje._id,
+            paraBirimleri: isProjeUpdate ? paraBirimleri : null
+          })
         })
+
 
         const responseJson = await response.json()
 
@@ -186,8 +212,8 @@ export default function P_Pozlar() {
           throw new Error("Kayıt işlemi gerçekleşmedi, sayfayı yenileyiniz, sorun devam ederse Rapor7/24 ile iletişime geçiniz.")
         }
 
-
         queryClient.invalidateQueries(['dataPozlar'])
+        setUsedParaIds([])
         setIsChanged_para()
         setParaEdit()
         return
@@ -196,20 +222,13 @@ export default function P_Pozlar() {
 
         console.log(err)
 
-        let dialogIcon = "warning"
-        let dialogMessage = "Beklenmedik hata, sayfayı yenileyiniz, sorun devam ederse Rapor7/24 ile irtibata geçiniz.."
-        let onCloseAction = () => {
-          setDialogAlert()
-          setIsChanged_para()
-          setParaEdit()
-          queryClient.invalidateQueries(['dataPozlar'])
-        }
-
         setDialogAlert({
-          dialogIcon,
-          dialogMessage,
+          dialogIcon: "warning",
+          dialogMessage: "Beklenmedik hata, sayfayı yenileyiniz, sorun devam ederse Rapor7/24 ile irtibata geçiniz..",
           detailText: err?.message ? err.message : null,
-          onCloseAction
+          onCloseAction: () => {
+            setDialogAlert()
+          }
         })
       }
     }
@@ -279,8 +298,14 @@ export default function P_Pozlar() {
           dialogMessage={dialogAlert.dialogMessage}
           detailText={dialogAlert.detailText}
           onCloseAction={dialogAlert.onCloseAction ? dialogAlert.onCloseAction : () => setDialogAlert()}
+          actionText1={dialogAlert.actionText1 ? dialogAlert.actionText1 : null}
+          action1={dialogAlert.action1 ? dialogAlert.action1 : null}
+          actionText2={dialogAlert.actionText2 ? dialogAlert.actionText2 : null}
+          action2={dialogAlert.action2 ? dialogAlert.action2 : null}
         />
       }
+
+
 
       {/* BAŞLIK */}
       <HeaderPozlar show={show} setShow={setShow} anyBaslikShow={anyBaslikShow} paraEdit={paraEdit} setParaEdit={setParaEdit} save_para={save_para} cancel_para={cancel_para} isChanged_para={isChanged_para} setIsChanged_para={setIsChanged_para} />
@@ -489,6 +514,7 @@ export default function P_Pozlar() {
                 {/* WBS'İN POZLARI */}
                 {pozlar_state?.filter(x => x._wbsId.toString() === oneWbs._id.toString()).map((onePoz, index) => {
 
+
                   return (
                     // <Box key={index} sx={{ display: "grid", gridTemplateColumns: columns, gridTemplateAreas: gridAreas_pozSatir }}>
                     <React.Fragment key={index}>
@@ -567,7 +593,7 @@ export default function P_Pozlar() {
                                         MozAppearance: "textfield",
                                       },
                                     }}
-                                    value={onePoz.birimFiyatlar?.find(x => x.id === oneBirim.id)?.fiyat}
+                                    value={onePoz.birimFiyatlar?.find(x => x.id === oneBirim.id)?.fiyat ? onePoz.birimFiyatlar?.find(x => x.id === oneBirim.id)?.fiyat : ""}
                                     inputProps={{
                                       style: {
                                         boxSizing: "border-box",

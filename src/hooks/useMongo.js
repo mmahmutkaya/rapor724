@@ -158,7 +158,7 @@ export const useGetPozlar = () => {
       return responseJson
 
     },
-    enabled: !!appUser,
+    enabled: !!appUser && !!selectedProje,
     refetchOnMount: true,
     refetchOnWindowFocus: false
   })
