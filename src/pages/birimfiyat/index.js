@@ -11,7 +11,7 @@ import { StoreContext } from '../../components/store.js'
 import { useGetPozlar } from '../../hooks/useMongo.js';
 
 import FormPozCreate from '../../components/FormPozCreate.js'
-import ShowPozBaslik from '../../components/ShowPozBaslik.js'
+import ShowHideBaslik from '../../components/ShowHideBaslik.js'
 import ShowPozParaBirimleri from '../../components/ShowPozParaBirimleri.js'
 
 
@@ -30,6 +30,9 @@ import DeleteIcon from '@mui/icons-material/Delete';
 import AddCircleOutlineIcon from '@mui/icons-material/AddCircleOutline';
 import ClearOutlined from '@mui/icons-material/ClearOutlined';
 import SaveIcon from '@mui/icons-material/Save';
+import EditIcon from '@mui/icons-material/Edit';
+import Avatar from '@mui/material/Avatar';
+
 
 
 
@@ -43,9 +46,11 @@ export default function P_BirimFiyat() {
 
   const { data: dataPozlar, error, isLoading } = useGetPozlar()
   const { myTema, appUser, setAppUser } = useContext(StoreContext)
-  const { selectedProje } = useContext(StoreContext)
+  const { selectedProje, setSelectedProje } = useContext(StoreContext)
 
   const pozBirimleri = selectedProje?.pozBirimleri
+  const [showEminMisin_versiyon, setShowEminMisin_versiyon] = useState(false)
+
 
 
   const [show, setShow] = useState("Main")
@@ -78,15 +83,15 @@ export default function P_BirimFiyat() {
   }, [error]);
 
 
-  const [basliklar, setBasliklar] = useState(appUser.customSettings.pages.pozlar.basliklar)
+  const [basliklar, setBasliklar] = useState(appUser.customSettings.pages.birimfiyat.basliklar)
 
   const [paraBirimleri, setParaBirimleri] = useState(previousData => {
     let paraBirimleri = selectedProje?.paraBirimleri
-    let paraBirimleri2 = appUser.customSettings.pages.pozlar.paraBirimleri
+    let paraBirimleri2 = appUser.customSettings.pages.birimfiyat.paraBirimleri
     paraBirimleri = paraBirimleri?.map(oneBirim => {
       let showValue = paraBirimleri2?.find(x => x.id === oneBirim.id)?.show
-      if (showValue) {
-        oneBirim.show = true
+      if (!showValue) {
+        oneBirim.show = false
       }
       return oneBirim
     })
@@ -294,6 +299,61 @@ export default function P_BirimFiyat() {
 
 
 
+  const createVersiyon_birimFiyat = async () => {
+
+    try {
+
+      const response = await fetch(`api/versiyon/birimfiyat`, {
+        method: 'POST',
+        headers: {
+          email: appUser.email,
+          token: appUser.token,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          projeId: selectedProje?._id
+        })
+      })
+
+      const responseJson = await response.json()
+
+      if (responseJson.error) {
+        if (responseJson.error.includes("expired")) {
+          setAppUser()
+          localStorage.removeItem('appUser')
+          navigate('/')
+          window.location.reload()
+        }
+        throw new Error(responseJson.error);
+      }
+
+      if (responseJson.proje) {
+        queryClient.invalidateQueries(['dataPozlar'])
+        setSelectedProje(responseJson.proje)
+      } else {
+        console.log("responseJson", responseJson)
+        throw new Error("Kayıt işlemi gerçekleşmedi, sayfayı yenileyiniz, sorun devam ederse Rapor7/24 ile irtibata geçiniz..")
+      }
+
+
+    } catch (err) {
+
+      console.log(err)
+
+      setDialogAlert({
+        dialogIcon: "warning",
+        dialogMessage: "Beklenmedik hata, sayfayı yenileyiniz, sorun devam ederse Rapor7/24 ile irtibata geçiniz..",
+        detailText: err?.message ? err.message : null,
+        onCloseAction: () => {
+          setDialogAlert()
+          queryClient.invalidateQueries(['dataPozlar'])
+        }
+      })
+    }
+  }
+
+
+
 
   let wbsCode
   let wbsName
@@ -330,13 +390,28 @@ export default function P_BirimFiyat() {
         />
       }
 
+      {showEminMisin_versiyon &&
+        <DialogAlert
+          dialogIcon={"none"}
+          dialogMessage={"Mevcut birim fiyatlar yeni versiyon olarak kaydedilsin mi?"}
+          onCloseAction={() => setShowEminMisin_versiyon()}
+          actionText1={"İptal"}
+          action1={() => setShowEminMisin_versiyon()}
+          actionText2={"Onayla"}
+          action2={() => {
+            createVersiyon_birimFiyat()
+            setShowEminMisin_versiyon()
+          }}
+        />
+      }
+
 
       {/* POZ OLUŞTURULACAKSA */}
       {show == "PozCreate" && <FormPozCreate setShow={setShow} />}
 
 
       {/* BAŞLIK GÖSTER / GİZLE */}
-      {show == "ShowBaslik" && <ShowPozBaslik setShow={setShow} basliklar={basliklar} setBasliklar={setBasliklar} />}
+      {show == "ShowHideBaslik" && <ShowHideBaslik setShow={setShow} basliklar={basliklar} setBasliklar={setBasliklar} pageName={"birimfiyat"} dataName={"basliklar"} />}
 
 
       {/* BAŞLIK GÖSTER / GİZLE */}
@@ -366,32 +441,41 @@ export default function P_BirimFiyat() {
           </Grid>
 
 
-
-
           {/* sağ kısım - (tuşlar)*/}
           <Grid item xs="auto">
-            <Grid container spacing={1} sx={{ alignItems: "center" }}>
-
+            <Box sx={{ display: "grid", gridAutoFlow: "column", alignItems: "center" }}>
 
               {!paraEdit &&
                 <>
-                  < Grid item >
-                    <IconButton onClick={() => setShow("ShowPozParaBirimleri")} aria-label="wbsUncliced">
+                  <Box>
+                    <IconButton onClick={() => setShow("ShowPozParaBirimleri")}>
                       <CurrencyLiraIcon variant="contained" />
                     </IconButton>
-                  </Grid>
+                  </Box>
 
-                  <Grid item >
-                    <IconButton onClick={() => setShow("ShowBaslik")} aria-label="wbsUncliced" disabled={!anyBaslikShow}>
+                  <Box>
+                    <IconButton onClick={() => setShow("ShowHideBaslik")} disabled={!anyBaslikShow}>
                       <VisibilityIcon variant="contained" />
                     </IconButton>
-                  </Grid>
+                  </Box>
 
-                  {/* <Grid item >
-                    <IconButton onClick={() => setShow("PozCreate")} aria-label="wbsUncliced" disabled={!selectedProje?.wbs?.find(x => x.openForPoz === true)}>
-                      <AddCircleOutlineIcon variant="contained" />
+                  <Box>
+                    <IconButton onClick={() => setShowEminMisin_versiyon(true)}>
+                      <Avatar sx={{ height: "1.7rem", width: "1.7rem", fontSize: "0.8rem", fontWeight: 600, color: "black" }}>
+                        V
+                      </Avatar>
                     </IconButton>
-                  </Grid> */}
+                  </Box>
+
+                  <Box>
+                    <IconButton onClick={() => setParaEdit(x => {
+                      setShow("Main")
+                      return !x
+                    })}>
+                      <EditIcon variant="contained" />
+                    </IconButton>
+                  </Box>
+
                 </>
               }
 
@@ -420,7 +504,7 @@ export default function P_BirimFiyat() {
                 </>
               }
 
-            </Grid>
+            </Box>
           </Grid>
 
         </Grid>

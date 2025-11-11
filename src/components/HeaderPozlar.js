@@ -26,32 +26,15 @@ import CurrencyLiraIcon from '@mui/icons-material/CurrencyLira';
 import SaveIcon from '@mui/icons-material/Save';
 
 export default function HeaderPozlar({
-  show, setShow, anyBaslikShow,
-  isChanged_para, setIsChangedPara, paraEdit, setParaEdit, save_para, cancel_para
+  show, setShow, anyBaslikShow
 }) {
 
   const { selectedProje } = useContext(StoreContext)
-  const [showEminMisin_para, setShowEminMisin_para] = useState(false)
 
   const navigate = useNavigate()
 
   return (
     <Paper >
-
-      {showEminMisin_para &&
-        <DialogAlert
-          dialogIcon={"warning"}
-          dialogMessage={"Yaptığınız değişiklikleri kaybedeceksiniz ?"}
-          onCloseAction={() => setShowEminMisin_para()}
-          actionText1={"İptal"}
-          action1={() => setShowEminMisin_para()}
-          actionText2={"Onayla"}
-          action2={() => {
-            cancel_para()
-            setShowEminMisin_para()
-          }}
-        />
-      }
 
       <Grid
         container
@@ -78,15 +61,7 @@ export default function HeaderPozlar({
         <Grid item xs="auto">
           <Grid container spacing={1} sx={{ alignItems: "center" }}>
 
-
-            {!paraEdit &&
               <>
-                {/* < Grid item >
-                  <IconButton onClick={() => setShow("ShowPozParaBirimleri")} aria-label="wbsUncliced">
-                    <CurrencyLiraIcon variant="contained" />
-                  </IconButton>
-                </Grid> */}
-
                 <Grid item >
                   <IconButton onClick={() => setShow("ShowBaslik")} aria-label="wbsUncliced" disabled={!anyBaslikShow}>
                     <VisibilityIcon variant="contained" />
@@ -99,33 +74,7 @@ export default function HeaderPozlar({
                   </IconButton>
                 </Grid>
               </>
-            }
-
-            {paraEdit &&
-
-              <>
-
-                <Grid item >
-                  <IconButton onClick={() => {
-                    if (isChanged_para) {
-                      setShowEminMisin_para(true)
-                    } else {
-                      setParaEdit()
-                    }
-                  }} aria-label="lbsUncliced">
-                    <ClearOutlined variant="contained" sx={{ color: "red" }} />
-                  </IconButton>
-                </Grid>
-
-                <Grid item >
-                  <IconButton onClick={() => save_para()} disabled={!isChanged_para}>
-                    <SaveIcon variant="contained" />
-                  </IconButton>
-                </Grid>
-
-              </>
-            }
-
+            
           </Grid>
         </Grid>
 

@@ -1,40 +1,5 @@
 
 
-const customSettings = {
-  pages: {
-    firmapozlari: {
-      basliklar: [
-        { id: "aciklama", baslikName: "Açıklama", visible: true, show: false },
-        { id: "versiyon", baslikName: "Versiyon", visible: true, show: false }
-      ]
-    },
-    pozlar: {
-      basliklar: [
-        { id: "aciklama", baslikName: "Açıklama", visible: true, show: false },
-        { id: "versiyon", baslikName: "Versiyon", visible: true, show: false }
-      ]
-    },
-    mahaller: {
-      basliklar: [
-        { id: "aciklama", baslikName: "Açıklama", visible: true, show: false },
-        { id: "versiyon", baslikName: "Versiyon", visible: true, show: false }
-      ]
-    },
-    metrajpozlar: {
-      basliklar: [
-        { id: "aciklama", baslikName: "Açıklama", visible: true, show: false },
-        { id: "versiyon", baslikName: "Versiyon", visible: true, show: false }
-      ],
-      showHasMahal: false
-    },
-    ispaketleri: {
-      basliklar: [
-        { id: "aciklama", baslikName: "Açıklama", visible: true, show: true },
-        { id: "versiyon", baslikName: "Versiyon", visible: true, show: true }
-      ]
-    }
-  }
-}
 
 
 use('rapor724_v2');

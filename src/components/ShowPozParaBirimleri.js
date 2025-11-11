@@ -21,6 +21,7 @@ import Avatar from '@mui/material/Avatar';
 
 
 
+
 export default function ShowPozParaBirimleri({ setShow, paraBirimleri, setParaBirimleri, paraEdit, setParaEdit }) {
 
   const navigate = useNavigate()
@@ -44,12 +45,11 @@ export default function ShowPozParaBirimleri({ setShow, paraBirimleri, setParaBi
         return oneBirim2
       })
 
-
       // db ye gönderme işlemi
       // await RealmApp?.currentUser.callFunction("customSettings_update", ({ functionName: "paraBirimiBasliklari", sayfaName: "pozlar", baslikId, showValue }))
       // await RealmApp?.currentUser.refreshCustomData()
 
-      let pageName = "pozlar"
+      let pageName = "birimfiyat"
       let dataName = "paraBirimleri"
       let setData = paraBirimleri2
 
@@ -158,7 +158,7 @@ export default function ShowPozParaBirimleri({ setShow, paraBirimleri, setParaBi
               Para Birimleri
             </Typography>
 
-            <Box
+            {/* <Box
               onClick={() => setParaEdit(x => {
                 setShow("Main")
                 return !x
@@ -166,9 +166,9 @@ export default function ShowPozParaBirimleri({ setShow, paraBirimleri, setParaBi
               sx={{ mr: "0.5rem", cursor: "pointer" }}
             >
               <Avatar sx={{ height:"2rem", width:"2rem", mr:"0.5rem",fontSize: "0.9rem", fontWeight: 600, color: "black" }}>V</Avatar>
-            </Box>
+            </Box> */}
 
-            <Box
+            {/* <Box
               onClick={() => setParaEdit(x => {
                 setShow("Main")
                 return !x
@@ -176,7 +176,7 @@ export default function ShowPozParaBirimleri({ setShow, paraBirimleri, setParaBi
               sx={{ cursor: "pointer", mt:"0.2rem" }}
             >
               <EditIcon variant="contained" />
-            </Box>
+            </Box> */}
 
 
           </Box>

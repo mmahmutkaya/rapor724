@@ -69,7 +69,7 @@ export default function P_IsPaketleriPozlar() {
   }, [error]);
 
 
-  const [basliklar, setBasliklar] = useState(appUser.customSettings.pages.metraj.basliklar)
+  const [basliklar, setBasliklar] = useState(appUser.customSettings.pages.ispaketleri.basliklar)
 
 
   // const pozAciklamaShow = basliklar?.find(x => x.id === "aciklama").show

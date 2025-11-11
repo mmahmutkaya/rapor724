@@ -62,7 +62,7 @@ export default function P_MetrajOnaylaPozlar() {
 
   useEffect(() => {
     !selectedProje && navigate('/projeler')
-    setShowMetrajYapabilenler(appUser?.customSettings?.pages.metrajOnayla.showMetrajYapabilenler)
+    setShowMetrajYapabilenler(appUser?.customSettings?.pages.metrajonayla.showMetrajYapabilenler)
   }, [])
 
   useEffect(() => {
@@ -76,7 +76,7 @@ export default function P_MetrajOnaylaPozlar() {
     }
   }, [error]);
 
-  const [basliklar, setBasliklar] = useState(appUser?.customSettings?.pages.metrajOnayla.basliklar)
+  const [basliklar, setBasliklar] = useState(appUser?.customSettings?.pages.metrajonayla.basliklar)
 
 
   // const pozAciklamaShow = basliklar?.find(x => x.id === "aciklama").show

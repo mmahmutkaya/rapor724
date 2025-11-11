@@ -17,7 +17,7 @@ import { DialogTitle, Typography } from '@mui/material';
 
 
 
-export default function ShowPozBaslik({ setShow, basliklar, setBasliklar }) {
+export default function ShowPozBaslik({ setShow, basliklar, setBasliklar, pageName, dataName }) {
 
   const navigate = useNavigate()
 
@@ -38,8 +38,6 @@ export default function ShowPozBaslik({ setShow, basliklar, setBasliklar }) {
 
       // db ye gönderme işlemi
 
-      let pageName = "pozlar"
-      let dataName = "basliklar"
       let setData = basliklar2
 
       const response = await fetch(`/api/user/customsettingspagessetdata`, {

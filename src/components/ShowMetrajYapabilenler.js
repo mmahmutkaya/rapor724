@@ -25,7 +25,7 @@ export default function ShowMetrajYapabilenler({ setShow }) {
   const { showMetrajYapabilenler, setShowMetrajYapabilenler } = useContext(StoreContext)
   // useEffect(() => {
   //   // setShowMetrajYapabilenler(RealmApp.currentUser.customData.customSettings.showMetrajYapabilenler)
-  //   setShowMetrajYapabilenler(appUser.customSettings.pages.metrajOnayla.showMetrajYapabilenler)
+  //   setShowMetrajYapabilenler(appUser.customSettings.pages.metrajonayla.showMetrajYapabilenler)
   // }, [appUser])
 
 
@@ -77,7 +77,7 @@ export default function ShowMetrajYapabilenler({ setShow }) {
           'Content-Type': 'application/json'
         },
         body: JSON.stringify({
-          pageName: "metrajOnayla",
+          pageName: "metrajonayla",
           dataName: "showMetrajYapabilenler",
           setData: showMetrajYapabilenler2
         })
@@ -102,7 +102,7 @@ export default function ShowMetrajYapabilenler({ setShow }) {
         setShowMetrajYapabilenler(showMetrajYapabilenler2)
 
         let appUser2 = _.cloneDeep(appUser)
-        appUser2.customSettings.pages.metrajOnayla.showMetrajYapabilenler = showMetrajYapabilenler2
+        appUser2.customSettings.pages.metrajonayla.showMetrajYapabilenler = showMetrajYapabilenler2
         setAppUser(appUser2)
         localStorage.setItem('appUser', JSON.stringify(appUser2))
         return
