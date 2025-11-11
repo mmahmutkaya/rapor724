@@ -231,6 +231,17 @@ export default function Sidebar({ setMobileOpen }) {
 
 
             <ListItemButton
+              onClick={() => navigate('/birimfiyat')}
+              sx={{ backgroundColor: pathname.includes("/birimfiyat") || pathname.includes("/birimfiyat") ? seciliSayfaRengi : null, '&:hover': { backgroundColor: seciliSayfaRengi } }}
+            >
+              <ListItemIcon>
+                <SendIcon />
+              </ListItemIcon>
+              <ListItemText primary="Birim Fiyat" />
+            </ListItemButton>
+
+
+            <ListItemButton
               onClick={() => navigate('/ispaketleri')}
               sx={{ backgroundColor: pathname.includes("/ispaketleri") ? seciliSayfaRengi : null, '&:hover': { backgroundColor: seciliSayfaRengi } }}
             >
