@@ -13,25 +13,33 @@ import { useGetPozlar } from '../../hooks/useMongo.js';
 import FormPozCreate from '../../components/FormPozCreate.js'
 import ShowPozBaslik from '../../components/ShowPozBaslik.js'
 import ShowPozParaBirimleri from '../../components/ShowPozParaBirimleri.js'
-import HeaderPozlar from '../../components/HeaderPozlar.js'
 
 
-import { borderLeft, fontWeight, grid, styled } from '@mui/system';
+import Typography from '@mui/material/Typography';
+import IconButton from '@mui/material/IconButton';
+import Paper from '@mui/material/Paper';
 import Grid from '@mui/material/Grid';
 import Input from '@mui/material/Input';
 import Alert from '@mui/material/Alert';
 import Stack from '@mui/material/Stack';
 import LinearProgress from '@mui/material/LinearProgress';
 import Box from '@mui/material/Box';
+import CurrencyLiraIcon from '@mui/icons-material/CurrencyLira';
+import VisibilityIcon from '@mui/icons-material/Visibility';
+import DeleteIcon from '@mui/icons-material/Delete';
+import AddCircleOutlineIcon from '@mui/icons-material/AddCircleOutline';
+import ClearOutlined from '@mui/icons-material/ClearOutlined';
+import SaveIcon from '@mui/icons-material/Save';
 
 
 
 
-export default function P_Pozlar() {
+export default function P_BirimFiyat() {
 
   const navigate = useNavigate()
   const queryClient = useQueryClient()
   const [dialogAlert, setDialogAlert] = useState()
+  const [showEminMisin_para, setShowEminMisin_para] = useState(false)
 
   const { data: dataPozlar, error, isLoading } = useGetPozlar()
   const { myTema, appUser, setAppUser } = useContext(StoreContext)
@@ -285,6 +293,8 @@ export default function P_Pozlar() {
 
 
 
+
+
   let wbsCode
   let wbsName
   let cOunt
@@ -305,6 +315,21 @@ export default function P_Pozlar() {
         />
       }
 
+      {showEminMisin_para &&
+        <DialogAlert
+          dialogIcon={"warning"}
+          dialogMessage={"Yaptığınız değişiklikleri kaybedeceksiniz ?"}
+          onCloseAction={() => setShowEminMisin_para()}
+          actionText1={"İptal"}
+          action1={() => setShowEminMisin_para()}
+          actionText2={"Onayla"}
+          action2={() => {
+            cancel_para()
+            setShowEminMisin_para()
+          }}
+        />
+      }
+
 
       {/* POZ OLUŞTURULACAKSA */}
       {show == "PozCreate" && <FormPozCreate setShow={setShow} />}
@@ -321,21 +346,6 @@ export default function P_Pozlar() {
 
       {/* BAŞLIK */}
       <Paper >
-
-        {showEminMisin_para &&
-          <DialogAlert
-            dialogIcon={"warning"}
-            dialogMessage={"Yaptığınız değişiklikleri kaybedeceksiniz ?"}
-            onCloseAction={() => setShowEminMisin_para()}
-            actionText1={"İptal"}
-            action1={() => setShowEminMisin_para()}
-            actionText2={"Onayla"}
-            action2={() => {
-              cancel_para()
-              setShowEminMisin_para()
-            }}
-          />
-        }
 
         <Grid
           container
@@ -377,11 +387,11 @@ export default function P_Pozlar() {
                     </IconButton>
                   </Grid>
 
-                  <Grid item >
+                  {/* <Grid item >
                     <IconButton onClick={() => setShow("PozCreate")} aria-label="wbsUncliced" disabled={!selectedProje?.wbs?.find(x => x.openForPoz === true)}>
                       <AddCircleOutlineIcon variant="contained" />
                     </IconButton>
-                  </Grid>
+                  </Grid> */}
                 </>
               }
 
@@ -419,6 +429,7 @@ export default function P_Pozlar() {
 
 
 
+      {/* SAYFA İÇERİĞİ - ALTERNATİF-1 */}
       {isLoading &&
         <Box sx={{ m: "1rem", color: 'gray' }}>
           <LinearProgress color='inherit' />
@@ -426,6 +437,7 @@ export default function P_Pozlar() {
       }
 
 
+      {/* SAYFA İÇERİĞİ - ALTERNATİF-2 */}
       {/* EĞER POZ BAŞLIĞI YOKSA */}
       {!isLoading && show == "Main" && !selectedProje?.wbs?.find(x => x.openForPoz === true) &&
         <Stack sx={{ width: '100%', m: "0rem", p: "1rem" }} spacing={2}>
@@ -436,6 +448,7 @@ export default function P_Pozlar() {
       }
 
 
+      {/* SAYFA İÇERİĞİ - ALTERNATİF-3 */}
       {/* EĞER POZ YOKSA */}
       {!isLoading && show == "Main" && selectedProje?.wbs?.find(x => x.openForPoz === true) && !pozlar_state?.length > 0 &&
         <Stack sx={{ width: '100%', m: "0rem", p: "1rem" }} spacing={2}>
@@ -446,6 +459,8 @@ export default function P_Pozlar() {
       }
 
 
+
+      {/* SAYFA İÇERİĞİ - ALTERNATİF-4 */}
       {/* ANA SAYFA - POZLAR VARSA */}
 
       {!isLoading && show == "Main" && selectedProje?.wbs?.find(x => x.openForPoz === true) && pozlar_state?.length > 0 &&
@@ -465,7 +480,6 @@ export default function P_Pozlar() {
             <Box sx={{ ...enUstBaslik_css }}>
               Poz İsmi
             </Box>
-
 
             {/* BAŞLIK - POZ BİRİM  */}
             <Box sx={{ ...enUstBaslik_css, textWrap: "nowrap" }}>

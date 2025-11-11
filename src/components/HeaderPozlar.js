@@ -81,11 +81,11 @@ export default function HeaderPozlar({
 
             {!paraEdit &&
               <>
-                < Grid item >
+                {/* < Grid item >
                   <IconButton onClick={() => setShow("ShowPozParaBirimleri")} aria-label="wbsUncliced">
                     <CurrencyLiraIcon variant="contained" />
                   </IconButton>
-                </Grid>
+                </Grid> */}
 
                 <Grid item >
                   <IconButton onClick={() => setShow("ShowBaslik")} aria-label="wbsUncliced" disabled={!anyBaslikShow}>

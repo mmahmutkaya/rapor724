@@ -41,7 +41,7 @@ import P_MetrajPozlar from './pages/metrajpozlar'
 import P_MetrajPozMahaller from './pages/metrajpozmahaller'
 import P_MetrajCetvel from './pages/metrajcetvel'
 
-import P_MetrajEdit from './pages/metrajedit'
+import P_BirimFiyat from './pages/birimfiyat'
 
 import P_IsPaketleri from './pages/ispaketleri'
 import P_IsPaketleriPozlar from './pages/ispaketleripozlar'
@@ -86,7 +86,7 @@ function App() {
       <Route path='/metrajonayla' element={<P_MetrajOnayla />} />
       <Route path='/metrajonaylacetvel' element={<P_MetrajOnaylaCetvel />} />
       
-      {/* <Route path='/metrajedit' element={<P_MetrajEdit />} /> */}
+      <Route path='/birimfiyat' element={<P_BirimFiyat />} />
 
       <Route path='/metrajpozlar' element={<P_MetrajPozlar />} />
       <Route path='/metrajpozmahaller' element={<P_MetrajPozMahaller />} />
