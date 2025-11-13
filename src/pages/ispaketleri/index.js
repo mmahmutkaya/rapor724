@@ -120,6 +120,7 @@ export default function P_IsPaketleri() {
           </Grid>
 
 
+
           {/* sağ kısım - (tuşlar)*/}
           <Grid item xs="auto">
 
@@ -150,7 +151,7 @@ export default function P_IsPaketleri() {
                   </Box>
 
                 </>
-                
+
               }
 
 
