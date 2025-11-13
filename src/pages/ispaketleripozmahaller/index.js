@@ -41,7 +41,7 @@ export default function P_IsPaketleriPozMahaller() {
 
   const queryClient = useQueryClient()
 
-  const { appUser, setAppUser, RealmApp, myTema } = useContext(StoreContext)
+  const { appUser, setAppUser, selectedProje, selectedPoz, myTema } = useContext(StoreContext)
   const { drawerWidth, topBarHeight } = useContext(StoreContext)
   const { selectedIsPaketVersiyon, selectedIsPaketBaslik, selectedIsPaket } = useContext(StoreContext)
 
@@ -50,16 +50,6 @@ export default function P_IsPaketleriPozMahaller() {
 
 
   const [dialogAlert, setDialogAlert] = useState()
-
-  const { selectedProje } = useContext(StoreContext)
-  let showMetrajYapabilenler
-
-  const yetkililer = selectedProje?.yetkiliKisiler
-
-  const { selectedPoz, setSelectedPoz } = useContext(StoreContext)
-  const { selectedNode, setSelectedNode } = useContext(StoreContext)
-  const { selectedMahal, setSelectedMahal } = useContext(StoreContext)
-
 
 
   const [show, setShow] = useState("Main")
@@ -315,25 +305,24 @@ export default function P_IsPaketleriPozMahaller() {
         />
       }
 
+      {showEminMisin &&
+        <DialogAlert
+          dialogIcon={"warning"}
+          dialogMessage={"Yaptığınız değişiklikleri kaybedeceksiniz ?"}
+          onCloseAction={() => setShowEminMisin()}
+          actionText1={"İptal"}
+          action1={() => setShowEminMisin()}
+          actionText2={"Onayla"}
+          action2={() => {
+            cancelChange()
+            setShowEminMisin()
+          }}
+        />
+      }
+
 
       {/* BAŞLIK */}
       <Paper >
-
-        {showEminMisin &&
-          <DialogAlert
-            dialogIcon={"warning"}
-            dialogMessage={"Yaptığınız değişiklikleri kaybedeceksiniz ?"}
-            onCloseAction={() => setShowEminMisin()}
-            actionText1={"İptal"}
-            action1={() => setShowEminMisin()}
-            actionText2={"Onayla"}
-            action2={() => {
-              cancelChange()
-              setShowEminMisin()
-            }}
-          />
-        }
-
 
         <AppBar
           position="fixed"
@@ -354,8 +343,6 @@ export default function P_IsPaketleriPozMahaller() {
             sx={{ padding: "0.5rem 1rem", maxHeight: "5rem" }}
           >
 
-
-
             {/* sol kısım (başlık) */}
             <Grid item xs>
               <Box sx={{ display: "grid", gridAutoFlow: "column", alignItems: "center", justifyContent: "start", columnGap: "0.5rem" }}>
@@ -372,9 +359,6 @@ export default function P_IsPaketleriPozMahaller() {
 
               </Box>
             </Grid>
-
-
-
 
             {/* sağ kısım - (tuşlar)*/}
             <Grid item xs="auto">
@@ -403,7 +387,6 @@ export default function P_IsPaketleriPozMahaller() {
 
                   </>
                 }
-
 
               </Grid>
             </Grid>
@@ -487,8 +470,6 @@ export default function P_IsPaketleriPozMahaller() {
           </>
 
 
-
-
           {/* LBS BAŞLIK BİLGİLERİ SATIRI */}
 
           {openLbsArray?.map((oneLbs, index) => {
@@ -517,7 +498,7 @@ export default function P_IsPaketleriPozMahaller() {
                 <Box>
                 </Box>
 
-                <Box sx={{ ...css_LbsBaslik, borderLeft:"1px solid black" }}>
+                <Box sx={{ ...css_LbsBaslik, borderLeft: "1px solid black" }}>
 
                 </Box>
 
@@ -558,7 +539,7 @@ export default function P_IsPaketleriPozMahaller() {
                       </Box>
 
                       <Box onClick={() => handleDugumToggle({ oneMahal, toggleValue: !oneMahal.hasDugum })} sx={{ ...css_mahaller, backgroundColor: !oneMahal.hasDugum ? "lightgray" : null, justifyContent: "center" }}>
-                        
+
                       </Box>
 
                     </React.Fragment>
