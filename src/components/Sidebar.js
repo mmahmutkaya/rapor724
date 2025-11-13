@@ -27,7 +27,14 @@ export default function Sidebar({ setMobileOpen }) {
 
   const navigate = useNavigate()
   const { pathname } = useLocation()
-  const { selectedProje, persons, selectedFirma } = useContext(StoreContext)
+  const {
+    selectedProje,
+    persons,
+    selectedFirma,
+    setSelectedIsPaketBaslik,
+    setSelectedIsPaket
+  } = useContext(StoreContext)
+
 
   let seciliSayfaRengi = "rgba(0, 0, 0, 0.14)"
 
@@ -131,7 +138,7 @@ export default function Sidebar({ setMobileOpen }) {
             </ListItemButton> */}
 
 
-{/* 
+            {/* 
             <ListItemButton
               onClick={() => navigate('/pozhavuzu')}
               sx={{ backgroundColor: pathname == "/pozhavuzu" ? seciliSayfaRengi : null, '&:hover': { backgroundColor: seciliSayfaRengi } }}
@@ -242,7 +249,11 @@ export default function Sidebar({ setMobileOpen }) {
 
 
             <ListItemButton
-              onClick={() => navigate('/ispaketleri')}
+              onClick={() => {
+                navigate('/ispaketleri')
+                setSelectedIsPaketBaslik()
+                setSelectedIsPaket()
+              }}
               sx={{ backgroundColor: pathname.includes("/ispaketleri") ? seciliSayfaRengi : null, '&:hover': { backgroundColor: seciliSayfaRengi } }}
             >
               <ListItemIcon>

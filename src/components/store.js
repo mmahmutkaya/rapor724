@@ -51,6 +51,7 @@ export default ({ children }) => {
   const [selectedWbs, setSelectedWbs] = useState()
   const [selectedIsPaketBaslik, setSelectedIsPaketBaslik] = useState()
   const [selectedIsPaket, setSelectedIsPaket] = useState()
+  const [selectedIsPaketVersiyon, setSelectedIsPaketVersiyon] = useState()
 
   const [selectedPoz, setSelectedPoz] = useState()
   const [selectedPozBaslik, setSelectedPozBaslik] = useState()
@@ -97,6 +98,7 @@ export default ({ children }) => {
     selectedWbs, setSelectedWbs,
     selectedIsPaketBaslik, setSelectedIsPaketBaslik,
     selectedIsPaket, setSelectedIsPaket,
+    selectedIsPaketVersiyon, setSelectedIsPaketVersiyon,
 
 
     selectedPoz, setSelectedPoz,

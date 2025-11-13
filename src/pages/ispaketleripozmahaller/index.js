@@ -43,6 +43,8 @@ export default function P_IsPaketleriPozMahaller() {
 
   const { appUser, setAppUser, RealmApp, myTema } = useContext(StoreContext)
   const { drawerWidth, topBarHeight } = useContext(StoreContext)
+  const { selectedIsPaketVersiyon, selectedIsPaketBaslik, selectedIsPaket } = useContext(StoreContext)
+
 
   const [showEminMisin, setShowEminMisin] = useState(false)
 
@@ -183,17 +185,6 @@ export default function P_IsPaketleriPozMahaller() {
 
 
 
-  // const handleDugumToggle = ({ oneMahal, toggleValue }) => {
-
-  //   // console.log("oneMahal",oneMahal)
-  //   // let dugumler_byPoz_state2 = _.cloneDeep(dugumler_byPoz_state)
-  //   console.log("oneMahal", oneMahal)
-  //   console.log("toggleValue", toggleValue)
-
-  // }
-
-
-
 
   const handleDugumToggle = ({ oneMahal, toggleValue }) => {
 
@@ -307,7 +298,7 @@ export default function P_IsPaketleriPozMahaller() {
     border: "1px solid black", px: "0.5rem", display: "grid", justifyContent: "start", alignItems: "center"
   }
 
-  const gridTemplateColumns1 = `max-content minmax(min-content, 1fr) max-content max-content}`
+  const gridTemplateColumns1 = `max-content minmax(min-content, 30rem) max-content max-content 0.5rem max-content`
 
 
   return (
@@ -375,15 +366,10 @@ export default function P_IsPaketleriPozMahaller() {
                   <ReplyIcon variant="contained" sx={{ color: "gray" }} />
                 </IconButton>
 
-                <Box>
-                  {selectedPoz?.pozName}
+                <Box sx={{ fontSize: "1rem" }}>
+                  (V{selectedIsPaketVersiyon}) - {selectedIsPaketBaslik.name} / {selectedIsPaket.name}
                 </Box>
-                {/* <Box sx={{ color: "#8B0000", fontWeight: "600" }}>
-                {" > "}
-              </Box> */}
-                <Box>
-                  {/* {"Tüm Mahaller"} */}
-                </Box>
+
               </Box>
             </Grid>
 
@@ -393,20 +379,6 @@ export default function P_IsPaketleriPozMahaller() {
             {/* sağ kısım - (tuşlar)*/}
             <Grid item xs="auto">
               <Grid container>
-
-
-                {/* {!isChanged &&
-                <>
-
-                  <Grid item>
-                    <IconButton onClick={() => navigate('/ispaketleripozlar')} disabled={false}>
-                      <ReplyIcon variant="contained" sx={{ color: "gray" }} />
-                    </IconButton>
-                  </Grid>
-
-                </>
-              } */}
-
 
                 {isChanged &&
                   <>
@@ -443,14 +415,6 @@ export default function P_IsPaketleriPozMahaller() {
       </Paper >
 
 
-      {/* BAŞLIK GÖSTER / GİZLE
-      {show == "ShowMetrajYapabilenler" &&
-        <ShowMetrajYapabilenler
-          setShow={setShow}
-        />
-      } */}
-
-
       {(isFetching1 || isFetching2) &&
         <Box sx={{ width: '100%', px: "1rem", mt: "5rem", color: 'gray' }}>
           <LinearProgress color='inherit' />
@@ -485,10 +449,17 @@ export default function P_IsPaketleriPozMahaller() {
               {selectedPoz.pozName}
             </Box>
             <Box sx={{ ...css_enUstBaslik, justifyContent: "center" }}>
-              Miktar
+              Birim
             </Box>
             <Box sx={{ ...css_enUstBaslik, justifyContent: "center" }}>
-              Birim
+              Miktar
+            </Box>
+
+            <Box>
+            </Box>
+
+            <Box sx={{ ...css_enUstBaslik, justifyContent: "center" }}>
+              İş Paket Miktar
             </Box>
 
           </>
@@ -499,11 +470,18 @@ export default function P_IsPaketleriPozMahaller() {
             <Box sx={{ ...css_enUstBaslik, borderLeft: "1px solid black", gridColumn: "1/3", justifyContent: "end", borderLeft: "1px solid black" }}>
               Toplam Metraj
             </Box>
+            <Box sx={{ ...css_enUstBaslik, justifyContent: "center" }}>
+              {pozBirim}
+            </Box>
             <Box sx={{ ...css_enUstBaslik, justifyContent: "end" }}>
               {ikiHane(selectedPoz?.metrajOnaylanan)}
             </Box>
+
+            <Box>
+            </Box>
+
             <Box sx={{ ...css_enUstBaslik, justifyContent: "center" }}>
-              {pozBirim}
+
             </Box>
 
           </>
@@ -536,14 +514,22 @@ export default function P_IsPaketleriPozMahaller() {
                   {pozBirim}
                 </Box>
 
+                <Box>
+                </Box>
+
+                <Box sx={{ ...css_LbsBaslik, borderLeft:"1px solid black" }}>
+
+                </Box>
 
                 {/* MAHAL SATIRLARI */}
                 {mahaller_byLbs?.map((oneMahal, index) => {
 
                   let dugum = dataGetDugumler_byPoz?.dugumler_byPoz?.find(oneDugum => oneDugum._mahalId.toString() === oneMahal._id.toString())
-                  if (!oneMahal.newSelected && dugum) {
-                    oneMahal.hasDugum = true
+                  if (!dugum) {
+                    return
                   }
+
+                  oneMahal.hasDugum = true
 
                   return (
                     <React.Fragment key={index}>
@@ -566,6 +552,13 @@ export default function P_IsPaketleriPozMahaller() {
 
                       <Box onClick={() => handleDugumToggle({ oneMahal, toggleValue: !oneMahal.hasDugum })} sx={{ ...css_mahaller, backgroundColor: !oneMahal.hasDugum ? "lightgray" : null, justifyContent: "center" }}>
                         {pozBirim}
+                      </Box>
+
+                      <Box>
+                      </Box>
+
+                      <Box onClick={() => handleDugumToggle({ oneMahal, toggleValue: !oneMahal.hasDugum })} sx={{ ...css_mahaller, backgroundColor: !oneMahal.hasDugum ? "lightgray" : null, justifyContent: "center" }}>
+                        
                       </Box>
 
                     </React.Fragment>

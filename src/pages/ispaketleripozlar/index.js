@@ -23,6 +23,10 @@ import { Check } from '@mui/icons-material';
 import LinearProgress from '@mui/material/LinearProgress';
 import AppBar from '@mui/material/AppBar';
 import Typography from '@mui/material/Typography';
+import IconButton from '@mui/material/IconButton';
+import ClearOutlined from '@mui/icons-material/ClearOutlined';
+import ReplyIcon from '@mui/icons-material/Reply';
+
 
 
 
@@ -42,7 +46,7 @@ export default function P_IsPaketleriPozlar() {
   const { showMetrajYapabilenler, setShowMetrajYapabilenler } = useContext(StoreContext)
   const { selectedPoz, setSelectedPoz } = useContext(StoreContext)
   const { selectedProje, setSelectedProje } = useContext(StoreContext)
-
+  const { selectedIsPaketVersiyon, selectedIsPaketBaslik, selectedIsPaket } = useContext(StoreContext)
 
   const versiyonlar = selectedProje?.versiyonlar?.metraj
   const pozBirimleri = selectedProje?.pozBirimleri
@@ -182,13 +186,24 @@ export default function P_IsPaketleriPozlar() {
 
             {/* sol kısım (başlık) */}
             <Grid item xs>
-              <Typography
-                // nowrap={true}
-                variant="h6"
-                fontWeight="bold"
-              >
-                Metraj
-              </Typography>
+              <Box sx={{ display: "grid", gridAutoFlow: "column", alignItems: "center", justifyContent: "start", columnGap: "0.5rem" }}>
+
+                <IconButton
+                  sx={{ mx: 0, px: 0 }}
+                  onClick={() => navigate('/ispaketleri')} disabled={false}>
+                  <ReplyIcon variant="contained" sx={{ color: "gray" }} />
+                </IconButton>
+
+                <Box>
+                  (V{selectedIsPaketVersiyon}) - {selectedIsPaketBaslik.name} / {selectedIsPaket.name}
+                </Box>
+                {/* <Box sx={{ color: "#8B0000", fontWeight: "600" }}>
+                {" > "}
+              </Box> */}
+                <Box>
+                  {/* {"Tüm Mahaller"} */}
+                </Box>
+              </Box>
             </Grid>
 
 
