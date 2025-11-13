@@ -45,6 +45,7 @@ import P_BirimFiyat from './pages/birimfiyat'
 
 import P_IsPaketleri from './pages/ispaketleri'
 import P_IsPaketleriPozlar from './pages/ispaketleripozlar'
+import P_IsPaketleriPozMahaller from './pages/ispaketleripozmahaller'
 
 
 function App() {
@@ -94,6 +95,7 @@ function App() {
 
       <Route path='/ispaketleri' element={<P_IsPaketleri />} />
       <Route path='/ispaketleripozlar' element={<P_IsPaketleriPozlar />} />
+      <Route path='/ispaketleripozmahaller' element={<P_IsPaketleriPozMahaller />} />
 
     </Routes>
   );

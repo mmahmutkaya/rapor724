@@ -137,8 +137,8 @@ export default function P_IsPaketleriPozlar() {
 
 
 
-  const goTo_MetrajPozmahaller = (onePoz) => {
-    navigate('/metrajpozmahaller')
+  const goTo_isPaketleriiPozMahaller = (onePoz) => {
+    navigate('/ispaketleripozmahaller')
     setSelectedPoz(onePoz)
   }
 
@@ -394,7 +394,7 @@ export default function P_IsPaketleriPozlar() {
                       <Box sx={{ ...pozNo_css, justifyItems: "start", pl: "0.5rem" }} >
                         {onePoz.pozName}
                       </Box>
-                      <Box onClick={() => hasOnaylananMetraj && goTo_MetrajPozmahaller(onePoz)} sx={{ ...pozNo_css, backgroundColor: !hasOnaylananMetraj ? "white" : "white", cursor: hasOnaylananMetraj && "pointer", display: "grid", gridTemplateColumns: "1rem 1fr", "&:hover": hasOnaylananMetraj && { "& .childClass": { backgroundColor: "red" } } }}>
+                      <Box onClick={() => hasOnaylananMetraj && goTo_isPaketleriiPozMahaller(onePoz)} sx={{ ...pozNo_css, backgroundColor: !hasOnaylananMetraj ? "white" : "white", cursor: hasOnaylananMetraj && "pointer", display: "grid", gridTemplateColumns: "1rem 1fr", "&:hover": hasOnaylananMetraj && { "& .childClass": { backgroundColor: "red" } } }}>
                         <Box className="childClass" sx={{ ml: "-1rem", backgroundColor: !hasOnaylananMetraj ? "white" : "white", height: "0.5rem", width: "0.5rem", borderRadius: "50%" }}>
                         </Box>
                         <Box sx={{ justifySelf: "end" }}>
@@ -424,76 +424,6 @@ export default function P_IsPaketleriPozlar() {
                           </Box>
                         </>
                       }
-
-                      {onayNodeMetraj &&
-                        <>
-                          <Box> </Box>
-                          {showMetrajYapabilenler?.filter(x => x.isShow).map((oneYapabilen, index) => {
-
-                            let oneHazirlanan = onePoz.hazirlananMetrajlar.find(x => x.userEmail === oneYapabilen.userEmail)
-
-                            let hasReady = oneHazirlanan?.hasReady
-                            let hasSelected = oneHazirlanan?.hasSelected
-                            let hasUnSelected = oneHazirlanan?.hasUnSelected
-                            let metraj = oneHazirlanan?.metrajReady
-                            let clickAble = hasUnSelected || hasSelected || hasReady ? true : false
-                            let hasReadyUnSeen = oneHazirlanan?.hasReadyUnSeen
-                            let allSelected = oneHazirlanan?.hasSelected && !oneHazirlanan?.hasUnSelected
-                            let someSelected = oneHazirlanan?.hasSelected && oneHazirlanan?.hasUnSelected
-
-
-
-                            return (
-                              <Box
-                                key={index}
-                                onClick={() => clickAble && goTo_MetrajPozmahaller(onePoz)}
-                                sx={{
-                                  ...pozNo_css, display: "grid", gridTemplateColumns: "1rem 1fr", justifyContent: "end", cursor: clickAble && "pointer",
-                                  backgroundColor: hasReadyUnSeen ? "rgba(255, 251, 0, 0.55)" : !clickAble && "lightgray",
-                                  "&:hover": clickAble && { "& .childClass": { color: "red" } },
-                                }}>
-                                {/* <Box
-                                  className="childClass"
-                                  sx={{
-                                    ml: "-1rem", height: "0.5rem", width: "0.5rem", borderRadius: "50%",
-                                    backgroundColor: hasSelected && hasUnSelected && "gray",
-                                  }}>
-                                </Box> */}
-
-                                {someSelected &&
-                                  <CircleIcon variant="contained" className="childClass"
-                                    sx={{
-                                      mr: "0.3rem", fontSize: "0.60rem",
-                                      color: "gray"
-                                    }} />
-                                }
-
-                                {allSelected &&
-                                  <Check variant="contained" className="childClass"
-                                    sx={{
-                                      mr: "0.3rem", fontSize: "1rem",
-                                      color: "black"
-                                    }} />
-                                }
-
-                                {!someSelected && !allSelected && clickAble &&
-                                  <CircleIcon variant="contained" className="childClass"
-                                    sx={{
-                                      mr: "0.3rem", fontSize: "0.6rem",
-                                      color: hasReadyUnSeen ? "rgba(255, 251, 0, 0.55)" : "white"
-                                    }} />
-                                }
-
-                                <Box sx={{ justifySelf: "end" }}>
-                                  {ikiHane(metraj)}
-                                </Box>
-
-                              </Box>
-                            )
-                          })}
-                        </>
-                      }
-
 
                     </React.Fragment>
                   )
