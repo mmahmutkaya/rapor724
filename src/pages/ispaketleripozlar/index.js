@@ -58,6 +58,7 @@ export default function P_IsPaketleriPozlar() {
 
   useEffect(() => {
     !selectedProje && navigate('/projeler')
+    !((selectedIsPaketVersiyon === 0 || selectedIsPaketVersiyon > 0) && selectedIsPaketBaslik && selectedIsPaket) && navigate('/ispaketleri')
   }, [])
 
 
@@ -195,7 +196,7 @@ export default function P_IsPaketleriPozlar() {
                 </IconButton>
 
                 <Box>
-                  (V{selectedIsPaketVersiyon}) - {selectedIsPaketBaslik.name} / {selectedIsPaket.name}
+                  (V{selectedIsPaketVersiyon}) - {selectedIsPaketBaslik?.name} / {selectedIsPaket?.name}
                 </Box>
                 {/* <Box sx={{ color: "#8B0000", fontWeight: "600" }}>
                 {" > "}

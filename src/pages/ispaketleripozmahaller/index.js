@@ -79,11 +79,14 @@ export default function P_IsPaketleriPozMahaller() {
 
   useEffect(() => {
     !selectedPoz && navigate('/ispaketleripozlar')
+    !((selectedIsPaketVersiyon === 0 || selectedIsPaketVersiyon > 0) && selectedIsPaketBaslik && selectedIsPaket) && navigate('/ispaketleri')
     setMahaller_state(_.cloneDeep(dataMahaller?.mahaller))
+    setDugumler_byPoz_state(_.cloneDeep(dataGetDugumler_byPoz?.dugumler_byPoz))
+    setDugumler_byPoz_backup(_.cloneDeep(dataGetDugumler_byPoz?.dugumler_byPoz))
     return () => {
       setMahaller_state()
     }
-  }, [dataMahaller])
+  }, [dataGetDugumler_byPoz])
 
 
   useEffect(() => {
@@ -176,20 +179,24 @@ export default function P_IsPaketleriPozMahaller() {
 
 
 
-  const handleDugumToggle = ({ oneMahal, toggleValue }) => {
+  const handleDugumToggle = ({ dugum, toggleValue }) => {
 
-    // console.log("oneMahal",oneMahal)
-    let mahaller_state2 = _.cloneDeep(mahaller_state)
+    // console.log("dugum", dugum)
+    console.log("selectedProje", selectedProje)
+    let dugumler_byPoz_state2 = _.cloneDeep(dugumler_byPoz_state)
 
-    mahaller_state2 = mahaller_state2.map(oneMahal2 => {
-      if (oneMahal2._id.toString() === oneMahal._id.toString()) {
-        oneMahal2.newSelected = true
-        oneMahal2.hasDugum = toggleValue
+    dugumler_byPoz_state2 = dugumler_byPoz_state2.map(oneDugum2 => {
+      if (oneDugum2._id.toString() === dugum._id.toString()) {
+        oneDugum2.newSelected = true
+        // oneDugum2.isPaketVersiyonlar = selec
+        // oneDugum2.hasDugum = toggleValue
       }
-      return oneMahal2
+      return oneDugum2
     })
+
     setIsChanged(true)
-    setMahaller_state(mahaller_state2)
+    setDugumler_byPoz_state(dugumler_byPoz_state)
+
   }
 
 
@@ -354,7 +361,7 @@ export default function P_IsPaketleriPozMahaller() {
                 </IconButton>
 
                 <Box sx={{ fontSize: "1rem" }}>
-                  (V{selectedIsPaketVersiyon}) - {selectedIsPaketBaslik.name} / {selectedIsPaket.name}
+                  (V{selectedIsPaketVersiyon}) - {selectedIsPaketBaslik?.name} / {selectedIsPaket?.name}
                 </Box>
 
               </Box>
@@ -466,7 +473,6 @@ export default function P_IsPaketleriPozMahaller() {
             <Box sx={{ ...css_enUstBaslik, justifyContent: "center" }}>
 
             </Box>
-
           </>
 
 
@@ -474,8 +480,12 @@ export default function P_IsPaketleriPozMahaller() {
 
           {openLbsArray?.map((oneLbs, index) => {
 
+            console.log("oneLbs",oneLbs)
+            console.log("mahaller_state",mahaller_state)
+
             const mahaller_byLbs = mahaller_state?.filter(x => x._lbsId.toString() === oneLbs._id.toString())
             if (!mahaller_byLbs?.length > 0) {
+              // console.log("mahaller_byLbs",mahaller_byLbs)
               return
             }
 
@@ -505,21 +515,21 @@ export default function P_IsPaketleriPozMahaller() {
                 {/* MAHAL SATIRLARI */}
                 {mahaller_byLbs?.map((oneMahal, index) => {
 
-                  let dugum = dataGetDugumler_byPoz?.dugumler_byPoz?.find(oneDugum => oneDugum._mahalId.toString() === oneMahal._id.toString())
+                  let dugum = dugumler_byPoz_state?.find(oneDugum => oneDugum._mahalId.toString() === oneMahal._id.toString())
                   if (!dugum) {
                     return
                   }
 
-                  oneMahal.hasDugum = true
+                  let inSelectedPaket = dugum.isPaketVersiyonlar?.versiyon[selectedIsPaketVersiyon][selectedIsPaketBaslik][selectedIsPaket]
 
                   return (
                     <React.Fragment key={index}>
 
-                      <Box onClick={() => handleDugumToggle({ oneMahal, toggleValue: !oneMahal.hasDugum })} sx={{ ...css_mahaller, backgroundColor: !oneMahal.hasDugum ? "lightgray" : null, borderLeft: "1px solid black" }}>
+                      <Box onClick={() => handleDugumToggle({ dugum, toggleValue: !inSelectedPaket })} sx={{ ...css_mahaller, backgroundColor: inSelectedPaket ? "lightgray" : null, borderLeft: "1px solid black" }}>
                         {oneMahal.mahalNo}
                       </Box>
 
-                      <Box onClick={() => handleDugumToggle({ oneMahal, toggleValue: !oneMahal.hasDugum })} sx={{ ...css_mahaller, backgroundColor: !oneMahal.hasDugum ? "lightgray" : null, cursor: "pointer", display: "grid", alignItems: "center", gridTemplateColumns: "1fr 1rem", "&:hover": { "& .childClass": { backgroundColor: "red" } } }}>
+                      <Box onClick={() => handleDugumToggle({ dugum, toggleValue: !inSelectedPaket })} sx={{ ...css_mahaller, backgroundColor: inSelectedPaket ? "lightgray" : null, cursor: "pointer", display: "grid", alignItems: "center", gridTemplateColumns: "1fr 1rem", "&:hover": { "& .childClass": { backgroundColor: "red" } } }}>
                         <Box sx={{ justifySelf: "start" }}>
                           {oneMahal.mahalName}
                         </Box>
@@ -527,18 +537,18 @@ export default function P_IsPaketleriPozMahaller() {
                         </Box>
                       </Box>
 
-                      <Box onClick={() => handleDugumToggle({ oneMahal, toggleValue: !oneMahal.hasDugum })} sx={{ ...css_mahaller, backgroundColor: !oneMahal.hasDugum ? "lightgray" : null, justifyContent: "end" }}>
+                      <Box onClick={() => handleDugumToggle({ dugum, toggleValue: !inSelectedPaket, dugum })} sx={{ ...css_mahaller, backgroundColor: inSelectedPaket ? "lightgray" : null, justifyContent: "end" }}>
                         {ikiHane(dugum?.metrajOnaylanan)}
                       </Box>
 
-                      <Box onClick={() => handleDugumToggle({ oneMahal, toggleValue: !oneMahal.hasDugum })} sx={{ ...css_mahaller, backgroundColor: !oneMahal.hasDugum ? "lightgray" : null, justifyContent: "center" }}>
+                      <Box onClick={() => handleDugumToggle({ dugum, toggleValue: !inSelectedPaket })} sx={{ ...css_mahaller, backgroundColor: inSelectedPaket ? "lightgray" : null, justifyContent: "center" }}>
                         {pozBirim}
                       </Box>
 
                       <Box>
                       </Box>
 
-                      <Box onClick={() => handleDugumToggle({ oneMahal, toggleValue: !oneMahal.hasDugum })} sx={{ ...css_mahaller, backgroundColor: !oneMahal.hasDugum ? "lightgray" : null, justifyContent: "center" }}>
+                      <Box onClick={() => handleDugumToggle({ dugum, toggleValue: !inSelectedPaket })} sx={{ ...css_mahaller, backgroundColor: !oneMahal.hasDugum ? "lightgray" : null, justifyContent: "center" }}>
 
                       </Box>
 
