@@ -181,21 +181,38 @@ export default function P_IsPaketleriPozMahaller() {
 
   const handleDugumToggle = ({ dugum, toggleValue }) => {
 
-    // console.log("dugum", dugum)
-    console.log("selectedProje", selectedProje)
     let dugumler_byPoz_state2 = _.cloneDeep(dugumler_byPoz_state)
+    // console.log("dugumler_byPoz_state2", dugumler_byPoz_state2)
 
     dugumler_byPoz_state2 = dugumler_byPoz_state2.map(oneDugum2 => {
       if (oneDugum2._id.toString() === dugum._id.toString()) {
-        oneDugum2.newSelected = true
-        // oneDugum2.isPaketVersiyonlar = selec
-        // oneDugum2.hasDugum = toggleValue
+        // console.log("burada-1-")
+        // console.log("selectedIsPaketVersiyon", selectedIsPaketVersiyon)
+        oneDugum2.isPaketVersiyonlar.map(oneVersiyon => {
+          if (oneVersiyon.versiyon === selectedIsPaketVersiyon) {
+            // console.log("burada-2-")
+            oneVersiyon.basliklar.map(oneBaslik => {
+              if (oneBaslik._id.toString() === selectedIsPaketBaslik._id.toString()) {
+                // console.log("burada-3-")
+                oneBaslik.isPaketleri.map(onePaket => {
+                  if (onePaket._id.toString() === selectedIsPaket._id.toString()) {
+                    // console.log("burada-4-")
+                    onePaket.selected = toggleValue
+                  }
+                  return onePaket
+                })
+                return oneBaslik
+              }
+            })
+            return oneVersiyon
+          }
+        })
       }
       return oneDugum2
     })
 
     setIsChanged(true)
-    setDugumler_byPoz_state(dugumler_byPoz_state)
+    setDugumler_byPoz_state(dugumler_byPoz_state2)
 
   }
 
@@ -292,10 +309,19 @@ export default function P_IsPaketleriPozMahaller() {
   }
 
   const css_mahaller = {
-    border: "1px solid black", px: "0.5rem", display: "grid", justifyContent: "start", alignItems: "center"
+    border: "1px solid black", px: "0.5rem", display: "grid", justifyContent: "start", alignItems: "center", cursor: "pointer"
   }
 
-  const gridTemplateColumns1 = `max-content minmax(min-content, 30rem) max-content max-content 0.5rem max-content`
+  const gridTemplateColumns1 = `max-content minmax(min-content, 30rem) max-content 0.5rem max-content`
+
+  let selectedMetraj = dugumler_byPoz_state
+    ?.filter(dugum =>
+      dugum.isPaketVersiyonlar
+        .find(oneVersiyon => oneVersiyon.versiyon === selectedIsPaketVersiyon).basliklar
+        .find(oneBaslik => oneBaslik._id.toString() === selectedIsPaketBaslik._id.toString()).isPaketleri
+        .find(onePaket => onePaket._id.toString() === selectedIsPaket._id.toString()).selected
+    ).reduce((accumulator, oneDugum) => accumulator + oneDugum.metrajOnaylanan, 0)
+
 
 
   return (
@@ -439,9 +465,6 @@ export default function P_IsPaketleriPozMahaller() {
               {selectedPoz.pozName}
             </Box>
             <Box sx={{ ...css_enUstBaslik, justifyContent: "center" }}>
-              Birim
-            </Box>
-            <Box sx={{ ...css_enUstBaslik, justifyContent: "center" }}>
               Miktar
             </Box>
 
@@ -449,7 +472,7 @@ export default function P_IsPaketleriPozMahaller() {
             </Box>
 
             <Box sx={{ ...css_enUstBaslik, justifyContent: "center" }}>
-              İş Paket Miktar
+              İş Paketi
             </Box>
 
           </>
@@ -460,18 +483,15 @@ export default function P_IsPaketleriPozMahaller() {
             <Box sx={{ ...css_enUstBaslik, borderLeft: "1px solid black", gridColumn: "1/3", justifyContent: "end", borderLeft: "1px solid black" }}>
               Toplam Metraj
             </Box>
-            <Box sx={{ ...css_enUstBaslik, justifyContent: "center" }}>
-              {pozBirim}
-            </Box>
             <Box sx={{ ...css_enUstBaslik, justifyContent: "end" }}>
-              {ikiHane(selectedPoz?.metrajOnaylanan)}
+              {ikiHane(selectedPoz?.metrajOnaylanan)} {pozBirim}
             </Box>
 
             <Box>
             </Box>
 
-            <Box sx={{ ...css_enUstBaslik, justifyContent: "center" }}>
-
+            <Box sx={{ ...css_enUstBaslik, justifyContent: "end" }}>
+              {ikiHane(selectedMetraj)} {selectedMetraj > 0 && pozBirim}
             </Box>
           </>
 
@@ -480,16 +500,24 @@ export default function P_IsPaketleriPozMahaller() {
 
           {openLbsArray?.map((oneLbs, index) => {
 
-            console.log("oneLbs",oneLbs)
-            console.log("mahaller_state",mahaller_state)
+            // console.log("oneLbs", oneLbs)
+            // console.log("mahaller_state", mahaller_state)
 
             const mahaller_byLbs = mahaller_state?.filter(x => x._lbsId.toString() === oneLbs._id.toString())
             if (!mahaller_byLbs?.length > 0) {
-              // console.log("mahaller_byLbs",mahaller_byLbs)
               return
             }
 
             const lbsMetraj = dataGetDugumler_byPoz?.lbsMetrajlar?.find(x => x._id.toString() === oneLbs._id.toString())
+            const lbsMetrajSecili = dugumler_byPoz_state
+              ?.filter(x => mahaller_byLbs.find(y => y._id.toString() === x._mahalId.toString()))
+              ?.filter(dugum =>
+                dugum.isPaketVersiyonlar
+                  .find(oneVersiyon => oneVersiyon.versiyon === selectedIsPaketVersiyon).basliklar
+                  .find(oneBaslik => oneBaslik._id.toString() === selectedIsPaketBaslik._id.toString()).isPaketleri
+                  .find(onePaket => onePaket._id.toString() === selectedIsPaket._id.toString()).selected
+              ).reduce((accumulator, oneDugum) => accumulator + oneDugum.metrajOnaylanan, 0)
+
 
             return (
               <React.Fragment key={index}>
@@ -499,17 +527,14 @@ export default function P_IsPaketleriPozMahaller() {
                   {getLbsName(oneLbs).name}
                 </Box>
                 <Box sx={{ ...css_LbsBaslik, justifyContent: "end" }}>
-                  {ikiHane(lbsMetraj?.metrajOnaylanan)}
-                </Box>
-                <Box sx={{ ...css_LbsBaslik, justifyContent: "center" }}>
-                  {pozBirim}
+                  {ikiHane(lbsMetraj?.metrajOnaylanan)} {pozBirim}
                 </Box>
 
                 <Box>
                 </Box>
 
-                <Box sx={{ ...css_LbsBaslik, borderLeft: "1px solid black" }}>
-
+                <Box sx={{ ...css_LbsBaslik, borderLeft: "1px solid black", justifyContent: "end" }}>
+                  {ikiHane(lbsMetrajSecili)} {lbsMetrajSecili > 0 && pozBirim}
                 </Box>
 
                 {/* MAHAL SATIRLARI */}
@@ -520,16 +545,19 @@ export default function P_IsPaketleriPozMahaller() {
                     return
                   }
 
-                  let inSelectedPaket = dugum.isPaketVersiyonlar?.versiyon[selectedIsPaketVersiyon][selectedIsPaketBaslik][selectedIsPaket]
+                  let isSelected = dugum.isPaketVersiyonlar
+                    .find(oneVersiyon => oneVersiyon.versiyon === selectedIsPaketVersiyon).basliklar
+                    .find(oneBaslik => oneBaslik._id.toString() === selectedIsPaketBaslik._id.toString()).isPaketleri
+                    .find(onePaket => onePaket._id.toString() === selectedIsPaket._id.toString()).selected
 
                   return (
                     <React.Fragment key={index}>
 
-                      <Box onClick={() => handleDugumToggle({ dugum, toggleValue: !inSelectedPaket })} sx={{ ...css_mahaller, backgroundColor: inSelectedPaket ? "lightgray" : null, borderLeft: "1px solid black" }}>
+                      <Box onClick={() => handleDugumToggle({ dugum, toggleValue: !isSelected })} sx={{ ...css_mahaller, backgroundColor: isSelected ? "lightgray" : null, borderLeft: "1px solid black" }}>
                         {oneMahal.mahalNo}
                       </Box>
 
-                      <Box onClick={() => handleDugumToggle({ dugum, toggleValue: !inSelectedPaket })} sx={{ ...css_mahaller, backgroundColor: inSelectedPaket ? "lightgray" : null, cursor: "pointer", display: "grid", alignItems: "center", gridTemplateColumns: "1fr 1rem", "&:hover": { "& .childClass": { backgroundColor: "red" } } }}>
+                      <Box onClick={() => handleDugumToggle({ dugum, toggleValue: !isSelected })} sx={{ ...css_mahaller, backgroundColor: isSelected ? "lightgray" : null, cursor: "pointer", display: "grid", alignItems: "center", gridTemplateColumns: "1fr 1rem", "&:hover": { "& .childClass": { backgroundColor: "red" } } }}>
                         <Box sx={{ justifySelf: "start" }}>
                           {oneMahal.mahalName}
                         </Box>
@@ -537,19 +565,15 @@ export default function P_IsPaketleriPozMahaller() {
                         </Box>
                       </Box>
 
-                      <Box onClick={() => handleDugumToggle({ dugum, toggleValue: !inSelectedPaket, dugum })} sx={{ ...css_mahaller, backgroundColor: inSelectedPaket ? "lightgray" : null, justifyContent: "end" }}>
-                        {ikiHane(dugum?.metrajOnaylanan)}
-                      </Box>
-
-                      <Box onClick={() => handleDugumToggle({ dugum, toggleValue: !inSelectedPaket })} sx={{ ...css_mahaller, backgroundColor: inSelectedPaket ? "lightgray" : null, justifyContent: "center" }}>
-                        {pozBirim}
+                      <Box onClick={() => handleDugumToggle({ dugum, toggleValue: !isSelected, dugum })} sx={{ ...css_mahaller, backgroundColor: isSelected ? "lightgray" : null, justifyContent: "end" }}>
+                        {ikiHane(dugum?.metrajOnaylanan)} {pozBirim}
                       </Box>
 
                       <Box>
                       </Box>
 
-                      <Box onClick={() => handleDugumToggle({ dugum, toggleValue: !inSelectedPaket })} sx={{ ...css_mahaller, backgroundColor: !oneMahal.hasDugum ? "lightgray" : null, justifyContent: "center" }}>
-
+                      <Box onClick={() => handleDugumToggle({ dugum, toggleValue: !isSelected })} sx={{ ...css_mahaller, backgroundColor: !isSelected ? "lightgray" : null, justifyContent: "end" }}>
+                        {isSelected && ikiHane(dugum?.metrajOnaylanan)} {isSelected && pozBirim}
                       </Box>
 
                     </React.Fragment>
