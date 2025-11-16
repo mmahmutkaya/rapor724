@@ -58,7 +58,6 @@ export default function P_IsPaketleriPozMahaller() {
 
   const [isChange_select, setIsChange_select] = useState(false)
   const [dugumler_byPoz_state, setDugumler_byPoz_state] = useState()
-  const [dugumler_byPoz_backUp, setDugumler_byPoz_backup] = useState()
   const [anySelectable, setAnySelectable] = useState()
 
   const [mahaller_state, setMahaller_state] = useState()
@@ -82,7 +81,6 @@ export default function P_IsPaketleriPozMahaller() {
     !((selectedIsPaketVersiyon === 0 || selectedIsPaketVersiyon > 0) && selectedIsPaketBaslik && selectedIsPaket) && navigate('/ispaketleri')
     setMahaller_state(_.cloneDeep(dataMahaller?.mahaller))
     setDugumler_byPoz_state(_.cloneDeep(dataGetDugumler_byPoz?.dugumler_byPoz))
-    setDugumler_byPoz_backup(_.cloneDeep(dataGetDugumler_byPoz?.dugumler_byPoz))
     return () => {
       setMahaller_state()
     }
@@ -185,9 +183,13 @@ export default function P_IsPaketleriPozMahaller() {
     // console.log("dugumler_byPoz_state2", dugumler_byPoz_state2)
 
     dugumler_byPoz_state2 = dugumler_byPoz_state2.map(oneDugum2 => {
+
       if (oneDugum2._id.toString() === dugum._id.toString()) {
         // console.log("burada-1-")
-        // console.log("selectedIsPaketVersiyon", selectedIsPaketVersiyon)
+
+        oneDugum2.newSelected = true
+        oneDugum2.newSelectedValue = toggleValue
+
         oneDugum2.isPaketVersiyonlar.map(oneVersiyon => {
           if (oneVersiyon.versiyon === selectedIsPaketVersiyon) {
             // console.log("burada-2-")
@@ -208,7 +210,9 @@ export default function P_IsPaketleriPozMahaller() {
           }
         })
       }
+      
       return oneDugum2
+
     })
 
     setIsChanged(true)
@@ -219,7 +223,7 @@ export default function P_IsPaketleriPozMahaller() {
 
 
   const cancelChange = () => {
-    setMahaller_state(dataMahaller?.mahaller)
+    setDugumler_byPoz_state(_.cloneDeep(dataGetDugumler_byPoz?.dugumler_byPoz))
     setIsChanged()
   }
 
@@ -228,12 +232,11 @@ export default function P_IsPaketleriPozMahaller() {
 
     try {
 
-      const mahaller = mahaller_state.filter(x => x.newSelected)
+      const dugumler = dugumler_byPoz_state.filter(x => x.newSelected)
 
       // const result = await RealmApp.currentUser.callFunction("updateDugumler_openMetraj", { functionName: "mahaller_byPozId", _projeId: selectedProje._id, mahaller, _pozId: selectedPoz._id });
 
-
-      const response = await fetch(`/api/dugumler`, {
+      const response = await fetch(`/api/dugumler/ispaketleri`, {
         method: 'POST',
         headers: {
           email: appUser.email,
@@ -241,9 +244,7 @@ export default function P_IsPaketleriPozMahaller() {
           'Content-Type': 'application/json'
         },
         body: JSON.stringify({
-          projeId: selectedProje._id,
-          pozId: selectedPoz._id,
-          mahaller
+          dugumler
         })
       })
 
@@ -260,7 +261,6 @@ export default function P_IsPaketleriPozMahaller() {
       }
 
       if (responseJson.ok) {
-        queryClient.invalidateQueries(['dataMahaller'])
         queryClient.invalidateQueries(['dataMahalListesi_byPoz'])
         setIsChanged()
       } else {
@@ -276,8 +276,7 @@ export default function P_IsPaketleriPozMahaller() {
         dialogMessage: "Beklenmedik hata, Rapor7/24 ile irtibata geçiniz..",
         detailText: err?.message ? err.message : null,
         onCloseAction: () => {
-          queryClient.invalidateQueries(['dataMahaller'])
-          queryClient.invalidateQueries(['dataMahalListesi_byPoz'])
+          setDugumler_byPoz_state(_.cloneDeep(dataGetDugumler_byPoz?.dugumler_byPoz))
           setIsChanged()
           setDialogAlert()
         }
