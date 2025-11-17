@@ -111,7 +111,7 @@ export default function P_IsPaketleriPozlar() {
 
 
   const wbsBaslik_css = {
-    gridColumn: "1 / span 4",
+    gridColumn: "1 / span 3",
     display: "grid",
     alignItems: "center",
     justifyItems: "start",
@@ -142,13 +142,21 @@ export default function P_IsPaketleriPozlar() {
 
 
 
-  const goTo_isPaketleriiPozMahaller = (onePoz) => {
+  const goTo_isPaketleriPozMahaller = (onePoz) => {
     navigate('/ispaketleripozmahaller')
     setSelectedPoz(onePoz)
   }
 
   const showMetrajYapabilenlerColumns = " 1rem repeat(" + showMetrajYapabilenler?.filter(x => x.isShow).length + ", max-content)"
-  const columns = `max-content minmax(min-content, 30rem) max-content max-content${pozAciklamaShow ? " 0.5rem minmax(min-content, 2fr)" : ""}${pozVersiyonShow ? " 0.5rem min-content" : ""}`
+  const columns = `
+    max-content
+    minmax(min-content, 30rem)
+    max-content
+    0.5rem
+    max-content
+    ${pozAciklamaShow ? " 0.5rem minmax(min-content, 2fr)" : ""}
+    ${pozVersiyonShow ? " 0.5rem min-content" : ""}
+  `
 
 
   return (
@@ -282,10 +290,13 @@ export default function P_IsPaketleriPozlar() {
               Miktar
             </Box>
 
+            {/* AYRAÇ  */}
+            <Box>
+            </Box>
 
             {/* BAŞLIK - POZ BİRİM  */}
             <Box sx={{ ...enUstBaslik_css }}>
-              Birim
+              İş Paket Metraj
             </Box>
 
             {/* BAŞLIK - POZ BİRİM  */}
@@ -359,6 +370,15 @@ export default function P_IsPaketleriPozlar() {
                   </Box>
 
 
+                  {/* AYRAÇ  */}
+                  <Box>
+                  </Box>
+
+                  {/* BAŞLIK - POZ BİRİM  */}
+                  <Box sx={{ ...wbsBaslik_css2 }}>
+                  </Box>
+
+
                   {/* BAŞLIK - AÇIKLAMA  */}
                   {pozAciklamaShow &&
                     <>
@@ -404,21 +424,28 @@ export default function P_IsPaketleriPozlar() {
 
                   return (
                     <React.Fragment key={index} >
+
                       <Box sx={{ ...pozNo_css }} >
                         {onePoz.pozNo}
                       </Box>
-                      <Box sx={{ ...pozNo_css, justifyItems: "start", pl: "0.5rem" }} >
-                        {onePoz.pozName}
-                      </Box>
-                      <Box onClick={() => hasOnaylananMetraj && goTo_isPaketleriiPozMahaller(onePoz)} sx={{ ...pozNo_css, backgroundColor: !hasOnaylananMetraj ? "white" : "white", cursor: hasOnaylananMetraj && "pointer", display: "grid", gridTemplateColumns: "1rem 1fr", "&:hover": hasOnaylananMetraj && { "& .childClass": { backgroundColor: "red" } } }}>
-                        <Box className="childClass" sx={{ ml: "-1rem", backgroundColor: !hasOnaylananMetraj ? "white" : "white", height: "0.5rem", width: "0.5rem", borderRadius: "50%" }}>
+
+                      <Box onClick={() => goTo_isPaketleriPozMahaller(onePoz)} sx={{ ...pozNo_css, cursor: "pointer", display: "grid", gridTemplateColumns: "1fr 1rem", "&:hover": { "& .childClass": { backgroundColor: "red" } } }}>
+                        <Box sx={{ justifySelf: "start" }}>
+                          {onePoz.pozName}
                         </Box>
-                        <Box sx={{ justifySelf: "end" }}>
-                          {ikiHane(onePoz?.metrajOnaylanan)}
+                        <Box className="childClass" sx={{ ml: "-1rem", height: "0.5rem", width: "0.5rem", borderRadius: "50%" }}>
                         </Box>
                       </Box>
+
+                      <Box sx={{ ...pozNo_css, justifyContent: "end" }}>
+                        {ikiHane(onePoz?.metrajOnaylanan)}
+                      </Box>
+
+                      <Box>
+                      </Box>
+
                       <Box sx={{ ...pozNo_css }}>
-                        {pozBirimleri.find(x => x.id === onePoz.pozBirimId).name}
+                        0 m2
                       </Box>
 
                       {/* BAŞLIK - POZ BİRİM  */}

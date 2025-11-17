@@ -180,29 +180,19 @@ export default function P_IsPaketleriPozMahaller() {
   const handleDugumToggle = ({ dugum, toggleValue }) => {
 
     let dugumler_byPoz_state2 = _.cloneDeep(dugumler_byPoz_state)
-    // console.log("dugumler_byPoz_state2", dugumler_byPoz_state2)
 
     dugumler_byPoz_state2 = dugumler_byPoz_state2.map(oneDugum2 => {
 
       if (oneDugum2._id.toString() === dugum._id.toString()) {
-        // console.log("burada-1-")
 
         oneDugum2.newSelected = true
         oneDugum2.newSelectedValue = toggleValue
 
         oneDugum2.isPaketVersiyonlar.map(oneVersiyon => {
           if (oneVersiyon.versiyon === selectedIsPaketVersiyon) {
-            // console.log("burada-2-")
             oneVersiyon.basliklar.map(oneBaslik => {
               if (oneBaslik._id.toString() === selectedIsPaketBaslik._id.toString()) {
-                // console.log("burada-3-")
-                oneBaslik.isPaketleri.map(onePaket => {
-                  if (onePaket._id.toString() === selectedIsPaket._id.toString()) {
-                    // console.log("burada-4-")
-                    onePaket.selected = toggleValue
-                  }
-                  return onePaket
-                })
+                oneBaslik.paketId = toggleValue ? selectedIsPaket._id : null
                 return oneBaslik
               }
             })
@@ -210,7 +200,7 @@ export default function P_IsPaketleriPozMahaller() {
           }
         })
       }
-      
+
       return oneDugum2
 
     })
@@ -244,6 +234,9 @@ export default function P_IsPaketleriPozMahaller() {
           'Content-Type': 'application/json'
         },
         body: JSON.stringify({
+          selectedIsPaketVersiyon,
+          selectedIsPaketBaslik,
+          selectedIsPaket,
           dugumler
         })
       })
@@ -308,19 +301,18 @@ export default function P_IsPaketleriPozMahaller() {
   }
 
   const css_mahaller = {
-    border: "1px solid black", px: "0.5rem", display: "grid", justifyContent: "start", alignItems: "center", cursor: "pointer"
+    border: "1px solid black", px: "0.5rem", display: "grid", justifyContent: "start", alignItems: "center"
   }
 
   const gridTemplateColumns1 = `max-content minmax(min-content, 30rem) max-content 0.5rem max-content`
 
-  let selectedMetraj = dugumler_byPoz_state
+  let selectedPozVersiyonPaketMetraj = dugumler_byPoz_state
     ?.filter(dugum =>
       dugum.isPaketVersiyonlar
         .find(oneVersiyon => oneVersiyon.versiyon === selectedIsPaketVersiyon).basliklar
-        .find(oneBaslik => oneBaslik._id.toString() === selectedIsPaketBaslik._id.toString()).isPaketleri
-        .find(onePaket => onePaket._id.toString() === selectedIsPaket._id.toString()).selected
+        .find(oneBaslik => oneBaslik._id.toString() === selectedIsPaketBaslik._id.toString())
+        .paketId === selectedIsPaket._id.toString()
     ).reduce((accumulator, oneDugum) => accumulator + oneDugum.metrajOnaylanan, 0)
-
 
 
   return (
@@ -483,14 +475,14 @@ export default function P_IsPaketleriPozMahaller() {
               Toplam Metraj
             </Box>
             <Box sx={{ ...css_enUstBaslik, justifyContent: "end" }}>
-              {ikiHane(selectedPoz?.metrajOnaylanan)} {pozBirim}
+              {ikiHane(selectedPoz?.metrajOnaylanan)} {selectedPoz?.metrajOnaylanan > 0 && pozBirim}
             </Box>
 
             <Box>
             </Box>
 
             <Box sx={{ ...css_enUstBaslik, justifyContent: "end" }}>
-              {ikiHane(selectedMetraj)} {selectedMetraj > 0 && pozBirim}
+              {ikiHane(selectedPozVersiyonPaketMetraj)} {selectedPozVersiyonPaketMetraj > 0 && pozBirim}
             </Box>
           </>
 
@@ -514,7 +506,7 @@ export default function P_IsPaketleriPozMahaller() {
                 dugum.isPaketVersiyonlar
                   .find(oneVersiyon => oneVersiyon.versiyon === selectedIsPaketVersiyon).basliklar
                   .find(oneBaslik => oneBaslik._id.toString() === selectedIsPaketBaslik._id.toString()).isPaketleri
-                  .find(onePaket => onePaket._id.toString() === selectedIsPaket._id.toString()).selected
+                  ?.paketId === selectedIsPaket._id.toString()
               ).reduce((accumulator, oneDugum) => accumulator + oneDugum.metrajOnaylanan, 0)
 
 
@@ -526,7 +518,7 @@ export default function P_IsPaketleriPozMahaller() {
                   {getLbsName(oneLbs).name}
                 </Box>
                 <Box sx={{ ...css_LbsBaslik, justifyContent: "end" }}>
-                  {ikiHane(lbsMetraj?.metrajOnaylanan)} {pozBirim}
+                  {ikiHane(lbsMetraj?.metrajOnaylanan)} {lbsMetraj?.metrajOnaylanan > 0 && pozBirim}
                 </Box>
 
                 <Box>
@@ -544,35 +536,41 @@ export default function P_IsPaketleriPozMahaller() {
                     return
                   }
 
-                  let isSelected = dugum.isPaketVersiyonlar
+                  let paketId = dugum.isPaketVersiyonlar
                     .find(oneVersiyon => oneVersiyon.versiyon === selectedIsPaketVersiyon).basliklar
-                    .find(oneBaslik => oneBaslik._id.toString() === selectedIsPaketBaslik._id.toString()).isPaketleri
-                    .find(onePaket => onePaket._id.toString() === selectedIsPaket._id.toString()).selected
+                    .find(oneBaslik => oneBaslik._id.toString() === selectedIsPaketBaslik._id.toString()).paketId
+
+                  let isSelectable = !paketId
+                  let isSelectedOther = paketId && paketId.toString() !== selectedIsPaket._id.toString()
+                  let isSelectedThis = paketId && paketId.toString() === selectedIsPaket._id.toString()
+
+                  let selectedThisPaketColor = "rgba(98, 210, 96, 0.44)"
+
 
                   return (
                     <React.Fragment key={index}>
 
-                      <Box onClick={() => handleDugumToggle({ dugum, toggleValue: !isSelected })} sx={{ ...css_mahaller, backgroundColor: isSelected ? "lightgray" : null, borderLeft: "1px solid black" }}>
+                      <Box onClick={() => !isSelectedOther && handleDugumToggle({ dugum, toggleValue: !isSelectedThis })} sx={{ ...css_mahaller, backgroundColor: isSelectedOther ? "lightgray" : isSelectedThis && selectedThisPaketColor, borderLeft: "1px solid black" }}>
                         {oneMahal.mahalNo}
                       </Box>
 
-                      <Box onClick={() => handleDugumToggle({ dugum, toggleValue: !isSelected })} sx={{ ...css_mahaller, backgroundColor: isSelected ? "lightgray" : null, cursor: "pointer", display: "grid", alignItems: "center", gridTemplateColumns: "1fr 1rem", "&:hover": { "& .childClass": { backgroundColor: "red" } } }}>
+                      <Box onClick={() => !isSelectedOther && handleDugumToggle({ dugum, toggleValue: !isSelectedThis })} sx={{ ...css_mahaller, backgroundColor: isSelectedOther ? "lightgray" : isSelectedThis && selectedThisPaketColor, cursor: !isSelectedOther && "pointer", display: "grid", alignItems: "center", gridTemplateColumns: "1fr 1rem", "&:hover": { "& .childClass": { backgroundColor: "red" } } }}>
                         <Box sx={{ justifySelf: "start" }}>
                           {oneMahal.mahalName}
                         </Box>
-                        <Box className="childClass" sx={{ height: "0.5rem", width: "0.5rem", borderRadius: "50%" }}>
+                        <Box className="childClass" sx={{ display: isSelectedOther && "none", height: "0.5rem", width: "0.5rem", borderRadius: "50%" }}>
                         </Box>
                       </Box>
 
-                      <Box onClick={() => handleDugumToggle({ dugum, toggleValue: !isSelected, dugum })} sx={{ ...css_mahaller, backgroundColor: isSelected ? "lightgray" : null, justifyContent: "end" }}>
-                        {ikiHane(dugum?.metrajOnaylanan)} {pozBirim}
+                      <Box onClick={() => !isSelectedOther && handleDugumToggle({ dugum, toggleValue: !isSelectedThis, dugum })} sx={{ ...css_mahaller, backgroundColor: isSelectedOther ? "lightgray" : isSelectedThis && selectedThisPaketColor, justifyContent: "end" }}>
+                        {dugum?.metrajOnaylanan && ikiHane(dugum?.metrajOnaylanan)} {dugum?.metrajOnaylanan && pozBirim}
                       </Box>
 
                       <Box>
                       </Box>
 
-                      <Box onClick={() => handleDugumToggle({ dugum, toggleValue: !isSelected })} sx={{ ...css_mahaller, backgroundColor: !isSelected ? "lightgray" : null, justifyContent: "end" }}>
-                        {isSelected && ikiHane(dugum?.metrajOnaylanan)} {isSelected && pozBirim}
+                      <Box onClick={() => !isSelectedOther && handleDugumToggle({ dugum, toggleValue: !isSelectedThis })} sx={{ ...css_mahaller, backgroundColor: isSelectedOther ? "lightgray" : isSelectedThis && selectedThisPaketColor, justifyContent: "end" }}>
+                        {isSelectedThis && dugum?.metrajOnaylanan && ikiHane(dugum?.metrajOnaylanan)} {isSelectedThis && dugum?.metrajOnaylanan && pozBirim}
                       </Box>
 
                     </React.Fragment>
