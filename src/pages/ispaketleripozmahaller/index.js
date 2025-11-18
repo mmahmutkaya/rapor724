@@ -308,6 +308,7 @@ export default function P_IsPaketleriPozMahaller() {
   // console.log("selectedProje?.paraBirimleri", selectedProje?.paraBirimleri)
   // console.log("paraBirimiAdet", paraBirimiAdet)
 
+  
   const gridTemplateColumns1 = `
     max-content
     minmax(min-content, 30rem)
