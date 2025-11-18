@@ -176,7 +176,6 @@ export default function P_IsPaketleriPozMahaller() {
 
 
 
-
   const handleDugumToggle = ({ dugum, toggleValue }) => {
 
     let dugumler_byPoz_state2 = _.cloneDeep(dugumler_byPoz_state)
@@ -304,7 +303,20 @@ export default function P_IsPaketleriPozMahaller() {
     border: "1px solid black", px: "0.5rem", display: "grid", justifyContent: "start", alignItems: "center"
   }
 
-  const gridTemplateColumns1 = `max-content minmax(min-content, 30rem) max-content 0.5rem max-content`
+  let paraBirimiAdet = selectedProje?.paraBirimleri?.filter(x => x?.isActive).length
+
+  // console.log("selectedProje?.paraBirimleri", selectedProje?.paraBirimleri)
+  // console.log("paraBirimiAdet", paraBirimiAdet)
+
+  const gridTemplateColumns1 = `
+    max-content
+    minmax(min-content, 30rem)
+    0.5rem
+    max-content
+    max-content
+    ${paraBirimiAdet === 1 ? " 0.5rem max-content" : paraBirimiAdet > 1 ? " 0.5rem repeat(" + paraBirimiAdet + ", max-content)" : ""}
+    ${paraBirimiAdet === 1 ? " 0.5rem max-content" : paraBirimiAdet > 1 ? " 0.5rem repeat(" + paraBirimiAdet + ", max-content)" : ""}
+  `
 
   let selectedPozVersiyonPaketMetraj = dugumler_byPoz_state
     ?.filter(dugum =>
@@ -452,19 +464,43 @@ export default function P_IsPaketleriPozMahaller() {
             <Box sx={{ ...css_enUstBaslik, borderLeft: "1px solid black", justifyContent: "start" }}>
               {selectedPoz.pozNo}
             </Box>
+
             <Box sx={{ ...css_enUstBaslik }}>
               {selectedPoz.pozName}
-            </Box>
-            <Box sx={{ ...css_enUstBaslik, justifyContent: "center" }}>
-              Miktar
             </Box>
 
             <Box>
             </Box>
 
             <Box sx={{ ...css_enUstBaslik, justifyContent: "center" }}>
+              Miktar
+            </Box>
+
+            <Box sx={{ ...css_enUstBaslik, justifyContent: "center" }}>
               İş Paketi
             </Box>
+
+            {paraBirimiAdet > 0 &&
+              <>
+                <Box></Box>
+
+                <Box sx={{ ...css_enUstBaslik, gridColumn: `span ${paraBirimiAdet}` }}>
+                  Birim Fiyat
+                </Box>
+
+              </>
+            }
+
+            {paraBirimiAdet > 0 &&
+              <>
+                <Box></Box>
+
+                <Box sx={{ ...css_enUstBaslik, gridColumn: `span ${paraBirimiAdet}`, justifyContent:"center" }}>
+                  Tutar
+                </Box>
+
+              </>
+            }
 
           </>
 
@@ -474,16 +510,44 @@ export default function P_IsPaketleriPozMahaller() {
             <Box sx={{ ...css_enUstBaslik, borderLeft: "1px solid black", gridColumn: "1/3", justifyContent: "end", borderLeft: "1px solid black" }}>
               Toplam Metraj
             </Box>
-            <Box sx={{ ...css_enUstBaslik, justifyContent: "end" }}>
-              {ikiHane(selectedPoz?.metrajOnaylanan)} {selectedPoz?.metrajOnaylanan > 0 && pozBirim}
-            </Box>
 
             <Box>
             </Box>
 
             <Box sx={{ ...css_enUstBaslik, justifyContent: "end" }}>
+              {ikiHane(selectedPoz?.metrajOnaylanan)} {selectedPoz?.metrajOnaylanan > 0 && pozBirim}
+            </Box>
+
+            <Box sx={{ ...css_enUstBaslik, justifyContent: "end" }}>
               {ikiHane(selectedPozVersiyonPaketMetraj)} {selectedPozVersiyonPaketMetraj > 0 && pozBirim}
             </Box>
+
+            {paraBirimiAdet > 0 &&
+              <>
+                <Box></Box>
+                {selectedProje?.paraBirimleri?.filter(x => x.isActive).map((oneBirim, index) => {
+                  return (
+                    <Box key={index} sx={{ ...css_enUstBaslik }}>
+                      {oneBirim.id}
+                    </Box>
+                  )
+                })}
+              </>
+            }
+
+            {paraBirimiAdet > 0 &&
+              <>
+                <Box></Box>
+                {selectedProje?.paraBirimleri?.filter(x => x.isActive).map((oneBirim, index) => {
+                  return (
+                    <Box key={index} sx={{ ...css_enUstBaslik }}>
+                      {oneBirim.id}
+                    </Box>
+                  )
+                })}
+              </>
+            }
+
           </>
 
 
@@ -517,16 +581,43 @@ export default function P_IsPaketleriPozMahaller() {
                 <Box sx={{ ...css_LbsBaslik, borderLeft: "1px solid black", gridColumn: "1/3" }}>
                   {getLbsName(oneLbs).name}
                 </Box>
-                <Box sx={{ ...css_LbsBaslik, justifyContent: "end" }}>
-                  {ikiHane(lbsMetraj?.metrajOnaylanan)} {lbsMetraj?.metrajOnaylanan > 0 && pozBirim}
-                </Box>
 
                 <Box>
+                </Box>
+
+                <Box sx={{ ...css_LbsBaslik, justifyContent: "end" }}>
+                  {ikiHane(lbsMetraj?.metrajOnaylanan)} {lbsMetraj?.metrajOnaylanan > 0 && pozBirim}
                 </Box>
 
                 <Box sx={{ ...css_LbsBaslik, borderLeft: "1px solid black", justifyContent: "end" }}>
                   {ikiHane(lbsMetrajSecili)} {lbsMetrajSecili > 0 && pozBirim}
                 </Box>
+
+                {paraBirimiAdet > 0 &&
+                  <>
+                    <Box></Box>
+                    {selectedProje?.paraBirimleri?.filter(x => x.isActive).map((oneBirim, index) => {
+                      return (
+                        <Box key={index} sx={{ ...css_LbsBaslik, borderLeft: index === 0 && "1px solid black" }}>
+                          {oneBirim.id}
+                        </Box>
+                      )
+                    })}
+                  </>
+                }
+
+                {paraBirimiAdet > 0 &&
+                  <>
+                    <Box></Box>
+                    {selectedProje?.paraBirimleri?.filter(x => x.isActive).map((oneBirim, index) => {
+                      return (
+                        <Box key={index} sx={{ ...css_LbsBaslik, borderLeft: index === 0 && "1px solid black" }}>
+                          {oneBirim.id}
+                        </Box>
+                      )
+                    })}
+                  </>
+                }
 
                 {/* MAHAL SATIRLARI */}
                 {mahaller_byLbs?.map((oneMahal, index) => {
@@ -562,16 +653,43 @@ export default function P_IsPaketleriPozMahaller() {
                         </Box>
                       </Box>
 
-                      <Box onClick={() => !isSelectedOther && handleDugumToggle({ dugum, toggleValue: !isSelectedThis, dugum })} sx={{ ...css_mahaller, backgroundColor: isSelectedOther ? "lightgray" : isSelectedThis && selectedThisPaketColor, justifyContent: "end" }}>
-                        {dugum?.metrajOnaylanan && ikiHane(dugum?.metrajOnaylanan)} {dugum?.metrajOnaylanan && pozBirim}
+                      <Box>
                       </Box>
 
-                      <Box>
+                      <Box onClick={() => !isSelectedOther && handleDugumToggle({ dugum, toggleValue: !isSelectedThis, dugum })} sx={{ ...css_mahaller, backgroundColor: isSelectedOther ? "lightgray" : isSelectedThis && selectedThisPaketColor, justifyContent: "end" }}>
+                        {dugum?.metrajOnaylanan && ikiHane(dugum?.metrajOnaylanan)} {dugum?.metrajOnaylanan && pozBirim}
                       </Box>
 
                       <Box onClick={() => !isSelectedOther && handleDugumToggle({ dugum, toggleValue: !isSelectedThis })} sx={{ ...css_mahaller, backgroundColor: isSelectedOther ? "lightgray" : isSelectedThis && selectedThisPaketColor, justifyContent: "end" }}>
                         {isSelectedThis && dugum?.metrajOnaylanan && ikiHane(dugum?.metrajOnaylanan)} {isSelectedThis && dugum?.metrajOnaylanan && pozBirim}
                       </Box>
+
+                      {paraBirimiAdet > 0 &&
+                        <>
+                          <Box></Box>
+                          {selectedProje?.paraBirimleri?.filter(x => x.isActive).map((oneBirim, index) => {
+                            return (
+                              <Box key={index} sx={{ ...css_mahaller }}>
+                                {ikiHane(selectedPoz?.birimFiyatlar?.find(x => x.id === oneBirim.id)?.fiyat)}
+                              </Box>
+                            )
+                          })}
+                        </>
+                      }
+
+                      {paraBirimiAdet > 0 &&
+                        <>
+                          <Box></Box>
+                          {selectedProje?.paraBirimleri?.filter(x => x.isActive).map((oneBirim, index) => {
+                            return (
+                              <Box key={index} sx={{ ...css_mahaller }}>
+                                {ikiHane(selectedPoz?.birimFiyatlar?.find(x => x.id === oneBirim.id)?.fiyat)}
+                              </Box>
+                            )
+                          })}
+                        </>
+                      }
+
 
                     </React.Fragment>
                   )
