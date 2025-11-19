@@ -311,14 +311,14 @@ export default function P_IsPaketleriPozMahaller() {
 
 
   const gridTemplateColumns1 = `
-    max-content
-    minmax(min-content, 25rem)
+    max-content 
+    minmax(min-content, 15rem) 
     ${paraBirimiAdet === 1 ? " 0.5rem max-content" : paraBirimiAdet > 1 ? " 0.5rem repeat(" + paraBirimiAdet + ", max-content)" : ""}
-    0.5rem
-    max-content
-    ${paraBirimiAdet === 1 ? " 0.1rem max-content" : paraBirimiAdet > 1 ? " 0.1rem repeat(" + paraBirimiAdet + ", max-content)" : ""}
-    0.5rem
-    max-content
+    0.5rem 
+    max-content 
+    ${paraBirimiAdet === 1 ? " 0.1rem max-content" : paraBirimiAdet > 1 ? " 0.1rem repeat(" + paraBirimiAdet + ", max-content)" : ""} 
+    0.5rem 
+    max-content 
     ${paraBirimiAdet === 1 ? " 0.1rem max-content" : paraBirimiAdet > 1 ? " 0.1rem repeat(" + paraBirimiAdet + ", max-content)" : ""}
   `
 
@@ -474,11 +474,11 @@ export default function P_IsPaketleriPozMahaller() {
               {selectedPoz.pozNo}
             </Box>
 
-            <Box sx={{ ...css_enUstBaslik }}>
+            <Box sx={{ ...css_enUstBaslik, gridColumn: "span 4" }}>
               {selectedPoz.pozName}
             </Box>
 
-            {paraBirimiAdet > 0 &&
+            {/* {paraBirimiAdet > 0 &&
               <>
                 <Box sx={{ backgroundColor: ayracRengi2 }}></Box>
 
@@ -487,7 +487,7 @@ export default function P_IsPaketleriPozMahaller() {
                 </Box>
 
               </>
-            }
+            } */}
 
             <Box sx={{ backgroundColor: ayracRengi2 }}>
             </Box>
@@ -530,7 +530,9 @@ export default function P_IsPaketleriPozMahaller() {
 
           {/* EN ÜST BAŞLIĞIN ALT SATIRI - HANGİ POZ İLE İŞLEM YAPILIYORSA - POZ İSMİ VE TOPLAM METRAJI */}
           <>
-            <Box sx={{ ...css_enUstBaslik, borderLeft: "1px solid black", gridColumn: "1/3", justifyContent: "end", borderLeft: "1px solid black" }}>
+            <Box sx={{ ...css_enUstBaslik }}></Box>
+
+            <Box sx={{ ...css_enUstBaslik, borderLeft: "1px solid black", gridColumn: "2/3", justifyContent: "end", borderLeft: "1px solid black" }}>
               Toplam Metraj
             </Box>
 
@@ -617,11 +619,11 @@ export default function P_IsPaketleriPozMahaller() {
               <React.Fragment key={index}>
 
                 {/* LBS BAŞLIKLARI */}
-                <Box sx={{ ...css_LbsBaslik, borderLeft: "1px solid black", gridColumn: "1/3" }}>
+                <Box sx={{ ...css_LbsBaslik, borderLeft: "1px solid black", gridColumn: "1/6" }}>
                   {getLbsName(oneLbs).name}
                 </Box>
 
-                {paraBirimiAdet > 0 &&
+                {/* {paraBirimiAdet > 0 &&
                   <>
                     <Box sx={{ ...css_LbsBaslik, border: "none", backgroundColor: ayracRengi2 }}></Box>
                     {selectedProje?.paraBirimleri?.filter(x => x.isActive).map((oneBirim, index) => {
@@ -632,7 +634,7 @@ export default function P_IsPaketleriPozMahaller() {
                       )
                     })}
                   </>
-                }
+                } */}
 
                 <Box sx={{ ...css_LbsBaslik, borderLeft: "1px solid black", backgroundColor: ayracRengi2 }}>
                 </Box>
@@ -702,7 +704,7 @@ export default function P_IsPaketleriPozMahaller() {
                         {oneMahal.mahalNo}
                       </Box>
 
-                      <Box onClick={() => !isSelectedOther && handleDugumToggle({ dugum, toggleValue: !isSelectedThis })} sx={{ ...css_mahaller, backgroundColor: isSelectedOther ? "lightgray" : isSelectedThis && selectedThisPaketColor, cursor: !isSelectedOther && "pointer", display: "grid", alignItems: "center", gridTemplateColumns: "1fr 1rem", "&:hover": { "& .childClass": { backgroundColor: "red" } } }}>
+                      <Box onClick={() => !isSelectedOther && handleDugumToggle({ dugum, toggleValue: !isSelectedThis })} sx={{ ...css_mahaller, gridColumn: "2/6", backgroundColor: isSelectedOther ? "lightgray" : isSelectedThis && selectedThisPaketColor, cursor: !isSelectedOther && "pointer", display: "grid", alignItems: "center", gridTemplateColumns: "1fr 1rem", "&:hover": { "& .childClass": { backgroundColor: "red" } } }}>
                         <Box sx={{ justifySelf: "start" }}>
                           {oneMahal.mahalName}
                         </Box>
@@ -710,7 +712,7 @@ export default function P_IsPaketleriPozMahaller() {
                         </Box>
                       </Box>
 
-                      {paraBirimiAdet > 0 &&
+                      {/* {paraBirimiAdet > 0 &&
                         <>
                           <Box sx={{ backgroundColor: ayracRengi2 }}></Box>
                           {selectedProje?.paraBirimleri?.filter(x => x.isActive).map((oneBirim, index) => {
@@ -721,7 +723,7 @@ export default function P_IsPaketleriPozMahaller() {
                             )
                           })}
                         </>
-                      }
+                      } */}
 
                       <Box sx={{ backgroundColor: ayracRengi2 }}>
                       </Box>
