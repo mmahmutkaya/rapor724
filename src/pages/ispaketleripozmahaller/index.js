@@ -333,7 +333,7 @@ export default function P_IsPaketleriPozMahaller() {
         .find(oneVersiyon => oneVersiyon.versiyon === selectedIsPaketVersiyon).basliklar
         .find(oneBaslik => oneBaslik._id.toString() === selectedIsPaketBaslik._id.toString())
         .paketId === selectedIsPaket._id.toString()
-    ).reduce((accumulator, oneDugum) => accumulator + oneDugum.metrajOnaylanan, 0)
+    ).reduce((accumulator, oneDugum) => oneDugum.metrajOnaylanan ? accumulator + oneDugum.metrajOnaylanan : accumulator, 0)
 
 
   return (
@@ -532,17 +532,18 @@ export default function P_IsPaketleriPozMahaller() {
           <>
             <Box sx={{ ...css_enUstBaslik }}></Box>
 
-            <Box sx={{ ...css_enUstBaslik, borderLeft: "1px solid black", gridColumn: "2/3", justifyContent: "end", borderLeft: "1px solid black" }}>
-              Toplam Metraj
+            <Box sx={{ ...css_enUstBaslik, borderLeft: "1px solid black", gridColumn: "2/4", justifyContent: "end", borderLeft: "1px solid black" }}>
+              B.Fiyat
             </Box>
 
             {paraBirimiAdet > 0 &&
               <>
-                <Box sx={{ backgroundColor: ayracRengi2 }}></Box>
+                {/* <Box sx={{ backgroundColor: ayracRengi2 }}></Box> */}
                 {selectedProje?.paraBirimleri?.filter(x => x.isActive).map((oneBirim, index) => {
+                  let fiyat = selectedPoz?.birimFiyatlar.find(x => x.id === oneBirim.id).fiyat
                   return (
                     <Box key={index} sx={{ ...css_enUstBaslik, justifyContent: "center" }}>
-                      {oneBirim.id}
+                      {fiyat > 0 && ikiHane(fiyat)} {fiyat > 0 && oneBirim.id}
                     </Box>
                   )
                 })}
@@ -560,9 +561,11 @@ export default function P_IsPaketleriPozMahaller() {
               <>
                 <Box sx={{ backgroundColor: ayracRengi }}></Box>
                 {selectedProje?.paraBirimleri?.filter(x => x.isActive).map((oneBirim, index) => {
+                  let fiyat = selectedPoz?.birimFiyatlar.find(x => x.id === oneBirim.id).fiyat
+                  let tutar = selectedPoz?.metrajOnaylanan > 0 && fiyat > 0 && selectedPoz?.metrajOnaylanan * fiyat
                   return (
                     <Box key={index} sx={{ ...css_enUstBaslik, justifyContent: "center" }}>
-                      {"20.113,50 TL"}
+                      {tutar > 0 && ikiHane(tutar)}  {tutar > 0 && oneBirim.id}
                     </Box>
                   )
                 })}
@@ -580,9 +583,11 @@ export default function P_IsPaketleriPozMahaller() {
               <>
                 <Box sx={{ backgroundColor: ayracRengi }}></Box>
                 {selectedProje?.paraBirimleri?.filter(x => x.isActive).map((oneBirim, index) => {
+                  let fiyat = selectedPoz?.birimFiyatlar.find(x => x.id === oneBirim.id).fiyat
+                  let tutar = selectedPozVersiyonPaketMetraj > 0 && fiyat > 0 && selectedPozVersiyonPaketMetraj * fiyat
                   return (
                     <Box key={index} sx={{ ...css_enUstBaslik, justifyContent: "center" }}>
-                      {"20.113,50 USD"}
+                      {tutar > 0 && ikiHane(tutar)}  {tutar > 0 && oneBirim.id}
                     </Box>
                   )
                 })}
@@ -612,7 +617,7 @@ export default function P_IsPaketleriPozMahaller() {
                   .find(oneVersiyon => oneVersiyon.versiyon === selectedIsPaketVersiyon).basliklar
                   .find(oneBaslik => oneBaslik._id.toString() === selectedIsPaketBaslik._id.toString())
                   .paketId === selectedIsPaket._id.toString()
-              ).reduce((accumulator, oneDugum) => accumulator + oneDugum.metrajOnaylanan, 0)
+              ).reduce((accumulator, oneDugum) => oneDugum.metrajOnaylanan ? accumulator + oneDugum.metrajOnaylanan : accumulator, 0)
 
 
             return (
