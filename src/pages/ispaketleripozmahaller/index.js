@@ -312,7 +312,7 @@ export default function P_IsPaketleriPozMahaller() {
 
   const gridTemplateColumns1 = `
     max-content
-    minmax(min-content, 30rem)
+    minmax(min-content, 25rem)
     ${paraBirimiAdet === 1 ? " 0.5rem max-content" : paraBirimiAdet > 1 ? " 0.5rem repeat(" + paraBirimiAdet + ", max-content)" : ""}
     0.5rem
     max-content
@@ -322,8 +322,10 @@ export default function P_IsPaketleriPozMahaller() {
     ${paraBirimiAdet === 1 ? " 0.1rem max-content" : paraBirimiAdet > 1 ? " 0.1rem repeat(" + paraBirimiAdet + ", max-content)" : ""}
   `
 
-  // let ayracRengi = "rgba(194, 18, 18, 0.67)"
   let ayracRengi = "black"
+  let ayracRengi2 = "rgba(194, 18, 18, 0.67)"
+  let selectedThisPaketColor = "rgba(98, 210, 96, 0.22)"
+
 
   let selectedPozVersiyonPaketMetraj = dugumler_byPoz_state
     ?.filter(dugum =>
@@ -336,7 +338,7 @@ export default function P_IsPaketleriPozMahaller() {
 
   return (
 
-    <Box sx={{ m: "0rem", maxWidth: "60rem" }}>
+    <Box sx={{ m: "0rem" }}>
 
 
       {dialogAlert &&
@@ -478,16 +480,16 @@ export default function P_IsPaketleriPozMahaller() {
 
             {paraBirimiAdet > 0 &&
               <>
-                <Box></Box>
+                <Box sx={{ backgroundColor: ayracRengi2 }}></Box>
 
-                <Box sx={{ ...css_enUstBaslik, gridColumn: `span ${paraBirimiAdet}` }}>
+                <Box sx={{ ...css_enUstBaslik, gridColumn: `span ${paraBirimiAdet}`, justifyContent: "center" }}>
                   Birim Fiyat
                 </Box>
 
               </>
             }
 
-            <Box>
+            <Box sx={{ backgroundColor: ayracRengi2 }}>
             </Box>
 
             <Box sx={{ ...css_enUstBaslik, justifyContent: "center" }}>
@@ -505,7 +507,7 @@ export default function P_IsPaketleriPozMahaller() {
               </>
             }
 
-            <Box>
+            <Box sx={{ backgroundColor: ayracRengi2 }}>
             </Box>
 
             <Box sx={{ ...css_enUstBaslik, justifyContent: "center" }}>
@@ -534,10 +536,10 @@ export default function P_IsPaketleriPozMahaller() {
 
             {paraBirimiAdet > 0 &&
               <>
-                <Box></Box>
+                <Box sx={{ backgroundColor: ayracRengi2 }}></Box>
                 {selectedProje?.paraBirimleri?.filter(x => x.isActive).map((oneBirim, index) => {
                   return (
-                    <Box key={index} sx={{ ...css_enUstBaslik }}>
+                    <Box key={index} sx={{ ...css_enUstBaslik, justifyContent: "center" }}>
                       {oneBirim.id}
                     </Box>
                   )
@@ -545,7 +547,7 @@ export default function P_IsPaketleriPozMahaller() {
               </>
             }
 
-            <Box>
+            <Box sx={{ backgroundColor: ayracRengi2 }}>
             </Box>
 
             <Box sx={{ ...css_enUstBaslik, justifyContent: "end" }}>
@@ -557,15 +559,15 @@ export default function P_IsPaketleriPozMahaller() {
                 <Box sx={{ backgroundColor: ayracRengi }}></Box>
                 {selectedProje?.paraBirimleri?.filter(x => x.isActive).map((oneBirim, index) => {
                   return (
-                    <Box key={index} sx={{ ...css_enUstBaslik }}>
-                      {oneBirim.id}
+                    <Box key={index} sx={{ ...css_enUstBaslik, justifyContent: "center" }}>
+                      {"20.113,50 TL"}
                     </Box>
                   )
                 })}
               </>
             }
 
-            <Box>
+            <Box sx={{ backgroundColor: ayracRengi2 }}>
             </Box>
 
             <Box sx={{ ...css_enUstBaslik, justifyContent: "end" }}>
@@ -577,8 +579,8 @@ export default function P_IsPaketleriPozMahaller() {
                 <Box sx={{ backgroundColor: ayracRengi }}></Box>
                 {selectedProje?.paraBirimleri?.filter(x => x.isActive).map((oneBirim, index) => {
                   return (
-                    <Box key={index} sx={{ ...css_enUstBaslik }}>
-                      {oneBirim.id}
+                    <Box key={index} sx={{ ...css_enUstBaslik, justifyContent: "center" }}>
+                      {"20.113,50 USD"}
                     </Box>
                   )
                 })}
@@ -606,8 +608,8 @@ export default function P_IsPaketleriPozMahaller() {
               ?.filter(dugum =>
                 dugum.isPaketVersiyonlar
                   .find(oneVersiyon => oneVersiyon.versiyon === selectedIsPaketVersiyon).basliklar
-                  .find(oneBaslik => oneBaslik._id.toString() === selectedIsPaketBaslik._id.toString()).isPaketleri
-                  ?.paketId === selectedIsPaket._id.toString()
+                  .find(oneBaslik => oneBaslik._id.toString() === selectedIsPaketBaslik._id.toString())
+                  .paketId === selectedIsPaket._id.toString()
               ).reduce((accumulator, oneDugum) => accumulator + oneDugum.metrajOnaylanan, 0)
 
 
@@ -621,10 +623,10 @@ export default function P_IsPaketleriPozMahaller() {
 
                 {paraBirimiAdet > 0 &&
                   <>
-                    <Box></Box>
+                    <Box sx={{ ...css_LbsBaslik, border: "none", backgroundColor: ayracRengi2 }}></Box>
                     {selectedProje?.paraBirimleri?.filter(x => x.isActive).map((oneBirim, index) => {
                       return (
-                        <Box key={index} sx={{ ...css_LbsBaslik, borderLeft: index === 0 && "1px solid black" }}>
+                        <Box key={index} sx={{ ...css_LbsBaslik, justifyContent: "center", borderLeft: index === 0 && "1px solid black" }}>
                           {oneBirim.id}
                         </Box>
                       )
@@ -632,7 +634,7 @@ export default function P_IsPaketleriPozMahaller() {
                   </>
                 }
 
-                <Box>
+                <Box sx={{ ...css_LbsBaslik, borderLeft: "1px solid black", backgroundColor: ayracRengi2 }}>
                 </Box>
 
                 <Box sx={{ ...css_LbsBaslik, justifyContent: "end", borderLeft: "1px solid black" }}>
@@ -644,15 +646,15 @@ export default function P_IsPaketleriPozMahaller() {
                     <Box sx={{ ...css_LbsBaslik, backgroundColor: ayracRengi }}></Box>
                     {selectedProje?.paraBirimleri?.filter(x => x.isActive).map((oneBirim, index) => {
                       return (
-                        <Box key={index} sx={{ ...css_LbsBaslik, borderLeft: index === 0 && "1px solid black" }}>
-                          {oneBirim.id}
+                        <Box key={index} sx={{ ...css_LbsBaslik, justifyContent: "end", borderLeft: index === 0 && "1px solid black" }}>
+                          {"1.113,50 TL"}
                         </Box>
                       )
                     })}
                   </>
                 }
 
-                <Box>
+                <Box sx={{ ...css_LbsBaslik, borderLeft: "1px solid black", backgroundColor: ayracRengi2 }}>
                 </Box>
 
                 <Box sx={{ ...css_LbsBaslik, borderLeft: "1px solid black", justifyContent: "end" }}>
@@ -663,9 +665,14 @@ export default function P_IsPaketleriPozMahaller() {
                   <>
                     <Box sx={{ ...css_LbsBaslik, backgroundColor: ayracRengi }}></Box>
                     {selectedProje?.paraBirimleri?.filter(x => x.isActive).map((oneBirim, index) => {
+
+                      let birimFiyat = selectedPoz?.birimFiyatlar?.find(x => x.id === oneBirim.id)
+                      let tutar = lbsMetrajSecili && lbsMetrajSecili * birimFiyat.fiyat
+                      let birim = tutar > 0 && birimFiyat.id
+
                       return (
-                        <Box key={index} sx={{ ...css_LbsBaslik, borderLeft: index === 0 && "1px solid black" }}>
-                          {oneBirim.id}
+                        <Box key={index} sx={{ ...css_LbsBaslik, justifyContent: "end", borderLeft: index === 0 && "1px solid black" }}>
+                          {ikiHane(tutar)} {birim}
                         </Box>
                       )
                     })}
@@ -684,11 +691,8 @@ export default function P_IsPaketleriPozMahaller() {
                     .find(oneVersiyon => oneVersiyon.versiyon === selectedIsPaketVersiyon).basliklar
                     .find(oneBaslik => oneBaslik._id.toString() === selectedIsPaketBaslik._id.toString()).paketId
 
-                  let isSelectable = !paketId
                   let isSelectedOther = paketId && paketId.toString() !== selectedIsPaket._id.toString()
                   let isSelectedThis = paketId && paketId.toString() === selectedIsPaket._id.toString()
-
-                  let selectedThisPaketColor = "rgba(98, 210, 96, 0.44)"
 
 
                   return (
@@ -708,10 +712,10 @@ export default function P_IsPaketleriPozMahaller() {
 
                       {paraBirimiAdet > 0 &&
                         <>
-                          <Box></Box>
+                          <Box sx={{ backgroundColor: ayracRengi2 }}></Box>
                           {selectedProje?.paraBirimleri?.filter(x => x.isActive).map((oneBirim, index) => {
                             return (
-                              <Box key={index} sx={{ ...css_mahaller }}>
+                              <Box key={index} sx={{ ...css_mahaller, backgroundColor: isSelectedOther ? "lightgray" : isSelectedThis && selectedThisPaketColor }}>
                                 {ikiHane(selectedPoz?.birimFiyatlar?.find(x => x.id === oneBirim.id)?.fiyat)}
                               </Box>
                             )
@@ -719,7 +723,7 @@ export default function P_IsPaketleriPozMahaller() {
                         </>
                       }
 
-                      <Box>
+                      <Box sx={{ backgroundColor: ayracRengi2 }}>
                       </Box>
 
                       <Box onClick={() => !isSelectedOther && handleDugumToggle({ dugum, toggleValue: !isSelectedThis, dugum })} sx={{ ...css_mahaller, backgroundColor: isSelectedOther ? "lightgray" : isSelectedThis && selectedThisPaketColor, justifyContent: "end" }}>
@@ -730,16 +734,19 @@ export default function P_IsPaketleriPozMahaller() {
                         <>
                           <Box sx={{ backgroundColor: ayracRengi }}></Box>
                           {selectedProje?.paraBirimleri?.filter(x => x.isActive).map((oneBirim, index) => {
+                            let birimFiyat = selectedPoz?.birimFiyatlar?.find(x => x.id === oneBirim.id)
+                            let tutar = dugum?.metrajOnaylanan * birimFiyat.fiyat
+                            let birim = tutar > 0 && birimFiyat.id
                             return (
-                              <Box key={index} sx={{ ...css_mahaller }}>
-                                {ikiHane(selectedPoz?.birimFiyatlar?.find(x => x.id === oneBirim.id)?.fiyat)}
+                              <Box key={index} sx={{ ...css_mahaller, justifyContent: "end", backgroundColor: isSelectedOther ? "lightgray" : isSelectedThis && selectedThisPaketColor }}>
+                                {ikiHane(tutar)} {birim}
                               </Box>
                             )
                           })}
                         </>
                       }
 
-                      <Box>
+                      <Box sx={{ backgroundColor: ayracRengi2 }}>
                       </Box>
 
                       <Box onClick={() => !isSelectedOther && handleDugumToggle({ dugum, toggleValue: !isSelectedThis })} sx={{ ...css_mahaller, backgroundColor: isSelectedOther ? "lightgray" : isSelectedThis && selectedThisPaketColor, justifyContent: "end" }}>
@@ -750,9 +757,12 @@ export default function P_IsPaketleriPozMahaller() {
                         <>
                           <Box sx={{ backgroundColor: ayracRengi }}></Box>
                           {selectedProje?.paraBirimleri?.filter(x => x.isActive).map((oneBirim, index) => {
+                            let birimFiyat = selectedPoz?.birimFiyatlar?.find(x => x.id === oneBirim.id)
+                            let tutar = isSelectedThis && dugum?.metrajOnaylanan * birimFiyat.fiyat
+                            let birim = tutar > 0 && birimFiyat.id
                             return (
-                              <Box key={index} sx={{ ...css_mahaller }}>
-                                {ikiHane(selectedPoz?.birimFiyatlar?.find(x => x.id === oneBirim.id)?.fiyat)}
+                              <Box key={index} sx={{ ...css_mahaller, justifyContent: "end", backgroundColor: isSelectedOther ? "lightgray" : isSelectedThis && selectedThisPaketColor }}>
+                                {ikiHane(tutar)} {birim}
                               </Box>
                             )
                           })}
