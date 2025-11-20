@@ -111,7 +111,6 @@ export default function P_IsPaketleriPozlar() {
 
 
   const wbsBaslik_css = {
-    gridColumn: "1 / span 3",
     display: "grid",
     alignItems: "center",
     justifyItems: "start",
@@ -147,20 +146,28 @@ export default function P_IsPaketleriPozlar() {
     setSelectedPoz(onePoz)
   }
 
+  let paraBirimiAdet = selectedProje?.paraBirimleri?.filter(x => x?.isActive).length
+
   const showMetrajYapabilenlerColumns = " 1rem repeat(" + showMetrajYapabilenler?.filter(x => x.isShow).length + ", max-content)"
   const columns = `
-    max-content
-    minmax(min-content, 30rem)
-    max-content
-    0.5rem
-    max-content
-    ${pozAciklamaShow ? " 0.5rem minmax(min-content, 2fr)" : ""}
-    ${pozVersiyonShow ? " 0.5rem min-content" : ""}
+    max-content 
+    minmax(min-content, 25rem) 
+    ${paraBirimiAdet === 1 ? " 0.5rem max-content" : paraBirimiAdet > 1 ? " 0.5rem repeat(" + paraBirimiAdet + ", max-content)" : ""}
+    0.5rem 
+    max-content 
+    ${paraBirimiAdet === 1 ? " 0.1rem max-content" : paraBirimiAdet > 1 ? " 0.1rem repeat(" + paraBirimiAdet + ", max-content)" : ""} 
+    0.5rem 
+    max-content 
+    ${paraBirimiAdet === 1 ? " 0.1rem max-content" : paraBirimiAdet > 1 ? " 0.1rem repeat(" + paraBirimiAdet + ", max-content)" : ""}
+    // ${pozAciklamaShow ? " 0.5rem minmax(min-content, 2fr)" : ""}
+    // ${pozVersiyonShow ? " 0.5rem min-content" : ""}
   `
 
+  let ayracRenk_siyah = "black"
+  let ayracRenk_bordo = "rgba(194, 18, 18, 0.67)"
 
   return (
-    <Box sx={{ m: "0rem", maxWidth: "60rem" }}>
+    <Box sx={{ m: "0rem" }}>
 
       {dialogAlert &&
         <DialogAlert
@@ -275,29 +282,65 @@ export default function P_IsPaketleriPozlar() {
           {/*   EN ÜST BAŞLIK */}
           <>
 
-            {/* BAŞLIK - POZ NO */}
             <Box sx={{ ...enUstBaslik_css }}>
               Poz No
             </Box>
 
-            {/* BAŞLIK - POZ İSMİ */}
             <Box sx={{ ...enUstBaslik_css }}>
               Poz İsmi
             </Box>
 
-            {/* BAŞLIK - POZ BİRİM  */}
+
+            {paraBirimiAdet > 0 &&
+              <>
+                <Box sx={{ backgroundColor: ayracRenk_siyah }}></Box>
+
+                <Box sx={{ ...enUstBaslik_css, gridColumn: `span ${paraBirimiAdet}`, justifyContent: "center" }}>
+                  Birim Fiyat
+                </Box>
+
+              </>
+            }
+
+
+
+            <Box sx={{ backgroundColor: ayracRenk_bordo }}></Box>
+
             <Box sx={{ ...enUstBaslik_css }}>
               Miktar
             </Box>
 
-            {/* AYRAÇ  */}
-            <Box>
+            {paraBirimiAdet > 0 &&
+              <>
+                <Box sx={{ backgroundColor: ayracRenk_siyah }}></Box>
+
+                <Box sx={{ ...enUstBaslik_css, gridColumn: `span ${paraBirimiAdet}`, justifyContent: "center" }}>
+                  Tutar
+                </Box>
+
+              </>
+            }
+
+
+
+            <Box sx={{ backgroundColor: ayracRenk_bordo }}></Box>
+
+            <Box sx={{ ...enUstBaslik_css, justifyContent: "center" }}>
+              Keşif Miktar
             </Box>
 
-            {/* BAŞLIK - POZ BİRİM  */}
-            <Box sx={{ ...enUstBaslik_css }}>
-              İş Paket Metraj
-            </Box>
+            {paraBirimiAdet > 0 &&
+              <>
+                <Box sx={{ backgroundColor: ayracRenk_siyah }}></Box>
+
+                <Box sx={{ ...enUstBaslik_css, gridColumn: `span ${paraBirimiAdet}`, justifyContent: "center" }}>
+                  Keşif Tutar
+                </Box>
+
+              </>
+            }
+
+
 
             {/* BAŞLIK - POZ BİRİM  */}
             {pozAciklamaShow &&
@@ -320,34 +363,6 @@ export default function P_IsPaketleriPozlar() {
             }
 
 
-            {onayNodeMetraj &&
-              <>
-                <Box> </Box>
-                {showMetrajYapabilenler?.filter(x => x.isShow).map((oneYapabilen, index) => {
-
-                  let yetkili = yetkililer?.find(oneYetkili => oneYetkili.userEmail === oneYapabilen?.userEmail)
-
-                  return (
-                    <Box key={index} sx={{ ...enUstBaslik_css, borderLeft: "1px solid black", justifyContent: "center" }}>
-                      {/* <Tooltip placement="bottom" title={yetkili.isim + " " + yetkili.soyisim}> */}
-                      {/* <Box>
-                          {yetkililer?.find(oneYetkili => oneYetkili.userEmail === oneYapabilen.userEmail).userCode}
-                        </Box> */}
-                      <Box sx={{ display: "grid", alignItems: "center", justifyItems: "center", fontSize: "0.75rem" }}>
-                        <Box>
-                          {yetkili.isim}
-                        </Box>
-                        <Box>
-                          {yetkili.soyisim}
-                        </Box>
-                      </Box>
-                      {/* </Tooltip> */}
-                    </Box>
-                  )
-                })}
-              </>
-            }
-
           </>
 
 
@@ -363,20 +378,70 @@ export default function P_IsPaketleriPozlar() {
                 {/* WBS BAŞLIĞININ OLDUĞU TÜM SATIR */}
                 <>
                   {/* WBS BAŞLIĞI */}
-                  <Box sx={{ ...wbsBaslik_css }}>
+                  <Box sx={{ ...wbsBaslik_css, gridColumn: "1/3" }}>
                     <Box sx={{ display: "grid", gridAutoFlow: "column" }} >
                       {getWbsName({ wbsArray: wbsArray_hasMahal, oneWbs }).name}
                     </Box>
                   </Box>
 
 
-                  {/* AYRAÇ  */}
-                  <Box>
+                  {paraBirimiAdet > 0 &&
+                    <>
+                      <Box sx={{ ...wbsBaslik_css2, border: "none", backgroundColor: ayracRenk_siyah }}></Box>
+                      {selectedProje?.paraBirimleri?.filter(x => x.isActive).map((oneBirim, index) => {
+                        return (
+                          <Box key={index} sx={{ ...wbsBaslik_css2, justifyContent: "center", borderLeft: index === 0 && "1px solid black" }}>
+                            {oneBirim.id}
+                          </Box>
+                        )
+                      })}
+                    </>
+                  }
+
+
+                  <Box sx={{ ...wbsBaslik_css2, backgroundColor: ayracRenk_bordo }}>
                   </Box>
 
-                  {/* BAŞLIK - POZ BİRİM  */}
                   <Box sx={{ ...wbsBaslik_css2 }}>
+                    {/* {ikiHane(lbsMetraj?.metrajOnaylanan)} {lbsMetraj?.metrajOnaylanan > 0 && pozBirim} */}
+                    Miktar
                   </Box>
+
+                  {paraBirimiAdet > 0 &&
+                    <>
+                      <Box sx={{ ...wbsBaslik_css2, border: "none", backgroundColor: ayracRenk_siyah }}></Box>
+                      {selectedProje?.paraBirimleri?.filter(x => x.isActive).map((oneBirim, index) => {
+                        return (
+                          <Box key={index} sx={{ ...wbsBaslik_css2, justifyContent: "center", borderLeft: index === 0 && "1px solid black" }}>
+                            {oneBirim.id}
+                          </Box>
+                        )
+                      })}
+                    </>
+                  }
+
+
+                  <Box sx={{ ...wbsBaslik_css2, backgroundColor: ayracRenk_bordo }}>
+                  </Box>
+
+                  <Box sx={{ ...wbsBaslik_css2 }}>
+                    {/* {ikiHane(lbsMetraj?.metrajOnaylanan)} {lbsMetraj?.metrajOnaylanan > 0 && pozBirim} */}
+                    Miktar
+                  </Box>
+
+                  {paraBirimiAdet > 0 &&
+                    <>
+                      <Box sx={{ ...wbsBaslik_css2, border: "none", backgroundColor: ayracRenk_siyah }}></Box>
+                      {selectedProje?.paraBirimleri?.filter(x => x.isActive).map((oneBirim, index) => {
+                        return (
+                          <Box key={index} sx={{ ...wbsBaslik_css2, justifyContent: "center", borderLeft: index === 0 && "1px solid black" }}>
+                            {oneBirim.id}
+                          </Box>
+                        )
+                      })}
+                    </>
+                  }
+
 
 
                   {/* BAŞLIK - AÇIKLAMA  */}
@@ -392,20 +457,6 @@ export default function P_IsPaketleriPozlar() {
                     <>
                       <Box />
                       <Box sx={{ ...wbsBaslik_css2 }} />
-                    </>
-                  }
-
-
-                  {onayNodeMetraj &&
-                    <>
-                      <Box> </Box>
-                      {showMetrajYapabilenler?.filter(x => x.isShow).map((oneYapabilen, index) => {
-                        return (
-                          <Box key={index} sx={{ ...wbsBaslik_css2, borderLeft: "1px solid black", justifyContent: "center" }}>
-
-                          </Box>
-                        )
-                      })}
                     </>
                   }
 
@@ -437,16 +488,76 @@ export default function P_IsPaketleriPozlar() {
                         </Box>
                       </Box>
 
-                      <Box sx={{ ...pozNo_css, justifyContent: "end" }}>
+                      {/* <Box sx={{ ...pozNo_css, justifyContent: "end" }}>
                         {ikiHane(onePoz?.metrajOnaylanan)}
+                      </Box> */}
+
+                      {/* BİRİM FİYATLAR */}
+                      {paraBirimiAdet > 0 &&
+                        <>
+                          <Box sx={{ border: "none", backgroundColor: ayracRenk_siyah }}></Box>
+                          {selectedProje?.paraBirimleri?.filter(x => x.isActive).map((oneBirim, index) => {
+                            let fiyat = onePoz.birimFiyatlar.find(x => x.id === oneBirim.id).fiyat
+                            return (
+                              <Box key={index} sx={{ ...pozNo_css, justifyContent: "end", borderLeft: index === 0 && "1px solid black" }}>
+                                {fiyat > 0 && ikiHane(fiyat)} {fiyat > 0 && oneBirim.id}
+                              </Box>
+                            )
+                          })}
+                        </>
+                      }
+
+
+                      {/* MİKTAR VE TUTAR */}
+                      <Box sx={{ backgroundColor: ayracRenk_bordo }}>
                       </Box>
 
-                      <Box>
+                      {/* MİKTAR */}
+                      <Box sx={{ ...pozNo_css, justifyContent:"end" }}>
+                        {onePoz.metrajOnaylanan} {selectedProje?.pozBirimleri.find(x => x.id == onePoz?.pozBirimId)?.name}
                       </Box>
 
+                      {/* TUTAR */}
+                      {paraBirimiAdet > 0 &&
+                        <>
+                          <Box sx={{ backgroundColor: ayracRenk_siyah }}></Box>
+                          {selectedProje?.paraBirimleri?.filter(x => x.isActive).map((oneBirim, index) => {
+                            let fiyat = onePoz.birimFiyatlar.find(x => x.id === oneBirim.id).fiyat
+                            let tutar = onePoz?.metrajOnaylanan > 0 && fiyat > 0 && onePoz?.metrajOnaylanan * fiyat
+                            return (
+                              <Box key={index} sx={{ ...pozNo_css, justifyContent: "end", borderLeft: index === 0 && "1px solid black" }}>
+                                {tutar > 0 && ikiHane(tutar)}  {tutar > 0 && oneBirim.id}
+                              </Box>
+                            )
+                          })}
+                        </>
+                      }
+
+
+                      {/* KEŞİF MİKTAR VE TUTAR */}
+                      <Box sx={{ backgroundColor: ayracRenk_bordo }}>
+                      </Box>
+
+                      {/* KEŞİF MİKTAR */}
                       <Box sx={{ ...pozNo_css }}>
-                        0 m2
+                        {/* {ikiHane(lbsMetraj?.metrajOnaylanan)} {lbsMetraj?.metrajOnaylanan > 0 && pozBirim} */}
+                        Miktar
                       </Box>
+
+                      {/* KEŞİF TUTAR */}
+                      {paraBirimiAdet > 0 &&
+                        <>
+                          <Box sx={{ backgroundColor: ayracRenk_siyah }}></Box>
+                          {selectedProje?.paraBirimleri?.filter(x => x.isActive).map((oneBirim, index) => {
+                            return (
+                              <Box key={index} sx={{ ...pozNo_css, justifyContent: "center", borderLeft: index === 0 && "1px solid black" }}>
+                                {oneBirim.id}
+                              </Box>
+                            )
+                          })}
+                        </>
+                      }
+
 
                       {/* BAŞLIK - POZ BİRİM  */}
                       {pozAciklamaShow &&
