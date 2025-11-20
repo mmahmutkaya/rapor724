@@ -52,6 +52,48 @@ export const useGetFirmalar = () => {
 }
 
 
+export const useGetPozMetrajlarİsPaketByVersiyon = () => {
+
+  const navigate = useNavigate()
+  const { appUser, setAppUser, selectedProje, selectedIsPaketVersiyon } = useContext(StoreContext)
+
+  return useQuery({
+    queryKey: ['pozMetrajlarIsPaketByVersiyon'],
+    queryFn: async () => {
+      const response = await fetch('api/pozlar/ispaketmetrajlarbyversiyon', {
+        method: 'GET',
+        headers: {
+          email: appUser.email,
+          token: appUser.token,
+          projeid: selectedProje?._id,
+          versiyontext: selectedIsPaketVersiyon,
+          'Content-Type': 'application/json'
+        }
+      })
+
+      const responseJson = await response.json()
+
+      if (responseJson.error) {
+        if (responseJson.error.includes("expired")) {
+          setAppUser()
+          localStorage.removeItem('appUser')
+          navigate('/')
+          window.location.reload()
+        }
+        throw new Error(responseJson.error);
+      }
+
+      return responseJson
+
+    },
+    enabled: !!appUser && !!selectedProje && !!(selectedIsPaketVersiyon === 0 || selectedIsPaketVersiyon),
+    refetchOnMount: true,
+    refetchOnWindowFocus: false
+  })
+
+}
+
+
 
 
 
@@ -1046,8 +1088,6 @@ export const useUpdateOnaylananMetraj = () => {
       return RealmApp?.currentUser.callFunction("collectionDugumler", ({ functionName: "updateOnaylananMetraj", hazirlananMetrajlar_state, onaylananMetraj_state, _projectId: selectedProje?._id, _mahalId: selectedNode?._mahalId, _pozId: selectedNode?._pozId }))
     },
     onSuccess: (returnData, variables) => {
-      // queryClient.invalidateQueries({ queryKey: ['hazirlananMetrajlar', variables.selectedNode._id.toString()] })
-      // queryClient.invalidateQueries({ queryKey: ['onaylananMetraj', variables.selectedNode._id.toString()] })
       queryClient.setQueryData(['hazirlananMetrajlar', variables.selectedNode._id.toString()], variables.hazirlananMetrajlar_state)
       queryClient.setQueryData(['onaylananMetraj', variables.selectedNode._id.toString()], variables.onaylananMetraj_state)
       variables.setHazirlananMetrajlar_state()

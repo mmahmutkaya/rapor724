@@ -3,10 +3,11 @@ import React from 'react'
 import { useState, useContext, useEffect } from 'react';
 import { useQueryClient } from '@tanstack/react-query'
 import { useNavigate } from "react-router-dom";
+import _ from 'lodash';
 
 
 import { StoreContext } from '../../components/store.js'
-import { useGetPozlar } from '../../hooks/useMongo.js';
+import { useGetPozlar, useGetPozMetrajlarİsPaketByVersiyon } from '../../hooks/useMongo.js';
 import getWbsName from '../../functions/getWbsName.js';
 import { DialogAlert } from '../../components/general/DialogAlert.js';
 
@@ -35,12 +36,15 @@ export default function P_IsPaketleriPozlar() {
   const navigate = useNavigate()
   const queryClient = useQueryClient()
 
-  let { data, error, isFetching } = useGetPozlar()
-  let pozlar = data?.pozlar?.filter(x => x.hasDugum)
+  const { data: dataPozlar, error: error1, isFetching: isFetching1 } = useGetPozlar()
+  const { data: dataPozMetrajlarIsPaketByVersiyon, error: error2, isFetching: isFetching2 } = useGetPozMetrajlarİsPaketByVersiyon()
+
+  // let pozlar = data?.pozlar?.filter(x => x.hasDugum)
+
+  const [pozlar_state, setPozlar_state] = useState()
+  const [pozMetrajlarIsPaketByVersiyon, setPozMetrajlarIsPaketByVersiyon] = useState()
 
   const [dialogAlert, setDialogAlert] = useState()
-  // console.log("pozşar", pozlar)
-
 
   const { appUser, setAppUser, RealmApp, myTema, drawerWidth, topBarHeight } = useContext(StoreContext)
   const { showMetrajYapabilenler, setShowMetrajYapabilenler } = useContext(StoreContext)
@@ -59,19 +63,30 @@ export default function P_IsPaketleriPozlar() {
   useEffect(() => {
     !selectedProje && navigate('/projeler')
     !((selectedIsPaketVersiyon === 0 || selectedIsPaketVersiyon > 0) && selectedIsPaketBaslik && selectedIsPaket) && navigate('/ispaketleri')
-  }, [])
+    setPozlar_state(_.cloneDeep(dataPozlar?.pozlar?.filter(x => x.hasDugum)))
+    setPozMetrajlarIsPaketByVersiyon(_.cloneDeep(dataPozMetrajlarIsPaketByVersiyon?.pozMetrajlarIsPaketByVersiyon))
+    console.log("dataPozMetrajlarIsPaketByVersiyon", dataPozMetrajlarIsPaketByVersiyon)
+  }, [dataPozlar, dataPozMetrajlarIsPaketByVersiyon])
 
 
   useEffect(() => {
-    if (error) {
-      console.log("error", error)
+    if (error1) {
+      console.log("error", error1)
       setDialogAlert({
         dialogIcon: "warning",
         dialogMessage: "Beklenmedik hata, Rapor7/24 ile irtibata geçiniz..",
-        detailText: error?.message ? error.message : null
+        detailText: error1?.message ? error1.message : null
       })
     }
-  }, [error]);
+    if (error2) {
+      console.log("error", error2)
+      setDialogAlert({
+        dialogIcon: "warning",
+        dialogMessage: "Beklenmedik hata, Rapor7/24 ile irtibata geçiniz..",
+        detailText: error2?.message ? error2.message : null
+      })
+    }
+  }, [error1, error2]);
 
 
   const [basliklar, setBasliklar] = useState(appUser.customSettings.pages.ispaketleri.basliklar)
@@ -83,7 +98,7 @@ export default function P_IsPaketleriPozlar() {
   const pozAciklamaShow = false
   const pozVersiyonShow = false
 
-  const wbsArray_hasMahal = selectedProje?.wbs.filter(oneWbs => pozlar?.find(onePoz => onePoz._wbsId.toString() === oneWbs._id.toString()))
+  const wbsArray_hasMahal = selectedProje?.wbs.filter(oneWbs => pozlar_state?.find(onePoz => onePoz._wbsId.toString() === oneWbs._id.toString()))
 
 
 
@@ -152,8 +167,8 @@ export default function P_IsPaketleriPozlar() {
   const columns = `
     max-content 
     minmax(min-content, 25rem) 
-    ${paraBirimiAdet === 1 ? " 0.5rem max-content" : paraBirimiAdet > 1 ? " 0.5rem repeat(" + paraBirimiAdet + ", max-content)" : ""}
-    0.5rem 
+    ${paraBirimiAdet === 1 ? " 0.1rem max-content" : paraBirimiAdet > 1 ? " 0.1rem repeat(" + paraBirimiAdet + ", max-content)" : ""}
+    0.5rem
     max-content 
     ${paraBirimiAdet === 1 ? " 0.1rem max-content" : paraBirimiAdet > 1 ? " 0.1rem repeat(" + paraBirimiAdet + ", max-content)" : ""} 
     0.5rem 
@@ -245,7 +260,7 @@ export default function P_IsPaketleriPozlar() {
       }
 
 
-      {isFetching &&
+      {(isFetching1 || isFetching2) &&
         <Box sx={{ width: '100%', px: "1rem", mt: "5rem", color: 'gray' }}>
           <LinearProgress color='inherit' />
         </Box >
@@ -254,7 +269,7 @@ export default function P_IsPaketleriPozlar() {
 
 
       {/* EĞER POZ BAŞLIĞI YOKSA */}
-      {!isFetching && show == "Main" && !selectedProje?.wbs?.find(x => x.openForPoz === true) &&
+      {!(isFetching1 || isFetching2) && show == "Main" && !selectedProje?.wbs?.find(x => x.openForPoz === true) &&
         <Stack sx={{ width: '100%', mt: "3.5rem", p: "1rem" }} spacing={2}>
           <Alert severity="info">
             Öncelikle poz oluşturmaya açık poz başlığı oluşturmalısınız.
@@ -264,7 +279,7 @@ export default function P_IsPaketleriPozlar() {
 
 
       {/* EĞER POZ YOKSA */}
-      {!isFetching && show == "Main" && selectedProje?.wbs?.find(x => x.openForPoz === true) && !pozlar?.length > 0 &&
+      {!(isFetching1 || isFetching2) && show == "Main" && selectedProje?.wbs?.find(x => x.openForPoz === true) && !pozlar_state?.length > 0 &&
         <Stack sx={{ width: '100%', mt: "3.5rem", p: "1rem" }} spacing={2}>
           <Alert severity="info">
             Herhangi bir mahal, herhangi bir poz ile henüz eşleştirilmemiş, 'mahallistesi' menüsüne gidiniz.
@@ -275,7 +290,7 @@ export default function P_IsPaketleriPozlar() {
 
       {/* ANA SAYFA - POZLAR VARSA */}
 
-      {!isFetching && show == "Main" && wbsArray_hasMahal && pozlar?.length > 0 &&
+      {!(isFetching1 || isFetching2) && show == "Main" && wbsArray_hasMahal && pozlar_state?.length > 0 &&
 
         <Box sx={{ m: "1rem", mt: "4.5rem", display: "grid", gridTemplateColumns: columns }}>
 
@@ -464,7 +479,7 @@ export default function P_IsPaketleriPozlar() {
 
 
                 {/* WBS'İN POZLARI */}
-                {pozlar?.filter(x => x._wbsId.toString() === oneWbs._id.toString()).map((onePoz, index) => {
+                {pozlar_state?.filter(x => x._wbsId.toString() === oneWbs._id.toString()).map((onePoz, index) => {
                   let hasOnaylananMetraj = onePoz?.hazirlananMetrajlar.find(x => x.hasSelected)
 
                   let isSelected = false
@@ -513,7 +528,7 @@ export default function P_IsPaketleriPozlar() {
                       </Box>
 
                       {/* MİKTAR */}
-                      <Box sx={{ ...pozNo_css, justifyContent:"end" }}>
+                      <Box sx={{ ...pozNo_css, justifyContent: "end" }}>
                         {onePoz.metrajOnaylanan} {selectedProje?.pozBirimleri.find(x => x.id == onePoz?.pozBirimId)?.name}
                       </Box>
 
@@ -541,6 +556,15 @@ export default function P_IsPaketleriPozlar() {
                       {/* KEŞİF MİKTAR */}
                       <Box sx={{ ...pozNo_css }}>
                         {/* {ikiHane(lbsMetraj?.metrajOnaylanan)} {lbsMetraj?.metrajOnaylanan > 0 && pozBirim} */}
+                        {/* {dataGetDugumler_byPoz
+                          ?.filter(x => x._pozId.toString() === onePoz._id.toString())
+                          ?.filter(dugum =>
+                            dugum.isPaketVersiyonlar
+                              .find(oneVersiyon => oneVersiyon.versiyon === selectedIsPaketVersiyon).basliklar
+                              .find(oneBaslik => oneBaslik._id.toString() === selectedIsPaketBaslik._id.toString())
+                              .paketId === selectedIsPaket._id.toString()
+                          ).reduce((accumulator, oneDugum) => oneDugum.metrajOnaylanan ? accumulator + oneDugum.metrajOnaylanan : accumulator, 0)
+                        } */}
                         Miktar
                       </Box>
 
