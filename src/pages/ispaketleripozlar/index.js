@@ -65,7 +65,7 @@ export default function P_IsPaketleriPozlar() {
     !((selectedIsPaketVersiyon === 0 || selectedIsPaketVersiyon > 0) && selectedIsPaketBaslik && selectedIsPaket) && navigate('/ispaketleri')
     setPozlar_state(_.cloneDeep(dataPozlar?.pozlar?.filter(x => x.hasDugum)))
     setPozMetrajlarIsPaketByVersiyon(_.cloneDeep(dataPozMetrajlarIsPaketByVersiyon?.pozMetrajlarIsPaketByVersiyon))
-    console.log("dataPozMetrajlarIsPaketByVersiyon", dataPozMetrajlarIsPaketByVersiyon)
+    // console.log("dataPozMetrajlarIsPaketByVersiyon", dataPozMetrajlarIsPaketByVersiyon)
   }, [dataPozlar, dataPozMetrajlarIsPaketByVersiyon])
 
 
@@ -341,7 +341,7 @@ export default function P_IsPaketleriPozlar() {
             <Box sx={{ backgroundColor: ayracRenk_bordo }}></Box>
 
             <Box sx={{ ...enUstBaslik_css, justifyContent: "center" }}>
-              Keşif Miktar
+              Kşf.Miktar
             </Box>
 
             {paraBirimiAdet > 0 &&
@@ -349,7 +349,7 @@ export default function P_IsPaketleriPozlar() {
                 <Box sx={{ backgroundColor: ayracRenk_siyah }}></Box>
 
                 <Box sx={{ ...enUstBaslik_css, gridColumn: `span ${paraBirimiAdet}`, justifyContent: "center" }}>
-                  Keşif Tutar
+                  Kşf.Tutar
                 </Box>
 
               </>
@@ -414,7 +414,7 @@ export default function P_IsPaketleriPozlar() {
                   }
 
 
-                  <Box sx={{ ...wbsBaslik_css2, backgroundColor: ayracRenk_bordo }}>
+                  <Box sx={{ ...wbsBaslik_css2, border: "none", backgroundColor: ayracRenk_bordo }}>
                   </Box>
 
                   <Box sx={{ ...wbsBaslik_css2 }}>
@@ -436,7 +436,7 @@ export default function P_IsPaketleriPozlar() {
                   }
 
 
-                  <Box sx={{ ...wbsBaslik_css2, backgroundColor: ayracRenk_bordo }}>
+                  <Box sx={{ ...wbsBaslik_css2, border: "none", backgroundColor: ayracRenk_bordo }}>
                   </Box>
 
                   <Box sx={{ ...wbsBaslik_css2 }}>
