@@ -66,7 +66,8 @@ export const useGetPozMetrajlarİsPaketByVersiyon = () => {
           email: appUser.email,
           token: appUser.token,
           projeid: selectedProje?._id,
-          versiyontext: selectedIsPaketVersiyon,
+          versiyonkesiftext: selectedIsPaketVersiyon,
+          // versiyonmetrajtext: selectedMetrajVersiyon,
           'Content-Type': 'application/json'
         }
       })
