@@ -46,7 +46,7 @@ export default function FormIsPaketBaslikCreate({ setShow }) {
   const [dialogAlert, setDialogAlert] = useState()
 
 
-  const isPaketBasliklari = selectedProje?.isPaketBasliklari
+  // const isPaketBasliklari = selectedProje?.isPaketBasliklari
 
 
   async function handleSubmit(event) {

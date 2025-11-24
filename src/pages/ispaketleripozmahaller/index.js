@@ -191,7 +191,7 @@ export default function P_IsPaketleriPozMahaller() {
           if (oneVersiyon.versiyon === selectedIsPaketVersiyon) {
             oneVersiyon.basliklar.map(oneBaslik => {
               if (oneBaslik._id.toString() === selectedIsPaketBaslik._id.toString()) {
-                oneBaslik.paketId = toggleValue ? selectedIsPaket._id : null
+                oneBaslik._paketId = toggleValue ? selectedIsPaket._id : null
                 return oneBaslik
               }
             })
@@ -332,7 +332,7 @@ export default function P_IsPaketleriPozMahaller() {
       dugum.isPaketVersiyonlar
         .find(oneVersiyon => oneVersiyon.versiyon === selectedIsPaketVersiyon).basliklar
         .find(oneBaslik => oneBaslik._id.toString() === selectedIsPaketBaslik._id.toString())
-        .paketId === selectedIsPaket._id.toString()
+        ._paketId === selectedIsPaket._id.toString()
     ).reduce((accumulator, oneDugum) => oneDugum.metrajOnaylanan ? accumulator + oneDugum.metrajOnaylanan : accumulator, 0)
 
 
@@ -616,7 +616,7 @@ export default function P_IsPaketleriPozMahaller() {
                 dugum.isPaketVersiyonlar
                   .find(oneVersiyon => oneVersiyon.versiyon === selectedIsPaketVersiyon).basliklar
                   .find(oneBaslik => oneBaslik._id.toString() === selectedIsPaketBaslik._id.toString())
-                  .paketId === selectedIsPaket._id.toString()
+                  ._paketId === selectedIsPaket._id.toString()
               ).reduce((accumulator, oneDugum) => oneDugum.metrajOnaylanan ? accumulator + oneDugum.metrajOnaylanan : accumulator, 0)
 
 
@@ -696,12 +696,12 @@ export default function P_IsPaketleriPozMahaller() {
                     return
                   }
 
-                  let paketId = dugum.isPaketVersiyonlar
+                  let _paketId = dugum.isPaketVersiyonlar
                     .find(oneVersiyon => oneVersiyon.versiyon === selectedIsPaketVersiyon).basliklar
-                    .find(oneBaslik => oneBaslik._id.toString() === selectedIsPaketBaslik._id.toString()).paketId
+                    .find(oneBaslik => oneBaslik._id.toString() === selectedIsPaketBaslik._id.toString())._paketId
 
-                  let isSelectedOther = paketId && paketId.toString() !== selectedIsPaket._id.toString()
-                  let isSelectedThis = paketId && paketId.toString() === selectedIsPaket._id.toString()
+                  let isSelectedOther = _paketId && _paketId.toString() !== selectedIsPaket._id.toString()
+                  let isSelectedThis = _paketId && _paketId.toString() === selectedIsPaket._id.toString()
 
 
                   return (

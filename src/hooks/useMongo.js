@@ -55,10 +55,16 @@ export const useGetFirmalar = () => {
 export const useGetPozMetrajlarİsPaketByVersiyon = () => {
 
   const navigate = useNavigate()
-  const { appUser, setAppUser, selectedProje, selectedIsPaketVersiyon } = useContext(StoreContext)
+  const { appUser, setAppUser, selectedProje, selectedIsPaketVersiyon, selectedMetrajVersiyon } = useContext(StoreContext)
 
   return useQuery({
-    queryKey: ['pozMetrajlarIsPaketByVersiyon'],
+
+    queryKey: [
+      'isPaketleriPozMetrajlarByVersiyon',
+      { isPaketVersiyon: selectedIsPaketVersiyon ? selectedIsPaketVersiyon : 0 },
+      { metrajVersiyon: selectedMetrajVersiyon ? selectedMetrajVersiyon : 0 }
+    ],
+
     queryFn: async () => {
       const response = await fetch('api/pozlar/ispaketmetrajlarbyversiyon', {
         method: 'GET',
@@ -66,8 +72,8 @@ export const useGetPozMetrajlarİsPaketByVersiyon = () => {
           email: appUser.email,
           token: appUser.token,
           projeid: selectedProje?._id,
-          versiyonkesiftext: selectedIsPaketVersiyon,
-          // versiyonmetrajtext: selectedMetrajVersiyon,
+          ispaketversiyontext: selectedIsPaketVersiyon ? selectedIsPaketVersiyon : 0,
+          metrajversiyontext: selectedMetrajVersiyon ? selectedMetrajVersiyon : 0,
           'Content-Type': 'application/json'
         }
       })
