@@ -62,27 +62,47 @@ export default function P_IsPaketleriPozlar() {
 
   const [show, setShow] = useState("Main")
 
+  // useEffect(() => {
+  //   !selectedProje && navigate('/projeler')
+  //   !((selectedIsPaketVersiyon === 0 || selectedIsPaketVersiyon > 0) && selectedIsPaketBaslik && selectedIsPaket) && navigate('/ispaketleri')
+  //   setPozlar_state(_.cloneDeep(dataPozlar?.pozlar?.filter(x => x.hasDugum)))
+  //   setIsPaketleriPozMetrajlarByVersiyon_state(_.cloneDeep(dataIsPaketleriPozMetrajlarByVersiyon?.isPaketleriPozMetrajlarByVersiyon))
+  // }, [dataPozlar, dataIsPaketleriPozMetrajlarByVersiyon])
+
+
   useEffect(() => {
     !selectedProje && navigate('/projeler')
     !((selectedIsPaketVersiyon === 0 || selectedIsPaketVersiyon > 0) && selectedIsPaketBaslik && selectedIsPaket) && navigate('/ispaketleri')
-    setPozlar_state(_.cloneDeep(dataPozlar?.pozlar?.filter(x => x.hasDugum)))
-    setIsPaketleriPozMetrajlarByVersiyon_state(_.cloneDeep(dataIsPaketleriPozMetrajlarByVersiyon?.isPaketleriPozMetrajlarByVersiyon))
-  }, [dataPozlar, dataIsPaketleriPozMetrajlarByVersiyon])
+  }, [])
 
   useEffect(() => {
-    let paraBirimleri = _.cloneDeep(selectedProje?.paraBirimleri)
-    paraBirimleri = paraBirimleri.map(oneBirim => {
-      oneBirim.tutar = 0
-      return oneBirim
+
+    let isPaketleriPozMetrajlarByVersiyon = _.cloneDeep(dataIsPaketleriPozMetrajlarByVersiyon?.isPaketleriPozMetrajlarByVersiyon)
+    let pozlar = _.cloneDeep(dataPozlar?.pozlar?.filter(x => x.hasDugum))
+
+    pozlar?.map(onePoz => {
+
+      onePoz.kesifMiktar = isPaketleriPozMetrajlarByVersiyon
+        ?.find(x => x._id.toString() === onePoz._id.toString()).isPaketler_byVersiyon
+        ?.find(x => x._id.toString() === selectedIsPaket._id.toString())?.metrajOnaylanan
+
+      if (onePoz.kesifMiktar > 0 && onePoz.birimFiyatlar.length > 0) {
+
+        onePoz.birimFiyatlar = onePoz.birimFiyatlar.map(oneBirimFiyat => {
+          oneBirimFiyat.kesifTutar = onePoz.kesifMiktar * oneBirimFiyat.fiyat
+          return oneBirimFiyat
+        })
+
+      }
+
+      return onePoz
+
     })
-    let wbsTutarTaslak = []
-    selectedProje?.wbs?.map(oneWbs => {
-      wbsTutarTaslak = [...wbsTutarTaslak, { _id: oneWbs._id, paraBirimleri }]
-    })
-    setWbsTutarlar(wbsTutarTaslak)
-    setWbsKesifTutarlar(wbsTutarTaslak)
-    // console.log("wbsTutarTaslak", wbsTutarTaslak)
-  }, [selectedProje])
+    setPozlar_state(pozlar)
+    setIsPaketleriPozMetrajlarByVersiyon_state(_.cloneDeep(dataIsPaketleriPozMetrajlarByVersiyon?.isPaketleriPozMetrajlarByVersiyon))
+
+  }, [dataPozlar, dataIsPaketleriPozMetrajlarByVersiyon])
+
 
   useEffect(() => {
     if (error1) {
@@ -115,8 +135,6 @@ export default function P_IsPaketleriPozlar() {
 
   const wbsArray_hasMahal = selectedProje?.wbs.filter(oneWbs => pozlar_state?.find(onePoz => onePoz._wbsId.toString() === oneWbs._id.toString()))
 
-
-
   const ikiHane = (value) => {
     if (!value) {
       return ""
@@ -126,7 +144,6 @@ export default function P_IsPaketleriPozlar() {
     }
     return value
   }
-
 
   // CSS
   const enUstBaslik_css = {
@@ -182,12 +199,9 @@ export default function P_IsPaketleriPozlar() {
   const columns = `
     max-content 
     minmax(min-content, 25rem) 
+    max-content
+    max-content
     ${paraBirimiAdet === 1 ? " 0.1rem max-content" : paraBirimiAdet > 1 ? " 0.1rem repeat(" + paraBirimiAdet + ", max-content)" : ""}
-    0.5rem
-    max-content 
-    ${paraBirimiAdet === 1 ? " 0.1rem max-content" : paraBirimiAdet > 1 ? " 0.1rem repeat(" + paraBirimiAdet + ", max-content)" : ""} 
-    0.5rem 
-    max-content 
     ${paraBirimiAdet === 1 ? " 0.1rem max-content" : paraBirimiAdet > 1 ? " 0.1rem repeat(" + paraBirimiAdet + ", max-content)" : ""}
     // ${pozAciklamaShow ? " 0.5rem minmax(min-content, 2fr)" : ""}
     // ${pozVersiyonShow ? " 0.5rem min-content" : ""}
@@ -320,44 +334,25 @@ export default function P_IsPaketleriPozlar() {
               Poz İsmi
             </Box>
 
-
-            {paraBirimiAdet > 0 &&
-              <>
-                <Box sx={{ backgroundColor: ayracRenk_siyah }}></Box>
-
-                <Box sx={{ ...enUstBaslik_css, gridColumn: `span ${paraBirimiAdet}`, justifyContent: "center" }}>
-                  Birim Fiyat
-                </Box>
-
-              </>
-            }
-
-
-
-            <Box sx={{ backgroundColor: ayracRenk_bordo }}></Box>
-
             <Box sx={{ ...enUstBaslik_css }}>
               Miktar
             </Box>
 
+            <Box sx={{ ...enUstBaslik_css, justifyContent: "center" }}>
+              Kşf.Miktar
+            </Box>
+
+
             {paraBirimiAdet > 0 &&
               <>
                 <Box sx={{ backgroundColor: ayracRenk_siyah }}></Box>
-
                 <Box sx={{ ...enUstBaslik_css, gridColumn: `span ${paraBirimiAdet}`, justifyContent: "center" }}>
-                  Tutar
+                  Birim Fiyat
                 </Box>
-
               </>
             }
 
 
-
-            <Box sx={{ backgroundColor: ayracRenk_bordo }}></Box>
-
-            <Box sx={{ ...enUstBaslik_css, justifyContent: "center" }}>
-              Kşf.Miktar
-            </Box>
 
             {paraBirimiAdet > 0 &&
               <>
@@ -372,7 +367,7 @@ export default function P_IsPaketleriPozlar() {
 
 
 
-            {/* BAŞLIK - POZ BİRİM  */}
+            {/* BAŞLIK - AÇIKLAMA  */}
             {pozAciklamaShow &&
               <>
                 <Box></Box>
@@ -414,27 +409,15 @@ export default function P_IsPaketleriPozlar() {
                     </Box>
                   </Box>
 
-
-                  {paraBirimiAdet > 0 &&
-                    <>
-                      <Box sx={{ ...wbsBaslik_css2, border: "none", backgroundColor: ayracRenk_siyah }}></Box>
-                      {selectedProje?.paraBirimleri?.filter(x => x.isActive).map((oneBirim, index) => {
-                        return (
-                          <Box key={index} sx={{ ...wbsBaslik_css2, justifyContent: "center", borderLeft: index === 0 && "1px solid black" }}>
-                          </Box>
-                        )
-                      })}
-                    </>
-                  }
-
-
-                  {/* AYRAÇ SUTUNU */}
-                  <Box sx={{ ...wbsBaslik_css2, border: "none", backgroundColor: ayracRenk_bordo }}>
-                  </Box>
-
                   {/* MİKTAR SUTUNU */}
                   <Box sx={{ ...wbsBaslik_css2 }}>
                   </Box>
+
+
+                  <Box sx={{ ...wbsBaslik_css2 }}>
+                    {/* {ikiHane(lbsMetraj?.metrajOnaylanan)} {lbsMetraj?.metrajOnaylanan > 0 && pozBirim} */}
+                  </Box>
+
 
                   {/* TUTAR SUTUNU */}
                   {paraBirimiAdet > 0 &&
@@ -443,20 +426,13 @@ export default function P_IsPaketleriPozlar() {
                       {selectedProje?.paraBirimleri?.filter(x => x.isActive).map((oneBirim, index) => {
                         return (
                           <Box key={index} sx={{ ...wbsBaslik_css2, justifyContent: "center", borderLeft: index === 0 && "1px solid black" }}>
-                            {wbsTutarlar?.find(x => x._id.toString() === oneWbs._id.toString()).paraBirimleri.find(x => x.id === oneBirim.id).id}
+                            {/* {wbsTutarlar?.find(x => x._id.toString() === oneWbs._id.toString()).paraBirimleri.find(x => x.id === oneBirim.id).id} */}
                           </Box>
                         )
                       })}
                     </>
                   }
 
-
-                  <Box sx={{ ...wbsBaslik_css2, border: "none", backgroundColor: ayracRenk_bordo }}>
-                  </Box>
-
-                  <Box sx={{ ...wbsBaslik_css2 }}>
-                    {/* {ikiHane(lbsMetraj?.metrajOnaylanan)} {lbsMetraj?.metrajOnaylanan > 0 && pozBirim} */}
-                  </Box>
 
                   {paraBirimiAdet > 0 &&
                     <>
@@ -497,9 +473,9 @@ export default function P_IsPaketleriPozlar() {
 
                   let pozBirim = selectedProje?.pozBirimleri.find(x => x.id == onePoz?.pozBirimId)?.name
 
-                  let paketPozMetraj = isPaketleriPozMetrajlarByVersiyon_state
-                    ?.find(x => x._id.toString() === onePoz._id.toString()).isPaketler_byVersiyon
-                    ?.find(x => x._id.toString() === selectedIsPaket._id.toString())?.metrajOnaylanan
+                  // let paketPozMetraj = isPaketleriPozMetrajlarByVersiyon_state
+                  //   ?.find(x => x._id.toString() === onePoz._id.toString()).isPaketler_byVersiyon
+                  //   ?.find(x => x._id.toString() === selectedIsPaket._id.toString())?.metrajOnaylanan
 
                   let isSelected = false
 
@@ -526,84 +502,44 @@ export default function P_IsPaketleriPozlar() {
                         {ikiHane(onePoz?.metrajOnaylanan)}
                       </Box> */}
 
+
+                      {/* MİKTAR */}
+                      <Box sx={{ ...pozNo_css, pr: "0.4rem", justifyContent: "end" }}>
+                        {ikiHane(onePoz.metrajOnaylanan)} {onePoz.metrajOnaylanan > 0 && pozBirim}
+                      </Box>
+
+
+                      {/* KEŞİF MİKTAR */}
+                      <Box sx={{ ...pozNo_css, justifyContent: "end" }}>
+                        {ikiHane(onePoz?.kesifMiktar)} {onePoz?.kesifMiktar > 0 && pozBirim}
+                      </Box>
+
+
                       {/* BİRİM FİYATLAR */}
                       {paraBirimiAdet > 0 &&
                         <>
                           <Box sx={{ border: "none", backgroundColor: ayracRenk_siyah }}></Box>
                           {selectedProje?.paraBirimleri?.filter(x => x.isActive).map((oneBirim, index) => {
-                            let fiyat = onePoz.birimFiyatlar.find(x => x.id === oneBirim.id).fiyat
+                            let fiyat = onePoz.birimFiyatlar.find(x => x.id === oneBirim.id)?.fiyat
                             return (
-                              <Box key={index} sx={{ ...pozNo_css, justifyContent: "end", borderLeft: index === 0 && "1px solid black" }}>
-                                {fiyat > 0 && ikiHane(fiyat)} {fiyat > 0 && oneBirim.sembol ? oneBirim.sembol : oneBirim.id}
+                              <Box key={index} sx={{ ...pozNo_css, pr: "0.4rem", justifyContent: "end", borderLeft: index === 0 && "1px solid black" }}>
+                                {fiyat && ikiHane(fiyat)} {fiyat && (oneBirim.sembol ? oneBirim.sembol : oneBirim.id)}
                               </Box>
                             )
                           })}
                         </>
                       }
 
-
-                      {/* MİKTAR VE TUTAR */}
-                      <Box sx={{ backgroundColor: ayracRenk_bordo }}>
-                      </Box>
-
-                      {/* MİKTAR */}
-                      <Box sx={{ ...pozNo_css, justifyContent: "end" }}>
-                        {ikiHane(onePoz.metrajOnaylanan)} {onePoz.metrajOnaylanan > 0 && pozBirim}
-                      </Box>
-
-                      {/* TUTAR */}
-                      {paraBirimiAdet > 0 &&
-                        <>
-                          <Box sx={{ backgroundColor: ayracRenk_siyah }}></Box>
-                          {selectedProje?.paraBirimleri?.filter(x => x.isActive).map((oneBirim, index) => {
-                            let fiyat = onePoz.birimFiyatlar.find(x => x.id === oneBirim.id).fiyat
-                            let tutar = onePoz?.metrajOnaylanan > 0 && fiyat > 0 && onePoz?.metrajOnaylanan * fiyat
-                            // console.log("wbsTutarlar", wbsTutarlar)
-                            // console.log("oneWbs", oneWbs)
-
-                            let wbsTutarlar2 = _.cloneDeep(wbsTutarlar)
-                            wbsTutarlar2.map(oneWbs2 => {
-                              if (oneWbs2?._id.toString() === oneWbs?._id.toString()) {
-                                oneWbs2.paraBirimleri = oneWbs2.paraBirimleri.map(oneBirim2 => {
-                                  if (oneBirim2.id === oneBirim.id) {
-                                    oneBirim2.tutar += tutar
-                                  }
-                                  return oneBirim2
-                                })
-                              }
-                              return oneWbs2
-                            })
-                            setWbsTutarlar(wbsTutarlar2)
-
-                            return (
-                              <Box key={index} sx={{ ...pozNo_css, justifyContent: "end", borderLeft: index === 0 && "1px solid black" }}>
-                                {tutar > 0 && ikiHane(tutar)}  {tutar > 0 && oneBirim.sembol ? oneBirim.sembol : oneBirim.id}
-                              </Box>
-                            )
-                          })}
-                        </>
-                      }
-
-
-                      {/* KEŞİF MİKTAR VE TUTAR */}
-                      <Box sx={{ backgroundColor: ayracRenk_bordo }}>
-                      </Box>
-
-                      {/* KEŞİF MİKTAR */}
-                      <Box sx={{ ...pozNo_css, justifyContent: "end" }}>
-                        {ikiHane(paketPozMetraj)} {paketPozMetraj > 0 && pozBirim}
-                      </Box>
 
                       {/* KEŞİF TUTAR */}
                       {paraBirimiAdet > 0 &&
                         <>
                           <Box sx={{ backgroundColor: ayracRenk_siyah }}></Box>
                           {selectedProje?.paraBirimleri?.filter(x => x.isActive).map((oneBirim, index) => {
-                            let fiyat = onePoz.birimFiyatlar.find(x => x.id === oneBirim.id).fiyat
-                            let tutar = paketPozMetraj > 0 && fiyat > 0 && paketPozMetraj * fiyat
+                            let tutar = onePoz?.birimFiyatlar.find(x => x.id === oneBirim.id)?.kesifTutar
                             return (
                               <Box key={index} sx={{ ...pozNo_css, justifyContent: "end", borderLeft: index === 0 && "1px solid black" }}>
-                                {tutar > 0 && ikiHane(tutar)}  {tutar > 0 && oneBirim.sembol ? oneBirim.sembol : oneBirim.id}
+                                {tutar && ikiHane(tutar)}  {tutar && (oneBirim.sembol ? oneBirim.sembol : oneBirim.id)}
                               </Box>
                             )
                           })}
