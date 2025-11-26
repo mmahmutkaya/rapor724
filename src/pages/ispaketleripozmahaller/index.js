@@ -541,7 +541,7 @@ export default function P_IsPaketleriPozMahaller() {
               <>
                 <Box sx={{ backgroundColor: ayracRenk_bordo }}></Box>
                 {selectedProje?.paraBirimleri?.filter(x => x.isActive).map((oneBirim, index) => {
-                  let fiyat = selectedPoz?.birimFiyatlar.find(x => x.id === oneBirim.id).fiyat
+                  let fiyat = selectedPoz?.birimFiyatlar?.find(x => x.id === oneBirim.id)?.fiyat
                   return (
                     <Box key={index} sx={{ ...css_enUstBaslik, justifyContent: "center" }}>
                       {fiyat > 0 && ikiHane(fiyat)} {fiyat > 0 && (oneBirim.sembol ? oneBirim.sembol : oneBirim.id)}
@@ -570,7 +570,7 @@ export default function P_IsPaketleriPozMahaller() {
               <>
                 <Box sx={{ backgroundColor: ayracRenk_bordo }}></Box>
                 {selectedProje?.paraBirimleri?.filter(x => x.isActive).map((oneBirim, index) => {
-                  let fiyat = selectedPoz?.birimFiyatlar.find(x => x.id === oneBirim.id).fiyat
+                  let fiyat = selectedPoz?.birimFiyatlar?.find(x => x.id === oneBirim.id)?.fiyat
                   let tutar = selectedPozVersiyonPaketMetraj > 0 && fiyat > 0 && selectedPozVersiyonPaketMetraj * fiyat
                   return (
                     <Box key={index} sx={{ ...css_enUstBaslik, justifyContent: "end" }}>
@@ -636,7 +636,7 @@ export default function P_IsPaketleriPozMahaller() {
                     {selectedProje?.paraBirimleri?.filter(x => x.isActive).map((oneBirim, index) => {
 
                       let birimFiyat = selectedPoz?.birimFiyatlar?.find(x => x.id === oneBirim.id)
-                      let tutar = lbsMetrajSecili && lbsMetrajSecili * birimFiyat.fiyat
+                      let tutar = lbsMetrajSecili && lbsMetrajSecili * birimFiyat?.fiyat
 
                       return (
                         <Box key={index} sx={{ ...css_LbsBaslik, justifyContent: "end", borderLeft: index === 0 && "1px solid black" }}>
@@ -699,10 +699,11 @@ export default function P_IsPaketleriPozMahaller() {
                           <Box sx={{ backgroundColor: ayracRenk_bordo }}></Box>
                           {selectedProje?.paraBirimleri?.filter(x => x.isActive).map((oneBirim, index) => {
                             let birimFiyat = selectedPoz?.birimFiyatlar?.find(x => x.id === oneBirim.id)
-                            let tutar = isSelectedThis && dugum?.metrajOnaylanan * birimFiyat.fiyat
+                            let tutar = isSelectedThis && dugum?.metrajOnaylanan * birimFiyat?.fiyat
+
                             return (
                               <Box key={index} sx={{ ...css_mahaller, justifyContent: "end", backgroundColor: isSelectedOther ? "lightgray" : isSelectedThis && selectedThisPaketColor }}>
-                                {ikiHane(tutar)} {tutar && (oneBirim.sembol ? oneBirim.sembol : oneBirim.id)}
+                                {ikiHane(tutar)} {tutar > 0 && (oneBirim.sembol ? oneBirim.sembol : oneBirim.id)}
                               </Box>
                             )
                           })}
