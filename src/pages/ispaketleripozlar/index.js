@@ -71,21 +71,18 @@ export default function P_IsPaketleriPozlar() {
 
     if (selectedProje && dataPozlar && dataIsPaketleriPozMetrajlarByVersiyon) {
 
-      // console.log("selectedProje",selectedProje)
-      // console.log("dataPozlar",dataPozlar)
-      // console.log("dataIsPaketleriPozMetrajlarByVersiyon",dataIsPaketleriPozMetrajlarByVersiyon)
-
       let isPaketleriPozMetrajlarByVersiyon = _.cloneDeep(dataIsPaketleriPozMetrajlarByVersiyon?.isPaketleriPozMetrajlarByVersiyon)
       let pozlar = _.cloneDeep(dataPozlar?.pozlar?.filter(x => x.hasDugum))
       let wbsArray = _.cloneDeep(selectedProje?.wbs.filter(oneWbs => pozlar?.find(onePoz => onePoz._wbsId.toString() === oneWbs._id.toString())))
+
+      // WBS KEŞİF TUTARLARI İÇİN HAZIRLIK
       let paraBirimleri = _.cloneDeep(selectedProje?.paraBirimleri)
       paraBirimleri = paraBirimleri.map(oneBirim => {
         oneBirim.kesifTutar = 0
         return oneBirim
       })
-
       wbsArray = wbsArray.map(oneWbs => {
-        oneWbs.paraBirimleri = paraBirimleri
+        oneWbs.paraBirimleri = _.cloneDeep(paraBirimleri)
         return oneWbs
       })
 
@@ -98,15 +95,15 @@ export default function P_IsPaketleriPozlar() {
         if (onePoz.kesifMiktar > 0 && onePoz.birimFiyatlar.length > 0) {
 
           onePoz.birimFiyatlar = onePoz.birimFiyatlar.map(oneBirimFiyat => {
-            oneBirimFiyat.kesifTutar = onePoz.kesifMiktar * oneBirimFiyat.fiyat
+            let kesiftutar = 0
+            kesiftutar = onePoz.kesifMiktar * oneBirimFiyat.fiyat
+            oneBirimFiyat.kesifTutar = kesiftutar
 
             wbsArray = wbsArray?.map(oneWbs => {
-              // console.log("oneWbs", oneWbs)
-              // console.log("onePoz", onePoz)
               if (oneWbs?._id.toString() === onePoz?._wbsId.toString()) {
                 oneWbs.paraBirimleri = oneWbs.paraBirimleri.map(oneBirim => {
                   if (oneBirim.id === oneBirimFiyat.id) {
-                    oneBirim.kesifTutar += oneBirimFiyat.kesifTutar ? oneBirimFiyat.kesifTutar : 0
+                    oneBirim.kesifTutar += kesiftutar ? kesiftutar : 0
                   }
                   return oneBirim
                 })
@@ -123,6 +120,7 @@ export default function P_IsPaketleriPozlar() {
 
       })
 
+      // console.log("wbsArray",wbsArray)
       setPozlar_state(pozlar)
       setWbsArray_state(wbsArray)
       setIsPaketleriPozMetrajlarByVersiyon_state(_.cloneDeep(dataIsPaketleriPozMetrajlarByVersiyon?.isPaketleriPozMetrajlarByVersiyon))
@@ -154,13 +152,8 @@ export default function P_IsPaketleriPozlar() {
 
   const [basliklar, setBasliklar] = useState(appUser.customSettings.pages.ispaketleri.basliklar)
 
-
-  // const pozAciklamaShow = basliklar?.find(x => x.id === "aciklama").show
-  // const pozVersiyonShow = basliklar?.find(x => x.id === "versiyon").show
-
   const pozAciklamaShow = false
   const pozVersiyonShow = false
-
 
   const ikiHane = (value) => {
     if (!value) {
@@ -478,7 +471,7 @@ export default function P_IsPaketleriPozlar() {
                         let tutar = oneWbs.paraBirimleri.find(x => x.id === oneBirim.id).kesifTutar
                         return (
                           <Box key={index} sx={{ ...wbsBaslik_css2, justifyContent: "end", borderLeft: index === 0 && "1px solid black" }}>
-                            {tutar && ikiHane(tutar)} {tutar && (oneBirim.sembol ? oneBirim.sembol : oneBirim.id)}
+                            {tutar > 0 && ikiHane(tutar)} {tutar > 0 && (oneBirim.sembol ? oneBirim.sembol : oneBirim.id)}
                           </Box>
                         )
                       })}
