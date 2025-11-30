@@ -190,6 +190,7 @@ export default function P_IsPaketleriPozlar() {
   }
 
   const wbsBaslik_css2 = {
+    display: "grid",
     backgroundColor: myTema.renkler.baslik2,
     border: "1px solid black",
     mt: "1rem",
@@ -463,6 +464,7 @@ export default function P_IsPaketleriPozlar() {
                     {/* {ikiHane(lbsMetraj?.metrajOnaylanan)} {lbsMetraj?.metrajOnaylanan > 0 && pozBirim} */}
                   </Box>
 
+
                   {/* KEŞİF TUTAR SUTUNU */}
                   {paraBirimiAdet > 0 &&
                     <>
@@ -477,8 +479,6 @@ export default function P_IsPaketleriPozlar() {
                       })}
                     </>
                   }
-
-
 
                   {/* BAŞLIK - AÇIKLAMA  */}
                   {pozAciklamaShow &&
@@ -571,7 +571,7 @@ export default function P_IsPaketleriPozlar() {
                           {selectedProje?.paraBirimleri?.filter(x => x.isActive).map((oneBirim, index) => {
                             let tutar = onePoz?.birimFiyatlar.find(x => x.id === oneBirim.id)?.kesifTutar
                             return (
-                              <Box key={index} sx={{ ...pozNo_css, justifyContent: "end", borderLeft: index === 0 && "1px solid black" }}>
+                              <Box key={index} sx={{ ...pozNo_css, minWidth: "6rem", justifyContent: "end", borderLeft: index === 0 && "1px solid black" }}>
                                 {tutar && ikiHane(tutar)} {tutar && (oneBirim.sembol ? oneBirim.sembol : oneBirim.id)}
                               </Box>
                             )
