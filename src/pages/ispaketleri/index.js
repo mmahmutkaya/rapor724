@@ -1,7 +1,7 @@
 
 import React, { useState, useEffect, useContext } from 'react';
 import { StoreContext } from '../../components/store'
-import FormIsPaketBaslikCreate from '../../components/FormIsPaketBaslikCreate'
+// import FormIsPaketBaslikCreate from '../../components/FormIsPaketBaslikCreate'
 import FormIsPaketCreate from '../../components/FormIsPaketCreate'
 import { useNavigate } from "react-router-dom";
 // import { useGetProjelerNames_byFirma } from '../../hooks/useMongo';
@@ -35,7 +35,7 @@ export default function P_IsPaketleri() {
   // const RealmApp = useApp();
   const { appUser, RealmApp } = useContext(StoreContext)
   const { selectedProje, setSelectedProje } = useContext(StoreContext)
-  const { selectedIsPaketBaslik, setSelectedIsPaketBaslik } = useContext(StoreContext)
+  // const { selectedIsPaketBaslik, setSelectedIsPaketBaslik } = useContext(StoreContext)
   const { selectedIsPaket, setSelectedIsPaket } = useContext(StoreContext)
   const { selectedIsPaketVersiyon, setSelectedIsPaketVersiyon } = useContext(StoreContext)
 
@@ -50,6 +50,7 @@ export default function P_IsPaketleri() {
     if (!selectedIsPaketVersiyon) {
       setSelectedIsPaketVersiyon(0)
     }
+    // console.log("selectedProje",selectedProje)
   }, []);
 
 
@@ -57,19 +58,18 @@ export default function P_IsPaketleri() {
   const [show, setShow] = useState("Main")
 
   // const { data: projelerNames_byFirma } = useGetProjelerNames_byFirma()
-  const isPaketBasliklar = selectedProje?.isPaketVersiyonlar?.find(x => x.versiyon === 0).basliklar
+  const isPaketler = selectedProje?.isPaketVersiyonlar?.find(x => x.versiyon === 0).isPaketler
   const aciklamaShow = basliklar?.find(x => x.id === "aciklama").show
 
 
-  const goto_isPaketleriPozlar = ({ oneBaslik, onePaket }) => {
-    setSelectedIsPaketBaslik(oneBaslik)
+  const goto_isPaketleriPozlar = ({ onePaket }) => {
     setSelectedIsPaket(onePaket)
     navigate("/ispaketleripozlar")
   }
 
 
   const css_IsPaketleriBaslik = {
-    display: "grid", px: "0.5rem", backgroundColor: "lightgray", fontWeight: 700, textWrap: "nowrap", border: "1px solid black"
+    display: "grid", mt: "0.1rem", px: "0.5rem", backgroundColor: "lightgray", fontWeight: 700, textWrap: "nowrap", border: "1px solid black"
   }
 
   const css_IsPaketleri = {
@@ -126,7 +126,7 @@ export default function P_IsPaketleri() {
 
             <Box sx={{ display: "grid", gridAutoFlow: "column", alignItems: "center" }}>
 
-              {!(selectedIsPaketBaslik || selectedIsPaket) &&
+              {!selectedIsPaket &&
 
                 <>
 
@@ -145,7 +145,7 @@ export default function P_IsPaketleri() {
                   </Box>
 
                   <Box>
-                    <IconButton onClick={() => setShow("FormIsPaketBaslikCreate")} aria-label="addWbs">
+                    <IconButton onClick={() => setShow("FormIsPaketCreate")} aria-label="addWbs">
                       <AddCircleOutlineIcon variant="contained" color="success" />
                     </IconButton>
                   </Box>
@@ -157,11 +157,10 @@ export default function P_IsPaketleri() {
 
 
 
-              {(selectedIsPaketBaslik || selectedIsPaket) &&
+              {selectedIsPaket &&
                 <>
                   <Grid item>
                     <IconButton onClick={() => {
-                      setSelectedIsPaketBaslik()
                       setSelectedIsPaket()
                     }} aria-label="addWbs">
                       <ClearOutlined variant="contained" color="error" />
@@ -176,11 +175,6 @@ export default function P_IsPaketleri() {
                     </IconButton>
                   </Grid>
 
-                  <Grid item>
-                    <IconButton onClick={() => setShow("FormIsPaketCreate")} aria-label="addWbs">
-                      <AddCircleOutlineIcon variant="contained" color="success" />
-                    </IconButton>
-                  </Grid>
                 </>
               }
 
@@ -193,12 +187,12 @@ export default function P_IsPaketleri() {
 
 
 
-      {
+      {/* {
         show == "FormIsPaketBaslikCreate" &&
         <Box>
           <FormIsPaketBaslikCreate setShow={setShow} />
         </Box>
-      }
+      } */}
 
       {
         show == "FormIsPaketCreate" &&
@@ -208,172 +202,260 @@ export default function P_IsPaketleri() {
       }
 
       {
-        show == "Main" && !isPaketBasliklar?.length > 0 &&
+        show == "Main" && !isPaketler?.length > 0 &&
         <Stack sx={{ width: '100%', padding: "1rem" }} spacing={2}>
           <Alert severity="info">
-            Bir iş paketi başlığı oluşturmak için (+) tuşuna basınız..
+            Bir iş paketi oluşturmak için (+) tuşuna basınız..
           </Alert>
         </Stack>
       }
 
       {
-        show == "Main" && isPaketBasliklar?.length > 0 &&
+        show == "Main" && isPaketler?.length > 0 &&
+
         <Stack sx={{ width: '100%', padding: "1rem", display: "grid", gridTemplateColumns: columns }}>
 
+
+          {/* AKTİF İŞ PAKETLERİ */}
+
           {/* iş paket başlığı adı - en üst satır*/}
-          {isPaketBasliklar.map((oneBaslik, index) => {
+          <Box sx={{ gridColumn: "1/-1", fontWeight: 700, cursor: "pointer" }}>
+            AKTİF İŞ PAKETLERİ
+          </Box>
 
-            let isBaslikSelected
-            if (oneBaslik._id.toString() === selectedIsPaketBaslik?._id.toString()) {
-              isBaslikSelected = true
-            }
+          {/* iş paketleri henüz oluşturulmamış ise */}
+          {!isPaketler.filter(x => x.isActive).length > 0 &&
+            <Box sx={{ gridColumn: "1/-1", py: "0.3rem", mt: "0.2rem", cursor: "pointer", display: "grid", gridAutoFlow: "column", backgroundColor: "rgba(227, 143, 122, 0.15)", alignItems: "center", justifyContent: "start" }}>
+              <InfoIcon variant="contained" sx={{ color: "rgba(223, 123, 98, 1)", fontSize: "1.2rem", m: "0.3rem" }} />
+              <Box>
+                Bu başlık altında henüz iş paketi bulunmuyor.
+              </Box>
+            </Box>
+          }
 
-            return (
+          {isPaketler.filter(x => x.isActive).length > 0 &&
 
-              <React.Fragment key={index}>
+            <React.Fragment>
+              {/* iş paketleri varsa */}
+              <React.Fragment>
 
-                {/* AYRAÇ */}
-                <Box sx={{ display: index === 0 && "none", gridColumn: "1/-1", mt: "1rem", backgroundColor: "darkred", height: "0.2rem" }}></Box>
+                <Box sx={{ ...css_IsPaketleriBaslik, }}>
+                  Sıra
+                </Box>
 
-                <React.Fragment >
+                <Box sx={{ ...css_IsPaketleriBaslik }}>
+                  İş Paketi
+                </Box>
 
-                  <Box onClick={() => {
-                    setSelectedIsPaketBaslik(oneBaslik)
-                    setSelectedIsPaket()
-                  }} sx={{ gridColumn: "1/-1", fontWeight: 700, cursor: "pointer", mt: index !== 0 && "1rem" }}>
-                    <Box sx={{ display: "grid", gridAutoFlow: "column", justifyContent: "start" }}>
-                      <Box>
-                        {oneBaslik.name}
-                      </Box>
-                      {isBaslikSelected &&
-                        <Box sx={{ display: "grid", alignItems: "center" }}>
-                          <LensIcon sx={{ color: "darkred", fontSize: "0.8rem", ml: "0.5rem" }} />
-                        </Box>
-                      }
-                    </Box>
-                  </Box>
+                <Box sx={{ ...css_IsPaketleriBaslik }}>
+                  Keşif
+                </Box>
 
-                  {
-                    aciklamaShow &&
-                    <Box sx={{ gridColumn: "1/8", display: "grid", alignItems: "center", color: "gray", mb: "0.3rem" }}>
-                      {" - "} {oneBaslik.aciklama}
-                    </Box>
-                  }
+                <Box sx={{ ...css_IsPaketleriBaslik }}>
+                  Bütçe
+                </Box>
 
-                </React.Fragment>
+                <Box sx={{ ...css_IsPaketleriBaslik }}>
+                  İş Sonu
+                </Box>
 
+                <Box sx={{ ...css_IsPaketleriBaslik }}>
+                  Gerçekleşen
+                </Box>
 
-                {/* iş paketleri henüz oluşturulmamış ise */}
-                {!oneBaslik.isPaketleri.length > 0 &&
-                  <Box onClick={() => setSelectedIsPaketBaslik(oneBaslik)} sx={{ gridColumn: "1/-1", cursor: "pointer", display: "grid", gridAutoFlow: "column", backgroundColor: "rgba(122, 217, 227, 0.28)", alignItems: "center", justifyContent: "start" }}>
-                    <InfoIcon variant="contained" sx={{ color: "rgba(79, 141, 148, 1)", fontSize: "1.2rem", m: "0.3rem" }} />
-                    <Box>
-                      Bu başlık altında henüz iş paketi oluşturulmamış.
-                    </Box>
-                  </Box>
-                }
-
-                {oneBaslik.isPaketleri.length > 0 &&
-                  <React.Fragment>
-
-                    <Box sx={{ ...css_IsPaketleriBaslik, }}>
-                      Sıra
-                    </Box>
-
-                    <Box sx={{ ...css_IsPaketleriBaslik }}>
-                      İş Paketi
-                    </Box>
-
-                    <Box sx={{ ...css_IsPaketleriBaslik }}>
-                      Keşif
-                    </Box>
-
-                    <Box sx={{ ...css_IsPaketleriBaslik }}>
-                      Bütçe
-                    </Box>
-
-                    <Box sx={{ ...css_IsPaketleriBaslik }}>
-                      İş Sonu
-                    </Box>
-
-                    <Box sx={{ ...css_IsPaketleriBaslik }}>
-                      Gerçekleşen
-                    </Box>
-
-                    <Box sx={{ ...css_IsPaketleriBaslik }}>
-                      Kalan
-                    </Box>
-
-                  </React.Fragment>
-                }
-
-                {/* iş paketleri verileri */}
-                {oneBaslik.isPaketleri.length > 0 && oneBaslik.isPaketleri.map((onePaket, index) => {
-
-                  let isPaketSelected
-                  if (onePaket._id.toString() === selectedIsPaket?._id.toString()) {
-                    isPaketSelected = true
-                  }
-
-                  return (
-
-                    // iş paketleri başlığı
-                    <React.Fragment key={index} >
-
-                      <Box sx={{ ...css_IsPaketleri, justifyContent: "center" }}>
-                        {index + 1}
-                      </Box>
-
-                      <Box
-                        onClick={() => {
-                          setSelectedIsPaketBaslik(oneBaslik)
-                          setSelectedIsPaket(onePaket)
-                        }}
-                        sx={{ ...css_IsPaketleri, cursor: "pointer" }}>
-                        <Box sx={{ display: "grid", gridAutoFlow: "column", gridTemplateColumns: "1fr auto" }}>
-                          <Box>
-                            {onePaket.name}
-                          </Box>
-                          {isPaketSelected &&
-                            <Box sx={{ display: "grid", alignItems: "center" }}>
-                              <LensIcon sx={{ color: "darkred", fontSize: "0.6rem", ml: "0.5rem" }} />
-                            </Box>
-                          }
-                        </Box>
-                      </Box>
-
-                      <Box onClick={() => goto_isPaketleriPozlar({ oneBaslik, onePaket })} sx={{ ...css_IsPaketleri, cursor: "pointer" }}>
-
-                      </Box>
-
-                      <Box sx={{ ...css_IsPaketleri }}>
-
-                      </Box>
-
-                      <Box sx={{ ...css_IsPaketleri }}>
-
-                      </Box>
-
-                      <Box sx={{ ...css_IsPaketleri }}>
-
-                      </Box>
-
-                      <Box sx={{ ...css_IsPaketleri }}>
-
-                      </Box>
-
-                    </React.Fragment>
-                  )
-
-                })}
+                <Box sx={{ ...css_IsPaketleriBaslik }}>
+                  Kalan
+                </Box>
 
               </React.Fragment>
 
-            )
+
+              {/* iş paketleri verileri */}
+              {isPaketler.length > 0 && isPaketler.map((onePaket, index) => {
+
+                let isPaketSelected
+                if (onePaket._id.toString() === selectedIsPaket?._id.toString()) {
+                  isPaketSelected = true
+                }
+
+                return (
+
+                  // iş paketleri başlığı
+                  <React.Fragment key={index} >
+
+                    <Box sx={{ ...css_IsPaketleri, justifyContent: "center" }}>
+                      {index + 1}
+                    </Box>
+
+                    <Box
+                      onClick={() => {
+                        setSelectedIsPaket(onePaket)
+                      }}
+                      sx={{ ...css_IsPaketleri, cursor: "pointer" }}>
+                      <Box sx={{ display: "grid", gridAutoFlow: "column", gridTemplateColumns: "1fr auto" }}>
+                        <Box>
+                          {onePaket.name}
+                        </Box>
+                        {isPaketSelected &&
+                          <Box sx={{ display: "grid", alignItems: "center" }}>
+                            <LensIcon sx={{ color: "darkred", fontSize: "0.6rem", ml: "0.5rem" }} />
+                          </Box>
+                        }
+                      </Box>
+                    </Box>
+
+                    <Box onClick={() => goto_isPaketleriPozlar({ onePaket })} sx={{ ...css_IsPaketleri, cursor: "pointer" }}>
+
+                    </Box>
+
+                    <Box sx={{ ...css_IsPaketleri }}>
+
+                    </Box>
+
+                    <Box sx={{ ...css_IsPaketleri }}>
+
+                    </Box>
+
+                    <Box sx={{ ...css_IsPaketleri }}>
+
+                    </Box>
+
+                    <Box sx={{ ...css_IsPaketleri }}>
+
+                    </Box>
+
+                  </React.Fragment>
+                )
+
+              })}
+
+            </React.Fragment>
+          }
+
+
+          {/* AYRAÇ */}
+          <Box sx={{ gridColumn: "1/-1", mt: "1rem", backgroundColor: "darkred", height: "0.2rem" }}></Box>
+
+
+          {/* PASİF İŞ PAKETLERİ */}
+
+          {/* iş paket başlığı adı - en üst satır*/}
+          <Box sx={{ gridColumn: "1/-1", fontWeight: 700, cursor: "pointer", mt: "1rem" }}>
+            PASİF İŞ PAKETLERİ
+          </Box>
+
+          {/* iş paketleri henüz oluşturulmamış ise */}
+          {!isPaketler.filter(x => !x.isActive).length > 0 &&
+            <Box sx={{ gridColumn: "1/-1", py: "0.3rem", mt: "0.2rem", cursor: "pointer", display: "grid", gridAutoFlow: "column", backgroundColor: "rgba(227, 143, 122, 0.15)", alignItems: "center", justifyContent: "start" }}>
+              <InfoIcon variant="contained" sx={{ color: "rgba(223, 123, 98, 1)", fontSize: "1.2rem", m: "0.3rem" }} />
+              <Box>
+                Bu başlık altında henüz iş paketi bulunmuyor.
+              </Box>
+            </Box>
+          }
+
+          {isPaketler.filter(x => !x.isActive).length > 0 &&
+
+            <React.Fragment>
+              {/* iş paketleri varsa */}
+              <React.Fragment>
+
+                <Box sx={{ ...css_IsPaketleriBaslik, }}>
+                  Sıra
+                </Box>
+
+                <Box sx={{ ...css_IsPaketleriBaslik }}>
+                  İş Paketi
+                </Box>
+
+                <Box sx={{ ...css_IsPaketleriBaslik }}>
+                  Keşif
+                </Box>
+
+                <Box sx={{ ...css_IsPaketleriBaslik }}>
+                  Bütçe
+                </Box>
+
+                <Box sx={{ ...css_IsPaketleriBaslik }}>
+                  İş Sonu
+                </Box>
+
+                <Box sx={{ ...css_IsPaketleriBaslik }}>
+                  Gerçekleşen
+                </Box>
+
+                <Box sx={{ ...css_IsPaketleriBaslik }}>
+                  Kalan
+                </Box>
+
+              </React.Fragment>
+
+
+              {/* iş paketleri verileri */}
+              {isPaketler.length > 0 && isPaketler.map((onePaket, index) => {
+
+                let isPaketSelected
+                if (onePaket._id.toString() === selectedIsPaket?._id.toString()) {
+                  isPaketSelected = true
+                }
+
+                return (
+
+                  // iş paketleri başlığı
+                  <React.Fragment key={index} >
+
+                    <Box sx={{ ...css_IsPaketleri, justifyContent: "center" }}>
+                      {index + 1}
+                    </Box>
+
+                    <Box
+                      onClick={() => {
+                        setSelectedIsPaket(onePaket)
+                      }}
+                      sx={{ ...css_IsPaketleri, cursor: "pointer" }}>
+                      <Box sx={{ display: "grid", gridAutoFlow: "column", gridTemplateColumns: "1fr auto" }}>
+                        <Box>
+                          {onePaket.name}
+                        </Box>
+                        {isPaketSelected &&
+                          <Box sx={{ display: "grid", alignItems: "center" }}>
+                            <LensIcon sx={{ color: "darkred", fontSize: "0.6rem", ml: "0.5rem" }} />
+                          </Box>
+                        }
+                      </Box>
+                    </Box>
+
+                    <Box onClick={() => goto_isPaketleriPozlar({ onePaket })} sx={{ ...css_IsPaketleri, cursor: "pointer" }}>
+
+                    </Box>
+
+                    <Box sx={{ ...css_IsPaketleri }}>
+
+                    </Box>
+
+                    <Box sx={{ ...css_IsPaketleri }}>
+
+                    </Box>
+
+                    <Box sx={{ ...css_IsPaketleri }}>
+
+                    </Box>
+
+                    <Box sx={{ ...css_IsPaketleri }}>
+
+                    </Box>
+
+                  </React.Fragment>
+                )
+
+              })}
+
+            </React.Fragment>
+          }
 
 
 
-          })}
+
 
         </Stack>
       }

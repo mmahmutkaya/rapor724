@@ -64,8 +64,9 @@ export default function P_IsPaketleriPozlar() {
 
   useEffect(() => {
     !selectedProje && navigate('/projeler')
-    !((selectedIsPaketVersiyon === 0 || selectedIsPaketVersiyon > 0) && selectedIsPaketBaslik && selectedIsPaket) && navigate('/ispaketleri')
+    !((selectedIsPaketVersiyon === 0 || selectedIsPaketVersiyon > 0) && selectedIsPaket) && navigate('/ispaketleri')
   }, [])
+
 
   useEffect(() => {
 

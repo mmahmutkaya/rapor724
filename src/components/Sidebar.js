@@ -251,7 +251,6 @@ export default function Sidebar({ setMobileOpen }) {
             <ListItemButton
               onClick={() => {
                 navigate('/ispaketleri')
-                setSelectedIsPaketBaslik()
                 setSelectedIsPaket()
               }}
               sx={{ backgroundColor: pathname.includes("/ispaketleri") ? seciliSayfaRengi : null, '&:hover': { backgroundColor: seciliSayfaRengi } }}

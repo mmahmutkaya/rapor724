@@ -49,7 +49,7 @@ export default ({ children }) => {
   const [selectedMahal, setSelectedMahal] = useState()
   const [selectedMahalBaslik, setSelectedMahalBaslik] = useState()
   const [selectedWbs, setSelectedWbs] = useState()
-  const [selectedIsPaketBaslik, setSelectedIsPaketBaslik] = useState()
+  // const [selectedIsPaketBaslik, setSelectedIsPaketBaslik] = useState()
   const [selectedIsPaket, setSelectedIsPaket] = useState()
   const [selectedIsPaketVersiyon, setSelectedIsPaketVersiyon] = useState()
 
@@ -96,7 +96,7 @@ export default ({ children }) => {
     selectedMahal, setSelectedMahal,
     selectedMahalBaslik, setSelectedMahalBaslik,
     selectedWbs, setSelectedWbs,
-    selectedIsPaketBaslik, setSelectedIsPaketBaslik,
+    // selectedIsPaketBaslik, setSelectedIsPaketBaslik,
     selectedIsPaket, setSelectedIsPaket,
     selectedIsPaketVersiyon, setSelectedIsPaketVersiyon,
 

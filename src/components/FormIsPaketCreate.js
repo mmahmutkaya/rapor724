@@ -36,7 +36,7 @@ export default function FormIsPaketCreate({ setShow }) {
   const navigate = useNavigate()
 
   const { appUser, setAppUser, selectedProje, setSelectedProje } = useContext(StoreContext)
-  const { selectedIsPaketBaslik } = useContext(StoreContext)
+  // const { selectedIsPaketBaslik } = useContext(StoreContext)
 
 
   const [isPaketName, setIsPaketName] = useState("")
@@ -89,8 +89,8 @@ export default function FormIsPaketCreate({ setShow }) {
         isError = true
       }
 
-      let theBaslik = selectedProje?.isPaketVersiyonlar?.find(oneVersiyon => oneVersiyon.versiyon === 0).basliklar.find(oneBaslik => oneBaslik._id.toString() === selectedIsPaketBaslik._id.toString())
-      if (theBaslik.isPaketleri.find(onePaket => onePaket.name === isPaketName) && !isPaketNameError) {
+      let theVersiyon = selectedProje?.isPaketVersiyonlar?.find(oneVersiyon => oneVersiyon.versiyon === 0)
+      if (theVersiyon.isPaketler.find(onePaket => onePaket.name === isPaketName) && !isPaketNameError) {
         setIsPaketNameError("Bu başlık altında bu 'iş paket' ismi kullanılmış.")
         isPaketNameError = true
         isError = true
@@ -118,7 +118,7 @@ export default function FormIsPaketCreate({ setShow }) {
           token: appUser.token,
           'Content-Type': 'application/json'
         },
-        body: JSON.stringify({ projeId, baslikId: selectedIsPaketBaslik._id, isPaketName, aciklama })
+        body: JSON.stringify({ projeId, isPaketName, aciklama })
       })
 
       const responseJson = await response.json()
@@ -144,12 +144,7 @@ export default function FormIsPaketCreate({ setShow }) {
         let proje = _.cloneDeep(selectedProje)
         proje.isPaketVersiyonlar = proje.isPaketVersiyonlar.map(oneVersiyon => {
           if (oneVersiyon.versiyon === 0) {
-            oneVersiyon.basliklar.map(oneBaslik => {
-              if (oneBaslik._id.toString() === selectedIsPaketBaslik._id.toString()) {
-                oneBaslik.isPaketleri = [...oneBaslik.isPaketleri, responseJson.newPaket]
-              }
-              return oneBaslik
-            })
+            oneVersiyon.isPaketler = [...oneVersiyon.isPaketler, responseJson.newPaket]
           }
           return oneVersiyon
         })
