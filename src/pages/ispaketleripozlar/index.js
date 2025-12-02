@@ -31,14 +31,14 @@ import ReplyIcon from '@mui/icons-material/Reply';
 
 
 
-export default function P_IsPaketleriPozlar() {
+export default function P_IsPaketleriPozlar() { 
 
   const navigate = useNavigate()
   const queryClient = useQueryClient()
 
   const { data: dataPozlar, error: error1, isFetching: isFetching1 } = useGetPozlar()
   const { data: dataIsPaketleriPozMetrajlarByVersiyon, error: error2, isFetching: isFetching2 } = useGetPozMetrajlarİsPaketByVersiyon()
-
+ 
   // let pozlar = data?.pozlar?.filter(x => x.hasDugum)
 
   const [pozlar_state, setPozlar_state] = useState()
@@ -122,6 +122,9 @@ export default function P_IsPaketleriPozlar() {
       })
 
       // console.log("wbsArray",wbsArray)
+      // console.log("pozlar",pozlar)
+      // console.log("dataIsPaketleriPozMetrajlarByVersiyon?.isPaketleriPozMetrajlarByVersiyon",dataIsPaketleriPozMetrajlarByVersiyon?.isPaketleriPozMetrajlarByVersiyon)
+
       setPozlar_state(pozlar)
       setWbsArray_state(wbsArray)
       setIsPaketleriPozMetrajlarByVersiyon_state(_.cloneDeep(dataIsPaketleriPozMetrajlarByVersiyon?.isPaketleriPozMetrajlarByVersiyon))
@@ -498,7 +501,7 @@ export default function P_IsPaketleriPozlar() {
                   }
 
                 </>
-
+ 
 
                 {/* WBS'İN POZLARI */}
                 {pozlar_state?.filter(x => x._wbsId.toString() === oneWbs._id.toString()).map((onePoz, index) => {

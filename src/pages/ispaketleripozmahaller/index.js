@@ -78,7 +78,7 @@ export default function P_IsPaketleriPozMahaller() {
 
   useEffect(() => {
     !selectedPoz && navigate('/ispaketleripozlar')
-    !((selectedIsPaketVersiyon === 0 || selectedIsPaketVersiyon > 0) && selectedIsPaketBaslik && selectedIsPaket) && navigate('/ispaketleri')
+    !((selectedIsPaketVersiyon === 0 || selectedIsPaketVersiyon > 0) && selectedIsPaket) && navigate('/ispaketleri')
     setMahaller_state(_.cloneDeep(dataMahaller?.mahaller))
     setDugumler_byPoz_state(_.cloneDeep(dataGetDugumler_byPoz?.dugumler_byPoz))
     return () => {
@@ -329,9 +329,8 @@ export default function P_IsPaketleriPozMahaller() {
   let selectedPozVersiyonPaketMetraj = dugumler_byPoz_state
     ?.filter(dugum =>
       dugum.isPaketVersiyonlar
-        .find(oneVersiyon => oneVersiyon.versiyon === selectedIsPaketVersiyon).basliklar
-        .find(oneBaslik => oneBaslik._id.toString() === selectedIsPaketBaslik._id.toString())
-        ._paketId === selectedIsPaket._id.toString()
+        .find(oneVersiyon => oneVersiyon.versiyon === selectedIsPaketVersiyon).isPaketler
+        .find(onePaket => onePaket._id.toString() === selectedIsPaket._id.toString())
     ).reduce((accumulator, oneDugum) => oneDugum.metrajOnaylanan ? accumulator + oneDugum.metrajOnaylanan : accumulator, 0)
 
 
@@ -601,9 +600,8 @@ export default function P_IsPaketleriPozMahaller() {
               ?.filter(x => mahaller_byLbs.find(y => y._id.toString() === x._mahalId.toString()))
               ?.filter(dugum =>
                 dugum.isPaketVersiyonlar
-                  .find(oneVersiyon => oneVersiyon.versiyon === selectedIsPaketVersiyon).basliklar
-                  .find(oneBaslik => oneBaslik._id.toString() === selectedIsPaketBaslik._id.toString())
-                  ._paketId === selectedIsPaket._id.toString()
+                  .find(oneVersiyon => oneVersiyon.versiyon === selectedIsPaketVersiyon).isPaketler
+                  .find(onePaket => onePaket._id.toString() === selectedIsPaket._id.toString())
               ).reduce((accumulator, oneDugum) => oneDugum.metrajOnaylanan ? accumulator + oneDugum.metrajOnaylanan : accumulator, 0)
 
 
@@ -657,12 +655,9 @@ export default function P_IsPaketleriPozMahaller() {
                     return
                   }
 
-                  let _paketId = dugum.isPaketVersiyonlar
-                    .find(oneVersiyon => oneVersiyon.versiyon === selectedIsPaketVersiyon).basliklar
-                    .find(oneBaslik => oneBaslik._id.toString() === selectedIsPaketBaslik._id.toString())._paketId
-
-                  let isSelectedOther = _paketId && _paketId.toString() !== selectedIsPaket._id.toString()
-                  let isSelectedThis = _paketId && _paketId.toString() === selectedIsPaket._id.toString()
+                  let isPaketler = dugum.isPaketVersiyonlar.find(oneVersiyon => oneVersiyon.versiyon === selectedIsPaketVersiyon).isPaketler
+                  let isSelectedThis = isPaketler.find(onePaket => onePaket._id.toString() === selectedIsPaket._id.toString())
+                  let isSelectedOther = isPaketler.filter(onePaket => onePaket._id.toString() !== selectedIsPaket._id.toString()).length > 0
 
 
                   return (
