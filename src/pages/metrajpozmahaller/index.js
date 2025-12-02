@@ -78,19 +78,19 @@ export default function P_MetrajPozMahaller() {
 
 
   const { data: dataMahaller, error: error1, isFetching: isFetching1 } = useGetMahaller()
-  const { data: dataGetDugumler_byPoz, error: error2, isFetching: isFetching2 } = useGetDugumler_byPoz()
+  const { data: dataDugumler_byPoz, error: error2, isFetching: isFetching2 } = useGetDugumler_byPoz()
 
 
   const mahaller_byPoz = dataMahaller?.mahaller?.filter(oneMahal => dugumler_byPoz_state?.find(oneDugum => oneDugum._mahalId.toString() === oneMahal._id.toString()))
 
   useEffect(() => {
     !selectedPoz && navigate('/metrajpozlar')
-    setDugumler_byPoz_state(_.cloneDeep(dataGetDugumler_byPoz?.dugumler_byPoz))
-    setDugumler_byPoz_backup(_.cloneDeep(dataGetDugumler_byPoz?.dugumler_byPoz))
-    // console.log("dugumler_byPoz",dataGetDugumler_byPoz?.dugumler_byPoz)
-    setLbsMetrajlar(_.cloneDeep(dataGetDugumler_byPoz?.lbsMetrajlar))
-    setAnySelectable(dataGetDugumler_byPoz?.anySelectable)
-  }, [dataMahaller, dataGetDugumler_byPoz])
+    setDugumler_byPoz_state(_.cloneDeep(dataDugumler_byPoz?.dugumler_byPoz))
+    setDugumler_byPoz_backup(_.cloneDeep(dataDugumler_byPoz?.dugumler_byPoz))
+    // console.log("dugumler_byPoz",dataDugumler_byPoz?.dugumler_byPoz)
+    setLbsMetrajlar(_.cloneDeep(dataDugumler_byPoz?.lbsMetrajlar))
+    setAnySelectable(dataDugumler_byPoz?.anySelectable)
+  }, [dataMahaller, dataDugumler_byPoz])
 
 
   useEffect(() => {

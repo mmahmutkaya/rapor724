@@ -433,7 +433,7 @@ export const useGetDugumler_byPoz = () => {
   const { appUser, setAppUser, selectedProje, selectedPoz } = useContext(StoreContext)
 
   return useQuery({
-    queryKey: ['dataMahalListesi_byPoz'],
+    queryKey: ['dataDugumler_byPoz'],
     queryFn: async () => {
       const response = await fetch('api/dugumler/bypoz', {
         method: 'GET',

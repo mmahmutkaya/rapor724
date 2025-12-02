@@ -76,23 +76,23 @@ export default function P_MetrajOnaylaPozMahaller() {
 
 
   const { data: dataMahaller, error: error1, isFetching: isLoading1 } = useGetMahaller()
-  const { data: dataMahalListesi_byPoz, error: error2, isFetching: isLoading2 } = useGetDugumler_byPoz()
+  const { data: dataDugumler_byPoz, error: error2, isFetching: isLoading2 } = useGetDugumler_byPoz()
 
 
   const mahaller_byPoz = dataMahaller?.mahaller?.filter(oneMahal => dugumler_byPoz_state?.find(oneDugum => oneDugum._mahalId.toString() === oneMahal._id.toString()))
 
   useEffect(() => {
     !selectedPoz && navigate('/metrajpozlar')
-    setDugumler_byPoz_state(_.cloneDeep(dataMahalListesi_byPoz?.dugumler_byPoz))
-    setDugumler_byPoz_backup(_.cloneDeep(dataMahalListesi_byPoz?.dugumler_byPoz))
-    // console.log("dugumler_byPoz",dataMahalListesi_byPoz?.dugumler_byPoz)
-    setLbsMetrajlar(_.cloneDeep(dataMahalListesi_byPoz?.lbsMetrajlar))
-    setAnySelectable(dataMahalListesi_byPoz?.anySelectable)
+    setDugumler_byPoz_state(_.cloneDeep(dataDugumler_byPoz?.dugumler_byPoz))
+    setDugumler_byPoz_backup(_.cloneDeep(dataDugumler_byPoz?.dugumler_byPoz))
+    // console.log("dugumler_byPoz",dataDugumler_byPoz?.dugumler_byPoz)
+    setLbsMetrajlar(_.cloneDeep(dataDugumler_byPoz?.lbsMetrajlar))
+    setAnySelectable(dataDugumler_byPoz?.anySelectable)
     return () => {
       // setselectedPoz_metraj()
       // setDugumler_filtered()
     }
-  }, [dataMahalListesi_byPoz])
+  }, [dataDugumler_byPoz])
 
 
   useEffect(() => {
@@ -386,7 +386,7 @@ export default function P_MetrajOnaylaPozMahaller() {
           setShow("Main")
           setIsChange_select()
           setMode_select()
-          queryClient.invalidateQueries(['dataMahalListesi_byPoz'])
+          queryClient.invalidateQueries(['dataDugumler_byPoz'])
         } else {
           throw new Error("Kayıt işleminde hata oluştu, sayfayı yenileyiniz, sorun devam ederse, Rapor7/24 ile iletişime geçiniz.")
         }
@@ -403,7 +403,7 @@ export default function P_MetrajOnaylaPozMahaller() {
             setShow("Main")
             setIsChange_select()
             setMode_select()
-            queryClient.invalidateQueries(['dataMahalListesi_byPoz'])
+            queryClient.invalidateQueries(['dataDugumler_byPoz'])
             setDialogAlert()
           }
         })
@@ -592,7 +592,7 @@ export default function P_MetrajOnaylaPozMahaller() {
               Toplam Metraj
             </Box>
             <Box sx={{ ...css_enUstBaslik, justifyContent: "end" }}>
-              {ikiHane(dataMahalListesi_byPoz?.metrajOnaylanan)}
+              {ikiHane(dataDugumler_byPoz?.metrajOnaylanan)}
             </Box>
             <Box sx={{ ...css_enUstBaslik, justifyContent: "center" }}>
               {pozBirim}
@@ -616,7 +616,7 @@ export default function P_MetrajOnaylaPozMahaller() {
                       onClick={() => mode_select && addNodes_select({ tip: "all", userEmail: oneYapabilen.userEmail })}
                       key={index}
                       sx={{ ...css_enUstBaslik, cursor: mode_select && "pointer", borderLeft: "1px solid black", justifyContent: "end" }}>
-                      {ikiHane(dataMahalListesi_byPoz?.hazirlananMetrajlar.find(x => x.userEmail === oneYapabilen.userEmail)?.metrajReady)}
+                      {ikiHane(dataDugumler_byPoz?.hazirlananMetrajlar.find(x => x.userEmail === oneYapabilen.userEmail)?.metrajReady)}
                     </Box>
                   )
                 })}

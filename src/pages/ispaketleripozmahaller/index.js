@@ -71,7 +71,7 @@ export default function P_IsPaketleriPozMahaller() {
 
 
   const { data: dataMahaller, error: error1, isFetching: isFetching1 } = useGetMahaller()
-  const { data: dataGetDugumler_byPoz, error: error2, isFetching: isFetching2 } = useGetDugumler_byPoz()
+  const { data: dataDugumler_byPoz, error: error2, isFetching: isFetching2 } = useGetDugumler_byPoz()
 
 
   // const mahaller = dataMahaller?.mahaller?.filter(oneMahal => dugumler_byPoz_state?.find(oneDugum => oneDugum._mahalId.toString() === oneMahal._id.toString()))
@@ -80,11 +80,11 @@ export default function P_IsPaketleriPozMahaller() {
     !selectedPoz && navigate('/ispaketleripozlar')
     !((selectedIsPaketVersiyon === 0 || selectedIsPaketVersiyon > 0) && selectedIsPaket) && navigate('/ispaketleri')
     setMahaller_state(_.cloneDeep(dataMahaller?.mahaller))
-    setDugumler_byPoz_state(_.cloneDeep(dataGetDugumler_byPoz?.dugumler_byPoz))
+    setDugumler_byPoz_state(_.cloneDeep(dataDugumler_byPoz?.dugumler_byPoz))
     return () => {
       setMahaller_state()
     }
-  }, [dataGetDugumler_byPoz])
+  }, [dataDugumler_byPoz])
 
 
   useEffect(() => {
@@ -212,7 +212,7 @@ export default function P_IsPaketleriPozMahaller() {
 
 
   const cancelChange = () => {
-    setDugumler_byPoz_state(_.cloneDeep(dataGetDugumler_byPoz?.dugumler_byPoz))
+    setDugumler_byPoz_state(_.cloneDeep(dataDugumler_byPoz?.dugumler_byPoz))
     setIsChanged()
   }
 
@@ -253,7 +253,7 @@ export default function P_IsPaketleriPozMahaller() {
       }
 
       if (responseJson.ok) {
-        queryClient.invalidateQueries(['dataMahalListesi_byPoz'])
+        queryClient.invalidateQueries(['dataDugumler_byPoz'])
         setIsChanged()
       } else {
         console.log("result", responseJson)
@@ -268,7 +268,7 @@ export default function P_IsPaketleriPozMahaller() {
         dialogMessage: "Beklenmedik hata, Rapor7/24 ile irtibata geçiniz..",
         detailText: err?.message ? err.message : null,
         onCloseAction: () => {
-          setDugumler_byPoz_state(_.cloneDeep(dataGetDugumler_byPoz?.dugumler_byPoz))
+          setDugumler_byPoz_state(_.cloneDeep(dataDugumler_byPoz?.dugumler_byPoz))
           setIsChanged()
           setDialogAlert()
         }
@@ -595,7 +595,7 @@ export default function P_IsPaketleriPozMahaller() {
               return
             }
 
-            const lbsMetraj = dataGetDugumler_byPoz?.lbsMetrajlar?.find(x => x._id.toString() === oneLbs._id.toString())
+            const lbsMetraj = dataDugumler_byPoz?.lbsMetrajlar?.find(x => x._id.toString() === oneLbs._id.toString())
             const lbsMetrajSecili = dugumler_byPoz_state
               ?.filter(x => mahaller_byLbs.find(y => y._id.toString() === x._mahalId.toString()))
               ?.filter(dugum =>

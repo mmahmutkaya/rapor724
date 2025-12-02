@@ -71,7 +71,7 @@ export default function P_MehalListesiPozMahaller() {
 
 
   const { data: dataMahaller, error: error1, isFetching: isFetching1 } = useGetMahaller()
-  const { data: dataGetDugumler_byPoz, error: error2, isFetching: isFetching2 } = useGetDugumler_byPoz()
+  const { data: dataDugumler_byPoz, error: error2, isFetching: isFetching2 } = useGetDugumler_byPoz()
 
 
   // const mahaller = dataMahaller?.mahaller?.filter(oneMahal => dugumler_byPoz_state?.find(oneDugum => oneDugum._mahalId.toString() === oneMahal._id.toString()))
@@ -247,7 +247,7 @@ export default function P_MehalListesiPozMahaller() {
 
       if (responseJson.ok) {
         queryClient.invalidateQueries(['dataMahaller'])
-        queryClient.invalidateQueries(['dataMahalListesi_byPoz'])
+        queryClient.invalidateQueries(['dataDugumler_byPoz'])
         setIsChanged()
       } else {
         console.log("result", responseJson)
@@ -263,7 +263,7 @@ export default function P_MehalListesiPozMahaller() {
         detailText: err?.message ? err.message : null,
         onCloseAction: () => {
           queryClient.invalidateQueries(['dataMahaller'])
-          queryClient.invalidateQueries(['dataMahalListesi_byPoz'])
+          queryClient.invalidateQueries(['dataDugumler_byPoz'])
           setIsChanged()
           setDialogAlert()
         }
@@ -402,7 +402,7 @@ export default function P_MehalListesiPozMahaller() {
               return
             }
 
-            const lbsMetraj = dataGetDugumler_byPoz?.lbsMetrajlar?.find(x => x._id.toString() === oneLbs._id.toString())
+            const lbsMetraj = dataDugumler_byPoz?.lbsMetrajlar?.find(x => x._id.toString() === oneLbs._id.toString())
 
             return (
               <React.Fragment key={index}>
@@ -422,7 +422,7 @@ export default function P_MehalListesiPozMahaller() {
                 {/* MAHAL SATIRLARI */}
                 {mahaller_byLbs?.map((oneMahal, index) => {
 
-                  let dugum = dataGetDugumler_byPoz?.dugumler_byPoz?.find(oneDugum => oneDugum._mahalId.toString() === oneMahal._id.toString())
+                  let dugum = dataDugumler_byPoz?.dugumler_byPoz?.find(oneDugum => oneDugum._mahalId.toString() === oneMahal._id.toString())
                   if (!oneMahal.newSelected && dugum) {
                     oneMahal.hasDugum = true
                   }
