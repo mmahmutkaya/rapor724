@@ -187,14 +187,12 @@ export default function P_IsPaketleriPozMahaller() {
         oneDugum2.newSelected = true
         oneDugum2.newSelectedValue = toggleValue
 
-        oneDugum2.isPaketVersiyonlar.map(oneVersiyon => {
+        oneDugum2.isPaketVersiyonlar = oneDugum2.isPaketVersiyonlar.map(oneVersiyon => {
           if (oneVersiyon.versiyon === selectedIsPaketVersiyon) {
-            oneVersiyon.basliklar.map(oneBaslik => {
-              if (oneBaslik._id.toString() === selectedIsPaketBaslik._id.toString()) {
-                oneBaslik._paketId = toggleValue ? selectedIsPaket._id : null
-                return oneBaslik
-              }
-            })
+            oneVersiyon.isPaketler = oneVersiyon.isPaketler.filter(x => x._id.toString() !== selectedIsPaket._id.toString())
+            if (toggleValue) {
+              oneVersiyon.isPaketler = [...oneVersiyon.isPaketler, { _id: selectedIsPaket._id }]
+            }
             return oneVersiyon
           }
         })
@@ -205,6 +203,7 @@ export default function P_IsPaketleriPozMahaller() {
     })
 
     setIsChanged(true)
+    // console.log("dugumler_byPoz_state2", dugumler_byPoz_state2)
     setDugumler_byPoz_state(dugumler_byPoz_state2)
 
   }
@@ -330,7 +329,7 @@ export default function P_IsPaketleriPozMahaller() {
     ?.filter(dugum =>
       dugum.isPaketVersiyonlar
         .find(oneVersiyon => oneVersiyon.versiyon === selectedIsPaketVersiyon).isPaketler
-        .find(onePaket => onePaket._id.toString() === selectedIsPaket._id.toString())
+        .find(onePaket => onePaket?._id.toString() === selectedIsPaket._id.toString())
     ).reduce((accumulator, oneDugum) => oneDugum.metrajOnaylanan ? accumulator + oneDugum.metrajOnaylanan : accumulator, 0)
 
 
@@ -655,6 +654,8 @@ export default function P_IsPaketleriPozMahaller() {
                     return
                   }
 
+                  let theMetraj = dugum.metrajOnaylanan
+
                   let isPaketler = dugum.isPaketVersiyonlar.find(oneVersiyon => oneVersiyon.versiyon === selectedIsPaketVersiyon).isPaketler
                   let isSelectedThis = isPaketler.find(onePaket => onePaket._id.toString() === selectedIsPaket._id.toString())
                   let isSelectedOther = isPaketler.filter(onePaket => onePaket._id.toString() !== selectedIsPaket._id.toString()).length > 0
@@ -679,14 +680,14 @@ export default function P_IsPaketleriPozMahaller() {
                       </Box>
 
                       <Box onClick={() => !isSelectedOther && handleDugumToggle({ dugum, toggleValue: !isSelectedThis, dugum })} sx={{ ...css_mahaller, backgroundColor: isSelectedOther ? "lightgray" : isSelectedThis && selectedThisPaketColor, justifyContent: "end" }}>
-                        {dugum?.metrajOnaylanan && ikiHane(dugum?.metrajOnaylanan)} {dugum?.metrajOnaylanan && pozBirim}
+                        {theMetraj > 0 && ikiHane(theMetraj)} {theMetraj > 0 && pozBirim}
                       </Box>
 
                       <Box sx={{ backgroundColor: ayracRenk_bordo }}>
                       </Box>
 
                       <Box onClick={() => !isSelectedOther && handleDugumToggle({ dugum, toggleValue: !isSelectedThis })} sx={{ ...css_mahaller, backgroundColor: isSelectedOther ? "lightgray" : isSelectedThis && selectedThisPaketColor, justifyContent: "end" }}>
-                        {isSelectedThis && dugum?.metrajOnaylanan && ikiHane(dugum?.metrajOnaylanan)} {isSelectedThis && dugum?.metrajOnaylanan && pozBirim}
+                        {isSelectedThis && theMetraj > 0 && ikiHane(theMetraj)} {isSelectedThis && theMetraj > 0 && pozBirim}
                       </Box>
 
                       {paraBirimiAdet > 0 &&
@@ -694,7 +695,7 @@ export default function P_IsPaketleriPozMahaller() {
                           <Box sx={{ backgroundColor: ayracRenk_bordo }}></Box>
                           {selectedProje?.paraBirimleri?.filter(x => x.isActive).map((oneBirim, index) => {
                             let birimFiyat = selectedPoz?.birimFiyatlar?.find(x => x.id === oneBirim.id)
-                            let tutar = isSelectedThis && dugum?.metrajOnaylanan * birimFiyat?.fiyat
+                            let tutar = isSelectedThis && theMetraj * birimFiyat?.fiyat
 
                             return (
                               <Box key={index} sx={{ ...css_mahaller, justifyContent: "end", backgroundColor: isSelectedOther ? "lightgray" : isSelectedThis && selectedThisPaketColor }}>

@@ -58,7 +58,7 @@ export default function P_IsPaketleri() {
   const [show, setShow] = useState("Main")
 
   // const { data: projelerNames_byFirma } = useGetProjelerNames_byFirma()
-  const isPaketler = selectedProje?.isPaketVersiyonlar?.find(x => x.versiyon === 0).isPaketler
+  const isPaketler = selectedProje.isPaketler
   const aciklamaShow = basliklar?.find(x => x.id === "aciklama").show
 
 
