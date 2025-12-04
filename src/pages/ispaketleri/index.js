@@ -58,7 +58,7 @@ export default function P_IsPaketleri() {
   const [show, setShow] = useState("Main")
 
   // const { data: projelerNames_byFirma } = useGetProjelerNames_byFirma()
-  const isPaketler = selectedProje.isPaketler
+  const isPaketler = selectedProje?.isPaketler
   const aciklamaShow = basliklar?.find(x => x.id === "aciklama").show
 
 
@@ -225,7 +225,7 @@ export default function P_IsPaketleri() {
 
           {/* iş paketleri henüz oluşturulmamış ise */}
           {!isPaketler.filter(x => x.isActive).length > 0 &&
-            <Box sx={{ gridColumn: "1/-1", py: "0.3rem", mt: "0.2rem", cursor: "pointer", display: "grid", gridAutoFlow: "column", backgroundColor: "rgba(227, 143, 122, 0.15)", alignItems: "center", justifyContent: "start" }}>
+            <Box sx={{ gridColumn: "1/-1", py: "0.5rem", mt: "0.2rem", cursor: "pointer", display: "grid", gridAutoFlow: "column", backgroundColor: "rgba(227, 143, 122, 0.15)", alignItems: "center", justifyContent: "start" }}>
               <InfoIcon variant="contained" sx={{ color: "rgba(223, 123, 98, 1)", fontSize: "1.2rem", m: "0.3rem" }} />
               <Box>
                 Bu başlık altında henüz iş paketi bulunmuyor.
@@ -346,7 +346,7 @@ export default function P_IsPaketleri() {
 
           {/* iş paketleri henüz oluşturulmamış ise */}
           {!isPaketler.filter(x => !x.isActive).length > 0 &&
-            <Box sx={{ gridColumn: "1/-1", py: "0.3rem", mt: "0.2rem", cursor: "pointer", display: "grid", gridAutoFlow: "column", backgroundColor: "rgba(227, 143, 122, 0.15)", alignItems: "center", justifyContent: "start" }}>
+            <Box sx={{ gridColumn: "1/-1", py: "0.5rem", mt: "0.2rem", cursor: "pointer", display: "grid", gridAutoFlow: "column", backgroundColor: "rgba(227, 143, 122, 0.15)", alignItems: "center", justifyContent: "start" }}>
               <InfoIcon variant="contained" sx={{ color: "rgba(223, 123, 98, 1)", fontSize: "1.2rem", m: "0.3rem" }} />
               <Box>
                 Bu başlık altında henüz iş paketi bulunmuyor.

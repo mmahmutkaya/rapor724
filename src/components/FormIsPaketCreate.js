@@ -48,7 +48,7 @@ export default function FormIsPaketCreate({ setShow }) {
   const [dialogAlert, setDialogAlert] = useState()
 
 
-  const isPaketBasliklari = selectedProje?.isPaketBasliklari
+  // const isPaketBasliklari = selectedProje?.isPaketBasliklari
 
 
   async function handleSubmit(event) {
@@ -89,8 +89,7 @@ export default function FormIsPaketCreate({ setShow }) {
         isError = true
       }
 
-      let theVersiyon = selectedProje?.isPaketVersiyonlar?.find(oneVersiyon => oneVersiyon.versiyon === 0)
-      if (theVersiyon.isPaketler.find(onePaket => onePaket.name === isPaketName) && !isPaketNameError) {
+      if (selectedProje.isPaketler.find(onePaket => onePaket.name === isPaketName) && !isPaketNameError) {
         setIsPaketNameError("Bu başlık altında bu 'iş paket' ismi kullanılmış.")
         isPaketNameError = true
         isError = true
@@ -142,12 +141,7 @@ export default function FormIsPaketCreate({ setShow }) {
 
       if (responseJson.newPaket) {
         let proje = _.cloneDeep(selectedProje)
-        proje.isPaketVersiyonlar = proje.isPaketVersiyonlar.map(oneVersiyon => {
-          if (oneVersiyon.versiyon === 0) {
-            oneVersiyon.isPaketler = [...oneVersiyon.isPaketler, responseJson.newPaket]
-          }
-          return oneVersiyon
-        })
+        proje.isPaketler = [...proje.isPaketler, responseJson.newPaket]
         setSelectedProje(proje)
         setShow("Main")
         return

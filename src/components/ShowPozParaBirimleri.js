@@ -127,7 +127,8 @@ export default function ShowPozParaBirimleri({ setShow, paraBirimleri, setParaBi
         />
       }
 
-      {!paraBirimleri.length &&
+
+      {!paraBirimleri.length > 0 &&
         <DialogAlert
           dialogIcon={"info"}
           dialogMessage={"Firma ayarlarından para birimi eklenmesi gerekmekte"}
@@ -144,7 +145,7 @@ export default function ShowPozParaBirimleri({ setShow, paraBirimleri, setParaBi
       }
 
 
-      {paraBirimleri.length &&
+      {paraBirimleri.length > 0 &&
 
         <Dialog
           PaperProps={{ sx: { maxWidth: "30rem", minWidth: "20rem", position: "fixed", top: "10rem", p: "1.5rem" } }}
@@ -210,7 +211,6 @@ export default function ShowPozParaBirimleri({ setShow, paraBirimleri, setParaBi
 
     </ >
   );
-
 
 
 }

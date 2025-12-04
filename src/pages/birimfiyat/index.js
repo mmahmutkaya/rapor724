@@ -526,7 +526,7 @@ export default function P_BirimFiyat() {
       {!isLoading && show == "Main" && !selectedProje?.wbs?.find(x => x.openForPoz === true) &&
         <Stack sx={{ width: '100%', m: "0rem", p: "1rem" }} spacing={2}>
           <Alert severity="info">
-            Öncelikle poz oluşturmaya açık poz başlığı oluşturmalısınız.
+            Bu projeye ait herhangi bir poz bulunmuyor.
           </Alert>
         </Stack>
       }
@@ -537,7 +537,7 @@ export default function P_BirimFiyat() {
       {!isLoading && show == "Main" && selectedProje?.wbs?.find(x => x.openForPoz === true) && !pozlar_state?.length > 0 &&
         <Stack sx={{ width: '100%', m: "0rem", p: "1rem" }} spacing={2}>
           <Alert severity="info">
-            Menüler yardımı ile poz oluşturmaya başlayabilirsiniz.
+            Bu projeye ait herhangi bir poz bulunmuyor.
           </Alert>
         </Stack>
       }
