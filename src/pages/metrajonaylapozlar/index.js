@@ -63,6 +63,7 @@ export default function P_MetrajOnaylaPozlar() {
   useEffect(() => {
     !selectedProje && navigate('/projeler')
     setShowMetrajYapabilenler(appUser?.customSettings?.pages.metrajonayla.showMetrajYapabilenler)
+    // console.log("showMetrajYapabilenler", appUser?.customSettings?.pages.metrajonayla.showMetrajYapabilenler)
   }, [])
 
   useEffect(() => {
@@ -257,7 +258,7 @@ export default function P_MetrajOnaylaPozlar() {
       {!isLoading && show == "Main" && !selectedProje?.wbs?.find(x => x.openForPoz === true) &&
         <Stack sx={{ width: '100%', mt: "3.5rem", p: "1rem" }} spacing={2}>
           <Alert severity="info">
-            Öncelikle poz oluşturmaya açık poz başlığı oluşturmalısınız.
+            Mahallistesi henüz boş.
           </Alert>
         </Stack>
       }
@@ -267,7 +268,7 @@ export default function P_MetrajOnaylaPozlar() {
       {!isLoading && show == "Main" && selectedProje?.wbs?.find(x => x.openForPoz === true) && !pozlar?.length > 0 &&
         <Stack sx={{ width: '100%', mt: "3.5rem", p: "1rem" }} spacing={2}>
           <Alert severity="info">
-            Herhangi bir mahal, herhangi bir poz ile henüz eşleştirilmemiş, 'mahallistesi' menüsüne gidiniz.
+            Mahallistesi henüz boş.
           </Alert>
         </Stack>
       }

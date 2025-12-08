@@ -168,7 +168,7 @@ export default function P_MahalListesiPozlar() {
 
 
       {isLoading &&
-        <Box sx={{ mt: "4.5rem", ml:"1rem", color: 'gray' }}>
+        <Box sx={{ mt: "4.5rem", ml: "1rem", color: 'gray' }}>
           <LinearProgress color='inherit' />
         </Box>
       }
@@ -176,10 +176,10 @@ export default function P_MahalListesiPozlar() {
 
 
       {/* EĞER POZ BAŞLIĞI YOKSA */}
-      {!isLoading && show == "Main" && false &&
+      {!isLoading && show == "Main" && !dataPozlar?.pozlar?.length > 0 &&
         <Stack sx={{ width: '100%', mt: "3.5rem", p: "1rem" }} spacing={2}>
           <Alert severity="info">
-            Öncelikle poz oluşturmaya açık poz başlığı oluşturmalısınız.
+            Poz ve mahaller oluşturmalısınız.
           </Alert>
         </Stack>
       }
