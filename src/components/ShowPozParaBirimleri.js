@@ -38,9 +38,10 @@ export default function ShowPozParaBirimleri({ setShow, paraBirimleri, setParaBi
 
     try {
 
-      const paraBirimleri2 = paraBirimleri.map(oneBirim2 => {
+      let paraBirimleri2 = _.cloneDeep(paraBirimleri)
+      paraBirimleri2 = paraBirimleri2.map(oneBirim2 => {
         if (oneBirim2.id === baslikId) {
-          oneBirim2.show = showValue
+          oneBirim2.isShow = showValue
         }
         return oneBirim2
       })
@@ -195,7 +196,7 @@ export default function ShowPozParaBirimleri({ setShow, paraBirimleri, setParaBi
 
                   <Box sx={{ my: "0.2rem", justifySelf: "start" }}>{oneBirim.name}</Box>
 
-                  <Box sx={{ justifySelf: "end" }}><Switch checked={oneBirim.show} onChange={() => baslikUpdate({ oneBirim, showValue: !oneBirim.show })} /></Box>
+                  <Box sx={{ justifySelf: "end" }}><Switch checked={oneBirim.isShow} onChange={() => baslikUpdate({ oneBirim, showValue: !oneBirim.isShow })} /></Box>
 
                 </React.Fragment>
               )

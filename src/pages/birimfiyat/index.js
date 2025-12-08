@@ -93,7 +93,7 @@ export default function P_BirimFiyat() {
     paraBirimleri = paraBirimleri?.map(oneBirim => {
       let oneBirim2 = paraBirimleri2.length > 0 && paraBirimleri2.find(x => x.id === oneBirim.id)
       if (oneBirim2) {
-        oneBirim.show = oneBirim2.show
+        oneBirim.isShow = oneBirim2.isShow
       }
       return oneBirim
     })
@@ -106,7 +106,7 @@ export default function P_BirimFiyat() {
   const pozAciklamaShow = basliklar?.find(x => x.id === "aciklama").show
   const pozVersiyonShow = basliklar?.find(x => x.id === "versiyon").show
 
-  let paraBirimiAdet = paraBirimleri?.filter(x => x?.show).length
+  let paraBirimiAdet = paraBirimleri?.filter(x => x?.isShow).length
 
   const columns = `
     max-content
@@ -596,7 +596,7 @@ export default function P_BirimFiyat() {
             {paraBirimiAdet > 0 &&
               <>
                 <Box></Box>
-                {paraBirimleri?.filter(x => x.show).map((oneBirim, index) => {
+                {paraBirimleri?.filter(x => x.isShow).map((oneBirim, index) => {
                   return (
                     <Box key={index} sx={{ ...enUstBaslik_css }}>
                       {oneBirim.id}
@@ -694,7 +694,7 @@ export default function P_BirimFiyat() {
                 {paraBirimiAdet > 0 &&
                   <>
                     <Box></Box>
-                    {paraBirimleri?.filter(x => x.show).map((oneBirim, index) => {
+                    {paraBirimleri?.filter(x => x.isShow).map((oneBirim, index) => {
                       return (
                         <Box key={index} sx={{ ...wbsBaslik_css }}>
 
@@ -747,7 +747,7 @@ export default function P_BirimFiyat() {
                       {paraBirimiAdet > 0 &&
                         <>
                           <Box></Box>
-                          {paraBirimleri?.filter(x => x.show).map((oneBirim, index) => {
+                          {paraBirimleri?.filter(x => x.isShow).map((oneBirim, index) => {
 
                             if (!paraEdit) {
                               return (
