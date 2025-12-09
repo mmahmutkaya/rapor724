@@ -92,8 +92,10 @@ export default function P_BirimFiyat() {
     // console.log("paraBirimleri",paraBirimleri)
     paraBirimleri = paraBirimleri?.map(oneBirim => {
       let oneBirim2 = paraBirimleri2.length > 0 && paraBirimleri2.find(x => x.id === oneBirim.id)
-      if (oneBirim2) {
-        oneBirim.isShow = oneBirim2.isShow
+      if (oneBirim2?.isShow) {
+        oneBirim.isShow = true
+      } else {
+        oneBirim.isShow = false
       }
       return oneBirim
     })

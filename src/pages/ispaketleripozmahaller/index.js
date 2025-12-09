@@ -310,15 +310,17 @@ export default function P_IsPaketleriPozMahaller() {
 
 
   const gridTemplateColumns1 = `
-    max-content 
-    minmax(min-content, 15rem) 
+    max-content
+    minmax(min-content, 15rem)
     ${paraBirimiAdet === 1 ? " 0.3rem max-content" : paraBirimiAdet > 1 ? " 0.3rem repeat(" + paraBirimiAdet + ", max-content)" : ""}
-    0.3rem 
-    max-content 
-    0.3rem 
-    max-content 
+    0.3rem
+    max-content
+    0.3rem
+    max-content
     ${paraBirimiAdet === 1 ? " 0.3rem max-content" : paraBirimiAdet > 1 ? " 0.3rem repeat(" + paraBirimiAdet + ", max-content)" : ""}
   `
+
+  console.log("gridTemplateColumns1",gridTemplateColumns1)
 
   let ayracRenk_siyah = "black"
   let ayracRenk_bordo = "rgba(194, 18, 18, 0.67)"
