@@ -43,7 +43,7 @@ export default function P_IsPaketleriPozMahaller() {
 
   const { appUser, setAppUser, selectedProje, selectedPoz, myTema } = useContext(StoreContext)
   const { drawerWidth, topBarHeight } = useContext(StoreContext)
-  const { selectedIsPaketVersiyon, selectedIsPaketBaslik, selectedIsPaket } = useContext(StoreContext)
+  const { selectedIsPaketVersiyon, selectedIsPaket } = useContext(StoreContext)
 
 
   const [showEminMisin, setShowEminMisin] = useState(false)
@@ -233,7 +233,6 @@ export default function P_IsPaketleriPozMahaller() {
         },
         body: JSON.stringify({
           selectedIsPaketVersiyon,
-          selectedIsPaketBaslik,
           selectedIsPaket,
           dugumler
         })
@@ -397,7 +396,7 @@ export default function P_IsPaketleriPozMahaller() {
                 </IconButton>
 
                 <Box sx={{ fontSize: "1rem" }}>
-                  (V{selectedIsPaketVersiyon}) - {selectedIsPaketBaslik?.name} / {selectedIsPaket?.name}
+                  (V{selectedIsPaketVersiyon}) - {selectedIsPaket?.name}
                 </Box>
 
               </Box>

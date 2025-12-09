@@ -31,7 +31,6 @@ export default function Sidebar({ setMobileOpen }) {
     selectedProje,
     persons,
     selectedFirma,
-    setSelectedIsPaketBaslik,
     setSelectedIsPaket
   } = useContext(StoreContext)
 

@@ -51,7 +51,7 @@ export default function P_IsPaketleriPozlar() {
   const { showMetrajYapabilenler, setShowMetrajYapabilenler } = useContext(StoreContext)
   const { selectedPoz, setSelectedPoz } = useContext(StoreContext)
   const { selectedProje, setSelectedProje } = useContext(StoreContext)
-  const { selectedIsPaketVersiyon, selectedIsPaketBaslik, selectedIsPaket } = useContext(StoreContext)
+  const { selectedIsPaketVersiyon, selectedIsPaket } = useContext(StoreContext)
 
   const versiyonlar = selectedProje?.versiyonlar?.metraj
   const pozBirimleri = selectedProje?.pozBirimleri
@@ -285,7 +285,7 @@ export default function P_IsPaketleriPozlar() {
                 </IconButton>
 
                 <Box>
-                  (V{selectedIsPaketVersiyon}) - {selectedIsPaketBaslik?.name} / {selectedIsPaket?.name}
+                  (V{selectedIsPaketVersiyon}) -  / {selectedIsPaket?.name}
                 </Box>
                 {/* <Box sx={{ color: "#8B0000", fontWeight: "600" }}>
                 {" > "}

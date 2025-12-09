@@ -36,7 +36,6 @@ export default function FormIsPaketCreate({ setShow }) {
   const navigate = useNavigate()
 
   const { appUser, setAppUser, selectedProje, setSelectedProje } = useContext(StoreContext)
-  // const { selectedIsPaketBaslik } = useContext(StoreContext)
 
 
   const [isPaketName, setIsPaketName] = useState("")

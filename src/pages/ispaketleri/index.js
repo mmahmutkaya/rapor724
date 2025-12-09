@@ -35,7 +35,6 @@ export default function P_IsPaketleri() {
   // const RealmApp = useApp();
   const { appUser, RealmApp } = useContext(StoreContext)
   const { selectedProje, setSelectedProje } = useContext(StoreContext)
-  // const { selectedIsPaketBaslik, setSelectedIsPaketBaslik } = useContext(StoreContext)
   const { selectedIsPaket, setSelectedIsPaket } = useContext(StoreContext)
   const { selectedIsPaketVersiyon, setSelectedIsPaketVersiyon } = useContext(StoreContext)
 
