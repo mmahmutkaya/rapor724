@@ -320,8 +320,6 @@ export default function P_IsPaketleriPozMahaller() {
     ${paraBirimiAdet === 1 ? " 0.3rem max-content" : paraBirimiAdet > 1 ? " 0.3rem repeat(" + paraBirimiAdet + ", max-content)" : ""}
   `
 
-  console.log("gridTemplateColumns1",gridTemplateColumns1)
-
   let ayracRenk_siyah = "black"
   let ayracRenk_bordo = "rgba(194, 18, 18, 0.67)"
   let selectedThisPaketColor = "rgba(98, 210, 96, 0.22)"
@@ -473,7 +471,7 @@ export default function P_IsPaketleriPozMahaller() {
               {selectedPoz.pozNo}
             </Box>
 
-            <Box sx={{ ...css_enUstBaslik, gridColumn: "span 4" }}>
+            <Box sx={{ ...css_enUstBaslik, gridColumn: paraBirimiAdet.length > 0 ? `span ${1 + paraBirimiAdet}`: "span 1" }}>
               {selectedPoz.pozName}
             </Box>
 
@@ -610,7 +608,7 @@ export default function P_IsPaketleriPozMahaller() {
               <React.Fragment key={index}>
 
                 {/* LBS BAŞLIKLARI */}
-                <Box sx={{ ...css_LbsBaslik, borderLeft: "1px solid black", gridColumn: "1/6" }}>
+                <Box sx={{ ...css_LbsBaslik, borderLeft: "1px solid black", gridColumn: paraBirimiAdet.length > 0 ? `span ${1 + paraBirimiAdet}`: "span 2" }}>
                   {getLbsName(oneLbs).name}
                 </Box>
 
@@ -670,7 +668,7 @@ export default function P_IsPaketleriPozMahaller() {
                         {oneMahal.mahalNo}
                       </Box>
 
-                      <Box onClick={() => !isSelectedOther && handleDugumToggle({ dugum, toggleValue: !isSelectedThis })} sx={{ ...css_mahaller, gridColumn: "2/6", backgroundColor: isSelectedOther ? "lightgray" : isSelectedThis && selectedThisPaketColor, cursor: !isSelectedOther && "pointer", display: "grid", alignItems: "center", gridTemplateColumns: "1fr 1rem", "&:hover": { "& .childClass": { backgroundColor: "red" } } }}>
+                      <Box onClick={() => !isSelectedOther && handleDugumToggle({ dugum, toggleValue: !isSelectedThis })} sx={{ ...css_mahaller, gridColumn: paraBirimiAdet.length > 0 ? `span ${1 + paraBirimiAdet}`: "span 1", backgroundColor: isSelectedOther ? "lightgray" : isSelectedThis && selectedThisPaketColor, cursor: !isSelectedOther && "pointer", display: "grid", alignItems: "center", gridTemplateColumns: "1fr 1rem", "&:hover": { "& .childClass": { backgroundColor: "red" } } }}>
                         <Box sx={{ justifySelf: "start" }}>
                           {oneMahal.mahalName}
                         </Box>

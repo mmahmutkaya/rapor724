@@ -233,6 +233,12 @@ export default function P_BirimFiyat() {
         setUsedParaIds([])
         setIsChanged_para()
         setParaEdit()
+
+        if(isProjeUpdate){
+          let proje2 = _.cloneDeep(selectedProje)
+          proje2.paraBirimleri = paraBirimleri
+          setSelectedProje(proje2)
+        }
         return
 
       } catch (err) {
