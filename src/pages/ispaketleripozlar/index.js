@@ -234,7 +234,6 @@ export default function P_IsPaketleriPozlar() {
     ${pozVersiyonShow ? " 0.5rem min-content" : ""}
   `
 
-  console.log("columns",columns)
 
   let ayracRenk_siyah = "black"
   let ayracRenk_bordo = "rgba(194, 18, 18, 0.67)"
