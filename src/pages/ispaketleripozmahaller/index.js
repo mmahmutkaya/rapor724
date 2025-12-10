@@ -327,7 +327,9 @@ export default function P_IsPaketleriPozMahaller() {
 
   let selectedPozVersiyonPaketMetraj
 
+
   if (selectedIsPaketVersiyon === 0) {
+    console.log("dugumler_byPoz_state", dugumler_byPoz_state)
     selectedPozVersiyonPaketMetraj = dugumler_byPoz_state
       ?.filter(dugum =>
         dugum.isPaketler
