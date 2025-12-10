@@ -81,6 +81,7 @@ export default function P_IsPaketleriPozMahaller() {
     !((selectedIsPaketVersiyon === 0 || selectedIsPaketVersiyon > 0) && selectedIsPaket) && navigate('/ispaketleri')
     setMahaller_state(_.cloneDeep(dataMahaller?.mahaller))
     setDugumler_byPoz_state(_.cloneDeep(dataDugumler_byPoz?.dugumler_byPoz))
+    // console.log("dataDugumler_byPoz?.dugumler_byPoz", dataDugumler_byPoz?.dugumler_byPoz)
     return () => {
       setMahaller_state()
     }
@@ -232,7 +233,6 @@ export default function P_IsPaketleriPozMahaller() {
           'Content-Type': 'application/json'
         },
         body: JSON.stringify({
-          selectedIsPaketVersiyon,
           selectedIsPaket,
           dugumler
         })
@@ -325,12 +325,22 @@ export default function P_IsPaketleriPozMahaller() {
   let selectedThisPaketColor = "rgba(98, 210, 96, 0.22)"
 
 
-  let selectedPozVersiyonPaketMetraj = dugumler_byPoz_state
-    ?.filter(dugum =>
-      dugum.isPaketVersiyonlar
-        .find(oneVersiyon => oneVersiyon.versiyon === selectedIsPaketVersiyon).isPaketler
-        .find(onePaket => onePaket?._id.toString() === selectedIsPaket._id.toString())
-    ).reduce((accumulator, oneDugum) => oneDugum.metrajOnaylanan ? accumulator + oneDugum.metrajOnaylanan : accumulator, 0)
+  let selectedPozVersiyonPaketMetraj
+
+  if (selectedIsPaketVersiyon === 0) {
+    selectedPozVersiyonPaketMetraj = dugumler_byPoz_state
+      ?.filter(dugum =>
+        dugum.isPaketler
+          .find(onePaket => onePaket?._id.toString() === selectedIsPaket._id.toString())
+      ).reduce((accumulator, oneDugum) => oneDugum.metrajOnaylanan ? accumulator + oneDugum.metrajOnaylanan : accumulator, 0)
+  } else {
+    selectedPozVersiyonPaketMetraj = dugumler_byPoz_state
+      ?.filter(dugum =>
+        dugum.isPaketVersiyonlar
+          .find(oneVersiyon => oneVersiyon.versiyon === selectedIsPaketVersiyon).isPaketler
+          .find(onePaket => onePaket?._id.toString() === selectedIsPaket._id.toString())
+      ).reduce((accumulator, oneDugum) => oneDugum.metrajOnaylanan ? accumulator + oneDugum.metrajOnaylanan : accumulator, 0)
+  }
 
 
   return (
@@ -471,7 +481,7 @@ export default function P_IsPaketleriPozMahaller() {
               {selectedPoz.pozNo}
             </Box>
 
-            <Box sx={{ ...css_enUstBaslik, gridColumn: paraBirimiAdet > 0 ? `span ${2 + paraBirimiAdet}`: "span 1" }}>
+            <Box sx={{ ...css_enUstBaslik, gridColumn: paraBirimiAdet > 0 ? `span ${2 + paraBirimiAdet}` : "span 1" }}>
               {selectedPoz.pozName}
             </Box>
 
@@ -595,20 +605,31 @@ export default function P_IsPaketleriPozMahaller() {
             }
 
             const lbsMetraj = dataDugumler_byPoz?.lbsMetrajlar?.find(x => x._id.toString() === oneLbs._id.toString())
-            const lbsMetrajSecili = dugumler_byPoz_state
-              ?.filter(x => mahaller_byLbs.find(y => y._id.toString() === x._mahalId.toString()))
-              ?.filter(dugum =>
-                dugum.isPaketVersiyonlar
-                  .find(oneVersiyon => oneVersiyon.versiyon === selectedIsPaketVersiyon).isPaketler
-                  .find(onePaket => onePaket._id.toString() === selectedIsPaket._id.toString())
-              ).reduce((accumulator, oneDugum) => oneDugum.metrajOnaylanan ? accumulator + oneDugum.metrajOnaylanan : accumulator, 0)
+
+            let lbsMetrajSecili
+            if (selectedIsPaketVersiyon === 0) {
+              lbsMetrajSecili = dugumler_byPoz_state
+                ?.filter(x => mahaller_byLbs.find(y => y._id.toString() === x._mahalId.toString()))
+                ?.filter(dugum =>
+                  dugum.isPaketler
+                    .find(onePaket => onePaket._id.toString() === selectedIsPaket._id.toString())
+                ).reduce((accumulator, oneDugum) => oneDugum.metrajOnaylanan ? accumulator + oneDugum.metrajOnaylanan : accumulator, 0)
+            } else {
+              lbsMetrajSecili = dugumler_byPoz_state
+                ?.filter(x => mahaller_byLbs.find(y => y._id.toString() === x._mahalId.toString()))
+                ?.filter(dugum =>
+                  dugum.isPaketVersiyonlar
+                    .find(oneVersiyon => oneVersiyon.versiyon === selectedIsPaketVersiyon).isPaketler
+                    .find(onePaket => onePaket._id.toString() === selectedIsPaket._id.toString())
+                ).reduce((accumulator, oneDugum) => oneDugum.metrajOnaylanan ? accumulator + oneDugum.metrajOnaylanan : accumulator, 0)
+            }
 
 
             return (
               <React.Fragment key={index}>
 
                 {/* LBS BAŞLIKLARI */}
-                <Box sx={{ ...css_LbsBaslik, borderLeft: "1px solid black", gridColumn: paraBirimiAdet > 0 ? `span ${3 + paraBirimiAdet}`: "span 2" }}>
+                <Box sx={{ ...css_LbsBaslik, borderLeft: "1px solid black", gridColumn: paraBirimiAdet > 0 ? `span ${3 + paraBirimiAdet}` : "span 2" }}>
                   {getLbsName(oneLbs).name}
                 </Box>
 
@@ -656,7 +677,12 @@ export default function P_IsPaketleriPozMahaller() {
 
                   let theMetraj = dugum.metrajOnaylanan
 
-                  let isPaketler = dugum.isPaketVersiyonlar.find(oneVersiyon => oneVersiyon.versiyon === selectedIsPaketVersiyon).isPaketler
+                  let isPaketler
+                  if (selectedIsPaketVersiyon === 0) {
+                    isPaketler = dugum.isPaketler
+                  } else {
+                    isPaketler = dugum.isPaketVersiyonlar.find(oneVersiyon => oneVersiyon.versiyon === selectedIsPaketVersiyon).isPaketler
+                  }
                   let isSelectedThis = isPaketler.find(onePaket => onePaket._id.toString() === selectedIsPaket._id.toString())
                   let isSelectedOther = isPaketler.filter(onePaket => onePaket._id.toString() !== selectedIsPaket._id.toString()).length > 0
 
@@ -668,7 +694,7 @@ export default function P_IsPaketleriPozMahaller() {
                         {oneMahal.mahalNo}
                       </Box>
 
-                      <Box onClick={() => !isSelectedOther && handleDugumToggle({ dugum, toggleValue: !isSelectedThis })} sx={{ ...css_mahaller, gridColumn: paraBirimiAdet > 0 ? `span ${2 + paraBirimiAdet}`: "span 1", backgroundColor: isSelectedOther ? "lightgray" : isSelectedThis && selectedThisPaketColor, cursor: !isSelectedOther && "pointer", display: "grid", alignItems: "center", gridTemplateColumns: "1fr 1rem", "&:hover": { "& .childClass": { backgroundColor: "red" } } }}>
+                      <Box onClick={() => !isSelectedOther && handleDugumToggle({ dugum, toggleValue: !isSelectedThis })} sx={{ ...css_mahaller, gridColumn: paraBirimiAdet > 0 ? `span ${2 + paraBirimiAdet}` : "span 1", backgroundColor: isSelectedOther ? "lightgray" : isSelectedThis && selectedThisPaketColor, cursor: !isSelectedOther && "pointer", display: "grid", alignItems: "center", gridTemplateColumns: "1fr 1rem", "&:hover": { "& .childClass": { backgroundColor: "red" } } }}>
                         <Box sx={{ justifySelf: "start" }}>
                           {oneMahal.mahalName}
                         </Box>
