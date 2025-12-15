@@ -109,7 +109,7 @@ export default function FormIsPaketCreate({ setShow }) {
 
       // VALIDATE KONTROL -- SONU
 
-      const response = await fetch(`/api/projeler/createispaket`, {
+      const response = await fetch(`/api/ispaketler`, {
         method: 'POST',
         headers: {
           email: appUser.email,
@@ -138,19 +138,27 @@ export default function FormIsPaketCreate({ setShow }) {
         return
       }
 
-      if (responseJson.newPaket) {
-        let proje = _.cloneDeep(selectedProje)
-        proje.isPaketler = [...proje.isPaketler, responseJson.newPaket]
-        setSelectedProje(proje)
+      if (responseJson.newIsPaketler) {
+        console.log("responseJson.newIsPaketler",responseJson.newIsPaketler)
+        queryClient.setQueryData(['isPaketleriByProjeByVersiyon', selectedProje._id.toString(), 0], () => responseJson.newIsPaketler)
         setShow("Main")
         return
       }
 
 
+      // if (responseJson.newPaket) {
+      //   let proje = _.cloneDeep(selectedProje)
+      //   proje.isPaketler = [...proje.isPaketler, responseJson.newPaket]
+      //   setSelectedProje(proje)
+      //   setShow("Main")
+      //   return
+      // }
+
+
 
     } catch (err) {
 
-      console.log(err)
+      console.log("err", err)
 
       setDialogAlert({
         dialogIcon: "warning",

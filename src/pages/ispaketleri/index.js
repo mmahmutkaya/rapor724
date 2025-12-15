@@ -8,6 +8,8 @@ import { useNavigate } from "react-router-dom";
 import { DialogAlert } from '../../components/general/DialogAlert'
 import ShowIsPaketBasliklar from '../../components/ShowIsPaketBasliklar'
 
+import { useGetIsPaketleriByProjeByVersiyon } from '../../hooks/useMongo.js';
+
 
 import Paper from '@mui/material/Paper';
 import Grid from '@mui/material/Grid';
@@ -40,9 +42,14 @@ export default function P_IsPaketleri() {
 
   const [dialogAlert, setDialogAlert] = useState()
 
+  const { data, error, isFetching } = useGetIsPaketleriByProjeByVersiyon()
+  const isPaketler = data?.isPaketler
+  console.log("isPaketler",isPaketler)
+
   const [basliklar, setBasliklar] = useState(appUser.customSettings.pages.ispaketleri.basliklar)
 
   const navigate = useNavigate()
+
 
   useEffect(() => {
     if (!selectedProje) navigate("/projeler")
@@ -53,11 +60,9 @@ export default function P_IsPaketleri() {
   }, []);
 
 
-
   const [show, setShow] = useState("Main")
 
   // const { data: projelerNames_byFirma } = useGetProjelerNames_byFirma()
-  const isPaketler = selectedProje?.isPaketler
   const aciklamaShow = basliklar?.find(x => x.id === "aciklama").show
 
 

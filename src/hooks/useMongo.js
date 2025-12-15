@@ -52,7 +52,7 @@ export const useGetFirmalar = () => {
 }
 
 
-export const useGetPozMetrajlarİsPaketByVersiyon = () => {
+export const useGetPozMetrajlarIsPaketByVersiyon = () => {
 
   const navigate = useNavigate()
   const { appUser, setAppUser, selectedProje, selectedIsPaketVersiyon, selectedMetrajVersiyon } = useContext(StoreContext)
@@ -99,6 +99,53 @@ export const useGetPozMetrajlarİsPaketByVersiyon = () => {
   })
 
 }
+
+
+
+export const useGetIsPaketleriByProjeByVersiyon = () => {
+
+  const navigate = useNavigate()
+  const { appUser, setAppUser, selectedProje, selectedIsPaketVersiyon } = useContext(StoreContext)
+
+  return useQuery({
+
+    queryKey: ['isPaketleriByProjeByVersiyon', selectedProje?._id.toString(), selectedIsPaketVersiyon],
+
+    queryFn: async () => {
+      
+      const response = await fetch('api/ispaketler', {
+        method: 'GET',
+        headers: {
+          email: appUser.email,
+          token: appUser.token,
+          projeid: selectedProje?._id,
+          ispaketversiyontext: selectedIsPaketVersiyon ? selectedIsPaketVersiyon : 0,
+          'Content-Type': 'application/json'
+        }
+      })
+
+      const responseJson = await response.json()
+
+      if (responseJson.error) {
+        if (responseJson.error.includes("expired")) {
+          setAppUser()
+          localStorage.removeItem('appUser')
+          navigate('/')
+          window.location.reload()
+        }
+        throw new Error(responseJson.error);
+      }
+
+      return responseJson
+
+    },
+    enabled: !!appUser && !!selectedProje && !!(selectedIsPaketVersiyon === 0 || selectedIsPaketVersiyon),
+    refetchOnMount: true,
+    refetchOnWindowFocus: false
+  })
+
+}
+
 
 
 
