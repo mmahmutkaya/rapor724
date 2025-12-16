@@ -8,7 +8,7 @@ import { useNavigate } from "react-router-dom";
 import { DialogAlert } from '../../components/general/DialogAlert'
 import ShowIsPaketBasliklar from '../../components/ShowIsPaketBasliklar'
 
-import { useGetIsPaketleriByProjeByVersiyon } from '../../hooks/useMongo.js';
+import { useGetisPaketlerByProjeByVersiyon } from '../../hooks/useMongo.js';
 
 
 import Paper from '@mui/material/Paper';
@@ -42,9 +42,9 @@ export default function P_IsPaketleri() {
 
   const [dialogAlert, setDialogAlert] = useState()
 
-  const { data, error, isFetching } = useGetIsPaketleriByProjeByVersiyon()
+  const { data, error, isFetching } = useGetisPaketlerByProjeByVersiyon()
   const isPaketler = data?.isPaketler
-  console.log("isPaketler",isPaketler)
+  // console.log("isPaketler",isPaketler)
 
   const [basliklar, setBasliklar] = useState(appUser.customSettings.pages.ispaketleri.basliklar)
 
@@ -66,7 +66,7 @@ export default function P_IsPaketleri() {
   const aciklamaShow = basliklar?.find(x => x.id === "aciklama").show
 
 
-  const goto_isPaketleriPozlar = ({ onePaket }) => {
+  const goto_isPaketPozlar = ({ onePaket }) => {
     setSelectedIsPaket(onePaket)
     navigate("/ispaketleripozlar")
   }
@@ -308,7 +308,7 @@ export default function P_IsPaketleri() {
                       </Box>
                     </Box>
 
-                    <Box onClick={() => goto_isPaketleriPozlar({ onePaket })} sx={{ ...css_IsPaketleri, cursor: "pointer" }}>
+                    <Box onClick={() => goto_isPaketPozlar({ onePaket })} sx={{ ...css_IsPaketleri, cursor: "pointer" }}>
 
                     </Box>
 
@@ -429,7 +429,7 @@ export default function P_IsPaketleri() {
                       </Box>
                     </Box>
 
-                    <Box onClick={() => goto_isPaketleriPozlar({ onePaket })} sx={{ ...css_IsPaketleri, cursor: "pointer" }}>
+                    <Box onClick={() => goto_isPaketPozlar({ onePaket })} sx={{ ...css_IsPaketleri, cursor: "pointer" }}>
 
                     </Box>
 

@@ -139,21 +139,10 @@ export default function FormIsPaketCreate({ setShow }) {
       }
 
       if (responseJson.newIsPaketler) {
-        console.log("responseJson.newIsPaketler",responseJson.newIsPaketler)
-        queryClient.setQueryData(['isPaketleriByProjeByVersiyon', selectedProje._id.toString(), 0], () => responseJson.newIsPaketler)
+        queryClient.setQueryData(['isPaketlerByProjeByVersiyon', selectedProje._id.toString(), 0], () => ({ isPaketler: responseJson.newIsPaketler }))
         setShow("Main")
         return
       }
-
-
-      // if (responseJson.newPaket) {
-      //   let proje = _.cloneDeep(selectedProje)
-      //   proje.isPaketler = [...proje.isPaketler, responseJson.newPaket]
-      //   setSelectedProje(proje)
-      //   setShow("Main")
-      //   return
-      // }
-
 
 
     } catch (err) {

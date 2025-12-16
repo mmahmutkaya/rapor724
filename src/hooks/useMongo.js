@@ -102,14 +102,14 @@ export const useGetPozMetrajlarIsPaketByVersiyon = () => {
 
 
 
-export const useGetIsPaketleriByProjeByVersiyon = () => {
+export const useGetisPaketlerByProjeByVersiyon = () => {
 
   const navigate = useNavigate()
   const { appUser, setAppUser, selectedProje, selectedIsPaketVersiyon } = useContext(StoreContext)
 
   return useQuery({
 
-    queryKey: ['isPaketleriByProjeByVersiyon', selectedProje?._id.toString(), selectedIsPaketVersiyon],
+    queryKey: ['isPaketlerByProjeByVersiyon', selectedProje?._id.toString(), selectedIsPaketVersiyon],
 
     queryFn: async () => {
       
