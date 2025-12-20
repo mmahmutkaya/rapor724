@@ -42,7 +42,7 @@ export default function ShowPozBaslik({ setShow, basliklar, setBasliklar }) {
       setBasliklar(basliklar2)
 
       // db ye gönderme işlemi
-      // await RealmApp?.currentUser.callFunction("customSettings_update", ({ functionName: "sayfaBasliklari", sayfaName: "ispaketleri", baslikId, showValue }))
+      // await RealmApp?.currentUser.callFunction("customSettings_update", ({ functionName: "sayfaBasliklari", sayfaName: "ispaketler", baslikId, showValue }))
       // await RealmApp?.currentUser.refreshCustomData()
 
 
@@ -54,7 +54,7 @@ export default function ShowPozBaslik({ setShow, basliklar, setBasliklar }) {
           'Content-Type': 'application/json'
         },
         body: JSON.stringify({
-          pageName: "ispaketleri",
+          pageName: "ispaketler",
           dataName: "basliklar",
           setData: basliklar2
         })
@@ -75,7 +75,7 @@ export default function ShowPozBaslik({ setShow, basliklar, setBasliklar }) {
       if (responseJson.ok) {
 
         let appUser2 = _.cloneDeep(appUser)
-        appUser2.customSettings.pages.ispaketleri.basliklar = basliklar2
+        appUser2.customSettings.pages.ispaketler.basliklar = basliklar2
         setAppUser(appUser2)
         localStorage.setItem('appUser', JSON.stringify(appUser2))
         return

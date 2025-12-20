@@ -249,10 +249,10 @@ export default function Sidebar({ setMobileOpen }) {
 
             <ListItemButton
               onClick={() => {
-                navigate('/ispaketleri')
+                navigate('/ispaketler')
                 setSelectedIsPaket()
               }}
-              sx={{ backgroundColor: pathname.includes("/ispaketleri") ? seciliSayfaRengi : null, '&:hover': { backgroundColor: seciliSayfaRengi } }}
+              sx={{ backgroundColor: pathname.includes("/ispaketler") ? seciliSayfaRengi : null, '&:hover': { backgroundColor: seciliSayfaRengi } }}
             >
               <ListItemIcon>
                 <SendIcon />

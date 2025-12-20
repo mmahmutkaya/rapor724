@@ -60,9 +60,7 @@ export const useGetPozMetrajlarIsPaketByVersiyon = () => {
   return useQuery({
 
     queryKey: [
-      'isPaketleriPozMetrajlarByVersiyon',
-      { isPaketVersiyon: selectedIsPaketVersiyon ? selectedIsPaketVersiyon : 0 },
-      { metrajVersiyon: selectedMetrajVersiyon ? selectedMetrajVersiyon : 0 }
+      'isPaketPozMetrajlar'
     ],
 
     queryFn: async () => {
@@ -102,14 +100,14 @@ export const useGetPozMetrajlarIsPaketByVersiyon = () => {
 
 
 
-export const useGetisPaketlerByProjeByVersiyon = () => {
+export const useGetisPaketler = () => {
 
   const navigate = useNavigate()
   const { appUser, setAppUser, selectedProje, selectedIsPaketVersiyon } = useContext(StoreContext)
 
   return useQuery({
 
-    queryKey: ['isPaketlerByProjeByVersiyon', selectedProje?._id.toString(), selectedIsPaketVersiyon],
+    queryKey: ['isPaketler'],
 
     queryFn: async () => {
       

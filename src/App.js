@@ -43,9 +43,9 @@ import P_MetrajCetvel from './pages/metrajcetvel'
 
 import P_BirimFiyat from './pages/birimfiyat'
 
-import P_IsPaketleri from './pages/ispaketleri'
-import P_IsPaketleriPozlar from './pages/ispaketleripozlar'
-import P_IsPaketleriPozMahaller from './pages/ispaketleripozmahaller'
+import P_isPaketler from './pages/ispaketler'
+import P_isPaketPozlar from './pages/ispaketpozlar'
+import P_isPaketPozMahaller from './pages/ispaketpozmahaller'
 
 
 function App() {
@@ -93,9 +93,9 @@ function App() {
       <Route path='/metrajpozmahaller' element={<P_MetrajPozMahaller />} />
       <Route path='/metrajcetvel' element={<P_MetrajCetvel />} />
 
-      <Route path='/ispaketleri' element={<P_IsPaketleri />} />
-      <Route path='/ispaketleripozlar' element={<P_IsPaketleriPozlar />} />
-      <Route path='/ispaketleripozmahaller' element={<P_IsPaketleriPozMahaller />} />
+      <Route path='/ispaketler' element={<P_isPaketler />} />
+      <Route path='/ispaketpozlar' element={<P_isPaketPozlar />} />
+      <Route path='/ispaketpozmahaller' element={<P_isPaketPozMahaller />} />
 
     </Routes>
   );

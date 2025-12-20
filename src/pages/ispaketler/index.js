@@ -1,14 +1,14 @@
 
 import React, { useState, useEffect, useContext } from 'react';
-import { StoreContext } from '../../components/store'
+import { StoreContext } from '../../components/store.js'
 // import FormIsPaketBaslikCreate from '../../components/FormIsPaketBaslikCreate'
-import FormIsPaketCreate from '../../components/FormIsPaketCreate'
+import FormIsPaketCreate from '../../components/FormIsPaketCreate.js'
 import { useNavigate } from "react-router-dom";
 // import { useGetProjelerNames_byFirma } from '../../hooks/useMongo';
-import { DialogAlert } from '../../components/general/DialogAlert'
-import ShowIsPaketBasliklar from '../../components/ShowIsPaketBasliklar'
+import { DialogAlert } from '../../components/general/DialogAlert.js'
+import ShowIsPaketBasliklar from '../../components/ShowIsPaketBasliklar.js'
 
-import { useGetisPaketlerByProjeByVersiyon } from '../../hooks/useMongo.js';
+import { useGetisPaketler } from '../../hooks/useMongo.js';
 
 
 import Paper from '@mui/material/Paper';
@@ -32,7 +32,7 @@ import Avatar from '@mui/material/Avatar';
 
 
 
-export default function P_IsPaketleri() {
+export default function P_IsPaketler() {
 
   // const RealmApp = useApp();
   const { appUser, RealmApp } = useContext(StoreContext)
@@ -42,11 +42,11 @@ export default function P_IsPaketleri() {
 
   const [dialogAlert, setDialogAlert] = useState()
 
-  const { data, error, isFetching } = useGetisPaketlerByProjeByVersiyon()
+  const { data, error, isFetching } = useGetisPaketler()
   const isPaketler = data?.isPaketler
   // console.log("isPaketler",isPaketler)
 
-  const [basliklar, setBasliklar] = useState(appUser.customSettings.pages.ispaketleri.basliklar)
+  const [basliklar, setBasliklar] = useState(appUser.customSettings.pages.ispaketler.basliklar)
 
   const navigate = useNavigate()
 
@@ -68,15 +68,15 @@ export default function P_IsPaketleri() {
 
   const goto_isPaketPozlar = ({ onePaket }) => {
     setSelectedIsPaket(onePaket)
-    navigate("/ispaketleripozlar")
+    navigate("/ispaketpozlar")
   }
 
 
-  const css_IsPaketleriBaslik = {
+  const css_IsPaketlerBaslik = {
     display: "grid", mt: "0.1rem", px: "0.5rem", backgroundColor: "lightgray", fontWeight: 700, textWrap: "nowrap", border: "1px solid black"
   }
 
-  const css_IsPaketleri = {
+  const css_IsPaketler = {
     display: "grid", px: "0.5rem", border: "1px solid black", alignItems: "center"
   }
 
@@ -243,31 +243,31 @@ export default function P_IsPaketleri() {
               {/* iş paketleri varsa */}
               <React.Fragment>
 
-                <Box sx={{ ...css_IsPaketleriBaslik, }}>
+                <Box sx={{ ...css_IsPaketlerBaslik, }}>
                   Sıra
                 </Box>
 
-                <Box sx={{ ...css_IsPaketleriBaslik }}>
+                <Box sx={{ ...css_IsPaketlerBaslik }}>
                   İş Paketi
                 </Box>
 
-                <Box sx={{ ...css_IsPaketleriBaslik }}>
+                <Box sx={{ ...css_IsPaketlerBaslik }}>
                   Keşif
                 </Box>
 
-                <Box sx={{ ...css_IsPaketleriBaslik }}>
+                <Box sx={{ ...css_IsPaketlerBaslik }}>
                   Bütçe
                 </Box>
 
-                <Box sx={{ ...css_IsPaketleriBaslik }}>
+                <Box sx={{ ...css_IsPaketlerBaslik }}>
                   İş Sonu
                 </Box>
 
-                <Box sx={{ ...css_IsPaketleriBaslik }}>
+                <Box sx={{ ...css_IsPaketlerBaslik }}>
                   Gerçekleşen
                 </Box>
 
-                <Box sx={{ ...css_IsPaketleriBaslik }}>
+                <Box sx={{ ...css_IsPaketlerBaslik }}>
                   Kalan
                 </Box>
 
@@ -287,7 +287,7 @@ export default function P_IsPaketleri() {
                   // iş paketleri başlığı
                   <React.Fragment key={index} >
 
-                    <Box sx={{ ...css_IsPaketleri, justifyContent: "center" }}>
+                    <Box sx={{ ...css_IsPaketler, justifyContent: "center" }}>
                       {index + 1}
                     </Box>
 
@@ -295,7 +295,7 @@ export default function P_IsPaketleri() {
                       onClick={() => {
                         setSelectedIsPaket(onePaket)
                       }}
-                      sx={{ ...css_IsPaketleri, cursor: "pointer" }}>
+                      sx={{ ...css_IsPaketler, cursor: "pointer" }}>
                       <Box sx={{ display: "grid", gridAutoFlow: "column", gridTemplateColumns: "1fr auto" }}>
                         <Box>
                           {onePaket.name}
@@ -308,23 +308,23 @@ export default function P_IsPaketleri() {
                       </Box>
                     </Box>
 
-                    <Box onClick={() => goto_isPaketPozlar({ onePaket })} sx={{ ...css_IsPaketleri, cursor: "pointer" }}>
+                    <Box onClick={() => goto_isPaketPozlar({ onePaket })} sx={{ ...css_IsPaketler, cursor: "pointer" }}>
 
                     </Box>
 
-                    <Box sx={{ ...css_IsPaketleri }}>
+                    <Box sx={{ ...css_IsPaketler }}>
 
                     </Box>
 
-                    <Box sx={{ ...css_IsPaketleri }}>
+                    <Box sx={{ ...css_IsPaketler }}>
 
                     </Box>
 
-                    <Box sx={{ ...css_IsPaketleri }}>
+                    <Box sx={{ ...css_IsPaketler }}>
 
                     </Box>
 
-                    <Box sx={{ ...css_IsPaketleri }}>
+                    <Box sx={{ ...css_IsPaketler }}>
 
                     </Box>
 
@@ -364,31 +364,31 @@ export default function P_IsPaketleri() {
               {/* iş paketleri varsa */}
               <React.Fragment>
 
-                <Box sx={{ ...css_IsPaketleriBaslik, }}>
+                <Box sx={{ ...css_IsPaketlerBaslik, }}>
                   Sıra
                 </Box>
 
-                <Box sx={{ ...css_IsPaketleriBaslik }}>
+                <Box sx={{ ...css_IsPaketlerBaslik }}>
                   İş Paketi
                 </Box>
 
-                <Box sx={{ ...css_IsPaketleriBaslik }}>
+                <Box sx={{ ...css_IsPaketlerBaslik }}>
                   Keşif
                 </Box>
 
-                <Box sx={{ ...css_IsPaketleriBaslik }}>
+                <Box sx={{ ...css_IsPaketlerBaslik }}>
                   Bütçe
                 </Box>
 
-                <Box sx={{ ...css_IsPaketleriBaslik }}>
+                <Box sx={{ ...css_IsPaketlerBaslik }}>
                   İş Sonu
                 </Box>
 
-                <Box sx={{ ...css_IsPaketleriBaslik }}>
+                <Box sx={{ ...css_IsPaketlerBaslik }}>
                   Gerçekleşen
                 </Box>
 
-                <Box sx={{ ...css_IsPaketleriBaslik }}>
+                <Box sx={{ ...css_IsPaketlerBaslik }}>
                   Kalan
                 </Box>
 
@@ -408,7 +408,7 @@ export default function P_IsPaketleri() {
                   // iş paketleri başlığı
                   <React.Fragment key={index} >
 
-                    <Box sx={{ ...css_IsPaketleri, justifyContent: "center" }}>
+                    <Box sx={{ ...css_IsPaketler, justifyContent: "center" }}>
                       {index + 1}
                     </Box>
 
@@ -416,7 +416,7 @@ export default function P_IsPaketleri() {
                       onClick={() => {
                         setSelectedIsPaket(onePaket)
                       }}
-                      sx={{ ...css_IsPaketleri, cursor: "pointer" }}>
+                      sx={{ ...css_IsPaketler, cursor: "pointer" }}>
                       <Box sx={{ display: "grid", gridAutoFlow: "column", gridTemplateColumns: "1fr auto" }}>
                         <Box>
                           {onePaket.name}
@@ -429,23 +429,23 @@ export default function P_IsPaketleri() {
                       </Box>
                     </Box>
 
-                    <Box onClick={() => goto_isPaketPozlar({ onePaket })} sx={{ ...css_IsPaketleri, cursor: "pointer" }}>
+                    <Box onClick={() => goto_isPaketPozlar({ onePaket })} sx={{ ...css_IsPaketler, cursor: "pointer" }}>
 
                     </Box>
 
-                    <Box sx={{ ...css_IsPaketleri }}>
+                    <Box sx={{ ...css_IsPaketler }}>
 
                     </Box>
 
-                    <Box sx={{ ...css_IsPaketleri }}>
+                    <Box sx={{ ...css_IsPaketler }}>
 
                     </Box>
 
-                    <Box sx={{ ...css_IsPaketleri }}>
+                    <Box sx={{ ...css_IsPaketler }}>
 
                     </Box>
 
-                    <Box sx={{ ...css_IsPaketleri }}>
+                    <Box sx={{ ...css_IsPaketler }}>
 
                     </Box>
 

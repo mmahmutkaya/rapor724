@@ -31,18 +31,18 @@ import ReplyIcon from '@mui/icons-material/Reply';
 
 
 
-export default function P_IsPaketleriPozlar() { 
+export default function P_isPaketPozlar() { 
 
   const navigate = useNavigate()
   const queryClient = useQueryClient()
 
   const { data: dataPozlar, error: error1, isFetching: isFetching1 } = useGetPozlar()
-  const { data: dataIsPaketleriPozMetrajlarByVersiyon, error: error2, isFetching: isFetching2 } = useGetPozMetrajlarIsPaketByVersiyon()
+  const { data: dataIsPaketPozMetrajlar, error: error2, isFetching: isFetching2 } = useGetPozMetrajlarIsPaketByVersiyon()
  
   // let pozlar = data?.pozlar?.filter(x => x.hasDugum)
 
   const [pozlar_state, setPozlar_state] = useState()
-  const [isPaketleriPozMetrajlarByVersiyon_state, setIsPaketleriPozMetrajlarByVersiyon_state] = useState()
+  const [IsPaketPozMetrajlar_state, setIsPaketPozMetrajlar_state] = useState()
   const [wbsArray_state, setWbsArray_state] = useState()
 
   const [dialogAlert, setDialogAlert] = useState()
@@ -64,15 +64,15 @@ export default function P_IsPaketleriPozlar() {
 
   useEffect(() => {
     !selectedProje && navigate('/projeler')
-    !((selectedIsPaketVersiyon === 0 || selectedIsPaketVersiyon > 0) && selectedIsPaket) && navigate('/ispaketleri')
+    !((selectedIsPaketVersiyon === 0 || selectedIsPaketVersiyon > 0) && selectedIsPaket) && navigate('/ispaketler')
   }, [])
 
 
   useEffect(() => {
 
-    if (selectedProje && dataPozlar && dataIsPaketleriPozMetrajlarByVersiyon) {
+    if (selectedProje && dataPozlar && dataIsPaketPozMetrajlar) {
 
-      let isPaketleriPozMetrajlarByVersiyon = _.cloneDeep(dataIsPaketleriPozMetrajlarByVersiyon?.isPaketleriPozMetrajlarByVersiyon)
+      let IsPaketPozMetrajlar = _.cloneDeep(dataIsPaketPozMetrajlar?.IsPaketPozMetrajlar)
       let pozlar = _.cloneDeep(dataPozlar?.pozlar?.filter(x => x.hasDugum))
       let wbsArray = _.cloneDeep(selectedProje?.wbs.filter(oneWbs => pozlar?.find(onePoz => onePoz._wbsId.toString() === oneWbs._id.toString())))
 
@@ -89,7 +89,7 @@ export default function P_IsPaketleriPozlar() {
 
       pozlar?.map(onePoz => {
 
-        onePoz.kesifMiktar = isPaketleriPozMetrajlarByVersiyon
+        onePoz.kesifMiktar = IsPaketPozMetrajlar
           ?.find(x => x._id.toString() === onePoz._id.toString()).isPaketler_byVersiyon
           ?.find(x => x._id.toString() === selectedIsPaket._id.toString())?.metrajOnaylanan
 
@@ -123,15 +123,15 @@ export default function P_IsPaketleriPozlar() {
 
       // console.log("wbsArray",wbsArray)
       // console.log("pozlar",pozlar)
-      // console.log("dataIsPaketleriPozMetrajlarByVersiyon?.isPaketleriPozMetrajlarByVersiyon",dataIsPaketleriPozMetrajlarByVersiyon?.isPaketleriPozMetrajlarByVersiyon)
+      // console.log("dataIsPaketPozMetrajlar?.IsPaketPozMetrajlar",dataIsPaketPozMetrajlar?.IsPaketPozMetrajlar)
 
       setPozlar_state(pozlar)
       setWbsArray_state(wbsArray)
-      setIsPaketleriPozMetrajlarByVersiyon_state(_.cloneDeep(dataIsPaketleriPozMetrajlarByVersiyon?.isPaketleriPozMetrajlarByVersiyon))
+      setIsPaketPozMetrajlar_state(_.cloneDeep(dataIsPaketPozMetrajlar?.IsPaketPozMetrajlar))
 
     }
 
-  }, [selectedProje, dataPozlar, dataIsPaketleriPozMetrajlarByVersiyon])
+  }, [selectedProje, dataPozlar, dataIsPaketPozMetrajlar])
 
 
   useEffect(() => {
@@ -154,7 +154,7 @@ export default function P_IsPaketleriPozlar() {
   }, [error1, error2]);
 
 
-  const [basliklar, setBasliklar] = useState(appUser.customSettings.pages.ispaketleri.basliklar)
+  const [basliklar, setBasliklar] = useState(appUser.customSettings.pages.ispaketler.basliklar)
 
   const pozAciklamaShow = false
   const pozVersiyonShow = false
@@ -213,8 +213,8 @@ export default function P_IsPaketleriPozlar() {
 
 
 
-  const goTo_isPaketleriPozMahaller = (onePoz) => {
-    navigate('/ispaketleripozmahaller')
+  const goTo_isPaketPozMahaller = (onePoz) => {
+    navigate('/ispaketpozmahaller')
     setSelectedPoz(onePoz)
   }
 
@@ -280,7 +280,7 @@ export default function P_IsPaketleriPozlar() {
 
                 <IconButton
                   sx={{ mx: 0, px: 0 }}
-                  onClick={() => navigate('/ispaketleri')} disabled={false}>
+                  onClick={() => navigate('/ispaketler')} disabled={false}>
                   <ReplyIcon variant="contained" sx={{ color: "gray" }} />
                 </IconButton>
 
@@ -510,7 +510,7 @@ export default function P_IsPaketleriPozlar() {
 
                   let pozBirim = selectedProje?.pozBirimleri.find(x => x.id == onePoz?.pozBirimId)?.name
 
-                  // let paketPozMetraj = isPaketleriPozMetrajlarByVersiyon_state
+                  // let paketPozMetraj = IsPaketPozMetrajlar_state
                   //   ?.find(x => x._id.toString() === onePoz._id.toString()).isPaketler_byVersiyon
                   //   ?.find(x => x._id.toString() === selectedIsPaket._id.toString())?.metrajOnaylanan
 
@@ -527,7 +527,7 @@ export default function P_IsPaketleriPozlar() {
                         {onePoz.pozNo}
                       </Box>
 
-                      <Box onClick={() => goTo_isPaketleriPozMahaller(onePoz)} sx={{ ...pozNo_css, cursor: "pointer", display: "grid", gridTemplateColumns: "1fr 1rem", "&:hover": { "& .childClass": { backgroundColor: "red" } } }}>
+                      <Box onClick={() => goTo_isPaketPozMahaller(onePoz)} sx={{ ...pozNo_css, cursor: "pointer", display: "grid", gridTemplateColumns: "1fr 1rem", "&:hover": { "& .childClass": { backgroundColor: "red" } } }}>
                         <Box sx={{ justifySelf: "start" }}>
                           {onePoz.pozName}
                         </Box>

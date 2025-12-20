@@ -37,7 +37,7 @@ import ReplyIcon from '@mui/icons-material/Reply';
 
 
 
-export default function P_IsPaketleriPozMahaller() {
+export default function P_isPaketPozMahaller() {
 
   const queryClient = useQueryClient()
 
@@ -77,8 +77,8 @@ export default function P_IsPaketleriPozMahaller() {
   // const mahaller = dataMahaller?.mahaller?.filter(oneMahal => dugumler_byPoz_state?.find(oneDugum => oneDugum._mahalId.toString() === oneMahal._id.toString()))
 
   useEffect(() => {
-    !selectedPoz && navigate('/ispaketleripozlar')
-    !((selectedIsPaketVersiyon === 0 || selectedIsPaketVersiyon > 0) && selectedIsPaket) && navigate('/ispaketleri')
+    !selectedPoz && navigate('/ispaketpozlar')
+    !((selectedIsPaketVersiyon === 0 || selectedIsPaketVersiyon > 0) && selectedIsPaket) && navigate('/ispaketler')
     setMahaller_state(_.cloneDeep(dataMahaller?.mahaller))
     setDugumler_byPoz_state(_.cloneDeep(dataDugumler_byPoz?.dugumler_byPoz))
     // console.log("dataDugumler_byPoz?.dugumler_byPoz", dataDugumler_byPoz?.dugumler_byPoz)
@@ -225,7 +225,7 @@ export default function P_IsPaketleriPozMahaller() {
 
       // const result = await RealmApp.currentUser.callFunction("updateDugumler_openMetraj", { functionName: "mahaller_byPozId", _projeId: selectedProje._id, mahaller, _pozId: selectedPoz._id });
 
-      const response = await fetch(`/api/dugumler/ispaketleri`, {
+      const response = await fetch(`/api/dugumler/ispaketler`, {
         method: 'POST',
         headers: {
           email: appUser.email,
@@ -402,7 +402,7 @@ export default function P_IsPaketleriPozMahaller() {
 
                 <IconButton
                   sx={{ mx: 0, px: 0 }}
-                  onClick={() => navigate('/ispaketleripozlar')} disabled={false}>
+                  onClick={() => navigate('/ispaketpozlar')} disabled={false}>
                   <ReplyIcon variant="contained" sx={{ color: "gray" }} />
                 </IconButton>
 

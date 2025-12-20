@@ -139,7 +139,7 @@ export default function FormIsPaketCreate({ setShow }) {
       }
 
       if (responseJson.newIsPaketler) {
-        queryClient.setQueryData(['isPaketlerByProjeByVersiyon', selectedProje._id.toString(), 0], () => ({ isPaketler: responseJson.newIsPaketler }))
+        queryClient.setQueryData(['isPaketler'], () => ({ isPaketler: responseJson.newIsPaketler }))
         setShow("Main")
         return
       }
