@@ -234,7 +234,7 @@ export default function P_BirimFiyat() {
         setIsChanged_para()
         setParaEdit()
 
-        if(isProjeUpdate){
+        if (isProjeUpdate) {
           let proje2 = _.cloneDeep(selectedProje)
           proje2.paraBirimleri = paraBirimleri
           setSelectedProje(proje2)
@@ -477,14 +477,17 @@ export default function P_BirimFiyat() {
                     </IconButton>
                   </Box>
 
-                  <Box>
-                    <IconButton onClick={() => setParaEdit(x => {
-                      setShow("Main")
-                      return !x
-                    })}>
-                      <EditIcon variant="contained" />
-                    </IconButton>
-                  </Box>
+
+                  {paraBirimiAdet > 0 &&
+                    <Box>
+                      <IconButton onClick={() => setParaEdit(x => {
+                        setShow("Main")
+                        return !x
+                      })}>
+                        <EditIcon variant="contained" />
+                      </IconButton>
+                    </Box>
+                  }
 
                 </>
               }

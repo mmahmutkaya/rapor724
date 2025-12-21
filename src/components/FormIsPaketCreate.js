@@ -109,7 +109,7 @@ export default function FormIsPaketCreate({ setShow }) {
 
       // VALIDATE KONTROL -- SONU
 
-      const response = await fetch(`/api/ispaketler`, {
+      const response = await fetch(`/api/projeler/createispaket`, {
         method: 'POST',
         headers: {
           email: appUser.email,

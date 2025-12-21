@@ -533,7 +533,8 @@ export default function P_MetrajPozMahaller() {
               </>
             } */}
 
-            {showMetrajYapabilenler?.filter(x => x.isShow).length > 0 &&
+
+            {/* {showMetrajYapabilenler?.filter(x => x.isShow).length > 0 &&
               <>
                 <Box> </Box>
                 {showMetrajYapabilenler?.filter(x => x.isShow).map((oneYapabilen, index) => {
@@ -561,7 +562,7 @@ export default function P_MetrajPozMahaller() {
                   )
                 })}
               </>
-            }
+            } */}
 
           </>
 
@@ -587,7 +588,7 @@ export default function P_MetrajPozMahaller() {
               </>
             } */}
 
-            {showMetrajYapabilenler?.filter(x => x.isShow).length > 0 &&
+            {/* {showMetrajYapabilenler?.filter(x => x.isShow).length > 0 &&
               <>
                 <Box> </Box>
                 {showMetrajYapabilenler?.filter(x => x.isShow).map((oneYapabilen, index) => {
@@ -602,7 +603,8 @@ export default function P_MetrajPozMahaller() {
                 })}
 
               </>
-            }
+            } */}
+
           </>
 
 
@@ -636,7 +638,7 @@ export default function P_MetrajPozMahaller() {
                   </>
                 } */}
 
-                {showMetrajYapabilenler?.filter(x => x.isShow).length > 0 &&
+                {/* {showMetrajYapabilenler?.filter(x => x.isShow).length > 0 &&
                   <>
                     <Box> </Box>
                     {showMetrajYapabilenler?.filter(x => x.isShow).map((oneYapabilen, index) => {
@@ -651,7 +653,7 @@ export default function P_MetrajPozMahaller() {
                       )
                     })}
                   </>
-                }
+                } */}
 
 
                 {/* MAHAL SATIRLARI */}

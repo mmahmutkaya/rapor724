@@ -12,7 +12,7 @@ import _ from 'lodash';
 import { DialogAlert } from '../../components/general/DialogAlert.js';
 
 
-import { useGetPozlar, useGetDugumler_byPoz, useGetMahaller } from '../../hooks/useMongo';
+import { useGetDugumler_byPoz, useGetMahaller } from '../../hooks/useMongo';
 
 import Grid from '@mui/material/Grid';
 import Alert from '@mui/material/Alert';
@@ -52,19 +52,19 @@ export default function P_MetrajOlusturPozMahaller() {
 
 
   const { data: dataMahaller, error: error1, isLoading: isLoading1 } = useGetMahaller()
-  const { data, error: error2, isLoading: isLoading2 } = useGetDugumler_byPoz()
+  const { data: dataDugumlerByPoz, error: error2, isLoading: isLoading2 } = useGetDugumler_byPoz()
 
   const mahaller_byPoz = dataMahaller?.mahaller?.filter(oneMahal => dugumler_byPoz?.find(oneDugum => oneDugum._mahalId.toString() === oneMahal._id.toString()))
 
   useEffect(() => {
     !selectedPoz && navigate('/metrajpozlar')
-    setDugumler_byPoz(_.cloneDeep(data?.dugumler_byPoz))
-    setLbsMetrajlar(_.cloneDeep(data?.lbsMetrajlar))
+    setDugumler_byPoz(_.cloneDeep(dataDugumlerByPoz?.dugumler_byPoz))
+    setLbsMetrajlar(_.cloneDeep(dataDugumlerByPoz?.lbsMetrajlar))
     return () => {
       // setselectedPoz_metraj()
       // setDugumler_filtered()
     }
-  }, [data])
+  }, [dataMahaller, dataDugumlerByPoz])
 
 
   useEffect(() => {
@@ -292,7 +292,7 @@ export default function P_MetrajOlusturPozMahaller() {
 
             {showMetrajOnaylanan &&
               <Box sx={{ ...css_enUstBaslik, justifyContent: "end" }}>
-                {ikiHane(data?.metrajOnaylanan)}
+                {ikiHane(dataDugumlerByPoz?.metrajOnaylanan)}
               </Box>
             }
 
@@ -304,10 +304,10 @@ export default function P_MetrajOlusturPozMahaller() {
               <>
                 <Box> </Box>
                 <Box sx={{ ...css_enUstBaslik, justifyContent: "end", borderLeft: "1px solid black" }}>
-                  {ikiHane(data?.hazirlananMetrajlar?.find(x => x.userEmail === appUser.email)?.metrajPreparing)}
+                  {ikiHane(dataDugumlerByPoz?.hazirlananMetrajlar?.find(x => x.userEmail === appUser.email)?.metrajPreparing)}
                 </Box>
                 <Box sx={{ ...css_enUstBaslik, justifyContent: "end", borderLeft: "1px solid black" }}>
-                  {ikiHane(data?.hazirlananMetrajlar?.find(x => x.userEmail === appUser.email)?.metrajReady)}
+                  {ikiHane(dataDugumlerByPoz?.hazirlananMetrajlar?.find(x => x.userEmail === appUser.email)?.metrajReady)}
                 </Box>
               </>
             }
