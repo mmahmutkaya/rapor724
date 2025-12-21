@@ -7,7 +7,7 @@ import _ from 'lodash';
 
 
 import { StoreContext } from '../../components/store.js'
-import { useGetPozlar, useGetPozMetrajlarIsPaketByVersiyon } from '../../hooks/useMongo.js';
+import { useGetPozlar, useGetIsPaketPozMetrajlar } from '../../hooks/useMongo.js';
 import getWbsName from '../../functions/getWbsName.js';
 import { DialogAlert } from '../../components/general/DialogAlert.js';
 
@@ -37,7 +37,7 @@ export default function P_isPaketPozlar() {
   const queryClient = useQueryClient()
 
   const { data: dataPozlar, error: error1, isFetching: isFetching1 } = useGetPozlar()
-  const { data: dataIsPaketPozMetrajlar, error: error2, isFetching: isFetching2 } = useGetPozMetrajlarIsPaketByVersiyon()
+  const { data: dataIsPaketPozMetrajlar, error: error2, isFetching: isFetching2 } = useGetIsPaketPozMetrajlar()
  
   // let pozlar = data?.pozlar?.filter(x => x.hasDugum)
 

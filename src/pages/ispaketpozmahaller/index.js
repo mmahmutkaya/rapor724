@@ -85,7 +85,7 @@ export default function P_isPaketPozMahaller() {
     return () => {
       setMahaller_state()
     }
-  }, [dataDugumler_byPoz])
+  }, [dataMahaller, dataDugumler_byPoz])
 
 
   useEffect(() => {
@@ -187,16 +187,11 @@ export default function P_isPaketPozMahaller() {
 
         oneDugum2.newSelected = true
         oneDugum2.newSelectedValue = toggleValue
+        oneDugum2.isPaketler = oneDugum2.isPaketler.filter(x => x._id.toString() !== selectedIsPaket._id.toString())
 
-        oneDugum2.isPaketVersiyonlar = oneDugum2.isPaketVersiyonlar.map(oneVersiyon => {
-          if (oneVersiyon.versiyon === selectedIsPaketVersiyon) {
-            oneVersiyon.isPaketler = oneVersiyon.isPaketler.filter(x => x._id.toString() !== selectedIsPaket._id.toString())
-            if (toggleValue) {
-              oneVersiyon.isPaketler = [...oneVersiyon.isPaketler, { _id: selectedIsPaket._id }]
-            }
-            return oneVersiyon
-          }
-        })
+        if (toggleValue) {
+          oneDugum2.isPaketler = [...oneDugum2.isPaketler, { _id: selectedIsPaket._id }]
+        }
       }
 
       return oneDugum2
@@ -325,23 +320,20 @@ export default function P_isPaketPozMahaller() {
   let selectedThisPaketColor = "rgba(98, 210, 96, 0.22)"
 
 
-  let selectedPozVersiyonPaketMetraj = 1
+  let selectedPozVersiyonPaketMetraj
 
 
-  // if (selectedIsPaketVersiyon === 0) {
-  //   selectedPozVersiyonPaketMetraj = dugumler_byPoz_state
-  //     ?.filter(dugum =>
-  //       dugum.isPaketler
-  //         .find(onePaket => onePaket?._id.toString() === selectedIsPaket._id.toString())
-  //     ).reduce((accumulator, oneDugum) => oneDugum.metrajOnaylanan ? accumulator + oneDugum.metrajOnaylanan : accumulator, 0)
-  // } else {
-  //   selectedPozVersiyonPaketMetraj = dugumler_byPoz_state
-  //     ?.filter(dugum =>
-  //       dugum.isPaketVersiyonlar
-  //         .find(oneVersiyon => oneVersiyon.versiyon === selectedIsPaketVersiyon).isPaketler
-  //         .find(onePaket => onePaket?._id.toString() === selectedIsPaket._id.toString())
-  //     ).reduce((accumulator, oneDugum) => oneDugum.metrajOnaylanan ? accumulator + oneDugum.metrajOnaylanan : accumulator, 0)
-  // }
+  if (selectedIsPaketVersiyon === 0) {
+    selectedPozVersiyonPaketMetraj = dugumler_byPoz_state
+      ?.filter(oneDugum => oneDugum.isPaketler.find(onePaket => onePaket?._id.toString() === selectedIsPaket._id.toString())
+      ).reduce((accumulator, oneDugum) => oneDugum.metrajOnaylanan ? accumulator + oneDugum.metrajOnaylanan : accumulator, 0)
+  } else {
+    selectedPozVersiyonPaketMetraj = dugumler_byPoz_state
+      ?.filter(dugum => dugum.isPaketVersiyonlar
+        .find(oneVersiyon => oneVersiyon.versiyon === selectedIsPaketVersiyon).isPaketler
+        .find(onePaket => onePaket?._id.toString() === selectedIsPaket._id.toString())
+      ).reduce((accumulator, oneDugum) => oneDugum.metrajOnaylanan ? accumulator + oneDugum.metrajOnaylanan : accumulator, 0)
+  }
 
 
   return (
@@ -607,23 +599,20 @@ export default function P_isPaketPozMahaller() {
 
             const lbsMetraj = dataDugumler_byPoz?.lbsMetrajlar?.find(x => x._id.toString() === oneLbs._id.toString())
 
-            let lbsMetrajSecili = 2
-            // if (selectedIsPaketVersiyon === 0) {
-            //   lbsMetrajSecili = dugumler_byPoz_state
-            //     ?.filter(x => mahaller_byLbs.find(y => y._id.toString() === x._mahalId.toString()))
-            //     ?.filter(dugum =>
-            //       dugum.isPaketler
-            //         .find(onePaket => onePaket._id.toString() === selectedIsPaket._id.toString())
-            //     ).reduce((accumulator, oneDugum) => oneDugum.metrajOnaylanan ? accumulator + oneDugum.metrajOnaylanan : accumulator, 0)
-            // } else {
-            //   lbsMetrajSecili = dugumler_byPoz_state
-            //     ?.filter(x => mahaller_byLbs.find(y => y._id.toString() === x._mahalId.toString()))
-            //     ?.filter(dugum =>
-            //       dugum.isPaketVersiyonlar
-            //         .find(oneVersiyon => oneVersiyon.versiyon === selectedIsPaketVersiyon).isPaketler
-            //         .find(onePaket => onePaket._id.toString() === selectedIsPaket._id.toString())
-            //     ).reduce((accumulator, oneDugum) => oneDugum.metrajOnaylanan ? accumulator + oneDugum.metrajOnaylanan : accumulator, 0)
-            // }
+            let lbsMetrajSecili
+            if (selectedIsPaketVersiyon === 0) {
+              lbsMetrajSecili = dugumler_byPoz_state
+                ?.filter(x => mahaller_byLbs.find(y => y._id.toString() === x._mahalId.toString()))
+                ?.filter(oneDugum => oneDugum.isPaketler.find(onePaket => onePaket._id.toString() === selectedIsPaket._id.toString())
+                ).reduce((accumulator, oneDugum) => oneDugum.metrajOnaylanan ? accumulator + oneDugum.metrajOnaylanan : accumulator, 0)
+            } else {
+              lbsMetrajSecili = dugumler_byPoz_state
+                ?.filter(x => mahaller_byLbs.find(y => y._id.toString() === x._mahalId.toString()))
+                ?.filter(oneDugum => oneDugum.isPaketVersiyonlar
+                  .find(oneVersiyon => oneVersiyon.versiyon === selectedIsPaketVersiyon).isPaketler
+                  .find(onePaket => onePaket._id.toString() === selectedIsPaket._id.toString())
+                ).reduce((accumulator, oneDugum) => oneDugum.metrajOnaylanan ? accumulator + oneDugum.metrajOnaylanan : accumulator, 0)
+            }
 
 
             return (
@@ -678,17 +667,17 @@ export default function P_isPaketPozMahaller() {
 
                   let theMetraj = dugum.metrajOnaylanan
 
-                  // let isPaketler
-                  // if (selectedIsPaketVersiyon === 0) {
-                  //   isPaketler = dugum.isPaketler
-                  // } else {
-                  //   isPaketler = dugum.isPaketVersiyonlar.find(oneVersiyon => oneVersiyon.versiyon === selectedIsPaketVersiyon).isPaketler
-                  // }
-                  // let isSelectedThis = isPaketler.find(onePaket => onePaket._id.toString() === selectedIsPaket._id.toString())
-                  // let isSelectedOther = isPaketler.filter(onePaket => onePaket._id.toString() !== selectedIsPaket._id.toString()).length > 0
+                  let isPaketler
+                  if (selectedIsPaketVersiyon === 0) {
+                    isPaketler = dugum.isPaketler
+                  } else {
+                    isPaketler = dugum.isPaketVersiyonlar.find(oneVersiyon => oneVersiyon.versiyon === selectedIsPaketVersiyon).isPaketler
+                  }
+                  let isSelectedThis = isPaketler.find(onePaket => onePaket._id.toString() === selectedIsPaket._id.toString())
+                  let isSelectedOther = isPaketler.filter(onePaket => onePaket._id.toString() !== selectedIsPaket._id.toString()).length > 0
 
-                  let isSelectedThis = false
-                  let isSelectedOther = false
+                  // let isSelectedThis = false
+                  // let isSelectedOther = false
 
 
                   return (

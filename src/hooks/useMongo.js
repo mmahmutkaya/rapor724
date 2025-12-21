@@ -52,7 +52,7 @@ export const useGetFirmalar = () => {
 }
 
 
-export const useGetPozMetrajlarIsPaketByVersiyon = () => {
+export const useGetIsPaketPozMetrajlar = () => {
 
   const navigate = useNavigate()
   const { appUser, setAppUser, selectedProje, selectedIsPaketVersiyon, selectedMetrajVersiyon } = useContext(StoreContext)
