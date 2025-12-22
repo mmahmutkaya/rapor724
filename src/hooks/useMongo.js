@@ -64,7 +64,7 @@ export const useGetIsPaketPozMetrajlar = () => {
     ],
 
     queryFn: async () => {
-      const response = await fetch('api/pozlar/pozmetrajlarispaketbyversiyon', {
+      const response = await fetch('api/pozlar/ispaketpozmetrajlar', {
         method: 'GET',
         headers: {
           email: appUser.email,

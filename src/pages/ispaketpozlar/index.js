@@ -42,7 +42,7 @@ export default function P_isPaketPozlar() {
   // let pozlar = data?.pozlar?.filter(x => x.hasDugum)
 
   const [pozlar_state, setPozlar_state] = useState()
-  const [IsPaketPozMetrajlar_state, setIsPaketPozMetrajlar_state] = useState()
+  const [isPaketPozMetrajlar_state, setIsPaketPozMetrajlar_state] = useState()
   const [wbsArray_state, setWbsArray_state] = useState()
 
   const [dialogAlert, setDialogAlert] = useState()
@@ -72,7 +72,7 @@ export default function P_isPaketPozlar() {
 
     if (selectedProje && dataPozlar && dataIsPaketPozMetrajlar) {
 
-      let IsPaketPozMetrajlar = _.cloneDeep(dataIsPaketPozMetrajlar?.IsPaketPozMetrajlar)
+      let isPaketPozMetrajlar = _.cloneDeep(dataIsPaketPozMetrajlar?.isPaketPozMetrajlar)
       let pozlar = _.cloneDeep(dataPozlar?.pozlar?.filter(x => x.hasDugum))
       let wbsArray = _.cloneDeep(selectedProje?.wbs.filter(oneWbs => pozlar?.find(onePoz => onePoz._wbsId.toString() === oneWbs._id.toString())))
 
@@ -89,7 +89,7 @@ export default function P_isPaketPozlar() {
 
       pozlar?.map(onePoz => {
 
-        onePoz.kesifMiktar = IsPaketPozMetrajlar
+        onePoz.kesifMiktar = isPaketPozMetrajlar
           ?.find(x => x._id.toString() === onePoz._id.toString()).isPaketler_byVersiyon
           ?.find(x => x._id.toString() === selectedIsPaket._id.toString())?.metrajOnaylanan
 
@@ -123,11 +123,11 @@ export default function P_isPaketPozlar() {
 
       // console.log("wbsArray",wbsArray)
       // console.log("pozlar",pozlar)
-      // console.log("dataIsPaketPozMetrajlar?.IsPaketPozMetrajlar",dataIsPaketPozMetrajlar?.IsPaketPozMetrajlar)
+      // console.log("dataIsPaketPozMetrajlar?.isPaketPozMetrajlar",dataIsPaketPozMetrajlar?.isPaketPozMetrajlar)
 
       setPozlar_state(pozlar)
       setWbsArray_state(wbsArray)
-      setIsPaketPozMetrajlar_state(_.cloneDeep(dataIsPaketPozMetrajlar?.IsPaketPozMetrajlar))
+      setIsPaketPozMetrajlar_state(_.cloneDeep(dataIsPaketPozMetrajlar?.isPaketPozMetrajlar))
 
     }
 
