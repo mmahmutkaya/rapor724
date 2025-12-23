@@ -320,15 +320,15 @@ export default function P_IsPaketPozMahaller() {
   let selectedThisPaketColor = "rgba(98, 210, 96, 0.22)"
 
 
-  let selectedPozVersiyonPaketMetraj
+  let isPaketSelectedPozMetraj
 
 
   if (selectedIsPaketVersiyon === 0) {
-    selectedPozVersiyonPaketMetraj = dugumler_byPoz_state
+    isPaketSelectedPozMetraj = dugumler_byPoz_state
       ?.filter(oneDugum => oneDugum.isPaketler.find(onePaket => onePaket?._id.toString() === selectedIsPaket._id.toString())
       ).reduce((accumulator, oneDugum) => oneDugum.metrajOnaylanan ? accumulator + oneDugum.metrajOnaylanan : accumulator, 0)
   } else {
-    selectedPozVersiyonPaketMetraj = dugumler_byPoz_state
+    isPaketSelectedPozMetraj = dugumler_byPoz_state
       ?.filter(dugum => dugum.isPaketVersiyonlar
         .find(oneVersiyon => oneVersiyon.versiyon === selectedIsPaketVersiyon).isPaketler
         .find(onePaket => onePaket?._id.toString() === selectedIsPaket._id.toString())
@@ -564,7 +564,7 @@ export default function P_IsPaketPozMahaller() {
             </Box>
 
             <Box sx={{ ...css_enUstBaslik, justifyContent: "end" }}>
-              {ikiHane(selectedPozVersiyonPaketMetraj)} {selectedPozVersiyonPaketMetraj > 0 && pozBirim}
+              {ikiHane(isPaketSelectedPozMetraj)} {isPaketSelectedPozMetraj > 0 && pozBirim}
             </Box>
 
             {paraBirimiAdet > 0 &&
@@ -572,7 +572,7 @@ export default function P_IsPaketPozMahaller() {
                 <Box sx={{ backgroundColor: ayracRenk_bordo }}></Box>
                 {selectedProje?.paraBirimleri?.filter(x => x.isActive).map((oneBirim, index) => {
                   let fiyat = selectedPoz?.birimFiyatlar?.find(x => x.id === oneBirim.id)?.fiyat
-                  let tutar = selectedPozVersiyonPaketMetraj > 0 && fiyat > 0 && selectedPozVersiyonPaketMetraj * fiyat
+                  let tutar = isPaketSelectedPozMetraj > 0 && fiyat > 0 && isPaketSelectedPozMetraj * fiyat
                   return (
                     <Box key={index} sx={{ ...css_enUstBaslik, justifyContent: "end" }}>
                       {tutar > 0 && ikiHane(tutar)}  {tutar > 0 && (oneBirim.sembol ? oneBirim.sembol : oneBirim.id)}

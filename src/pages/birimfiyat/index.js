@@ -477,6 +477,14 @@ export default function P_BirimFiyat() {
                     </IconButton>
                   </Box>
 
+                  <Box>
+                    <IconButton onClick={() => setShowEminMisin_versiyon(true)}>
+                      <Avatar sx={{ height: "1.7rem", width: "1.7rem", fontSize: "0.8rem", fontWeight: 600, color: "black" }}>
+                        V
+                      </Avatar>
+                    </IconButton>
+                  </Box>
+
 
                   {paraBirimiAdet > 0 &&
                     <Box>
