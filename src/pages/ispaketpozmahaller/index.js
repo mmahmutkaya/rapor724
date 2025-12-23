@@ -37,7 +37,7 @@ import ReplyIcon from '@mui/icons-material/Reply';
 
 
 
-export default function P_isPaketPozMahaller() {
+export default function P_IsPaketPozMahaller() {
 
   const queryClient = useQueryClient()
 
