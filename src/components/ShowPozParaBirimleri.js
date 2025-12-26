@@ -22,17 +22,108 @@ import Avatar from '@mui/material/Avatar';
 
 
 
-export default function ShowPozParaBirimleri({ setShow, paraBirimleri, setParaBirimleri, paraEdit, setParaEdit }) {
+export default function ShowPozParaBirimleri({ setShow, paraBirimleri, setParaBirimleri }) {
 
   const navigate = useNavigate()
 
   const { appUser, setAppUser } = useContext(StoreContext)
 
-
   const [dialogAlert, setDialogAlert] = useState()
-  // const [showEminMisin, setShowEminMisin] = useState(false)
+
+  
+  let isDone
+  useEffect(() => {
+    if (!isDone) {
+      deActiveParaBirimiRemove()
+    }
+    isDone = true
+  }, [])
+
+
+  const deActiveParaBirimiRemove = async () => {
+
+    try {
+
+      let hasDeactiveParaBirimi
+      let userCustomParabirimleri = appUser.customSettings.pages.birimfiyat.paraBirimleri
+      userCustomParabirimleri.map(oneBirim => {
+        if (!paraBirimleri.find(x => x.id === oneBirim.id)) {
+          hasDeactiveParaBirimi = true
+        }
+      })
+
+      if (!hasDeactiveParaBirimi) {
+        console.log("burada sorgu durdu")
+        return
+      }
+      console.log("burada sorgu yapılacak")
+
+      let paraBirimleri2 = _.cloneDeep(paraBirimleri)
+
+      let pageName = "birimfiyat"
+      let dataName = "paraBirimleri"
+      let setData = paraBirimleri2
+
+      const response = await fetch(`/api/user/customsettingspagessetdata`, {
+        method: 'POST',
+        headers: {
+          email: appUser.email,
+          token: appUser.token,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          pageName,
+          dataName,
+          setData
+        })
+      })
+
+      const responseJson = await response.json()
+
+      if (responseJson.error) {
+        if (responseJson.error.includes("expired")) {
+          setAppUser()
+          localStorage.removeItem('appUser')
+          navigate('/')
+          window.location.reload()
+        }
+        throw new Error(responseJson.error);
+      }
+
+      if (responseJson.ok) {
+
+        // frontend deki veri güncelleme
+        setParaBirimleri(paraBirimleri2)
+
+        let appUser2 = _.cloneDeep(appUser)
+        appUser2.customSettings.pages[pageName][dataName] = setData
+        setAppUser(appUser2)
+        localStorage.setItem('appUser', JSON.stringify(appUser2))
+        return
+
+      } else {
+        throw new Error("Kayıt gerçekleşmedi, sayfayı yenileyiniz, sorun devam ederse Rapor7/24 ile iletişime geçiniz.")
+      }
+
+
+    } catch (err) {
+
+      console.log(err)
+
+      setDialogAlert({
+        dialogIcon: "warning",
+        dialogMessage: "Beklenmedik hata, Rapor7/24 ile irtibata geçiniz..",
+        detailText: err?.message ? err.message : null
+      })
+
+    }
+
+  }
+
 
   const baslikUpdate = async ({ oneBirim, showValue }) => {
+
+    console.log("başlık update")
 
     let baslikId = oneBirim.id
 

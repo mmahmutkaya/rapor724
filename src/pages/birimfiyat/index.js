@@ -87,15 +87,16 @@ export default function P_BirimFiyat() {
 
   const [paraBirimleri, setParaBirimleri] = useState(previousData => {
     let paraBirimleri = selectedProje?.paraBirimleri
-    let paraBirimleri2 = appUser.customSettings.pages.birimfiyat.paraBirimleri
-    // console.log("paraBirimleri2",paraBirimleri2)
-    // console.log("paraBirimleri",paraBirimleri)
+    let userCustomParabirimleri = appUser.customSettings.pages.birimfiyat.paraBirimleri
+
+    // kullanıcının firma tarafından yeni eklenen para birimlerinden haberdar olması için, kullnıcı özellikle gizlememişse para birimi görülsün
     paraBirimleri = paraBirimleri?.map(oneBirim => {
-      let oneBirim2 = paraBirimleri2.length > 0 && paraBirimleri2.find(x => x.id === oneBirim.id)
-      if (oneBirim2?.isShow) {
-        oneBirim.isShow = true
-      } else {
-        oneBirim.isShow = false
+      oneBirim.isShow = true
+      let oneBirim2 = userCustomParabirimleri.length > 0 && userCustomParabirimleri.find(x => x.id === oneBirim.id)
+      if (oneBirim2) {
+        if (oneBirim2.isShow === false) {
+          oneBirim.isShow = false
+        }
       }
       return oneBirim
     })
@@ -173,7 +174,7 @@ export default function P_BirimFiyat() {
     if (isChanged_para) {
       try {
 
-        let paraBirimleri = _.cloneDeep(selectedProje).paraBirimleri
+        let paraBirimleri = _.cloneDeep(selectedProje.paraBirimleri)
 
         let isProjeUpdate
         usedParaIds.map(paraId => {
@@ -262,53 +263,6 @@ export default function P_BirimFiyat() {
 
 
 
-
-  const enUstBaslik_css = {
-    display: "grid",
-    alignItems: "center",
-    justifyItems: "center",
-    backgroundColor: myTema.renkler.baslik1,
-    fontWeight: 600,
-    border: "1px solid black",
-    px: "0.7rem"
-  }
-
-  const wbsBaslik_css = {
-    display: "grid",
-    alignItems: "center",
-    justifyItems: "start",
-    backgroundColor: myTema.renkler.baslik2,
-    fontWeight: 600,
-    pl: "0.5rem",
-    border: "1px solid black",
-    mt: "1.5rem",
-  }
-
-  const pozNo_css = {
-    display: "grid",
-    alignItems: "center",
-    justifyItems: "center",
-    backgroundColor: "white",
-    border: "1px solid black",
-    px: "0.7rem"
-  }
-
-
-
-  // GENEL - bir fonksiyon, ortak kullanılıyor olabilir
-  const ikiHane = (value) => {
-    if (!value || value === "") {
-      return value
-    }
-    if (value != "") {
-      return new Intl.NumberFormat("de-DE", { minimumFractionDigits: 2, maximumFractionDigits: 2, }).format(value)
-    }
-    return value
-  }
-
-
-
-
   const createVersiyon_birimFiyat = async () => {
 
     try {
@@ -361,6 +315,57 @@ export default function P_BirimFiyat() {
       })
     }
   }
+
+
+
+
+
+
+
+
+  const enUstBaslik_css = {
+    display: "grid",
+    alignItems: "center",
+    justifyItems: "center",
+    backgroundColor: myTema.renkler.baslik1,
+    fontWeight: 600,
+    border: "1px solid black",
+    px: "0.7rem"
+  }
+
+  const wbsBaslik_css = {
+    display: "grid",
+    alignItems: "center",
+    justifyItems: "start",
+    backgroundColor: myTema.renkler.baslik2,
+    fontWeight: 600,
+    pl: "0.5rem",
+    border: "1px solid black",
+    mt: "1.5rem",
+  }
+
+  const pozNo_css = {
+    display: "grid",
+    alignItems: "center",
+    justifyItems: "center",
+    backgroundColor: "white",
+    border: "1px solid black",
+    px: "0.7rem"
+  }
+
+
+
+  // GENEL - bir fonksiyon, ortak kullanılıyor olabilir
+  const ikiHane = (value) => {
+    if (!value || value === "") {
+      return value
+    }
+    if (value != "") {
+      return new Intl.NumberFormat("de-DE", { minimumFractionDigits: 2, maximumFractionDigits: 2, }).format(value)
+    }
+    return value
+  }
+
 
 
 
