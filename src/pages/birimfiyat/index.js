@@ -52,7 +52,6 @@ export default function P_BirimFiyat() {
   const [showEminMisin_versiyon, setShowEminMisin_versiyon] = useState(false)
 
 
-
   const [show, setShow] = useState("Main")
   const [pozlar_state, setPozlar_state] = useState()
   const [pozlar_backUp, setPozlar_backUp] = useState()
@@ -61,6 +60,7 @@ export default function P_BirimFiyat() {
 
   const [paraEdit, setParaEdit] = useState(false)
   const [isChanged_para, setIsChanged_para] = useState()
+  const [birimFiyatEdit, setBirimFiyatEdit] = useState()
 
 
 
@@ -69,6 +69,34 @@ export default function P_BirimFiyat() {
     setPozlar_state(_.cloneDeep(dataPozlar?.pozlar))
     setPozlar_backUp(_.cloneDeep(dataPozlar?.pozlar))
   }, [dataPozlar])
+
+
+
+  // selectedProje değiştiğinde yetki modu değişsin
+  // selectedProje değiştiğinde paraBirimleri değişsin
+  useEffect(() => {
+
+    setBirimFiyatEdit(selectedProje?.aktifYetkililer?.birimFiyatEdit == appUser.email)
+
+    setParaBirimleri(previousData => {
+      let paraBirimleri = selectedProje?.paraBirimleri
+      let userCustomParabirimleri = appUser.customSettings.pages.birimfiyat.paraBirimleri
+
+      // kullanıcının firma tarafından yeni eklenen para birimlerinden haberdar olması için, kullnıcı özellikle gizlememişse para birimi görülsün
+      paraBirimleri = paraBirimleri?.map(oneBirim => {
+        oneBirim.isShow = true
+        let oneBirim2 = userCustomParabirimleri.length > 0 && userCustomParabirimleri.find(x => x.id === oneBirim.id)
+        if (oneBirim2) {
+          if (!oneBirim.isActive && oneBirim2.isShow === false) {
+            oneBirim.isShow = false
+          }
+        }
+        return oneBirim
+      })
+      return paraBirimleri
+    })
+
+  }, [selectedProje])
 
 
   useEffect(() => {
@@ -83,25 +111,18 @@ export default function P_BirimFiyat() {
   }, [error]);
 
 
+  const birimFiyatVersiyon = () => {
+    if (selectedProje?.birimfiyatVersiyonlar?.length > 0) {
+      return selectedProje?.birimfiyatVersiyonlar.reduce((acc, cur) => cur.versiyonNumber > acc.versiyonNumber ? cur : acc, { versiyonNumber: 0 })
+    } else {
+      return null
+    }
+  }
+
+
   const [basliklar, setBasliklar] = useState(appUser.customSettings.pages.birimfiyat.basliklar)
 
-  const [paraBirimleri, setParaBirimleri] = useState(previousData => {
-    let paraBirimleri = selectedProje?.paraBirimleri
-    let userCustomParabirimleri = appUser.customSettings.pages.birimfiyat.paraBirimleri
-
-    // kullanıcının firma tarafından yeni eklenen para birimlerinden haberdar olması için, kullnıcı özellikle gizlememişse para birimi görülsün
-    paraBirimleri = paraBirimleri?.map(oneBirim => {
-      oneBirim.isShow = true
-      let oneBirim2 = userCustomParabirimleri.length > 0 && userCustomParabirimleri.find(x => x.id === oneBirim.id)
-      if (oneBirim2) {
-        if (oneBirim2.isShow === false) {
-          oneBirim.isShow = false
-        }
-      }
-      return oneBirim
-    })
-    return paraBirimleri
-  })
+  const [paraBirimleri, setParaBirimleri] = useState()
 
   // sayfadaki "visibility" tuşunun aktif olup olmamasını ayarlamak için
   const anyBaslikShow = basliklar?.find(x => x.visible) ? true : false
@@ -134,19 +155,30 @@ export default function P_BirimFiyat() {
   // Edit Metraj Sayfasının Fonksiyonu
   const handle_input_onChange = ({ birimFiyat, _onePozId, paraBirimiId }) => {
 
-    if (!isChanged_para) {
-      setIsChanged_para(true)
-    }
-
     let pozlar_state2 = _.cloneDeep(pozlar_state)
 
     // map ile tarayarak, state kısmındaki datanın ilgili satırını güncelliyoruz, ayrıca tüm satırların toplam metrajını, önce önceki değeri çıkartıp yeni değeri ekleyerek
     pozlar_state2.map(onePoz => {
 
       if (onePoz._id.toString() === _onePozId) {
+
+        // yeni bir birim fiyat girilmemişse fonksiyon iptal, yeni giriş varsa eskisini kaldır
+        let theBirimFiyat = onePoz.birimFiyatlar?.find(x => x.id === paraBirimiId)
+        if (theBirimFiyat) {
+          if (theBirimFiyat.fiyat === birimFiyat) {
+            return
+          } else {
+            onePoz.birimFiyatlar = onePoz.birimFiyatlar?.filter(x => x.id !== paraBirimiId)
+          }
+        }
+
         onePoz.newSelected_para = true
-        onePoz.birimFiyatlar = onePoz.birimFiyatlar?.filter(x => x.id !== paraBirimiId)
-        onePoz.birimFiyatlar = [...onePoz.birimFiyatlar, { id: paraBirimiId, fiyat: birimFiyat }]
+        onePoz.birimFiyatlar = [...onePoz.birimFiyatlar, { id: paraBirimiId, fiyat: birimFiyat, isProgress: true }]
+
+        if (!isChanged_para) {
+          setIsChanged_para(true)
+        }
+
       }
       return onePoz
 
@@ -176,17 +208,17 @@ export default function P_BirimFiyat() {
 
         let paraBirimleri = _.cloneDeep(selectedProje.paraBirimleri)
 
-        let isProjeUpdate
+        // para birimi ilk defa kullanılıyorsa aktif edilecek, firma kullanıma kapatsa bile bu projede kullanılmaya devam edecek 
+        let isNewParaBirimiActive
         usedParaIds.map(paraId => {
           paraBirimleri = paraBirimleri.map(onePara => {
             if (onePara.id === paraId && !onePara.isActive) {
               onePara.isActive = true
-              isProjeUpdate = true
+              isNewParaBirimiActive = true
             }
             return onePara
           })
         })
-
 
         let pozlar_newPara = pozlar_state.map(onePoz => {
           if (onePoz.newSelected_para) {
@@ -209,7 +241,8 @@ export default function P_BirimFiyat() {
           body: JSON.stringify({
             pozlar_newPara,
             projeId: selectedProje._id,
-            paraBirimleri: isProjeUpdate ? paraBirimleri : null
+            paraBirimleri: isNewParaBirimiActive ? paraBirimleri : null,
+            birimFiyatVersiyon: birimFiyatVersiyon()
           })
         })
 
@@ -233,13 +266,15 @@ export default function P_BirimFiyat() {
         queryClient.invalidateQueries(['dataPozlar'])
         setUsedParaIds([])
         setIsChanged_para()
+
         setParaEdit()
 
-        if (isProjeUpdate) {
+        if (isNewParaBirimiActive) {
           let proje2 = _.cloneDeep(selectedProje)
           proje2.paraBirimleri = paraBirimleri
           setSelectedProje(proje2)
         }
+
         return
 
       } catch (err) {
@@ -368,8 +403,6 @@ export default function P_BirimFiyat() {
 
 
 
-
-
   let wbsCode
   let wbsName
   let cOunt
@@ -474,22 +507,13 @@ export default function P_BirimFiyat() {
                     </IconButton>
                   </Box>
 
-                  <Box>
+                  {/* <Box>
                     <IconButton onClick={() => setShowEminMisin_versiyon(true)}>
-                      <Avatar sx={{ height: "1.7rem", width: "1.7rem", fontSize: "0.8rem", fontWeight: 600, color: "black" }}>
-                        V
+                      <Avatar sx={{ height: "1.7rem", minWidth: "1.7rem", fontSize: "0.8rem", border: "1px solid black", fontWeight: 600, backgroundColor: birimFiyatVersiyon()?.isProgress && "yellow", color: "black" }}>
+                        V1123
                       </Avatar>
                     </IconButton>
-                  </Box>
-
-                  <Box>
-                    <IconButton onClick={() => setShowEminMisin_versiyon(true)}>
-                      <Avatar sx={{ height: "1.7rem", width: "1.7rem", fontSize: "0.8rem", fontWeight: 600, color: "black" }}>
-                        V
-                      </Avatar>
-                    </IconButton>
-                  </Box>
-
+                  </Box> */}
 
                   {paraBirimiAdet > 0 &&
                     <Box>
@@ -501,6 +525,10 @@ export default function P_BirimFiyat() {
                       </IconButton>
                     </Box>
                   }
+
+                  <Box sx={{ mx: "0.3rem", py: "0.2rem", px: "0.3rem", border: "1px solid black", borderRadius: "0.5rem", fontSize: "0.8rem", fontWeight: "600", backgroundColor: birimFiyatVersiyon()?.isProgress ? "yellow" : "lightgray" }}>
+                    V{birimFiyatVersiyon()?.versiyonNumber}
+                  </Box>
 
                 </>
               }
@@ -773,15 +801,17 @@ export default function P_BirimFiyat() {
                           <Box></Box>
                           {paraBirimleri?.filter(x => x.isShow).map((oneBirim, index) => {
 
+                            let theBirimFiyat = onePoz.birimFiyatlar?.find(x => x.id === oneBirim.id)
+
                             if (!paraEdit) {
                               return (
-                                <Box key={index} sx={{ ...pozNo_css, justifyContent: "end", minWidth: "6rem" }}>
-                                  {ikiHane(onePoz.birimFiyatlar?.find(x => x.id === oneBirim.id)?.fiyat)}
+                                <Box key={index} sx={{ ...pozNo_css, justifyContent: "end", minWidth: "6rem", backgroundColor: theBirimFiyat?.isProgress && "yellow" }}>
+                                  {ikiHane(theBirimFiyat?.fiyat)}
                                 </Box>
                               )
                             } else {
                               return (
-                                <Box key={onePoz._id.toString() + index} sx={{ ...pozNo_css, width: "8rem", backgroundColor: "rgba(255,255,0, 0.3)" }}>
+                                <Box key={onePoz._id.toString() + index} sx={{ ...pozNo_css, width: "8rem", backgroundColor: theBirimFiyat?.isProgress ? "yellow" : "rgba(255,255,0, 0.3)" }}>
 
                                   <Input
                                     // autoFocus={autoFocus.baslikId == oneBaslik.id && autoFocus.mahalId == oneMahal._id.toString()}

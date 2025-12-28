@@ -30,7 +30,7 @@ export default function ShowPozParaBirimleri({ setShow, paraBirimleri, setParaBi
 
   const [dialogAlert, setDialogAlert] = useState()
 
-  
+
   let isDone
   useEffect(() => {
     if (!isDone) {
@@ -53,10 +53,8 @@ export default function ShowPozParaBirimleri({ setShow, paraBirimleri, setParaBi
       })
 
       if (!hasDeactiveParaBirimi) {
-        console.log("burada sorgu durdu")
         return
       }
-      console.log("burada sorgu yapılacak")
 
       let paraBirimleri2 = _.cloneDeep(paraBirimleri)
 
@@ -283,11 +281,13 @@ export default function ShowPozParaBirimleri({ setShow, paraBirimleri, setParaBi
               return (
                 <React.Fragment key={index}>
 
-                  <Box sx={{ my: "0.2rem", justifySelf: "start" }}>{oneBirim.id}</Box>
+                  <Box sx={{ my: "0.2rem", justifySelf: "start", color: oneBirim.isActive && "gray" }}>{oneBirim.id}</Box>
 
-                  <Box sx={{ my: "0.2rem", justifySelf: "start" }}>{oneBirim.name}</Box>
+                  <Box sx={{ my: "0.2rem", justifySelf: "start", color: oneBirim.isActive && "gray" }}>{oneBirim.name}</Box>
 
-                  <Box sx={{ justifySelf: "end" }}><Switch checked={oneBirim.isShow} onChange={() => baslikUpdate({ oneBirim, showValue: !oneBirim.isShow })} /></Box>
+                  <Box sx={{ justifySelf: "end" }}>
+                    <Switch checked={oneBirim.isShow} disabled={oneBirim.isActive} onChange={() => baslikUpdate({ oneBirim, showValue: !oneBirim.isShow })} />
+                  </Box>
 
                 </React.Fragment>
               )
