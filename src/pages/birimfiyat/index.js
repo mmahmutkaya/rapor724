@@ -60,8 +60,11 @@ export default function P_BirimFiyat() {
 
   const [paraEdit, setParaEdit] = useState(false)
   const [isChanged_para, setIsChanged_para] = useState()
-  const [birimFiyatEdit, setBirimFiyatEdit] = useState()
 
+
+  // yetkiler
+  const [birimFiyatEditable, setBirimFiyatEditable] = useState()
+  const [birimFiyatEdit, setBirimFiyatEdit] = useState()
 
 
   useEffect(() => {
@@ -75,7 +78,9 @@ export default function P_BirimFiyat() {
   // selectedProje değiştiğinde yetki modu değişsin
   // selectedProje değiştiğinde paraBirimleri değişsin
   useEffect(() => {
-
+    
+    setBirimFiyatEditable(selectedProje?.yetkiliKisiler.find(x => x.email == appUser.email).yetkiler.find(x => x.name === "birimFiyatEdit"))
+    
     setBirimFiyatEdit(selectedProje?.aktifYetkililer?.birimFiyatEdit == appUser.email)
 
     setParaBirimleri(previousData => {
@@ -515,7 +520,7 @@ export default function P_BirimFiyat() {
                     </IconButton>
                   </Box> */}
 
-                  {paraBirimiAdet > 0 &&
+                  {paraBirimiAdet > 0 && birimFiyatEditable &&
                     <Box>
                       <IconButton onClick={() => setParaEdit(x => {
                         setShow("Main")
