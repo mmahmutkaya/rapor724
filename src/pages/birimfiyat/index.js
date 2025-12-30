@@ -64,7 +64,7 @@ export default function P_BirimFiyat() {
 
   // yetkiler
   const [birimFiyatEditable, setBirimFiyatEditable] = useState()
-  const [birimFiyatEdit, setBirimFiyatEdit] = useState()
+  // const [birimFiyatEdit, setBirimFiyatEdit] = useState()
 
 
   useEffect(() => {
@@ -78,10 +78,10 @@ export default function P_BirimFiyat() {
   // selectedProje değiştiğinde yetki modu değişsin
   // selectedProje değiştiğinde paraBirimleri değişsin
   useEffect(() => {
-    
-    setBirimFiyatEditable(selectedProje?.yetkiliKisiler.find(x => x.email == appUser.email).yetkiler.find(x => x.name === "birimFiyatEdit"))
-    
-    setBirimFiyatEdit(selectedProje?.aktifYetkililer?.birimFiyatEdit == appUser.email)
+
+    setBirimFiyatEditable(selectedProje?.yetkiliKisiler.find(x => x.email == appUser.email).yetkiler.find(x => x.name === "birimFiyatEdit" || "owner"))
+
+    // setBirimFiyatEdit(selectedProje?.aktifYetkililer?.birimFiyatEdit == appUser.email)
 
     setParaBirimleri(previousData => {
       let paraBirimleri = selectedProje?.paraBirimleri
@@ -168,17 +168,17 @@ export default function P_BirimFiyat() {
       if (onePoz._id.toString() === _onePozId) {
 
         // yeni bir birim fiyat girilmemişse fonksiyon iptal, yeni giriş varsa eskisini kaldır
-        let theBirimFiyat = onePoz.birimFiyatlar?.find(x => x.id === paraBirimiId)
+        let theBirimFiyat = onePoz.birimfiyatVersiyonlar.birimFiyatlar?.find(x => x.id === paraBirimiId)
         if (theBirimFiyat) {
           if (theBirimFiyat.fiyat === birimFiyat) {
             return
           } else {
-            onePoz.birimFiyatlar = onePoz.birimFiyatlar?.filter(x => x.id !== paraBirimiId)
+            onePoz.birimfiyatVersiyonlar.birimFiyatlar = onePoz.birimfiyatVersiyonlar.birimFiyatlar?.filter(x => x.id !== paraBirimiId)
           }
         }
 
         onePoz.newSelected_para = true
-        onePoz.birimFiyatlar = [...onePoz.birimFiyatlar, { id: paraBirimiId, fiyat: birimFiyat, isProgress: true }]
+        onePoz.birimfiyatVersiyonlar.birimFiyatlar = [...onePoz.birimfiyatVersiyonlar.birimFiyatlar, { id: paraBirimiId, fiyat: birimFiyat, isProgress: true }]
 
         if (!isChanged_para) {
           setIsChanged_para(true)
@@ -361,6 +361,71 @@ export default function P_BirimFiyat() {
 
 
 
+  const requestParaEdit = async () => {
+
+    try {
+
+      const response = await fetch(`api/projeler/requestparaedit`, {
+        method: 'POST',
+        headers: {
+          email: appUser.email,
+          token: appUser.token,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          projeId: selectedProje?._id
+        })
+      })
+
+      const responseJson = await response.json()
+
+      if (responseJson.error) {
+        if (responseJson.error.includes("expired")) {
+          setAppUser()
+          localStorage.removeItem('appUser')
+          navigate('/')
+          window.location.reload()
+        }
+        throw new Error(responseJson.error);
+      }
+
+      if (responseJson.ok) {
+        setShow("Main")
+        setParaEdit(true)
+      }
+
+      if (responseJson.anotherUser) {
+        setShow("Main")
+        setDialogAlert({
+          dialogIcon: "info",
+          dialogMessage: "Şu anda başka bir kullanıcı kayıt yapmakta, bir süre sonra tekrar deneyiniz.",
+          onCloseAction: () => {
+            setDialogAlert()
+          }
+        })
+      }
+
+    } catch (err) {
+
+      console.log(err)
+
+      setDialogAlert({
+        dialogIcon: "warning",
+        dialogMessage: "Beklenmedik hata, sayfayı yenileyiniz, sorun devam ederse Rapor7/24 ile irtibata geçiniz..",
+        detailText: err?.message ? err.message : null,
+        onCloseAction: () => {
+          setDialogAlert()
+          queryClient.invalidateQueries(['dataPozlar'])
+        }
+      })
+    }
+  }
+
+
+
+
+
+
 
 
   const enUstBaslik_css = {
@@ -468,7 +533,7 @@ export default function P_BirimFiyat() {
 
 
       {/* BAŞLIK GÖSTER / GİZLE */}
-      {show == "ShowPozParaBirimleri" && <ShowPozParaBirimleri setShow={setShow} paraBirimleri={paraBirimleri} setParaBirimleri={setParaBirimleri} paraEdit={paraEdit} setParaEdit={setParaEdit} />}
+      {show == "ShowPozParaBirimleri" && <ShowPozParaBirimleri setShow={setShow} paraBirimleri={paraBirimleri} setParaBirimleri={setParaBirimleri} />}
 
 
 
@@ -520,12 +585,20 @@ export default function P_BirimFiyat() {
                     </IconButton>
                   </Box> */}
 
-                  {paraBirimiAdet > 0 && birimFiyatEditable &&
+                  {/* {paraBirimiAdet > 0 && birimFiyatEditable &&
                     <Box>
                       <IconButton onClick={() => setParaEdit(x => {
                         setShow("Main")
                         return !x
                       })}>
+                        <EditIcon variant="contained" />
+                      </IconButton>
+                    </Box>
+                  } */}
+
+                  {paraBirimiAdet > 0 && birimFiyatEditable && !paraEdit &&
+                    <Box>
+                      <IconButton onClick={() => requestParaEdit()}>
                         <EditIcon variant="contained" />
                       </IconButton>
                     </Box>
@@ -806,7 +879,7 @@ export default function P_BirimFiyat() {
                           <Box></Box>
                           {paraBirimleri?.filter(x => x.isShow).map((oneBirim, index) => {
 
-                            let theBirimFiyat = onePoz.birimFiyatlar?.find(x => x.id === oneBirim.id)
+                            let theBirimFiyat = onePoz.birimfiyatVersiyonlar.birimFiyatlar?.find(x => x.id === oneBirim.id)
 
                             if (!paraEdit) {
                               return (
@@ -847,7 +920,7 @@ export default function P_BirimFiyat() {
                                         MozAppearance: "textfield",
                                       },
                                     }}
-                                    value={onePoz.birimFiyatlar?.find(x => x.id === oneBirim.id)?.fiyat ? onePoz.birimFiyatlar?.find(x => x.id === oneBirim.id)?.fiyat : ""}
+                                    value={theBirimFiyat?.fiyat ? theBirimFiyat?.fiyat : ""}
                                     inputProps={{
                                       style: {
                                         boxSizing: "border-box",

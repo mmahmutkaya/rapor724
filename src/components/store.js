@@ -58,6 +58,8 @@ export default ({ children }) => {
   const [selectedMahal_metraj, setSelectedMahal_metraj] = useState()
   const [selectedMahal_mahalListesi, setSelectedMahal_mahalListesi] = useState()
 
+  const [selectedBirimFiyatVersiyon, setSelectedBirimFiyatVersiyon] = useState()
+
   const [selectedNode, setSelectedNode] = useState()
   const [editNodeMetraj, setEditNodeMetraj] = useState()
   const [onayNodeMetraj, setOnayNodeMetraj] = useState()
@@ -104,6 +106,8 @@ export default ({ children }) => {
 
     selectedMahal_metraj, setSelectedMahal_metraj,
     selectedMahal_mahalListesi, setSelectedMahal_mahalListesi,
+
+    selectedBirimFiyatVersiyon, setSelectedBirimFiyatVersiyon,
 
     selectedNode, setSelectedNode,
 

@@ -110,7 +110,7 @@ export const useGetisPaketler = () => {
     queryKey: ['isPaketler'],
 
     queryFn: async () => {
-      
+
       const response = await fetch('api/ispaketler', {
         method: 'GET',
         headers: {
@@ -222,7 +222,7 @@ export const useGetProjeler_byFirma = () => {
 export const useGetPozlar = () => {
 
   const navigate = useNavigate()
-  const { appUser, setAppUser, selectedProje } = useContext(StoreContext)
+  const { appUser, setAppUser, selectedProje, selectedBirimFiyatVersiyon, } = useContext(StoreContext)
 
   return useQuery({
     queryKey: ['dataPozlar'],
@@ -233,6 +233,7 @@ export const useGetPozlar = () => {
           email: appUser.email,
           token: appUser.token,
           projeid: selectedProje?._id,
+          selectedBirimFiyatVersiyon,
           'Content-Type': 'application/json'
         }
       })
