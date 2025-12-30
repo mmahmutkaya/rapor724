@@ -68,6 +68,15 @@ export default function P_BirimFiyat() {
 
 
   useEffect(() => {
+    return () => {
+      if (paraEdit) {
+        deleteProjeAktifYetkiliKisi({ projeId: selectedProje?._id, arananYetkiler: ["birimFiyatEdit", "owner"], aktifYetki: "birimFiyatEdit" })
+      }
+    }
+  }, [])
+
+
+  useEffect(() => {
     !selectedProje && navigate('/projeler')
     setPozlar_state(_.cloneDeep(dataPozlar?.pozlar))
     setPozlar_backUp(_.cloneDeep(dataPozlar?.pozlar))
@@ -208,6 +217,10 @@ export default function P_BirimFiyat() {
   // Edit Metraj Sayfasının Fonksiyonu
   const save_para = async () => {
 
+    // deleteProjeAktifYetkiliKisi({ projeId: selectedProje?._id, arananYetkiler: ["birimFiyatEdit", "owner"], aktifYetki: "birimFiyatEdit" })
+
+    return
+
     if (isChanged_para) {
       try {
 
@@ -245,7 +258,7 @@ export default function P_BirimFiyat() {
           },
           body: JSON.stringify({
             pozlar_newPara,
-            projeId: selectedProje._id,
+            projeId: selectedProje?._id,
             paraBirimleri: isNewParaBirimiActive ? paraBirimleri : null,
             birimFiyatVersiyon: birimFiyatVersiyon()
           })
@@ -361,11 +374,11 @@ export default function P_BirimFiyat() {
 
 
 
-  const requestParaEdit = async () => {
+  const requestProjeAktifYetkiliKisi = async ({ projeId, arananYetkiler, aktifYetki }) => {
 
     try {
 
-      const response = await fetch(`api/projeler/requestparaedit`, {
+      const response = await fetch(`api/projeler/requestprojeaktifyetkilikisi`, {
         method: 'POST',
         headers: {
           email: appUser.email,
@@ -373,7 +386,7 @@ export default function P_BirimFiyat() {
           'Content-Type': 'application/json'
         },
         body: JSON.stringify({
-          projeId: selectedProje?._id
+          projeId, arananYetkiler, aktifYetki
         })
       })
 
@@ -389,20 +402,20 @@ export default function P_BirimFiyat() {
         throw new Error(responseJson.error);
       }
 
-      if (responseJson.ok) {
-        setShow("Main")
-        setParaEdit(true)
-      }
-
-      if (responseJson.anotherUser) {
+      if (responseJson.message) {
         setShow("Main")
         setDialogAlert({
           dialogIcon: "info",
-          dialogMessage: "Şu anda başka bir kullanıcı kayıt yapmakta, bir süre sonra tekrar deneyiniz.",
+          dialogMessage: responseJson.message,
           onCloseAction: () => {
             setDialogAlert()
           }
         })
+      }
+
+      if (responseJson.ok) {
+        setShow("Main")
+        setParaEdit(true)
       }
 
     } catch (err) {
@@ -424,6 +437,67 @@ export default function P_BirimFiyat() {
 
 
 
+
+
+  const deleteProjeAktifYetkiliKisi = async ({ projeId, arananYetkiler, aktifYetki }) => {
+
+    try {
+
+      const response = await fetch(`api/projeler/deleteprojeaktifyetkilikisi`, {
+        method: 'POST',
+        headers: {
+          email: appUser.email,
+          token: appUser.token,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          projeId, arananYetkiler, aktifYetki
+        })
+      })
+
+      const responseJson = await response.json()
+
+      if (responseJson.error) {
+        if (responseJson.error.includes("expired")) {
+          setAppUser()
+          localStorage.removeItem('appUser')
+          navigate('/')
+          window.location.reload()
+        }
+        throw new Error(responseJson.error);
+      }
+
+      if (responseJson.message) {
+        setShow("Main")
+        setDialogAlert({
+          dialogIcon: "info",
+          dialogMessage: responseJson.message,
+          onCloseAction: () => {
+            setDialogAlert()
+          }
+        })
+      }
+
+      if (responseJson.ok) {
+        setShow("Main")
+        setParaEdit()
+      }
+
+    } catch (err) {
+
+      console.log(err)
+
+      setDialogAlert({
+        dialogIcon: "warning",
+        dialogMessage: "Beklenmedik hata, sayfayı yenileyiniz, sorun devam ederse Rapor7/24 ile irtibata geçiniz..",
+        detailText: err?.message ? err.message : null,
+        onCloseAction: () => {
+          setDialogAlert()
+          queryClient.invalidateQueries(['dataPozlar'])
+        }
+      })
+    }
+  }
 
 
 
@@ -598,7 +672,7 @@ export default function P_BirimFiyat() {
 
                   {paraBirimiAdet > 0 && birimFiyatEditable && !paraEdit &&
                     <Box>
-                      <IconButton onClick={() => requestParaEdit()}>
+                      <IconButton onClick={() => requestProjeAktifYetkiliKisi({ projeId: selectedProje?._id, arananYetkiler: ["birimFiyatEdit", "owner"], aktifYetki: "birimFiyatEdit" })}>
                         <EditIcon variant="contained" />
                       </IconButton>
                     </Box>
