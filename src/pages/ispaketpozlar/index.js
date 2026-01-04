@@ -31,14 +31,14 @@ import ReplyIcon from '@mui/icons-material/Reply';
 
 
 
-export default function P_isPaketPozlar() { 
+export default function P_isPaketPozlar() {
 
   const navigate = useNavigate()
   const queryClient = useQueryClient()
 
   const { data: dataPozlar, error: error1, isFetching: isFetching1 } = useGetPozlar()
   const { data: dataIsPaketPozMetrajlar, error: error2, isFetching: isFetching2 } = useGetIsPaketPozMetrajlar()
- 
+
   // let pozlar = data?.pozlar?.filter(x => x.hasDugum)
 
   const [pozlar_state, setPozlar_state] = useState()
@@ -93,9 +93,9 @@ export default function P_isPaketPozlar() {
           ?.find(x => x._id.toString() === onePoz._id.toString()).isPaketler_byVersiyon
           ?.find(x => x._id.toString() === selectedIsPaket._id.toString())?.metrajOnaylanan
 
-        if (onePoz.kesifMiktar > 0 && onePoz.birimFiyatlar.length > 0) {
+        if (onePoz.kesifMiktar > 0 && onePoz.birimFiyatVersiyonlar.birimFiyatlar.length > 0) {
 
-          onePoz.birimFiyatlar = onePoz.birimFiyatlar.map(oneBirimFiyat => {
+          onePoz.birimFiyatVersiyonlar.birimFiyatlar = onePoz.birimFiyatVersiyonlar.birimFiyatlar.map(oneBirimFiyat => {
             let kesiftutar = 0
             kesiftutar = onePoz.kesifMiktar * oneBirimFiyat.fiyat
             oneBirimFiyat.kesifTutar = kesiftutar
@@ -503,7 +503,7 @@ export default function P_isPaketPozlar() {
                   }
 
                 </>
- 
+
 
                 {/* WBS'İN POZLARI */}
                 {pozlar_state?.filter(x => x._wbsId.toString() === oneWbs._id.toString()).map((onePoz, index) => {
@@ -545,7 +545,7 @@ export default function P_isPaketPozlar() {
                         <>
                           <Box sx={{ border: "none", backgroundColor: ayracRenk_bordo }}></Box>
                           {selectedProje?.paraBirimleri?.filter(x => x.isActive).map((oneBirim, index) => {
-                            let fiyat = onePoz.birimFiyatlar.find(x => x.id === oneBirim.id)?.fiyat
+                            let fiyat = onePoz.birimFiyatVersiyonlar.birimFiyatlar.find(x => x.id === oneBirim.id)?.fiyat
                             return (
                               <Box key={index} sx={{ ...pozNo_css, pr: "0.4rem", justifyContent: "end", borderLeft: index === 0 && "1px solid black" }}>
                                 {fiyat && ikiHane(fiyat)} {fiyat && (oneBirim.sembol ? oneBirim.sembol : oneBirim.id)}
@@ -575,7 +575,7 @@ export default function P_isPaketPozlar() {
                         <>
                           <Box sx={{ border: "none", backgroundColor: ayracRenk_bordo }}></Box>
                           {selectedProje?.paraBirimleri?.filter(x => x.isActive).map((oneBirim, index) => {
-                            let tutar = onePoz?.birimFiyatlar.find(x => x.id === oneBirim.id)?.kesifTutar
+                            let tutar = onePoz.birimFiyatVersiyonlar.birimFiyatlar.find(x => x.id === oneBirim.id)?.kesifTutar
                             return (
                               <Box key={index} sx={{ ...pozNo_css, minWidth: "6rem", justifyContent: "end", borderLeft: index === 0 && "1px solid black" }}>
                                 {tutar && ikiHane(tutar)} {tutar && (oneBirim.sembol ? oneBirim.sembol : oneBirim.id)}

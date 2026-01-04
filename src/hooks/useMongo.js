@@ -3,7 +3,7 @@ import { useQuery, useQueryClient, useMutation } from '@tanstack/react-query'
 import { StoreContext } from '../components/store'
 import { useApp } from "../components/useApp"
 import { useNavigate } from "react-router-dom";
-
+import _ from 'lodash';
 
 
 
@@ -222,7 +222,14 @@ export const useGetProjeler_byFirma = () => {
 export const useGetPozlar = () => {
 
   const navigate = useNavigate()
-  const { appUser, setAppUser, selectedProje, selectedBirimFiyatVersiyon, } = useContext(StoreContext)
+  const { appUser, setAppUser, selectedProje, setSelectedProje, selectedBirimFiyatVersiyon, setSelectedBirimFiyatVersiyon } = useContext(StoreContext)
+
+  // let selectedBirimFiyatVersiyonNumber
+  // if (selectedBirimFiyatVersiyon?.versiyonNumber) {
+  //   selectedBirimFiyatVersiyonNumber = selectedBirimFiyatVersiyon?.versiyonNumber
+  // } else {
+  //   selectedBirimFiyatVersiyonNumber = null
+  // }
 
   return useQuery({
     queryKey: ['dataPozlar'],
@@ -233,7 +240,8 @@ export const useGetPozlar = () => {
           email: appUser.email,
           token: appUser.token,
           projeid: selectedProje?._id,
-          selectedBirimFiyatVersiyon,
+          selectedBirimFiyatVersiyonNumber: selectedBirimFiyatVersiyon ? selectedBirimFiyatVersiyon?.versiyonNumber : null,
+          // selectedBirimFiyatVersiyonNumber: "1",
           'Content-Type': 'application/json'
         }
       })
@@ -250,6 +258,11 @@ export const useGetPozlar = () => {
         throw new Error(responseJson.error);
       }
 
+      setSelectedBirimFiyatVersiyon(responseJson.selectedBirimFiyatVersiyon)
+      let proje2 = _.cloneDeep(selectedProje)
+      proje2.paraBirimleri = responseJson.paraBirimleri
+      proje2.birimFiyatVersiyonlar = responseJson.birimFiyatVersiyonlar
+      setSelectedProje(proje2)
       return responseJson
 
     },

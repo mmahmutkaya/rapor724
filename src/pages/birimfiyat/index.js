@@ -44,9 +44,11 @@ export default function P_BirimFiyat() {
   const [dialogAlert, setDialogAlert] = useState()
   const [showEminMisin_para, setShowEminMisin_para] = useState(false)
 
+
   const { data: dataPozlar, error, isLoading } = useGetPozlar()
   const { myTema, appUser, setAppUser } = useContext(StoreContext)
   const { selectedProje, setSelectedProje } = useContext(StoreContext)
+  const { selectedBirimFiyatVersiyon, setSelectedBirimFiyatVersiyon } = useContext(StoreContext)
 
   const pozBirimleri = selectedProje?.pozBirimleri
   const [showEminMisin_versiyon, setShowEminMisin_versiyon] = useState(false)
@@ -56,24 +58,17 @@ export default function P_BirimFiyat() {
   const [pozlar_state, setPozlar_state] = useState()
   const [pozlar_backUp, setPozlar_backUp] = useState()
 
-  const [usedParaIds, setUsedParaIds] = useState([])
 
   const [paraEdit, setParaEdit] = useState(false)
   const [isChanged_para, setIsChanged_para] = useState()
 
+  const [basliklar, setBasliklar] = useState(appUser.customSettings.pages.birimfiyat.basliklar)
+
+  const [paraBirimleri, setParaBirimleri] = useState()
+
 
   // yetkiler
   const [birimFiyatEditable, setBirimFiyatEditable] = useState()
-  // const [birimFiyatEdit, setBirimFiyatEdit] = useState()
-
-
-  useEffect(() => {
-    return () => {
-      if (paraEdit) {
-        deleteProjeAktifYetkiliKisi({ projeId: selectedProje?._id, arananYetkiler: ["birimFiyatEdit", "owner"], aktifYetki: "birimFiyatEdit" })
-      }
-    }
-  }, [])
 
 
   useEffect(() => {
@@ -122,21 +117,8 @@ export default function P_BirimFiyat() {
         detailText: error?.message ? error.message : null
       })
     }
-  }, [error]);
+  }, [error])
 
-
-  const birimFiyatVersiyon = () => {
-    if (selectedProje?.birimfiyatVersiyonlar?.length > 0) {
-      return selectedProje?.birimfiyatVersiyonlar.reduce((acc, cur) => cur.versiyonNumber > acc.versiyonNumber ? cur : acc, { versiyonNumber: 0 })
-    } else {
-      return null
-    }
-  }
-
-
-  const [basliklar, setBasliklar] = useState(appUser.customSettings.pages.birimfiyat.basliklar)
-
-  const [paraBirimleri, setParaBirimleri] = useState()
 
   // sayfadaki "visibility" tuşunun aktif olup olmamasını ayarlamak için
   const anyBaslikShow = basliklar?.find(x => x.visible) ? true : false
@@ -154,6 +136,76 @@ export default function P_BirimFiyat() {
     ${pozVersiyonShow ? " 0.4rem max-content" : ""}
     ${paraBirimiAdet === 1 ? " 0.4rem max-content" : paraBirimiAdet > 1 ? " 0.4rem repeat(" + paraBirimiAdet + ", max-content)" : ""}
   `
+
+
+  const requestProjeAktifYetkiliKisi = async ({ projeId, arananYetkiler, aktifYetki }) => {
+
+    setSelectedBirimFiyatVersiyon()
+
+    try {
+
+      const response = await fetch(`api/projeler/requestprojeaktifyetkilikisi`, {
+        method: 'POST',
+        headers: {
+          email: appUser.email,
+          token: appUser.token,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          projeId, arananYetkiler, aktifYetki
+        })
+      })
+
+
+      const responseJson = await response.json()
+
+      if (responseJson.error) {
+        if (responseJson.error.includes("expired")) {
+          setAppUser()
+          localStorage.removeItem('appUser')
+          navigate('/')
+          window.location.reload()
+        }
+        throw new Error(responseJson.error);
+      }
+
+
+      if (responseJson.message) {
+        setShow("Main")
+        setDialogAlert({
+          dialogIcon: "info",
+          dialogMessage: responseJson.message,
+          onCloseAction: () => {
+            setDialogAlert()
+          }
+        })
+      }
+
+
+      if (responseJson.ok) {
+        setShow("Main")
+        queryClient.invalidateQueries(['dataPozlar'])
+        setParaEdit(true)
+      }
+
+    } catch (err) {
+
+      console.log(err)
+
+      setDialogAlert({
+        dialogIcon: "warning",
+        dialogMessage: "Beklenmedik hata, sayfayı yenileyiniz, sorun devam ederse Rapor7/24 ile irtibata geçiniz..",
+        detailText: err?.message ? err.message : null,
+        onCloseAction: () => {
+          setDialogAlert()
+          queryClient.invalidateQueries(['dataPozlar'])
+        }
+      })
+    }
+  }
+
+
+
 
 
   // Edit Poz Para Birimi Input Fonksiyonu
@@ -177,31 +229,41 @@ export default function P_BirimFiyat() {
       if (onePoz._id.toString() === _onePozId) {
 
         // yeni bir birim fiyat girilmemişse fonksiyon iptal, yeni giriş varsa eskisini kaldır
-        let theBirimFiyat = onePoz.birimfiyatVersiyonlar.birimFiyatlar?.find(x => x.id === paraBirimiId)
+        let theBirimFiyat = onePoz.birimFiyatlar?.find(x => x.id === paraBirimiId)
         if (theBirimFiyat) {
           if (theBirimFiyat.fiyat === birimFiyat) {
             return
           } else {
-            onePoz.birimfiyatVersiyonlar.birimFiyatlar = onePoz.birimfiyatVersiyonlar.birimFiyatlar?.filter(x => x.id !== paraBirimiId)
+            onePoz.birimFiyatlar = onePoz.birimFiyatlar?.filter(x => x.id !== paraBirimiId)
           }
         }
 
         onePoz.newSelected_para = true
-        onePoz.birimfiyatVersiyonlar.birimFiyatlar = [...onePoz.birimfiyatVersiyonlar.birimFiyatlar, { id: paraBirimiId, fiyat: birimFiyat, isProgress: true }]
+        onePoz.birimFiyatlar = [...onePoz.birimFiyatlar, { id: paraBirimiId, fiyat: birimFiyat, isProgress: true }]
 
         if (!isChanged_para) {
           setIsChanged_para(true)
         }
+
+        // para birimi ilk defa kullanılıyorsa aktif edilecek, firma kullanıma kapatsa bile bu projede kullanılmaya devam edecek 
+        let paraBirimleri2 = _.cloneDeep(paraBirimleri)
+        paraBirimleri2 = paraBirimleri2.map(onePara => {
+          if (onePara.id === paraBirimiId && !onePara.isActive) {
+            onePara.isActive = true
+            onePara.isChanged = true
+          }
+          return onePara
+        })
+        if (paraBirimleri2.find(onePara => onePara.isChanged)) {
+          setParaBirimleri(paraBirimleri2)
+        }
+
 
       }
       return onePoz
 
     })
 
-    let usedParaIds2 = _.cloneDeep(usedParaIds)
-    usedParaIds2 = usedParaIds2.filter(x => x !== paraBirimiId)
-    usedParaIds2 = [...usedParaIds2, paraBirimiId]
-    setUsedParaIds(usedParaIds2)
 
     setPozlar_state(pozlar_state2)
   }
@@ -217,26 +279,8 @@ export default function P_BirimFiyat() {
   // Edit Metraj Sayfasının Fonksiyonu
   const save_para = async () => {
 
-    // deleteProjeAktifYetkiliKisi({ projeId: selectedProje?._id, arananYetkiler: ["birimFiyatEdit", "owner"], aktifYetki: "birimFiyatEdit" })
-
-    return
-
     if (isChanged_para) {
       try {
-
-        let paraBirimleri = _.cloneDeep(selectedProje.paraBirimleri)
-
-        // para birimi ilk defa kullanılıyorsa aktif edilecek, firma kullanıma kapatsa bile bu projede kullanılmaya devam edecek 
-        let isNewParaBirimiActive
-        usedParaIds.map(paraId => {
-          paraBirimleri = paraBirimleri.map(onePara => {
-            if (onePara.id === paraId && !onePara.isActive) {
-              onePara.isActive = true
-              isNewParaBirimiActive = true
-            }
-            return onePara
-          })
-        })
 
         let pozlar_newPara = pozlar_state.map(onePoz => {
           if (onePoz.newSelected_para) {
@@ -247,7 +291,7 @@ export default function P_BirimFiyat() {
         pozlar_newPara = pozlar_newPara.filter(x => x)
         // console.log("pozlar_newPara", pozlar_newPara)
 
-        // await RealmApp?.currentUser.callFunction("update_pozlar_para", ({ pozlar_newPara }))
+        let theObject = selectedProje.birimFiyatVersiyonlar.find(x => x.wasChangedForNewVersion)
 
         const response = await fetch(`/api/pozlar/birimfiyatlar`, {
           method: 'PATCH',
@@ -259,8 +303,8 @@ export default function P_BirimFiyat() {
           body: JSON.stringify({
             pozlar_newPara,
             projeId: selectedProje?._id,
-            paraBirimleri: isNewParaBirimiActive ? paraBirimleri : null,
-            birimFiyatVersiyon: birimFiyatVersiyon()
+            paraBirimleri: paraBirimleri.find(onePara => onePara.isChanged) ? paraBirimleri : null,
+            wasChangedForNewVersion: theObject?.wasChangedForNewVersion
           })
         })
 
@@ -282,16 +326,8 @@ export default function P_BirimFiyat() {
         }
 
         queryClient.invalidateQueries(['dataPozlar'])
-        setUsedParaIds([])
         setIsChanged_para()
-
         setParaEdit()
-
-        if (isNewParaBirimiActive) {
-          let proje2 = _.cloneDeep(selectedProje)
-          proje2.paraBirimleri = paraBirimleri
-          setSelectedProje(proje2)
-        }
 
         return
 
@@ -344,9 +380,9 @@ export default function P_BirimFiyat() {
         throw new Error(responseJson.error);
       }
 
-      if (responseJson.proje) {
+      if (responseJson.ok) {
         queryClient.invalidateQueries(['dataPozlar'])
-        setSelectedProje(responseJson.proje)
+        setParaEdit()
       } else {
         console.log("responseJson", responseJson)
         throw new Error("Kayıt işlemi gerçekleşmedi, sayfayı yenileyiniz, sorun devam ederse Rapor7/24 ile irtibata geçiniz..")
@@ -374,130 +410,68 @@ export default function P_BirimFiyat() {
 
 
 
-  const requestProjeAktifYetkiliKisi = async ({ projeId, arananYetkiler, aktifYetki }) => {
-
-    try {
-
-      const response = await fetch(`api/projeler/requestprojeaktifyetkilikisi`, {
-        method: 'POST',
-        headers: {
-          email: appUser.email,
-          token: appUser.token,
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-          projeId, arananYetkiler, aktifYetki
-        })
-      })
-
-      const responseJson = await response.json()
-
-      if (responseJson.error) {
-        if (responseJson.error.includes("expired")) {
-          setAppUser()
-          localStorage.removeItem('appUser')
-          navigate('/')
-          window.location.reload()
-        }
-        throw new Error(responseJson.error);
-      }
-
-      if (responseJson.message) {
-        setShow("Main")
-        setDialogAlert({
-          dialogIcon: "info",
-          dialogMessage: responseJson.message,
-          onCloseAction: () => {
-            setDialogAlert()
-          }
-        })
-      }
-
-      if (responseJson.ok) {
-        setShow("Main")
-        setParaEdit(true)
-      }
-
-    } catch (err) {
-
-      console.log(err)
-
-      setDialogAlert({
-        dialogIcon: "warning",
-        dialogMessage: "Beklenmedik hata, sayfayı yenileyiniz, sorun devam ederse Rapor7/24 ile irtibata geçiniz..",
-        detailText: err?.message ? err.message : null,
-        onCloseAction: () => {
-          setDialogAlert()
-          queryClient.invalidateQueries(['dataPozlar'])
-        }
-      })
-    }
-  }
 
 
+  // const deleteProjeAktifYetkiliKisi = async ({ projeId, arananYetkiler, aktifYetki }) => {
 
+  //   try {
 
+  //     const response = await fetch(`api/projeler/deleteprojeaktifyetkilikisi`, {
+  //       method: 'POST',
+  //       headers: {
+  //         email: appUser.email,
+  //         token: appUser.token,
+  //         'Content-Type': 'application/json'
+  //       },
+  //       body: JSON.stringify({
+  //         projeId, arananYetkiler, aktifYetki
+  //       })
+  //     })
 
+  //     const responseJson = await response.json()
 
-  const deleteProjeAktifYetkiliKisi = async ({ projeId, arananYetkiler, aktifYetki }) => {
+  //     if (responseJson.error) {
+  //       if (responseJson.error.includes("expired")) {
+  //         setAppUser()
+  //         localStorage.removeItem('appUser')
+  //         navigate('/')
+  //         window.location.reload()
+  //       }
+  //       throw new Error(responseJson.error);
+  //     }
 
-    try {
+  //     if (responseJson.message) {
+  //       setShow("Main")
+  //       setDialogAlert({
+  //         dialogIcon: "info",
+  //         dialogMessage: responseJson.message,
+  //         onCloseAction: () => {
+  //           setDialogAlert()
+  //         }
+  //       })
+  //     }
 
-      const response = await fetch(`api/projeler/deleteprojeaktifyetkilikisi`, {
-        method: 'POST',
-        headers: {
-          email: appUser.email,
-          token: appUser.token,
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-          projeId, arananYetkiler, aktifYetki
-        })
-      })
+  //     if (responseJson.ok) {
+  //       setShow("Main")
+  //       setParaEdit()
+  //     }
 
-      const responseJson = await response.json()
+  //   } catch (err) {
 
-      if (responseJson.error) {
-        if (responseJson.error.includes("expired")) {
-          setAppUser()
-          localStorage.removeItem('appUser')
-          navigate('/')
-          window.location.reload()
-        }
-        throw new Error(responseJson.error);
-      }
+  //     console.log(err)
 
-      if (responseJson.message) {
-        setShow("Main")
-        setDialogAlert({
-          dialogIcon: "info",
-          dialogMessage: responseJson.message,
-          onCloseAction: () => {
-            setDialogAlert()
-          }
-        })
-      }
+  //     setDialogAlert({
+  //       dialogIcon: "warning",
+  //       dialogMessage: "Beklenmedik hata, sayfayı yenileyiniz, sorun devam ederse Rapor7/24 ile irtibata geçiniz..",
+  //       detailText: err?.message ? err.message : null,
+  //       onCloseAction: () => {
+  //         setDialogAlert()
+  //         queryClient.invalidateQueries(['dataPozlar'])
+  //       }
+  //     })
+  //   }
+  // }
 
-      if (responseJson.ok) {
-        setShow("Main")
-        setParaEdit()
-      }
-
-    } catch (err) {
-
-      console.log(err)
-
-      setDialogAlert({
-        dialogIcon: "warning",
-        dialogMessage: "Beklenmedik hata, sayfayı yenileyiniz, sorun devam ederse Rapor7/24 ile irtibata geçiniz..",
-        detailText: err?.message ? err.message : null,
-        onCloseAction: () => {
-          setDialogAlert()
-          queryClient.invalidateQueries(['dataPozlar'])
-        }
-      })
-    }
-  }
 
 
 
@@ -618,7 +592,7 @@ export default function P_BirimFiyat() {
           container
           justifyContent="space-between"
           alignItems="center"
-          sx={{ padding: "0.5rem 1rem", maxHeight: "5rem" }}
+          sx={{ padding: "0.5rem 1rem", minHeight: "3.5rem" }}
         >
 
           {/* sol kısım (başlık) */}
@@ -637,7 +611,7 @@ export default function P_BirimFiyat() {
           <Grid item xs="auto">
             <Box sx={{ display: "grid", gridAutoFlow: "column", alignItems: "center" }}>
 
-              {!paraEdit &&
+              {!paraEdit && selectedBirimFiyatVersiyon &&
                 <>
                   <Box>
                     <IconButton onClick={() => setShow("ShowPozParaBirimleri")}>
@@ -651,13 +625,6 @@ export default function P_BirimFiyat() {
                     </IconButton>
                   </Box>
 
-                  {/* <Box>
-                    <IconButton onClick={() => setShowEminMisin_versiyon(true)}>
-                      <Avatar sx={{ height: "1.7rem", minWidth: "1.7rem", fontSize: "0.8rem", border: "1px solid black", fontWeight: 600, backgroundColor: birimFiyatVersiyon()?.isProgress && "yellow", color: "black" }}>
-                        V1123
-                      </Avatar>
-                    </IconButton>
-                  </Box> */}
 
                   {/* {paraBirimiAdet > 0 && birimFiyatEditable &&
                     <Box>
@@ -678,14 +645,14 @@ export default function P_BirimFiyat() {
                     </Box>
                   }
 
-                  <Box sx={{ mx: "0.3rem", py: "0.2rem", px: "0.3rem", border: "1px solid black", borderRadius: "0.5rem", fontSize: "0.8rem", fontWeight: "600", backgroundColor: birimFiyatVersiyon()?.isProgress ? "yellow" : "lightgray" }}>
-                    V{birimFiyatVersiyon()?.versiyonNumber}
+                  <Box sx={{ mx: "0.3rem", py: "0.2rem", px: "0.3rem", border: "1px solid black", borderRadius: "0.5rem", fontSize: "0.8rem", fontWeight: "600", backgroundColor: selectedBirimFiyatVersiyon?.isProgress ? "yellow" : "lightgray" }}>
+                    V{selectedBirimFiyatVersiyon?.versiyonNumber}
                   </Box>
 
                 </>
               }
 
-              {paraEdit &&
+              {paraEdit && selectedBirimFiyatVersiyon &&
 
                 <>
 
@@ -706,6 +673,13 @@ export default function P_BirimFiyat() {
                       <SaveIcon variant="contained" />
                     </IconButton>
                   </Grid>
+
+                  <Box
+                    onClick={() => selectedBirimFiyatVersiyon?.isProgress && !isChanged_para && createVersiyon_birimFiyat()}
+                    sx={{ cursor: selectedBirimFiyatVersiyon?.isProgress && !isChanged_para && "pointer", mx: "0.3rem", py: "0.2rem", px: "0.3rem", border: selectedBirimFiyatVersiyon?.isProgress && !isChanged_para ? "1px solid red" : "1px solid black", borderRadius: "0.5rem", fontSize: "0.8rem", fontWeight: "600", backgroundColor: "yellow" }}
+                  >
+                    V{selectedBirimFiyatVersiyon?.isProgress ? selectedBirimFiyatVersiyon?.versiyonNumber : selectedBirimFiyatVersiyon?.versiyonNumber + 1}
+                  </Box>
 
                 </>
               }
@@ -953,7 +927,12 @@ export default function P_BirimFiyat() {
                           <Box></Box>
                           {paraBirimleri?.filter(x => x.isShow).map((oneBirim, index) => {
 
-                            let theBirimFiyat = onePoz.birimfiyatVersiyonlar.birimFiyatlar?.find(x => x.id === oneBirim.id)
+                            let theBirimFiyat
+                            if (!paraEdit) {
+                              theBirimFiyat = onePoz.birimFiyatVersiyonlar.birimFiyatlar?.find(x => x.id === oneBirim.id)
+                            } else {
+                              theBirimFiyat = onePoz.birimFiyatlar?.find(x => x.id === oneBirim.id)
+                            }
 
                             if (!paraEdit) {
                               return (
