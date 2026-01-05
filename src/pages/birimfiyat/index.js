@@ -520,6 +520,10 @@ export default function P_BirimFiyat() {
   }
 
 
+  let creatableBirimFiyatVersiyon
+  if(!isChanged_para && selectedProje?.birimFiyatVersiyonlar.find(x => x.wasChangedForNewVersion === true)){
+    creatableBirimFiyatVersiyon = true
+  }
 
   let wbsCode
   let wbsName
@@ -675,8 +679,8 @@ export default function P_BirimFiyat() {
                   </Grid>
 
                   <Box
-                    onClick={() => selectedBirimFiyatVersiyon?.isProgress && !isChanged_para && createVersiyon_birimFiyat()}
-                    sx={{ cursor: selectedBirimFiyatVersiyon?.isProgress && !isChanged_para && "pointer", mx: "0.3rem", py: "0.2rem", px: "0.3rem", border: selectedBirimFiyatVersiyon?.isProgress && !isChanged_para ? "1px solid red" : "1px solid black", borderRadius: "0.5rem", fontSize: "0.8rem", fontWeight: "600", backgroundColor: "yellow" }}
+                    onClick={() => creatableBirimFiyatVersiyon && createVersiyon_birimFiyat()}
+                    sx={{ cursor: creatableBirimFiyatVersiyon && "pointer", mx: "0.3rem", py: "0.2rem", px: "0.3rem", border: creatableBirimFiyatVersiyon ? "1px solid red" : "1px solid black", borderRadius: "0.5rem", fontSize: "0.8rem", fontWeight: "600", backgroundColor: "yellow" }}
                   >
                     V{selectedBirimFiyatVersiyon?.isProgress ? selectedBirimFiyatVersiyon?.versiyonNumber : selectedBirimFiyatVersiyon?.versiyonNumber + 1}
                   </Box>
