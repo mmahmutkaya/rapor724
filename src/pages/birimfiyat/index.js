@@ -85,8 +85,6 @@ export default function P_BirimFiyat() {
 
     setBirimFiyatEditable(selectedProje?.yetkiliKisiler.find(x => x.email == appUser.email).yetkiler.find(x => x.name === "birimFiyatEdit" || "owner"))
 
-    // setBirimFiyatEdit(selectedProje?.aktifYetkililer?.birimFiyatEdit == appUser.email)
-
     setParaBirimleri(previousData => {
       let paraBirimleri = selectedProje?.paraBirimleri
       let userCustomParabirimleri = appUser.customSettings.pages.birimfiyat.paraBirimleri
@@ -140,9 +138,9 @@ export default function P_BirimFiyat() {
 
   const requestProjeAktifYetkiliKisi = async ({ projeId, arananYetkiler, aktifYetki }) => {
 
-    setSelectedBirimFiyatVersiyon()
-
     try {
+
+      setSelectedBirimFiyatVersiyon()
 
       const response = await fetch(`api/projeler/requestprojeaktifyetkilikisi`, {
         method: 'POST',
@@ -289,7 +287,6 @@ export default function P_BirimFiyat() {
         })
         // undefined olanları temizliyoruz
         pozlar_newPara = pozlar_newPara.filter(x => x)
-        // console.log("pozlar_newPara", pozlar_newPara)
 
         let theObject = selectedProje.birimFiyatVersiyonlar.find(x => x.wasChangedForNewVersion)
 
@@ -356,6 +353,17 @@ export default function P_BirimFiyat() {
 
     try {
 
+      setSelectedBirimFiyatVersiyon()
+
+      let pozlar_birimFiyat = pozlar_state.map(onePoz => {
+        if (onePoz.birimFiyatlar.length > 0) {
+          return { _id: onePoz._id, birimFiyatlar: onePoz.birimFiyatlar }
+        }
+      })
+      // undefined olanları temizliyoruz
+      pozlar_birimFiyat = pozlar_birimFiyat.filter(x => x)
+      // console.log("pozlar_birimFiyat", pozlar_birimFiyat)
+
       const response = await fetch(`api/versiyon/birimfiyat`, {
         method: 'POST',
         headers: {
@@ -364,9 +372,10 @@ export default function P_BirimFiyat() {
           'Content-Type': 'application/json'
         },
         body: JSON.stringify({
-          projeId: selectedProje?._id
+          projeId: selectedProje?._id, pozlar_birimFiyat, versiyonNumber: selectedBirimFiyatVersiyon?.versiyonNumber + 1
         })
       })
+
 
       const responseJson = await response.json()
 
@@ -521,7 +530,7 @@ export default function P_BirimFiyat() {
 
 
   let creatableBirimFiyatVersiyon
-  if(!isChanged_para && selectedProje?.birimFiyatVersiyonlar.find(x => x.wasChangedForNewVersion === true)){
+  if (pozlar_state?.length > 0 && !isChanged_para && selectedProje?.birimFiyatVersiyonlar.find(x => x.wasChangedForNewVersion === true)) {
     creatableBirimFiyatVersiyon = true
   }
 
@@ -649,7 +658,7 @@ export default function P_BirimFiyat() {
                     </Box>
                   }
 
-                  <Box sx={{ mx: "0.3rem", py: "0.2rem", px: "0.3rem", border: "1px solid black", borderRadius: "0.5rem", fontSize: "0.8rem", fontWeight: "600", backgroundColor: selectedBirimFiyatVersiyon?.isProgress ? "yellow" : "lightgray" }}>
+                  <Box sx={{ mx: "0.3rem", py: "0.2rem", px: "0.3rem", border: "1px solid black", borderRadius: "0.5rem", fontSize: "0.8rem", fontWeight: "600", backgroundColor: "lightgray" }}>
                     V{selectedBirimFiyatVersiyon?.versiyonNumber}
                   </Box>
 
@@ -682,7 +691,7 @@ export default function P_BirimFiyat() {
                     onClick={() => creatableBirimFiyatVersiyon && createVersiyon_birimFiyat()}
                     sx={{ cursor: creatableBirimFiyatVersiyon && "pointer", mx: "0.3rem", py: "0.2rem", px: "0.3rem", border: creatableBirimFiyatVersiyon ? "1px solid red" : "1px solid black", borderRadius: "0.5rem", fontSize: "0.8rem", fontWeight: "600", backgroundColor: "yellow" }}
                   >
-                    V{selectedBirimFiyatVersiyon?.isProgress ? selectedBirimFiyatVersiyon?.versiyonNumber : selectedBirimFiyatVersiyon?.versiyonNumber + 1}
+                    V{selectedBirimFiyatVersiyon?.versiyonNumber + 1}
                   </Box>
 
                 </>
