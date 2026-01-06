@@ -255,8 +255,7 @@ export default function P_BirimFiyat() {
         if (paraBirimleri2.find(onePara => onePara.isChanged)) {
           setParaBirimleri(paraBirimleri2)
         }
-
-
+        
       }
       return onePoz
 
