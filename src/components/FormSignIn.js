@@ -129,7 +129,7 @@ export default function SignIn() {
       //   return
       // }
 
-      const response = await fetch(`api/user/login`, {
+      const response = await fetch(`https://excel-mongo-iota.vercel.app/api/user/login`, {
         method: 'POST',
         mode: 'cors',
         headers: {
