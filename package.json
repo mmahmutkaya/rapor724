@@ -1,5 +1,5 @@
 {
-  "proxy": "https://excel-mongo-iota.vercel.app",
+  "proxy": "https://excel-mongo-iota.vercel.app/",
   "name": "rapor724",
   "version": "0.1.0",
   "private": true,
