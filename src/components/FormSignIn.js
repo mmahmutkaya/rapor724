@@ -131,7 +131,11 @@ export default function SignIn() {
 
       const response = await fetch(`api/user/login`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        mode: 'cors',
+        headers: {
+          'Accept': 'application/json',
+          'Content-Type': 'application/json;charset=UTF-8'
+        },
         body: JSON.stringify({ email, password })
       })
 
