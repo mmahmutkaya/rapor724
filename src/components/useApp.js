@@ -1,5 +1,4 @@
 import { useEffect, useState } from "react";
-import * as Realm from "realm-web";
 
 export function useApp() {
   const [app, setApp] = useState(null);
@@ -8,9 +7,7 @@ export function useApp() {
     
     // setApp(Realm.getApp(process.env.NEXT_PUBLIC_APP_ID));
     
-    // const RealmApp = new Realm.App({ id: "rapor724_v2-cykom" });
-    setApp(Realm.getApp("rapor724_v2-cykom"));
-    
+    // const RealmApp = new Realm.App({ id: "rapor724_v2-cykom" });    
 
   }, []);
   return app;

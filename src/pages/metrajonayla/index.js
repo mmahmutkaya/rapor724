@@ -10,7 +10,7 @@ import HeaderMetrajOnayla from '../../components/HeaderMetrajOnayla.js'
 
 import { DialogAlert } from '../../components/general/DialogAlert.js';
 import { useQuery, useQueryClient, useMutation } from '@tanstack/react-query'
-import { BSON } from "realm-web"
+
 import { useGetMahalListesi, useGetHazirlananMetrajlar, useUpdateOnaylananMetraj, useGetOnaylananMetraj } from '../../hooks/useMongo.js';
 
 

@@ -4,7 +4,7 @@ import FormProfile from '../../components/FormProfile.js'
 import Link from 'next/link'
 import { useState, } from "react";
 
-import * as Realm from "realm-web";
+
 import { useApp } from "../../components/useApp"
 
 

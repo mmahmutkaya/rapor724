@@ -1,6 +1,4 @@
 import { createContext, useState } from 'react'
-// import { useApp } from "./useApp.js";
-// import * as Realm from "realm-web";
 
 export const StoreContext = createContext(null)
 

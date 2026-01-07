@@ -3,13 +3,10 @@ import { useEffect, useState } from "react";
 import { useRouter } from 'next/router'
 
 
-import * as Realm from "realm-web";
-
 
 
 export default function ConfirmUserIndex() {
 
-  const RealmApp = Realm.getApp("rapor724_v2-cykom")
   const { query } = useRouter()
 
   // const [pathArray, setPathArray] = useState(asPath.split("/"))

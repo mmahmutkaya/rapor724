@@ -4,6 +4,7 @@ import { useState, useContext, useEffect } from 'react';
 import { useQueryClient } from '@tanstack/react-query'
 import { useNavigate } from "react-router-dom";
 import { DialogAlert } from '../../components/general/DialogAlert.js';
+import { DialogVersiyonTip } from '../../components/general/DialogVersiyonTip.js';
 import _ from 'lodash';
 
 
@@ -226,18 +227,31 @@ export default function P_BirimFiyat() {
 
       if (onePoz._id.toString() === _onePozId) {
 
-        // yeni bir birim fiyat girilmemişse fonksiyon iptal, yeni giriş varsa eskisini kaldır
-        let theBirimFiyat = onePoz.birimFiyatlar?.find(x => x.id === paraBirimiId)
-        if (theBirimFiyat) {
-          if (theBirimFiyat.fiyat === birimFiyat) {
-            return
-          } else {
-            onePoz.birimFiyatlar = onePoz.birimFiyatlar?.filter(x => x.id !== paraBirimiId)
-          }
-        }
+        let theBirimFiyat = _.cloneDeep(onePoz.birimFiyatlar?.find(x => x.id === paraBirimiId))
 
+        if (theBirimFiyat) {
+
+          // yeni bir birim fiyat girilmemişse fonksiyon iptal
+          if (theBirimFiyat.fiyat === birimFiyat) {
+
+            return
+
+          } else {
+
+            onePoz.birimFiyatlar = onePoz.birimFiyatlar?.filter(x => x.id !== paraBirimiId)
+
+            // yeniden kayıtlı son versiyondaki fiyata dönülmüşse resetleme yapılıyor ama db ye keydedilecek, yoksa yeni kayıt yapılıyor ve db ye kaydedilecek
+            if (theBirimFiyat.eskiFiyat === birimFiyat) {
+              onePoz.birimFiyatlar = [...onePoz.birimFiyatlar, { id: paraBirimiId, fiyat: birimFiyat }]
+            } else {
+              onePoz.birimFiyatlar = [...onePoz.birimFiyatlar, { id: paraBirimiId, fiyat: birimFiyat, eskiFiyat: theBirimFiyat.fiyat, isProgress: true }]
+            }
+            
+          }
+          
+        }
+        
         onePoz.newSelected_para = true
-        onePoz.birimFiyatlar = [...onePoz.birimFiyatlar, { id: paraBirimiId, fiyat: birimFiyat, isProgress: true }]
 
         if (!isChanged_para) {
           setIsChanged_para(true)
@@ -255,7 +269,7 @@ export default function P_BirimFiyat() {
         if (paraBirimleri2.find(onePara => onePara.isChanged)) {
           setParaBirimleri(paraBirimleri2)
         }
-        
+
       }
       return onePoz
 
@@ -323,7 +337,7 @@ export default function P_BirimFiyat() {
 
         queryClient.invalidateQueries(['dataPozlar'])
         setIsChanged_para()
-        setParaEdit()
+        // setParaEdit()
 
         return
 
@@ -348,9 +362,13 @@ export default function P_BirimFiyat() {
 
 
 
-  const createVersiyon_birimFiyat = async () => {
+  const createVersiyon_birimFiyat = async ({ fieldText }) => {
 
     try {
+
+      console.log("fieldText", fieldText)
+
+      return
 
       setSelectedBirimFiyatVersiyon()
 
@@ -569,17 +587,15 @@ export default function P_BirimFiyat() {
       }
 
       {showEminMisin_versiyon &&
-        <DialogAlert
-          dialogIcon={"none"}
-          dialogMessage={"Mevcut birim fiyatlar yeni versiyon olarak kaydedilsin mi?"}
-          onCloseAction={() => setShowEminMisin_versiyon()}
-          actionText1={"İptal"}
-          action1={() => setShowEminMisin_versiyon()}
-          actionText2={"Onayla"}
-          action2={() => {
-            createVersiyon_birimFiyat()
+        <DialogVersiyonTip
+          dialogBaslikText={`Mevcut birim ${selectedBirimFiyatVersiyon?.versiyonNumber + 1} fiyatlar yeni versiyon olarak kaydedilsin mi?`}
+          aciklamaBaslikText={"Versiyon hakkında bilgi verebilirsiniz"}
+          aprroveAction={({ fieldText }) => {
             setShowEminMisin_versiyon()
+            createVersiyon_birimFiyat({ fieldText })
           }}
+          rejectAction={() => setShowEminMisin_versiyon()}
+          onCloseAction={() => setShowEminMisin_versiyon()}
         />
       }
 
@@ -687,7 +703,7 @@ export default function P_BirimFiyat() {
                   </Grid>
 
                   <Box
-                    onClick={() => creatableBirimFiyatVersiyon && createVersiyon_birimFiyat()}
+                    onClick={() => creatableBirimFiyatVersiyon && setShowEminMisin_versiyon(true)}
                     sx={{ cursor: creatableBirimFiyatVersiyon && "pointer", mx: "0.3rem", py: "0.2rem", px: "0.3rem", border: creatableBirimFiyatVersiyon ? "1px solid red" : "1px solid black", borderRadius: "0.5rem", fontSize: "0.8rem", fontWeight: "600", backgroundColor: "yellow" }}
                   >
                     V{selectedBirimFiyatVersiyon?.versiyonNumber + 1}

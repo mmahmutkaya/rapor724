@@ -1,8 +1,6 @@
 import { useEffect, useState, useContext } from 'react';
 import { StoreContext } from './store.js'
 
-import * as Realm from "realm-web";
-
 
 import { useNavigate } from "react-router-dom";
 

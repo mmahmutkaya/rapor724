@@ -94,7 +94,7 @@ export default function P_MetrajEdit() {
 
       if (hazirlananMetraj) {
         hazirlananMetraj = JSON.parse(JSON.stringify(hazirlananMetraj))
-        hazirlananMetraj._userId = new BSON.ObjectId(hazirlananMetraj._userId)
+        hazirlananMetraj._userId = hazirlananMetraj._userId
         hazirlananMetraj.satirlar = hazirlananMetraj.satirlar.map(x => {
           x.sonGuncelleme = new Date(x.sonGuncelleme)
           return x

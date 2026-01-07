@@ -7,7 +7,7 @@ import FormPozCreate from '../../components/FormPozCreate'
 import EditPozBaslik from '../../components/EditPozBaslik'
 import FormPozBaslikCreate from '../../components/FormPozBaslikCreate'
 import HeaderMetrajOlusturPozMahaller from '../../components/HeaderMetrajOlusturPozMahaller'
-import { BSON } from "realm-web"
+
 import _ from 'lodash';
 import { DialogAlert } from '../../components/general/DialogAlert.js';
 

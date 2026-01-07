@@ -7,8 +7,7 @@ import _ from 'lodash';
 
 import { DialogAlert } from '../../components/general/DialogAlert.js';
 import HeaderMetrajCetvel from '../../components/HeaderMetrajCetvel.js'
-import { useQuery, useQueryClient, useMutation } from '@tanstack/react-query'
-import { BSON } from "realm-web"
+import { useQueryClient } from '@tanstack/react-query'
 import { useGetOnaylananMetraj } from '../../hooks/useMongo.js';
 
 

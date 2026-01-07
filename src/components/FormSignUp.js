@@ -2,8 +2,6 @@ import { useEffect, useState, useContext } from 'react';
 import { StoreContext } from './store.js'
 import { DialogAlert } from './general/DialogAlert.js';
 
-import * as Realm from "realm-web";
-import { useApp } from "./useApp.js";
 
 import { useNavigate } from "react-router-dom";
 
@@ -43,7 +41,6 @@ const theme = createTheme();
 
 export default function FormSignUp() {
 
-  const RealmApp = useApp();
   const navigate = useNavigate()
   const { Layout_Show, setLayout_Show } = useContext(StoreContext)
   const { setAppUser } = useContext(StoreContext)

@@ -1,8 +1,6 @@
 import { useEffect, useState, useContext } from 'react';
 import { StoreContext } from './store.js'
 
-import * as Realm from "realm-web";
-import { useApp } from "./useApp.js";
 
 import { useNavigate } from "react-router-dom";
 import { DialogAlert } from './general/DialogAlert';
@@ -44,7 +42,6 @@ const theme = createTheme();
 
 export default function FormSifreYenileme() {
 
-  const RealmApp = useApp();
   const navigate = useNavigate()
   const { Layout_Show, setLayout_Show } = useContext(StoreContext)
 
@@ -143,10 +140,10 @@ export default function FormSifreYenileme() {
 
 
         setPageSituation(2)
-        const credentialsApiKey = Realm.Credentials.apiKey("2FE7NrzR4gq9hUQLtuOsrp6lBDhDE9wp80ICWPBXxAnF6Bf5oJB2e3aYkz2rS3SH")
-        await RealmApp.logIn(credentialsApiKey)
-        await RealmApp.currentUser.callFunction("auth_SendConfirmationCode_PasswordReset", { email })
-        await RealmApp.currentUser.logOut()
+        // const credentialsApiKey = Realm.Credentials.apiKey("2FE7NrzR4gq9hUQLtuOsrp6lBDhDE9wp80ICWPBXxAnF6Bf5oJB2e3aYkz2rS3SH")
+        // await RealmApp.logIn(credentialsApiKey)
+        // await RealmApp.currentUser.callFunction("auth_SendConfirmationCode_PasswordReset", { email })
+        // await RealmApp.currentUser.logOut()
 
 
         setEmail_state(email)
@@ -212,7 +209,7 @@ export default function FormSifreYenileme() {
 
 
         setPageSituation(4)
-        await RealmApp.emailPasswordAuth.callResetPasswordFunction({ email: email_state, password: password_state }, { mailCode })
+        // await RealmApp.emailPasswordAuth.callResetPasswordFunction({ email: email_state, password: password_state }, { mailCode })
 
         setDialogAlert({
           icon: "success",
