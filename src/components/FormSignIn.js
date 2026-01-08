@@ -1,7 +1,6 @@
 import { useEffect, useState, useContext } from 'react';
 import { StoreContext } from './store.js'
 import { DialogAlert } from './general/DialogAlert.js';
-import axios from 'axios';
 
 
 import { useApp } from "./useApp.js";
@@ -40,7 +39,6 @@ function Copyright(props) {
 }
 
 const theme = createTheme();
-
 
 
 export default function SignIn() {
@@ -130,36 +128,15 @@ export default function SignIn() {
       //   return
       // }
 
-
-      // const response = await fetch("https://excel-mongo-iota.vercel.app/api/user/login", {
-      //   method: 'POST',
-      //   mode: "no-cors",
-      //   headers: { 'Content-Type': 'application/json' },
-      //   body: JSON.stringify({ email, password })
-      // })
-
-
-      const response = await axios({
-        url: "https://excel-mongo-iota.vercel.app/api/user/login",
-        method: 'post',
-        mode: "cors",
+      const response = await fetch(process.env.REACT_APP_BASE_URL + "/api/user/login", {
+        method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        data: JSON.stringify({ email, password })
+        body: JSON.stringify({ email, password })
       })
 
 
-      // axios({
-      //   method: 'post',
-      //   url: '/user/12345',
-      //   data: {
-      //     firstName: 'Fred',
-      //     lastName: 'Flintstone'
-      //   }
-      // })
+      const responseJson = await response.json()
 
-      // const responseJson = await response.json()
-      const responseJson = response.data
-      console.log("responseJson",responseJson)
 
       if (responseJson.error) {
         throw new Error(responseJson.error);
