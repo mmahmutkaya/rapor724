@@ -1,6 +1,7 @@
 import { useEffect, useState, useContext } from 'react';
 import { StoreContext } from './store.js'
 import { DialogAlert } from './general/DialogAlert.js';
+import axios from 'axios';
 
 
 import { useApp } from "./useApp.js";
@@ -129,15 +130,32 @@ export default function SignIn() {
       //   return
       // }
 
-      const response = await fetch(`/api/user/login`, {
-        method: 'POST',
-        // mode: 'cors',
-        headers: {
-          'Accept': 'application/json',
-          'Content-Type': 'application/json;charset=UTF-8'
-        },
-        body: JSON.stringify({ email, password })
+
+      // const response = await fetch("https://excel-mongo-iota.vercel.app/api/user/login", {
+      //   method: 'POST',
+      //   mode: "no-cors",
+      //   headers: { 'Content-Type': 'application/json' },
+      //   body: JSON.stringify({ email, password })
+      // })
+
+
+      const response = await axios({
+        url: "https://excel-mongo-iota.vercel.app/api/user/login",
+        method: 'post',
+        mode: "cors",
+        headers: { 'Content-Type': 'application/json' },
+        data: JSON.stringify({ email, password })
       })
+
+
+      // axios({
+      //   method: 'post',
+      //   url: '/user/12345',
+      //   data: {
+      //     firstName: 'Fred',
+      //     lastName: 'Flintstone'
+      //   }
+      // })
 
       const responseJson = await response.json()
 
