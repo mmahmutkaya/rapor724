@@ -157,7 +157,8 @@ export default function SignIn() {
       //   }
       // })
 
-      const responseJson = await response.json()
+      // const responseJson = await response.json()
+      const responseJson = response
 
       if (responseJson.error) {
         throw new Error(responseJson.error);
