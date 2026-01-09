@@ -96,7 +96,7 @@ export default function P_MetrajOnaylaPozlar() {
 
       // const resultProje = await RealmApp?.currentUser.callFunction("createVersiyon_metraj", ({ _projeId: selectedProje?._id }))
 
-      const response = await fetch(process.env.REACT_APP_BASE_URL + `api/versiyon/metraj`, {
+      const response = await fetch(process.env.REACT_APP_BASE_URL + `/api/versiyon/metraj`, {
         method: 'POST',
         headers: {
           email: appUser.email,

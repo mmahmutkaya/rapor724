@@ -232,7 +232,7 @@ export default function P_BirimFiyat() {
         if (theBirimFiyat) {
 
           // yeni bir birim fiyat girilmemişse fonksiyon iptal
-          if (theBirimFiyat.fiyat === birimFiyat) {
+          if (Number(theBirimFiyat.fiyat) === Number(birimFiyat)) {
 
             return
 
@@ -241,16 +241,18 @@ export default function P_BirimFiyat() {
             onePoz.birimFiyatlar = onePoz.birimFiyatlar?.filter(x => x.id !== paraBirimiId)
 
             // yeniden kayıtlı son versiyondaki fiyata dönülmüşse resetleme yapılıyor ama db ye keydedilecek, yoksa yeni kayıt yapılıyor ve db ye kaydedilecek
-            if (theBirimFiyat.eskiFiyat === birimFiyat) {
+            if (Number(theBirimFiyat.eskiFiyat) === Number(birimFiyat)) {
               onePoz.birimFiyatlar = [...onePoz.birimFiyatlar, { id: paraBirimiId, fiyat: birimFiyat }]
             } else {
               onePoz.birimFiyatlar = [...onePoz.birimFiyatlar, { id: paraBirimiId, fiyat: birimFiyat, eskiFiyat: theBirimFiyat.fiyat, isProgress: true }]
             }
-            
+
           }
-          
+
+        } else {
+          onePoz.birimFiyatlar = [...onePoz.birimFiyatlar, { id: paraBirimiId, fiyat: birimFiyat, eskiFiyat: "", isProgress: true }]
         }
-        
+
         onePoz.newSelected_para = true
 
         if (!isChanged_para) {
@@ -366,10 +368,6 @@ export default function P_BirimFiyat() {
 
     try {
 
-      console.log("fieldText", fieldText)
-
-      return
-
       setSelectedBirimFiyatVersiyon()
 
       let pozlar_birimFiyat = pozlar_state.map(onePoz => {
@@ -381,7 +379,7 @@ export default function P_BirimFiyat() {
       pozlar_birimFiyat = pozlar_birimFiyat.filter(x => x)
       // console.log("pozlar_birimFiyat", pozlar_birimFiyat)
 
-      const response = await fetch(process.env.REACT_APP_BASE_URL + `api/versiyon/birimfiyat`, {
+      const response = await fetch(process.env.REACT_APP_BASE_URL + `/api/versiyon/birimfiyat`, {
         method: 'POST',
         headers: {
           email: appUser.email,
@@ -389,7 +387,10 @@ export default function P_BirimFiyat() {
           'Content-Type': 'application/json'
         },
         body: JSON.stringify({
-          projeId: selectedProje?._id, pozlar_birimFiyat, versiyonNumber: selectedBirimFiyatVersiyon?.versiyonNumber + 1
+          projeId: selectedProje?._id,
+          pozlar_birimFiyat,
+          versiyonNumber: selectedBirimFiyatVersiyon?.versiyonNumber + 1,
+          aciklama: fieldText
         })
       })
 
@@ -404,6 +405,17 @@ export default function P_BirimFiyat() {
           window.location.reload()
         }
         throw new Error(responseJson.error);
+      }
+
+      if (responseJson.message) {
+        setDialogAlert({
+          dialogIcon: "info",
+          dialogMessage: responseJson.message,
+          onCloseAction: () => {
+            setDialogAlert()
+          }
+        })
+        return
       }
 
       if (responseJson.ok) {
@@ -588,7 +600,7 @@ export default function P_BirimFiyat() {
 
       {showEminMisin_versiyon &&
         <DialogVersiyonTip
-          dialogBaslikText={`Mevcut birim ${selectedBirimFiyatVersiyon?.versiyonNumber + 1} fiyatlar yeni versiyon olarak kaydedilsin mi?`}
+          dialogBaslikText={`Mevcut birim fiyatlar versiyon  (V${selectedBirimFiyatVersiyon?.versiyonNumber + 1}) olarak kaydedilsin mi?`}
           aciklamaBaslikText={"Versiyon hakkında bilgi verebilirsiniz"}
           aprroveAction={({ fieldText }) => {
             setShowEminMisin_versiyon()
