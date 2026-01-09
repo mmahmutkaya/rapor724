@@ -220,6 +220,7 @@ export default function P_BirimFiyat() {
   // Edit Metraj Sayfasının Fonksiyonu
   const handle_input_onChange = ({ birimFiyat, _onePozId, paraBirimiId }) => {
 
+    console.log("1")
     let pozlar_state2 = _.cloneDeep(pozlar_state)
 
     // map ile tarayarak, state kısmındaki datanın ilgili satırını güncelliyoruz, ayrıca tüm satırların toplam metrajını, önce önceki değeri çıkartıp yeni değeri ekleyerek
@@ -244,7 +245,11 @@ export default function P_BirimFiyat() {
             if (Number(theBirimFiyat.eskiFiyat) === Number(birimFiyat)) {
               onePoz.birimFiyatlar = [...onePoz.birimFiyatlar, { id: paraBirimiId, fiyat: birimFiyat }]
             } else {
-              onePoz.birimFiyatlar = [...onePoz.birimFiyatlar, { id: paraBirimiId, fiyat: birimFiyat, eskiFiyat: theBirimFiyat.fiyat, isProgress: true }]
+              if (!theBirimFiyat.eskiFiyat) {
+                onePoz.birimFiyatlar = [...onePoz.birimFiyatlar, { id: paraBirimiId, fiyat: birimFiyat, eskiFiyat: theBirimFiyat.fiyat, isProgress: true }]
+              } else {
+                onePoz.birimFiyatlar = [...onePoz.birimFiyatlar, { id: paraBirimiId, fiyat: birimFiyat, isProgress: true }]
+              }
             }
 
           }
@@ -412,6 +417,7 @@ export default function P_BirimFiyat() {
           dialogIcon: "info",
           dialogMessage: responseJson.message,
           onCloseAction: () => {
+            queryClient.invalidateQueries(['dataPozlar'])
             setDialogAlert()
           }
         })
