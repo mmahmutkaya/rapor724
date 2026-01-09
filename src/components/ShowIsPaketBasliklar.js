@@ -46,7 +46,7 @@ export default function ShowPozBaslik({ setShow, basliklar, setBasliklar }) {
       // await RealmApp?.currentUser.refreshCustomData()
 
 
-      const response = await fetch(`/api/user/customsettingspagessetdata`, {
+      const response = await fetch(process.env.REACT_APP_BASE_URL + `/api/user/customsettingspagessetdata`, {
         method: 'POST',
         headers: {
           email: appUser.email,

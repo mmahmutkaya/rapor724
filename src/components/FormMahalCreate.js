@@ -140,7 +140,7 @@ export default function FormMahalCreate({ setShow, setDialogAlert }) {
       // return
       // form verileri kontrolden geçti - db ye göndermeyi deniyoruz
 
-      const response = await fetch(`/api/mahaller`, {
+      const response = await fetch(process.env.REACT_APP_BASE_URL + `/api/mahaller`, {
         method: 'POST',
         headers: {
           email: appUser.email,

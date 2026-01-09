@@ -172,7 +172,7 @@ export default function HeaderLbs({ setShow, nameMode, setNameMode, codeMode, se
 
       setIsPending(true)
 
-      const response = await fetch(`/api/projeler/togglelbsformahal`, {
+      const response = await fetch(process.env.REACT_APP_BASE_URL + `/api/projeler/togglelbsformahal`, {
         method: 'POST',
         headers: {
           email: appUser.email,
@@ -259,7 +259,7 @@ export default function HeaderLbs({ setShow, nameMode, setNameMode, codeMode, se
 
       // const result = await RealmApp.currentUser.callFunction("collection_projeler__lbs", { functionName: "deleteLbs", _projeId: selectedProje._id, _lbsId: selectedLbs._id });
 
-      const response = await fetch(`/api/projeler/deletelbs`, {
+      const response = await fetch(process.env.REACT_APP_BASE_URL + `/api/projeler/deletelbs`, {
         method: 'POST',
         headers: {
           email: appUser.email,
@@ -344,7 +344,7 @@ export default function HeaderLbs({ setShow, nameMode, setNameMode, codeMode, se
       }
 
       // const result = await RealmApp.currentUser.callFunction("collection_projeler__lbs", { functionName: "moveLbsUp", _projeId: selectedProje._id, _lbsId: selectedLbs._id });
-      const response = await fetch(`/api/projeler/movelbsup`, {
+      const response = await fetch(process.env.REACT_APP_BASE_URL + `/api/projeler/movelbsup`, {
         method: 'POST',
         headers: {
           email: appUser.email,
@@ -437,7 +437,7 @@ export default function HeaderLbs({ setShow, nameMode, setNameMode, codeMode, se
       }
 
 
-      const response = await fetch(`/api/projeler/movelbsdown`, {
+      const response = await fetch(process.env.REACT_APP_BASE_URL + `/api/projeler/movelbsdown`, {
         method: 'POST',
         headers: {
           email: appUser.email,
@@ -506,7 +506,7 @@ export default function HeaderLbs({ setShow, nameMode, setNameMode, codeMode, se
 
     try {
 
-      const response = await fetch(`/api/projeler/movelbsleft`, {
+      const response = await fetch(process.env.REACT_APP_BASE_URL + `/api/projeler/movelbsleft`, {
         method: 'POST',
         headers: {
           email: appUser.email,
@@ -575,7 +575,7 @@ export default function HeaderLbs({ setShow, nameMode, setNameMode, codeMode, se
 
     try {
 
-      const response = await fetch(`/api/projeler/movelbsright`, {
+      const response = await fetch(process.env.REACT_APP_BASE_URL + `/api/projeler/movelbsright`, {
         method: 'POST',
         headers: {
           email: appUser.email,

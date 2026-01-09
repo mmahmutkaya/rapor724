@@ -67,7 +67,7 @@ export default function P_ParaBirimleri() {
       // db ye gönderme işlemi
       // await RealmApp?.currentUser.callFunction("update_firma_paraBirimleri", ({ _firmaId: selectedFirma._id, oneBirim, showValue }))
 
-      const response = await fetch(`/api/firmalar/parabirimleri`, {
+      const response = await fetch(process.env.REACT_APP_BASE_URL + `/api/firmalar/parabirimleri`, {
         method: 'PATCH',
         headers: {
           email: appUser.email,

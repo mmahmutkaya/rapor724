@@ -93,7 +93,7 @@ export default function P_FormLbsCreate({ setShow, selectedLbs, setSelectedLbs, 
       }
 
       // const result = await RealmApp.currentUser.callFunction("collection_projeler__lbs", { functionName: "createLbs", ...newLbsItem });
-      const response = await fetch(`/api/projeler/createlbs`, {
+      const response = await fetch(process.env.REACT_APP_BASE_URL + `/api/projeler/createlbs`, {
         method: 'POST',
         headers: {
           email: appUser.email,

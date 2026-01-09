@@ -143,7 +143,7 @@ export default function P_BirimFiyat() {
 
       setSelectedBirimFiyatVersiyon()
 
-      const response = await fetch(`api/projeler/requestprojeaktifyetkilikisi`, {
+      const response = await fetch(process.env.REACT_APP_BASE_URL + `api/projeler/requestprojeaktifyetkilikisi`, {
         method: 'POST',
         headers: {
           email: appUser.email,
@@ -303,7 +303,7 @@ export default function P_BirimFiyat() {
 
         let theObject = selectedProje.birimFiyatVersiyonlar.find(x => x.wasChangedForNewVersion)
 
-        const response = await fetch(`/api/pozlar/birimfiyatlar`, {
+        const response = await fetch(process.env.REACT_APP_BASE_URL + `/api/pozlar/birimfiyatlar`, {
           method: 'PATCH',
           headers: {
             email: appUser.email,
@@ -381,7 +381,7 @@ export default function P_BirimFiyat() {
       pozlar_birimFiyat = pozlar_birimFiyat.filter(x => x)
       // console.log("pozlar_birimFiyat", pozlar_birimFiyat)
 
-      const response = await fetch(`api/versiyon/birimfiyat`, {
+      const response = await fetch(process.env.REACT_APP_BASE_URL + `api/versiyon/birimfiyat`, {
         method: 'POST',
         headers: {
           email: appUser.email,
@@ -442,7 +442,7 @@ export default function P_BirimFiyat() {
 
   //   try {
 
-  //     const response = await fetch(`api/projeler/deleteprojeaktifyetkilikisi`, {
+  //     const response = await fetch(process.env.REACT_APP_BASE_URL + `api/projeler/deleteprojeaktifyetkilikisi`, {
   //       method: 'POST',
   //       headers: {
   //         email: appUser.email,

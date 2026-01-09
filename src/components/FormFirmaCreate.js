@@ -99,7 +99,7 @@ export default function P_FormFirmaCreate({ setShow }) {
 
       // VALIDATE KONTROL -- SONU 
 
-      const response = await fetch(`/api/firmalar`, {
+      const response = await fetch(process.env.REACT_APP_BASE_URL + `/api/firmalar`, {
         method: 'POST',
         headers: {
           email: appUser.email,

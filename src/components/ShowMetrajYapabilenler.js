@@ -59,7 +59,7 @@ export default function ShowMetrajYapabilenler({ setShow }) {
       // await RealmApp?.currentUser.callFunction("customSettings_update", ({ functionName: "showMetrajYapabilenler", showMetrajYapabilenler: showMetrajYapabilenler2 }))
       // await RealmApp?.currentUser.refreshCustomData()
 
-      // const response = await fetch(`/api/user/customsettings/showmetrajyapabilenler`, {
+      // const response = await fetch(process.env.REACT_APP_BASE_URL + `/api/user/customsettings/showmetrajyapabilenler`, {
       //   method: 'POST',
       //   headers: {
       //     email: appUser.email,
@@ -69,7 +69,7 @@ export default function ShowMetrajYapabilenler({ setShow }) {
       //   body: JSON.stringify({ showMetrajYapabilenler: showMetrajYapabilenler2 })
       // })
 
-      const response = await fetch(`/api/user/customsettingspagessetdata`, {
+      const response = await fetch(process.env.REACT_APP_BASE_URL + `/api/user/customsettingspagessetdata`, {
         method: 'POST',
         headers: {
           email: appUser.email,

@@ -172,7 +172,7 @@ export default function HeaderWbs({ setShow, nameMode, setNameMode, codeMode, se
 
       setIsPending(true)
 
-      const response = await fetch(`/api/projeler/togglewbsforpoz`, {
+      const response = await fetch(process.env.REACT_APP_BASE_URL + `/api/projeler/togglewbsforpoz`, {
         method: 'POST',
         headers: {
           email: appUser.email,
@@ -259,7 +259,7 @@ export default function HeaderWbs({ setShow, nameMode, setNameMode, codeMode, se
 
       // const result = await RealmApp.currentUser.callFunction("collection_projeler__wbs", { functionName: "deleteWbs", _projeId: selectedProje._id, _wbsId: selectedWbs._id });
 
-      const response = await fetch(`/api/projeler/deletewbs`, {
+      const response = await fetch(process.env.REACT_APP_BASE_URL + `/api/projeler/deletewbs`, {
         method: 'POST',
         headers: {
           email: appUser.email,
@@ -344,7 +344,7 @@ export default function HeaderWbs({ setShow, nameMode, setNameMode, codeMode, se
       }
 
       // const result = await RealmApp.currentUser.callFunction("collection_projeler__wbs", { functionName: "moveWbsUp", _projeId: selectedProje._id, _wbsId: selectedWbs._id });
-      const response = await fetch(`/api/projeler/movewbsup`, {
+      const response = await fetch(process.env.REACT_APP_BASE_URL + `/api/projeler/movewbsup`, {
         method: 'POST',
         headers: {
           email: appUser.email,
@@ -437,7 +437,7 @@ export default function HeaderWbs({ setShow, nameMode, setNameMode, codeMode, se
       }
 
 
-      const response = await fetch(`/api/projeler/movewbsdown`, {
+      const response = await fetch(process.env.REACT_APP_BASE_URL + `/api/projeler/movewbsdown`, {
         method: 'POST',
         headers: {
           email: appUser.email,
@@ -506,7 +506,7 @@ export default function HeaderWbs({ setShow, nameMode, setNameMode, codeMode, se
 
     try {
 
-      const response = await fetch(`/api/projeler/movewbsleft`, {
+      const response = await fetch(process.env.REACT_APP_BASE_URL + `/api/projeler/movewbsleft`, {
         method: 'POST',
         headers: {
           email: appUser.email,
@@ -575,7 +575,7 @@ export default function HeaderWbs({ setShow, nameMode, setNameMode, codeMode, se
 
     try {
 
-      const response = await fetch(`/api/projeler/movewbsright`, {
+      const response = await fetch(process.env.REACT_APP_BASE_URL + `/api/projeler/movewbsright`, {
         method: 'POST',
         headers: {
           email: appUser.email,

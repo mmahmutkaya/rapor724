@@ -78,7 +78,7 @@ export default function P_FormWbsUpdate({ setShow, selectedWbs, setSelectedWbs, 
       }
 
 
-      const response = await fetch(`/api/projeler/updatewbs`, {
+      const response = await fetch(process.env.REACT_APP_BASE_URL + `/api/projeler/updatewbs`, {
         method: 'POST',
         headers: {
           email: appUser.email,

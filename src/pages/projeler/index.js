@@ -62,7 +62,7 @@ export default function P_Projeler() {
   const handleProjeClick = async (oneProje) => {
     try {
 
-      const response = await fetch(`/api/projeler/${oneProje._id.toString()}`, {
+      const response = await fetch(process.env.REACT_APP_BASE_URL + `/api/projeler/${oneProje._id.toString()}`, {
         method: 'GET',
         headers: {
           email: appUser.email,

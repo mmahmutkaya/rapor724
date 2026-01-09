@@ -78,7 +78,7 @@ export default function P_FormLbsUpdate({ setShow, selectedLbs, setSelectedLbs, 
       }
 
 
-      const response = await fetch(`/api/projeler/updatelbs`, {
+      const response = await fetch(process.env.REACT_APP_BASE_URL + `/api/projeler/updatelbs`, {
         method: 'POST',
         headers: {
           email: appUser.email,

@@ -127,7 +127,7 @@ export default function FormSifreYenileme() {
         setPageSituation(2)
 
 
-        const response = await fetch('/api/user/savenecessaryuserdata', {
+        const response = await fetch(process.env.REACT_APP_BASE_URL + '/api/user/savenecessaryuserdata', {
           method: 'POST',
           headers: {
             'email': appUser.email,

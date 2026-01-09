@@ -110,7 +110,7 @@ export default function P_FormProjeCreate({ setShow }) {
 
       // console.log(_firmaId, projeName)
 
-      const response = await fetch(`/api/projeler`, {
+      const response = await fetch(process.env.REACT_APP_BASE_URL + `/api/projeler`, {
         method: 'POST',
         headers: {
           email: appUser.email,

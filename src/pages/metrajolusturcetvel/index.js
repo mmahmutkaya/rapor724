@@ -191,7 +191,7 @@ export default function P_MetrajOlusturCetvel() {
       try {
 
         // await RealmApp?.currentUser.callFunction("update_hazirlananMetraj_preparing", ({ _dugumId: selectedNode._id, hazirlananMetraj_state }))
-        const response = await fetch(`api/dugumler/updatehazirlananmetrajpreparing`, {
+        const response = await fetch(process.env.REACT_APP_BASE_URL + `api/dugumler/updatehazirlananmetrajpreparing`, {
           method: 'POST',
           headers: {
             email: appUser.email,
@@ -372,7 +372,7 @@ export default function P_MetrajOlusturCetvel() {
       // console.log("hazirlananMetraj_state",hazirlananMetraj_state)
       // await RealmApp?.currentUser.callFunction("update_hazirlananMetraj_ready", ({ _dugumId: selectedNode._id, hazirlananMetraj_state }))
 
-      const response = await fetch(`api/dugumler/updatehazirlananmetrajready`, {
+      const response = await fetch(process.env.REACT_APP_BASE_URL + `api/dugumler/updatehazirlananmetrajready`, {
         method: 'POST',
         headers: {
           email: appUser.email,

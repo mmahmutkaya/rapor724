@@ -358,7 +358,7 @@ export default function P_MetrajOnaylaPozMahaller() {
 
         // await RealmApp?.currentUser.callFunction("update_hazirlananMetrajlar_selectedFull", ({ dugumler_byPoz_state }))
 
-        const response = await fetch(`/api/dugumler/updatehazirlananmetrajlarselectedfull`, {
+        const response = await fetch(process.env.REACT_APP_BASE_URL + `/api/dugumler/updatehazirlananmetrajlarselectedfull`, {
           method: 'POST',
           headers: {
             email: appUser.email,

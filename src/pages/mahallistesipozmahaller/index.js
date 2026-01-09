@@ -219,7 +219,7 @@ export default function P_MehalListesiPozMahaller() {
       // const result = await RealmApp.currentUser.callFunction("updateDugumler_openMetraj", { functionName: "mahaller_byPozId", _projeId: selectedProje._id, mahaller, _pozId: selectedPoz._id });
 
 
-      const response = await fetch(`/api/dugumler`, {
+      const response = await fetch(process.env.REACT_APP_BASE_URL + `/api/dugumler`, {
         method: 'POST',
         headers: {
           email: appUser.email,

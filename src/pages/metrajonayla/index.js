@@ -282,7 +282,7 @@ export default function P_MetrajOnay() {
 
         // await RealmApp?.currentUser.callFunction("update_hazirlananMetrajlar_selected", ({ _projeId: selectedProje._id, _dugumId: selectedNode._id, hazirlananMetrajlar_state }))
 
-        const response = await fetch(`/api/dugumler/updatehazirlananmetrajlarselected`, {
+        const response = await fetch(process.env.REACT_APP_BASE_URL + `/api/dugumler/updatehazirlananmetrajlarselected`, {
           method: 'POST',
           headers: {
             email: appUser.email,
@@ -491,7 +491,7 @@ export default function P_MetrajOnay() {
 
         // await RealmApp?.currentUser.callFunction("update_hazirlananMetrajlar_unReady", ({ _projeId: selectedProje._id, _dugumId: selectedNode._id, hazirlananMetrajlar_state }))
 
-        const response = await fetch(`/api/dugumler/updatehazirlananmetrajlarunready`, {
+        const response = await fetch(process.env.REACT_APP_BASE_URL + `/api/dugumler/updatehazirlananmetrajlarunready`, {
           method: 'POST',
           headers: {
             email: appUser.email,
@@ -703,7 +703,7 @@ export default function P_MetrajOnay() {
 
         // await RealmApp?.currentUser.callFunction("update_hazirlananMetrajlar_seen", ({ _projeId: selectedProje._id, _dugumId: selectedNode._id, hazirlananMetrajlar_state }))
 
-        const response = await fetch(`/api/dugumler/updatehazirlananmetrajlarseen`, {
+        const response = await fetch(process.env.REACT_APP_BASE_URL + `/api/dugumler/updatehazirlananmetrajlarseen`, {
           method: 'POST',
           headers: {
             email: appUser.email,

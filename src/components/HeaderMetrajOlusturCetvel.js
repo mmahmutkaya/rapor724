@@ -62,7 +62,7 @@ export default function P_HeaderMetrajOlusturCetvel({
 
       // console.log("hazirlananMetraj_state",hazirlananMetraj_state)
       // await RealmApp?.currentUser.callFunction("addMetrajSatiri", ({ _dugumId: selectedNode._id }))
-      const response = await fetch(`/api/dugumler/addmetrajsatiri`, {
+      const response = await fetch(process.env.REACT_APP_BASE_URL + `/api/dugumler/addmetrajsatiri`, {
         method: 'POST',
         headers: {
           email: appUser.email,

@@ -20,7 +20,7 @@ export const useGetFirmalar = () => {
   return useQuery({
     queryKey: ['firmalar'],
     queryFn: async () => {
-      const response = await fetch('api/firmalar', {
+      const response = await fetch(process.env.REACT_APP_BASE_URL + '/api/firmalar', {
         method: 'GET',
         headers: {
           email: appUser.email,
@@ -64,7 +64,7 @@ export const useGetIsPaketPozMetrajlar = () => {
     ],
 
     queryFn: async () => {
-      const response = await fetch('api/pozlar/ispaketpozmetrajlar', {
+      const response = await fetch(process.env.REACT_APP_BASE_URL + '/api/pozlar/ispaketpozmetrajlar', {
         method: 'GET',
         headers: {
           email: appUser.email,
@@ -111,7 +111,7 @@ export const useGetisPaketler = () => {
 
     queryFn: async () => {
 
-      const response = await fetch('api/ispaketler', {
+      const response = await fetch(process.env.REACT_APP_BASE_URL + '/api/ispaketler', {
         method: 'GET',
         headers: {
           email: appUser.email,
@@ -181,7 +181,7 @@ export const useGetProjeler_byFirma = () => {
   return useQuery({
     queryKey: ['dataProjeler'],
     queryFn: async () => {
-      const response = await fetch(`api/projeler/byfirma/${selectedFirma._id.toString()}`, {
+      const response = await fetch(process.env.REACT_APP_BASE_URL + `api/projeler/byfirma/${selectedFirma._id.toString()}`, {
         method: 'GET',
         headers: {
           email: appUser.email,
@@ -234,7 +234,7 @@ export const useGetPozlar = () => {
   return useQuery({
     queryKey: ['dataPozlar'],
     queryFn: async () => {
-      const response = await fetch('api/pozlar', {
+      const response = await fetch(process.env.REACT_APP_BASE_URL + '/api/pozlar', {
         method: 'GET',
         headers: {
           email: appUser.email,
@@ -286,7 +286,7 @@ export const useGetMahaller = () => {
   return useQuery({
     queryKey: ['dataMahaller'],
     queryFn: async () => {
-      const response = await fetch('api/mahaller', {
+      const response = await fetch(process.env.REACT_APP_BASE_URL + '/api/mahaller', {
         method: 'GET',
         headers: {
           email: appUser.email,
@@ -331,7 +331,7 @@ export const useGetMahalListesi_pozlar = () => {
   return useQuery({
     queryKey: ['dataMahallistesi_pozlar'],
     queryFn: async () => {
-      const response = await fetch('api/dugumler/pozlar', {
+      const response = await fetch(process.env.REACT_APP_BASE_URL + '/api/dugumler/pozlar', {
         method: 'GET',
         headers: {
           email: appUser.email,
@@ -377,7 +377,7 @@ export const useGetMahalListesi_mahaller_byPoz = () => {
   return useQuery({
     queryKey: ['dataMahalListesi_mahaller_byPoz'],
     queryFn: async () => {
-      const response = await fetch('api/dugumler/mahallerbypoz', {
+      const response = await fetch(process.env.REACT_APP_BASE_URL + '/api/dugumler/mahallerbypoz', {
         method: 'GET',
         headers: {
           email: appUser.email,
@@ -494,7 +494,7 @@ export const useGetDugumler_byPoz = () => {
   return useQuery({
     queryKey: ['dataDugumler_byPoz'],
     queryFn: async () => {
-      const response = await fetch('api/dugumler/bypoz', {
+      const response = await fetch(process.env.REACT_APP_BASE_URL + '/api/dugumler/bypoz', {
         method: 'GET',
         headers: {
           email: appUser.email,
@@ -577,7 +577,7 @@ export const useGetHazirlananMetraj = () => {
   return useQuery({
     queryKey: ['dataHazirlananMetraj'],
     queryFn: async () => {
-      const response = await fetch('api/dugumler/hazirlananmetraj', {
+      const response = await fetch(process.env.REACT_APP_BASE_URL + '/api/dugumler/hazirlananmetraj', {
         method: 'GET',
         headers: {
           email: appUser.email,
@@ -646,7 +646,7 @@ export const useGetHazirlananMetrajlar = () => {
   return useQuery({
     queryKey: ['dataHazirlananMetrajlar'],
     queryFn: async () => {
-      const response = await fetch('api/dugumler/hazirlananmetrajlar', {
+      const response = await fetch(process.env.REACT_APP_BASE_URL + '/api/dugumler/hazirlananmetrajlar', {
         method: 'GET',
         headers: {
           email: appUser.email,
@@ -742,7 +742,7 @@ export const useGetOnaylananMetraj = () => {
   return useQuery({
     queryKey: ['dataOnaylananMetraj'],
     queryFn: async () => {
-      const response = await fetch('api/dugumler/onaylananmetraj', {
+      const response = await fetch(process.env.REACT_APP_BASE_URL + '/api/dugumler/onaylananmetraj', {
         method: 'GET',
         headers: {
           email: appUser.email,

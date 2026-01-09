@@ -62,7 +62,7 @@ export default function P_Firmalar() {
 
       // const firma = await RealmApp.currentUser.callFunction("getFirma", { _firmaId: oneFirma._id })
 
-      const response = await fetch(`/api/firmalar/${oneFirma._id.toString()}`, {
+      const response = await fetch(process.env.REACT_APP_BASE_URL + `/api/firmalar/${oneFirma._id.toString()}`, {
         method: 'GET',
         headers: {
           email: appUser.email,

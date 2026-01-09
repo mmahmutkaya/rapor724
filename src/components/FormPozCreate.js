@@ -169,7 +169,7 @@ export default function FormPozCreate({ setShow }) {
       // return
       // form verileri kontrolden geçti - db ye göndermeyi deniyoruz
 
-      const response = await fetch(`/api/pozlar`, {
+      const response = await fetch(process.env.REACT_APP_BASE_URL + `/api/pozlar`, {
         method: 'POST',
         headers: {
           email: appUser.email,

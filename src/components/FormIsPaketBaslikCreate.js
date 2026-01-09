@@ -112,7 +112,7 @@ export default function FormIsPaketBaslikCreate({ setShow }) {
       // VALIDATE KONTROL -- SONU
 
 
-      const response = await fetch(`/api/projeler/createispaketbaslik`, {
+      const response = await fetch(process.env.REACT_APP_BASE_URL + `/api/projeler/createispaketbaslik`, {
         method: 'POST',
         headers: {
           email: appUser.email,

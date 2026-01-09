@@ -85,7 +85,7 @@ export default function FormMailTeyit() {
         // const resultMailSended = await RealmApp.currentUser.callFunction("auth_SendConfirmationCode")
         // console.log("resultMailSended", resultMailSended)
 
-        const response = await fetch('/api/user/sendmailcode', {
+        const response = await fetch(process.env.REACT_APP_BASE_URL + '/api/user/sendmailcode', {
           method: 'POST',
           headers: {
             'email': appUser.email,
@@ -164,7 +164,7 @@ export default function FormMailTeyit() {
         // buton da "kod doğrulanıyor" yazıyor ve inaktif
         setPageSituation(4)
 
-        const response = await fetch('/api/user/confirmmailcode', {
+        const response = await fetch(process.env.REACT_APP_BASE_URL + '/api/user/confirmmailcode', {
           method: 'POST',
           headers: {
             'email': appUser.email,

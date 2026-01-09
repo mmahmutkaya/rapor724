@@ -321,7 +321,7 @@ export default function P_MetrajCetveliOnaylanan() {
 
         // await RealmApp?.currentUser.callFunction("update_onaylananMetraj_revize", ({ _dugumId: selectedNode._id, onaylananMetraj_state }))
 
-        const response = await fetch(`/api/dugumler/updateonaylananmetrajrevize`, {
+        const response = await fetch(process.env.REACT_APP_BASE_URL + `/api/dugumler/updateonaylananmetrajrevize`, {
           method: 'POST',
           headers: {
             email: appUser.email,
@@ -552,7 +552,7 @@ export default function P_MetrajCetveliOnaylanan() {
 
       setHasSelectedCopySatirlar(onaylananMetraj_state?.satirlar.find(x => x.hasSelectedCopy) ? true : false)
 
-      const response = await fetch(`/api/dugumler/updateonaylananmetrajsil`, {
+      const response = await fetch(process.env.REACT_APP_BASE_URL + `/api/dugumler/updateonaylananmetrajsil`, {
         method: 'POST',
         headers: {
           email: appUser.email,

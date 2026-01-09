@@ -93,7 +93,7 @@ export default function P_FormWbsCreate({ setShow, selectedWbs, setSelectedWbs, 
       }
 
       // const result = await RealmApp.currentUser.callFunction("collection_projeler__wbs", { functionName: "createWbs", ...newWbsItem });
-      const response = await fetch(`/api/projeler/createwbs`, {
+      const response = await fetch(process.env.REACT_APP_BASE_URL + `/api/projeler/createwbs`, {
         method: 'POST',
         headers: {
           email: appUser.email,

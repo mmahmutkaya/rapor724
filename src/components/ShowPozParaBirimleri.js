@@ -62,7 +62,7 @@ export default function ShowPozParaBirimleri({ setShow, paraBirimleri, setParaBi
       let dataName = "paraBirimleri"
       let setData = paraBirimleri2
 
-      const response = await fetch(`/api/user/customsettingspagessetdata`, {
+      const response = await fetch(process.env.REACT_APP_BASE_URL + `/api/user/customsettingspagessetdata`, {
         method: 'POST',
         headers: {
           email: appUser.email,
@@ -143,7 +143,7 @@ export default function ShowPozParaBirimleri({ setShow, paraBirimleri, setParaBi
       let dataName = "paraBirimleri"
       let setData = paraBirimleri2
 
-      const response = await fetch(`/api/user/customsettingspagessetdata`, {
+      const response = await fetch(process.env.REACT_APP_BASE_URL + `/api/user/customsettingspagessetdata`, {
         method: 'POST',
         headers: {
           email: appUser.email,

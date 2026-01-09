@@ -144,7 +144,7 @@ export default function FormSignUp() {
       // await RealmApp.logIn(credentials);
 
 
-      const response = await fetch('/api/user/signup', {
+      const response = await fetch(process.env.REACT_APP_BASE_URL + '/api/user/signup', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email, password })
