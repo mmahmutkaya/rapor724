@@ -181,7 +181,7 @@ export const useGetProjeler_byFirma = () => {
   return useQuery({
     queryKey: ['dataProjeler'],
     queryFn: async () => {
-      const response = await fetch(process.env.REACT_APP_BASE_URL + `api/projeler/byfirma/${selectedFirma._id.toString()}`, {
+      const response = await fetch(process.env.REACT_APP_BASE_URL + `/api/projeler/byfirma/${selectedFirma._id.toString()}`, {
         method: 'GET',
         headers: {
           email: appUser.email,

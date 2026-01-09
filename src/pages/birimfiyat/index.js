@@ -143,7 +143,7 @@ export default function P_BirimFiyat() {
 
       setSelectedBirimFiyatVersiyon()
 
-      const response = await fetch(process.env.REACT_APP_BASE_URL + `api/projeler/requestprojeaktifyetkilikisi`, {
+      const response = await fetch(process.env.REACT_APP_BASE_URL + `/api/projeler/requestprojeaktifyetkilikisi`, {
         method: 'POST',
         headers: {
           email: appUser.email,
@@ -442,7 +442,7 @@ export default function P_BirimFiyat() {
 
   //   try {
 
-  //     const response = await fetch(process.env.REACT_APP_BASE_URL + `api/projeler/deleteprojeaktifyetkilikisi`, {
+  //     const response = await fetch(process.env.REACT_APP_BASE_URL + `/api/projeler/deleteprojeaktifyetkilikisi`, {
   //       method: 'POST',
   //       headers: {
   //         email: appUser.email,
