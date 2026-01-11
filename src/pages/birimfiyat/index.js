@@ -50,10 +50,8 @@ import { List } from 'react-window';
 
 export default function P_BirimFiyat() {
 
-  const [age, setAge] = React.useState('');
-
-  const handleChange = (event) => {
-    setAge(event.target.value);
+  const handleChange = (props) => {
+    console.log("props", props)
   };
 
   const navigate = useNavigate()
@@ -609,20 +607,6 @@ export default function P_BirimFiyat() {
   let cOunt
 
 
-  const [versiyonSecim, setVersiyonSecim] = useState()
-  function renderRow(props) {
-    const { index, style } = props;
-
-    return (
-      <ListItem style={style} key={index} component="div" disablePadding>
-        <ListItemButton>
-          <ListItemText primary={`Item ${index + 1}`} />
-        </ListItemButton>
-      </ListItem>
-    );
-  }
-
-
   return (
     <Box sx={{ m: "0rem" }}>
 
@@ -639,21 +623,6 @@ export default function P_BirimFiyat() {
           action2={dialogAlert.action2 ? dialogAlert.action2 : null}
         />
       }
-
-
-      {/* {versiyonSecim &&
-        <DialogSelectTip
-          // dialogIcon={dialogAlert.dialogIcon}
-          // dialogMessage={dialogAlert.dialogMessage}
-          // detailText={dialogAlert.detailText}
-          onCloseAction={() => setVersiyonSecim()}
-        // actionText1={dialogAlert.actionText1 ? dialogAlert.actionText1 : null}
-        // action1={dialogAlert.action1 ? dialogAlert.action1 : null}
-        // actionText2={dialogAlert.actionText2 ? dialogAlert.actionText2 : null}
-        // action2={dialogAlert.action2 ? dialogAlert.action2 : null}
-        />
-      } */}
-
 
 
       {showEminMisin_para &&
@@ -749,40 +718,28 @@ export default function P_BirimFiyat() {
                     </Box>
                   }
 
-                  <Box
-                    onClick={(e) => setVersiyonSecim(e.currentTarget)}
-                    sx={{ ml: "0.4rem", py: "0.2rem", px: "0.3rem", border: "1px solid black", borderRadius: "0.5rem", fontSize: "0.8rem", fontWeight: "600", backgroundColor: "lightgray" }}>
-                    V{selectedBirimFiyatVersiyon?.versiyonNumber}
-                  </Box>
-
-                  <Popover
-                    open={Boolean(versiyonSecim)}
-                    anchorEl={versiyonSecim}
-                    // onClose={handleClose}
-                    onBlur={() => setVersiyonSecim()}
-                    anchorOrigin={{
-                      vertical: 'bottom',
-                      horizontal: 'left',
+                  <Select
+                    size='small'
+                    value={selectedBirimFiyatVersiyon?.versiyonNumber}
+                    onBlur={() => queryClient.invalidateQueries(['dataPozlar'])}
+                    sx={{ fontSize: "0.9rem" }}
+                    // onChange={(e) => console.log(e.target.value)}
+                    MenuProps={{
+                      PaperProps: {
+                        style: {
+                          maxHeight: "15rem",
+                          minWidth: "5rem",
+                        },
+                      },
                     }}
                   >
-                    <Box
-                      sx={{ width: '100%', height: '100%', maxWidth: 360, bgcolor: 'background.paper' }}
-                    >
-                      <List
-                        rowHeight={40}
-                        rowCount={50}
-                        style={{
-                          height: 300,
-                          width: 150,
-                        }}
-                        rowProps={{}}
-                        overscanCount={10}
-                        rowComponent={renderRow}
-                      />
-                    </Box>
-
-                    {/* <Typography sx={{ p: 2 }}>The content of the Popover.</Typography> */}
-                  </Popover>
+                    {selectedProje?.birimFiyatVersiyonlar.map((oneVersiyon, index) => {
+                      let versiyonNumber = oneVersiyon.versiyonNumber
+                      return (
+                        <MenuItem sx={{ fontSize: "0.8rem" }} key={index} onClick={() => setSelectedBirimFiyatVersiyon(oneVersiyon)} value={versiyonNumber} > V{versiyonNumber} </MenuItem>
+                      )
+                    })}
+                  </Select>
 
                 </>
               }
