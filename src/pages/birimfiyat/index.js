@@ -4,6 +4,7 @@ import { useState, useContext, useEffect } from 'react';
 import { useQueryClient } from '@tanstack/react-query'
 import { useNavigate } from "react-router-dom";
 import { DialogAlert } from '../../components/general/DialogAlert.js';
+import { DialogSelectTip } from '../../components/general/DialogSelectTip.js';
 import { DialogVersiyonTip } from '../../components/general/DialogVersiyonTip.js';
 import _ from 'lodash';
 
@@ -27,6 +28,7 @@ import Alert from '@mui/material/Alert';
 import Stack from '@mui/material/Stack';
 import LinearProgress from '@mui/material/LinearProgress';
 import Box from '@mui/material/Box';
+
 import CurrencyLiraIcon from '@mui/icons-material/CurrencyLira';
 import VisibilityIcon from '@mui/icons-material/Visibility';
 import DeleteIcon from '@mui/icons-material/Delete';
@@ -36,11 +38,23 @@ import SaveIcon from '@mui/icons-material/Save';
 import EditIcon from '@mui/icons-material/Edit';
 import Avatar from '@mui/material/Avatar';
 
+import MenuItem from '@mui/material/MenuItem';
+import Select from '@mui/material/Select';
+import ListItem from '@mui/material/ListItem';
+import ListItemButton from '@mui/material/ListItemButton';
+import ListItemText from '@mui/material/ListItemText';
+import { List } from 'react-window';
 
 
 
 
 export default function P_BirimFiyat() {
+
+  const [age, setAge] = React.useState('');
+
+  const handleChange = (event) => {
+    setAge(event.target.value);
+  };
 
   const navigate = useNavigate()
   const queryClient = useQueryClient()
@@ -595,19 +609,23 @@ export default function P_BirimFiyat() {
   let cOunt
 
 
-  const [anchorEl, setAnchorEl] = useState(null)
-  // const id = Boolean(anchorEl) ? 'simple-popover' : undefined;
-  // const handleClick = (event) => {
-  //   console.log("currentTarget", event.currentTarget)
-  //   setAnchorEl(event.currentTarget);
-  // };
-  // const handleClose = () => {
-  //   setAnchorEl(null);
-  // }
+  const [versiyonSecim, setVersiyonSecim] = useState()
+  function renderRow(props) {
+    const { index, style } = props;
+
+    return (
+      <ListItem style={style} key={index} component="div" disablePadding>
+        <ListItemButton>
+          <ListItemText primary={`Item ${index + 1}`} />
+        </ListItemButton>
+      </ListItem>
+    );
+  }
 
 
   return (
     <Box sx={{ m: "0rem" }}>
+
 
       {dialogAlert &&
         <DialogAlert
@@ -621,6 +639,21 @@ export default function P_BirimFiyat() {
           action2={dialogAlert.action2 ? dialogAlert.action2 : null}
         />
       }
+
+
+      {/* {versiyonSecim &&
+        <DialogSelectTip
+          // dialogIcon={dialogAlert.dialogIcon}
+          // dialogMessage={dialogAlert.dialogMessage}
+          // detailText={dialogAlert.detailText}
+          onCloseAction={() => setVersiyonSecim()}
+        // actionText1={dialogAlert.actionText1 ? dialogAlert.actionText1 : null}
+        // action1={dialogAlert.action1 ? dialogAlert.action1 : null}
+        // actionText2={dialogAlert.actionText2 ? dialogAlert.actionText2 : null}
+        // action2={dialogAlert.action2 ? dialogAlert.action2 : null}
+        />
+      } */}
+
 
 
       {showEminMisin_para &&
@@ -717,26 +750,38 @@ export default function P_BirimFiyat() {
                   }
 
                   <Box
-                    onClick={(e) => setAnchorEl(e.currentTarget)}
+                    onClick={(e) => setVersiyonSecim(e.currentTarget)}
                     sx={{ ml: "0.4rem", py: "0.2rem", px: "0.3rem", border: "1px solid black", borderRadius: "0.5rem", fontSize: "0.8rem", fontWeight: "600", backgroundColor: "lightgray" }}>
                     V{selectedBirimFiyatVersiyon?.versiyonNumber}
                   </Box>
 
                   <Popover
-                    id={'simple-popover'}
-                    open={Boolean(anchorEl)}
-                    anchorEl={anchorEl}
-                    // onBlurCapture={() => !Boolean(anchorEl) ? false : true}
-                    onBlur={() => setAnchorEl(null)}
-                    // onClose={() => {
-                    //   setAnchorEl(null)
-                    // }}
+                    open={Boolean(versiyonSecim)}
+                    anchorEl={versiyonSecim}
+                    // onClose={handleClose}
+                    onBlur={() => setVersiyonSecim()}
                     anchorOrigin={{
                       vertical: 'bottom',
                       horizontal: 'left',
                     }}
                   >
-                    <Typography sx={{ p: 2 }}>The content of the Popover.</Typography>
+                    <Box
+                      sx={{ width: '100%', height: 400, maxWidth: 360, bgcolor: 'background.paper' }}
+                    >
+                      <List
+                        rowHeight={46}
+                        rowCount={200}
+                        style={{
+                          height: 400,
+                          width: 360,
+                        }}
+                        rowProps={{}}
+                        overscanCount={5}
+                        rowComponent={renderRow}
+                      />
+                    </Box>
+
+                    {/* <Typography sx={{ p: 2 }}>The content of the Popover.</Typography> */}
                   </Popover>
 
                 </>
