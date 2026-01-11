@@ -18,7 +18,9 @@ import ShowPozParaBirimleri from '../../components/ShowPozParaBirimleri.js'
 
 import Typography from '@mui/material/Typography';
 import IconButton from '@mui/material/IconButton';
+import Popover from '@mui/material/Popover';
 import Paper from '@mui/material/Paper';
+import Button from '@mui/material/Button';
 import Grid from '@mui/material/Grid';
 import Input from '@mui/material/Input';
 import Alert from '@mui/material/Alert';
@@ -122,8 +124,10 @@ export default function P_BirimFiyat() {
   // sayfadaki "visibility" tuşunun aktif olup olmamasını ayarlamak için
   const anyBaslikShow = basliklar?.find(x => x.visible) ? true : false
 
-  const pozAciklamaShow = basliklar?.find(x => x.id === "aciklama").show
-  const pozVersiyonShow = basliklar?.find(x => x.id === "versiyon").show
+  const show_aciklama = basliklar?.find(x => x.id === "aciklama").show
+  const show_versiyon = basliklar?.find(x => x.id === "versiyon").show
+  const show_versiyonAciklama = basliklar?.find(x => x.id === "versiyonAciklama").show
+  const show_versiyondakiDegisimler = basliklar?.find(x => x.id === "versiyondakiDegisimler").show
 
   let paraBirimiAdet = paraBirimleri?.filter(x => x?.isShow).length
 
@@ -131,13 +135,13 @@ export default function P_BirimFiyat() {
     max-content
     minmax(min-content, 35rem) 
     max-content
-    ${pozAciklamaShow ? " 0.4rem minmax(min-content, 10rem)" : ""}
-    ${pozVersiyonShow ? " 0.4rem max-content" : ""}
+    ${show_aciklama ? " 0.4rem minmax(min-content, 10rem)" : ""}
+    ${show_versiyon ? " 0.4rem max-content" : ""}
     ${paraBirimiAdet === 1 ? " 0.4rem max-content" : paraBirimiAdet > 1 ? " 0.4rem repeat(" + paraBirimiAdet + ", max-content)" : ""}
   `
 
 
-  const requestProjeAktifYetkiliKisi = async ({ projeId, arananYetkiler, aktifYetki }) => {
+  const requestProjeAktifYetkiliKisi = async ({ projeId, aktifYetki }) => {
 
     try {
 
@@ -151,12 +155,13 @@ export default function P_BirimFiyat() {
           'Content-Type': 'application/json'
         },
         body: JSON.stringify({
-          projeId, arananYetkiler, aktifYetki
+          projeId, aktifYetki
         })
       })
 
 
       const responseJson = await response.json()
+
 
       if (responseJson.error) {
         if (responseJson.error.includes("expired")) {
@@ -175,6 +180,8 @@ export default function P_BirimFiyat() {
           dialogIcon: "info",
           dialogMessage: responseJson.message,
           onCloseAction: () => {
+            queryClient.invalidateQueries(['dataPozlar'])
+            setShow("Main")
             setDialogAlert()
           }
         })
@@ -203,6 +210,68 @@ export default function P_BirimFiyat() {
     }
   }
 
+
+
+
+  const deleteProjeAktifYetkiliKisi = async ({ projeId, aktifYetki }) => {
+
+    try {
+
+      const response = await fetch(process.env.REACT_APP_BASE_URL + `/api/projeler/deleteprojeaktifyetkilikisi`, {
+        method: 'POST',
+        headers: {
+          email: appUser.email,
+          token: appUser.token,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          projeId, aktifYetki
+        })
+      })
+
+      const responseJson = await response.json()
+
+      if (responseJson.error) {
+        if (responseJson.error.includes("expired")) {
+          setAppUser()
+          localStorage.removeItem('appUser')
+          navigate('/')
+          window.location.reload()
+        }
+        throw new Error(responseJson.error);
+      }
+
+      if (responseJson.message) {
+        setShow("Main")
+        setDialogAlert({
+          dialogIcon: "info",
+          dialogMessage: responseJson.message,
+          onCloseAction: () => {
+            setDialogAlert()
+          }
+        })
+      }
+
+      if (responseJson.ok) {
+        setShow("Main")
+        setParaEdit()
+      }
+
+    } catch (err) {
+
+      console.log(err)
+
+      setDialogAlert({
+        dialogIcon: "warning",
+        dialogMessage: "Beklenmedik hata, sayfayı yenileyiniz, sorun devam ederse Rapor7/24 ile irtibata geçiniz..",
+        detailText: err?.message ? err.message : null,
+        onCloseAction: () => {
+          setDialogAlert()
+          queryClient.invalidateQueries(['dataPozlar'])
+        }
+      })
+    }
+  }
 
 
 
@@ -238,20 +307,24 @@ export default function P_BirimFiyat() {
 
           } else {
 
+            // demekki yeni kayıt yapılacak, önce eskiyi kaldıralım
             onePoz.birimFiyatlar = onePoz.birimFiyatlar?.filter(x => x.id !== paraBirimiId)
 
-            // yeniden kayıtlı son versiyondaki fiyata dönülmüşse resetleme yapılıyor ama db ye keydedilecek, yoksa yeni kayıt yapılıyor ve db ye kaydedilecek
-            if (Number(theBirimFiyat.eskiFiyat) === Number(birimFiyat)) {
-              onePoz.birimFiyatlar = [...onePoz.birimFiyatlar, { id: paraBirimiId, fiyat: birimFiyat }]
-            } else {
-              if (!theBirimFiyat.eskiFiyat) {
-                onePoz.birimFiyatlar = [...onePoz.birimFiyatlar, { id: paraBirimiId, fiyat: birimFiyat, eskiFiyat: theBirimFiyat.fiyat, isProgress: true }]
+            if (theBirimFiyat.hasOwnProperty("eskiFiyat")) {
+
+              // yeniden kayıtlı son versiyondaki fiyata dönülmüşse isProgress kaldırılıyor, yoksa yeni kayıt yapılıyor ve db ye kaydedilecek
+              if (Number(theBirimFiyat.eskiFiyat) === Number(birimFiyat)) {
+                onePoz.birimFiyatlar = [...onePoz.birimFiyatlar, { id: paraBirimiId, fiyat: birimFiyat }]
               } else {
-                onePoz.birimFiyatlar = [...onePoz.birimFiyatlar, { id: paraBirimiId, fiyat: birimFiyat, isProgress: true }]
+                onePoz.birimFiyatlar = [...onePoz.birimFiyatlar, { id: paraBirimiId, fiyat: birimFiyat, eskiFiyat: theBirimFiyat.eskiFiyat, isProgress: true }]
               }
+
+            } else {
+              onePoz.birimFiyatlar = [...onePoz.birimFiyatlar, { id: paraBirimiId, fiyat: birimFiyat, eskiFiyat: theBirimFiyat.fiyat, isProgress: true }]
             }
 
           }
+
 
         } else {
           onePoz.birimFiyatlar = [...onePoz.birimFiyatlar, { id: paraBirimiId, fiyat: birimFiyat, eskiFiyat: "", isProgress: true }]
@@ -327,6 +400,7 @@ export default function P_BirimFiyat() {
 
         const responseJson = await response.json()
 
+
         if (responseJson.error) {
           if (responseJson.error.includes("expired")) {
             setAppUser()
@@ -336,6 +410,22 @@ export default function P_BirimFiyat() {
           }
           throw new Error(responseJson.error);
         }
+
+
+        if (responseJson.message) {
+          setDialogAlert({
+            dialogIcon: "info",
+            dialogMessage: responseJson.message,
+            onCloseAction: () => {
+              queryClient.invalidateQueries(['dataPozlar'])
+              setIsChanged_para()
+              setParaEdit()
+              setDialogAlert()
+            }
+          })
+          return
+        }
+
 
         if (!responseJson.ok) {
           throw new Error("Kayıt işlemi gerçekleşmedi, sayfayı yenileyiniz, sorun devam ederse Rapor7/24 ile iletişime geçiniz.")
@@ -451,74 +541,6 @@ export default function P_BirimFiyat() {
 
 
 
-
-
-
-
-  // const deleteProjeAktifYetkiliKisi = async ({ projeId, arananYetkiler, aktifYetki }) => {
-
-  //   try {
-
-  //     const response = await fetch(process.env.REACT_APP_BASE_URL + `/api/projeler/deleteprojeaktifyetkilikisi`, {
-  //       method: 'POST',
-  //       headers: {
-  //         email: appUser.email,
-  //         token: appUser.token,
-  //         'Content-Type': 'application/json'
-  //       },
-  //       body: JSON.stringify({
-  //         projeId, arananYetkiler, aktifYetki
-  //       })
-  //     })
-
-  //     const responseJson = await response.json()
-
-  //     if (responseJson.error) {
-  //       if (responseJson.error.includes("expired")) {
-  //         setAppUser()
-  //         localStorage.removeItem('appUser')
-  //         navigate('/')
-  //         window.location.reload()
-  //       }
-  //       throw new Error(responseJson.error);
-  //     }
-
-  //     if (responseJson.message) {
-  //       setShow("Main")
-  //       setDialogAlert({
-  //         dialogIcon: "info",
-  //         dialogMessage: responseJson.message,
-  //         onCloseAction: () => {
-  //           setDialogAlert()
-  //         }
-  //       })
-  //     }
-
-  //     if (responseJson.ok) {
-  //       setShow("Main")
-  //       setParaEdit()
-  //     }
-
-  //   } catch (err) {
-
-  //     console.log(err)
-
-  //     setDialogAlert({
-  //       dialogIcon: "warning",
-  //       dialogMessage: "Beklenmedik hata, sayfayı yenileyiniz, sorun devam ederse Rapor7/24 ile irtibata geçiniz..",
-  //       detailText: err?.message ? err.message : null,
-  //       onCloseAction: () => {
-  //         setDialogAlert()
-  //         queryClient.invalidateQueries(['dataPozlar'])
-  //       }
-  //     })
-  //   }
-  // }
-
-
-
-
-
   const enUstBaslik_css = {
     display: "grid",
     alignItems: "center",
@@ -572,6 +594,18 @@ export default function P_BirimFiyat() {
   let wbsName
   let cOunt
 
+
+  const [anchorEl, setAnchorEl] = useState(null)
+  // const id = Boolean(anchorEl) ? 'simple-popover' : undefined;
+  // const handleClick = (event) => {
+  //   console.log("currentTarget", event.currentTarget)
+  //   setAnchorEl(event.currentTarget);
+  // };
+  // const handleClose = () => {
+  //   setAnchorEl(null);
+  // }
+
+
   return (
     <Box sx={{ m: "0rem" }}>
 
@@ -588,6 +622,7 @@ export default function P_BirimFiyat() {
         />
       }
 
+
       {showEminMisin_para &&
         <DialogAlert
           dialogIcon={"warning"}
@@ -597,11 +632,13 @@ export default function P_BirimFiyat() {
           action1={() => setShowEminMisin_para()}
           actionText2={"Onayla"}
           action2={() => {
+            deleteProjeAktifYetkiliKisi({ projeId: selectedProje?._id, aktifYetki: "birimFiyatEdit" })
             cancel_para()
             setShowEminMisin_para()
           }}
         />
       }
+
 
       {showEminMisin_versiyon &&
         <DialogVersiyonTip
@@ -658,6 +695,7 @@ export default function P_BirimFiyat() {
 
               {!paraEdit && selectedBirimFiyatVersiyon &&
                 <>
+
                   <Box>
                     <IconButton onClick={() => setShow("ShowPozParaBirimleri")}>
                       <CurrencyLiraIcon variant="contained" />
@@ -670,29 +708,36 @@ export default function P_BirimFiyat() {
                     </IconButton>
                   </Box>
 
-
-                  {/* {paraBirimiAdet > 0 && birimFiyatEditable &&
-                    <Box>
-                      <IconButton onClick={() => setParaEdit(x => {
-                        setShow("Main")
-                        return !x
-                      })}>
-                        <EditIcon variant="contained" />
-                      </IconButton>
-                    </Box>
-                  } */}
-
                   {paraBirimiAdet > 0 && birimFiyatEditable && !paraEdit &&
                     <Box>
-                      <IconButton onClick={() => requestProjeAktifYetkiliKisi({ projeId: selectedProje?._id, arananYetkiler: ["birimFiyatEdit", "owner"], aktifYetki: "birimFiyatEdit" })}>
+                      <IconButton onClick={() => requestProjeAktifYetkiliKisi({ projeId: selectedProje?._id, aktifYetki: "birimFiyatEdit" })}>
                         <EditIcon variant="contained" />
                       </IconButton>
                     </Box>
                   }
 
-                  <Box sx={{ mx: "0.3rem", py: "0.2rem", px: "0.3rem", border: "1px solid black", borderRadius: "0.5rem", fontSize: "0.8rem", fontWeight: "600", backgroundColor: "lightgray" }}>
+                  <Box
+                    onClick={(e) => setAnchorEl(e.currentTarget)}
+                    sx={{ ml: "0.4rem", py: "0.2rem", px: "0.3rem", border: "1px solid black", borderRadius: "0.5rem", fontSize: "0.8rem", fontWeight: "600", backgroundColor: "lightgray" }}>
                     V{selectedBirimFiyatVersiyon?.versiyonNumber}
                   </Box>
+
+                  <Popover
+                    id={'simple-popover'}
+                    open={Boolean(anchorEl)}
+                    anchorEl={anchorEl}
+                    // onBlurCapture={() => !Boolean(anchorEl) ? false : true}
+                    onBlur={() => setAnchorEl(null)}
+                    // onClose={() => {
+                    //   setAnchorEl(null)
+                    // }}
+                    anchorOrigin={{
+                      vertical: 'bottom',
+                      horizontal: 'left',
+                    }}
+                  >
+                    <Typography sx={{ p: 2 }}>The content of the Popover.</Typography>
+                  </Popover>
 
                 </>
               }
@@ -706,6 +751,7 @@ export default function P_BirimFiyat() {
                       if (isChanged_para) {
                         setShowEminMisin_para(true)
                       } else {
+                        deleteProjeAktifYetkiliKisi({ projeId: selectedProje?._id, aktifYetki: "birimFiyatEdit" })
                         setParaEdit()
                       }
                     }} aria-label="lbsUncliced">
@@ -739,7 +785,8 @@ export default function P_BirimFiyat() {
 
 
       {/* SAYFA İÇERİĞİ - ALTERNATİF-1 */}
-      {isLoading &&
+      {
+        isLoading &&
         <Box sx={{ m: "1rem", color: 'gray' }}>
           <LinearProgress color='inherit' />
         </Box>
@@ -748,7 +795,8 @@ export default function P_BirimFiyat() {
 
       {/* SAYFA İÇERİĞİ - ALTERNATİF-2 */}
       {/* EĞER POZ BAŞLIĞI YOKSA */}
-      {!isLoading && show == "Main" && !selectedProje?.wbs?.find(x => x.openForPoz === true) &&
+      {
+        !isLoading && show == "Main" && !selectedProje?.wbs?.find(x => x.openForPoz === true) &&
         <Stack sx={{ width: '100%', m: "0rem", p: "1rem" }} spacing={2}>
           <Alert severity="info">
             Öncelikle poz oluşturmalı.
@@ -759,7 +807,8 @@ export default function P_BirimFiyat() {
 
       {/* SAYFA İÇERİĞİ - ALTERNATİF-3 */}
       {/* EĞER POZ YOKSA */}
-      {!isLoading && show == "Main" && selectedProje?.wbs?.find(x => x.openForPoz === true) && !pozlar_state?.length > 0 &&
+      {
+        !isLoading && show == "Main" && selectedProje?.wbs?.find(x => x.openForPoz === true) && !pozlar_state?.length > 0 &&
         <Stack sx={{ width: '100%', m: "0rem", p: "1rem" }} spacing={2}>
           <Alert severity="info">
             Öncelikle poz oluşturmalı.
@@ -772,7 +821,8 @@ export default function P_BirimFiyat() {
       {/* SAYFA İÇERİĞİ - ALTERNATİF-4 */}
       {/* ANA SAYFA - POZLAR VARSA */}
 
-      {!isLoading && show == "Main" && selectedProje?.wbs?.find(x => x.openForPoz === true) && pozlar_state?.length > 0 &&
+      {
+        !isLoading && show == "Main" && selectedProje?.wbs?.find(x => x.openForPoz === true) && pozlar_state?.length > 0 &&
         <Box sx={{ m: "1rem", display: "grid", gridTemplateColumns: columns }}>
 
 
@@ -796,7 +846,7 @@ export default function P_BirimFiyat() {
             </Box>
 
             {/* BAŞLIK - POZ BİRİM  */}
-            {pozAciklamaShow &&
+            {show_aciklama &&
               <>
                 <Box></Box>
                 <Box sx={{ ...enUstBaslik_css }}>
@@ -806,7 +856,7 @@ export default function P_BirimFiyat() {
             }
 
             {/* BAŞLIK - VERSİYON */}
-            {pozVersiyonShow &&
+            {show_versiyon &&
               <>
                 <Box></Box>
                 <Box sx={{ ...enUstBaslik_css }}>
@@ -898,7 +948,7 @@ export default function P_BirimFiyat() {
 
 
                 {/* BAŞLIK - AÇIKLAMA  */}
-                {pozAciklamaShow &&
+                {show_aciklama &&
                   <>
                     <Box></Box>
                     <Box sx={{ ...wbsBaslik_css }} />
@@ -906,7 +956,7 @@ export default function P_BirimFiyat() {
                 }
 
                 {/* BAŞLIK - VERSİYON */}
-                {pozVersiyonShow &&
+                {show_versiyon &&
                   <>
                     <Box />
                     <Box sx={{ ...wbsBaslik_css }} />
@@ -947,7 +997,7 @@ export default function P_BirimFiyat() {
                       </Box>
 
                       {/* BAŞLIK - POZ BİRİM  */}
-                      {pozAciklamaShow &&
+                      {show_aciklama &&
                         <>
                           <Box></Box>
                           <Box sx={{ ...pozNo_css }}>
@@ -957,7 +1007,7 @@ export default function P_BirimFiyat() {
                       }
 
                       {/* BAŞLIK - VERSİYON */}
-                      {pozVersiyonShow &&
+                      {show_versiyon &&
                         <>
                           <Box />
                           <Box sx={{ ...pozNo_css }}>
@@ -981,7 +1031,7 @@ export default function P_BirimFiyat() {
 
                             if (!paraEdit) {
                               return (
-                                <Box key={index} sx={{ ...pozNo_css, justifyContent: "end", minWidth: "6rem", backgroundColor: theBirimFiyat?.isProgress && "yellow" }}>
+                                <Box key={index} sx={{ ...pozNo_css, justifyContent: "end", minWidth: "6rem", backgroundColor: show_versiyondakiDegisimler && theBirimFiyat?.isProgress && "rgba(217, 255, 0, 0.33)" }}>
                                   {ikiHane(theBirimFiyat?.fiyat)}
                                 </Box>
                               )

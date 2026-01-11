@@ -30,6 +30,7 @@ export default function ShowPozBaslik({ setShow, basliklar, setBasliklar, pageNa
     try {
 
       const basliklar2 = basliklar.map(oneBaslik => {
+        
         if (oneBaslik.id === baslikId) {
           oneBaslik.show = showValue
         }
@@ -117,7 +118,7 @@ export default function ShowPozBaslik({ setShow, basliklar, setBasliklar, pageNa
         onClose={() => setShow("Main")}
       >
         <Typography variant="subtitle1" sx={{ mb: "0.5rem", fontWeight: "600" }}>
-          Sütunlar
+          Göster / Gizle
         </Typography>
 
         <Divider></Divider>
