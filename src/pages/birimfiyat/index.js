@@ -766,17 +766,17 @@ export default function P_BirimFiyat() {
                     }}
                   >
                     <Box
-                      sx={{ width: '100%', height: 400, maxWidth: 360, bgcolor: 'background.paper' }}
+                      sx={{ width: '100%', height: '100%', maxWidth: 360, bgcolor: 'background.paper' }}
                     >
                       <List
-                        rowHeight={46}
-                        rowCount={200}
+                        rowHeight={40}
+                        rowCount={50}
                         style={{
-                          height: 400,
-                          width: 360,
+                          height: 300,
+                          width: 150,
                         }}
                         rowProps={{}}
-                        overscanCount={5}
+                        overscanCount={10}
                         rowComponent={renderRow}
                       />
                     </Box>
