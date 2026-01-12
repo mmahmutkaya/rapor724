@@ -722,7 +722,7 @@ export default function P_BirimFiyat() {
                       }, 0);
                     }}
                     // onBlur={() => queryClient.resetQueries(['dataPozlar'])}
-                    sx={{ fontSize: "0.9rem" }}
+                    sx={{ fontSize: "0.75rem" }}
                     MenuProps={{
                       PaperProps: {
                         style: {
@@ -732,7 +732,8 @@ export default function P_BirimFiyat() {
                       },
                     }}
                   >
-                    {selectedProje?.birimFiyatVersiyonlar.map((oneVersiyon, index) => {
+
+                    {selectedProje?.birimFiyatVersiyonlar.sort((a, b) => b.versiyonNumber - a.versiyonNumber).map((oneVersiyon, index) => {
                       let versiyonNumber = oneVersiyon.versiyonNumber
                       return (
                         // <MenuItem sx={{ fontSize: "0.8rem" }} key={index} onClick={() => setSelectedBirimFiyatVersiyon(oneVersiyon)} value={versiyonNumber} > V{versiyonNumber} </MenuItem>
@@ -743,10 +744,11 @@ export default function P_BirimFiyat() {
                               queryClient.resetQueries(['dataPozlar'])
                             }, 0);
                           }}
-                          sx={{ fontSize: "0.8rem" }} key={index} value={versiyonNumber} > V{versiyonNumber}
+                          sx={{ fontSize: "0.75rem" }} key={index} value={versiyonNumber} > V{versiyonNumber}
                         </MenuItem>
                       )
                     })}
+
                   </Select>
 
                 </>
