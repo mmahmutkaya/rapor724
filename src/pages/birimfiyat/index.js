@@ -49,10 +49,6 @@ import ListItemText from '@mui/material/ListItemText';
 
 export default function P_BirimFiyat() {
 
-  const handleChange = (props) => {
-    console.log("props", props)
-  };
-
   const navigate = useNavigate()
   const queryClient = useQueryClient()
   const [dialogAlert, setDialogAlert] = useState()
@@ -720,14 +716,19 @@ export default function P_BirimFiyat() {
                   <Select
                     size='small'
                     value={selectedBirimFiyatVersiyon?.versiyonNumber}
-                    onBlur={() => queryClient.invalidateQueries(['dataPozlar'])}
+                    onClose={() => {
+                      setTimeout(() => {
+                        document.activeElement.blur();
+                      }, 0);
+                    }}
+                    onBlur={() => queryClient.resetQueries(['dataPozlar'])}
+                    autoFocus={false}
                     sx={{ fontSize: "0.9rem" }}
-                    // onChange={(e) => console.log(e.target.value)}
                     MenuProps={{
                       PaperProps: {
                         style: {
                           maxHeight: "15rem",
-                          minWidth: "5rem",
+                          minWidth: "5rem"
                         },
                       },
                     }}
