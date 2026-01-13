@@ -292,7 +292,7 @@ export default function P_BirimFiyat() {
   }
 
 
-
+  // pozun birimfiyatları daha sonradan versiyon olarak kaydediliyor
   // Edit Metraj Sayfasının Fonksiyonu
   const handle_input_onChange = ({ birimFiyat, _onePozId, paraBirimiId }) => {
 
@@ -374,6 +374,7 @@ export default function P_BirimFiyat() {
 
 
   // Edit Metraj Sayfasının Fonksiyonu
+
   const save_para = async () => {
 
     if (isChanged_para) {
@@ -381,6 +382,7 @@ export default function P_BirimFiyat() {
 
         let pozlar_newPara = pozlar_state.map(onePoz => {
           if (onePoz.newSelected_para) {
+            // birimfiyatlar property de yeni versiyona kaydedilecekler 
             return { _id: onePoz._id, birimFiyatlar: onePoz.birimFiyatlar }
           }
         })
