@@ -241,7 +241,6 @@ export const useGetPozlar = () => {
           token: appUser.token,
           projeid: selectedProje?._id,
           selectedBirimFiyatVersiyonNumber: selectedBirimFiyatVersiyon ? selectedBirimFiyatVersiyon?.versiyonNumber : null,
-          // selectedBirimFiyatVersiyonNumber: "1",
           'Content-Type': 'application/json'
         }
       })
@@ -262,6 +261,7 @@ export const useGetPozlar = () => {
       let proje2 = _.cloneDeep(selectedProje)
       proje2.paraBirimleri = responseJson.paraBirimleri
       proje2.birimFiyatVersiyonlar = responseJson.birimFiyatVersiyonlar
+      proje2.birimFiyatVersiyon_isProgress = responseJson.birimFiyatVersiyon_isProgress
       setSelectedProje(proje2)
       return responseJson
 

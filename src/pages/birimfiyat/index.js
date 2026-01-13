@@ -60,6 +60,7 @@ export default function P_BirimFiyat() {
   const { selectedProje, setSelectedProje } = useContext(StoreContext)
   const { selectedBirimFiyatVersiyon, setSelectedBirimFiyatVersiyon } = useContext(StoreContext)
 
+  console.log("selectedProje",selectedProje)
   const pozBirimleri = selectedProje?.pozBirimleri
   const [showEminMisin_versiyon, setShowEminMisin_versiyon] = useState(false)
 
@@ -387,8 +388,6 @@ export default function P_BirimFiyat() {
         // undefined olanları temizliyoruz
         pozlar_newPara = pozlar_newPara.filter(x => x)
 
-        let theObject = selectedProje.birimFiyatVersiyonlar.find(x => x.wasChangedForNewVersion)
-
         const response = await fetch(process.env.REACT_APP_BASE_URL + `/api/pozlar/birimfiyatlar`, {
           method: 'PATCH',
           headers: {
@@ -400,7 +399,7 @@ export default function P_BirimFiyat() {
             pozlar_newPara,
             projeId: selectedProje?._id,
             paraBirimleri: paraBirimleri.find(onePara => onePara.isChanged) ? paraBirimleri : null,
-            wasChangedForNewVersion: theObject?.wasChangedForNewVersion
+            birimFiyatVersiyon_isProgress: selectedProje.birimFiyatVersiyon_isProgress
           })
         })
 
@@ -593,7 +592,7 @@ export default function P_BirimFiyat() {
 
 
   let creatableBirimFiyatVersiyon
-  if (pozlar_state?.length > 0 && !isChanged_para && selectedProje?.birimFiyatVersiyonlar.find(x => x.wasChangedForNewVersion === true)) {
+  if (pozlar_state?.length > 0 && !isChanged_para && selectedProje?.birimFiyatVersiyon_isProgress === true) {
     creatableBirimFiyatVersiyon = true
   }
 
@@ -993,7 +992,6 @@ export default function P_BirimFiyat() {
 
                 {/* WBS'İN POZLARI */}
                 {pozlar_state?.filter(x => x._wbsId.toString() === oneWbs._id.toString()).map((onePoz, index) => {
-
 
                   return (
                     // <Box key={index} sx={{ display: "grid", gridTemplateColumns: columns, gridTemplateAreas: gridAreas_pozSatir }}>
