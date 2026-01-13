@@ -60,7 +60,6 @@ export default function P_BirimFiyat() {
   const { selectedProje, setSelectedProje } = useContext(StoreContext)
   const { selectedBirimFiyatVersiyon, setSelectedBirimFiyatVersiyon } = useContext(StoreContext)
 
-  console.log("selectedProje",selectedProje)
   const pozBirimleri = selectedProje?.pozBirimleri
   const [showEminMisin_versiyon, setShowEminMisin_versiyon] = useState(false)
 
