@@ -258,11 +258,13 @@ export const useGetPozlar = () => {
       }
 
       setSelectedBirimFiyatVersiyon(responseJson.selectedBirimFiyatVersiyon)
+
       let proje2 = _.cloneDeep(selectedProje)
       proje2.paraBirimleri = responseJson.paraBirimleri
       proje2.birimFiyatVersiyonlar = responseJson.birimFiyatVersiyonlar
       proje2.birimFiyatVersiyon_isProgress = responseJson.birimFiyatVersiyon_isProgress
       setSelectedProje(proje2)
+      
       return responseJson
 
     },

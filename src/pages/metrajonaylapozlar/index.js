@@ -39,7 +39,7 @@ export default function P_MetrajOnaylaPozlar() {
 
   let { data, error, isLoading } = useGetPozlar()
   let pozlar = data?.pozlar?.filter(x => x.hasDugum)
-  // console.log("data?.pozlar", data?.pozlar)
+  console.log("dataGetPozlar", data)
 
   const { setSelectedProje, appUser, setAppUser, myTema } = useContext(StoreContext)
   const { showMetrajYapabilenler, setShowMetrajYapabilenler } = useContext(StoreContext)
@@ -426,7 +426,10 @@ export default function P_MetrajOnaylaPozlar() {
 
                 {/* WBS'İN POZLARI */}
                 {pozlar?.filter(x => x._wbsId.toString() === oneWbs._id.toString()).map((onePoz, index) => {
+
                   let hasOnaylananMetraj = onePoz?.hazirlananMetrajlar.find(x => x.hasSelected)
+
+                  let hasVersiyonZero = onePoz?.hasVersiyonZero
 
                   let isSelected = false
 
@@ -442,8 +445,8 @@ export default function P_MetrajOnaylaPozlar() {
                       <Box sx={{ ...pozNo_css, justifyItems: "start", pl: "0.5rem" }} >
                         {onePoz.pozName}
                       </Box>
-                      <Box onClick={() => hasOnaylananMetraj && goTo_MetrajPozmahaller(onePoz)} sx={{ ...pozNo_css, backgroundColor: onePoz?.hasVersiyonZero ? "rgba(255, 251, 0, 0.55)" : null, cursor: hasOnaylananMetraj && "pointer", display: "grid", gridTemplateColumns: "1rem 1fr", "&:hover": hasOnaylananMetraj && { "& .childClass": { backgroundColor: "red" } } }}>
-                        <Box className="childClass" sx={{ ml: "-1rem", backgroundColor: onePoz?.hasVersiyonZero ? "rgba(255, 251, 0, 0.55)" : null, height: "0.5rem", width: "0.5rem", borderRadius: "50%" }}>
+                      <Box onClick={() => hasOnaylananMetraj && goTo_MetrajPozmahaller(onePoz)} sx={{ ...pozNo_css, backgroundColor: hasVersiyonZero ? "rgba(255, 251, 0, 0.55)" : null, cursor: hasOnaylananMetraj && "pointer", display: "grid", gridTemplateColumns: "1rem 1fr", "&:hover": hasOnaylananMetraj && { "& .childClass": { backgroundColor: "red" } } }}>
+                        <Box className="childClass" sx={{ ml: "-1rem", backgroundColor: hasVersiyonZero ? "rgba(255, 251, 0, 0.55)" : null, height: "0.5rem", width: "0.5rem", borderRadius: "50%" }}>
                         </Box>
                         <Box sx={{ justifySelf: "end" }}>
                           {ikiHane(onePoz?.metrajOnaylanan)}
@@ -472,32 +475,6 @@ export default function P_MetrajOnaylaPozlar() {
                           </Box>
                         </>
                       }
-
-                      {/* METRAJ DÜZENLEME AÇIKSA - KİŞİNİN HAZIRLADIĞI TOPLAM POZ METRAJ*/}
-                      {/* {editNodeMetraj &&
-                        <>
-                          <Box />
-                          <Box
-                            onDoubleClick={() => goTo_MetrajPozmahaller(onePoz)}
-                            sx={{
-                              ...pozNo_css,
-                              display: "grid", gridTemplateColumns: "1rem 1fr", justifyContent: "end", cursor: "pointer",
-                              backgroundColor: "rgba(255, 251, 0, 0.55)",
-                              "&:hover": { "& .childClass": { backgroundColor: "red" } }
-                            }}>
-                            <Box
-                              className="childClass"
-                              sx={{
-                                ml: "-1rem", height: "0.5rem", width: "0.5rem", borderRadius: "50%",
-                                backgroundColor: "rgba(255, 251, 0, 0.55)",
-                              }}>
-                            </Box>
-                            <Box sx={{ justifySelf: "end" }}>
-                              {ikiHane(onePoz?.hazirlananMetrajlar.find(x => x.userEmail === customData.email)?.metrajReady)}
-                            </Box>
-                          </Box>
-                        </>
-                      } */}
 
                       {onayNodeMetraj &&
                         <>
