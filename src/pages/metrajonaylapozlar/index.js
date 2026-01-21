@@ -49,7 +49,6 @@ export default function P_MetrajOnaylaPozlar() {
   const { selectedPoz, setSelectedPoz } = useContext(StoreContext)
 
   
-
   let { data, error, isLoading } = useGetPozlar()
   let pozlar = data?.pozlar?.filter(x => x.hasDugum)
   // console.log("dataGetPozlar", data)
