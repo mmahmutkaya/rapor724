@@ -222,14 +222,7 @@ export const useGetProjeler_byFirma = () => {
 export const useGetPozlar = () => {
 
   const navigate = useNavigate()
-  const { appUser, setAppUser, selectedProje, setSelectedProje, selectedBirimFiyatVersiyon, setSelectedBirimFiyatVersiyon } = useContext(StoreContext)
-
-  // let selectedBirimFiyatVersiyonNumber
-  // if (selectedBirimFiyatVersiyon?.versiyonNumber) {
-  //   selectedBirimFiyatVersiyonNumber = selectedBirimFiyatVersiyon?.versiyonNumber
-  // } else {
-  //   selectedBirimFiyatVersiyonNumber = null
-  // }
+  const { appUser, setAppUser, selectedProje, setSelectedProje, selectedBirimFiyatVersiyon, setSelectedBirimFiyatVersiyon , selectedMetrajVersiyon, setSelectedMetrajVersiyon } = useContext(StoreContext)
 
   return useQuery({
     queryKey: ['dataPozlar'],
@@ -241,6 +234,7 @@ export const useGetPozlar = () => {
           token: appUser.token,
           projeid: selectedProje?._id,
           selectedBirimFiyatVersiyonNumber: selectedBirimFiyatVersiyon ? selectedBirimFiyatVersiyon?.versiyonNumber : null,
+          selectedMetrajVersiyonNumber: selectedMetrajVersiyon ? selectedMetrajVersiyon?.versiyonNumber : null,
           'Content-Type': 'application/json'
         }
       })
@@ -258,11 +252,13 @@ export const useGetPozlar = () => {
       }
 
       setSelectedBirimFiyatVersiyon(responseJson.selectedBirimFiyatVersiyon)
+      setSelectedMetrajVersiyon(responseJson.selectedMetrajVersiyon)
 
       let proje2 = _.cloneDeep(selectedProje)
       proje2.paraBirimleri = responseJson.paraBirimleri
       proje2.birimFiyatVersiyonlar = responseJson.birimFiyatVersiyonlar
       proje2.birimFiyatVersiyon_isProgress = responseJson.birimFiyatVersiyon_isProgress
+      proje2.anyVersiyonZero = responseJson.anyVersiyonZero
       setSelectedProje(proje2)
       
       return responseJson

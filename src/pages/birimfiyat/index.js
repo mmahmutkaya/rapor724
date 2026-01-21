@@ -713,43 +713,46 @@ export default function P_BirimFiyat() {
                     </Box>
                   }
 
-                  <Select
-                    size='small'
-                    value={selectedBirimFiyatVersiyon?.versiyonNumber}
-                    onClose={() => {
-                      setTimeout(() => {
-                        document.activeElement.blur();
-                      }, 0);
-                    }}
-                    // onBlur={() => queryClient.resetQueries(['dataPozlar'])}
-                    sx={{ fontSize: "0.75rem" }}
-                    MenuProps={{
-                      PaperProps: {
-                        style: {
-                          maxHeight: "15rem",
-                          minWidth: "5rem"
+                  {selectedBirimFiyatVersiyon &&
+
+                    <Select
+                      size='small'
+                      value={selectedBirimFiyatVersiyon?.versiyonNumber}
+                      onClose={() => {
+                        setTimeout(() => {
+                          document.activeElement.blur();
+                        }, 0);
+                      }}
+                      // onBlur={() => queryClient.resetQueries(['dataPozlar'])}
+                      sx={{ fontSize: "0.75rem" }}
+                      MenuProps={{
+                        PaperProps: {
+                          style: {
+                            maxHeight: "15rem",
+                            minWidth: "5rem"
+                          },
                         },
-                      },
-                    }}
-                  >
+                      }}
+                    >
 
-                    {selectedProje?.birimFiyatVersiyonlar.sort((a, b) => b.versiyonNumber - a.versiyonNumber).map((oneVersiyon, index) => {
-                      let versiyonNumber = oneVersiyon.versiyonNumber
-                      return (
-                        // <MenuItem sx={{ fontSize: "0.8rem" }} key={index} onClick={() => setSelectedBirimFiyatVersiyon(oneVersiyon)} value={versiyonNumber} > V{versiyonNumber} </MenuItem>
-                        <MenuItem
-                          onClick={() => {
-                            setSelectedBirimFiyatVersiyon(oneVersiyon)
-                            setTimeout(() => {
-                              queryClient.resetQueries(['dataPozlar'])
-                            }, 0);
-                          }}
-                          sx={{ fontSize: "0.75rem" }} key={index} value={versiyonNumber} > V{versiyonNumber}
-                        </MenuItem>
-                      )
-                    })}
+                      {selectedProje?.birimFiyatVersiyonlar.sort((a, b) => b.versiyonNumber - a.versiyonNumber).map((oneVersiyon, index) => {
+                        let versiyonNumber = oneVersiyon.versiyonNumber
+                        return (
+                          // <MenuItem sx={{ fontSize: "0.8rem" }} key={index} onClick={() => setSelectedBirimFiyatVersiyon(oneVersiyon)} value={versiyonNumber} > V{versiyonNumber} </MenuItem>
+                          <MenuItem
+                            onClick={() => {
+                              setSelectedBirimFiyatVersiyon(oneVersiyon)
+                              setTimeout(() => {
+                                queryClient.resetQueries(['dataPozlar'])
+                              }, 0);
+                            }}
+                            sx={{ fontSize: "0.75rem" }} key={index} value={versiyonNumber} > V{versiyonNumber}
+                          </MenuItem>
+                        )
+                      })}
 
-                  </Select>
+                    </Select>
+                  }
 
                 </>
               }

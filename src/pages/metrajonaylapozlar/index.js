@@ -11,13 +11,14 @@ import { useGetPozlar } from '../../hooks/useMongo';
 import getWbsName from '../../functions/getWbsName';
 
 
-import HeaderMetrajOnaylaPozlar from '../../components/HeaderMetrajOnaylaPozlar'
 import ShowMetrajYapabilenler from '../../components/ShowMetrajYapabilenler'
 import ShowMetrajOnaylaPozlarBaslik from '../../components/ShowMetrajOnaylaPozlarBaslik'
 
 
-import { borderLeft, fontWeight, grid, styled } from '@mui/system';
+import Paper from '@mui/material/Paper';
+import AppBar from '@mui/material/AppBar';
 import Grid from '@mui/material/Grid';
+import EditIcon from '@mui/icons-material/Edit';
 import Input from '@mui/material/Input';
 import Alert from '@mui/material/Alert';
 import Stack from '@mui/material/Stack';
@@ -26,8 +27,13 @@ import Box from '@mui/material/Box';
 import InfoIcon from '@mui/icons-material/Info';
 import Tooltip from '@mui/material/Tooltip';
 import CircleIcon from '@mui/icons-material/Circle';
+import ClearOutlined from '@mui/icons-material/ClearOutlined';
 import { Check } from '@mui/icons-material';
 import LinearProgress from '@mui/material/LinearProgress';
+import IconButton from '@mui/material/IconButton';
+import PersonIcon from '@mui/icons-material/Person';
+import MenuItem from '@mui/material/MenuItem';
+import Select from '@mui/material/Select';
 
 
 
@@ -37,22 +43,30 @@ export default function P_MetrajOnaylaPozlar() {
   const queryClient = useQueryClient()
   const [dialogAlert, setDialogAlert] = useState()
 
+  const { drawerWidth, topBarHeight } = useContext(StoreContext)
+  const { selectedMetrajVersiyon, setSelectedMetrajVersiyon } = useContext(StoreContext)
+  const { selectedProje } = useContext(StoreContext)
+  const { selectedPoz, setSelectedPoz } = useContext(StoreContext)
+
+
   let { data, error, isLoading } = useGetPozlar()
   let pozlar = data?.pozlar?.filter(x => x.hasDugum)
-  console.log("dataGetPozlar", data)
+  // console.log("dataGetPozlar", data)
 
   const { setSelectedProje, appUser, setAppUser, myTema } = useContext(StoreContext)
   const { showMetrajYapabilenler, setShowMetrajYapabilenler } = useContext(StoreContext)
+  const { mode_metrajOnayla, setMode_metrajOnayla } = useContext(StoreContext)
 
-  // const { customData } = RealmApp?.currentUser
+  let creatableMetrajVersiyon
+  if (selectedProje?.anyVersiyonZero) {
+    creatableMetrajVersiyon = true
+  }
+  const [showEminMisin_versiyon, setShowEminMisin_versiyon] = useState(false)
 
-  const { selectedProje } = useContext(StoreContext)
   const metrajYapabilenler = selectedProje?.yetki?.metrajYapabilenler
 
-  const { selectedPoz, setSelectedPoz } = useContext(StoreContext)
-  // const { editNodeMetraj, onayNodeMetraj } = useContext(StoreContext)
   let editNodeMetraj = false
-  let onayNodeMetraj = showMetrajYapabilenler?.find(x => x.isShow) ? true : false
+  let onayNodeMetraj = mode_metrajOnayla && showMetrajYapabilenler?.find(x => x.isShow) ? true : false
 
   // console.log("selectedProje", selectedProje)
   const pozBirimleri = selectedProje?.pozBirimleri
@@ -212,6 +226,144 @@ export default function P_MetrajOnaylaPozlar() {
   const columns = `max-content minmax(min-content, 3fr) max-content max-content${pozAciklamaShow ? " 0.5rem minmax(min-content, 2fr)" : ""}${pozVersiyonShow ? " 0.5rem min-content" : ""}${editNodeMetraj ? " 0.5rem max-content" : ""}${onayNodeMetraj ? showMetrajYapabilenlerColumns : ""}`
 
 
+
+
+
+  const requestProjeAktifYetkiliKisi = async ({ projeId, aktifYetki }) => {
+
+    try {
+
+      setSelectedMetrajVersiyon()
+
+      const response = await fetch(process.env.REACT_APP_BASE_URL + `/api/projeler/requestprojeaktifyetkilikisi`, {
+        method: 'POST',
+        headers: {
+          email: appUser.email,
+          token: appUser.token,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          projeId, aktifYetki
+        })
+      })
+
+
+      const responseJson = await response.json()
+
+
+      if (responseJson.error) {
+        if (responseJson.error.includes("expired")) {
+          setAppUser()
+          localStorage.removeItem('appUser')
+          navigate('/')
+          window.location.reload()
+        }
+        throw new Error(responseJson.error);
+      }
+
+
+      if (responseJson.message) {
+        setShow("Main")
+        setDialogAlert({
+          dialogIcon: "info",
+          dialogMessage: responseJson.message,
+          onCloseAction: () => {
+            queryClient.invalidateQueries(['dataPozlar'])
+            setShow("Main")
+            setDialogAlert()
+          }
+        })
+      }
+
+
+      if (responseJson.ok) {
+        // setShow("Main")
+        queryClient.invalidateQueries(['dataPozlar'])
+        setMode_metrajOnayla(true)
+      }
+
+    } catch (err) {
+
+      console.log(err)
+
+      setDialogAlert({
+        dialogIcon: "warning",
+        dialogMessage: "Beklenmedik hata, sayfayı yenileyiniz, sorun devam ederse Rapor7/24 ile irtibata geçiniz..",
+        detailText: err?.message ? err.message : null,
+        onCloseAction: () => {
+          setDialogAlert()
+          queryClient.invalidateQueries(['dataPozlar'])
+        }
+      })
+    }
+  }
+
+
+
+
+  const deleteProjeAktifYetkiliKisi = async ({ projeId, aktifYetki }) => {
+
+    try {
+
+      const response = await fetch(process.env.REACT_APP_BASE_URL + `/api/projeler/deleteprojeaktifyetkilikisi`, {
+        method: 'POST',
+        headers: {
+          email: appUser.email,
+          token: appUser.token,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          projeId, aktifYetki
+        })
+      })
+
+      const responseJson = await response.json()
+
+      if (responseJson.error) {
+        if (responseJson.error.includes("expired")) {
+          setAppUser()
+          localStorage.removeItem('appUser')
+          navigate('/')
+          window.location.reload()
+        }
+        throw new Error(responseJson.error);
+      }
+
+      if (responseJson.message) {
+        setShow("Main")
+        setDialogAlert({
+          dialogIcon: "info",
+          dialogMessage: responseJson.message,
+          onCloseAction: () => {
+            setDialogAlert()
+          }
+        })
+      }
+
+      if (responseJson.ok) {
+        setShow("Main")
+        setMode_metrajOnayla()
+      }
+
+    } catch (err) {
+
+      console.log(err)
+
+      setDialogAlert({
+        dialogIcon: "warning",
+        dialogMessage: "Beklenmedik hata, sayfayı yenileyiniz, sorun devam ederse Rapor7/24 ile irtibata geçiniz..",
+        detailText: err?.message ? err.message : null,
+        onCloseAction: () => {
+          setDialogAlert()
+          queryClient.invalidateQueries(['dataPozlar'])
+        }
+      })
+    }
+  }
+
+
+
+
   return (
     <Box sx={{ m: "0rem", maxWidth: "60rem" }}>
 
@@ -223,13 +375,6 @@ export default function P_MetrajOnaylaPozlar() {
           onCloseAction={dialogAlert.onCloseAction ? dialogAlert.onCloseAction : () => setDialogAlert()}
         />
       }
-
-      {/* BAŞLIK */}
-      <HeaderMetrajOnaylaPozlar
-        show={show}
-        setShow={setShow}
-        createVersiyon_metraj={createVersiyon_metraj}
-      />
 
 
       {/* BAŞLIK GÖSTER / GİZLE */}
@@ -272,6 +417,138 @@ export default function P_MetrajOnaylaPozlar() {
           </Alert>
         </Stack>
       }
+
+
+
+      {/* BAŞLIK */}
+      <Paper >
+
+        <AppBar
+          position="fixed"
+          sx={{
+            backgroundColor: "white",
+            color: "black",
+            width: { md: `calc(100% - ${drawerWidth}px)` },
+            mt: topBarHeight,
+            // pt:"3rem",
+            ml: { md: `${drawerWidth}px` }
+          }}
+        >
+
+          <Grid
+            container
+            justifyContent="space-between"
+            alignItems="center"
+            sx={{ padding: "0.5rem 1rem", maxHeight: "5rem" }}
+          >
+
+
+            {/* sol kısım (başlık) */}
+            <Grid item xs>
+              <Typography
+                // nowrap={true}
+                variant="h6"
+                fontWeight="bold"
+              >
+                Metraj Onayla
+              </Typography>
+            </Grid>
+
+
+            {/* sağ kısım - (tuşlar)*/}
+            <Grid item xs="auto">
+              <Box sx={{ display: "grid", gridAutoFlow: "column", alignItems: "center" }}>
+
+                {!mode_metrajOnayla && selectedMetrajVersiyon &&
+
+                  <>
+                    <Box>
+                      <IconButton onClick={() => requestProjeAktifYetkiliKisi({ projeId: selectedProje?._id, aktifYetki: "metrajOnay" })}>
+                        <EditIcon variant="contained" />
+                      </IconButton>
+                    </Box>
+
+
+                    {selectedMetrajVersiyon &&
+
+                      <Select
+                        size='small'
+                        value={selectedMetrajVersiyon?.versiyonNumber}
+                        onClose={() => {
+                          setTimeout(() => {
+                            document.activeElement.blur();
+                          }, 0);
+                        }}
+                        // onBlur={() => queryClient.resetQueries(['dataPozlar'])}
+                        sx={{ fontSize: "0.75rem" }}
+                        MenuProps={{
+                          PaperProps: {
+                            style: {
+                              maxHeight: "15rem",
+                              minWidth: "5rem"
+                            },
+                          },
+                        }}
+                      >
+
+                        {selectedProje?.metrajVersiyonlar.sort((a, b) => b.versiyonNumber - a.versiyonNumber).map((oneVersiyon, index) => {
+                          let versiyonNumber = oneVersiyon?.versiyonNumber
+
+                          return (
+                            <MenuItem
+                              onClick={() => {
+                                setSelectedMetrajVersiyon(oneVersiyon)
+                                setTimeout(() => {
+                                  queryClient.resetQueries(['dataPozlar'])
+                                }, 0);
+                              }}
+                              sx={{ fontSize: "0.75rem" }} key={index} value={versiyonNumber} > V{versiyonNumber}
+                            </MenuItem>
+                          )
+                        })}
+
+                      </Select>
+                    }
+
+                  </>
+                }
+
+                {mode_metrajOnayla && selectedMetrajVersiyon &&
+                  <>
+
+                    <Grid item >
+                      <IconButton onClick={() => deleteProjeAktifYetkiliKisi({ projeId: selectedProje?._id, aktifYetki: "metrajOnay" })} aria-label="lbsUncliced">
+                        <ClearOutlined variant="contained" sx={{ color: "red" }} />
+                      </IconButton>
+                    </Grid>
+
+
+                    <Grid item >
+                      <IconButton onClick={() => setShow("ShowMetrajYapabilenler")} disabled={false}>
+                        <PersonIcon variant="contained" />
+                      </IconButton>
+                    </Grid>
+
+                    <Box
+                      onClick={() => creatableMetrajVersiyon && setShowEminMisin_versiyon(true)}
+                      sx={{ cursor: creatableMetrajVersiyon && "pointer", mx: "0.3rem", py: "0.2rem", px: "0.3rem", border: creatableMetrajVersiyon ? "1px solid red" : "1px solid black", borderRadius: "0.5rem", fontSize: "0.8rem", fontWeight: "600", backgroundColor: "yellow" }}
+                    >
+                      V{selectedMetrajVersiyon?.versiyonNumber + 1}
+                    </Box>
+
+                  </>
+                }
+
+              </Box>
+            </Grid>
+
+          </Grid>
+
+        </AppBar>
+
+      </Paper >
+
+
 
 
       {/* ANA SAYFA - POZLAR VARSA */}
@@ -445,11 +722,11 @@ export default function P_MetrajOnaylaPozlar() {
                       <Box sx={{ ...pozNo_css, justifyItems: "start", pl: "0.5rem" }} >
                         {onePoz.pozName}
                       </Box>
-                      <Box onClick={() => hasOnaylananMetraj && goTo_MetrajPozmahaller(onePoz)} sx={{ ...pozNo_css, backgroundColor: hasVersiyonZero ? "rgba(255, 251, 0, 0.55)" : null, cursor: hasOnaylananMetraj && "pointer", display: "grid", gridTemplateColumns: "1rem 1fr", "&:hover": hasOnaylananMetraj && { "& .childClass": { backgroundColor: "red" } } }}>
-                        <Box className="childClass" sx={{ ml: "-1rem", backgroundColor: hasVersiyonZero ? "rgba(255, 251, 0, 0.55)" : null, height: "0.5rem", width: "0.5rem", borderRadius: "50%" }}>
+                      <Box onClick={() => hasOnaylananMetraj && goTo_MetrajPozmahaller(onePoz)} sx={{ ...pozNo_css, backgroundColor: mode_metrajOnayla && hasVersiyonZero && "rgba(255, 251, 0, 0.55)", cursor: hasOnaylananMetraj && "pointer", display: "grid", gridTemplateColumns: "1rem 1fr", "&:hover": hasOnaylananMetraj && { "& .childClass": { backgroundColor: "red" } } }}>
+                        <Box className="childClass" sx={{ ml: "-1rem", backgroundColor: mode_metrajOnayla && hasVersiyonZero && "rgba(255, 251, 0, 0.55)", height: "0.5rem", width: "0.5rem", borderRadius: "50%" }}>
                         </Box>
                         <Box sx={{ justifySelf: "end" }}>
-                          {ikiHane(onePoz?.metrajOnaylanan)}
+                          {!mode_metrajOnayla ? ikiHane(onePoz?.metrajVersiyonlar.metraj) : ikiHane(onePoz?.metrajOnaylanan)}
                         </Box>
                       </Box>
                       <Box sx={{ ...pozNo_css }}>

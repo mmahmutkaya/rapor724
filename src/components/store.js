@@ -56,6 +56,7 @@ export default ({ children }) => {
   const [selectedMahal_metraj, setSelectedMahal_metraj] = useState()
   const [selectedMahal_mahalListesi, setSelectedMahal_mahalListesi] = useState()
 
+  const [selectedMetrajVersiyon, setSelectedMetrajVersiyon] = useState()
   const [selectedBirimFiyatVersiyon, setSelectedBirimFiyatVersiyon] = useState()
 
   const [selectedNode, setSelectedNode] = useState()
@@ -63,7 +64,8 @@ export default ({ children }) => {
   const [onayNodeMetraj, setOnayNodeMetraj] = useState()
   const [showNodeMetraj, setShowNodeMetraj] = useState()
   const [nodeMetrajlar, setNodeMetrajlar] = useState()
-
+  
+  const [mode_metrajOnayla, setMode_metrajOnayla] = useState()
   const [detailMode, setDetailMode] = useState()
 
   // const [RealmApp, setRealmApp] = useState(Realm.getApp("rapor724_v2-cykom"))
@@ -105,6 +107,7 @@ export default ({ children }) => {
     selectedMahal_metraj, setSelectedMahal_metraj,
     selectedMahal_mahalListesi, setSelectedMahal_mahalListesi,
 
+    selectedMetrajVersiyon, setSelectedMetrajVersiyon,
     selectedBirimFiyatVersiyon, setSelectedBirimFiyatVersiyon,
 
     selectedNode, setSelectedNode,
@@ -113,6 +116,8 @@ export default ({ children }) => {
     onayNodeMetraj, setOnayNodeMetraj,
     showNodeMetraj, setShowNodeMetraj,
     nodeMetrajlar, setNodeMetrajlar,
+
+    mode_metrajOnayla, setMode_metrajOnayla,
     detailMode, setDetailMode,
 
 
