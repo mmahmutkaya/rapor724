@@ -4,6 +4,7 @@ import { useState, useContext, useEffect } from 'react';
 import { useQueryClient } from '@tanstack/react-query'
 import { useNavigate } from "react-router-dom";
 import { DialogAlert } from '../../components/general/DialogAlert.js';
+import { DialogVersiyonTip } from '../../components/general/DialogVersiyonTip.js';
 
 
 import { StoreContext } from '../../components/store'
@@ -48,7 +49,7 @@ export default function P_MetrajOnaylaPozlar() {
   const { selectedProje } = useContext(StoreContext)
   const { selectedPoz, setSelectedPoz } = useContext(StoreContext)
 
-  
+
   let { data, error, isLoading } = useGetPozlar()
   let pozlar = data?.pozlar?.filter(x => x.hasDugum)
   // console.log("dataGetPozlar", data)
@@ -377,6 +378,20 @@ export default function P_MetrajOnaylaPozlar() {
       }
 
 
+      {showEminMisin_versiyon &&
+        <DialogVersiyonTip
+          dialogBaslikText={`Mevcut metrajlar versiyon  (B${selectedMetrajVersiyon?.versiyonNumber + 1}) olarak kaydedilsin mi?`}
+          aciklamaBaslikText={"Versiyon hakkında bilgi verebilirsiniz"}
+          aprroveAction={({ fieldText }) => {
+            setShowEminMisin_versiyon()
+            createVersiyon_metraj({ fieldText })
+          }}
+          rejectAction={() => setShowEminMisin_versiyon()}
+          onCloseAction={() => setShowEminMisin_versiyon()}
+        />
+      }
+
+
       {/* BAŞLIK GÖSTER / GİZLE */}
       {show == "ShowBaslik" &&
         <ShowMetrajOnaylaPozlarBaslik
@@ -502,7 +517,7 @@ export default function P_MetrajOnaylaPozlar() {
                                   queryClient.resetQueries(['dataPozlar'])
                                 }, 0);
                               }}
-                              sx={{ fontSize: "0.75rem" }} key={index} value={versiyonNumber} > V{versiyonNumber}
+                              sx={{ fontSize: "0.75rem" }} key={index} value={versiyonNumber} > M{versiyonNumber}
                             </MenuItem>
                           )
                         })}

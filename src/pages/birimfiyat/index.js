@@ -746,7 +746,7 @@ export default function P_BirimFiyat() {
                                 queryClient.resetQueries(['dataPozlar'])
                               }, 0);
                             }}
-                            sx={{ fontSize: "0.75rem" }} key={index} value={versiyonNumber} > V{versiyonNumber}
+                            sx={{ fontSize: "0.75rem" }} key={index} value={versiyonNumber} > B{versiyonNumber}
                           </MenuItem>
                         )
                       })}
