@@ -69,7 +69,8 @@ export default function P_BirimFiyat() {
   const [pozlar_backUp, setPozlar_backUp] = useState()
 
 
-  const [paraEdit, setParaEdit] = useState(false)
+  // const [mode_birimFiyatEdit, setMode_birimFiyatEdit] = useState(false)
+  const { mode_birimFiyatEdit, setMode_birimFiyatEdit } = useContext(StoreContext)
   const [isChanged_para, setIsChanged_para] = useState()
 
   const [basliklar, setBasliklar] = useState(appUser.customSettings.pages.birimfiyat.basliklar)
@@ -198,7 +199,7 @@ export default function P_BirimFiyat() {
       if (responseJson.ok) {
         setShow("Main")
         queryClient.invalidateQueries(['dataPozlar'])
-        setParaEdit(true)
+        setMode_birimFiyatEdit(true)
       }
 
     } catch (err) {
@@ -261,7 +262,7 @@ export default function P_BirimFiyat() {
 
       if (responseJson.ok) {
         setShow("Main")
-        setParaEdit()
+        setMode_birimFiyatEdit()
       }
 
     } catch (err) {
@@ -369,7 +370,7 @@ export default function P_BirimFiyat() {
   const cancel_para = () => {
     setPozlar_state(_.cloneDeep(pozlar_backUp))
     setIsChanged_para()
-    setParaEdit()
+    setMode_birimFiyatEdit()
   }
 
 
@@ -426,7 +427,7 @@ export default function P_BirimFiyat() {
             onCloseAction: () => {
               queryClient.invalidateQueries(['dataPozlar'])
               setIsChanged_para()
-              setParaEdit()
+              setMode_birimFiyatEdit()
               setDialogAlert()
             }
           })
@@ -440,7 +441,7 @@ export default function P_BirimFiyat() {
 
         queryClient.invalidateQueries(['dataPozlar'])
         setIsChanged_para()
-        // setParaEdit()
+        // setMode_birimFiyatEdit()
 
         return
 
@@ -522,7 +523,7 @@ export default function P_BirimFiyat() {
 
       if (responseJson.ok) {
         queryClient.invalidateQueries(['dataPozlar'])
-        setParaEdit()
+        setMode_birimFiyatEdit()
       } else {
         console.log("responseJson", responseJson)
         throw new Error("Kayıt işlemi gerçekleşmedi, sayfayı yenileyiniz, sorun devam ederse Rapor7/24 ile irtibata geçiniz..")
@@ -690,7 +691,7 @@ export default function P_BirimFiyat() {
           <Grid item xs="auto">
             <Box sx={{ display: "grid", gridAutoFlow: "column", alignItems: "center" }}>
 
-              {!paraEdit && selectedBirimFiyatVersiyon &&
+              {!mode_birimFiyatEdit && selectedBirimFiyatVersiyon &&
                 <>
 
                   <Box>
@@ -705,7 +706,7 @@ export default function P_BirimFiyat() {
                     </IconButton>
                   </Box>
 
-                  {paraBirimiAdet > 0 && birimFiyatEditable && !paraEdit &&
+                  {paraBirimiAdet > 0 && birimFiyatEditable && !mode_birimFiyatEdit &&
                     <Box>
                       <IconButton onClick={() => requestProjeAktifYetkiliKisi({ projeId: selectedProje?._id, aktifYetki: "birimFiyatEdit" })}>
                         <EditIcon variant="contained" />
@@ -757,7 +758,7 @@ export default function P_BirimFiyat() {
                 </>
               }
 
-              {paraEdit && selectedBirimFiyatVersiyon &&
+              {mode_birimFiyatEdit && selectedBirimFiyatVersiyon &&
 
                 <>
 
@@ -767,7 +768,7 @@ export default function P_BirimFiyat() {
                         setShowEminMisin_para(true)
                       } else {
                         deleteProjeAktifYetkiliKisi({ projeId: selectedProje?._id, aktifYetki: "birimFiyatEdit" })
-                        setParaEdit()
+                        setMode_birimFiyatEdit()
                       }
                     }} aria-label="lbsUncliced">
                       <ClearOutlined variant="contained" sx={{ color: "red" }} />
@@ -1037,13 +1038,13 @@ export default function P_BirimFiyat() {
                           {paraBirimleri?.filter(x => x.isShow).map((oneBirim, index) => {
 
                             let theBirimFiyat
-                            if (!paraEdit) {
+                            if (!mode_birimFiyatEdit) {
                               theBirimFiyat = onePoz.birimFiyatVersiyonlar.birimFiyatlar?.find(x => x.id === oneBirim.id)
                             } else {
                               theBirimFiyat = onePoz.birimFiyatlar?.find(x => x.id === oneBirim.id)
                             }
 
-                            if (!paraEdit) {
+                            if (!mode_birimFiyatEdit) {
                               return (
                                 <Box key={index} sx={{ ...pozNo_css, justifyContent: "end", minWidth: "6rem", backgroundColor: show_versiyondakiDegisimler && theBirimFiyat?.isProgress && "rgba(217, 255, 0, 0.33)" }}>
                                   {ikiHane(theBirimFiyat?.fiyat)}
