@@ -309,6 +309,9 @@ export default function P_MetrajOnaylaPozlar() {
 
   const createVersiyon_metraj = async ({ fieldText }) => {
 
+    const versiyonNumber = selectedMetrajVersiyon?.versiyonNumber + 1
+    setSelectedMetrajVersiyon()
+
     try {
 
       const response = await fetch(process.env.REACT_APP_BASE_URL + `/api/versiyon/metraj`, {
@@ -321,11 +324,10 @@ export default function P_MetrajOnaylaPozlar() {
         body: JSON.stringify({
           projeId: selectedProje?._id,
           pozlar,
-          versiyonNumber: selectedMetrajVersiyon?.versiyonNumber + 1,
+          versiyonNumber,
           aciklama: fieldText
         })
       })
-
 
       const responseJson = await response.json()
 
@@ -757,7 +759,7 @@ export default function P_MetrajOnaylaPozlar() {
                         <Box className="childClass" sx={{ ml: "-1rem", backgroundColor: mode_metrajOnayla && hasVersiyonZero && "rgba(255, 251, 0, 0.55)", height: "0.5rem", width: "0.5rem", borderRadius: "50%" }}>
                         </Box>
                         <Box sx={{ justifySelf: "end" }}>
-                          {!mode_metrajOnayla ? ikiHane(onePoz?.metrajVersiyonlar.metraj) : ikiHane(onePoz?.metrajOnaylanan)}
+                          {!mode_metrajOnayla ? ikiHane(onePoz?.metrajVersiyonlar?.metrajOnaylanan) : ikiHane(onePoz?.metrajOnaylanan)}
                         </Box>
                       </Box>
                       <Box sx={{ ...pozNo_css }}>

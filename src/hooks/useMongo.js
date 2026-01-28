@@ -257,6 +257,7 @@ export const useGetPozlar = () => {
       let proje2 = _.cloneDeep(selectedProje)
       proje2.paraBirimleri = responseJson.paraBirimleri
       proje2.birimFiyatVersiyonlar = responseJson.birimFiyatVersiyonlar
+      proje2.metrajVersiyonlar = responseJson.metrajVersiyonlar
       proje2.birimFiyatVersiyon_isProgress = responseJson.birimFiyatVersiyon_isProgress
       proje2.anyVersiyonZero = responseJson.anyVersiyonZero
       setSelectedProje(proje2)
