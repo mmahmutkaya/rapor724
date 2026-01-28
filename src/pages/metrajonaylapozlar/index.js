@@ -13,6 +13,7 @@ import getWbsName from '../../functions/getWbsName';
 
 
 import ShowMetrajYapabilenler from '../../components/ShowMetrajYapabilenler'
+import ShowHideBaslik from '../../components/ShowHideBaslik.js'
 import ShowMetrajOnaylaPozlarBaslik from '../../components/ShowMetrajOnaylaPozlarBaslik'
 
 
@@ -20,6 +21,7 @@ import Paper from '@mui/material/Paper';
 import AppBar from '@mui/material/AppBar';
 import Grid from '@mui/material/Grid';
 import EditIcon from '@mui/icons-material/Edit';
+import VisibilityIcon from '@mui/icons-material/Visibility';
 import Input from '@mui/material/Input';
 import Alert from '@mui/material/Alert';
 import Stack from '@mui/material/Stack';
@@ -95,11 +97,11 @@ export default function P_MetrajOnaylaPozlar() {
   const [basliklar, setBasliklar] = useState(appUser?.customSettings?.pages.metrajonayla.basliklar)
 
 
-  // const pozAciklamaShow = basliklar?.find(x => x.id === "aciklama").show
-  // const pozVersiyonShow = basliklar?.find(x => x.id === "versiyon").show
+  const show_aciklama = basliklar?.find(x => x.id === "aciklama").show
+  const show_versiyon = basliklar?.find(x => x.id === "versiyon").show
+  const show_versiyonAciklama = basliklar?.find(x => x.id === "versiyonAciklama").show
+  const show_versiyondakiDegisimler = basliklar?.find(x => x.id === "versiyondakiDegisimler").show
 
-  const pozAciklamaShow = false
-  const pozVersiyonShow = false
 
   const wbsArray_hasMahal = selectedProje?.wbs.filter(oneWbs => pozlar?.find(onePoz => onePoz._wbsId.toString() === oneWbs._id.toString()))
 
@@ -167,7 +169,7 @@ export default function P_MetrajOnaylaPozlar() {
   }
 
   const showMetrajYapabilenlerColumns = " 1rem repeat(" + showMetrajYapabilenler?.filter(x => x.isShow).length + ", max-content)"
-  const columns = `max-content minmax(min-content, 3fr) max-content max-content${pozAciklamaShow ? " 0.5rem minmax(min-content, 2fr)" : ""}${pozVersiyonShow ? " 0.5rem min-content" : ""}${editNodeMetraj ? " 0.5rem max-content" : ""}${onayNodeMetraj ? showMetrajYapabilenlerColumns : ""}`
+  const columns = `max-content minmax(min-content, 3fr) max-content max-content${show_aciklama ? " 0.5rem minmax(min-content, 2fr)" : ""}${show_versiyon ? " 0.5rem min-content" : ""}${editNodeMetraj ? " 0.5rem max-content" : ""}${onayNodeMetraj ? showMetrajYapabilenlerColumns : ""}`
 
 
 
@@ -384,6 +386,7 @@ export default function P_MetrajOnaylaPozlar() {
 
 
   return (
+
     <Box sx={{ m: "0rem", maxWidth: "60rem" }}>
 
       {dialogAlert &&
@@ -424,6 +427,10 @@ export default function P_MetrajOnaylaPozlar() {
           setShow={setShow}
         />
       }
+
+      {/* BAŞLIK GÖSTER / GİZLE */}
+      {show == "ShowHideBaslik" && <ShowHideBaslik setShow={setShow} basliklar={basliklar} setBasliklar={setBasliklar} pageName={"metrajonayla"} dataName={"basliklar"} />}
+
 
       {isLoading &&
         <Box sx={{ mt: "5rem", ml: "1rem", color: 'gray' }}>
@@ -501,6 +508,11 @@ export default function P_MetrajOnaylaPozlar() {
                       </IconButton>
                     </Box>
 
+                    <Box sx={{ mr: "0.5rem" }}>
+                      <IconButton onClick={() => setShow("ShowHideBaslik")} disabled={false}>
+                        <VisibilityIcon variant="contained" />
+                      </IconButton>
+                    </Box>
 
                     {selectedMetrajVersiyon &&
 
@@ -538,6 +550,7 @@ export default function P_MetrajOnaylaPozlar() {
                               sx={{ fontSize: "0.75rem" }} key={index} value={versiyonNumber} > M{versiyonNumber}
                             </MenuItem>
                           )
+
                         })}
 
                       </Select>
@@ -615,7 +628,7 @@ export default function P_MetrajOnaylaPozlar() {
             </Box>
 
             {/* BAŞLIK - POZ BİRİM  */}
-            {pozAciklamaShow &&
+            {show_aciklama &&
               <>
                 <Box></Box>
                 <Box sx={{ ...enUstBaslik_css }}>
@@ -625,7 +638,7 @@ export default function P_MetrajOnaylaPozlar() {
             }
 
             {/* BAŞLIK - VERSİYON */}
-            {pozVersiyonShow &&
+            {show_versiyon &&
               <>
                 <Box></Box>
                 <Box sx={{ ...enUstBaslik_css }}>
@@ -695,7 +708,7 @@ export default function P_MetrajOnaylaPozlar() {
 
 
                   {/* BAŞLIK - AÇIKLAMA  */}
-                  {pozAciklamaShow &&
+                  {show_aciklama &&
                     <>
                       <Box></Box>
                       <Box sx={{ ...wbsBaslik_css2 }} />
@@ -703,7 +716,7 @@ export default function P_MetrajOnaylaPozlar() {
                   }
 
                   {/* BAŞLIK - VERSİYON */}
-                  {pozVersiyonShow &&
+                  {show_versiyon &&
                     <>
                       <Box />
                       <Box sx={{ ...wbsBaslik_css2 }} />
@@ -755,8 +768,8 @@ export default function P_MetrajOnaylaPozlar() {
                       <Box sx={{ ...pozNo_css, justifyItems: "start", pl: "0.5rem" }} >
                         {onePoz.pozName}
                       </Box>
-                      <Box onClick={() => hasOnaylananMetraj && goTo_MetrajPozmahaller(onePoz)} sx={{ ...pozNo_css, backgroundColor: mode_metrajOnayla && hasVersiyonZero && "rgba(255, 251, 0, 0.55)", cursor: hasOnaylananMetraj && "pointer", display: "grid", gridTemplateColumns: "1rem 1fr", "&:hover": hasOnaylananMetraj && { "& .childClass": { backgroundColor: "red" } } }}>
-                        <Box className="childClass" sx={{ ml: "-1rem", backgroundColor: mode_metrajOnayla && hasVersiyonZero && "rgba(255, 251, 0, 0.55)", height: "0.5rem", width: "0.5rem", borderRadius: "50%" }}>
+                      <Box onClick={() => hasOnaylananMetraj && goTo_MetrajPozmahaller(onePoz)} sx={{ ...pozNo_css, backgroundColor: !mode_metrajOnayla && show_versiyondakiDegisimler && onePoz?.metrajVersiyonlar?.isProgress ? "rgba(217, 255, 0, 0.33)" : mode_metrajOnayla && hasVersiyonZero && "rgba(255, 251, 0, 0.55)", cursor: hasOnaylananMetraj && "pointer", display: "grid", gridTemplateColumns: "1rem 1fr", "&:hover": hasOnaylananMetraj && { "& .childClass": { backgroundColor: "red" } } }}>
+                        <Box className="childClass" sx={{ ml: "-1rem", backgroundColor: !mode_metrajOnayla && show_versiyondakiDegisimler && onePoz?.metrajVersiyonlar?.isProgress ? "rgba(217, 255, 0, 0.33)" : mode_metrajOnayla && hasVersiyonZero && "rgba(255, 251, 0, 0.55)", height: "0.5rem", width: "0.5rem", borderRadius: "50%" }}>
                         </Box>
                         <Box sx={{ justifySelf: "end" }}>
                           {!mode_metrajOnayla ? ikiHane(onePoz?.metrajVersiyonlar?.metrajOnaylanan) : ikiHane(onePoz?.metrajOnaylanan)}
@@ -767,7 +780,7 @@ export default function P_MetrajOnaylaPozlar() {
                       </Box>
 
                       {/* BAŞLIK - POZ BİRİM  */}
-                      {pozAciklamaShow &&
+                      {show_aciklama &&
                         <>
                           <Box></Box>
                           <Box sx={{ ...pozNo_css }}>
@@ -777,7 +790,7 @@ export default function P_MetrajOnaylaPozlar() {
                       }
 
                       {/* BAŞLIK - VERSİYON */}
-                      {pozVersiyonShow &&
+                      {show_versiyon &&
                         <>
                           <Box />
                           <Box sx={{ ...pozNo_css }}>
