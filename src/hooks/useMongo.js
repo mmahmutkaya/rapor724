@@ -100,49 +100,49 @@ export const useGetIsPaketPozMetrajlar = () => {
 
 
 
-export const useGetisPaketler = () => {
+// export const useGetisPaketler = () => {
 
-  const navigate = useNavigate()
-  const { appUser, setAppUser, selectedProje, selectedIsPaketVersiyon } = useContext(StoreContext)
+//   const navigate = useNavigate()
+//   const { appUser, setAppUser, selectedProje, selectedIsPaketVersiyon } = useContext(StoreContext)
 
-  return useQuery({
+//   return useQuery({
 
-    queryKey: ['isPaketler'],
+//     queryKey: ['isPaketler'],
 
-    queryFn: async () => {
+//     queryFn: async () => {
 
-      const response = await fetch(process.env.REACT_APP_BASE_URL + '/api/ispaketler', {
-        method: 'GET',
-        headers: {
-          email: appUser.email,
-          token: appUser.token,
-          projeid: selectedProje?._id,
-          ispaketversiyontext: selectedIsPaketVersiyon ? selectedIsPaketVersiyon : 0,
-          'Content-Type': 'application/json'
-        }
-      })
+//       const response = await fetch(process.env.REACT_APP_BASE_URL + '/api/ispaketler', {
+//         method: 'GET',
+//         headers: {
+//           email: appUser.email,
+//           token: appUser.token,
+//           projeid: selectedProje?._id,
+//           ispaketversiyontext: selectedIsPaketVersiyon ? selectedIsPaketVersiyon : 0,
+//           'Content-Type': 'application/json'
+//         }
+//       })
 
-      const responseJson = await response.json()
+//       const responseJson = await response.json()
 
-      if (responseJson.error) {
-        if (responseJson.error.includes("expired")) {
-          setAppUser()
-          localStorage.removeItem('appUser')
-          navigate('/')
-          window.location.reload()
-        }
-        throw new Error(responseJson.error);
-      }
+//       if (responseJson.error) {
+//         if (responseJson.error.includes("expired")) {
+//           setAppUser()
+//           localStorage.removeItem('appUser')
+//           navigate('/')
+//           window.location.reload()
+//         }
+//         throw new Error(responseJson.error);
+//       }
 
-      return responseJson
+//       return responseJson
 
-    },
-    enabled: !!appUser && !!selectedProje && !!(selectedIsPaketVersiyon === 0 || selectedIsPaketVersiyon),
-    refetchOnMount: true,
-    refetchOnWindowFocus: false
-  })
+//     },
+//     enabled: !!appUser && !!selectedProje && !!(selectedIsPaketVersiyon === 0 || selectedIsPaketVersiyon),
+//     refetchOnMount: true,
+//     refetchOnWindowFocus: false
+//   })
 
-}
+// }
 
 
 

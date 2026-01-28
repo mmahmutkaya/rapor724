@@ -44,7 +44,7 @@ export default function P_IsPaketler() {
 
   // const { data, error, isFetching } = useGetisPaketler()
   const isPaketler = selectedProje?.isPaketler
-  // console.log("isPaketler",isPaketler)
+  console.log("selectedProje",selectedProje)
 
   const [basliklar, setBasliklar] = useState(appUser.customSettings.pages.ispaketler.basliklar)
 

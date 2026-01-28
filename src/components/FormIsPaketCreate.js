@@ -138,10 +138,15 @@ export default function FormIsPaketCreate({ setShow }) {
         return
       }
 
-      if (responseJson.newIsPaketler) {
-        queryClient.setQueryData(['isPaketler'], () => ({ isPaketler: responseJson.newIsPaketler }))
+      if (responseJson.newPaket) {
+        let proje2 = _.cloneDeep(selectedProje)
+        proje2.isPaketler = [...proje2.isPaketler, responseJson.newPaket]
+        setSelectedProje(proje2)
+        // queryClient.setQueryData(['isPaketler'], () => ({ isPaketler: responseJson.newIsPaketler }))
         setShow("Main")
         return
+      } else {
+        throw new Error("Kayıt işlemi gerçekleşmedi")
       }
 
 
