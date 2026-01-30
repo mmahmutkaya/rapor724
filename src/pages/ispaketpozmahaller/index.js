@@ -34,7 +34,8 @@ import LinearProgress from '@mui/material/LinearProgress';
 import IconButton from '@mui/material/IconButton';
 import ClearOutlined from '@mui/icons-material/ClearOutlined';
 import ReplyIcon from '@mui/icons-material/Reply';
-
+import ViewWeekIcon from '@mui/icons-material/ViewWeek';
+import ReportProblemIcon from '@mui/icons-material/ReportProblem';
 
 
 export default function P_IsPaketPozMahaller() {
@@ -317,7 +318,9 @@ export default function P_IsPaketPozMahaller() {
 
   let ayracRenk_siyah = "black"
   let ayracRenk_bordo = "rgba(194, 18, 18, 0.67)"
-  let selectedThisPaketColor = "rgba(98, 210, 96, 0.22)"
+  let color_selectedThis = "rgba(98, 210, 96, 0.22)"
+  let color_selectedOther = "rgba(0, 0, 0, 0.18)"
+  let color_selectedMany = "rgb(194, 18, 18)"
 
 
   let isPaketSelectedPozMetraj
@@ -679,33 +682,43 @@ export default function P_IsPaketPozMahaller() {
                   // let isSelectedThis = false
                   // let isSelectedOther = false
 
+                  let tip1_backgroundColor = isSelectedThis ? color_selectedThis : isSelectedOther ? color_selectedOther : "white"
+
 
                   return (
                     <React.Fragment key={index}>
 
-                      <Box onClick={() => !isSelectedOther && handleDugumToggle({ dugum, toggleValue: !isSelectedThis })} sx={{ ...css_mahaller, backgroundColor: isSelectedOther ? "lightgray" : isSelectedThis && selectedThisPaketColor, borderLeft: "1px solid black" }}>
+                      <Box onClick={() => handleDugumToggle({ dugum, toggleValue: !isSelectedThis })} sx={{ ...css_mahaller, backgroundColor: tip1_backgroundColor, borderLeft: "1px solid black" }}>
                         {oneMahal.mahalNo}
                       </Box>
 
-                      <Box onClick={() => handleDugumToggle({ dugum, toggleValue: !isSelectedThis })} sx={{ ...css_mahaller, gridColumn: paraBirimiAdet > 0 ? `span ${2 + paraBirimiAdet}` : "span 1", backgroundColor: isSelectedOther ? "lightgray" : isSelectedThis && selectedThisPaketColor, cursor: !isSelectedOther && "pointer", display: "grid", alignItems: "center", gridTemplateColumns: "1fr 1rem", "&:hover": { "& .childClass": { backgroundColor: "red" } } }}>
-                        <Box sx={{ justifySelf: "start" }}>
-                          {oneMahal.mahalName}
+                      <Box onClick={() => handleDugumToggle({ dugum, toggleValue: !isSelectedThis })} sx={{ ...css_mahaller, gridColumn: paraBirimiAdet > 0 ? `span ${2 + paraBirimiAdet}` : "span 1", backgroundColor: tip1_backgroundColor, cursor: "pointer", display: "grid", alignItems: "center", gridTemplateColumns: "1fr auto", "&:hover": { "& .childClass": { backgroundColor: "red" } } }}>
+
+                        <Box sx={{ justifySelf: "start", display: "grid", gridAutoFlow: "column", alignItems: "center" }}>
+                          <Box>
+                            {oneMahal.mahalName}
+                          </Box>
+                          <Box className="childClass" sx={{ ml: "0.5rem", height: "0.5rem", width: "0.5rem", borderRadius: "50%" }}>
+                          </Box>
                         </Box>
-                        <Box className="childClass" sx={{ display: isSelectedOther && "none", height: "0.5rem", width: "0.5rem", borderRadius: "50%" }}>
+
+                        <Box sx={{ display: isSelectedThis && isSelectedOther ? "grid" : "none", alignItems: "center" }}>
+                          <ReportProblemIcon sx={{ color: ayracRenk_bordo, fontSize: "1rem" }} />
                         </Box>
+
                       </Box>
 
                       <Box sx={{ backgroundColor: ayracRenk_bordo }}>
                       </Box>
 
-                      <Box onClick={() => !isSelectedOther && handleDugumToggle({ dugum, toggleValue: !isSelectedThis, dugum })} sx={{ ...css_mahaller, backgroundColor: isSelectedOther ? "lightgray" : isSelectedThis && selectedThisPaketColor, justifyContent: "end" }}>
+                      <Box onClick={() => handleDugumToggle({ dugum, toggleValue: !isSelectedThis, dugum })} sx={{ ...css_mahaller, backgroundColor: tip1_backgroundColor, justifyContent: "end" }}>
                         {theMetraj > 0 && ikiHane(theMetraj)} {theMetraj > 0 && pozBirim}
                       </Box>
 
                       <Box sx={{ backgroundColor: ayracRenk_bordo }}>
                       </Box>
 
-                      <Box onClick={() => !isSelectedOther && handleDugumToggle({ dugum, toggleValue: !isSelectedThis })} sx={{ ...css_mahaller, backgroundColor: isSelectedOther ? "lightgray" : isSelectedThis && selectedThisPaketColor, justifyContent: "end" }}>
+                      <Box onClick={() => handleDugumToggle({ dugum, toggleValue: !isSelectedThis })} sx={{ ...css_mahaller, backgroundColor: tip1_backgroundColor, justifyContent: "end" }}>
                         {isSelectedThis && theMetraj > 0 && ikiHane(theMetraj)} {isSelectedThis && theMetraj > 0 && pozBirim}
                       </Box>
 
@@ -717,7 +730,7 @@ export default function P_IsPaketPozMahaller() {
                             let tutar = isSelectedThis && theMetraj * birimFiyat?.fiyat
 
                             return (
-                              <Box key={index} sx={{ ...css_mahaller, justifyContent: "end", backgroundColor: isSelectedOther ? "lightgray" : isSelectedThis && selectedThisPaketColor }}>
+                              <Box key={index} sx={{ ...css_mahaller, justifyContent: "end", backgroundColor: isSelectedThis ? color_selectedThis : isSelectedOther && color_selectedOther }}>
                                 {ikiHane(tutar)} {tutar > 0 && (oneBirim.sembol ? oneBirim.sembol : oneBirim.id)}
                               </Box>
                             )
