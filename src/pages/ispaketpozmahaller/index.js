@@ -545,7 +545,7 @@ export default function P_IsPaketPozMahaller() {
               <>
                 <Box sx={{ backgroundColor: ayracRenk_bordo }}></Box>
                 {selectedProje?.paraBirimleri?.filter(x => x.isActive).map((oneBirim, index) => {
-                  let fiyat = selectedPoz?.birimFiyatlar?.find(x => x.id === oneBirim.id)?.fiyat
+                  let fiyat = selectedPoz?.birimFiyatVersiyonlar?.birimFiyatlar?.find(x => x.id === oneBirim.id)?.fiyat
                   return (
                     <Box key={index} sx={{ ...css_enUstBaslik, justifyContent: "center" }}>
                       {fiyat > 0 && ikiHane(fiyat)} {fiyat > 0 && (oneBirim.sembol ? oneBirim.sembol : oneBirim.id)}
@@ -574,7 +574,8 @@ export default function P_IsPaketPozMahaller() {
               <>
                 <Box sx={{ backgroundColor: ayracRenk_bordo }}></Box>
                 {selectedProje?.paraBirimleri?.filter(x => x.isActive).map((oneBirim, index) => {
-                  let fiyat = selectedPoz?.birimFiyatlar?.find(x => x.id === oneBirim.id)?.fiyat
+                  // let fiyat = selectedPoz?.birimFiyatlar?.find(x => x.id === oneBirim.id)?.fiyat
+                  let fiyat = selectedPoz?.birimFiyatVersiyonlar?.birimFiyatlar?.find(x => x.id === oneBirim.id)?.fiyat
                   let tutar = isPaketSelectedPozMetraj > 0 && fiyat > 0 && isPaketSelectedPozMetraj * fiyat
                   return (
                     <Box key={index} sx={{ ...css_enUstBaslik, justifyContent: "end" }}>

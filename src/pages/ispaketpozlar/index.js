@@ -42,7 +42,7 @@ export default function P_isPaketPozlar() {
   const { data: dataPozlar, error: error1, isFetching: isFetching1 } = useGetPozlar()
   const { data: dataIsPaketPozMetrajlar, error: error2, isFetching: isFetching2 } = useGetIsPaketPozMetrajlar()
 
-  console.log("dataIsPaketPozMetrajlar",dataIsPaketPozMetrajlar)
+  // console.log("dataIsPaketPozMetrajlar",dataIsPaketPozMetrajlar)
 
   const [pozlar_state, setPozlar_state] = useState()
   const [isPaketPozMetrajlar_state, setIsPaketPozMetrajlar_state] = useState()

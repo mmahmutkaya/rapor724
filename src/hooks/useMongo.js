@@ -222,7 +222,7 @@ export const useGetProjeler_byFirma = () => {
 export const useGetPozlar = () => {
 
   const navigate = useNavigate()
-  const { appUser, setAppUser, selectedProje, setSelectedProje, selectedBirimFiyatVersiyon, setSelectedBirimFiyatVersiyon , selectedMetrajVersiyon, setSelectedMetrajVersiyon } = useContext(StoreContext)
+  const { appUser, setAppUser, selectedProje, setSelectedProje, selectedBirimFiyatVersiyon, setSelectedBirimFiyatVersiyon, selectedMetrajVersiyon, setSelectedMetrajVersiyon } = useContext(StoreContext)
 
   return useQuery({
     queryKey: ['dataPozlar'],
@@ -261,7 +261,7 @@ export const useGetPozlar = () => {
       proje2.birimFiyatVersiyon_isProgress = responseJson.birimFiyatVersiyon_isProgress
       proje2.anyVersiyonZero = responseJson.anyVersiyonZero
       setSelectedProje(proje2)
-      
+
       return responseJson
 
     },
@@ -488,7 +488,7 @@ export const useGetDugumler = () => {
 export const useGetDugumler_byPoz = () => {
 
   const navigate = useNavigate()
-  const { appUser, setAppUser, selectedProje, selectedPoz } = useContext(StoreContext)
+  const { appUser, setAppUser, selectedProje, selectedPoz, selectedMetrajVersiyon } = useContext(StoreContext)
 
   return useQuery({
     queryKey: ['dataDugumler_byPoz'],
@@ -500,6 +500,7 @@ export const useGetDugumler_byPoz = () => {
           token: appUser.token,
           projeid: selectedProje._id,
           pozid: selectedPoz._id,
+          selectedmetrajversiyontext: selectedMetrajVersiyon ? selectedMetrajVersiyon : 0,
           'Content-Type': 'application/json'
         }
       })
