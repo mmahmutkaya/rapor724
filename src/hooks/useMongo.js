@@ -72,6 +72,7 @@ export const useGetIsPaketPozMetrajlar = () => {
           projeid: selectedProje?._id,
           ispaketversiyontext: selectedIsPaketVersiyon ? selectedIsPaketVersiyon : 0,
           metrajversiyontext: selectedMetrajVersiyon ? selectedMetrajVersiyon : 0,
+          metrajversiyontext: selectedMetrajVersiyon ? selectedMetrajVersiyon : 0,
           'Content-Type': 'application/json'
         }
       })
