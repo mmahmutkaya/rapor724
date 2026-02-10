@@ -37,6 +37,8 @@ export default function P_IsPaketler() {
   // const RealmApp = useApp();
   const { appUser, RealmApp } = useContext(StoreContext)
   const { selectedProje, setSelectedProje } = useContext(StoreContext)
+  
+  // console.log("selectedProje",selectedProje)
   const { selectedIsPaket, setSelectedIsPaket } = useContext(StoreContext)
   const { selectedIsPaketVersiyon, setSelectedIsPaketVersiyon } = useContext(StoreContext)
 
@@ -456,9 +458,6 @@ export default function P_IsPaketler() {
 
             </React.Fragment>
           }
-
-
-
 
 
         </Stack>
