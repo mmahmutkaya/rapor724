@@ -34,10 +34,11 @@ import Avatar from '@mui/material/Avatar';
 
 export default function P_IsPaketler() {
 
-  // const RealmApp = useApp();
-  const { appUser, RealmApp } = useContext(StoreContext)
+  let isFirstRender
+
+  const { appUser, setAppUser } = useContext(StoreContext)
   const { selectedProje, setSelectedProje } = useContext(StoreContext)
-  
+
   // console.log("selectedProje",selectedProje)
   const { selectedIsPaket, setSelectedIsPaket } = useContext(StoreContext)
   const { selectedIsPaketVersiyon, setSelectedIsPaketVersiyon } = useContext(StoreContext)
@@ -45,7 +46,7 @@ export default function P_IsPaketler() {
   const [dialogAlert, setDialogAlert] = useState()
 
   // const { data, error, isFetching } = useGetisPaketler()
-  const isPaketler = selectedProje?.isPaketler
+  let isPaketler
   // console.log("selectedProje",selectedProje)
 
   const [basliklar, setBasliklar] = useState(appUser.customSettings.pages.ispaketler.basliklar)
@@ -53,31 +54,37 @@ export default function P_IsPaketler() {
   const navigate = useNavigate()
 
 
+
   useEffect(() => {
     if (!selectedProje) navigate("/projeler")
-    // if (!selectedIsPaketVersiyon) {
-    //   setSelectedIsPaketVersiyon(0)
-    // }
-    getIsPaketler_byVersiyon()
+    if (!isFirstRender) {
+      getIsPaketler_byVersiyon()
+    }
+
+    isFirstRender = true
     // console.log("selectedProje",selectedProje)
   }, []);
 
 
 
 
-  const getIsPaketler_byVersiyon = async () => {
-
+  const getIsPaketler_byVersiyon = async ({ versiyonNumber }) => {
 
     try {
 
-      const response = await fetch(process.env.REACT_APP_BASE_URL + `/api/projeler/${oneProje._id.toString()}`, {
-        method: 'GET',
+      const response = await fetch(process.env.REACT_APP_BASE_URL + `/api/versiyon/getispaketlerbyversiyon`, {
+        method: 'POST',
         headers: {
           email: appUser.email,
           token: appUser.token,
           'Content-Type': 'application/json'
         },
+        body: JSON.stringify({
+          _projeId: selectedProje._id,
+          versiyonNumber
+        })
       })
+
 
       const responseJson = await response.json()
 
@@ -91,10 +98,14 @@ export default function P_IsPaketler() {
         throw new Error(responseJson.error);
       }
 
-      if (responseJson.proje) {
-        setSelectedProje(responseJson.proje)
-        navigate("/wbs")
+      if (responseJson.isPaketVersiyonlar) {
+        setSelectedIsPaketVersiyon(responseJson.isPaketVersiyon)
+        console.log("responseJson.isPaketVersiyon", responseJson.isPaketVersiyon)
+        return
       }
+
+      console.log("olmadı")
+      console.log("responseJson", responseJson)
 
     } catch (err) {
       console.log(err)
@@ -185,7 +196,7 @@ export default function P_IsPaketler() {
                   <Box>
                     <IconButton onClick={() => console.log("tik tik")}>
                       <Avatar sx={{ height: "1.7rem", width: "1.7rem", fontSize: "0.8rem", fontWeight: 600, color: "black" }}>
-                        V{selectedIsPaketVersiyon}
+                        {/* V{selectedIsPaketVersiyon?.versiyonNumber} */}
                       </Avatar>
                     </IconButton>
                   </Box>
