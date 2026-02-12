@@ -7,6 +7,7 @@ import { useNavigate } from "react-router-dom";
 // import { useGetProjelerNames_byFirma } from '../../hooks/useMongo';
 import { DialogAlert } from '../../components/general/DialogAlert.js'
 import ShowIsPaketBasliklar from '../../components/ShowIsPaketBasliklar.js'
+import { useQueryClient } from '@tanstack/react-query'
 
 import { useGetisPaketler } from '../../hooks/useMongo.js';
 
@@ -18,6 +19,8 @@ import Stack from '@mui/material/Stack';
 import { Typography } from '@mui/material';
 import List from '@mui/material/List';
 import Box from '@mui/material/Box';
+import MenuItem from '@mui/material/MenuItem';
+import Select from '@mui/material/Select';
 
 import FolderIcon from '@mui/icons-material/Folder';
 import IconButton from '@mui/material/IconButton';
@@ -34,7 +37,7 @@ import Avatar from '@mui/material/Avatar';
 
 export default function P_IsPaketler() {
 
-  let isFirstRender
+  const queryClient = useQueryClient()
 
   const { appUser, setAppUser } = useContext(StoreContext)
   const { selectedProje, setSelectedProje } = useContext(StoreContext)
@@ -56,66 +59,73 @@ export default function P_IsPaketler() {
 
 
   useEffect(() => {
+
     if (!selectedProje) navigate("/projeler")
-    if (!isFirstRender) {
-      getIsPaketler_byVersiyon()
-    }
 
-    isFirstRender = true
-    // console.log("selectedProje",selectedProje)
-  }, []);
+    // if (!isFirstRender && selectedIsPaketVersiyon !== 0 && !selectedIsPaketVersiyon) {
+    //   getIsPaketler_byVersiyon()
+    // }
 
+    // isFirstRender = true
 
-
-
-  const getIsPaketler_byVersiyon = async ({ versiyonNumber }) => {
-
-    try {
-
-      const response = await fetch(process.env.REACT_APP_BASE_URL + `/api/versiyon/getispaketlerbyversiyon`, {
-        method: 'POST',
-        headers: {
-          email: appUser.email,
-          token: appUser.token,
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-          _projeId: selectedProje._id,
-          versiyonNumber
-        })
-      })
+  }, [])
 
 
-      const responseJson = await response.json()
 
-      if (responseJson.error) {
-        if (responseJson.error.includes("expired")) {
-          setAppUser()
-          localStorage.removeItem('appUser')
-          navigate('/')
-          window.location.reload()
-        }
-        throw new Error(responseJson.error);
-      }
+  // useEffect(() => {
+  //   getIsPaketler_byVersiyon()
+  // }, [selectedIsPaketVersiyon]);
 
-      if (responseJson.isPaketVersiyonlar) {
-        setSelectedIsPaketVersiyon(responseJson.isPaketVersiyon)
-        console.log("responseJson.isPaketVersiyon", responseJson.isPaketVersiyon)
-        return
-      }
 
-      console.log("olmadı")
-      console.log("responseJson", responseJson)
 
-    } catch (err) {
-      console.log(err)
-      setDialogAlert({
-        dialogIcon: "warning",
-        dialogMessage: "Beklenmedik hata, Rapor7/24 ile irtibata geçiniz..",
-        detailText: err?.message ? err.message : null
-      })
-    }
-  }
+  // const getIsPaketler_byVersiyon = async () => {
+
+  //   try {
+
+  //     const response = await fetch(process.env.REACT_APP_BASE_URL + `/api/versiyon/getispaketlerbyversiyon`, {
+  //       method: 'POST',
+  //       headers: {
+  //         email: appUser.email,
+  //         token: appUser.token,
+  //         'Content-Type': 'application/json'
+  //       },
+  //       body: JSON.stringify({
+  //         _projeId: selectedProje._id,
+  //         versiyonNumber: selectedIsPaketVersiyon?.versiyonNumber
+  //       })
+  //     })
+
+
+  //     const responseJson = await response.json()
+
+  //     if (responseJson.error) {
+  //       if (responseJson.error.includes("expired")) {
+  //         setAppUser()
+  //         localStorage.removeItem('appUser')
+  //         navigate('/')
+  //         window.location.reload()
+  //       }
+  //       throw new Error(responseJson.error);
+  //     }
+
+  //     if (responseJson.isPaketVersiyon) {
+  //       setSelectedIsPaketVersiyon(responseJson.isPaketVersiyon)
+  //       console.log("responseJson.isPaketVersiyon", responseJson.isPaketVersiyon)
+  //       return
+  //     }
+
+  //     console.log("olmadı")
+  //     console.log("responseJson", responseJson)
+
+  //   } catch (err) {
+  //     console.log(err)
+  //     setDialogAlert({
+  //       dialogIcon: "warning",
+  //       dialogMessage: "Beklenmedik hata, Rapor7/24 ile irtibata geçiniz..",
+  //       detailText: err?.message ? err.message : null
+  //     })
+  //   }
+  // }
 
 
 
@@ -193,13 +203,51 @@ export default function P_IsPaketler() {
 
                 <>
 
-                  <Box>
+                  {/* <Box>
                     <IconButton onClick={() => console.log("tik tik")}>
                       <Avatar sx={{ height: "1.7rem", width: "1.7rem", fontSize: "0.8rem", fontWeight: 600, color: "black" }}>
-                        {/* V{selectedIsPaketVersiyon?.versiyonNumber} */}
+                        V{selectedIsPaketVersiyon?.versiyonNumber}
                       </Avatar>
                     </IconButton>
-                  </Box>
+                  </Box> */}
+
+                  {selectedIsPaketVersiyon &&
+
+                    <Select
+                      size='small'
+                      value={selectedIsPaketVersiyon?.versiyonNumber}
+                      onClose={() => {
+                        setTimeout(() => {
+                          document.activeElement.blur();
+                        }, 0);
+                      }}
+                      // onBlur={() => queryClient.resetQueries(['dataPozlar'])}
+                      sx={{ fontSize: "0.75rem" }}
+                      MenuProps={{
+                        PaperProps: {
+                          style: {
+                            maxHeight: "15rem",
+                            minWidth: "5rem"
+                          },
+                        },
+                      }}
+                    >
+
+                      {selectedProje?.ispaketVersiyonlar?.sort((a, b) => b.versiyonNumber - a.versiyonNumber).map((oneVersiyon, index) => {
+                        let versiyonNumber = oneVersiyon.versiyonNumber
+                        return (
+                          // <MenuItem sx={{ fontSize: "0.8rem" }} key={index} onClick={() => setSelectedBirimFiyatVersiyon(oneVersiyon)} value={versiyonNumber} > V{versiyonNumber} </MenuItem>
+                          <MenuItem
+                            onClick={() => {
+                              setSelectedIsPaketVersiyon(oneVersiyon)
+                            }}
+                            sx={{ fontSize: "0.75rem" }} key={index} value={versiyonNumber} > İP{versiyonNumber}
+                          </MenuItem>
+                        )
+                      })}
+
+                    </Select>
+                  }
 
                   <Box >
                     <IconButton onClick={() => setShow("ShowBaslik")}>
