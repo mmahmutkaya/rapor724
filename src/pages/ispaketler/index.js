@@ -43,32 +43,47 @@ export default function P_IsPaketler() {
   const { selectedProje, setSelectedProje } = useContext(StoreContext)
 
   // console.log("selectedProje",selectedProje)
-  const { selectedIsPaket, setSelectedIsPaket } = useContext(StoreContext)
   const { selectedIsPaketVersiyon, setSelectedIsPaketVersiyon } = useContext(StoreContext)
+  const { selectedIsPaket, setSelectedIsPaket } = useContext(StoreContext)
+  const { mode_isPaketEdit, setMode_isPaketEdit } = useContext(StoreContext)
+
+  // console.log("selectedProje",selectedProje)
 
   const [dialogAlert, setDialogAlert] = useState()
+  const [isPaketler, setIsPaketler] = useState()
 
   // const { data, error, isFetching } = useGetisPaketler()
-  let isPaketler
-  // console.log("selectedProje",selectedProje)
+  // console.log("isPaketler",isPaketler)
 
   const [basliklar, setBasliklar] = useState(appUser.customSettings.pages.ispaketler.basliklar)
 
   const navigate = useNavigate()
 
 
-
   useEffect(() => {
 
     if (!selectedProje) navigate("/projeler")
 
-    // if (!isFirstRender && selectedIsPaketVersiyon !== 0 && !selectedIsPaketVersiyon) {
-    //   getIsPaketler_byVersiyon()
-    // }
+    if (selectedProje && !selectedIsPaketVersiyon) {
+      let isPaketVersiyon = selectedProje?.isPaketVersiyonlar.reduce((acc, cur) => cur.versiyonNumber >= acc.versiyonNumber ? cur : acc, { versiyonNumber: 0, isPaketler: [] })
+      setSelectedIsPaketVersiyon(isPaketVersiyon)
+    }
 
-    // isFirstRender = true
 
   }, [])
+
+
+  useEffect(() => {
+
+    if (mode_isPaketEdit) {
+      setIsPaketler(selectedProje?.isPaketler)
+    } else {
+      setIsPaketler(selectedProje?.isPaketVersiyonlar.find(x => x.versiyonNumber === selectedIsPaketVersiyon?.versiyonNumber))
+    }
+
+  }, [mode_isPaketEdit, selectedIsPaketVersiyon])
+
+
 
 
 
@@ -233,7 +248,7 @@ export default function P_IsPaketler() {
                       }}
                     >
 
-                      {selectedProje?.ispaketVersiyonlar?.sort((a, b) => b.versiyonNumber - a.versiyonNumber).map((oneVersiyon, index) => {
+                      {selectedProje?.isPaketVersiyonlar?.sort((a, b) => b.versiyonNumber - a.versiyonNumber).map((oneVersiyon, index) => {
                         let versiyonNumber = oneVersiyon.versiyonNumber
                         return (
                           // <MenuItem sx={{ fontSize: "0.8rem" }} key={index} onClick={() => setSelectedBirimFiyatVersiyon(oneVersiyon)} value={versiyonNumber} > V{versiyonNumber} </MenuItem>
@@ -506,7 +521,7 @@ export default function P_IsPaketler() {
               {isPaketler.length > 0 && isPaketler.map((onePaket, index) => {
 
                 let isPaketSelected
-                if (onePaket._id.toString() === selectedIsPaket?._id.toString()) {
+                if (onePaket?._id.toString() === selectedIsPaket?._id.toString()) {
                   isPaketSelected = true
                 }
 

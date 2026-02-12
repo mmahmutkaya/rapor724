@@ -64,9 +64,10 @@ export default ({ children }) => {
   const [onayNodeMetraj, setOnayNodeMetraj] = useState()
   const [showNodeMetraj, setShowNodeMetraj] = useState()
   const [nodeMetrajlar, setNodeMetrajlar] = useState()
-  
+
   const [mode_metrajOnayla, setMode_metrajOnayla] = useState()
   const [mode_birimFiyatEdit, setMode_birimFiyatEdit] = useState()
+  const [mode_isPaketEdit, setMode_isPaketEdit] = useState()
   const [detailMode, setDetailMode] = useState()
 
   // const [RealmApp, setRealmApp] = useState(Realm.getApp("rapor724_v2-cykom"))
@@ -120,6 +121,7 @@ export default ({ children }) => {
 
     mode_metrajOnayla, setMode_metrajOnayla,
     mode_birimFiyatEdit, setMode_birimFiyatEdit,
+    mode_isPaketEdit, setMode_isPaketEdit,
     detailMode, setDetailMode,
 
 
