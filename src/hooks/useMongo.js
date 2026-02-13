@@ -52,7 +52,7 @@ export const useGetFirmalar = () => {
 }
 
 
-export const useGetIsPaketPozMetrajlar = () => {
+export const useGetPozMetrajlar_byIsPaket = () => {
 
   const navigate = useNavigate()
   const { appUser, setAppUser, selectedProje, selectedIsPaketVersiyon, selectedMetrajVersiyon } = useContext(StoreContext)
@@ -64,8 +64,8 @@ export const useGetIsPaketPozMetrajlar = () => {
     ],
 
     queryFn: async () => {
-      const response = await fetch(process.env.REACT_APP_BASE_URL + '/api/pozlar/ispaketpozmetrajlar', {
-        method: 'GET',
+      const response = await fetch(process.env.REACT_APP_BASE_URL + '/api/pozlar/getpozmetrajlarbyispaket', {
+        method: 'POST',
         headers: {
           email: appUser.email,
           token: appUser.token,

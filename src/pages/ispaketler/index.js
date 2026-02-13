@@ -81,71 +81,12 @@ export default function P_IsPaketler() {
         setIsPaketler(selectedProje?.isPaketler)
       } else {
         let isPaketler2 = selectedProje?.isPaketVersiyonlar.find(x => x.versiyonNumber === selectedIsPaketVersiyon?.versiyonNumber).isPaketler
-        console.log("isPaketler2", isPaketler2)
         setIsPaketler(isPaketler2)
       }
     }
 
   }, [mode_isPaketEdit, selectedIsPaketVersiyon, selectedProje])
 
-
-
-
-
-  // useEffect(() => {
-  //   getIsPaketler_byVersiyon()
-  // }, [selectedIsPaketVersiyon]);
-
-
-
-  // const getIsPaketler_byVersiyon = async () => {
-
-  //   try {
-
-  //     const response = await fetch(process.env.REACT_APP_BASE_URL + `/api/versiyon/getispaketlerbyversiyon`, {
-  //       method: 'POST',
-  //       headers: {
-  //         email: appUser.email,
-  //         token: appUser.token,
-  //         'Content-Type': 'application/json'
-  //       },
-  //       body: JSON.stringify({
-  //         _projeId: selectedProje._id,
-  //         versiyonNumber: selectedIsPaketVersiyon?.versiyonNumber
-  //       })
-  //     })
-
-
-  //     const responseJson = await response.json()
-
-  //     if (responseJson.error) {
-  //       if (responseJson.error.includes("expired")) {
-  //         setAppUser()
-  //         localStorage.removeItem('appUser')
-  //         navigate('/')
-  //         window.location.reload()
-  //       }
-  //       throw new Error(responseJson.error);
-  //     }
-
-  //     if (responseJson.isPaketVersiyon) {
-  //       setSelectedIsPaketVersiyon(responseJson.isPaketVersiyon)
-  //       console.log("responseJson.isPaketVersiyon", responseJson.isPaketVersiyon)
-  //       return
-  //     }
-
-  //     console.log("olmadı")
-  //     console.log("responseJson", responseJson)
-
-  //   } catch (err) {
-  //     console.log(err)
-  //     setDialogAlert({
-  //       dialogIcon: "warning",
-  //       dialogMessage: "Beklenmedik hata, Rapor7/24 ile irtibata geçiniz..",
-  //       detailText: err?.message ? err.message : null
-  //     })
-  //   }
-  // }
 
 
 
@@ -171,8 +112,6 @@ export default function P_IsPaketler() {
 
 
   const columns = "max-content minmax(min-content, 20rem) repeat(5, max-content)"
-
-
 
 
   const requestProjeAktifYetkiliKisi = async ({ projeId, aktifYetki }) => {
@@ -239,9 +178,74 @@ export default function P_IsPaketler() {
           setDialogAlert()
         }
       })
-      
+
     }
   }
+
+
+
+  const deleteProjeAktifYetkiliKisi = async ({ projeId, aktifYetki }) => {
+
+    try {
+
+      const response = await fetch(process.env.REACT_APP_BASE_URL + `/api/projeler/deleteprojeaktifyetkilikisi`, {
+        method: 'POST',
+        headers: {
+          email: appUser.email,
+          token: appUser.token,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          projeId, aktifYetki
+        })
+      })
+
+      const responseJson = await response.json()
+
+      if (responseJson.error) {
+        if (responseJson.error.includes("expired")) {
+          setAppUser()
+          localStorage.removeItem('appUser')
+          navigate('/')
+          window.location.reload()
+        }
+        throw new Error(responseJson.error);
+      }
+
+      if (responseJson.message) {
+        setShow("Main")
+        setDialogAlert({
+          dialogIcon: "info",
+          dialogMessage: responseJson.message,
+          onCloseAction: () => {
+            setDialogAlert()
+          }
+        })
+      }
+
+      if (responseJson.ok) {
+        setShow("Main")
+        setMode_isPaketEdit()
+      }
+
+    } catch (err) {
+
+      console.log(err)
+
+      setDialogAlert({
+        dialogIcon: "warning",
+        dialogMessage: "Beklenmedik hata, sayfayı yenileyiniz, sorun devam ederse Rapor7/24 ile irtibata geçiniz..",
+        detailText: err?.message ? err.message : null,
+        onCloseAction: () => {
+          setDialogAlert()
+          queryClient.invalidateQueries(['dataPozlar'])
+        }
+      })
+    }
+  }
+
+
+
 
 
 
@@ -292,24 +296,21 @@ export default function P_IsPaketler() {
 
             <Box sx={{ display: "grid", gridAutoFlow: "column", alignItems: "center" }}>
 
-              {!selectedIsPaket &&
+              {!selectedIsPaket && !mode_isPaketEdit &&
 
                 <>
 
-                  {/* <Box>
-                    <IconButton onClick={() => console.log("tik tik")}>
-                      <Avatar sx={{ height: "1.7rem", width: "1.7rem", fontSize: "0.8rem", fontWeight: 600, color: "black" }}>
-                        V{selectedIsPaketVersiyon?.versiyonNumber}
-                      </Avatar>
+                  <Box >
+                    <IconButton onClick={() => setShow("ShowBaslik")}>
+                      <VisibilityIcon variant="contained" />
                     </IconButton>
-                  </Box> */}
+                  </Box>
 
                   <Box>
                     <IconButton onClick={() => requestProjeAktifYetkiliKisi({ projeId: selectedProje?._id, aktifYetki: "isPaketEdit" })}>
                       <EditIcon variant="contained" />
                     </IconButton>
                   </Box>
-
 
                   {selectedIsPaketVersiyon &&
 
@@ -348,12 +349,20 @@ export default function P_IsPaketler() {
 
                     </Select>
                   }
+                </>
 
-                  <Box >
-                    <IconButton onClick={() => setShow("ShowBaslik")}>
-                      <VisibilityIcon variant="contained" />
+              }
+
+              {!selectedIsPaket && mode_isPaketEdit &&
+                <>
+
+                  <Grid item>
+                    <IconButton onClick={() => {
+                      deleteProjeAktifYetkiliKisi({ projeId: selectedProje?._id, aktifYetki: "isPaketEdit" })
+                    }}>
+                      <ClearOutlined variant="contained" color="error" />
                     </IconButton>
-                  </Box>
+                  </Grid>
 
                   <Box>
                     <IconButton onClick={() => setShow("FormIsPaketCreate")} aria-label="addWbs">
@@ -362,10 +371,7 @@ export default function P_IsPaketler() {
                   </Box>
 
                 </>
-
               }
-
-
 
 
               {selectedIsPaket &&
@@ -396,14 +402,6 @@ export default function P_IsPaketler() {
         </Grid>
       </Paper>
 
-
-
-      {/* {
-        show == "FormIsPaketBaslikCreate" &&
-        <Box>
-          <FormIsPaketBaslikCreate setShow={setShow} />
-        </Box>
-      } */}
 
       {
         show == "FormIsPaketCreate" &&

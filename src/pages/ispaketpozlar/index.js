@@ -7,7 +7,7 @@ import _ from 'lodash';
 
 
 import { StoreContext } from '../../components/store.js'
-import { useGetPozlar, useGetIsPaketPozMetrajlar } from '../../hooks/useMongo.js';
+import { useGetPozlar, useGetPozMetrajlar_byIsPaket } from '../../hooks/useMongo.js';
 import getWbsName from '../../functions/getWbsName.js';
 import { DialogAlert } from '../../components/general/DialogAlert.js';
 
@@ -40,7 +40,7 @@ export default function P_isPaketPozlar() {
   const queryClient = useQueryClient()
 
   const { data: dataPozlar, error: error1, isFetching: isFetching1 } = useGetPozlar()
-  const { data: dataIsPaketPozMetrajlar, error: error2, isFetching: isFetching2 } = useGetIsPaketPozMetrajlar()
+  const { data: dataIsPaketPozMetrajlar, error: error2, isFetching: isFetching2 } = useGetPozMetrajlar_byIsPaket()
 
   // console.log("dataIsPaketPozMetrajlar",dataIsPaketPozMetrajlar)
 
@@ -69,7 +69,7 @@ export default function P_isPaketPozlar() {
 
   useEffect(() => {
     !selectedProje && navigate('/projeler')
-    !((selectedIsPaketVersiyon === 0 || selectedIsPaketVersiyon > 0) && selectedIsPaket) && navigate('/ispaketler')
+    // !((selectedIsPaketVersiyon === 0 || selectedIsPaketVersiyon > 0) && selectedIsPaket) && navigate('/ispaketler')
   }, [])
 
 
@@ -289,12 +289,14 @@ export default function P_isPaketPozlar() {
                   <ReplyIcon variant="contained" sx={{ color: "gray" }} />
                 </IconButton>
 
-                <Box>
+                {/* <Box>
                   (V{selectedIsPaketVersiyon}) -  / {selectedIsPaket?.name}
-                </Box>
+                </Box> */}
+
                 {/* <Box sx={{ color: "#8B0000", fontWeight: "600" }}>
                 {" > "}
               </Box> */}
+
                 <Box>
                   {/* {"Tüm Mahaller"} */}
                 </Box>
