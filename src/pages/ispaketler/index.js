@@ -8,6 +8,7 @@ import { useNavigate } from "react-router-dom";
 import { DialogAlert } from '../../components/general/DialogAlert.js'
 import ShowIsPaketBasliklar from '../../components/ShowIsPaketBasliklar.js'
 import { useQueryClient } from '@tanstack/react-query'
+import _ from 'lodash';
 
 import { useGetisPaketler } from '../../hooks/useMongo.js';
 
@@ -31,7 +32,7 @@ import LensIcon from '@mui/icons-material/Lens';
 import ClearOutlined from '@mui/icons-material/ClearOutlined';
 import InfoIcon from '@mui/icons-material/Info';
 import Avatar from '@mui/material/Avatar';
-
+import EditIcon from '@mui/icons-material/Edit';
 
 
 
@@ -50,7 +51,7 @@ export default function P_IsPaketler() {
   // console.log("selectedProje",selectedProje)
 
   const [dialogAlert, setDialogAlert] = useState()
-  const [isPaketler, setIsPaketler] = useState()
+  const [isPaketler, setIsPaketler] = useState([])
 
   // const { data, error, isFetching } = useGetisPaketler()
   // console.log("isPaketler",isPaketler)
@@ -75,13 +76,17 @@ export default function P_IsPaketler() {
 
   useEffect(() => {
 
-    if (mode_isPaketEdit) {
-      setIsPaketler(selectedProje?.isPaketler)
-    } else {
-      setIsPaketler(selectedProje?.isPaketVersiyonlar.find(x => x.versiyonNumber === selectedIsPaketVersiyon?.versiyonNumber))
+    if (selectedProje && selectedIsPaketVersiyon) {
+      if (mode_isPaketEdit) {
+        setIsPaketler(selectedProje?.isPaketler)
+      } else {
+        let isPaketler2 = selectedProje?.isPaketVersiyonlar.find(x => x.versiyonNumber === selectedIsPaketVersiyon?.versiyonNumber).isPaketler
+        console.log("isPaketler2", isPaketler2)
+        setIsPaketler(isPaketler2)
+      }
     }
 
-  }, [mode_isPaketEdit, selectedIsPaketVersiyon])
+  }, [mode_isPaketEdit, selectedIsPaketVersiyon, selectedProje])
 
 
 
@@ -168,6 +173,79 @@ export default function P_IsPaketler() {
   const columns = "max-content minmax(min-content, 20rem) repeat(5, max-content)"
 
 
+
+
+  const requestProjeAktifYetkiliKisi = async ({ projeId, aktifYetki }) => {
+
+    try {
+
+      const response = await fetch(process.env.REACT_APP_BASE_URL + `/api/projeler/requestprojeaktifyetkilikisi`, {
+        method: 'POST',
+        headers: {
+          email: appUser.email,
+          token: appUser.token,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          projeId, aktifYetki
+        })
+      })
+
+
+      const responseJson = await response.json()
+
+
+      if (responseJson.error) {
+        if (responseJson.error.includes("expired")) {
+          setAppUser()
+          localStorage.removeItem('appUser')
+          navigate('/')
+          window.location.reload()
+        }
+        throw new Error(responseJson.error);
+      }
+
+
+      if (responseJson.message) {
+        setShow("Main")
+        setDialogAlert({
+          dialogIcon: "info",
+          dialogMessage: responseJson.message,
+          onCloseAction: () => {
+            setShow("Main")
+            setDialogAlert()
+          }
+        })
+      }
+
+
+      if (responseJson.ok) {
+        setShow("Main")
+        let proje2 = _.cloneDeep(selectedProje)
+        proje2.isPaketler = responseJson.proje.isPaketler
+        setSelectedProje(proje2)
+        setMode_isPaketEdit(true)
+      }
+
+    } catch (err) {
+
+      console.log(err)
+
+      setDialogAlert({
+        dialogIcon: "warning",
+        dialogMessage: "Beklenmedik hata, sayfayı yenileyiniz, sorun devam ederse Rapor7/24 ile irtibata geçiniz..",
+        detailText: err?.message ? err.message : null,
+        onCloseAction: () => {
+          setDialogAlert()
+        }
+      })
+      
+    }
+  }
+
+
+
+
   return (
     <Box>
 
@@ -225,6 +303,13 @@ export default function P_IsPaketler() {
                       </Avatar>
                     </IconButton>
                   </Box> */}
+
+                  <Box>
+                    <IconButton onClick={() => requestProjeAktifYetkiliKisi({ projeId: selectedProje?._id, aktifYetki: "isPaketEdit" })}>
+                      <EditIcon variant="contained" />
+                    </IconButton>
+                  </Box>
+
 
                   {selectedIsPaketVersiyon &&
 
@@ -350,7 +435,7 @@ export default function P_IsPaketler() {
           </Box>
 
           {/* iş paketleri henüz oluşturulmamış ise */}
-          {!isPaketler.filter(x => x.isActive).length > 0 &&
+          {!isPaketler?.filter(x => x.isActive)?.length > 0 &&
             <Box sx={{ gridColumn: "1/-1", py: "0.5rem", mt: "0.2rem", cursor: "pointer", display: "grid", gridAutoFlow: "column", backgroundColor: "rgba(227, 143, 122, 0.15)", alignItems: "center", justifyContent: "start" }}>
               <InfoIcon variant="contained" sx={{ color: "rgba(223, 123, 98, 1)", fontSize: "1.2rem", m: "0.3rem" }} />
               <Box>
@@ -359,7 +444,7 @@ export default function P_IsPaketler() {
             </Box>
           }
 
-          {isPaketler.filter(x => x.isActive).length > 0 &&
+          {isPaketler?.filter(x => x.isActive).length > 0 &&
 
             <React.Fragment>
               {/* iş paketleri varsa */}
