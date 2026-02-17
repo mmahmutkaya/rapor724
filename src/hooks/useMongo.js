@@ -55,7 +55,7 @@ export const useGetFirmalar = () => {
 export const useGetPozMetrajlar_byIsPaket = () => {
 
   const navigate = useNavigate()
-  const { appUser, setAppUser, selectedProje, selectedIsPaketVersiyon, selectedMetrajVersiyon } = useContext(StoreContext)
+  const { appUser, setAppUser, selectedProje, selectedIsPaketVersiyon, selectedIsPaket, mode_isPaketEdit } = useContext(StoreContext)
 
   return useQuery({
 
@@ -69,12 +69,14 @@ export const useGetPozMetrajlar_byIsPaket = () => {
         headers: {
           email: appUser.email,
           token: appUser.token,
-          projeid: selectedProje?._id,
-          ispaketversiyontext: selectedIsPaketVersiyon ? selectedIsPaketVersiyon : 0,
-          metrajversiyontext: selectedMetrajVersiyon ? selectedMetrajVersiyon : 0,
-          metrajversiyontext: selectedMetrajVersiyon ? selectedMetrajVersiyon : 0,
           'Content-Type': 'application/json'
-        }
+        },
+        body: JSON.stringify({
+          projeId: selectedProje?._id,
+          mode_isPaketEdit: true,
+          isPaketVersiyonNumber: selectedIsPaketVersiyon?.versiyonNumber,
+          selectedIsPaket
+        })
       })
 
       const responseJson = await response.json()
@@ -869,11 +871,11 @@ export const useGetProjectNames_firma = () => {
 
 //       // mahallistesi.wbsLer den kontrol ederek, yukarı doğru giderek, listeden çıkarıyoruz
 
-//       // 
+//       //
 //       let wbsCode2 = JSON.parse(JSON.stringify(wbsCode))
 //       let mapDurdur = false // mapDurdur true yapılırsa döngü daha da devam etmeden dursun diye
 
-//       // esasen wbsCode2 döngüsü ile 
+//       // esasen wbsCode2 döngüsü ile
 //       wbsCode.split(".").map(c => {
 
 //         if (mapDurdur) {
@@ -912,7 +914,7 @@ export const useGetProjectNames_firma = () => {
 //       // list den düğümü çıkartıyoruz
 //       list = list.filter(x => !(x._mahalId.toString() === _mahalId.toString() && x._pozId.toString() === _pozId.toString()))
 
-//       // mahallistesi.wbsLer den seviye olarak yukarı doğru giderek, kontrol ederek, listeden çıkarıyoruz 
+//       // mahallistesi.wbsLer den seviye olarak yukarı doğru giderek, kontrol ederek, listeden çıkarıyoruz
 //       let wbsCode2 = JSON.parse(JSON.stringify(wbsCode))
 //       let mapDurdur = false // mapDurdur true yapılırsa döngü daha da devam etmeden dursun diye
 
@@ -980,11 +982,11 @@ export const useGetProjectNames_firma = () => {
 
 //   //     // mahallistesi.wbsLer den kontrol ederek, yukarı doğru giderek, listeden çıkarıyoruz
 
-//   //     // 
+//   //     //
 //   //     // let wbsCode2 = JSON.parse(JSON.stringify(wbsCode))
 //   //     // let mapDurdur = false // mapDurdur true yapılırsa döngü daha da devam etmeden dursun diye
 
-//   //     // esasen wbsCode2 döngüsü ile 
+//   //     // esasen wbsCode2 döngüsü ile
 //   //     // wbsCode.split(".").map(c => {
 
 //   //     //   if (mapDurdur) {
@@ -1023,7 +1025,7 @@ export const useGetProjectNames_firma = () => {
 //   //   //   // list den düğümü çıkartıyoruz
 //   //   //   list = list.filter(x => !(x._mahalId.toString() === _mahalId.toString() && x._pozId.toString() === _pozId.toString()))
 
-//   //   //   // mahallistesi.wbsLer den seviye olarak yukarı doğru giderek, kontrol ederek, listeden çıkarıyoruz 
+//   //   //   // mahallistesi.wbsLer den seviye olarak yukarı doğru giderek, kontrol ederek, listeden çıkarıyoruz
 //   //   //   let wbsCode2 = JSON.parse(JSON.stringify(wbsCode))
 //   //   //   let mapDurdur = false // mapDurdur true yapılırsa döngü daha da devam etmeden dursun diye
 
