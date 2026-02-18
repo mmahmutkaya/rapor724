@@ -357,7 +357,7 @@ export default function P_MetrajPozlar() {
                         <Box className="childClass" sx={{ ml: "-1rem", backgroundColor: !hasOnaylananMetraj ? "white" : "white", height: "0.5rem", width: "0.5rem", borderRadius: "50%" }}>
                         </Box>
                         <Box sx={{ justifySelf: "end" }}>
-                          {ikiHane(onePoz?.metrajOnaylanan)}
+                          {ikiHane(onePoz?.metrajVersiyonlar?.metrajOnaylanan)}
                         </Box>
                       </Box>
                       <Box sx={{ ...pozNo_css }}>

@@ -64,6 +64,7 @@ export const useGetPozMetrajlar_byIsPaket = () => {
     ],
 
     queryFn: async () => {
+      
       const response = await fetch(process.env.REACT_APP_BASE_URL + '/api/pozlar/getpozmetrajlarbyispaket', {
         method: 'POST',
         headers: {
