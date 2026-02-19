@@ -111,7 +111,7 @@ export default function P_IsPaketler() {
   }
 
 
-  const columns = "max-content minmax(min-content, 20rem) repeat(4, max-content)"
+  const columns = "max-content minmax(min-content, 20rem) repeat(5, max-content)"
 
 
   const requestProjeAktifYetkiliKisi = async ({ projeId, aktifYetki }) => {
@@ -457,6 +457,10 @@ export default function P_IsPaketler() {
                 </Box>
 
                 <Box sx={{ ...css_IsPaketlerBaslik }}>
+                  Keşif
+                </Box>
+
+                <Box sx={{ ...css_IsPaketlerBaslik }}>
                   Bütçe
                 </Box>
 
@@ -525,6 +529,10 @@ export default function P_IsPaketler() {
 
                     </Box>
 
+                    <Box sx={{ ...css_IsPaketler }}>
+
+                    </Box>
+
                   </React.Fragment>
                 )
 
@@ -534,7 +542,7 @@ export default function P_IsPaketler() {
           }
 
 
-          {/* YATAY AYRAÇ */}
+          {/* AYRAÇ */}
           <Box sx={{ gridColumn: "1/-1", mt: "1rem", backgroundColor: "darkred", height: "0.2rem" }}></Box>
 
 
@@ -567,6 +575,10 @@ export default function P_IsPaketler() {
 
                 <Box sx={{ ...css_IsPaketlerBaslik }}>
                   İş Paketi
+                </Box>
+
+                <Box sx={{ ...css_IsPaketlerBaslik }}>
+                  Keşif
                 </Box>
 
                 <Box sx={{ ...css_IsPaketlerBaslik }}>
@@ -623,6 +635,10 @@ export default function P_IsPaketler() {
                     </Box>
 
                     <Box onClick={() => goto_isPaketPozlar({ onePaket })} sx={{ ...css_IsPaketler, cursor: "pointer" }}>
+
+                    </Box>
+
+                    <Box sx={{ ...css_IsPaketler }}>
 
                     </Box>
 
