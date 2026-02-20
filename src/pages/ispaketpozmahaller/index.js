@@ -68,18 +68,24 @@ export default function P_IsPaketPozMahaller() {
 
   const navigate = useNavigate()
 
-  const pozBirim = selectedProje?.pozBirimleri.find(x => x.id == selectedPoz?.pozBirimId)?.name
-
-
   const { data: dataMahaller, error: error1, isFetching: isFetching1 } = useGetMahaller()
   const { data: dataDugumler_byPoz, error: error2, isFetching: isFetching2 } = useGetDugumler_byPoz()
+
+  // Guard: Redirect back to parent page if context values are not loaded (e.g., on page reload)
+  useEffect(() => {
+    if (!selectedProje || !selectedPoz || !selectedIsPaket || !selectedIsPaketVersiyon) {
+      navigate('/ispaketpozlar')
+    }
+  }, [selectedProje, selectedPoz, selectedIsPaket, selectedIsPaketVersiyon, navigate])
+
+  const pozBirim = selectedProje?.pozBirimleri.find(x => x.id == selectedPoz?.pozBirimId)?.name
 
 
   // const mahaller = dataMahaller?.mahaller?.filter(oneMahal => dugumler_byPoz_state?.find(oneDugum => oneDugum._mahalId.toString() === oneMahal._id.toString()))
 
   useEffect(() => {
     // Guard: Only proceed if we have all required context values
-    if (!selectedPoz || !selectedIsPaket || !selectedIsPaketVersiyon) {
+    if (!selectedProje || !selectedPoz || !selectedIsPaket || !selectedIsPaketVersiyon) {
       return
     }
 
@@ -89,7 +95,7 @@ export default function P_IsPaketPozMahaller() {
     return () => {
       setMahaller_state()
     }
-  }, [dataMahaller, dataDugumler_byPoz, selectedPoz, selectedIsPaket, selectedIsPaketVersiyon])
+  }, [dataMahaller, dataDugumler_byPoz, selectedProje, selectedPoz, selectedIsPaket, selectedIsPaketVersiyon])
 
 
   useEffect(() => {
