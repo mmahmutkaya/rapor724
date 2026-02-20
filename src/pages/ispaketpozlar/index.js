@@ -69,8 +69,10 @@ export default function P_isPaketPozlar() {
 
   useEffect(() => {
     !selectedProje && navigate('/projeler')
+    !selectedIsPaketVersiyon && navigate('/ispaketler')
+    !selectedIsPaket && navigate('/ispaketler')
     // !((selectedIsPaketVersiyon === 0 || selectedIsPaketVersiyon > 0) && selectedIsPaket) && navigate('/ispaketler')
-  }, [])
+  }, [selectedProje, selectedIsPaketVersiyon, selectedIsPaket, navigate])
 
 
   useEffect(() => {
@@ -284,9 +286,9 @@ export default function P_isPaketPozlar() {
                   <ReplyIcon variant="contained" sx={{ color: "gray" }} />
                 </IconButton>
 
-                {/* <Box>
-                  (V{selectedIsPaketVersiyon}) -  / {selectedIsPaket?.name}
-                </Box> */}
+                <Box>
+                  (V{selectedIsPaketVersiyon?.versiyonNumber}) -  / {selectedIsPaketVersiyon?.name}
+                </Box>
 
                 {/* <Box sx={{ color: "#8B0000", fontWeight: "600" }}>
                 {" > "}
