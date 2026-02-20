@@ -353,10 +353,6 @@ export default function P_IsPaketPozMahaller() {
 
     <Box sx={{ m: "0rem" }}>
 
-      {!selectedProje || !selectedPoz || !selectedIsPaket || !selectedIsPaketVersiyon ? (
-        null
-      ) : (
-        <>
 
       {dialogAlert &&
         <DialogAlert
@@ -416,7 +412,7 @@ export default function P_IsPaketPozMahaller() {
                 </IconButton>
 
                 <Box sx={{ fontSize: "1rem" }}>
-                  (V{selectedIsPaketVersiyon?.versiyonNumber}) - {selectedPoz?.pozName}
+                  (V{selectedIsPaketVersiyon?.versiyonNumber}) - {selectedIsPaket?.name}
                 </Box>
 
               </Box>
@@ -767,8 +763,6 @@ export default function P_IsPaketPozMahaller() {
         </Box >
 
       }
-      </>
-      )}
     </Box >
 
   )

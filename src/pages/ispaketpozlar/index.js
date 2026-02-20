@@ -1,6 +1,6 @@
 
 import React from 'react'
-import { useState, useContext, useEffect } from 'react';
+import { useState, useContext, useEffect, useRef } from 'react';
 import { useQueryClient } from '@tanstack/react-query'
 import { useNavigate } from "react-router-dom";
 import _ from 'lodash';
@@ -65,6 +65,16 @@ export default function P_isPaketPozlar() {
   let onayNodeMetraj = false
 
   const [show, setShow] = useState("Main")
+
+  const pendingNavigationRef = useRef(null)
+
+  useEffect(() => {
+    // If navigation was pending and context is now set, navigate
+    if (pendingNavigationRef.current && selectedPoz?._id === pendingNavigationRef.current._id) {
+      navigate('/ispaketpozmahaller')
+      pendingNavigationRef.current = null
+    }
+  }, [selectedPoz, navigate])
 
 
   useEffect(() => {
@@ -221,8 +231,8 @@ export default function P_isPaketPozlar() {
 
 
   const goTo_isPaketPozMahaller = (onePoz) => {
+    pendingNavigationRef.current = onePoz
     setSelectedPoz(onePoz)
-    navigate('/ispaketpozmahaller')
   }
 
   let paraBirimiAdet = selectedProje?.paraBirimleri?.filter(x => x?.isActive).length
