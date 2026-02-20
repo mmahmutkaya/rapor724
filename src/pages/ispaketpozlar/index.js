@@ -287,7 +287,7 @@ export default function P_isPaketPozlar() {
                 </IconButton>
 
                 <Box>
-                  (V{selectedIsPaketVersiyon?.versiyonNumber}) -  / {selectedIsPaketVersiyon?.name}
+                  (V{selectedIsPaketVersiyon?.versiyonNumber}) - {selectedIsPaket?.name}
                 </Box>
 
                 {/* <Box sx={{ color: "#8B0000", fontWeight: "600" }}>
