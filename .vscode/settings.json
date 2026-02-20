@@ -1,0 +1,8 @@
+{
+  "chat.tools.terminal.autoApprove": {
+    "/^cd /c/mahmut/excelMongo ; node -c server\\.js ; echo \"✅ server\\.js - Syntax OK\"$/": {
+      "approve": true,
+      "matchCommandLine": true
+    }
+  }
+}
