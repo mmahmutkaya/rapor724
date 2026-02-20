@@ -315,12 +315,6 @@ export default function P_IsPaketPozMahaller() {
   const gridTemplateColumns1 = `
     max-content
     minmax(min-content, 15rem)
-    ${paraBirimiAdet === 1 ? " 0.3rem max-content" : paraBirimiAdet > 1 ? " 0.3rem repeat(" + paraBirimiAdet + ", max-content)" : ""}
-    0.3rem
-    max-content
-    0.3rem
-    max-content
-    ${paraBirimiAdet === 1 ? " 0.3rem max-content" : paraBirimiAdet > 1 ? " 0.3rem repeat(" + paraBirimiAdet + ", max-content)" : ""}
   `
 
   // console.log("paraBirimiAdet",paraBirimiAdet)
@@ -484,121 +478,26 @@ export default function P_IsPaketPozMahaller() {
 
         <Box sx={{ m: "1rem", mt: "4.5rem", display: "grid", gridTemplateColumns: gridTemplateColumns1 }}>
 
-          {/* EN ÜST BAŞLIĞIN ÜST SATIRI - HANGİ POZ İLE İŞLEM YAPILIYORSA - POZ İSMİ VE TOPLAM METRAJI */}
+          {/* EN ÜST BAŞLIK */}
           <>
 
             <Box sx={{ ...css_enUstBaslik, borderLeft: "1px solid black", justifyContent: "start" }}>
               {selectedPoz.pozNo}
             </Box>
 
-            <Box sx={{ ...css_enUstBaslik, gridColumn: paraBirimiAdet > 0 ? `span ${2 + paraBirimiAdet}` : "span 1" }}>
+            <Box sx={{ ...css_enUstBaslik }}>
               {selectedPoz.pozName}
             </Box>
-
-            {/* {paraBirimiAdet > 0 &&
-              <>
-                <Box sx={{ backgroundColor: ayracRenk_bordo }}></Box>
-
-                <Box sx={{ ...css_enUstBaslik, gridColumn: `span ${paraBirimiAdet}`, justifyContent: "center" }}>
-                  Birim Fiyat
-                </Box>
-
-              </>
-            } */}
-
-            <Box sx={{ backgroundColor: ayracRenk_bordo }}>
-            </Box>
-
-            <Box sx={{ ...css_enUstBaslik, minWidth: "7rem", justifyContent: "center" }}>
-              Miktar
-            </Box>
-
-            {/* {paraBirimiAdet > 0 &&
-              <>
-                <Box sx={{ backgroundColor: ayracRenk_siyah }}></Box>
-
-                <Box sx={{ ...css_enUstBaslik, gridColumn: `span ${paraBirimiAdet}`, justifyContent: "center" }}>
-                  Tutar
-                </Box>
-
-              </>
-            } */}
-
-
-            <Box sx={{ backgroundColor: ayracRenk_bordo }}>
-            </Box>
-
-            <Box sx={{ ...css_enUstBaslik, justifyContent: "center" }}>
-              Keşif Miktar
-            </Box>
-
-            {paraBirimiAdet > 0 &&
-              <>
-                <Box sx={{ backgroundColor: ayracRenk_bordo }}></Box>
-
-                <Box sx={{ ...css_enUstBaslik, minWidth: "14rem", gridColumn: `span ${paraBirimiAdet}`, justifyContent: "center" }}>
-                  Keşif Tutar
-                </Box>
-
-              </>
-            }
 
           </>
 
 
-          {/* EN ÜST BAŞLIĞIN ALT SATIRI - HANGİ POZ İLE İŞLEM YAPILIYORSA - POZ İSMİ VE TOPLAM METRAJI */}
+          {/* EN ÜST BAŞLIĞIN ALT SATIRI */}
           <>
             <Box sx={{ ...css_enUstBaslik }}></Box>
 
-            <Box sx={{ ...css_enUstBaslik, borderLeft: "1px solid black", gridColumn: "span 1", justifyContent: "end", borderLeft: "1px solid black" }}>
-              B.Fiyat
+            <Box sx={{ ...css_enUstBaslik, borderLeft: "1px solid black" }}>
             </Box>
-
-
-            {paraBirimiAdet > 0 &&
-              <>
-                <Box sx={{ backgroundColor: ayracRenk_bordo }}></Box>
-                {selectedProje?.paraBirimleri?.filter(x => x.isActive).map((oneBirim, index) => {
-                  let fiyat = selectedPoz?.birimFiyatVersiyonlar?.birimFiyatlar?.find(x => x.id === oneBirim.id)?.fiyat
-                  return (
-                    <Box key={index} sx={{ ...css_enUstBaslik, justifyContent: "center" }}>
-                      {fiyat > 0 && ikiHane(fiyat)} {fiyat > 0 && (oneBirim.sembol ? oneBirim.sembol : oneBirim.id)}
-                    </Box>
-                  )
-                })}
-              </>
-            }
-
-            <Box sx={{ backgroundColor: ayracRenk_bordo }}>
-            </Box>
-
-            <Box sx={{ ...css_enUstBaslik, justifyContent: "end" }}>
-              {ikiHane(selectedPoz?.metrajOnaylanan)} {selectedPoz?.metrajOnaylanan > 0 && pozBirim}
-            </Box>
-
-
-            <Box sx={{ backgroundColor: ayracRenk_bordo }}>
-            </Box>
-
-            <Box sx={{ ...css_enUstBaslik, justifyContent: "end" }}>
-              {ikiHane(isPaketSelectedPozMetraj)} {isPaketSelectedPozMetraj > 0 && pozBirim}
-            </Box>
-
-            {paraBirimiAdet > 0 &&
-              <>
-                <Box sx={{ backgroundColor: ayracRenk_bordo }}></Box>
-                {selectedProje?.paraBirimleri?.filter(x => x.isActive).map((oneBirim, index) => {
-                  // let fiyat = selectedPoz?.birimFiyatlar?.find(x => x.id === oneBirim.id)?.fiyat
-                  let fiyat = selectedPoz?.birimFiyatVersiyonlar?.birimFiyatlar?.find(x => x.id === oneBirim.id)?.fiyat
-                  let tutar = isPaketSelectedPozMetraj > 0 && fiyat > 0 && isPaketSelectedPozMetraj * fiyat
-                  return (
-                    <Box key={index} sx={{ ...css_enUstBaslik, justifyContent: "end" }}>
-                      {tutar > 0 && ikiHane(tutar)}  {tutar > 0 && (oneBirim.sembol ? oneBirim.sembol : oneBirim.id)}
-                    </Box>
-                  )
-                })}
-              </>
-            }
 
           </>
 
@@ -637,43 +536,12 @@ export default function P_IsPaketPozMahaller() {
               <React.Fragment key={index}>
 
                 {/* LBS BAŞLIKLARI */}
-                <Box sx={{ ...css_LbsBaslik, borderLeft: "1px solid black", gridColumn: paraBirimiAdet > 0 ? `span ${3 + paraBirimiAdet}` : "span 2" }}>
+                <Box sx={{ ...css_LbsBaslik, borderLeft: "1px solid black" }}>
                   {getLbsName(oneLbs).name}
                 </Box>
 
-                <Box sx={{ ...css_LbsBaslik, borderLeft: "1px solid black", backgroundColor: ayracRenk_bordo }}>
+                <Box sx={{ ...css_LbsBaslik }}>
                 </Box>
-
-                <Box sx={{ ...css_LbsBaslik, justifyContent: "end", borderLeft: "1px solid black" }}>
-                  {ikiHane(lbsMetraj?.metrajOnaylanan)} {lbsMetraj?.metrajOnaylanan > 0 && pozBirim}
-                </Box>
-
-
-                <Box sx={{ ...css_LbsBaslik, borderLeft: "1px solid black", backgroundColor: ayracRenk_bordo }}>
-                </Box>
-
-                <Box sx={{ ...css_LbsBaslik, borderLeft: "1px solid black", justifyContent: "end" }}>
-                  {ikiHane(lbsMetrajSecili)} {lbsMetrajSecili > 0 && pozBirim}
-                </Box>
-
-                {paraBirimiAdet > 0 &&
-                  <>
-                    <Box sx={{ ...css_LbsBaslik, backgroundColor: ayracRenk_bordo }}></Box>
-                    {selectedProje?.paraBirimleri?.filter(x => x.isActive).map((oneBirim, index) => {
-
-                      let birimFiyat = selectedPoz?.birimFiyatlar?.find(x => x.id === oneBirim.id)
-                      let tutar = lbsMetrajSecili && lbsMetrajSecili * birimFiyat?.fiyat
-
-                      return (
-                        <Box key={index} sx={{ ...css_LbsBaslik, justifyContent: "end", borderLeft: index === 0 && "1px solid black" }}>
-                          {ikiHane(tutar)} {tutar > 0 && (oneBirim.sembol ? oneBirim.sembol : oneBirim.id)}
-                        </Box>
-                      )
-                    })}
-                  </>
-                }
-
-
 
                 {/* MAHAL SATIRLARI */}
                 {mahaller_byLbs?.map((oneMahal, index) => {
@@ -708,7 +576,7 @@ export default function P_IsPaketPozMahaller() {
                         {oneMahal.mahalNo}
                       </Box>
 
-                      <Box onClick={() => handleDugumToggle({ dugum, toggleValue: !isSelectedThis })} sx={{ ...css_mahaller, gridColumn: paraBirimiAdet > 0 ? `span ${2 + paraBirimiAdet}` : "span 1", backgroundColor: tip1_backgroundColor, cursor: "pointer", display: "grid", alignItems: "center", gridTemplateColumns: "1fr auto", "&:hover": { "& .childClass": { backgroundColor: "red" } } }}>
+                      <Box onClick={() => handleDugumToggle({ dugum, toggleValue: !isSelectedThis })} sx={{ ...css_mahaller, backgroundColor: tip1_backgroundColor, cursor: "pointer", display: "grid", alignItems: "center", gridTemplateColumns: "1fr auto", "&:hover": { "& .childClass": { backgroundColor: "red" } } }}>
 
                         <Box sx={{ justifySelf: "start", display: "grid", gridAutoFlow: "column", alignItems: "center" }}>
                           <Box>
@@ -723,36 +591,6 @@ export default function P_IsPaketPozMahaller() {
                         </Box>
 
                       </Box>
-
-                      <Box sx={{ backgroundColor: ayracRenk_bordo }}>
-                      </Box>
-
-                      <Box onClick={() => handleDugumToggle({ dugum, toggleValue: !isSelectedThis, dugum })} sx={{ ...css_mahaller, backgroundColor: tip1_backgroundColor, justifyContent: "end" }}>
-                        {theMetraj > 0 && ikiHane(theMetraj)} {theMetraj > 0 && pozBirim}
-                      </Box>
-
-                      <Box sx={{ backgroundColor: ayracRenk_bordo }}>
-                      </Box>
-
-                      <Box onClick={() => handleDugumToggle({ dugum, toggleValue: !isSelectedThis })} sx={{ ...css_mahaller, backgroundColor: tip1_backgroundColor, justifyContent: "end" }}>
-                        {isSelectedThis && theMetraj > 0 && ikiHane(theMetraj)} {isSelectedThis && theMetraj > 0 && pozBirim}
-                      </Box>
-
-                      {paraBirimiAdet > 0 &&
-                        <>
-                          <Box sx={{ backgroundColor: ayracRenk_bordo }}></Box>
-                          {selectedProje?.paraBirimleri?.filter(x => x.isActive).map((oneBirim, index) => {
-                            let birimFiyat = selectedPoz?.birimFiyatlar?.find(x => x.id === oneBirim.id)
-                            let tutar = isSelectedThis && theMetraj * birimFiyat?.fiyat
-
-                            return (
-                              <Box key={index} sx={{ ...css_mahaller, justifyContent: "end", backgroundColor: isSelectedThis ? color_selectedThis : isSelectedOther && color_selectedOther }}>
-                                {ikiHane(tutar)} {tutar > 0 && (oneBirim.sembol ? oneBirim.sembol : oneBirim.id)}
-                              </Box>
-                            )
-                          })}
-                        </>
-                      }
 
 
                     </React.Fragment>
