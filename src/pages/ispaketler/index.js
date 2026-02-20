@@ -112,7 +112,7 @@ export default function P_IsPaketler() {
   };
 
   const columns =
-    "max-content minmax(min-content, 20rem) repeat(4, max-content)";
+    "max-content minmax(min-content, 20rem) max-content";
 
   const requestProjeAktifYetkiliKisi = async ({ projeId, aktifYetki }) => {
     try {
@@ -484,14 +484,8 @@ export default function P_IsPaketler() {
                   sx={{ ...css_IsPaketlerBaslik, cursor: "pointer" }}
                   onClick={() => console.log("cliked")}
                 >
-                  Bütçe
+                  Düğüm Sayısı
                 </Box>
-
-                <Box sx={{ ...css_IsPaketlerBaslik }}>İş Sonu</Box>
-
-                <Box sx={{ ...css_IsPaketlerBaslik }}>Gerçekleşen</Box>
-
-                <Box sx={{ ...css_IsPaketlerBaslik }}>Kalan</Box>
               </React.Fragment>
 
               {/* iş paketleri verileri */}
@@ -543,12 +537,6 @@ export default function P_IsPaketler() {
                         onClick={() => goto_isPaketPozlar({ onePaket })}
                         sx={{ ...css_IsPaketler, cursor: "pointer" }}
                       ></Box>
-
-                      <Box sx={{ ...css_IsPaketler }}></Box>
-
-                      <Box sx={{ ...css_IsPaketler }}></Box>
-
-                      <Box sx={{ ...css_IsPaketler }}></Box>
                     </React.Fragment>
                   );
                 })}
@@ -616,13 +604,7 @@ export default function P_IsPaketler() {
 
                     <Box sx={{ ...css_IsPaketlerBaslik }}>İş Paketi</Box>
 
-                    <Box sx={{ ...css_IsPaketlerBaslik, cursor: "pointer" }} onClick={() => console.log("cliked")}>Bütçe</Box>
-
-                    <Box sx={{ ...css_IsPaketlerBaslik }}>İş Sonu</Box>
-
-                    <Box sx={{ ...css_IsPaketlerBaslik }}>Gerçekleşen</Box>
-
-                    <Box sx={{ ...css_IsPaketlerBaslik }}>Kalan</Box>
+                    <Box sx={{ ...css_IsPaketlerBaslik, cursor: "pointer" }} onClick={() => console.log("cliked")}>Düğüm Sayısı</Box>
                   </React.Fragment>
 
                   {/* iş paketleri verileri */}
@@ -679,12 +661,6 @@ export default function P_IsPaketler() {
                             onClick={() => goto_isPaketPozlar({ onePaket })}
                             sx={{ ...css_IsPaketler, cursor: "pointer" }}
                           ></Box>
-
-                          <Box sx={{ ...css_IsPaketler }}></Box>
-
-                          <Box sx={{ ...css_IsPaketler }}></Box>
-
-                          <Box sx={{ ...css_IsPaketler }}></Box>
                         </React.Fragment>
                       );
                     })}
