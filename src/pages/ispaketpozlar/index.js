@@ -219,8 +219,8 @@ export default function P_isPaketPozlar() {
 
 
   const goTo_isPaketPozMahaller = (onePoz) => {
-    navigate('/ispaketpozmahaller')
     setSelectedPoz(onePoz)
+    navigate('/ispaketpozmahaller')
   }
 
   let paraBirimiAdet = selectedProje?.paraBirimleri?.filter(x => x?.isActive).length
