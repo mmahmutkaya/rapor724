@@ -315,6 +315,7 @@ export default function P_IsPaketPozMahaller() {
   const gridTemplateColumns1 = `
     max-content
     minmax(min-content, 15rem)
+    minmax(min-content, 15rem)
   `
 
   // console.log("paraBirimiAdet",paraBirimiAdet)
@@ -399,7 +400,7 @@ export default function P_IsPaketPozMahaller() {
             sx={{ padding: "0.5rem 1rem", maxHeight: "5rem" }}
           >
 
-            {/* sol kısım (başlık) */}
+            {/* left side (header) */}
             <Grid item xs>
               <Box sx={{ display: "grid", gridAutoFlow: "column", alignItems: "center", justifyContent: "start", columnGap: "0.5rem" }}>
 
@@ -409,16 +410,16 @@ export default function P_IsPaketPozMahaller() {
                   <ReplyIcon variant="contained" sx={{ color: "gray" }} />
                 </IconButton>
 
-                <Box sx={{ fontSize: "1rem" }}>
-                  (V{selectedIsPaketVersiyon?.versiyonNumber}) - {selectedPoz?.pozName}
+                <Box>
+                  (V{selectedIsPaketVersiyon?.versiyonNumber}) - {selectedIsPaket?.name}
                 </Box>
 
               </Box>
             </Grid>
 
-            {/* sağ kısım - (tuşlar)*/}
+            {/* right side - (buttons)*/}
             <Grid item xs="auto">
-              <Grid container>
+              <Grid container spacing={1}>
 
                 {isChanged &&
                   <>
@@ -489,6 +490,10 @@ export default function P_IsPaketPozMahaller() {
               {selectedPoz.pozName}
             </Box>
 
+            <Box sx={{ ...css_enUstBaslik }}>
+              İş Paket
+            </Box>
+
           </>
 
 
@@ -496,7 +501,10 @@ export default function P_IsPaketPozMahaller() {
           <>
             <Box sx={{ ...css_enUstBaslik }}></Box>
 
-            <Box sx={{ ...css_enUstBaslik, borderLeft: "1px solid black" }}>
+            <Box sx={{ ...css_enUstBaslik }}>
+            </Box>
+
+            <Box sx={{ ...css_enUstBaslik }}>
             </Box>
 
           </>
@@ -538,6 +546,9 @@ export default function P_IsPaketPozMahaller() {
                 {/* LBS BAŞLIKLARI */}
                 <Box sx={{ ...css_LbsBaslik, borderLeft: "1px solid black" }}>
                   {getLbsName(oneLbs).name}
+                </Box>
+
+                <Box sx={{ ...css_LbsBaslik }}>
                 </Box>
 
                 <Box sx={{ ...css_LbsBaslik }}>
@@ -590,6 +601,10 @@ export default function P_IsPaketPozMahaller() {
                           <ReportProblemIcon sx={{ color: ayracRenk_bordo, fontSize: "1rem" }} />
                         </Box>
 
+                      </Box>
+
+                      <Box onClick={() => handleDugumToggle({ dugum, toggleValue: !isSelectedThis })} sx={{ ...css_mahaller, backgroundColor: tip1_backgroundColor, cursor: "pointer" }}>
+                        {selectedIsPaket?.name}
                       </Box>
 
 
