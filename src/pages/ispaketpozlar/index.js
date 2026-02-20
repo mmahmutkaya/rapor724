@@ -230,7 +230,6 @@ export default function P_isPaketPozlar() {
     max-content
     minmax(min-content, 25rem)
     max-content
-    max-content
     ${pozAciklamaShow ? " 0.5rem minmax(min-content, 2fr)" : ""}
     ${pozVersiyonShow ? " 0.5rem min-content" : ""}
   `
@@ -457,13 +456,8 @@ export default function P_isPaketPozlar() {
             </Box>
 
             <Box sx={{ ...enUstBaslik_css }}>
-              Miktar
+              Birim
             </Box>
-
-            <Box sx={{ ...enUstBaslik_css, justifyContent: "center" }}>
-              Kşf.Miktar
-            </Box>
-
 
             {/* BAŞLIK - AÇIKLAMA  */}
             {pozAciklamaShow &&
@@ -507,15 +501,8 @@ export default function P_isPaketPozlar() {
                     </Box>
                   </Box>
 
-                  {/* MİKTAR SUTUNU */}
                   <Box sx={{ ...wbsBaslik_css2 }}>
                   </Box>
-
-                  {/* KEŞİF MİKTAR SUTUNU */}
-                  <Box sx={{ ...wbsBaslik_css2 }}>
-                    {/* {ikiHane(lbsMetraj?.metrajOnaylanan)} {lbsMetraj?.metrajOnaylanan > 0 && pozBirim} */}
-                  </Box>
-
 
                   {/* BAŞLIK - AÇIKLAMA  */}
                   {pozAciklamaShow &&
@@ -566,20 +553,13 @@ export default function P_isPaketPozlar() {
                         </Box>
                       </Box>
 
+                      <Box sx={{ ...pozNo_css, justifyContent: "center" }}>
+                        {pozBirim}
+                      </Box>
+
                       {/* <Box sx={{ ...pozNo_css, justifyContent: "end" }}>
                         {ikiHane(onePoz?.metrajOnaylanan)}
                       </Box> */}
-
-
-                      {/* MİKTAR */}
-                      <Box sx={{ ...pozNo_css, pr: "0.4rem", justifyContent: "end" }}>
-                        {ikiHane(onePoz.metrajVersiyonlar.metrajOnaylanan)} {onePoz.metrajVersiyonlar.metrajOnaylanan > 0 && pozBirim}
-                      </Box>
-
-                      {/* KEŞİF MİKTAR */}
-                      <Box sx={{ ...pozNo_css, justifyContent: "end" }}>
-                        {ikiHane(onePoz?.kesifMiktar)} {onePoz?.kesifMiktar > 0 && pozBirim}
-                      </Box>
 
 
                       {/* BAŞLIK - POZ BİRİM  */}
