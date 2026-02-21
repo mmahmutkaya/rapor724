@@ -1,4 +1,3 @@
-
 import React, { useState, useContext, useEffect, Fragment } from 'react';
 import { useNavigate } from "react-router-dom";
 import { StoreContext } from '../../components/store.js'
@@ -302,7 +301,6 @@ export default function P_IsPaketPozMahaller() {
     display: "grid",
     fontWeight: "600",
     border: "1px solid black",
-    borderLeft: "none",
     py: "0.05rem",
     px: "0.5rem",
     justifyContent: "start",
@@ -312,16 +310,34 @@ export default function P_IsPaketPozMahaller() {
   }
 
   const css_LbsBaslik = {
-    border: "1px solid black", borderLeft: "none", mt: "1rem", px: "0.5rem", display: "grid", justifyContent: "start", backgroundColor: myTema.renkler.metrajOnaylananBaslik
+    border: "1px solid black",
+    borderRight: "1px solid black", // Restore right border for LBS header row
+    mt: "1rem",
+    px: "0.5rem",
+    display: "grid",
+    justifyContent: "start",
+    backgroundColor: myTema.renkler.metrajOnaylananBaslik
   }
 
   const css_mahaller = {
-    border: "1px solid black", px: "0.5rem", display: "grid", justifyContent: "start", alignItems: "center"
+    border: "1px solid black",
+    borderTop: "1px solid black", // Ensure top border is visible
+    borderRight: "1px solid black", // Ensure right border is visible
+    px: "0.5rem",
+    display: "grid",
+    justifyContent: "start",
+    alignItems: "center"
   }
 
   // used for centering content in third grid column
   const css_thirdCol = {
-    justifyContent: "center"
+    justifyContent: "center",
+    borderLeft: "1px solid black", // Ensure separation from column 2
+    borderRight: "1px solid black",
+    borderTop: "1px solid black",
+    borderBottom: "1px solid black",
+    paddingLeft: "1rem",
+    marginLeft: "1rem"
   }
 
   let paraBirimiAdet = selectedProje?.paraBirimleri?.filter(x => x?.isActive).length
@@ -580,23 +596,23 @@ export default function P_IsPaketPozMahaller() {
                     return
                   }
 
-                  let theMetraj = dugum.metrajOnaylanan
+                  // let theMetraj = dugum.metrajOnaylanan
 
-                  const rawIsPaketler = dugum.isPaketler || []
+                  // const isPaketler = dugum.isPaketler || []
 
-                  let isPaketler = []
-                  if (selectedIsPaketVersiyon === 0) {
-                    isPaketler = rawIsPaketler
-                  } else if (selectedIsPaketVersiyon?.versiyon !== undefined) {
-                    const versiyonData = dugum.isPaketVersiyonlar?.find(oneVersiyon => oneVersiyon.versiyon === selectedIsPaketVersiyon.versiyon)
-                    isPaketler = versiyonData?.isPaketler || []
-                  }
+                  // let isPaketler = []
+                  // if (selectedIsPaketVersiyon === 0) {
+                  //   isPaketler = rawIsPaketler
+                  // } else if (selectedIsPaketVersiyon?.versiyon !== undefined) {
+                  //   const versiyonData = dugum.isPaketVersiyonlar?.find(oneVersiyon => oneVersiyon.versiyon === selectedIsPaketVersiyon.versiyon)
+                  //   isPaketler = versiyonData?.isPaketler || []
+                  // }
 
-                  let isSelectedThis = isPaketler?.find(onePaket => onePaket._id.toString() === selectedIsPaket._id.toString())
+                  let isSelectedThis = dugum?.isPaketler?.find(onePaket => onePaket._id.toString() === selectedIsPaket._id.toString())
 
                   // When in paket-edit mode, determine "other" selection from the raw dugum.isPaketler
                   // so items that belong to other paketler (but not the selected one) appear grey.
-                  let isSelectedOther = (mode_isPaketEdit ? rawIsPaketler : isPaketler)?.filter(onePaket => onePaket._id.toString() !== selectedIsPaket._id.toString()).length > 0
+                  let isSelectedOther = dugum?.isPaketler?.filter(onePaket => onePaket._id.toString() !== selectedIsPaket._id.toString()).length > 0
 
                   let tip1_backgroundColor = isSelectedThis ? color_selectedThis : isSelectedOther ? color_selectedOther : "white"
 
@@ -626,7 +642,7 @@ export default function P_IsPaketPozMahaller() {
 
                       <Box onClick={() => handleDugumToggle({ dugum, toggleValue: !isSelectedThis })} sx={{ ...css_mahaller, backgroundColor: tip1_backgroundColor, cursor: "pointer", ...css_thirdCol }}>
                         {mode_isPaketEdit 
-                          ? (dugum.isPaketler?.length || 0)
+                          ? (dugum.isPaketler?.length || "")
                           : (isSelectedThis ? selectedIsPaket.name : "")
                         }
                       </Box>
