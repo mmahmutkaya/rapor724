@@ -25,6 +25,7 @@ import Button from '@mui/material/Button';
 import Grid from '@mui/material/Grid';
 import Input from '@mui/material/Input';
 import Alert from '@mui/material/Alert';
+import CircularProgress from '@mui/material/CircularProgress';
 import Stack from '@mui/material/Stack';
 import LinearProgress from '@mui/material/LinearProgress';
 import Box from '@mui/material/Box';
@@ -72,6 +73,7 @@ export default function P_BirimFiyat() {
   // const [mode_birimFiyatEdit, setMode_birimFiyatEdit] = useState(false)
   const { mode_birimFiyatEdit, setMode_birimFiyatEdit } = useContext(StoreContext)
   const [isChanged_para, setIsChanged_para] = useState()
+  const [isSaving_para, setIsSaving_para] = useState(false)
 
   const [basliklar, setBasliklar] = useState(appUser.customSettings.pages.birimfiyat.basliklar)
 
@@ -379,6 +381,7 @@ export default function P_BirimFiyat() {
   const save_para = async () => {
 
     if (isChanged_para) {
+      setIsSaving_para(true)
       try {
 
         let pozlar_newPara = pozlar_state.map(onePoz => {
@@ -427,7 +430,6 @@ export default function P_BirimFiyat() {
             onCloseAction: () => {
               queryClient.invalidateQueries(['dataPozlar'])
               setIsChanged_para()
-              setMode_birimFiyatEdit()
               setDialogAlert()
             }
           })
@@ -441,7 +443,6 @@ export default function P_BirimFiyat() {
 
         queryClient.invalidateQueries(['dataPozlar'])
         setIsChanged_para()
-        setMode_birimFiyatEdit()
 
         return
 
@@ -457,6 +458,8 @@ export default function P_BirimFiyat() {
             setDialogAlert()
           }
         })
+      } finally {
+        setIsSaving_para(false)
       }
     }
 
@@ -776,8 +779,8 @@ export default function P_BirimFiyat() {
                   </Grid>
 
                   <Grid item >
-                    <IconButton onClick={() => save_para()} disabled={!isChanged_para}>
-                      <SaveIcon variant="contained" />
+                    <IconButton onClick={() => save_para()} disabled={!isChanged_para || isSaving_para}>
+                      {isSaving_para ? <CircularProgress size={20} color="primary" /> : <SaveIcon variant="contained" />}
                     </IconButton>
                   </Grid>
 
@@ -797,7 +800,6 @@ export default function P_BirimFiyat() {
         </Grid>
 
       </Paper >
-
 
 
       {/* SAYFA İÇERİĞİ - ALTERNATİF-1 */}
