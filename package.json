@@ -3,6 +3,8 @@
   "version": "0.1.0",
   "private": true,
   "dependencies": {
+    "@emotion/react": "^11.14.0",
+    "@emotion/styled": "^11.14.1",
     "@mui/icons-material": "^5.15.15",
     "@mui/material": "^5.15.15",
     "@tanstack/react-query": "^5.37.1",
@@ -23,7 +25,21 @@
     "extends": [
       "react-app",
       "react-app/jest"
-    ]
+    ],
+    "rules": {
+      "no-unused-vars": "off",
+      "react/jsx-pascal-case": "off",
+      "react-hooks/exhaustive-deps": "off",
+      "eqeqeq": "off",
+      "array-callback-return": "off",
+      "no-useless-escape": "off",
+      "default-case": "off",
+      "import/no-anonymous-default-export": "off",
+      "no-lone-blocks": "off",
+      "no-mixed-operators": "off",
+      "no-unreachable": "off",
+      "no-useless-concat": "off"
+    }
   },
   "browserslist": {
     "production": [

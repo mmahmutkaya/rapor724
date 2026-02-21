@@ -569,7 +569,7 @@ export default function P_MetrajPozMahaller() {
 
           {/* EN ÜST BAŞLIĞIN ALT SATIRI - HANGİ POZ İLE İŞLEM YAPILIYORSA - POZ İSMİ VE TOPLAM METRAJI */}
           <>
-            <Box sx={{ ...css_enUstBaslik, borderLeft: "1px solid black", gridColumn: "1/3", justifyContent: "end", borderLeft: "1px solid black" }}>
+            <Box sx={{ ...css_enUstBaslik, borderLeft: "1px solid black", gridColumn: "1/3", justifyContent: "end" }}>
               Toplam Metraj
             </Box>
             <Box sx={{ ...css_enUstBaslik, justifyContent: "end" }}>
