@@ -282,7 +282,7 @@ export default function P_IsPaketler() {
           {/* sol kısım (başlık) */}
           <Grid item xs>
             <Typography
-              // nowrap={true}
+              noWrap
               variant="h6"
               fontWeight="bold"
             >
