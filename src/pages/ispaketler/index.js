@@ -435,9 +435,13 @@ export default function P_IsPaketler() {
 
       {show == "Main" && !isPaketler?.length > 0 && (
         <Stack sx={{ width: "100%", padding: "1rem" }} spacing={2}>
-          <Alert severity="info">
-            Bir iş paketi oluşturmak için (+) tuşuna basınız..
-          </Alert>
+          <Box sx={{ display: "grid", gridAutoFlow: "column", alignItems: "center", gap: "1rem", backgroundColor: "rgba(25, 118, 210, 0.12)", p: "1rem", borderRadius: "4px" }}>
+            <Box component="span" sx={{ display: "inline-flex", alignItems: "center", gap: "0.5rem", fontSize: "1rem" }}>
+              <Box component="span">Bir iş paketi oluşturmak için</Box>
+              <EditIcon sx={{ color: "#1976d2", fontSize: "1.25rem", verticalAlign: "middle" }} />
+              <Box component="span">butonuna basınız..</Box>
+            </Box>
+          </Box>
         </Stack>
       )}
 
