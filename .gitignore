@@ -2,3 +2,4 @@ node_modules
 mongorealm
 build
 mongorealm/functions/*.js
+tmpclaude-*
