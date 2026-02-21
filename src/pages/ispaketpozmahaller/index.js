@@ -198,12 +198,22 @@ export default function P_IsPaketPozMahaller() {
 
       if (oneDugum2._id.toString() === dugum._id.toString()) {
 
-        oneDugum2.newSelected = true
-        oneDugum2.newSelectedValue = toggleValue
-        oneDugum2.isPaketler = oneDugum2.isPaketler.filter(x => x._id.toString() !== selectedIsPaket._id.toString())
+        // Ensure isPaketler is always an array
+        const currentPaketler = Array.isArray(oneDugum2.isPaketler) ? oneDugum2.isPaketler : []
+        
+        // Check if selectedIsPaket is already in the array
+        const alreadySelected = currentPaketler.find(x => x._id.toString() === selectedIsPaket._id.toString())
 
-        if (toggleValue) {
-          oneDugum2.isPaketler = [...oneDugum2.isPaketler, { _id: selectedIsPaket._id }]
+        if (toggleValue && !alreadySelected) {
+          // TRUE: Add selectedIsPaket to isPaketler array
+          oneDugum2.isPaketler = [...currentPaketler, { _id: selectedIsPaket._id }]
+          oneDugum2.newSelected = true
+          oneDugum2.newSelectedValue = true
+        } else if (!toggleValue && alreadySelected) {
+          // FALSE: Remove selectedIsPaket from isPaketler array
+          oneDugum2.isPaketler = currentPaketler.filter(x => x._id.toString() !== selectedIsPaket._id.toString())
+          oneDugum2.newSelected = true
+          oneDugum2.newSelectedValue = false
         }
       }
 
