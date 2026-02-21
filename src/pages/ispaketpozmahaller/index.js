@@ -520,7 +520,7 @@ export default function P_IsPaketPozMahaller() {
               {selectedPoz.pozNo}
             </Box>
 
-            <Box sx={{ ...css_enUstBaslik }}>
+            <Box sx={{ ...css_enUstBaslik, borderLeft: "none" }}>
               {selectedPoz.pozName}
             </Box>
 
@@ -535,7 +535,7 @@ export default function P_IsPaketPozMahaller() {
           <>
             <Box sx={{ ...css_enUstBaslik }}></Box>
 
-            <Box sx={{ ...css_enUstBaslik }}>
+            <Box sx={{ ...css_enUstBaslik, borderLeft: "none" }}>
             </Box>
 
             <Box sx={{ ...css_enUstBaslik, ...css_thirdCol }}>
@@ -582,7 +582,7 @@ export default function P_IsPaketPozMahaller() {
                   {getLbsName(oneLbs).name}
                 </Box>
 
-                <Box sx={{ ...css_LbsBaslik }}>
+                <Box sx={{ ...css_LbsBaslik, borderLeft: "none" }}>
                 </Box>
 
                 <Box sx={{ ...css_LbsBaslik, ...css_thirdCol }}>
@@ -624,7 +624,7 @@ export default function P_IsPaketPozMahaller() {
                         {oneMahal.mahalNo}
                       </Box>
 
-                      <Box onClick={() => handleDugumToggle({ dugum, toggleValue: !isSelectedThis })} sx={{ ...css_mahaller, backgroundColor: tip1_backgroundColor, cursor: "pointer", display: "grid", alignItems: "center", gridTemplateColumns: "1fr auto", "&:hover": { "& .childClass": { backgroundColor: "red" } } }}>
+                      <Box onClick={() => handleDugumToggle({ dugum, toggleValue: !isSelectedThis })} sx={{ ...css_mahaller, backgroundColor: tip1_backgroundColor, cursor: "pointer", borderLeft: "none", display: "grid", alignItems: "center", gridTemplateColumns: "1fr auto", "&:hover": { "& .childClass": { backgroundColor: "red" } } }}>
 
                         <Box sx={{ justifySelf: "start", display: "grid", gridAutoFlow: "column", alignItems: "center" }}>
                           <Box>
