@@ -441,7 +441,7 @@ export default function P_BirimFiyat() {
 
         queryClient.invalidateQueries(['dataPozlar'])
         setIsChanged_para()
-        // setMode_birimFiyatEdit()
+        setMode_birimFiyatEdit()
 
         return
 

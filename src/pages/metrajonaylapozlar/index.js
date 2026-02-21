@@ -223,7 +223,7 @@ export default function P_MetrajOnaylaPozlar() {
 
 
       if (responseJson.ok) {
-        // setShow("Main")
+        setShow("Main")
         queryClient.invalidateQueries(['dataPozlar'])
         setMode_metrajOnayla(true)
       }
