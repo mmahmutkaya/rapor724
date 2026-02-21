@@ -13,7 +13,7 @@ import _ from 'lodash';
 import { useGetisPaketler } from '../../hooks/useMongo.js';
 
 
-import Paper from '@mui/material/Paper';
+import AppBar from '@mui/material/AppBar';
 import Grid from '@mui/material/Grid';
 import Alert from '@mui/material/Alert';
 import Stack from '@mui/material/Stack';
@@ -109,6 +109,9 @@ export default function P_IsPaketler() {
   const css_IsPaketler = {
     display: "grid", px: "0.5rem", border: "1px solid black", alignItems: "center"
   }
+
+  const headerIconButton_sx = { width: 40, height: 40 }
+  const headerIcon_sx = { fontSize: 24 }
 
 
   const columns = "max-content minmax(min-content, 20rem) repeat(5, max-content)"
@@ -270,7 +273,7 @@ export default function P_IsPaketler() {
 
 
       {/* BAŞLIK */}
-      <Paper >
+      <AppBar position="static" sx={{ backgroundColor: "white", color: "black", boxShadow: 4 }}>
         <Grid
           container
           justifyContent="space-between"
@@ -301,14 +304,14 @@ export default function P_IsPaketler() {
                 <>
 
                   <Box >
-                    <IconButton onClick={() => setShow("ShowBaslik")}>
-                      <VisibilityIcon variant="contained" />
+                    <IconButton onClick={() => setShow("ShowBaslik")} sx={headerIconButton_sx}>
+                      <VisibilityIcon variant="contained" sx={headerIcon_sx} />
                     </IconButton>
                   </Box>
 
                   <Box>
-                    <IconButton onClick={() => requestProjeAktifYetkiliKisi({ projeId: selectedProje?._id, aktifYetki: "isPaketEdit" })}>
-                      <EditIcon variant="contained" />
+                    <IconButton onClick={() => requestProjeAktifYetkiliKisi({ projeId: selectedProje?._id, aktifYetki: "isPaketEdit" })} sx={headerIconButton_sx}>
+                      <EditIcon variant="contained" sx={headerIcon_sx} />
                     </IconButton>
                   </Box>
 
@@ -359,14 +362,14 @@ export default function P_IsPaketler() {
                   <Grid item>
                     <IconButton onClick={() => {
                       deleteProjeAktifYetkiliKisi({ projeId: selectedProje?._id, aktifYetki: "isPaketEdit" })
-                    }}>
-                      <ClearOutlined variant="contained" color="error" />
+                    }} sx={headerIconButton_sx}>
+                      <ClearOutlined variant="contained" color="error" sx={headerIcon_sx} />
                     </IconButton>
                   </Grid>
 
                   <Box>
-                    <IconButton onClick={() => setShow("FormIsPaketCreate")} aria-label="addWbs">
-                      <AddCircleOutlineIcon variant="contained" color="success" />
+                    <IconButton onClick={() => setShow("FormIsPaketCreate")} aria-label="addWbs" sx={headerIconButton_sx}>
+                      <AddCircleOutlineIcon variant="contained" color="success" sx={headerIcon_sx} />
                     </IconButton>
                   </Box>
 
@@ -379,15 +382,15 @@ export default function P_IsPaketler() {
                   <Grid item>
                     <IconButton onClick={() => {
                       setSelectedIsPaket()
-                    }} aria-label="addWbs">
-                      <ClearOutlined variant="contained" color="error" />
+                    }} aria-label="addWbs" sx={headerIconButton_sx}>
+                      <ClearOutlined variant="contained" color="error" sx={headerIcon_sx} />
                     </IconButton>
                   </Grid>
 
                   <Grid item>
-                    <IconButton onClick={() => console.log("deleted clicked")} aria-label="addWbs">
+                    <IconButton onClick={() => console.log("deleted clicked")} aria-label="addWbs" sx={headerIconButton_sx}>
                       <DeleteIcon
-                        variant="contained" color="error"
+                        variant="contained" color="error" sx={headerIcon_sx}
                       />
                     </IconButton>
                   </Grid>
@@ -400,7 +403,7 @@ export default function P_IsPaketler() {
           </Grid>
 
         </Grid>
-      </Paper>
+      </AppBar>
 
 
       {

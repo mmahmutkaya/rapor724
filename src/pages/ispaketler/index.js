@@ -11,7 +11,7 @@ import _ from "lodash";
 
 import { useGetisPaketler } from "../../hooks/useMongo.js";
 
-import Paper from "@mui/material/Paper";
+import AppBar from "@mui/material/AppBar";
 import Grid from "@mui/material/Grid";
 import Alert from "@mui/material/Alert";
 import Stack from "@mui/material/Stack";
@@ -110,6 +110,9 @@ export default function P_IsPaketler() {
     border: "1px solid black",
     alignItems: "center",
   };
+
+  const headerIconButton_sx = { width: 40, height: 40 };
+  const headerIcon_sx = { fontSize: 24 };
 
   const columns =
     "max-content minmax(min-content, 20rem) max-content";
@@ -266,7 +269,10 @@ export default function P_IsPaketler() {
       )}
 
       {/* BAŞLIK */}
-      <Paper>
+      <AppBar
+        position="static"
+        sx={{ backgroundColor: "white", color: "black", boxShadow: 4 }}
+      >
         <Grid
           container
           justifyContent="space-between"
@@ -296,8 +302,8 @@ export default function P_IsPaketler() {
               {!selectedIsPaket && !mode_isPaketEdit && (
                 <>
                   <Box>
-                    <IconButton onClick={() => setShow("ShowBaslik")}>
-                      <VisibilityIcon variant="contained" />
+                    <IconButton onClick={() => setShow("ShowBaslik")} sx={headerIconButton_sx}>
+                      <VisibilityIcon variant="contained" sx={headerIcon_sx} />
                     </IconButton>
                   </Box>
 
@@ -309,8 +315,9 @@ export default function P_IsPaketler() {
                           aktifYetki: "isPaketEdit",
                         })
                       }
+                      sx={headerIconButton_sx}
                     >
-                      <EditIcon variant="contained" />
+                      <EditIcon variant="contained" sx={headerIcon_sx} />
                     </IconButton>
                   </Box>
 
@@ -368,8 +375,9 @@ export default function P_IsPaketler() {
                           aktifYetki: "isPaketEdit",
                         });
                       }}
+                      sx={headerIconButton_sx}
                     >
-                      <ClearOutlined variant="contained" color="error" />
+                      <ClearOutlined variant="contained" color="error" sx={headerIcon_sx} />
                     </IconButton>
                   </Grid>
 
@@ -377,10 +385,12 @@ export default function P_IsPaketler() {
                     <IconButton
                       onClick={() => setShow("FormIsPaketCreate")}
                       aria-label="addWbs"
+                      sx={headerIconButton_sx}
                     >
                       <AddCircleOutlineIcon
                         variant="contained"
                         color="success"
+                        sx={headerIcon_sx}
                       />
                     </IconButton>
                   </Box>
@@ -395,8 +405,9 @@ export default function P_IsPaketler() {
                         setSelectedIsPaket();
                       }}
                       aria-label="addWbs"
+                      sx={headerIconButton_sx}
                     >
-                      <ClearOutlined variant="contained" color="error" />
+                      <ClearOutlined variant="contained" color="error" sx={headerIcon_sx} />
                     </IconButton>
                   </Grid>
 
@@ -404,8 +415,9 @@ export default function P_IsPaketler() {
                     <IconButton
                       onClick={() => console.log("deleted clicked")}
                       aria-label="addWbs"
+                      sx={headerIconButton_sx}
                     >
-                      <DeleteIcon variant="contained" color="error" />
+                      <DeleteIcon variant="contained" color="error" sx={headerIcon_sx} />
                     </IconButton>
                   </Grid>
                 </>
@@ -413,7 +425,7 @@ export default function P_IsPaketler() {
             </Box>
           </Grid>
         </Grid>
-      </Paper>
+      </AppBar>
 
       {show == "FormIsPaketCreate" && (
         <Box>

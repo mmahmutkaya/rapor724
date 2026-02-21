@@ -582,6 +582,9 @@ export default function P_BirimFiyat() {
     px: "0.7rem"
   }
 
+  const headerIconButton_sx = { width: 40, height: 40 }
+  const headerIcon_sx = { fontSize: 24 }
+
 
 
   // GENEL - bir fonksiyon, ortak kullanılıyor olabilir
@@ -698,21 +701,21 @@ export default function P_BirimFiyat() {
                 <>
 
                   <Box>
-                    <IconButton onClick={() => setShow("ShowPozParaBirimleri")}>
-                      <CurrencyLiraIcon variant="contained" />
+                    <IconButton onClick={() => setShow("ShowPozParaBirimleri")} sx={headerIconButton_sx}>
+                      <CurrencyLiraIcon variant="contained" sx={headerIcon_sx} />
                     </IconButton>
                   </Box>
 
                   <Box>
-                    <IconButton onClick={() => setShow("ShowHideBaslik")} disabled={!anyBaslikShow}>
-                      <VisibilityIcon variant="contained" />
+                    <IconButton onClick={() => setShow("ShowHideBaslik")} disabled={!anyBaslikShow} sx={headerIconButton_sx}>
+                      <VisibilityIcon variant="contained" sx={headerIcon_sx} />
                     </IconButton>
                   </Box>
 
                   {paraBirimiAdet > 0 && birimFiyatEditable && !mode_birimFiyatEdit &&
                     <Box>
-                      <IconButton onClick={() => requestProjeAktifYetkiliKisi({ projeId: selectedProje?._id, aktifYetki: "birimFiyatEdit" })}>
-                        <EditIcon variant="contained" />
+                      <IconButton onClick={() => requestProjeAktifYetkiliKisi({ projeId: selectedProje?._id, aktifYetki: "birimFiyatEdit" })} sx={headerIconButton_sx}>
+                        <EditIcon variant="contained" sx={headerIcon_sx} />
                       </IconButton>
                     </Box>
                   }
@@ -773,8 +776,8 @@ export default function P_BirimFiyat() {
                         deleteProjeAktifYetkiliKisi({ projeId: selectedProje?._id, aktifYetki: "birimFiyatEdit" })
                         setMode_birimFiyatEdit()
                       }
-                    }} aria-label="lbsUncliced">
-                      <ClearOutlined variant="contained" sx={{ color: "red" }} />
+                    }} aria-label="lbsUncliced" sx={headerIconButton_sx}>
+                      <ClearOutlined variant="contained" sx={{ ...headerIcon_sx, color: "red" }} />
                     </IconButton>
                   </Grid>
 
@@ -782,10 +785,10 @@ export default function P_BirimFiyat() {
                     <IconButton
                       onClick={() => save_para()}
                       disabled={!isChanged_para || isSaving_para}
-                      sx={{ width: 40, height: 40 }}
+                      sx={headerIconButton_sx}
                     >
                       <Box sx={{ width: 24, height: 24, display: "grid", placeItems: "center" }}>
-                        {isSaving_para ? <CircularProgress size={20} color="primary" /> : <SaveIcon sx={{ fontSize: 24 }} />}
+                        {isSaving_para ? <CircularProgress size={20} color="primary" /> : <SaveIcon sx={headerIcon_sx} />}
                       </Box>
                     </IconButton>
                   </Grid>

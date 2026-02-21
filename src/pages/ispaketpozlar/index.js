@@ -272,6 +272,7 @@ export default function P_isPaketPozlar() {
           sx={{
             backgroundColor: "white",
             color: "black",
+            boxShadow: 4,
             width: { md: `calc(100% - ${drawerWidth}px)` },
             mt: topBarHeight,
             // pt:"3rem",
