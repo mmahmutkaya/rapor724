@@ -779,8 +779,14 @@ export default function P_BirimFiyat() {
                   </Grid>
 
                   <Grid item >
-                    <IconButton onClick={() => save_para()} disabled={!isChanged_para || isSaving_para}>
-                      {isSaving_para ? <CircularProgress size={20} color="primary" /> : <SaveIcon variant="contained" />}
+                    <IconButton
+                      onClick={() => save_para()}
+                      disabled={!isChanged_para || isSaving_para}
+                      sx={{ width: 40, height: 40 }}
+                    >
+                      <Box sx={{ width: 24, height: 24, display: "grid", placeItems: "center" }}>
+                        {isSaving_para ? <CircularProgress size={20} color="primary" /> : <SaveIcon sx={{ fontSize: 24 }} />}
+                      </Box>
                     </IconButton>
                   </Grid>
 
