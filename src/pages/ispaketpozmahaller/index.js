@@ -570,18 +570,21 @@ export default function P_IsPaketPozMahaller() {
 
                   let theMetraj = dugum.metrajOnaylanan
 
+                  const rawIsPaketler = dugum.isPaketler || []
+
                   let isPaketler = []
                   if (selectedIsPaketVersiyon === 0) {
-                    isPaketler = dugum.isPaketler || []
+                    isPaketler = rawIsPaketler
                   } else if (selectedIsPaketVersiyon?.versiyon !== undefined) {
                     const versiyonData = dugum.isPaketVersiyonlar?.find(oneVersiyon => oneVersiyon.versiyon === selectedIsPaketVersiyon.versiyon)
                     isPaketler = versiyonData?.isPaketler || []
                   }
-                  let isSelectedThis = isPaketler?.find(onePaket => onePaket._id.toString() === selectedIsPaket._id.toString())
-                  let isSelectedOther = isPaketler?.filter(onePaket => onePaket._id.toString() !== selectedIsPaket._id.toString()).length > 0
 
-                  // let isSelectedThis = false
-                  // let isSelectedOther = false
+                  let isSelectedThis = isPaketler?.find(onePaket => onePaket._id.toString() === selectedIsPaket._id.toString())
+
+                  // When in paket-edit mode, determine "other" selection from the raw dugum.isPaketler
+                  // so items that belong to other paketler (but not the selected one) appear grey.
+                  let isSelectedOther = (mode_isPaketEdit ? rawIsPaketler : isPaketler)?.filter(onePaket => onePaket._id.toString() !== selectedIsPaket._id.toString()).length > 0
 
                   let tip1_backgroundColor = isSelectedThis ? color_selectedThis : isSelectedOther ? color_selectedOther : "white"
 
