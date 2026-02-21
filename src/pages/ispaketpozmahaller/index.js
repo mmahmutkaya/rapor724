@@ -516,7 +516,7 @@ export default function P_IsPaketPozMahaller() {
           {/* EN ÜST BAŞLIK */}
           <>
 
-            <Box sx={{ ...css_enUstBaslik, borderLeft: "1px solid black", justifyContent: "start" }}>
+            <Box sx={{ ...css_enUstBaslik, borderLeft: "1px solid black", borderRight: "none", justifyContent: "start" }}>
               {selectedPoz.pozNo}
             </Box>
 
@@ -533,7 +533,7 @@ export default function P_IsPaketPozMahaller() {
 
           {/* EN ÜST BAŞLIĞIN ALT SATIRI */}
           <>
-            <Box sx={{ ...css_enUstBaslik }}></Box>
+            <Box sx={{ ...css_enUstBaslik, borderRight: "none" }}></Box>
 
             <Box sx={{ ...css_enUstBaslik }}>
             </Box>
@@ -578,7 +578,7 @@ export default function P_IsPaketPozMahaller() {
               <React.Fragment key={index}>
 
                 {/* LBS BAŞLIKLARI */}
-                <Box sx={{ ...css_LbsBaslik, borderLeft: "1px solid black" }}>
+                <Box sx={{ ...css_LbsBaslik, borderLeft: "1px solid black", borderRight: "none" }}>
                   {getLbsName(oneLbs).name}
                 </Box>
 
@@ -620,7 +620,7 @@ export default function P_IsPaketPozMahaller() {
                   return (
                     <React.Fragment key={index}>
 
-                      <Box onClick={() => handleDugumToggle({ dugum, toggleValue: !isSelectedThis })} sx={{ ...css_mahaller, backgroundColor: tip1_backgroundColor, borderLeft: "1px solid black" }}>
+                      <Box onClick={() => handleDugumToggle({ dugum, toggleValue: !isSelectedThis })} sx={{ ...css_mahaller, backgroundColor: tip1_backgroundColor, borderLeft: "1px solid black", borderRight: "none" }}>
                         {oneMahal.mahalNo}
                       </Box>
 
