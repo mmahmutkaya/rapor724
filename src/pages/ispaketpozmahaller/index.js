@@ -307,6 +307,11 @@ export default function P_IsPaketPozMahaller() {
     border: "1px solid black", px: "0.5rem", display: "grid", justifyContent: "start", alignItems: "center"
   }
 
+  // used for centering content in third grid column
+  const css_thirdCol = {
+    justifyContent: "center"
+  }
+
   let paraBirimiAdet = selectedProje?.paraBirimleri?.filter(x => x?.isActive).length
 
   // console.log("selectedProje?.paraBirimleri", selectedProje?.paraBirimleri)
@@ -316,7 +321,7 @@ export default function P_IsPaketPozMahaller() {
   const gridTemplateColumns1 = `
     max-content
     minmax(min-content, 15rem)
-    minmax(min-content, 15rem)
+    max-content
   `
 
   // console.log("paraBirimiAdet",paraBirimiAdet)
@@ -491,7 +496,7 @@ export default function P_IsPaketPozMahaller() {
               {selectedPoz.pozName}
             </Box>
 
-            <Box sx={{ ...css_enUstBaslik }}>
+            <Box sx={{ ...css_enUstBaslik, ...css_thirdCol }}>
               İş Paket
             </Box>
 
@@ -505,7 +510,7 @@ export default function P_IsPaketPozMahaller() {
             <Box sx={{ ...css_enUstBaslik }}>
             </Box>
 
-            <Box sx={{ ...css_enUstBaslik }}>
+            <Box sx={{ ...css_enUstBaslik, ...css_thirdCol }}>
             </Box>
 
           </>
@@ -552,7 +557,7 @@ export default function P_IsPaketPozMahaller() {
                 <Box sx={{ ...css_LbsBaslik }}>
                 </Box>
 
-                <Box sx={{ ...css_LbsBaslik }}>
+                <Box sx={{ ...css_LbsBaslik, ...css_thirdCol }}>
                 </Box>
 
                 {/* MAHAL SATIRLARI */}
@@ -604,7 +609,7 @@ export default function P_IsPaketPozMahaller() {
 
                       </Box>
 
-                      <Box onClick={() => handleDugumToggle({ dugum, toggleValue: !isSelectedThis })} sx={{ ...css_mahaller, backgroundColor: tip1_backgroundColor, cursor: "pointer" }}>
+                      <Box onClick={() => handleDugumToggle({ dugum, toggleValue: !isSelectedThis })} sx={{ ...css_mahaller, backgroundColor: tip1_backgroundColor, cursor: "pointer", ...css_thirdCol }}>
                         {mode_isPaketEdit 
                           ? (dugum.isPaketler?.length || 0)
                           : (isSelectedThis ? selectedIsPaket.name : "")
