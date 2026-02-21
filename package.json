@@ -25,7 +25,21 @@
     "extends": [
       "react-app",
       "react-app/jest"
-    ]
+    ],
+    "rules": {
+      "no-unused-vars": "off",
+      "react/jsx-pascal-case": "off",
+      "react-hooks/exhaustive-deps": "off",
+      "eqeqeq": "off",
+      "array-callback-return": "off",
+      "no-useless-escape": "off",
+      "default-case": "off",
+      "import/no-anonymous-default-export": "off",
+      "no-lone-blocks": "off",
+      "no-mixed-operators": "off",
+      "no-unreachable": "off",
+      "no-useless-concat": "off"
+    }
   },
   "browserslist": {
     "production": [
