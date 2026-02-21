@@ -316,7 +316,7 @@ export default function P_IsPaketPozMahaller() {
   const gridTemplateColumns1 = `
     max-content
     minmax(min-content, 15rem)
-    minmax(min-content, 15rem)
+    max-content
   `
 
   // console.log("paraBirimiAdet",paraBirimiAdet)
@@ -491,7 +491,7 @@ export default function P_IsPaketPozMahaller() {
               {selectedPoz.pozName}
             </Box>
 
-            <Box sx={{ ...css_enUstBaslik }}>
+            <Box sx={{ ...css_enUstBaslik, justifyContent: "center" }}>
               İş Paket
             </Box>
 
@@ -505,7 +505,7 @@ export default function P_IsPaketPozMahaller() {
             <Box sx={{ ...css_enUstBaslik }}>
             </Box>
 
-            <Box sx={{ ...css_enUstBaslik }}>
+            <Box sx={{ ...css_enUstBaslik, justifyContent: "center" }}>
             </Box>
 
           </>
@@ -552,7 +552,7 @@ export default function P_IsPaketPozMahaller() {
                 <Box sx={{ ...css_LbsBaslik }}>
                 </Box>
 
-                <Box sx={{ ...css_LbsBaslik }}>
+                <Box sx={{ ...css_LbsBaslik, justifyContent: "center" }}>
                 </Box>
 
                 {/* MAHAL SATIRLARI */}
@@ -604,7 +604,7 @@ export default function P_IsPaketPozMahaller() {
 
                       </Box>
 
-                      <Box onClick={() => handleDugumToggle({ dugum, toggleValue: !isSelectedThis })} sx={{ ...css_mahaller, backgroundColor: tip1_backgroundColor, cursor: "pointer" }}>
+                      <Box onClick={() => handleDugumToggle({ dugum, toggleValue: !isSelectedThis })} sx={{ ...css_mahaller, backgroundColor: tip1_backgroundColor, cursor: "pointer", justifyContent: "center" }}>
                         {mode_isPaketEdit 
                           ? (dugum.isPaketler?.length || 0)
                           : (isSelectedThis ? selectedIsPaket.name : "")
