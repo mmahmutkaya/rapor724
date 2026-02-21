@@ -316,7 +316,7 @@ export default function P_IsPaketPozMahaller() {
   const gridTemplateColumns1 = `
     max-content
     minmax(min-content, 15rem)
-    minmax(min-content, 15rem)
+    max-content
   `
 
   // console.log("paraBirimiAdet",paraBirimiAdet)
