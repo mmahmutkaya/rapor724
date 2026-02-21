@@ -605,21 +605,7 @@ export default function P_IsPaketPozMahaller() {
                       </Box>
 
                       <Box onClick={() => handleDugumToggle({ dugum, toggleValue: !isSelectedThis })} sx={{ ...css_mahaller, backgroundColor: tip1_backgroundColor, cursor: "pointer" }}>
-                        {(() => {
-                          console.log("Row 607-612 DEBUG:")
-                          console.log("mode_isPaketEdit:", mode_isPaketEdit)
-                          console.log("selectedIsPaket:", selectedIsPaket)
-                          console.log("selectedIsPaketVersiyon:", selectedIsPaketVersiyon)
-                          console.log("dugum.isPaketler:", dugum.isPaketler)
-                          console.log("dugum.isPaketVersiyonlar:", dugum.isPaketVersiyonlar)
-
-                          const result = mode_isPaketEdit
-                            ? dugum.isPaketler?.find(x => x._id.toString() === selectedIsPaket._id.toString())?.name
-                            : dugum.isPaketVersiyonlar?.find(v => v.versiyonNumber === selectedIsPaketVersiyon.versiyonNumber)?.isPaketler?.find(x => x._id.toString() === selectedIsPaket._id.toString())?.name
-
-                          console.log("Final result:", result)
-                          return result
-                        })()}
+                        {isSelectedThis ? selectedIsPaket.name : ""}
                       </Box>
 
 
