@@ -45,6 +45,7 @@ export default function P_IsPaketPozMahaller() {
   const { appUser, setAppUser, myTema } = useContext(StoreContext)
   const { drawerWidth, topBarHeight } = useContext(StoreContext)
   const { selectedProje, selectedIsPaketVersiyon, selectedIsPaket, selectedPoz } = useContext(StoreContext)
+  const { mode_isPaketEdit } = useContext(StoreContext)
 
 
   const [showEminMisin, setShowEminMisin] = useState(false)
@@ -604,7 +605,21 @@ export default function P_IsPaketPozMahaller() {
                       </Box>
 
                       <Box onClick={() => handleDugumToggle({ dugum, toggleValue: !isSelectedThis })} sx={{ ...css_mahaller, backgroundColor: tip1_backgroundColor, cursor: "pointer" }}>
-                        {selectedIsPaket?.name}
+                        {(() => {
+                          console.log("Row 607-612 DEBUG:")
+                          console.log("mode_isPaketEdit:", mode_isPaketEdit)
+                          console.log("selectedIsPaket:", selectedIsPaket)
+                          console.log("selectedIsPaketVersiyon:", selectedIsPaketVersiyon)
+                          console.log("dugum.isPaketler:", dugum.isPaketler)
+                          console.log("dugum.isPaketVersiyonlar:", dugum.isPaketVersiyonlar)
+
+                          const result = mode_isPaketEdit
+                            ? dugum.isPaketler?.find(x => x._id.toString() === selectedIsPaket._id.toString())?.name
+                            : dugum.isPaketVersiyonlar?.find(v => v.versiyonNumber === selectedIsPaketVersiyon.versiyonNumber)?.isPaketler?.find(x => x._id.toString() === selectedIsPaket._id.toString())?.name
+
+                          console.log("Final result:", result)
+                          return result
+                        })()}
                       </Box>
 
 
