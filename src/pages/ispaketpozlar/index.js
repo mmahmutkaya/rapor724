@@ -49,6 +49,7 @@ export default function P_isPaketPozlar() {
   const [wbsArray_state, setWbsArray_state] = useState()
 
   const [dialogAlert, setDialogAlert] = useState()
+  const [hoveredRow, setHoveredRow] = useState(null)
 
   const { appUser, setAppUser, RealmApp, myTema, drawerWidth, topBarHeight } = useContext(StoreContext)
   const { showMetrajYapabilenler, setShowMetrajYapabilenler } = useContext(StoreContext)
@@ -581,42 +582,43 @@ export default function P_isPaketPozlar() {
                   //   ?.find(x => x._id.toString() === onePoz._id.toString()).isPaketler_byVersiyon
                   //   ?.find(x => x._id.toString() === selectedIsPaket._id.toString())?.metrajOnaylanan
 
-                  let isSelected = false
-
-                  if (selectedPoz?._id.toString() === onePoz._id.toString()) {
-                    isSelected = true
+                  let isSelected = selectedPoz?._id.toString() === onePoz._id.toString()
+                  const isHovered = hoveredRow === onePoz._id.toString()
+                  const backgroundColor = isSelected ? "rgba(98, 210, 96, 0.22)" : "white"
+                  const rowBaseSx = { transition: "text-shadow 0.2s ease" }
+                  const hoverSx = isHovered ? { textShadow: "0 0 0.7px black, 0 0 0.7px black" } : {}
+                  const rowHandlers = {
+                    onMouseEnter: () => setHoveredRow(onePoz._id.toString()),
+                    onMouseLeave: () => setHoveredRow(null),
+                    onClick: () => goTo_isPaketPozMahaller(onePoz),
                   }
 
                   return (
                     <React.Fragment key={index} >
 
-                      <Box sx={{ ...pozNo_css }} >
+                      <Box {...rowHandlers} sx={{ ...pozNo_css, ...rowBaseSx, ...hoverSx, backgroundColor, cursor: "pointer", justifyContent: "center" }}>
                         {onePoz.pozNo}
                       </Box>
 
-                      <Box onClick={() => goTo_isPaketPozMahaller(onePoz)} sx={{ ...pozNo_css, cursor: "pointer", display: "grid", gridTemplateColumns: "1fr 1rem", "&:hover": { "& .childClass": { backgroundColor: "red" } } }}>
-                        <Box sx={{ justifySelf: "start" }}>
-                          {onePoz.pozName}
-                        </Box>
-                        <Box className="childClass" sx={{ ml: "-1rem", height: "0.5rem", width: "0.5rem", borderRadius: "50%" }}>
-                        </Box>
+                      <Box {...rowHandlers} sx={{ ...pozNo_css, ...rowBaseSx, ...hoverSx, backgroundColor, cursor: "pointer", justifyItems: "start" }}>
+                        {onePoz.pozName}
                       </Box>
 
-                      <Box sx={{ ...pozNo_css, justifyContent: "center" }}>
+                      <Box {...rowHandlers} sx={{ ...pozNo_css, ...rowBaseSx, ...hoverSx, backgroundColor, cursor: "pointer", justifyContent: "center" }}>
                         {pozBirim}
                       </Box>
 
                       <Box />
 
-                      <Box sx={{ ...pozNo_css, justifyContent: "center" }}>
+                      <Box {...rowHandlers} sx={{ ...pozNo_css, ...rowBaseSx, ...hoverSx, backgroundColor, cursor: "pointer", justifyContent: "center" }}>
                         {toplamDugum ?? ""}
                       </Box>
 
-                      <Box sx={{ ...pozNo_css, justifyContent: "center" }}>
+                      <Box {...rowHandlers} sx={{ ...pozNo_css, ...rowBaseSx, ...hoverSx, backgroundColor, cursor: "pointer", justifyContent: "center" }}>
                         {secilenDugum ?? ""}
                       </Box>
 
-                      <Box sx={{ ...pozNo_css, justifyContent: "center" }}>
+                      <Box {...rowHandlers} sx={{ ...pozNo_css, ...rowBaseSx, ...hoverSx, backgroundColor, cursor: "pointer", justifyContent: "center" }}>
                         {(toplamDugum != null && secilenDugum != null) ? toplamDugum - secilenDugum : ""}
                       </Box>
 

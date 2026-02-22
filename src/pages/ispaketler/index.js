@@ -27,7 +27,6 @@ import IconButton from "@mui/material/IconButton";
 import DeleteIcon from "@mui/icons-material/Delete";
 import AddCircleOutlineIcon from "@mui/icons-material/AddCircleOutline";
 import VisibilityIcon from "@mui/icons-material/Visibility";
-import LensIcon from "@mui/icons-material/Lens";
 import ClearOutlined from "@mui/icons-material/ClearOutlined";
 import InfoIcon from "@mui/icons-material/Info";
 import Avatar from "@mui/material/Avatar";
@@ -49,6 +48,7 @@ export default function P_IsPaketler() {
 
   const [dialogAlert, setDialogAlert] = useState();
   const [isPaketler, setIsPaketler] = useState([]);
+  const [hoveredRow, setHoveredRow] = useState(null);
 
   // const { data, error, isFetching } = useGetisPaketler()
   // console.log("isPaketler",isPaketler)
@@ -505,12 +505,16 @@ export default function P_IsPaketler() {
               {/* iş paketleri verileri */}
               {isPaketler.length > 0 &&
                 isPaketler.map((onePaket, index) => {
-                  let isPaketSelected;
-                  if (
-                    onePaket._id.toString() === selectedIsPaket?._id.toString()
-                  ) {
-                    isPaketSelected = true;
-                  }
+                  const isSelected = onePaket._id.toString() === selectedIsPaket?._id.toString();
+                  const isHovered = hoveredRow === onePaket._id.toString();
+                  const backgroundColor = isSelected ? "rgba(98, 210, 96, 0.22)" : "white";
+                  const rowBaseSx = { transition: "text-shadow 0.2s ease" };
+                  const hoverSx = isHovered ? { textShadow: "0 0 0.7px black, 0 0 0.7px black" } : {};
+                  const rowHandlers = {
+                    onMouseEnter: () => setHoveredRow(onePaket._id.toString()),
+                    onMouseLeave: () => setHoveredRow(null),
+                    onClick: () => goto_isPaketPozlar({ onePaket }),
+                  };
 
                   const pozSayisi =
                     dataIsPaketlerDugumler?.isPaketPozSayisi?.[onePaket._id.toString()] ?? "";
@@ -518,49 +522,19 @@ export default function P_IsPaketler() {
                   return (
                     // iş paketleri başlığı
                     <React.Fragment key={index}>
-                      <Box sx={{ ...css_IsPaketler, justifyContent: "center" }}>
+                      <Box {...rowHandlers} sx={{ ...css_IsPaketler, ...rowBaseSx, ...hoverSx, backgroundColor, justifyContent: "center", cursor: "pointer" }}>
                         {index + 1}
                       </Box>
 
-                      <Box
-                        onClick={() => {
-                          setSelectedIsPaket(onePaket);
-                        }}
-                        sx={{ ...css_IsPaketler, cursor: "pointer" }}
-                      >
-                        <Box
-                          sx={{
-                            display: "grid",
-                            gridAutoFlow: "column",
-                            gridTemplateColumns: "1fr auto",
-                          }}
-                        >
-                          <Box>{onePaket.name}</Box>
-                          {isPaketSelected && (
-                            <Box sx={{ display: "grid", alignItems: "center" }}>
-                              <LensIcon
-                                sx={{
-                                  color: "darkred",
-                                  fontSize: "0.6rem",
-                                  ml: "0.5rem",
-                                }}
-                              />
-                            </Box>
-                          )}
-                        </Box>
+                      <Box {...rowHandlers} sx={{ ...css_IsPaketler, ...rowBaseSx, ...hoverSx, backgroundColor, cursor: "pointer" }}>
+                        {onePaket.name}
                       </Box>
 
-                    <Box
-                        onClick={() => goto_isPaketPozlar({ onePaket })}
-                        sx={{ ...css_IsPaketler, cursor: "pointer", justifyContent: "center" }}
-                      >
+                      <Box {...rowHandlers} sx={{ ...css_IsPaketler, ...rowBaseSx, ...hoverSx, backgroundColor, cursor: "pointer", justifyContent: "center" }}>
                         {pozSayisi}
                       </Box>
 
-                    <Box
-                        onClick={() => goto_isPaketPozlar({ onePaket })}
-                        sx={{ ...css_IsPaketler, cursor: "pointer", justifyContent: "center" }}
-                      >
+                      <Box {...rowHandlers} sx={{ ...css_IsPaketler, ...rowBaseSx, ...hoverSx, backgroundColor, cursor: "pointer", justifyContent: "center" }}>
                         {dataIsPaketlerDugumler?.isPaketCounts?.[onePaket._id.toString()] ?? ""}
                       </Box>
                     </React.Fragment>
@@ -638,13 +612,16 @@ export default function P_IsPaketler() {
                   {/* iş paketleri verileri */}
                   {isPaketler.length > 0 &&
                     isPaketler.map((onePaket, index) => {
-                      let isPaketSelected;
-                      if (
-                        onePaket?._id.toString() ===
-                        selectedIsPaket?._id.toString()
-                      ) {
-                        isPaketSelected = true;
-                      }
+                      const isSelected = onePaket?._id.toString() === selectedIsPaket?._id.toString();
+                      const isHovered = hoveredRow === onePaket._id.toString();
+                      const backgroundColor = isSelected ? "rgba(98, 210, 96, 0.22)" : "white";
+                      const rowBaseSx = { transition: "text-shadow 0.2s ease" };
+                      const hoverSx = isHovered ? { textShadow: "0 0 0.7px black, 0 0 0.7px black" } : {};
+                      const rowHandlers = {
+                        onMouseEnter: () => setHoveredRow(onePaket._id.toString()),
+                        onMouseLeave: () => setHoveredRow(null),
+                        onClick: () => goto_isPaketPozlar({ onePaket }),
+                      };
 
                       const pozSayisi =
                         dataIsPaketlerDugumler?.isPaketPozSayisi?.[onePaket._id.toString()] ?? "";
@@ -652,53 +629,19 @@ export default function P_IsPaketler() {
                       return (
                         // iş paketleri başlığı
                         <React.Fragment key={index}>
-                          <Box
-                            sx={{ ...css_IsPaketler, justifyContent: "center" }}
-                          >
+                          <Box {...rowHandlers} sx={{ ...css_IsPaketler, ...rowBaseSx, ...hoverSx, backgroundColor, justifyContent: "center", cursor: "pointer" }}>
                             {index + 1}
                           </Box>
 
-                          <Box
-                            onClick={() => {
-                              setSelectedIsPaket(onePaket);
-                            }}
-                            sx={{ ...css_IsPaketler, cursor: "pointer" }}
-                          >
-                            <Box
-                              sx={{
-                                display: "grid",
-                                gridAutoFlow: "column",
-                                gridTemplateColumns: "1fr auto",
-                              }}
-                            >
-                              <Box>{onePaket.name}</Box>
-                              {isPaketSelected && (
-                                <Box
-                                  sx={{ display: "grid", alignItems: "center" }}
-                                >
-                                  <LensIcon
-                                    sx={{
-                                      color: "darkred",
-                                      fontSize: "0.6rem",
-                                      ml: "0.5rem",
-                                    }}
-                                  />
-                                </Box>
-                              )}
-                            </Box>
+                          <Box {...rowHandlers} sx={{ ...css_IsPaketler, ...rowBaseSx, ...hoverSx, backgroundColor, cursor: "pointer" }}>
+                            {onePaket.name}
                           </Box>
 
-                          <Box
-                            onClick={() => goto_isPaketPozlar({ onePaket })}
-                            sx={{ ...css_IsPaketler, cursor: "pointer", justifyContent: "center" }}
-                          >
+                          <Box {...rowHandlers} sx={{ ...css_IsPaketler, ...rowBaseSx, ...hoverSx, backgroundColor, cursor: "pointer", justifyContent: "center" }}>
                             {pozSayisi}
                           </Box>
 
-                          <Box
-                            onClick={() => goto_isPaketPozlar({ onePaket })}
-                            sx={{ ...css_IsPaketler, cursor: "pointer", justifyContent: "center" }}
-                          >
+                          <Box {...rowHandlers} sx={{ ...css_IsPaketler, ...rowBaseSx, ...hoverSx, backgroundColor, cursor: "pointer", justifyContent: "center" }}>
                             {dataIsPaketlerDugumler?.isPaketCounts?.[onePaket._id.toString()] ?? ""}
                           </Box>
                         </React.Fragment>
