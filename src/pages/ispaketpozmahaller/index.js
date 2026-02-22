@@ -62,6 +62,7 @@ export default function P_IsPaketPozMahaller() {
   const [anySelectable, setAnySelectable] = useState()
 
   const [mahaller_state, setMahaller_state] = useState()
+  const [hoveredRow, setHoveredRow] = useState(null)
 
   const [lbsMetrajlar, setLbsMetrajlar] = useState([])
   const [autoFocus, setAutoFocus] = useState({ baslikId: null, pozId: null })
@@ -612,31 +613,31 @@ export default function P_IsPaketPozMahaller() {
                   // so items that belong to other paketler (but not the selected one) appear grey.
                   let isSelectedOther = dugum?.isPaketler?.filter(onePaket => onePaket._id.toString() !== selectedIsPaket._id.toString()).length > 0
 
-                  let tip1_backgroundColor = isSelectedThis ? color_selectedThis : isSelectedOther ? color_selectedOther : "white"
+                  const isHovered = hoveredRow === dugum._id.toString()
+                  const tip1_backgroundColor = isSelectedThis ? color_selectedThis : isSelectedOther ? color_selectedOther : "white"
+                  const rowBaseSx = { transition: "text-shadow 0.2s ease" }
+                  const hoverSx = isHovered ? { textShadow: "0 0 0.7px black, 0 0 0.7px black" } : {}
 
+                  const rowHandlers = {
+                    onMouseEnter: () => setHoveredRow(dugum._id.toString()),
+                    onMouseLeave: () => setHoveredRow(null),
+                    onClick: () => handleDugumToggle({ dugum, toggleValue: !isSelectedThis }),
+                  }
 
                   return (
                     <React.Fragment key={index}>
 
-                      <Box onClick={() => handleDugumToggle({ dugum, toggleValue: !isSelectedThis })} sx={{ ...css_mahaller, backgroundColor: tip1_backgroundColor, borderLeft: "1px solid black" }}>
+                      <Box {...rowHandlers} sx={{ ...css_mahaller, ...rowBaseSx, ...hoverSx, backgroundColor: tip1_backgroundColor, borderLeft: "1px solid black", cursor: "pointer" }}>
                         {oneMahal.mahalNo}
                       </Box>
 
-                      <Box onClick={() => handleDugumToggle({ dugum, toggleValue: !isSelectedThis })} sx={{ ...css_mahaller, backgroundColor: tip1_backgroundColor, cursor: "pointer", display: "grid", alignItems: "center", gridTemplateColumns: "1fr auto", "&:hover": { "& .childClass": { backgroundColor: "red" } } }}>
-
-                        <Box sx={{ justifySelf: "start", display: "grid", gridAutoFlow: "column", alignItems: "center" }}>
-                          <Box>
-                            {oneMahal.mahalName}
-                          </Box>
-                          <Box className="childClass" sx={{ ml: "0.5rem", height: "0.5rem", width: "0.5rem", borderRadius: "50%" }}>
-                          </Box>
-                        </Box>
-
+                      <Box {...rowHandlers} sx={{ ...css_mahaller, ...rowBaseSx, ...hoverSx, backgroundColor: tip1_backgroundColor, cursor: "pointer" }}>
+                        {oneMahal.mahalName}
                       </Box>
 
-                      <Box onClick={() => handleDugumToggle({ dugum, toggleValue: !isSelectedThis })} sx={{ ...css_mahaller, backgroundColor: tip1_backgroundColor, cursor: "pointer", ...css_thirdCol, display: "grid", gridTemplateColumns: "1fr auto", alignItems: "center" }}>
+                      <Box {...rowHandlers} sx={{ ...css_mahaller, ...rowBaseSx, ...hoverSx, backgroundColor: tip1_backgroundColor, cursor: "pointer", ...css_thirdCol, display: "grid", gridTemplateColumns: "1fr auto", alignItems: "center" }}>
                         <Box sx={{ justifySelf: "end" }}>
-                          {mode_isPaketEdit 
+                          {mode_isPaketEdit
                             ? (dugum.isPaketler?.length || "")
                             : (isSelectedThis ? selectedIsPaket.name : "")
                           }
