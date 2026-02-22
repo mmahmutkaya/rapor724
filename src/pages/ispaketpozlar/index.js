@@ -245,6 +245,7 @@ export default function P_isPaketPozlar() {
     1rem
     max-content
     max-content
+    max-content
     ${pozAciklamaShow ? " 0.5rem minmax(min-content, 2fr)" : ""}
     ${pozVersiyonShow ? " 0.5rem min-content" : ""}
   `
@@ -485,6 +486,10 @@ export default function P_isPaketPozlar() {
               Seçilen Düğüm
             </Box>
 
+            <Box sx={{ ...enUstBaslik_css }}>
+              Kalan Düğüm
+            </Box>
+
             {/* BAŞLIK - AÇIKLAMA  */}
             {pozAciklamaShow &&
               <>
@@ -531,6 +536,9 @@ export default function P_isPaketPozlar() {
                   </Box>
 
                   <Box />
+
+                  <Box sx={{ ...wbsBaslik_css2 }}>
+                  </Box>
 
                   <Box sx={{ ...wbsBaslik_css2 }}>
                   </Box>
@@ -606,6 +614,10 @@ export default function P_isPaketPozlar() {
 
                       <Box sx={{ ...pozNo_css, justifyContent: "center" }}>
                         {secilenDugum ?? ""}
+                      </Box>
+
+                      <Box sx={{ ...pozNo_css, justifyContent: "center" }}>
+                        {(toplamDugum != null && secilenDugum != null) ? toplamDugum - secilenDugum : ""}
                       </Box>
 
                       {/* <Box sx={{ ...pozNo_css, justifyContent: "end" }}>
