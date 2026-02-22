@@ -10,6 +10,7 @@ import { useQueryClient } from "@tanstack/react-query";
 import _ from "lodash";
 
 import { useGetisPaketler } from "../../hooks/useMongo.js";
+import { useGetIsPaketlerDugumler } from "../../hooks/useMongo.js";
 
 import AppBar from "@mui/material/AppBar";
 import Grid from "@mui/material/Grid";
@@ -55,6 +56,8 @@ export default function P_IsPaketler() {
   const [basliklar, setBasliklar] = useState(
     appUser.customSettings.pages.ispaketler.basliklar,
   );
+
+  const { data: dataIsPaketlerDugumler } = useGetIsPaketlerDugumler();
 
   const navigate = useNavigate();
 
@@ -115,7 +118,7 @@ export default function P_IsPaketler() {
   const headerIcon_sx = { fontSize: 24 };
 
   const columns =
-    "max-content minmax(min-content, 20rem) max-content";
+    "max-content minmax(min-content, 20rem) max-content max-content";
 
   const requestProjeAktifYetkiliKisi = async ({ projeId, aktifYetki }) => {
     try {
@@ -492,11 +495,10 @@ export default function P_IsPaketler() {
 
                 <Box sx={{ ...css_IsPaketlerBaslik }}>İş Paketi</Box>
 
-                <Box
-                  sx={{ ...css_IsPaketlerBaslik, cursor: "pointer" }}
-                  onClick={() => console.log("cliked")}
-                >
-                  Düğüm Sayısı
+                <Box sx={{ ...css_IsPaketlerBaslik }}>Poz Sayısı</Box>
+
+                <Box sx={{ ...css_IsPaketlerBaslik }}>
+                  Seçilen Düğüm
                 </Box>
               </React.Fragment>
 
@@ -509,6 +511,9 @@ export default function P_IsPaketler() {
                   ) {
                     isPaketSelected = true;
                   }
+
+                  const pozSayisi =
+                    dataIsPaketlerDugumler?.isPaketPozSayisi?.[onePaket._id.toString()] ?? "";
 
                   return (
                     // iş paketleri başlığı
@@ -545,10 +550,19 @@ export default function P_IsPaketler() {
                         </Box>
                       </Box>
 
-                      <Box
+                    <Box
                         onClick={() => goto_isPaketPozlar({ onePaket })}
-                        sx={{ ...css_IsPaketler, cursor: "pointer" }}
-                      ></Box>
+                        sx={{ ...css_IsPaketler, cursor: "pointer", justifyContent: "center" }}
+                      >
+                        {pozSayisi}
+                      </Box>
+
+                    <Box
+                        onClick={() => goto_isPaketPozlar({ onePaket })}
+                        sx={{ ...css_IsPaketler, cursor: "pointer", justifyContent: "center" }}
+                      >
+                        {dataIsPaketlerDugumler?.isPaketCounts?.[onePaket._id.toString()] ?? ""}
+                      </Box>
                     </React.Fragment>
                   );
                 })}
@@ -616,7 +630,9 @@ export default function P_IsPaketler() {
 
                     <Box sx={{ ...css_IsPaketlerBaslik }}>İş Paketi</Box>
 
-                    <Box sx={{ ...css_IsPaketlerBaslik, cursor: "pointer" }} onClick={() => console.log("cliked")}>Düğüm Sayısı</Box>
+                    <Box sx={{ ...css_IsPaketlerBaslik }}>Poz Sayısı</Box>
+
+                    <Box sx={{ ...css_IsPaketlerBaslik }}>Seçilen Düğüm</Box>
                   </React.Fragment>
 
                   {/* iş paketleri verileri */}
@@ -629,6 +645,9 @@ export default function P_IsPaketler() {
                       ) {
                         isPaketSelected = true;
                       }
+
+                      const pozSayisi =
+                        dataIsPaketlerDugumler?.isPaketPozSayisi?.[onePaket._id.toString()] ?? "";
 
                       return (
                         // iş paketleri başlığı
@@ -671,8 +690,17 @@ export default function P_IsPaketler() {
 
                           <Box
                             onClick={() => goto_isPaketPozlar({ onePaket })}
-                            sx={{ ...css_IsPaketler, cursor: "pointer" }}
-                          ></Box>
+                            sx={{ ...css_IsPaketler, cursor: "pointer", justifyContent: "center" }}
+                          >
+                            {pozSayisi}
+                          </Box>
+
+                          <Box
+                            onClick={() => goto_isPaketPozlar({ onePaket })}
+                            sx={{ ...css_IsPaketler, cursor: "pointer", justifyContent: "center" }}
+                          >
+                            {dataIsPaketlerDugumler?.isPaketCounts?.[onePaket._id.toString()] ?? ""}
+                          </Box>
                         </React.Fragment>
                       );
                     })}

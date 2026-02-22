@@ -1,0 +1,39 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "Start Frontend (3000)",
+      "type": "shell",
+      "command": "npm start",
+      "options": {
+        "cwd": "${workspaceFolder}"
+      },
+      "runOptions": {
+        "runOn": "folderOpen"
+      },
+      "presentation": {
+        "group": "servers",
+        "panel": "dedicated",
+        "reveal": "always"
+      },
+      "problemMatcher": []
+    },
+    {
+      "label": "Start Backend (4000)",
+      "type": "shell",
+      "command": "npm run dev",
+      "options": {
+        "cwd": "C:\\mahmut\\excelMongo"
+      },
+      "runOptions": {
+        "runOn": "folderOpen"
+      },
+      "presentation": {
+        "group": "servers",
+        "panel": "dedicated",
+        "reveal": "always"
+      },
+      "problemMatcher": []
+    }
+  ]
+}

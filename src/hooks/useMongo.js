@@ -283,6 +283,45 @@ export const useGetPozlar = () => {
 }
 
 
+export const useGetIsPaketlerDugumler = () => {
+
+  const navigate = useNavigate()
+  const { appUser, setAppUser, selectedProje } = useContext(StoreContext)
+
+  return useQuery({
+    queryKey: ['dataIsPaketlerDugumler', selectedProje?._id?.toString()],
+    queryFn: async () => {
+      const response = await fetch(process.env.REACT_APP_BASE_URL + '/api/pozlar/ispaketlerdugumler', {
+        method: 'GET',
+        headers: {
+          email: appUser.email,
+          token: appUser.token,
+          projeid: selectedProje?._id,
+          'Content-Type': 'application/json'
+        }
+      })
+
+      const responseJson = await response.json()
+
+      if (responseJson.error) {
+        if (responseJson.error.includes("expired")) {
+          setAppUser()
+          localStorage.removeItem('appUser')
+          navigate('/')
+          window.location.reload()
+        }
+        throw new Error(responseJson.error)
+      }
+
+      return responseJson
+    },
+    enabled: !!appUser && !!selectedProje,
+    refetchOnMount: true,
+    refetchOnWindowFocus: false
+  })
+
+}
+
 
 
 
