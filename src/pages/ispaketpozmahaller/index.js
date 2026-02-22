@@ -189,8 +189,6 @@ export default function P_IsPaketPozMahaller() {
 
   const handleDugumToggle = ({ dugum, toggleValue }) => {
 
-    console.log("handleDugumToggle", { dugum, toggleValue })
-
     let dugumler_byPoz_state2 = _.cloneDeep(dugumler_byPoz_state)
 
     dugumler_byPoz_state2 = dugumler_byPoz_state2.map(oneDugum2 => {
