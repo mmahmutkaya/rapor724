@@ -226,21 +226,27 @@ export const useGetProjeler_byFirma = () => {
 export const useGetPozlar = () => {
 
   const navigate = useNavigate()
-  const { appUser, setAppUser, selectedProje, setSelectedProje, selectedBirimFiyatVersiyon, setSelectedBirimFiyatVersiyon, selectedMetrajVersiyon, setSelectedMetrajVersiyon } = useContext(StoreContext)
+  const { appUser, setAppUser, selectedProje, setSelectedProje, selectedBirimFiyatVersiyon, setSelectedBirimFiyatVersiyon, selectedMetrajVersiyon, setSelectedMetrajVersiyon, selectedIsPaket, selectedIsPaketVersiyon } = useContext(StoreContext)
 
   return useQuery({
     queryKey: ['dataPozlar'],
     queryFn: async () => {
-      const response = await fetch(process.env.REACT_APP_BASE_URL + '/api/pozlar', {
-        method: 'GET',
-        headers: {
+      const headers = {
           email: appUser.email,
           token: appUser.token,
           projeid: selectedProje?._id,
           selectedBirimFiyatVersiyonNumber: selectedBirimFiyatVersiyon ? selectedBirimFiyatVersiyon?.versiyonNumber : null,
           selectedMetrajVersiyonNumber: selectedMetrajVersiyon ? selectedMetrajVersiyon?.versiyonNumber : null,
           'Content-Type': 'application/json'
-        }
+      }
+      if (selectedIsPaket?._id) {
+        headers.ispaketid = selectedIsPaket._id
+        headers.ispaketversiyonnumber = selectedIsPaketVersiyon?.versiyonNumber
+      }
+
+      const response = await fetch(process.env.REACT_APP_BASE_URL + '/api/pozlar', {
+        method: 'GET',
+        headers
       })
 
       const responseJson = await response.json()

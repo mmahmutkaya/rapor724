@@ -566,8 +566,8 @@ export default function P_isPaketPozlar() {
                     ?.find(x => x._id.toString() === onePoz._id.toString())?.isPaketler_byVersiyon
                     ?.find(x => x._id.toString() === selectedIsPaket._id.toString())
 
-                  let toplamDugum = isPaketMetraj?.toplamDugum
-                  let secilenDugum = isPaketMetraj?.secilenDugum
+                  let toplamDugum = onePoz.toplamDugum
+                  let secilenDugum = onePoz.secilenDugum
 
                   // let paketPozMetraj = IsPaketPozMetrajlar_state
                   //   ?.find(x => x._id.toString() === onePoz._id.toString()).isPaketler_byVersiyon
