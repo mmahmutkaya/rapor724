@@ -637,7 +637,7 @@ export default function P_IsPaketPozMahaller() {
                       </Box>
 
                       <Box onClick={() => handleDugumToggle({ dugum, toggleValue: !isSelectedThis })} sx={{ ...css_mahaller, backgroundColor: tip1_backgroundColor, cursor: "pointer", ...css_thirdCol, display: "grid", gridTemplateColumns: "1fr auto", alignItems: "center" }}>
-                        <Box sx={{ justifySelf: "start" }}>
+                        <Box sx={{ justifySelf: "end" }}>
                           {mode_isPaketEdit 
                             ? (dugum.isPaketler?.length || "")
                             : (isSelectedThis ? selectedIsPaket.name : "")
