@@ -634,17 +634,18 @@ export default function P_IsPaketPozMahaller() {
                           </Box>
                         </Box>
 
-                        <Box sx={{ display: isSelectedThis && isSelectedOther ? "grid" : "none", alignItems: "center" }}>
-                          <ReportProblemIcon sx={{ color: ayracRenk_bordo, fontSize: "1rem" }} />
-                        </Box>
-
                       </Box>
 
-                      <Box onClick={() => handleDugumToggle({ dugum, toggleValue: !isSelectedThis })} sx={{ ...css_mahaller, backgroundColor: tip1_backgroundColor, cursor: "pointer", ...css_thirdCol }}>
-                        {mode_isPaketEdit 
-                          ? (dugum.isPaketler?.length || "")
-                          : (isSelectedThis ? selectedIsPaket.name : "")
-                        }
+                      <Box onClick={() => handleDugumToggle({ dugum, toggleValue: !isSelectedThis })} sx={{ ...css_mahaller, backgroundColor: tip1_backgroundColor, cursor: "pointer", ...css_thirdCol, display: "grid", gridTemplateColumns: "1fr auto", alignItems: "center" }}>
+                        <Box sx={{ justifySelf: "start" }}>
+                          {mode_isPaketEdit 
+                            ? (dugum.isPaketler?.length || "")
+                            : (isSelectedThis ? selectedIsPaket.name : "")
+                          }
+                        </Box>
+                        <Box sx={{ display: isSelectedThis && isSelectedOther ? "grid" : "none", alignItems: "center", justifySelf: "end", minWidth: "2rem" }}>
+                          <ReportProblemIcon sx={{ color: ayracRenk_bordo, fontSize: "1rem" }} />
+                        </Box>
                       </Box>
 
 
