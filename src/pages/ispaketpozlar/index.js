@@ -218,8 +218,29 @@ export default function P_isPaketPozlar() {
   const wbsBaslik_css2 = {
     display: "grid",
     backgroundColor: myTema.renkler.baslik2,
+    fontWeight: 600,
     border: "1px solid black",
     mt: "1rem",
+    px: "0.7rem"
+  }
+
+  const wbsToplamBaslik_css = {
+    display: "grid",
+    alignItems: "center",
+    justifyItems: "start",
+    backgroundColor: myTema.renkler.baslik2,
+    fontWeight: 600,
+    pl: "0.5rem",
+    border: "1px solid black",
+    px: "0.7rem"
+  }
+
+  const wbsToplamBaslik_css2 = {
+    display: "grid",
+    alignItems: "center",
+    justifyItems: "center",
+    backgroundColor: myTema.renkler.baslik2,
+    border: "1px solid black",
     px: "0.7rem"
   }
 
@@ -519,6 +540,46 @@ export default function P_isPaketPozlar() {
           </>
 
 
+          {/* EN ÜST BAŞLIK TOPLAM SATIRI */}
+          <>
+
+            <Box sx={{ ...enUstBaslik_css, gridColumn: "1/4", justifyItems: "start" }}>
+            </Box>
+
+            <Box />
+
+            <Box sx={{ ...enUstBaslik_css }}>
+              {pozlar_state?.reduce((sum, p) => sum + (p.toplamDugum || 0), 0) || ""}
+            </Box>
+
+            <Box sx={{ ...enUstBaslik_css }}>
+              {pozlar_state?.reduce((sum, p) => sum + (p.secilenDugum || 0), 0) || ""}
+            </Box>
+
+            <Box sx={{ ...enUstBaslik_css }}>
+              {(() => {
+                const t = pozlar_state?.reduce((sum, p) => sum + (p.toplamDugum || 0), 0) || 0
+                const s = pozlar_state?.reduce((sum, p) => sum + (p.secilenDugum || 0), 0) || 0
+                return (t - s) || ""
+              })()}
+            </Box>
+
+            {pozAciklamaShow &&
+              <>
+                <Box></Box>
+                <Box sx={{ ...enUstBaslik_css }} />
+              </>
+            }
+
+            {pozVersiyonShow &&
+              <>
+                <Box></Box>
+                <Box sx={{ ...enUstBaslik_css }} />
+              </>
+            }
+
+          </>
+
 
           {/* WBS BAŞLIĞI ve ALTINDA POZLARI*/}
 
@@ -542,13 +603,21 @@ export default function P_isPaketPozlar() {
 
                   <Box />
 
-                  <Box sx={{ ...wbsBaslik_css2 }}>
+                  <Box sx={{ ...wbsBaslik_css2, justifyItems: "center" }}>
+                    {pozlar_state?.filter(p => p._wbsId.toString() === oneWbs._id.toString()).reduce((sum, p) => sum + (p.toplamDugum || 0), 0) || ""}
                   </Box>
 
-                  <Box sx={{ ...wbsBaslik_css2 }}>
+                  <Box sx={{ ...wbsBaslik_css2, justifyItems: "center" }}>
+                    {pozlar_state?.filter(p => p._wbsId.toString() === oneWbs._id.toString()).reduce((sum, p) => sum + (p.secilenDugum || 0), 0) || ""}
                   </Box>
 
-                  <Box sx={{ ...wbsBaslik_css2 }}>
+                  <Box sx={{ ...wbsBaslik_css2, justifyItems: "center" }}>
+                    {(() => {
+                      const wbsPozlar = pozlar_state?.filter(p => p._wbsId.toString() === oneWbs._id.toString())
+                      const t = wbsPozlar?.reduce((sum, p) => sum + (p.toplamDugum || 0), 0) || 0
+                      const s = wbsPozlar?.reduce((sum, p) => sum + (p.secilenDugum || 0), 0) || 0
+                      return (t - s) || ""
+                    })()}
                   </Box>
 
                   {/* BAŞLIK - AÇIKLAMA  */}
