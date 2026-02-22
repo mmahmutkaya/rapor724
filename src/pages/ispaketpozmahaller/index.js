@@ -48,7 +48,7 @@ export default function P_IsPaketPozMahaller() {
 
 
   const [showEminMisin, setShowEminMisin] = useState(false)
-
+  const [dialogConfirmAction, setDialogConfirmAction] = useState(null)
 
   const [dialogAlert, setDialogAlert] = useState()
 
@@ -233,6 +233,19 @@ export default function P_IsPaketPozMahaller() {
   }
 
 
+  const handleBackClick = () => {
+    if (isChanged) {
+      setDialogConfirmAction(() => () => {
+        cancelChange()
+        navigate('/ispaketpozlar')
+      })
+      setShowEminMisin(true)
+    } else {
+      navigate('/ispaketpozlar')
+    }
+  }
+
+
   const saveChange = async () => {
 
     try {
@@ -404,7 +417,7 @@ export default function P_IsPaketPozMahaller() {
           action1={() => setShowEminMisin()}
           actionText2={"Onayla"}
           action2={() => {
-            cancelChange()
+            dialogConfirmAction?.()
             setShowEminMisin()
           }}
         />
@@ -439,7 +452,7 @@ export default function P_IsPaketPozMahaller() {
 
                 <IconButton
                   sx={{ mx: 0, px: 0 }}
-                  onClick={() => navigate('/ispaketpozlar')} disabled={false}>
+                  onClick={() => handleBackClick()} disabled={false}>
                   <ReplyIcon variant="contained" sx={{ color: "gray" }} />
                 </IconButton>
 
@@ -459,7 +472,10 @@ export default function P_IsPaketPozMahaller() {
 
                     <Grid item>
                       <IconButton
-                        onClick={() => setShowEminMisin(true)}
+                        onClick={() => {
+                          setDialogConfirmAction(() => () => cancelChange())
+                          setShowEminMisin(true)
+                        }}
                         disabled={!isChanged}
                       >
                         <ClearOutlined variant="contained" sx={{ color: "red" }} />
