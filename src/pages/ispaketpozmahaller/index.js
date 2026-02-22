@@ -539,8 +539,19 @@ export default function P_IsPaketPozMahaller() {
               {selectedPoz.pozName}
             </Box>
 
-            <Box sx={{ ...css_enUstBaslik, ...css_thirdCol }}>
-              İş Paket
+            <Box sx={{
+              display: "flex",
+              justifyContent: "center",
+              alignItems: "center",
+              fontWeight: "600",
+              border: "1px solid black",
+              py: "0.05rem",
+              px: "0.5rem",
+              backgroundColor: "#415a77",
+              color: "#e0e1dd",
+              marginLeft: "1rem"
+            }}>
+              Seçilen Mahal
             </Box>
 
           </>
