@@ -242,6 +242,9 @@ export default function P_isPaketPozlar() {
     max-content
     minmax(min-content, 25rem)
     max-content
+    1rem
+    max-content
+    max-content
     ${pozAciklamaShow ? " 0.5rem minmax(min-content, 2fr)" : ""}
     ${pozVersiyonShow ? " 0.5rem min-content" : ""}
   `
@@ -369,7 +372,7 @@ export default function P_isPaketPozlar() {
                       }, 0);
                     }}
                     // onBlur={() => queryClient.resetQueries(['dataPozlar'])}
-                    sx={{ fontSize: "0.75rem", ml:"0.5rem" }}
+                    sx={{ fontSize: "0.75rem", ml: "0.5rem" }}
                     MenuProps={{
                       PaperProps: {
                         style: {
@@ -472,6 +475,16 @@ export default function P_isPaketPozlar() {
               Birim
             </Box>
 
+            <Box />
+
+            <Box sx={{ ...enUstBaslik_css }}>
+              Toplam Düğüm
+            </Box>
+
+            <Box sx={{ ...enUstBaslik_css }}>
+              Seçilen Düğüm
+            </Box>
+
             {/* BAŞLIK - AÇIKLAMA  */}
             {pozAciklamaShow &&
               <>
@@ -517,6 +530,14 @@ export default function P_isPaketPozlar() {
                   <Box sx={{ ...wbsBaslik_css2 }}>
                   </Box>
 
+                  <Box />
+
+                  <Box sx={{ ...wbsBaslik_css2 }}>
+                  </Box>
+
+                  <Box sx={{ ...wbsBaslik_css2 }}>
+                  </Box>
+
                   {/* BAŞLIK - AÇIKLAMA  */}
                   {pozAciklamaShow &&
                     <>
@@ -540,6 +561,13 @@ export default function P_isPaketPozlar() {
                 {pozlar_state?.filter(x => x._wbsId.toString() === oneWbs._id.toString()).map((onePoz, index) => {
 
                   let pozBirim = selectedProje?.pozBirimleri.find(x => x.id == onePoz?.pozBirimId)?.name
+
+                  let isPaketMetraj = isPaketPozMetrajlar_state
+                    ?.find(x => x._id.toString() === onePoz._id.toString())?.isPaketler_byVersiyon
+                    ?.find(x => x._id.toString() === selectedIsPaket._id.toString())
+
+                  let toplamDugum = isPaketMetraj?.toplamDugum
+                  let secilenDugum = isPaketMetraj?.secilenDugum
 
                   // let paketPozMetraj = IsPaketPozMetrajlar_state
                   //   ?.find(x => x._id.toString() === onePoz._id.toString()).isPaketler_byVersiyon
@@ -568,6 +596,16 @@ export default function P_isPaketPozlar() {
 
                       <Box sx={{ ...pozNo_css, justifyContent: "center" }}>
                         {pozBirim}
+                      </Box>
+
+                      <Box />
+
+                      <Box sx={{ ...pozNo_css, justifyContent: "center" }}>
+                        {toplamDugum ?? ""}
+                      </Box>
+
+                      <Box sx={{ ...pozNo_css, justifyContent: "center" }}>
+                        {secilenDugum ?? ""}
                       </Box>
 
                       {/* <Box sx={{ ...pozNo_css, justifyContent: "end" }}>
