@@ -641,8 +641,10 @@ export default function P_IsPaketPozMahaller() {
                             : (isSelectedThis ? selectedIsPaket.name : "")
                           }
                         </Box>
-                        <Box sx={{ display: isSelectedThis && isSelectedOther ? "grid" : "none", alignItems: "center", justifySelf: "end", minWidth: "2rem" }}>
-                          <ReportProblemIcon sx={{ color: ayracRenk_bordo, fontSize: "1rem" }} />
+                        <Box sx={{ display: "grid", alignItems: "center", justifySelf: "end", minWidth: "2rem" }}>
+                          {isSelectedThis && isSelectedOther && (
+                            <ReportProblemIcon sx={{ color: ayracRenk_bordo, fontSize: "1rem" }} />
+                          )}
                         </Box>
                       </Box>
 
