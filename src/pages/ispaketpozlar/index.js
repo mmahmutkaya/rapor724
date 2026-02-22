@@ -70,6 +70,10 @@ export default function P_isPaketPozlar() {
   const pendingNavigationRef = useRef(null)
 
   useEffect(() => {
+    setSelectedPoz(null)
+  }, [])
+
+  useEffect(() => {
     // If navigation was pending and context is now set, navigate
     if (pendingNavigationRef.current && selectedPoz?._id === pendingNavigationRef.current._id) {
       navigate('/ispaketpozmahaller')
@@ -480,15 +484,15 @@ export default function P_isPaketPozlar() {
             <Box />
 
             <Box sx={{ ...enUstBaslik_css }}>
-              Toplam Düğüm
+              Toplam Mahal
             </Box>
 
             <Box sx={{ ...enUstBaslik_css }}>
-              Seçilen Düğüm
+              Seçilen Mahal
             </Box>
 
             <Box sx={{ ...enUstBaslik_css }}>
-              Kalan Düğüm
+              Kalan Mahal
             </Box>
 
             {/* BAŞLIK - AÇIKLAMA  */}
@@ -584,9 +588,9 @@ export default function P_isPaketPozlar() {
 
                   let isSelected = selectedPoz?._id.toString() === onePoz._id.toString()
                   const isHovered = hoveredRow === onePoz._id.toString()
-                  const backgroundColor = isSelected ? "rgba(98, 210, 96, 0.22)" : "white"
+                  const backgroundColor = "white"
                   const rowBaseSx = { transition: "text-shadow 0.2s ease" }
-                  const hoverSx = isHovered ? { textShadow: "0 0 0.7px black, 0 0 0.7px black" } : {}
+                  const hoverSx = (isHovered || isSelected) ? { textShadow: "0 0 0.7px black, 0 0 0.7px black" } : {}
                   const rowHandlers = {
                     onMouseEnter: () => setHoveredRow(onePoz._id.toString()),
                     onMouseLeave: () => setHoveredRow(null),
@@ -611,15 +615,15 @@ export default function P_isPaketPozlar() {
                       <Box />
 
                       <Box {...rowHandlers} sx={{ ...pozNo_css, ...rowBaseSx, ...hoverSx, backgroundColor, cursor: "pointer", justifyContent: "center" }}>
-                        {toplamDugum ?? ""}
+                        {toplamDugum || ""}
                       </Box>
 
                       <Box {...rowHandlers} sx={{ ...pozNo_css, ...rowBaseSx, ...hoverSx, backgroundColor, cursor: "pointer", justifyContent: "center" }}>
-                        {secilenDugum ?? ""}
+                        {secilenDugum || ""}
                       </Box>
 
                       <Box {...rowHandlers} sx={{ ...pozNo_css, ...rowBaseSx, ...hoverSx, backgroundColor, cursor: "pointer", justifyContent: "center" }}>
-                        {(toplamDugum != null && secilenDugum != null) ? toplamDugum - secilenDugum : ""}
+                        {(toplamDugum != null && secilenDugum != null) ? ((toplamDugum - secilenDugum) || "") : ""}
                       </Box>
 
                       {/* <Box sx={{ ...pozNo_css, justifyContent: "end" }}>

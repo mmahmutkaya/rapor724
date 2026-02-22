@@ -62,6 +62,7 @@ export default function P_IsPaketler() {
   const navigate = useNavigate();
 
   useEffect(() => {
+    setSelectedIsPaket(null);
     if (!selectedProje) navigate("/projeler");
 
     if (selectedProje && !selectedIsPaketVersiyon) {
@@ -495,10 +496,10 @@ export default function P_IsPaketler() {
 
                 <Box sx={{ ...css_IsPaketlerBaslik }}>İş Paketi</Box>
 
-                <Box sx={{ ...css_IsPaketlerBaslik }}>Poz Sayısı</Box>
+                <Box sx={{ ...css_IsPaketlerBaslik, marginLeft: "1rem" }}>Poz Sayısı</Box>
 
                 <Box sx={{ ...css_IsPaketlerBaslik }}>
-                  Seçilen Düğüm
+                  Mahal Sayısı
                 </Box>
               </React.Fragment>
 
@@ -507,9 +508,9 @@ export default function P_IsPaketler() {
                 isPaketler.map((onePaket, index) => {
                   const isSelected = onePaket._id.toString() === selectedIsPaket?._id.toString();
                   const isHovered = hoveredRow === onePaket._id.toString();
-                  const backgroundColor = isSelected ? "rgba(98, 210, 96, 0.22)" : "white";
+                  const backgroundColor = "white";
                   const rowBaseSx = { transition: "text-shadow 0.2s ease" };
-                  const hoverSx = isHovered ? { textShadow: "0 0 0.7px black, 0 0 0.7px black" } : {};
+                  const hoverSx = (isHovered || isSelected) ? { textShadow: "0 0 0.7px black, 0 0 0.7px black" } : {};
                   const rowHandlers = {
                     onMouseEnter: () => setHoveredRow(onePaket._id.toString()),
                     onMouseLeave: () => setHoveredRow(null),
@@ -530,7 +531,7 @@ export default function P_IsPaketler() {
                         {onePaket.name}
                       </Box>
 
-                      <Box {...rowHandlers} sx={{ ...css_IsPaketler, ...rowBaseSx, ...hoverSx, backgroundColor, cursor: "pointer", justifyContent: "center" }}>
+                      <Box {...rowHandlers} sx={{ ...css_IsPaketler, ...rowBaseSx, ...hoverSx, backgroundColor, cursor: "pointer", justifyContent: "center", marginLeft: "1rem" }}>
                         {pozSayisi}
                       </Box>
 
@@ -604,9 +605,9 @@ export default function P_IsPaketler() {
 
                     <Box sx={{ ...css_IsPaketlerBaslik }}>İş Paketi</Box>
 
-                    <Box sx={{ ...css_IsPaketlerBaslik }}>Poz Sayısı</Box>
+                    <Box sx={{ ...css_IsPaketlerBaslik, marginLeft: "1rem" }}>Poz Sayısı</Box>
 
-                    <Box sx={{ ...css_IsPaketlerBaslik }}>Seçilen Düğüm</Box>
+                    <Box sx={{ ...css_IsPaketlerBaslik }}>Mahal Sayısı</Box>
                   </React.Fragment>
 
                   {/* iş paketleri verileri */}
@@ -614,9 +615,9 @@ export default function P_IsPaketler() {
                     isPaketler.map((onePaket, index) => {
                       const isSelected = onePaket?._id.toString() === selectedIsPaket?._id.toString();
                       const isHovered = hoveredRow === onePaket._id.toString();
-                      const backgroundColor = isSelected ? "rgba(98, 210, 96, 0.22)" : "white";
+                      const backgroundColor = "white";
                       const rowBaseSx = { transition: "text-shadow 0.2s ease" };
-                      const hoverSx = isHovered ? { textShadow: "0 0 0.7px black, 0 0 0.7px black" } : {};
+                      const hoverSx = (isHovered || isSelected) ? { textShadow: "0 0 0.7px black, 0 0 0.7px black" } : {};
                       const rowHandlers = {
                         onMouseEnter: () => setHoveredRow(onePaket._id.toString()),
                         onMouseLeave: () => setHoveredRow(null),
@@ -637,7 +638,7 @@ export default function P_IsPaketler() {
                             {onePaket.name}
                           </Box>
 
-                          <Box {...rowHandlers} sx={{ ...css_IsPaketler, ...rowBaseSx, ...hoverSx, backgroundColor, cursor: "pointer", justifyContent: "center" }}>
+                          <Box {...rowHandlers} sx={{ ...css_IsPaketler, ...rowBaseSx, ...hoverSx, backgroundColor, cursor: "pointer", justifyContent: "center", marginLeft: "1rem" }}>
                             {pozSayisi}
                           </Box>
 
