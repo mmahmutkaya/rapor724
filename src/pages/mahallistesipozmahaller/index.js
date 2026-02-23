@@ -67,9 +67,6 @@ export default function P_MehalListesiPozMahaller() {
 
   const navigate = useNavigate()
 
-  const pozBirim = selectedProje?.pozBirimleri.find(x => x.id == selectedPoz?.pozBirimId)?.name
-
-
   const { data: dataMahaller, error: error1, isFetching: isFetching1 } = useGetMahaller()
   const { data: dataDugumler_byPoz, error: error2, isFetching: isFetching2 } = useGetDugumler_byPoz()
 
@@ -105,16 +102,6 @@ export default function P_MehalListesiPozMahaller() {
   }, [error1, error2]);
 
 
-
-  const ikiHane = (value) => {
-    if (!value) {
-      return ""
-    }
-    if (value != "") {
-      return new Intl.NumberFormat("de-DE", { minimumFractionDigits: 2, maximumFractionDigits: 2, }).format(value)
-    }
-    return value
-  }
 
   let openLbsArray = selectedProje?.lbs
     .filter(oneLbs => oneLbs.openForMahal)
@@ -298,7 +285,7 @@ export default function P_MehalListesiPozMahaller() {
     border: "1px solid black", px: "0.5rem", display: "grid", justifyContent: "start", alignItems: "center"
   }
 
-  const gridTemplateColumns1 = `max-content minmax(min-content, 1fr) max-content max-content}`
+  const gridTemplateColumns1 = `max-content minmax(min-content, 1fr)`
 
 
   return (
@@ -366,31 +353,8 @@ export default function P_MehalListesiPozMahaller() {
             <Box sx={{ ...css_enUstBaslik }}>
               {selectedPoz.pozName}
             </Box>
-            <Box sx={{ ...css_enUstBaslik, justifyContent: "center" }}>
-              Miktar
-            </Box>
-            <Box sx={{ ...css_enUstBaslik, justifyContent: "center" }}>
-              Birim
-            </Box>
 
           </>
-
-
-          {/* EN ÜST BAŞLIĞIN ALT SATIRI - HANGİ POZ İLE İŞLEM YAPILIYORSA - POZ İSMİ VE TOPLAM METRAJI */}
-          <>
-            <Box sx={{ ...css_enUstBaslik, borderLeft: "1px solid black", gridColumn: "1/3", justifyContent: "end", borderLeft: "1px solid black" }}>
-              Toplam Metraj
-            </Box>
-            <Box sx={{ ...css_enUstBaslik, justifyContent: "end" }}>
-              {ikiHane(selectedPoz?.metrajOnaylanan)}
-            </Box>
-            <Box sx={{ ...css_enUstBaslik, justifyContent: "center" }}>
-              {pozBirim}
-            </Box>
-
-          </>
-
-
 
 
           {/* LBS BAŞLIK BİLGİLERİ SATIRI */}
@@ -410,12 +374,6 @@ export default function P_MehalListesiPozMahaller() {
                 {/* LBS BAŞLIKLARI */}
                 <Box sx={{ ...css_LbsBaslik, borderLeft: "1px solid black", gridColumn: "1/3" }}>
                   {getLbsName(oneLbs).name}
-                </Box>
-                <Box sx={{ ...css_LbsBaslik, justifyContent: "end" }}>
-                  {ikiHane(lbsMetraj?.metrajOnaylanan)}
-                </Box>
-                <Box sx={{ ...css_LbsBaslik, justifyContent: "center" }}>
-                  {pozBirim}
                 </Box>
 
 
@@ -440,14 +398,6 @@ export default function P_MehalListesiPozMahaller() {
                         </Box>
                         <Box className="childClass" sx={{ height: "0.5rem", width: "0.5rem", borderRadius: "50%" }}>
                         </Box>
-                      </Box>
-
-                      <Box onClick={() => handleDugumToggle({ oneMahal, toggleValue: !oneMahal.hasDugum })} sx={{ ...css_mahaller, backgroundColor: !oneMahal.hasDugum ? "lightgray" : null, justifyContent: "end" }}>
-                        {ikiHane(dugum?.metrajOnaylanan)}
-                      </Box>
-
-                      <Box onClick={() => handleDugumToggle({ oneMahal, toggleValue: !oneMahal.hasDugum })} sx={{ ...css_mahaller, backgroundColor: !oneMahal.hasDugum ? "lightgray" : null, justifyContent: "center" }}>
-                        {pozBirim}
                       </Box>
 
                     </React.Fragment>
