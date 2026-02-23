@@ -82,7 +82,7 @@ export default function P_MahalListesiPozlar() {
 
 
   const wbsBaslik_css = {
-    gridColumn: "1 / 5",
+    gridColumn: "1 / 4",
     display: "grid",
     alignItems: "center",
     justifyItems: "start",
@@ -139,7 +139,7 @@ export default function P_MahalListesiPozlar() {
 
 
   // const columns = `auto 1fr auto auto${editNodeMetraj ? " 1rem auto" : ""}`
-  const columns = `max-content minmax(min-content, 1fr) max-content max-content`
+  const columns = `max-content minmax(min-content, 1fr) max-content`
 
 
   return (
@@ -205,11 +205,6 @@ export default function P_MahalListesiPozlar() {
               Poz İsmi
             </Box>
 
-            {/* BAŞLIK - POZ BİRİM  */}
-            <Box sx={{ ...enUstBaslik_css }}>
-              Miktar
-            </Box>
-
 
             {/* BAŞLIK - POZ BİRİM  */}
             <Box sx={{ ...enUstBaslik_css }}>
@@ -266,10 +261,6 @@ export default function P_MahalListesiPozlar() {
                         </Box>
                         <Box className="childClass" sx={{ ml: "1rem", height: "0.5rem", width: "0.5rem", borderRadius: "50%" }}>
                         </Box>
-                      </Box>
-
-                      <Box onClick={() => gotToMahalListesiPozMahaller({ onePoz })} sx={{ ...pozNo_css, justifyItems: "end", pl: "0.5rem", backgroundColor: !hasMahal && inactiveGray }} >
-                        {ikiHane(onePoz?.metrajOnaylanan)}
                       </Box>
 
                       <Box onClick={() => gotToMahalListesiPozMahaller({ onePoz })} sx={{ ...pozNo_css, backgroundColor: !hasMahal && inactiveGray }}>
