@@ -194,6 +194,10 @@ export default function P_MahalListesiPozlar() {
               Poz İsmi
             </Box>
 
+<<<<<<< HEAD
+=======
+
+>>>>>>> 6db4c04d5c01d3ec02301d1ece96ee27233224b8
             {/* BAŞLIK - POZ BİRİM  */}
             <Box sx={{ ...enUstBaslik_css }}>
               Birim
