@@ -62,6 +62,7 @@ export default function P_IsPaketler() {
   const navigate = useNavigate();
 
   useEffect(() => {
+    setMode_isPaketEdit();
     setSelectedIsPaket(null);
     if (!selectedProje) navigate("/projeler");
 
