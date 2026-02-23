@@ -557,19 +557,6 @@ export default function P_IsPaketPozMahaller() {
           </>
 
 
-          {/* EN ÜST BAŞLIĞIN ALT SATIRI */}
-          <>
-            <Box sx={{ ...css_enUstBaslik }}></Box>
-
-            <Box sx={{ ...css_enUstBaslik }}>
-            </Box>
-
-            <Box sx={{ ...css_enUstBaslik, ...css_thirdCol }}>
-            </Box>
-
-          </>
-
-
           {/* LBS BAŞLIK BİLGİLERİ SATIRI */}
 
           {openLbsArray?.map((oneLbs, index) => {
