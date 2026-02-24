@@ -39,10 +39,11 @@ export default function P_isPaketPozlar() {
   const navigate = useNavigate()
   const queryClient = useQueryClient()
 
-  const { data: dataPozlar, error: error1, isFetching: isFetching1 } = useGetIsPaketlerDugumler()
+  const { data: dataPozlar, error: error1, isFetching: isFetching1 } = useGetPozlar()
 
 
   const [pozlar_state, setPozlar_state] = useState()
+  const [isPaketPozMetrajlar_state, setIsPaketPozMetrajlar_state] = useState()
   const [wbsArray_state, setWbsArray_state] = useState()
 
   const [dialogAlert, setDialogAlert] = useState()
