@@ -61,8 +61,8 @@ export default function P_IsPaketler() {
 
   const navigate = useNavigate();
 
+
   useEffect(() => {
-    setMode_isPaketEdit();
     setSelectedIsPaket(null);
     if (!selectedProje) navigate("/projeler");
 
@@ -126,7 +126,7 @@ export default function P_IsPaketler() {
     try {
       const response = await fetch(
         process.env.REACT_APP_BASE_URL +
-          `/api/projeler/requestprojeaktifyetkilikisi`,
+        `/api/projeler/requestprojeaktifyetkilikisi`,
         {
           method: "POST",
           headers: {
@@ -191,7 +191,7 @@ export default function P_IsPaketler() {
     try {
       const response = await fetch(
         process.env.REACT_APP_BASE_URL +
-          `/api/projeler/deleteprojeaktifyetkilikisi`,
+        `/api/projeler/deleteprojeaktifyetkilikisi`,
         {
           method: "POST",
           headers: {
