@@ -57,7 +57,6 @@ export default function P_IsPaketler() {
   );
 
   const { data: dataIsPaketlerDugumler } = useGetIsPaketlerDugumler();
-  console.log("dataIsPaketlerDugumler", dataIsPaketlerDugumler);
 
   const navigate = useNavigate();
 

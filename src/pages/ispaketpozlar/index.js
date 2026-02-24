@@ -39,7 +39,7 @@ export default function P_isPaketPozlar() {
   const navigate = useNavigate()
   const queryClient = useQueryClient()
 
-  const { data: dataPozlar, error: error1, isFetching: isFetching1 } = useGetPozlar()
+  const { data: dataPozlar, error: error1, isFetching: isFetching1 } = useGetIsPaketlerDugumler()
 
 
   const [pozlar_state, setPozlar_state] = useState()
