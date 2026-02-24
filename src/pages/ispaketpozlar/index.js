@@ -40,6 +40,8 @@ export default function P_isPaketPozlar() {
   const queryClient = useQueryClient()
 
   const { data: dataPozlar, error: error1, isFetching: isFetching1 } = useGetPozlar()
+  const { data: dataIsPaketlerDugumler, error: error2, isFetching: isFetching2 } = useGetIsPaketlerDugumler();
+
 
 
   const [pozlar_state, setPozlar_state] = useState()
@@ -155,7 +157,15 @@ export default function P_isPaketPozlar() {
         detailText: error1?.message ? error1.message : null
       })
     }
-  }, [error1]);
+    if (error2) {
+      console.log("error", error2)
+      setDialogAlert({
+        dialogIcon: "warning",
+        dialogMessage: "Beklenmedik hata, Rapor7/24 ile irtibata geçiniz..",
+        detailText: error2?.message ? error2.message : null
+      })
+    }
+  }, [error1, error2]);
 
 
   const [basliklar, setBasliklar] = useState(appUser.customSettings.pages.ispaketler.basliklar)
@@ -432,7 +442,7 @@ export default function P_isPaketPozlar() {
 
 
       {
-        (isFetching1) &&
+        (isFetching1 || isFetching2) &&
         <Box sx={{ width: '100%', px: "1rem", mt: "5rem", color: 'gray' }}>
           <LinearProgress color='inherit' />
         </Box >
@@ -442,7 +452,7 @@ export default function P_isPaketPozlar() {
 
       {/* EĞER POZ BAŞLIĞI YOKSA */}
       {
-        !(isFetching1) && show == "Main" && !selectedProje?.wbs?.find(x => x.openForPoz === true) &&
+        !(isFetching1 || isFetching2) && show == "Main" && !selectedProje?.wbs?.find(x => x.openForPoz === true) &&
         <Stack sx={{ width: '100%', mt: "3.5rem", p: "1rem" }} spacing={2}>
           <Alert severity="info">
             Öncelikle poz oluşturmaya açık poz başlığı oluşturmalısınız.
@@ -453,7 +463,7 @@ export default function P_isPaketPozlar() {
 
       {/* EĞER POZ YOKSA */}
       {
-        !(isFetching1) && show == "Main" && selectedProje?.wbs?.find(x => x.openForPoz === true) && !pozlar_state?.length > 0 &&
+        !(isFetching1 || isFetching2) && show == "Main" && selectedProje?.wbs?.find(x => x.openForPoz === true) && !pozlar_state?.length > 0 &&
         <Stack sx={{ width: '100%', mt: "3.5rem", p: "1rem" }} spacing={2}>
           <Alert severity="info">
             Herhangi bir mahal, herhangi bir poz ile henüz eşleştirilmemiş, 'mahallistesi' menüsüne gidiniz.
@@ -465,7 +475,7 @@ export default function P_isPaketPozlar() {
       {/* ANA SAYFA - POZLAR VARSA */}
 
       {
-        !(isFetching1) && show == "Main" && wbsArray_state?.length > 0 && pozlar_state?.length > 0 &&
+        !(isFetching1 || isFetching2) && show == "Main" && wbsArray_state?.length > 0 && pozlar_state?.length > 0 &&
 
         <Box sx={{ m: "1rem", mt: "4.5rem", display: "grid", gridTemplateColumns: columns }}>
 
