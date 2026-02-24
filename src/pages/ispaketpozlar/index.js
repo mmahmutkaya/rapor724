@@ -255,6 +255,10 @@ export default function P_isPaketPozlar() {
 
   let paraBirimiAdet = selectedProje?.paraBirimleri?.filter(x => x?.isActive).length
 
+  const maxIsPaketCount = dataIsPaketlerDugumler?.pozlar
+    ? Math.max(0, ...dataIsPaketlerDugumler.pozlar.map(p => p.isPaketler?.length || 0))
+    : 0
+
   const showMetrajYapabilenlerColumns = " 1rem repeat(" + showMetrajYapabilenler?.filter(x => x.isShow).length + ", max-content)"
   const columns = `
     max-content
@@ -264,6 +268,7 @@ export default function P_isPaketPozlar() {
     max-content
     max-content
     max-content
+    ${maxIsPaketCount > 0 ? `1rem ${Array(maxIsPaketCount).fill('max-content').join(' ')}` : ''}
     ${pozAciklamaShow ? " 0.5rem minmax(min-content, 2fr)" : ""}
     ${pozVersiyonShow ? " 0.5rem min-content" : ""}
   `
@@ -508,6 +513,18 @@ export default function P_isPaketPozlar() {
               Kalan Mahal
             </Box>
 
+            {/* BAŞLIK - İŞ PAKETLERİ */}
+            {maxIsPaketCount > 0 && (
+              <>
+                <Box />
+                {Array.from({ length: maxIsPaketCount }, (_, i) => (
+                  <Box key={`ispaket-baslik-${i}`} sx={{ ...enUstBaslik_css }}>
+                    İP {i + 1}
+                  </Box>
+                ))}
+              </>
+            )}
+
             {/* BAŞLIK - AÇIKLAMA  */}
             {pozAciklamaShow &&
               <>
@@ -555,6 +572,16 @@ export default function P_isPaketPozlar() {
                 return (t - s) || ""
               })()}
             </Box>
+
+            {/* TOPLAM - İŞ PAKETLERİ */}
+            {maxIsPaketCount > 0 && (
+              <>
+                <Box />
+                {Array.from({ length: maxIsPaketCount }, (_, i) => (
+                  <Box key={`ispaket-toplam-${i}`} sx={{ ...enUstBaslik_css }} />
+                ))}
+              </>
+            )}
 
             {pozAciklamaShow &&
               <>
@@ -611,6 +638,16 @@ export default function P_isPaketPozlar() {
                       return (t - s) || ""
                     })()}
                   </Box>
+
+                  {/* WBS - İŞ PAKETLERİ */}
+                  {maxIsPaketCount > 0 && (
+                    <>
+                      <Box />
+                      {Array.from({ length: maxIsPaketCount }, (_, i) => (
+                        <Box key={`ispaket-wbs-${i}`} sx={{ ...wbsBaslik_css2 }} />
+                      ))}
+                    </>
+                  )}
 
                   {/* BAŞLIK - AÇIKLAMA  */}
                   {pozAciklamaShow &&
@@ -682,6 +719,24 @@ export default function P_isPaketPozlar() {
                       <Box {...rowHandlers} sx={{ ...pozNo_css, ...rowBaseSx, ...hoverSx, backgroundColor, cursor: "pointer", justifyContent: "center" }}>
                         {(toplamDugum != null && secilenDugum != null) ? ((toplamDugum - secilenDugum) || "") : ""}
                       </Box>
+
+                      {/* POZ - İŞ PAKETLERİ */}
+                      {maxIsPaketCount > 0 && (() => {
+                        const dugumlerPoz = dataIsPaketlerDugumler?.pozlar?.find(p => p._id.toString() === onePoz._id.toString())
+                        return (
+                          <>
+                            <Box />
+                            {Array.from({ length: maxIsPaketCount }, (_, i) => {
+                              const isPaket = dugumlerPoz?.isPaketler?.[i]
+                              return (
+                                <Box key={`ispaket-poz-${i}`} {...rowHandlers} sx={{ ...pozNo_css, ...rowBaseSx, ...hoverSx, backgroundColor, cursor: "pointer", justifyContent: "center" }}>
+                                  {isPaket?.name || ""}
+                                </Box>
+                              )
+                            })}
+                          </>
+                        )
+                      })()}
 
                       {/* <Box sx={{ ...pozNo_css, justifyContent: "end" }}>
                         {ikiHane(onePoz?.metrajOnaylanan)}
