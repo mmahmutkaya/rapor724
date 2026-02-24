@@ -39,8 +39,7 @@ export default function P_IsPaketler() {
   const { selectedProje, setSelectedProje } = useContext(StoreContext);
 
   // console.log("selectedProje",selectedProje)
-  const { selectedIsPaketVersiyon, setSelectedIsPaketVersiyon } =
-    useContext(StoreContext);
+  const { selectedIsPaketVersiyon, setSelectedIsPaketVersiyon } = useContext(StoreContext);
   const { selectedIsPaket, setSelectedIsPaket } = useContext(StoreContext);
   const { mode_isPaketEdit, setMode_isPaketEdit } = useContext(StoreContext);
 
@@ -58,6 +57,7 @@ export default function P_IsPaketler() {
   );
 
   const { data: dataIsPaketlerDugumler } = useGetIsPaketlerDugumler();
+  console.log("dataIsPaketlerDugumler", dataIsPaketlerDugumler);
 
   const navigate = useNavigate();
 

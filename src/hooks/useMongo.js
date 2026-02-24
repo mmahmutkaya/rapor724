@@ -52,56 +52,6 @@ export const useGetFirmalar = () => {
 }
 
 
-export const useGetPozMetrajlar_byIsPaket = () => {
-
-  const navigate = useNavigate()
-  const { appUser, setAppUser, selectedProje, selectedIsPaketVersiyon, selectedIsPaket, mode_isPaketEdit } = useContext(StoreContext)
-
-  return useQuery({
-
-    queryKey: [
-      'isPaketPozMetrajlar'
-    ],
-
-    queryFn: async () => {
-      
-      const response = await fetch(process.env.REACT_APP_BASE_URL + '/api/pozlar/getpozmetrajlarbyispaket', {
-        method: 'POST',
-        headers: {
-          email: appUser.email,
-          token: appUser.token,
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-          projeId: selectedProje?._id,
-          mode_isPaketEdit: true,
-          isPaketVersiyonNumber: selectedIsPaketVersiyon?.versiyonNumber,
-          selectedIsPaket
-        })
-      })
-
-      const responseJson = await response.json()
-
-      if (responseJson.error) {
-        if (responseJson.error.includes("expired")) {
-          setAppUser()
-          localStorage.removeItem('appUser')
-          navigate('/')
-          window.location.reload()
-        }
-        throw new Error(responseJson.error);
-      }
-
-      return responseJson
-
-    },
-    enabled: !!appUser && !!selectedProje && !!(selectedIsPaketVersiyon === 0 || selectedIsPaketVersiyon),
-    refetchOnMount: true,
-    refetchOnWindowFocus: false
-  })
-
-}
-
 
 
 // export const useGetisPaketler = () => {

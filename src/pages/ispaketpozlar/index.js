@@ -7,7 +7,7 @@ import _ from 'lodash';
 
 
 import { StoreContext } from '../../components/store.js'
-import { useGetPozlar, useGetPozMetrajlar_byIsPaket } from '../../hooks/useMongo.js';
+import { useGetPozlar } from '../../hooks/useMongo.js';
 import getWbsName from '../../functions/getWbsName.js';
 import { DialogAlert } from '../../components/general/DialogAlert.js';
 
@@ -40,11 +40,9 @@ export default function P_isPaketPozlar() {
   const queryClient = useQueryClient()
 
   const { data: dataPozlar, error: error1, isFetching: isFetching1 } = useGetPozlar()
-  // const { data: dataIsPaketPozMetrajlar, error: error2, isFetching: isFetching2 } = useGetPozMetrajlar_byIsPaket()
 
 
   const [pozlar_state, setPozlar_state] = useState()
-  const [isPaketPozMetrajlar_state, setIsPaketPozMetrajlar_state] = useState()
   const [wbsArray_state, setWbsArray_state] = useState()
 
   const [dialogAlert, setDialogAlert] = useState()
@@ -57,6 +55,7 @@ export default function P_isPaketPozlar() {
   const { selectedBirimFiyatVersiyon, setSelectedBirimFiyatVersiyon } = useContext(StoreContext)
   const { selectedProje, setSelectedProje } = useContext(StoreContext)
   const { selectedIsPaketVersiyon, selectedIsPaket } = useContext(StoreContext)
+
 
   const versiyonlar = selectedProje?.versiyonlar?.metraj
   const pozBirimleri = selectedProje?.pozBirimleri
@@ -91,7 +90,7 @@ export default function P_isPaketPozlar() {
 
   useEffect(() => {
 
-    if (selectedProje && dataPozlar ) {
+    if (selectedProje && dataPozlar) {
 
       let pozlar = _.cloneDeep(dataPozlar?.pozlar?.filter(x => x.hasDugum))
       let wbsArray = _.cloneDeep(selectedProje?.wbs.filter(oneWbs => pozlar?.find(onePoz => onePoz._wbsId.toString() === oneWbs._id.toString())))
