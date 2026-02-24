@@ -7,7 +7,7 @@ import _ from 'lodash';
 
 
 import { StoreContext } from '../../components/store.js'
-import { useGetPozlar } from '../../hooks/useMongo.js';
+import { useGetPozlar, useGetIsPaketlerDugumler } from '../../hooks/useMongo.js';
 import getWbsName from '../../functions/getWbsName.js';
 import { DialogAlert } from '../../components/general/DialogAlert.js';
 
