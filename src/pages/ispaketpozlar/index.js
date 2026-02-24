@@ -730,7 +730,7 @@ export default function P_isPaketPozlar() {
                               const isPaket = dugumlerPoz?.isPaketler?.[i]
                               return (
                                 <Box key={`ispaket-poz-${i}`} {...rowHandlers} sx={{ ...pozNo_css, ...rowBaseSx, ...hoverSx, backgroundColor, cursor: "pointer", justifyContent: "center" }}>
-                                  {isPaket?.name || ""}
+                                  {selectedProje.isPaketler.find(p => p._id.toString() === isPaket?._id.toString())?.name || ""}
                                 </Box>
                               )
                             })}
