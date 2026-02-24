@@ -30,6 +30,7 @@ import Typography from '@mui/material/Typography';
 import IconButton from '@mui/material/IconButton';
 import ClearOutlined from '@mui/icons-material/ClearOutlined';
 import ReplyIcon from '@mui/icons-material/Reply';
+import Tooltip from '@mui/material/Tooltip';
 
 
 
@@ -50,6 +51,8 @@ export default function P_isPaketPozlar() {
 
   const [dialogAlert, setDialogAlert] = useState()
   const [hoveredRow, setHoveredRow] = useState(null)
+  const [openTooltip, setOpenTooltip] = useState(null)
+  const tooltipTimerRef = useRef(null)
 
   const { appUser, setAppUser, RealmApp, myTema, drawerWidth, topBarHeight } = useContext(StoreContext)
   const { showMetrajYapabilenler, setShowMetrajYapabilenler } = useContext(StoreContext)
@@ -253,6 +256,17 @@ export default function P_isPaketPozlar() {
     setSelectedPoz(onePoz)
   }
 
+  const handleTooltipEnterOrMove = (key) => {
+    clearTimeout(tooltipTimerRef.current)
+    setOpenTooltip(null)
+    tooltipTimerRef.current = setTimeout(() => setOpenTooltip(key), 600)
+  }
+
+  const handleTooltipLeave = () => {
+    clearTimeout(tooltipTimerRef.current)
+    setOpenTooltip(null)
+  }
+
   let paraBirimiAdet = selectedProje?.paraBirimleri?.filter(x => x?.isActive).length
 
   const maxIsPaketCount = dataIsPaketlerDugumler?.pozlar
@@ -268,7 +282,7 @@ export default function P_isPaketPozlar() {
     max-content
     max-content
     max-content
-    ${maxIsPaketCount > 0 ? `1rem ${Array(maxIsPaketCount).fill('max-content').join(' ')}` : ''}
+    ${maxIsPaketCount > 0 ? `1rem ${Array(maxIsPaketCount).fill('8rem').join(' ')}` : ''}
     ${pozAciklamaShow ? " 0.5rem minmax(min-content, 2fr)" : ""}
     ${pozVersiyonShow ? " 0.5rem min-content" : ""}
   `
@@ -728,10 +742,30 @@ export default function P_isPaketPozlar() {
                             <Box />
                             {Array.from({ length: maxIsPaketCount }, (_, i) => {
                               const isPaket = dugumlerPoz?.isPaketler?.[i]
+                              const name = selectedProje.isPaketler.find(p => p._id.toString() === isPaket?._id.toString())?.name || ""
+                              const tooltipKey = `${onePoz._id}-${i}`
                               return (
-                                <Box key={`ispaket-poz-${i}`} {...rowHandlers} sx={{ ...pozNo_css, ...rowBaseSx, ...hoverSx, backgroundColor, cursor: "pointer", justifyContent: "center" }}>
-                                  {selectedProje.isPaketler.find(p => p._id.toString() === isPaket?._id.toString())?.name || ""}
-                                </Box>
+                                <Tooltip
+                                  key={tooltipKey}
+                                  title={name}
+                                  placement="top"
+                                  open={openTooltip === tooltipKey}
+                                  disableHoverListener
+                                  disableFocusListener
+                                  disableTouchListener
+                                >
+                                  <Box
+                                    {...rowHandlers}
+                                    onMouseEnter={() => { rowHandlers.onMouseEnter(); if (name) handleTooltipEnterOrMove(tooltipKey) }}
+                                    onMouseMove={() => { if (name) handleTooltipEnterOrMove(tooltipKey) }}
+                                    onMouseLeave={() => { rowHandlers.onMouseLeave(); handleTooltipLeave() }}
+                                    sx={{ ...pozNo_css, ...rowBaseSx, ...hoverSx, backgroundColor, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", overflow: "hidden" }}
+                                  >
+                                    <Box sx={{ overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", maxWidth: "100%" }}>
+                                      {name}
+                                    </Box>
+                                  </Box>
+                                </Tooltip>
                               )
                             })}
                           </>
