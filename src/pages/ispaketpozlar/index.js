@@ -552,7 +552,7 @@ export default function P_isPaketPozlar() {
           </>
 
 
-          {/* EN ÜST BAŞLIK TOPLAM SATIRI */}
+          {/* EN ÜST BAŞLIK ALT SATIR - TOPLAM SATIRI */}
           <>
 
             <Box sx={{ ...enUstBaslik_css, gridColumn: "1/4", justifyItems: "start" }}>
@@ -605,12 +605,14 @@ export default function P_isPaketPozlar() {
 
                 {/* WBS BAŞLIĞININ OLDUĞU TÜM SATIR */}
                 <>
+
                   {/* WBS BAŞLIĞI */}
                   <Box sx={{ ...wbsBaslik_css, gridColumn: "1/3" }}>
                     <Box sx={{ display: "grid", gridAutoFlow: "column" }} >
                       {getWbsName({ wbsArray: wbsArray_state, oneWbs }).name}
                     </Box>
                   </Box>
+
 
                   <Box sx={{ ...wbsBaslik_css2 }}>
                   </Box>
@@ -679,7 +681,7 @@ export default function P_isPaketPozlar() {
                   }
 
                   return (
-                    <React.Fragment key={index} >
+                    <React.Fragment key={index} > 
 
                       <Box {...rowHandlers} sx={{ ...pozNo_css, ...rowBaseSx, ...hoverSx, backgroundColor, cursor: "pointer", justifyContent: "center" }}>
                         {onePoz.pozNo}
@@ -696,7 +698,7 @@ export default function P_isPaketPozlar() {
                       <Box />
 
                       <Box {...rowHandlers} sx={{ ...pozNo_css, ...rowBaseSx, ...hoverSx, backgroundColor, cursor: "pointer", justifyContent: "center" }}>
-                        {(toplamDugum != null && secilenDugum != null) ? ((toplamDugum - secilenDugum) || "") : ""}
+                        {onePoz.isPaketler_empityArrayCounts || 0}
                       </Box>
 
                       {/* POZ - İŞ PAKETLERİ */}
