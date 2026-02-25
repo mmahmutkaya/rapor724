@@ -31,6 +31,7 @@ import ClearOutlined from "@mui/icons-material/ClearOutlined";
 import InfoIcon from "@mui/icons-material/Info";
 import Avatar from "@mui/material/Avatar";
 import EditIcon from "@mui/icons-material/Edit";
+import AdjustIcon from '@mui/icons-material/Adjust';
 
 export default function P_IsPaketler() {
   const queryClient = useQueryClient();
@@ -93,8 +94,7 @@ export default function P_IsPaketler() {
   // const aciklamaShow = basliklar?.find(x => x.id === "aciklama").show
   const pasifShow = basliklar?.find((x) => x.id === "pasif")?.show;
 
-  const goto_isPaketPozlar = ({ onePaket }) => {
-    setSelectedIsPaket(onePaket);
+  const goto_isPaketPozlar = () => {
     navigate("/ispaketpozlar");
   };
 
@@ -387,8 +387,20 @@ export default function P_IsPaketler() {
 
                   <Box>
                     <IconButton
+                      onClick={() => goto_isPaketPozlar()}
+                      sx={headerIconButton_sx}
+                    >
+                      <AdjustIcon
+                        variant="contained"
+                        color="success"
+                        sx={headerIcon_sx}
+                      />
+                    </IconButton>
+                  </Box>
+
+                  <Box>
+                    <IconButton
                       onClick={() => setShow("FormIsPaketCreate")}
-                      aria-label="addWbs"
                       sx={headerIconButton_sx}
                     >
                       <AddCircleOutlineIcon
@@ -513,8 +525,7 @@ export default function P_IsPaketler() {
                   const hoverSx = (isHovered || isSelected) ? { textShadow: "0 0 0.7px black, 0 0 0.7px black" } : {};
                   const rowHandlers = {
                     onMouseEnter: () => setHoveredRow(onePaket._id.toString()),
-                    onMouseLeave: () => setHoveredRow(null),
-                    onClick: () => goto_isPaketPozlar({ onePaket }),
+                    onMouseLeave: () => setHoveredRow(null)
                   };
 
                   const pozSayisi =
@@ -620,8 +631,7 @@ export default function P_IsPaketler() {
                       const hoverSx = (isHovered || isSelected) ? { textShadow: "0 0 0.7px black, 0 0 0.7px black" } : {};
                       const rowHandlers = {
                         onMouseEnter: () => setHoveredRow(onePaket._id.toString()),
-                        onMouseLeave: () => setHoveredRow(null),
-                        onClick: () => goto_isPaketPozlar({ onePaket }),
+                        onMouseLeave: () => setHoveredRow(null)
                       };
 
                       const pozSayisi =

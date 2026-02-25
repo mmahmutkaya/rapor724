@@ -89,7 +89,6 @@ export default function P_isPaketPozlar() {
   useEffect(() => {
     !selectedProje && navigate('/projeler')
     !selectedIsPaketVersiyon && navigate('/ispaketler')
-    !selectedIsPaket && navigate('/ispaketler')
     // !((selectedIsPaketVersiyon === 0 || selectedIsPaketVersiyon > 0) && selectedIsPaket) && navigate('/ispaketler')
   }, [selectedProje, selectedIsPaketVersiyon, selectedIsPaket, navigate])
 
@@ -279,8 +278,6 @@ export default function P_isPaketPozlar() {
     minmax(min-content, 25rem)
     max-content
     1rem
-    max-content
-    max-content
     max-content
     ${maxIsPaketCount > 0 ? `1rem ${Array(maxIsPaketCount).fill('8rem').join(' ')}` : ''}
     ${pozAciklamaShow ? " 0.5rem minmax(min-content, 2fr)" : ""}
@@ -516,15 +513,7 @@ export default function P_isPaketPozlar() {
             <Box />
 
             <Box sx={{ ...enUstBaslik_css }}>
-              Toplam Mahal
-            </Box>
-
-            <Box sx={{ ...enUstBaslik_css }}>
-              Seçilen Mahal
-            </Box>
-
-            <Box sx={{ ...enUstBaslik_css }}>
-              Kalan Mahal
+              Açıkta Mahal
             </Box>
 
             {/* BAŞLIK - İŞ PAKETLERİ */}
@@ -570,14 +559,6 @@ export default function P_isPaketPozlar() {
             </Box>
 
             <Box />
-
-            <Box sx={{ ...enUstBaslik_css }}>
-              {pozlar_state?.reduce((sum, p) => sum + (p.toplamDugum || 0), 0) || ""}
-            </Box>
-
-            <Box sx={{ ...enUstBaslik_css }}>
-              {pozlar_state?.reduce((sum, p) => sum + (p.secilenDugum || 0), 0) || ""}
-            </Box>
 
             <Box sx={{ ...enUstBaslik_css }}>
               {(() => {
@@ -635,14 +616,6 @@ export default function P_isPaketPozlar() {
                   </Box>
 
                   <Box />
-
-                  <Box sx={{ ...wbsBaslik_css2, justifyItems: "center" }}>
-                    {pozlar_state?.filter(p => p._wbsId.toString() === oneWbs._id.toString()).reduce((sum, p) => sum + (p.toplamDugum || 0), 0) || ""}
-                  </Box>
-
-                  <Box sx={{ ...wbsBaslik_css2, justifyItems: "center" }}>
-                    {pozlar_state?.filter(p => p._wbsId.toString() === oneWbs._id.toString()).reduce((sum, p) => sum + (p.secilenDugum || 0), 0) || ""}
-                  </Box>
 
                   <Box sx={{ ...wbsBaslik_css2, justifyItems: "center" }}>
                     {(() => {
@@ -721,14 +694,6 @@ export default function P_isPaketPozlar() {
                       </Box>
 
                       <Box />
-
-                      <Box {...rowHandlers} sx={{ ...pozNo_css, ...rowBaseSx, ...hoverSx, backgroundColor, cursor: "pointer", justifyContent: "center" }}>
-                        {toplamDugum || ""}
-                      </Box>
-
-                      <Box {...rowHandlers} sx={{ ...pozNo_css, ...rowBaseSx, ...hoverSx, backgroundColor, cursor: "pointer", justifyContent: "center" }}>
-                        {secilenDugum || ""}
-                      </Box>
 
                       <Box {...rowHandlers} sx={{ ...pozNo_css, ...rowBaseSx, ...hoverSx, backgroundColor, cursor: "pointer", justifyContent: "center" }}>
                         {(toplamDugum != null && secilenDugum != null) ? ((toplamDugum - secilenDugum) || "") : ""}
