@@ -1,16 +1,12 @@
 
 import React from 'react'
 import { useState, useContext, useEffect, useRef } from 'react';
-import { useQueryClient } from '@tanstack/react-query'
 import { useNavigate } from "react-router-dom";
+
 import { StoreContext } from '../../components/store.js'
 import { useGetIsPaketPozlar } from '../../hooks/useMongo.js';
 import getWbsName from '../../functions/getWbsName.js';
 import { DialogAlert } from '../../components/general/DialogAlert.js';
-
-
-import ShowMetrajYapabilenler from '../../components/ShowMetrajYapabilenler.js'
-
 
 import Grid from '@mui/material/Grid';
 import Alert from '@mui/material/Alert';
@@ -19,13 +15,9 @@ import Box from '@mui/material/Box';
 import Select from '@mui/material/Select';
 import MenuItem from '@mui/material/MenuItem';
 
-import CircleIcon from '@mui/icons-material/Circle';
-import { Check } from '@mui/icons-material';
 import LinearProgress from '@mui/material/LinearProgress';
 import AppBar from '@mui/material/AppBar';
-import Typography from '@mui/material/Typography';
 import IconButton from '@mui/material/IconButton';
-import ClearOutlined from '@mui/icons-material/ClearOutlined';
 import ReplyIcon from '@mui/icons-material/Reply';
 import Tooltip from '@mui/material/Tooltip';
 
@@ -35,7 +27,6 @@ import Tooltip from '@mui/material/Tooltip';
 export default function P_isPaketPozlar() {
 
   const navigate = useNavigate()
-  const queryClient = useQueryClient()
 
   const { data: dataIsPaketPozlar, error: error2, isFetching: isFetching2 } = useGetIsPaketPozlar();
 
@@ -44,23 +35,14 @@ export default function P_isPaketPozlar() {
   const [openTooltip, setOpenTooltip] = useState(null)
   const tooltipTimerRef = useRef(null)
 
-  const { appUser, setAppUser, RealmApp, myTema, drawerWidth, topBarHeight } = useContext(StoreContext)
-  const { showMetrajYapabilenler, setShowMetrajYapabilenler } = useContext(StoreContext)
+  const { myTema, drawerWidth, topBarHeight } = useContext(StoreContext)
   const { selectedPoz, setSelectedPoz } = useContext(StoreContext)
   const { selectedMetrajVersiyon, setSelectedMetrajVersiyon } = useContext(StoreContext)
   const { selectedBirimFiyatVersiyon, setSelectedBirimFiyatVersiyon } = useContext(StoreContext)
-  const { selectedProje, setSelectedProje } = useContext(StoreContext)
+  const { selectedProje } = useContext(StoreContext)
   const { selectedIsPaket } = useContext(StoreContext)
-  
+
   const wbsArray_state = selectedProje?.wbs?.filter(x => x.openForPoz === true)
-
-  const versiyonlar = selectedProje?.versiyonlar?.metraj
-  const pozBirimleri = selectedProje?.pozBirimleri
-  const yetkililer = selectedProje?.yetkiliKisiler
-
-  let onayNodeMetraj = false
-
-  const [show, setShow] = useState("Main")
 
   const pendingNavigationRef = useRef(null)
 
@@ -69,18 +51,15 @@ export default function P_isPaketPozlar() {
   }, [])
 
   useEffect(() => {
-    // If navigation was pending and context is now set, navigate
     if (pendingNavigationRef.current && selectedPoz?._id === pendingNavigationRef.current._id) {
       navigate('/ispaketpozmahaller')
       pendingNavigationRef.current = null
     }
   }, [selectedPoz, navigate])
 
-
   useEffect(() => {
     !selectedProje && navigate('/projeler')
   }, [selectedProje, navigate])
-
 
   useEffect(() => {
     if (error2) {
@@ -94,21 +73,6 @@ export default function P_isPaketPozlar() {
   }, [error2]);
 
 
-  const [basliklar, setBasliklar] = useState(appUser.customSettings.pages.ispaketler.basliklar)
-
-  const pozAciklamaShow = false
-  const pozVersiyonShow = false
-
-  const ikiHane = (value) => {
-    if (!value) {
-      return ""
-    }
-    if (value != "") {
-      return new Intl.NumberFormat("de-DE", { minimumFractionDigits: 2, maximumFractionDigits: 2, }).format(value)
-    }
-    return value
-  }
-
   // CSS
   const enUstBaslik_css = {
     display: "grid",
@@ -119,7 +83,6 @@ export default function P_isPaketPozlar() {
     border: "1px solid black",
     px: "0.7rem"
   }
-
 
   const wbsBaslik_css = {
     display: "grid",
@@ -142,28 +105,6 @@ export default function P_isPaketPozlar() {
     px: "0.7rem"
   }
 
-  const wbsToplamBaslik_css = {
-    display: "grid",
-    alignItems: "center",
-    justifyItems: "start",
-    backgroundColor: myTema.renkler.baslik2,
-    fontWeight: 600,
-    pl: "0.5rem",
-    border: "1px solid black",
-    px: "0.7rem"
-  }
-
-  const wbsToplamBaslik_css2 = {
-    display: "grid",
-    alignItems: "center",
-    justifyItems: "center",
-    backgroundColor: myTema.renkler.baslik2,
-    border: "1px solid black",
-    px: "0.7rem"
-  }
-
-
-
   const pozNo_css = {
     border: "1px solid black",
     px: "0.7rem",
@@ -171,8 +112,6 @@ export default function P_isPaketPozlar() {
     alignItems: "center",
     justifyItems: "center"
   }
-
-
 
   const goTo_isPaketPozMahaller = (onePoz) => {
     pendingNavigationRef.current = onePoz
@@ -190,13 +129,10 @@ export default function P_isPaketPozlar() {
     setOpenTooltip(null)
   }
 
-  let paraBirimiAdet = selectedProje?.paraBirimleri?.filter(x => x?.isActive).length
-
   const maxIsPaketCount = dataIsPaketPozlar?.pozlar
     ? Math.max(0, ...dataIsPaketPozlar.pozlar.map(p => p.isPaketler?.length || 0))
     : 0
 
-  const showMetrajYapabilenlerColumns = " 1rem repeat(" + showMetrajYapabilenler?.filter(x => x.isShow).length + ", max-content)"
   const columns = `
     max-content
     minmax(min-content, 25rem)
@@ -205,14 +141,7 @@ export default function P_isPaketPozlar() {
     max-content
     max-content
     ${maxIsPaketCount > 0 ? `1rem ${Array(maxIsPaketCount).fill('8rem').join(' ')}` : ''}
-    ${pozAciklamaShow ? " 0.5rem minmax(min-content, 2fr)" : ""}
-    ${pozVersiyonShow ? " 0.5rem min-content" : ""}
   `
-
-  // console.log("columns",columns)
-
-  let ayracRenk_siyah = "black"
-  let ayracRenk_bordo = "rgba(194, 18, 18, 0.67)"
 
 
   return (
@@ -238,7 +167,6 @@ export default function P_isPaketPozlar() {
             boxShadow: 4,
             width: { md: `calc(100% - ${drawerWidth}px)` },
             mt: topBarHeight,
-            // pt:"3rem",
             ml: { md: `${drawerWidth}px` }
           }}
         >
@@ -264,13 +192,6 @@ export default function P_isPaketPozlar() {
                   {selectedIsPaket?.name}
                 </Box>
 
-                {/* <Box sx={{ color: "#8B0000", fontWeight: "600" }}>
-                {" > "}
-              </Box> */}
-
-                <Box>
-                  {/* {"Tüm Mahaller"} */}
-                </Box>
               </Box>
             </Grid>
 
@@ -289,7 +210,6 @@ export default function P_isPaketPozlar() {
                         document.activeElement.blur();
                       }, 0);
                     }}
-                    // onBlur={() => queryClient.resetQueries(['dataPozlar'])}
                     sx={{ fontSize: "0.75rem" }}
                     MenuProps={{
                       PaperProps: {
@@ -303,19 +223,12 @@ export default function P_isPaketPozlar() {
 
                     {selectedProje?.metrajVersiyonlar.sort((a, b) => b.versiyonNumber - a.versiyonNumber).map((oneVersiyon, index) => {
                       let versiyonNumber = oneVersiyon?.versiyonNumber
-
                       return (
                         <MenuItem
-                          onClick={() => {
-                            setSelectedMetrajVersiyon(oneVersiyon)
-                            setTimeout(() => {
-                              queryClient.resetQueries(['dataPozlar'])
-                            }, 0);
-                          }}
+                          onClick={() => setSelectedMetrajVersiyon(oneVersiyon)}
                           sx={{ fontSize: "0.75rem" }} key={index} value={versiyonNumber} > M{versiyonNumber}
                         </MenuItem>
                       )
-
                     })}
 
                   </Select>
@@ -331,7 +244,6 @@ export default function P_isPaketPozlar() {
                         document.activeElement.blur();
                       }, 0);
                     }}
-                    // onBlur={() => queryClient.resetQueries(['dataPozlar'])}
                     sx={{ fontSize: "0.75rem", ml: "0.5rem" }}
                     MenuProps={{
                       PaperProps: {
@@ -345,19 +257,12 @@ export default function P_isPaketPozlar() {
 
                     {selectedProje?.birimFiyatVersiyonlar.sort((a, b) => b.versiyonNumber - a.versiyonNumber).map((oneVersiyon, index) => {
                       let versiyonNumber = oneVersiyon?.versiyonNumber
-
                       return (
                         <MenuItem
-                          onClick={() => {
-                            setSelectedBirimFiyatVersiyon(oneVersiyon)
-                            setTimeout(() => {
-                              queryClient.resetQueries(['dataPozlar'])
-                            }, 0);
-                          }}
+                          onClick={() => setSelectedBirimFiyatVersiyon(oneVersiyon)}
                           sx={{ fontSize: "0.75rem" }} key={index} value={versiyonNumber} > B{versiyonNumber}
                         </MenuItem>
                       )
-
                     })}
 
                   </Select>
@@ -373,27 +278,17 @@ export default function P_isPaketPozlar() {
       </Box >
 
 
-      {/* BAŞLIK GÖSTER / GİZLE */}
       {
-        show == "ShowMetrajYapabilenler" &&
-        <ShowMetrajYapabilenler
-          setShow={setShow}
-        />
-      }
-
-
-      {
-        (isFetching2) &&
+        isFetching2 &&
         <Box sx={{ width: '100%', px: "1rem", mt: "5rem", color: 'gray' }}>
           <LinearProgress color='inherit' />
         </Box >
       }
 
 
-
       {/* EĞER POZ BAŞLIĞI YOKSA */}
       {
-        !(isFetching2) && show == "Main" && !selectedProje?.wbs?.find(x => x.openForPoz === true) &&
+        !isFetching2 && !selectedProje?.wbs?.find(x => x.openForPoz === true) &&
         <Stack sx={{ width: '100%', mt: "3.5rem", p: "1rem" }} spacing={2}>
           <Alert severity="info">
             Öncelikle poz oluşturmaya açık poz başlığı oluşturmalısınız.
@@ -404,7 +299,7 @@ export default function P_isPaketPozlar() {
 
       {/* EĞER POZ YOKSA */}
       {
-        !(isFetching2) && show == "Main" && selectedProje?.wbs?.find(x => x.openForPoz === true) && !dataIsPaketPozlar?.pozlar?.length > 0 &&
+        !isFetching2 && selectedProje?.wbs?.find(x => x.openForPoz === true) && !dataIsPaketPozlar?.pozlar?.length > 0 &&
         <Stack sx={{ width: '100%', mt: "3.5rem", p: "1rem" }} spacing={2}>
           <Alert severity="info">
             Herhangi bir mahal, herhangi bir poz ile henüz eşleştirilmemiş, 'mahallistesi' menüsüne gidiniz.
@@ -416,7 +311,7 @@ export default function P_isPaketPozlar() {
       {/* ANA SAYFA - POZLAR VARSA */}
 
       {
-        !(isFetching2) && show == "Main" && wbsArray_state?.length > 0 && dataIsPaketPozlar?.pozlar?.length > 0 &&
+        !isFetching2 && wbsArray_state?.length > 0 && dataIsPaketPozlar?.pozlar?.length > 0 &&
 
         <Box sx={{ m: "1rem", mt: "4.5rem", display: "grid", gridTemplateColumns: columns }}>
 
@@ -457,27 +352,6 @@ export default function P_isPaketPozlar() {
               </>
             )}
 
-            {/* BAŞLIK - AÇIKLAMA  */}
-            {pozAciklamaShow &&
-              <>
-                <Box></Box>
-                <Box sx={{ ...enUstBaslik_css }}>
-                  Açıklama
-                </Box>
-              </>
-            }
-
-            {/* BAŞLIK - VERSİYON */}
-            {pozVersiyonShow &&
-              <>
-                <Box></Box>
-                <Box sx={{ ...enUstBaslik_css }}>
-                  Versiyon
-                </Box>
-              </>
-            }
-
-
           </>
 
 
@@ -513,20 +387,6 @@ export default function P_isPaketPozlar() {
               </>
             )}
 
-            {pozAciklamaShow &&
-              <>
-                <Box></Box>
-                <Box sx={{ ...enUstBaslik_css }} />
-              </>
-            }
-
-            {pozVersiyonShow &&
-              <>
-                <Box></Box>
-                <Box sx={{ ...enUstBaslik_css }} />
-              </>
-            }
-
           </>
 
 
@@ -547,7 +407,6 @@ export default function P_isPaketPozlar() {
                       {getWbsName({ wbsArray: wbsArray_state, oneWbs }).name}
                     </Box>
                   </Box>
-
 
                   <Box sx={{ ...wbsBaslik_css2 }}>
                   </Box>
@@ -581,22 +440,6 @@ export default function P_isPaketPozlar() {
                     </>
                   )}
 
-                  {/* BAŞLIK - AÇIKLAMA  */}
-                  {pozAciklamaShow &&
-                    <>
-                      <Box></Box>
-                      <Box sx={{ ...wbsBaslik_css2 }} />
-                    </>
-                  }
-
-                  {/* BAŞLIK - VERSİYON */}
-                  {pozVersiyonShow &&
-                    <>
-                      <Box />
-                      <Box sx={{ ...wbsBaslik_css2 }} />
-                    </>
-                  }
-
                 </>
 
 
@@ -604,13 +447,6 @@ export default function P_isPaketPozlar() {
                 {dataIsPaketPozlar?.pozlar?.filter(x => x._wbsId.toString() === oneWbs._id.toString()).map((onePoz, index) => {
 
                   let pozBirim = selectedProje?.pozBirimleri.find(x => x.id == onePoz?.pozBirimId)?.name
-
-                  let toplamDugum = onePoz.toplamDugum
-                  let secilenDugum = onePoz.secilenDugum
-
-                  // let paketPozMetraj = IsPaketPozMetrajlar_state
-                  //   ?.find(x => x._id.toString() === onePoz._id.toString()).isPaketler_byVersiyon
-                  //   ?.find(x => x._id.toString() === selectedIsPaket._id.toString())?.metrajOnaylanan
 
                   let isSelected = selectedPoz?._id.toString() === onePoz._id.toString()
                   const isHovered = hoveredRow === onePoz._id.toString()
@@ -624,7 +460,7 @@ export default function P_isPaketPozlar() {
                   }
 
                   return (
-                    <React.Fragment key={index} > 
+                    <React.Fragment key={index} >
 
                       <Box {...rowHandlers} sx={{ ...pozNo_css, ...rowBaseSx, ...hoverSx, backgroundColor, cursor: "pointer", justifyContent: "center" }}>
                         {onePoz.pozNo}
@@ -650,7 +486,6 @@ export default function P_isPaketPozlar() {
 
                       {/* POZ - İŞ PAKETLERİ */}
                       {maxIsPaketCount > 0 && (() => {
-                        // const dugumlerPoz = dataIsPaketPozlar?.pozlar?.find(p => p._id.toString() === onePoz._id.toString())
                         return (
                           <>
                             <Box />
@@ -686,31 +521,6 @@ export default function P_isPaketPozlar() {
                         )
                       })()}
 
-                      {/* <Box sx={{ ...pozNo_css, justifyContent: "end" }}>
-                        {ikiHane(onePoz?.metrajOnaylanan)}
-                      </Box> */}
-
-
-                      {/* BAŞLIK - POZ BİRİM  */}
-                      {pozAciklamaShow &&
-                        <>
-                          <Box></Box>
-                          <Box sx={{ ...pozNo_css }}>
-                            {onePoz.aciklaam}
-                          </Box>
-                        </>
-                      }
-
-                      {/* BAŞLIK - VERSİYON */}
-                      {pozVersiyonShow &&
-                        <>
-                          <Box />
-                          <Box sx={{ ...pozNo_css }}>
-                            {onePoz.versiyon}
-                          </Box>
-                        </>
-                      }
-
                     </React.Fragment>
                   )
                 })}
@@ -731,6 +541,5 @@ export default function P_isPaketPozlar() {
   )
 
 }
-
 
 
