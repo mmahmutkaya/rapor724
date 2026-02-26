@@ -560,9 +560,8 @@ export default function P_isPaketPozlar() {
 
             <Box sx={{ ...enUstBaslik_css }}>
               {(() => {
-                const t = pozlar_state?.reduce((sum, p) => sum + (p.toplamDugum || 0), 0) || 0
-                const s = pozlar_state?.reduce((sum, p) => sum + (p.secilenDugum || 0), 0) || 0
-                return (t - s) || ""
+                const t = dataIsPaketPozlar?.pozlar?.reduce((sum, p) => sum + (p.isPaketler_empityArrayCounts || 0), 0) || 0
+                return t || ""
               })()}
             </Box>
 
@@ -619,7 +618,7 @@ export default function P_isPaketPozlar() {
 
                   <Box sx={{ ...wbsBaslik_css2, justifyItems: "center" }}>
                     {(() => {
-                      const wbsPozlar = pozlar_state?.filter(p => p._wbsId.toString() === oneWbs._id.toString())
+                      const wbsPozlar = dataIsPaketPozlar?.pozlar?.filter(p => p._wbsId.toString() === oneWbs._id.toString())
                       const t = wbsPozlar?.reduce((sum, p) => sum + (p.toplamDugum || 0), 0) || 0
                       const s = wbsPozlar?.reduce((sum, p) => sum + (p.secilenDugum || 0), 0) || 0
                       return (t - s) || ""
@@ -696,7 +695,7 @@ export default function P_isPaketPozlar() {
                       <Box />
 
                       <Box {...rowHandlers} sx={{ ...pozNo_css, ...rowBaseSx, ...hoverSx, backgroundColor, cursor: "pointer", justifyContent: "center" }}>
-                        {onePoz.isPaketler_empityArrayCounts || 0}
+                        {onePoz.isPaketler_empityArrayCounts || ""}
                       </Box>
 
                       {/* POZ - İŞ PAKETLERİ */}
