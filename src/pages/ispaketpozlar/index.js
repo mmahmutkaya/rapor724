@@ -47,8 +47,7 @@ export default function P_isPaketPozlar() {
 
   const [pozlar_state, setPozlar_state] = useState()
   const [isPaketPozMetrajlar_state, setIsPaketPozMetrajlar_state] = useState()
-  const [wbsArray_state, setWbsArray_state] = useState()
-
+  
   const [dialogAlert, setDialogAlert] = useState()
   const [hoveredRow, setHoveredRow] = useState(null)
   const [openTooltip, setOpenTooltip] = useState(null)
@@ -61,7 +60,8 @@ export default function P_isPaketPozlar() {
   const { selectedBirimFiyatVersiyon, setSelectedBirimFiyatVersiyon } = useContext(StoreContext)
   const { selectedProje, setSelectedProje } = useContext(StoreContext)
   const { selectedIsPaket } = useContext(StoreContext)
-
+  
+  const wbsArray_state = selectedProje?.wbs?.filter(x => x.openForPoz === true)
 
   const versiyonlar = selectedProje?.versiyonlar?.metraj
   const pozBirimleri = selectedProje?.pozBirimleri
@@ -91,61 +91,61 @@ export default function P_isPaketPozlar() {
   }, [selectedProje, navigate])
 
 
-  useEffect(() => {
+  // useEffect(() => {
 
-    if (selectedProje && dataPozlar) {
+  //   if (selectedProje && dataPozlar) {
 
-      let pozlar = _.cloneDeep(dataPozlar?.pozlar?.filter(x => x.hasDugum))
-      let wbsArray = _.cloneDeep(selectedProje?.wbs.filter(oneWbs => pozlar?.find(onePoz => onePoz._wbsId.toString() === oneWbs._id.toString())))
+  //     let pozlar = _.cloneDeep(dataPozlar?.pozlar?.filter(x => x.hasDugum))
+  //     let wbsArray = _.cloneDeep(selectedProje?.wbs.filter(oneWbs => pozlar?.find(onePoz => onePoz._wbsId.toString() === oneWbs._id.toString())))
 
-      // WBS KEŞİF TUTARLARI İÇİN HAZIRLIK
-      let paraBirimleri = _.cloneDeep(selectedProje?.paraBirimleri)
-      paraBirimleri = paraBirimleri.map(oneBirim => {
-        oneBirim.kesifTutar = 0
-        return oneBirim
-      })
-      wbsArray = wbsArray.map(oneWbs => {
-        oneWbs.paraBirimleri = _.cloneDeep(paraBirimleri)
-        return oneWbs
-      })
+  //     // WBS KEŞİF TUTARLARI İÇİN HAZIRLIK
+  //     let paraBirimleri = _.cloneDeep(selectedProje?.paraBirimleri)
+  //     paraBirimleri = paraBirimleri.map(oneBirim => {
+  //       oneBirim.kesifTutar = 0
+  //       return oneBirim
+  //     })
+  //     wbsArray = wbsArray.map(oneWbs => {
+  //       oneWbs.paraBirimleri = _.cloneDeep(paraBirimleri)
+  //       return oneWbs
+  //     })
 
-      pozlar?.map(onePoz => {
+  //     pozlar?.map(onePoz => {
 
-        if (onePoz.kesifMiktar > 0 && onePoz.birimFiyatVersiyonlar.birimFiyatlar.length > 0) {
+  //       if (onePoz.kesifMiktar > 0 && onePoz.birimFiyatVersiyonlar.birimFiyatlar.length > 0) {
 
-          onePoz.birimFiyatVersiyonlar.birimFiyatlar = onePoz.birimFiyatVersiyonlar.birimFiyatlar.map(oneBirimFiyat => {
-            let kesiftutar = 0
-            kesiftutar = onePoz.kesifMiktar * oneBirimFiyat.fiyat
-            oneBirimFiyat.kesifTutar = kesiftutar
+  //         onePoz.birimFiyatVersiyonlar.birimFiyatlar = onePoz.birimFiyatVersiyonlar.birimFiyatlar.map(oneBirimFiyat => {
+  //           let kesiftutar = 0
+  //           kesiftutar = onePoz.kesifMiktar * oneBirimFiyat.fiyat
+  //           oneBirimFiyat.kesifTutar = kesiftutar
 
-            wbsArray = wbsArray?.map(oneWbs => {
-              if (oneWbs?._id.toString() === onePoz?._wbsId.toString()) {
-                oneWbs.paraBirimleri = oneWbs.paraBirimleri.map(oneBirim => {
-                  if (oneBirim.id === oneBirimFiyat.id) {
-                    oneBirim.kesifTutar += kesiftutar ? kesiftutar : 0
-                  }
-                  return oneBirim
-                })
-              }
-              return oneWbs
-            })
+  //           wbsArray = wbsArray?.map(oneWbs => {
+  //             if (oneWbs?._id.toString() === onePoz?._wbsId.toString()) {
+  //               oneWbs.paraBirimleri = oneWbs.paraBirimleri.map(oneBirim => {
+  //                 if (oneBirim.id === oneBirimFiyat.id) {
+  //                   oneBirim.kesifTutar += kesiftutar ? kesiftutar : 0
+  //                 }
+  //                 return oneBirim
+  //               })
+  //             }
+  //             return oneWbs
+  //           })
 
-            return oneBirimFiyat
-          })
+  //           return oneBirimFiyat
+  //         })
 
-        }
+  //       }
 
-        return onePoz
+  //       return onePoz
 
-      })
+  //     })
 
 
-      setPozlar_state(pozlar)
-      setWbsArray_state(wbsArray)
+  //     setPozlar_state(pozlar)
+  //     setWbsArray_state(wbsArray)
 
-    }
+  //   }
 
-  }, [selectedProje, dataPozlar])
+  // }, [selectedProje, dataPozlar])
 
 
   useEffect(() => {
@@ -457,7 +457,7 @@ export default function P_isPaketPozlar() {
 
 
       {
-        (isFetching1 || isFetching2) &&
+        (isFetching2) &&
         <Box sx={{ width: '100%', px: "1rem", mt: "5rem", color: 'gray' }}>
           <LinearProgress color='inherit' />
         </Box >
@@ -467,7 +467,7 @@ export default function P_isPaketPozlar() {
 
       {/* EĞER POZ BAŞLIĞI YOKSA */}
       {
-        !(isFetching1 || isFetching2) && show == "Main" && !selectedProje?.wbs?.find(x => x.openForPoz === true) &&
+        !(isFetching2) && show == "Main" && !selectedProje?.wbs?.find(x => x.openForPoz === true) &&
         <Stack sx={{ width: '100%', mt: "3.5rem", p: "1rem" }} spacing={2}>
           <Alert severity="info">
             Öncelikle poz oluşturmaya açık poz başlığı oluşturmalısınız.
@@ -478,7 +478,7 @@ export default function P_isPaketPozlar() {
 
       {/* EĞER POZ YOKSA */}
       {
-        !(isFetching1 || isFetching2) && show == "Main" && selectedProje?.wbs?.find(x => x.openForPoz === true) && !pozlar_state?.length > 0 &&
+        !(isFetching2) && show == "Main" && selectedProje?.wbs?.find(x => x.openForPoz === true) && !dataIsPaketPozlar?.pozlar?.length > 0 &&
         <Stack sx={{ width: '100%', mt: "3.5rem", p: "1rem" }} spacing={2}>
           <Alert severity="info">
             Herhangi bir mahal, herhangi bir poz ile henüz eşleştirilmemiş, 'mahallistesi' menüsüne gidiniz.
@@ -490,7 +490,7 @@ export default function P_isPaketPozlar() {
       {/* ANA SAYFA - POZLAR VARSA */}
 
       {
-        !(isFetching1 || isFetching2) && show == "Main" && wbsArray_state?.length > 0 && pozlar_state?.length > 0 &&
+        !(isFetching2) && show == "Main" && wbsArray_state?.length > 0 && dataIsPaketPozlar?.pozlar?.length > 0 &&
 
         <Box sx={{ m: "1rem", mt: "4.5rem", display: "grid", gridTemplateColumns: columns }}>
 
