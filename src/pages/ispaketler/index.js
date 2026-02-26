@@ -9,7 +9,7 @@ import ShowIsPaketBasliklar from "../../components/ShowIsPaketBasliklar.js";
 import { useQueryClient } from "@tanstack/react-query";
 import _ from "lodash";
 
-import { useGetIsPaketler } from "../../hooks/useMongo.js";
+import { useGetIsPaketPozlar } from "../../hooks/useMongo.js";
 
 import AppBar from "@mui/material/AppBar";
 import Grid from "@mui/material/Grid";
@@ -18,9 +18,6 @@ import Stack from "@mui/material/Stack";
 import { Typography } from "@mui/material";
 import List from "@mui/material/List";
 import Box from "@mui/material/Box";
-import MenuItem from "@mui/material/MenuItem";
-import Select from "@mui/material/Select";
-
 import FolderIcon from "@mui/icons-material/Folder";
 import IconButton from "@mui/material/IconButton";
 import DeleteIcon from "@mui/icons-material/Delete";
@@ -39,7 +36,6 @@ export default function P_IsPaketler() {
   const { selectedProje, setSelectedProje } = useContext(StoreContext);
 
   // console.log("selectedProje",selectedProje)
-  const { selectedIsPaketVersiyon, setSelectedIsPaketVersiyon } = useContext(StoreContext);
   const { selectedIsPaket, setSelectedIsPaket } = useContext(StoreContext);
   const { mode_isPaketEdit, setMode_isPaketEdit } = useContext(StoreContext);
 
@@ -56,7 +52,7 @@ export default function P_IsPaketler() {
     appUser.customSettings.pages.ispaketler.basliklar,
   );
 
-  const { data: dataIsPaketler } = useGetIsPaketler();
+  const { data: dataIsPaketPozlar } = useGetIsPaketPozlar();
 
   const navigate = useNavigate();
 
@@ -64,28 +60,13 @@ export default function P_IsPaketler() {
   useEffect(() => {
     setSelectedIsPaket(null);
     if (!selectedProje) navigate("/projeler");
-
-    if (selectedProje && !selectedIsPaketVersiyon) {
-      let isPaketVersiyon = selectedProje?.isPaketVersiyonlar.reduce(
-        (acc, cur) => (cur.versiyonNumber >= acc.versiyonNumber ? cur : acc),
-        { versiyonNumber: 0, isPaketler: [] },
-      );
-      setSelectedIsPaketVersiyon(isPaketVersiyon);
-    }
   }, []);
 
   useEffect(() => {
-    if (selectedProje && selectedIsPaketVersiyon) {
-      if (mode_isPaketEdit) {
-        setIsPaketler(selectedProje?.isPaketler);
-      } else {
-        let isPaketler2 = selectedProje?.isPaketVersiyonlar.find(
-          (x) => x.versiyonNumber === selectedIsPaketVersiyon?.versiyonNumber,
-        ).isPaketler;
-        setIsPaketler(isPaketler2);
-      }
+    if (selectedProje) {
+      setIsPaketler(selectedProje?.isPaketler);
     }
-  }, [mode_isPaketEdit, selectedIsPaketVersiyon, selectedProje]);
+  }, [mode_isPaketEdit, selectedProje]);
 
   const [show, setShow] = useState("Main");
 
@@ -324,47 +305,6 @@ export default function P_IsPaketler() {
                     </IconButton>
                   </Box>
 
-                  {selectedIsPaketVersiyon && (
-                    <Select
-                      size="small"
-                      value={selectedIsPaketVersiyon?.versiyonNumber}
-                      onClose={() => {
-                        setTimeout(() => {
-                          document.activeElement.blur();
-                        }, 0);
-                      }}
-                      // onBlur={() => queryClient.resetQueries(['dataPozlar'])}
-                      sx={{ fontSize: "0.75rem" }}
-                      MenuProps={{
-                        PaperProps: {
-                          style: {
-                            maxHeight: "15rem",
-                            minWidth: "5rem",
-                          },
-                        },
-                      }}
-                    >
-                      {selectedProje?.isPaketVersiyonlar
-                        ?.sort((a, b) => b.versiyonNumber - a.versiyonNumber)
-                        .map((oneVersiyon, index) => {
-                          let versiyonNumber = oneVersiyon.versiyonNumber;
-                          return (
-                            // <MenuItem sx={{ fontSize: "0.8rem" }} key={index} onClick={() => setSelectedBirimFiyatVersiyon(oneVersiyon)} value={versiyonNumber} > V{versiyonNumber} </MenuItem>
-                            <MenuItem
-                              onClick={() => {
-                                setSelectedIsPaketVersiyon(oneVersiyon);
-                              }}
-                              sx={{ fontSize: "0.75rem" }}
-                              key={index}
-                              value={versiyonNumber}
-                            >
-                              {" "}
-                              İP{versiyonNumber}
-                            </MenuItem>
-                          );
-                        })}
-                    </Select>
-                  )}
                 </>
               )}
 
@@ -528,7 +468,7 @@ export default function P_IsPaketler() {
                   };
 
                   const pozSayisi =
-                    dataIsPaketler?.isPaketPozSayisi?.[onePaket._id.toString()] ?? "";
+                    dataIsPaketPozlar?.isPaketPozSayisi?.[onePaket._id.toString()] ?? "";
 
                   return (
                     // iş paketleri başlığı
@@ -546,7 +486,7 @@ export default function P_IsPaketler() {
                       </Box>
 
                       <Box {...rowHandlers} sx={{ ...css_IsPaketler, ...rowBaseSx, ...hoverSx, backgroundColor, cursor: "pointer", justifyContent: "center" }}>
-                        {dataIsPaketler?.isPaketCounts?.[onePaket._id.toString()] ?? ""}
+                        {dataIsPaketPozlar?.isPaketCounts?.[onePaket._id.toString()] ?? ""}
                       </Box>
                     </React.Fragment>
                   );
@@ -634,7 +574,7 @@ export default function P_IsPaketler() {
                       };
 
                       const pozSayisi =
-                        dataIsPaketler?.isPaketPozSayisi?.[onePaket._id.toString()] ?? "";
+                        dataIsPaketPozlar?.isPaketPozSayisi?.[onePaket._id.toString()] ?? "";
 
                       return (
                         // iş paketleri başlığı
@@ -652,7 +592,7 @@ export default function P_IsPaketler() {
                           </Box>
 
                           <Box {...rowHandlers} sx={{ ...css_IsPaketler, ...rowBaseSx, ...hoverSx, backgroundColor, cursor: "pointer", justifyContent: "center" }}>
-                            {dataIsPaketler?.isPaketCounts?.[onePaket._id.toString()] ?? ""}
+                            {dataIsPaketPozlar?.isPaketCounts?.[onePaket._id.toString()] ?? ""}
                           </Box>
                         </React.Fragment>
                       );
