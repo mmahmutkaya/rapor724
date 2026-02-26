@@ -3,11 +3,8 @@ import React from 'react'
 import { useState, useContext, useEffect, useRef } from 'react';
 import { useQueryClient } from '@tanstack/react-query'
 import { useNavigate } from "react-router-dom";
-import _ from 'lodash';
-
-
 import { StoreContext } from '../../components/store.js'
-import { useGetPozlar, useGetIsPaketPozlar } from '../../hooks/useMongo.js';
+import { useGetIsPaketPozlar } from '../../hooks/useMongo.js';
 import getWbsName from '../../functions/getWbsName.js';
 import { DialogAlert } from '../../components/general/DialogAlert.js';
 
@@ -40,14 +37,8 @@ export default function P_isPaketPozlar() {
   const navigate = useNavigate()
   const queryClient = useQueryClient()
 
-  const { data: dataPozlar, error: error1, isFetching: isFetching1 } = useGetPozlar()
   const { data: dataIsPaketPozlar, error: error2, isFetching: isFetching2 } = useGetIsPaketPozlar();
 
-
-
-  const [pozlar_state, setPozlar_state] = useState()
-  const [isPaketPozMetrajlar_state, setIsPaketPozMetrajlar_state] = useState()
-  
   const [dialogAlert, setDialogAlert] = useState()
   const [hoveredRow, setHoveredRow] = useState(null)
   const [openTooltip, setOpenTooltip] = useState(null)
@@ -91,72 +82,7 @@ export default function P_isPaketPozlar() {
   }, [selectedProje, navigate])
 
 
-  // useEffect(() => {
-
-  //   if (selectedProje && dataPozlar) {
-
-  //     let pozlar = _.cloneDeep(dataPozlar?.pozlar?.filter(x => x.hasDugum))
-  //     let wbsArray = _.cloneDeep(selectedProje?.wbs.filter(oneWbs => pozlar?.find(onePoz => onePoz._wbsId.toString() === oneWbs._id.toString())))
-
-  //     // WBS KEŞİF TUTARLARI İÇİN HAZIRLIK
-  //     let paraBirimleri = _.cloneDeep(selectedProje?.paraBirimleri)
-  //     paraBirimleri = paraBirimleri.map(oneBirim => {
-  //       oneBirim.kesifTutar = 0
-  //       return oneBirim
-  //     })
-  //     wbsArray = wbsArray.map(oneWbs => {
-  //       oneWbs.paraBirimleri = _.cloneDeep(paraBirimleri)
-  //       return oneWbs
-  //     })
-
-  //     pozlar?.map(onePoz => {
-
-  //       if (onePoz.kesifMiktar > 0 && onePoz.birimFiyatVersiyonlar.birimFiyatlar.length > 0) {
-
-  //         onePoz.birimFiyatVersiyonlar.birimFiyatlar = onePoz.birimFiyatVersiyonlar.birimFiyatlar.map(oneBirimFiyat => {
-  //           let kesiftutar = 0
-  //           kesiftutar = onePoz.kesifMiktar * oneBirimFiyat.fiyat
-  //           oneBirimFiyat.kesifTutar = kesiftutar
-
-  //           wbsArray = wbsArray?.map(oneWbs => {
-  //             if (oneWbs?._id.toString() === onePoz?._wbsId.toString()) {
-  //               oneWbs.paraBirimleri = oneWbs.paraBirimleri.map(oneBirim => {
-  //                 if (oneBirim.id === oneBirimFiyat.id) {
-  //                   oneBirim.kesifTutar += kesiftutar ? kesiftutar : 0
-  //                 }
-  //                 return oneBirim
-  //               })
-  //             }
-  //             return oneWbs
-  //           })
-
-  //           return oneBirimFiyat
-  //         })
-
-  //       }
-
-  //       return onePoz
-
-  //     })
-
-
-  //     setPozlar_state(pozlar)
-  //     setWbsArray_state(wbsArray)
-
-  //   }
-
-  // }, [selectedProje, dataPozlar])
-
-
   useEffect(() => {
-    if (error1) {
-      console.log("error", error1)
-      setDialogAlert({
-        dialogIcon: "warning",
-        dialogMessage: "Beklenmedik hata, Rapor7/24 ile irtibata geçiniz..",
-        detailText: error1?.message ? error1.message : null
-      })
-    }
     if (error2) {
       console.log("error", error2)
       setDialogAlert({
@@ -165,7 +91,7 @@ export default function P_isPaketPozlar() {
         detailText: error2?.message ? error2.message : null
       })
     }
-  }, [error1, error2]);
+  }, [error2]);
 
 
   const [basliklar, setBasliklar] = useState(appUser.customSettings.pages.ispaketler.basliklar)
