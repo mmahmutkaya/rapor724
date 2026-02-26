@@ -42,7 +42,7 @@ export default function P_IsPaketPozMahaller() {
 
   const { appUser, setAppUser, myTema } = useContext(StoreContext)
   const { drawerWidth, topBarHeight } = useContext(StoreContext)
-  const { selectedProje, selectedIsPaketVersiyon, selectedPoz } = useContext(StoreContext)
+  const { selectedProje, selectedPoz } = useContext(StoreContext)
 
 
   const [showEminMisin, setShowEminMisin] = useState(false)
@@ -71,10 +71,10 @@ export default function P_IsPaketPozMahaller() {
 
   // Guard: Redirect back to parent page if context values are not loaded (e.g., on page reload)
   useEffect(() => {
-    if (!selectedProje || !selectedPoz || !selectedIsPaketVersiyon) {
+    if (!selectedProje || !selectedPoz) {
       navigate('/ispaketpozlar')
     }
-  }, [selectedProje, selectedPoz, selectedIsPaketVersiyon, navigate])
+  }, [selectedProje, selectedPoz, navigate])
 
   const pozBirim = selectedProje?.pozBirimleri.find(x => x.id == selectedPoz?.pozBirimId)?.name
 
@@ -83,7 +83,7 @@ export default function P_IsPaketPozMahaller() {
 
   useEffect(() => {
     // Guard: Only proceed if we have all required context values
-    if (!selectedProje || !selectedPoz || !selectedIsPaketVersiyon) {
+    if (!selectedProje || !selectedPoz) {
       return
     }
 
@@ -93,7 +93,7 @@ export default function P_IsPaketPozMahaller() {
     return () => {
       setMahaller_state()
     }
-  }, [dataMahaller, dataDugumler_byPoz, selectedProje, selectedPoz, selectedIsPaketVersiyon])
+  }, [dataMahaller, dataDugumler_byPoz, selectedProje, selectedPoz])
 
 
   useEffect(() => {
@@ -327,7 +327,7 @@ export default function P_IsPaketPozMahaller() {
 
     <Box sx={{ m: "0rem" }}>
 
-      {!selectedProje || !selectedPoz || !selectedIsPaketVersiyon ? (
+      {!selectedProje || !selectedPoz ? (
         null
       ) : (
         <>
@@ -388,10 +388,6 @@ export default function P_IsPaketPozMahaller() {
                   onClick={() => handleBackClick()} disabled={false}>
                   <ReplyIcon variant="contained" sx={{ color: "gray" }} />
                 </IconButton>
-
-                <Box>
-                  (V{selectedIsPaketVersiyon?.versiyonNumber})
-                </Box>
 
               </Box>
             </Grid>
