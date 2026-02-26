@@ -34,7 +34,6 @@ import IconButton from '@mui/material/IconButton';
 import ClearOutlined from '@mui/icons-material/ClearOutlined';
 import ReplyIcon from '@mui/icons-material/Reply';
 import ViewWeekIcon from '@mui/icons-material/ViewWeek';
-import ReportProblemIcon from '@mui/icons-material/ReportProblem';
 
 
 export default function P_IsPaketPozMahaller() {
@@ -43,8 +42,7 @@ export default function P_IsPaketPozMahaller() {
 
   const { appUser, setAppUser, myTema } = useContext(StoreContext)
   const { drawerWidth, topBarHeight } = useContext(StoreContext)
-  const { selectedProje, selectedIsPaketVersiyon, selectedIsPaket, selectedPoz } = useContext(StoreContext)
-  const { mode_isPaketEdit } = useContext(StoreContext)
+  const { selectedProje, selectedIsPaketVersiyon, selectedPoz } = useContext(StoreContext)
 
 
   const [showEminMisin, setShowEminMisin] = useState(false)
@@ -64,7 +62,6 @@ export default function P_IsPaketPozMahaller() {
   const [mahaller_state, setMahaller_state] = useState()
   const [hoveredRow, setHoveredRow] = useState(null)
 
-  const [lbsMetrajlar, setLbsMetrajlar] = useState([])
   const [autoFocus, setAutoFocus] = useState({ baslikId: null, pozId: null })
 
   const navigate = useNavigate()
@@ -74,10 +71,10 @@ export default function P_IsPaketPozMahaller() {
 
   // Guard: Redirect back to parent page if context values are not loaded (e.g., on page reload)
   useEffect(() => {
-    if (!selectedProje || !selectedPoz || !selectedIsPaket || !selectedIsPaketVersiyon) {
+    if (!selectedProje || !selectedPoz || !selectedIsPaketVersiyon) {
       navigate('/ispaketpozlar')
     }
-  }, [selectedProje, selectedPoz, selectedIsPaket, selectedIsPaketVersiyon, navigate])
+  }, [selectedProje, selectedPoz, selectedIsPaketVersiyon, navigate])
 
   const pozBirim = selectedProje?.pozBirimleri.find(x => x.id == selectedPoz?.pozBirimId)?.name
 
@@ -86,7 +83,7 @@ export default function P_IsPaketPozMahaller() {
 
   useEffect(() => {
     // Guard: Only proceed if we have all required context values
-    if (!selectedProje || !selectedPoz || !selectedIsPaket || !selectedIsPaketVersiyon) {
+    if (!selectedProje || !selectedPoz || !selectedIsPaketVersiyon) {
       return
     }
 
@@ -96,7 +93,7 @@ export default function P_IsPaketPozMahaller() {
     return () => {
       setMahaller_state()
     }
-  }, [dataMahaller, dataDugumler_byPoz, selectedProje, selectedPoz, selectedIsPaket, selectedIsPaketVersiyon])
+  }, [dataMahaller, dataDugumler_byPoz, selectedProje, selectedPoz, selectedIsPaketVersiyon])
 
 
   useEffect(() => {
@@ -188,45 +185,6 @@ export default function P_IsPaketPozMahaller() {
 
 
 
-  const handleDugumToggle = ({ dugum, toggleValue }) => {
-
-    let dugumler_byPoz_state2 = _.cloneDeep(dugumler_byPoz_state)
-
-    dugumler_byPoz_state2 = dugumler_byPoz_state2.map(oneDugum2 => {
-
-      if (oneDugum2._id.toString() === dugum._id.toString()) {
-
-        // Ensure isPaketler is always an array
-        const currentPaketler = Array.isArray(oneDugum2.isPaketler) ? oneDugum2.isPaketler : []
-        
-        // Check if selectedIsPaket is already in the array
-        const alreadySelected = currentPaketler.find(x => x._id.toString() === selectedIsPaket._id.toString())
-
-        if (toggleValue && !alreadySelected) {
-          // TRUE: Add selectedIsPaket to isPaketler array
-          oneDugum2.isPaketler = [...currentPaketler, { _id: selectedIsPaket._id }]
-          oneDugum2.newSelected = true
-          oneDugum2.newSelectedValue = true
-        } else if (!toggleValue && alreadySelected) {
-          // FALSE: Remove selectedIsPaket from isPaketler array
-          oneDugum2.isPaketler = currentPaketler.filter(x => x._id.toString() !== selectedIsPaket._id.toString())
-          oneDugum2.newSelected = true
-          oneDugum2.newSelectedValue = false
-        }
-      }
-
-      return oneDugum2
-
-    })
-
-    setIsChanged(true)
-    // console.log("dugumler_byPoz_state2", dugumler_byPoz_state2)
-    setDugumler_byPoz_state(dugumler_byPoz_state2)
-
-  }
-
-
-
   const cancelChange = () => {
     setDugumler_byPoz_state(_.cloneDeep(dataDugumler_byPoz?.dugumler_byPoz))
     setIsChanged(false)
@@ -262,7 +220,6 @@ export default function P_IsPaketPozMahaller() {
           'Content-Type': 'application/json'
         },
         body: JSON.stringify({
-          selectedIsPaket,
           dugumler
         })
       })
@@ -303,7 +260,6 @@ export default function P_IsPaketPozMahaller() {
 
     }
   }
-
 
 
 
@@ -366,35 +322,12 @@ export default function P_IsPaketPozMahaller() {
 
   // console.log("paraBirimiAdet",paraBirimiAdet)
 
-  let ayracRenk_siyah = "black"
-  let ayracRenk_bordo = "rgba(194, 18, 18, 0.67)"
-  let color_selectedThis = "rgba(98, 210, 96, 0.22)"
-  let color_selectedOther = "rgba(0, 0, 0, 0.18)"
-  let color_selectedMany = "rgb(194, 18, 18)"
-
-
-  let isPaketSelectedPozMetraj = 0
-
-  if (selectedIsPaketVersiyon !== undefined && selectedIsPaket && dugumler_byPoz_state) {
-    if (selectedIsPaketVersiyon === 0 || typeof selectedIsPaketVersiyon === 'number') {
-      isPaketSelectedPozMetraj = dugumler_byPoz_state
-        ?.filter(oneDugum => oneDugum.isPaketler?.find(onePaket => onePaket?._id.toString() === selectedIsPaket._id.toString())
-        ).reduce((accumulator, oneDugum) => oneDugum.metrajOnaylanan ? accumulator + oneDugum.metrajOnaylanan : accumulator, 0)
-    } else if (selectedIsPaketVersiyon?.versiyon !== undefined) {
-      isPaketSelectedPozMetraj = dugumler_byPoz_state
-        ?.filter(dugum => {
-          const versiyonData = dugum.isPaketVersiyonlar?.find(oneVersiyon => oneVersiyon.versiyon === selectedIsPaketVersiyon.versiyon)
-          return versiyonData?.isPaketler?.find(onePaket => onePaket?._id.toString() === selectedIsPaket._id.toString())
-        }).reduce((accumulator, oneDugum) => oneDugum.metrajOnaylanan ? accumulator + oneDugum.metrajOnaylanan : accumulator, 0)
-    }
-  }
-
 
   return (
 
     <Box sx={{ m: "0rem" }}>
 
-      {!selectedProje || !selectedPoz || !selectedIsPaket || !selectedIsPaketVersiyon ? (
+      {!selectedProje || !selectedPoz || !selectedIsPaketVersiyon ? (
         null
       ) : (
         <>
@@ -457,7 +390,7 @@ export default function P_IsPaketPozMahaller() {
                 </IconButton>
 
                 <Box>
-                  (V{selectedIsPaketVersiyon?.versiyonNumber}) - {selectedIsPaket?.name}
+                  (V{selectedIsPaketVersiyon?.versiyonNumber})
                 </Box>
 
               </Box>
@@ -569,24 +502,6 @@ export default function P_IsPaketPozMahaller() {
               return
             }
 
-            const lbsMetraj = dataDugumler_byPoz?.lbsMetrajlar?.find(x => x._id.toString() === oneLbs._id.toString())
-
-            let lbsMetrajSecili = 0
-            if (selectedIsPaketVersiyon === 0) {
-              lbsMetrajSecili = dugumler_byPoz_state
-                ?.filter(x => mahaller_byLbs.find(y => y._id.toString() === x._mahalId.toString()))
-                ?.filter(oneDugum => oneDugum.isPaketler?.find(onePaket => onePaket._id.toString() === selectedIsPaket._id.toString())
-                ).reduce((accumulator, oneDugum) => oneDugum.metrajOnaylanan ? accumulator + oneDugum.metrajOnaylanan : accumulator, 0)
-            } else if (selectedIsPaketVersiyon?.versiyon !== undefined) {
-              lbsMetrajSecili = dugumler_byPoz_state
-                ?.filter(x => mahaller_byLbs.find(y => y._id.toString() === x._mahalId.toString()))
-                ?.filter(oneDugum => {
-                  const versiyonData = oneDugum.isPaketVersiyonlar?.find(oneVersiyon => oneVersiyon.versiyon === selectedIsPaketVersiyon.versiyon)
-                  return versiyonData?.isPaketler?.find(onePaket => onePaket._id.toString() === selectedIsPaket._id.toString())
-                }).reduce((accumulator, oneDugum) => oneDugum.metrajOnaylanan ? accumulator + oneDugum.metrajOnaylanan : accumulator, 0)
-            }
-
-
             return (
               <React.Fragment key={index}>
 
@@ -621,45 +536,31 @@ export default function P_IsPaketPozMahaller() {
                   //   isPaketler = versiyonData?.isPaketler || []
                   // }
 
-                  let isSelectedThis = dugum?.isPaketler?.find(onePaket => onePaket._id.toString() === selectedIsPaket._id.toString())
-
-                  // When in paket-edit mode, determine "other" selection from the raw dugum.isPaketler
-                  // so items that belong to other paketler (but not the selected one) appear grey.
-                  let isSelectedOther = dugum?.isPaketler?.filter(onePaket => onePaket._id.toString() !== selectedIsPaket._id.toString()).length > 0
-
                   const isHovered = hoveredRow === dugum._id.toString()
-                  const tip1_backgroundColor = isSelectedThis ? color_selectedThis : isSelectedOther ? color_selectedOther : "white"
                   const rowBaseSx = { transition: "text-shadow 0.2s ease" }
                   const hoverSx = isHovered ? { textShadow: "0 0 0.7px black, 0 0 0.7px black" } : {}
 
                   const rowHandlers = {
                     onMouseEnter: () => setHoveredRow(dugum._id.toString()),
                     onMouseLeave: () => setHoveredRow(null),
-                    onClick: () => handleDugumToggle({ dugum, toggleValue: !isSelectedThis }),
                   }
 
                   return (
                     <React.Fragment key={index}>
 
-                      <Box {...rowHandlers} sx={{ ...css_mahaller, ...rowBaseSx, ...hoverSx, backgroundColor: tip1_backgroundColor, borderLeft: "1px solid black", cursor: "pointer" }}>
+                      <Box {...rowHandlers} sx={{ ...css_mahaller, ...rowBaseSx, ...hoverSx, borderLeft: "1px solid black" }}>
                         {oneMahal.mahalNo}
                       </Box>
 
-                      <Box {...rowHandlers} sx={{ ...css_mahaller, ...rowBaseSx, ...hoverSx, backgroundColor: tip1_backgroundColor, cursor: "pointer" }}>
+                      <Box {...rowHandlers} sx={{ ...css_mahaller, ...rowBaseSx, ...hoverSx }}>
                         {oneMahal.mahalName}
                       </Box>
 
-                      <Box {...rowHandlers} sx={{ ...css_mahaller, ...rowBaseSx, ...hoverSx, backgroundColor: tip1_backgroundColor, cursor: "pointer", ...css_thirdCol, display: "grid", gridTemplateColumns: "1fr auto", alignItems: "center" }}>
+                      <Box {...rowHandlers} sx={{ ...css_mahaller, ...rowBaseSx, ...hoverSx, ...css_thirdCol, display: "grid", gridTemplateColumns: "1fr auto", alignItems: "center" }}>
                         <Box sx={{ justifySelf: "end" }}>
-                          {mode_isPaketEdit
-                            ? (dugum.isPaketler?.length || "")
-                            : (isSelectedThis ? selectedIsPaket.name : "")
-                          }
+                          {dugum.isPaketler?.length || ""}
                         </Box>
                         <Box sx={{ display: "grid", alignItems: "center", justifySelf: "end", minWidth: "2rem" }}>
-                          {isSelectedThis && isSelectedOther && (
-                            <ReportProblemIcon sx={{ color: ayracRenk_bordo, fontSize: "1rem" }} />
-                          )}
                         </Box>
                       </Box>
 
