@@ -656,7 +656,7 @@ export default function P_isPaketPozlar() {
 
 
                 {/* WBS'İN POZLARI */}
-                {dataIsPaketPozlar?.pozlar?.filter(x => x._wbsId.toString() === oneWbs._id.toString()).map((onePoz, index) => {
+                {pozlar_state?.filter(x => x._wbsId.toString() === oneWbs._id.toString()).map((onePoz, index) => {
 
                   let pozBirim = selectedProje?.pozBirimleri.find(x => x.id == onePoz?.pozBirimId)?.name
 
@@ -701,12 +701,12 @@ export default function P_isPaketPozlar() {
 
                       {/* POZ - İŞ PAKETLERİ */}
                       {maxIsPaketCount > 0 && (() => {
-                        // const dugumlerPoz = dataIsPaketPozlar?.pozlar?.find(p => p._id.toString() === onePoz._id.toString())
+                        const dugumlerPoz = dataIsPaketPozlar?.pozlar?.find(p => p._id.toString() === onePoz._id.toString())
                         return (
                           <>
                             <Box />
                             {Array.from({ length: maxIsPaketCount }, (_, i) => {
-                              const isPaket = onePoz?.isPaketler?.[i]
+                              const isPaket = dugumlerPoz?.isPaketler?.[i]
                               const name = selectedProje.isPaketler.find(p => p._id.toString() === isPaket?._id.toString())?.name || ""
                               const tooltipKey = `${onePoz._id}-${i}`
                               return (
