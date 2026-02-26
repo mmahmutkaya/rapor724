@@ -37,7 +37,6 @@ export default function P_IsPaketler() {
 
   // console.log("selectedProje",selectedProje)
   const { selectedIsPaket, setSelectedIsPaket } = useContext(StoreContext);
-  const { mode_isPaketEdit, setMode_isPaketEdit } = useContext(StoreContext);
 
   // console.log("selectedProje",selectedProje)
 
@@ -66,7 +65,7 @@ export default function P_IsPaketler() {
     if (selectedProje) {
       setIsPaketler(selectedProje?.isPaketler);
     }
-  }, [mode_isPaketEdit, selectedProje]);
+  }, [selectedProje]);
 
   const [show, setShow] = useState("Main");
 
@@ -149,7 +148,6 @@ export default function P_IsPaketler() {
         let proje2 = _.cloneDeep(selectedProje);
         proje2.isPaketler = responseJson.proje.isPaketler;
         setSelectedProje(proje2);
-        setMode_isPaketEdit(true);
       }
     } catch (err) {
       console.log(err);
@@ -210,7 +208,6 @@ export default function P_IsPaketler() {
 
       if (responseJson.ok) {
         setShow("Main");
-        setMode_isPaketEdit();
       }
     } catch (err) {
       console.log(err);
@@ -283,7 +280,7 @@ export default function P_IsPaketler() {
                 alignItems: "center",
               }}
             >
-              {!selectedIsPaket && !mode_isPaketEdit && (
+ 
                 <>
                   <Box>
                     <IconButton onClick={() => setShow("ShowBaslik")} sx={headerIconButton_sx}>
@@ -306,9 +303,9 @@ export default function P_IsPaketler() {
                   </Box>
 
                 </>
-              )}
+            
 
-              {!selectedIsPaket && mode_isPaketEdit && (
+              {!selectedIsPaket && (
                 <>
                   <Grid item>
                     <IconButton
