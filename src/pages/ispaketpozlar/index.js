@@ -277,6 +277,7 @@ export default function P_isPaketPozlar() {
     max-content
     1rem
     max-content
+    max-content
     ${maxIsPaketCount > 0 ? `1rem ${Array(maxIsPaketCount).fill('8rem').join(' ')}` : ''}
     ${pozAciklamaShow ? " 0.5rem minmax(min-content, 2fr)" : ""}
     ${pozVersiyonShow ? " 0.5rem min-content" : ""}
@@ -514,6 +515,10 @@ export default function P_isPaketPozlar() {
               Açık Mahal
             </Box>
 
+            <Box sx={{ ...enUstBaslik_css }}>
+              Mükerrer
+            </Box>
+
             {/* BAŞLIK - İŞ PAKETLERİ */}
             {maxIsPaketCount > 0 && (
               <>
@@ -561,6 +566,13 @@ export default function P_isPaketPozlar() {
             <Box sx={{ ...enUstBaslik_css }}>
               {(() => {
                 const t = dataIsPaketPozlar?.pozlar?.reduce((sum, p) => sum + (p.isPaketler_empityArrayCounts || 0), 0) || 0
+                return t || ""
+              })()}
+            </Box>
+
+            <Box sx={{ ...enUstBaslik_css }}>
+              {(() => {
+                const t = dataIsPaketPozlar?.pozlar?.reduce((sum, p) => sum + (p.isPaketler_mukerrerArrayCounts || 0), 0) || 0
                 return t || ""
               })()}
             </Box>
@@ -622,6 +634,14 @@ export default function P_isPaketPozlar() {
                       const t = wbsPozlar?.reduce((sum, p) => sum + (p.toplamDugum || 0), 0) || 0
                       const s = wbsPozlar?.reduce((sum, p) => sum + (p.secilenDugum || 0), 0) || 0
                       return (t - s) || ""
+                    })()}
+                  </Box>
+
+                  <Box sx={{ ...wbsBaslik_css2, justifyItems: "center" }}>
+                    {(() => {
+                      const wbsPozlar = dataIsPaketPozlar?.pozlar?.filter(p => p._wbsId.toString() === oneWbs._id.toString())
+                      const t = wbsPozlar?.reduce((sum, p) => sum + (p.isPaketler_mukerrerArrayCounts || 0), 0) || 0
+                      return t || ""
                     })()}
                   </Box>
 
@@ -696,6 +716,10 @@ export default function P_isPaketPozlar() {
 
                       <Box {...rowHandlers} sx={{ ...pozNo_css, ...rowBaseSx, ...hoverSx, backgroundColor, cursor: "pointer", justifyContent: "center" }}>
                         {onePoz.isPaketler_empityArrayCounts || ""}
+                      </Box>
+
+                      <Box {...rowHandlers} sx={{ ...pozNo_css, ...rowBaseSx, ...hoverSx, backgroundColor, cursor: "pointer", justifyContent: "center" }}>
+                        {onePoz.isPaketler_mukerrerArrayCounts || ""}
                       </Box>
 
                       {/* POZ - İŞ PAKETLERİ */}
