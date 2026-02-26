@@ -9,8 +9,7 @@ import ShowIsPaketBasliklar from "../../components/ShowIsPaketBasliklar.js";
 import { useQueryClient } from "@tanstack/react-query";
 import _ from "lodash";
 
-import { useGetisPaketler } from "../../hooks/useMongo.js";
-import { useGetIsPaketlerDugumler } from "../../hooks/useMongo.js";
+import { useGetIsPaketler } from "../../hooks/useMongo.js";
 
 import AppBar from "@mui/material/AppBar";
 import Grid from "@mui/material/Grid";
@@ -57,7 +56,7 @@ export default function P_IsPaketler() {
     appUser.customSettings.pages.ispaketler.basliklar,
   );
 
-  const { data: dataIsPaketlerDugumler } = useGetIsPaketlerDugumler();
+  const { data: dataIsPaketler } = useGetIsPaketler();
 
   const navigate = useNavigate();
 
@@ -529,7 +528,7 @@ export default function P_IsPaketler() {
                   };
 
                   const pozSayisi =
-                    dataIsPaketlerDugumler?.isPaketPozSayisi?.[onePaket._id.toString()] ?? "";
+                    dataIsPaketler?.isPaketPozSayisi?.[onePaket._id.toString()] ?? "";
 
                   return (
                     // iş paketleri başlığı
@@ -547,7 +546,7 @@ export default function P_IsPaketler() {
                       </Box>
 
                       <Box {...rowHandlers} sx={{ ...css_IsPaketler, ...rowBaseSx, ...hoverSx, backgroundColor, cursor: "pointer", justifyContent: "center" }}>
-                        {dataIsPaketlerDugumler?.isPaketCounts?.[onePaket._id.toString()] ?? ""}
+                        {dataIsPaketler?.isPaketCounts?.[onePaket._id.toString()] ?? ""}
                       </Box>
                     </React.Fragment>
                   );
@@ -635,7 +634,7 @@ export default function P_IsPaketler() {
                       };
 
                       const pozSayisi =
-                        dataIsPaketlerDugumler?.isPaketPozSayisi?.[onePaket._id.toString()] ?? "";
+                        dataIsPaketler?.isPaketPozSayisi?.[onePaket._id.toString()] ?? "";
 
                       return (
                         // iş paketleri başlığı
@@ -653,7 +652,7 @@ export default function P_IsPaketler() {
                           </Box>
 
                           <Box {...rowHandlers} sx={{ ...css_IsPaketler, ...rowBaseSx, ...hoverSx, backgroundColor, cursor: "pointer", justifyContent: "center" }}>
-                            {dataIsPaketlerDugumler?.isPaketCounts?.[onePaket._id.toString()] ?? ""}
+                            {dataIsPaketler?.isPaketCounts?.[onePaket._id.toString()] ?? ""}
                           </Box>
                         </React.Fragment>
                       );

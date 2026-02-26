@@ -233,15 +233,15 @@ export const useGetPozlar = () => {
 }
 
 
-export const useGetIsPaketlerDugumler = () => {
+export const useGetIsPaketler = () => {
 
   const navigate = useNavigate()
   const { appUser, setAppUser, selectedProje } = useContext(StoreContext)
 
   return useQuery({
-    queryKey: ['dataIsPaketlerDugumler', selectedProje?._id?.toString()],
+    queryKey: ['dataIsPaketler', selectedProje?._id?.toString()],
     queryFn: async () => {
-      const response = await fetch(process.env.REACT_APP_BASE_URL + '/api/pozlar/ispaketlerdugumler', {
+      const response = await fetch(process.env.REACT_APP_BASE_URL + '/api/pozlar/ispaketler', {
         method: 'GET',
         headers: {
           email: appUser.email,

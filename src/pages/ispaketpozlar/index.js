@@ -7,7 +7,7 @@ import _ from 'lodash';
 
 
 import { StoreContext } from '../../components/store.js'
-import { useGetPozlar, useGetIsPaketlerDugumler } from '../../hooks/useMongo.js';
+import { useGetPozlar, useGetIsPaketler } from '../../hooks/useMongo.js';
 import getWbsName from '../../functions/getWbsName.js';
 import { DialogAlert } from '../../components/general/DialogAlert.js';
 
@@ -41,7 +41,7 @@ export default function P_isPaketPozlar() {
   const queryClient = useQueryClient()
 
   const { data: dataPozlar, error: error1, isFetching: isFetching1 } = useGetPozlar()
-  const { data: dataIsPaketlerDugumler, error: error2, isFetching: isFetching2 } = useGetIsPaketlerDugumler();
+  const { data: dataIsPaketler, error: error2, isFetching: isFetching2 } = useGetIsPaketler();
 
 
 
@@ -268,8 +268,8 @@ export default function P_isPaketPozlar() {
 
   let paraBirimiAdet = selectedProje?.paraBirimleri?.filter(x => x?.isActive).length
 
-  const maxIsPaketCount = dataIsPaketlerDugumler?.pozlar
-    ? Math.max(0, ...dataIsPaketlerDugumler.pozlar.map(p => p.isPaketler?.length || 0))
+  const maxIsPaketCount = dataIsPaketler?.pozlar
+    ? Math.max(0, ...dataIsPaketler.pozlar.map(p => p.isPaketler?.length || 0))
     : 0
 
   const showMetrajYapabilenlerColumns = " 1rem repeat(" + showMetrajYapabilenler?.filter(x => x.isShow).length + ", max-content)"
@@ -703,7 +703,7 @@ export default function P_isPaketPozlar() {
 
                       {/* POZ - İŞ PAKETLERİ */}
                       {maxIsPaketCount > 0 && (() => {
-                        const dugumlerPoz = dataIsPaketlerDugumler?.pozlar?.find(p => p._id.toString() === onePoz._id.toString())
+                        const dugumlerPoz = dataIsPaketler?.pozlar?.find(p => p._id.toString() === onePoz._id.toString())
                         return (
                           <>
                             <Box />
