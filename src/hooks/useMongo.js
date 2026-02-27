@@ -239,7 +239,7 @@ export const useGetIsPaketPozlar = () => {
   const { appUser, setAppUser, selectedProje } = useContext(StoreContext)
 
   return useQuery({
-    queryKey: ['dataIsPaketPozlar', selectedProje?._id?.toString()],
+    queryKey: ['dataIsPaketPozlar'],
     queryFn: async () => {
       const response = await fetch(process.env.REACT_APP_BASE_URL + '/api/pozlar/ispaketpozlar', {
         method: 'GET',
