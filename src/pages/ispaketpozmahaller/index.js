@@ -27,8 +27,6 @@ import Box from '@mui/material/Box';
 import { Check } from '@mui/icons-material';
 import Tooltip from '@mui/material/Tooltip';
 import FileDownloadDoneIcon from '@mui/icons-material/FileDownloadDone';
-import CircleIcon from '@mui/icons-material/Circle';
-import AddCircleIcon from '@mui/icons-material/AddCircle';
 import LinearProgress from '@mui/material/LinearProgress';
 import IconButton from '@mui/material/IconButton';
 import ClearOutlined from '@mui/icons-material/ClearOutlined';
@@ -312,11 +310,15 @@ export default function P_IsPaketPozMahaller() {
 
   const activeIsPaketler = selectedProje?.isPaketler || []
 
+  const maxIsPaketCount = dugumler_byPoz_state
+    ? Math.max(0, ...dugumler_byPoz_state.map(d => d.isPaketler?.length || 0))
+    : 0
+
   const gridTemplateColumns1 = [
     'max-content',
     'minmax(min-content, 15rem)',
     '1rem',
-    ...activeIsPaketler.map(() => '10rem')
+    ...Array(maxIsPaketCount).fill('max-content')
   ].join(' ')
 
   // console.log("paraBirimiAdet",paraBirimiAdet)
@@ -387,6 +389,10 @@ export default function P_IsPaketPozMahaller() {
                   onClick={() => handleBackClick()} disabled={false}>
                   <ReplyIcon variant="contained" sx={{ color: "gray" }} />
                 </IconButton>
+
+                <Box sx={{ fontWeight: "600", fontSize: "0.95rem" }}>
+                  {selectedPoz.pozName}
+                </Box>
 
               </Box>
             </Grid>
@@ -464,13 +470,13 @@ export default function P_IsPaketPozMahaller() {
             </Box>
 
             <Box sx={{ ...css_enUstBaslik }}>
-              {selectedPoz.pozName}
+              MAHAL
             </Box>
 
             <Box />
 
-            {activeIsPaketler.map((isPaket, i) => (
-              <Box key={isPaket._id} sx={{
+            {maxIsPaketCount > 0 && (
+              <Box sx={{
                 display: "flex",
                 justifyContent: "center",
                 alignItems: "center",
@@ -480,19 +486,11 @@ export default function P_IsPaketPozMahaller() {
                 px: "0.5rem",
                 backgroundColor: "#415a77",
                 color: "#e0e1dd",
+                gridColumn: `span ${maxIsPaketCount}`,
               }}>
-                <Box sx={{
-                  display: "-webkit-box",
-                  WebkitLineClamp: 2,
-                  WebkitBoxOrient: "vertical",
-                  overflow: "hidden",
-                  textAlign: "center",
-                  wordBreak: "break-word"
-                }}>
-                  {isPaket.name}
-                </Box>
+                İŞ PAKETLERİ
               </Box>
-            ))}
+            )}
 
           </>
 
@@ -522,8 +520,8 @@ export default function P_IsPaketPozMahaller() {
 
                 <Box />
 
-                {activeIsPaketler.map((isPaket, i) => (
-                  <Box key={isPaket._id} sx={{ ...css_LbsBaslik }}>
+                {Array.from({ length: maxIsPaketCount }, (_, i) => (
+                  <Box key={i} sx={{ ...css_LbsBaslik }}>
                   </Box>
                 ))}
 
@@ -569,11 +567,14 @@ export default function P_IsPaketPozMahaller() {
 
                       <Box />
 
-                      {activeIsPaketler.map((isPaket, i) => {
-                        const isAssigned = dugum.isPaketler?.some(p => p._id?.toString() === isPaket._id.toString())
+                      {Array.from({ length: maxIsPaketCount }, (_, i) => {
+                        const isPaketRef = dugum.isPaketler?.[i]
+                        const name = isPaketRef
+                          ? activeIsPaketler.find(p => p._id.toString() === isPaketRef._id.toString())?.name || ""
+                          : ""
                         return (
-                          <Box key={isPaket._id} {...rowHandlers} sx={{ ...css_mahaller, ...rowBaseSx, ...hoverSx, display: "flex", alignItems: "center", justifyContent: "center" }}>
-                            {isAssigned && <CircleIcon sx={{ fontSize: "0.7rem", color: "green" }} />}
+                          <Box key={i} {...rowHandlers} sx={{ ...css_mahaller, ...rowBaseSx, ...hoverSx }}>
+                            {name}
                           </Box>
                         )
                       })}
