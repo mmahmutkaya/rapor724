@@ -10,6 +10,7 @@ import { DialogVersiyonTip } from '../../components/general/DialogVersiyonTip.js
 import { StoreContext } from '../../components/store'
 import { useGetPozlar } from '../../hooks/useMongo';
 import getWbsName from '../../functions/getWbsName';
+import useDeleteProjeAktifYetkiliKisi from '../../functions/deleteProjeAktifYetkiliKisi.js';
 
 
 import ShowMetrajYapabilenler from '../../components/ShowMetrajYapabilenler'
@@ -43,6 +44,7 @@ import Select from '@mui/material/Select';
 export default function P_MetrajOnaylaPozlar() {
 
   const navigate = useNavigate()
+  const deleteProjeAktifYetkiliKisi = useDeleteProjeAktifYetkiliKisi()
   const queryClient = useQueryClient()
   const [dialogAlert, setDialogAlert] = useState()
 
@@ -244,68 +246,6 @@ export default function P_MetrajOnaylaPozlar() {
     }
   }
 
-
-
-
-  const deleteProjeAktifYetkiliKisi = async ({ projeId, aktifYetki }) => {
-
-    try {
-
-      const response = await fetch(process.env.REACT_APP_BASE_URL + `/api/projeler/deleteprojeaktifyetkilikisi`, {
-        method: 'POST',
-        headers: {
-          email: appUser.email,
-          token: appUser.token,
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-          projeId, aktifYetki
-        })
-      })
-
-      const responseJson = await response.json()
-
-      if (responseJson.error) {
-        if (responseJson.error.includes("expired")) {
-          setAppUser()
-          localStorage.removeItem('appUser')
-          navigate('/')
-          window.location.reload()
-        }
-        throw new Error(responseJson.error);
-      }
-
-      if (responseJson.message) {
-        setShow("Main")
-        setDialogAlert({
-          dialogIcon: "info",
-          dialogMessage: responseJson.message,
-          onCloseAction: () => {
-            setDialogAlert()
-          }
-        })
-      }
-
-      if (responseJson.ok) {
-        setShow("Main")
-        setMode_metrajOnayla()
-      }
-
-    } catch (err) {
-
-      console.log(err)
-
-      setDialogAlert({
-        dialogIcon: "warning",
-        dialogMessage: "Beklenmedik hata, sayfayı yenileyiniz, sorun devam ederse Rapor7/24 ile irtibata geçiniz..",
-        detailText: err?.message ? err.message : null,
-        onCloseAction: () => {
-          setDialogAlert()
-          queryClient.invalidateQueries(['dataPozlar'])
-        }
-      })
-    }
-  }
 
 
 
@@ -563,7 +503,13 @@ export default function P_MetrajOnaylaPozlar() {
                   <>
 
                     <Grid item >
-                      <IconButton onClick={() => deleteProjeAktifYetkiliKisi({ projeId: selectedProje?._id, aktifYetki: "metrajOnay" })} aria-label="lbsUncliced">
+                      <IconButton onClick={() => deleteProjeAktifYetkiliKisi({
+                        projeId: selectedProje?._id,
+                        aktifYetki: "metrajOnay",
+                        setDialogAlert,
+                        setShow,
+                        onOk: () => setMode_metrajOnayla(),
+                      })} aria-label="lbsUncliced">
                         <ClearOutlined variant="contained" sx={{ color: "red" }} />
                       </IconButton>
                     </Grid>

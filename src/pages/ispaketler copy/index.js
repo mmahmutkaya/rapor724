@@ -11,6 +11,7 @@ import { useQueryClient } from '@tanstack/react-query'
 import _ from 'lodash';
 
 import { useGetisPaketler } from '../../hooks/useMongo.js';
+import useDeleteProjeAktifYetkiliKisi from '../../functions/deleteProjeAktifYetkiliKisi.js';
 
 
 import Paper from '@mui/material/Paper';
@@ -59,6 +60,7 @@ export default function P_IsPaketler() {
   const [basliklar, setBasliklar] = useState(appUser.customSettings.pages.ispaketler.basliklar)
 
   const navigate = useNavigate()
+  const deleteProjeAktifYetkiliKisi = useDeleteProjeAktifYetkiliKisi()
 
 
   useEffect(() => {
@@ -184,68 +186,6 @@ export default function P_IsPaketler() {
 
 
 
-  const deleteProjeAktifYetkiliKisi = async ({ projeId, aktifYetki }) => {
-
-    try {
-
-      const response = await fetch(process.env.REACT_APP_BASE_URL + `/api/projeler/deleteprojeaktifyetkilikisi`, {
-        method: 'POST',
-        headers: {
-          email: appUser.email,
-          token: appUser.token,
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-          projeId, aktifYetki
-        })
-      })
-
-      const responseJson = await response.json()
-
-      if (responseJson.error) {
-        if (responseJson.error.includes("expired")) {
-          setAppUser()
-          localStorage.removeItem('appUser')
-          navigate('/')
-          window.location.reload()
-        }
-        throw new Error(responseJson.error);
-      }
-
-      if (responseJson.message) {
-        setShow("Main")
-        setDialogAlert({
-          dialogIcon: "info",
-          dialogMessage: responseJson.message,
-          onCloseAction: () => {
-            setDialogAlert()
-          }
-        })
-      }
-
-      if (responseJson.ok) {
-        setShow("Main")
-        setMode_isPaketEdit()
-      }
-
-    } catch (err) {
-
-      console.log(err)
-
-      setDialogAlert({
-        dialogIcon: "warning",
-        dialogMessage: "Beklenmedik hata, sayfayı yenileyiniz, sorun devam ederse Rapor7/24 ile irtibata geçiniz..",
-        detailText: err?.message ? err.message : null,
-        onCloseAction: () => {
-          setDialogAlert()
-          queryClient.invalidateQueries(['dataPozlar'])
-        }
-      })
-    }
-  }
-
-
-
 
 
 
@@ -358,7 +298,13 @@ export default function P_IsPaketler() {
 
                   <Grid item>
                     <IconButton onClick={() => {
-                      deleteProjeAktifYetkiliKisi({ projeId: selectedProje?._id, aktifYetki: "isPaketEdit" })
+                      deleteProjeAktifYetkiliKisi({
+                        projeId: selectedProje?._id,
+                        aktifYetki: "isPaketEdit",
+                        setDialogAlert,
+                        setShow,
+                        onOk: () => setMode_isPaketEdit(),
+                      })
                     }}>
                       <ClearOutlined variant="contained" color="error" />
                     </IconButton>

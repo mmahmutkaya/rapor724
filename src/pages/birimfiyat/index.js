@@ -11,6 +11,7 @@ import _ from 'lodash';
 
 import { StoreContext } from '../../components/store.js'
 import { useGetPozlar } from '../../hooks/useMongo.js';
+import useDeleteProjeAktifYetkiliKisi from '../../functions/deleteProjeAktifYetkiliKisi.js';
 
 import FormPozCreate from '../../components/FormPozCreate.js'
 import ShowHideBaslik from '../../components/ShowHideBaslik.js'
@@ -51,6 +52,7 @@ import ListItemText from '@mui/material/ListItemText';
 export default function P_BirimFiyat() {
 
   const navigate = useNavigate()
+  const deleteProjeAktifYetkiliKisi = useDeleteProjeAktifYetkiliKisi()
   const queryClient = useQueryClient()
   const [dialogAlert, setDialogAlert] = useState()
   const [showEminMisin_para, setShowEminMisin_para] = useState(false)
@@ -202,69 +204,6 @@ export default function P_BirimFiyat() {
         setShow("Main")
         queryClient.invalidateQueries(['dataPozlar'])
         setMode_birimFiyatEdit(true)
-      }
-
-    } catch (err) {
-
-      console.log(err)
-
-      setDialogAlert({
-        dialogIcon: "warning",
-        dialogMessage: "Beklenmedik hata, sayfayı yenileyiniz, sorun devam ederse Rapor7/24 ile irtibata geçiniz..",
-        detailText: err?.message ? err.message : null,
-        onCloseAction: () => {
-          setDialogAlert()
-          queryClient.invalidateQueries(['dataPozlar'])
-        }
-      })
-    }
-  }
-
-
-
-
-  const deleteProjeAktifYetkiliKisi = async ({ projeId, aktifYetki }) => {
-
-    try {
-
-      const response = await fetch(process.env.REACT_APP_BASE_URL + `/api/projeler/deleteprojeaktifyetkilikisi`, {
-        method: 'POST',
-        headers: {
-          email: appUser.email,
-          token: appUser.token,
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-          projeId, aktifYetki
-        })
-      })
-
-      const responseJson = await response.json()
-
-      if (responseJson.error) {
-        if (responseJson.error.includes("expired")) {
-          setAppUser()
-          localStorage.removeItem('appUser')
-          navigate('/')
-          window.location.reload()
-        }
-        throw new Error(responseJson.error);
-      }
-
-      if (responseJson.message) {
-        setShow("Main")
-        setDialogAlert({
-          dialogIcon: "info",
-          dialogMessage: responseJson.message,
-          onCloseAction: () => {
-            setDialogAlert()
-          }
-        })
-      }
-
-      if (responseJson.ok) {
-        setShow("Main")
-        setMode_birimFiyatEdit()
       }
 
     } catch (err) {
@@ -636,7 +575,13 @@ export default function P_BirimFiyat() {
           action1={() => setShowEminMisin_para()}
           actionText2={"Onayla"}
           action2={() => {
-            deleteProjeAktifYetkiliKisi({ projeId: selectedProje?._id, aktifYetki: "birimFiyatEdit" })
+            deleteProjeAktifYetkiliKisi({
+              projeId: selectedProje?._id,
+              aktifYetki: "birimFiyatEdit",
+              setDialogAlert,
+              setShow,
+              onOk: () => setMode_birimFiyatEdit(),
+            })
             cancel_para()
             setShowEminMisin_para()
           }}
@@ -773,8 +718,13 @@ export default function P_BirimFiyat() {
                       if (isChanged_para) {
                         setShowEminMisin_para(true)
                       } else {
-                        deleteProjeAktifYetkiliKisi({ projeId: selectedProje?._id, aktifYetki: "birimFiyatEdit" })
-                        setMode_birimFiyatEdit()
+                        deleteProjeAktifYetkiliKisi({
+                          projeId: selectedProje?._id,
+                          aktifYetki: "birimFiyatEdit",
+                          setDialogAlert,
+                          setShow,
+                          onOk: () => setMode_birimFiyatEdit(),
+                        })
                       }
                     }} aria-label="lbsUncliced" sx={headerIconButton_sx}>
                       <ClearOutlined variant="contained" sx={{ ...headerIcon_sx, color: "red" }} />

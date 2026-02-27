@@ -10,6 +10,7 @@ import { useQueryClient } from "@tanstack/react-query";
 
 import { useGetIsPaketPozlar } from "../../hooks/useMongo.js";
 import useRequestProjeAktifYetkiliKisi from "../../functions/requestProjeAktifYetkiliKisi.js";
+import useDeleteProjeAktifYetkiliKisi from "../../functions/deleteProjeAktifYetkiliKisi.js";
 
 import AppBar from "@mui/material/AppBar";
 import Grid from "@mui/material/Grid";
@@ -39,6 +40,7 @@ export default function P_IsPaketler() {
   const { selectedIsPaket, setSelectedIsPaket } = useContext(StoreContext);
 
   const requestProjeAktifYetkiliKisi = useRequestProjeAktifYetkiliKisi();
+  const deleteProjeAktifYetkiliKisi = useDeleteProjeAktifYetkiliKisi();
 
   // console.log("selectedProje",selectedProje)
 
@@ -100,67 +102,6 @@ export default function P_IsPaketler() {
 
   const columns =
     "max-content minmax(min-content, 20rem) max-content max-content";
-
-  const deleteProjeAktifYetkiliKisi = async ({ projeId, aktifYetki }) => {
-    try {
-      const response = await fetch(
-        process.env.REACT_APP_BASE_URL +
-        `/api/projeler/deleteprojeaktifyetkilikisi`,
-        {
-          method: "POST",
-          headers: {
-            email: appUser.email,
-            token: appUser.token,
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            projeId,
-            aktifYetki,
-          }),
-        },
-      );
-
-      const responseJson = await response.json();
-
-      if (responseJson.error) {
-        if (responseJson.error.includes("expired")) {
-          setAppUser();
-          localStorage.removeItem("appUser");
-          navigate("/");
-          window.location.reload();
-        }
-        throw new Error(responseJson.error);
-      }
-
-      if (responseJson.message) {
-        setShow("Main");
-        setDialogAlert({
-          dialogIcon: "info",
-          dialogMessage: responseJson.message,
-          onCloseAction: () => {
-            setDialogAlert();
-          },
-        });
-      }
-
-      if (responseJson.ok) {
-        setShow("Main");
-      }
-    } catch (err) {
-      console.log(err);
-
-      setDialogAlert({
-        dialogIcon: "warning",
-        dialogMessage:
-          "Beklenmedik hata, sayfayı yenileyiniz, sorun devam ederse Rapor7/24 ile irtibata geçiniz..",
-        detailText: err?.message ? err.message : null,
-        onCloseAction: () => {
-          setDialogAlert();
-          queryClient.invalidateQueries(["dataPozlar"]);
-        },
-      });
-    }
-  };
 
   return (
     <Box>
@@ -252,6 +193,8 @@ export default function P_IsPaketler() {
                         deleteProjeAktifYetkiliKisi({
                           projeId: selectedProje?._id,
                           aktifYetki: "isPaketEdit",
+                          setDialogAlert,
+                          setShow,
                         });
                       }}
                       sx={headerIconButton_sx}
