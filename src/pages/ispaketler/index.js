@@ -131,7 +131,6 @@ export default function P_IsPaketler() {
       }
 
       if (responseJson.message) {
-        setShow("Main");
         setDialogAlert({
           dialogIcon: "info",
           dialogMessage: responseJson.message,
@@ -143,10 +142,10 @@ export default function P_IsPaketler() {
       }
 
       if (responseJson.ok) {
-        setShow("Main");
         let proje2 = _.cloneDeep(selectedProje);
         proje2.isPaketler = responseJson.proje.isPaketler;
-        setSelectedProje(proje2);
+        setSelectedProje(proje2)
+        return { ok: true }
       }
     } catch (err) {
       console.log(err);
@@ -279,30 +278,30 @@ export default function P_IsPaketler() {
                 alignItems: "center",
               }}
             >
- 
-                <>
-                  <Box>
-                    <IconButton onClick={() => setShow("ShowBaslik")} sx={headerIconButton_sx}>
-                      <VisibilityIcon variant="contained" sx={headerIcon_sx} />
-                    </IconButton>
-                  </Box>
 
-                  <Box>
-                    <IconButton
-                      onClick={() =>
-                        requestProjeAktifYetkiliKisi({
-                          projeId: selectedProje?._id,
-                          aktifYetki: "isPaketEdit",
-                        })
-                      }
-                      sx={headerIconButton_sx}
-                    >
-                      <EditIcon variant="contained" sx={headerIcon_sx} />
-                    </IconButton>
-                  </Box>
+              <>
+                <Box>
+                  <IconButton onClick={() => setShow("ShowBaslik")} sx={headerIconButton_sx}>
+                    <VisibilityIcon variant="contained" sx={headerIcon_sx} />
+                  </IconButton>
+                </Box>
 
-                </>
-            
+                <Box>
+                  <IconButton
+                    onClick={() =>
+                      requestProjeAktifYetkiliKisi({
+                        projeId: selectedProje?._id,
+                        aktifYetki: "isPaketEdit",
+                      })
+                    }
+                    sx={headerIconButton_sx}
+                  >
+                    <EditIcon variant="contained" sx={headerIcon_sx} />
+                  </IconButton>
+                </Box>
+
+              </>
+
 
               {!selectedIsPaket && (
                 <>
@@ -335,7 +334,17 @@ export default function P_IsPaketler() {
 
                   <Box>
                     <IconButton
-                      onClick={() => setShow("FormIsPaketCreate")}
+                      onClick={async () => {
+                        const checkAuth = await requestProjeAktifYetkiliKisi({
+                          projeId: selectedProje?._id,
+                          aktifYetki: "isPaketEdit",
+                        })
+                        if (checkAuth?.ok) {
+                          setShow("FormIsPaketCreate")
+                        } else {
+                          setShow("Main")
+                        }
+                      }}
                       sx={headerIconButton_sx}
                     >
                       <AddCircleOutlineIcon
