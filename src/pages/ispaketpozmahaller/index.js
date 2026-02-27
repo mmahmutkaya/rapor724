@@ -32,6 +32,10 @@ import IconButton from '@mui/material/IconButton';
 import ClearOutlined from '@mui/icons-material/ClearOutlined';
 import ReplyIcon from '@mui/icons-material/Reply';
 import ViewWeekIcon from '@mui/icons-material/ViewWeek';
+import MenuItem from '@mui/material/MenuItem';
+import Popper from '@mui/material/Popper';
+import ClickAwayListener from '@mui/material/ClickAwayListener';
+import MenuList from '@mui/material/MenuList';
 
 
 export default function P_IsPaketPozMahaller() {
@@ -59,6 +63,7 @@ export default function P_IsPaketPozMahaller() {
 
   const [mahaller_state, setMahaller_state] = useState()
   const [hoveredRow, setHoveredRow] = useState(null)
+  const [menuState, setMenuState] = useState({ anchorEl: null, dugumId: null })
 
   const [autoFocus, setAutoFocus] = useState({ baslikId: null, pozId: null })
 
@@ -189,6 +194,39 @@ export default function P_IsPaketPozMahaller() {
   }
 
 
+  const handleOpenMenu = (event, dugumId) => {
+    setMenuState({ anchorEl: event.currentTarget, dugumId })
+  }
+
+  const handleCloseMenu = () => {
+    setMenuState({ anchorEl: null, dugumId: null })
+  }
+
+  const handleAddIsPaket = (isPaketId) => {
+    const dugumId = menuState.dugumId
+    setDugumler_byPoz_state(prev => prev.map(d => {
+      if (d._id.toString() === dugumId) {
+        const newIsPaketler = [...(d.isPaketler || []), { _id: isPaketId }]
+        return { ...d, isPaketler: newIsPaketler, newSelected: true }
+      }
+      return d
+    }))
+    setIsChanged(true)
+    handleCloseMenu()
+  }
+
+  const handleRemoveIsPaket = (dugumId, isPaketId) => {
+    setDugumler_byPoz_state(prev => prev.map(d => {
+      if (d._id.toString() === dugumId) {
+        const newIsPaketler = (d.isPaketler || []).filter(p => p._id.toString() !== isPaketId.toString())
+        return { ...d, isPaketler: newIsPaketler, newSelected: true }
+      }
+      return d
+    }))
+    setIsChanged(true)
+  }
+
+
   const handleBackClick = () => {
     if (isChanged) {
       setDialogConfirmAction(() => () => {
@@ -310,9 +348,10 @@ export default function P_IsPaketPozMahaller() {
 
   const activeIsPaketler = selectedProje?.isPaketler || []
 
-  const maxIsPaketCount = dugumler_byPoz_state
-    ? Math.max(0, ...dugumler_byPoz_state.map(d => d.isPaketler?.length || 0))
-    : 0
+  const maxIsPaketCount = Math.min(
+    (dugumler_byPoz_state ? Math.max(0, ...dugumler_byPoz_state.map(d => d.isPaketler?.length || 0)) : 0) + 1,
+    activeIsPaketler.length
+  )
 
   const gridTemplateColumns1 = [
     'max-content',
@@ -573,7 +612,33 @@ export default function P_IsPaketPozMahaller() {
                           ? activeIsPaketler.find(p => p._id.toString() === isPaketRef._id.toString())?.name || ""
                           : ""
                         return (
-                          <Box key={i} {...rowHandlers} sx={{ ...css_mahaller, ...rowBaseSx, ...hoverSx }}>
+                          <Box
+                            key={i}
+                            {...rowHandlers}
+                            onClick={
+                              isPaketRef
+                                ? () => handleRemoveIsPaket(dugum._id.toString(), isPaketRef._id.toString())
+                                : (e) => handleOpenMenu(e, dugum._id.toString())
+                            }
+                            sx={{
+                              ...css_mahaller,
+                              ...rowBaseSx,
+                              ...hoverSx,
+                              cursor: "pointer",
+                              minWidth: "4rem",
+                              ...(isPaketRef ? {
+                                "&:hover": {
+                                  backgroundColor: "#fde8e8",
+                                  textDecoration: "line-through",
+                                  color: "red"
+                                }
+                              } : {
+                                "&:hover": {
+                                  backgroundColor: "#e8f5e9"
+                                }
+                              })
+                            }}
+                          >
                             {name}
                           </Box>
                         )
@@ -592,8 +657,36 @@ export default function P_IsPaketPozMahaller() {
         </Box >
 
       }
+
       </>
       )}
+
+      <Popper
+        open={Boolean(menuState.anchorEl)}
+        anchorEl={menuState.anchorEl}
+        placement="bottom-start"
+        style={{ zIndex: 1300 }}
+      >
+        <Paper elevation={8}>
+          <ClickAwayListener onClickAway={handleCloseMenu}>
+            <MenuList>
+              {activeIsPaketler
+                .filter(p => {
+                  const currentDugum = dugumler_byPoz_state?.find(d => d._id.toString() === menuState.dugumId)
+                  const assignedIds = (currentDugum?.isPaketler || []).map(ip => ip._id.toString())
+                  return !assignedIds.includes(p._id.toString())
+                })
+                .map(p => (
+                  <MenuItem key={p._id} onClick={() => handleAddIsPaket(p._id.toString())}>
+                    {p.name}
+                  </MenuItem>
+                ))
+              }
+            </MenuList>
+          </ClickAwayListener>
+        </Paper>
+      </Popper>
+
     </Box >
 
   )
