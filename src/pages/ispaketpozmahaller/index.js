@@ -244,42 +244,65 @@ export default function P_IsPaketPozMahaller() {
 
     try {
 
-      const dugumler = dugumler_byPoz_state.filter(x => x.newSelected)
+      const originalDugumler = dataDugumler_byPoz?.dugumler_byPoz || []
+      const changedDugumler = dugumler_byPoz_state.filter(x => x.newSelected)
 
-      // const result = await RealmApp.currentUser.callFunction("updateDugumler_openMetraj", { functionName: "mahaller_byPozId", _projeId: selectedProje._id, mahaller, _pozId: selectedPoz._id });
-
-      const response = await fetch(process.env.REACT_APP_BASE_URL + `/api/dugumler/ispaketler`, {
-        method: 'POST',
-        headers: {
-          email: appUser.email,
-          token: appUser.token,
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-          dugumler
-        })
+      // Her değişen dugum için orijinal ile mevcut isPaketler farkını bul
+      const changedIsPaketIds = new Set()
+      changedDugumler.forEach(dugum => {
+        const orig = originalDugumler.find(d => d._id.toString() === dugum._id.toString())
+        const origIds = (orig?.isPaketler || []).map(ip => ip._id.toString())
+        const currIds = (dugum.isPaketler || []).map(ip => ip._id.toString())
+        currIds.filter(id => !origIds.includes(id)).forEach(id => changedIsPaketIds.add(id))
+        origIds.filter(id => !currIds.includes(id)).forEach(id => changedIsPaketIds.add(id))
       })
 
-      const responseJson = await response.json()
+      // Her eşsiz isPaket için bir API çağrısı yap
+      for (const isPaketId of changedIsPaketIds) {
+        const dugumlerForCall = changedDugumler.map(dugum => {
+          const orig = originalDugumler.find(d => d._id.toString() === dugum._id.toString())
+          const origIds = (orig?.isPaketler || []).map(ip => ip._id.toString())
+          const currIds = (dugum.isPaketler || []).map(ip => ip._id.toString())
+          const wasHere = origIds.includes(isPaketId)
+          const isHere = currIds.includes(isPaketId)
+          if (wasHere === isHere) return null
+          return { _id: dugum._id, newSelectedValue: isHere }
+        }).filter(Boolean)
 
-      if (responseJson.error) {
-        if (responseJson.error.includes("expired")) {
-          setAppUser()
-          localStorage.removeItem('appUser')
-          navigate('/')
-          window.location.reload()
+        if (dugumlerForCall.length === 0) continue
+
+        const response = await fetch(process.env.REACT_APP_BASE_URL + `/api/dugumler/ispaketler`, {
+          method: 'POST',
+          headers: {
+            email: appUser.email,
+            token: appUser.token,
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            selectedIsPaket: { _id: isPaketId },
+            dugumler: dugumlerForCall
+          })
+        })
+
+        const responseJson = await response.json()
+
+        if (responseJson.error) {
+          if (responseJson.error.includes("expired")) {
+            setAppUser()
+            localStorage.removeItem('appUser')
+            navigate('/')
+            window.location.reload()
+          }
+          throw new Error(responseJson.error)
         }
-        throw new Error(responseJson.error);
+
+        if (!responseJson.ok) {
+          throw new Error("Kayıt işlemi gerçekleşmedi, sayfayı yenileyiniz, sorun devam ederse Rapor7/24 ile irtibata geçiniz..")
+        }
       }
 
-      if (responseJson.ok) {
-        queryClient.invalidateQueries(['dataDugumler_byPoz'])
-        setIsChanged()
-      } else {
-        console.log("result", responseJson)
-        throw new Error("Kayıt işlemi gerçekleşmedi, sayfayı yenileyiniz, sorun devam ederse Rapor7/24 ile irtibata geçiniz..")
-      }
-
+      queryClient.invalidateQueries(['dataDugumler_byPoz'])
+      setIsChanged()
 
     } catch (err) {
 
@@ -677,7 +700,7 @@ export default function P_IsPaketPozMahaller() {
                   return !assignedIds.includes(p._id.toString())
                 })
                 .map(p => (
-                  <MenuItem key={p._id} onClick={() => handleAddIsPaket(p._id.toString())}>
+                  <MenuItem key={p._id.toString()} onClick={() => handleAddIsPaket(p._id)}>
                     {p.name}
                   </MenuItem>
                 ))
