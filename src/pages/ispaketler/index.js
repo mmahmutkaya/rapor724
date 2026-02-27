@@ -9,7 +9,7 @@ import ShowIsPaketBasliklar from "../../components/ShowIsPaketBasliklar.js";
 import { useQueryClient } from "@tanstack/react-query";
 
 import { useGetIsPaketPozlar } from "../../hooks/useMongo.js";
-import requestProjeAktifYetkiliKisi from "../../functions/requestProjeAktifYetkiliKisi.js";
+import useRequestProjeAktifYetkiliKisi from "../../functions/requestProjeAktifYetkiliKisi.js";
 
 import AppBar from "@mui/material/AppBar";
 import Grid from "@mui/material/Grid";
@@ -37,6 +37,8 @@ export default function P_IsPaketler() {
 
   // console.log("selectedProje",selectedProje)
   const { selectedIsPaket, setSelectedIsPaket } = useContext(StoreContext);
+
+  const requestProjeAktifYetkiliKisi = useRequestProjeAktifYetkiliKisi();
 
   // console.log("selectedProje",selectedProje)
 
@@ -229,13 +231,8 @@ export default function P_IsPaketler() {
                       requestProjeAktifYetkiliKisi({
                         projeId: selectedProje?._id,
                         aktifYetki: "isPaketEdit",
-                        appUser,
-                        setAppUser,
-                        navigate,
                         setDialogAlert,
                         setShow,
-                        selectedProje,
-                        setSelectedProje,
                       })
                     }
                     sx={headerIconButton_sx}
@@ -282,13 +279,8 @@ export default function P_IsPaketler() {
                         const checkAuth = await requestProjeAktifYetkiliKisi({
                           projeId: selectedProje?._id,
                           aktifYetki: "isPaketEdit",
-                          appUser,
-                          setAppUser,
-                          navigate,
                           setDialogAlert,
                           setShow,
-                          selectedProje,
-                          setSelectedProje,
                         })
                         if (checkAuth?.ok) {
                           setShow("FormIsPaketCreate")
