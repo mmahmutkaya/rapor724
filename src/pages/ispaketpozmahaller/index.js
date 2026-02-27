@@ -310,15 +310,14 @@ export default function P_IsPaketPozMahaller() {
 
   let paraBirimiAdet = selectedProje?.paraBirimleri?.filter(x => x?.isActive).length
 
-  // console.log("selectedProje?.paraBirimleri", selectedProje?.paraBirimleri)
-  // console.log("paraBirimiAdet", paraBirimiAdet)
+  const activeIsPaketler = selectedProje?.isPaketler || []
 
-
-  const gridTemplateColumns1 = `
-    max-content
-    minmax(min-content, 15rem)
-    max-content
-  `
+  const gridTemplateColumns1 = [
+    'max-content',
+    'minmax(min-content, 15rem)',
+    '1rem',
+    ...activeIsPaketler.map(() => '10rem')
+  ].join(' ')
 
   // console.log("paraBirimiAdet",paraBirimiAdet)
 
@@ -468,20 +467,32 @@ export default function P_IsPaketPozMahaller() {
               {selectedPoz.pozName}
             </Box>
 
-            <Box sx={{
-              display: "flex",
-              justifyContent: "center",
-              alignItems: "center",
-              fontWeight: "600",
-              border: "1px solid black",
-              py: "0.05rem",
-              px: "0.5rem",
-              backgroundColor: "#415a77",
-              color: "#e0e1dd",
-              marginLeft: "1rem"
-            }}>
-              Seçilen Mahal
-            </Box>
+            <Box />
+
+            {activeIsPaketler.map((isPaket, i) => (
+              <Box key={isPaket._id} sx={{
+                display: "flex",
+                justifyContent: "center",
+                alignItems: "center",
+                fontWeight: "600",
+                border: "1px solid black",
+                py: "0.3rem",
+                px: "0.5rem",
+                backgroundColor: "#415a77",
+                color: "#e0e1dd",
+              }}>
+                <Box sx={{
+                  display: "-webkit-box",
+                  WebkitLineClamp: 2,
+                  WebkitBoxOrient: "vertical",
+                  overflow: "hidden",
+                  textAlign: "center",
+                  wordBreak: "break-word"
+                }}>
+                  {isPaket.name}
+                </Box>
+              </Box>
+            ))}
 
           </>
 
@@ -509,8 +520,12 @@ export default function P_IsPaketPozMahaller() {
                 <Box sx={{ ...css_LbsBaslik }}>
                 </Box>
 
-                <Box sx={{ ...css_LbsBaslik, ...css_thirdCol }}>
-                </Box>
+                <Box />
+
+                {activeIsPaketler.map((isPaket, i) => (
+                  <Box key={isPaket._id} sx={{ ...css_LbsBaslik }}>
+                  </Box>
+                ))}
 
                 {/* MAHAL SATIRLARI */}
                 {mahaller_byLbs?.map((oneMahal, index) => {
@@ -552,13 +567,16 @@ export default function P_IsPaketPozMahaller() {
                         {oneMahal.mahalName}
                       </Box>
 
-                      <Box {...rowHandlers} sx={{ ...css_mahaller, ...rowBaseSx, ...hoverSx, ...css_thirdCol, display: "grid", gridTemplateColumns: "1fr auto", alignItems: "center" }}>
-                        <Box sx={{ justifySelf: "end" }}>
-                          {dugum.isPaketler?.length || ""}
-                        </Box>
-                        <Box sx={{ display: "grid", alignItems: "center", justifySelf: "end", minWidth: "2rem" }}>
-                        </Box>
-                      </Box>
+                      <Box />
+
+                      {activeIsPaketler.map((isPaket, i) => {
+                        const isAssigned = dugum.isPaketler?.some(p => p._id?.toString() === isPaket._id.toString())
+                        return (
+                          <Box key={isPaket._id} {...rowHandlers} sx={{ ...css_mahaller, ...rowBaseSx, ...hoverSx, display: "flex", alignItems: "center", justifyContent: "center" }}>
+                            {isAssigned && <CircleIcon sx={{ fontSize: "0.7rem", color: "green" }} />}
+                          </Box>
+                        )
+                      })}
 
 
                     </React.Fragment>
