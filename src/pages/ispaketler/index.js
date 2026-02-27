@@ -468,19 +468,19 @@ export default function P_IsPaketler() {
                   return (
                     // iş paketleri başlığı
                     <React.Fragment key={index}>
-                      <Box sx={{ ...css_IsPaketler, justifyContent: "center", cursor: "pointer" }}>
+                      <Box sx={{ ...css_IsPaketler, justifyContent: "center" }}>
                         {index + 1}
                       </Box>
 
-                      <Box sx={{ ...css_IsPaketler, cursor: "pointer" }}>
+                      <Box sx={{ ...css_IsPaketler }}>
                         {onePaket.name}
                       </Box>
 
-                      <Box sx={{ ...css_IsPaketler, cursor: "pointer", justifyContent: "center", marginLeft: "1rem" }}>
+                      <Box sx={{ ...css_IsPaketler, justifyContent: "center", marginLeft: "1rem" }}>
                         {pozSayisi}
                       </Box>
 
-                      <Box sx={{ ...css_IsPaketler, cursor: "pointer", justifyContent: "center" }}>
+                      <Box sx={{ ...css_IsPaketler, justifyContent: "center" }}>
                         {dataIsPaketPozlar?.isPaketCounts?.[onePaket._id.toString()] ?? ""}
                       </Box>
                     </React.Fragment>
@@ -564,19 +564,19 @@ export default function P_IsPaketler() {
                       return (
                         // iş paketleri başlığı
                         <React.Fragment key={index}>
-                          <Box sx={{ ...css_IsPaketler, justifyContent: "center", cursor: "pointer" }}>
+                          <Box sx={{ ...css_IsPaketler, justifyContent: "center" }}>
                             {index + 1}
                           </Box>
 
-                          <Box sx={{ ...css_IsPaketler, cursor: "pointer" }}>
+                          <Box sx={{ ...css_IsPaketler }}>
                             {onePaket.name}
                           </Box>
 
-                          <Box sx={{ ...css_IsPaketler, cursor: "pointer", justifyContent: "center", marginLeft: "1rem" }}>
+                          <Box sx={{ ...css_IsPaketler, justifyContent: "center", marginLeft: "1rem" }}>
                             {pozSayisi}
                           </Box>
 
-                          <Box sx={{ ...css_IsPaketler, cursor: "pointer", justifyContent: "center" }}>
+                          <Box sx={{ ...css_IsPaketler, justifyContent: "center" }}>
                             {dataIsPaketPozlar?.isPaketCounts?.[onePaket._id.toString()] ?? ""}
                           </Box>
                         </React.Fragment>
