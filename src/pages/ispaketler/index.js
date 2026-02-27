@@ -7,9 +7,9 @@ import { useNavigate } from "react-router-dom";
 import { DialogAlert } from "../../components/general/DialogAlert.js";
 import ShowIsPaketBasliklar from "../../components/ShowIsPaketBasliklar.js";
 import { useQueryClient } from "@tanstack/react-query";
-import _ from "lodash";
 
 import { useGetIsPaketPozlar } from "../../hooks/useMongo.js";
+import requestProjeAktifYetkiliKisi from "../../functions/requestProjeAktifYetkiliKisi.js";
 
 import AppBar from "@mui/material/AppBar";
 import Grid from "@mui/material/Grid";
@@ -98,69 +98,6 @@ export default function P_IsPaketler() {
 
   const columns =
     "max-content minmax(min-content, 20rem) max-content max-content";
-
-  const requestProjeAktifYetkiliKisi = async ({ projeId, aktifYetki }) => {
-    try {
-      const response = await fetch(
-        process.env.REACT_APP_BASE_URL +
-        `/api/projeler/requestprojeaktifyetkilikisi`,
-        {
-          method: "POST",
-          headers: {
-            email: appUser.email,
-            token: appUser.token,
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            projeId,
-            aktifYetki,
-          }),
-        },
-      );
-
-      const responseJson = await response.json();
-
-      if (responseJson.error) {
-        if (responseJson.error.includes("expired")) {
-          setAppUser();
-          localStorage.removeItem("appUser");
-          navigate("/");
-          window.location.reload();
-        }
-        throw new Error(responseJson.error);
-      }
-
-      if (responseJson.message) {
-        setDialogAlert({
-          dialogIcon: "info",
-          dialogMessage: responseJson.message,
-          onCloseAction: () => {
-            setShow("Main");
-            setDialogAlert();
-          },
-        });
-      }
-
-      if (responseJson.ok) {
-        let proje2 = _.cloneDeep(selectedProje);
-        proje2.isPaketler = responseJson.proje.isPaketler;
-        setSelectedProje(proje2)
-        return { ok: true }
-      }
-    } catch (err) {
-      console.log(err);
-
-      setDialogAlert({
-        dialogIcon: "warning",
-        dialogMessage:
-          "Beklenmedik hata, sayfayı yenileyiniz, sorun devam ederse Rapor7/24 ile irtibata geçiniz..",
-        detailText: err?.message ? err.message : null,
-        onCloseAction: () => {
-          setDialogAlert();
-        },
-      });
-    }
-  };
 
   const deleteProjeAktifYetkiliKisi = async ({ projeId, aktifYetki }) => {
     try {
@@ -292,6 +229,13 @@ export default function P_IsPaketler() {
                       requestProjeAktifYetkiliKisi({
                         projeId: selectedProje?._id,
                         aktifYetki: "isPaketEdit",
+                        appUser,
+                        setAppUser,
+                        navigate,
+                        setDialogAlert,
+                        setShow,
+                        selectedProje,
+                        setSelectedProje,
                       })
                     }
                     sx={headerIconButton_sx}
@@ -338,6 +282,13 @@ export default function P_IsPaketler() {
                         const checkAuth = await requestProjeAktifYetkiliKisi({
                           projeId: selectedProje?._id,
                           aktifYetki: "isPaketEdit",
+                          appUser,
+                          setAppUser,
+                          navigate,
+                          setDialogAlert,
+                          setShow,
+                          selectedProje,
+                          setSelectedProje,
                         })
                         if (checkAuth?.ok) {
                           setShow("FormIsPaketCreate")
