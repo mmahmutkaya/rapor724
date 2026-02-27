@@ -24,10 +24,8 @@ import IconButton from "@mui/material/IconButton";
 import DeleteIcon from "@mui/icons-material/Delete";
 import AddCircleOutlineIcon from "@mui/icons-material/AddCircleOutline";
 import VisibilityIcon from "@mui/icons-material/Visibility";
-import ClearOutlined from "@mui/icons-material/ClearOutlined";
 import InfoIcon from "@mui/icons-material/Info";
 import Avatar from "@mui/material/Avatar";
-import EditIcon from "@mui/icons-material/Edit";
 import AdjustIcon from '@mui/icons-material/Adjust';
 
 export default function P_IsPaketler() {
@@ -159,50 +157,15 @@ export default function P_IsPaketler() {
               }}
             >
 
-              <>
-                <Box>
-                  <IconButton onClick={() => setShow("ShowBaslik")} sx={headerIconButton_sx}>
-                    <VisibilityIcon variant="contained" sx={headerIcon_sx} />
-                  </IconButton>
-                </Box>
-
-                <Box>
-                  <IconButton
-                    onClick={() =>
-                      requestProjeAktifYetkiliKisi({
-                        projeId: selectedProje?._id,
-                        aktifYetki: "isPaketEdit",
-                        setDialogAlert,
-                        setShow,
-                      })
-                    }
-                    sx={headerIconButton_sx}
-                  >
-                    <EditIcon variant="contained" sx={headerIcon_sx} />
-                  </IconButton>
-                </Box>
-
-              </>
+              <Box>
+                <IconButton onClick={() => setShow("ShowBaslik")} sx={headerIconButton_sx}>
+                  <VisibilityIcon variant="contained" sx={headerIcon_sx} />
+                </IconButton>
+              </Box>
 
 
               {!selectedIsPaket && (
                 <>
-                  <Grid item>
-                    <IconButton
-                      onClick={() => {
-                        deleteProjeAktifYetkiliKisi({
-                          projeId: selectedProje?._id,
-                          aktifYetki: "isPaketEdit",
-                          setDialogAlert,
-                          setShow,
-                        });
-                      }}
-                      sx={headerIconButton_sx}
-                    >
-                      <ClearOutlined variant="contained" color="error" sx={headerIcon_sx} />
-                    </IconButton>
-                  </Grid>
-
                   <Box>
                     <IconButton
                       onClick={() => goto_isPaketPozlar()}
@@ -247,18 +210,6 @@ export default function P_IsPaketler() {
                 <>
                   <Grid item>
                     <IconButton
-                      onClick={() => {
-                        setSelectedIsPaket();
-                      }}
-                      aria-label="addWbs"
-                      sx={headerIconButton_sx}
-                    >
-                      <ClearOutlined variant="contained" color="error" sx={headerIcon_sx} />
-                    </IconButton>
-                  </Grid>
-
-                  <Grid item>
-                    <IconButton
                       onClick={() => console.log("deleted clicked")}
                       aria-label="addWbs"
                       sx={headerIconButton_sx}
@@ -275,7 +226,17 @@ export default function P_IsPaketler() {
 
       {show == "FormIsPaketCreate" && (
         <Box>
-          <FormIsPaketCreate setShow={setShow} />
+          <FormIsPaketCreate
+            setShow={(newShow) => {
+              deleteProjeAktifYetkiliKisi({
+                projeId: selectedProje?._id,
+                aktifYetki: "isPaketEdit",
+                setDialogAlert,
+                setShow,
+              });
+              setShow(newShow);
+            }}
+          />
         </Box>
       )}
 
