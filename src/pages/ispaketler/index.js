@@ -42,7 +42,6 @@ export default function P_IsPaketler() {
 
   const [dialogAlert, setDialogAlert] = useState();
   const [isPaketler, setIsPaketler] = useState([]);
-  const [hoveredRow, setHoveredRow] = useState(null);
 
   // const { data, error, isFetching } = useGetisPaketler()
   // console.log("isPaketler",isPaketler)
@@ -454,35 +453,25 @@ export default function P_IsPaketler() {
               {/* iş paketleri verileri */}
               {isPaketler.length > 0 &&
                 isPaketler.map((onePaket, index) => {
-                  const isSelected = onePaket._id.toString() === selectedIsPaket?._id.toString();
-                  const isHovered = hoveredRow === onePaket._id.toString();
-                  const backgroundColor = "white";
-                  const rowBaseSx = { transition: "text-shadow 0.2s ease" };
-                  const hoverSx = (isHovered || isSelected) ? { textShadow: "0 0 0.7px black, 0 0 0.7px black" } : {};
-                  const rowHandlers = {
-                    onMouseEnter: () => setHoveredRow(onePaket._id.toString()),
-                    onMouseLeave: () => setHoveredRow(null)
-                  };
-
                   const pozSayisi =
                     dataIsPaketPozlar?.isPaketPozSayisi?.[onePaket._id.toString()] ?? "";
 
                   return (
                     // iş paketleri başlığı
                     <React.Fragment key={index}>
-                      <Box {...rowHandlers} sx={{ ...css_IsPaketler, ...rowBaseSx, ...hoverSx, backgroundColor, justifyContent: "center", cursor: "pointer" }}>
+                      <Box sx={{ ...css_IsPaketler, justifyContent: "center", cursor: "pointer" }}>
                         {index + 1}
                       </Box>
 
-                      <Box {...rowHandlers} sx={{ ...css_IsPaketler, ...rowBaseSx, ...hoverSx, backgroundColor, cursor: "pointer" }}>
+                      <Box sx={{ ...css_IsPaketler, cursor: "pointer" }}>
                         {onePaket.name}
                       </Box>
 
-                      <Box {...rowHandlers} sx={{ ...css_IsPaketler, ...rowBaseSx, ...hoverSx, backgroundColor, cursor: "pointer", justifyContent: "center", marginLeft: "1rem" }}>
+                      <Box sx={{ ...css_IsPaketler, cursor: "pointer", justifyContent: "center", marginLeft: "1rem" }}>
                         {pozSayisi}
                       </Box>
 
-                      <Box {...rowHandlers} sx={{ ...css_IsPaketler, ...rowBaseSx, ...hoverSx, backgroundColor, cursor: "pointer", justifyContent: "center" }}>
+                      <Box sx={{ ...css_IsPaketler, cursor: "pointer", justifyContent: "center" }}>
                         {dataIsPaketPozlar?.isPaketCounts?.[onePaket._id.toString()] ?? ""}
                       </Box>
                     </React.Fragment>
@@ -560,35 +549,25 @@ export default function P_IsPaketler() {
                   {/* iş paketleri verileri */}
                   {isPaketler.length > 0 &&
                     isPaketler.map((onePaket, index) => {
-                      const isSelected = onePaket?._id.toString() === selectedIsPaket?._id.toString();
-                      const isHovered = hoveredRow === onePaket._id.toString();
-                      const backgroundColor = "white";
-                      const rowBaseSx = { transition: "text-shadow 0.2s ease" };
-                      const hoverSx = (isHovered || isSelected) ? { textShadow: "0 0 0.7px black, 0 0 0.7px black" } : {};
-                      const rowHandlers = {
-                        onMouseEnter: () => setHoveredRow(onePaket._id.toString()),
-                        onMouseLeave: () => setHoveredRow(null)
-                      };
-
                       const pozSayisi =
                         dataIsPaketPozlar?.isPaketPozSayisi?.[onePaket._id.toString()] ?? "";
 
                       return (
                         // iş paketleri başlığı
                         <React.Fragment key={index}>
-                          <Box {...rowHandlers} sx={{ ...css_IsPaketler, ...rowBaseSx, ...hoverSx, backgroundColor, justifyContent: "center", cursor: "pointer" }}>
+                          <Box sx={{ ...css_IsPaketler, justifyContent: "center", cursor: "pointer" }}>
                             {index + 1}
                           </Box>
 
-                          <Box {...rowHandlers} sx={{ ...css_IsPaketler, ...rowBaseSx, ...hoverSx, backgroundColor, cursor: "pointer" }}>
+                          <Box sx={{ ...css_IsPaketler, cursor: "pointer" }}>
                             {onePaket.name}
                           </Box>
 
-                          <Box {...rowHandlers} sx={{ ...css_IsPaketler, ...rowBaseSx, ...hoverSx, backgroundColor, cursor: "pointer", justifyContent: "center", marginLeft: "1rem" }}>
+                          <Box sx={{ ...css_IsPaketler, cursor: "pointer", justifyContent: "center", marginLeft: "1rem" }}>
                             {pozSayisi}
                           </Box>
 
-                          <Box {...rowHandlers} sx={{ ...css_IsPaketler, ...rowBaseSx, ...hoverSx, backgroundColor, cursor: "pointer", justifyContent: "center" }}>
+                          <Box sx={{ ...css_IsPaketler, cursor: "pointer", justifyContent: "center" }}>
                             {dataIsPaketPozlar?.isPaketCounts?.[onePaket._id.toString()] ?? ""}
                           </Box>
                         </React.Fragment>
