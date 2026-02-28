@@ -261,6 +261,17 @@ export default function Sidebar({ setMobileOpen }) {
             </ListItemButton>
 
 
+            <ListItemButton
+              onClick={() => navigate('/kesifbutce')}
+              sx={{ backgroundColor: pathname.includes("/kesifbutce") ? seciliSayfaRengi : null, '&:hover': { backgroundColor: seciliSayfaRengi } }}
+            >
+              <ListItemIcon>
+                <SendIcon />
+              </ListItemIcon>
+              <ListItemText primary="Keşif / Bütçe" />
+            </ListItemButton>
+
+
             {/* <ListItemButton
               onClick={() => navigate('/kisilerproject')}
               sx={{ backgroundColor: pathname == "/kisilerproject" ? seciliSayfaRengi : null, '&:hover': { backgroundColor: seciliSayfaRengi } }}
