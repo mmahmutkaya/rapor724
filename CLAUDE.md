@@ -80,6 +80,55 @@ src/
 
 ---
 
+## Client-Side Route Haritası (`src/App.js` — 31 route)
+
+```
+Genel
+  /                          → Home (giriş/landing)
+  /firmalar                  → P_Firmalar
+  /projeler                  → P_Projeler
+  /parabirimleri             → P_ParaBirimleri
+  /projects                  → P_Projects (proje detay/navigasyon)
+  /firmawbs                  → P_FirmaWbs
+  /firmapozlari              → P_FirmaPozlari
+  /firmakadrosu              → P_FirmaKadrosu
+
+Proje Yapısı
+  /wbs                       → P_Wbs (iş kırılım yapısı)
+  /pozlar                    → P_Pozlar
+  /lbs                       → P_Lbs (konum kırılım yapısı)
+  /mahaller                  → P_Mahaller
+
+Mahal Listesi
+  /mahallistesipozlar        → P_MahalListesiPozlar
+  /mahallistesipozmahaller   → P_MahalListesiPozMahaller
+
+Metraj Oluştur
+  /metrajolusturpozlar       → P_MetrajOlusturPozlar
+  /metrajolusturpozmahaller  → P_MetrajOlusturPozMahaller
+  /metrajolusturcetvel       → P_MetrajOlusturCetvel
+
+Metraj Onayla
+  /metrajonaylapozlar        → P_MetrajOnaylaPozlar
+  /metrajonaylapozmahaller   → P_MetrajOnaylaPozMahaller
+  /metrajonayla              → P_MetrajOnayla
+  /metrajonaylacetvel        → P_MetrajOnaylaCetvel
+
+Metraj Görüntüle
+  /metrajpozlar              → P_MetrajPozlar
+  /metrajpozmahaller         → P_MetrajPozMahaller
+  /metrajcetvel              → P_MetrajCetvel
+
+Diğer
+  /birimfiyat                → P_BirimFiyat
+  /ispaketler                → P_IsPaketler
+  /ispaketlerbutce           → P_IsPaketlerButce
+  /ispaketpozlar             → P_isPaketPozlar
+  /ispaketpozmahaller        → P_isPaketPozMahaller  ← aktif geliştirme
+```
+
+---
+
 ## State Yönetimi — StoreContext
 
 `src/components/store.js` — React Context + useState ile yönetilir.
@@ -93,10 +142,30 @@ setAppUser     // null → çıkış yapar
 
 ### Seçim Hiyerarşisi
 ```
-selectedFirma → selectedProje → selectedPoz / selectedMahal / selectedWbs / selectedLbs
+selectedFirma → selectedProje → selectedPoz / selectedPozBaslik
+                              → selectedMahal / selectedMahalBaslik
+                              → selectedWbs / selectedLbs
                               → selectedIsPaket → selectedIsPaketVersiyon
                               → selectedBirimFiyatVersiyon
                               → selectedMetrajVersiyon
+```
+
+### Mod Değişkenleri
+```js
+mode_metrajOnayla      // metraj onaylama modu aktif mi
+mode_birimFiyatEdit    // birim fiyat düzenleme modu
+mode_isPaketEdit       // iş paketi düzenleme modu
+detailMode             // detay görünüm modu
+pageMetraj_show        // metraj sayfası görünüm durumu
+```
+
+### Node / Metraj Durumları
+```js
+selectedNode           // seçili WBS-LBS kesişim düğümü
+editNodeMetraj         // düzenlenmekte olan metraj düğümü
+onayNodeMetraj         // onaylanacak metraj düğümü
+showNodeMetraj         // görüntülenen metraj düğümü
+nodeMetrajlar          // düğüme ait metraj kayıtları listesi
 ```
 
 ### Layout
@@ -175,14 +244,27 @@ export const useGetFirmalar = () => {
 }
 ```
 
-**Query Key Konvansiyonları**:
+**Tüm Hook'lar ve Query Key'leri** (`src/hooks/useMongo.js`):
 ```
-['firmalar']
-['dataPozlar']
-['dugumler']
-['dataDugumler_byPoz']
-['projectNames_firma', firmaId.toString()]
-['hazirlananMetraj', nodeId.toString()]
+Hook                                  Query Key
+─────────────────────────────────────────────────────────────────
+useGetFirmalar                      → ['firmalar']
+useGetFirmaPozlar                   → ['firmaPozlar']
+useGetProjeler_byFirma              → ['dataProjeler']
+useGetPozlar                        → ['dataPozlar']
+useGetIsPaketPozlar                 → ['dataIsPaketPozlar']
+useGetMahaller                      → ['dataMahaller']
+useGetMahalListesi_pozlar           → ['dataMahallistesi_pozlar']
+useGetMahalListesi_mahaller_byPoz   → ['dataMahalListesi_mahaller_byPoz']
+useGetMahalListesi_byPoz            → ['dataMahalListesi_byPoz2']
+useGetDugumler                      → ['dugumler']
+useGetDugumler_byPoz                → ['dataDugumler_byPoz']
+useGetMahalListesi                  → ['mahalListesi']
+useGetHazirlananMetraj              → ['dataHazirlananMetraj']
+useGetHazirlananMetrajlar           → ['dataHazirlananMetrajlar']
+useGetOnaylananMetraj               → ['dataOnaylananMetraj']
+useGetNetworkUsers                  → ['networkUsers', email]
+useGetProjectNames_firma            → ['projectNames_firma', firmaId]
 ```
 
 **Cache Geçersizleştirme**:
@@ -205,6 +287,22 @@ const [show, setShow] = useState("Main")
 const [dialogAlert, setDialogAlert] = useState()
 // ...
 {dialogAlert && <DialogAlert {...dialogAlert} onCloseAction={() => setDialogAlert()} />}
+```
+
+**`DialogAlert` Props:**
+```js
+// Zorunlu
+dialogMessage: string              // gösterilecek mesaj
+onCloseAction: () => void          // kapatma handler'ı
+
+// Opsiyonel
+dialogIcon: "warning" | "success" | "info" | "none"
+detailText: string                 // "Ayrıntıları Göster/Gizle" expandable alan
+actionText1: string                // 1. buton etiketi
+action1: () => void                // 1. buton handler'ı
+actionText2: string                // 2. buton etiketi
+action2: () => void                // 2. buton handler'ı
+// NOT: detailText varsa action butonları gösterilmez
 ```
 
 ### Onay Dialog'u (değişiklik kaybı uyarısı)
@@ -357,6 +455,35 @@ const response = await fetch(REACT_APP_BASE_URL + '/api/dugumler/ispaketler', {
   })
 })
 ```
+
+---
+
+## Sidebar Navigasyon Mantığı (`src/components/Sidebar.js`)
+
+Sidebar, context'e göre 3 farklı menü gösterir:
+
+```
+Durum 1 — !selectedFirma && !selectedProje:
+  → /firmalar
+
+Durum 2 — selectedFirma, !selectedProje:
+  → /projeler
+  → /parabirimleri
+
+Durum 3 — selectedProje:
+  → /wbs              (Poz Başlıkları)
+  → /pozlar           (Pozlar)
+  → /lbs              (Mahal Başlıkları)
+  → /mahaller         (Mahaller)
+  → /mahallistesipozlar   (Mahal Listesi)
+  → /metrajolusturpozlar  (Metraj Oluştur)
+  → /metrajonaylapozlar   (Metraj Onayla)
+  → /metrajpozlar         (Metraj)
+  → /birimfiyat           (Birim Fiyat)
+  → /ispaketler           (İş Paketleri — setSelectedIsPaket() sıfırlar)
+```
+
+**Highlight Mantığı:** `pathname.includes('/metrajolustur')` gibi prefix eşleşmesi — alt sayfalar da aynı menü öğesini aktif gösterir.
 
 ---
 

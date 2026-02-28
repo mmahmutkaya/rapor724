@@ -62,7 +62,6 @@ export default function P_IsPaketPozMahaller() {
   const [anySelectable, setAnySelectable] = useState()
 
   const [mahaller_state, setMahaller_state] = useState()
-  const [hoveredRow, setHoveredRow] = useState(null)
   const [menuState, setMenuState] = useState({ anchorEl: null, dugumId: null })
 
   const [autoFocus, setAutoFocus] = useState({ baslikId: null, pozId: null })
@@ -607,23 +606,14 @@ export default function P_IsPaketPozMahaller() {
                   //   isPaketler = versiyonData?.isPaketler || []
                   // }
 
-                  const isHovered = hoveredRow === dugum._id.toString()
-                  const rowBaseSx = { transition: "text-shadow 0.2s ease" }
-                  const hoverSx = isHovered ? { textShadow: "0 0 0.7px black, 0 0 0.7px black" } : {}
-
-                  const rowHandlers = {
-                    onMouseEnter: () => setHoveredRow(dugum._id.toString()),
-                    onMouseLeave: () => setHoveredRow(null),
-                  }
-
                   return (
                     <React.Fragment key={index}>
 
-                      <Box {...rowHandlers} sx={{ ...css_mahaller, ...rowBaseSx, ...hoverSx, borderLeft: "1px solid black" }}>
+                      <Box sx={{ ...css_mahaller, borderLeft: "1px solid black" }}>
                         {oneMahal.mahalNo}
                       </Box>
 
-                      <Box {...rowHandlers} sx={{ ...css_mahaller, ...rowBaseSx, ...hoverSx }}>
+                      <Box sx={{ ...css_mahaller }}>
                         {oneMahal.mahalName}
                       </Box>
 
@@ -637,7 +627,6 @@ export default function P_IsPaketPozMahaller() {
                         return (
                           <Box
                             key={i}
-                            {...rowHandlers}
                             onClick={
                               isPaketRef
                                 ? () => handleRemoveIsPaket(dugum._id.toString(), isPaketRef._id.toString())
@@ -645,8 +634,6 @@ export default function P_IsPaketPozMahaller() {
                             }
                             sx={{
                               ...css_mahaller,
-                              ...rowBaseSx,
-                              ...hoverSx,
                               cursor: "pointer",
                               minWidth: "4rem",
                               ...(isPaketRef ? {
