@@ -344,11 +344,9 @@ export default function P_isPaketPozlar() {
             {maxIsPaketCount > 0 && (
               <>
                 <Box />
-                {Array.from({ length: maxIsPaketCount }, (_, i) => (
-                  <Box key={`ispaket-baslik-${i}`} sx={{ ...enUstBaslik_css }}>
-                    İP {i + 1}
-                  </Box>
-                ))}
+                <Box sx={{ ...enUstBaslik_css, gridColumn: `span ${maxIsPaketCount}` }}>
+                  İŞ PAKETLERİ
+                </Box>
               </>
             )}
 
