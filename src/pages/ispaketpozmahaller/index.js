@@ -25,6 +25,7 @@ import Alert from '@mui/material/Alert';
 import Stack from '@mui/material/Stack';
 import Box from '@mui/material/Box';
 import { Check } from '@mui/icons-material';
+import AddCircleOutlineIcon from '@mui/icons-material/AddCircleOutline';
 import Tooltip from '@mui/material/Tooltip';
 import FileDownloadDoneIcon from '@mui/icons-material/FileDownloadDone';
 import LinearProgress from '@mui/material/LinearProgress';
@@ -621,6 +622,7 @@ export default function P_IsPaketPozMahaller() {
                               ...css_mahaller,
                               cursor: "pointer",
                               minWidth: "4rem",
+                              ...(!isPaketRef && { backgroundColor: "#ffcdd2", display: "flex", justifyContent: "center", alignItems: "center" }),
                               ...(isPaketRef ? {
                                 "&:hover": {
                                   backgroundColor: "#fde8e8",
@@ -629,12 +631,29 @@ export default function P_IsPaketPozMahaller() {
                                 }
                               } : {
                                 "&:hover": {
-                                  backgroundColor: "#e8f5e9"
+                                  backgroundColor: "#e8f5e9",
+                                },
+                                "&:hover .add-icon": {
+                                  opacity: 1,
+                                  transform: "scale(1.15)"
                                 }
                               })
                             }}
                           >
                             {name}
+                            {!isPaketRef && (
+                              <AddCircleOutlineIcon
+                                className="add-icon"
+                                sx={{
+                                  fontSize: "1rem",
+                                  color: "#388e3c",
+                                  opacity: 0,
+                                  transition: "opacity 0.18s ease, transform 0.18s ease",
+                                  ml: "0.3rem",
+                                  verticalAlign: "middle"
+                                }}
+                              />
+                            )}
                           </Box>
                         )
                       })()}
