@@ -44,8 +44,8 @@ export default function P_IsPaketler() {
   // const { data, error, isFetching } = useGetisPaketler()
   // console.log("isPaketler",isPaketler)
 
-  const { data: dataIsPaketPozlar } = useGetIsPaketPozlar();
-
+  const { data: dataIsPaketPozlar } = useGetIsPaketPozlar()
+  const toplamAciktaKalanDugum = dataIsPaketPozlar.toplamAciktaKalanDugum
 
   const navigate = useNavigate();
 
