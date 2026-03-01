@@ -61,10 +61,15 @@ export default function P_IsPaketler() {
   }, [selectedProje]);
 
   const [show, setShow] = useState("Main");
-  const [basliklar, setBasliklar] = useState(
-    appUser.customSettings.pages.ispaketler.basliklar,
-  );
+  const [basliklar, setBasliklar] = useState(() => {
+    const existing = appUser.customSettings.pages.ispaketler.basliklar;
+    if (!existing?.find((x) => x.id === "pozSayisi")) {
+      return [...(existing || []), { id: "pozSayisi", baslikName: "Poz Sayısı", show: true, visible: true }];
+    }
+    return existing;
+  });
   const showAciklama = basliklar?.find((x) => x.id === "aciklama")?.show;
+  const showPozSayisi = basliklar?.find((x) => x.id === "pozSayisi")?.show;
 
   const goto_isPaketPozlar = () => {
     navigate("/ispaketpozlar");
@@ -91,7 +96,7 @@ export default function P_IsPaketler() {
   const headerIcon_sx = { fontSize: 24 };
 
   const columns =
-    `max-content minmax(min-content, 20rem) max-content max-content${showAciklama ? " minmax(min-content, 20rem)" : ""}`;
+    `max-content minmax(min-content, 20rem)${showPozSayisi ? " max-content" : ""} max-content${showAciklama ? " minmax(min-content, 20rem)" : ""}`;
 
   return (
     <Box>
@@ -255,14 +260,16 @@ export default function P_IsPaketler() {
 
             <Box sx={{ ...css_IsPaketlerBaslik }}>İş Paketi</Box>
 
-            <Box sx={{ ...css_IsPaketlerBaslik, marginLeft: "1rem" }}>Poz Sayısı</Box>
+            {showPozSayisi && (
+              <Box sx={{ ...css_IsPaketlerBaslik, marginLeft: "0.5rem" }}>Poz Sayısı</Box>
+            )}
 
             <Box sx={{ ...css_IsPaketlerBaslik }}>
               Mahal Sayısı
             </Box>
 
             {showAciklama && (
-              <Box sx={{ ...css_IsPaketlerBaslik, marginLeft: "1rem" }}>Açıklama</Box>
+              <Box sx={{ ...css_IsPaketlerBaslik, marginLeft: "0.5rem" }}>Açıklama</Box>
             )}
           </React.Fragment>
 
@@ -281,16 +288,18 @@ export default function P_IsPaketler() {
                   {onePaket.name}
                 </Box>
 
-                <Box sx={{ ...css_IsPaketler, justifyContent: "center", marginLeft: "1rem" }}>
-                  {pozSayisi}
-                </Box>
+                {showPozSayisi && (
+                  <Box sx={{ ...css_IsPaketler, justifyContent: "center", marginLeft: "0.5rem" }}>
+                    {pozSayisi}
+                  </Box>
+                )}
 
                 <Box sx={{ ...css_IsPaketler, justifyContent: "center" }}>
                   {dataIsPaketPozlar?.isPaketCounts?.[onePaket._id.toString()] ?? ""}
                 </Box>
 
                 {showAciklama && (
-                  <Box sx={{ ...css_IsPaketler, marginLeft: "1rem" }}>
+                  <Box sx={{ ...css_IsPaketler, marginLeft: "0.5rem" }}>
                     {onePaket.aciklama ?? ""}
                   </Box>
                 )}
