@@ -454,7 +454,7 @@ export default function P_isPaketPozlar() {
 
                       <Box />
 
-                      <Box {...rowHandlers} sx={{ ...pozNo_css, ...rowBaseSx, ...hoverSx, backgroundColor: onePoz.isPaketler_empityArrayCounts > 0 ? "#d4edda" : "white", cursor: "pointer", justifyContent: "center" }}>
+                      <Box {...rowHandlers} sx={{ ...pozNo_css, ...rowBaseSx, ...hoverSx, backgroundColor: onePoz.isPaketler_empityArrayCounts > 0 ? "#f8d7da" : "white", cursor: "pointer", justifyContent: "center" }}>
                         {onePoz.isPaketler_empityArrayCounts || ""}
                       </Box>
 
