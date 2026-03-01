@@ -45,7 +45,7 @@ export default function P_IsPaketler() {
   // console.log("isPaketler",isPaketler)
 
   const { data: dataIsPaketPozlar } = useGetIsPaketPozlar()
-  const toplamAciktaKalanDugum = dataIsPaketPozlar.toplamAciktaKalanDugum
+  const toplamAciktaKalanDugum = dataIsPaketPozlar?.toplamAciktaKalanDugum
 
   const navigate = useNavigate();
 
@@ -97,7 +97,7 @@ export default function P_IsPaketler() {
   const headerIcon_sx = { fontSize: 24 };
 
   const columns =
-    `max-content minmax(min-content, 20rem)${showPozSayisi ? " max-content" : ""} max-content${showAciklama ? " minmax(min-content, 20rem)" : ""}`;
+    `max-content minmax(min-content, 20rem)${showPozSayisi ? " minmax(5rem, max-content)" : ""} max-content${showAciklama ? " minmax(min-content, 20rem)" : ""}`;
 
   return (
     <Box>
@@ -262,11 +262,16 @@ export default function P_IsPaketler() {
             <Box sx={{ ...css_IsPaketlerBaslik }}>İş Paketi</Box>
 
             {showPozSayisi && (
-              <Box sx={{ ...css_IsPaketlerBaslik, marginLeft: "0.5rem" }}>Poz Sayısı</Box>
+              <Box sx={{ ...css_IsPaketlerBaslik, marginLeft: "0.5rem", textAlign: "center" }}>Poz</Box>
             )}
 
-            <Box sx={{ ...css_IsPaketlerBaslik }}>
-              Mahal Sayısı
+            <Box sx={{ ...css_IsPaketlerBaslik, display: "flex", alignItems: "center" }}>
+              Mahal
+              {toplamAciktaKalanDugum > 0 && (
+                <Box component="span" sx={{ color: "#800020", fontSize: "0.85em", marginLeft: "0.3rem" }}>
+                  ({toplamAciktaKalanDugum})
+                </Box>
+              )}
             </Box>
 
             {showAciklama && (
