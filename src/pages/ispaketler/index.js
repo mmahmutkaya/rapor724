@@ -17,15 +17,11 @@ import Grid from "@mui/material/Grid";
 import Alert from "@mui/material/Alert";
 import Stack from "@mui/material/Stack";
 import { Typography } from "@mui/material";
-import List from "@mui/material/List";
 import Box from "@mui/material/Box";
-import FolderIcon from "@mui/icons-material/Folder";
 import IconButton from "@mui/material/IconButton";
 import DeleteIcon from "@mui/icons-material/Delete";
 import AddCircleOutlineIcon from "@mui/icons-material/AddCircleOutline";
 import VisibilityIcon from "@mui/icons-material/Visibility";
-import InfoIcon from "@mui/icons-material/Info";
-import Avatar from "@mui/material/Avatar";
 import AdjustIcon from '@mui/icons-material/Adjust';
 
 export default function P_IsPaketler() {
@@ -48,10 +44,6 @@ export default function P_IsPaketler() {
   // const { data, error, isFetching } = useGetisPaketler()
   // console.log("isPaketler",isPaketler)
 
-  const [basliklar, setBasliklar] = useState(
-    appUser.customSettings.pages.ispaketler.basliklar,
-  );
-
   const { data: dataIsPaketPozlar } = useGetIsPaketPozlar();
 
   const navigate = useNavigate();
@@ -69,10 +61,10 @@ export default function P_IsPaketler() {
   }, [selectedProje]);
 
   const [show, setShow] = useState("Main");
-
-  // const { data: projelerNames_byFirma } = useGetProjelerNames_byFirma()
-  // const aciklamaShow = basliklar?.find(x => x.id === "aciklama").show
-  const pasifShow = basliklar?.find((x) => x.id === "pasif")?.show;
+  const [basliklar, setBasliklar] = useState(
+    appUser.customSettings.pages.ispaketler.basliklar,
+  );
+  const showAciklama = basliklar?.find((x) => x.id === "aciklama")?.show;
 
   const goto_isPaketPozlar = () => {
     navigate("/ispaketpozlar");
@@ -99,7 +91,7 @@ export default function P_IsPaketler() {
   const headerIcon_sx = { fontSize: 24 };
 
   const columns =
-    "max-content minmax(min-content, 20rem) max-content max-content";
+    `max-content minmax(min-content, 20rem) max-content max-content${showAciklama ? " minmax(min-content, 20rem)" : ""}`;
 
   return (
     <Box>
@@ -116,11 +108,12 @@ export default function P_IsPaketler() {
         />
       )}
 
+
       {/* BAŞLIK GÖSTER / GİZLE */}
       {show == "ShowBaslik" && (
         <ShowIsPaketBasliklar
           setShow={setShow}
-          basliklar={basliklar}
+          basliklar={basliklar.filter((x) => x.id !== "pasif")}
           setBasliklar={setBasliklar}
         />
       )}
@@ -162,7 +155,6 @@ export default function P_IsPaketler() {
                   <VisibilityIcon variant="contained" sx={headerIcon_sx} />
                 </IconButton>
               </Box>
-
 
               {!selectedIsPaket && (
                 <>
@@ -257,182 +249,54 @@ export default function P_IsPaketler() {
             gridTemplateColumns: columns,
           }}
         >
-          {/* AKTİF İŞ PAKETLERİ */}
+          {/* iş paketleri başlık satırı */}
+          <React.Fragment>
+            <Box sx={{ ...css_IsPaketlerBaslik }}>Sıra</Box>
 
-          {/* iş paket başlığı adı - en üst satır*/}
-          <Box sx={{ gridColumn: "1/-1", fontWeight: 700, cursor: "pointer" }}>
-            AKTİF İŞ PAKETLERİ
-          </Box>
+            <Box sx={{ ...css_IsPaketlerBaslik }}>İş Paketi</Box>
 
-          {/* iş paketleri henüz oluşturulmamış ise */}
-          {!isPaketler?.filter((x) => x.isActive)?.length > 0 && (
-            <Box
-              sx={{
-                gridColumn: "1/-1",
-                py: "0.5rem",
-                mt: "0.2rem",
-                cursor: "pointer",
-                display: "grid",
-                gridAutoFlow: "column",
-                backgroundColor: "rgba(227, 143, 122, 0.15)",
-                alignItems: "center",
-                justifyContent: "start",
-              }}
-            >
-              <InfoIcon
-                variant="contained"
-                sx={{
-                  color: "rgba(223, 123, 98, 1)",
-                  fontSize: "1.2rem",
-                  m: "0.3rem",
-                }}
-              />
-              <Box>Bu başlık altında henüz iş paketi bulunmuyor.</Box>
+            <Box sx={{ ...css_IsPaketlerBaslik, marginLeft: "1rem" }}>Poz Sayısı</Box>
+
+            <Box sx={{ ...css_IsPaketlerBaslik }}>
+              Mahal Sayısı
             </Box>
-          )}
 
-          {isPaketler?.filter((x) => x.isActive).length > 0 && (
-            <React.Fragment>
-              {/* iş paketleri varsa */}
-              <React.Fragment>
-                <Box sx={{ ...css_IsPaketlerBaslik }}>Sıra</Box>
+            {showAciklama && (
+              <Box sx={{ ...css_IsPaketlerBaslik, marginLeft: "1rem" }}>Açıklama</Box>
+            )}
+          </React.Fragment>
 
-                <Box sx={{ ...css_IsPaketlerBaslik }}>İş Paketi</Box>
+          {/* iş paketleri verileri */}
+          {isPaketler.map((onePaket, index) => {
+            const pozSayisi =
+              dataIsPaketPozlar?.isPaketPozSayisi?.[onePaket._id.toString()] ?? "";
 
-                <Box sx={{ ...css_IsPaketlerBaslik, marginLeft: "1rem" }}>Poz Sayısı</Box>
-
-                <Box sx={{ ...css_IsPaketlerBaslik }}>
-                  Mahal Sayısı
+            return (
+              <React.Fragment key={index}>
+                <Box sx={{ ...css_IsPaketler, justifyContent: "center" }}>
+                  {index + 1}
                 </Box>
+
+                <Box sx={{ ...css_IsPaketler }}>
+                  {onePaket.name}
+                </Box>
+
+                <Box sx={{ ...css_IsPaketler, justifyContent: "center", marginLeft: "1rem" }}>
+                  {pozSayisi}
+                </Box>
+
+                <Box sx={{ ...css_IsPaketler, justifyContent: "center" }}>
+                  {dataIsPaketPozlar?.isPaketCounts?.[onePaket._id.toString()] ?? ""}
+                </Box>
+
+                {showAciklama && (
+                  <Box sx={{ ...css_IsPaketler, marginLeft: "1rem" }}>
+                    {onePaket.aciklama ?? ""}
+                  </Box>
+                )}
               </React.Fragment>
-
-              {/* iş paketleri verileri */}
-              {isPaketler.length > 0 &&
-                isPaketler.map((onePaket, index) => {
-                  const pozSayisi =
-                    dataIsPaketPozlar?.isPaketPozSayisi?.[onePaket._id.toString()] ?? "";
-
-                  return (
-                    // iş paketleri başlığı
-                    <React.Fragment key={index}>
-                      <Box sx={{ ...css_IsPaketler, justifyContent: "center" }}>
-                        {index + 1}
-                      </Box>
-
-                      <Box sx={{ ...css_IsPaketler }}>
-                        {onePaket.name}
-                      </Box>
-
-                      <Box sx={{ ...css_IsPaketler, justifyContent: "center", marginLeft: "1rem" }}>
-                        {pozSayisi}
-                      </Box>
-
-                      <Box sx={{ ...css_IsPaketler, justifyContent: "center" }}>
-                        {dataIsPaketPozlar?.isPaketCounts?.[onePaket._id.toString()] ?? ""}
-                      </Box>
-                    </React.Fragment>
-                  );
-                })}
-            </React.Fragment>
-          )}
-
-          {/* PASİF İŞ PAKETLERİ */}
-
-          {pasifShow && (
-            <>
-              {/* YATAY AYRAÇ */}
-              <Box
-                sx={{
-                  gridColumn: "1/-1",
-                  mt: "1rem",
-                  backgroundColor: "darkred",
-                  height: "0.2rem",
-                }}
-              ></Box>
-
-              {/* iş paket başlığı adı - en üst satır*/}
-              <Box
-                sx={{
-                  gridColumn: "1/-1",
-                  fontWeight: 700,
-                  cursor: "pointer",
-                  mt: "1rem",
-                }}
-              >
-                PASİF İŞ PAKETLERİ
-              </Box>
-
-              {/* iş paketleri henüz oluşturulmamış ise */}
-              {!isPaketler.filter((x) => !x.isActive).length > 0 && (
-                <Box
-                  sx={{
-                    gridColumn: "1/-1",
-                    py: "0.5rem",
-                    mt: "0.2rem",
-                    cursor: "pointer",
-                    display: "grid",
-                    gridAutoFlow: "column",
-                    backgroundColor: "rgba(227, 143, 122, 0.15)",
-                    alignItems: "center",
-                    justifyContent: "start",
-                  }}
-                >
-                  <InfoIcon
-                    variant="contained"
-                    sx={{
-                      color: "rgba(223, 123, 98, 1)",
-                      fontSize: "1.2rem",
-                      m: "0.3rem",
-                    }}
-                  />
-                  <Box>Bu başlık altında henüz iş paketi bulunmuyor.</Box>
-                </Box>
-              )}
-
-              {isPaketler.filter((x) => !x.isActive).length > 0 && (
-                <React.Fragment>
-                  {/* iş paketleri varsa */}
-                  <React.Fragment>
-                    <Box sx={{ ...css_IsPaketlerBaslik }}>Sıra</Box>
-
-                    <Box sx={{ ...css_IsPaketlerBaslik }}>İş Paketi</Box>
-
-                    <Box sx={{ ...css_IsPaketlerBaslik, marginLeft: "1rem" }}>Poz Sayısı</Box>
-
-                    <Box sx={{ ...css_IsPaketlerBaslik }}>Mahal Sayısı</Box>
-                  </React.Fragment>
-
-                  {/* iş paketleri verileri */}
-                  {isPaketler.length > 0 &&
-                    isPaketler.map((onePaket, index) => {
-                      const pozSayisi =
-                        dataIsPaketPozlar?.isPaketPozSayisi?.[onePaket._id.toString()] ?? "";
-
-                      return (
-                        // iş paketleri başlığı
-                        <React.Fragment key={index}>
-                          <Box sx={{ ...css_IsPaketler, justifyContent: "center" }}>
-                            {index + 1}
-                          </Box>
-
-                          <Box sx={{ ...css_IsPaketler }}>
-                            {onePaket.name}
-                          </Box>
-
-                          <Box sx={{ ...css_IsPaketler, justifyContent: "center", marginLeft: "1rem" }}>
-                            {pozSayisi}
-                          </Box>
-
-                          <Box sx={{ ...css_IsPaketler, justifyContent: "center" }}>
-                            {dataIsPaketPozlar?.isPaketCounts?.[onePaket._id.toString()] ?? ""}
-                          </Box>
-                        </React.Fragment>
-                      );
-                    })}
-                </React.Fragment>
-              )}
-            </>
-          )}
+            );
+          })}
         </Stack>
       )}
     </Box>
