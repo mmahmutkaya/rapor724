@@ -205,8 +205,7 @@ export default function P_IsPaketPozMahaller() {
     const dugumId = menuState.dugumId
     setDugumler_byPoz_state(prev => prev.map(d => {
       if (d._id.toString() === dugumId) {
-        const newIsPaketler = [...(d.isPaketler || []), { _id: isPaketId }]
-        return { ...d, isPaketler: newIsPaketler, newSelected: true }
+        return { ...d, isPaketler: [{ _id: isPaketId }], newSelected: true }
       }
       return d
     }))
@@ -370,17 +369,7 @@ export default function P_IsPaketPozMahaller() {
 
   const activeIsPaketler = selectedProje?.isPaketler || []
 
-  const maxIsPaketCount = Math.min(
-    (dugumler_byPoz_state ? Math.max(0, ...dugumler_byPoz_state.map(d => d.isPaketler?.length || 0)) : 0) + 1,
-    activeIsPaketler.length
-  )
-
-  const gridTemplateColumns1 = [
-    'max-content',
-    'minmax(min-content, 15rem)',
-    '1rem',
-    ...Array(maxIsPaketCount).fill('max-content')
-  ].join(' ')
+  const gridTemplateColumns1 = 'max-content minmax(min-content, 15rem) 1rem max-content'
 
   // console.log("paraBirimiAdet",paraBirimiAdet)
 
@@ -536,7 +525,7 @@ export default function P_IsPaketPozMahaller() {
 
             <Box />
 
-            {maxIsPaketCount > 0 && (
+            {activeIsPaketler.length > 0 && (
               <Box sx={{
                 display: "flex",
                 justifyContent: "center",
@@ -547,9 +536,8 @@ export default function P_IsPaketPozMahaller() {
                 px: "0.5rem",
                 backgroundColor: "#415a77",
                 color: "#e0e1dd",
-                gridColumn: `span ${maxIsPaketCount}`,
               }}>
-                İŞ PAKETLERİ
+                İŞ PAKETİ
               </Box>
             )}
 
@@ -581,10 +569,8 @@ export default function P_IsPaketPozMahaller() {
 
                 <Box />
 
-                {Array.from({ length: maxIsPaketCount }, (_, i) => (
-                  <Box key={i} sx={{ ...css_LbsBaslik }}>
-                  </Box>
-                ))}
+                <Box sx={{ ...css_LbsBaslik }}>
+                </Box>
 
                 {/* MAHAL SATIRLARI */}
                 {mahaller_byLbs?.map((oneMahal, index) => {
@@ -619,14 +605,13 @@ export default function P_IsPaketPozMahaller() {
 
                       <Box />
 
-                      {Array.from({ length: maxIsPaketCount }, (_, i) => {
-                        const isPaketRef = dugum.isPaketler?.[i]
+                      {(() => {
+                        const isPaketRef = dugum.isPaketler?.[0]
                         const name = isPaketRef
                           ? activeIsPaketler.find(p => p._id.toString() === isPaketRef._id.toString())?.name || ""
                           : ""
                         return (
                           <Box
-                            key={i}
                             onClick={
                               isPaketRef
                                 ? () => handleRemoveIsPaket(dugum._id.toString(), isPaketRef._id.toString())
@@ -652,7 +637,7 @@ export default function P_IsPaketPozMahaller() {
                             {name}
                           </Box>
                         )
-                      })}
+                      })()}
 
 
                     </React.Fragment>
@@ -680,13 +665,7 @@ export default function P_IsPaketPozMahaller() {
         <Paper elevation={8}>
           <ClickAwayListener onClickAway={handleCloseMenu}>
             <MenuList>
-              {activeIsPaketler
-                .filter(p => {
-                  const currentDugum = dugumler_byPoz_state?.find(d => d._id.toString() === menuState.dugumId)
-                  const assignedIds = (currentDugum?.isPaketler || []).map(ip => ip._id.toString())
-                  return !assignedIds.includes(p._id.toString())
-                })
-                .map(p => (
+              {activeIsPaketler.map(p => (
                   <MenuItem key={p._id.toString()} onClick={() => handleAddIsPaket(p._id)}>
                     {p.name}
                   </MenuItem>
