@@ -5,6 +5,7 @@ import FormIsPaketCreate from "../../components/FormIsPaketCreate.js";
 import { useNavigate } from "react-router-dom";
 // import { useGetProjelerNames_byFirma } from '../../hooks/useMongo';
 import { DialogAlert } from "../../components/general/DialogAlert.js";
+import { DialogVersiyonTip } from "../../components/general/DialogVersiyonTip.js";
 import ShowIsPaketBasliklar from "../../components/ShowIsPaketBasliklar.js";
 import { useQueryClient } from "@tanstack/react-query";
 
@@ -23,15 +24,16 @@ import DeleteIcon from "@mui/icons-material/Delete";
 import AddCircleOutlineIcon from "@mui/icons-material/AddCircleOutline";
 import VisibilityIcon from "@mui/icons-material/Visibility";
 import AdjustIcon from '@mui/icons-material/Adjust';
+import ClearOutlined from '@mui/icons-material/ClearOutlined';
 
 export default function P_IsPaketler() {
   const queryClient = useQueryClient();
 
   const { appUser, setAppUser } = useContext(StoreContext);
   const { selectedProje, setSelectedProje } = useContext(StoreContext);
-
-  // console.log("selectedProje",selectedProje)
   const { selectedIsPaket, setSelectedIsPaket } = useContext(StoreContext);
+  const { mode_isPaketEdit, setMode_isPaketEdit } = useContext(StoreContext);
+  const { selectedIsPaketVersiyon, setSelectedIsPaketVersiyon } = useContext(StoreContext);
 
   const requestProjeAktifYetkiliKisi = useRequestProjeAktifYetkiliKisi();
   const deleteProjeAktifYetkiliKisi = useDeleteProjeAktifYetkiliKisi();
@@ -40,6 +42,7 @@ export default function P_IsPaketler() {
 
   const [dialogAlert, setDialogAlert] = useState();
   const [isPaketler, setIsPaketler] = useState([]);
+  const [showEminMisin_versiyon, setShowEminMisin_versiyon] = useState(false);
 
   // const { data, error, isFetching } = useGetisPaketler()
   // console.log("isPaketler",isPaketler)
@@ -99,6 +102,68 @@ export default function P_IsPaketler() {
   const columns =
     `max-content minmax(min-content, 20rem)${showPozSayisi ? " minmax(5rem, max-content)" : ""} max-content${showAciklama ? " minmax(min-content, 20rem)" : ""}`;
 
+  const nextVersiyonNumber = (selectedProje?.isPaketVersiyonlar?.reduce((acc, cur) => Math.max(acc, cur.versiyonNumber), 0) ?? 0) + 1
+
+  const createVersiyon_isPaket = async ({ fieldText }) => {
+    try {
+      setSelectedIsPaketVersiyon()
+
+      const response = await fetch(process.env.REACT_APP_BASE_URL + `/api/versiyon/ispaket`, {
+        method: 'POST',
+        headers: {
+          email: appUser.email,
+          token: appUser.token,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          projeId: selectedProje?._id,
+          versiyonNumber: nextVersiyonNumber,
+          aciklama: fieldText
+        })
+      })
+
+      const responseJson = await response.json()
+
+      if (responseJson.error) {
+        if (responseJson.error.includes("expired")) {
+          setAppUser()
+          localStorage.removeItem('appUser')
+          navigate('/')
+          window.location.reload()
+        }
+        throw new Error(responseJson.error)
+      }
+
+      if (responseJson.message) {
+        setDialogAlert({
+          dialogIcon: "info",
+          dialogMessage: responseJson.message,
+          onCloseAction: () => setDialogAlert()
+        })
+        return
+      }
+
+      if (responseJson.ok) {
+        const newVersiyon = { versiyonNumber: nextVersiyonNumber, isPaketler, aciklama: fieldText }
+        setSelectedIsPaketVersiyon(newVersiyon)
+        const proje2 = { ...selectedProje, isPaketVersiyonlar: responseJson.isPaketVersiyonlar }
+        setSelectedProje(proje2)
+        setMode_isPaketEdit()
+      } else {
+        throw new Error("Kayıt işlemi gerçekleşmedi, sayfayı yenileyiniz, sorun devam ederse Rapor7/24 ile irtibata geçiniz.")
+      }
+
+    } catch (err) {
+      console.log(err)
+      setDialogAlert({
+        dialogIcon: "warning",
+        dialogMessage: "Beklenmedik hata, sayfayı yenileyiniz, sorun devam ederse Rapor7/24 ile irtibata geçiniz..",
+        detailText: err?.message ? err.message : null,
+        onCloseAction: () => setDialogAlert()
+      })
+    }
+  }
+
   return (
     <Box>
       {dialogAlert && (
@@ -111,6 +176,19 @@ export default function P_IsPaketler() {
               ? dialogAlert.onCloseAction
               : () => setDialogAlert()
           }
+        />
+      )}
+
+      {showEminMisin_versiyon && (
+        <DialogVersiyonTip
+          dialogBaslikText={`Mevcut iş paket atamaları versiyon (İP${nextVersiyonNumber}) olarak kaydedilsin mi?`}
+          aciklamaBaslikText={"Versiyon hakkında bilgi verebilirsiniz"}
+          aprroveAction={({ fieldText }) => {
+            setShowEminMisin_versiyon(false)
+            createVersiyon_isPaket({ fieldText })
+          }}
+          rejectAction={() => setShowEminMisin_versiyon(false)}
+          onCloseAction={() => setShowEminMisin_versiyon(false)}
         />
       )}
 
@@ -156,13 +234,15 @@ export default function P_IsPaketler() {
               }}
             >
 
-              <Box>
-                <IconButton onClick={() => setShow("ShowBaslik")} sx={headerIconButton_sx}>
-                  <VisibilityIcon variant="contained" sx={headerIcon_sx} />
-                </IconButton>
-              </Box>
+              {!mode_isPaketEdit && (
+                <Box>
+                  <IconButton onClick={() => setShow("ShowBaslik")} sx={headerIconButton_sx}>
+                    <VisibilityIcon variant="contained" sx={headerIcon_sx} />
+                  </IconButton>
+                </Box>
+              )}
 
-              {!selectedIsPaket && (
+              {!selectedIsPaket && !mode_isPaketEdit && (
                 <>
                   <Box>
                     <IconButton
@@ -187,6 +267,7 @@ export default function P_IsPaketler() {
                           setShow,
                         })
                         if (checkAuth?.ok) {
+                          setMode_isPaketEdit(true)
                           setShow("FormIsPaketCreate")
                         } else {
                           setShow("Main")
@@ -200,6 +281,55 @@ export default function P_IsPaketler() {
                         sx={headerIcon_sx}
                       />
                     </IconButton>
+                  </Box>
+                </>
+              )}
+
+              {!selectedIsPaket && mode_isPaketEdit && (
+                <>
+                  <Grid item>
+                    <IconButton
+                      onClick={() => {
+                        deleteProjeAktifYetkiliKisi({
+                          projeId: selectedProje?._id,
+                          aktifYetki: "isPaketEdit",
+                          setDialogAlert,
+                          setShow,
+                          onOk: () => setMode_isPaketEdit(),
+                        })
+                      }}
+                      sx={headerIconButton_sx}
+                    >
+                      <ClearOutlined variant="contained" sx={{ ...headerIcon_sx, color: "red" }} />
+                    </IconButton>
+                  </Grid>
+
+                  <Box>
+                    <IconButton
+                      onClick={() => setShow("FormIsPaketCreate")}
+                      sx={headerIconButton_sx}
+                    >
+                      <AddCircleOutlineIcon
+                        variant="contained"
+                        color="success"
+                        sx={headerIcon_sx}
+                      />
+                    </IconButton>
+                  </Box>
+
+                  <Box
+                    onClick={() => isPaketler?.length > 0 && setShowEminMisin_versiyon(true)}
+                    sx={{
+                      cursor: isPaketler?.length > 0 ? "pointer" : "default",
+                      mx: "0.3rem", py: "0.2rem", px: "0.3rem",
+                      border: isPaketler?.length > 0 ? "1px solid red" : "1px solid black",
+                      borderRadius: "0.5rem",
+                      fontSize: "0.8rem",
+                      fontWeight: "600",
+                      backgroundColor: "yellow"
+                    }}
+                  >
+                    İP{nextVersiyonNumber}
                   </Box>
                 </>
               )}
@@ -225,15 +355,7 @@ export default function P_IsPaketler() {
       {show == "FormIsPaketCreate" && (
         <Box>
           <FormIsPaketCreate
-            setShow={(newShow) => {
-              deleteProjeAktifYetkiliKisi({
-                projeId: selectedProje?._id,
-                aktifYetki: "isPaketEdit",
-                setDialogAlert,
-                setShow,
-              });
-              setShow(newShow);
-            }}
+            setShow={setShow}
           />
         </Box>
       )}
