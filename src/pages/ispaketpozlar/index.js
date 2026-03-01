@@ -402,9 +402,8 @@ export default function P_isPaketPozlar() {
                   <Box sx={{ ...wbsBaslik_css2, justifyItems: "center" }}>
                     {(() => {
                       const wbsPozlar = dataIsPaketPozlar?.pozlar?.filter(p => p._wbsId.toString() === oneWbs._id.toString())
-                      const t = wbsPozlar?.reduce((sum, p) => sum + (p.toplamDugum || 0), 0) || 0
-                      const s = wbsPozlar?.reduce((sum, p) => sum + (p.secilenDugum || 0), 0) || 0
-                      return (t - s) || ""
+                      const t = wbsPozlar?.reduce((sum, p) => sum + (p.isPaketler_empityArrayCounts || 0), 0) || 0
+                      return t || ""
                     })()}
                   </Box>
 
