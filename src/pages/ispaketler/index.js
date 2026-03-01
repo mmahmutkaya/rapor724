@@ -295,7 +295,7 @@ export default function P_IsPaketler() {
                 )}
 
                 <Box sx={{ ...css_IsPaketler, justifyContent: "center" }}>
-                  {dataIsPaketPozlar?.isPaketCounts?.[onePaket._id.toString()] ?? ""}
+                  {dataIsPaketPozlar?.isPaketDugumSayisi?.[onePaket._id.toString()] ?? ""}
                 </Box>
 
                 {showAciklama && (

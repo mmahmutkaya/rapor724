@@ -318,7 +318,7 @@ export default function P_KesifButce() {
                       </Box>
 
                       <Box sx={{ ...css_IsPaketler, justifyContent: "center" }}>
-                        {dataIsPaketPozlar?.isPaketCounts?.[onePaket._id.toString()] ?? ""}
+                        {dataIsPaketPozlar?.isPaketDugumSayisi?.[onePaket._id.toString()] ?? ""}
                       </Box>
                     </React.Fragment>
                   );
@@ -413,7 +413,7 @@ export default function P_KesifButce() {
                           </Box>
 
                           <Box sx={{ ...css_IsPaketler, justifyContent: "center" }}>
-                            {dataIsPaketPozlar?.isPaketCounts?.[onePaket._id.toString()] ?? ""}
+                            {dataIsPaketPozlar?.isPaketDugumSayisi?.[onePaket._id.toString()] ?? ""}
                           </Box>
                         </React.Fragment>
                       );
