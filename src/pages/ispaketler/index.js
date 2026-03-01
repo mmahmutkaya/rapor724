@@ -46,6 +46,7 @@ export default function P_IsPaketler() {
 
   const { data: dataIsPaketPozlar } = useGetIsPaketPozlar();
 
+
   const navigate = useNavigate();
 
 
