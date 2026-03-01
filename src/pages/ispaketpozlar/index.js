@@ -138,8 +138,8 @@ export default function P_isPaketPozlar() {
     minmax(min-content, 25rem)
     max-content
     1rem
-    max-content
-    max-content
+    5.5rem
+    5.5rem
     ${maxIsPaketCount > 0 ? `1rem ${Array(maxIsPaketCount).fill('8rem').join(' ')}` : ''}
   `
 
@@ -333,7 +333,7 @@ export default function P_isPaketPozlar() {
             <Box />
 
             <Box sx={{ ...enUstBaslik_css }}>
-              Açık Mahal
+              Açıkta
             </Box>
 
             <Box sx={{ ...enUstBaslik_css }}>
