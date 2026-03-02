@@ -20,6 +20,8 @@ import AppBar from '@mui/material/AppBar';
 import IconButton from '@mui/material/IconButton';
 import ReplyIcon from '@mui/icons-material/Reply';
 import AutorenewIcon from '@mui/icons-material/Autorenew';
+import EditIcon from '@mui/icons-material/Edit';
+import ClearIcon from '@mui/icons-material/Clear';
 import Tooltip from '@mui/material/Tooltip';
 
 
@@ -40,7 +42,7 @@ export default function P_isPaketPozlar() {
   const { selectedPoz, setSelectedPoz } = useContext(StoreContext)
   const { selectedIsPaketVersiyon, setSelectedIsPaketVersiyon } = useContext(StoreContext)
   const { selectedProje } = useContext(StoreContext)
-  const { selectedIsPaket, mode_isPaketEdit } = useContext(StoreContext)
+  const { selectedIsPaket, mode_isPaketEdit, setMode_isPaketEdit } = useContext(StoreContext)
 
   useEffect(() => {
     if (selectedProje?.isPaketVersiyonlar?.length > 0 && !selectedIsPaketVersiyon) {
@@ -207,6 +209,22 @@ export default function P_isPaketPozlar() {
             {/* sağ kısım - (tuşlar)*/}
             <Grid item xs="auto">
               <Box sx={{ display: "grid", gridAutoFlow: "column", alignItems: "center" }}>
+
+                {!mode_isPaketEdit &&
+                  <IconButton
+                    sx={{ mr: "0.5rem", px: 0 }}
+                    onClick={() => setMode_isPaketEdit(true)}>
+                    <EditIcon sx={{ color: "green" }} />
+                  </IconButton>
+                }
+
+                {mode_isPaketEdit &&
+                  <IconButton
+                    sx={{ mr: "0.5rem", px: 0 }}
+                    onClick={() => setMode_isPaketEdit()}>
+                    <ClearIcon sx={{ color: "red" }} />
+                  </IconButton>
+                }
 
                 <IconButton
                   sx={{ mr: "1rem", px: 0 }}
