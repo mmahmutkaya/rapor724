@@ -38,10 +38,18 @@ export default function P_isPaketPozlar() {
 
   const { myTema, drawerWidth, topBarHeight } = useContext(StoreContext)
   const { selectedPoz, setSelectedPoz } = useContext(StoreContext)
-  const { selectedMetrajVersiyon, setSelectedMetrajVersiyon } = useContext(StoreContext)
-  const { selectedBirimFiyatVersiyon, setSelectedBirimFiyatVersiyon } = useContext(StoreContext)
+  const { selectedIsPaketVersiyon, setSelectedIsPaketVersiyon } = useContext(StoreContext)
   const { selectedProje } = useContext(StoreContext)
   const { selectedIsPaket } = useContext(StoreContext)
+
+  useEffect(() => {
+    if (selectedProje?.isPaketVersiyonlar?.length > 0 && !selectedIsPaketVersiyon) {
+      const maxVersiyon = selectedProje.isPaketVersiyonlar.reduce((prev, current) => 
+        (prev.versiyonNumber > current.versiyonNumber) ? prev : current
+      )
+      setSelectedIsPaketVersiyon(maxVersiyon)
+    }
+  }, [selectedProje, selectedIsPaketVersiyon, setSelectedIsPaketVersiyon])
 
   const wbsArray_state = selectedProje?.wbs?.filter(x => x.openForPoz === true)
 
@@ -206,11 +214,11 @@ export default function P_isPaketPozlar() {
                   <AutorenewIcon variant="contained" sx={{ color: "gray" }} />
                 </IconButton>
 
-                {selectedMetrajVersiyon &&
+                {selectedProje?.isPaketVersiyonlar?.length > 0 &&
 
                   <Select
                     size='small'
-                    value={selectedMetrajVersiyon?.versiyonNumber}
+                    value={selectedIsPaketVersiyon?.versiyonNumber || ""}
                     onClose={() => {
                       setTimeout(() => {
                         document.activeElement.blur();
@@ -227,46 +235,12 @@ export default function P_isPaketPozlar() {
                     }}
                   >
 
-                    {selectedProje?.metrajVersiyonlar.sort((a, b) => b.versiyonNumber - a.versiyonNumber).map((oneVersiyon, index) => {
+                    {selectedProje?.isPaketVersiyonlar?.sort((a, b) => b.versiyonNumber - a.versiyonNumber).map((oneVersiyon, index) => {
                       let versiyonNumber = oneVersiyon?.versiyonNumber
                       return (
                         <MenuItem
-                          onClick={() => setSelectedMetrajVersiyon(oneVersiyon)}
-                          sx={{ fontSize: "0.75rem" }} key={index} value={versiyonNumber} > M{versiyonNumber}
-                        </MenuItem>
-                      )
-                    })}
-
-                  </Select>
-                }
-
-                {selectedBirimFiyatVersiyon &&
-
-                  <Select
-                    size='small'
-                    value={selectedBirimFiyatVersiyon?.versiyonNumber}
-                    onClose={() => {
-                      setTimeout(() => {
-                        document.activeElement.blur();
-                      }, 0);
-                    }}
-                    sx={{ fontSize: "0.75rem", ml: "0.5rem" }}
-                    MenuProps={{
-                      PaperProps: {
-                        style: {
-                          maxHeight: "15rem",
-                          minWidth: "5rem"
-                        },
-                      },
-                    }}
-                  >
-
-                    {selectedProje?.birimFiyatVersiyonlar.sort((a, b) => b.versiyonNumber - a.versiyonNumber).map((oneVersiyon, index) => {
-                      let versiyonNumber = oneVersiyon?.versiyonNumber
-                      return (
-                        <MenuItem
-                          onClick={() => setSelectedBirimFiyatVersiyon(oneVersiyon)}
-                          sx={{ fontSize: "0.75rem" }} key={index} value={versiyonNumber} > B{versiyonNumber}
+                          onClick={() => setSelectedIsPaketVersiyon(oneVersiyon)}
+                          sx={{ fontSize: "0.75rem" }} key={index} value={versiyonNumber} > İP{versiyonNumber}
                         </MenuItem>
                       )
                     })}
@@ -471,7 +445,8 @@ export default function P_isPaketPozlar() {
                             <Box />
                             {Array.from({ length: maxIsPaketCount }, (_, i) => {
                               const isPaket = onePoz?.isPaketler?.[i]
-                              const name = selectedProje.isPaketler.find(p => p._id.toString() === isPaket?._id.toString())?.name || ""
+                              const paketSource = selectedIsPaketVersiyon?.isPaketler || selectedProje.isPaketler
+                              const name = paketSource.find(p => p._id.toString() === isPaket?._id.toString())?.name || ""
                               const tooltipKey = `${onePoz._id}-${i}`
                               return (
                                 <Tooltip

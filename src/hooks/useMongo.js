@@ -236,10 +236,10 @@ export const useGetPozlar = () => {
 export const useGetIsPaketPozlar = () => {
 
   const navigate = useNavigate()
-  const { appUser, setAppUser, selectedProje } = useContext(StoreContext)
+  const { appUser, setAppUser, selectedProje, selectedIsPaketVersiyon } = useContext(StoreContext)
 
   return useQuery({
-    queryKey: ['dataIsPaketPozlar'],
+    queryKey: ['dataIsPaketPozlar', selectedIsPaketVersiyon?.versiyonNumber],
     queryFn: async () => {
       const response = await fetch(process.env.REACT_APP_BASE_URL + '/api/pozlar/ispaketpozlar', {
         method: 'GET',
@@ -247,6 +247,7 @@ export const useGetIsPaketPozlar = () => {
           email: appUser.email,
           token: appUser.token,
           projeid: selectedProje?._id,
+          'ispaketversiyonnumber': selectedIsPaketVersiyon?.versiyonNumber,
           'Content-Type': 'application/json'
         }
       })
