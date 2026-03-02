@@ -25,6 +25,7 @@ import AddCircleOutlineIcon from "@mui/icons-material/AddCircleOutline";
 import VisibilityIcon from "@mui/icons-material/Visibility";
 import AdjustIcon from '@mui/icons-material/Adjust';
 import ClearOutlined from '@mui/icons-material/ClearOutlined';
+import EditIcon from '@mui/icons-material/Edit';
 
 export default function P_IsPaketler() {
   const queryClient = useQueryClient();
@@ -268,14 +269,13 @@ export default function P_IsPaketler() {
                         })
                         if (checkAuth?.ok) {
                           setMode_isPaketEdit(true)
-                          setShow("FormIsPaketCreate")
                         } else {
                           setShow("Main")
                         }
                       }}
                       sx={headerIconButton_sx}
                     >
-                      <AddCircleOutlineIcon
+                      <EditIcon
                         variant="contained"
                         color="success"
                         sx={headerIcon_sx}
