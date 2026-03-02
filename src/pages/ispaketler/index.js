@@ -23,7 +23,7 @@ import IconButton from "@mui/material/IconButton";
 import DeleteIcon from "@mui/icons-material/Delete";
 import AddCircleOutlineIcon from "@mui/icons-material/AddCircleOutline";
 import VisibilityIcon from "@mui/icons-material/Visibility";
-import AdjustIcon from '@mui/icons-material/Adjust';
+import AutorenewIcon from '@mui/icons-material/Autorenew';
 import ClearOutlined from '@mui/icons-material/ClearOutlined';
 import EditIcon from '@mui/icons-material/Edit';
 
@@ -250,7 +250,7 @@ export default function P_IsPaketler() {
                       onClick={() => goto_isPaketPozlar()}
                       sx={headerIconButton_sx}
                     >
-                      <AdjustIcon
+                      <AutorenewIcon
                         variant="contained"
                         color="success"
                         sx={headerIcon_sx}

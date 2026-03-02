@@ -19,6 +19,7 @@ import LinearProgress from '@mui/material/LinearProgress';
 import AppBar from '@mui/material/AppBar';
 import IconButton from '@mui/material/IconButton';
 import ReplyIcon from '@mui/icons-material/Reply';
+import AutorenewIcon from '@mui/icons-material/Autorenew';
 import Tooltip from '@mui/material/Tooltip';
 
 
@@ -198,6 +199,12 @@ export default function P_isPaketPozlar() {
             {/* sağ kısım - (tuşlar)*/}
             <Grid item xs="auto">
               <Box sx={{ display: "grid", gridAutoFlow: "column", alignItems: "center" }}>
+
+                <IconButton
+                  sx={{ mr: "1rem", px: 0 }}
+                  onClick={() => navigate('/ispaketler')} disabled={false}>
+                  <AutorenewIcon variant="contained" sx={{ color: "gray" }} />
+                </IconButton>
 
                 {selectedMetrajVersiyon &&
 
