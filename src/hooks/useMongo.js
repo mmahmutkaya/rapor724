@@ -236,20 +236,23 @@ export const useGetPozlar = () => {
 export const useGetIsPaketPozlar = () => {
 
   const navigate = useNavigate()
-  const { appUser, setAppUser, selectedProje, selectedIsPaketVersiyon } = useContext(StoreContext)
+  const { appUser, setAppUser, selectedProje, selectedIsPaketVersiyon, mode_isPaketEdit } = useContext(StoreContext)
 
   return useQuery({
-    queryKey: ['dataIsPaketPozlar', selectedIsPaketVersiyon?.versiyonNumber],
+    queryKey: ['dataIsPaketPozlar', mode_isPaketEdit ? 'edit' : selectedIsPaketVersiyon?.versiyonNumber],
     queryFn: async () => {
+      const headers = {
+        email: appUser.email,
+        token: appUser.token,
+        projeid: selectedProje?._id,
+        'Content-Type': 'application/json'
+      }
+      if (!mode_isPaketEdit && selectedIsPaketVersiyon?.versiyonNumber !== undefined) {
+        headers['ispaketversiyonnumber'] = selectedIsPaketVersiyon.versiyonNumber
+      }
       const response = await fetch(process.env.REACT_APP_BASE_URL + '/api/pozlar/ispaketpozlar', {
         method: 'GET',
-        headers: {
-          email: appUser.email,
-          token: appUser.token,
-          projeid: selectedProje?._id,
-          'ispaketversiyonnumber': selectedIsPaketVersiyon?.versiyonNumber,
-          'Content-Type': 'application/json'
-        }
+        headers
       })
 
       const responseJson = await response.json()
@@ -488,21 +491,25 @@ export const useGetDugumler = () => {
 export const useGetDugumler_byPoz = () => {
 
   const navigate = useNavigate()
-  const { appUser, setAppUser, selectedProje, selectedPoz, selectedMetrajVersiyon } = useContext(StoreContext)
+  const { appUser, setAppUser, selectedProje, selectedPoz, selectedMetrajVersiyon, mode_isPaketEdit, selectedIsPaketVersiyon } = useContext(StoreContext)
 
   return useQuery({
-    queryKey: ['dataDugumler_byPoz'],
+    queryKey: ['dataDugumler_byPoz', mode_isPaketEdit ? 'edit' : selectedIsPaketVersiyon?.versiyonNumber],
     queryFn: async () => {
+      const headers = {
+        email: appUser.email,
+        token: appUser.token,
+        projeid: selectedProje._id,
+        pozid: selectedPoz._id,
+        selectedmetrajversiyontext: selectedMetrajVersiyon ? selectedMetrajVersiyon : 0,
+        'Content-Type': 'application/json'
+      }
+      if (!mode_isPaketEdit && selectedIsPaketVersiyon?.versiyonNumber !== undefined) {
+        headers.ispaketversiyonnumber = selectedIsPaketVersiyon.versiyonNumber
+      }
       const response = await fetch(process.env.REACT_APP_BASE_URL + '/api/dugumler/bypoz', {
         method: 'GET',
-        headers: {
-          email: appUser.email,
-          token: appUser.token,
-          projeid: selectedProje._id,
-          pozid: selectedPoz._id,
-          selectedmetrajversiyontext: selectedMetrajVersiyon ? selectedMetrajVersiyon : 0,
-          'Content-Type': 'application/json'
-        }
+        headers
       })
 
       const responseJson = await response.json()

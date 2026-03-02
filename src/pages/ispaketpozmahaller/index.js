@@ -45,7 +45,7 @@ export default function P_IsPaketPozMahaller() {
 
   const { appUser, setAppUser, myTema } = useContext(StoreContext)
   const { drawerWidth, topBarHeight } = useContext(StoreContext)
-  const { selectedProje, selectedPoz } = useContext(StoreContext)
+  const { selectedProje, selectedPoz, mode_isPaketEdit, selectedIsPaketVersiyon } = useContext(StoreContext)
 
 
   const [showEminMisin, setShowEminMisin] = useState(false)
@@ -368,7 +368,9 @@ export default function P_IsPaketPozMahaller() {
 
   let paraBirimiAdet = selectedProje?.paraBirimleri?.filter(x => x?.isActive).length
 
-  const activeIsPaketler = selectedProje?.isPaketler || []
+  const activeIsPaketler = mode_isPaketEdit
+    ? (selectedProje?.isPaketler || [])
+    : (selectedProje?.isPaketVersiyonlar?.find(v => v.versiyonNumber === selectedIsPaketVersiyon?.versiyonNumber)?.isPaketler || [])
 
   const gridTemplateColumns1 = 'max-content minmax(min-content, 15rem) 1rem max-content'
 
@@ -614,22 +616,24 @@ export default function P_IsPaketPozMahaller() {
                         return (
                           <Box
                             onClick={
-                              isPaketRef
-                                ? () => handleRemoveIsPaket(dugum._id.toString(), isPaketRef._id.toString())
-                                : (e) => handleOpenMenu(e, dugum._id.toString())
+                              !mode_isPaketEdit
+                                ? undefined
+                                : isPaketRef
+                                  ? () => handleRemoveIsPaket(dugum._id.toString(), isPaketRef._id.toString())
+                                  : (e) => handleOpenMenu(e, dugum._id.toString())
                             }
                             sx={{
                               ...css_mahaller,
-                              cursor: "pointer",
+                              cursor: mode_isPaketEdit ? "pointer" : "default",
                               minWidth: "4rem",
-                              ...(!isPaketRef && { backgroundColor: "#ffcdd2", display: "flex", justifyContent: "center", alignItems: "center" }),
-                              ...(isPaketRef ? {
+                              ...(!isPaketRef && mode_isPaketEdit && { backgroundColor: "#ffcdd2", display: "flex", justifyContent: "center", alignItems: "center" }),
+                              ...(mode_isPaketEdit && isPaketRef ? {
                                 "&:hover": {
                                   backgroundColor: "#fde8e8",
                                   textDecoration: "line-through",
                                   color: "red"
                                 }
-                              } : {
+                              } : mode_isPaketEdit && !isPaketRef ? {
                                 "&:hover": {
                                   backgroundColor: "#e8f5e9",
                                 },
@@ -637,11 +641,11 @@ export default function P_IsPaketPozMahaller() {
                                   opacity: 1,
                                   transform: "scale(1.15)"
                                 }
-                              })
+                              } : {})
                             }}
                           >
                             {name}
-                            {!isPaketRef && (
+                            {!isPaketRef && mode_isPaketEdit && (
                               <AddCircleOutlineIcon
                                 className="add-icon"
                                 sx={{

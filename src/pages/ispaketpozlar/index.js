@@ -40,7 +40,7 @@ export default function P_isPaketPozlar() {
   const { selectedPoz, setSelectedPoz } = useContext(StoreContext)
   const { selectedIsPaketVersiyon, setSelectedIsPaketVersiyon } = useContext(StoreContext)
   const { selectedProje } = useContext(StoreContext)
-  const { selectedIsPaket } = useContext(StoreContext)
+  const { selectedIsPaket, mode_isPaketEdit } = useContext(StoreContext)
 
   useEffect(() => {
     if (selectedProje?.isPaketVersiyonlar?.length > 0 && !selectedIsPaketVersiyon) {
@@ -445,7 +445,9 @@ export default function P_isPaketPozlar() {
                             <Box />
                             {Array.from({ length: maxIsPaketCount }, (_, i) => {
                               const isPaket = onePoz?.isPaketler?.[i]
-                              const paketSource = selectedIsPaketVersiyon?.isPaketler || selectedProje.isPaketler
+                              const paketSource = mode_isPaketEdit
+                                ? selectedProje.isPaketler
+                                : (selectedIsPaketVersiyon?.isPaketler || selectedProje.isPaketler)
                               const name = paketSource.find(p => p._id.toString() === isPaket?._id.toString())?.name || ""
                               const tooltipKey = `${onePoz._id}-${i}`
                               return (
