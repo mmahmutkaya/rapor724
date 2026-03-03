@@ -83,6 +83,14 @@ export default function P_IsPaketler() {
   const showPozSayisi = basliklar?.find((x) => x.id === "pozSayisi")?.show;
 
   const goto_isPaketPozlar = () => {
+    if (!isPaketler?.length > 0) {
+      setDialogAlert({
+        dialogIcon: "info",
+        dialogMessage: "Pozlar sayfasına geçmek için önce en az bir iş paketi oluşturulmalıdır.",
+        onCloseAction: () => setDialogAlert()
+      })
+      return
+    }
     navigate("/ispaketpozlar");
   };
 
@@ -264,7 +272,11 @@ export default function P_IsPaketler() {
 
               {!mode_isPaketEdit && (
                 <Box>
-                  <IconButton onClick={() => setShow("ShowBaslik")} sx={headerIconButton_sx}>
+                  <IconButton
+                    onClick={() => setShow("ShowBaslik")}
+                    sx={headerIconButton_sx}
+                    disabled={!isPaketler?.length > 0}
+                  >
                     <VisibilityIcon variant="contained" sx={headerIcon_sx} />
                   </IconButton>
                 </Box>
