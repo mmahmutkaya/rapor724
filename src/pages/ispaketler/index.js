@@ -27,7 +27,6 @@ import AddCircleOutlineIcon from "@mui/icons-material/AddCircleOutline";
 import VisibilityIcon from "@mui/icons-material/Visibility";
 import NavigateNextIcon from '@mui/icons-material/NavigateNext';
 import ClearOutlined from '@mui/icons-material/ClearOutlined';
-import EditIcon from '@mui/icons-material/Edit';
 
 export default function P_IsPaketler() {
   const queryClient = useQueryClient();
@@ -283,14 +282,12 @@ export default function P_IsPaketler() {
                           setShow,
                         })
                         if (checkAuth?.ok) {
-                          setMode_isPaketEdit(true)
-                        } else {
-                          setShow("Main")
+                          setShow("FormIsPaketCreate")
                         }
                       }}
                       sx={headerIconButton_sx}
                     >
-                      <EditIcon
+                      <AddCircleOutlineIcon
                         variant="contained"
                         color="success"
                         sx={headerIcon_sx}
@@ -413,6 +410,12 @@ export default function P_IsPaketler() {
         <Box sx={{ mt: "3.5rem" }}>
           <FormIsPaketCreate
             setShow={setShow}
+            onClose={() => deleteProjeAktifYetkiliKisi({
+              projeId: selectedProje?._id,
+              aktifYetki: "isPaketEdit",
+              setDialogAlert,
+              setShow,
+            })}
           />
         </Box>
       )}

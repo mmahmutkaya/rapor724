@@ -30,7 +30,7 @@ import PlayArrowIcon from '@mui/icons-material/PlayArrow';
 
 
 
-export default function FormIsPaketCreate({ setShow }) {
+export default function FormIsPaketCreate({ setShow, onClose }) {
 
   const queryClient = useQueryClient()
   const navigate = useNavigate()
@@ -144,7 +144,7 @@ export default function FormIsPaketCreate({ setShow }) {
         setSelectedProje(proje2)
         // queryClient.setQueryData(['isPaketler'], () => ({ isPaketler: responseJson.newIsPaketler }))
         setShow("Main")
-        return
+        onClose()
       } else {
         throw new Error("Kayıt işlemi gerçekleşmedi")
       }
@@ -181,7 +181,7 @@ export default function FormIsPaketCreate({ setShow }) {
       <Dialog
         PaperProps={{ sx: { width: "80%", position: "fixed", top: "10rem" } }}
         open={true}
-        onClose={() => setShow("Main")}
+        onClose={() => onClose()}
       >
         {/* <DialogTitle>Subscribe</DialogTitle> */}
 
@@ -256,7 +256,7 @@ export default function FormIsPaketCreate({ setShow }) {
           </DialogContent>
 
           <DialogActions sx={{ padding: "1.5rem" }}>
-            <Button onClick={() => setShow("Main")}>İptal</Button>
+            <Button onClick={() => onClose()}>İptal</Button>
             <Button type="submit">Oluştur</Button>
           </DialogActions>
 
