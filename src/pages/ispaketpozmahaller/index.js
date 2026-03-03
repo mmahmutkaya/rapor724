@@ -26,6 +26,8 @@ import Stack from '@mui/material/Stack';
 import Box from '@mui/material/Box';
 import { Check } from '@mui/icons-material';
 import AddCircleOutlineIcon from '@mui/icons-material/AddCircleOutline';
+import EditIcon from '@mui/icons-material/Edit';
+import ClearIcon from '@mui/icons-material/Clear';
 import Tooltip from '@mui/material/Tooltip';
 import FileDownloadDoneIcon from '@mui/icons-material/FileDownloadDone';
 import LinearProgress from '@mui/material/LinearProgress';
@@ -45,7 +47,7 @@ export default function P_IsPaketPozMahaller() {
 
   const { appUser, setAppUser, myTema } = useContext(StoreContext)
   const { drawerWidth, topBarHeight } = useContext(StoreContext)
-  const { selectedProje, selectedPoz, mode_isPaketEdit, selectedIsPaketVersiyon } = useContext(StoreContext)
+  const { selectedProje, selectedPoz, mode_isPaketEdit, setMode_isPaketEdit, selectedIsPaketVersiyon } = useContext(StoreContext)
 
 
   const [showEminMisin, setShowEminMisin] = useState(false)
@@ -453,6 +455,26 @@ export default function P_IsPaketPozMahaller() {
             {/* right side - (buttons)*/}
             <Grid item xs="auto">
               <Grid container spacing={1}>
+
+                {!isChanged && !mode_isPaketEdit &&
+                  <Grid item>
+                    <IconButton
+                      sx={{ width: 40, height: 40 }}
+                      onClick={() => setMode_isPaketEdit(true)}>
+                      <EditIcon color="success" sx={{ fontSize: 24 }} />
+                    </IconButton>
+                  </Grid>
+                }
+
+                {!isChanged && mode_isPaketEdit &&
+                  <Grid item>
+                    <IconButton
+                      sx={{ width: 40, height: 40 }}
+                      onClick={() => setMode_isPaketEdit()}>
+                      <ClearIcon sx={{ color: "red", fontSize: 24 }} />
+                    </IconButton>
+                  </Grid>
+                }
 
                 {isChanged &&
                   <>
