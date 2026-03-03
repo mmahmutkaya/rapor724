@@ -528,21 +528,19 @@ export default function P_IsPaketPozMahaller() {
 
             <Box />
 
-            {activeIsPaketler.length > 0 && (
-              <Box sx={{
-                display: "flex",
-                justifyContent: "center",
-                alignItems: "center",
-                fontWeight: "600",
-                border: "1px solid black",
-                py: "0.3rem",
-                px: "0.5rem",
-                backgroundColor: "#415a77",
-                color: "#e0e1dd",
-              }}>
-                İŞ PAKETİ
-              </Box>
-            )}
+            <Box sx={{
+              display: "flex",
+              justifyContent: "center",
+              alignItems: "center",
+              fontWeight: "600",
+              border: activeIsPaketler.length > 0 ? "1px solid black" : "none",
+              py: "0.3rem",
+              px: "0.5rem",
+              backgroundColor: "#415a77",
+              color: "#e0e1dd",
+            }}>
+              {activeIsPaketler.length > 0 ? "İŞ PAKETİ" : ""}
+            </Box>
 
           </>
 
