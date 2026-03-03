@@ -346,7 +346,7 @@ export default function P_IsPaketPozMahaller() {
   const css_LbsBaslik = {
     border: "1px solid black",
     borderRight: "1px solid black", // Restore right border for LBS header row
-    mt: "1rem",
+    mt: "0.5rem",
     px: "0.5rem",
     display: "grid",
     justifyContent: "start",

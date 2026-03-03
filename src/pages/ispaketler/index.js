@@ -67,6 +67,15 @@ export default function P_IsPaketler() {
   }, []);
 
   useEffect(() => {
+    if (!mode_isPaketEdit && selectedProje?.isPaketVersiyonlar?.length > 0 && !selectedIsPaketVersiyon) {
+      const maxVersiyon = selectedProje.isPaketVersiyonlar.reduce((prev, current) =>
+        (prev.versiyonNumber > current.versiyonNumber) ? prev : current
+      )
+      setSelectedIsPaketVersiyon(maxVersiyon)
+    }
+  }, [selectedProje, selectedIsPaketVersiyon, mode_isPaketEdit, setSelectedIsPaketVersiyon]);
+
+  useEffect(() => {
     if (selectedProje) {
       if (mode_isPaketEdit) {
         setIsPaketler(selectedProje?.isPaketler);
@@ -124,6 +133,33 @@ export default function P_IsPaketler() {
 
   const nextVersiyonNumber = (selectedProje?.isPaketVersiyonlar?.reduce((acc, cur) => Math.max(acc, cur.versiyonNumber), 0) ?? 0) + 1
 
+  const getAssignmentFingerprint = (pozlar) => {
+    if (!pozlar?.length) return null
+    return [...pozlar]
+      .sort((a, b) => a._id.toString().localeCompare(b._id.toString()))
+      .map(p => {
+        const sortedIds = (p.isPaketler || []).map(ip => ip._id.toString()).sort().join(',')
+        return `${p._id}:${sortedIds}`
+      })
+      .join('|')
+  }
+
+  const isSameAsLastVersion = (() => {
+    if (!selectedProje?.isPaketVersiyonlar?.length) return false
+    const lastVersiyon = selectedProje.isPaketVersiyonlar.reduce((prev, cur) =>
+      cur.versiyonNumber > prev.versiyonNumber ? cur : prev
+    )
+    // Fingerprint karşılaştırması (poz bazında isPaket içeriği)
+    const currentFingerprint = getAssignmentFingerprint(dataIsPaketPozlar?.pozlar)
+    if (currentFingerprint !== null && lastVersiyon._fingerprint !== undefined) {
+      return currentFingerprint === lastVersiyon._fingerprint
+    }
+    // Fallback: sadece master liste karşılaştırması
+    const currIds = (selectedProje?.isPaketler || []).map(p => p._id.toString()).sort()
+    const lastIds = (lastVersiyon.isPaketler || []).map(p => p._id.toString()).sort()
+    return currIds.length === lastIds.length && currIds.every((id, i) => id === lastIds[i])
+  })()
+
   const createVersiyon_isPaket = async ({ fieldText }) => {
     try {
       setSelectedIsPaketVersiyon()
@@ -164,9 +200,13 @@ export default function P_IsPaketler() {
       }
 
       if (responseJson.ok) {
+        const fingerprint = getAssignmentFingerprint(dataIsPaketPozlar?.pozlar)
         const newVersiyon = { versiyonNumber: nextVersiyonNumber, isPaketler, aciklama: fieldText }
         setSelectedIsPaketVersiyon(newVersiyon)
-        const proje2 = { ...selectedProje, isPaketVersiyonlar: responseJson.isPaketVersiyonlar }
+        const versiyonlarWithFingerprint = (responseJson.isPaketVersiyonlar || []).map(v =>
+          v.versiyonNumber === nextVersiyonNumber ? { ...v, _fingerprint: fingerprint } : v
+        )
+        const proje2 = { ...selectedProje, isPaketVersiyonlar: versiyonlarWithFingerprint }
         setSelectedProje(proje2)
         setMode_isPaketEdit()
       } else {
@@ -276,6 +316,18 @@ export default function P_IsPaketler() {
             >
 
               {!mode_isPaketEdit && (
+                <Box>
+                  <IconButton
+                    onClick={() => setShow("ShowBaslik")}
+                    sx={headerIconButton_sx}
+                    disabled={!isPaketler?.length > 0}
+                  >
+                    <VisibilityIcon variant="contained" sx={headerIcon_sx} />
+                  </IconButton>
+                </Box>
+              )}
+
+              {!mode_isPaketEdit && (
                 <IconButton
                   sx={headerIconButton_sx}
                   onClick={async () => {
@@ -292,45 +344,6 @@ export default function P_IsPaketler() {
                 >
                   <EditIcon color="success" sx={headerIcon_sx} />
                 </IconButton>
-              )}
-
-              {!mode_isPaketEdit && (
-                <Box>
-                  <IconButton
-                    onClick={() => setShow("ShowBaslik")}
-                    sx={headerIconButton_sx}
-                    disabled={!isPaketler?.length > 0}
-                  >
-                    <VisibilityIcon variant="contained" sx={headerIcon_sx} />
-                  </IconButton>
-                </Box>
-              )}
-
-              {!selectedIsPaket && !mode_isPaketEdit && (
-                <>
-                  <Box>
-                    <IconButton
-                      onClick={async () => {
-                        const checkAuth = await requestProjeAktifYetkiliKisi({
-                          projeId: selectedProje?._id,
-                          aktifYetki: "isPaketEdit",
-                          setDialogAlert,
-                          setShow,
-                        })
-                        if (checkAuth?.ok) {
-                          setShow("FormIsPaketCreate")
-                        }
-                      }}
-                      sx={headerIconButton_sx}
-                    >
-                      <AddCircleOutlineIcon
-                        variant="contained"
-                        color="success"
-                        sx={headerIcon_sx}
-                      />
-                    </IconButton>
-                  </Box>
-                </>
               )}
 
               {!mode_isPaketEdit && selectedProje?.isPaketVersiyonlar?.length > 0 && (
@@ -407,6 +420,14 @@ export default function P_IsPaketler() {
                         })
                         return
                       }
+                      if (isSameAsLastVersion) {
+                        setDialogAlert({
+                          dialogIcon: "warning",
+                          dialogMessage: "Mevcut iş paketi listesi son versiyonla aynı. Yeni versiyon oluşturmak için önce değişiklik yapınız.",
+                          onCloseAction: () => setDialogAlert()
+                        })
+                        return
+                      }
                       setShowEminMisin_versiyon(true)
                     }}
                     sx={{
@@ -446,20 +467,23 @@ export default function P_IsPaketler() {
         <Box sx={{ mt: "3.5rem" }}>
           <FormIsPaketCreate
             setShow={setShow}
-            onClose={() => deleteProjeAktifYetkiliKisi({
-              projeId: selectedProje?._id,
-              aktifYetki: "isPaketEdit",
-              setDialogAlert,
-              setShow,
-            })}
+            onClose={() => setShow("Main")}
           />
         </Box>
       )}
 
-      {show == "Main" && !isPaketler?.length > 0 && (
+      {show == "Main" && mode_isPaketEdit && !isPaketler?.length > 0 && (
         <Stack sx={{ width: "100%", padding: "1rem", mt: "3.5rem" }} spacing={2}>
           <Alert severity="info">
             Bir iş paketi oluşturmak için (+) tuşuna basınız..
+          </Alert>
+        </Stack>
+      )}
+
+      {show == "Main" && !mode_isPaketEdit && !selectedIsPaketVersiyon && !(selectedProje?.isPaketVersiyonlar?.length > 0) && (
+        <Stack sx={{ width: "100%", padding: "1rem", mt: "3.5rem" }} spacing={2}>
+          <Alert severity="info">
+            Henüz iş paketi versiyonu oluşturulmamış. Düzenlemek için önce edit moduna geçiniz.
           </Alert>
         </Stack>
       )}
