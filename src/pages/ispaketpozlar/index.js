@@ -18,8 +18,7 @@ import MenuItem from '@mui/material/MenuItem';
 import LinearProgress from '@mui/material/LinearProgress';
 import AppBar from '@mui/material/AppBar';
 import IconButton from '@mui/material/IconButton';
-import ReplyIcon from '@mui/icons-material/Reply';
-import AutorenewIcon from '@mui/icons-material/Autorenew';
+import NavigateNextIcon from '@mui/icons-material/NavigateNext';
 import EditIcon from '@mui/icons-material/Edit';
 import ClearIcon from '@mui/icons-material/Clear';
 import Tooltip from '@mui/material/Tooltip';
@@ -191,23 +190,25 @@ export default function P_isPaketPozlar() {
 
             {/* sol kısım (başlık) */}
             <Grid item xs>
-              <Box sx={{ display: "grid", gridAutoFlow: "column", alignItems: "center", justifyContent: "start", columnGap: "0.5rem" }}>
-
+              <Box sx={{ display: "flex", alignItems: "center" }}>
                 <Typography
                   variant="h6"
-                  fontWeight="bold"
+                  sx={{
+                    color: "text.disabled",
+                    fontWeight: 400,
+                    whiteSpace: "nowrap",
+                    cursor: "pointer",
+                    transition: "color 0.15s ease, font-weight 0.15s ease",
+                    "&:hover": { color: "black", fontWeight: "bold" }
+                  }}
+                  onClick={() => navigate('/ispaketler')}
                 >
                   İş Paketleri
                 </Typography>
-
-                <Box>
-                  <IconButton
-                    sx={{ width: 40, height: 40 }}
-                    onClick={() => navigate('/ispaketler')} disabled={false}>
-                    <AutorenewIcon variant="contained" color="success" sx={{ fontSize: 24 }} />
-                  </IconButton>
-                </Box>
-
+                <NavigateNextIcon sx={{ color: "text.disabled", fontSize: 22, mx: "0.1rem" }} />
+                <Typography variant="h6" fontWeight="bold" sx={{ color: "black", whiteSpace: "nowrap" }}>
+                  Pozlar
+                </Typography>
               </Box>
             </Grid>
 
