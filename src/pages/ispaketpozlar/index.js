@@ -193,20 +193,20 @@ export default function P_isPaketPozlar() {
               <Box sx={{ display: "flex", alignItems: "center" }}>
                 <Typography
                   variant="h6"
+                  fontWeight="bold"
                   sx={{
-                    color: "text.disabled",
-                    fontWeight: 400,
+                    opacity: 0.3,
                     whiteSpace: "nowrap",
                     cursor: "pointer",
-                    transition: "color 0.15s ease, font-weight 0.15s ease",
-                    "&:hover": { color: "black", fontWeight: "bold" }
+                    transition: "opacity 0.15s ease",
+                    "&:hover": { opacity: 0.75 }
                   }}
                   onClick={() => navigate('/ispaketler')}
                 >
                   İş Paketleri
                 </Typography>
-                <NavigateNextIcon sx={{ color: "text.disabled", fontSize: 22, mx: "0.1rem" }} />
-                <Typography variant="h6" fontWeight="bold" sx={{ color: "black", whiteSpace: "nowrap" }}>
+                <NavigateNextIcon sx={{ opacity: 0.3, fontSize: 22, mx: "0.1rem" }} />
+                <Typography variant="h6" fontWeight="bold" sx={{ whiteSpace: "nowrap" }}>
                   Pozlar
                 </Typography>
               </Box>

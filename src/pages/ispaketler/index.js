@@ -231,18 +231,19 @@ export default function P_IsPaketler() {
           {/* sol kısım (başlık) */}
           <Grid item xs>
             <Box sx={{ display: "flex", alignItems: "center" }}>
-              <Typography variant="h6" fontWeight="bold" sx={{ color: "black", whiteSpace: "nowrap" }}>
+              <Typography variant="h6" fontWeight="bold" sx={{ whiteSpace: "nowrap" }}>
                 İş Paketleri
               </Typography>
-              <NavigateNextIcon sx={{ color: "text.disabled", fontSize: 22, mx: "0.1rem" }} />
+              <NavigateNextIcon sx={{ opacity: 0.3, fontSize: 22, mx: "0.1rem" }} />
               <Typography
                 variant="h6"
+                fontWeight="bold"
                 sx={{
-                  color: "text.secondary",
-                  fontWeight: 400,
+                  opacity: 0.3,
                   whiteSpace: "nowrap",
                   cursor: "pointer",
-                  "&:hover": { color: "primary.main", textDecoration: "underline" }
+                  transition: "opacity 0.15s ease",
+                  "&:hover": { opacity: 0.75 }
                 }}
                 onClick={() => goto_isPaketPozlar()}
               >
