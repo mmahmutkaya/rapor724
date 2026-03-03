@@ -33,7 +33,8 @@ import FileDownloadDoneIcon from '@mui/icons-material/FileDownloadDone';
 import LinearProgress from '@mui/material/LinearProgress';
 import IconButton from '@mui/material/IconButton';
 import ClearOutlined from '@mui/icons-material/ClearOutlined';
-import ReplyIcon from '@mui/icons-material/Reply';
+import NavigateNextIcon from '@mui/icons-material/NavigateNext';
+import Typography from '@mui/material/Typography';
 import ViewWeekIcon from '@mui/icons-material/ViewWeek';
 import MenuItem from '@mui/material/MenuItem';
 import Select from '@mui/material/Select';
@@ -421,16 +422,16 @@ export default function P_IsPaketPozMahaller() {
 
 
       {/* BAŞLIK */}
-      <Paper >
+      <Box>
 
         <AppBar
           position="fixed"
           sx={{
             backgroundColor: "white",
             color: "black",
+            boxShadow: 4,
             width: { md: `calc(100% - ${drawerWidth}px)` },
             mt: topBarHeight,
-            // pt:"3rem",
             ml: { md: `${drawerWidth}px` }
           }}
         >
@@ -442,115 +443,125 @@ export default function P_IsPaketPozMahaller() {
             sx={{ padding: "0.5rem 1rem", maxHeight: "5rem" }}
           >
 
-            {/* left side (header) */}
+            {/* sol kısım (başlık) */}
             <Grid item xs>
-              <Box sx={{ display: "grid", gridAutoFlow: "column", alignItems: "center", justifyContent: "start", columnGap: "0.5rem" }}>
-
-                <IconButton
-                  sx={{ mx: 0, px: 0 }}
-                  onClick={() => handleBackClick()} disabled={false}>
-                  <ReplyIcon variant="contained" sx={{ color: "gray" }} />
-                </IconButton>
-
-                <Box sx={{ fontWeight: "600", fontSize: "0.95rem" }}>
-                  {selectedPoz.pozName}
-                </Box>
-
+              <Box sx={{ display: "flex", alignItems: "center" }}>
+                <Typography
+                  variant="h6"
+                  fontWeight="bold"
+                  sx={{
+                    opacity: 0.3,
+                    whiteSpace: "nowrap",
+                    cursor: "pointer",
+                    transition: "opacity 0.15s ease",
+                    "&:hover": { opacity: 0.75 }
+                  }}
+                  onClick={() => navigate('/ispaketler')}
+                >
+                  İş Paketleri
+                </Typography>
+                <NavigateNextIcon sx={{ opacity: 0.3, fontSize: 22, mx: "0.1rem" }} />
+                <Typography
+                  variant="h6"
+                  fontWeight="bold"
+                  sx={{
+                    opacity: 0.3,
+                    whiteSpace: "nowrap",
+                    cursor: "pointer",
+                    transition: "opacity 0.15s ease",
+                    "&:hover": { opacity: 0.75 }
+                  }}
+                  onClick={() => navigate('/ispaketpozlar')}
+                >
+                  Pozlar
+                </Typography>
+                <NavigateNextIcon sx={{ opacity: 0.3, fontSize: 22, mx: "0.1rem" }} />
+                <Typography variant="h6" fontWeight="bold" sx={{ whiteSpace: "nowrap" }}>
+                  Mahaller
+                </Typography>
               </Box>
             </Grid>
 
-            {/* right side - (buttons)*/}
+            {/* sağ kısım - (tuşlar)*/}
             <Grid item xs="auto">
-              <Grid container spacing={1}>
+              <Box sx={{ display: "grid", gridAutoFlow: "column", alignItems: "center" }}>
 
                 {!isChanged && !mode_isPaketEdit &&
-                  <Grid item>
-                    <IconButton
-                      sx={{ width: 40, height: 40 }}
-                      onClick={() => setMode_isPaketEdit(true)}>
-                      <EditIcon color="success" sx={{ fontSize: 24 }} />
-                    </IconButton>
-                  </Grid>
+                  <IconButton
+                    sx={{ width: 40, height: 40 }}
+                    onClick={() => setMode_isPaketEdit(true)}>
+                    <EditIcon color="success" sx={{ fontSize: 24 }} />
+                  </IconButton>
                 }
 
                 {!isChanged && mode_isPaketEdit &&
-                  <Grid item>
-                    <IconButton
-                      sx={{ width: 40, height: 40 }}
-                      onClick={() => setMode_isPaketEdit()}>
-                      <ClearIcon sx={{ color: "red", fontSize: 24 }} />
-                    </IconButton>
-                  </Grid>
+                  <IconButton
+                    sx={{ width: 40, height: 40 }}
+                    onClick={() => setMode_isPaketEdit()}>
+                    <ClearIcon sx={{ color: "red", fontSize: 24 }} />
+                  </IconButton>
                 }
 
                 {!isChanged && !mode_isPaketEdit && selectedProje?.isPaketVersiyonlar?.length > 0 &&
-                  <Grid item>
-                    <Select
-                      size='small'
-                      value={selectedIsPaketVersiyon?.versiyonNumber || ""}
-                      onClose={() => {
-                        setTimeout(() => {
-                          document.activeElement.blur();
-                        }, 0);
-                      }}
-                      sx={{ fontSize: "0.75rem" }}
-                      MenuProps={{
-                        PaperProps: {
-                          style: {
-                            maxHeight: "15rem",
-                            minWidth: "5rem"
-                          },
+                  <Select
+                    size='small'
+                    value={selectedIsPaketVersiyon?.versiyonNumber || ""}
+                    onClose={() => {
+                      setTimeout(() => {
+                        document.activeElement.blur();
+                      }, 0);
+                    }}
+                    sx={{ fontSize: "0.75rem" }}
+                    MenuProps={{
+                      PaperProps: {
+                        style: {
+                          maxHeight: "15rem",
+                          minWidth: "5rem"
                         },
-                      }}
-                    >
-                      {selectedProje?.isPaketVersiyonlar?.sort((a, b) => b.versiyonNumber - a.versiyonNumber).map((oneVersiyon, index) => {
-                        let versiyonNumber = oneVersiyon?.versiyonNumber
-                        return (
-                          <MenuItem
-                            onClick={() => setSelectedIsPaketVersiyon(oneVersiyon)}
-                            sx={{ fontSize: "0.75rem" }} key={index} value={versiyonNumber}> İP{versiyonNumber}
-                          </MenuItem>
-                        )
-                      })}
-                    </Select>
-                  </Grid>
+                      },
+                    }}
+                  >
+                    {selectedProje?.isPaketVersiyonlar?.sort((a, b) => b.versiyonNumber - a.versiyonNumber).map((oneVersiyon, index) => {
+                      let versiyonNumber = oneVersiyon?.versiyonNumber
+                      return (
+                        <MenuItem
+                          onClick={() => setSelectedIsPaketVersiyon(oneVersiyon)}
+                          sx={{ fontSize: "0.75rem" }} key={index} value={versiyonNumber}> İP{versiyonNumber}
+                        </MenuItem>
+                      )
+                    })}
+                  </Select>
                 }
 
                 {isChanged &&
                   <>
+                    <IconButton
+                      onClick={() => {
+                        setDialogConfirmAction(() => () => cancelChange())
+                        setShowEminMisin(true)
+                      }}
+                      disabled={!isChanged}
+                    >
+                      <ClearOutlined variant="contained" sx={{ color: "red" }} />
+                    </IconButton>
 
-                    <Grid item>
-                      <IconButton
-                        onClick={() => {
-                          setDialogConfirmAction(() => () => cancelChange())
-                          setShowEminMisin(true)
-                        }}
-                        disabled={!isChanged}
-                      >
-                        <ClearOutlined variant="contained" sx={{ color: "red" }} />
-                      </IconButton>
-                    </Grid>
-
-                    <Grid item>
-                      <IconButton
-                        onClick={() => saveChange()}
-                        disabled={!isChanged}
-                      >
-                        <FileDownloadDoneIcon variant="contained" sx={{ color: "green" }} />
-                      </IconButton>
-                    </Grid>
-
+                    <IconButton
+                      onClick={() => saveChange()}
+                      disabled={!isChanged}
+                    >
+                      <FileDownloadDoneIcon variant="contained" sx={{ color: "green" }} />
+                    </IconButton>
                   </>
                 }
 
-              </Grid>
+              </Box>
             </Grid>
 
           </Grid>
 
         </AppBar>
 
-      </Paper >
+      </Box>
 
 
       {(isFetching1 || isFetching2) &&
