@@ -27,6 +27,7 @@ import AddCircleOutlineIcon from "@mui/icons-material/AddCircleOutline";
 import VisibilityIcon from "@mui/icons-material/Visibility";
 import NavigateNextIcon from '@mui/icons-material/NavigateNext';
 import ClearOutlined from '@mui/icons-material/ClearOutlined';
+import EditIcon from '@mui/icons-material/Edit';
 
 export default function P_IsPaketler() {
   const queryClient = useQueryClient();
@@ -67,9 +68,13 @@ export default function P_IsPaketler() {
 
   useEffect(() => {
     if (selectedProje) {
-      setIsPaketler(selectedProje?.isPaketler);
+      if (mode_isPaketEdit) {
+        setIsPaketler(selectedProje?.isPaketler);
+      } else {
+        setIsPaketler(selectedIsPaketVersiyon?.isPaketler || []);
+      }
     }
-  }, [selectedProje]);
+  }, [selectedProje, mode_isPaketEdit, selectedIsPaketVersiyon]);
 
   const [show, setShow] = useState("Main");
   const [basliklar, setBasliklar] = useState(() => {
@@ -269,6 +274,25 @@ export default function P_IsPaketler() {
                 alignItems: "center",
               }}
             >
+
+              {!mode_isPaketEdit && (
+                <IconButton
+                  sx={headerIconButton_sx}
+                  onClick={async () => {
+                    const checkAuth = await requestProjeAktifYetkiliKisi({
+                      projeId: selectedProje?._id,
+                      aktifYetki: "isPaketEdit",
+                      setDialogAlert,
+                      setShow,
+                    })
+                    if (checkAuth?.ok) {
+                      setMode_isPaketEdit(true)
+                    }
+                  }}
+                >
+                  <EditIcon color="success" sx={headerIcon_sx} />
+                </IconButton>
+              )}
 
               {!mode_isPaketEdit && (
                 <Box>

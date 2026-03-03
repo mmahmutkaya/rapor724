@@ -81,6 +81,12 @@ export default function P_IsPaketPozMahaller() {
     }
   }, [selectedProje, selectedPoz, navigate])
 
+  useEffect(() => {
+    if (!mode_isPaketEdit && !selectedIsPaketVersiyon && !(selectedProje?.isPaketVersiyonlar?.length > 0)) {
+      navigate('/ispaketler')
+    }
+  }, [mode_isPaketEdit, selectedIsPaketVersiyon, selectedProje, navigate])
+
   const pozBirim = selectedProje?.pozBirimleri.find(x => x.id == selectedPoz?.pozBirimId)?.name
 
 
@@ -629,7 +635,9 @@ export default function P_IsPaketPozMahaller() {
                       <Box />
 
                       {(() => {
-                        const isPaketRef = dugum.isPaketler?.[0]
+                        const isPaketRef = mode_isPaketEdit
+                          ? dugum.isPaketler?.[0]
+                          : dugum.isPaketVersiyonlar?.find(v => v.versiyonNumber === selectedIsPaketVersiyon?.versiyonNumber)?.isPaketler?.[0]
                         const name = isPaketRef
                           ? activeIsPaketler.find(p => p._id.toString() === isPaketRef._id.toString())?.name || ""
                           : ""

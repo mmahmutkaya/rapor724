@@ -73,6 +73,12 @@ export default function P_isPaketPozlar() {
   }, [selectedProje, navigate])
 
   useEffect(() => {
+    if (!mode_isPaketEdit && !selectedIsPaketVersiyon && !(selectedProje?.isPaketVersiyonlar?.length > 0)) {
+      navigate('/ispaketler')
+    }
+  }, [mode_isPaketEdit, selectedIsPaketVersiyon, selectedProje, navigate])
+
+  useEffect(() => {
     if (error2) {
       console.log("error", error2)
       setDialogAlert({
@@ -140,8 +146,12 @@ export default function P_isPaketPozlar() {
     setOpenTooltip(null)
   }
 
+  const getPozIsPaketler = (p) => mode_isPaketEdit
+    ? (p.isPaketler || [])
+    : (p.isPaketVersiyonlar?.find(v => v.versiyonNumber === selectedIsPaketVersiyon?.versiyonNumber)?.isPaketler || [])
+
   const maxIsPaketCount = dataIsPaketPozlar?.pozlar
-    ? Math.max(0, ...dataIsPaketPozlar.pozlar.map(p => p.isPaketler?.length || 0))
+    ? Math.max(0, ...dataIsPaketPozlar.pozlar.map(p => getPozIsPaketler(p).length))
     : 0
 
   const columns = `
@@ -493,7 +503,7 @@ export default function P_isPaketPozlar() {
                           <>
                             <Box />
                             {Array.from({ length: maxIsPaketCount }, (_, i) => {
-                              const isPaket = onePoz?.isPaketler?.[i]
+                              const isPaket = getPozIsPaketler(onePoz)?.[i]
                               const paketSource = mode_isPaketEdit
                                 ? selectedProje.isPaketler
                                 : (selectedIsPaketVersiyon?.isPaketler || selectedProje.isPaketler)
