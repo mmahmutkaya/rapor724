@@ -20,6 +20,8 @@ import Stack from "@mui/material/Stack";
 import { Typography } from "@mui/material";
 import Box from "@mui/material/Box";
 import IconButton from "@mui/material/IconButton";
+import Select from "@mui/material/Select";
+import MenuItem from "@mui/material/MenuItem";
 import DeleteIcon from "@mui/icons-material/Delete";
 import AddCircleOutlineIcon from "@mui/icons-material/AddCircleOutline";
 import VisibilityIcon from "@mui/icons-material/Visibility";
@@ -274,7 +276,6 @@ export default function P_IsPaketler() {
 
               {!selectedIsPaket && !mode_isPaketEdit && (
                 <>
-
                   <Box>
                     <IconButton
                       onClick={async () => {
@@ -300,6 +301,37 @@ export default function P_IsPaketler() {
                     </IconButton>
                   </Box>
                 </>
+              )}
+
+              {!mode_isPaketEdit && selectedProje?.isPaketVersiyonlar?.length > 0 && (
+                <Select
+                  size='small'
+                  value={selectedIsPaketVersiyon?.versiyonNumber || ""}
+                  onClose={() => {
+                    setTimeout(() => {
+                      document.activeElement.blur();
+                    }, 0);
+                  }}
+                  sx={{ fontSize: "0.75rem" }}
+                  MenuProps={{
+                    PaperProps: {
+                      style: {
+                        maxHeight: "15rem",
+                        minWidth: "5rem"
+                      },
+                    },
+                  }}
+                >
+                  {selectedProje?.isPaketVersiyonlar?.sort((a, b) => b.versiyonNumber - a.versiyonNumber).map((oneVersiyon, index) => {
+                    let versiyonNumber = oneVersiyon?.versiyonNumber
+                    return (
+                      <MenuItem
+                        onClick={() => setSelectedIsPaketVersiyon(oneVersiyon)}
+                        sx={{ fontSize: "0.75rem" }} key={index} value={versiyonNumber}> İP{versiyonNumber}
+                      </MenuItem>
+                    )
+                  })}
+                </Select>
               )}
 
               {!selectedIsPaket && mode_isPaketEdit && (
@@ -405,11 +437,15 @@ export default function P_IsPaketler() {
               <Box sx={{ ...css_IsPaketlerBaslik, marginLeft: "0.5rem", textAlign: "center" }}>Poz</Box>
             )}
 
-            <Box sx={{ ...css_IsPaketlerBaslik, display: "flex", alignItems: "center" }}>
+            <Box sx={{ ...css_IsPaketlerBaslik, display: "flex", alignItems: "center", gap: "0.3rem" }}>
               Mahal
-              {toplamAciktaKalanDugum > 0 && (
-                <Box component="span" sx={{ color: "#800020", fontSize: "0.85em", marginLeft: "0.3rem" }}>
-                  ({toplamAciktaKalanDugum})
+              {totalDugum > 0 && (
+                <Box sx={{ display: "flex", alignItems: "center" }}>
+                  <span>(</span>
+                  <span>{totalA}</span>
+                  {totalB > 0 && <span>{'\u202F/\u202F'}</span>}
+                  {totalB > 0 && <Box component="span" sx={{ color: "#c0392b", fontWeight: 700 }}>{totalB}</Box>}
+                  <span>)</span>
                 </Box>
               )}
             </Box>
@@ -418,21 +454,6 @@ export default function P_IsPaketler() {
               <Box sx={{ ...css_IsPaketlerBaslik, marginLeft: "0.5rem" }}>Açıklama</Box>
             )}
           </React.Fragment>
-
-          {/* alt başlık satırı - toplam */}
-          {totalDugum > 0 && (
-            <React.Fragment>
-              <Box sx={{ ...css_IsPaketlerBaslik }} />
-              <Box sx={{ ...css_IsPaketlerBaslik }} />
-              {showPozSayisi && <Box sx={{ ...css_IsPaketlerBaslik, marginLeft: "0.5rem" }} />}
-              <Box sx={{ ...css_IsPaketlerBaslik, display: "flex", alignItems: "center", justifyContent: "center" }}>
-                <span>{totalA}</span>
-                {totalB > 0 && <span>{'\u202F/\u202F'}</span>}
-                {totalB > 0 && <Box component="span" sx={{ color: "#c0392b", fontWeight: 700 }}>{totalB}</Box>}
-              </Box>
-              {showAciklama && <Box sx={{ ...css_IsPaketlerBaslik, marginLeft: "0.5rem" }} />}
-            </React.Fragment>
-          )}
 
           {/* iş paketleri verileri */}
           {isPaketler.map((onePaket, index) => {

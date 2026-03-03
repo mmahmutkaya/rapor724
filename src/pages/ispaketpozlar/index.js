@@ -232,7 +232,7 @@ export default function P_isPaketPozlar() {
                   </IconButton>
                 }
 
-                {selectedProje?.isPaketVersiyonlar?.length > 0 &&
+                {!mode_isPaketEdit && selectedProje?.isPaketVersiyonlar?.length > 0 &&
 
                   <Select
                     size='small'
