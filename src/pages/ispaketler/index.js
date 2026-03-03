@@ -52,6 +52,10 @@ export default function P_IsPaketler() {
   const { data: dataIsPaketPozlar } = useGetIsPaketPozlar()
   const toplamAciktaKalanDugum = dataIsPaketPozlar?.toplamAciktaKalanDugum
 
+  const totalDugum = dataIsPaketPozlar?.pozlar?.reduce((sum, p) => sum + (p.dugumler_totalCount || 0), 0) || 0
+  const totalA = dataIsPaketPozlar?.pozlar?.reduce((sum, p) => sum + ((p.dugumler_totalCount || 0) - (p.isPaketler_empityArrayCounts || 0)), 0) || 0
+  const totalB = dataIsPaketPozlar?.pozlar?.reduce((sum, p) => sum + (p.isPaketler_empityArrayCounts || 0), 0) || 0
+
   const navigate = useNavigate();
 
 
@@ -414,6 +418,21 @@ export default function P_IsPaketler() {
               <Box sx={{ ...css_IsPaketlerBaslik, marginLeft: "0.5rem" }}>Açıklama</Box>
             )}
           </React.Fragment>
+
+          {/* alt başlık satırı - toplam */}
+          {totalDugum > 0 && (
+            <React.Fragment>
+              <Box sx={{ ...css_IsPaketlerBaslik }} />
+              <Box sx={{ ...css_IsPaketlerBaslik }} />
+              {showPozSayisi && <Box sx={{ ...css_IsPaketlerBaslik, marginLeft: "0.5rem" }} />}
+              <Box sx={{ ...css_IsPaketlerBaslik, display: "flex", alignItems: "center", justifyContent: "center" }}>
+                <span>{totalA}</span>
+                {totalB > 0 && <span>{'\u202F/\u202F'}</span>}
+                {totalB > 0 && <Box component="span" sx={{ color: "#c0392b", fontWeight: 700 }}>{totalB}</Box>}
+              </Box>
+              {showAciklama && <Box sx={{ ...css_IsPaketlerBaslik, marginLeft: "0.5rem" }} />}
+            </React.Fragment>
+          )}
 
           {/* iş paketleri verileri */}
           {isPaketler.map((onePaket, index) => {

@@ -331,7 +331,7 @@ export default function P_isPaketPozlar() {
             <Box />
 
             <Box sx={{ ...enUstBaslik_css }}>
-              Açıkta
+              Mahal
             </Box>
 
             {/* BAŞLIK - İŞ PAKETLERİ */}
@@ -364,8 +364,8 @@ export default function P_isPaketPozlar() {
                   {total > 0 && (
                     <Box sx={{ display: "flex", alignItems: "center", justifyContent: "center" }}>
                       <span>{a}</span>
-                      <span>{'\u202F/\u202F'}</span>
-                      <Box component="span" sx={{ color: b > 0 ? "#c0392b" : "inherit", fontWeight: b > 0 ? 700 : "inherit" }}>{b}</Box>
+                      {b > 0 && <span>{'\u202F/\u202F'}</span>}
+                      {b > 0 && <Box component="span" sx={{ color: "#c0392b", fontWeight: 700 }}>{b}</Box>}
                     </Box>
                   )}
                 </Box>
@@ -418,8 +418,8 @@ export default function P_isPaketPozlar() {
                         {total > 0 && (
                           <Box sx={{ display: "flex", alignItems: "center", justifyContent: "center" }}>
                             <span>{a}</span>
-                            <span>{'\u202F/\u202F'}</span>
-                            <Box component="span" sx={{ color: b > 0 ? "#c0392b" : "inherit", fontWeight: b > 0 ? 700 : "inherit" }}>{b}</Box>
+                            {b > 0 && <span>{'\u202F/\u202F'}</span>}
+                            {b > 0 && <Box component="span" sx={{ color: "#c0392b", fontWeight: 700 }}>{b}</Box>}
                           </Box>
                         )}
                       </Box>
@@ -479,8 +479,8 @@ export default function P_isPaketPozlar() {
                           return (
                             <Box sx={{ display: "flex", alignItems: "center", justifyContent: "center" }}>
                               <span>{va}</span>
-                              <span>{'\u202F/\u202F'}</span>
-                              <Box component="span" sx={{ color: vb > 0 ? "#c0392b" : "inherit", fontWeight: vb > 0 ? 700 : "inherit" }}>{vb}</Box>
+                              {vb > 0 && <span>{'\u202F/\u202F'}</span>}
+                              {vb > 0 && <Box component="span" sx={{ color: "#c0392b", fontWeight: 700 }}>{vb}</Box>}
                             </Box>
                           )
                         })()}
