@@ -23,6 +23,7 @@ import AutorenewIcon from '@mui/icons-material/Autorenew';
 import EditIcon from '@mui/icons-material/Edit';
 import ClearIcon from '@mui/icons-material/Clear';
 import Tooltip from '@mui/material/Tooltip';
+import { Typography } from "@mui/material";
 
 
 
@@ -46,7 +47,7 @@ export default function P_isPaketPozlar() {
 
   useEffect(() => {
     if (selectedProje?.isPaketVersiyonlar?.length > 0 && !selectedIsPaketVersiyon) {
-      const maxVersiyon = selectedProje.isPaketVersiyonlar.reduce((prev, current) => 
+      const maxVersiyon = selectedProje.isPaketVersiyonlar.reduce((prev, current) =>
         (prev.versiyonNumber > current.versiyonNumber) ? prev : current
       )
       setSelectedIsPaketVersiyon(maxVersiyon)
@@ -148,9 +149,9 @@ export default function P_isPaketPozlar() {
     max-content
     minmax(min-content, 25rem)
     max-content
-    1rem
+    0.5rem
     5.5rem
-    ${maxIsPaketCount > 0 ? `1rem ${Array(maxIsPaketCount).fill('8rem').join(' ')}` : ''}
+    ${maxIsPaketCount > 0 ? `0.5rem ${Array(maxIsPaketCount).fill('8rem').join(' ')}` : ''}
   `
 
 
@@ -192,14 +193,19 @@ export default function P_isPaketPozlar() {
             <Grid item xs>
               <Box sx={{ display: "grid", gridAutoFlow: "column", alignItems: "center", justifyContent: "start", columnGap: "0.5rem" }}>
 
-                <IconButton
-                  sx={{ mx: 0, px: 0 }}
-                  onClick={() => navigate('/ispaketler')} disabled={false}>
-                  <ReplyIcon variant="contained" sx={{ color: "gray" }} />
-                </IconButton>
+                <Typography
+                  variant="h6"
+                  fontWeight="bold"
+                >
+                  İş Paketleri
+                </Typography>
 
                 <Box>
-                  {selectedIsPaket?.name}
+                  <IconButton
+                    sx={{ width: 40, height: 40 }}
+                    onClick={() => navigate('/ispaketler')} disabled={false}>
+                    <AutorenewIcon variant="contained" color="success" sx={{ fontSize: 24 }} />
+                  </IconButton>
                 </Box>
 
               </Box>
@@ -212,25 +218,19 @@ export default function P_isPaketPozlar() {
 
                 {!mode_isPaketEdit &&
                   <IconButton
-                    sx={{ mr: "0.5rem", px: 0 }}
+                    sx={{ width: 40, height: 40 }}
                     onClick={() => setMode_isPaketEdit(true)}>
-                    <EditIcon sx={{ color: "green" }} />
+                    <EditIcon color="success" sx={{ fontSize: 24 }} />
                   </IconButton>
                 }
 
                 {mode_isPaketEdit &&
                   <IconButton
-                    sx={{ mr: "0.5rem", px: 0 }}
+                    sx={{ width: 40, height: 40 }}
                     onClick={() => setMode_isPaketEdit()}>
-                    <ClearIcon sx={{ color: "red" }} />
+                    <ClearIcon sx={{ color: "red", fontSize: 24 }} />
                   </IconButton>
                 }
-
-                <IconButton
-                  sx={{ mr: "1rem", px: 0 }}
-                  onClick={() => navigate('/ispaketler')} disabled={false}>
-                  <AutorenewIcon variant="contained" sx={{ color: "gray" }} />
-                </IconButton>
 
                 {selectedProje?.isPaketVersiyonlar?.length > 0 &&
 
@@ -278,7 +278,7 @@ export default function P_isPaketPozlar() {
 
       {
         isFetching2 &&
-        <Box sx={{ width: '100%', px: "1rem", mt: "5rem", color: 'gray' }}>
+        <Box sx={{ width: '100%', px: "1rem", mt: "3.5rem", color: 'gray' }}>
           <LinearProgress color='inherit' />
         </Box >
       }
@@ -311,7 +311,7 @@ export default function P_isPaketPozlar() {
       {
         !isFetching2 && wbsArray_state?.length > 0 && dataIsPaketPozlar?.pozlar?.length > 0 &&
 
-        <Box sx={{ m: "1rem", mt: "4.5rem", display: "grid", gridTemplateColumns: columns }}>
+        <Box sx={{ p: "1rem", mt: "3.5rem", display: "grid", gridTemplateColumns: columns }}>
 
           {/*   EN ÜST BAŞLIK */}
           <>

@@ -31,6 +31,7 @@ export default function P_IsPaketler() {
   const queryClient = useQueryClient();
 
   const { appUser, setAppUser } = useContext(StoreContext);
+  const { drawerWidth, topBarHeight } = useContext(StoreContext);
   const { selectedProje, setSelectedProje } = useContext(StoreContext);
   const { selectedIsPaket, setSelectedIsPaket } = useContext(StoreContext);
   const { mode_isPaketEdit, setMode_isPaketEdit } = useContext(StoreContext);
@@ -205,8 +206,15 @@ export default function P_IsPaketler() {
 
       {/* BAŞLIK */}
       <AppBar
-        position="static"
-        sx={{ backgroundColor: "white", color: "black", boxShadow: 4 }}
+        position="fixed"
+        sx={{
+          backgroundColor: "white",
+          color: "black",
+          boxShadow: 4,
+          width: { md: `calc(100% - ${drawerWidth}px)` },
+          mt: topBarHeight,
+          ml: { md: `${drawerWidth}px` }
+        }}
       >
         <Grid
           container
@@ -216,14 +224,31 @@ export default function P_IsPaketler() {
         >
           {/* sol kısım (başlık) */}
           <Grid item xs>
-            <Typography
-              // nowrap={true}
-              variant="h6"
-              fontWeight="bold"
-            >
-              İş Paketleri
-            </Typography>
+            <Box sx={{ display: "grid", gridAutoFlow: "column", alignItems: "center", justifyContent: "start", columnGap: "0.5rem" }}>
+              <Typography
+                // nowrap={true}
+                variant="h6"
+                fontWeight="bold"
+              >
+                İş Paketleri
+              </Typography>
+
+              <Box>
+                <IconButton
+                  onClick={() => goto_isPaketPozlar()}
+                  sx={headerIconButton_sx}
+                >
+                  <AutorenewIcon
+                    variant="contained"
+                    color="success"
+                    sx={headerIcon_sx}
+                  />
+                </IconButton>
+              </Box>
+
+            </Box>
           </Grid>
+
 
           {/* sağ kısım - (tuşlar)*/}
           <Grid item xs="auto">
@@ -245,18 +270,6 @@ export default function P_IsPaketler() {
 
               {!selectedIsPaket && !mode_isPaketEdit && (
                 <>
-                  <Box>
-                    <IconButton
-                      onClick={() => goto_isPaketPozlar()}
-                      sx={headerIconButton_sx}
-                    >
-                      <AutorenewIcon
-                        variant="contained"
-                        color="success"
-                        sx={headerIcon_sx}
-                      />
-                    </IconButton>
-                  </Box>
 
                   <Box>
                     <IconButton
@@ -353,7 +366,7 @@ export default function P_IsPaketler() {
       </AppBar>
 
       {show == "FormIsPaketCreate" && (
-        <Box>
+        <Box sx={{ mt: "3.5rem" }}>
           <FormIsPaketCreate
             setShow={setShow}
           />
@@ -361,7 +374,7 @@ export default function P_IsPaketler() {
       )}
 
       {show == "Main" && !isPaketler?.length > 0 && (
-        <Stack sx={{ width: "100%", padding: "1rem" }} spacing={2}>
+        <Stack sx={{ width: "100%", padding: "1rem", mt: "3.5rem" }} spacing={2}>
           <Alert severity="info">
             Bir iş paketi oluşturmak için (+) tuşuna basınız..
           </Alert>
@@ -373,6 +386,7 @@ export default function P_IsPaketler() {
           sx={{
             width: "100%",
             padding: "1rem",
+            mt: "3.5rem",
             display: "grid",
             gridTemplateColumns: columns,
           }}
