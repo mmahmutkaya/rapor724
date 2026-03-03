@@ -36,6 +36,7 @@ import ClearOutlined from '@mui/icons-material/ClearOutlined';
 import ReplyIcon from '@mui/icons-material/Reply';
 import ViewWeekIcon from '@mui/icons-material/ViewWeek';
 import MenuItem from '@mui/material/MenuItem';
+import Select from '@mui/material/Select';
 import Popper from '@mui/material/Popper';
 import ClickAwayListener from '@mui/material/ClickAwayListener';
 import MenuList from '@mui/material/MenuList';
@@ -47,7 +48,7 @@ export default function P_IsPaketPozMahaller() {
 
   const { appUser, setAppUser, myTema } = useContext(StoreContext)
   const { drawerWidth, topBarHeight } = useContext(StoreContext)
-  const { selectedProje, selectedPoz, mode_isPaketEdit, setMode_isPaketEdit, selectedIsPaketVersiyon } = useContext(StoreContext)
+  const { selectedProje, selectedPoz, mode_isPaketEdit, setMode_isPaketEdit, selectedIsPaketVersiyon, setSelectedIsPaketVersiyon } = useContext(StoreContext)
 
 
   const [showEminMisin, setShowEminMisin] = useState(false)
@@ -378,7 +379,7 @@ export default function P_IsPaketPozMahaller() {
 
   const activeIsPaketler = mode_isPaketEdit
     ? (selectedProje?.isPaketler || [])
-    : (selectedProje?.isPaketVersiyonlar?.find(v => v.versiyonNumber === selectedIsPaketVersiyon?.versiyonNumber)?.isPaketler || [])
+    : (selectedProje?.isPaketVersiyonlar?.find(v => v.versiyonNumber === selectedIsPaketVersiyon?.versiyonNumber)?.isPaketler || selectedProje?.isPaketler || [])
 
   const gridTemplateColumns1 = 'max-content minmax(min-content, 15rem) 1rem max-content'
 
@@ -479,6 +480,39 @@ export default function P_IsPaketPozMahaller() {
                       onClick={() => setMode_isPaketEdit()}>
                       <ClearIcon sx={{ color: "red", fontSize: 24 }} />
                     </IconButton>
+                  </Grid>
+                }
+
+                {!isChanged && !mode_isPaketEdit && selectedProje?.isPaketVersiyonlar?.length > 0 &&
+                  <Grid item>
+                    <Select
+                      size='small'
+                      value={selectedIsPaketVersiyon?.versiyonNumber || ""}
+                      onClose={() => {
+                        setTimeout(() => {
+                          document.activeElement.blur();
+                        }, 0);
+                      }}
+                      sx={{ fontSize: "0.75rem" }}
+                      MenuProps={{
+                        PaperProps: {
+                          style: {
+                            maxHeight: "15rem",
+                            minWidth: "5rem"
+                          },
+                        },
+                      }}
+                    >
+                      {selectedProje?.isPaketVersiyonlar?.sort((a, b) => b.versiyonNumber - a.versiyonNumber).map((oneVersiyon, index) => {
+                        let versiyonNumber = oneVersiyon?.versiyonNumber
+                        return (
+                          <MenuItem
+                            onClick={() => setSelectedIsPaketVersiyon(oneVersiyon)}
+                            sx={{ fontSize: "0.75rem" }} key={index} value={versiyonNumber}> İP{versiyonNumber}
+                          </MenuItem>
+                        )
+                      })}
+                    </Select>
                   </Grid>
                 }
 
@@ -637,7 +671,7 @@ export default function P_IsPaketPozMahaller() {
                       {(() => {
                         const isPaketRef = mode_isPaketEdit
                           ? dugum.isPaketler?.[0]
-                          : dugum.isPaketVersiyonlar?.find(v => v.versiyonNumber === selectedIsPaketVersiyon?.versiyonNumber)?.isPaketler?.[0]
+                          : (dugum.isPaketVersiyonlar?.find(v => v.versiyonNumber === selectedIsPaketVersiyon?.versiyonNumber)?.isPaketler?.[0] ?? dugum.isPaketler?.[0])
                         const name = isPaketRef
                           ? activeIsPaketler.find(p => p._id.toString() === isPaketRef._id.toString())?.name || ""
                           : ""
