@@ -367,15 +367,26 @@ export default function P_IsPaketler() {
                   </Box>
 
                   <Box
-                    onClick={() => isPaketler?.length > 0 && setShowEminMisin_versiyon(true)}
+                    onClick={() => {
+                      if (!isPaketler?.length > 0) return
+                      if (totalB > 0) {
+                        setDialogAlert({
+                          dialogIcon: "warning",
+                          dialogMessage: `${totalB} adet seçilmemiş düğüm bulunmaktadır. Versiyon kaydı yapılabilmesi için tüm düğümlerin bir iş paketine atanmış olması gerekir.`,
+                          onCloseAction: () => setDialogAlert()
+                        })
+                        return
+                      }
+                      setShowEminMisin_versiyon(true)
+                    }}
                     sx={{
                       cursor: isPaketler?.length > 0 ? "pointer" : "default",
                       mx: "0.3rem", py: "0.2rem", px: "0.3rem",
-                      border: isPaketler?.length > 0 ? "1px solid red" : "1px solid black",
+                      border: isPaketler?.length > 0 ? (totalB > 0 ? "1px solid gray" : "1px solid red") : "1px solid black",
                       borderRadius: "0.5rem",
                       fontSize: "0.8rem",
                       fontWeight: "600",
-                      backgroundColor: "yellow"
+                      backgroundColor: totalB > 0 ? "#e0e0e0" : "yellow"
                     }}
                   >
                     İP{nextVersiyonNumber}
