@@ -355,13 +355,22 @@ export default function P_isPaketPozlar() {
 
             <Box />
 
-            <Box sx={{ ...enUstBaslik_css }}>
-              {(() => {
-                const a = dataIsPaketPozlar?.pozlar?.reduce((sum, p) => sum + (p.dugumler_totalCount || 0), 0) || 0
-                const b = dataIsPaketPozlar?.pozlar?.reduce((sum, p) => sum + (p.isPaketler_empityArrayCounts || 0), 0) || 0
-                return a > 0 ? `${a}/${b}` : ""
-              })()}
-            </Box>
+            {(() => {
+              const a = dataIsPaketPozlar?.pozlar?.reduce((sum, p) => sum + ((p.dugumler_totalCount || 0) - (p.isPaketler_empityArrayCounts || 0)), 0) || 0
+              const b = dataIsPaketPozlar?.pozlar?.reduce((sum, p) => sum + (p.isPaketler_empityArrayCounts || 0), 0) || 0
+              const total = dataIsPaketPozlar?.pozlar?.reduce((sum, p) => sum + (p.dugumler_totalCount || 0), 0) || 0
+              return (
+                <Box sx={{ ...enUstBaslik_css }}>
+                  {total > 0 && (
+                    <Box sx={{ display: "flex", alignItems: "center", justifyContent: "center" }}>
+                      <span>{a}</span>
+                      <span>{'\u202F/\u202F'}</span>
+                      <Box component="span" sx={{ color: b > 0 ? "#c0392b" : "inherit", fontWeight: b > 0 ? 700 : "inherit" }}>{b}</Box>
+                    </Box>
+                  )}
+                </Box>
+              )
+            })()}
 
             {/* TOPLAM - İŞ PAKETLERİ */}
             {maxIsPaketCount > 0 && (
@@ -399,14 +408,23 @@ export default function P_isPaketPozlar() {
 
                   <Box />
 
-                  <Box sx={{ ...wbsBaslik_css2, justifyItems: "center" }}>
-                    {(() => {
-                      const wbsPozlar = dataIsPaketPozlar?.pozlar?.filter(p => p._wbsId.toString() === oneWbs._id.toString())
-                      const a = wbsPozlar?.reduce((sum, p) => sum + (p.dugumler_totalCount || 0), 0) || 0
-                      const b = wbsPozlar?.reduce((sum, p) => sum + (p.isPaketler_empityArrayCounts || 0), 0) || 0
-                      return a > 0 ? `${a}/${b}` : ""
-                    })()}
-                  </Box>
+                  {(() => {
+                    const wbsPozlar = dataIsPaketPozlar?.pozlar?.filter(p => p._wbsId.toString() === oneWbs._id.toString())
+                    const a = wbsPozlar?.reduce((sum, p) => sum + ((p.dugumler_totalCount || 0) - (p.isPaketler_empityArrayCounts || 0)), 0) || 0
+                    const b = wbsPozlar?.reduce((sum, p) => sum + (p.isPaketler_empityArrayCounts || 0), 0) || 0
+                    const total = wbsPozlar?.reduce((sum, p) => sum + (p.dugumler_totalCount || 0), 0) || 0
+                    return (
+                      <Box sx={{ ...wbsBaslik_css2, justifyItems: "center" }}>
+                        {total > 0 && (
+                          <Box sx={{ display: "flex", alignItems: "center", justifyContent: "center" }}>
+                            <span>{a}</span>
+                            <span>{'\u202F/\u202F'}</span>
+                            <Box component="span" sx={{ color: b > 0 ? "#c0392b" : "inherit", fontWeight: b > 0 ? 700 : "inherit" }}>{b}</Box>
+                          </Box>
+                        )}
+                      </Box>
+                    )
+                  })()}
 
                   {/* WBS - İŞ PAKETLERİ */}
                   {maxIsPaketCount > 0 && (
@@ -454,8 +472,18 @@ export default function P_isPaketPozlar() {
 
                       <Box />
 
-                      <Box {...rowHandlers} sx={{ ...pozNo_css, ...rowBaseSx, ...hoverSx, backgroundColor: onePoz.isPaketler_empityArrayCounts > 0 ? "#f8d7da" : "white", cursor: "pointer", justifyContent: "center" }}>
-                        {onePoz.dugumler_totalCount > 0 ? `${onePoz.dugumler_totalCount}/${onePoz.isPaketler_empityArrayCounts || 0}` : ""}
+                      <Box {...rowHandlers} sx={{ ...pozNo_css, ...rowBaseSx, ...hoverSx, backgroundColor, cursor: "pointer", justifyContent: "center" }}>
+                        {onePoz.dugumler_totalCount > 0 && (() => {
+                          const va = (onePoz.dugumler_totalCount || 0) - (onePoz.isPaketler_empityArrayCounts || 0)
+                          const vb = onePoz.isPaketler_empityArrayCounts || 0
+                          return (
+                            <Box sx={{ display: "flex", alignItems: "center", justifyContent: "center" }}>
+                              <span>{va}</span>
+                              <span>{'\u202F/\u202F'}</span>
+                              <Box component="span" sx={{ color: vb > 0 ? "#c0392b" : "inherit", fontWeight: vb > 0 ? 700 : "inherit" }}>{vb}</Box>
+                            </Box>
+                          )
+                        })()}
                       </Box>
 
                       {/* POZ - İŞ PAKETLERİ */}
