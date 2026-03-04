@@ -447,9 +447,9 @@ export default function P_IsPaketPozMahaller() {
             <Grid item xs>
               <Box sx={{ display: "flex", alignItems: "center" }}>
                 <Typography
-                  variant="h6"
-                  fontWeight="bold"
+                  variant="body1"
                   sx={{
+                    fontWeight: 600,
                     opacity: 0.3,
                     whiteSpace: "nowrap",
                     cursor: "pointer",
@@ -460,11 +460,11 @@ export default function P_IsPaketPozMahaller() {
                 >
                   İş Paketleri
                 </Typography>
-                <NavigateNextIcon sx={{ opacity: 0.3, fontSize: 22, mx: "0.1rem" }} />
+                <NavigateNextIcon sx={{ opacity: 0.3, fontSize: 18, mx: "0.1rem" }} />
                 <Typography
-                  variant="h6"
-                  fontWeight="bold"
+                  variant="body1"
                   sx={{
+                    fontWeight: 600,
                     opacity: 0.3,
                     whiteSpace: "nowrap",
                     cursor: "pointer",
@@ -475,9 +475,18 @@ export default function P_IsPaketPozMahaller() {
                 >
                   Pozlar
                 </Typography>
-                <NavigateNextIcon sx={{ opacity: 0.3, fontSize: 22, mx: "0.1rem" }} />
-                <Typography variant="h6" fontWeight="bold" sx={{ whiteSpace: "nowrap" }}>
-                  Mahaller
+                <NavigateNextIcon sx={{ opacity: 0.3, fontSize: 18, mx: "0.1rem" }} />
+                <Typography
+                  variant="body2"
+                  sx={{
+                    fontWeight: 600,
+                    whiteSpace: "nowrap",
+                    overflow: "hidden",
+                    textOverflow: "ellipsis",
+                    maxWidth: "14rem",
+                  }}
+                >
+                  {selectedPoz?.pozNo}{selectedPoz?.pozName ? ` · ${selectedPoz.pozName}` : ""}
                 </Typography>
               </Box>
             </Grid>
