@@ -1,6 +1,8 @@
 import React from 'react'
 import { useState, useContext, useEffect } from 'react';
 import { useNavigate } from "react-router-dom";
+import IconButton from '@mui/material/IconButton';
+import ReplyIcon from '@mui/icons-material/Reply';
 
 import { StoreContext } from '../../components/store'
 import { useGetPozlar } from '../../hooks/useMongo';
@@ -12,11 +14,8 @@ import Grid from '@mui/material/Grid';
 import Alert from '@mui/material/Alert';
 import Stack from '@mui/material/Stack';
 import Box from '@mui/material/Box';
-import CircleIcon from '@mui/icons-material/Circle';
-import { Check } from '@mui/icons-material';
 import LinearProgress from '@mui/material/LinearProgress';
 import { Typography } from '@mui/material';
-import NavigateNextIcon from '@mui/icons-material/NavigateNext';
 
 
 export default function P_KesifButcePozlar() {
@@ -134,27 +133,24 @@ export default function P_KesifButcePozlar() {
           alignItems="center"
           sx={{ padding: "0.5rem 1rem", maxHeight: "5rem" }}
         >
+          {/* sol kısım (başlık) */}
           <Grid item xs>
             <Box sx={{ display: "flex", alignItems: "center" }}>
-              <Typography
-                variant="body1"
-                sx={{
-                  fontWeight: 600,
-                  opacity: 0.3,
-                  whiteSpace: "nowrap",
-                  cursor: "pointer",
-                  transition: "opacity 0.15s ease",
-                  "&:hover": { opacity: 0.75 }
-                }}
-                onClick={() => navigate('/kesifbutce')}
+              <IconButton
+                onClick={() => navigate('/kesifbutce', { state: { keepIsPaket: true } })}
+                sx={{ width: 40, height: 40, mr: "0.25rem", ml: "-0.5rem" }}
               >
-                Keşif / Bütçe
-              </Typography>
-              <NavigateNextIcon sx={{ opacity: 0.3, fontSize: 18, mx: "0.1rem" }} />
+                <ReplyIcon sx={{ fontSize: 24 }} />
+              </IconButton>
               <Typography variant="body1" sx={{ fontWeight: 600, whiteSpace: "nowrap" }}>
                 {selectedIsPaket?.name ?? "Pozlar"}
               </Typography>
             </Box>
+          </Grid>
+
+          {/* sağ kısım - (tuşlar) */}
+          <Grid item xs="auto">
+            <Box sx={{ display: "grid", gridAutoFlow: "column", alignItems: "center" }} />
           </Grid>
         </Grid>
       </AppBar>

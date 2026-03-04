@@ -2,7 +2,7 @@ import React, { useState, useEffect, useContext } from "react";
 import { StoreContext } from "../../components/store.js";
 // import FormIsPaketBaslikCreate from '../../components/FormIsPaketBaslikCreate'
 import FormIsPaketCreate from "../../components/FormIsPaketCreate.js";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 // import { useGetProjelerNames_byFirma } from '../../hooks/useMongo';
 import { DialogAlert } from "../../components/general/DialogAlert.js";
 import ShowIsPaketBasliklar from "../../components/ShowIsPaketBasliklar.js";
@@ -49,10 +49,13 @@ export default function P_KesifButce() {
   const { data: dataIsPaketPozlar } = useGetIsPaketPozlar();
 
   const navigate = useNavigate();
+  const location = useLocation();
 
 
   useEffect(() => {
-    setSelectedIsPaket(null);
+    if (!location.state?.keepIsPaket) {
+      setSelectedIsPaket(null);
+    }
     if (!selectedProje) navigate("/projeler");
   }, []);
 
