@@ -63,11 +63,17 @@ export default function P_KesifButce() {
   }, [selectedProje]);
 
   const [show, setShow] = useState("Main");
+  const [hoveredRow, setHoveredRow] = useState(null);
 
   const pasifShow = basliklar?.find((x) => x.id === "pasif")?.show;
 
   const goto_isPaketPozlar = () => {
     navigate("/ispaketpozlar");
+  };
+
+  const goto_kesifButcePozlar = (onePaket) => {
+    setSelectedIsPaket(onePaket);
+    navigate("/kesifbutcepozlar");
   };
 
   const css_IsPaketlerBaslik = {
@@ -303,21 +309,30 @@ export default function P_KesifButce() {
                   const pozSayisi =
                     dataIsPaketPozlar?.isPaketPozSayisi?.[onePaket._id.toString()] ?? "";
 
+                  const isHovered = hoveredRow === onePaket._id.toString();
+                  const rowBaseSx = { transition: "text-shadow 0.2s ease", cursor: "pointer" };
+                  const hoverSx = isHovered ? { textShadow: "0 0 0.7px black, 0 0 0.7px black" } : {};
+                  const rowHandlers = {
+                    onMouseEnter: () => setHoveredRow(onePaket._id.toString()),
+                    onMouseLeave: () => setHoveredRow(null),
+                    onClick: () => goto_kesifButcePozlar(onePaket),
+                  };
+
                   return (
                     <React.Fragment key={index}>
-                      <Box sx={{ ...css_IsPaketler, justifyContent: "center" }}>
+                      <Box {...rowHandlers} sx={{ ...css_IsPaketler, ...rowBaseSx, ...hoverSx, justifyContent: "center" }}>
                         {index + 1}
                       </Box>
 
-                      <Box sx={{ ...css_IsPaketler }}>
+                      <Box {...rowHandlers} sx={{ ...css_IsPaketler, ...rowBaseSx, ...hoverSx }}>
                         {onePaket.name}
                       </Box>
 
-                      <Box sx={{ ...css_IsPaketler, justifyContent: "center", marginLeft: "0.5rem" }}>
+                      <Box {...rowHandlers} sx={{ ...css_IsPaketler, ...rowBaseSx, ...hoverSx, justifyContent: "center", marginLeft: "0.5rem" }}>
                         {pozSayisi}
                       </Box>
 
-                      <Box sx={{ ...css_IsPaketler, justifyContent: "center" }}>
+                      <Box {...rowHandlers} sx={{ ...css_IsPaketler, ...rowBaseSx, ...hoverSx, justifyContent: "center" }}>
                         {dataIsPaketPozlar?.isPaketDugumSayisi?.[onePaket._id.toString()] ?? ""}
                       </Box>
                     </React.Fragment>
