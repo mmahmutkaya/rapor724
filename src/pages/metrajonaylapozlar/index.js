@@ -325,7 +325,7 @@ export default function P_MetrajOnaylaPozlar() {
 
   return (
 
-    <Box sx={{ m: "0rem", maxWidth: "60rem" }}>
+    <Box>
 
       {dialogAlert &&
         <DialogAlert

@@ -149,7 +149,7 @@ export default function P_MetrajPozlar() {
 
 
   return (
-    <Box sx={{ m: "0rem", maxWidth: "60rem" }}>
+    <Box>
 
       {dialogAlert &&
         <DialogAlert
@@ -174,7 +174,7 @@ export default function P_MetrajPozlar() {
 
 
       {isFetching &&
-        <Box sx={{ width: '100%', px: "1rem", mt: "5rem", color: 'gray' }}>
+        <Box sx={{ width: '100%', px: "1rem", color: 'gray' }}>
           <LinearProgress color='inherit' />
         </Box >
       }
@@ -183,7 +183,7 @@ export default function P_MetrajPozlar() {
 
       {/* EĞER POZ BAŞLIĞI YOKSA */}
       {!isFetching && show == "Main" && !selectedProje?.wbs?.find(x => x.openForPoz === true) &&
-        <Stack sx={{ width: '100%', mt: "3.5rem", p: "1rem" }} spacing={2}>
+        <Stack sx={{ width: '100%', p: "1rem" }} spacing={2}>
           <Alert severity="info">
             Mahallistesi henüz boş.
           </Alert>
@@ -193,7 +193,7 @@ export default function P_MetrajPozlar() {
 
       {/* EĞER POZ YOKSA */}
       {!isFetching && show == "Main" && selectedProje?.wbs?.find(x => x.openForPoz === true) && !pozlar?.length > 0 &&
-        <Stack sx={{ width: '100%', mt: "3.5rem", p: "1rem" }} spacing={2}>
+        <Stack sx={{ width: '100%', p: "1rem" }} spacing={2}>
           <Alert severity="info">
             Mahallistesi henüz boş.
           </Alert>
@@ -205,7 +205,7 @@ export default function P_MetrajPozlar() {
 
       {!isFetching && show == "Main" && wbsArray_hasMahal && pozlar?.length > 0 &&
 
-        <Box sx={{ m: "1rem", mt: "4.5rem", display: "grid", gridTemplateColumns: columns }}>
+        <Box sx={{ m: "1rem", display: "grid", gridTemplateColumns: columns }}>
 
           {/*   EN ÜST BAŞLIK */}
           <>
