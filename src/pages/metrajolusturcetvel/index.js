@@ -44,7 +44,6 @@ export default function P_MetrajOlusturCetvel() {
   const { selectedMahal_metraj } = useContext(StoreContext)
   const { myTema, setMyTema } = useContext(StoreContext)
   const { selectedNode, setSelectedNode } = useContext(StoreContext)
-  const { drawerWidth, topBarHeight, subHeaderHeight } = useContext(StoreContext)
   const { editNodeMetraj, setEditNodeMetraj } = useContext(StoreContext)
   const { showNodeMetraj, setShowNodeMetraj } = useContext(StoreContext)
   const { detailMode, setDetailMode } = useContext(StoreContext)
@@ -510,7 +509,7 @@ export default function P_MetrajOlusturCetvel() {
         />
       }
 
-      <Grid name="metrajCetveliHeader" item sx={{ mt: (parseFloat(subHeaderHeight) + 1) + "rem", }}>
+      <Grid name="metrajCetveliHeader" item>
         <HeaderMetrajOlusturCetvel
 
           mode_edit={mode_edit} setMode_edit={setMode_edit}
@@ -524,7 +523,7 @@ export default function P_MetrajOlusturCetvel() {
 
       {hazirlananMetraj_state &&
 
-        < Box sx={{ width: "65rem", display: "grid", gridTemplateColumns: gridTemplateColumns1, mt: subHeaderHeight, mb: "1rem", mx: "1rem" }}>
+        < Box sx={{ width: "65rem", display: "grid", gridTemplateColumns: gridTemplateColumns1, mb: "1rem", mx: "1rem" }}>
 
 
           {/* En Üst Başlık Satırı */}

@@ -460,7 +460,7 @@ export default function P_MetrajPozMahaller() {
 
   return (
 
-    <Box sx={{ m: "0rem", maxWidth: "60rem" }}>
+    <Box>
 
 
       {dialogAlert &&
@@ -472,14 +472,7 @@ export default function P_MetrajPozMahaller() {
         />
       }
 
-      <Grid item >
-        <HeaderMetrajPozMahaller
-          // setShow={setShow}
-          // anySelectable={anySelectable}
-          // setMode_select={setMode_select} mode_select={mode_select}
-          // isChange_select={isChange_select} setIsChange_select={setIsChange_select} cancel_select={cancel_select} save_select={save_select}
-        />
-      </Grid>
+      <HeaderMetrajPozMahaller />
 
 
       {/* BAŞLIK GÖSTER / GİZLE
@@ -491,7 +484,7 @@ export default function P_MetrajPozMahaller() {
 
 
       {(isFetching1 || isFetching2) &&
-        <Box sx={{ width: '100%', px: "1rem", mt: "5rem", color: 'gray' }}>
+        <Box sx={{ width: '100%', px: "1rem", color: 'gray' }}>
           <LinearProgress color='inherit' />
         </Box >
       }
@@ -506,7 +499,7 @@ export default function P_MetrajPozMahaller() {
 
       {!(isFetching1 || isFetching2) && openLbsArray?.length > 0 &&
 
-        <Box sx={{ m: "1rem", mt: "4.5rem", display: "grid", gridTemplateColumns: gridTemplateColumns1 }}>
+        <Box sx={{ m: "1rem", display: "grid", gridTemplateColumns: gridTemplateColumns1 }}>
 
           {/* EN ÜST BAŞLIĞIN ÜST SATIRI - HANGİ POZ İLE İŞLEM YAPILIYORSA - POZ İSMİ VE TOPLAM METRAJI */}
           <>

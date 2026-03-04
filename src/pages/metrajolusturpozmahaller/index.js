@@ -201,7 +201,7 @@ export default function P_MetrajOlusturPozMahaller() {
 
   return (
 
-    <Box sx={{ m: "0rem", maxWidth: "60rem" }}>
+    <Box sx={{ m: "0rem" }}>
 
       {dialogAlert &&
         <DialogAlert
@@ -212,13 +212,11 @@ export default function P_MetrajOlusturPozMahaller() {
         />
       }
 
-      <Grid item >
-        <HeaderMetrajOlusturPozMahaller show={show} setShow={setShow} />
-      </Grid>
+      <HeaderMetrajOlusturPozMahaller show={show} setShow={setShow} />
 
 
       {(isLoading1 || isLoading2) &&
-        <Box sx={{ width: '100%', px: "1rem", mt: "5rem", color: 'gray' }}>
+        <Box sx={{ width: '100%', px: "1rem", color: 'gray' }}>
           <LinearProgress color='inherit' />
         </Box >
       }
@@ -232,7 +230,7 @@ export default function P_MetrajOlusturPozMahaller() {
 
       {!(isLoading1 || isLoading2) && openLbsArray?.length > 0 &&
 
-        <Box sx={{ m: "1rem", mt: "4.5rem", display: "grid", gridTemplateColumns: gridTemplateColumns1 }}>
+        <Box sx={{ m: "1rem", display: "grid", gridTemplateColumns: gridTemplateColumns1 }}>
 
           {/* EN ÜST BAŞLIĞIN ÜST SATIRI - HANGİ POZ İLE İŞLEM YAPILIYORSA - POZ İSMİ VE TOPLAM METRAJI */}
           <>

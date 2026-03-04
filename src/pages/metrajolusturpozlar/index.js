@@ -150,7 +150,7 @@ export default function P_MetrajOlusturPozlar() {
 
 
   return (
-    <Box sx={{ m: "0rem", maxWidth: "60rem" }}>
+    <Box sx={{ m: "0rem" }}>
 
       {dialogAlert &&
         <DialogAlert
@@ -178,7 +178,7 @@ export default function P_MetrajOlusturPozlar() {
 
 
       {isLoading &&
-        <Box sx={{ mt: "5rem", ml: "1rem", color: 'gray' }}>
+        <Box sx={{ ml: "1rem", color: 'gray' }}>
           <LinearProgress color='inherit' />
         </Box>
       }
@@ -186,7 +186,7 @@ export default function P_MetrajOlusturPozlar() {
 
       {/* EĞER POZ BAŞLIĞI YOKSA */}
       {!isLoading && show == "Main" && !selectedProje?.wbs?.find(x => x.openForPoz === true) &&
-        <Stack sx={{ width: '100%', mt: "3.5rem", p: "1rem" }} spacing={2}>
+        <Stack sx={{ width: '100%', p: "1rem" }} spacing={2}>
           <Alert severity="info">
             Mahallistesi henüz boş.
           </Alert>
@@ -196,7 +196,7 @@ export default function P_MetrajOlusturPozlar() {
 
       {/* EĞER POZ YOKSA */}
       {!isLoading && show == "Main" && selectedProje?.wbs?.find(x => x.openForPoz === true) && !pozlar?.length > 0 &&
-        <Stack sx={{ width: '100%', mt: "3.5rem", p: "1rem" }} spacing={2}>
+        <Stack sx={{ width: '100%', p: "1rem" }} spacing={2}>
           <Alert severity="info">
             Mahallistesi henüz boş.
           </Alert>
@@ -208,7 +208,7 @@ export default function P_MetrajOlusturPozlar() {
 
       {show == "Main" && wbsArray_hasMahal && pozlar?.length > 0 &&
 
-        <Box sx={{ m: "1rem", mt: "4.5rem", display: "grid", gridTemplateColumns: columns }}>
+        <Box sx={{ m: "1rem", display: "grid", gridTemplateColumns: columns }}>
 
           {/*   EN ÜST BAŞLIK */}
           <>
