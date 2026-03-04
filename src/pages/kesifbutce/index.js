@@ -1,12 +1,9 @@
 import React, { useState, useEffect, useContext } from "react";
 import { StoreContext } from "../../components/store.js";
-// import FormIsPaketBaslikCreate from '../../components/FormIsPaketBaslikCreate'
 import FormIsPaketCreate from "../../components/FormIsPaketCreate.js";
 import { useNavigate, useLocation } from "react-router-dom";
-// import { useGetProjelerNames_byFirma } from '../../hooks/useMongo';
 import { DialogAlert } from "../../components/general/DialogAlert.js";
 import ShowIsPaketBasliklar from "../../components/ShowIsPaketBasliklar.js";
-import { useQueryClient } from "@tanstack/react-query";
 
 import { useGetIsPaketPozlar } from "../../hooks/useMongo.js";
 import useRequestProjeAktifYetkiliKisi from "../../functions/requestProjeAktifYetkiliKisi.js";
@@ -17,20 +14,15 @@ import Grid from "@mui/material/Grid";
 import Alert from "@mui/material/Alert";
 import Stack from "@mui/material/Stack";
 import { Typography } from "@mui/material";
-import List from "@mui/material/List";
 import Box from "@mui/material/Box";
-import FolderIcon from "@mui/icons-material/Folder";
 import IconButton from "@mui/material/IconButton";
 import DeleteIcon from "@mui/icons-material/Delete";
 import AddCircleOutlineIcon from "@mui/icons-material/AddCircleOutline";
 import VisibilityIcon from "@mui/icons-material/Visibility";
 import InfoIcon from "@mui/icons-material/Info";
-import Avatar from "@mui/material/Avatar";
 import AdjustIcon from '@mui/icons-material/Adjust';
 
 export default function P_KesifButce() {
-  const queryClient = useQueryClient();
-
   const { appUser, setAppUser } = useContext(StoreContext);
   const { selectedProje, setSelectedProje } = useContext(StoreContext);
 
