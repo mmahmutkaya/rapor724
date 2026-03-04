@@ -13,12 +13,14 @@ import _ from 'lodash';
 
 
 import ShowMetrajYapabilenler from '../../components/ShowMetrajYapabilenler'
-import HeaderMetrajPozMahaller from '../../components/HeaderMetrajPozMahaller'
 
 
 import { useGetDugumler_byPoz, useGetMahaller } from '../../hooks/useMongo';
 
 import Grid from '@mui/material/Grid';
+import AppBar from '@mui/material/AppBar';
+import IconButton from '@mui/material/IconButton';
+import ReplyIcon from '@mui/icons-material/Reply';
 import Alert from '@mui/material/Alert';
 import Stack from '@mui/material/Stack';
 import Box from '@mui/material/Box';
@@ -28,6 +30,59 @@ import FileDownloadDoneIcon from '@mui/icons-material/FileDownloadDone';
 import CircleIcon from '@mui/icons-material/Circle';
 import AddCircleIcon from '@mui/icons-material/AddCircle';
 import LinearProgress from '@mui/material/LinearProgress';
+
+
+function HeaderMetrajPozMahaller() {
+
+  const navigate = useNavigate()
+  const { selectedPoz, setSelectedPoz } = useContext(StoreContext)
+
+  return (
+    <AppBar position="static" sx={{ backgroundColor: "white", color: "black", boxShadow: 4 }}>
+
+      <Grid
+        container
+        justifyContent="space-between"
+        alignItems="center"
+        sx={{ padding: "0.5rem 1rem", minHeight: "3.5rem", maxHeight: "5rem" }}
+      >
+
+        {/* sol kısım (başlık) */}
+        <Grid item xs>
+          <Box sx={{ display: "flex", alignItems: "center", columnGap: "0.5rem" }}>
+
+            <IconButton
+              sx={{ width: 40, height: 40 }}
+              onClick={() => {
+                navigate("/metrajpozlar")
+                setSelectedPoz()
+              }}
+            >
+              <ReplyIcon sx={{ color: "gray", fontSize: 24 }} />
+            </IconButton>
+
+            <Box sx={{ fontWeight: 600, fontSize: "0.875rem", whiteSpace: "nowrap" }}>
+              {selectedPoz?.pozName}
+            </Box>
+            <Box sx={{ color: "#8B0000", fontWeight: 600 }}>{">"}</Box>
+            <Box sx={{ fontWeight: 600, fontSize: "0.875rem" }}>
+              {"Mahal Listesinde Bu Poz İçin Açılmış Tüm Mahaller"}
+            </Box>
+
+          </Box>
+        </Grid>
+
+        {/* sağ kısım - (tuşlar) */}
+        <Grid item xs="auto">
+          <Grid container>
+          </Grid>
+        </Grid>
+
+      </Grid>
+
+    </AppBar>
+  )
+}
 
 
 export default function P_MetrajPozMahaller() {

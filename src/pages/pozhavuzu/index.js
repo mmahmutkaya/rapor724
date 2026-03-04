@@ -7,8 +7,9 @@ import { useGetFirmaPozlar } from '../../hooks/useMongo';
 import FormPozCreate from '../../components/FormPozCreate'
 import EditPozBaslik from '../../components/EditPozBaslik'
 import FormPozBaslikCreate from '../../components/FormPozBaslikCreate'
-import PozHavuzuHeader from '../../components/PozHavuzuHeader'
 
+
+import { DialogAlert } from '../../components/general/DialogAlert'
 
 import { styled } from '@mui/system';
 import Grid from '@mui/material/Grid';
@@ -17,9 +18,47 @@ import Alert from '@mui/material/Alert';
 import Stack from '@mui/material/Stack';
 import { Button, TextField, Typography } from '@mui/material';
 import Box from '@mui/material/Box';
+import Paper from '@mui/material/Paper';
+import IconButton from '@mui/material/IconButton';
 import InfoIcon from '@mui/icons-material/Info';
+import ClearOutlined from '@mui/icons-material/ClearOutlined';
 
 
+
+function PozHavuzuHeader() {
+  const { drawerWidth, topBarHeight } = useContext(StoreContext)
+  const [dialogAlert_header, setDialogAlert_header] = useState()
+  return (
+    <Paper >
+      {dialogAlert_header &&
+        <DialogAlert
+          dialogIcon={dialogAlert_header.dialogIcon}
+          dialogMessage={dialogAlert_header.dialogMessage}
+          detailText={dialogAlert_header.detailText}
+          onCloseAction={dialogAlert_header.onCloseAction ? dialogAlert_header.onCloseAction : () => setDialogAlert_header()}
+        />
+      }
+      <Grid container justifyContent="space-between" alignItems="center" sx={{ padding: "0.5rem 1rem", maxHeight: "5rem" }}>
+        <Grid item xs>
+          <Typography variant="h6" fontWeight="bold">
+            PozHavuzu
+          </Typography>
+        </Grid>
+        <Grid item xs="auto">
+          <Grid container spacing={1}>
+            <>
+              <Grid item >
+                <IconButton onClick={() => console.log("deneme")} aria-label="wbsUncliced">
+                  <ClearOutlined variant="contained" sx={{ color: "red" }} />
+                </IconButton>
+              </Grid>
+            </>
+          </Grid>
+        </Grid>
+      </Grid>
+    </Paper>
+  )
+}
 
 export default function P_PozHavuzu() {
 

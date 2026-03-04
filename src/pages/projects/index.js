@@ -3,7 +3,6 @@ import { useState, useEffect, useContext } from 'react';
 import { StoreContext } from '../../components/store'
 import { useApp } from "../../components/useApp";
 import FormProjectCreate from '../../components/FormProjectCreate'
-import ProjectsHeader from '../../components/ProjectsHeader'
 import { useNavigate } from "react-router-dom";
 import { useGetProjectNames_firma } from '../../hooks/useMongo';
 import { DialogAlert } from '../../components/general/DialogAlert'
@@ -15,6 +14,8 @@ import Stack from '@mui/material/Stack';
 import { Typography } from '@mui/material';
 import List from '@mui/material/List';
 import Box from '@mui/material/Box';
+import Paper from '@mui/material/Paper';
+import IconButton from '@mui/material/IconButton';
 
 import FolderIcon from '@mui/icons-material/Folder';
 import DeleteIcon from '@mui/icons-material/Delete';
@@ -22,6 +23,36 @@ import AddCircleOutlineIcon from '@mui/icons-material/AddCircleOutline';
 
 
 
+
+function ProjectsHeader({ setShow }) {
+  const handleTry = () => {}
+  let header = "Projeler"
+  return (
+    <Paper >
+      <Grid container justifyContent="space-between" alignItems="center" sx={{ padding: "0.5rem 1rem", maxHeight: "5rem" }}>
+        <Grid item xs>
+          <Typography onClick={() => handleTry()} variant="h6" fontWeight="bold">
+            {header}
+          </Typography>
+        </Grid>
+        <Grid item xs="auto">
+          <Grid container spacing={1}>
+            <Grid item>
+              <IconButton onClick={() => console.log("deleted clicked")} aria-label="addWbs">
+                <DeleteIcon variant="contained" color="error" />
+              </IconButton>
+            </Grid>
+            <Grid item>
+              <IconButton onClick={() => setShow("FormProjectCreate")} aria-label="addWbs">
+                <AddCircleOutlineIcon variant="contained" color="success" />
+              </IconButton>
+            </Grid>
+          </Grid>
+        </Grid>
+      </Grid>
+    </Paper>
+  )
+}
 
 export default function P_Projects() {
 

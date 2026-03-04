@@ -6,22 +6,76 @@ import { useApp } from "../../components/useApp";
 import FormPozCreate from '../../components/FormPozCreate'
 import EditPozBaslik from '../../components/EditPozBaslik'
 import FormPozBaslikCreate from '../../components/FormPozBaslikCreate'
-import HeaderMetrajOlusturPozMahaller from '../../components/HeaderMetrajOlusturPozMahaller'
 
 import _ from 'lodash';
 import { DialogAlert } from '../../components/general/DialogAlert.js';
 
-
 import { useGetDugumler_byPoz, useGetMahaller } from '../../hooks/useMongo';
 
+import AppBar from '@mui/material/AppBar';
 import Grid from '@mui/material/Grid';
 import Alert from '@mui/material/Alert';
 import Stack from '@mui/material/Stack';
 import Box from '@mui/material/Box';
+import IconButton from '@mui/material/IconButton';
 import { BorderBottom } from '@mui/icons-material';
+import ReplyIcon from '@mui/icons-material/Reply';
 import Tooltip from '@mui/material/Tooltip';
 import { Check } from '@mui/icons-material';
 import LinearProgress from '@mui/material/LinearProgress';
+
+
+function HeaderMetrajOlusturPozMahaller() {
+
+  const navigate = useNavigate()
+  const { selectedPoz, setSelectedPoz } = useContext(StoreContext)
+
+  return (
+    <AppBar position="static" sx={{ backgroundColor: "white", color: "black", boxShadow: 4 }}>
+
+      <Grid
+        container
+        justifyContent="space-between"
+        alignItems="center"
+        sx={{ padding: "0.5rem 1rem", minHeight: "3.5rem", maxHeight: "5rem" }}
+      >
+
+        {/* sol kısım (başlık) */}
+        <Grid item xs>
+          <Box sx={{ display: "flex", alignItems: "center", columnGap: "0.5rem" }}>
+
+            <IconButton
+              sx={{ width: 40, height: 40 }}
+              onClick={() => {
+                navigate("/metrajolusturpozlar")
+                setSelectedPoz()
+              }}
+            >
+              <ReplyIcon sx={{ color: "gray", fontSize: 24 }} />
+            </IconButton>
+
+            <Box sx={{ fontWeight: 600, fontSize: "0.875rem", whiteSpace: "nowrap" }}>
+              {selectedPoz?.pozName}
+            </Box>
+            <Box sx={{ color: "#8B0000", fontWeight: 600 }}>{">"}</Box>
+            <Box sx={{ fontWeight: 600, fontSize: "0.875rem" }}>
+              {"Tüm Açık Mahaller"}
+            </Box>
+
+          </Box>
+        </Grid>
+
+        {/* sağ kısım - (tuşlar) */}
+        <Grid item xs="auto">
+          <Grid container>
+          </Grid>
+        </Grid>
+
+      </Grid>
+
+    </AppBar>
+  )
+}
 
 
 export default function P_MetrajOlusturPozMahaller() {

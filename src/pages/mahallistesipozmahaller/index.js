@@ -13,14 +13,18 @@ import _ from 'lodash';
 
 
 import ShowMetrajYapabilenler from '../../components/ShowMetrajYapabilenler'
-import HeaderMetrajPozMahaller from '../../components/HeaderMetrajPozMahaller'
-import HeaderMahalListesiPozMahaller from '../../components/HeaderMahalListesiPozMahaller.js'
+import Paper from '@mui/material/Paper';
+import ClearOutlined from '@mui/icons-material/ClearOutlined';
+import EditIcon from '@mui/icons-material/Edit';
 
 
 
 import { useGetDugumler_byPoz, useGetMahaller } from '../../hooks/useMongo';
 
 import Grid from '@mui/material/Grid';
+import AppBar from '@mui/material/AppBar';
+import IconButton from '@mui/material/IconButton';
+import ReplyIcon from '@mui/icons-material/Reply';
 import Alert from '@mui/material/Alert';
 import Stack from '@mui/material/Stack';
 import Box from '@mui/material/Box';
@@ -30,6 +34,189 @@ import FileDownloadDoneIcon from '@mui/icons-material/FileDownloadDone';
 import CircleIcon from '@mui/icons-material/Circle';
 import AddCircleIcon from '@mui/icons-material/AddCircle';
 import LinearProgress from '@mui/material/LinearProgress';
+
+
+function HeaderMetrajPozMahaller() {
+
+  const navigate = useNavigate()
+  const { selectedPoz, setSelectedPoz } = useContext(StoreContext)
+
+  return (
+    <AppBar position="static" sx={{ backgroundColor: "white", color: "black", boxShadow: 4 }}>
+
+      <Grid
+        container
+        justifyContent="space-between"
+        alignItems="center"
+        sx={{ padding: "0.5rem 1rem", minHeight: "3.5rem", maxHeight: "5rem" }}
+      >
+
+        {/* sol kısım (başlık) */}
+        <Grid item xs>
+          <Box sx={{ display: "flex", alignItems: "center", columnGap: "0.5rem" }}>
+
+            <IconButton
+              sx={{ width: 40, height: 40 }}
+              onClick={() => {
+                navigate("/metrajpozlar")
+                setSelectedPoz()
+              }}
+            >
+              <ReplyIcon sx={{ color: "gray", fontSize: 24 }} />
+            </IconButton>
+
+            <Box sx={{ fontWeight: 600, fontSize: "0.875rem", whiteSpace: "nowrap" }}>
+              {selectedPoz?.pozName}
+            </Box>
+            <Box sx={{ color: "#8B0000", fontWeight: 600 }}>{">"}</Box>
+            <Box sx={{ fontWeight: 600, fontSize: "0.875rem" }}>
+              {"Mahal Listesinde Bu Poz İçin Açılmış Tüm Mahaller"}
+            </Box>
+
+          </Box>
+        </Grid>
+
+        {/* sağ kısım - (tuşlar) */}
+        <Grid item xs="auto">
+          <Grid container>
+          </Grid>
+        </Grid>
+
+      </Grid>
+
+    </AppBar>
+  )
+}
+
+
+function HeaderMahalListesiPozMahaller({ isChanged, cancelChange, saveChange }) {
+
+  const navigate = useNavigate()
+
+  const { drawerWidth, topBarHeight } = useContext(StoreContext)
+  const { selectedPoz } = useContext(StoreContext)
+
+  const [showEminMisin, setShowEminMisin] = useState(false)
+
+
+  return (
+    <Paper >
+
+      {showEminMisin &&
+        <DialogAlert
+          dialogIcon={"warning"}
+          dialogMessage={"Yaptığınız değişiklikleri kaybedeceksiniz ?"}
+          onCloseAction={() => setShowEminMisin()}
+          actionText1={"İptal"}
+          action1={() => setShowEminMisin()}
+          actionText2={"Onayla"}
+          action2={() => {
+            cancelChange()
+            setShowEminMisin()
+          }}
+        />
+      }
+
+
+      <AppBar
+        position="fixed"
+        sx={{
+          backgroundColor: "white",
+          color: "black",
+          width: { md: `calc(100% - ${drawerWidth}px)` },
+          mt: topBarHeight,
+          // pt:"3rem",
+          ml: { md: `${drawerWidth}px` }
+        }}
+      >
+
+        <Grid
+          container
+          justifyContent="space-between"
+          alignItems="center"
+          sx={{ padding: "0.5rem 1rem", maxHeight: "5rem" }}
+        >
+
+
+
+          {/* sol kısım (başlık) */}
+          <Grid item xs>
+            <Box sx={{ display: "grid", gridAutoFlow: "column", alignItems: "center", justifyContent: "start", columnGap: "0.5rem" }}>
+
+              <IconButton
+                sx={{ mx: 0, px: 0 }}
+                onClick={() => navigate('/mahallistesipozlar')} disabled={false}>
+                <ReplyIcon variant="contained" sx={{ color: "gray" }} />
+              </IconButton>
+
+              <Box>
+                {selectedPoz?.pozName}
+              </Box>
+              {/* <Box sx={{ color: "#8B0000", fontWeight: "600" }}>
+                {" > "}
+              </Box> */}
+              <Box>
+                {/* {"Tüm Mahaller"} */}
+              </Box>
+            </Box>
+          </Grid>
+
+
+
+
+          {/* sağ kısım - (tuşlar)*/}
+          <Grid item xs="auto">
+            <Grid container>
+
+
+              {/* {!isChanged &&
+                <>
+
+                  <Grid item>
+                    <IconButton onClick={() => navigate('/mahallistesipozlar')} disabled={false}>
+                      <ReplyIcon variant="contained" sx={{ color: "gray" }} />
+                    </IconButton>
+                  </Grid>
+
+                </>
+              } */}
+
+
+              {isChanged &&
+                <>
+
+                  <Grid item>
+                    <IconButton
+                      onClick={() => setShowEminMisin(true)}
+                      disabled={!isChanged}
+                    >
+                      <ClearOutlined variant="contained" sx={{ color: "red" }} />
+                    </IconButton>
+                  </Grid>
+
+                  <Grid item>
+                    <IconButton
+                      onClick={() => saveChange()}
+                      disabled={!isChanged}
+                    >
+                      <FileDownloadDoneIcon variant="contained" sx={{ color: "green" }} />
+                    </IconButton>
+                  </Grid>
+
+                </>
+              }
+
+
+            </Grid>
+          </Grid>
+
+        </Grid>
+
+      </AppBar>
+
+    </Paper >
+  )
+}
 
 
 export default function P_MehalListesiPozMahaller() {

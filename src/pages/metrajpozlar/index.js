@@ -11,10 +11,12 @@ import getWbsName from '../../functions/getWbsName';
 import { DialogAlert } from '../../components/general/DialogAlert.js';
 
 
-import HeaderMetrajPozlar from '../../components/HeaderMetrajPozlar'
 import ShowMetrajYapabilenler from '../../components/ShowMetrajYapabilenler'
 
 
+import AppBar from '@mui/material/AppBar';
+import Typography from '@mui/material/Typography';
+import Grid from '@mui/material/Grid';
 import Alert from '@mui/material/Alert';
 import Stack from '@mui/material/Stack';
 import Box from '@mui/material/Box';
@@ -22,6 +24,38 @@ import CircleIcon from '@mui/icons-material/Circle';
 import { Check } from '@mui/icons-material';
 import LinearProgress from '@mui/material/LinearProgress';
 
+
+
+function HeaderMetrajPozlar() {
+
+  return (
+    <AppBar position="static" sx={{ backgroundColor: "white", color: "black", boxShadow: 4 }}>
+
+      <Grid
+        container
+        justifyContent="space-between"
+        alignItems="center"
+        sx={{ padding: "0.5rem 1rem", minHeight: "3.5rem", maxHeight: "5rem" }}
+      >
+
+        {/* sol kısım (başlık) */}
+        <Grid item xs>
+          <Typography variant="body1" sx={{ fontWeight: 600, whiteSpace: "nowrap" }}>
+            Metraj
+          </Typography>
+        </Grid>
+
+        {/* sağ kısım - (tuşlar)*/}
+        <Grid item xs="auto">
+          <Grid container>
+          </Grid>
+        </Grid>
+
+      </Grid>
+
+    </AppBar>
+  )
+}
 
 
 export default function P_MetrajPozlar() {

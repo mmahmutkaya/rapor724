@@ -12,9 +12,8 @@ import getWbsName from '../../functions/getWbsName';
 
 
 import ShowMetrajOlusturPozlarBaslik from '../../components/ShowMetrajOlusturPozlarBaslik'
-import HeaderMetrajOlusturPozlar from '../../components/HeaderMetrajOlusturPozlar'
 
-
+import AppBar from '@mui/material/AppBar';
 import { borderLeft, fontWeight, grid, styled } from '@mui/system';
 import Grid from '@mui/material/Grid';
 import Input from '@mui/material/Input';
@@ -26,6 +25,38 @@ import InfoIcon from '@mui/icons-material/Info';
 import Tooltip from '@mui/material/Tooltip';
 import { Check } from '@mui/icons-material';
 import LinearProgress from '@mui/material/LinearProgress';
+
+
+function HeaderMetrajOlusturPozlar() {
+
+  return (
+    <AppBar position="static" sx={{ backgroundColor: "white", color: "black", boxShadow: 4 }}>
+
+      <Grid
+        container
+        justifyContent="space-between"
+        alignItems="center"
+        sx={{ padding: "0.5rem 1rem", minHeight: "3.5rem", maxHeight: "5rem" }}
+      >
+
+        {/* sol kısım (başlık) */}
+        <Grid item xs>
+          <Typography variant="body1" sx={{ fontWeight: 600, whiteSpace: "nowrap" }}>
+            Metraj Oluştur
+          </Typography>
+        </Grid>
+
+        {/* sağ kısım - (tuşlar) */}
+        <Grid item xs="auto">
+          <Grid container>
+          </Grid>
+        </Grid>
+
+      </Grid>
+
+    </AppBar>
+  )
+}
 
 
 export default function P_MetrajOlusturPozlar() {

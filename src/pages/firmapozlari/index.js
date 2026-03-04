@@ -10,11 +10,23 @@ import { useGetFirmaPozlar } from '../../hooks/useMongo';
 
 import FormFirmaPozCreate from '../../components/FormFirmaPozCreate'
 import ShowFirmaPozBaslik from '../../components/ShowFirmaPozBaslik'
-import HeaderFirmaPozlari from '../../components/HeaderFirmaPozlari'
 
 
 import { borderLeft, fontWeight, grid, styled } from '@mui/system';
 import Grid from '@mui/material/Grid';
+import Paper from '@mui/material/Paper';
+import IconButton from '@mui/material/IconButton';
+import DeleteIcon from '@mui/icons-material/Delete';
+import AddCircleOutlineIcon from '@mui/icons-material/AddCircleOutline';
+import ClearOutlined from '@mui/icons-material/ClearOutlined';
+import UnfoldMoreIcon from '@mui/icons-material/UnfoldMore';
+import UnfoldLessIcon from '@mui/icons-material/UnfoldLess';
+import VisibilityIcon from '@mui/icons-material/Visibility';
+import AlignHorizontalLeftOutlinedIcon from '@mui/icons-material/AlignHorizontalLeftOutlined';
+import AlignHorizontalRightOutlinedIcon from '@mui/icons-material/AlignHorizontalRightOutlined';
+import AlignHorizontalCenterOutlinedIcon from '@mui/icons-material/AlignHorizontalCenterOutlined';
+import FileDownloadDoneIcon from '@mui/icons-material/FileDownloadDone';
+import EditIcon from '@mui/icons-material/Edit';
 import Input from '@mui/material/Input';
 import Alert from '@mui/material/Alert';
 import Stack from '@mui/material/Stack';
@@ -23,6 +35,66 @@ import Box from '@mui/material/Box';
 import InfoIcon from '@mui/icons-material/Info';
 
 
+
+function HeaderFirmaPozlari({ show, setShow, anyBaslikShow }) {
+
+  const { selectedFirma } = useContext(StoreContext)
+  const navigate = useNavigate()
+
+  return (
+    <Paper >
+
+      <Grid
+        container
+        justifyContent="space-between"
+        alignItems="center"
+        sx={{ padding: "0.5rem 1rem", maxHeight: "5rem" }}
+      >
+
+        {/* sol kısım (başlık) */}
+        <Grid item xs>
+          <Typography
+            // nowrap={true}
+            variant="h6"
+            fontWeight="bold"
+          >
+            Firma Pozları
+          </Typography>
+        </Grid>
+
+
+
+
+        {/* sağ kısım - (tuşlar)*/}
+        <Grid item xs="auto">
+          <Grid container spacing={1}>
+
+            {/* <Grid item >
+              <IconButton onClick={() => navigate('/firmawbs')} aria-label="wbsUncliced" disabled={!anyBaslikShow}>
+                <Typography sx={{ fontWeight: "600" }}> WBS</Typography >
+              </IconButton>
+            </Grid> */}
+
+            <Grid item >
+              <IconButton onClick={() => setShow("ShowBaslik")} aria-label="wbsUncliced" disabled={!anyBaslikShow}>
+                <VisibilityIcon variant="contained" />
+              </IconButton>
+            </Grid>
+
+            <Grid item >
+              <IconButton onClick={() => setShow("PozCreate")} aria-label="wbsUncliced" disabled={!selectedFirma?.wbs?.find(x => x.openForPoz === true)}>
+                <AddCircleOutlineIcon variant="contained" />
+              </IconButton>
+            </Grid>
+
+          </Grid>
+        </Grid>
+
+      </Grid>
+
+    </Paper>
+  )
+}
 
 export default function P_FirmaPozlari() {
 

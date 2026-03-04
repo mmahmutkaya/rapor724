@@ -1,7 +1,12 @@
-import HeaderMahalListesiPozlar from '../../components/HeaderMahalListesiPozlar.js'
-
 import React from 'react'
 import { useState, useContext, useEffect } from 'react';
+import AppBar from '@mui/material/AppBar';
+import Typography from '@mui/material/Typography';
+import Paper from '@mui/material/Paper';
+import IconButton from '@mui/material/IconButton';
+import FileDownloadDoneIcon from '@mui/icons-material/FileDownloadDone';
+import EditIcon from '@mui/icons-material/Edit';
+import ClearOutlined from '@mui/icons-material/ClearOutlined';
 import { useQueryClient } from '@tanstack/react-query'
 import { useNavigate } from "react-router-dom";
 import getWbsName from '../../functions/getWbsName.js';
@@ -18,10 +23,80 @@ import Grid from '@mui/material/Grid';
 import Input from '@mui/material/Input';
 import Alert from '@mui/material/Alert';
 import Stack from '@mui/material/Stack';
-import { Button, TextField, Typography } from '@mui/material';
+import { Button, TextField } from '@mui/material';
 import Box from '@mui/material/Box';
 import LinearProgress from '@mui/material/LinearProgress';
 
+
+
+function HeaderMahalListesiPozlar() {
+
+  const { drawerWidth, topBarHeight } = useContext(StoreContext)
+
+
+  return (
+    <Paper >
+
+
+      <AppBar
+        position="fixed"
+        sx={{
+          backgroundColor: "white",
+          color: "black",
+          width: { md: `calc(100% - ${drawerWidth}px)` },
+          mt: topBarHeight,
+          // pt:"3rem",
+          ml: { md: `${drawerWidth}px` }
+        }}
+      >
+
+        <Grid
+          container
+          justifyContent="space-between"
+          alignItems="center"
+          sx={{ padding: "0.5rem 1rem", maxHeight: "5rem" }}
+        >
+
+
+
+          {/* sol kısım (başlık) */}
+          <Grid item xs>
+            <Typography
+              // nowrap={true}
+              variant="h6"
+              fontWeight="bold"
+            >
+              Mahal Listesi
+            </Typography>
+          </Grid>
+
+
+
+
+          {/* sağ kısım - (tuşlar)*/}
+          <Grid item xs="auto">
+            <Grid container>
+
+
+
+              {/* <Grid item>
+                <IconButton onClick={() => setEditMode(editMode => !editMode)} disabled={false}>
+                  <EditIcon variant="contained" sx={{ color: "gray" }} />
+                </IconButton>
+              </Grid> */}
+
+
+
+            </Grid>
+          </Grid>
+
+        </Grid>
+
+      </AppBar>
+
+    </Paper >
+  )
+}
 
 
 export default function P_MahalListesiPozlar() {
