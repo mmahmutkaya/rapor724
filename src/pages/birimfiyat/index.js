@@ -156,8 +156,6 @@ export default function P_BirimFiyat() {
 
     try {
 
-      setSelectedBirimFiyatVersiyon()
-
       const response = await fetch(process.env.REACT_APP_BASE_URL + `/api/projeler/requestprojeaktifyetkilikisi`, {
         method: 'POST',
         headers: {
