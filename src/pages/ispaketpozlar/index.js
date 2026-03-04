@@ -148,7 +148,7 @@ export default function P_isPaketPozlar() {
 
   const getPozIsPaketler = (p) => mode_isPaketEdit
     ? (p.isPaketler || [])
-    : (p.isPaketVersiyonlar?.find(v => v.versiyonNumber === selectedIsPaketVersiyon?.versiyonNumber)?.isPaketler || [])
+    : (p.isPaketVersiyonlar?.find(v => v.versiyonNumber === selectedIsPaketVersiyon?.versiyonNumber)?.isPaketler || p.isPaketler || [])
 
   const maxIsPaketCount = dataIsPaketPozlar?.pozlar
     ? Math.max(0, ...dataIsPaketPozlar.pozlar.map(p => getPozIsPaketler(p).length))
