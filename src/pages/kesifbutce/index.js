@@ -290,7 +290,7 @@ export default function P_KesifButce() {
 
                 <Box sx={{ ...css_IsPaketlerBaslik }}>İş Paketi</Box>
 
-                <Box sx={{ ...css_IsPaketlerBaslik, marginLeft: "1rem" }}>Poz Sayısı</Box>
+                <Box sx={{ ...css_IsPaketlerBaslik, marginLeft: "0.5rem" }}>Poz Sayısı</Box>
 
                 <Box sx={{ ...css_IsPaketlerBaslik }}>
                   Mahal Sayısı
@@ -313,7 +313,7 @@ export default function P_KesifButce() {
                         {onePaket.name}
                       </Box>
 
-                      <Box sx={{ ...css_IsPaketler, justifyContent: "center", marginLeft: "1rem" }}>
+                      <Box sx={{ ...css_IsPaketler, justifyContent: "center", marginLeft: "0.5rem" }}>
                         {pozSayisi}
                       </Box>
 
@@ -387,7 +387,7 @@ export default function P_KesifButce() {
 
                     <Box sx={{ ...css_IsPaketlerBaslik }}>İş Paketi</Box>
 
-                    <Box sx={{ ...css_IsPaketlerBaslik, marginLeft: "1rem" }}>Poz Sayısı</Box>
+                    <Box sx={{ ...css_IsPaketlerBaslik, marginLeft: "0.5rem" }}>Poz Sayısı</Box>
 
                     <Box sx={{ ...css_IsPaketlerBaslik }}>Mahal Sayısı</Box>
                   </React.Fragment>
@@ -408,7 +408,7 @@ export default function P_KesifButce() {
                             {onePaket.name}
                           </Box>
 
-                          <Box sx={{ ...css_IsPaketler, justifyContent: "center", marginLeft: "1rem" }}>
+                          <Box sx={{ ...css_IsPaketler, justifyContent: "center", marginLeft: "0.5rem" }}>
                             {pozSayisi}
                           </Box>
 
