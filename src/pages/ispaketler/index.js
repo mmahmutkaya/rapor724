@@ -499,6 +499,8 @@ export default function P_IsPaketler() {
             mt: "3.5rem",
             display: "grid",
             gridTemplateColumns: columns,
+            borderTop: mode_isPaketEdit ? "4px solid #e53935" : "4px solid transparent",
+            transition: "border-color 0.3s ease",
           }}
         >
           {/* iş paketleri başlık satırı */}

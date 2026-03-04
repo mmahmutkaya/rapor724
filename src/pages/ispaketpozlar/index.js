@@ -322,7 +322,7 @@ export default function P_isPaketPozlar() {
       {
         !isFetching2 && wbsArray_state?.length > 0 && dataIsPaketPozlar?.pozlar?.length > 0 &&
 
-        <Box sx={{ p: "1rem", mt: "3.5rem", display: "grid", gridTemplateColumns: columns }}>
+        <Box sx={{ p: "1rem", mt: "3.5rem", display: "grid", gridTemplateColumns: columns, borderTop: mode_isPaketEdit ? "4px solid #e53935" : "4px solid transparent", transition: "border-color 0.3s ease" }}>
 
           {/*   EN ÜST BAŞLIK */}
           <>

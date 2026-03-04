@@ -347,7 +347,7 @@ export default function P_IsPaketPozMahaller() {
 
   const css_LbsBaslik = {
     border: "1px solid black",
-    borderRight: "1px solid black", // Restore right border for LBS header row
+    borderRight: "1px solid black",
     mt: "0.5rem",
     px: "0.5rem",
     display: "grid",
@@ -574,7 +574,7 @@ export default function P_IsPaketPozMahaller() {
 
 
       {(isFetching1 || isFetching2) &&
-        <Box sx={{ width: '100%', px: "1rem", mt: "5rem", color: 'gray' }}>
+        <Box sx={{ width: '100%', px: "1rem", mt: "3.5rem", color: 'gray' }}>
           <LinearProgress color='inherit' />
         </Box >
       }
@@ -595,7 +595,7 @@ export default function P_IsPaketPozMahaller() {
 
       {!(isFetching1 || isFetching2) && openLbsArray?.length > 0 &&
 
-        <Box sx={{ m: "1rem", mt: "4.5rem", display: "grid", gridTemplateColumns: gridTemplateColumns1 }}>
+        <Box sx={{ p: "1rem", mt: "3.5rem", display: "grid", gridTemplateColumns: gridTemplateColumns1, borderTop: mode_isPaketEdit ? "4px solid #e53935" : "4px solid transparent", transition: "border-color 0.3s ease" }}>
 
           {/* EN ÜST BAŞLIK */}
           <>
