@@ -264,15 +264,8 @@ export default function P_IsPaketler() {
 
       {/* BAŞLIK */}
       <AppBar
-        position="fixed"
-        sx={{
-          backgroundColor: "white",
-          color: "black",
-          boxShadow: 4,
-          width: { md: `calc(100% - ${drawerWidth}px)` },
-          mt: topBarHeight,
-          ml: { md: `${drawerWidth}px` }
-        }}
+        position="static"
+        sx={{ backgroundColor: "white", color: "black", boxShadow: 4 }}
       >
         <Grid
           container
@@ -467,7 +460,7 @@ export default function P_IsPaketler() {
       </AppBar>
 
       {show == "FormIsPaketCreate" && (
-        <Box sx={{ mt: "3.5rem" }}>
+        <Box>
           <FormIsPaketCreate
             setShow={setShow}
             onClose={() => setShow("Main")}
@@ -476,7 +469,7 @@ export default function P_IsPaketler() {
       )}
 
       {show == "Main" && mode_isPaketEdit && !isPaketler?.length > 0 && (
-        <Stack sx={{ width: "100%", padding: "1rem", mt: "3.5rem" }} spacing={2}>
+        <Stack sx={{ width: "100%", padding: "1rem" }} spacing={2}>
           <Alert severity="info">
             Bir iş paketi oluşturmak için (+) tuşuna basınız..
           </Alert>
@@ -484,7 +477,7 @@ export default function P_IsPaketler() {
       )}
 
       {show == "Main" && !mode_isPaketEdit && !selectedIsPaketVersiyon && !(selectedProje?.isPaketVersiyonlar?.length > 0) && (
-        <Stack sx={{ width: "100%", padding: "1rem", mt: "3.5rem" }} spacing={2}>
+        <Stack sx={{ width: "100%", padding: "1rem" }} spacing={2}>
           <Alert severity="info">
             Henüz iş paketi versiyonu oluşturulmamış. Düzenlemek için önce edit moduna geçiniz.
           </Alert>
@@ -496,7 +489,6 @@ export default function P_IsPaketler() {
           sx={{
             width: "100%",
             padding: "1rem",
-            mt: "3.5rem",
             display: "grid",
             gridTemplateColumns: columns,
             borderTop: mode_isPaketEdit ? "4px solid #e53935" : "4px solid transparent",
