@@ -131,8 +131,8 @@ export default function P_KesifButce() {
           {/* sol kısım (başlık) */}
           <Grid item xs>
             <Typography
-              variant="h6"
-              fontWeight="bold"
+              variant="body1"
+              sx={{ fontWeight: 600, whiteSpace: "nowrap" }}
             >
               Keşif / Bütçe
             </Typography>

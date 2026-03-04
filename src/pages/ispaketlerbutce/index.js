@@ -227,9 +227,8 @@ export default function P_IsPaketler() {
           {/* sol kısım (başlık) */}
           <Grid item xs>
             <Typography
-              // nowrap={true}
-              variant="h6"
-              fontWeight="bold"
+              variant="body1"
+              sx={{ fontWeight: 600, whiteSpace: "nowrap" }}
             >
               İş Paketleri
             </Typography>

@@ -38,7 +38,7 @@ export default function P_isPaketPozlar() {
   const [openTooltip, setOpenTooltip] = useState(null)
   const tooltipTimerRef = useRef(null)
 
-  const { myTema, drawerWidth, topBarHeight } = useContext(StoreContext)
+  const { myTema } = useContext(StoreContext)
   const { selectedPoz, setSelectedPoz } = useContext(StoreContext)
   const { selectedIsPaketVersiyon, setSelectedIsPaketVersiyon } = useContext(StoreContext)
   const { selectedProje } = useContext(StoreContext)
@@ -177,19 +177,10 @@ export default function P_isPaketPozlar() {
       }
 
       {/* BAŞLIK */}
-      <Box >
-
-        <AppBar
-          position="fixed"
-          sx={{
-            backgroundColor: "white",
-            color: "black",
-            boxShadow: 4,
-            width: { md: `calc(100% - ${drawerWidth}px)` },
-            mt: topBarHeight,
-            ml: { md: `${drawerWidth}px` }
-          }}
-        >
+      <AppBar
+        position="static"
+        sx={{ backgroundColor: "white", color: "black", boxShadow: 4 }}
+      >
 
           <Grid
             container
@@ -284,12 +275,10 @@ export default function P_isPaketPozlar() {
 
         </AppBar>
 
-      </Box >
-
 
       {
         isFetching2 &&
-        <Box sx={{ width: '100%', px: "1rem", mt: "3.5rem", color: 'gray' }}>
+        <Box sx={{ width: '100%', px: "1rem", color: 'gray' }}>
           <LinearProgress color='inherit' />
         </Box >
       }
@@ -298,7 +287,7 @@ export default function P_isPaketPozlar() {
       {/* EĞER POZ BAŞLIĞI YOKSA */}
       {
         !isFetching2 && !selectedProje?.wbs?.find(x => x.openForPoz === true) &&
-        <Stack sx={{ width: '100%', mt: "3.5rem", p: "1rem" }} spacing={2}>
+        <Stack sx={{ width: '100%', p: "1rem" }} spacing={2}>
           <Alert severity="info">
             Öncelikle poz oluşturmaya açık poz başlığı oluşturmalısınız.
           </Alert>
@@ -309,7 +298,7 @@ export default function P_isPaketPozlar() {
       {/* EĞER POZ YOKSA */}
       {
         !isFetching2 && selectedProje?.wbs?.find(x => x.openForPoz === true) && !dataIsPaketPozlar?.pozlar?.length > 0 &&
-        <Stack sx={{ width: '100%', mt: "3.5rem", p: "1rem" }} spacing={2}>
+        <Stack sx={{ width: '100%', p: "1rem" }} spacing={2}>
           <Alert severity="info">
             Herhangi bir mahal, herhangi bir poz ile henüz eşleştirilmemiş, 'mahallistesi' menüsüne gidiniz.
           </Alert>
@@ -322,7 +311,7 @@ export default function P_isPaketPozlar() {
       {
         !isFetching2 && wbsArray_state?.length > 0 && dataIsPaketPozlar?.pozlar?.length > 0 &&
 
-        <Box sx={{ p: "1rem", mt: "3.5rem", display: "grid", gridTemplateColumns: columns, borderTop: mode_isPaketEdit ? "4px solid #e53935" : "4px solid transparent", transition: "border-color 0.3s ease" }}>
+        <Box sx={{ p: "1rem", display: "grid", gridTemplateColumns: columns, borderTop: mode_isPaketEdit ? "4px solid #e53935" : "4px solid transparent", transition: "border-color 0.3s ease" }}>
 
           {/*   EN ÜST BAŞLIK */}
           <>

@@ -18,7 +18,6 @@ import ShowHideBaslik from '../../components/ShowHideBaslik.js'
 import ShowMetrajOnaylaPozlarBaslik from '../../components/ShowMetrajOnaylaPozlarBaslik'
 
 
-import Paper from '@mui/material/Paper';
 import AppBar from '@mui/material/AppBar';
 import Grid from '@mui/material/Grid';
 import EditIcon from '@mui/icons-material/Edit';
@@ -48,7 +47,6 @@ export default function P_MetrajOnaylaPozlar() {
   const queryClient = useQueryClient()
   const [dialogAlert, setDialogAlert] = useState()
 
-  const { drawerWidth, topBarHeight } = useContext(StoreContext)
   const { selectedMetrajVersiyon, setSelectedMetrajVersiyon } = useContext(StoreContext)
   const { selectedProje } = useContext(StoreContext)
   const { selectedPoz, setSelectedPoz } = useContext(StoreContext)
@@ -373,7 +371,7 @@ export default function P_MetrajOnaylaPozlar() {
 
 
       {isLoading &&
-        <Box sx={{ mt: "5rem", ml: "1rem", color: 'gray' }}>
+        <Box sx={{ ml: "1rem", color: 'gray' }}>
           <LinearProgress color='inherit' />
         </Box>
       }
@@ -381,7 +379,7 @@ export default function P_MetrajOnaylaPozlar() {
 
       {/* EĞER POZ BAŞLIĞI YOKSA */}
       {!isLoading && show == "Main" && !selectedProje?.wbs?.find(x => x.openForPoz === true) &&
-        <Stack sx={{ width: '100%', mt: "3.5rem", p: "1rem" }} spacing={2}>
+        <Stack sx={{ width: '100%', p: "1rem" }} spacing={2}>
           <Alert severity="info">
             Mahallistesi henüz boş.
           </Alert>
@@ -391,7 +389,7 @@ export default function P_MetrajOnaylaPozlar() {
 
       {/* EĞER POZ YOKSA */}
       {!isLoading && show == "Main" && selectedProje?.wbs?.find(x => x.openForPoz === true) && !pozlar?.length > 0 &&
-        <Stack sx={{ width: '100%', mt: "3.5rem", p: "1rem" }} spacing={2}>
+        <Stack sx={{ width: '100%', p: "1rem" }} spacing={2}>
           <Alert severity="info">
             Mahallistesi henüz boş.
           </Alert>
@@ -401,19 +399,10 @@ export default function P_MetrajOnaylaPozlar() {
 
 
       {/* BAŞLIK */}
-      <Paper >
-
-        <AppBar
-          position="fixed"
-          sx={{
-            backgroundColor: "white",
-            color: "black",
-            width: { md: `calc(100% - ${drawerWidth}px)` },
-            mt: topBarHeight,
-            // pt:"3rem",
-            ml: { md: `${drawerWidth}px` }
-          }}
-        >
+      <AppBar
+        position="static"
+        sx={{ backgroundColor: "white", color: "black", boxShadow: 4 }}
+      >
 
           <Grid
             container
@@ -426,9 +415,8 @@ export default function P_MetrajOnaylaPozlar() {
             {/* sol kısım (başlık) */}
             <Grid item xs>
               <Typography
-                // nowrap={true}
-                variant="h6"
-                fontWeight="bold"
+                variant="body1"
+                sx={{ fontWeight: 600, whiteSpace: "nowrap" }}
               >
                 Metraj Onayla
               </Typography>
@@ -443,14 +431,14 @@ export default function P_MetrajOnaylaPozlar() {
 
                   <>
                     <Box>
-                      <IconButton onClick={() => requestProjeAktifYetkiliKisi({ projeId: selectedProje?._id, aktifYetki: "metrajOnay" })}>
-                        <EditIcon variant="contained" />
+                      <IconButton sx={{ width: 40, height: 40 }} onClick={() => requestProjeAktifYetkiliKisi({ projeId: selectedProje?._id, aktifYetki: "metrajOnay" })}>
+                        <EditIcon variant="contained" sx={{ fontSize: 24 }} />
                       </IconButton>
                     </Box>
 
-                    <Box sx={{ mr: "0.5rem" }}>
-                      <IconButton onClick={() => setShow("ShowHideBaslik")} disabled={false}>
-                        <VisibilityIcon variant="contained" />
+                    <Box>
+                      <IconButton sx={{ width: 40, height: 40 }} onClick={() => setShow("ShowHideBaslik")} disabled={false}>
+                        <VisibilityIcon variant="contained" sx={{ fontSize: 24 }} />
                       </IconButton>
                     </Box>
 
@@ -503,21 +491,21 @@ export default function P_MetrajOnaylaPozlar() {
                   <>
 
                     <Grid item >
-                      <IconButton onClick={() => deleteProjeAktifYetkiliKisi({
+                      <IconButton sx={{ width: 40, height: 40 }} onClick={() => deleteProjeAktifYetkiliKisi({
                         projeId: selectedProje?._id,
                         aktifYetki: "metrajOnay",
                         setDialogAlert,
                         setShow,
                         onOk: () => setMode_metrajOnayla(),
                       })} aria-label="lbsUncliced">
-                        <ClearOutlined variant="contained" sx={{ color: "red" }} />
+                        <ClearOutlined variant="contained" sx={{ color: "red", fontSize: 24 }} />
                       </IconButton>
                     </Grid>
 
 
                     <Grid item >
-                      <IconButton onClick={() => setShow("ShowMetrajYapabilenler")} disabled={false}>
-                        <PersonIcon variant="contained" />
+                      <IconButton sx={{ width: 40, height: 40 }} onClick={() => setShow("ShowMetrajYapabilenler")} disabled={false}>
+                        <PersonIcon variant="contained" sx={{ fontSize: 24 }} />
                       </IconButton>
                     </Grid>
 
@@ -538,8 +526,6 @@ export default function P_MetrajOnaylaPozlar() {
 
         </AppBar>
 
-      </Paper >
-
 
 
 
@@ -547,7 +533,7 @@ export default function P_MetrajOnaylaPozlar() {
 
       {!isLoading && show == "Main" && wbsArray_hasMahal && pozlar?.length > 0 &&
 
-        <Box sx={{ m: "1rem", mt: "4.5rem", display: "grid", gridTemplateColumns: columns }}>
+        <Box sx={{ m: "1rem", display: "grid", gridTemplateColumns: columns }}>
 
           {/*   EN ÜST BAŞLIK */}
           <>

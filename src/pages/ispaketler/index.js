@@ -33,7 +33,6 @@ export default function P_IsPaketler() {
   const queryClient = useQueryClient();
 
   const { appUser, setAppUser } = useContext(StoreContext);
-  const { drawerWidth, topBarHeight } = useContext(StoreContext);
   const { selectedProje, setSelectedProje } = useContext(StoreContext);
   const { selectedIsPaket, setSelectedIsPaket } = useContext(StoreContext);
   const { mode_isPaketEdit, setMode_isPaketEdit } = useContext(StoreContext);

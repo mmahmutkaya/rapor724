@@ -48,7 +48,6 @@ export default function P_IsPaketPozMahaller() {
   const queryClient = useQueryClient()
 
   const { appUser, setAppUser, myTema } = useContext(StoreContext)
-  const { drawerWidth, topBarHeight } = useContext(StoreContext)
   const { selectedProje, selectedPoz, mode_isPaketEdit, setMode_isPaketEdit, selectedIsPaketVersiyon, setSelectedIsPaketVersiyon } = useContext(StoreContext)
 
 
@@ -422,19 +421,10 @@ export default function P_IsPaketPozMahaller() {
 
 
       {/* BAŞLIK */}
-      <Box>
-
-        <AppBar
-          position="fixed"
-          sx={{
-            backgroundColor: "white",
-            color: "black",
-            boxShadow: 4,
-            width: { md: `calc(100% - ${drawerWidth}px)` },
-            mt: topBarHeight,
-            ml: { md: `${drawerWidth}px` }
-          }}
-        >
+      <AppBar
+        position="static"
+        sx={{ backgroundColor: "white", color: "black", boxShadow: 4 }}
+      >
 
           <Grid
             container
@@ -570,11 +560,9 @@ export default function P_IsPaketPozMahaller() {
 
         </AppBar>
 
-      </Box>
-
 
       {(isFetching1 || isFetching2) &&
-        <Box sx={{ width: '100%', px: "1rem", mt: "3.5rem", color: 'gray' }}>
+        <Box sx={{ width: '100%', px: "1rem", color: 'gray' }}>
           <LinearProgress color='inherit' />
         </Box >
       }
@@ -595,7 +583,7 @@ export default function P_IsPaketPozMahaller() {
 
       {!(isFetching1 || isFetching2) && openLbsArray?.length > 0 &&
 
-        <Box sx={{ p: "1rem", mt: "3.5rem", display: "grid", gridTemplateColumns: gridTemplateColumns1, borderTop: mode_isPaketEdit ? "4px solid #e53935" : "4px solid transparent", transition: "border-color 0.3s ease" }}>
+        <Box sx={{ p: "1rem", display: "grid", gridTemplateColumns: gridTemplateColumns1, borderTop: mode_isPaketEdit ? "4px solid #e53935" : "4px solid transparent", transition: "border-color 0.3s ease" }}>
 
           {/* EN ÜST BAŞLIK */}
           <>
