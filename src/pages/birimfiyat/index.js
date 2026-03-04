@@ -18,10 +18,9 @@ import ShowHideBaslik from '../../components/ShowHideBaslik.js'
 import ShowPozParaBirimleri from '../../components/ShowPozParaBirimleri.js'
 
 
+import AppBar from '@mui/material/AppBar';
 import Typography from '@mui/material/Typography';
 import IconButton from '@mui/material/IconButton';
-import Popover from '@mui/material/Popover';
-import Paper from '@mui/material/Paper';
 import Button from '@mui/material/Button';
 import Grid from '@mui/material/Grid';
 import Input from '@mui/material/Input';
@@ -617,21 +616,20 @@ export default function P_BirimFiyat() {
 
 
       {/* BAŞLIK */}
-      <Paper >
+      <AppBar position="static" sx={{ backgroundColor: "white", color: "black", boxShadow: 4 }}>
 
         <Grid
           container
           justifyContent="space-between"
           alignItems="center"
-          sx={{ padding: "0.5rem 1rem", minHeight: "3.5rem" }}
+          sx={{ padding: "0.5rem 1rem", maxHeight: "5rem" }}
         >
 
           {/* sol kısım (başlık) */}
           <Grid item xs>
             <Typography
-              // nowrap={true}
-              variant="h6"
-              fontWeight="bold"
+              variant="body1"
+              sx={{ fontWeight: 600, whiteSpace: "nowrap" }}
             >
               Pozlar
             </Typography>
@@ -758,7 +756,7 @@ export default function P_BirimFiyat() {
 
         </Grid>
 
-      </Paper >
+      </AppBar>
 
 
       {/* SAYFA İÇERİĞİ - ALTERNATİF-1 */}
