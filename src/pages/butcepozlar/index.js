@@ -56,7 +56,7 @@ export default function P_KesifButcePozlar() {
   // On mount: initialize version context from wizard state
   useEffect(() => {
     if (!selectedProje) { navigate("/projeler"); return; }
-    if (!selectedIsPaket) { navigate("/ispaketlerbutce"); return; }
+    if (!selectedIsPaket) { navigate("/butceispaketler"); return; }
 
     // Set IP version from wizard
     if (kesifWizardIsPaketVersiyonNumber != null) {
@@ -250,7 +250,7 @@ export default function P_KesifButcePozlar() {
           <Grid item xs>
             <Box sx={{ display: "flex", alignItems: "center" }}>
               <IconButton
-                onClick={() => navigate("/ispaketlerbutce")}
+                onClick={() => navigate("/butceispaketler")}
                 sx={{ ...headerIconButton_sx, mr: "0.25rem", ml: "-0.5rem" }}
               >
                 <ReplyIcon sx={headerIcon_sx} />

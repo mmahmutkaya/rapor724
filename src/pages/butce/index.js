@@ -39,7 +39,7 @@ export default function P_KesifButce() {
         0
       ) ?? null;
     setKesifWizardIsPaketVersiyonNumber(maxV > 0 ? maxV : null);
-    navigate("/ispaketlerbutce");
+    navigate("/butceispaketler");
   };
 
   const formatTutar = (tutar) => {

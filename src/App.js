@@ -44,9 +44,9 @@ import P_MetrajCetvel from './pages/metrajcetvel'
 import P_BirimFiyat from './pages/birimfiyat'
 
 import P_IsPaketler from './pages/ispaketler'
-import P_KesifButce from './pages/kesifbutce'
-import P_KesifButcePozlar from './pages/kesifbutcepozlar'
-import P_IsPaketlerButce from './pages/ispaketlerbutce'
+import P_KesifButce from './pages/butce'
+import P_KesifButcePozlar from './pages/butcepozlar'
+import P_IsPaketlerButce from './pages/butceispaketler'
 import P_isPaketPozlar from './pages/ispaketpozlar'
 import P_isPaketPozMahaller from './pages/ispaketpozmahaller'
 
@@ -97,9 +97,9 @@ function App() {
       <Route path='/metrajcetvel' element={<P_MetrajCetvel />} />
 
       <Route path='/ispaketler' element={<P_IsPaketler />} />
-      <Route path='/kesifbutce' element={<P_KesifButce />} />
-      <Route path='/kesifbutcepozlar' element={<P_KesifButcePozlar />} />
-      <Route path='/ispaketlerbutce' element={<P_IsPaketlerButce />} />
+      <Route path='/butce' element={<P_KesifButce />} />
+      <Route path='/butcepozlar' element={<P_KesifButcePozlar />} />
+      <Route path='/butceispaketler' element={<P_IsPaketlerButce />} />
       <Route path='/ispaketpozlar' element={<P_isPaketPozlar />} />
       <Route path='/ispaketpozmahaller' element={<P_isPaketPozMahaller />} />
 
