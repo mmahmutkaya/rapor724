@@ -313,10 +313,11 @@ export default function P_IsPaketlerButce() {
     px: "0.5rem",
     border: "1px solid black",
     alignItems: "center",
-    mt: "0.1rem",
     backgroundColor: "lightgray",
     fontWeight: 700,
     minHeight: "2.2rem",
+    marginLeft: "-1px",
+    marginTop: "-1px",
   };
 
   const css_satir = {
@@ -325,6 +326,8 @@ export default function P_IsPaketlerButce() {
     border: "1px solid black",
     alignItems: "center",
     minHeight: "2.2rem",
+    marginLeft: "-1px",
+    marginTop: "-1px",
   };
 
   const css_toplam = {
@@ -332,10 +335,11 @@ export default function P_IsPaketlerButce() {
     px: "0.5rem",
     border: "1px solid black",
     alignItems: "center",
-    mt: "0.1rem",
     backgroundColor: "rgb(240,240,240)",
     fontWeight: 700,
     minHeight: "2.2rem",
+    marginLeft: "-1px",
+    marginTop: "-1px",
   };
 
   // Totals
@@ -467,15 +471,17 @@ export default function P_IsPaketlerButce() {
               display: "grid",
               gridTemplateColumns:
                 "max-content max-content max-content max-content max-content max-content",
+              ml: "1px", // Adjust for overlapping borders
+              pt: "1px", // Adjust for overlapping borders
             }}
           >
             {/* Başlık Satırı */}
             <Box sx={css_baslik}>Sıra</Box>
             <Box sx={css_baslik}>İş Paketi</Box>
-            <Box sx={{ ...css_baslik, ml: "0.1rem", textAlign: "center" }}>Metraj V.</Box>
-            <Box sx={{ ...css_baslik, ml: "0.1rem", textAlign: "center" }}>Birim Fiyat V.</Box>
-            <Box sx={{ ...css_baslik, ml: "0.1rem", textAlign: "right" }}>Keşif Tutar</Box>
-            <Box sx={{ ...css_baslik, ml: "0.1rem", textAlign: "right" }}>Bütçe Tutar</Box>
+            <Box sx={{ ...css_baslik, textAlign: "center" }}>Metraj V.</Box>
+            <Box sx={{ ...css_baslik, textAlign: "center" }}>Birim Fiyat V.</Box>
+            <Box sx={{ ...css_baslik, textAlign: "right" }}>Keşif Tutar</Box>
+            <Box sx={{ ...css_baslik, textAlign: "right" }}>Bütçe Tutar</Box>
 
             {/* Veri Satırları */}
             {isPaketList.map((onePaket, index) => {
@@ -489,7 +495,7 @@ export default function P_IsPaketlerButce() {
                   >
                     {onePaket.name}
                   </Box>
-                  <Box sx={{ ...css_satir, ml: "0.1rem", py: "0.25rem" }}>
+                  <Box sx={{ ...css_satir, py: "0.25rem" }}>
                     <Select
                       variant="standard"
                       size="small"
@@ -508,7 +514,7 @@ export default function P_IsPaketlerButce() {
                         ))}
                     </Select>
                   </Box>
-                  <Box sx={{ ...css_satir, ml: "0.1rem", py: "0.25rem" }}>
+                  <Box sx={{ ...css_satir, py: "0.25rem" }}>
                     <Select
                       variant="standard"
                       size="small"
@@ -530,7 +536,6 @@ export default function P_IsPaketlerButce() {
                   <Box
                     sx={{
                       ...css_satir,
-                      ml: "0.1rem",
                       justifyContent: "right",
                       fontWeight: row.kesifTutar != null ? 700 : 400,
                       color: row.isCalculating ? "gray" : "inherit",
@@ -538,7 +543,7 @@ export default function P_IsPaketlerButce() {
                   >
                     {row.isCalculating ? "..." : formatTutar(row.kesifTutar)}
                   </Box>
-                  <Box sx={{ ...css_satir, ml: "0.1rem", py: "0.25rem" }}>
+                  <Box sx={{ ...css_satir, py: "0.25rem" }}>
                     <TextField
                       variant="standard"
                       size="small"
@@ -557,10 +562,10 @@ export default function P_IsPaketlerButce() {
             <Box sx={{ ...css_toplam, gridColumn: "1 / span 4", justifyContent: "right" }}>
               Toplam
             </Box>
-            <Box sx={{ ...css_toplam, ml: "0.1rem", justifyContent: "right" }}>
+            <Box sx={{ ...css_toplam, justifyContent: "right" }}>
               {anyCalculating ? "..." : formatTutar(totalKesif)}
             </Box>
-            <Box sx={{ ...css_toplam, ml: "0.1rem", justifyContent: "right" }}>
+            <Box sx={{ ...css_toplam, justifyContent: "right" }}>
               {totalButce > 0 ? formatTutar(totalButce) : "—"}
             </Box>
           </Box>
