@@ -28,7 +28,6 @@ import VisibilityIcon from "@mui/icons-material/Visibility";
 import NavigateNextIcon from '@mui/icons-material/NavigateNext';
 import ClearOutlined from '@mui/icons-material/ClearOutlined';
 import EditIcon from '@mui/icons-material/Edit';
-import InfoIcon from "@mui/icons-material/Info";
 
 export default function P_IsPaketler() {
   const queryClient = useQueryClient();
@@ -224,26 +223,6 @@ export default function P_IsPaketler() {
     }
   }
 
-  const aktifPaketler = isPaketler?.filter((x) => x.isActive) ?? [];
-  const pasifPaketler = isPaketler?.filter((x) => !x.isActive) ?? [];
-
-  const emptySection = (
-    <Box
-      sx={{
-        gridColumn: "1/-1",
-        py: "0.5rem",
-        mt: "0.2rem",
-        display: "grid",
-        gridAutoFlow: "column",
-        backgroundColor: "rgba(227, 143, 122, 0.15)",
-        alignItems: "center",
-        justifyContent: "start",
-      }}
-    >
-      <InfoIcon sx={{ color: "rgba(223, 123, 98, 1)", fontSize: "1.2rem", m: "0.3rem" }} />
-      <Box>Bu başlık altında henüz iş paketi bulunmuyor.</Box>
-    </Box>
-  );
 
   const renderIsPaketRows = (paketler) =>
     paketler.map((onePaket, index) => {
@@ -575,32 +554,8 @@ export default function P_IsPaketler() {
             transition: "border-color 0.3s ease",
           }}
         >
-          {/* AKTİF İŞ PAKETLERİ */}
-          <Box sx={{ gridColumn: "1/-1", fontWeight: 700 }}>AKTİF İŞ PAKETLERİ</Box>
-
-          {aktifPaketler.length === 0 && emptySection}
-
-          {aktifPaketler.length > 0 && (
-            <React.Fragment>
-              {renderSectionHeaders()}
-              {renderIsPaketRows(aktifPaketler)}
-            </React.Fragment>
-          )}
-
-          {/* AYRAÇ */}
-          <Box sx={{ gridColumn: "1/-1", mt: "1rem", backgroundColor: "darkred", height: "0.2rem" }} />
-
-          {/* PASİF İŞ PAKETLERİ */}
-          <Box sx={{ gridColumn: "1/-1", fontWeight: 700, mt: "1rem" }}>PASİF İŞ PAKETLERİ</Box>
-
-          {pasifPaketler.length === 0 && emptySection}
-
-          {pasifPaketler.length > 0 && (
-            <React.Fragment>
-              {renderSectionHeaders()}
-              {renderIsPaketRows(pasifPaketler)}
-            </React.Fragment>
-          )}
+          {renderSectionHeaders()}
+          {renderIsPaketRows(isPaketler)}
         </Stack>
       )}
     </Box>
