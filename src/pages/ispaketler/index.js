@@ -129,7 +129,7 @@ export default function P_IsPaketler() {
   const headerIcon_sx = { fontSize: 24 };
 
   const columns =
-    `max-content minmax(min-content, 20rem)${showPozSayisi ? " minmax(5rem, max-content)" : ""} max-content${showAciklama ? " minmax(min-content, 20rem)" : ""}`;
+    `max-content minmax(20rem, max-content)${showPozSayisi ? " minmax(5rem, max-content)" : ""} max-content${showAciklama ? " max-content" : ""}`;
 
   const nextVersiyonNumber = (selectedProje?.isPaketVersiyonlar?.reduce((acc, cur) => Math.max(acc, cur.versiyonNumber), 0) ?? 0) + 1
 
