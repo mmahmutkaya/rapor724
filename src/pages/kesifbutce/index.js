@@ -1,138 +1,77 @@
-import React, { useState, useEffect, useContext } from "react";
+import React, { useEffect, useContext } from "react";
 import { StoreContext } from "../../components/store.js";
-import { useNavigate, useLocation } from "react-router-dom";
-import { DialogAlert } from "../../components/general/DialogAlert.js";
-
-import { useGetIsPaketPozlar } from "../../hooks/useMongo.js";
+import { useNavigate } from "react-router-dom";
 
 import AppBar from "@mui/material/AppBar";
 import Grid from "@mui/material/Grid";
 import Alert from "@mui/material/Alert";
 import Stack from "@mui/material/Stack";
-import { Typography } from "@mui/material";
+import Typography from "@mui/material/Typography";
 import Box from "@mui/material/Box";
-import InfoIcon from "@mui/icons-material/Info";
+import IconButton from "@mui/material/IconButton";
+
+import AddCircleOutlineIcon from "@mui/icons-material/AddCircleOutline";
 
 export default function P_KesifButce() {
   const { selectedProje } = useContext(StoreContext);
-  const { setSelectedIsPaket } = useContext(StoreContext);
-
-  const [dialogAlert, setDialogAlert] = useState();
-  const [isPaketler, setIsPaketler] = useState([]);
-  const [hoveredRow, setHoveredRow] = useState(null);
-
-  const { data: dataIsPaketPozlar } = useGetIsPaketPozlar();
+  const {
+    setKesifWizardRows,
+    setKesifWizardName,
+    setKesifWizardAciklama,
+    setKesifWizardIsPaketVersiyonNumber,
+    setKesifWizardActiveIsPaketId,
+  } = useContext(StoreContext);
 
   const navigate = useNavigate();
-  const location = useLocation();
 
   useEffect(() => {
-    if (!location.state?.keepIsPaket) {
-      setSelectedIsPaket(null);
-    }
     if (!selectedProje) navigate("/projeler");
   }, []);
 
-  useEffect(() => {
-    if (selectedProje) {
-      setIsPaketler(selectedProje?.isPaketler);
-    }
-  }, [selectedProje]);
-
-  const goto_kesifButcePozlar = (onePaket) => {
-    setSelectedIsPaket(onePaket);
-    navigate("/kesifbutcepozlar");
+  const handlePlusClick = () => {
+    setKesifWizardRows({});
+    setKesifWizardName("");
+    setKesifWizardAciklama("");
+    setKesifWizardActiveIsPaketId(null);
+    const maxV =
+      selectedProje?.isPaketVersiyonlar?.reduce(
+        (acc, cur) => Math.max(acc, cur.versiyonNumber),
+        0
+      ) ?? null;
+    setKesifWizardIsPaketVersiyonNumber(maxV > 0 ? maxV : null);
+    navigate("/ispaketlerbutce");
   };
 
-  const css_IsPaketlerBaslik = {
-    display: "grid",
-    mt: "0.1rem",
-    px: "0.5rem",
-    backgroundColor: "lightgray",
-    fontWeight: 700,
-    textWrap: "nowrap",
-    border: "1px solid black",
+  const formatTutar = (tutar) => {
+    if (tutar === null || tutar === undefined) return "—";
+    return new Intl.NumberFormat("tr-TR", {
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2,
+    }).format(tutar);
   };
 
-  const css_IsPaketler = {
+  const headerIconButton_sx = { width: 40, height: 40 };
+  const headerIcon_sx = { fontSize: 24 };
+
+  const css_satir = {
     display: "grid",
     px: "0.5rem",
     border: "1px solid black",
     alignItems: "center",
+    minHeight: "2.2rem",
   };
 
-  const columns =
-    "max-content minmax(min-content, 20rem) max-content max-content";
+  const css_baslik = {
+    ...css_satir,
+    mt: "0.1rem",
+    backgroundColor: "lightgray",
+    fontWeight: 700,
+  };
 
-  const renderIsPaketRows = (paketler) =>
-    paketler.map((onePaket, index) => {
-      const pozSayisi =
-        dataIsPaketPozlar?.isPaketPozSayisi?.[onePaket._id.toString()] ?? "";
-      const isHovered = hoveredRow === onePaket._id.toString();
-      const rowBaseSx = { transition: "text-shadow 0.2s ease", cursor: "pointer" };
-      const hoverSx = isHovered
-        ? { textShadow: "0 0 0.7px black, 0 0 0.7px black" }
-        : {};
-      const rowHandlers = {
-        onMouseEnter: () => setHoveredRow(onePaket._id.toString()),
-        onMouseLeave: () => setHoveredRow(null),
-        onClick: () => goto_kesifButcePozlar(onePaket),
-      };
-
-      return (
-        <React.Fragment key={onePaket._id.toString()}>
-          <Box {...rowHandlers} sx={{ ...css_IsPaketler, ...rowBaseSx, ...hoverSx, justifyContent: "center" }}>
-            {index + 1}
-          </Box>
-          <Box {...rowHandlers} sx={{ ...css_IsPaketler, ...rowBaseSx, ...hoverSx }}>
-            {onePaket.name}
-          </Box>
-          <Box {...rowHandlers} sx={{ ...css_IsPaketler, ...rowBaseSx, ...hoverSx, justifyContent: "center", marginLeft: "0.5rem" }}>
-            {pozSayisi}
-          </Box>
-          <Box {...rowHandlers} sx={{ ...css_IsPaketler, ...rowBaseSx, ...hoverSx, justifyContent: "center" }}>
-            {dataIsPaketPozlar?.isPaketDugumSayisi?.[onePaket._id.toString()] ?? ""}
-          </Box>
-        </React.Fragment>
-      );
-    });
-
-  const aktifPaketler = isPaketler?.filter((x) => x.isActive) ?? [];
-  const pasifPaketler = isPaketler?.filter((x) => !x.isActive) ?? [];
-
-  const emptySection = (
-    <Box
-      sx={{
-        gridColumn: "1/-1",
-        py: "0.5rem",
-        mt: "0.2rem",
-        display: "grid",
-        gridAutoFlow: "column",
-        backgroundColor: "rgba(227, 143, 122, 0.15)",
-        alignItems: "center",
-        justifyContent: "start",
-      }}
-    >
-      <InfoIcon sx={{ color: "rgba(223, 123, 98, 1)", fontSize: "1.2rem", m: "0.3rem" }} />
-      <Box>Bu başlık altında henüz iş paketi bulunmuyor.</Box>
-    </Box>
-  );
+  const hasVersions = (selectedProje?.butceVersiyonlar?.length ?? 0) > 0;
 
   return (
     <Box>
-      {dialogAlert && (
-        <DialogAlert
-          dialogIcon={dialogAlert.dialogIcon}
-          dialogMessage={dialogAlert.dialogMessage}
-          detailText={dialogAlert.detailText}
-          onCloseAction={
-            dialogAlert.onCloseAction
-              ? dialogAlert.onCloseAction
-              : () => setDialogAlert()
-          }
-        />
-      )}
-
       {/* BAŞLIK */}
       <AppBar
         position="static"
@@ -149,64 +88,91 @@ export default function P_KesifButce() {
               Keşif / Bütçe
             </Typography>
           </Grid>
+
+          <Grid item xs="auto">
+            <Box sx={{ display: "grid", gridAutoFlow: "column", alignItems: "center" }}>
+              <IconButton onClick={handlePlusClick} sx={headerIconButton_sx}>
+                <AddCircleOutlineIcon sx={headerIcon_sx} />
+              </IconButton>
+            </Box>
+          </Grid>
         </Grid>
       </AppBar>
 
-      {!isPaketler?.length > 0 && (
-        <Stack sx={{ width: "100%", padding: "1rem" }} spacing={2}>
-          <Alert severity="info">
-            Bir iş paketi oluşturmak için (+) tuşuna basınız..
-          </Alert>
-        </Stack>
-      )}
+      {/* İÇERİK */}
+      <Box sx={{ p: "1rem" }}>
+        {!hasVersions && (
+          <Stack spacing={2}>
+            <Alert severity="info">
+              Henüz bütçe versiyonu oluşturulmamış. + tuşuna basarak oluşturabilirsiniz.
+            </Alert>
+          </Stack>
+        )}
 
-      {isPaketler?.length > 0 && (
-        <Stack
-          sx={{
-            width: "100%",
-            padding: "1rem",
-            display: "grid",
-            gridTemplateColumns: columns,
-          }}
-        >
-          {/* AKTİF İŞ PAKETLERİ */}
-          <Box sx={{ gridColumn: "1/-1", fontWeight: 700 }}>
-            AKTİF İŞ PAKETLERİ
+        {hasVersions && (
+          <Box
+            sx={{
+              mt: "0.5rem",
+              display: "grid",
+              gridTemplateColumns:
+                "max-content max-content max-content max-content max-content max-content max-content",
+            }}
+          >
+            <Box sx={css_baslik}>Versiyon</Box>
+            <Box sx={css_baslik}>Bütçe Adı</Box>
+            <Box sx={css_baslik}>Açıklama</Box>
+            <Box sx={{ ...css_baslik, ml: "0.1rem", textAlign: "center" }}>İş Paketi V.</Box>
+            <Box sx={{ ...css_baslik, ml: "0.1rem", textAlign: "center" }}>Metraj V.</Box>
+            <Box sx={{ ...css_baslik, ml: "0.1rem", textAlign: "center" }}>Birim Fiyat V.</Box>
+            <Box sx={{ ...css_baslik, ml: "0.1rem", textAlign: "right" }}>Tutar</Box>
+
+            {[...(selectedProje?.butceVersiyonlar ?? [])]
+              .sort((a, b) => b.versiyonNumber - a.versiyonNumber)
+              .map((v) => (
+                <React.Fragment key={v.versiyonNumber}>
+                  <Box sx={css_satir}>
+                    <Box sx={{ fontWeight: 700 }}>B{v.versiyonNumber}</Box>
+                    {v.aciklama && (
+                      <Box sx={{ fontSize: "0.75rem", color: "gray" }}>{v.aciklama}</Box>
+                    )}
+                    {v.createdAt && (
+                      <Box sx={{ fontSize: "0.75rem", color: "gray" }}>
+                        {new Date(v.createdAt).toLocaleDateString("tr-TR")}
+                      </Box>
+                    )}
+                  </Box>
+                  <Box sx={css_satir}>{v.butce?.name ?? "—"}</Box>
+                  <Box sx={css_satir}>{v.butce?.aciklama ?? "—"}</Box>
+                  <Box sx={{ ...css_satir, ml: "0.1rem", justifyContent: "center" }}>
+                    {v.butce?.isPaketVersiyonNumber != null
+                      ? `İP${v.butce.isPaketVersiyonNumber}`
+                      : "—"}
+                  </Box>
+                  <Box sx={{ ...css_satir, ml: "0.1rem", justifyContent: "center" }}>
+                    {v.butce?.metrajVersiyonNumber != null
+                      ? `M${v.butce.metrajVersiyonNumber}`
+                      : "—"}
+                  </Box>
+                  <Box sx={{ ...css_satir, ml: "0.1rem", justifyContent: "center" }}>
+                    {v.butce?.birimFiyatVersiyonNumber != null
+                      ? `BF${v.butce.birimFiyatVersiyonNumber}`
+                      : "—"}
+                  </Box>
+                  <Box
+                    sx={{
+                      ...css_satir,
+                      ml: "0.1rem",
+                      justifyContent: "right",
+                      fontWeight: 700,
+                    }}
+                  >
+                    {formatTutar(v.butce?.totalKesifTutar ?? v.butce?.tutar)}
+                  </Box>
+                </React.Fragment>
+              ))}
           </Box>
-
-          {aktifPaketler.length === 0 && emptySection}
-
-          {aktifPaketler.length > 0 && (
-            <React.Fragment>
-              <Box sx={{ ...css_IsPaketlerBaslik }}>Sıra</Box>
-              <Box sx={{ ...css_IsPaketlerBaslik }}>İş Paketi</Box>
-              <Box sx={{ ...css_IsPaketlerBaslik, marginLeft: "0.5rem" }}>Poz Sayısı</Box>
-              <Box sx={{ ...css_IsPaketlerBaslik }}>Mahal Sayısı</Box>
-              {renderIsPaketRows(aktifPaketler)}
-            </React.Fragment>
-          )}
-
-          {/* AYRAÇ */}
-          <Box sx={{ gridColumn: "1/-1", mt: "1rem", backgroundColor: "darkred", height: "0.2rem" }} />
-
-          {/* PASİF İŞ PAKETLERİ */}
-          <Box sx={{ gridColumn: "1/-1", fontWeight: 700, mt: "1rem" }}>
-            PASİF İŞ PAKETLERİ
-          </Box>
-
-          {pasifPaketler.length === 0 && emptySection}
-
-          {pasifPaketler.length > 0 && (
-            <React.Fragment>
-              <Box sx={{ ...css_IsPaketlerBaslik }}>Sıra</Box>
-              <Box sx={{ ...css_IsPaketlerBaslik }}>İş Paketi</Box>
-              <Box sx={{ ...css_IsPaketlerBaslik, marginLeft: "0.5rem" }}>Poz Sayısı</Box>
-              <Box sx={{ ...css_IsPaketlerBaslik }}>Mahal Sayısı</Box>
-              {renderIsPaketRows(pasifPaketler)}
-            </React.Fragment>
-          )}
-        </Stack>
-      )}
+        )}
+      </Box>
     </Box>
   );
 }

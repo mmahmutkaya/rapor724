@@ -49,6 +49,7 @@ export default ({ children }) => {
   const [selectedWbs, setSelectedWbs] = useState()
   const [selectedIsPaket, setSelectedIsPaket] = useState()
   const [selectedIsPaketVersiyon, setSelectedIsPaketVersiyon] = useState()
+  const [selectedButceVersiyon, setSelectedButceVersiyon] = useState()
 
   const [selectedPoz, setSelectedPoz] = useState()
   const [selectedPozBaslik, setSelectedPozBaslik] = useState()
@@ -68,6 +69,7 @@ export default ({ children }) => {
   const [mode_metrajOnayla, setMode_metrajOnayla] = useState()
   const [mode_birimFiyatEdit, setMode_birimFiyatEdit] = useState()
   const [mode_isPaketEdit, setMode_isPaketEdit] = useState()
+  const [mode_butceEdit, setMode_butceEdit] = useState()
   const [detailMode, setDetailMode] = useState()
 
   // const [RealmApp, setRealmApp] = useState(Realm.getApp("rapor724_v2-cykom"))
@@ -89,6 +91,12 @@ export default ({ children }) => {
 
   const [pageMetraj_show, pageMetraj_setShow] = useState("Pozlar")
 
+  const [kesifWizardRows, setKesifWizardRows] = useState({})
+  const [kesifWizardName, setKesifWizardName] = useState("")
+  const [kesifWizardAciklama, setKesifWizardAciklama] = useState("")
+  const [kesifWizardIsPaketVersiyonNumber, setKesifWizardIsPaketVersiyonNumber] = useState(null)
+  const [kesifWizardActiveIsPaketId, setKesifWizardActiveIsPaketId] = useState(null)
+
   const store = {
     custom, setCustom,
 
@@ -101,6 +109,7 @@ export default ({ children }) => {
     selectedWbs, setSelectedWbs,
     selectedIsPaket, setSelectedIsPaket,
     selectedIsPaketVersiyon, setSelectedIsPaketVersiyon,
+    selectedButceVersiyon, setSelectedButceVersiyon,
 
 
     selectedPoz, setSelectedPoz,
@@ -122,6 +131,7 @@ export default ({ children }) => {
     mode_metrajOnayla, setMode_metrajOnayla,
     mode_birimFiyatEdit, setMode_birimFiyatEdit,
     mode_isPaketEdit, setMode_isPaketEdit,
+    mode_butceEdit, setMode_butceEdit,
     detailMode, setDetailMode,
 
 
@@ -146,7 +156,13 @@ export default ({ children }) => {
 
     showMetrajYapabilenler, setShowMetrajYapabilenler,
 
-    pageMetraj_show, pageMetraj_setShow
+    pageMetraj_show, pageMetraj_setShow,
+
+    kesifWizardRows, setKesifWizardRows,
+    kesifWizardName, setKesifWizardName,
+    kesifWizardAciklama, setKesifWizardAciklama,
+    kesifWizardIsPaketVersiyonNumber, setKesifWizardIsPaketVersiyonNumber,
+    kesifWizardActiveIsPaketId, setKesifWizardActiveIsPaketId,
   }
 
   return <StoreContext.Provider value={store}>{children}</StoreContext.Provider>

@@ -179,7 +179,7 @@ export const useGetPozlar = () => {
   const { appUser, setAppUser, selectedProje, setSelectedProje, selectedBirimFiyatVersiyon, setSelectedBirimFiyatVersiyon, selectedMetrajVersiyon, setSelectedMetrajVersiyon, selectedIsPaket, selectedIsPaketVersiyon } = useContext(StoreContext)
 
   return useQuery({
-    queryKey: ['dataPozlar'],
+    queryKey: ['dataPozlar', selectedIsPaket?._id ?? null],
     queryFn: async () => {
       const headers = {
           email: appUser.email,
