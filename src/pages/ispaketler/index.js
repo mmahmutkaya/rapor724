@@ -28,6 +28,7 @@ import VisibilityIcon from "@mui/icons-material/Visibility";
 import NavigateNextIcon from '@mui/icons-material/NavigateNext';
 import ClearOutlined from '@mui/icons-material/ClearOutlined';
 import EditIcon from '@mui/icons-material/Edit';
+import InfoIcon from "@mui/icons-material/Info";
 
 export default function P_IsPaketler() {
   const queryClient = useQueryClient();
@@ -222,6 +223,86 @@ export default function P_IsPaketler() {
       })
     }
   }
+
+  const aktifPaketler = isPaketler?.filter((x) => x.isActive) ?? [];
+  const pasifPaketler = isPaketler?.filter((x) => !x.isActive) ?? [];
+
+  const emptySection = (
+    <Box
+      sx={{
+        gridColumn: "1/-1",
+        py: "0.5rem",
+        mt: "0.2rem",
+        display: "grid",
+        gridAutoFlow: "column",
+        backgroundColor: "rgba(227, 143, 122, 0.15)",
+        alignItems: "center",
+        justifyContent: "start",
+      }}
+    >
+      <InfoIcon sx={{ color: "rgba(223, 123, 98, 1)", fontSize: "1.2rem", m: "0.3rem" }} />
+      <Box>Bu başlık altında henüz iş paketi bulunmuyor.</Box>
+    </Box>
+  );
+
+  const renderIsPaketRows = (paketler) =>
+    paketler.map((onePaket, index) => {
+      const pozSayisi =
+        dataIsPaketPozlar?.isPaketPozSayisi?.[onePaket._id.toString()] ?? "";
+
+      return (
+        <React.Fragment key={onePaket._id.toString()}>
+          <Box sx={{ ...css_IsPaketler, justifyContent: "center" }}>
+            {index + 1}
+          </Box>
+
+          <Box sx={{ ...css_IsPaketler }}>
+            {onePaket.name}
+          </Box>
+
+          {showPozSayisi && (
+            <Box sx={{ ...css_IsPaketler, justifyContent: "center", marginLeft: "0.5rem" }}>
+              {pozSayisi}
+            </Box>
+          )}
+
+          <Box sx={{ ...css_IsPaketler, justifyContent: "center" }}>
+            {dataIsPaketPozlar?.isPaketDugumSayisi?.[onePaket._id.toString()] ?? ""}
+          </Box>
+
+          {showAciklama && (
+            <Box sx={{ ...css_IsPaketler, marginLeft: "0.5rem" }}>
+              {onePaket.aciklama ?? ""}
+            </Box>
+          )}
+        </React.Fragment>
+      );
+    });
+
+  const renderSectionHeaders = () => (
+    <React.Fragment>
+      <Box sx={{ ...css_IsPaketlerBaslik }}>Sıra</Box>
+      <Box sx={{ ...css_IsPaketlerBaslik }}>İş Paketi</Box>
+      {showPozSayisi && (
+        <Box sx={{ ...css_IsPaketlerBaslik, marginLeft: "0.5rem", textAlign: "center" }}>Poz</Box>
+      )}
+      <Box sx={{ ...css_IsPaketlerBaslik, display: "flex", alignItems: "center", gap: "0.3rem" }}>
+        Mahal
+        {totalDugum > 0 && (
+          <Box sx={{ display: "flex", alignItems: "center" }}>
+            <span>(</span>
+            <span>{totalA}</span>
+            {totalB > 0 && <span>{'\u202F/\u202F'}</span>}
+            {totalB > 0 && <Box component="span" sx={{ color: "#c0392b", fontWeight: 700 }}>{totalB}</Box>}
+            <span>)</span>
+          </Box>
+        )}
+      </Box>
+      {showAciklama && (
+        <Box sx={{ ...css_IsPaketlerBaslik, marginLeft: "0.5rem" }}>Açıklama</Box>
+      )}
+    </React.Fragment>
+  );
 
   return (
     <Box>
@@ -494,67 +575,32 @@ export default function P_IsPaketler() {
             transition: "border-color 0.3s ease",
           }}
         >
-          {/* iş paketleri başlık satırı */}
-          <React.Fragment>
-            <Box sx={{ ...css_IsPaketlerBaslik }}>Sıra</Box>
+          {/* AKTİF İŞ PAKETLERİ */}
+          <Box sx={{ gridColumn: "1/-1", fontWeight: 700 }}>AKTİF İŞ PAKETLERİ</Box>
 
-            <Box sx={{ ...css_IsPaketlerBaslik }}>İş Paketi</Box>
+          {aktifPaketler.length === 0 && emptySection}
 
-            {showPozSayisi && (
-              <Box sx={{ ...css_IsPaketlerBaslik, marginLeft: "0.5rem", textAlign: "center" }}>Poz</Box>
-            )}
+          {aktifPaketler.length > 0 && (
+            <React.Fragment>
+              {renderSectionHeaders()}
+              {renderIsPaketRows(aktifPaketler)}
+            </React.Fragment>
+          )}
 
-            <Box sx={{ ...css_IsPaketlerBaslik, display: "flex", alignItems: "center", gap: "0.3rem" }}>
-              Mahal
-              {totalDugum > 0 && (
-                <Box sx={{ display: "flex", alignItems: "center" }}>
-                  <span>(</span>
-                  <span>{totalA}</span>
-                  {totalB > 0 && <span>{'\u202F/\u202F'}</span>}
-                  {totalB > 0 && <Box component="span" sx={{ color: "#c0392b", fontWeight: 700 }}>{totalB}</Box>}
-                  <span>)</span>
-                </Box>
-              )}
-            </Box>
+          {/* AYRAÇ */}
+          <Box sx={{ gridColumn: "1/-1", mt: "1rem", backgroundColor: "darkred", height: "0.2rem" }} />
 
-            {showAciklama && (
-              <Box sx={{ ...css_IsPaketlerBaslik, marginLeft: "0.5rem" }}>Açıklama</Box>
-            )}
-          </React.Fragment>
+          {/* PASİF İŞ PAKETLERİ */}
+          <Box sx={{ gridColumn: "1/-1", fontWeight: 700, mt: "1rem" }}>PASİF İŞ PAKETLERİ</Box>
 
-          {/* iş paketleri verileri */}
-          {isPaketler.map((onePaket, index) => {
-            const pozSayisi =
-              dataIsPaketPozlar?.isPaketPozSayisi?.[onePaket._id.toString()] ?? "";
+          {pasifPaketler.length === 0 && emptySection}
 
-            return (
-              <React.Fragment key={index}>
-                <Box sx={{ ...css_IsPaketler, justifyContent: "center" }}>
-                  {index + 1}
-                </Box>
-
-                <Box sx={{ ...css_IsPaketler }}>
-                  {onePaket.name}
-                </Box>
-
-                {showPozSayisi && (
-                  <Box sx={{ ...css_IsPaketler, justifyContent: "center", marginLeft: "0.5rem" }}>
-                    {pozSayisi}
-                  </Box>
-                )}
-
-                <Box sx={{ ...css_IsPaketler, justifyContent: "center" }}>
-                  {dataIsPaketPozlar?.isPaketDugumSayisi?.[onePaket._id.toString()] ?? ""}
-                </Box>
-
-                {showAciklama && (
-                  <Box sx={{ ...css_IsPaketler, marginLeft: "0.5rem" }}>
-                    {onePaket.aciklama ?? ""}
-                  </Box>
-                )}
-              </React.Fragment>
-            );
-          })}
+          {pasifPaketler.length > 0 && (
+            <React.Fragment>
+              {renderSectionHeaders()}
+              {renderIsPaketRows(pasifPaketler)}
+            </React.Fragment>
+          )}
         </Stack>
       )}
     </Box>

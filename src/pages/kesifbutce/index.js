@@ -1,13 +1,9 @@
 import React, { useState, useEffect, useContext } from "react";
 import { StoreContext } from "../../components/store.js";
-import FormIsPaketCreate from "../../components/FormIsPaketCreate.js";
 import { useNavigate, useLocation } from "react-router-dom";
 import { DialogAlert } from "../../components/general/DialogAlert.js";
-import ShowIsPaketBasliklar from "../../components/ShowIsPaketBasliklar.js";
 
 import { useGetIsPaketPozlar } from "../../hooks/useMongo.js";
-import useRequestProjeAktifYetkiliKisi from "../../functions/requestProjeAktifYetkiliKisi.js";
-import useDeleteProjeAktifYetkiliKisi from "../../functions/deleteProjeAktifYetkiliKisi.js";
 
 import AppBar from "@mui/material/AppBar";
 import Grid from "@mui/material/Grid";
@@ -15,34 +11,20 @@ import Alert from "@mui/material/Alert";
 import Stack from "@mui/material/Stack";
 import { Typography } from "@mui/material";
 import Box from "@mui/material/Box";
-import IconButton from "@mui/material/IconButton";
-import DeleteIcon from "@mui/icons-material/Delete";
-import AddCircleOutlineIcon from "@mui/icons-material/AddCircleOutline";
-import VisibilityIcon from "@mui/icons-material/Visibility";
 import InfoIcon from "@mui/icons-material/Info";
-import AdjustIcon from '@mui/icons-material/Adjust';
 
 export default function P_KesifButce() {
-  const { appUser, setAppUser } = useContext(StoreContext);
-  const { selectedProje, setSelectedProje } = useContext(StoreContext);
-
-  const { selectedIsPaket, setSelectedIsPaket } = useContext(StoreContext);
-
-  const requestProjeAktifYetkiliKisi = useRequestProjeAktifYetkiliKisi();
-  const deleteProjeAktifYetkiliKisi = useDeleteProjeAktifYetkiliKisi();
+  const { selectedProje } = useContext(StoreContext);
+  const { setSelectedIsPaket } = useContext(StoreContext);
 
   const [dialogAlert, setDialogAlert] = useState();
   const [isPaketler, setIsPaketler] = useState([]);
-
-  const [basliklar, setBasliklar] = useState(
-    appUser.customSettings.pages.ispaketler.basliklar,
-  );
+  const [hoveredRow, setHoveredRow] = useState(null);
 
   const { data: dataIsPaketPozlar } = useGetIsPaketPozlar();
 
   const navigate = useNavigate();
   const location = useLocation();
-
 
   useEffect(() => {
     if (!location.state?.keepIsPaket) {
@@ -56,15 +38,6 @@ export default function P_KesifButce() {
       setIsPaketler(selectedProje?.isPaketler);
     }
   }, [selectedProje]);
-
-  const [show, setShow] = useState("Main");
-  const [hoveredRow, setHoveredRow] = useState(null);
-
-  const pasifShow = basliklar?.find((x) => x.id === "pasif")?.show;
-
-  const goto_isPaketPozlar = () => {
-    navigate("/ispaketpozlar");
-  };
 
   const goto_kesifButcePozlar = (onePaket) => {
     setSelectedIsPaket(onePaket);
@@ -88,11 +61,62 @@ export default function P_KesifButce() {
     alignItems: "center",
   };
 
-  const headerIconButton_sx = { width: 40, height: 40 };
-  const headerIcon_sx = { fontSize: 24 };
-
   const columns =
     "max-content minmax(min-content, 20rem) max-content max-content";
+
+  const renderIsPaketRows = (paketler) =>
+    paketler.map((onePaket, index) => {
+      const pozSayisi =
+        dataIsPaketPozlar?.isPaketPozSayisi?.[onePaket._id.toString()] ?? "";
+      const isHovered = hoveredRow === onePaket._id.toString();
+      const rowBaseSx = { transition: "text-shadow 0.2s ease", cursor: "pointer" };
+      const hoverSx = isHovered
+        ? { textShadow: "0 0 0.7px black, 0 0 0.7px black" }
+        : {};
+      const rowHandlers = {
+        onMouseEnter: () => setHoveredRow(onePaket._id.toString()),
+        onMouseLeave: () => setHoveredRow(null),
+        onClick: () => goto_kesifButcePozlar(onePaket),
+      };
+
+      return (
+        <React.Fragment key={onePaket._id.toString()}>
+          <Box {...rowHandlers} sx={{ ...css_IsPaketler, ...rowBaseSx, ...hoverSx, justifyContent: "center" }}>
+            {index + 1}
+          </Box>
+          <Box {...rowHandlers} sx={{ ...css_IsPaketler, ...rowBaseSx, ...hoverSx }}>
+            {onePaket.name}
+          </Box>
+          <Box {...rowHandlers} sx={{ ...css_IsPaketler, ...rowBaseSx, ...hoverSx, justifyContent: "center", marginLeft: "0.5rem" }}>
+            {pozSayisi}
+          </Box>
+          <Box {...rowHandlers} sx={{ ...css_IsPaketler, ...rowBaseSx, ...hoverSx, justifyContent: "center" }}>
+            {dataIsPaketPozlar?.isPaketDugumSayisi?.[onePaket._id.toString()] ?? ""}
+          </Box>
+        </React.Fragment>
+      );
+    });
+
+  const aktifPaketler = isPaketler?.filter((x) => x.isActive) ?? [];
+  const pasifPaketler = isPaketler?.filter((x) => !x.isActive) ?? [];
+
+  const emptySection = (
+    <Box
+      sx={{
+        gridColumn: "1/-1",
+        py: "0.5rem",
+        mt: "0.2rem",
+        display: "grid",
+        gridAutoFlow: "column",
+        backgroundColor: "rgba(227, 143, 122, 0.15)",
+        alignItems: "center",
+        justifyContent: "start",
+      }}
+    >
+      <InfoIcon sx={{ color: "rgba(223, 123, 98, 1)", fontSize: "1.2rem", m: "0.3rem" }} />
+      <Box>Bu başlık altında henüz iş paketi bulunmuyor.</Box>
+    </Box>
+  );
 
   return (
     <Box>
@@ -109,15 +133,6 @@ export default function P_KesifButce() {
         />
       )}
 
-      {/* BAŞLIK GÖSTER / GİZLE */}
-      {show == "ShowBaslik" && (
-        <ShowIsPaketBasliklar
-          setShow={setShow}
-          basliklar={basliklar}
-          setBasliklar={setBasliklar}
-        />
-      )}
-
       {/* BAŞLIK */}
       <AppBar
         position="static"
@@ -129,110 +144,15 @@ export default function P_KesifButce() {
           alignItems="center"
           sx={{ padding: "0.5rem 1rem", maxHeight: "5rem" }}
         >
-          {/* sol kısım (başlık) */}
           <Grid item xs>
-            <Typography
-              variant="body1"
-              sx={{ fontWeight: 600, whiteSpace: "nowrap" }}
-            >
+            <Typography variant="body1" sx={{ fontWeight: 600, whiteSpace: "nowrap" }}>
               Keşif / Bütçe
             </Typography>
-          </Grid>
-
-          {/* sağ kısım - (tuşlar)*/}
-          <Grid item xs="auto">
-            <Box
-              sx={{
-                display: "grid",
-                gridAutoFlow: "column",
-                alignItems: "center",
-              }}
-            >
-
-              <Box>
-                <IconButton onClick={() => setShow("ShowBaslik")} sx={headerIconButton_sx}>
-                  <VisibilityIcon variant="contained" sx={headerIcon_sx} />
-                </IconButton>
-              </Box>
-
-
-              {!selectedIsPaket && (
-                <>
-                  <Box>
-                    <IconButton
-                      onClick={() => goto_isPaketPozlar()}
-                      sx={headerIconButton_sx}
-                    >
-                      <AdjustIcon
-                        variant="contained"
-                        color="success"
-                        sx={headerIcon_sx}
-                      />
-                    </IconButton>
-                  </Box>
-
-                  <Box>
-                    <IconButton
-                      onClick={async () => {
-                        const checkAuth = await requestProjeAktifYetkiliKisi({
-                          projeId: selectedProje?._id,
-                          aktifYetki: "isPaketEdit",
-                          setDialogAlert,
-                          setShow,
-                        })
-                        if (checkAuth?.ok) {
-                          setShow("FormIsPaketCreate")
-                        } else {
-                          setShow("Main")
-                        }
-                      }}
-                      sx={headerIconButton_sx}
-                    >
-                      <AddCircleOutlineIcon
-                        variant="contained"
-                        color="success"
-                        sx={headerIcon_sx}
-                      />
-                    </IconButton>
-                  </Box>
-                </>
-              )}
-
-              {selectedIsPaket && (
-                <>
-                  <Grid item>
-                    <IconButton
-                      onClick={() => console.log("deleted clicked")}
-                      aria-label="addWbs"
-                      sx={headerIconButton_sx}
-                    >
-                      <DeleteIcon variant="contained" color="error" sx={headerIcon_sx} />
-                    </IconButton>
-                  </Grid>
-                </>
-              )}
-            </Box>
           </Grid>
         </Grid>
       </AppBar>
 
-      {show == "FormIsPaketCreate" && (
-        <Box>
-          <FormIsPaketCreate
-            setShow={(newShow) => {
-              deleteProjeAktifYetkiliKisi({
-                projeId: selectedProje?._id,
-                aktifYetki: "isPaketEdit",
-                setDialogAlert,
-                setShow,
-              });
-              setShow(newShow);
-            }}
-          />
-        </Box>
-      )}
-
-      {show == "Main" && !isPaketler?.length > 0 && (
+      {!isPaketler?.length > 0 && (
         <Stack sx={{ width: "100%", padding: "1rem" }} spacing={2}>
           <Alert severity="info">
             Bir iş paketi oluşturmak için (+) tuşuna basınız..
@@ -240,7 +160,7 @@ export default function P_KesifButce() {
         </Stack>
       )}
 
-      {show == "Main" && isPaketler?.length > 0 && (
+      {isPaketler?.length > 0 && (
         <Stack
           sx={{
             width: "100%",
@@ -250,187 +170,40 @@ export default function P_KesifButce() {
           }}
         >
           {/* AKTİF İŞ PAKETLERİ */}
-
-          {/* iş paket başlığı adı - en üst satır*/}
-          <Box sx={{ gridColumn: "1/-1", fontWeight: 700, cursor: "pointer" }}>
+          <Box sx={{ gridColumn: "1/-1", fontWeight: 700 }}>
             AKTİF İŞ PAKETLERİ
           </Box>
 
-          {/* iş paketleri henüz oluşturulmamış ise */}
-          {!isPaketler?.filter((x) => x.isActive)?.length > 0 && (
-            <Box
-              sx={{
-                gridColumn: "1/-1",
-                py: "0.5rem",
-                mt: "0.2rem",
-                cursor: "pointer",
-                display: "grid",
-                gridAutoFlow: "column",
-                backgroundColor: "rgba(227, 143, 122, 0.15)",
-                alignItems: "center",
-                justifyContent: "start",
-              }}
-            >
-              <InfoIcon
-                variant="contained"
-                sx={{
-                  color: "rgba(223, 123, 98, 1)",
-                  fontSize: "1.2rem",
-                  m: "0.3rem",
-                }}
-              />
-              <Box>Bu başlık altında henüz iş paketi bulunmuyor.</Box>
-            </Box>
-          )}
+          {aktifPaketler.length === 0 && emptySection}
 
-          {isPaketler?.filter((x) => x.isActive).length > 0 && (
+          {aktifPaketler.length > 0 && (
             <React.Fragment>
-              {/* iş paketleri varsa */}
-              <React.Fragment>
-                <Box sx={{ ...css_IsPaketlerBaslik }}>Sıra</Box>
-
-                <Box sx={{ ...css_IsPaketlerBaslik }}>İş Paketi</Box>
-
-                <Box sx={{ ...css_IsPaketlerBaslik, marginLeft: "0.5rem" }}>Poz Sayısı</Box>
-
-                <Box sx={{ ...css_IsPaketlerBaslik }}>
-                  Mahal Sayısı
-                </Box>
-              </React.Fragment>
-
-              {/* iş paketleri verileri */}
-              {isPaketler.length > 0 &&
-                isPaketler.map((onePaket, index) => {
-                  const pozSayisi =
-                    dataIsPaketPozlar?.isPaketPozSayisi?.[onePaket._id.toString()] ?? "";
-
-                  const isHovered = hoveredRow === onePaket._id.toString();
-                  const rowBaseSx = { transition: "text-shadow 0.2s ease", cursor: "pointer" };
-                  const hoverSx = isHovered ? { textShadow: "0 0 0.7px black, 0 0 0.7px black" } : {};
-                  const rowHandlers = {
-                    onMouseEnter: () => setHoveredRow(onePaket._id.toString()),
-                    onMouseLeave: () => setHoveredRow(null),
-                    onClick: () => goto_kesifButcePozlar(onePaket),
-                  };
-
-                  return (
-                    <React.Fragment key={index}>
-                      <Box {...rowHandlers} sx={{ ...css_IsPaketler, ...rowBaseSx, ...hoverSx, justifyContent: "center" }}>
-                        {index + 1}
-                      </Box>
-
-                      <Box {...rowHandlers} sx={{ ...css_IsPaketler, ...rowBaseSx, ...hoverSx }}>
-                        {onePaket.name}
-                      </Box>
-
-                      <Box {...rowHandlers} sx={{ ...css_IsPaketler, ...rowBaseSx, ...hoverSx, justifyContent: "center", marginLeft: "0.5rem" }}>
-                        {pozSayisi}
-                      </Box>
-
-                      <Box {...rowHandlers} sx={{ ...css_IsPaketler, ...rowBaseSx, ...hoverSx, justifyContent: "center" }}>
-                        {dataIsPaketPozlar?.isPaketDugumSayisi?.[onePaket._id.toString()] ?? ""}
-                      </Box>
-                    </React.Fragment>
-                  );
-                })}
+              <Box sx={{ ...css_IsPaketlerBaslik }}>Sıra</Box>
+              <Box sx={{ ...css_IsPaketlerBaslik }}>İş Paketi</Box>
+              <Box sx={{ ...css_IsPaketlerBaslik, marginLeft: "0.5rem" }}>Poz Sayısı</Box>
+              <Box sx={{ ...css_IsPaketlerBaslik }}>Mahal Sayısı</Box>
+              {renderIsPaketRows(aktifPaketler)}
             </React.Fragment>
           )}
 
+          {/* AYRAÇ */}
+          <Box sx={{ gridColumn: "1/-1", mt: "1rem", backgroundColor: "darkred", height: "0.2rem" }} />
+
           {/* PASİF İŞ PAKETLERİ */}
+          <Box sx={{ gridColumn: "1/-1", fontWeight: 700, mt: "1rem" }}>
+            PASİF İŞ PAKETLERİ
+          </Box>
 
-          {pasifShow && (
-            <>
-              {/* YATAY AYRAÇ */}
-              <Box
-                sx={{
-                  gridColumn: "1/-1",
-                  mt: "1rem",
-                  backgroundColor: "darkred",
-                  height: "0.2rem",
-                }}
-              ></Box>
+          {pasifPaketler.length === 0 && emptySection}
 
-              {/* iş paket başlığı adı - en üst satır*/}
-              <Box
-                sx={{
-                  gridColumn: "1/-1",
-                  fontWeight: 700,
-                  cursor: "pointer",
-                  mt: "1rem",
-                }}
-              >
-                PASİF İŞ PAKETLERİ
-              </Box>
-
-              {/* iş paketleri henüz oluşturulmamış ise */}
-              {!isPaketler.filter((x) => !x.isActive).length > 0 && (
-                <Box
-                  sx={{
-                    gridColumn: "1/-1",
-                    py: "0.5rem",
-                    mt: "0.2rem",
-                    cursor: "pointer",
-                    display: "grid",
-                    gridAutoFlow: "column",
-                    backgroundColor: "rgba(227, 143, 122, 0.15)",
-                    alignItems: "center",
-                    justifyContent: "start",
-                  }}
-                >
-                  <InfoIcon
-                    variant="contained"
-                    sx={{
-                      color: "rgba(223, 123, 98, 1)",
-                      fontSize: "1.2rem",
-                      m: "0.3rem",
-                    }}
-                  />
-                  <Box>Bu başlık altında henüz iş paketi bulunmuyor.</Box>
-                </Box>
-              )}
-
-              {isPaketler.filter((x) => !x.isActive).length > 0 && (
-                <React.Fragment>
-                  {/* iş paketleri varsa */}
-                  <React.Fragment>
-                    <Box sx={{ ...css_IsPaketlerBaslik }}>Sıra</Box>
-
-                    <Box sx={{ ...css_IsPaketlerBaslik }}>İş Paketi</Box>
-
-                    <Box sx={{ ...css_IsPaketlerBaslik, marginLeft: "0.5rem" }}>Poz Sayısı</Box>
-
-                    <Box sx={{ ...css_IsPaketlerBaslik }}>Mahal Sayısı</Box>
-                  </React.Fragment>
-
-                  {/* iş paketleri verileri */}
-                  {isPaketler.length > 0 &&
-                    isPaketler.map((onePaket, index) => {
-                      const pozSayisi =
-                        dataIsPaketPozlar?.isPaketPozSayisi?.[onePaket._id.toString()] ?? "";
-
-                      return (
-                        <React.Fragment key={index}>
-                          <Box sx={{ ...css_IsPaketler, justifyContent: "center" }}>
-                            {index + 1}
-                          </Box>
-
-                          <Box sx={{ ...css_IsPaketler }}>
-                            {onePaket.name}
-                          </Box>
-
-                          <Box sx={{ ...css_IsPaketler, justifyContent: "center", marginLeft: "0.5rem" }}>
-                            {pozSayisi}
-                          </Box>
-
-                          <Box sx={{ ...css_IsPaketler, justifyContent: "center" }}>
-                            {dataIsPaketPozlar?.isPaketDugumSayisi?.[onePaket._id.toString()] ?? ""}
-                          </Box>
-                        </React.Fragment>
-                      );
-                    })}
-                </React.Fragment>
-              )}
-            </>
+          {pasifPaketler.length > 0 && (
+            <React.Fragment>
+              <Box sx={{ ...css_IsPaketlerBaslik }}>Sıra</Box>
+              <Box sx={{ ...css_IsPaketlerBaslik }}>İş Paketi</Box>
+              <Box sx={{ ...css_IsPaketlerBaslik, marginLeft: "0.5rem" }}>Poz Sayısı</Box>
+              <Box sx={{ ...css_IsPaketlerBaslik }}>Mahal Sayısı</Box>
+              {renderIsPaketRows(pasifPaketler)}
+            </React.Fragment>
           )}
         </Stack>
       )}
