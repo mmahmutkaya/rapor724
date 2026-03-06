@@ -101,7 +101,8 @@ export default function P_KesifButcePozlar() {
   // Sorgu tamamlandığında:
   // 1) queryFn'in setSelectedMetrajVersiyon/setSelectedBirimFiyatVersiyon ile üzerine yazdığı
   //    store değerlerini, kesifWizardRows'daki açık seçime göre geri yükler.
-  // 2) Henüz versiyon seçilmemişse (her ikisi de null) sunucunun oto-seçtiği versiyonu
+  // 2) Sunucu wizard'daki versiyondan farklı versiyon döndürdüyse refetch tetikler.
+  // 3) Henüz versiyon seçilmemişse (her ikisi de null) sunucunun oto-seçtiği versiyonu
   //    kesifWizardRows'a yazar.
   useEffect(() => {
     if (!data || !kesifWizardActiveIsPaketId) return;
@@ -110,11 +111,22 @@ export default function P_KesifButcePozlar() {
     if (row.metrajVersiyonNumber != null || row.birimFiyatVersiyonNumber != null) {
       // Kullanıcı en az bir versiyonu seçmiş: store'u wizard'dan geri yükle.
       // (queryFn sunucunun tercihini yazmış olabilir — bu satırlar onu düzeltir.)
+      const serverMVN = data.selectedMetrajVersiyon?.versiyonNumber ?? null;
+      const serverBFVN = data.selectedBirimFiyatVersiyon?.versiyonNumber ?? null;
+      const mismatch =
+        (row.metrajVersiyonNumber != null && row.metrajVersiyonNumber !== serverMVN) ||
+        (row.birimFiyatVersiyonNumber != null && row.birimFiyatVersiyonNumber !== serverBFVN);
+
       if (row.metrajVersiyonNumber != null) {
         setSelectedMetrajVersiyon({ versiyonNumber: row.metrajVersiyonNumber });
       }
       if (row.birimFiyatVersiyonNumber != null) {
         setSelectedBirimFiyatVersiyon({ versiyonNumber: row.birimFiyatVersiyonNumber });
+      }
+      // Sunucu farklı versiyon döndürdüyse, store güncellendikten sonra versionKey
+      // effect'in yeni refetch tetiklemesi için ref'i işaretle.
+      if (mismatch) {
+        userInitiatedVersionChangeRef.current = true;
       }
       return;
     }
