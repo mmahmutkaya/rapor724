@@ -407,7 +407,7 @@ export default function P_KesifButce() {
         <Grid container justifyContent="space-between" alignItems="center" sx={{ padding: "0.5rem 1rem", maxHeight: "5rem" }}>
           <Grid item xs>
             <Box sx={{ display: "flex", alignItems: "center", gap: "0.5rem" }}>
-              <Typography variant="body1" sx={{ fontWeight: 600, whiteSpace: "nowrap" }}>
+              <Typography variant="body1" sx={{ fontWeight: 600, whiteSpace: "nowrap"}}>
                 Bütçe
               </Typography>
             </Box>

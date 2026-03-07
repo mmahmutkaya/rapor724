@@ -12,7 +12,11 @@ import Grid from '@mui/material/Grid';
 import Box from '@mui/material/Box';
 import IconButton from '@mui/material/IconButton';
 import Typography from '@mui/material/Typography';
+import Select from '@mui/material/Select';
+import MenuItem from '@mui/material/MenuItem';
 import ReplyIcon from '@mui/icons-material/Reply';
+import EditIcon from '@mui/icons-material/Edit';
+import ClearOutlined from '@mui/icons-material/ClearOutlined';
 
 const progressSweep = keyframes`
   0%   { background-position: 200% 0; }
@@ -28,6 +32,9 @@ export default function P_KesifButcePozMahaller() {
     selectedIsPaket,
     selectedIsPaketVersiyon,
     mode_butceEdit,
+    setMode_butceEdit,
+    selectedButceVersiyon,
+    setSelectedButceVersiyon,
     myTema,
   } = useContext(StoreContext);
 
@@ -64,6 +71,9 @@ export default function P_KesifButcePozMahaller() {
   }, [error1, error2]);
 
   // LBS structure from project, sorted by code
+  const butceVersiyonlar = [...(selectedProje?.butceVersiyonlar ?? [])].sort((a, b) => b.versiyonNumber - a.versiyonNumber);
+  const hasButceVersiyonlar = butceVersiyonlar.length > 0;
+
   const openLbsArray = (selectedProje?.lbs ?? [])
     .filter((oneLbs) => oneLbs.openForMahal)
     .sort((a, b) => {
@@ -178,6 +188,26 @@ export default function P_KesifButcePozMahaller() {
                 Bütçe &rsaquo; {selectedIsPaket?.name ?? "İş Paketi"} &rsaquo;{" "}
                 {selectedPoz?.pozNo}{selectedPoz?.pozName ? ` · ${selectedPoz.pozName}` : ""}
               </Typography>
+            </Box>
+          </Grid>
+          <Grid item xs="auto">
+            <Box sx={{ display: "grid", gridAutoFlow: "column", alignItems: "center", gap: "0.25rem" }}>
+              {!mode_butceEdit && hasButceVersiyonlar && (
+                <Select size="small" displayEmpty value={selectedButceVersiyon?.versiyonNumber ?? ""} onChange={(e) => { const v = butceVersiyonlar.find((x) => x.versiyonNumber === e.target.value); setSelectedButceVersiyon(v ?? null); }} sx={{ fontSize: "0.75rem" }} MenuProps={{ PaperProps: { style: { maxHeight: "15rem" } } }}>
+                  {butceVersiyonlar.map((v) => (
+                    <MenuItem key={v.versiyonNumber} value={v.versiyonNumber} sx={{ fontSize: "0.75rem" }}>B{v.versiyonNumber}</MenuItem>
+                  ))}
+                </Select>
+              )}
+              {mode_butceEdit ? (
+                <IconButton onClick={() => setMode_butceEdit(false)} sx={{ width: 40, height: 40 }}>
+                  <ClearOutlined sx={{ fontSize: 24, color: "red" }} />
+                </IconButton>
+              ) : (
+                <IconButton onClick={() => setMode_butceEdit(true)} sx={{ width: 40, height: 40 }}>
+                  <EditIcon sx={{ fontSize: 24 }} />
+                </IconButton>
+              )}
             </Box>
           </Grid>
         </Grid>

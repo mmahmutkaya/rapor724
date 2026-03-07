@@ -18,6 +18,8 @@ import Select from "@mui/material/Select";
 import MenuItem from "@mui/material/MenuItem";
 
 import ReplyIcon from "@mui/icons-material/Reply";
+import EditIcon from "@mui/icons-material/Edit";
+import ClearOutlined from "@mui/icons-material/ClearOutlined";
 
 const progressSweep = keyframes`
   0%   { background-position: 200% 0; }
@@ -30,7 +32,10 @@ export default function P_KesifButcePozlar() {
   const {
     selectedProje,
     selectedIsPaket,
+    selectedButceVersiyon,
+    setSelectedButceVersiyon,
     mode_butceEdit,
+    setMode_butceEdit,
     selectedMetrajVersiyon,
     setSelectedMetrajVersiyon,
     selectedBirimFiyatVersiyon,
@@ -196,6 +201,8 @@ export default function P_KesifButcePozlar() {
 
   const metrajVersiyonlar = data?.metrajVersiyonlar ?? selectedProje?.metrajVersiyonlar ?? [];
   const birimFiyatVersiyonlar = data?.birimFiyatVersiyonlar ?? selectedProje?.birimFiyatVersiyonlar ?? [];
+  const butceVersiyonlar = [...(selectedProje?.butceVersiyonlar ?? [])].sort((a, b) => b.versiyonNumber - a.versiyonNumber);
+  const hasButceVersiyonlar = butceVersiyonlar.length > 0;
 
   // CSS
   const enUstBaslik_css = { display: "grid", alignItems: "center", justifyItems: "center", backgroundColor: myTema.renkler.baslik1, fontWeight: 600, border: "1px solid black", px: "0.7rem" };
@@ -235,19 +242,35 @@ export default function P_KesifButcePozlar() {
 
           <Grid item xs="auto">
             <Box sx={{ display: "grid", gridAutoFlow: "column", alignItems: "center", gap: "0.25rem" }}>
-              {metrajVersiyonlar.length > 0 && (
+              {!mode_butceEdit && hasButceVersiyonlar && (
+                <Select size="small" displayEmpty value={selectedButceVersiyon?.versiyonNumber ?? ""} onChange={(e) => { const v = butceVersiyonlar.find((x) => x.versiyonNumber === e.target.value); setSelectedButceVersiyon(v ?? null); }} sx={{ fontSize: "0.75rem" }} MenuProps={{ PaperProps: { style: { maxHeight: "15rem" } } }}>
+                  {butceVersiyonlar.map((v) => (
+                    <MenuItem key={v.versiyonNumber} value={v.versiyonNumber} sx={{ fontSize: "0.75rem" }}>B{v.versiyonNumber}</MenuItem>
+                  ))}
+                </Select>
+              )}
+              {mode_butceEdit && metrajVersiyonlar.length > 0 && (
                 <Select size="small" displayEmpty value={selectedMetrajVersiyon?.versiyonNumber ?? ""} onChange={(e) => handleMetrajVChange(e.target.value)} sx={{ fontSize: "0.75rem" }} renderValue={(v) => v !== "" ? `M${v}` : "Metraj V."} MenuProps={{ PaperProps: { style: { maxHeight: "15rem" } } }}>
                   {[...metrajVersiyonlar].sort((a, b) => b.versiyonNumber - a.versiyonNumber).map((v) => (
                     <MenuItem key={v.versiyonNumber} value={v.versiyonNumber} sx={{ fontSize: "0.75rem" }}>M{v.versiyonNumber}</MenuItem>
                   ))}
                 </Select>
               )}
-              {birimFiyatVersiyonlar.length > 0 && (
+              {mode_butceEdit && birimFiyatVersiyonlar.length > 0 && (
                 <Select size="small" displayEmpty value={selectedBirimFiyatVersiyon?.versiyonNumber ?? ""} onChange={(e) => handleBirimFiyatVChange(e.target.value)} sx={{ fontSize: "0.75rem" }} renderValue={(v) => v !== "" ? `BF${v}` : "BF V."} MenuProps={{ PaperProps: { style: { maxHeight: "15rem" } } }}>
                   {[...birimFiyatVersiyonlar].sort((a, b) => b.versiyonNumber - a.versiyonNumber).map((v) => (
                     <MenuItem key={v.versiyonNumber} value={v.versiyonNumber} sx={{ fontSize: "0.75rem" }}>BF{v.versiyonNumber}</MenuItem>
                   ))}
                 </Select>
+              )}
+              {mode_butceEdit ? (
+                <IconButton onClick={() => setMode_butceEdit(false)} sx={{ width: 40, height: 40 }}>
+                  <ClearOutlined sx={{ fontSize: 24, color: "red" }} />
+                </IconButton>
+              ) : (
+                <IconButton onClick={() => setMode_butceEdit(true)} sx={{ width: 40, height: 40 }}>
+                  <EditIcon sx={{ fontSize: 24 }} />
+                </IconButton>
               )}
             </Box>
           </Grid>
