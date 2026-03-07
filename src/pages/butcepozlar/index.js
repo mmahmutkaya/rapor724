@@ -1,8 +1,9 @@
 import React, { useState, useEffect, useRef, useContext } from "react";
 import { useNavigate } from "react-router-dom";
+import { keyframes } from "@emotion/react";
 
 import { StoreContext } from "../../components/store";
-import { useGetPozlar } from "../../hooks/useMongo";
+import { useGetPozlar, useGetIsPaketPozlar } from "../../hooks/useMongo";
 import getWbsName from "../../functions/getWbsName";
 import { DialogAlert } from "../../components/general/DialogAlert.js";
 
@@ -11,7 +12,6 @@ import Grid from "@mui/material/Grid";
 import Alert from "@mui/material/Alert";
 import Stack from "@mui/material/Stack";
 import Box from "@mui/material/Box";
-import LinearProgress from "@mui/material/LinearProgress";
 import Typography from "@mui/material/Typography";
 import IconButton from "@mui/material/IconButton";
 import Select from "@mui/material/Select";
@@ -19,18 +19,25 @@ import MenuItem from "@mui/material/MenuItem";
 
 import ReplyIcon from "@mui/icons-material/Reply";
 
+const progressSweep = keyframes`
+  0%   { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+`;
+
 export default function P_KesifButcePozlar() {
   const navigate = useNavigate();
 
   const {
     selectedProje,
     selectedIsPaket,
+    mode_butceEdit,
     selectedMetrajVersiyon,
     setSelectedMetrajVersiyon,
     selectedBirimFiyatVersiyon,
     setSelectedBirimFiyatVersiyon,
     selectedIsPaketVersiyon,
     setSelectedIsPaketVersiyon,
+    setSelectedPoz,
     kesifWizardRows,
     setKesifWizardRows,
     kesifWizardIsPaketVersiyonNumber,
@@ -39,6 +46,7 @@ export default function P_KesifButcePozlar() {
   } = useContext(StoreContext);
 
   const { data, error, isFetching, refetch } = useGetPozlar();
+  const { data: isPaketPozlarData } = useGetIsPaketPozlar();
   const pozlar = data?.pozlar?.filter((x) =>
     x.hasDugum && (selectedIsPaket ? (x.secilenDugum ?? 0) > 0 : true)
   );
@@ -55,18 +63,14 @@ export default function P_KesifButcePozlar() {
       .join("+");
   };
 
-  // Sadece kullanıcı etkileşimiyle değişen versiyonlarda refetch yapar.
-  // queryFn'in kendi tetiklediği setSelectedMetrajVersiyon/setSelectedBirimFiyatVersiyon
-  // çağrılarından kaynaklanan döngüyü önler.
   const userInitiatedVersionChangeRef = useRef(false);
   const versionKey = `${selectedMetrajVersiyon?.versiyonNumber ?? ""}-${selectedBirimFiyatVersiyon?.versiyonNumber ?? ""}`;
 
-  // On mount: initialize version context from wizard state
+  // On mount: guard + initialize versions from wizard state
   useEffect(() => {
     if (!selectedProje) { navigate("/projeler"); return; }
-    if (!selectedIsPaket) { navigate("/butceispaketler"); return; }
+    if (!selectedIsPaket) { navigate("/butce"); return; }
 
-    // Set IP version from wizard
     if (kesifWizardIsPaketVersiyonNumber != null) {
       const ipv = selectedProje?.isPaketVersiyonlar?.find(
         (v) => v.versiyonNumber === kesifWizardIsPaketVersiyonNumber
@@ -74,9 +78,6 @@ export default function P_KesifButcePozlar() {
       if (ipv) setSelectedIsPaketVersiyon(ipv);
     }
 
-    // Set M and BF versions from wizard state.
-    // Her zaman set edilir (null dahil) — önceki sayfa ziyaretinden kalan
-    // stale store değerlerini temizler.
     if (kesifWizardActiveIsPaketId) {
       const row = kesifWizardRows[kesifWizardActiveIsPaketId] || {};
       setSelectedMetrajVersiyon(
@@ -86,60 +87,43 @@ export default function P_KesifButcePozlar() {
         row.birimFiyatVersiyonNumber != null ? { versiyonNumber: row.birimFiyatVersiyonNumber } : null
       );
     }
-  }, []);
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
-  // Trigger refetch when version changes (not on initial mount)
+  // Refetch when user changes a version
   useEffect(() => {
     if (userInitiatedVersionChangeRef.current) {
       userInitiatedVersionChangeRef.current = false;
       refetch();
     }
-  }, [versionKey]);
+  }, [versionKey]); // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
     if (error) {
       setDialogAlert({
         dialogIcon: "warning",
-        dialogMessage: "Beklenmedik hata, Rapor7/24 ile irtibata geçiniz..",
+        dialogMessage: "Beklenmedik hata, Rapor7/24 ile irtibata geçiniz.",
         detailText: error?.message ?? null,
       });
     }
   }, [error]);
 
-  // Sorgu tamamlandığında:
-  // 1) queryFn'in setSelectedMetrajVersiyon/setSelectedBirimFiyatVersiyon ile üzerine yazdığı
-  //    store değerlerini, kesifWizardRows'daki açık seçime göre geri yükler.
-  // 2) Sunucu wizard'daki versiyondan farklı versiyon döndürdüyse refetch tetikler.
-  // 3) Henüz versiyon seçilmemişse (her ikisi de null) sunucunun oto-seçtiği versiyonu
-  //    kesifWizardRows'a yazar.
+  // Sync server auto-selected versions → wizard rows
   useEffect(() => {
     if (!data || !kesifWizardActiveIsPaketId) return;
     const row = kesifWizardRows[kesifWizardActiveIsPaketId] || {};
 
     if (row.metrajVersiyonNumber != null || row.birimFiyatVersiyonNumber != null) {
-      // Kullanıcı en az bir versiyonu seçmiş: store'u wizard'dan geri yükle.
-      // (queryFn sunucunun tercihini yazmış olabilir — bu satırlar onu düzeltir.)
       const serverMVN = data.selectedMetrajVersiyon?.versiyonNumber ?? null;
       const serverBFVN = data.selectedBirimFiyatVersiyon?.versiyonNumber ?? null;
       const mismatch =
         (row.metrajVersiyonNumber != null && row.metrajVersiyonNumber !== serverMVN) ||
         (row.birimFiyatVersiyonNumber != null && row.birimFiyatVersiyonNumber !== serverBFVN);
-
-      if (row.metrajVersiyonNumber != null) {
-        setSelectedMetrajVersiyon({ versiyonNumber: row.metrajVersiyonNumber });
-      }
-      if (row.birimFiyatVersiyonNumber != null) {
-        setSelectedBirimFiyatVersiyon({ versiyonNumber: row.birimFiyatVersiyonNumber });
-      }
-      // Sunucu farklı versiyon döndürdüyse, store güncellendikten sonra versionKey
-      // effect'in yeni refetch tetiklemesi için ref'i işaretle.
-      if (mismatch) {
-        userInitiatedVersionChangeRef.current = true;
-      }
+      if (row.metrajVersiyonNumber != null) setSelectedMetrajVersiyon({ versiyonNumber: row.metrajVersiyonNumber });
+      if (row.birimFiyatVersiyonNumber != null) setSelectedBirimFiyatVersiyon({ versiyonNumber: row.birimFiyatVersiyonNumber });
+      if (mismatch) userInitiatedVersionChangeRef.current = true;
       return;
     }
 
-    // Her iki versiyon da null → sunucunun oto-seçtiğini kesifWizardRows'a yaz.
     const resolvedMVN = data.selectedMetrajVersiyon?.versiyonNumber ?? null;
     const resolvedBFVN = data.selectedBirimFiyatVersiyon?.versiyonNumber ?? null;
     if (resolvedMVN === null && resolvedBFVN === null) return;
@@ -148,16 +132,15 @@ export default function P_KesifButcePozlar() {
       if (r.metrajVersiyonNumber !== null || r.birimFiyatVersiyonNumber !== null) return prev;
       return {
         ...prev,
-        [kesifWizardActiveIsPaketId]: {
-          ...r,
-          metrajVersiyonNumber: resolvedMVN,
-          birimFiyatVersiyonNumber: resolvedBFVN,
-          kesifTutar: null,
-          isCalculating: false,
-        },
+        [kesifWizardActiveIsPaketId]: { ...r, metrajVersiyonNumber: resolvedMVN, birimFiyatVersiyonNumber: resolvedBFVN, kesifTutar: null, isCalculating: false },
       };
     });
-  }, [data]);
+  }, [data]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  const handleClickPoz = (onePoz) => {
+    setSelectedPoz(onePoz);
+    navigate("/butcepozmahaller");
+  };
 
   const handleMetrajVChange = (newVN) => {
     userInitiatedVersionChangeRef.current = true;
@@ -165,12 +148,7 @@ export default function P_KesifButcePozlar() {
     if (kesifWizardActiveIsPaketId) {
       setKesifWizardRows((prev) => ({
         ...prev,
-        [kesifWizardActiveIsPaketId]: {
-          ...(prev[kesifWizardActiveIsPaketId] || {}),
-          metrajVersiyonNumber: newVN,
-          kesifTutar: null,
-          isCalculating: false,
-        },
+        [kesifWizardActiveIsPaketId]: { ...(prev[kesifWizardActiveIsPaketId] || {}), metrajVersiyonNumber: newVN, kesifTutar: null, isCalculating: false },
       }));
     }
   };
@@ -181,12 +159,7 @@ export default function P_KesifButcePozlar() {
     if (kesifWizardActiveIsPaketId) {
       setKesifWizardRows((prev) => ({
         ...prev,
-        [kesifWizardActiveIsPaketId]: {
-          ...(prev[kesifWizardActiveIsPaketId] || {}),
-          birimFiyatVersiyonNumber: newVN,
-          kesifTutar: null,
-          isCalculating: false,
-        },
+        [kesifWizardActiveIsPaketId]: { ...(prev[kesifWizardActiveIsPaketId] || {}), birimFiyatVersiyonNumber: newVN, kesifTutar: null, isCalculating: false },
       }));
     }
   };
@@ -195,64 +168,40 @@ export default function P_KesifButcePozlar() {
     pozlar?.find((onePoz) => onePoz._wbsId?.toString() === oneWbs._id?.toString())
   );
 
+  const ikiHane = (value) => {
+    if (value == null || value === "" || value === 0) return "—";
+    return new Intl.NumberFormat("tr-TR", { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(value);
+  };
+
+  // Per-poz version-aware assignment check using useGetIsPaketPozlar
+  const assignedPozIds = (() => {
+    if (!mode_butceEdit || !selectedIsPaket) return null;
+    const set = new Set();
+    (isPaketPozlarData?.pozlar ?? []).forEach((p) => {
+      if (p.isPaketler?.some((ip) => ip._id?.toString() === selectedIsPaket._id?.toString())) {
+        set.add(p._id?.toString());
+      }
+    });
+    return set;
+  })();
+  const isPozAssigned = (pozId) => assignedPozIds === null || assignedPozIds.has(pozId?.toString());
+
   const toplamTutar = pozlar?.reduce((sum, onePoz) => {
+    if (!isPozAssigned(onePoz._id)) return sum;
     const metrajOnaylanan = onePoz?.metrajOnaylananSecilen ?? onePoz?.metrajVersiyonlar?.metrajOnaylanan ?? null;
     const birimFiyatlar = onePoz?.birimFiyatVersiyonlar?.birimFiyatlar ?? [];
-    const birimFiyatToplam =
-      birimFiyatlar.length > 0
-        ? birimFiyatlar.reduce((s, bf) => s + (Number(bf.fiyat) || 0), 0)
-        : null;
-    const tutar =
-      metrajOnaylanan != null && birimFiyatToplam != null
-        ? metrajOnaylanan * birimFiyatToplam
-        : 0;
-    return sum + tutar;
+    const birimFiyatToplam = birimFiyatlar.length > 0 ? birimFiyatlar.reduce((s, bf) => s + (Number(bf.fiyat) || 0), 0) : null;
+    return sum + (metrajOnaylanan != null && birimFiyatToplam != null ? metrajOnaylanan * birimFiyatToplam : 0);
   }, 0) ?? 0;
-
-  const ikiHane = (value) => {
-    if (value == null || value === "") return "—";
-    return new Intl.NumberFormat("tr-TR", {
-      minimumFractionDigits: 2,
-      maximumFractionDigits: 2,
-    }).format(value);
-  };
 
   const metrajVersiyonlar = data?.metrajVersiyonlar ?? selectedProje?.metrajVersiyonlar ?? [];
   const birimFiyatVersiyonlar = data?.birimFiyatVersiyonlar ?? selectedProje?.birimFiyatVersiyonlar ?? [];
 
   // CSS
-  const enUstBaslik_css = {
-    display: "grid",
-    alignItems: "center",
-    justifyItems: "center",
-    backgroundColor: myTema.renkler.baslik1,
-    fontWeight: 600,
-    border: "1px solid black",
-    px: "0.7rem",
-  };
-
-  const wbsBaslik_css = {
-    gridColumn: "1 / span 5",
-    display: "grid",
-    alignItems: "center",
-    backgroundColor: myTema.renkler.baslik2,
-    fontWeight: 600,
-    pl: "0.5rem",
-    border: "1px solid black",
-    mt: "1rem",
-    px: "0.7rem",
-  };
-
-  const pozNo_css = {
-    border: "1px solid black",
-    px: "0.7rem",
-    display: "grid",
-    alignItems: "center",
-    justifyItems: "center",
-  };
-
+  const enUstBaslik_css = { display: "grid", alignItems: "center", justifyItems: "center", backgroundColor: myTema.renkler.baslik1, fontWeight: 600, border: "1px solid black", px: "0.7rem" };
+  const wbsBaslik_css = { gridColumn: "1 / span 5", display: "grid", alignItems: "center", backgroundColor: myTema.renkler.baslik2, fontWeight: 600, pl: "0.5rem", border: "1px solid black", mt: "1rem", px: "0.7rem" };
+  const pozNo_css = { border: "1px solid black", px: "0.7rem", display: "grid", alignItems: "center", justifyItems: "center" };
   const columns = `max-content minmax(20rem, max-content) max-content max-content max-content minmax(5rem, max-content)`;
-
   const headerIconButton_sx = { width: 40, height: 40 };
   const headerIcon_sx = { fontSize: 24 };
 
@@ -263,89 +212,58 @@ export default function P_KesifButcePozlar() {
           dialogIcon={dialogAlert.dialogIcon}
           dialogMessage={dialogAlert.dialogMessage}
           detailText={dialogAlert.detailText}
-          onCloseAction={
-            dialogAlert.onCloseAction ? dialogAlert.onCloseAction : () => setDialogAlert()
-          }
+          onCloseAction={dialogAlert.onCloseAction ?? (() => setDialogAlert())}
         />
       )}
 
-      {/* BAŞLIK */}
+      {/* APP BAR */}
       <AppBar
         position="static"
         sx={{ backgroundColor: "white", color: "black", boxShadow: 4 }}
       >
-        <Grid
-          container
-          justifyContent="space-between"
-          alignItems="center"
-          sx={{ padding: "0.5rem 1rem", maxHeight: "5rem" }}
-        >
-          {/* Sol */}
+        <Grid container justifyContent="space-between" alignItems="center" sx={{ padding: "0.5rem 1rem", maxHeight: "5rem" }}>
           <Grid item xs>
             <Box sx={{ display: "flex", alignItems: "center" }}>
-              <IconButton
-                onClick={() => navigate("/butceispaketler")}
-                sx={{ ...headerIconButton_sx, mr: "0.25rem", ml: "-0.5rem" }}
-              >
+              <IconButton onClick={() => navigate("/butce")} sx={{ ...headerIconButton_sx, mr: "0.25rem", ml: "-0.5rem" }}>
                 <ReplyIcon sx={headerIcon_sx} />
               </IconButton>
               <Typography variant="body1" sx={{ fontWeight: 600, whiteSpace: "nowrap" }}>
-                {selectedIsPaket?.name ?? "Pozlar"}
+                Bütçe &rsaquo; {selectedIsPaket?.name ?? "Pozlar"}
               </Typography>
             </Box>
           </Grid>
 
-          {/* Sağ - Versiyon Seçiciler */}
           <Grid item xs="auto">
             <Box sx={{ display: "grid", gridAutoFlow: "column", alignItems: "center", gap: "0.25rem" }}>
               {metrajVersiyonlar.length > 0 && (
-                <Select
-                  size="small"
-                  displayEmpty
-                  value={selectedMetrajVersiyon?.versiyonNumber ?? ""}
-                  onChange={(e) => handleMetrajVChange(e.target.value)}
-                  sx={{ fontSize: "0.75rem" }}
-                  renderValue={(v) => v !== "" ? `M${v}` : "Metraj V."}
-                  MenuProps={{ PaperProps: { style: { maxHeight: "15rem" } } }}
-                >
-                  {[...metrajVersiyonlar]
-                    .sort((a, b) => b.versiyonNumber - a.versiyonNumber)
-                    .map((v) => (
-                      <MenuItem key={v.versiyonNumber} value={v.versiyonNumber} sx={{ fontSize: "0.75rem" }}>
-                        M{v.versiyonNumber}
-                      </MenuItem>
-                    ))}
+                <Select size="small" displayEmpty value={selectedMetrajVersiyon?.versiyonNumber ?? ""} onChange={(e) => handleMetrajVChange(e.target.value)} sx={{ fontSize: "0.75rem" }} renderValue={(v) => v !== "" ? `M${v}` : "Metraj V."} MenuProps={{ PaperProps: { style: { maxHeight: "15rem" } } }}>
+                  {[...metrajVersiyonlar].sort((a, b) => b.versiyonNumber - a.versiyonNumber).map((v) => (
+                    <MenuItem key={v.versiyonNumber} value={v.versiyonNumber} sx={{ fontSize: "0.75rem" }}>M{v.versiyonNumber}</MenuItem>
+                  ))}
                 </Select>
               )}
               {birimFiyatVersiyonlar.length > 0 && (
-                <Select
-                  size="small"
-                  displayEmpty
-                  value={selectedBirimFiyatVersiyon?.versiyonNumber ?? ""}
-                  onChange={(e) => handleBirimFiyatVChange(e.target.value)}
-                  sx={{ fontSize: "0.75rem" }}
-                  renderValue={(v) => v !== "" ? `BF${v}` : "BF V."}
-                  MenuProps={{ PaperProps: { style: { maxHeight: "15rem" } } }}
-                >
-                  {[...birimFiyatVersiyonlar]
-                    .sort((a, b) => b.versiyonNumber - a.versiyonNumber)
-                    .map((v) => (
-                      <MenuItem key={v.versiyonNumber} value={v.versiyonNumber} sx={{ fontSize: "0.75rem" }}>
-                        BF{v.versiyonNumber}
-                      </MenuItem>
-                    ))}
+                <Select size="small" displayEmpty value={selectedBirimFiyatVersiyon?.versiyonNumber ?? ""} onChange={(e) => handleBirimFiyatVChange(e.target.value)} sx={{ fontSize: "0.75rem" }} renderValue={(v) => v !== "" ? `BF${v}` : "BF V."} MenuProps={{ PaperProps: { style: { maxHeight: "15rem" } } }}>
+                  {[...birimFiyatVersiyonlar].sort((a, b) => b.versiyonNumber - a.versiyonNumber).map((v) => (
+                    <MenuItem key={v.versiyonNumber} value={v.versiyonNumber} sx={{ fontSize: "0.75rem" }}>BF{v.versiyonNumber}</MenuItem>
+                  ))}
                 </Select>
               )}
             </Box>
           </Grid>
         </Grid>
       </AppBar>
-
-      {isFetching && (
-        <Box sx={{ width: "100%", px: "1rem", color: "gray" }}>
-          <LinearProgress color="inherit" />
-        </Box>
-      )}
+      <Box sx={isFetching ? {
+        height: 4,
+        background: "linear-gradient(90deg, transparent 25%, #e53935 50%, transparent 75%)",
+        backgroundSize: "200% 100%",
+        animation: `${progressSweep} 1.5s infinite linear`,
+      } : {
+        height: 4,
+        backgroundColor: mode_butceEdit ? "#e53935" : "transparent",
+        transition: "background-color 0.3s ease",
+      }} />
+      <Box>
 
       {!isFetching && !pozlar?.length && (
         <Stack sx={{ width: "100%", p: "1rem" }} spacing={2}>
@@ -355,45 +273,18 @@ export default function P_KesifButcePozlar() {
 
       {wbsArray_hasMahal && pozlar?.length > 0 && (
         <Box sx={{ m: "1rem", display: "grid", gridTemplateColumns: columns }}>
-
-          {/* Başlık */}
           <>
-            <Box sx={{ ...enUstBaslik_css }}>Poz No</Box>
-            <Box sx={{ ...enUstBaslik_css }}>Poz İsmi</Box>
-            <Box sx={{ ...enUstBaslik_css }}>Birim</Box>
-            <Box sx={{ ...enUstBaslik_css }}>Metraj</Box>
-            <Box sx={{ ...enUstBaslik_css }}>B.Fiyat</Box>
-            <Box sx={{ ...enUstBaslik_css }}>Tutar</Box>
+            <Box sx={enUstBaslik_css}>Poz No</Box>
+            <Box sx={enUstBaslik_css}>Poz İsmi</Box>
+            <Box sx={enUstBaslik_css}>Birim</Box>
+            <Box sx={enUstBaslik_css}>Metraj</Box>
+            <Box sx={enUstBaslik_css}>B.Fiyat</Box>
+            <Box sx={enUstBaslik_css}>Tutar</Box>
           </>
 
           {/* Toplam */}
-          <Box
-            sx={{
-              gridColumn: "1 / span 5",
-              border: "1px solid black",
-              display: "grid",
-              alignItems: "center",
-              justifyItems: "end",
-              px: "0.7rem",
-              py: "0.1rem",
-              fontWeight: 700,
-              backgroundColor: myTema.renkler.baslik1,
-            }}
-          >
-            
-          </Box>
-          <Box
-            sx={{
-              border: "1px solid black",
-              display: "grid",
-              alignItems: "center",
-              justifyItems: "end",
-              px: "0.7rem",
-              py: "0.1rem",
-              fontWeight: 700,
-              backgroundColor: myTema.renkler.baslik1,
-            }}
-          >
+          <Box sx={{ gridColumn: "1 / span 5", border: "1px solid black", display: "grid", alignItems: "center", justifyItems: "end", px: "0.7rem", py: "0.1rem", fontWeight: 700, backgroundColor: myTema.renkler.baslik1 }} />
+          <Box sx={{ border: "1px solid black", display: "grid", alignItems: "center", justifyItems: "end", px: "0.7rem", py: "0.1rem", fontWeight: 700, backgroundColor: myTema.renkler.baslik1 }}>
             {(() => {
               const allBf = pozlar?.flatMap((p) => p?.birimFiyatVersiyonlar?.birimFiyatlar ?? []) ?? [];
               const label = paraBirimiLabel(allBf);
@@ -401,93 +292,60 @@ export default function P_KesifButcePozlar() {
             })()}
           </Box>
 
-          {/* WBS grupları */}
-          {wbsArray_hasMahal
-            ?.filter((x) => x.openForPoz)
-            .map((oneWbs, index) => {
-              const wbsPozlar = pozlar?.filter(
-                (x) => x._wbsId?.toString() === oneWbs._id?.toString()
-              );
-              if (!wbsPozlar?.length) return null;
+          {wbsArray_hasMahal?.filter((x) => x.openForPoz).map((oneWbs, index) => {
+            const wbsPozlar = pozlar?.filter((x) => x._wbsId?.toString() === oneWbs._id?.toString() && isPozAssigned(x._id));
+            if (!wbsPozlar?.length) return null;
 
-              const wbsToplam = wbsPozlar.reduce((sum, onePoz) => {
-                const m = onePoz?.metrajOnaylananSecilen ?? onePoz?.metrajVersiyonlar?.metrajOnaylanan ?? null;
-                const bflar = onePoz?.birimFiyatVersiyonlar?.birimFiyatlar ?? [];
-                const bf = bflar.length > 0 ? bflar.reduce((s, x) => s + (Number(x.fiyat) || 0), 0) : null;
-                return sum + (m != null && bf != null ? m * bf : 0);
-              }, 0);
+            const wbsToplam = wbsPozlar.reduce((sum, onePoz) => {
+              if (!isPozAssigned(onePoz._id)) return sum;
+              const m = onePoz?.metrajOnaylananSecilen ?? onePoz?.metrajVersiyonlar?.metrajOnaylanan ?? null;
+              const bflar = onePoz?.birimFiyatVersiyonlar?.birimFiyatlar ?? [];
+              const bf = bflar.length > 0 ? bflar.reduce((s, x) => s + (Number(x.fiyat) || 0), 0) : null;
+              return sum + (m != null && bf != null ? m * bf : 0);
+            }, 0);
 
-              return (
-                <React.Fragment key={index}>
-                  {/* WBS Başlığı */}
-                  <Box sx={{ ...wbsBaslik_css }}>
-                    {getWbsName({ wbsArray: wbsArray_hasMahal, oneWbs }).name}
-                  </Box>
-                  <Box
-                    sx={{
-                      display: "grid",
-                      alignItems: "center",
-                      justifyItems: "end",
-                      backgroundColor: myTema.renkler.baslik2,
-                      fontWeight: 600,
-                      border: "1px solid black",
-                      mt: "1rem",
-                      px: "0.7rem",
-                    }}
-                  >
-                    {(() => {
-                      const allBf = wbsPozlar.flatMap((p) => p?.birimFiyatVersiyonlar?.birimFiyatlar ?? []);
-                      const label = paraBirimiLabel(allBf);
-                      return wbsToplam ? `${ikiHane(wbsToplam)} ${label}` : ikiHane(null);
-                    })()}
-                  </Box>
+            return (
+              <React.Fragment key={index}>
+                <Box sx={wbsBaslik_css}>{getWbsName({ wbsArray: wbsArray_hasMahal, oneWbs }).name}</Box>
+                <Box sx={{ display: "grid", alignItems: "center", justifyItems: "end", backgroundColor: myTema.renkler.baslik2, fontWeight: 600, border: "1px solid black", mt: "1rem", px: "0.7rem" }}>
+                  {(() => {
+                    const allBf = wbsPozlar.flatMap((p) => p?.birimFiyatVersiyonlar?.birimFiyatlar ?? []);
+                    const label = paraBirimiLabel(allBf);
+                    return wbsToplam ? `${ikiHane(wbsToplam)} ${label}` : ikiHane(null);
+                  })()}
+                </Box>
 
-                  {/* Pozlar */}
-                  {wbsPozlar.map((onePoz, pIndex) => {
-                    const metrajOnaylanan = onePoz?.metrajOnaylananSecilen ?? onePoz?.metrajVersiyonlar?.metrajOnaylanan ?? null;
-                    const birimFiyatlar = onePoz?.birimFiyatVersiyonlar?.birimFiyatlar ?? [];
-                    const birimFiyatToplam =
-                      birimFiyatlar.length > 0
-                        ? birimFiyatlar.reduce(
-                            (sum, bf) => sum + (Number(bf.fiyat) || 0),
-                            0
-                          )
-                        : null;
-                    const tutar =
-                      metrajOnaylanan != null && birimFiyatToplam != null
-                        ? metrajOnaylanan * birimFiyatToplam
-                        : null;
+                {wbsPozlar.map((onePoz, pIndex) => {
+                  const metrajOnaylanan = onePoz?.metrajOnaylananSecilen ?? onePoz?.metrajVersiyonlar?.metrajOnaylanan ?? null;
+                  const birimFiyatlar = onePoz?.birimFiyatVersiyonlar?.birimFiyatlar ?? [];
+                  const birimFiyatToplam = birimFiyatlar.length > 0 ? birimFiyatlar.reduce((sum, bf) => sum + (Number(bf.fiyat) || 0), 0) : null;
+                  const tutar = isPozAssigned(onePoz._id) && metrajOnaylanan != null && birimFiyatToplam != null ? metrajOnaylanan * birimFiyatToplam : null;
+                  const birimAdi = pozBirimleri.find((x) => x.id === onePoz.pozBirimId)?.name ?? "";
 
-                    const birimAdi =
-                      pozBirimleri.find((x) => x.id === onePoz.pozBirimId)?.name ?? "";
-
-                    return (
-                      <React.Fragment key={pIndex}>
-                        <Box sx={{ ...pozNo_css }}>{onePoz.pozNo}</Box>
-                        <Box sx={{ ...pozNo_css, justifyItems: "start", pl: "0.5rem" }}>
-                          {onePoz.pozName}
-                        </Box>
-                        <Box sx={{ ...pozNo_css }}>{birimAdi}</Box>
-                        <Box sx={{ ...pozNo_css, justifyItems: "end" }}>
-                          {ikiHane(metrajOnaylanan)}
-                        </Box>
-                        <Box sx={{ ...pozNo_css, justifyItems: "end" }}>
-                          {ikiHane(birimFiyatToplam)}
-                        </Box>
-                        <Box sx={{ ...pozNo_css, justifyItems: "end", fontWeight: 700 }}>
-                          {tutar != null
-                            ? `${ikiHane(tutar)} ${paraBirimiLabel(birimFiyatlar)}`
-                            : ikiHane(null)}
-                        </Box>
-                      </React.Fragment>
-                    );
-                  })}
-                </React.Fragment>
-              );
-            })}
-
+                  return (
+                    <React.Fragment key={pIndex}>
+                      <Box sx={pozNo_css}>{onePoz.pozNo}</Box>
+                      <Box
+                        sx={{ ...pozNo_css, justifyItems: "start", pl: "0.5rem", cursor: "pointer", color: "darkblue", textDecoration: "underline" }}
+                        onClick={() => handleClickPoz(onePoz)}
+                      >
+                        {onePoz.pozName}
+                      </Box>
+                      <Box sx={pozNo_css}>{birimAdi}</Box>
+                      <Box sx={{ ...pozNo_css, justifyItems: "end" }}>{ikiHane(metrajOnaylanan)}</Box>
+                      <Box sx={{ ...pozNo_css, justifyItems: "end" }}>{ikiHane(birimFiyatToplam)}</Box>
+                      <Box sx={{ ...pozNo_css, justifyItems: "end", fontWeight: 700 }}>
+                        {tutar != null ? `${ikiHane(tutar)} ${paraBirimiLabel(birimFiyatlar)}` : ikiHane(null)}
+                      </Box>
+                    </React.Fragment>
+                  );
+                })}
+              </React.Fragment>
+            );
+          })}
         </Box>
       )}
+      </Box>
     </Box>
   );
 }
