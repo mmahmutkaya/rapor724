@@ -83,7 +83,7 @@ export default function P_KesifButcePozlar() {
       if (ipv) setSelectedIsPaketVersiyon(ipv);
     }
 
-    if (kesifWizardActiveIsPaketId) {
+    if (mode_butceEdit && kesifWizardActiveIsPaketId) {
       const row = kesifWizardRows[kesifWizardActiveIsPaketId] || {};
       setSelectedMetrajVersiyon(
         row.metrajVersiyonNumber != null ? { versiyonNumber: row.metrajVersiyonNumber } : null
@@ -114,6 +114,7 @@ export default function P_KesifButcePozlar() {
 
   // Sync server auto-selected versions → wizard rows
   useEffect(() => {
+    if (!mode_butceEdit) return;
     if (!data || !kesifWizardActiveIsPaketId) return;
     const row = kesifWizardRows[kesifWizardActiveIsPaketId] || {};
 
@@ -145,6 +146,22 @@ export default function P_KesifButcePozlar() {
   const handleClickPoz = (onePoz) => {
     setSelectedPoz(onePoz);
     navigate("/butcepozmahaller");
+  };
+
+  const handleExitEditMode = () => {
+    const satir = selectedButceVersiyon?.butce?.isPaketlerSatirlar?.find(
+      (s) => s.isPaketId?.toString() === kesifWizardActiveIsPaketId?.toString()
+    );
+    if (satir) {
+      if (satir.metrajVersiyonNumber != null) {
+        userInitiatedVersionChangeRef.current = true;
+        setSelectedMetrajVersiyon({ versiyonNumber: satir.metrajVersiyonNumber });
+      }
+      if (satir.birimFiyatVersiyonNumber != null) {
+        setSelectedBirimFiyatVersiyon({ versiyonNumber: satir.birimFiyatVersiyonNumber });
+      }
+    }
+    setMode_butceEdit(false);
   };
 
   const handleMetrajVChange = (newVN) => {
@@ -264,7 +281,7 @@ export default function P_KesifButcePozlar() {
                 </Select>
               )}
               {mode_butceEdit ? (
-                <IconButton onClick={() => setMode_butceEdit(false)} sx={{ width: 40, height: 40 }}>
+                <IconButton onClick={handleExitEditMode} sx={{ width: 40, height: 40 }}>
                   <ClearOutlined sx={{ fontSize: 24, color: "red" }} />
                 </IconButton>
               ) : (

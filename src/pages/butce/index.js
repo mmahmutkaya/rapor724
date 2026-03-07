@@ -294,6 +294,8 @@ export default function P_KesifButce() {
     setSelectedIsPaket(paketObj ?? { _id: satir.isPaketId, name: satir.isPaketName });
     setSelectedIsPaketVersiyon(ipV ?? null);
     setKesifWizardActiveIsPaketId(satir.isPaketId);
+    if (satir.metrajVersiyonNumber != null) setSelectedMetrajVersiyon({ versiyonNumber: satir.metrajVersiyonNumber });
+    if (satir.birimFiyatVersiyonNumber != null) setSelectedBirimFiyatVersiyon({ versiyonNumber: satir.birimFiyatVersiyonNumber });
     navigate("/butcepozlar");
   };
 

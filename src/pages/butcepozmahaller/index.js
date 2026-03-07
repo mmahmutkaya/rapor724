@@ -92,6 +92,21 @@ export default function P_KesifButcePozMahaller() {
   const metrajVersiyonlar = [...(selectedProje?.metrajVersiyonlar ?? [])];
   const birimFiyatVersiyonlar = [...(selectedProje?.birimFiyatVersiyonlar ?? [])];
 
+  const handleExitEditMode = () => {
+    const satir = selectedButceVersiyon?.butce?.isPaketlerSatirlar?.find(
+      (s) => s.isPaketId?.toString() === selectedIsPaket?._id?.toString()
+    );
+    if (satir) {
+      if (satir.metrajVersiyonNumber != null) {
+        setSelectedMetrajVersiyon({ versiyonNumber: satir.metrajVersiyonNumber });
+      }
+      if (satir.birimFiyatVersiyonNumber != null) {
+        setSelectedBirimFiyatVersiyon({ versiyonNumber: satir.birimFiyatVersiyonNumber });
+      }
+    }
+    setMode_butceEdit(false);
+  };
+
   const openLbsArray = (selectedProje?.lbs ?? [])
     .filter((oneLbs) => oneLbs.openForMahal)
     .sort((a, b) => {
@@ -233,7 +248,7 @@ export default function P_KesifButcePozMahaller() {
                 </Select>
               )}
               {mode_butceEdit ? (
-                <IconButton onClick={() => setMode_butceEdit(false)} sx={{ width: 40, height: 40 }}>
+                <IconButton onClick={handleExitEditMode} sx={{ width: 40, height: 40 }}>
                   <ClearOutlined sx={{ fontSize: 24, color: "red" }} />
                 </IconButton>
               ) : (
