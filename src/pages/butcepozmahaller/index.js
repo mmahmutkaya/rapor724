@@ -13,7 +13,6 @@ import Box from '@mui/material/Box';
 import IconButton from '@mui/material/IconButton';
 import Typography from '@mui/material/Typography';
 import ReplyIcon from '@mui/icons-material/Reply';
-import CheckIcon from '@mui/icons-material/Check';
 
 const progressSweep = keyframes`
   0%   { background-position: 200% 0; }
@@ -102,6 +101,29 @@ export default function P_KesifButcePozMahaller() {
     return !!(versioned ?? dugum.isPaketler?.find((p) => p._id?.toString() === selectedId));
   };
 
+  // birimFiyat from selectedPoz (already filtered to selected version by backend)
+  const projeParaBirimleri = selectedProje?.paraBirimleri ?? [];
+  const birimFiyatlar = selectedPoz?.birimFiyatVersiyonlar?.birimFiyatlar ?? [];
+  const birimFiyatToplam = birimFiyatlar.length > 0
+    ? birimFiyatlar.reduce((s, bf) => s + (Number(bf.fiyat) || 0), 0)
+    : null;
+  const paraBirimiLabel = (() => {
+    const unique = [...new Set(birimFiyatlar.map((bf) => bf.id))];
+    return unique.map((id) => projeParaBirimleri.find((x) => x.id === id)?.sembol ?? id).join("+");
+  })();
+
+  const ikiHane = (value) => {
+    if (value == null || value === "" || value === 0) return "—";
+    return new Intl.NumberFormat("tr-TR", { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(value);
+  };
+
+  // Total assigned keşif across all dugumler
+  const totalTutar = (dugumler_byPoz_state ?? []).reduce((sum, dugum) => {
+    if (!isDugumAssigned(dugum)) return sum;
+    const m = dugum.metrajOnaylanan ?? null;
+    return sum + (m != null && birimFiyatToplam != null ? m * birimFiyatToplam : 0);
+  }, 0);
+
   // CSS
   const css_enUstBaslik = {
     display: "grid", fontWeight: "600", border: "1px solid black",
@@ -117,12 +139,12 @@ export default function P_KesifButcePozMahaller() {
     border: "1px solid black", px: "0.5rem",
     display: "grid", justifyContent: "start", alignItems: "center", minHeight: "1.8rem",
   };
-  const css_center = {
+  const css_sayi = {
     border: "1px solid black", px: "0.5rem",
-    display: "grid", justifyContent: "center", alignItems: "center", minHeight: "1.8rem",
+    display: "grid", justifyContent: "end", alignItems: "center", minHeight: "1.8rem",
   };
 
-  const gridCols = "max-content minmax(min-content, 15rem) max-content";
+  const gridCols = "max-content minmax(min-content, 15rem) max-content max-content max-content";
   const isFetching = isFetching1 || isFetching2;
 
   if (!selectedProje || !selectedPoz) return null;
@@ -179,8 +201,14 @@ export default function P_KesifButcePozMahaller() {
             {selectedPoz?.pozNo}
           </Box>
           <Box sx={css_enUstBaslik}>MAHAL</Box>
-          <Box sx={{ ...css_enUstBaslik, justifyContent: "center" }}>
-            {selectedIsPaket?.name ?? "İş Paketi"}
+          <Box sx={{ ...css_enUstBaslik, justifyContent: "center" }}>METRAJ</Box>
+          <Box sx={{ ...css_enUstBaslik, justifyContent: "center" }}>B.FİYAT</Box>
+          <Box sx={{ ...css_enUstBaslik, justifyContent: "center" }}>K.TUTARI</Box>
+
+          {/* Toplam satırı */}
+          <Box sx={{ gridColumn: "1 / span 4", border: "1px solid black", display: "grid", alignItems: "center", justifyItems: "end", px: "0.7rem", py: "0.1rem", fontWeight: 700, backgroundColor: "#415a77" }} />
+          <Box sx={{ border: "1px solid black", display: "grid", alignItems: "center", justifyItems: "end", px: "0.7rem", py: "0.1rem", fontWeight: 700, backgroundColor: "#415a77", color: "#e0e1dd" }}>
+            {totalTutar ? `${ikiHane(totalTutar)} ${paraBirimiLabel}` : ikiHane(null)}
           </Box>
 
           {/* LBS grupları */}
@@ -190,29 +218,42 @@ export default function P_KesifButcePozMahaller() {
             );
             if (!mahaller_byLbs?.length) return null;
 
-            // Only show LBS if at least one mahal has a dugum for this poz
-            const hasDugum = mahaller_byLbs.some((m) =>
-              dugumler_byPoz_state?.find((d) => d._mahalId?.toString() === m._id?.toString())
-            );
-            if (!hasDugum) return null;
+            // Only show LBS if at least one assigned dugum exists
+            const hasAssignedDugum = mahaller_byLbs.some((m) => {
+              const dugum = dugumler_byPoz_state?.find((d) => d._mahalId?.toString() === m._id?.toString());
+              return dugum && isDugumAssigned(dugum);
+            });
+            if (!hasAssignedDugum) return null;
+
+            // LBS subtotal
+            const lbsTutar = mahaller_byLbs.reduce((sum, m) => {
+              const dugum = dugumler_byPoz_state?.find((d) => d._mahalId?.toString() === m._id?.toString());
+              if (!dugum || !isDugumAssigned(dugum)) return sum;
+              const metraj = dugum.metrajOnaylanan ?? null;
+              return sum + (metraj != null && birimFiyatToplam != null ? metraj * birimFiyatToplam : 0);
+            }, 0);
 
             return (
               <React.Fragment key={lbsIndex}>
                 {/* LBS Başlığı */}
-                <Box sx={{ ...css_LbsBaslik, borderLeft: "1px solid black" }}>
+                <Box sx={{ ...css_LbsBaslik, borderLeft: "1px solid black", gridColumn: "1 / span 4" }}>
                   {getLbsName(oneLbs).name}
                 </Box>
-                <Box sx={css_LbsBaslik} />
-                <Box sx={css_LbsBaslik} />
+                <Box sx={{ ...css_LbsBaslik, justifyContent: "end", fontWeight: 600 }}>
+                  {lbsTutar ? `${ikiHane(lbsTutar)} ${paraBirimiLabel}` : ikiHane(null)}
+                </Box>
 
                 {/* Mahal satırları */}
                 {mahaller_byLbs.map((oneMahal, mahalIndex) => {
                   const dugum = dugumler_byPoz_state?.find(
                     (d) => d._mahalId?.toString() === oneMahal._id?.toString()
                   );
-                  if (!dugum) return null;
+                  if (!dugum || !isDugumAssigned(dugum)) return null;
 
-                  const assigned = isDugumAssigned(dugum);
+                  const metraj = dugum.metrajOnaylanan ?? null;
+                  const tutar = metraj != null && birimFiyatToplam != null
+                    ? metraj * birimFiyatToplam
+                    : null;
 
                   return (
                     <React.Fragment key={mahalIndex}>
@@ -220,8 +261,10 @@ export default function P_KesifButcePozMahaller() {
                         {oneMahal.mahalNo}
                       </Box>
                       <Box sx={css_mahal}>{oneMahal.mahalName}</Box>
-                      <Box sx={css_center}>
-                        {assigned && <CheckIcon sx={{ fontSize: 18, color: "green" }} />}
+                      <Box sx={css_sayi}>{ikiHane(metraj)}</Box>
+                      <Box sx={css_sayi}>{ikiHane(birimFiyatToplam)}</Box>
+                      <Box sx={{ ...css_sayi, fontWeight: 700 }}>
+                        {tutar != null ? `${ikiHane(tutar)} ${paraBirimiLabel}` : ikiHane(null)}
                       </Box>
                     </React.Fragment>
                   );
