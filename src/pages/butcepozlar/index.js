@@ -46,6 +46,14 @@ export default function P_KesifButcePozlar() {
   const [dialogAlert, setDialogAlert] = useState();
 
   const pozBirimleri = selectedProje?.pozBirimleri ?? [];
+  const projeParaBirimleri = selectedProje?.paraBirimleri ?? [];
+
+  const paraBirimiLabel = (birimFiyatlar) => {
+    const unique = [...new Set((birimFiyatlar ?? []).map((bf) => bf.id))];
+    return unique
+      .map((id) => projeParaBirimleri.find((x) => x.id === id)?.sembol ?? id)
+      .join("+");
+  };
 
   // Sadece kullanıcı etkileşimiyle değişen versiyonlarda refetch yapar.
   // queryFn'in kendi tetiklediği setSelectedMetrajVersiyon/setSelectedBirimFiyatVersiyon
@@ -187,6 +195,20 @@ export default function P_KesifButcePozlar() {
     pozlar?.find((onePoz) => onePoz._wbsId?.toString() === oneWbs._id?.toString())
   );
 
+  const toplamTutar = pozlar?.reduce((sum, onePoz) => {
+    const metrajOnaylanan = onePoz?.metrajOnaylananSecilen ?? onePoz?.metrajVersiyonlar?.metrajOnaylanan ?? null;
+    const birimFiyatlar = onePoz?.birimFiyatVersiyonlar?.birimFiyatlar ?? [];
+    const birimFiyatToplam =
+      birimFiyatlar.length > 0
+        ? birimFiyatlar.reduce((s, bf) => s + (Number(bf.fiyat) || 0), 0)
+        : null;
+    const tutar =
+      metrajOnaylanan != null && birimFiyatToplam != null
+        ? metrajOnaylanan * birimFiyatToplam
+        : 0;
+    return sum + tutar;
+  }, 0) ?? 0;
+
   const ikiHane = (value) => {
     if (value == null || value === "") return "—";
     return new Intl.NumberFormat("tr-TR", {
@@ -210,7 +232,7 @@ export default function P_KesifButcePozlar() {
   };
 
   const wbsBaslik_css = {
-    gridColumn: "1 / span 6",
+    gridColumn: "1 / span 5",
     display: "grid",
     alignItems: "center",
     backgroundColor: myTema.renkler.baslik2,
@@ -229,7 +251,7 @@ export default function P_KesifButcePozlar() {
     justifyItems: "center",
   };
 
-  const columns = `max-content minmax(min-content, 30rem) max-content max-content max-content max-content`;
+  const columns = `max-content minmax(20rem, max-content) max-content max-content max-content minmax(5rem, max-content)`;
 
   const headerIconButton_sx = { width: 40, height: 40 };
   const headerIcon_sx = { fontSize: 24 };
@@ -340,9 +362,44 @@ export default function P_KesifButcePozlar() {
             <Box sx={{ ...enUstBaslik_css }}>Poz İsmi</Box>
             <Box sx={{ ...enUstBaslik_css }}>Birim</Box>
             <Box sx={{ ...enUstBaslik_css }}>Metraj</Box>
-            <Box sx={{ ...enUstBaslik_css }}>Birim Fiyat</Box>
+            <Box sx={{ ...enUstBaslik_css }}>B.Fiyat</Box>
             <Box sx={{ ...enUstBaslik_css }}>Tutar</Box>
           </>
+
+          {/* Toplam */}
+          <Box
+            sx={{
+              gridColumn: "1 / span 5",
+              border: "1px solid black",
+              display: "grid",
+              alignItems: "center",
+              justifyItems: "end",
+              px: "0.7rem",
+              py: "0.1rem",
+              fontWeight: 700,
+              backgroundColor: myTema.renkler.baslik1,
+            }}
+          >
+            
+          </Box>
+          <Box
+            sx={{
+              border: "1px solid black",
+              display: "grid",
+              alignItems: "center",
+              justifyItems: "end",
+              px: "0.7rem",
+              py: "0.1rem",
+              fontWeight: 700,
+              backgroundColor: myTema.renkler.baslik1,
+            }}
+          >
+            {(() => {
+              const allBf = pozlar?.flatMap((p) => p?.birimFiyatVersiyonlar?.birimFiyatlar ?? []) ?? [];
+              const label = paraBirimiLabel(allBf);
+              return toplamTutar ? `${ikiHane(toplamTutar)} ${label}` : ikiHane(null);
+            })()}
+          </Box>
 
           {/* WBS grupları */}
           {wbsArray_hasMahal
@@ -353,11 +410,36 @@ export default function P_KesifButcePozlar() {
               );
               if (!wbsPozlar?.length) return null;
 
+              const wbsToplam = wbsPozlar.reduce((sum, onePoz) => {
+                const m = onePoz?.metrajOnaylananSecilen ?? onePoz?.metrajVersiyonlar?.metrajOnaylanan ?? null;
+                const bflar = onePoz?.birimFiyatVersiyonlar?.birimFiyatlar ?? [];
+                const bf = bflar.length > 0 ? bflar.reduce((s, x) => s + (Number(x.fiyat) || 0), 0) : null;
+                return sum + (m != null && bf != null ? m * bf : 0);
+              }, 0);
+
               return (
                 <React.Fragment key={index}>
                   {/* WBS Başlığı */}
                   <Box sx={{ ...wbsBaslik_css }}>
                     {getWbsName({ wbsArray: wbsArray_hasMahal, oneWbs }).name}
+                  </Box>
+                  <Box
+                    sx={{
+                      display: "grid",
+                      alignItems: "center",
+                      justifyItems: "end",
+                      backgroundColor: myTema.renkler.baslik2,
+                      fontWeight: 600,
+                      border: "1px solid black",
+                      mt: "1rem",
+                      px: "0.7rem",
+                    }}
+                  >
+                    {(() => {
+                      const allBf = wbsPozlar.flatMap((p) => p?.birimFiyatVersiyonlar?.birimFiyatlar ?? []);
+                      const label = paraBirimiLabel(allBf);
+                      return wbsToplam ? `${ikiHane(wbsToplam)} ${label}` : ikiHane(null);
+                    })()}
                   </Box>
 
                   {/* Pozlar */}
@@ -393,7 +475,9 @@ export default function P_KesifButcePozlar() {
                           {ikiHane(birimFiyatToplam)}
                         </Box>
                         <Box sx={{ ...pozNo_css, justifyItems: "end", fontWeight: 700 }}>
-                          {ikiHane(tutar)}
+                          {tutar != null
+                            ? `${ikiHane(tutar)} ${paraBirimiLabel(birimFiyatlar)}`
+                            : ikiHane(null)}
                         </Box>
                       </React.Fragment>
                     );
@@ -401,6 +485,7 @@ export default function P_KesifButcePozlar() {
                 </React.Fragment>
               );
             })}
+
         </Box>
       )}
     </Box>
