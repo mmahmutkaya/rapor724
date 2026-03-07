@@ -1,11 +1,11 @@
-import React, { useState, useContext, useEffect } from 'react';
+import React, { useState, useContext, useEffect, useRef } from 'react';
 import { useNavigate } from "react-router-dom";
 import _ from 'lodash';
 import { keyframes } from "@emotion/react";
 
 import { StoreContext } from '../../components/store.js';
 import { DialogAlert } from '../../components/general/DialogAlert.js';
-import { useGetDugumler_byPoz, useGetMahaller } from '../../hooks/useMongo.js';
+import { useGetDugumler_byPoz, useGetMahaller, useGetPozlar } from '../../hooks/useMongo.js';
 
 import AppBar from '@mui/material/AppBar';
 import Grid from '@mui/material/Grid';
@@ -35,6 +35,10 @@ export default function P_KesifButcePozMahaller() {
     setMode_butceEdit,
     selectedButceVersiyon,
     setSelectedButceVersiyon,
+    selectedMetrajVersiyon,
+    setSelectedMetrajVersiyon,
+    selectedBirimFiyatVersiyon,
+    setSelectedBirimFiyatVersiyon,
     myTema,
   } = useContext(StoreContext);
 
@@ -43,7 +47,19 @@ export default function P_KesifButcePozMahaller() {
   const [mahaller_state, setMahaller_state] = useState();
 
   const { data: dataMahaller, error: error1, isFetching: isFetching1 } = useGetMahaller();
-  const { data: dataDugumler_byPoz, error: error2, isFetching: isFetching2 } = useGetDugumler_byPoz();
+  const { data: dataDugumler_byPoz, error: error2, isFetching: isFetching2, refetch: refetchDugumler } = useGetDugumler_byPoz();
+  const { data: dataPozlar, refetch: refetchPozlar } = useGetPozlar();
+
+  const userInitiatedVersionChangeRef = useRef(false);
+  const versionKey = `${selectedMetrajVersiyon?.versiyonNumber ?? ""}-${selectedBirimFiyatVersiyon?.versiyonNumber ?? ""}`;
+
+  useEffect(() => {
+    if (userInitiatedVersionChangeRef.current) {
+      userInitiatedVersionChangeRef.current = false;
+      refetchDugumler();
+      refetchPozlar();
+    }
+  }, [versionKey]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Guards
   useEffect(() => {
@@ -73,6 +89,8 @@ export default function P_KesifButcePozMahaller() {
   // LBS structure from project, sorted by code
   const butceVersiyonlar = [...(selectedProje?.butceVersiyonlar ?? [])].sort((a, b) => b.versiyonNumber - a.versiyonNumber);
   const hasButceVersiyonlar = butceVersiyonlar.length > 0;
+  const metrajVersiyonlar = [...(selectedProje?.metrajVersiyonlar ?? [])];
+  const birimFiyatVersiyonlar = [...(selectedProje?.birimFiyatVersiyonlar ?? [])];
 
   const openLbsArray = (selectedProje?.lbs ?? [])
     .filter((oneLbs) => oneLbs.openForMahal)
@@ -111,9 +129,10 @@ export default function P_KesifButcePozMahaller() {
     return !!(versioned ?? dugum.isPaketler?.find((p) => p._id?.toString() === selectedId));
   };
 
-  // birimFiyat from selectedPoz (already filtered to selected version by backend)
+  // birimFiyat from selectedPoz — prefer fresh dataPozlar after version change
   const projeParaBirimleri = selectedProje?.paraBirimleri ?? [];
-  const birimFiyatlar = selectedPoz?.birimFiyatVersiyonlar?.birimFiyatlar ?? [];
+  const currentPozData = dataPozlar?.pozlar?.find((p) => p._id?.toString() === selectedPoz?._id?.toString());
+  const birimFiyatlar = (currentPozData ?? selectedPoz)?.birimFiyatVersiyonlar?.birimFiyatlar ?? [];
   const birimFiyatToplam = birimFiyatlar.length > 0
     ? birimFiyatlar.reduce((s, bf) => s + (Number(bf.fiyat) || 0), 0)
     : null;
@@ -196,6 +215,20 @@ export default function P_KesifButcePozMahaller() {
                 <Select size="small" displayEmpty value={selectedButceVersiyon?.versiyonNumber ?? ""} onChange={(e) => { const v = butceVersiyonlar.find((x) => x.versiyonNumber === e.target.value); setSelectedButceVersiyon(v ?? null); }} sx={{ fontSize: "0.75rem" }} MenuProps={{ PaperProps: { style: { maxHeight: "15rem" } } }}>
                   {butceVersiyonlar.map((v) => (
                     <MenuItem key={v.versiyonNumber} value={v.versiyonNumber} sx={{ fontSize: "0.75rem" }}>B{v.versiyonNumber}</MenuItem>
+                  ))}
+                </Select>
+              )}
+              {mode_butceEdit && metrajVersiyonlar.length > 0 && (
+                <Select size="small" displayEmpty value={selectedMetrajVersiyon?.versiyonNumber ?? ""} onChange={(e) => { userInitiatedVersionChangeRef.current = true; setSelectedMetrajVersiyon(e.target.value !== "" ? { versiyonNumber: e.target.value } : null); }} sx={{ fontSize: "0.75rem" }} renderValue={(v) => v !== "" ? `M${v}` : "Metraj V."} MenuProps={{ PaperProps: { style: { maxHeight: "15rem" } } }}>
+                  {[...metrajVersiyonlar].sort((a, b) => b.versiyonNumber - a.versiyonNumber).map((v) => (
+                    <MenuItem key={v.versiyonNumber} value={v.versiyonNumber} sx={{ fontSize: "0.75rem" }}>M{v.versiyonNumber}</MenuItem>
+                  ))}
+                </Select>
+              )}
+              {mode_butceEdit && birimFiyatVersiyonlar.length > 0 && (
+                <Select size="small" displayEmpty value={selectedBirimFiyatVersiyon?.versiyonNumber ?? ""} onChange={(e) => { userInitiatedVersionChangeRef.current = true; setSelectedBirimFiyatVersiyon(e.target.value !== "" ? { versiyonNumber: e.target.value } : null); }} sx={{ fontSize: "0.75rem" }} renderValue={(v) => v !== "" ? `BF${v}` : "BF V."} MenuProps={{ PaperProps: { style: { maxHeight: "15rem" } } }}>
+                  {[...birimFiyatVersiyonlar].sort((a, b) => b.versiyonNumber - a.versiyonNumber).map((v) => (
+                    <MenuItem key={v.versiyonNumber} value={v.versiyonNumber} sx={{ fontSize: "0.75rem" }}>BF{v.versiyonNumber}</MenuItem>
                   ))}
                 </Select>
               )}

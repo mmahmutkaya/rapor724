@@ -494,14 +494,14 @@ export const useGetDugumler_byPoz = () => {
   const { appUser, setAppUser, selectedProje, selectedPoz, selectedMetrajVersiyon, mode_isPaketEdit, selectedIsPaketVersiyon } = useContext(StoreContext)
 
   return useQuery({
-    queryKey: ['dataDugumler_byPoz', mode_isPaketEdit ? 'edit' : selectedIsPaketVersiyon?.versiyonNumber],
+    queryKey: ['dataDugumler_byPoz', mode_isPaketEdit ? 'edit' : selectedIsPaketVersiyon?.versiyonNumber, selectedMetrajVersiyon?.versiyonNumber ?? 0],
     queryFn: async () => {
       const headers = {
         email: appUser.email,
         token: appUser.token,
         projeid: selectedProje._id,
         pozid: selectedPoz._id,
-        selectedmetrajversiyontext: selectedMetrajVersiyon ? selectedMetrajVersiyon : 0,
+        selectedmetrajversiyontext: selectedMetrajVersiyon?.versiyonNumber ?? 0,
         'Content-Type': 'application/json'
       }
       if (!mode_isPaketEdit && selectedIsPaketVersiyon?.versiyonNumber !== undefined) {
