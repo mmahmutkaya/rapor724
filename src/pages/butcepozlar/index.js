@@ -149,6 +149,25 @@ export default function P_KesifButcePozlar() {
     navigate("/butcepozmahaller");
   };
 
+  const handleButceVChange = (newVersiyonNumber) => {
+    const v = butceVersiyonlar.find((x) => x.versiyonNumber === newVersiyonNumber);
+    setSelectedButceVersiyon(v ?? null);
+    if (v && selectedIsPaket) {
+      const satir = v?.butce?.isPaketlerSatirlar?.find(
+        (s) => s.isPaketId?.toString() === selectedIsPaket._id?.toString()
+      );
+      if (satir) {
+        if (satir.metrajVersiyonNumber != null) {
+          setSelectedMetrajVersiyon({ versiyonNumber: satir.metrajVersiyonNumber });
+        }
+        if (satir.birimFiyatVersiyonNumber != null) {
+          setSelectedBirimFiyatVersiyon({ versiyonNumber: satir.birimFiyatVersiyonNumber });
+        }
+        userInitiatedVersionChangeRef.current = true;
+      }
+    }
+  };
+
   const handleExitEditMode = () => {
     const satir = selectedButceVersiyon?.butce?.isPaketlerSatirlar?.find(
       (s) => s.isPaketId?.toString() === kesifWizardActiveIsPaketId?.toString()
@@ -261,7 +280,7 @@ export default function P_KesifButcePozlar() {
           <Grid item xs="auto">
             <Box sx={{ display: "grid", gridAutoFlow: "column", alignItems: "center", gap: "0.25rem" }}>
               {!mode_butceEdit && hasButceVersiyonlar && (
-                <Select size="small" displayEmpty value={selectedButceVersiyon?.versiyonNumber ?? ""} onChange={(e) => { const v = butceVersiyonlar.find((x) => x.versiyonNumber === e.target.value); setSelectedButceVersiyon(v ?? null); }} sx={{ fontSize: "0.75rem" }} MenuProps={{ PaperProps: { style: { maxHeight: "15rem" } } }}>
+                <Select size="small" displayEmpty value={selectedButceVersiyon?.versiyonNumber ?? ""} onChange={(e) => handleButceVChange(e.target.value)} sx={{ fontSize: "0.75rem" }} MenuProps={{ PaperProps: { style: { maxHeight: "15rem" } } }}>
                   {butceVersiyonlar.map((v) => (
                     <MenuItem key={v.versiyonNumber} value={v.versiyonNumber} sx={{ fontSize: "0.75rem" }}>BU{v.versiyonNumber}</MenuItem>
                   ))}

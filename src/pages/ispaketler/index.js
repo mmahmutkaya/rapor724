@@ -138,7 +138,8 @@ export default function P_IsPaketler() {
       .sort((a, b) => a._id.toString().localeCompare(b._id.toString()))
       .map(p => {
         const sortedIds = (p.isPaketler || []).map(ip => ip._id.toString()).sort().join(',')
-        return `${p._id}:${sortedIds}`
+        const assignedDugum = (p.dugumler_totalCount || 0) - (p.isPaketler_empityArrayCounts || 0)
+        return `${p._id}:${sortedIds}:${assignedDugum}`
       })
       .join('|')
   }
@@ -148,15 +149,13 @@ export default function P_IsPaketler() {
     const lastVersiyon = selectedProje.isPaketVersiyonlar.reduce((prev, cur) =>
       cur.versiyonNumber > prev.versiyonNumber ? cur : prev
     )
-    // Fingerprint karşılaştırması (poz bazında isPaket içeriği)
+    // Fingerprint karşılaştırması (poz bazında iPaket içeriği + atanmış düğüm sayısı)
     const currentFingerprint = getAssignmentFingerprint(dataIsPaketPozlar?.pozlar)
-    if (currentFingerprint !== null && lastVersiyon._fingerprint !== undefined) {
-      return currentFingerprint === lastVersiyon._fingerprint
+    if (currentFingerprint !== null && lastVersiyon.fingerprint !== undefined) {
+      return currentFingerprint === lastVersiyon.fingerprint
     }
-    // Fallback: sadece master liste karşılaştırması
-    const currIds = (selectedProje?.isPaketler || []).map(p => p._id.toString()).sort()
-    const lastIds = (lastVersiyon.isPaketler || []).map(p => p._id.toString()).sort()
-    return currIds.length === lastIds.length && currIds.every((id, i) => id === lastIds[i])
+    // Fingerprint yoksa (sayfa yenilendiyse vb.) kayda izin ver
+    return false
   })()
 
   const createVersiyon_isPaket = async ({ fieldText }) => {
@@ -173,7 +172,8 @@ export default function P_IsPaketler() {
         body: JSON.stringify({
           projeId: selectedProje?._id,
           versiyonNumber: nextVersiyonNumber,
-          aciklama: fieldText
+          aciklama: fieldText,
+          fingerprint: getAssignmentFingerprint(dataIsPaketPozlar?.pozlar)
         })
       })
 
@@ -199,13 +199,10 @@ export default function P_IsPaketler() {
       }
 
       if (responseJson.ok) {
-        const fingerprint = getAssignmentFingerprint(dataIsPaketPozlar?.pozlar)
-        const newVersiyon = { versiyonNumber: nextVersiyonNumber, isPaketler, aciklama: fieldText }
+        const newVersiyon = responseJson.isPaketVersiyonlar?.find(v => v.versiyonNumber === nextVersiyonNumber)
+          ?? { versiyonNumber: nextVersiyonNumber, isPaketler, aciklama: fieldText }
         setSelectedIsPaketVersiyon(newVersiyon)
-        const versiyonlarWithFingerprint = (responseJson.isPaketVersiyonlar || []).map(v =>
-          v.versiyonNumber === nextVersiyonNumber ? { ...v, _fingerprint: fingerprint } : v
-        )
-        const proje2 = { ...selectedProje, isPaketVersiyonlar: versiyonlarWithFingerprint }
+        const proje2 = { ...selectedProje, isPaketVersiyonlar: responseJson.isPaketVersiyonlar }
         setSelectedProje(proje2)
         setMode_isPaketEdit()
       } else {

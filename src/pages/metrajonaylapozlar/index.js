@@ -46,6 +46,7 @@ export default function P_MetrajOnaylaPozlar() {
   const deleteProjeAktifYetkiliKisi = useDeleteProjeAktifYetkiliKisi()
   const queryClient = useQueryClient()
   const [dialogAlert, setDialogAlert] = useState()
+  const [hoveredRow, setHoveredRow] = useState(null)
 
   const { selectedMetrajVersiyon, setSelectedMetrajVersiyon } = useContext(StoreContext)
   const { selectedProje } = useContext(StoreContext)
@@ -169,7 +170,7 @@ export default function P_MetrajOnaylaPozlar() {
   }
 
   const showMetrajYapabilenlerColumns = " 1rem repeat(" + showMetrajYapabilenler?.filter(x => x.isShow).length + ", max-content)"
-  const columns = `max-content minmax(min-content, 3fr) max-content max-content${show_aciklama ? " 0.5rem minmax(min-content, 2fr)" : ""}${show_versiyon ? " 0.5rem min-content" : ""}${editNodeMetraj ? " 0.5rem max-content" : ""}${onayNodeMetraj ? showMetrajYapabilenlerColumns : ""}`
+  const columns = `max-content minmax(25rem, max-content) max-content max-content${show_aciklama ? " 0.5rem max-content" : ""}${show_versiyon ? " 0.5rem max-content" : ""}${editNodeMetraj ? " 0.5rem max-content" : ""}${onayNodeMetraj ? showMetrajYapabilenlerColumns : ""}`
 
 
 
@@ -692,22 +693,32 @@ export default function P_MetrajOnaylaPozlar() {
                     isSelected = true
                   }
 
+                  const isHovered = hoveredRow === onePoz._id.toString()
+                  const hoverSx = (isHovered || isSelected) ? { textShadow: "0 0 0.7px black, 0 0 0.7px black" } : {}
+                  const rowBaseSx = { transition: "text-shadow 0.2s ease" }
+                  const rowCursor = hasOnaylananMetraj ? "pointer" : "default"
+                  const rowHandlers = {
+                    onMouseEnter: () => setHoveredRow(onePoz._id.toString()),
+                    onMouseLeave: () => setHoveredRow(null),
+                    onClick: () => hasOnaylananMetraj && goTo_MetrajPozmahaller(onePoz),
+                  }
+
                   return (
                     <React.Fragment key={index} >
-                      <Box sx={{ ...pozNo_css }} >
+                      <Box {...rowHandlers} sx={{ ...pozNo_css, ...rowBaseSx, ...hoverSx, cursor: rowCursor }} >
                         {onePoz.pozNo}
                       </Box>
-                      <Box sx={{ ...pozNo_css, justifyItems: "start", pl: "0.5rem" }} >
+                      <Box {...rowHandlers} sx={{ ...pozNo_css, ...rowBaseSx, ...hoverSx, justifyItems: "start", pl: "0.5rem", cursor: rowCursor }} >
                         {onePoz.pozName}
                       </Box>
-                      <Box onClick={() => hasOnaylananMetraj && goTo_MetrajPozmahaller(onePoz)} sx={{ ...pozNo_css, backgroundColor: !mode_metrajOnayla && show_versiyondakiDegisimler && onePoz?.metrajVersiyonlar?.isProgress ? "rgba(217, 255, 0, 0.33)" : mode_metrajOnayla && hasVersiyonZero && "rgba(255, 251, 0, 0.55)", cursor: hasOnaylananMetraj && "pointer", display: "grid", gridTemplateColumns: "1rem 1fr", "&:hover": hasOnaylananMetraj && { "& .childClass": { backgroundColor: "red" } } }}>
+                      <Box {...rowHandlers} sx={{ ...pozNo_css, ...rowBaseSx, ...hoverSx, backgroundColor: !mode_metrajOnayla && show_versiyondakiDegisimler && onePoz?.metrajVersiyonlar?.isProgress ? "rgba(217, 255, 0, 0.33)" : mode_metrajOnayla && hasVersiyonZero && "rgba(255, 251, 0, 0.55)", cursor: rowCursor, display: "grid", gridTemplateColumns: "1rem 1fr" }}>
                         <Box className="childClass" sx={{ ml: "-1rem", backgroundColor: !mode_metrajOnayla && show_versiyondakiDegisimler && onePoz?.metrajVersiyonlar?.isProgress ? "rgba(217, 255, 0, 0.33)" : mode_metrajOnayla && hasVersiyonZero && "rgba(255, 251, 0, 0.55)", height: "0.5rem", width: "0.5rem", borderRadius: "50%" }}>
                         </Box>
                         <Box sx={{ justifySelf: "end" }}>
                           {!mode_metrajOnayla ? ikiHane(onePoz?.metrajVersiyonlar?.metrajOnaylanan) : ikiHane(onePoz?.metrajOnaylanan)}
                         </Box>
                       </Box>
-                      <Box sx={{ ...pozNo_css }}>
+                      <Box {...rowHandlers} sx={{ ...pozNo_css, ...rowBaseSx, ...hoverSx, cursor: rowCursor }}>
                         {pozBirimleri.find(x => x.id === onePoz.pozBirimId).name}
                       </Box>
 
@@ -715,7 +726,7 @@ export default function P_MetrajOnaylaPozlar() {
                       {show_aciklama &&
                         <>
                           <Box></Box>
-                          <Box sx={{ ...pozNo_css }}>
+                          <Box {...rowHandlers} sx={{ ...pozNo_css, ...rowBaseSx, ...hoverSx, cursor: rowCursor }}>
                             {onePoz.aciklaam}
                           </Box>
                         </>
@@ -725,7 +736,7 @@ export default function P_MetrajOnaylaPozlar() {
                       {show_versiyon &&
                         <>
                           <Box />
-                          <Box sx={{ ...pozNo_css }}>
+                          <Box {...rowHandlers} sx={{ ...pozNo_css, ...rowBaseSx, ...hoverSx, cursor: rowCursor }}>
                             {onePoz.versiyon}
                           </Box>
                         </>
@@ -747,24 +758,14 @@ export default function P_MetrajOnaylaPozlar() {
                             let allSelected = oneHazirlanan?.hasSelected && !oneHazirlanan?.hasUnSelected
                             let someSelected = oneHazirlanan?.hasSelected && oneHazirlanan?.hasUnSelected
 
-
-
                             return (
                               <Box
                                 key={index}
-                                onClick={() => clickAble && goTo_MetrajPozmahaller(onePoz)}
+                                {...rowHandlers}
                                 sx={{
-                                  ...pozNo_css, display: "grid", gridTemplateColumns: "1rem 1fr", justifyContent: "end", cursor: clickAble && "pointer",
+                                  ...pozNo_css, ...rowBaseSx, ...hoverSx, display: "grid", gridTemplateColumns: "1rem 1fr", justifyContent: "end", cursor: rowCursor,
                                   backgroundColor: hasReadyUnSeen ? "rgba(255, 251, 0, 0.55)" : !clickAble && "lightgray",
-                                  "&:hover": clickAble && { "& .childClass": { color: "red" } },
                                 }}>
-                                {/* <Box
-                                  className="childClass"
-                                  sx={{
-                                    ml: "-1rem", height: "0.5rem", width: "0.5rem", borderRadius: "50%",
-                                    backgroundColor: hasSelected && hasUnSelected && "gray",
-                                  }}>
-                                </Box> */}
 
                                 {someSelected &&
                                   <CircleIcon variant="contained" className="childClass"
