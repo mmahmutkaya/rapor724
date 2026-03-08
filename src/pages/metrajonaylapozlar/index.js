@@ -56,6 +56,7 @@ export default function P_MetrajOnaylaPozlar() {
   let { data, error, isLoading } = useGetPozlar()
   let pozlar = data?.pozlar?.filter(x => x.hasDugum)
   // console.log("pozlar", pozlar)
+  const totalEksikMahal = pozlar?.reduce((sum, p) => sum + (p.dugumSifirCount || 0), 0) || 0
 
   const { setSelectedProje, appUser, setAppUser, myTema } = useContext(StoreContext)
   const { showMetrajYapabilenler, setShowMetrajYapabilenler } = useContext(StoreContext)
@@ -169,8 +170,8 @@ export default function P_MetrajOnaylaPozlar() {
     setSelectedPoz(onePoz)
   }
 
-  const showMetrajYapabilenlerColumns = " 1rem repeat(" + showMetrajYapabilenler?.filter(x => x.isShow).length + ", max-content)"
-  const columns = `max-content minmax(25rem, max-content) max-content max-content${show_aciklama ? " 0.5rem max-content" : ""}${show_versiyon ? " 0.5rem max-content" : ""}${editNodeMetraj ? " 0.5rem max-content" : ""}${onayNodeMetraj ? showMetrajYapabilenlerColumns : ""}`
+  const showMetrajYapabilenlerColumns = " 0.5rem repeat(" + showMetrajYapabilenler?.filter(x => x.isShow).length + ", max-content)"
+  const columns = `max-content minmax(25rem, max-content) max-content max-content 0.5rem max-content${show_aciklama ? " 0.5rem max-content" : ""}${show_versiyon ? " 0.5rem max-content" : ""}${editNodeMetraj ? " 0.5rem max-content" : ""}${onayNodeMetraj ? showMetrajYapabilenlerColumns : ""}`
 
 
 
@@ -180,7 +181,6 @@ export default function P_MetrajOnaylaPozlar() {
 
     try {
 
-      setSelectedMetrajVersiyon()
 
       const response = await fetch(process.env.REACT_APP_BASE_URL + `/api/projeler/requestprojeaktifyetkilikisi`, {
         method: 'POST',
@@ -251,7 +251,6 @@ export default function P_MetrajOnaylaPozlar() {
   const createVersiyon_metraj = async ({ fieldText }) => {
 
     const versiyonNumber = selectedMetrajVersiyon?.versiyonNumber + 1
-    setSelectedMetrajVersiyon()
 
     try {
 
@@ -560,6 +559,18 @@ export default function P_MetrajOnaylaPozlar() {
               Birim
             </Box>
 
+            {/* BAŞLIK - SIFIR DÜĞÜM SAYISI */}
+            <Box></Box>
+            <Box sx={{ ...enUstBaslik_css }}>
+              <Box sx={{ display: "flex", alignItems: "center", gap: "0.2rem" }}>
+                <Box sx={{ display: "grid", justifyItems: "center", fontSize: "0.75rem" }}>
+                  <Box>Eksik</Box>
+                  <Box>Mahal</Box>
+                </Box>
+                {totalEksikMahal > 0 && <Box sx={{ color: "#b71c1c", fontWeight: 700 }}>{totalEksikMahal}</Box>}
+              </Box>
+            </Box>
+
             {/* BAŞLIK - POZ BİRİM  */}
             {show_aciklama &&
               <>
@@ -626,6 +637,8 @@ export default function P_MetrajOnaylaPozlar() {
 
           {wbsArray_hasMahal?.filter(x => x.openForPoz).map((oneWbs, index) => {
 
+            const wbsEksikMahal = pozlar?.filter(p => p._wbsId.toString() === oneWbs._id.toString()).reduce((sum, p) => sum + (p.dugumSifirCount || 0), 0) || 0
+
             return (
 
               <React.Fragment key={index}>
@@ -639,6 +652,11 @@ export default function P_MetrajOnaylaPozlar() {
                     </Box>
                   </Box>
 
+                  {/* EKSİK METRAJ SÜTUNU AYRAÇ */}
+                  <Box />
+                  <Box sx={{ ...wbsBaslik_css2, display: "grid", alignItems: "center", justifyItems: "center" }}>
+                    {wbsEksikMahal > 0 && <Box component="span" sx={{ color: "#b71c1c", fontWeight: 700 }}>{wbsEksikMahal}</Box>}
+                  </Box>
 
                   {/* BAŞLIK - AÇIKLAMA  */}
                   {show_aciklama &&
@@ -720,6 +738,12 @@ export default function P_MetrajOnaylaPozlar() {
                       </Box>
                       <Box {...rowHandlers} sx={{ ...pozNo_css, ...rowBaseSx, ...hoverSx, cursor: rowCursor }}>
                         {pozBirimleri.find(x => x.id === onePoz.pozBirimId).name}
+                      </Box>
+
+                      {/* SIFIR DÜĞÜM SAYISI */}
+                      <Box />
+                      <Box {...rowHandlers} sx={{ ...pozNo_css, ...rowBaseSx, ...hoverSx, cursor: rowCursor, backgroundColor: onePoz.dugumSifirCount > 0 ? "rgba(255, 200, 200, 0.5)" : undefined }}>
+                        {onePoz.dugumSifirCount > 0 ? onePoz.dugumSifirCount : ""}
                       </Box>
 
                       {/* BAŞLIK - POZ BİRİM  */}

@@ -2,6 +2,8 @@ import React, { useState, useEffect, useRef, useContext } from "react";
 import { StoreContext } from "../../components/store.js";
 import { useNavigate } from "react-router-dom";
 import { DialogAlert } from "../../components/general/DialogAlert.js";
+import useRequestProjeAktifYetkiliKisi from "../../functions/requestProjeAktifYetkiliKisi.js";
+import useDeleteProjeAktifYetkiliKisi from "../../functions/deleteProjeAktifYetkiliKisi.js";
 
 import AppBar from "@mui/material/AppBar";
 import Grid from "@mui/material/Grid";
@@ -42,6 +44,10 @@ export default function P_KesifButce() {
   const [dialogAlert, setDialogAlert] = useState();
   const [isSaving, setIsSaving] = useState(false);
   const [hoveredRow, setHoveredRow] = useState(null);
+  const [isChanged, setIsChanged] = useState(false);
+
+  const requestProjeAktifYetkiliKisi = useRequestProjeAktifYetkiliKisi();
+  const deleteProjeAktifYetkiliKisi = useDeleteProjeAktifYetkiliKisi();
 
   const abortControllersRef = useRef({});
   const navigate = useNavigate();
@@ -141,20 +147,38 @@ export default function P_KesifButce() {
     }
   };
 
-  const handleEnterEdit = () => {
-    initEditRows();
-    setMode_butceEdit(true);
+  const handleEnterEdit = async () => {
+    const checkAuth = await requestProjeAktifYetkiliKisi({
+      projeId: selectedProje?._id,
+      aktifYetki: "butceEdit",
+      setDialogAlert,
+      setShow: () => {},
+    });
+    if (checkAuth?.ok) {
+      initEditRows();
+      setMode_butceEdit(true);
+      setIsChanged(false);
+    }
   };
 
   const handleCancelEdit = () => {
-    Object.values(abortControllersRef.current).forEach((ctrl) => ctrl.abort());
-    abortControllersRef.current = {};
-    setKesifWizardRows({});
-    setKesifWizardIsPaketVersiyonNumber(null);
-    setMode_butceEdit(false);
-    if (!selectedButceVersiyon && hasButceVersiyonlar) {
-      setSelectedButceVersiyon(butceVersiyonlar[0]);
-    }
+    deleteProjeAktifYetkiliKisi({
+      projeId: selectedProje?._id,
+      aktifYetki: "butceEdit",
+      setDialogAlert,
+      setShow: () => {},
+      onOk: () => {
+        Object.values(abortControllersRef.current).forEach((ctrl) => ctrl.abort());
+        abortControllersRef.current = {};
+        setKesifWizardRows({});
+        setKesifWizardIsPaketVersiyonNumber(null);
+        setMode_butceEdit(false);
+        setIsChanged(false);
+        if (!selectedButceVersiyon && hasButceVersiyonlar) {
+          setSelectedButceVersiyon(butceVersiyonlar[0]);
+        }
+      },
+    });
   };
 
   // ── Calculation ────────────────────────────────────────────────────────────
@@ -218,6 +242,7 @@ export default function P_KesifButce() {
     Object.values(abortControllersRef.current).forEach((ctrl) => ctrl.abort());
     abortControllersRef.current = {};
     setKesifWizardIsPaketVersiyonNumber(newVN);
+    setIsChanged(true);
 
     const maxMetrajVN = getLatestMaxVN(metrajVersiyonlar);
     const maxBirimFiyatVN = getLatestMaxVN(birimFiyatVersiyonlar);
@@ -246,6 +271,7 @@ export default function P_KesifButce() {
     const existing = kesifWizardRows[isPaketId] || {};
     const updated = { ...existing, metrajVersiyonNumber: value !== "" ? Number(value) : null, kesifTutar: null, isCalculating: false };
     setKesifWizardRows((prev) => ({ ...prev, [isPaketId]: updated }));
+    setIsChanged(true);
     if (value !== "" && updated.birimFiyatVersiyonNumber != null) {
       doCalculate(isPaketId, Number(value), updated.birimFiyatVersiyonNumber);
     }
@@ -255,6 +281,7 @@ export default function P_KesifButce() {
     const existing = kesifWizardRows[isPaketId] || {};
     const updated = { ...existing, birimFiyatVersiyonNumber: value !== "" ? Number(value) : null, kesifTutar: null, isCalculating: false };
     setKesifWizardRows((prev) => ({ ...prev, [isPaketId]: updated }));
+    setIsChanged(true);
     if (value !== "" && updated.metrajVersiyonNumber != null) {
       doCalculate(isPaketId, updated.metrajVersiyonNumber, Number(value));
     }
@@ -265,6 +292,7 @@ export default function P_KesifButce() {
       ...prev,
       [isPaketId]: { ...(prev[isPaketId] || {}), butceTutar: value },
     }));
+    setIsChanged(true);
   };
 
   const handleClickIsPaketEdit = (onePaket) => {
@@ -341,6 +369,7 @@ export default function P_KesifButce() {
       const json = await authFetch("/api/projeler/updatebutce", { projeId: selectedProje._id, butce });
       if (!json.ok) throw new Error("Bütçe kaydı gerçekleşmedi.");
       setSelectedProje({ ...selectedProje, butce });
+      setIsChanged(false);
     } catch (err) {
       setDialogAlert({ dialogIcon: "warning", dialogMessage: "Kayıt sırasında hata oluştu.", detailText: err?.message ?? null, onCloseAction: () => setDialogAlert() });
     } finally { setIsSaving(false); }
@@ -462,26 +491,26 @@ export default function P_KesifButce() {
 
               {mode_butceEdit ? (
                 <>
-                  <IconButton onClick={handleSaveDraft} disabled={isSaving} sx={iconBtn_sx} title="Taslak Kaydet">
+                  <IconButton onClick={handleCancelEdit} disabled={isSaving} sx={iconBtn_sx}>
+                    <ClearOutlined sx={{ ...icon_sx, color: "red" }} />
+                  </IconButton>
+                  <IconButton onClick={handleSaveDraft} disabled={isSaving || !isChanged} sx={iconBtn_sx} title="Taslak Kaydet">
                     <SaveIcon sx={icon_sx} />
                   </IconButton>
                   <Box
-                    onClick={isSaving ? undefined : handleSaveVersiyon}
+                    onClick={(!isSaving && !isChanged) ? handleSaveVersiyon : undefined}
                     sx={{
-                      cursor: isSaving ? "default" : "pointer",
+                      cursor: (!isSaving && !isChanged) ? "pointer" : "default",
                       mx: "0.3rem", py: "0.2rem", px: "0.3rem",
-                      border: isSaving ? "1px solid gray" : "1px solid red",
+                      border: (isSaving || isChanged) ? "1px solid gray" : "1px solid red",
                       borderRadius: "0.5rem",
                       fontSize: "0.8rem",
                       fontWeight: "600",
-                      backgroundColor: isSaving ? "#e0e0e0" : "yellow",
+                      backgroundColor: (isSaving || isChanged) ? "#e0e0e0" : "yellow",
                     }}
                   >
                     BU{nextVersiyonNumber}
                   </Box>
-                  <IconButton onClick={handleCancelEdit} disabled={isSaving} sx={iconBtn_sx}>
-                    <ClearOutlined sx={{ ...icon_sx, color: "red" }} />
-                  </IconButton>
                 </>
               ) : (
                 <IconButton onClick={handleEnterEdit} sx={iconBtn_sx}>

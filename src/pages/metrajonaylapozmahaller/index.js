@@ -879,6 +879,7 @@ export default function P_MetrajOnaylaPozMahaller() {
                   }
 
                   let hasOnaylananMetraj = dugum?.hazirlananMetrajlar?.find(x => x.hasSelected)
+                  let isMiktarSifir = dugum?.metrajOnaylanan === 0
 
                   return (
                     <React.Fragment key={index}>
@@ -891,8 +892,8 @@ export default function P_MetrajOnaylaPozMahaller() {
                         {oneMahal.mahalName}
                       </Box>
 
-                      <Box onClick={() => hasOnaylananMetraj && !mode_select && goTo_MetrajOnaylaCetvel({ dugum, oneMahal })} sx={{ ...css_mahaller, cursor: hasOnaylananMetraj && !mode_select && "pointer", display: "grid", alignItems: "center", gridTemplateColumns: "1rem 1fr", backgroundColor: mode_select ? null : dugum?.hasVersiyonZero && "rgba(255, 251, 0, 0.55)", "&:hover": hasOnaylananMetraj && !mode_select && { "& .childClass": { backgroundColor: "red" } } }}>
-                        <Box className="childClass" sx={{ backgroundColor: mode_select ? null : dugum?.hasVersiyonZero && "rgba(255, 251, 0, 0.55)", height: "0.5rem", width: "0.5rem", borderRadius: "50%" }}>
+                      <Box onClick={() => hasOnaylananMetraj && !mode_select && goTo_MetrajOnaylaCetvel({ dugum, oneMahal })} sx={{ ...css_mahaller, cursor: hasOnaylananMetraj && !mode_select && "pointer", display: "grid", alignItems: "center", gridTemplateColumns: "1rem 1fr", backgroundColor: isMiktarSifir ? "rgba(255, 182, 193, 0.6)" : mode_select ? null : dugum?.hasVersiyonZero && "rgba(255, 251, 0, 0.55)", "&:hover": hasOnaylananMetraj && !mode_select && { "& .childClass": { backgroundColor: "red" } } }}>
+                        <Box className="childClass" sx={{ backgroundColor: isMiktarSifir ? "rgba(255, 182, 193, 0.6)" : mode_select ? null : dugum?.hasVersiyonZero && "rgba(255, 251, 0, 0.55)", height: "0.5rem", width: "0.5rem", borderRadius: "50%" }}>
                         </Box>
                         <Box sx={{ justifySelf: "end" }}>
                           {ikiHane(dugum?.metrajOnaylanan)}
