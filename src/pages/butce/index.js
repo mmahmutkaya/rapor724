@@ -41,6 +41,7 @@ export default function P_KesifButce() {
 
   const [dialogAlert, setDialogAlert] = useState();
   const [isSaving, setIsSaving] = useState(false);
+  const [hoveredRow, setHoveredRow] = useState(null);
 
   const abortControllersRef = useRef({});
   const navigate = useNavigate();
@@ -381,9 +382,9 @@ export default function P_KesifButce() {
 
   // ── CSS helpers ────────────────────────────────────────────────────────────
 
-  const css_baslik = { display: "grid", px: "0.5rem", border: "1px solid black", alignItems: "center", backgroundColor: "lightgray", fontWeight: 700, minHeight: "2.2rem", marginLeft: "-1px", marginTop: "-1px" };
-  const css_satir = { display: "grid", px: "0.5rem", border: "1px solid black", alignItems: "center", minHeight: "2.2rem", marginLeft: "-1px", marginTop: "-1px" };
-  const css_toplam = { display: "grid", px: "0.5rem", border: "1px solid black", alignItems: "center", backgroundColor: "rgb(240,240,240)", fontWeight: 700, minHeight: "2.2rem", marginLeft: "-1px", marginTop: "-1px" };
+  const css_baslik = { display: "grid", px: "0.5rem", py: "3px", border: "1px solid black", alignItems: "center", backgroundColor: "lightgray", fontWeight: 700, marginLeft: "-1px", marginTop: "-1px" };
+  const css_satir = { display: "grid", px: "0.5rem", border: "1px solid black", alignItems: "center", marginLeft: "-1px", marginTop: "-1px" };
+  const css_toplam = { display: "grid", px: "0.5rem", py: "3px", border: "1px solid black", alignItems: "center", backgroundColor: "rgb(240,240,240)", fontWeight: 700, marginLeft: "-1px", marginTop: "-1px" };
   const iconBtn_sx = { width: 40, height: 40 };
   const icon_sx = { fontSize: 24 };
   const gridCols = "max-content max-content max-content max-content max-content max-content";
@@ -433,7 +434,7 @@ export default function P_KesifButce() {
                 >
                   {butceVersiyonlar.map((v) => (
                     <MenuItem key={v.versiyonNumber} value={v.versiyonNumber} sx={{ fontSize: "0.75rem" }}>
-                      B{v.versiyonNumber}
+                      BU{v.versiyonNumber}
                     </MenuItem>
                   ))}
                 </Select>
@@ -476,7 +477,7 @@ export default function P_KesifButce() {
                       backgroundColor: isSaving ? "#e0e0e0" : "yellow",
                     }}
                   >
-                    B{nextVersiyonNumber}
+                    BU{nextVersiyonNumber}
                   </Box>
                   <IconButton onClick={handleCancelEdit} disabled={isSaving} sx={iconBtn_sx}>
                     <ClearOutlined sx={{ ...icon_sx, color: "red" }} />
@@ -509,19 +510,25 @@ export default function P_KesifButce() {
                 <Box sx={css_baslik}>Sıra</Box>
                 <Box sx={css_baslik}>İş Paketi</Box>
                 <Box sx={{ ...css_baslik, textAlign: "center" }}>Metraj V.</Box>
-                <Box sx={{ ...css_baslik, textAlign: "center" }}>Birim Fiyat V.</Box>
+                <Box sx={{ ...css_baslik, textAlign: "center" }}>B.Fiyat V.</Box>
                 <Box sx={{ ...css_baslik, textAlign: "right" }}>Keşif Tutar</Box>
                 <Box sx={{ ...css_baslik, textAlign: "right" }}>Bütçe Tutar</Box>
 
                 {isPaketList.map((onePaket, index) => {
                   const row = kesifWizardRows[onePaket._id] || {};
+                  const isHovered = hoveredRow === onePaket._id.toString();
+                  const hoverSx = isHovered ? { textShadow: "0 0 0.7px black, 0 0 0.7px black" } : {};
+                  const rowHandlers = {
+                    onMouseEnter: () => setHoveredRow(onePaket._id.toString()),
+                    onMouseLeave: () => setHoveredRow(null),
+                  };
                   return (
                     <React.Fragment key={onePaket._id}>
-                      <Box sx={{ ...css_satir, justifyContent: "center" }}>{index + 1}</Box>
-                      <Box sx={{ ...css_satir, cursor: "pointer", color: "darkblue", textDecoration: "underline" }} onClick={() => handleClickIsPaketEdit(onePaket)}>
+                      <Box {...rowHandlers} sx={{ ...css_satir, ...hoverSx, justifyContent: "center" }}>{index + 1}</Box>
+                      <Box {...rowHandlers} sx={{ ...css_satir, ...hoverSx, cursor: "pointer" }} onClick={() => handleClickIsPaketEdit(onePaket)}>
                         {onePaket.name}
                       </Box>
-                      <Box sx={{ ...css_satir, py: "0.25rem" }}>
+                      <Box {...rowHandlers} sx={{ ...css_satir, ...hoverSx, py: "0.25rem" }}>
                         <Select variant="standard" size="small" displayEmpty value={row.metrajVersiyonNumber ?? ""} onChange={(e) => handleMetrajVChange(onePaket._id, e.target.value)} sx={{ fontSize: "0.875rem", minWidth: 60 }}>
                           <MenuItem value=""><em>—</em></MenuItem>
                           {[...metrajVersiyonlar].sort((a, b) => b.versiyonNumber - a.versiyonNumber).map((v) => (
@@ -529,7 +536,7 @@ export default function P_KesifButce() {
                           ))}
                         </Select>
                       </Box>
-                      <Box sx={{ ...css_satir, py: "0.25rem" }}>
+                      <Box {...rowHandlers} sx={{ ...css_satir, ...hoverSx, py: "0.25rem" }}>
                         <Select variant="standard" size="small" displayEmpty value={row.birimFiyatVersiyonNumber ?? ""} onChange={(e) => handleBirimFiyatVChange(onePaket._id, e.target.value)} sx={{ fontSize: "0.875rem", minWidth: 60 }}>
                           <MenuItem value=""><em>—</em></MenuItem>
                           {[...birimFiyatVersiyonlar].sort((a, b) => b.versiyonNumber - a.versiyonNumber).map((v) => (
@@ -537,10 +544,10 @@ export default function P_KesifButce() {
                           ))}
                         </Select>
                       </Box>
-                      <Box sx={{ ...css_satir, justifyContent: "right", fontWeight: row.kesifTutar != null ? 700 : 400, color: row.isCalculating ? "gray" : "inherit" }}>
+                      <Box {...rowHandlers} sx={{ ...css_satir, ...hoverSx, justifyContent: "right", fontWeight: row.kesifTutar != null ? 700 : 400, color: row.isCalculating ? "gray" : "inherit" }}>
                         {row.isCalculating ? "..." : formatTutar(row.kesifTutar)}
                       </Box>
-                      <Box sx={{ ...css_satir, py: "0.25rem" }}>
+                      <Box {...rowHandlers} sx={{ ...css_satir, ...hoverSx, py: "0.25rem" }}>
                         <TextField variant="standard" size="small" placeholder="—" value={row.butceTutar ?? ""} onChange={(e) => handleButceTutarChange(onePaket._id, e.target.value)} inputProps={{ style: { fontSize: "0.875rem", textAlign: "right" } }} sx={{ width: 100 }} />
                       </Box>
                     </React.Fragment>
@@ -569,30 +576,38 @@ export default function P_KesifButce() {
                 <Box sx={css_baslik}>Sıra</Box>
                 <Box sx={css_baslik}>İş Paketi</Box>
                 <Box sx={{ ...css_baslik, textAlign: "center" }}>Metraj V.</Box>
-                <Box sx={{ ...css_baslik, textAlign: "center" }}>Birim Fiyat V.</Box>
+                <Box sx={{ ...css_baslik, textAlign: "center" }}>B.Fiyat V.</Box>
                 <Box sx={{ ...css_baslik, textAlign: "right" }}>Keşif Tutar</Box>
                 <Box sx={{ ...css_baslik, textAlign: "right" }}>Bütçe Tutar</Box>
 
-                {viewIsPaketList.map((satir, index) => (
-                  <React.Fragment key={satir.isPaketId ?? index}>
-                    <Box sx={{ ...css_satir, justifyContent: "center" }}>{index + 1}</Box>
-                    <Box sx={{ ...css_satir, cursor: "pointer", color: "darkblue", textDecoration: "underline" }} onClick={() => handleClickIsPaketView(satir)}>
-                      {satir.isPaketName ?? "—"}
-                    </Box>
-                    <Box sx={{ ...css_satir, justifyContent: "center" }}>
-                      {satir.metrajVersiyonNumber != null ? `M${satir.metrajVersiyonNumber}` : "—"}
-                    </Box>
-                    <Box sx={{ ...css_satir, justifyContent: "center" }}>
-                      {satir.birimFiyatVersiyonNumber != null ? `BF${satir.birimFiyatVersiyonNumber}` : "—"}
-                    </Box>
-                    <Box sx={{ ...css_satir, justifyContent: "right", fontWeight: satir.kesifTutar != null ? 700 : 400 }}>
-                      {formatTutar(satir.kesifTutar)}
-                    </Box>
-                    <Box sx={{ ...css_satir, justifyContent: "right" }}>
-                      {formatTutar(satir.butceTutar)}
-                    </Box>
-                  </React.Fragment>
-                ))}
+                {viewIsPaketList.map((satir, index) => {
+                  const isHovered = hoveredRow === (satir.isPaketId ?? String(index));
+                  const hoverSx = isHovered ? { textShadow: "0 0 0.7px black, 0 0 0.7px black" } : {};
+                  const rowHandlers = {
+                    onMouseEnter: () => setHoveredRow(satir.isPaketId ?? String(index)),
+                    onMouseLeave: () => setHoveredRow(null),
+                  };
+                  return (
+                    <React.Fragment key={satir.isPaketId ?? index}>
+                      <Box {...rowHandlers} sx={{ ...css_satir, ...hoverSx, justifyContent: "center" }}>{index + 1}</Box>
+                      <Box {...rowHandlers} sx={{ ...css_satir, ...hoverSx, cursor: "pointer" }} onClick={() => handleClickIsPaketView(satir)}>
+                        {satir.isPaketName ?? "—"}
+                      </Box>
+                      <Box {...rowHandlers} sx={{ ...css_satir, ...hoverSx, justifyContent: "center" }}>
+                        {satir.metrajVersiyonNumber != null ? `M${satir.metrajVersiyonNumber}` : "—"}
+                      </Box>
+                      <Box {...rowHandlers} sx={{ ...css_satir, ...hoverSx, justifyContent: "center" }}>
+                        {satir.birimFiyatVersiyonNumber != null ? `BF${satir.birimFiyatVersiyonNumber}` : "—"}
+                      </Box>
+                      <Box {...rowHandlers} sx={{ ...css_satir, ...hoverSx, justifyContent: "right", fontWeight: satir.kesifTutar != null ? 700 : 400 }}>
+                        {formatTutar(satir.kesifTutar)}
+                      </Box>
+                      <Box {...rowHandlers} sx={{ ...css_satir, ...hoverSx, justifyContent: "right" }}>
+                        {formatTutar(satir.butceTutar)}
+                      </Box>
+                    </React.Fragment>
+                  );
+                })}
 
                 <Box sx={{ ...css_toplam, gridColumn: "1 / span 4", justifyContent: "right" }}>Toplam</Box>
                 <Box sx={{ ...css_toplam, justifyContent: "right" }}>{formatTutar(totalViewKesif)}</Box>

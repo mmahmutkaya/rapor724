@@ -229,7 +229,7 @@ export default function P_KesifButcePozMahaller() {
               {!mode_butceEdit && hasButceVersiyonlar && (
                 <Select size="small" displayEmpty value={selectedButceVersiyon?.versiyonNumber ?? ""} onChange={(e) => { const v = butceVersiyonlar.find((x) => x.versiyonNumber === e.target.value); setSelectedButceVersiyon(v ?? null); }} sx={{ fontSize: "0.75rem" }} MenuProps={{ PaperProps: { style: { maxHeight: "15rem" } } }}>
                   {butceVersiyonlar.map((v) => (
-                    <MenuItem key={v.versiyonNumber} value={v.versiyonNumber} sx={{ fontSize: "0.75rem" }}>B{v.versiyonNumber}</MenuItem>
+                    <MenuItem key={v.versiyonNumber} value={v.versiyonNumber} sx={{ fontSize: "0.75rem" }}>BU{v.versiyonNumber}</MenuItem>
                   ))}
                 </Select>
               )}

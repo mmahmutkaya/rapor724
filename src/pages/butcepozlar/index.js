@@ -57,6 +57,7 @@ export default function P_KesifButcePozlar() {
   );
 
   const [dialogAlert, setDialogAlert] = useState();
+  const [hoveredRow, setHoveredRow] = useState(null);
 
   const pozBirimleri = selectedProje?.pozBirimleri ?? [];
   const projeParaBirimleri = selectedProje?.paraBirimleri ?? [];
@@ -262,7 +263,7 @@ export default function P_KesifButcePozlar() {
               {!mode_butceEdit && hasButceVersiyonlar && (
                 <Select size="small" displayEmpty value={selectedButceVersiyon?.versiyonNumber ?? ""} onChange={(e) => { const v = butceVersiyonlar.find((x) => x.versiyonNumber === e.target.value); setSelectedButceVersiyon(v ?? null); }} sx={{ fontSize: "0.75rem" }} MenuProps={{ PaperProps: { style: { maxHeight: "15rem" } } }}>
                   {butceVersiyonlar.map((v) => (
-                    <MenuItem key={v.versiyonNumber} value={v.versiyonNumber} sx={{ fontSize: "0.75rem" }}>B{v.versiyonNumber}</MenuItem>
+                    <MenuItem key={v.versiyonNumber} value={v.versiyonNumber} sx={{ fontSize: "0.75rem" }}>BU{v.versiyonNumber}</MenuItem>
                   ))}
                 </Select>
               )}
@@ -361,20 +362,27 @@ export default function P_KesifButcePozlar() {
                   const birimFiyatToplam = birimFiyatlar.length > 0 ? birimFiyatlar.reduce((sum, bf) => sum + (Number(bf.fiyat) || 0), 0) : null;
                   const tutar = isPozAssigned(onePoz._id) && metrajOnaylanan != null && birimFiyatToplam != null ? metrajOnaylanan * birimFiyatToplam : null;
                   const birimAdi = pozBirimleri.find((x) => x.id === onePoz.pozBirimId)?.name ?? "";
+                  const isHovered = hoveredRow === onePoz._id.toString();
+                  const hoverSx = isHovered ? { textShadow: "0 0 0.7px black, 0 0 0.7px black" } : {};
+                  const rowHandlers = {
+                    onMouseEnter: () => setHoveredRow(onePoz._id.toString()),
+                    onMouseLeave: () => setHoveredRow(null),
+                  };
 
                   return (
                     <React.Fragment key={pIndex}>
-                      <Box sx={pozNo_css}>{onePoz.pozNo}</Box>
+                      <Box {...rowHandlers} sx={{ ...pozNo_css, ...hoverSx }}>{onePoz.pozNo}</Box>
                       <Box
-                        sx={{ ...pozNo_css, justifyItems: "start", pl: "0.5rem", cursor: "pointer", color: "darkblue", textDecoration: "underline" }}
+                        {...rowHandlers}
+                        sx={{ ...pozNo_css, ...hoverSx, justifyItems: "start", pl: "0.5rem", cursor: "pointer" }}
                         onClick={() => handleClickPoz(onePoz)}
                       >
                         {onePoz.pozName}
                       </Box>
-                      <Box sx={pozNo_css}>{birimAdi}</Box>
-                      <Box sx={{ ...pozNo_css, justifyItems: "end" }}>{ikiHane(metrajOnaylanan)}</Box>
-                      <Box sx={{ ...pozNo_css, justifyItems: "end" }}>{ikiHane(birimFiyatToplam)}</Box>
-                      <Box sx={{ ...pozNo_css, justifyItems: "end", fontWeight: 700 }}>
+                      <Box {...rowHandlers} sx={{ ...pozNo_css, ...hoverSx }}>{birimAdi}</Box>
+                      <Box {...rowHandlers} sx={{ ...pozNo_css, ...hoverSx, justifyItems: "end" }}>{ikiHane(metrajOnaylanan)}</Box>
+                      <Box {...rowHandlers} sx={{ ...pozNo_css, ...hoverSx, justifyItems: "end" }}>{ikiHane(birimFiyatToplam)}</Box>
+                      <Box {...rowHandlers} sx={{ ...pozNo_css, ...hoverSx, justifyItems: "end", fontWeight: 700 }}>
                         {tutar != null ? `${ikiHane(tutar)} ${paraBirimiLabel(birimFiyatlar)}` : ikiHane(null)}
                       </Box>
                     </React.Fragment>
