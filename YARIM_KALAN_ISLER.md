@@ -46,6 +46,21 @@ Bu dosya, birlikte başlayıp sonraya bıraktığımız işleri takip etmek içi
 - Form bileşenleri: `FormLbsCreate.js`, `FormLbsUpdate.js` (Supabase)
 - **SQL çalıştırılması gerekiyor** (aşağıya bak)
 
+#### ✅ Proje Ayarları (`src/pages/projeayarlari/index.js`)
+- `useGetPozUnits` → `project_poz_units` tablosu (Supabase)
+- Poz birimleri CRUD: ekleme, silme, sıralama (yukarı/aşağı)
+- FK ile korumalı: poz kullanan birim silinemez
+- Sidebar'da "Proje Ayarları" menüsü eklendi (`/proje-ayarlari`)
+
+#### ✅ Pozlar (`src/pages/pozlar/index.js`)
+- `useGetProjectPozlar` → `project_pozlar` tablosu (Supabase)
+- İki görünüm modu: **WBS ağaç** (tree) | **düz liste** (flat)
+- Ağaç görünümü: WBS node'ları collapse/expand edilebilir, yaprak node seçilerek poz eklenir
+- Düz liste görünümü: WBS yaprak chip filtreleri ile filtreleme
+- Poz kodu otomatik üretilir: `[WBS_PATH].[SEQ]` → örn. `KAB.ZEM.001`
+- `FormPozCreate.js` yeniden yazıldı (Supabase, unit_id, otomatik kod)
+- **SQL çalıştırılması gerekiyor** (aşağıya bak)
+
 ### Çalıştırılması Gereken SQL (Supabase SQL Editor)
 
 ```sql
@@ -54,6 +69,39 @@ ALTER TABLE lbs_nodes
   ADD COLUMN IF NOT EXISTS code_name text;
 
 CREATE POLICY "dev_lbs_nodes_all" ON lbs_nodes
+  FOR ALL TO authenticated USING (true) WITH CHECK (true);
+
+-- Poz birimleri tablosu (yeni)
+CREATE TABLE IF NOT EXISTS project_poz_units (
+  id          uuid primary key default gen_random_uuid(),
+  project_id  uuid not null references projects(id) on delete cascade,
+  name        text not null,
+  order_index int not null default 0,
+  created_at  timestamptz not null default now()
+);
+CREATE INDEX IF NOT EXISTS project_poz_units_project_id_idx ON project_poz_units (project_id);
+ALTER TABLE project_poz_units ENABLE ROW LEVEL SECURITY;
+CREATE POLICY "dev_project_poz_units_all" ON project_poz_units
+  FOR ALL TO authenticated USING (true) WITH CHECK (true);
+
+-- Project pozlar tablosu (yeni — unit_id FK ile)
+-- NOT: firm_poz_template_id ve created_by sütunları şimdilik eklenmedi
+CREATE TABLE IF NOT EXISTS project_pozlar (
+  id          uuid primary key default gen_random_uuid(),
+  project_id  uuid not null references projects(id) on delete cascade,
+  wbs_node_id uuid references wbs_nodes(id) on delete set null,
+  code        text,
+  short_desc  text not null,
+  long_desc   text,
+  project_note text,
+  unit_id     uuid references project_poz_units(id) on delete restrict,
+  order_index int not null default 0,
+  created_at  timestamptz not null default now(),
+  updated_at  timestamptz not null default now()
+);
+CREATE INDEX IF NOT EXISTS project_pozlar_project_id_idx ON project_pozlar (project_id);
+ALTER TABLE project_pozlar ENABLE ROW LEVEL SECURITY;
+CREATE POLICY "dev_project_pozlar_all" ON project_pozlar
   FOR ALL TO authenticated USING (true) WITH CHECK (true);
 ```
 

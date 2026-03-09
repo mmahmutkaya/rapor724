@@ -19,6 +19,8 @@ alter table firms               enable row level security;
 alter table projects            enable row level security;
 alter table wbs_nodes           enable row level security;
 alter table lbs_nodes           enable row level security;
+alter table project_poz_units   enable row level security;
+alter table project_pozlar      enable row level security;
 
 -- Diğer tablolar geliştirildikçe buraya eklenecek:
 -- alter table project_pozlar   enable row level security;
@@ -50,6 +52,16 @@ create policy "dev_wbs_nodes_all"
 -- lbs_nodes
 create policy "dev_lbs_nodes_all"
   on lbs_nodes for all to authenticated
+  using (true) with check (true);
+
+-- project_poz_units
+create policy "dev_project_poz_units_all"
+  on project_poz_units for all to authenticated
+  using (true) with check (true);
+
+-- project_pozlar
+create policy "dev_project_pozlar_all"
+  on project_pozlar for all to authenticated
   using (true) with check (true);
 
 

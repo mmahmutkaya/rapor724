@@ -1,569 +1,262 @@
-import { useApp } from "./useApp.js";
-import { useState, useContext } from 'react';
-import { StoreContext } from './store.js'
-import deleteLastSpace from '../functions/deleteLastSpace.js';
-import { DialogAlert } from './general/DialogAlert.js';
-import { useGetPozlar } from '../hooks/useMongo.js';
-import { useQueryClient } from '@tanstack/react-query'
-import { useNavigate } from "react-router-dom";
-import _ from 'lodash';
+import { useState, useContext, useEffect, useMemo } from 'react'
+
+import { StoreContext } from './store'
+import { supabase } from '../lib/supabase'
+import { DialogAlert } from './general/DialogAlert'
+
+import Box from '@mui/material/Box'
+import Paper from '@mui/material/Paper'
+import Grid from '@mui/material/Grid'
+import Typography from '@mui/material/Typography'
+import TextField from '@mui/material/TextField'
+import MenuItem from '@mui/material/MenuItem'
+import Select from '@mui/material/Select'
+import InputLabel from '@mui/material/InputLabel'
+import FormControl from '@mui/material/FormControl'
+import Button from '@mui/material/Button'
 
 
+// Kök → yaprak arası code_name'leri noktalı birleştir
+function buildWbsPathCode(nodeId, rawNodes) {
+  const path = []
+  let current = rawNodes.find(n => n.id === nodeId)
+  while (current) {
+    if (current.code_name) path.unshift(current.code_name)
+    current = current.parent_id ? rawNodes.find(n => n.id === current.parent_id) : null
+  }
+  return path.join('.')
+}
 
-//mui
-import Box from '@mui/material/Box';
-import Grid from '@mui/material/Grid';
-import Button from '@mui/material/Button';
-import TextField from '@mui/material/TextField';
-import InputLabel from '@mui/material/InputLabel';
-import Select from '@mui/material/Select';
-import Dialog from '@mui/material/Dialog';
-import DialogActions from '@mui/material/DialogActions';
-import DialogContent from '@mui/material/DialogContent';
-import DialogContentText from '@mui/material/DialogContentText';
-import MenuItem from '@mui/material/MenuItem';
-import ArrowForwardIcon from '@mui/icons-material/ArrowForward';
+function buildPozCode(wbsNodeId, rawNodes, existingPozlar) {
+  if (!wbsNodeId) return ''
+  const prefix = buildWbsPathCode(wbsNodeId, rawNodes)
+  const count = existingPozlar.filter(p => p.wbs_node_id === wbsNodeId).length
+  const seq = String(count + 1).padStart(3, '0')
+  return prefix ? `${prefix}.${seq}` : seq
+}
 
 
+export default function FormPozCreate({ setShow, wbsNodeId, rawWbsNodes, rawPozlar, units, invalidate }) {
+  const { selectedProje } = useContext(StoreContext)
 
+  // Sadece yaprak node'lar seçilebilir
+  const leafNodes = useMemo(() => {
+    const flat = rawWbsNodes.filter(n => !rawWbsNodes.some(c => c.parent_id === n.id))
+    return flat
+  }, [rawWbsNodes])
 
-export default function FormPozCreate({ setShow }) {
-
-  const queryClient = useQueryClient()
-  const navigate = useNavigate()
-  const { appUser, setAppUser, myTema } = useContext(StoreContext)
-
-  const { selectedFirma, selectedProje } = useContext(StoreContext)
-  const { data } = useGetPozlar()
-
+  const [selectedWbsNodeId, setSelectedWbsNodeId] = useState(wbsNodeId ?? '')
+  const [shortDesc, setShortDesc] = useState('')
+  const [longDesc, setLongDesc] = useState('')
+  const [projectNote, setProjectNote] = useState('')
+  const [unitId, setUnitId] = useState(units.length === 1 ? units[0].id : '')
+  const [codeOverride, setCodeOverride] = useState('')  // manuel kod
   const [dialogAlert, setDialogAlert] = useState()
+  const [saving, setSaving] = useState(false)
 
-  const [wbsIdError, setWbsIdError] = useState()
-  const [pozNameError, setPozNameError] = useState()
-  const [pozNoError, setPozNoError] = useState()
-  const [pozBirimIdError, setPozBirimIdError] = useState()
-  const [pozMetrajTipIdError, setPozMetrajTipIdError] = useState()
+  // Otomatik kod: wbs değişince güncelle (manuel override yoksa)
+  const autoCode = useMemo(
+    () => buildPozCode(selectedWbsNodeId || null, rawWbsNodes, rawPozlar),
+    [selectedWbsNodeId, rawWbsNodes, rawPozlar]
+  )
 
-  // form verilerinde kullanmak için oluşturulan useState() verileri
-  // form ilk açıldığında önceden belirlenen birşeyin seçilmiş olması için alttaki satırdaki gibi yapılabiliyor
-  const [pozMetrajTipId, setPozMetrajTipId] = useState("standartMetrajSayfasi");
-  const [wbsId, setWbsId] = useState();
-  const [pozBirimId, setPozBirimId] = useState();
-  const [pozBirimDisabled, setPozBirimDisabled] = useState(false);
+  // Gösterilecek kod: override varsa onu, yoksa otomatik
+  const displayCode = codeOverride || autoCode
 
-
-  // poz oluşturma fonksiyonu
-  async function handleSubmit(event) {
-
-    event.preventDefault();
-
-    try {
-
-      // formdan gelen text verilerini alma - (çoktan seçmeliler seçildiği anda useState() kısmında güncelleniyor)
-      const formData = new FormData(event.currentTarget);
-      const pozName = deleteLastSpace(formData.get('pozName'))
-      const pozNo = deleteLastSpace(formData.get('pozNo'))
-
-      let newPoz = {
-        _firmaId: selectedFirma._id,
-        _projeId: selectedProje._id,
-        _wbsId: wbsId,
-        pozName,
-        pozNo,
-        pozBirimId,
-        pozMetrajTipId
-      }
-
-      // veri düzeltme
-      if (newPoz.pozMetrajTipId === "insaatDemiri") {
-        newPoz.pozBirimId = "ton"
-      }
-
-      ////// form validation - frontend
-
-      let wbsIdError
-      let pozNameError
-      let pozNoError
-      let pozBirimIdError
-      let pozMetrajTipIdError
-      let isFormError = false
-
-
-      // form alanına uyarı veren hatalar
-
-      if (!newPoz._wbsId && !wbsIdError) {
-        setWbsIdError("Zorunlu")
-        wbsIdError = true
-        isFormError = true
-      }
-
-
-      if (typeof newPoz.pozName !== "string" && !pozNameError) {
-        setPozNameError("Zorunlu")
-        pozNameError = true
-        isFormError = true
-      }
-
-      if (typeof newPoz.pozName === "string" && !pozNameError) {
-        if (newPoz.pozName.length === 0) {
-          setPozNameError("Zorunlu")
-          pozNameError = true
-          isFormError = true
-        }
-      }
-
-      if (typeof newPoz.pozName === "string" && !pozNameError) {
-        let minimumHaneSayisi = 3
-        if (newPoz.pozName.length > 0 && newPoz.pozName.length < minimumHaneSayisi) {
-          setPozNameError(`${minimumHaneSayisi} haneden az olamaz`)
-          pozNameError = true
-          isFormError = true
-        }
-      }
-
-      if (data?.pozlar?.length > 0 && data?.pozlar.find(x => x.pozName === newPoz.pozName) && !pozNameError) {
-        setPozNameError(`Bu poz ismi kullanılmış`)
-        pozNameError = true
-        isFormError = true
-      }
-
-
-      if (!newPoz.pozNo && !pozNoError) {
-        setPozNoError(`Zorunlu`)
-        pozNoError = true
-        isFormError = true
-      }
-
-      let pozFinded
-      if (data?.pozlar?.length > 0) {
-        pozFinded = data?.pozlar.find(x => x.pozNo === newPoz.pozNo)
-      }
-      if (pozFinded && !pozNoError) {
-        setPozNoError(`Bu poz numarası kullanılmış`)
-        pozNoError = true
-        isFormError = true
-      }
-
-
-      if (!newPoz.pozBirimId && !pozBirimIdError) {
-        setPozBirimIdError(`Zorunlu`)
-        pozBirimIdError = true
-        isFormError = true
-      }
-
-
-      if (!selectedProje.pozMetrajTipleri.find(x => x.id == newPoz.pozMetrajTipId) && !pozMetrajTipIdError) {
-        setPozMetrajTipIdError(`Zorunlu`)
-        pozMetrajTipIdError = true
-        isFormError = true
-      }
-
-
-      // form alanına uyarı veren hatalar olmuşsa burda durduralım
-      if (isFormError) {
-        // console.log("form validation - hata - frontend")
-        return
-      }
-
-      // console.log("newPoz", newPoz)
-      // return
-      // form verileri kontrolden geçti - db ye göndermeyi deniyoruz
-
-      const response = await fetch(process.env.REACT_APP_BASE_URL + `/api/pozlar`, {
-        method: 'POST',
-        headers: {
-          email: appUser.email,
-          token: appUser.token,
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({ newPoz })
-      })
-
-      const responseJson = await response.json()
-
-      if (responseJson.error) {
-        if (responseJson.error.includes("expired")) {
-          setAppUser()
-          localStorage.removeItem('appUser')
-          navigate('/')
-          window.location.reload()
-        }
-        throw new Error(responseJson.error);
-      }
-
-      // form validation - backend
-      if (responseJson.errorObject) {
-        setWbsIdError(responseJson.errorObject.wbsIdError)
-        setPozNameError(responseJson.errorObject.pozNameError)
-        setPozNoError(responseJson.errorObject.pozNoError)
-        setPozBirimIdError(responseJson.errorObject.pozBirimIdError)
-        setPozMetrajTipIdError(responseJson.errorObject.pozMetrajTipIdError)
-        console.log("responseJson.errorObject", responseJson.errorObject)
-        console.log("alt satırda backend den gelen hata ile durdu")
-        return
-      }
-
-
-      if (!responseJson.newPoz) {
-        console.log("responseJson", responseJson)
-        throw new Error("Kayıt işlemi gerçekleşmedi, sayfayı yenileyiniz, sorun devam ederse Rapor7/24 ile irtibata geçiniz..")
-      }
-
-      // {pozlar} ile data içindeki object pozlar veriis alınıyor
-      let data2 = _.cloneDeep(data)
-      data2.pozlar = [...data2.pozlar, { ...responseJson.newPoz }]
-      queryClient.setQueryData(['dataPozlar'], data2)
-
-      setShow("Main")
-
-      return
-
-    } catch (err) {
-
-      console.log(err)
-
-      setDialogAlert({
-        dialogIcon: "warning",
-        dialogMessage: "Beklenmedik hata, Rapor7/24 ile irtibata geçiniz..",
-        detailText: err?.message ? err.message : null
-      })
-
+  // WBS yaprak node'larının düz adını al (select listesi için)
+  function leafLabel(node) {
+    // Kökten yaprağa tam yol ismi
+    const parts = []
+    let current = node
+    while (current) {
+      parts.unshift(current.code_name ? `[${current.code_name}] ${current.name}` : current.name)
+      current = current.parent_id ? rawWbsNodes.find(n => n.id === current.parent_id) : null
     }
-
+    return parts.join(' > ')
   }
 
-
-  // form verilerini kullanıcıdan alıp react hafızasına yüklemek - onChange - sadece seçmeliler - yazma gibi şeyler formun submit olduğu anda yakalanıyor
-  const handleChange_wbs = (event) => {
-    setWbsId(selectedProje.wbs.find(item => item._id.toString() === event.target.value.toString())._id);
-  };
-
-  const handleChange_pozMetrajTipId = (event) => {
-
-    setPozMetrajTipId(event.target.value);
-    setPozBirimDisabled(false)
-
-    if (event.target.value === "insaatDemiri") {
-      setPozBirimId("ton")
-      setPozBirimDisabled(true)
-      setPozBirimIdError()
+  async function handleSave(andNew = false) {
+    if (!shortDesc.trim()) {
+      setDialogAlert({ dialogIcon: 'warning', dialogMessage: 'Poz açıklaması boş olamaz.' })
+      return
+    }
+    if (!unitId) {
+      setDialogAlert({ dialogIcon: 'warning', dialogMessage: 'Birim seçiniz.' })
+      return
+    }
+    if (!selectedWbsNodeId) {
+      setDialogAlert({ dialogIcon: 'warning', dialogMessage: 'WBS seçiniz.' })
+      return
     }
 
-  };
+    const finalCode = displayCode || null
 
-  const handleChange_pozBirimId = (event) => {
-    setPozBirimId(selectedProje.pozBirimleri.find(item => item.id === event.target.value).id);
-  };
+    // Sonraki order_index: bu WBS'in max order + 1
+    const sibs = rawPozlar.filter(p => p.wbs_node_id === selectedWbsNodeId)
+    const maxOrder = sibs.length > 0 ? Math.max(...sibs.map(s => s.order_index)) : 0
 
+    setSaving(true)
+    const { error } = await supabase.from('project_pozlar').insert({
+      project_id: selectedProje.id,
+      wbs_node_id: selectedWbsNodeId,
+      short_desc: shortDesc.trim(),
+      long_desc: longDesc.trim() || null,
+      project_note: projectNote.trim() || null,
+      unit_id: unitId,
+      code: finalCode,
+      order_index: maxOrder + 1,
+    })
+    setSaving(false)
 
-  // aşağıda kullanılıyor
-  let wbsCode
-  let wbsName
+    if (error) {
+      setDialogAlert({ dialogIcon: 'warning', dialogMessage: 'Poz kaydedilemedi.', detailText: error.message })
+      return
+    }
 
+    invalidate()
 
+    if (andNew) {
+      // Formu sıfırla, aynı WBS'e devam et
+      setShortDesc('')
+      setLongDesc('')
+      setProjectNote('')
+      setCodeOverride('')
+    } else {
+      setShow('Main')
+    }
+  }
 
   return (
-    <div>
-
+    <Box sx={{ m: '1rem', maxWidth: '44rem' }}>
       {dialogAlert &&
         <DialogAlert
           dialogIcon={dialogAlert.dialogIcon}
           dialogMessage={dialogAlert.dialogMessage}
           detailText={dialogAlert.detailText}
-          onCloseAction={dialogAlert.onCloseAction ? dialogAlert.onCloseAction : () => setDialogAlert()}
+          onCloseAction={() => setDialogAlert()}
         />
       }
 
+      <Paper variant="outlined" sx={{ p: '1.25rem' }}>
+        <Typography variant="subtitle1" fontWeight="bold" sx={{ mb: '1rem' }}>
+          Yeni Poz
+        </Typography>
 
-      <Dialog
-        PaperProps={{ sx: { width: "80%", position: "fixed", top: "10rem" } }}
-        open={true}
-        onClose={() => setShow("Main")} >
-        {/* <DialogTitle>Subscribe</DialogTitle> */}
-        <Box component="form" onSubmit={handleSubmit} noValidate sx={{ mt: 1 }}>
+        <Grid container spacing={2}>
 
-          <DialogContent>
-
-            <DialogContentText sx={{ fontWeight: "bold", marginBottom: "2rem" }}>
-              {/* <Typography sx> */}
-              Poz Oluştur
-              {/* </Typography> */}
-            </DialogContentText>
-
-
-            {/* wbs adı seçme - çoktan seçmeli - poz başlığı için*/}
-            <Box
-              onClick={() => setWbsIdError()}
-              sx={{ minWidth: 120, marginBottom: "0rem" }}
-            >
-
-              <InputLabel
-                error={wbsIdError ? true : false}
-                id="select-wbs-label"
-              >
-                <Grid container justifyContent="space-between">
-
-                  <Grid item>Poz Başlığı Seçiniz</Grid>
-
-                  <Grid item onClick={() => console.log("poz create component wbs tıklandı")} >
-                    wbs
-                    <ArrowForwardIcon sx={{ fontSize: 15, verticalAlign: "middle" }} />
-                  </Grid>
-
-                </Grid>
-
-              </InputLabel>
-
-              <Select
-                error={wbsIdError ? true : false}
-                variant="standard"
-                fullWidth
-                labelId="select-wbs-label"
-                id="select-wbs"
-                value={wbsId ? wbsId : ""}
-                // label="Poz için başlık seçiniz"
-                // label="Poz"
-                onChange={handleChange_wbs}
-                required
-                name="wbsId"
-              >
-                {
-                  selectedProje?.wbs?.filter(item => item.openForPoz)
-                    .sort(function (a, b) {
-                      var nums1 = a.code.split(".");
-                      var nums2 = b.code.split(".");
-
-                      for (var i = 0; i < nums1.length; i++) {
-                        if (nums2[i]) { // assuming 5..2 is invalid
-                          if (nums1[i] !== nums2[i]) {
-                            return nums1[i] - nums2[i];
-                          } // else continue
-                        } else {
-                          return 1; // no second number in b
-                        }
-                      }
-                      return -1; // was missing case b.len > a.len
-                    })
-                    .map(wbsOne => (
-                      // console.log(wbs)
-                      <MenuItem key={wbsOne._id} value={wbsOne._id}>
-
-                        {
-                          wbsOne.code.split(".").map((codePart, index) => {
-
-                            let cOunt = wbsOne.code.split(".").length
-
-                            // console.log(cOunt)
-                            // console.log(index + 1)
-                            // console.log("---")
-
-                            if (index == 0 && cOunt == 1) {
-                              wbsCode = codePart
-                              wbsName = selectedProje.wbs.find(item => item.code == wbsCode).name
-                            }
-
-                            if (index == 0 && cOunt !== 1) {
-                              wbsCode = codePart
-                              wbsName = selectedProje.wbs.find(item => item.code == wbsCode).codeName
-                            }
-
-                            if (index !== 0 && index + 1 !== cOunt && cOunt !== 1) {
-                              wbsCode = wbsCode + "." + codePart
-                              wbsName = wbsName + " > " + selectedProje.wbs.find(item => item.code == wbsCode).codeName
-                            }
-
-                            if (index !== 0 && index + 1 == cOunt && cOunt !== 1) {
-                              wbsCode = wbsCode + "." + codePart
-                              wbsName = wbsName + " > " + selectedProje.wbs.find(item => item.code == wbsCode).name
-                            }
-
-                          })
-                        }
-
-                        {/* wbsName hazır aslında ama aralarındaki ok işaretini kırmızıya boyamak için */}
-                        <Box sx={{ display: "grid", gridAutoFlow: "column", justifyContent: "start" }} >
-
-                          {wbsName.split(">").map((item, index) => (
-
-                            <Box key={index} sx={{ display: "grid", gridAutoFlow: "column", justifyContent: "start" }} >
-                              {item}
-                              {index + 1 !== wbsName.split(">").length &&
-                                <Box sx={{ color: myTema.renkler.baslik2_ayrac, mx: "0.2rem" }} >{">"}</Box>
-                              }
-                            </Box>
-
-                          ))}
-
-                          {/* <Typography>{wbsName}</Typography> */}
-                        </Box>
-
-                      </MenuItem>
-                    ))
-                }
-
-              </Select>
-
-            </Box>
-
-
-
-            {/* poz numarasının yazıldığı alan */}
-            {/* tıklayınca setShowDialogError(false) çalışmasının sebebi -->  error vermişse yazmaya başlamak için tıklayınca error un silinmesi*/}
-            <Box
-              onClick={() => setPozNoError()}
-              sx={{ minWidth: 120, my: "1rem" }}
-            >
-              <TextField
-                sx={{
-                  "& input:-webkit-autofill:focus": {
-                    transition: "background-color 600000s 0s, color 600000s 0s"
-                  },
-                  "& input:-webkit-autofill": {
-                    transition: "background-color 600000s 0s, color 600000s 0s"
-                  },
-                }}
-                variant="standard"
-                // InputProps={{ sx: { height:"2rem", fontSize: "1.5rem" } }}
-                margin="normal"
-                id="pozNo"
-                name="pozNo"
-                // autoFocus
-                error={pozNoError ? true : false}
-                helperText={pozNoError}
-                // margin="dense"
-                label="Poz No"
-                type="text"
-                fullWidth
-              />
-            </Box>
-
-
-
-
-            {/* poz isminin yazıldığı alan */}
-            {/* tıklayınca setShowDialogError(false) çalışmasının sebebi -->  error vermişse yazmaya başlamak için tıklayınca error un silinmesi*/}
-            <Box
-              onClick={() => setPozNameError()}
-              sx={{ minWidth: 120, marginBottom: "2rem" }}
-            >
-              <TextField
-                sx={{
-                  "& input:-webkit-autofill:focus": {
-                    transition: "background-color 600000s 0s, color 600000s 0s"
-                  },
-                  "& input:-webkit-autofill": {
-                    transition: "background-color 600000s 0s, color 600000s 0s"
-                  },
-                }}
-                variant="standard"
-                // InputProps={{ sx: { height:"2rem", fontSize: "1.5rem" } }}
-                margin="normal"
-                id="pozName"
-                name="pozName"
-                // autoFocus
-                error={pozNameError ? true : false}
-                helperText={pozNameError}
-                // margin="dense"
-                label="Poz Adi"
-                type="text"
-                fullWidth
-              />
-            </Box>
-
-
-            {/* poz Tip seçme - çoktan seçmeli*/}
-            <Box
-              onClick={() => setPozMetrajTipIdError()}
-              sx={{ minWidth: 120, marginBottom: "0rem" }}
-            >
-              <InputLabel
-                error={pozMetrajTipIdError ? true : false}
-                id="select-pozMetrajTip-label"
-              >
-                <Grid container justifyContent="space-between">
-                  <Grid item>Metraj Tipi Seçiniz</Grid>
-                </Grid>
-              </InputLabel>
-
-              <Select
-                error={pozMetrajTipIdError ? true : false}
-                variant="standard"
-                fullWidth
-                labelId="select-pozMetrajTip-label"
-                id="select-pozMetrajTip"
-                value={pozMetrajTipId ? pozMetrajTipId : ""}
-                label="Poz için tip seçiniz"
-                onChange={handleChange_pozMetrajTipId}
-                required
-                name="pozMetrajTipId"
-              >
-                {
-                  selectedProje?.pozMetrajTipleri.map((onePozMetrajTipi, index) => (
-                    // console.log(wbs)
-                    <MenuItem key={index} value={onePozMetrajTipi.id}>
-                      {onePozMetrajTipi.name}
+          {/* WBS seçimi — wbsNodeId prop yoksa göster */}
+          {!wbsNodeId &&
+            <Grid item xs={12}>
+              <FormControl fullWidth variant="standard" required>
+                <InputLabel>WBS (Poz Başlığı)</InputLabel>
+                <Select
+                  value={selectedWbsNodeId}
+                  onChange={e => { setSelectedWbsNodeId(e.target.value); setCodeOverride('') }}
+                  disabled={saving}
+                >
+                  {leafNodes.map(node => (
+                    <MenuItem key={node.id} value={node.id}>
+                      {leafLabel(node)}
                     </MenuItem>
-                  ))
-                }
+                  ))}
+                </Select>
+              </FormControl>
+            </Grid>
+          }
 
-              </Select>
+          {/* Poz kodu (otomatik, override edilebilir) */}
+          <Grid item xs={12} sm={4}>
+            <TextField
+              variant="standard"
+              label="Poz Kodu"
+              fullWidth
+              value={displayCode}
+              onChange={e => setCodeOverride(e.target.value)}
+              helperText={codeOverride ? 'Manuel' : 'Otomatik'}
+              disabled={saving || !selectedWbsNodeId}
+              inputProps={{ style: { fontFamily: 'monospace' } }}
+            />
+          </Grid>
 
-            </Box>
-
-
-
-            {/* poz biriminin seçildiği alan */}
-            <Box
-              onClick={() => setPozBirimIdError()}
-              sx={{ minWidth: 120, marginTop: "2rem" }}
-            >
-              <InputLabel
-                error={pozBirimIdError ? true : false}
-                id="select-newPozBirim-label"
-              >
-                <Grid container justifyContent="space-between">
-                  <Grid item>Poz Birim Seçiniz</Grid>
-                </Grid>
-              </InputLabel>
-
+          {/* Birim */}
+          <Grid item xs={12} sm={4}>
+            <FormControl fullWidth variant="standard" required>
+              <InputLabel>Birim</InputLabel>
               <Select
-                error={pozBirimIdError ? true : false}
-                variant="standard"
-                fullWidth
-                labelId="select-newPozBirim-label"
-                id="select-newPozBirim"
-                value={pozBirimId ? pozBirimId : ""}
-                label="Poz için tip seçiniz"
-                onChange={handleChange_pozBirimId}
-                required
-                name="pozBirimId"
-                disabled={pozBirimDisabled}
+                value={unitId}
+                onChange={e => setUnitId(e.target.value)}
+                disabled={saving}
               >
-                {
-                  selectedProje?.pozBirimleri.map((onePozBirim, index) => (
-                    <MenuItem key={index} value={onePozBirim.id}>
-                      {/* {console.log(onePozBirim)} */}
-                      {onePozBirim.name}
-                    </MenuItem>
-                  ))
-                }
-
+                {units.map(u => (
+                  <MenuItem key={u.id} value={u.id}>{u.name}</MenuItem>
+                ))}
               </Select>
+            </FormControl>
+          </Grid>
 
-            </Box>
+          {/* Açıklama */}
+          <Grid item xs={12}>
+            <TextField
+              variant="standard"
+              label="Poz Açıklaması"
+              fullWidth
+              required
+              value={shortDesc}
+              onChange={e => setShortDesc(e.target.value)}
+              disabled={saving}
+              autoFocus
+            />
+          </Grid>
 
-          </DialogContent>
+          {/* Uzun açıklama */}
+          <Grid item xs={12}>
+            <TextField
+              variant="standard"
+              label="Uzun Açıklama (isteğe bağlı)"
+              fullWidth
+              multiline
+              rows={2}
+              value={longDesc}
+              onChange={e => setLongDesc(e.target.value)}
+              disabled={saving}
+            />
+          </Grid>
 
-          <DialogActions sx={{ padding: "1.5rem" }}>
-            <Button onClick={() => setShow("Main")}>İptal</Button>
-            <Button type="submit">Oluştur</Button>
-          </DialogActions>
+          {/* Proje notu */}
+          <Grid item xs={12}>
+            <TextField
+              variant="standard"
+              label="Proje Notu (isteğe bağlı)"
+              fullWidth
+              value={projectNote}
+              onChange={e => setProjectNote(e.target.value)}
+              disabled={saving}
+            />
+          </Grid>
 
-        </Box>
-      </Dialog>
-    </div >
-  );
+          {/* Butonlar */}
+          <Grid item xs={12}>
+            <Grid container spacing={1} justifyContent="flex-end">
+              <Grid item>
+                <Button variant="text" onClick={() => setShow('Main')} disabled={saving}>
+                  İptal
+                </Button>
+              </Grid>
+              <Grid item>
+                <Button variant="outlined" onClick={() => handleSave(true)} disabled={saving}>
+                  Kaydet + Yeni
+                </Button>
+              </Grid>
+              <Grid item>
+                <Button variant="contained" onClick={() => handleSave(false)} disabled={saving}>
+                  Kaydet
+                </Button>
+              </Grid>
+            </Grid>
+          </Grid>
 
-
-
+        </Grid>
+      </Paper>
+    </Box>
+  )
 }

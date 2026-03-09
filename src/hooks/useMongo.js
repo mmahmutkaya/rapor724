@@ -29,6 +29,7 @@ export const useGetFirmalar = () => {
       return { firmalar: data }
     },
     enabled: !!appUser,
+    retry: false,
     refetchOnMount: true,
     refetchOnWindowFocus: false
   })
@@ -128,6 +129,7 @@ export const useGetWbsNodes = () => {
       return data ?? []
     },
     enabled: !!appUser && !!selectedProje,
+    retry: false,
     refetchOnMount: true,
     refetchOnWindowFocus: false
   })
@@ -153,6 +155,62 @@ export const useGetLbsNodes = () => {
       return data ?? []
     },
     enabled: !!appUser && !!selectedProje,
+    retry: false,
+    refetchOnMount: true,
+    refetchOnWindowFocus: false
+  })
+
+}
+
+
+// Supabase - getPozUnits
+export const useGetPozUnits = () => {
+
+  const { appUser, selectedProje } = useContext(StoreContext)
+
+  return useQuery({
+    queryKey: ['pozUnits', selectedProje?.id],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('project_poz_units')
+        .select('id, name, order_index')
+        .eq('project_id', selectedProje.id)
+        .order('order_index')
+
+      if (error) throw new Error(error.message)
+
+      return data ?? []
+    },
+    enabled: !!appUser && !!selectedProje,
+    retry: false,
+    refetchOnMount: true,
+    refetchOnWindowFocus: false
+  })
+
+}
+
+
+// Supabase - getProjectPozlar
+export const useGetProjectPozlar = () => {
+
+  const { appUser, selectedProje } = useContext(StoreContext)
+
+  return useQuery({
+    queryKey: ['projectPozlar', selectedProje?.id],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('project_pozlar')
+        .select('id, wbs_node_id, code, short_desc, long_desc, project_note, unit_id, order_index')
+        .eq('project_id', selectedProje.id)
+        .order('wbs_node_id', { nullsFirst: true })
+        .order('order_index')
+
+      if (error) throw new Error(error.message)
+
+      return data ?? []
+    },
+    enabled: !!appUser && !!selectedProje,
+    retry: false,
     refetchOnMount: true,
     refetchOnWindowFocus: false
   })
@@ -179,6 +237,7 @@ export const useGetProjeler_byFirma = () => {
       return { projeler: data }
     },
     enabled: !!appUser && !!selectedFirma,
+    retry: false,
     refetchOnMount: true,
     refetchOnWindowFocus: false
   })

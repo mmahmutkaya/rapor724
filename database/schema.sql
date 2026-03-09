@@ -188,9 +188,19 @@ create table firm_poz_templates (
   updated_at  timestamptz not null default now()
 );
 
+-- Proje poz birimleri (m², m³, adet, kg, ton, vb.) — proje bazında tanımlanır
+create table project_poz_units (
+  id          uuid primary key default gen_random_uuid(),
+  project_id  uuid not null references projects(id) on delete cascade,
+  name        text not null,
+  order_index int not null default 0,
+  created_at  timestamptz not null default now()
+);
+
 -- Proje POZ'ları
 -- firm_poz_template_id null  → projeye özgü POZ
 -- firm_poz_template_id dolu  → firma havuzundan seçilmiş, projeye özgü değişiklik yapılabilir
+-- code: WBS path + sıra → örn. "KAB.ZEM.001" — poz taşındığında güncellenir
 create table project_pozlar (
   id                   uuid primary key default gen_random_uuid(),
   project_id           uuid not null references projects(id) on delete cascade,
@@ -201,7 +211,7 @@ create table project_pozlar (
   short_desc           text not null,
   long_desc            text,
   project_note         text,
-  unit                 text not null,
+  unit_id              uuid references project_poz_units(id) on delete restrict,
   order_index          int not null default 0,
   created_by           uuid references users(id),
   created_at           timestamptz not null default now(),
@@ -249,6 +259,7 @@ create index on lbs_nodes (parent_id);
 create index on work_areas (project_id);
 create index on work_areas (lbs_node_id);
 create index on firm_poz_templates (firm_id);
+create index on project_poz_units (project_id);
 create index on project_pozlar (project_id);
 create index on project_pozlar (wbs_node_id);
 create index on project_pozlar (firm_poz_template_id);
