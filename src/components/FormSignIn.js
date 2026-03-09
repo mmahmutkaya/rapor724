@@ -1,11 +1,7 @@
-import { useEffect, useState, useContext } from 'react';
+import { useState, useContext } from 'react';
 import { StoreContext } from './store.js'
 import { DialogAlert } from './general/DialogAlert.js';
-
-
-import { useApp } from "./useApp.js";
-
-import { useNavigate } from "react-router-dom";
+import { supabase } from '../lib/supabase.js'
 
 import Avatar from '@mui/material/Avatar';
 import Button from '@mui/material/Button';
@@ -43,11 +39,7 @@ const theme = createTheme();
 
 export default function SignIn() {
 
-  const RealmApp = useApp();
-  const navigate = useNavigate()
-  const { selectedProje, setSelectedProje } = useContext(StoreContext)
-  const { Layout_Show, setLayout_Show } = useContext(StoreContext)
-  const { setAppUser } = useContext(StoreContext)
+  const { setLayout_Show } = useContext(StoreContext)
 
   const [emailError, setEmailError] = useState()
   const [passwordError, setPasswordError] = useState()
@@ -94,9 +86,6 @@ export default function SignIn() {
         isError = true
       }
 
-
-
-
       //  Password frontend kontrolü
       if (password.length < 8 && !passwordError) {
         setPasswordError("En az 8 karakter kullanmalısınız")
@@ -110,59 +99,20 @@ export default function SignIn() {
         isError = true
       }
 
+      if (isError) return
 
+      // Supabase Auth ile giriş
+      const { error } = await supabase.auth.signInWithPassword({ email, password })
 
-      // yukarıda hata varsa ilgili useState değerlerini error olarak belirledik fakat henüz react render tazelenmediği için değişmediler kontrol edemiyoruz
-      // bu sebeple başlangıçta false değerine sahip isError diye bir js değişkeni oluşturduk, bu işi görmeye çalışıyoruz
-      if (isError) {
-        console.log("Hata var ve alt satırda durduruldu")
-        return
+      if (error) {
+        if (error.message.toLowerCase().includes('invalid login credentials') ||
+            error.message.toLowerCase().includes('invalid')) {
+          setSubtextError(true)
+        } else {
+          throw error
+        }
       }
-
-
-      // const credentials = Realm.Credentials.emailPassword(email, password);
-      // await RealmApp.logIn(credentials);
-      // if (RealmApp.currentUser) {
-      //   console.log("Giriş işlemi başarılı")
-      //   navigate(0)
-      //   return
-      // }
-
-      const response = await fetch(process.env.REACT_APP_BASE_URL + "/api/user/login", {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email, password })
-      })
-
-
-      const responseJson = await response.json()
-
-
-      if (responseJson.error) {
-        throw new Error(responseJson.error);
-      }
-
-
-      // form validation - backend
-      if (responseJson.errorObject) {
-        let { errorObject } = responseJson
-        setEmailError(errorObject.emailError)
-        setPasswordError(errorObject.passwordError)
-        return
-      }
-
-
-
-      if (responseJson.user) {
-
-        // save the user to local storage
-        localStorage.setItem('appUser', JSON.stringify(responseJson.user))
-
-        // save the user to react context
-        setAppUser(responseJson.user)
-        // navigate(0)
-      }
-
+      // Başarılı girişte store.js'deki onAuthStateChange appUser'ı otomatik günceller
 
     } catch (err) {
 

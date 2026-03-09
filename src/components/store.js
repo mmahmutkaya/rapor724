@@ -1,17 +1,21 @@
-import { createContext, useState } from 'react'
+import { createContext, useState, useEffect } from 'react'
+import { supabase } from '../lib/supabase.js'
 
 export const StoreContext = createContext(null)
 
+// Supabase auth user'ını appUser formatına çevirir
+function mapUser(user) {
+  if (!user) return null
+  return {
+    id:        user.id,
+    email:     user.email,
+    mailTeyit: !!user.email_confirmed_at,
+    isim:      user.user_metadata?.first_name || user.email.split('@')[0],
+    soyisim:   user.user_metadata?.last_name  || '-',
+  }
+}
+
 export default ({ children }) => {
-
-  // const RealmApp = useApp();
-
-  // const teamMembersNames = ['John', 'Mary', 'Jason', 'David']
-
-  // const [sharing, setSharing] = useState([])
-  // const [help, setHelp] = useState([])
-
-  const appUser_localStorage = JSON.parse(localStorage.getItem('appUser'))
 
 
   const myTema_ = {
@@ -40,7 +44,18 @@ export default ({ children }) => {
 
 
   const [custom, setCustom] = useState()
-  const [appUser, setAppUser] = useState(appUser_localStorage)
+  const [appUser, setAppUser] = useState(null)
+
+  // Supabase session: sayfa yüklenince mevcut oturumu al, değişimleri dinle
+  useEffect(() => {
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setAppUser(mapUser(session?.user ?? null))
+    })
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      setAppUser(mapUser(session?.user ?? null))
+    })
+    return () => subscription.unsubscribe()
+  }, [])
   const [Layout_Show, setLayout_Show] = useState("login")
 
   const [selectedLbs, setSelectedLbs] = useState()

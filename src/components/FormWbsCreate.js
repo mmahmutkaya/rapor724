@@ -1,15 +1,10 @@
 import { useState, useContext } from 'react';
-import { StoreContext } from '../components/store.js'
-import { useApp } from "./useApp.js";
+import { StoreContext } from './store.js'
 import deleteLastSpace from '../functions/deleteLastSpace.js';
 import { DialogAlert } from './general/DialogAlert.js'
-import { useNavigate } from "react-router-dom";
+import { supabase } from '../lib/supabase.js'
 
-
-
-//mui
 import Box from '@mui/material/Box';
-import Grid from '@mui/material/Grid';
 import Button from '@mui/material/Button';
 import TextField from '@mui/material/TextField';
 import Dialog from '@mui/material/Dialog';
@@ -19,177 +14,84 @@ import DialogContentText from '@mui/material/DialogContentText';
 import { Typography } from '@mui/material';
 
 
-export default function P_FormWbsCreate({ setShow, selectedWbs, setSelectedWbs, setOpenSnackBar, setSnackBarMessage }) {
+export default function FormWbsCreate({ setShow, rawNodes, selectedWbs, setSelectedWbs, invalidate }) {
 
-  const navigate = useNavigate()
-  const { appUser, setAppUser } = useContext(StoreContext)
-  const { selectedProje, setSelectedProje } = useContext(StoreContext)
+  const { selectedProje } = useContext(StoreContext)
 
-  if (!selectedProje?._id) {
-    throw new Error("Wbs oluşturulacak projenin database kaydı için _projeId belirtilmemiş, sayfayı yeniden yükleyin, sorun devam ederse Rapor7/24 ile irtibata geçiniz.")
-  }
-
-  const [dialogAlert, setDialogAlert] = useState(false)
-
+  const [dialogAlert, setDialogAlert] = useState()
   const [wbsName, setWbsName] = useState("")
   const [wbsCodeName, setWbsCodeName] = useState("")
-
   const [wbsNameError, setWbsNameError] = useState()
   const [wbsCodeNameError, setWbsCodeNameError] = useState()
 
-  const RealmApp = useApp();
-
   async function handleSubmit(event) {
-
-    event.preventDefault();
-
+    event.preventDefault()
     try {
-
-      // girilen verileri alma ve sonlarındaki boşlukları kaldırma
-      const data = new FormData(event.currentTarget);
-      const wbsName = deleteLastSpace(data.get('wbsName'))
-      const wbsCodeName = deleteLastSpace(data.get('wbsCodeName'))
-
+      const data = new FormData(event.currentTarget)
+      const name = deleteLastSpace(data.get('wbsName'))
+      const codeName = deleteLastSpace(data.get('wbsCodeName'))
 
       let isError = false
+      if (!name) { setWbsNameError("Zorunlu"); isError = true }
+      if (!codeName) { setWbsCodeNameError("Zorunlu"); isError = true }
+      if (codeName.includes(" ")) { setWbsCodeNameError("Boşluk kullanmayınız"); isError = true }
+      if (isError) return
 
-      // bu kısımda frontend kısmında form validation hatalarını ilgili alanlarda gösterme işlemleri yapılır, aşağıda backend de
-      if (!wbsName) {
-        setWbsNameError("Zorunlu")
-        isError = true
-        console.log("wbsName", "yok -- error")
-      }
+      // Compute order_index: max sibling order + 1
+      const parentId = selectedWbs?.id ?? null
+      const siblings = rawNodes.filter(n => (n.parent_id ?? null) === parentId)
+      const maxOrder = siblings.length > 0 ? Math.max(...siblings.map(s => s.order_index)) : 0
+      const newOrder = maxOrder + 1
 
-      // bu kısımda frontend kısmında form validation hatalarını ilgili alanlarda gösterme işlemleri yapılır, aşağıda backend de
-      if (!wbsCodeName) {
-        setWbsCodeNameError("Zorunlu")
-        isError = true
-        console.log("wbsCodeName", "yok -- error")
-      }
-
-      if (wbsCodeName.includes(" ")) {
-        setWbsCodeNameError("Boşluk kullanmayınız")
-        isError = true
-        console.log("wbsCodeName", "yok -- error")
-      }
-
-      // ilgili hatalar yukarıda ilgili form alanlarına yazılmış olmalı
-      // db ye sorgu yapılıp db meşgul edilmesin diye burada durduruyoruz
-      // frontendden geçse bile db den errorFormObject kontrolü yapılıyor aşağıda
-      if (isError) {
-        console.log("bu satırın altında fonksiyon --return-- ile durduruldu")
-        return
-      }
-
-
-      // yukarıdaki yapılan _id kontrolü tamamsa bu veri db de kaydolmuş demektir, refetch_pozlar() yapıp db yi yormaya gerek yok
-      // useQuery ile oluşturduğumuz pozlar cash datamızı güncelliyoruz
-      // sorgudan wbs datası güncellenmiş proje dödürüp, gelen data ile aşağıda react useContext deki projeyi update ediyoruz
-      const newWbsItem = {
-        projeId: selectedProje._id,
-        upWbsId: selectedWbs ? selectedWbs._id : "0",
-        newWbsName: wbsName,
-        newWbsCodeName: wbsCodeName
-      }
-
-      // const result = await RealmApp.currentUser.callFunction("collection_projeler__wbs", { functionName: "createWbs", ...newWbsItem });
-      const response = await fetch(process.env.REACT_APP_BASE_URL + `/api/projeler/createwbs`, {
-        method: 'POST',
-        headers: {
-          email: appUser.email,
-          token: appUser.token,
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({ ...newWbsItem })
+      const { error } = await supabase.from('wbs_nodes').insert({
+        project_id: selectedProje.id,
+        parent_id: parentId,
+        name,
+        code_name: codeName,
+        order_index: newOrder,
+        open_for_poz: false,
       })
 
+      if (error) throw error
 
-      const responseJson = await response.json()
-
-      if (responseJson.error) {
-        if (responseJson.error.includes("expired")) {
-          setAppUser()
-          localStorage.removeItem('appUser')
-          navigate('/')
-          window.location.reload()
-        }
-        throw new Error(responseJson.error);
-      }
-
-      if (responseJson.errorObject) {
-        setWbsNameError(responseJson.errorObject.wbsNameError)
-        setWbsCodeNameError(responseJson.errorObject.wbsCodeNameError)
-        console.log("backend den gelen hata ile durdu")
-        return
-      }
-
-      if (responseJson.snackMessage) {
-        setOpenSnackBar(true)
-        setSnackBarMessage(responseJson.snackMessage)
-        return
-      }
-
-
-      if (responseJson.wbs) {
-        setSelectedProje(proje => {
-          proje.wbs = responseJson.wbs
-          return proje
-        })
-      }
-
-      // sorgu işleminden önce seçilen wbs varsa, temizliyoruz, en büyük gerekçe seçilen wbs silinmiş olabilir, onunla işlem db de hata verir
       setSelectedWbs(null)
-
+      invalidate()
       setShow()
 
-      return
-
-      // setShowDialogSuccess("Wbs kaydı başarı ile gerçekleşti")
-
     } catch (err) {
-
       console.log(err)
-
       setDialogAlert({
         dialogIcon: "warning",
-        dialogMessage:"Beklenmedik hata, sayfayı yenileyiniz, sorun devam ederse Rapor7/24 ile irtibata geçiniz..",
-        detailText: err?.message ? err.message : null
+        dialogMessage: "Beklenmedik hata, sayfayı yenileyiniz, sorun devam ederse Rapor7/24 ile irtibata geçiniz..",
+        detailText: err?.message ?? null
       })
-
-      return
-
     }
-
   }
 
 
   return (
     <div>
 
-
       {dialogAlert &&
         <DialogAlert
           dialogIcon={dialogAlert.dialogIcon}
           dialogMessage={dialogAlert.dialogMessage}
           detailText={dialogAlert.detailText}
-          onCloseAction={dialogAlert.onCloseAction ? dialogAlert.onCloseAction : () => setDialogAlert()}
+          onCloseAction={() => setDialogAlert()}
         />
       }
-
 
       <Dialog
         PaperProps={{ sx: { width: "80%", position: "fixed", top: "10rem" } }}
         open={true}
-        onClose={() => setShow()} >
-        {/* <DialogTitle>Subscribe</DialogTitle> */}
+        onClose={() => setShow()}
+      >
         <Box component="form" onSubmit={handleSubmit} noValidate sx={{ mt: 1 }}>
 
           <DialogContent>
 
             <DialogContentText sx={{ fontWeight: "bold", paddingBottom: "1rem" }}>
-              {/* <Typography sx> */}
               Wbs Oluştur
-              {/* </Typography> */}
             </DialogContentText>
 
             {selectedWbs &&
@@ -197,62 +99,48 @@ export default function P_FormWbsCreate({ setShow, selectedWbs, setSelectedWbs, 
                 <DialogContentText sx={{ fontWeight: "bold", paddingBottom: "1rem" }}>
                   {selectedWbs.code} {"-->"} {selectedWbs.name}
                 </DialogContentText>
-                <Typography >
-                  başlığı altına yeni bir Wbs eklemek üzeresiniz.
-                </Typography>
+                <Typography>başlığı altına yeni bir Wbs eklemek üzeresiniz.</Typography>
               </>
             }
 
             {!selectedWbs &&
               <DialogContentText sx={{ fontWeight: "bold", paddingBottom: "1rem" }}>
-                {/* <Typography > */}
                 En üst düzeye yeni bir Wbs eklemek üzeresiniz.
-                {/* </Typography> */}
               </DialogContentText>
             }
 
-            <Box onClick={() => setWbsNameError(false)}>
+            <Box onClick={() => setWbsNameError()}>
               <TextField
                 variant="standard"
-                // InputProps={{ sx: { height:"2rem", fontSize: "1.5rem" } }}
-                onChange={(e) => setWbsName(() => e.target.value.replace("i", "İ").toUpperCase())}
+                onChange={(e) => setWbsName(e.target.value.replace("i", "İ").toUpperCase())}
                 value={wbsName}
                 margin="normal"
                 id="wbsName"
                 name="wbsName"
                 autoFocus
-                error={wbsNameError ? true : false}
-                helperText={wbsNameError ? wbsNameError : ""}
-                // margin="dense"
+                error={!!wbsNameError}
+                helperText={wbsNameError ?? ""}
                 label="Poz Başlık İsmi"
                 type="text"
                 fullWidth
               />
             </Box>
 
-
-
-            <Box onClick={() => setWbsCodeNameError(false)}>
+            <Box onClick={() => setWbsCodeNameError()}>
               <TextField
                 variant="standard"
-                // InputProps={{ sx: { height:"2rem", fontSize: "1.5rem" } }}
-                onChange={(e) => setWbsCodeName(() => e.target.value.replace("i", "İ").toUpperCase())}
+                onChange={(e) => setWbsCodeName(e.target.value.replace("i", "İ").toUpperCase())}
                 value={wbsCodeName}
                 margin="normal"
                 id="wbsCodeName"
                 name="wbsCodeName"
-                // autoFocus
-                error={wbsCodeNameError ? true : false}
-                helperText={wbsCodeNameError ? wbsCodeNameError : "Örnek : KABA İNŞAAT --> KAB"}
-                // margin="dense"
+                error={!!wbsCodeNameError}
+                helperText={wbsCodeNameError ?? "Örnek : KABA İNŞAAT --> KAB"}
                 label="Başlık İsminin Kısaltması"
                 type="text"
                 fullWidth
               />
             </Box>
-
-
-
 
           </DialogContent>
 
@@ -263,8 +151,6 @@ export default function P_FormWbsCreate({ setShow, selectedWbs, setSelectedWbs, 
 
         </Box>
       </Dialog>
-    </div >
-  );
-
-
+    </div>
+  )
 }

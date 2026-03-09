@@ -25,7 +25,6 @@ import LinearProgress from '@mui/material/LinearProgress';
 
 export default function P_Projeler() {
 
-  const { appUser, setAppUser } = useContext(StoreContext)
   const { selectedFirma, setSelectedProje } = useContext(StoreContext)
 
   const [dialogAlert, setDialogAlert] = useState()
@@ -59,43 +58,9 @@ export default function P_Projeler() {
 
 
 
-  const handleProjeClick = async (oneProje) => {
-    try {
-
-      const response = await fetch(process.env.REACT_APP_BASE_URL + `/api/projeler/${oneProje._id.toString()}`, {
-        method: 'GET',
-        headers: {
-          email: appUser.email,
-          token: appUser.token,
-          'Content-Type': 'application/json'
-        },
-      })
-
-      const responseJson = await response.json()
-
-      if (responseJson.error) {
-        if (responseJson.error.includes("expired")) {
-          setAppUser()
-          localStorage.removeItem('appUser')
-          navigate('/')
-          window.location.reload()
-        }
-        throw new Error(responseJson.error);
-      }
-
-      if (responseJson.proje) {
-        setSelectedProje(responseJson.proje)
-        navigate("/wbs")
-      }
-
-    } catch (err) {
-      console.log(err)
-      setDialogAlert({
-        dialogIcon: "warning",
-        dialogMessage: "Beklenmedik hata, Rapor7/24 ile irtibata geçiniz..",
-        detailText: err?.message ? err.message : null
-      })
-    }
+  const handleProjeClick = (oneProje) => {
+    setSelectedProje(oneProje)
+    navigate("/wbs")
   }
 
 

@@ -1,9 +1,9 @@
 import { useContext } from 'react';
 import { useQuery, useQueryClient, useMutation } from '@tanstack/react-query'
 import { StoreContext } from '../components/store'
-import { useApp } from "../components/useApp"
 import { useNavigate } from "react-router-dom";
 import _ from 'lodash';
+import { supabase } from '../lib/supabase.js'
 
 
 
@@ -11,38 +11,22 @@ import _ from 'lodash';
 // QUERIES
 
 
-// MONGO FONKSİYON - getFirmalarNames
+// Supabase - getFirmalar
 export const useGetFirmalar = () => {
 
-  const navigate = useNavigate()
-  const { appUser, setAppUser } = useContext(StoreContext)
+  const { appUser } = useContext(StoreContext)
 
   return useQuery({
     queryKey: ['firmalar'],
     queryFn: async () => {
-      const response = await fetch(process.env.REACT_APP_BASE_URL + '/api/firmalar', {
-        method: 'GET',
-        headers: {
-          email: appUser.email,
-          token: appUser.token,
-          'Content-Type': 'application/json'
-        }
-      })
+      const { data, error } = await supabase
+        .from('firms')
+        .select('id, name, created_at')
+        .order('name')
 
-      const responseJson = await response.json()
+      if (error) throw new Error(error.message)
 
-      if (responseJson.error) {
-        if (responseJson.error.includes("expired")) {
-          setAppUser()
-          localStorage.removeItem('appUser')
-          navigate('/')
-          window.location.reload()
-        }
-        throw new Error(responseJson.error);
-      }
-
-      return responseJson
-
+      return { firmalar: data }
     },
     enabled: !!appUser,
     refetchOnMount: true,
@@ -126,42 +110,76 @@ export const useGetFirmaPozlar = (onSuccess, onError) => {
 
 
 
-// MONGO FONKSİYON - getProjelerNames_byFirma
-export const useGetProjeler_byFirma = () => {
+// Supabase - getWbsNodes
+export const useGetWbsNodes = () => {
 
-  const navigate = useNavigate()
-  const { appUser, setAppUser, selectedFirma } = useContext(StoreContext)
+  const { appUser, selectedProje } = useContext(StoreContext)
 
   return useQuery({
-    queryKey: ['dataProjeler'],
+    queryKey: ['wbsNodes', selectedProje?.id],
     queryFn: async () => {
-      const response = await fetch(process.env.REACT_APP_BASE_URL + `/api/projeler/byfirma/${selectedFirma._id.toString()}`, {
-        method: 'GET',
-        headers: {
-          email: appUser.email,
-          token: appUser.token,
-          'Content-Type': 'application/json'
-        },
-      })
-      // body: JSON.stringify({ firmaId: selectedFirma._id.toString() })
+      const { data, error } = await supabase
+        .from('wbs_nodes')
+        .select('id, parent_id, name, code_name, order_index, open_for_poz')
+        .eq('project_id', selectedProje.id)
 
-      const responseJson = await response.json()
+      if (error) throw new Error(error.message)
 
-      if (responseJson.error) {
-        if (responseJson.error.includes("expired")) {
-          setAppUser()
-          localStorage.removeItem('appUser')
-          navigate('/')
-          window.location.reload()
-        }
-        throw new Error(responseJson.error);
-      }
-
-      return responseJson
-
+      return data ?? []
     },
-    enabled: !!appUser,
-    refetchOnMount: false,
+    enabled: !!appUser && !!selectedProje,
+    refetchOnMount: true,
+    refetchOnWindowFocus: false
+  })
+
+}
+
+
+// Supabase - getLbsNodes
+export const useGetLbsNodes = () => {
+
+  const { appUser, selectedProje } = useContext(StoreContext)
+
+  return useQuery({
+    queryKey: ['lbsNodes', selectedProje?.id],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('lbs_nodes')
+        .select('id, parent_id, name, code_name, order_index, open_for_mahal')
+        .eq('project_id', selectedProje.id)
+
+      if (error) throw new Error(error.message)
+
+      return data ?? []
+    },
+    enabled: !!appUser && !!selectedProje,
+    refetchOnMount: true,
+    refetchOnWindowFocus: false
+  })
+
+}
+
+
+// Supabase - getProjeler_byFirma
+export const useGetProjeler_byFirma = () => {
+
+  const { appUser, selectedFirma } = useContext(StoreContext)
+
+  return useQuery({
+    queryKey: ['dataProjeler', selectedFirma?.id],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('projects')
+        .select('id, name, created_at')
+        .eq('firm_id', selectedFirma.id)
+        .order('name')
+
+      if (error) throw new Error(error.message)
+
+      return { projeler: data }
+    },
+    enabled: !!appUser && !!selectedFirma,
+    refetchOnMount: true,
     refetchOnWindowFocus: false
   })
 

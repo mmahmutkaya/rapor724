@@ -1,793 +1,187 @@
 
-import { useState, useContext, useEffect } from 'react'
+import { useState, useContext, useEffect, useMemo } from 'react'
 import { StoreContext } from '../../components/store'
-import { DialogAlert } from '../../components/general/DialogAlert';
+import { DialogAlert } from '../../components/general/DialogAlert'
 import { useNavigate } from 'react-router-dom'
+import { useQueryClient } from '@tanstack/react-query'
+import { useGetWbsNodes } from '../../hooks/useMongo'
+import { supabase } from '../../lib/supabase'
 
 import FormWbsCreate from '../../components/FormWbsCreate'
 import FormWbsUpdate from '../../components/FormWbsUpdate'
 
-import UndoIcon from '@mui/icons-material/Undo';
-import Typography from '@mui/material/Typography';
-import Grid from '@mui/material/Grid';
-import Box from '@mui/material/Box';
-import Paper from '@mui/material/Paper';
-import Stack from '@mui/material/Stack';
+import Typography from '@mui/material/Typography'
+import Grid from '@mui/material/Grid'
+import Box from '@mui/material/Box'
+import Paper from '@mui/material/Paper'
+import Stack from '@mui/material/Stack'
 import Snackbar from '@mui/material/Snackbar'
-import Alert from '@mui/material/Alert';
-import IconButton from '@mui/material/IconButton';
-import DeleteIcon from '@mui/icons-material/Delete';
-import ClearOutlined from '@mui/icons-material/ClearOutlined';
-import KeyboardArrowUpIcon from '@mui/icons-material/KeyboardArrowUp';
-import KeyboardArrowDownIcon from '@mui/icons-material/KeyboardArrowDown';
-import KeyboardArrowLeftIcon from '@mui/icons-material/KeyboardArrowLeft';
-import KeyboardArrowRightIcon from '@mui/icons-material/KeyboardArrowRight';
-import ChangeCircleIcon from '@mui/icons-material/ChangeCircle';
-import AddCircleOutlineIcon from '@mui/icons-material/AddCircleOutline';
-import VisibilityIcon from '@mui/icons-material/Visibility';
-import PinIcon from '@mui/icons-material/Pin';
-import EditIcon from '@mui/icons-material/Edit';
-import FontDownloadIcon from '@mui/icons-material/FontDownload';
-import Divider from '@mui/material/Divider';
-import { AppBar, Select } from '@mui/material';
-import Switch from '@mui/material/Switch';
-import { styled } from '@mui/material/styles';
-import { green } from '@mui/material/colors';
-
-
-function HeaderWbs({ setShow, nameMode, setNameMode, codeMode, setCodeMode, openSnackBar, setOpenSnackBar, snackBarMessage, setSnackBarMessage }) {
-
-  const navigate = useNavigate()
-  const [isPending, setIsPending] = useState()
-
-  const { RealmApp, appUser, setAppUser, drawerWidth, topBarHeight, subHeaderHeight } = useContext(StoreContext)
-
-  const [dialogAlert, setDialogAlert] = useState()
-
-  const { selectedProje, setSelectedProje } = useContext(StoreContext)
-  const { selectedWbs, setSelectedWbs } = useContext(StoreContext)
-
-
-
-  const nameMode_name = () => {
-    switch (nameMode) {
-      case null:
-        return (
-          "i+k"
-        )
-      case false:
-        return (
-          "ism"
-        )
-      case true:
-        return (
-          "kod"
-        )
-      default:
-        return (
-          "i+k"
-        )
-    }
-  }
-
-  const codeMode_name = () => {
-    switch (codeMode) {
-      case null:
-        return (
-          "ksa"
-        )
-      case false:
-        return (
-          "tam"
-        )
-      case true:
-        return (
-          "yok"
-        )
-      default:
-        return (
-          "ksa"
-        )
-    }
-  }
-
-
-
-
-  function handleTextMode() {
-
-    switch (nameMode) {
-      case null:
-        return (
-          setNameMode(false)
-        )
-      case false:
-        return (
-          setNameMode(true)
-        )
-      case true:
-        return (
-          setNameMode(null)
-        )
-      default:
-        return (
-          // nameMode_name = "i+k",
-          setNameMode(false)
-        )
-    }
-
-  }
-
-  function handleCodeMode() {
-
-    switch (codeMode) {
-      case null:
-        return (
-          setCodeMode(false)
-        )
-      case false:
-        return (
-          setCodeMode(true)
-        )
-      case true:
-        return (
-          setCodeMode(null)
-        )
-      default:
-        return (
-          // nameMode_name = "i+k",
-          setCodeMode(false)
-        )
-    }
-
-  }
-
-
-
-  async function handleWbsUnclicked() {
-
-    // aslında gerek yok zaten wbs yok ama olsun
-    if (!selectedWbs) {
-      console.log("alttaki satırda --return-- oldu")
-      return
-    }
-
-    setSelectedWbs()
-  }
-
-
-  async function handleSwitchForPoz(event) {
-
-    try {
-
-      if (!selectedWbs) {
-        console.log("alttaki satırda --return-- oldu")
-        return
-      }
-
-      // bu kontrol backend de ayrıca yapılıyor
-      let text = selectedWbs.code + "."
-      if (selectedProje.wbs.find(item => item.code.indexOf(text) === 0)) {
-        setOpenSnackBar(true)
-        setSnackBarMessage("Alt başlığı bulunan başlıklar poz eklemeye açılamaz.")
-        return
-      }
-
-      setIsPending(true)
-
-      const response = await fetch(process.env.REACT_APP_BASE_URL + `/api/projeler/togglewbsforpoz`, {
-        method: 'POST',
-        headers: {
-          email: appUser.email,
-          token: appUser.token,
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({ projeId: selectedProje._id, wbsId: selectedWbs._id, switchValue: event.target.checked ? true : false })
-      })
-
-
-      const responseJson = await response.json()
-
-      if (responseJson.error) {
-        if (responseJson.error.includes("expired")) {
-          setAppUser()
-          localStorage.removeItem('appUser')
-          navigate('/')
-          window.location.reload()
-        }
-        throw new Error(responseJson.error);
-      }
-
-      if (responseJson.snackMessage) {
-        setOpenSnackBar(true)
-        setSnackBarMessage(responseJson.snackMessage)
-        return
-      }
-
-      if (responseJson.wbs) {
-        setSelectedProje(proje => {
-          proje.wbs = responseJson.wbs
-          return proje
-        })
-      }
-
-      // switch on-off gösterim durumunu güncellemesi için
-      setSelectedWbs(responseJson.wbs.find(item => item._id.toString() === selectedWbs._id.toString()))
-      setIsPending(false)
-
-      return
-
-    } catch (err) {
-
-      console.log(err)
-
-      setDialogAlert({
-        dialogIcon: "warning",
-        dialogMessage: "Beklenmedik hata, sayfayı yenileyiniz, sorun devam ederse Rapor7/24 ile irtibata geçiniz..",
-        detailText: err?.message ? err.message : null
-      })
-
-      setIsPending(false)
-      return
-
-    }
-
-  }
-
-
-
-  async function handleWbsDelete() {
-
-    // seçili wbs yoksa durdurma, inaktif iken tuşlara basılabiliyor mesela, bu fonksiyon çalıştırılıyor, orayı iptal etmekle uğraşmak istemedim
-    if (!selectedWbs) {
-      console.log("alttaki satırda --return-- oldu")
-      return
-    }
-
-    try {
-
-      // bu kontrol backend de ayrıca yapılıyor
-      if (selectedProje?.wbs.find(item => item.code.indexOf(selectedWbs.code + ".") === 0)) {
-        setOpenSnackBar(true)
-        setSnackBarMessage("Alt başlığı bulunan başlıklar silinemez.")
-        return
-      }
-
-      // bu kontrol backend de ayrıca yapılıyor
-      if (selectedWbs.openForPoz) {
-        setOpenSnackBar(true)
-        setSnackBarMessage("Poz eklemeye açık başlıklar silinemez.")
-        return
-      }
-
-      // const result = await RealmApp.currentUser.callFunction("collection_projeler__wbs", { functionName: "deleteWbs", _projeId: selectedProje._id, _wbsId: selectedWbs._id });
-
-      const response = await fetch(process.env.REACT_APP_BASE_URL + `/api/projeler/deletewbs`, {
-        method: 'POST',
-        headers: {
-          email: appUser.email,
-          token: appUser.token,
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({ projeId: selectedProje._id, wbsId: selectedWbs._id })
-      })
-
-
-      const responseJson = await response.json()
-
-      if (responseJson.error) {
-        if (responseJson.error.includes("expired")) {
-          setAppUser()
-          localStorage.removeItem('appUser')
-          navigate('/')
-          window.location.reload()
-        }
-        throw new Error(responseJson.error);
-      }
-
-      if (responseJson.snackMessage) {
-        setOpenSnackBar(true)
-        setSnackBarMessage(responseJson.snackMessage)
-        return
-      }
-
-
-      if (responseJson.wbs) {
-        setSelectedProje(proje => {
-          proje.wbs = responseJson.wbs
-          return proje
-        })
-      }
-
-
-      // switch on-off gösterim durumunu güncellemesi için
-      setSelectedWbs()
-
-      return
-
-    } catch (err) {
-
-      console.log(err)
-
-      setDialogAlert({
-        dialogIcon: "warning",
-        dialogMessage: "Beklenmedik hata, sayfayı yenileyiniz, sorun devam ederse Rapor7/24 ile irtibata geçiniz..",
-        detailText: err?.message ? err.message : null
-      })
-
-      return
-    }
-  }
-
-
-
-  async function handleMoveWbsUp() {
-
-    // seçili wbs yoksa durdurma, inaktif iken tuşlara basılabiliyor mesela, bu fonksiyon çalıştırılıyor, orayı iptal etmekle uğraşmak istemedim
-    if (!selectedWbs) {
-      console.log("alttaki satırda --return-- oldu - handleMoveWbsUp -1 ")
-      return
-    }
-
-
-    try {
-
-      let _selectedWbs = JSON.parse(JSON.stringify(selectedWbs))
-
-      let level
-      let sortNumber
-
-      level = _selectedWbs?.code?.split(".").length - 1
-      sortNumber = Number(_selectedWbs.code.split(".")[level])
-
-      // bu kontrol backend de ayrıca yapılmalı - kontrol
-      if (sortNumber == 1) {
-        console.log("Zaten en üstte, db sorguya gitmedi")
-        return
-      }
-
-      // const result = await RealmApp.currentUser.callFunction("collection_projeler__wbs", { functionName: "moveWbsUp", _projeId: selectedProje._id, _wbsId: selectedWbs._id });
-      const response = await fetch(process.env.REACT_APP_BASE_URL + `/api/projeler/movewbsup`, {
-        method: 'POST',
-        headers: {
-          email: appUser.email,
-          token: appUser.token,
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({ projeId: selectedProje._id, wbsId: selectedWbs._id })
-      })
-
-
-      const responseJson = await response.json()
-
-      if (responseJson.error) {
-        if (responseJson.error.includes("expired")) {
-          setAppUser()
-          localStorage.removeItem('appUser')
-          navigate('/')
-          window.location.reload()
-        }
-        throw new Error(responseJson.error);
-      }
-
-      if (responseJson.snackMessage) {
-        setOpenSnackBar(true)
-        setSnackBarMessage(responseJson.snackMessage)
-        return
-      }
-
-      if (responseJson.wbs) {
-        setSelectedProje(proje => {
-          proje.wbs = responseJson.wbs
-          return proje
-        })
-      }
-
-
-      // switch on-off gösterim durumunu güncellemesi için
-      setSelectedWbs(responseJson.wbs.find(item => item._id.toString() === selectedWbs._id.toString()))
-
-      return
-
-    } catch (err) {
-
-      console.log(err)
-
-      setDialogAlert({
-        dialogIcon: "warning",
-        dialogMessage: "Beklenmedik hata, sayfayı yenileyiniz, sorun devam ederse Rapor7/24 ile irtibata geçiniz..",
-        detailText: err?.message ? err.message : null
-      })
-
-      return
-    }
-  }
-
-
-
-
-  async function handleMoveWbsDown() {
-
-    // seçili wbs yoksa durdurma, inaktif iken tuşlara basılabiliyor mesela, bu fonksiyon çalıştırılıyor, orayı iptal etmekle uğraşmak istemedim
-    if (!selectedWbs) {
-      console.log("alttaki satırda --return-- oldu - handleMoveWbsDown")
-      return
-    }
-
-
-    try {
-
-      let _wbs = JSON.parse(JSON.stringify(selectedProje.wbs))
-      let _selectedWbs = JSON.parse(JSON.stringify(selectedWbs))
-
-      let level
-      let sortNumber
-      let isNecessary = false
-
-      level = _selectedWbs?.code?.split(".").length - 1
-      sortNumber = Number(_selectedWbs.code.split(".")[level])
-
-      _wbs.map(oneWbs => {
-        if (Number(oneWbs.code.split(".")[level]) > sortNumber) {
-          isNecessary = true
-        }
-      })
-
-      if (!isNecessary) {
-        console.log("Zaten en altta, db sorguya gitmedi")
-        return
-      }
-
-
-      const response = await fetch(process.env.REACT_APP_BASE_URL + `/api/projeler/movewbsdown`, {
-        method: 'POST',
-        headers: {
-          email: appUser.email,
-          token: appUser.token,
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({ projeId: selectedProje._id, wbsId: selectedWbs._id })
-      })
-
-
-      const responseJson = await response.json()
-
-      if (responseJson.error) {
-        if (responseJson.error.includes("expired")) {
-          setAppUser()
-          localStorage.removeItem('appUser')
-          navigate('/')
-          window.location.reload()
-        }
-        throw new Error(responseJson.error);
-      }
-
-      if (responseJson.snackMessage) {
-        setOpenSnackBar(true)
-        setSnackBarMessage(responseJson.snackMessage)
-        return
-      }
-
-      if (responseJson.wbs) {
-        setSelectedProje(proje => {
-          proje.wbs = responseJson.wbs
-          return proje
-        })
-      }
-
-
-      // switch on-off gösterim durumunu güncellemesi için
-      setSelectedWbs(responseJson.wbs.find(item => item._id.toString() === selectedWbs._id.toString()))
-
-      return
-
-    } catch (err) {
-
-      console.log(err)
-
-      setDialogAlert({
-        dialogIcon: "warning",
-        dialogMessage: "Beklenmedik hata, sayfayı yenileyiniz, sorun devam ederse Rapor7/24 ile irtibata geçiniz..",
-        detailText: err?.message ? err.message : null
-      })
-
-      return
-    }
-  }
-
-
-
-
-  async function handleMoveWbsLeft() {
-
-    // seçili wbs yoksa durdurma, inaktif iken tuşlara basılabiliyor mesela, bu fonksiyon çalıştırılıyor, orayı iptal etmekle uğraşmak istemedim
-    if (!selectedWbs) {
-      console.log("alttaki satırda --return-- oldu - handleMoveWbsLeft1")
-      return
-    }
-
-    try {
-
-      const response = await fetch(process.env.REACT_APP_BASE_URL + `/api/projeler/movewbsleft`, {
-        method: 'POST',
-        headers: {
-          email: appUser.email,
-          token: appUser.token,
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({ projeId: selectedProje._id, wbsId: selectedWbs._id })
-      })
-
-
-      const responseJson = await response.json()
-
-      if (responseJson.error) {
-        if (responseJson.error.includes("expired")) {
-          setAppUser()
-          localStorage.removeItem('appUser')
-          navigate('/')
-          window.location.reload()
-        }
-        throw new Error(responseJson.error);
-      }
-
-      if (responseJson.snackMessage) {
-        setOpenSnackBar(true)
-        setSnackBarMessage(responseJson.snackMessage)
-        return
-      }
-
-      if (responseJson.wbs) {
-        setSelectedProje(proje => {
-          proje.wbs = responseJson.wbs
-          return proje
-        })
-      }
-
-
-      // switch on-off gösterim durumunu güncellemesi için
-      setSelectedWbs(responseJson.wbs.find(item => item._id.toString() === selectedWbs._id.toString()))
-
-      return
-
-    } catch (err) {
-
-      console.log(err)
-
-      setDialogAlert({
-        dialogIcon: "warning",
-        dialogMessage: "Beklenmedik hata, sayfayı yenileyiniz, sorun devam ederse Rapor7/24 ile irtibata geçiniz..",
-        detailText: err?.message ? err.message : null
-      })
-
-      return
-    }
-  }
-
-
-
-
-  async function handleMoveWbsRight() {
-
-    // seçili wbs yoksa durdurma, inaktif iken tuşlara basılabiliyor mesela, bu fonksiyon çalıştırılıyor, orayı iptal etmekle uğraşmak istemedim
-    if (!selectedWbs) {
-      console.log("alttaki satırda --return-- oldu - handleMoveWbsRight")
-      return
-    }
-
-    try {
-
-      const response = await fetch(process.env.REACT_APP_BASE_URL + `/api/projeler/movewbsright`, {
-        method: 'POST',
-        headers: {
-          email: appUser.email,
-          token: appUser.token,
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({ projeId: selectedProje._id, wbsId: selectedWbs._id })
-      })
-
-
-      const responseJson = await response.json()
-
-      if (responseJson.error) {
-        if (responseJson.error.includes("expired")) {
-          setAppUser()
-          localStorage.removeItem('appUser')
-          navigate('/')
-          window.location.reload()
-        }
-        throw new Error(responseJson.error);
-      }
-
-      if (responseJson.snackMessage) {
-        setOpenSnackBar(true)
-        setSnackBarMessage(responseJson.snackMessage)
-        return
-      }
-
-      if (responseJson.wbs) {
-        setSelectedProje(proje => {
-          proje.wbs = responseJson.wbs
-          return proje
-        })
-      }
-
-
-      // switch on-off gösterim durumunu güncellemesi için
-      setSelectedWbs(responseJson.wbs.find(item => item._id.toString() === selectedWbs._id.toString()))
-
-      return
-
-    } catch (err) {
-
-      console.log(err)
-
-      setDialogAlert({
-        dialogIcon: "warning",
-        dialogMessage: "Beklenmedik hata, sayfayı yenileyiniz, sorun devam ederse Rapor7/24 ile irtibata geçiniz..",
-        detailText: err?.message ? err.message : null
-      })
-
-      return
-    }
-  }
-
-
-
-  const openWbsCreateForm = () => {
-    if (selectedWbs?.openForPoz) {
-      setOpenSnackBar(true)
-      setSnackBarMessage("Poz eklemeye açılan başlıklara alt başlık eklenemez.")
-      return
-    }
-    if (selectedWbs?.code?.split(".").length === 8) {
-      setOpenSnackBar(true)
-      setSnackBarMessage("Daha fazla alt başlık ekleyemezsiniz")
-      return
-    }
-    setShow("FormWbsCreate")
-  }
-
-
-
+import Alert from '@mui/material/Alert'
+import IconButton from '@mui/material/IconButton'
+import LinearProgress from '@mui/material/LinearProgress'
+import Divider from '@mui/material/Divider'
+import Switch from '@mui/material/Switch'
+import { AppBar } from '@mui/material'
+import { styled } from '@mui/material/styles'
+
+import DeleteIcon from '@mui/icons-material/Delete'
+import ClearOutlinedIcon from '@mui/icons-material/ClearOutlined'
+import KeyboardArrowUpIcon from '@mui/icons-material/KeyboardArrowUp'
+import KeyboardArrowDownIcon from '@mui/icons-material/KeyboardArrowDown'
+import KeyboardArrowLeftIcon from '@mui/icons-material/KeyboardArrowLeft'
+import KeyboardArrowRightIcon from '@mui/icons-material/KeyboardArrowRight'
+import AddCircleOutlineIcon from '@mui/icons-material/AddCircleOutline'
+import EditIcon from '@mui/icons-material/Edit'
+
+
+// Düz listeyi ağaç sırasına dönüştür
+function flattenTree(nodes, parentId = null, depth = 0) {
+  return nodes
+    .filter(n => (n.parent_id ?? null) === parentId)
+    .sort((a, b) => a.order_index - b.order_index)
+    .flatMap(n => [{ ...n, depth }, ...flattenTree(nodes, n.id, depth + 1)])
+}
+
+function nodeColor(depth) {
+  const palette = [
+    { bg: "#8b0000", co: "#e6e6e6" },
+    { bg: "#330066", co: "#e6e6e6" },
+    { bg: "#005555", co: "#e6e6e6" },
+    { bg: "#737373", co: "#e6e6e6" },
+    { bg: "#8b008b", co: "#e6e6e6" },
+    { bg: "#2929bc", co: "#e6e6e6" },
+    { bg: "#00853E", co: "#e6e6e6" },
+    { bg: "#4B5320", co: "#e6e6e6" },
+  ]
+  return palette[depth % palette.length]
+}
+
+
+const AntSwitch = styled(Switch)(({ theme }) => ({
+  width: 28, height: 16, padding: 0, display: 'flex',
+  '&:active': {
+    '& .MuiSwitch-thumb': { width: 15 },
+    '& .MuiSwitch-switchBase.Mui-checked': { transform: 'translateX(9px)' },
+  },
+  '& .MuiSwitch-switchBase': {
+    padding: 2,
+    '&.Mui-checked': {
+      transform: 'translateX(12px)', color: '#fff',
+      '& + .MuiSwitch-track': { opacity: 1, backgroundColor: theme.palette.mode === 'dark' ? '#177ddc' : '#1890ff' },
+    },
+  },
+  '& .MuiSwitch-thumb': {
+    boxShadow: '0 2px 4px 0 rgb(0 35 11 / 20%)', width: 12, height: 12, borderRadius: 6,
+    transition: theme.transitions.create(['width'], { duration: 200 }),
+  },
+  '& .MuiSwitch-track': {
+    borderRadius: 8, opacity: 1,
+    backgroundColor: theme.palette.mode === 'dark' ? 'rgba(255,255,255,.35)' : 'rgba(0,0,0,.25)',
+    boxSizing: 'border-box',
+  },
+}))
+
+
+function HeaderWbs({
+  selectedWbs, isPending,
+  onDeselect, onTogglePoz, onMoveUp, onMoveDown, onMoveLeft, onMoveRight,
+  onDelete, onAdd, onEdit
+}) {
+  const { drawerWidth, topBarHeight, subHeaderHeight } = useContext(StoreContext)
 
   return (
     <Paper>
-
-      {dialogAlert &&
-        <DialogAlert
-          dialogIcon={dialogAlert.dialogIcon}
-          dialogMessage={dialogAlert.dialogMessage}
-          detailText={dialogAlert.detailText}
-          onCloseAction={dialogAlert.onCloseAction ? dialogAlert.onCloseAction : () => setDialogAlert()}
-        />
-      }
-
-      {/* {showDialog &&
-        <DialogAlert dialogCase={dialogCase} showDialog={showDialog} setShowDialog={setShowDialog} />
-      } */}
-
-
-      <AppBar position="fixed" sx={{ width: { md: `calc(100% - ${drawerWidth}px)` }, mt: topBarHeight, ml: { md: `${drawerWidth}px` }, backgroundColor: "white" }}>
-
+      <AppBar
+        position="fixed"
+        sx={{
+          width: { md: `calc(100% - ${drawerWidth}px)` },
+          mt: topBarHeight,
+          ml: { md: `${drawerWidth}px` },
+          backgroundColor: "white"
+        }}
+      >
         <Grid
           container
           justifyContent="space-between"
           sx={{ alignItems: "center", padding: "0rem 0.25rem", height: subHeaderHeight }}
         >
 
-          {/* başlık sol */}
           <Box sx={{ display: { xs: 'none', sm: "grid" }, gridAutoFlow: "column", alignItems: "center" }}>
-
-
-            <Grid item sx={{ ml: "0.5rem" }}>
-              <Typography
-                color="black"
-                variant="h6"
-                noWrap
-                component="div"
-              >
-                Poz Başlıkları (WBS)
-              </Typography>
-            </Grid>
-
-
+            <Typography color="black" variant="h6" noWrap sx={{ ml: "0.5rem" }}>
+              Poz Başlıkları (WBS)
+            </Typography>
           </Box>
 
-
-          {/* başlık sağ */}
           <Grid item>
-            <Grid container spacing={0.5} sx={{ alignItems: "center" }}>
+            <Grid container spacing={0} sx={{ alignItems: "center" }}>
 
-              {/* codeMode değiştir */}
-              <Grid item onClick={handleCodeMode} sx={{ cursor: "pointer", color: "#595959" }}>
-                <Grid container direction={"column"} >
-                  <Grid item>
-                    <Typography sx={{ height: "1rem", width: "1rem", mb: "0.3rem" }} >{codeMode_name()}</Typography>
-                  </Grid>
-                  <Grid item sx={{ height: "1rem", width: "1rem", mb: "0.5rem" }}>
-                    <PinIcon variant="contained" sx={{
-                      fontSize: "1.55rem"
-                    }} />
-                  </Grid>
-                </Grid>
-              </Grid>
-
-              {/* nameMode değiştir */}
-              <Grid item onClick={handleTextMode} sx={{ cursor: "pointer", ml: "1.5rem", color: "#595959" }}>
-                <Grid container direction={"column"} >
-                  <Grid item>
-                    <Typography sx={{ height: "1rem", width: "1rem", mb: "0.3rem" }} >{nameMode_name()}</Typography>
-                  </Grid>
-                  <Grid item sx={{ height: "1rem", width: "1rem", mb: "0.5rem" }}>
-                    <FontDownloadIcon variant="contained" sx={{
-                      fontSize: "1.4rem"
-                    }} />
-                  </Grid>
-                </Grid>
-              </Grid>
-
-              <Divider sx={{ ml: "2rem" }} color={"#b3b3b3"} orientation="vertical" flexItem />
-
-              <Grid item >
-                <IconButton onClick={() => handleWbsUnclicked()} aria-label="wbsUncliced">
-                  <ClearOutlined variant="contained" sx={{
-                    color: !selectedWbs ? "lightgray" : "red",
-                  }} />
+              <Grid item>
+                <IconButton onClick={onDeselect}>
+                  <ClearOutlinedIcon sx={{ color: !selectedWbs ? "lightgray" : "red" }} />
                 </IconButton>
               </Grid>
 
-              <Grid item >
-                <Grid container direction={"column"} alignItems={"center"}>
-                  <Grid item >
-                    <Typography sx={{ color: !selectedWbs ? "lightgray" : "rgb(24,24,24)" }} >poz</Typography>
+              {/* Poz açma/kapama switch */}
+              <Grid item>
+                <Grid container direction="column" alignItems="center" sx={{ mx: "0.25rem" }}>
+                  <Grid item>
+                    <Typography variant="caption" sx={{ color: !selectedWbs ? "lightgray" : "rgb(24,24,24)", lineHeight: 1 }}>
+                      poz
+                    </Typography>
                   </Grid>
-                  <Grid item >
-                    <AntSwitch disabled={!selectedWbs || isPending} checked={selectedWbs?.openForPoz ? true : false} onChange={handleSwitchForPoz} />
+                  <Grid item>
+                    <AntSwitch
+                      disabled={!selectedWbs || isPending}
+                      checked={selectedWbs?.open_for_poz ? true : false}
+                      onChange={onTogglePoz}
+                    />
                   </Grid>
                 </Grid>
               </Grid>
 
-              <Grid item onClick={() => handleMoveWbsUp()}>
-                <IconButton aria-label="moveUp">
+              <Divider sx={{ mx: "0.5rem" }} color="#b3b3b3" orientation="vertical" flexItem />
+
+              <Grid item>
+                <IconButton onClick={onMoveUp} disabled={!selectedWbs || isPending}>
                   <KeyboardArrowUpIcon sx={{ color: !selectedWbs ? "lightgray" : "rgb(100,100,100)" }} />
                 </IconButton>
               </Grid>
 
-              <Grid item onClick={() => handleMoveWbsDown()}>
-                <IconButton aria-label="moveDown">
+              <Grid item>
+                <IconButton onClick={onMoveDown} disabled={!selectedWbs || isPending}>
                   <KeyboardArrowDownIcon sx={{ color: !selectedWbs ? "lightgray" : "rgb(100,100,100)" }} />
                 </IconButton>
               </Grid>
 
-              <Grid item onClick={() => handleMoveWbsLeft()}>
-                <IconButton aria-label="moveLeft">
+              <Grid item>
+                <IconButton onClick={onMoveLeft} disabled={!selectedWbs || isPending}>
                   <KeyboardArrowLeftIcon sx={{ color: !selectedWbs ? "lightgray" : "rgb(100,100,100)" }} />
                 </IconButton>
               </Grid>
 
-              <Grid item onClick={() => handleMoveWbsRight()}>
-                <IconButton aria-label="moveRight">
+              <Grid item>
+                <IconButton onClick={onMoveRight} disabled={!selectedWbs || isPending}>
                   <KeyboardArrowRightIcon sx={{ color: !selectedWbs ? "lightgray" : "rgb(100,100,100)" }} />
                 </IconButton>
               </Grid>
 
-              <Grid item onClick={() => setShow("FormWbsUpdate")}>
-                <IconButton aria-label="edit" disabled={!selectedWbs ? true : false}>
+              <Divider sx={{ mx: "0.5rem" }} color="#b3b3b3" orientation="vertical" flexItem />
+
+              <Grid item>
+                <IconButton onClick={onEdit} disabled={!selectedWbs || isPending}>
                   <EditIcon sx={{ color: !selectedWbs ? "lightgray" : "rgb(100,100,100)" }} />
                 </IconButton>
               </Grid>
 
-              <Grid item onClick={() => handleWbsDelete()} >
-                <IconButton aria-label="delete">
-                  <DeleteIcon variant="contained" color="error" sx={{ color: !selectedWbs ? "lightgray" : "rgb(139,0,0)" }} />
+              <Grid item>
+                <IconButton onClick={onDelete} disabled={!selectedWbs || isPending}>
+                  <DeleteIcon sx={{ color: !selectedWbs ? "lightgray" : "rgb(139,0,0)" }} />
                 </IconButton>
               </Grid>
 
               <Grid item>
-                <IconButton onClick={() => openWbsCreateForm()} disabled={selectedWbs?.code.split(".").length == 8 ? true : false} aria-label="addWbs">
-                  <AddCircleOutlineIcon variant="contained" color={selectedWbs?.code.split(".").length == 8 ? " lightgray" : "success"} />
+                <IconButton onClick={onAdd} disabled={isPending}>
+                  <AddCircleOutlineIcon color="success" />
                 </IconButton>
               </Grid>
 
@@ -795,387 +189,310 @@ function HeaderWbs({ setShow, nameMode, setNameMode, codeMode, setCodeMode, open
           </Grid>
 
         </Grid>
-
       </AppBar>
-
-    </Paper >
+    </Paper>
   )
 }
 
 
-
-const AntSwitch = styled(Switch)(({ theme }) => ({
-  width: 28,
-  height: 16,
-  padding: 0,
-  display: 'flex',
-  '&:active': {
-    '& .MuiSwitch-thumb': {
-      width: 15,
-    },
-    '& .MuiSwitch-switchBase.Mui-checked': {
-      transform: 'translateX(9px)',
-    },
-  },
-  '& .MuiSwitch-switchBase': {
-    padding: 2,
-    '&.Mui-checked': {
-      transform: 'translateX(12px)',
-      color: '#fff',
-      '& + .MuiSwitch-track': {
-        opacity: 1,
-        backgroundColor: theme.palette.mode === 'dark' ? '#177ddc' : '#1890ff',
-      },
-    },
-  },
-  '& .MuiSwitch-thumb': {
-    boxShadow: '0 2px 4px 0 rgb(0 35 11 / 20%)',
-    width: 12,
-    height: 12,
-    borderRadius: 6,
-    transition: theme.transitions.create(['width'], {
-      duration: 200,
-    }),
-  },
-  '& .MuiSwitch-track': {
-    borderRadius: 16 / 2,
-    opacity: 1,
-    backgroundColor:
-      theme.palette.mode === 'dark' ? 'rgba(255,255,255,.35)' : 'rgba(0,0,0,.25)',
-    boxSizing: 'border-box',
-  },
-}));
-
-
 export default function P_Wbs() {
-
   const navigate = useNavigate()
-
-  const [openSnackBar, setOpenSnackBar] = useState(false)
-  const [snackBarMessage, setSnackBarMessage] = useState("")
-
-  const { subHeaderHeight } = useContext(StoreContext)
-
-  const { selectedProje, setSelectedProje } = useContext(StoreContext)
+  const queryClient = useQueryClient()
+  const { selectedProje, subHeaderHeight } = useContext(StoreContext)
   const { selectedWbs, setSelectedWbs } = useContext(StoreContext)
 
-  const [show, setShow] = useState()
-  const [nameMode, setNameMode] = useState(false)
-  const [codeMode, setCodeMode] = useState(true)
-
+  const [show, setShow] = useState(null)       // null | 'FormCreate' | 'FormUpdate'
+  const [isPending, setIsPending] = useState(false)
+  const [openSnack, setOpenSnack] = useState(false)
+  const [snackMsg, setSnackMsg] = useState('')
+  const [dialogAlert, setDialogAlert] = useState()
 
   useEffect(() => {
-    !selectedProje && navigate('/projeler')
+    if (!selectedProje) navigate('/projeler')
   }, [])
 
+  const { data: rawNodes = [], isLoading } = useGetWbsNodes()
 
-  const handleSelectWbs = (wbs) => {
-    setSelectedWbs(wbs)
+  const flatNodes = useMemo(() => flattenTree(rawNodes), [rawNodes])
+
+  // selectedWbs'yi güncel veri ile senkronize tut
+  const selectedWbsLive = useMemo(() => {
+    if (!selectedWbs) return null
+    return rawNodes.find(n => n.id === selectedWbs.id) ?? null
+  }, [selectedWbs, rawNodes])
+
+  const invalidate = () => queryClient.invalidateQueries({ queryKey: ['wbsNodes', selectedProje?.id] })
+
+  const showSnack = (msg) => { setSnackMsg(msg); setOpenSnack(true) }
+
+
+  const handleTogglePoz = async (event) => {
+    if (!selectedWbsLive) return
+    const hasChildren = rawNodes.some(n => n.parent_id === selectedWbsLive.id)
+    if (hasChildren) {
+      showSnack('Alt başlığı bulunan başlıklar poz eklemeye açılamaz.')
+      return
+    }
+    setIsPending(true)
+    const { error } = await supabase
+      .from('wbs_nodes')
+      .update({ open_for_poz: event.target.checked })
+      .eq('id', selectedWbsLive.id)
+    setIsPending(false)
+    if (error) { showSnack(error.message); return }
+    invalidate()
   }
 
-  let level
-
-
-  const handleClose = (event, reason) => {
-    if (reason === 'clickaway') {
-      return;
+  const handleDelete = async () => {
+    if (!selectedWbsLive) return
+    if (rawNodes.some(n => n.parent_id === selectedWbsLive.id)) {
+      showSnack('Alt başlığı bulunan başlıklar silinemez.')
+      return
     }
-    setOpenSnackBar(false);
-  };
+    if (selectedWbsLive.open_for_poz) {
+      showSnack('Poz eklemeye açık başlıklar silinemez.')
+      return
+    }
+    setIsPending(true)
+    const { error } = await supabase.from('wbs_nodes').delete().eq('id', selectedWbsLive.id)
+    setIsPending(false)
+    if (error) { showSnack(error.message); return }
+    setSelectedWbs(null)
+    invalidate()
+  }
 
-  //   const [openSnackBar, setOpenSnackBar] = useState(false)
-  // const [snackBarMessage, setSnackBarMessage] = useState("")
+  const handleMoveUp = async () => {
+    if (!selectedWbsLive) return
+    const siblings = rawNodes
+      .filter(n => (n.parent_id ?? null) === (selectedWbsLive.parent_id ?? null))
+      .sort((a, b) => a.order_index - b.order_index)
+    const idx = siblings.findIndex(n => n.id === selectedWbsLive.id)
+    if (idx === 0) return
+    const prev = siblings[idx - 1]
+    setIsPending(true)
+    await Promise.all([
+      supabase.from('wbs_nodes').update({ order_index: prev.order_index }).eq('id', selectedWbsLive.id),
+      supabase.from('wbs_nodes').update({ order_index: selectedWbsLive.order_index }).eq('id', prev.id)
+    ])
+    setIsPending(false)
+    invalidate()
+  }
 
+  const handleMoveDown = async () => {
+    if (!selectedWbsLive) return
+    const siblings = rawNodes
+      .filter(n => (n.parent_id ?? null) === (selectedWbsLive.parent_id ?? null))
+      .sort((a, b) => a.order_index - b.order_index)
+    const idx = siblings.findIndex(n => n.id === selectedWbsLive.id)
+    if (idx === siblings.length - 1) return
+    const next = siblings[idx + 1]
+    setIsPending(true)
+    await Promise.all([
+      supabase.from('wbs_nodes').update({ order_index: next.order_index }).eq('id', selectedWbsLive.id),
+      supabase.from('wbs_nodes').update({ order_index: selectedWbsLive.order_index }).eq('id', next.id)
+    ])
+    setIsPending(false)
+    invalidate()
+  }
 
+  const handleMoveLeft = async () => {
+    if (!selectedWbsLive || !selectedWbsLive.parent_id) return
+    const parent = rawNodes.find(n => n.id === selectedWbsLive.parent_id)
+    if (!parent) return
+    const grandParentId = parent.parent_id ?? null
+    const toShift = rawNodes.filter(n =>
+      (n.parent_id ?? null) === grandParentId && n.order_index > parent.order_index
+    )
+    setIsPending(true)
+    await Promise.all([
+      ...toShift.map(n =>
+        supabase.from('wbs_nodes').update({ order_index: n.order_index + 1 }).eq('id', n.id)
+      ),
+      supabase.from('wbs_nodes').update({
+        parent_id: grandParentId,
+        order_index: parent.order_index + 1
+      }).eq('id', selectedWbsLive.id)
+    ])
+    setIsPending(false)
+    invalidate()
+  }
+
+  const handleMoveRight = async () => {
+    if (!selectedWbsLive) return
+    const siblings = rawNodes
+      .filter(n => (n.parent_id ?? null) === (selectedWbsLive.parent_id ?? null))
+      .sort((a, b) => a.order_index - b.order_index)
+    const idx = siblings.findIndex(n => n.id === selectedWbsLive.id)
+    if (idx === 0) return
+    const prevSibling = siblings[idx - 1]
+    if (prevSibling.open_for_poz) {
+      showSnack('Poz eklemeye açık başlıklara alt başlık eklenemez.')
+      return
+    }
+    const prevChildren = rawNodes.filter(n => n.parent_id === prevSibling.id)
+    const maxOrder = prevChildren.length ? Math.max(...prevChildren.map(n => n.order_index)) : 0
+    setIsPending(true)
+    await supabase.from('wbs_nodes').update({
+      parent_id: prevSibling.id,
+      order_index: maxOrder + 1
+    }).eq('id', selectedWbsLive.id)
+    setIsPending(false)
+    invalidate()
+  }
+
+  const handleOpenAdd = () => {
+    if (selectedWbsLive?.open_for_poz) {
+      showSnack('Poz eklemeye açılan başlıklara alt başlık eklenemez.')
+      return
+    }
+    setShow('FormCreate')
+  }
 
   return (
     <Grid container direction="column" spacing={0} sx={{ mt: subHeaderHeight }}>
 
+      {dialogAlert &&
+        <DialogAlert {...dialogAlert} onCloseAction={() => setDialogAlert()} />
+      }
+
       <Snackbar
-        open={openSnackBar}
-        autoHideDuration={6000}
-        onClose={handleClose}
+        open={openSnack}
+        autoHideDuration={5000}
+        onClose={() => setOpenSnack(false)}
         anchorOrigin={{ vertical: "bottom", horizontal: "center" }}
       >
-        <Alert
-          onClose={handleClose}
-          severity="error"
-          variant="filled"
-          sx={{ width: '100%' }}
-        >
-          {snackBarMessage}
+        <Alert onClose={() => setOpenSnack(false)} severity="error" variant="filled" sx={{ width: '100%' }}>
+          {snackMsg}
         </Alert>
       </Snackbar>
 
-
-      <Grid item  >
+      <Grid item>
         <HeaderWbs
-          setShow={setShow}
-          nameMode={nameMode} setNameMode={setNameMode}
-          codeMode={codeMode} setCodeMode={setCodeMode}
-          openSnackBar={openSnackBar} setOpenSnackBar={setOpenSnackBar}
-          snackBarMessage={snackBarMessage} setSnackBarMessage={setSnackBarMessage}
+          selectedWbs={selectedWbsLive}
+          isPending={isPending}
+          onDeselect={() => setSelectedWbs(null)}
+          onTogglePoz={handleTogglePoz}
+          onMoveUp={handleMoveUp}
+          onMoveDown={handleMoveDown}
+          onMoveLeft={handleMoveLeft}
+          onMoveRight={handleMoveRight}
+          onDelete={handleDelete}
+          onAdd={handleOpenAdd}
+          onEdit={() => setShow('FormUpdate')}
         />
       </Grid>
 
-
-      {show == "FormWbsCreate" &&
-        <Grid item >
+      {show === 'FormCreate' &&
+        <Grid item>
           <FormWbsCreate
             setShow={setShow}
-            selectedProje={selectedProje} setSelectedProje={setSelectedProje}
-            selectedWbs={selectedWbs} setSelectedWbs={setSelectedWbs}
-            setOpenSnackBar={setOpenSnackBar}
-            setSnackBarMessage={setSnackBarMessage}
+            rawNodes={rawNodes}
+            selectedWbs={selectedWbsLive}
+            setSelectedWbs={setSelectedWbs}
+            invalidate={invalidate}
           />
         </Grid>
       }
 
-      {show == "FormWbsUpdate" &&
-        <Grid item >
+      {show === 'FormUpdate' && selectedWbsLive &&
+        <Grid item>
           <FormWbsUpdate
             setShow={setShow}
-            selectedProje={selectedProje} setSelectedProje={setSelectedProje}
-            selectedWbs={selectedWbs} setSelectedWbs={setSelectedWbs}
-            setOpenSnackBar={setOpenSnackBar}
-            setSnackBarMessage={setSnackBarMessage}
+            selectedWbs={selectedWbsLive}
+            setSelectedWbs={setSelectedWbs}
+            invalidate={invalidate}
           />
         </Grid>
       }
 
+      {isLoading &&
+        <Box sx={{ m: "1rem" }}>
+          <LinearProgress />
+        </Box>
+      }
 
-      {!selectedProje?.wbs?.length &&
-        <Stack sx={{ width: '100%', padding: "0.5rem" }} spacing={2}>
+      {!isLoading && flatNodes.length === 0 &&
+        <Stack sx={{ width: '100%', padding: "0.5rem" }}>
           <Alert severity="info">
-            Yukarıdaki "+" tuşuna basarak "Poz Başlığı" oluşturabilirsiniz.
+            Yukarıdaki "+" tuşuna basarak poz başlığı oluşturabilirsiniz.
           </Alert>
         </Stack>
       }
 
-      {selectedProje?.wbs?.length > 0 &&
-        < Stack sx={{ width: '60rem', padding: "0.5rem" }} spacing={0}>
+      {flatNodes.length > 0 &&
+        <Stack sx={{ maxWidth: "60rem", padding: "0.5rem" }} spacing={0}>
 
+          {/* Proje başlık satırı */}
           <Box sx={{ display: "grid", gridTemplateColumns: "1rem 1fr" }}>
-            <Box sx={{ backgroundColor: "black", color: "white" }}>
-
-            </Box>
-            <Box sx={{ backgroundColor: "black", color: "white" }}>
-              {selectedProje.name}
+            <Box sx={{ backgroundColor: "black" }} />
+            <Box sx={{ backgroundColor: "black", color: "white", pl: "4px", py: "2px" }}>
+              <Typography variant="body2">{selectedProje?.name}</Typography>
             </Box>
           </Box>
 
-
+          {/* Ağaç */}
           <Box sx={{ display: "grid", gridTemplateColumns: "1rem 1fr" }}>
+            <Box sx={{ backgroundColor: "black" }} />
+            <Box>
+              {flatNodes.map(node => {
+                const { depth } = node
+                const isSelected = selectedWbs?.id === node.id
+                const cols = depth === 0 ? "1fr" : `repeat(${depth}, 1rem) 1fr`
+                const c = nodeColor(depth)
 
-            <Box sx={{ backgroundColor: "black" }}>
+                return (
+                  <Box key={node.id} sx={{ display: "grid", gridTemplateColumns: cols }}>
 
-            </Box>
+                    {Array.from({ length: depth }).map((_, i) => (
+                      <Box key={i} sx={{ backgroundColor: nodeColor(i).bg, borderLeft: "1px solid gray" }} />
+                    ))}
 
-            {/* {console.log("selectedProje?.wbs?.length", selectedProje?.wbs?.length)} */}
-            <Box display="grid">
-
-              {
-                selectedProje.wbs.sort(function (a, b) {
-                  var nums1 = a.code.split(".");
-                  var nums2 = b.code.split(".");
-
-                  for (var i = 0; i < nums1.length; i++) {
-                    if (nums2[i]) { // assuming 5..2 is invalid
-                      if (nums1[i] !== nums2[i]) {
-                        return nums1[i] - nums2[i];
-                      } // else continue
-                    } else {
-                      return 1; // no second number in b
-                    }
-                  }
-                  return -1; // was missing case b.len > a.len
-                }).map((theWbs, index) => {
-
-                  // theWbs = { _id, code, name }
-
-                  level = theWbs?.code?.split(".").length
-
-                  return (
                     <Box
-                      key={index}
+                      onClick={() => setSelectedWbs(isSelected ? null : node)}
                       sx={{
-                        display: "grid",
-                        gridTemplateColumns: (level - 1) == 0 ? "1rem 1fr" : "1rem repeat(" + (level - 1) + ", 1rem) 1fr", // baştaki poz var mı yok mu için
-                        "&:hover .hoverTheWbsLeft": {
-                          visibility: "visible",
-                          color: "red",
-                        },
+                        pl: "6px",
+                        py: "1px",
+                        borderBottom: "0.5px solid gray",
+                        borderLeft: "1px solid gray",
+                        backgroundColor: isSelected ? '#1a3a5c' : c.bg,
+                        color: c.co,
+                        cursor: "pointer",
+                        display: "flex",
+                        alignItems: "center",
+                        gap: "0.4rem",
+                        '&:hover': { filter: 'brightness(1.2)' }
+                      }}
+                    >
+                      {/* Poz açık göstergesi (yeşil nokta) */}
+                      {node.open_for_poz &&
+                        <Box sx={{
+                          width: "0.45rem", height: "0.45rem", borderRadius: "50%",
+                          backgroundColor: "#65FF00", flexShrink: 0
+                        }} />
+                      }
 
-                      }}>
+                      <Typography variant="body2">
+                        {node.code_name ? `(${node.code_name}) ` : ''}{node.name}
+                      </Typography>
 
-                      {Array.from({ length: (level - 1) > -1 ? (level - 1) : 0 }).map((_item, index) => {
-                        return (
-                          // <Box sx={{ backgroundColor: color(index + 1).bg, borderLeft: "1px solid " + color("border") }}></Box>
-                          <Box key={index} sx={{ backgroundColor: color(index + 1).bg, borderLeft: "1px solid " + color("border") }}></Box>
-                        )
-                      })}
-
-
-                      <Box sx={{ position: "relative", backgroundColor: color(level)?.bg, borderLeft: "1px solid " + color("border") }}>
-
-                        {theWbs.openForPoz &&
-                          // wbs poza açıksa - var olan mevcut kutunun içinde beliren sarı kutu
-                          <Grid container sx={{ position: "absolute", borderRadius: "10%", backgroundColor: "#65FF00", top: "20%", left: "30%", width: "0.7rem", height: "0.7rem" }}>
-
-                            {/* poz kayıtlı ise sarı kutunun içinde beliren siyah nokta */}
-                            {theWbs.includesPoz &&
-                              <Grid item sx={{ position: "relative", width: "100%", height: "100%" }}>
-
-                                <Box sx={{ position: "absolute", borderRadius: "50%", backgroundColor: "red", top: "25%", left: "25%", width: "50%", height: "50%" }}>
-
-                                </Box>
-
-                              </Grid>
-                            }
-
-
-                          </Grid>
-                        }
-
-                      </Box>
-
-
-                      <Box
-                        onClick={() => handleSelectWbs(theWbs)}
-                        sx={{
-
-                          pl: "2px",
-
-                          borderBottom: "0.5px solid " + color("border"),
-
-                          // önce hepsini bu şekilde sonra seçilmişi aşağıda değiştiriyoruz
-                          backgroundColor: color(level).bg,
-                          color: color(level).co,
-
-                          "&:hover .hoverTheWbs": {
-                            // display: "inline"
-                            visibility: "visible"
-                          },
-
-                          cursor: "pointer",
-
-                        }}
-                      >
-
-                        <Grid container sx={{ display: "grid", gridTemplateColumns: "1fr 2rem" }}>
-
-                          {/* theWbs isminin yazılı olduğu kısım */}
-                          <Grid item>
-
-                            <Grid container sx={{ color: "#cccccc" }}>
-
-                              {codeMode === null && //kısa
-                                <Grid item sx={{ ml: "0.2rem" }}>
-                                  {theWbs.code.split(".")[level - 1] + " - "}
-                                </Grid>
-                              }
-
-                              {codeMode === false && //tam
-                                <Grid item sx={{ ml: "0.2rem" }}>
-                                  {theWbs.code + " - "}
-                                </Grid>
-                              }
-
-                              {/* codeMode === true && //yok */}
-
-                              {nameMode === null &&
-                                <Grid item sx={{ ml: "0.3rem" }}>
-                                  {"(" + theWbs.codeName + ")" + " - " + theWbs.name}
-                                </Grid>
-                              }
-
-                              {nameMode === false &&
-                                <Grid item sx={{ ml: "0.3rem" }}>
-                                  {theWbs.name}
-                                </Grid>
-                              }
-
-                              {nameMode === true &&
-                                <Grid item sx={{ ml: "0.3rem" }}>
-                                  ({theWbs.codeName})
-                                </Grid>
-                              }
-
-                              <Grid item className='hoverTheWbs'
-                                sx={{
-                                  ml: "0.5rem",
-                                  visibility: selectedWbs?._id.toString() === theWbs._id.toString() ? "visible" : "hidden",
-                                }}>
-
-                                <Grid container sx={{ alignItems: "center", justifyContent: "center", width: "100%", height: "100%" }}>
-                                  <Grid item >
-                                    <Box sx={{
-                                      backgroundColor: "yellow",
-                                      borderRadius: "0.5rem",
-                                      height: "0.5rem",
-                                      width: "0.5rem",
-
-                                    }}>
-                                    </Box>
-                                  </Grid>
-                                </Grid>
-
-                              </Grid>
-
-                            </Grid>
-                          </Grid>
-
-                        </Grid>
-
-                      </Box>
-
-
-
+                      {/* Seçili göstergesi (sarı nokta) */}
+                      {isSelected &&
+                        <Box sx={{
+                          ml: "0.3rem", width: "0.4rem", height: "0.4rem",
+                          borderRadius: "50%", backgroundColor: "yellow"
+                        }} />
+                      }
                     </Box>
-                  )
 
-                })
-
-              }
-
+                  </Box>
+                )
+              })}
             </Box>
-
           </Box>
 
         </Stack>
       }
 
-    </Grid >
-
+    </Grid>
   )
-
-}
-
-
-
-function color(index) {
-  switch (index) {
-    case 0:
-      return { bg: "#202020", co: "#e6e6e6" }
-    case 1:
-      return { bg: "#8b0000", co: "#e6e6e6" }
-    case 2:
-      return { bg: "#330066", co: "#e6e6e6" }
-    case 3:
-      return { bg: "#005555", co: "#e6e6e6" }
-    case 4:
-      return { bg: "#737373", co: "#e6e6e6" }
-    case 5:
-      return { bg: "#8b008b", co: "#e6e6e6" }
-    case 6:
-      return { bg: "#2929bc", co: "#e6e6e6" }
-    case 7:
-      return { bg: "#00853E", co: "#e6e6e6" }
-    case 8:
-      return { bg: "#4B5320", co: "#e6e6e6" }
-    case "border":
-      return "gray"
-    case "font":
-      return "#e6e6e6"
-  }
 }

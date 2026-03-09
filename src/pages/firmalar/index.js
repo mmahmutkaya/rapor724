@@ -1,7 +1,6 @@
 
 import { useState, useEffect, useContext } from 'react';
 import { StoreContext } from '../../components/store'
-import { useApp } from "../../components/useApp";
 import FormFirmaCreate from '../../components/FormFirmaCreate'
 import { useNavigate } from "react-router-dom";
 import { useGetFirmalar } from '../../hooks/useMongo';
@@ -27,7 +26,7 @@ import AddCircleOutlineIcon from '@mui/icons-material/AddCircleOutline';
 
 export default function P_Firmalar() {
 
-  const { appUser, setAppUser } = useContext(StoreContext)
+  const { appUser } = useContext(StoreContext)
   const { setSelectedFirma } = useContext(StoreContext)
 
   const [dialogAlert, setDialogAlert] = useState()
@@ -56,47 +55,9 @@ export default function P_Firmalar() {
 
 
 
-  const handleFirmaClick = async (oneFirma) => {
-
-    try {
-
-      // const firma = await RealmApp.currentUser.callFunction("getFirma", { _firmaId: oneFirma._id })
-
-      const response = await fetch(process.env.REACT_APP_BASE_URL + `/api/firmalar/${oneFirma._id.toString()}`, {
-        method: 'GET',
-        headers: {
-          email: appUser.email,
-          token: appUser.token,
-          'Content-Type': 'application/json'
-        },
-        // body: JSON.stringify({ firmaName })
-      })
-
-      const responseJson = await response.json()
-
-      if (responseJson.error) {
-        if (responseJson.error.includes("expired")) {
-          setAppUser()
-          localStorage.removeItem('appUser')
-          navigate('/')
-          window.location.reload()
-        }
-        throw new Error(responseJson.error);
-      }
-
-      if (responseJson.firma) {
-        setSelectedFirma(responseJson.firma)
-        navigate("/projeler")
-      }
-
-    } catch (err) {
-      console.log(err)
-      setDialogAlert({
-        dialogIcon: "warning",
-        dialogMessage: "Beklenmedik hata, Rapor7/24 ile irtibata geçiniz..",
-        detailText: err?.message ? err.message : null
-      })
-    }
+  const handleFirmaClick = (oneFirma) => {
+    setSelectedFirma(oneFirma)
+    navigate("/projeler")
   }
 
 

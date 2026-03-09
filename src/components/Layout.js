@@ -45,6 +45,7 @@ import FormSifreYenileme from "./FormSifreYenileme.js"
 import FormMailTeyit from "./FormMailTeyit.js"
 import FormNewUserNecessaryData from "./FormNewUserNecessaryData.js"
 import FormProfileUpdate from "./FormProfileUpdate.js"
+import { supabase } from '../lib/supabase.js'
 
 
 
@@ -173,8 +174,8 @@ export default function Layout({ window, children }) {
   const clickLogOut = async () => {
     setAnchorEl(null);
     handleMobileMenuClose();
-    setAppUser()
-    localStorage.removeItem('appUser')
+    await supabase.auth.signOut()
+    setAppUser(null)
     setBegan(prev => !prev)
   }
 
