@@ -288,6 +288,7 @@ export default function P_MetrajOnaylaPozlar() {
           onCloseAction: () => {
             queryClient.invalidateQueries(['dataPozlar'])
             setDialogAlert()
+            setMode_metrajOnayla()
           }
         })
         return
@@ -483,7 +484,7 @@ export default function P_MetrajOnaylaPozlar() {
                   </>
                 }
 
-                {mode_metrajOnayla && selectedMetrajVersiyon && selectedProje?.metrajVersiyonlar?.length > 0 &&
+                {mode_metrajOnayla && selectedMetrajVersiyon &&
                   <>
 
                     <Box

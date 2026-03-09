@@ -44,6 +44,7 @@ export default function useDeleteProjeAktifYetkiliKisi() {
           dialogMessage: responseJson.message,
           onCloseAction: () => {
             setDialogAlert();
+            if (onOk) onOk();
           },
         });
       }
