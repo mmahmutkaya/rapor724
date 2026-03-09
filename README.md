@@ -1,6 +1,11 @@
 
 
 
+## Mimari Kararlar (ADR)
+
+- [ADR-001 — Veritabanı Seçimi: MongoDB Atlas](./docs/adr/001-veritabani-karari.md)
+
+
 ÇALIŞMA SİSTEMİNE DAİR ÖNEMLİ NOTLAR
 -ileride bazı iyileştirmeler yapman gerekiyor, örneğin backend de, update_hazirlananMetraj_selected fonksiyonunda 3 kısım var, hazirlananMetraj, onaylananMetraj ve dugum güncelleme kısmı, ilk aşamada isSelected oluyorlar fakat ikinci aşamada hata çıksa onaylananMetraj kısmı eksik kalabiliyor, bu gibi fonksiyonlarda alttaki kısımda hata almışsak yukarıdaki kısmında iptal olması gibi bir önlem
 
