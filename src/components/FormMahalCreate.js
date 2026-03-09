@@ -1,432 +1,226 @@
+import { useState, useContext, useMemo } from 'react'
 
-import { useState, useContext } from 'react';
-import { useQueryClient } from '@tanstack/react-query'
-import { useNavigate } from "react-router-dom";
-import _ from 'lodash';
+import { StoreContext } from './store'
+import { supabase } from '../lib/supabase'
+import { DialogAlert } from './general/DialogAlert'
 
-
-import { StoreContext } from './store.js'
-import deleteLastSpace from '../functions/deleteLastSpace.js';
-
-import { useGetMahaller } from '../hooks/useMongo.js';
-
-
-
-//mui
-import Box from '@mui/material/Box';
-import Grid from '@mui/material/Grid';
-import Button from '@mui/material/Button';
-import TextField from '@mui/material/TextField';
-import InputLabel from '@mui/material/InputLabel';
-import Select from '@mui/material/Select';
-import Dialog from '@mui/material/Dialog';
-import DialogActions from '@mui/material/DialogActions';
-import DialogContent from '@mui/material/DialogContent';
-import DialogContentText from '@mui/material/DialogContentText';
-import MenuItem from '@mui/material/MenuItem';
-import ArrowForwardIcon from '@mui/icons-material/ArrowForward';
+import Box from '@mui/material/Box'
+import Paper from '@mui/material/Paper'
+import Grid from '@mui/material/Grid'
+import Typography from '@mui/material/Typography'
+import TextField from '@mui/material/TextField'
+import MenuItem from '@mui/material/MenuItem'
+import Select from '@mui/material/Select'
+import InputLabel from '@mui/material/InputLabel'
+import FormControl from '@mui/material/FormControl'
+import Button from '@mui/material/Button'
 
 
+// Kök → yaprak arası code_name'leri noktalı birleştir (LBS için)
+function buildLbsPathCode(nodeId, rawNodes) {
+  const path = []
+  let current = rawNodes.find(n => n.id === nodeId)
+  while (current) {
+    if (current.code_name) path.unshift(current.code_name)
+    current = current.parent_id ? rawNodes.find(n => n.id === current.parent_id) : null
+  }
+  return path.join('.')
+}
+
+function buildMahalCode(lbsNodeId, rawNodes, existingMahaller) {
+  if (!lbsNodeId) return ''
+  const prefix = buildLbsPathCode(lbsNodeId, rawNodes)
+  const count = existingMahaller.filter(m => m.lbs_node_id === lbsNodeId).length
+  const seq = String(count + 1).padStart(3, '0')
+  return prefix ? `${prefix}.${seq}` : seq
+}
 
 
+export default function FormMahalCreate({ setShow, lbsNodeId, rawLbsNodes, rawMahaller, invalidate }) {
+  const { selectedProje } = useContext(StoreContext)
 
-export default function FormMahalCreate({ setShow, setDialogAlert }) {
+  // Sadece yaprak node'lar seçilebilir
+  const leafNodes = useMemo(() => {
+    return rawLbsNodes.filter(n => !rawLbsNodes.some(c => c.parent_id === n.id))
+  }, [rawLbsNodes])
 
-  const queryClient = useQueryClient()
-  const navigate = useNavigate()
+  const [selectedLbsNodeId, setSelectedLbsNodeId] = useState(lbsNodeId ?? '')
+  const [name, setName] = useState('')
+  const [area, setArea] = useState('')
+  const [codeOverride, setCodeOverride] = useState('')
+  const [dialogAlert, setDialogAlert] = useState()
+  const [saving, setSaving] = useState(false)
 
-  const { appUser, setAppUser, myTema } = useContext(StoreContext)
+  // Otomatik kod: lbs değişince güncelle
+  const autoCode = useMemo(
+    () => buildMahalCode(selectedLbsNodeId || null, rawLbsNodes, rawMahaller),
+    [selectedLbsNodeId, rawLbsNodes, rawMahaller]
+  )
 
-  const { selectedFirma, selectedProje } = useContext(StoreContext)
-  const { data: dataMahaller } = useGetMahaller()
+  const displayCode = codeOverride || autoCode
 
-  const [lbsIdError, setLbsIdError] = useState()
-  const [mahalNameError, setMahalNameError] = useState()
-  const [mahalNoError, setMahalNoError] = useState()
-
-  const [lbsId, setLbsId] = useState();
-
-
-  // mahal oluşturma fonksiyonu
-  async function handleSubmit(event) {
-
-    event.preventDefault();
-
-    try {
-
-      // formdan gelen text verilerini alma - (çoktan seçmeliler seçildiği anda useState() kısmında güncelleniyor)
-      const formData = new FormData(event.currentTarget);
-      const mahalName = deleteLastSpace(formData.get('mahalName'))
-      const mahalNo = deleteLastSpace(formData.get('mahalNo'))
-
-      const newMahal = {
-        _firmaId: selectedFirma._id,
-        _projeId: selectedProje._id,
-        _lbsId: lbsId,
-        mahalName,
-        mahalNo,
-      }
-
-
-      ////// form validation - frontend
-
-      let lbsIdError
-      let mahalNameError
-      let mahalNoError
-      let isFormError = false
-
-
-      // form alanına uyarı veren hatalar
-
-      if (!newMahal._lbsId && !lbsIdError) {
-        setLbsIdError("Zorunlu")
-        lbsIdError = true
-        isFormError = true
-      }
-
-
-      if (typeof newMahal.mahalName !== "string" && !mahalNameError) {
-        setMahalNameError("Zorunlu")
-        mahalNameError = true
-        isFormError = true
-      }
-
-      if (typeof newMahal.mahalName === "string" && !mahalNameError) {
-        if (newMahal.mahalName.length === 0) {
-          setMahalNameError("Zorunlu")
-          mahalNameError = true
-          isFormError = true
-        }
-      }
-
-      if (typeof newMahal.mahalName === "string" && !mahalNameError) {
-        let minimumHaneSayisi = 3
-        if (newMahal.mahalName.length > 0 && newMahal.mahalName.length < minimumHaneSayisi) {
-          setMahalNameError(`${minimumHaneSayisi} haneden az olamaz`)
-          mahalNameError = true
-          isFormError = true
-        }
-      }
-
-      if (dataMahaller?.mahaller?.find(x => x.mahalName === newMahal.mahalName) && !mahalNameError) {
-        setMahalNameError(`Bu mahal ismi kullanılmış`)
-        mahalNameError = true
-        isFormError = true
-      }
-
-
-      if (!newMahal.mahalNo && !mahalNoError) {
-        setMahalNoError(`Zorunlu`)
-        mahalNoError = true
-        isFormError = true
-      }
-
-      let mahalFinded = dataMahaller?.mahaller?.find(x => x.mahalNo === newMahal.mahalNo)
-      if (mahalFinded && !mahalNoError) {
-        setMahalNoError(`Bu mahal numarası kullanılmış`)
-        mahalNoError = true
-        isFormError = true
-      }
-
-
-
-      // form alanına uyarı veren hatalar olmuşsa burda durduralım
-      if (isFormError) {
-        // console.log("form validation - hata - frontend")
-        return
-      }
-
-      // console.log("newMahal", newMahal)
-      // return
-      // form verileri kontrolden geçti - db ye göndermeyi deniyoruz
-
-      const response = await fetch(process.env.REACT_APP_BASE_URL + `/api/mahaller`, {
-        method: 'POST',
-        headers: {
-          email: appUser.email,
-          token: appUser.token,
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({ newMahal })
-      })
-
-      const responseJson = await response.json()
-
-      if (responseJson.error) {
-        if (responseJson.error.includes("expired")) {
-          setAppUser()
-          localStorage.removeItem('appUser')
-          navigate('/')
-          window.location.reload()
-        }
-        throw new Error(responseJson.error);
-      }
-
-      // form validation - backend
-      if (responseJson.errorObject) {
-        setLbsIdError(responseJson.errorObject.lbsIdError)
-        setMahalNameError(responseJson.errorObject.mahalNameError)
-        setMahalNoError(responseJson.errorObject.mahalNoError)
-        console.log("responseJson.errorObject", responseJson.errorObject)
-        console.log("alt satırda backend den gelen hata ile durdu")
-        return
-      }
-
-
-      if (!responseJson.newMahal) {
-        console.log("result", responseJson)
-        throw new Error("Kayıt işlemi gerçekleşmedi, sayfayı yenileyiniz, sorun devam ederse Rapor7/24 ile irtibata geçiniz..")
-      }
-
-
-      let dataMahaller2 = _.cloneDeep(dataMahaller)
-      dataMahaller2.mahaller = [...dataMahaller2.mahaller, { ...responseJson.newMahal }]
-      queryClient.setQueryData(['dataMahaller'], dataMahaller2)
-
-      setShow("Main")
-
-      return
-
-    } catch (err) {
-
-      console.log(err)
-
-      setDialogAlert({
-        dialogIcon: "warning",
-        dialogMessage: "Beklenmedik hata, Rapor7/24 ile irtibata geçiniz..",
-        detailText: err?.message ? err.message : null
-      })
-
+  // LBS yaprak node'larının tam yol adı (select listesi için)
+  function leafLabel(node) {
+    const parts = []
+    let current = node
+    while (current) {
+      parts.unshift(current.code_name ? `[${current.code_name}] ${current.name}` : current.name)
+      current = current.parent_id ? rawLbsNodes.find(n => n.id === current.parent_id) : null
     }
-
+    return parts.join(' > ')
   }
 
+  async function handleSave(andNew = false) {
+    if (!name.trim()) {
+      setDialogAlert({ dialogIcon: 'warning', dialogMessage: 'Mahal adı boş olamaz.' })
+      return
+    }
+    if (!selectedLbsNodeId) {
+      setDialogAlert({ dialogIcon: 'warning', dialogMessage: 'LBS (Mahal Başlığı) seçiniz.' })
+      return
+    }
 
-  // form verilerini kullanıcıdan alıp react hafızasına yüklemek - onChange - sadece seçmeliler - yazma gibi şeyler formun submit olduğu anda yakalanıyor
-  const handleChange_lbs = (event) => {
-    setLbsId(selectedProje.lbs.find(item => item._id.toString() === event.target.value.toString())._id);
-  };
+    const finalCode = displayCode || null
+    const finalArea = area !== '' ? parseFloat(area) : null
 
+    if (area !== '' && isNaN(finalArea)) {
+      setDialogAlert({ dialogIcon: 'warning', dialogMessage: 'Alan değeri geçerli bir sayı olmalıdır.' })
+      return
+    }
 
+    // Sonraki order_index: bu LBS'in max order + 1
+    const sibs = rawMahaller.filter(m => m.lbs_node_id === selectedLbsNodeId)
+    const maxOrder = sibs.length > 0 ? Math.max(...sibs.map(s => s.order_index)) : 0
 
+    setSaving(true)
+    const { error } = await supabase.from('work_areas').insert({
+      project_id: selectedProje.id,
+      lbs_node_id: selectedLbsNodeId,
+      name: name.trim(),
+      code: finalCode,
+      area: finalArea,
+      order_index: maxOrder + 1,
+    })
+    setSaving(false)
 
-  // aşağıda kullanılıyor
-  let lbsCode
-  let lbsName
+    if (error) {
+      setDialogAlert({ dialogIcon: 'warning', dialogMessage: 'Mahal kaydedilemedi.', detailText: error.message })
+      return
+    }
 
+    invalidate()
 
+    if (andNew) {
+      setName('')
+      setArea('')
+      setCodeOverride('')
+    } else {
+      setShow('Main')
+    }
+  }
 
   return (
-    <div>
+    <Box sx={{ m: '1rem', maxWidth: '44rem' }}>
+      {dialogAlert &&
+        <DialogAlert
+          dialogIcon={dialogAlert.dialogIcon}
+          dialogMessage={dialogAlert.dialogMessage}
+          detailText={dialogAlert.detailText}
+          onCloseAction={() => setDialogAlert()}
+        />
+      }
 
-      <Dialog
-        PaperProps={{ sx: { width: "80%", position: "fixed", top: "10rem" } }}
-        open={true}
-        onClose={() => setShow("Main")} >
-        {/* <DialogTitle>Subscribe</DialogTitle> */}
-        <Box component="form" onSubmit={handleSubmit} noValidate sx={{ mt: 1 }}>
+      <Paper variant="outlined" sx={{ p: '1.25rem' }}>
+        <Typography variant="subtitle1" fontWeight="bold" sx={{ mb: '1rem' }}>
+          Yeni Mahal
+        </Typography>
 
-          <DialogContent>
+        <Grid container spacing={2}>
 
-            <DialogContentText sx={{ fontWeight: "bold", marginBottom: "2rem" }}>
-              {/* <Typography sx> */}
-              Mahal Oluştur
-              {/* </Typography> */}
-            </DialogContentText>
+          {/* LBS seçimi — lbsNodeId prop yoksa göster */}
+          {!lbsNodeId &&
+            <Grid item xs={12}>
+              <FormControl fullWidth variant="standard" required>
+                <InputLabel>LBS (Mahal Başlığı)</InputLabel>
+                <Select
+                  value={selectedLbsNodeId}
+                  onChange={e => { setSelectedLbsNodeId(e.target.value); setCodeOverride('') }}
+                  disabled={saving}
+                >
+                  {leafNodes.map(node => (
+                    <MenuItem key={node.id} value={node.id}>
+                      {leafLabel(node)}
+                    </MenuItem>
+                  ))}
+                </Select>
+              </FormControl>
+            </Grid>
+          }
 
+          {/* Mahal kodu (otomatik, override edilebilir) */}
+          <Grid item xs={12} sm={4}>
+            <TextField
+              variant="standard"
+              label="Mahal Kodu"
+              fullWidth
+              value={displayCode}
+              onChange={e => setCodeOverride(e.target.value)}
+              helperText={codeOverride ? 'Manuel' : 'Otomatik'}
+              disabled={saving || !selectedLbsNodeId}
+              inputProps={{ style: { fontFamily: 'monospace' } }}
+            />
+          </Grid>
 
-            {/* lbs adı seçme - çoktan seçmeli - mahal başlığı için*/}
-            <Box
-              onClick={() => setLbsIdError()}
-              sx={{ minWidth: 120, marginBottom: "0rem" }}
-            >
+          {/* Alan m² */}
+          <Grid item xs={12} sm={4}>
+            <TextField
+              variant="standard"
+              label="Alan m² (isteğe bağlı)"
+              fullWidth
+              value={area}
+              onChange={e => setArea(e.target.value)}
+              disabled={saving}
+              inputProps={{ inputMode: 'decimal' }}
+            />
+          </Grid>
 
-              <InputLabel
-                error={lbsIdError ? true : false}
-                id="select-lbs-label"
-              >
-                <Grid container justifyContent="space-between">
+          {/* Mahal adı */}
+          <Grid item xs={12}>
+            <TextField
+              variant="standard"
+              label="Mahal Adı"
+              fullWidth
+              required
+              value={name}
+              onChange={e => setName(e.target.value)}
+              disabled={saving}
+              autoFocus
+            />
+          </Grid>
 
-                  <Grid item>Mahal Başlığı Seçiniz</Grid>
+          {/* Butonlar */}
+          <Grid item xs={12}>
+            <Grid container spacing={1} justifyContent="flex-end">
+              <Grid item>
+                <Button variant="text" onClick={() => setShow('Main')} disabled={saving}>
+                  İptal
+                </Button>
+              </Grid>
+              <Grid item>
+                <Button variant="outlined" onClick={() => handleSave(true)} disabled={saving}>
+                  Kaydet + Yeni
+                </Button>
+              </Grid>
+              <Grid item>
+                <Button variant="contained" onClick={() => handleSave(false)} disabled={saving}>
+                  Kaydet
+                </Button>
+              </Grid>
+            </Grid>
+          </Grid>
 
-                  <Grid item onClick={() => console.log("mahal create component lbs tıklandı")} >
-                    lbs
-                    <ArrowForwardIcon sx={{ fontSize: 15, verticalAlign: "middle" }} />
-                  </Grid>
-
-                </Grid>
-
-              </InputLabel>
-
-              <Select
-                error={lbsIdError ? true : false}
-                variant="standard"
-                fullWidth
-                labelId="select-lbs-label"
-                id="select-lbs"
-                value={lbsId ? lbsId : ""}
-                // label="Mahal için başlık seçiniz"
-                // label="Mahal"
-                onChange={handleChange_lbs}
-                required
-                name="lbsId"
-              >
-                {
-                  selectedProje?.lbs?.filter(item => item.openForMahal)
-                    .sort(function (a, b) {
-                      var nums1 = a.code.split(".");
-                      var nums2 = b.code.split(".");
-
-                      for (var i = 0; i < nums1.length; i++) {
-                        if (nums2[i]) { // assuming 5..2 is invalid
-                          if (nums1[i] !== nums2[i]) {
-                            return nums1[i] - nums2[i];
-                          } // else continue
-                        } else {
-                          return 1; // no second number in b
-                        }
-                      }
-                      return -1; // was missing case b.len > a.len
-                    })
-                    .map(lbsOne => (
-                      // console.log(lbs)
-                      <MenuItem key={lbsOne._id} value={lbsOne._id}>
-
-                        {
-                          lbsOne.code.split(".").map((codePart, index) => {
-
-                            let cOunt = lbsOne.code.split(".").length
-
-                            // console.log(cOunt)
-                            // console.log(index + 1)
-                            // console.log("---")
-
-                            if (index == 0 && cOunt == 1) {
-                              lbsCode = codePart
-                              lbsName = selectedProje.lbs.find(item => item.code == lbsCode).name
-                            }
-
-                            if (index == 0 && cOunt !== 1) {
-                              lbsCode = codePart
-                              lbsName = selectedProje.lbs.find(item => item.code == lbsCode).codeName
-                            }
-
-                            if (index !== 0 && index + 1 !== cOunt && cOunt !== 1) {
-                              lbsCode = lbsCode + "." + codePart
-                              lbsName = lbsName + " > " + selectedProje.lbs.find(item => item.code == lbsCode).codeName
-                            }
-
-                            if (index !== 0 && index + 1 == cOunt && cOunt !== 1) {
-                              lbsCode = lbsCode + "." + codePart
-                              lbsName = lbsName + " > " + selectedProje.lbs.find(item => item.code == lbsCode).name
-                            }
-
-                          })
-                        }
-
-                        {/* lbsName hazır aslında ama aralarındaki ok işaretini kırmızıya boyamak için */}
-                        <Box sx={{ display: "grid", gridAutoFlow: "column", justifyContent: "start" }} >
-
-                          {lbsName.split(">").map((item, index) => (
-
-                            <Box key={index} sx={{ display: "grid", gridAutoFlow: "column", justifyContent: "start" }} >
-                              {item}
-                              {index + 1 !== lbsName.split(">").length &&
-                                <Box sx={{ color: myTema.renkler.baslik2_ayrac, mx: "0.2rem" }} >{">"}</Box>
-                              }
-                            </Box>
-
-                          ))}
-
-                          {/* <Typography>{lbsName}</Typography> */}
-                        </Box>
-
-                      </MenuItem>
-                    ))
-                }
-
-              </Select>
-
-            </Box>
-
-
-
-            {/* mahal numarasının yazıldığı alan */}
-            {/* tıklayınca setShowDialogError(false) çalışmasının sebebi -->  error vermişse yazmaya başlamak için tıklayınca error un silinmesi*/}
-            <Box
-              onClick={() => setMahalNoError()}
-              sx={{ minWidth: 120, my: "1rem" }}
-            >
-              <TextField
-                sx={{
-                  "& input:-webkit-autofill:focus": {
-                    transition: "background-color 600000s 0s, color 600000s 0s"
-                  },
-                  "& input:-webkit-autofill": {
-                    transition: "background-color 600000s 0s, color 600000s 0s"
-                  },
-                }}
-                variant="standard"
-                // InputProps={{ sx: { height:"2rem", fontSize: "1.5rem" } }}
-                margin="normal"
-                id="mahalNo"
-                name="mahalNo"
-                // autoFocus
-                error={mahalNoError ? true : false}
-                helperText={mahalNoError}
-                // margin="dense"
-                label="Mahal No"
-                type="text"
-                fullWidth
-              />
-            </Box>
-
-
-
-
-            {/* mahal isminin yazıldığı alan */}
-            {/* tıklayınca setShowDialogError(false) çalışmasının sebebi -->  error vermişse yazmaya başlamak için tıklayınca error un silinmesi*/}
-            <Box
-              onClick={() => setMahalNameError()}
-              sx={{ minWidth: 120, marginBottom: "2rem" }}
-            >
-              <TextField
-                sx={{
-                  "& input:-webkit-autofill:focus": {
-                    transition: "background-color 600000s 0s, color 600000s 0s"
-                  },
-                  "& input:-webkit-autofill": {
-                    transition: "background-color 600000s 0s, color 600000s 0s"
-                  },
-                }}
-                variant="standard"
-                // InputProps={{ sx: { height:"2rem", fontSize: "1.5rem" } }}
-                margin="normal"
-                id="mahalName"
-                name="mahalName"
-                // autoFocus
-                error={mahalNameError ? true : false}
-                helperText={mahalNameError}
-                // margin="dense"
-                label="Mahal Adi"
-                type="text"
-                fullWidth
-              />
-            </Box>
-
-
-          </DialogContent>
-
-          <DialogActions sx={{ padding: "1.5rem" }}>
-            <Button onClick={() => setShow("Main")}>İptal</Button>
-            <Button type="submit">Oluştur</Button>
-          </DialogActions>
-
-        </Box>
-      </Dialog>
-    </div >
-  );
-
-
-
+        </Grid>
+      </Paper>
+    </Box>
+  )
 }

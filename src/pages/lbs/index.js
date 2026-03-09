@@ -41,14 +41,14 @@ function flattenTree(nodes, parentId = null, depth = 0) {
 
 function nodeColor(depth) {
   const palette = [
-    { bg: "#1a4a1a", co: "#e6e6e6" },
-    { bg: "#005555", co: "#e6e6e6" },
-    { bg: "#1a3a5c", co: "#e6e6e6" },
-    { bg: "#4a3a00", co: "#e6e6e6" },
-    { bg: "#3a1a4a", co: "#e6e6e6" },
-    { bg: "#00853E", co: "#e6e6e6" },
-    { bg: "#2929bc", co: "#e6e6e6" },
-    { bg: "#4B5320", co: "#e6e6e6" },
+    { bg: "#7a3333", co: "#e6e6e6" },
+    { bg: "#2d5c3a", co: "#e6e6e6" },
+    { bg: "#2d4f80", co: "#e6e6e6" },
+    { bg: "#6b5a2a", co: "#e6e6e6" },
+    { bg: "#2d6060", co: "#e6e6e6" },
+    { bg: "#4a2d7a", co: "#e6e6e6" },
+    { bg: "#6b2d50", co: "#e6e6e6" },
+    { bg: "#505050", co: "#e6e6e6" },
   ]
   return palette[depth % palette.length]
 }
@@ -362,7 +362,7 @@ export default function P_Lbs() {
                   <Box key={node.id} sx={{ display: "grid", gridTemplateColumns: cols }}>
 
                     {Array.from({ length: depth }).map((_, i) => (
-                      <Box key={i} sx={{ backgroundColor: nodeColor(i).bg, borderLeft: "1px solid gray" }} />
+                      <Box key={i} sx={{ backgroundColor: nodeColor(i).bg }} />
                     ))}
 
                     <Box
@@ -370,8 +370,6 @@ export default function P_Lbs() {
                       sx={{
                         pl: "6px",
                         py: "1px",
-                        borderBottom: "0.5px solid gray",
-                        borderLeft: "1px solid gray",
                         backgroundColor: isSelected ? '#3a1a00' : c.bg,
                         color: c.co,
                         cursor: "pointer",

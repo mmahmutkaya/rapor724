@@ -1,418 +1,491 @@
-
-import React from 'react'
-import { useState, useContext, useEffect } from 'react';
+import React, { useState, useContext, useEffect, useMemo } from 'react'
 import { useQueryClient } from '@tanstack/react-query'
-import { useNavigate } from "react-router-dom";
-import { DialogAlert } from '../../components/general/DialogAlert';
-
-
+import { useNavigate } from 'react-router-dom'
 
 import { StoreContext } from '../../components/store'
-import { useGetMahaller } from '../../hooks/useMongo';
-
+import { useGetLbsNodes, useGetWorkAreas } from '../../hooks/useMongo'
+import { supabase } from '../../lib/supabase'
+import { DialogAlert } from '../../components/general/DialogAlert'
 import FormMahalCreate from '../../components/FormMahalCreate'
-import ShowMahalBaslik from '../../components/ShowMahalBaslik'
+import FormMahalEdit from '../../components/FormMahalEdit'
+
+import Box from '@mui/material/Box'
+import Paper from '@mui/material/Paper'
+import Grid from '@mui/material/Grid'
+import Typography from '@mui/material/Typography'
+import IconButton from '@mui/material/IconButton'
+import LinearProgress from '@mui/material/LinearProgress'
+import Alert from '@mui/material/Alert'
+import Chip from '@mui/material/Chip'
+import Tooltip from '@mui/material/Tooltip'
+import AddCircleOutlineIcon from '@mui/icons-material/AddCircleOutline'
+import DeleteIcon from '@mui/icons-material/Delete'
+import EditIcon from '@mui/icons-material/Edit'
+import AccountTreeIcon from '@mui/icons-material/AccountTree'
+import ListIcon from '@mui/icons-material/List'
 
 
-import { borderLeft, fontWeight, grid, styled } from '@mui/system';
-import Grid from '@mui/material/Grid';
-import Paper from '@mui/material/Paper';
-import IconButton from '@mui/material/IconButton';
-import DeleteIcon from '@mui/icons-material/Delete';
-import AddCircleOutlineIcon from '@mui/icons-material/AddCircleOutline';
-import ClearOutlined from '@mui/icons-material/ClearOutlined';
-import UnfoldMoreIcon from '@mui/icons-material/UnfoldMore';
-import UnfoldLessIcon from '@mui/icons-material/UnfoldLess';
-import VisibilityIcon from '@mui/icons-material/Visibility';
-import AlignHorizontalLeftOutlinedIcon from '@mui/icons-material/AlignHorizontalLeftOutlined';
-import AlignHorizontalRightOutlinedIcon from '@mui/icons-material/AlignHorizontalRightOutlined';
-import AlignHorizontalCenterOutlinedIcon from '@mui/icons-material/AlignHorizontalCenterOutlined';
-import FileDownloadDoneIcon from '@mui/icons-material/FileDownloadDone';
-import EditIcon from '@mui/icons-material/Edit';
-import Input from '@mui/material/Input';
-import Alert from '@mui/material/Alert';
-import Stack from '@mui/material/Stack';
-import { Button, TextField, Typography } from '@mui/material';
-import Box from '@mui/material/Box';
-import InfoIcon from '@mui/icons-material/Info';
-import LinearProgress from '@mui/material/LinearProgress';
-
-
-
-function HeaderMahaller({ setShow, anyBaslikShow }) {
-
-  const { selectedProje } = useContext(StoreContext)
-  const navigate = useNavigate()
-
-  return (
-    <Paper >
-
-      <Grid
-        container
-        justifyContent="space-between"
-        alignItems="center"
-        sx={{ padding: "0.5rem 1rem", maxHeight: "5rem" }}
-      >
-
-        {/* sol kısım (başlık) */}
-        <Grid item xs>
-          <Typography
-            // nowrap={true}
-            variant="h6"
-            fontWeight="bold"
-          >
-            Mahaller
-          </Typography>
-        </Grid>
-
-
-
-        {/* sağ kısım - (tuşlar)*/}
-        <Grid item xs="auto">
-          <Grid container spacing={1}>
-
-            <Grid item >
-              <IconButton onClick={() => setShow("ShowBaslik")} aria-label="lbsUncliced" disabled={!anyBaslikShow}>
-                <VisibilityIcon variant="contained" />
-              </IconButton>
-            </Grid>
-
-            <Grid item >
-              <IconButton onClick={() => setShow("MahalCreate")} aria-label="lbsUncliced" disabled={!selectedProje?.lbs?.find(x => x.openForMahal === true)}>
-                <AddCircleOutlineIcon variant="contained" />
-              </IconButton>
-            </Grid>
-
-          </Grid>
-        </Grid>
-
-      </Grid>
-
-    </Paper>
-  )
+// LBS sayfasından aynı yardımcılar
+function flattenTree(nodes, parentId = null, depth = 0) {
+  return nodes
+    .filter(n => (n.parent_id ?? null) === (parentId ?? null))
+    .sort((a, b) => a.order_index - b.order_index)
+    .flatMap(n => [{ ...n, depth }, ...flattenTree(nodes, n.id, depth + 1)])
 }
 
+function nodeColor(depth) {
+  const palette = [
+    { bg: "#7a3333", co: "#e6e6e6" },
+    { bg: "#2d5c3a", co: "#e6e6e6" },
+    { bg: "#2d4f80", co: "#e6e6e6" },
+    { bg: "#6b5a2a", co: "#e6e6e6" },
+    { bg: "#2d6060", co: "#e6e6e6" },
+    { bg: "#4a2d7a", co: "#e6e6e6" },
+    { bg: "#6b2d50", co: "#e6e6e6" },
+    { bg: "#505050", co: "#e6e6e6" },
+  ]
+  return palette[depth % palette.length]
+}
+
+
 export default function P_Mahaller() {
-
   const navigate = useNavigate()
-
-  const [dialogAlert, setDialogAlert] = useState()
-
-  const { data: dataMahaller, error, isLoading } = useGetMahaller()
-
-  const { RealmApp, myTema } = useContext(StoreContext)
+  const queryClient = useQueryClient()
   const { selectedProje } = useContext(StoreContext)
 
-  // console.log("selectedProje", selectedProje)
+  const { data: rawLbsNodes = [], isLoading: lbsLoading } = useGetLbsNodes()
+  const { data: rawMahaller = [], isLoading: mahalLoading, error: mahalError } = useGetWorkAreas()
 
-  const [show, setShow] = useState("Main")
+  const [viewMode, setViewMode] = useState('tree')
+  const [collapsedIds, setCollapsedIds] = useState(new Set())
+  const [filterLbsIds, setFilterLbsIds] = useState(new Set())
+  const [activeLbsNodeId, setActiveLbsNodeId] = useState(null)
+  const [show, setShow] = useState('Main')
+  const [dialogAlert, setDialogAlert] = useState()
+  const [editingMahal, setEditingMahal] = useState(null)
+
+  const isLoading = lbsLoading || mahalLoading
+  const queryError = mahalError
 
   useEffect(() => {
-    !selectedProje && navigate('/projeler')
-  }, [])
+    if (!selectedProje) navigate('/projeler')
+  }, [selectedProje, navigate])
 
-  useEffect(() => {
-    if (error) {
-      console.log("error", error)
-      setDialogAlert({
-        dialogIcon: "warning",
-        dialogMessage: "Beklenmedik hata, Rapor7/24 ile irtibata geçiniz..",
-        detailText: error?.message ? error.message : null
-      })
+  const flatNodes = useMemo(() => flattenTree(rawLbsNodes), [rawLbsNodes])
+
+  const isLeafSet = useMemo(() => {
+    const s = new Set()
+    rawLbsNodes.forEach(n => {
+      if (!rawLbsNodes.some(c => c.parent_id === n.id)) s.add(n.id)
+    })
+    return s
+  }, [rawLbsNodes])
+
+  const leafNodes = useMemo(
+    () => flatNodes.filter(n => isLeafSet.has(n.id)),
+    [flatNodes, isLeafSet]
+  )
+
+  // En derin yaprak node'un derinliği → ortak grid sütun sayısını belirler
+  const maxLeafDepth = useMemo(() => {
+    const leaves = flatNodes.filter(n => isLeafSet.has(n.id))
+    return leaves.length > 0 ? Math.max(...leaves.map(n => n.depth)) : 0
+  }, [flatNodes, isLeafSet])
+
+  const displayedMahaller = useMemo(() => {
+    if (viewMode === 'flat' && filterLbsIds.size > 0) {
+      return rawMahaller.filter(m => filterLbsIds.has(m.lbs_node_id))
     }
-  }, [error]);
+    return rawMahaller
+  }, [rawMahaller, viewMode, filterLbsIds])
 
-  const [basliklar, setBasliklar] = useState(RealmApp?.currentUser.customData.customSettings.pages.mahaller.basliklar)
+  const invalidate = () => queryClient.invalidateQueries(['workAreas', selectedProje?.id])
 
-  // sayfadaki "visibility" tuşunun aktif olup olmamasını ayarlamak için
-  const anyBaslikShow = basliklar?.find(x => x.visible) ? true : false
-
-  const mahalAciklamaShow = basliklar?.find(x => x.id === "aciklama").show
-  const mahalVersiyonShow = basliklar?.find(x => x.id === "versiyon").show
-
-  const columns = `
-    min-content
-    minmax(min-content, 45rem) 
-    ${mahalAciklamaShow ? " 1rem minmax(min-content, 10rem)" : ""}
-    ${mahalVersiyonShow ? " 1rem max-content" : ""}
-  `
-
-
-  const enUstBaslik_css = {
-    display: "grid",
-    alignItems: "center",
-    justifyItems: "center",
-    backgroundColor: myTema.renkler.baslik1,
-    fontWeight: 600,
-    border: "1px solid black",
-    px: "0.7rem"
+  function toggleCollapse(nodeId) {
+    setCollapsedIds(prev => {
+      const next = new Set(prev)
+      next.has(nodeId) ? next.delete(nodeId) : next.add(nodeId)
+      return next
+    })
   }
 
-  const lbsBaslik_css = {
-    display: "grid",
-    alignItems: "center",
-    justifyItems: "start",
-    backgroundColor: myTema.renkler.baslik2,
-    fontWeight: 600,
-    pl: "0.5rem",
-    border: "1px solid black",
-    mt: "1.5rem"
+  function toggleFilterLbs(nodeId) {
+    setFilterLbsIds(prev => {
+      const next = new Set(prev)
+      next.has(nodeId) ? next.delete(nodeId) : next.add(nodeId)
+      return next
+    })
   }
 
-
-  const mahalNo_css = {
-    display: "grid",
-    alignItems: "center",
-    justifyItems: "center",
-    backgroundColor: "white",
-    border: "1px solid black",
-    px: "0.7rem"
+  async function handleDeleteMahal(mahal) {
+    setDialogAlert({
+      dialogIcon: 'warning',
+      dialogMessage: `"${mahal.name}" mahalini silmek istediğinizden emin misiniz?`,
+      actionText1: 'Sil',
+      action1: async () => {
+        setDialogAlert()
+        const { error } = await supabase.from('work_areas').delete().eq('id', mahal.id)
+        if (error) {
+          setDialogAlert({ dialogIcon: 'warning', dialogMessage: 'Mahal silinemedi.', detailText: error.message })
+          return
+        }
+        invalidate()
+      },
+      actionText2: 'İptal',
+      action2: () => setDialogAlert()
+    })
   }
 
+  function isHiddenByAncestor(node) {
+    let parentId = node.parent_id
+    while (parentId) {
+      if (collapsedIds.has(parentId)) return true
+      const parent = rawLbsNodes.find(n => n.id === parentId)
+      parentId = parent?.parent_id ?? null
+    }
+    return false
+  }
 
-  let lbsCode
-  let lbsName
-  let cOunt
+  // Düz liste sütun CSS
+  const headerCellCss = {
+    border: '1px solid black',
+    px: '0.7rem', py: '0.3rem',
+    backgroundColor: '#333', color: 'white',
+    fontWeight: 600, fontSize: '0.85rem',
+  }
+  const mahalCellCss = {
+    border: '1px solid #ddd',
+    px: '0.5rem', py: '0.25rem',
+    fontSize: '0.875rem',
+    display: 'flex', alignItems: 'center',
+  }
+  const flatColumns = 'max-content minmax(20rem, max-content) max-content max-content'
+  const colHeaders = [
+    { label: 'Mahal Kodu', align: 'center' },
+    { label: 'Mahal Adı', align: 'left' },
+    { label: 'Alan m²', align: 'center' },
+    { label: '', align: 'center' },
+  ]
+
 
   return (
-    <Box sx={{ m: "0rem" }}>
-
+    <Box sx={{ m: '0rem' }}>
 
       {dialogAlert &&
         <DialogAlert
           dialogIcon={dialogAlert.dialogIcon}
           dialogMessage={dialogAlert.dialogMessage}
           detailText={dialogAlert.detailText}
-          onCloseAction={dialogAlert.onCloseAction ? dialogAlert.onCloseAction : () => setDialogAlert()}
+          onCloseAction={dialogAlert.onCloseAction ?? (() => setDialogAlert())}
+          actionText1={dialogAlert.actionText1 ?? null}
+          action1={dialogAlert.action1 ?? null}
+          actionText2={dialogAlert.actionText2 ?? null}
+          action2={dialogAlert.action2 ?? null}
         />
       }
 
-
       {/* BAŞLIK */}
-      <HeaderMahaller show={show} setShow={setShow} anyBaslikShow={anyBaslikShow} />
+      <Paper>
+        <Grid container justifyContent="space-between" alignItems="center" sx={{ px: '1rem', py: '0.5rem', maxHeight: '5rem' }}>
+          <Grid item>
+            <Typography variant="h6" fontWeight="bold">Mahaller</Typography>
+          </Grid>
+          <Grid item>
+            <Grid container spacing={0.5} alignItems="center">
 
+              <Grid item>
+                <Tooltip title="LBS ağaç görünümü">
+                  <IconButton size="small" onClick={() => setViewMode('tree')} color={viewMode === 'tree' ? 'primary' : 'default'}>
+                    <AccountTreeIcon />
+                  </IconButton>
+                </Tooltip>
+              </Grid>
+              <Grid item>
+                <Tooltip title="Düz liste">
+                  <IconButton size="small" onClick={() => setViewMode('flat')} color={viewMode === 'flat' ? 'primary' : 'default'}>
+                    <ListIcon />
+                  </IconButton>
+                </Tooltip>
+              </Grid>
 
-      {/* MAHAL OLUŞTURULACAKSA */}
-      {show == "MahalCreate" && <FormMahalCreate setShow={setShow} dialogAlert={dialogAlert} setDialogAlert={setDialogAlert} />}
+              <Grid item>
+                <Tooltip title={
+                  viewMode === 'tree' && !activeLbsNodeId
+                    ? 'Bir LBS yaprak düğümü seçin'
+                    : 'Mahal ekle'
+                }>
+                  <span>
+                    <IconButton
+                      onClick={() => setShow('MahalCreate')}
+                      disabled={viewMode === 'tree' && !activeLbsNodeId}
+                    >
+                      <AddCircleOutlineIcon />
+                    </IconButton>
+                  </span>
+                </Tooltip>
+              </Grid>
 
-
-      {/* BAŞLIK GÖSTER / GİZLE */}
-      {show == "ShowBaslik" && <ShowMahalBaslik setShow={setShow} basliklar={basliklar} setBasliklar={setBasliklar} />}
+            </Grid>
+          </Grid>
+        </Grid>
+      </Paper>
 
 
       {isLoading &&
-        <Box sx={{ m: "1rem", color: 'gray' }}>
-          <LinearProgress color='inherit' />
-        </Box>
+        <Box sx={{ m: '1rem', color: 'gray' }}><LinearProgress color="inherit" /></Box>
+      }
+
+      {show === 'MahalCreate' &&
+        <FormMahalCreate
+          setShow={setShow}
+          lbsNodeId={viewMode === 'tree' ? activeLbsNodeId : null}
+          rawLbsNodes={rawLbsNodes}
+          rawMahaller={rawMahaller}
+          invalidate={invalidate}
+        />
+      }
+
+      {editingMahal &&
+        <FormMahalEdit
+          mahal={editingMahal}
+          setEditingMahal={setEditingMahal}
+          invalidate={invalidate}
+        />
+      }
+
+      {!isLoading && queryError && show === 'Main' &&
+        <Alert severity="error" sx={{ m: '1rem' }}>
+          Veritabanı sorgusu başarısız. SQL'lerin çalıştırıldığından emin olun.
+          <br /><small style={{ opacity: 0.7 }}>{queryError.message}</small>
+        </Alert>
+      }
+
+      {!isLoading && !queryError && rawLbsNodes.length === 0 && show === 'Main' &&
+        <Alert severity="info" sx={{ m: '1rem' }}>
+          Mahal oluşturmadan önce <strong>LBS (Mahal Başlıkları)</strong> ağacını oluşturun.
+        </Alert>
       }
 
 
-      {/* EĞER MAHAL BAŞLIĞI YOKSA */}
-      {!isLoading && show == "Main" && !selectedProje?.lbs?.find(x => x.openForMahal === true) &&
-        <Stack sx={{ width: '100%', m: "0rem", p: "1rem" }} spacing={2}>
-          <Alert severity="info">
-            Öncelikle mahal oluşturmaya açık mahal başlığı oluşturmalısınız.
-          </Alert>
-        </Stack>
-      }
+      {/* ===== AĞAÇ GÖRÜNÜMÜ — LBS sayfasıyla aynı stil, tek ortak grid ===== */}
+      {!isLoading && !queryError && show === 'Main' && !editingMahal && viewMode === 'tree' && rawLbsNodes.length > 0 &&
+        (() => {
+          // Tüm LBS + mahal satırları için tek ortak grid sütun tanımı
+          const totalDepthCols = maxLeafDepth + 1
+          const totalCols = totalDepthCols + 4    // +4: kod, ad, alan, sil
+          const treeGridCols = `repeat(${totalDepthCols}, 1rem) max-content minmax(20rem, max-content) max-content max-content`
 
+          return (
+            <Box sx={{ maxWidth: '80rem', p: '0.5rem', width: 'fit-content' }}>
 
-      {/* EĞER MAHAL YOKSA */}
-      {!isLoading && show == "Main" && selectedProje?.lbs?.find(x => x.openForMahal === true) && !dataMahaller?.mahaller?.length > 0 &&
-        <Stack sx={{ width: '100%', m: "0rem", p: "1rem" }} spacing={2}>
-          <Alert severity="info">
-            Menüler yardımı ile mahal oluşturmaya başlayabilirsiniz.
-          </Alert>
-        </Stack>
-      }
-
-
-      {/* ANA SAYFA - MAHALLAR VARSA */}
-
-      {!isLoading && show == "Main" && selectedProje?.lbs?.find(x => x.openForMahal === true) && dataMahaller?.mahaller?.length > 0 &&
-        <Box sx={{ m: "1rem", display: "grid", gridTemplateColumns: columns }}>
-
-
-          {/*   EN ÜST BAŞLIK */}
-          {/* <Box sx={{ display: "grid", gridTemplateColumns: columns, gridTemplateAreas: gridAreas_enUstBaslik }}> */}
-          <React.Fragment >
-
-            {/* BAŞLIK - MAHAL NO */}
-            <Box sx={{ ...enUstBaslik_css, textWrap: "nowrap" }}>
-              Mahal No
-            </Box>
-
-            {/* BAŞLIK - MAHAL İSMİ */}
-            <Box sx={{ ...enUstBaslik_css }}>
-              Mahal İsmi
-            </Box>
-
-
-
-            {/* BAŞLIK - MAHAL AÇIKLAMA  */}
-            {mahalAciklamaShow &&
-              <>
-                <Box></Box>
-                <Box sx={{ ...enUstBaslik_css }}>
-                  Açıklama
+              {/* Proje adı satırı */}
+              <Box sx={{ display: 'grid', gridTemplateColumns: '1rem 1fr' }}>
+                <Box sx={{ backgroundColor: 'black' }} />
+                <Box sx={{ backgroundColor: 'black', color: 'white', pl: '4px', py: '2px' }}>
+                  <Typography variant="body2">{selectedProje?.name}</Typography>
                 </Box>
-              </>
-            }
+              </Box>
 
-            {/* BAŞLIK - VERSİYON */}
-            {mahalVersiyonShow &&
-              <>
-                <Box></Box>
-                <Box sx={{ ...enUstBaslik_css }}>
-                  Versiyon
-                </Box>
-              </>
-            }
+              {/* Tek ortak grid — LBS ve mahal satırları hizalı */}
+              <Box sx={{ display: 'grid', gridTemplateColumns: '1rem 1fr' }}>
+                <Box sx={{ backgroundColor: 'black' }} />
+                <Box sx={{ display: 'grid', gridTemplateColumns: treeGridCols }}>
 
-          </React.Fragment>
+                  {flatNodes.map(node => {
+                    if (isHiddenByAncestor(node)) return null
+                    const { depth } = node
+                    const isLeaf = isLeafSet.has(node.id)
+                    const isSelected = activeLbsNodeId === node.id
+                    const c = nodeColor(depth)
+                    const mahallerOfNode = rawMahaller
+                      .filter(m => m.lbs_node_id === node.id)
+                      .sort((a, b) => a.order_index - b.order_index)
 
+                    return (
+                      <React.Fragment key={node.id}>
 
+                        {/* LBS düğüm satırı */}
+                        {Array.from({ length: depth }).map((_, i) => (
+                          <Box key={i} sx={{ backgroundColor: nodeColor(i).bg }} />
+                        ))}
+                        <Box
+                          onClick={() => {
+                            if (!isLeaf) { toggleCollapse(node.id); return }
+                            setActiveLbsNodeId(prev => prev === node.id ? null : node.id)
+                          }}
+                          sx={{
+                            gridColumn: `span ${totalCols - depth}`,
+                            pl: '6px', py: '1px',
+                            backgroundColor: isSelected ? '#3a1a00' : c.bg,
+                            color: c.co,
+                            cursor: 'pointer',
+                            display: 'flex', alignItems: 'center', gap: '0.4rem',
+                            userSelect: 'none',
+                            '&:hover': { filter: 'brightness(1.2)' }
+                          }}
+                        >
+                          {!isLeaf &&
+                            <Box sx={{ fontSize: '0.7rem', flexShrink: 0 }}>
+                              {collapsedIds.has(node.id) ? '▶' : '▼'}
+                            </Box>
+                          }
+                          {isLeaf &&
+                            <Box sx={{ width: '0.45rem', height: '0.45rem', borderRadius: '50%', backgroundColor: '#65FF00', flexShrink: 0 }} />
+                          }
+                          <Typography variant="body2">
+                            {node.code_name ? `(${node.code_name}) ` : ''}{node.name}
+                          </Typography>
+                          {isSelected &&
+                            <Box sx={{ ml: '0.3rem', width: '0.4rem', height: '0.4rem', borderRadius: '50%', backgroundColor: 'yellow' }} />
+                          }
+                          {isLeaf && mahallerOfNode.length > 0 &&
+                            <Box sx={{ ml: 'auto', pr: '0.5rem', fontSize: '0.75rem', opacity: 0.5, flexShrink: 0 }}>
+                              {mahallerOfNode.length} mahal
+                            </Box>
+                          }
+                        </Box>
 
+                        {/* Mahal satırları */}
+                        {isLeaf && !collapsedIds.has(node.id) && mahallerOfNode.map(mahal => (
+                          <React.Fragment key={mahal.id}>
 
+                            {/* Derinlik çubukları: depth+1 adedi renkli, kalanı saydam dolgu */}
+                            {Array.from({ length: totalDepthCols }).map((_, i) => (
+                              <Box key={i} sx={{
+                                backgroundColor: i <= depth ? nodeColor(i).bg : 'transparent',
+                              }} />
+                            ))}
 
-          {/* LBS BAŞLIĞI ve ALTINDA MAHALLERİ*/}
+                            {/* Mahal kodu */}
+                            <Box sx={{
+                              px: '6px', py: '2px',
+                              borderBottom: '0.5px solid #ddd',
+                              borderLeft: '1px solid #aaa',
+                              fontFamily: 'monospace', fontSize: '0.8rem', fontWeight: 600,
+                              display: 'flex', alignItems: 'center', whiteSpace: 'nowrap',
+                              backgroundColor: '#fafafa'
+                            }}>
+                              {mahal.code || '—'}
+                            </Box>
 
-          {selectedProje?.lbs.filter(x => x.openForMahal).map((oneLbs, index) => {
+                            {/* Mahal adı */}
+                            <Box sx={{
+                              px: '6px', py: '2px',
+                              borderBottom: '0.5px solid #ddd',
+                              fontSize: '0.875rem',
+                              display: 'flex', alignItems: 'center',
+                              backgroundColor: '#fafafa'
+                            }}>
+                              {mahal.name}
+                            </Box>
 
-            return (
+                            {/* Alan m² */}
+                            <Box sx={{
+                              px: '6px', py: '2px',
+                              borderBottom: '0.5px solid #ddd',
+                              fontSize: '0.8rem',
+                              display: 'flex', alignItems: 'center', justifyContent: 'flex-end',
+                              backgroundColor: '#fafafa', whiteSpace: 'nowrap'
+                            }}>
+                              {mahal.area != null ? `${mahal.area} m²` : '—'}
+                            </Box>
 
-              <React.Fragment key={index}>
+                            {/* Düzenle / Sil */}
+                            <Box sx={{
+                              borderBottom: '0.5px solid #ddd',
+                              display: 'flex', alignItems: 'center', justifyContent: 'center',
+                              backgroundColor: '#fafafa'
+                            }}>
+                              <IconButton size="small" onClick={() => setEditingMahal(mahal)}>
+                                <EditIcon fontSize="small" />
+                              </IconButton>
+                              <IconButton size="small" onClick={() => handleDeleteMahal(mahal)}>
+                                <DeleteIcon fontSize="small" />
+                              </IconButton>
+                            </Box>
 
-                {/* LBS BAŞLIĞI */}
-                <React.Fragment>
+                          </React.Fragment>
+                        ))}
 
-
-
-                  {/* HAYALET */}
-                  <Box sx={{ display: "none" }}>
-                    {cOunt = oneLbs.code.split(".").length}
-                  </Box>
-
-                  {
-                    oneLbs.code.split(".").map((codePart, index) => {
-
-                      if (index == 0 && cOunt == 1) {
-                        lbsCode = codePart
-                        lbsName = selectedProje?.lbs?.find(item => item.code == lbsCode).name
-                      }
-
-                      if (index == 0 && cOunt !== 1) {
-                        lbsCode = codePart
-                        lbsName = selectedProje?.lbs?.find(item => item.code == lbsCode).codeName
-                      }
-
-                      if (index !== 0 && index + 1 !== cOunt && cOunt !== 1) {
-                        lbsCode = lbsCode + "." + codePart
-                        lbsName = lbsName + " > " + selectedProje?.lbs?.find(item => item.code == lbsCode).codeName
-                      }
-
-                      if (index !== 0 && index + 1 == cOunt && cOunt !== 1) {
-                        lbsCode = lbsCode + "." + codePart
-                        lbsName = lbsName + " > " + selectedProje?.lbs?.find(item => item.code == lbsCode).name
-                      }
-
-                    })
-                  }
-
-                  {/* lbsName hazır aslında ama aralarındaki ok işaretini kırmızıya boyamak için */}
-                  <Box sx={{ gridColumn: "1/3", ...lbsBaslik_css, display: "grid", gridAutoFlow: "column", justifyContent: "start", columnGap: "0.2rem", textWrap: "nowrap", pr: "1rem" }} >
-
-                    {lbsName.split(">").map((item, index) => (
-                      <React.Fragment key={index}>
-                        <Box sx={{}}>{item}</Box>
-                        {index + 1 !== lbsName.split(">").length &&
-                          <Box sx={{ color: myTema.renkler.baslik2_ayrac }} >{">"}</Box>
-                        }
                       </React.Fragment>
-                    ))}
+                    )
+                  })}
 
-                    {/* <Typography>{lbsName}</Typography> */}
-                  </Box>
-
-
-
-                  {/* BAŞLIK - AÇIKLAMA  */}
-                  {mahalAciklamaShow &&
-                    <>
-                      <Box></Box>
-                      <Box sx={{ ...lbsBaslik_css }} />
-                    </>
-                  }
-
-                  {/* BAŞLIK - VERSİYON */}
-                  {mahalVersiyonShow &&
-                    <>
-                      <Box />
-                      <Box sx={{ ...lbsBaslik_css }} />
-                    </>
-                  }
-
-                </React.Fragment>
+                </Box>
+              </Box>
+            </Box>
+          )
+        })()
+      }
 
 
-                {/* LBS'İN MAHALLERİ */}
-                {dataMahaller?.mahaller?.filter(x => x._lbsId?.toString() === oneLbs._id?.toString()).map((oneMahal, index) => {
+      {/* ===== DÜZ LİSTE GÖRÜNÜMÜ ===== */}
+      {!isLoading && !queryError && show === 'Main' && !editingMahal && viewMode === 'flat' && rawLbsNodes.length > 0 &&
+        <Box sx={{ m: '1rem' }}>
 
-                  return (
-                    // <Box key={index} sx={{ display: "grid", gridTemplateColumns: columns, gridTemplateAreas: gridAreas_mahalSatir }}>
-                    <React.Fragment key={index} >
+          {/* LBS leaf chip filtreleri */}
+          {leafNodes.length > 0 &&
+            <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: '0.4rem', mb: '1rem' }}>
+              {leafNodes.map(node => {
+                const isActive = filterLbsIds.has(node.id)
+                const c = nodeColor(node.depth)
+                return (
+                  <Chip
+                    key={node.id}
+                    label={node.code_name ? `(${node.code_name}) ${node.name}` : node.name}
+                    onClick={() => toggleFilterLbs(node.id)}
+                    size="small"
+                    sx={{
+                      backgroundColor: isActive ? c.bg : undefined,
+                      color: isActive ? c.co : undefined,
+                      fontWeight: isActive ? 600 : undefined,
+                    }}
+                  />
+                )
+              })}
+            </Box>
+          }
 
-                      <Box sx={{ ...mahalNo_css }}>
-                        {oneMahal.mahalNo}
-                      </Box>
+          {/* Düz liste tablosu */}
+          <Box sx={{ display: 'grid', gridTemplateColumns: flatColumns, width: 'fit-content' }}>
 
-                      <Box sx={{ ...mahalNo_css, pl: "0.5rem", justifyItems: "start" }}>
-                        {oneMahal.mahalName}
-                      </Box>
+            {/* Başlık satırı */}
+            {colHeaders.map((h, i) => (
+              <Box key={i} sx={{ ...headerCellCss, textAlign: h.align }}>{h.label}</Box>
+            ))}
 
+            {/* Mahal satırları */}
+            {displayedMahaller.length === 0
+              ? <Box sx={{ gridColumn: `1 / span 4`, p: '1rem', color: 'gray', fontSize: '0.875rem' }}>
+                  {rawMahaller.length === 0 ? 'Henüz mahal eklenmedi.' : 'Seçili LBS başlıklarında mahal yok.'}
+                </Box>
+              : displayedMahaller.map(mahal => (
+                  <React.Fragment key={mahal.id}>
+                    <Box sx={{ ...mahalCellCss, justifyContent: 'center', fontFamily: 'monospace', fontWeight: 600, fontSize: '0.8rem' }}>
+                      {mahal.code || '—'}
+                    </Box>
+                    <Box sx={{ ...mahalCellCss }}>
+                      {mahal.name}
+                    </Box>
+                    <Box sx={{ ...mahalCellCss, justifyContent: 'flex-end', whiteSpace: 'nowrap' }}>
+                      {mahal.area != null ? `${mahal.area} m²` : '—'}
+                    </Box>
+                    <Box sx={{ ...mahalCellCss, justifyContent: 'center', p: 0 }}>
+                      <IconButton size="small" onClick={() => setEditingMahal(mahal)}>
+                        <EditIcon fontSize="small" />
+                      </IconButton>
+                      <IconButton size="small" onClick={() => handleDeleteMahal(mahal)}>
+                        <DeleteIcon fontSize="small" />
+                      </IconButton>
+                    </Box>
+                  </React.Fragment>
+                ))
+            }
 
-                      {/* BAŞLIK - AÇIKLAMA  */}
-                      {mahalAciklamaShow &&
-                        <>
-                          <Box></Box>
-                          <Box sx={{ ...mahalNo_css }}>
-                            {oneMahal.aciklama}
-                          </Box>
-                        </>
-                      }
-
-                      {/* BAŞLIK - VERSİYON */}
-                      {mahalVersiyonShow &&
-                        <>
-                          <Box />
-                          <Box sx={{ ...mahalNo_css }}>
-                            {oneMahal.versiyon}
-                          </Box>
-                        </>
-                      }
-
-                    </React.Fragment>
-                  )
-                })}
-
-
-              </React.Fragment>
-
-
-            )
-          })}
-
-
-
-
-
-
-
+          </Box>
         </Box>
       }
 
     </Box>
-
   )
-
 }

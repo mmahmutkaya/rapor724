@@ -21,10 +21,9 @@ alter table wbs_nodes           enable row level security;
 alter table lbs_nodes           enable row level security;
 alter table project_poz_units   enable row level security;
 alter table project_pozlar      enable row level security;
+alter table work_areas          enable row level security;
 
 -- Diğer tablolar geliştirildikçe buraya eklenecek:
--- alter table project_pozlar   enable row level security;
--- alter table work_areas       enable row level security;
 -- alter table work_packages    enable row level security;
 -- alter table measurement_sessions enable row level security;
 -- ... vb.
@@ -62,6 +61,11 @@ create policy "dev_project_poz_units_all"
 -- project_pozlar
 create policy "dev_project_pozlar_all"
   on project_pozlar for all to authenticated
+  using (true) with check (true);
+
+-- work_areas
+create policy "dev_work_areas_all"
+  on work_areas for all to authenticated
   using (true) with check (true);
 
 

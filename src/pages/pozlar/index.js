@@ -7,6 +7,7 @@ import { useGetWbsNodes, useGetProjectPozlar, useGetPozUnits } from '../../hooks
 import { supabase } from '../../lib/supabase'
 import { DialogAlert } from '../../components/general/DialogAlert'
 import FormPozCreate from '../../components/FormPozCreate'
+import FormPozEdit from '../../components/FormPozEdit'
 
 import Box from '@mui/material/Box'
 import Paper from '@mui/material/Paper'
@@ -19,11 +20,12 @@ import Chip from '@mui/material/Chip'
 import Tooltip from '@mui/material/Tooltip'
 import AddCircleOutlineIcon from '@mui/icons-material/AddCircleOutline'
 import DeleteIcon from '@mui/icons-material/Delete'
+import EditIcon from '@mui/icons-material/Edit'
 import AccountTreeIcon from '@mui/icons-material/AccountTree'
 import ListIcon from '@mui/icons-material/List'
 
 
-// Adjacency listini düzleştir
+// WBS sayfasından aynı yardımcılar
 function flattenTree(nodes, parentId = null, depth = 0) {
   return nodes
     .filter(n => (n.parent_id ?? null) === (parentId ?? null))
@@ -31,7 +33,20 @@ function flattenTree(nodes, parentId = null, depth = 0) {
     .flatMap(n => [{ ...n, depth }, ...flattenTree(nodes, n.id, depth + 1)])
 }
 
-// Kök → yaprak arası code_name'leri noktalı birleştir
+function nodeColor(depth) {
+  const palette = [
+    { bg: "#8b0000", co: "#e6e6e6" },
+    { bg: "#330066", co: "#e6e6e6" },
+    { bg: "#005555", co: "#e6e6e6" },
+    { bg: "#737373", co: "#e6e6e6" },
+    { bg: "#8b008b", co: "#e6e6e6" },
+    { bg: "#2929bc", co: "#e6e6e6" },
+    { bg: "#00853E", co: "#e6e6e6" },
+    { bg: "#4B5320", co: "#e6e6e6" },
+  ]
+  return palette[depth % palette.length]
+}
+
 function buildWbsPathCode(nodeId, rawNodes) {
   const path = []
   let current = rawNodes.find(n => n.id === nodeId)
@@ -42,7 +57,6 @@ function buildWbsPathCode(nodeId, rawNodes) {
   return path.join('.')
 }
 
-// Yeni poz için otomatik kod üret: WBS_PATH.001
 export function buildPozCode(wbsNodeId, rawNodes, existingPozlar) {
   const prefix = buildWbsPathCode(wbsNodeId, rawNodes)
   const count = existingPozlar.filter(p => p.wbs_node_id === wbsNodeId).length
@@ -60,12 +74,13 @@ export default function P_Pozlar() {
   const { data: rawPozlar = [], isLoading: pozLoading, error: pozError } = useGetProjectPozlar()
   const { data: units = [], isLoading: unitsLoading, error: unitsError } = useGetPozUnits()
 
-  const [viewMode, setViewMode] = useState('tree')      // 'tree' | 'flat'
+  const [viewMode, setViewMode] = useState('tree')
   const [collapsedIds, setCollapsedIds] = useState(new Set())
-  const [filterWbsIds, setFilterWbsIds] = useState(new Set()) // flat mod filtresi
+  const [filterWbsIds, setFilterWbsIds] = useState(new Set())
   const [activeWbsNodeId, setActiveWbsNodeId] = useState(null)
-  const [show, setShow] = useState('Main')              // 'Main' | 'PozCreate'
+  const [show, setShow] = useState('Main')
   const [dialogAlert, setDialogAlert] = useState()
+  const [editingPoz, setEditingPoz] = useState(null)
 
   const isLoading = wbsLoading || pozLoading || unitsLoading
   const queryError = pozError || unitsError
@@ -74,10 +89,8 @@ export default function P_Pozlar() {
     if (!selectedProje) navigate('/projeler')
   }, [selectedProje, navigate])
 
-  // Tüm WBS node'larını sıralı düz liste olarak al
   const flatNodes = useMemo(() => flattenTree(rawWbsNodes), [rawWbsNodes])
 
-  // Çocuğu olmayan node'lar → yaprak
   const isLeafSet = useMemo(() => {
     const s = new Set()
     rawWbsNodes.forEach(n => {
@@ -86,20 +99,23 @@ export default function P_Pozlar() {
     return s
   }, [rawWbsNodes])
 
-  // Sadece yaprak node'lar (flat mod filter için)
   const leafNodes = useMemo(
     () => flatNodes.filter(n => isLeafSet.has(n.id)),
     [flatNodes, isLeafSet]
   )
 
-  // unit_id → name map
+  // En derin yaprak node'un derinliği → ortak grid sütun sayısını belirler
+  const maxLeafDepth = useMemo(() => {
+    const leaves = flatNodes.filter(n => isLeafSet.has(n.id))
+    return leaves.length > 0 ? Math.max(...leaves.map(n => n.depth)) : 0
+  }, [flatNodes, isLeafSet])
+
   const unitsMap = useMemo(() => {
     const m = {}
     units.forEach(u => { m[u.id] = u.name })
     return m
   }, [units])
 
-  // Flat modda filtreli pozlar
   const displayedPozlar = useMemo(() => {
     if (viewMode === 'flat' && filterWbsIds.size > 0) {
       return rawPozlar.filter(p => filterWbsIds.has(p.wbs_node_id))
@@ -144,7 +160,6 @@ export default function P_Pozlar() {
     })
   }
 
-  // Herhangi bir atadan collapse edilmiş mi?
   function isHiddenByAncestor(node) {
     let parentId = node.parent_id
     while (parentId) {
@@ -157,29 +172,26 @@ export default function P_Pozlar() {
 
   const canAddPoz = units.length > 0
 
-  // Ortak CSS objeleri
-  const colHeaders = [
-    { label: 'Poz Kodu', align: 'center' },
-    { label: 'Açıklama', align: 'left' },
-    { label: 'Birim', align: 'center' },
-    { label: '', align: 'center' },
-  ]
-
+  // Düz liste sütun CSS
   const headerCellCss = {
     border: '1px solid black',
     px: '0.7rem', py: '0.3rem',
     backgroundColor: '#333', color: 'white',
     fontWeight: 600, fontSize: '0.85rem',
   }
-
   const pozCellCss = {
     border: '1px solid #ddd',
     px: '0.5rem', py: '0.25rem',
     fontSize: '0.875rem',
     display: 'flex', alignItems: 'center',
   }
-
-  const columns = 'max-content minmax(min-content, 40rem) max-content max-content'
+  const flatColumns = 'max-content minmax(20rem, max-content) max-content max-content'
+  const colHeaders = [
+    { label: 'Poz Kodu', align: 'center' },
+    { label: 'Açıklama', align: 'left' },
+    { label: 'Birim', align: 'center' },
+    { label: '', align: 'center' },
+  ]
 
 
   return (
@@ -207,38 +219,26 @@ export default function P_Pozlar() {
           <Grid item>
             <Grid container spacing={0.5} alignItems="center">
 
-              {/* Görünüm toggle */}
               <Grid item>
                 <Tooltip title="WBS ağaç görünümü">
-                  <IconButton
-                    size="small"
-                    onClick={() => setViewMode('tree')}
-                    color={viewMode === 'tree' ? 'primary' : 'default'}
-                  >
+                  <IconButton size="small" onClick={() => setViewMode('tree')} color={viewMode === 'tree' ? 'primary' : 'default'}>
                     <AccountTreeIcon />
                   </IconButton>
                 </Tooltip>
               </Grid>
               <Grid item>
                 <Tooltip title="Düz liste">
-                  <IconButton
-                    size="small"
-                    onClick={() => setViewMode('flat')}
-                    color={viewMode === 'flat' ? 'primary' : 'default'}
-                  >
+                  <IconButton size="small" onClick={() => setViewMode('flat')} color={viewMode === 'flat' ? 'primary' : 'default'}>
                     <ListIcon />
                   </IconButton>
                 </Tooltip>
               </Grid>
 
-              {/* Poz ekle */}
               <Grid item>
                 <Tooltip title={
-                  !canAddPoz
-                    ? 'Önce Proje Ayarları\'ndan birim ekleyin'
-                    : viewMode === 'tree' && !activeWbsNodeId
-                    ? 'Bir WBS yaprak düğümü seçin'
-                    : 'Poz ekle'
+                  !canAddPoz ? 'Önce Proje Ayarları\'ndan birim ekleyin'
+                  : viewMode === 'tree' && !activeWbsNodeId ? 'Bir WBS yaprak düğümü seçin'
+                  : 'Poz ekle'
                 }>
                   <span>
                     <IconButton
@@ -261,7 +261,6 @@ export default function P_Pozlar() {
         <Box sx={{ m: '1rem', color: 'gray' }}><LinearProgress color="inherit" /></Box>
       }
 
-      {/* POZ OLUŞTURMA FORMU */}
       {show === 'PozCreate' &&
         <FormPozCreate
           setShow={setShow}
@@ -273,7 +272,15 @@ export default function P_Pozlar() {
         />
       }
 
-      {/* Veritabanı hatası */}
+      {editingPoz &&
+        <FormPozEdit
+          poz={editingPoz}
+          units={units}
+          setEditingPoz={setEditingPoz}
+          invalidate={invalidate}
+        />
+      }
+
       {!isLoading && queryError && show === 'Main' &&
         <Alert severity="error" sx={{ m: '1rem' }}>
           Veritabanı sorgusu başarısız. SQL'lerin çalıştırıldığından emin olun.
@@ -281,7 +288,6 @@ export default function P_Pozlar() {
         </Alert>
       }
 
-      {/* Uyarılar */}
       {!isLoading && !queryError && units.length === 0 && show === 'Main' &&
         <Alert severity="info" sx={{ m: '1rem' }}>
           Poz oluşturmadan önce <strong>Proje Ayarları</strong> sayfasından birim ekleyin.
@@ -294,106 +300,162 @@ export default function P_Pozlar() {
       }
 
 
-      {/* ===== AĞAÇ GÖRÜNÜMÜ ===== */}
-      {!isLoading && !queryError && show === 'Main' && viewMode === 'tree' && rawWbsNodes.length > 0 &&
-        <Box sx={{ m: '1rem', display: 'grid', gridTemplateColumns: columns }}>
+      {/* ===== AĞAÇ GÖRÜNÜMÜ — WBS sayfasıyla aynı stil, tek ortak grid ===== */}
+      {!isLoading && !queryError && show === 'Main' && !editingPoz && viewMode === 'tree' && rawWbsNodes.length > 0 &&
+        (() => {
+          // Tüm WBS + poz satırları için tek ortak grid sütun tanımı
+          const totalDepthCols = maxLeafDepth + 1   // 1rem'lik derinlik çubuğu sayısı
+          const totalCols = totalDepthCols + 4      // +4: kod, açıklama, birim, sil
+          const treeGridCols = `repeat(${totalDepthCols}, 1rem) max-content minmax(20rem, max-content) max-content max-content`
 
-          {/* Sütun başlıkları */}
-          {colHeaders.map((col, i) => (
-            <Box key={i} sx={{ ...headerCellCss, textAlign: col.align }}>
-              {col.label}
-            </Box>
-          ))}
+          return (
+            <Box sx={{ maxWidth: '80rem', p: '0.5rem', width: 'fit-content' }}>
 
-          {flatNodes.map(node => {
-            if (isHiddenByAncestor(node)) return null
-            const isLeaf = isLeafSet.has(node.id)
-            const isSelected = activeWbsNodeId === node.id
-            const pozlarOfNode = rawPozlar
-              .filter(p => p.wbs_node_id === node.id)
-              .sort((a, b) => a.order_index - b.order_index)
-
-            return (
-              <React.Fragment key={node.id}>
-
-                {/* WBS düğümü başlığı */}
-                <Box
-                  sx={{
-                    gridColumn: '1 / -1',
-                    display: 'flex', alignItems: 'center', gap: '0.4rem',
-                    pl: `${0.5 + node.depth * 1.5}rem`, pr: '0.5rem', py: '0.3rem',
-                    backgroundColor: isSelected ? '#1a3a5c' : isLeaf ? '#1e2c1e' : '#2a2a2a',
-                    color: isSelected ? '#90caf9' : isLeaf ? '#a5d6a7' : '#ccc',
-                    fontWeight: 600,
-                    border: '1px solid #444',
-                    mt: '0.2rem',
-                    cursor: 'pointer',
-                    userSelect: 'none',
-                  }}
-                  onClick={() => {
-                    if (!isLeaf) { toggleCollapse(node.id); return }
-                    setActiveWbsNodeId(prev => prev === node.id ? null : node.id)
-                  }}
-                >
-                  {/* Açma/kapama oku (non-leaf) */}
-                  {!isLeaf &&
-                    <Box sx={{ fontSize: '0.7rem', flexShrink: 0 }}>
-                      {collapsedIds.has(node.id) ? '▶' : '▼'}
-                    </Box>
-                  }
-                  {/* Yaprak göstergesi */}
-                  {isLeaf &&
-                    <Box sx={{ width: '0.45rem', height: '0.45rem', borderRadius: '50%', backgroundColor: '#65FF00', flexShrink: 0 }} />
-                  }
-                  {/* Kısa kod */}
-                  {node.code_name &&
-                    <Box sx={{ fontSize: '0.75rem', color: '#888', flexShrink: 0 }}>
-                      [{node.code_name}]
-                    </Box>
-                  }
-                  {/* Node adı */}
-                  <Box>{node.name}</Box>
-                  {/* Poz sayısı */}
-                  {isLeaf &&
-                    <Box sx={{ ml: 'auto', fontSize: '0.75rem', color: '#888', flexShrink: 0 }}>
-                      {pozlarOfNode.length > 0 ? `${pozlarOfNode.length} poz` : 'poz yok'}
-                    </Box>
-                  }
+              {/* Proje adı satırı */}
+              <Box sx={{ display: 'grid', gridTemplateColumns: '1rem 1fr' }}>
+                <Box sx={{ backgroundColor: 'black' }} />
+                <Box sx={{ backgroundColor: 'black', color: 'white', pl: '4px', py: '2px' }}>
+                  <Typography variant="body2">{selectedProje?.name}</Typography>
                 </Box>
+              </Box>
 
-                {/* Yaprak ise pozlarını göster */}
-                {isLeaf && !collapsedIds.has(node.id) && pozlarOfNode.map(poz => (
-                  <React.Fragment key={poz.id}>
-                    <Box sx={{ ...pozCellCss, fontFamily: 'monospace', fontWeight: 600, justifyContent: 'center' }}>
-                      {poz.code || '-'}
-                    </Box>
-                    <Box sx={{ ...pozCellCss }}>
-                      {poz.short_desc}
-                    </Box>
-                    <Box sx={{ ...pozCellCss, justifyContent: 'center' }}>
-                      {unitsMap[poz.unit_id] ?? '-'}
-                    </Box>
-                    <Box sx={{ ...pozCellCss, justifyContent: 'center' }}>
-                      <IconButton size="small" onClick={() => handleDeletePoz(poz)}>
-                        <DeleteIcon fontSize="small" />
-                      </IconButton>
-                    </Box>
-                  </React.Fragment>
-                ))}
+              {/* Tek ortak grid — WBS ve poz satırları hizalı */}
+              <Box sx={{ display: 'grid', gridTemplateColumns: '1rem 1fr' }}>
+                <Box sx={{ backgroundColor: 'black' }} />
+                <Box sx={{ display: 'grid', gridTemplateColumns: treeGridCols }}>
 
-              </React.Fragment>
-            )
-          })}
+                  {flatNodes.map(node => {
+                    if (isHiddenByAncestor(node)) return null
+                    const { depth } = node
+                    const isLeaf = isLeafSet.has(node.id)
+                    const isSelected = activeWbsNodeId === node.id
+                    const c = nodeColor(depth)
+                    const pozlarOfNode = rawPozlar
+                      .filter(p => p.wbs_node_id === node.id)
+                      .sort((a, b) => a.order_index - b.order_index)
 
-        </Box>
+                    return (
+                      <React.Fragment key={node.id}>
+
+                        {/* WBS düğüm satırı: depth adet renkli bar + içerik geri kalanı span eder */}
+                        {Array.from({ length: depth }).map((_, i) => (
+                          <Box key={i} sx={{ backgroundColor: nodeColor(i).bg }} />
+                        ))}
+                        <Box
+                          onClick={() => {
+                            if (!isLeaf) { toggleCollapse(node.id); return }
+                            setActiveWbsNodeId(prev => prev === node.id ? null : node.id)
+                          }}
+                          sx={{
+                            gridColumn: `span ${totalCols - depth}`,
+                            pl: '6px', py: '1px',
+                            backgroundColor: isSelected ? '#1a3a5c' : c.bg,
+                            color: c.co,
+                            cursor: 'pointer',
+                            display: 'flex', alignItems: 'center', gap: '0.4rem',
+                            userSelect: 'none',
+                            '&:hover': { filter: 'brightness(1.2)' }
+                          }}
+                        >
+                          {!isLeaf &&
+                            <Box sx={{ fontSize: '0.7rem', flexShrink: 0 }}>
+                              {collapsedIds.has(node.id) ? '▶' : '▼'}
+                            </Box>
+                          }
+                          {isLeaf &&
+                            <Box sx={{ width: '0.45rem', height: '0.45rem', borderRadius: '50%', backgroundColor: '#65FF00', flexShrink: 0 }} />
+                          }
+                          <Typography variant="body2">
+                            {node.code_name ? `(${node.code_name}) ` : ''}{node.name}
+                          </Typography>
+                          {isSelected &&
+                            <Box sx={{ ml: '0.3rem', width: '0.4rem', height: '0.4rem', borderRadius: '50%', backgroundColor: 'yellow' }} />
+                          }
+                          {isLeaf && pozlarOfNode.length > 0 &&
+                            <Box sx={{ ml: 'auto', pr: '0.5rem', fontSize: '0.75rem', opacity: 0.5, flexShrink: 0 }}>
+                              {pozlarOfNode.length} poz
+                            </Box>
+                          }
+                        </Box>
+
+                        {/* Poz satırları — totalDepthCols adet bar (bazıları saydam) + 4 veri hücresi */}
+                        {isLeaf && !collapsedIds.has(node.id) && pozlarOfNode.map(poz => (
+                          <React.Fragment key={poz.id}>
+
+                            {/* Derinlik çubukları: depth+1 adedi renkli, kalanı saydam dolgu */}
+                            {Array.from({ length: totalDepthCols }).map((_, i) => (
+                              <Box key={i} sx={{
+                                backgroundColor: i <= depth ? nodeColor(i).bg : 'transparent',
+                              }} />
+                            ))}
+
+                            {/* Poz kodu */}
+                            <Box sx={{
+                              px: '6px', py: '2px',
+                              borderBottom: '0.5px solid #ddd',
+                              borderLeft: '1px solid #aaa',
+                              fontFamily: 'monospace', fontSize: '0.8rem', fontWeight: 600,
+                              display: 'flex', alignItems: 'center', whiteSpace: 'nowrap',
+                              backgroundColor: '#fafafa'
+                            }}>
+                              {poz.code || '—'}
+                            </Box>
+
+                            {/* Açıklama */}
+                            <Box sx={{
+                              px: '6px', py: '2px',
+                              borderBottom: '0.5px solid #ddd',
+                              fontSize: '0.875rem',
+                              display: 'flex', alignItems: 'center',
+                              backgroundColor: '#fafafa'
+                            }}>
+                              {poz.short_desc}
+                            </Box>
+
+                            {/* Birim */}
+                            <Box sx={{
+                              px: '6px', py: '2px',
+                              borderBottom: '0.5px solid #ddd',
+                              fontSize: '0.8rem',
+                              display: 'flex', alignItems: 'center',
+                              backgroundColor: '#fafafa', whiteSpace: 'nowrap'
+                            }}>
+                              {unitsMap[poz.unit_id] ?? '—'}
+                            </Box>
+
+                            {/* Düzenle / Sil */}
+                            <Box sx={{
+                              borderBottom: '0.5px solid #ddd',
+                              display: 'flex', alignItems: 'center', justifyContent: 'center',
+                              backgroundColor: '#fafafa'
+                            }}>
+                              <IconButton size="small" onClick={() => setEditingPoz(poz)}>
+                                <EditIcon fontSize="small" />
+                              </IconButton>
+                              <IconButton size="small" onClick={() => handleDeletePoz(poz)}>
+                                <DeleteIcon fontSize="small" />
+                              </IconButton>
+                            </Box>
+
+                          </React.Fragment>
+                        ))}
+
+                      </React.Fragment>
+                    )
+                  })}
+
+                </Box>
+              </Box>
+            </Box>
+          )
+        })()
       }
 
 
       {/* ===== DÜZ LİSTE GÖRÜNÜMÜ ===== */}
-      {!isLoading && !queryError && show === 'Main' && viewMode === 'flat' && rawWbsNodes.length > 0 &&
+      {!isLoading && !queryError && show === 'Main' && !editingPoz && viewMode === 'flat' && rawWbsNodes.length > 0 &&
         <Box sx={{ m: '1rem' }}>
 
-          {/* WBS yaprak filtre chip'leri */}
           {leafNodes.length > 0 &&
             <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: '0.5rem', mb: '1rem' }}>
               {leafNodes.map(node => (
@@ -410,21 +472,15 @@ export default function P_Pozlar() {
                 <Chip
                   label="Filtreyi temizle"
                   onClick={() => setFilterWbsIds(new Set())}
-                  size="small"
-                  color="error"
-                  variant="outlined"
+                  size="small" color="error" variant="outlined"
                 />
               }
             </Box>
           }
 
-          {/* Poz tablosu */}
-          <Box sx={{ display: 'grid', gridTemplateColumns: columns }}>
-
+          <Box sx={{ display: 'grid', gridTemplateColumns: flatColumns }}>
             {colHeaders.map((col, i) => (
-              <Box key={i} sx={{ ...headerCellCss, textAlign: col.align }}>
-                {col.label}
-              </Box>
+              <Box key={i} sx={{ ...headerCellCss, textAlign: col.align }}>{col.label}</Box>
             ))}
 
             {displayedPozlar.length === 0 &&
@@ -436,22 +492,20 @@ export default function P_Pozlar() {
             {displayedPozlar.map(poz => (
               <React.Fragment key={poz.id}>
                 <Box sx={{ ...pozCellCss, fontFamily: 'monospace', fontWeight: 600, justifyContent: 'center' }}>
-                  {poz.code || '-'}
+                  {poz.code || '—'}
                 </Box>
-                <Box sx={{ ...pozCellCss }}>
-                  {poz.short_desc}
-                </Box>
+                <Box sx={{ ...pozCellCss }}>{poz.short_desc}</Box>
+                <Box sx={{ ...pozCellCss, justifyContent: 'center' }}>{unitsMap[poz.unit_id] ?? '—'}</Box>
                 <Box sx={{ ...pozCellCss, justifyContent: 'center' }}>
-                  {unitsMap[poz.unit_id] ?? '-'}
-                </Box>
-                <Box sx={{ ...pozCellCss, justifyContent: 'center' }}>
+                  <IconButton size="small" onClick={() => setEditingPoz(poz)}>
+                    <EditIcon fontSize="small" />
+                  </IconButton>
                   <IconButton size="small" onClick={() => handleDeletePoz(poz)}>
                     <DeleteIcon fontSize="small" />
                   </IconButton>
                 </Box>
               </React.Fragment>
             ))}
-
           </Box>
         </Box>
       }

@@ -362,7 +362,7 @@ export default function P_Wbs() {
                   <Box key={node.id} sx={{ display: "grid", gridTemplateColumns: cols }}>
 
                     {Array.from({ length: depth }).map((_, i) => (
-                      <Box key={i} sx={{ backgroundColor: nodeColor(i).bg, borderLeft: "1px solid gray" }} />
+                      <Box key={i} sx={{ backgroundColor: nodeColor(i).bg }} />
                     ))}
 
                     <Box
@@ -370,8 +370,6 @@ export default function P_Wbs() {
                       sx={{
                         pl: "6px",
                         py: "1px",
-                        borderBottom: "0.5px solid gray",
-                        borderLeft: "1px solid gray",
                         backgroundColor: isSelected ? '#1a3a5c' : c.bg,
                         color: c.co,
                         cursor: "pointer",

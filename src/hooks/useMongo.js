@@ -218,6 +218,34 @@ export const useGetProjectPozlar = () => {
 }
 
 
+// Supabase - getWorkAreas (Mahaller)
+export const useGetWorkAreas = () => {
+
+  const { appUser, selectedProje } = useContext(StoreContext)
+
+  return useQuery({
+    queryKey: ['workAreas', selectedProje?.id],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('work_areas')
+        .select('id, lbs_node_id, name, code, area, order_index')
+        .eq('project_id', selectedProje.id)
+        .order('lbs_node_id', { nullsFirst: true })
+        .order('order_index')
+
+      if (error) throw new Error(error.message)
+
+      return data ?? []
+    },
+    enabled: !!appUser && !!selectedProje,
+    retry: false,
+    refetchOnMount: true,
+    refetchOnWindowFocus: false
+  })
+
+}
+
+
 // Supabase - getProjeler_byFirma
 export const useGetProjeler_byFirma = () => {
 
