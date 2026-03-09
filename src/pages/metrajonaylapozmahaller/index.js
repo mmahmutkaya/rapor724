@@ -277,7 +277,7 @@ export default function P_MetrajOnaylaPozMahaller() {
   const mahaller_byPoz = dataMahaller?.mahaller?.filter(oneMahal => dugumler_byPoz_state?.find(oneDugum => oneDugum._mahalId.toString() === oneMahal._id.toString()))
 
   useEffect(() => {
-    !selectedPoz && navigate('/metrajpozlar')
+    !selectedPoz && navigate('/metrajonaylapozlar')
     setDugumler_byPoz_state(_.cloneDeep(dataDugumler_byPoz?.dugumler_byPoz))
     setDugumler_byPoz_backup(_.cloneDeep(dataDugumler_byPoz?.dugumler_byPoz))
     // console.log("dugumler_byPoz",dataDugumler_byPoz?.dugumler_byPoz)
@@ -879,7 +879,9 @@ export default function P_MetrajOnaylaPozMahaller() {
                   }
 
                   let hasOnaylananMetraj = dugum?.hazirlananMetrajlar?.find(x => x.hasSelected)
-                  let isMiktarSifir = dugum?.metrajOnaylanan === 0
+                  const hazirlananSum = dugum?.hazirlananMetrajlar?.reduce((sum, x) => sum + (x.metrajOnaylanan || 0), 0) || null
+                  const dugumMetrajOnaylanan = dugum?.metrajOnaylanan ?? hazirlananSum
+                  let isMiktarSifir = !(dugumMetrajOnaylanan > 0)
 
                   return (
                     <React.Fragment key={index}>
@@ -896,7 +898,7 @@ export default function P_MetrajOnaylaPozMahaller() {
                         <Box className="childClass" sx={{ backgroundColor: isMiktarSifir ? "rgba(255, 182, 193, 0.6)" : mode_select ? null : dugum?.hasVersiyonZero && "rgba(255, 251, 0, 0.55)", height: "0.5rem", width: "0.5rem", borderRadius: "50%" }}>
                         </Box>
                         <Box sx={{ justifySelf: "end" }}>
-                          {ikiHane(dugum?.metrajOnaylanan)}
+                          {ikiHane(dugumMetrajOnaylanan)}
                         </Box>
                       </Box>
 

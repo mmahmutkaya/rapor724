@@ -97,6 +97,7 @@ function HeaderMahalListesiPozMahaller({ isChanged, cancelChange, saveChange }) 
   const { selectedPoz } = useContext(StoreContext)
 
   const [showEminMisin, setShowEminMisin] = useState(false)
+  const [dialogConfirmAction, setDialogConfirmAction] = useState(null)
 
 
   return (
@@ -111,7 +112,7 @@ function HeaderMahalListesiPozMahaller({ isChanged, cancelChange, saveChange }) 
           action1={() => setShowEminMisin()}
           actionText2={"Onayla"}
           action2={() => {
-            cancelChange()
+            dialogConfirmAction?.()
             setShowEminMisin()
           }}
         />
@@ -145,7 +146,15 @@ function HeaderMahalListesiPozMahaller({ isChanged, cancelChange, saveChange }) 
 
               <IconButton
                 sx={{ mx: 0, px: 0 }}
-                onClick={() => navigate('/mahallistesipozlar')} disabled={false}>
+                onClick={() => {
+                  if (isChanged) {
+                    setDialogConfirmAction(() => () => navigate('/mahallistesipozlar'))
+                    setShowEminMisin(true)
+                  } else {
+                    navigate('/mahallistesipozlar')
+                  }
+                }}
+                disabled={false}>
                 <ReplyIcon variant="contained" sx={{ color: "gray" }} />
               </IconButton>
 
@@ -187,7 +196,10 @@ function HeaderMahalListesiPozMahaller({ isChanged, cancelChange, saveChange }) 
 
                   <Grid item>
                     <IconButton
-                      onClick={() => setShowEminMisin(true)}
+                      onClick={() => {
+                        setDialogConfirmAction(() => () => cancelChange())
+                        setShowEminMisin(true)
+                      }}
                       disabled={!isChanged}
                     >
                       <ClearOutlined variant="contained" sx={{ color: "red" }} />

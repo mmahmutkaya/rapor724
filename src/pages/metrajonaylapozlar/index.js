@@ -166,8 +166,8 @@ export default function P_MetrajOnaylaPozlar() {
 
 
   const goTo_MetrajPozmahaller = (onePoz) => {
-    navigate('/metrajonaylapozmahaller')
     setSelectedPoz(onePoz)
+    navigate('/metrajonaylapozmahaller')
   }
 
   const showMetrajYapabilenlerColumns = " 0.5rem repeat(" + showMetrajYapabilenler?.filter(x => x.isShow).length + ", max-content)"
@@ -370,34 +370,6 @@ export default function P_MetrajOnaylaPozlar() {
       {show == "ShowHideBaslik" && <ShowHideBaslik setShow={setShow} basliklar={basliklar} setBasliklar={setBasliklar} pageName={"metrajonayla"} dataName={"basliklar"} />}
 
 
-      {isLoading &&
-        <Box sx={{ ml: "1rem", color: 'gray' }}>
-          <LinearProgress color='inherit' />
-        </Box>
-      }
-
-
-      {/* EĞER POZ BAŞLIĞI YOKSA */}
-      {!isLoading && show == "Main" && !selectedProje?.wbs?.find(x => x.openForPoz === true) &&
-        <Stack sx={{ width: '100%', p: "1rem" }} spacing={2}>
-          <Alert severity="info">
-            Mahallistesi henüz boş.
-          </Alert>
-        </Stack>
-      }
-
-
-      {/* EĞER POZ YOKSA */}
-      {!isLoading && show == "Main" && selectedProje?.wbs?.find(x => x.openForPoz === true) && !pozlar?.length > 0 &&
-        <Stack sx={{ width: '100%', p: "1rem" }} spacing={2}>
-          <Alert severity="info">
-            Mahallistesi henüz boş.
-          </Alert>
-        </Stack>
-      }
-
-
-
       {/* BAŞLIK */}
       <AppBar
         position="static"
@@ -427,15 +399,17 @@ export default function P_MetrajOnaylaPozlar() {
             <Grid item xs="auto">
               <Box sx={{ display: "grid", gridAutoFlow: "column", alignItems: "center" }}>
 
-                {!mode_metrajOnayla && selectedMetrajVersiyon &&
+                {!mode_metrajOnayla &&
+                  <Box>
+                    <IconButton sx={{ width: 40, height: 40 }} onClick={() => requestProjeAktifYetkiliKisi({ projeId: selectedProje?._id, aktifYetki: "metrajOnay" })}>
+                      <EditIcon variant="contained" sx={{ fontSize: 24 }} />
+                    </IconButton>
+                  </Box>
+                }
+
+                {!mode_metrajOnayla && selectedMetrajVersiyon && selectedProje?.metrajVersiyonlar?.length > 0 &&
 
                   <>
-                    <Box>
-                      <IconButton sx={{ width: 40, height: 40 }} onClick={() => requestProjeAktifYetkiliKisi({ projeId: selectedProje?._id, aktifYetki: "metrajOnay" })}>
-                        <EditIcon variant="contained" sx={{ fontSize: 24 }} />
-                      </IconButton>
-                    </Box>
-
                     <Box>
                       <IconButton sx={{ width: 40, height: 40 }} onClick={() => setShow("ShowHideBaslik")} disabled={false}>
                         <VisibilityIcon variant="contained" sx={{ fontSize: 24 }} />
@@ -487,9 +461,8 @@ export default function P_MetrajOnaylaPozlar() {
                   </>
                 }
 
-                {mode_metrajOnayla && selectedMetrajVersiyon &&
+                {mode_metrajOnayla &&
                   <>
-
                     <Grid item >
                       <IconButton sx={{ width: 40, height: 40 }} onClick={() => deleteProjeAktifYetkiliKisi({
                         projeId: selectedProje?._id,
@@ -502,12 +475,16 @@ export default function P_MetrajOnaylaPozlar() {
                       </IconButton>
                     </Grid>
 
-
                     <Grid item >
                       <IconButton sx={{ width: 40, height: 40 }} onClick={() => setShow("ShowMetrajYapabilenler")} disabled={false}>
                         <PersonIcon variant="contained" sx={{ fontSize: 24 }} />
                       </IconButton>
                     </Grid>
+                  </>
+                }
+
+                {mode_metrajOnayla && selectedMetrajVersiyon && selectedProje?.metrajVersiyonlar?.length > 0 &&
+                  <>
 
                     <Box
                       onClick={() => creatableMetrajVersiyon && setShowEminMisin_versiyon(true)}
@@ -527,6 +504,33 @@ export default function P_MetrajOnaylaPozlar() {
         </AppBar>
 
 
+
+
+      {isLoading &&
+        <Box sx={{ ml: "1rem", color: 'gray' }}>
+          <LinearProgress color='inherit' />
+        </Box>
+      }
+
+
+      {/* EĞER POZ BAŞLIĞI YOKSA */}
+      {!isLoading && show == "Main" && !selectedProje?.wbs?.find(x => x.openForPoz === true) &&
+        <Stack sx={{ width: '100%', p: "1rem" }} spacing={2}>
+          <Alert severity="info">
+            Mahallistesi henüz boş.
+          </Alert>
+        </Stack>
+      }
+
+
+      {/* EĞER POZ YOKSA */}
+      {!isLoading && show == "Main" && selectedProje?.wbs?.find(x => x.openForPoz === true) && !pozlar?.length > 0 &&
+        <Stack sx={{ width: '100%', p: "1rem" }} spacing={2}>
+          <Alert severity="info">
+            Mahallistesi henüz boş.
+          </Alert>
+        </Stack>
+      }
 
 
       {/* ANA SAYFA - POZLAR VARSA */}
@@ -701,7 +705,7 @@ export default function P_MetrajOnaylaPozlar() {
                 {/* WBS'İN POZLARI */}
                 {pozlar?.filter(x => x._wbsId.toString() === oneWbs._id.toString()).map((onePoz, index) => {
 
-                  let hasOnaylananMetraj = onePoz?.hazirlananMetrajlar.find(x => x.hasSelected)
+                  let hasOnaylananMetraj = onePoz?.hazirlananMetrajlar.find(x => x.hasReady || x.hasSelected || x.hasUnSelected)
 
                   let hasVersiyonZero = onePoz?.hasVersiyonZero
 
