@@ -1,0 +1,95 @@
+============================================================
+RAPOR7/24 — VERİTABANI KURULUM KILAVUZU
+============================================================
+
+Supabase tamamen silinse veya sıfırdan kurulum yapılması gerekse
+aşağıdaki adımları sırayla uygula.
+
+
+------------------------------------------------------------
+1. YENİ SUPABASE PROJESİ
+------------------------------------------------------------
+- supabase.com → New project
+- Proje URL ve anon key'i .env dosyasına yaz:
+
+    REACT_APP_SUPABASE_URL=https://xxxx.supabase.co
+    REACT_APP_SUPABASE_ANON_KEY=eyJ...
+
+- .env gitignore'dadır — credentials'ları şifre yöneticisinde ayrıca sakla.
+
+
+------------------------------------------------------------
+2. TABLOLARI OLUŞTUR
+------------------------------------------------------------
+Supabase → SQL Editor → database/schema.sql dosyasını aç ve çalıştır.
+
+44 tablo oluşturulur:
+  Faz 1 : users, firms, firm_users, projects, project_users,
+           approval_templates, approval_template_steps
+  Faz 2 : wbs_nodes, lbs_nodes, work_areas, firm_poz_templates,
+           project_pozlar, price_versions, poz_unit_prices
+  Faz 3 : resources, resource_prices, poz_analyses, poz_analysis_items
+  Faz 4 : work_packages, work_package_pozlar, work_package_poz_areas,
+           measurement_sessions, measurement_lines, measurement_approvals
+  Faz 5 : tenders, tender_invitations, tender_bids, tender_bid_items,
+           contracts, contract_items, contract_approvals,
+           contract_amendments, contract_amendment_items
+  Faz 6 : progress_entries, planned_progress, hakedisler, hakedis_items,
+           hakedis_approvals, contract_financial_terms, contract_advances,
+           hakedis_deductions
+  Faz 7 : ev_snapshots, budget_snapshots, report_definitions
+
+
+------------------------------------------------------------
+3. RLS POLİTİKALARINI EKLE
+------------------------------------------------------------
+Supabase → SQL Editor → database/rls.sql dosyasını aç ve çalıştır.
+
+Mevcut politikalar geliştirme modundadır (tüm authenticated kullanıcılara
+açık). Production'a geçmeden önce kullanıcı bazlı daraltılmalıdır.
+
+
+------------------------------------------------------------
+4. AUTH AYARLA
+------------------------------------------------------------
+Supabase → Authentication → Providers → Email → Enable
+(Confirm email: isteğe göre açık/kapalı)
+
+
+------------------------------------------------------------
+5. TEST KULLANICISI OLUŞTUR
+------------------------------------------------------------
+Supabase → Authentication → Users → Add user
+E-posta ve şifre ile giriş testi yap.
+
+
+------------------------------------------------------------
+REPODA NE VAR / NE YOK
+------------------------------------------------------------
+
+Repoda var:
+  database/schema.sql   → 44 tablo tam tanımı (yeniden oluşturulabilir)
+  database/rls.sql      → RLS politikaları (yeniden uygulanabilir)
+  database/guide.txt    → Bu dosya
+  src/                  → Tüm React frontend kodu
+
+Repoda yok:
+  .env                  → Supabase URL + anon key (gitignore)
+  Gerçek veri           → Firmalar, projeler vb. Supabase'deydi,
+                          yedek alınmamışsa geri gelmez.
+
+
+------------------------------------------------------------
+NOTLAR
+------------------------------------------------------------
+- wbs_nodes ve lbs_nodes tablolarında "code_name" kolonu kullanılır
+  ("code" değil). schema.sql bunu doğru şekilde tanımlamaktadır.
+
+- open_for_poz / open_for_mahal kolonları kullanılmaz.
+  Leaf node (çocuğu olmayan düğüm) otomatik poz/mahal eklemeye açık sayılır.
+  Bu hesaplama frontend'de yapılır:
+    isLeaf = !rawNodes.some(n => n.parent_id === node.id)
+
+- Mevcut RLS geliştirme modundadır: USING (true)
+  Production için project_users tablosu üzerinden kullanıcı bazlı
+  kısıtlama yazılmalıdır. rls.sql içinde şablon yorum olarak mevcuttur.

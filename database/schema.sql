@@ -134,12 +134,13 @@ create index on approval_template_steps (template_id);
 
 -- WBS (İş Kırılım Yapısı) — adjacency list, recursive CTE ile sorgulanır
 -- Kural: bir düğüm altında ya çocuk düğüm ya POZ olur, ikisi birden olmaz
+-- En alt seviye (leaf = çocuğu olmayan) düğümler otomatik poz eklemeye açık sayılır
 create table wbs_nodes (
   id          uuid primary key default gen_random_uuid(),
   project_id  uuid not null references projects(id) on delete cascade,
   parent_id   uuid references wbs_nodes(id) on delete restrict,
   name        text not null,
-  code        text,
+  code_name   text,             -- kısa kod, boşluksuz (örn. "KAB")
   order_index int not null default 0,
   created_at  timestamptz not null default now(),
   updated_at  timestamptz not null default now()
@@ -147,12 +148,13 @@ create table wbs_nodes (
 
 -- LBS (Konum Kırılım Yapısı)
 -- Kural: bir düğüm altında ya çocuk düğüm ya iş alanı olur, ikisi birden olmaz
+-- En alt seviye (leaf = çocuğu olmayan) düğümler otomatik mahal eklemeye açık sayılır
 create table lbs_nodes (
   id          uuid primary key default gen_random_uuid(),
   project_id  uuid not null references projects(id) on delete cascade,
   parent_id   uuid references lbs_nodes(id) on delete restrict,
   name        text not null,
-  code        text,
+  code_name   text,             -- kısa kod, boşluksuz (örn. "ZK")
   order_index int not null default 0,
   created_at  timestamptz not null default now(),
   updated_at  timestamptz not null default now()

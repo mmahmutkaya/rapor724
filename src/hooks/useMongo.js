@@ -120,7 +120,7 @@ export const useGetWbsNodes = () => {
     queryFn: async () => {
       const { data, error } = await supabase
         .from('wbs_nodes')
-        .select('id, parent_id, name, code_name, order_index, open_for_poz')
+        .select('id, parent_id, name, code_name, order_index')
         .eq('project_id', selectedProje.id)
 
       if (error) throw new Error(error.message)
@@ -145,7 +145,7 @@ export const useGetLbsNodes = () => {
     queryFn: async () => {
       const { data, error } = await supabase
         .from('lbs_nodes')
-        .select('id, parent_id, name, code_name, order_index, open_for_mahal')
+        .select('id, parent_id, name, code_name, order_index')
         .eq('project_id', selectedProje.id)
 
       if (error) throw new Error(error.message)

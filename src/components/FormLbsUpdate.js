@@ -1,11 +1,8 @@
-import { useState, useContext } from 'react';
-import { StoreContext } from '../components/store.js'
+import { useState } from 'react';
 import deleteLastSpace from '../functions/deleteLastSpace.js';
 import { DialogAlert } from './general/DialogAlert.js'
-import { useNavigate } from "react-router-dom";
+import { supabase } from '../lib/supabase.js'
 
-
-//mui
 import Box from '@mui/material/Box';
 import Button from '@mui/material/Button';
 import TextField from '@mui/material/TextField';
@@ -15,198 +12,96 @@ import DialogContent from '@mui/material/DialogContent';
 import DialogContentText from '@mui/material/DialogContentText';
 
 
-export default function P_FormLbsUpdate({ setShow, selectedLbs, setSelectedLbs, setOpenSnackBar, setSnackBarMessage }) {
+export default function FormLbsUpdate({ setShow, selectedLbs, setSelectedLbs, invalidate }) {
 
-  const navigate = useNavigate()
-
-  const { appUser, setAppUser, selectedProje, setSelectedProje } = useContext(StoreContext)
-
-  const [dialogAlert, setDialogAlert] = useState(false)
-
+  const [dialogAlert, setDialogAlert] = useState()
   const [lbsNameError, setLbsNameError] = useState("")
   const [lbsCodeNameError, setLbsCodeNameError] = useState("")
 
-
   async function handleSubmit(event) {
-
-    event.preventDefault();
-
+    event.preventDefault()
     try {
-
-      // girilen verileri alma ve sonlarındaki boşlukları kaldırma
-      const data = new FormData(event.currentTarget);
-      const lbsName = deleteLastSpace(data.get('lbsName'))
-      const lbsCodeName = deleteLastSpace(data.get('lbsCodeName'))
-
+      const data = new FormData(event.currentTarget)
+      const name = deleteLastSpace(data.get('lbsName'))
+      const codeName = deleteLastSpace(data.get('lbsCodeName'))
 
       let isError = false
+      if (!name) { setLbsNameError("Zorunlu"); isError = true }
+      if (!codeName) { setLbsCodeNameError("Zorunlu"); isError = true }
+      if (codeName.includes(" ")) { setLbsCodeNameError("Boşluk kullanmayınız"); isError = true }
+      if (isError) return
 
-      // bu kısımda frontend kısmında form validation hatalarını ilgili alanlarda gösterme işlemleri yapılır, aşağıda backend de
-      if (!lbsName) {
-        setLbsNameError("Zorunlu")
-        isError = true
-        console.log("lbsName", "yok -- error")
-      }
+      const { error } = await supabase.from('lbs_nodes')
+        .update({ name, code_name: codeName })
+        .eq('id', selectedLbs.id)
 
-      // bu kısımda frontend kısmında form validation hatalarını ilgili alanlarda gösterme işlemleri yapılır, aşağıda backend de
-      if (!lbsCodeName) {
-        setLbsCodeNameError("Zorunlu")
-        isError = true
-        console.log("lbsCodeName", "yok -- error")
-      }
+      if (error) throw error
 
-      if (lbsCodeName.includes(" ")) {
-        setLbsCodeNameError("Boşluk kullanmayınız")
-        isError = true
-        console.log("lbsCodeName", "yok -- error")
-      }
-
-      // ilgili hatalar yukarıda ilgili form alanlarına yazılmış olmalı
-      // db ye sorgu yapılıp db meşgul edilmesin diye burada durduruyoruz
-      // frontendden geçse bile db den errorFormObject kontrolü yapılıyor aşağıda
-      if (isError) {
-        console.log("frontend validation hata")
-        return
-      }
-
-
-      const willBeUpdatedLbs = {
-        projeId: selectedProje._id,
-        lbsId: selectedLbs._id,
-        newLbsName: lbsName,
-        newLbsCodeName: lbsCodeName
-      }
-
-
-      const response = await fetch(process.env.REACT_APP_BASE_URL + `/api/projeler/updatelbs`, {
-        method: 'POST',
-        headers: {
-          email: appUser.email,
-          token: appUser.token,
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({ ...willBeUpdatedLbs })
-      })
-
-
-      const responseJson = await response.json()
-
-      if (responseJson.error) {
-        if (responseJson.error.includes("expired")) {
-          setAppUser()
-          localStorage.removeItem('appUser')
-          navigate('/')
-          window.location.reload()
-        }
-        throw new Error(responseJson.error);
-      }
-
-      if (responseJson.errorObject) {
-        setLbsNameError(responseJson.errorObject.lbsNameError)
-        setLbsCodeNameError(responseJson.errorObject.lbsCodeNameError)
-        console.log("backend den gelen hata ile durdu")
-        return
-      }
-
-
-      if (responseJson.snackMessage) {
-        setOpenSnackBar(true)
-        setSnackBarMessage(responseJson.snackMessage)
-        return
-      }
-
-
-      if (responseJson.lbs) {
-        setSelectedProje(proje => {
-          proje.lbs = responseJson.lbs
-          return proje
-        })
-      }
-
-
-      // sorgu işleminden önce seçilen lbs varsa, temizliyoruz, en büyük gerekçe seçilen lbs silinmiş olabilir, onunla işlem db de hata verir
       setSelectedLbs(null)
-
+      invalidate()
       setShow()
 
-      return
-
     } catch (err) {
-
       console.log(err)
-
       setDialogAlert({
         dialogIcon: "warning",
         dialogMessage: "Beklenmedik hata, sayfayı yenileyiniz, sorun devam ederse Rapor7/24 ile irtibata geçiniz..",
-        detailText: err?.message ? err.message : null
+        detailText: err?.message ?? null
       })
-
-      return
-
     }
-
   }
 
 
   return (
     <div>
 
-
       {dialogAlert &&
         <DialogAlert
           dialogIcon={dialogAlert.dialogIcon}
           dialogMessage={dialogAlert.dialogMessage}
           detailText={dialogAlert.detailText}
-          onCloseAction={dialogAlert.onCloseAction ? dialogAlert.onCloseAction : () => setDialogAlert()}
+          onCloseAction={() => setDialogAlert()}
         />
       }
-
 
       <Dialog
         PaperProps={{ sx: { width: "80%", position: "fixed", top: "10rem" } }}
         open={true}
-        onClose={() => setShow()} >
-        {/* <DialogTitle>Subscribe</DialogTitle> */}
+        onClose={() => setShow()}
+      >
         <Box component="form" onSubmit={handleSubmit} noValidate sx={{ mt: 1 }}>
 
           <DialogContent>
 
             <DialogContentText sx={{ fontWeight: "bold", paddingBottom: "1rem" }}>
-              {/* <Typography sx> */}
               Lbs Güncelle
-              {/* </Typography> */}
             </DialogContentText>
 
-            <Box onClick={() => setLbsNameError(false)}>
+            <Box onClick={() => setLbsNameError("")}>
               <TextField
                 variant="standard"
-                // InputProps={{ sx: { height:"2rem", fontSize: "1.5rem" } }}
                 defaultValue={selectedLbs.name}
                 margin="normal"
                 id="lbsName"
                 name="lbsName"
                 autoFocus
-                error={lbsNameError ? true : false}
-                helperText={lbsNameError ? lbsNameError : ""}
-                // margin="dense"
+                error={!!lbsNameError}
+                helperText={lbsNameError}
                 label="Mahal Başlık İsmi"
                 type="text"
                 fullWidth
               />
             </Box>
 
-            <Box onClick={() => setLbsCodeNameError(false)}>
+            <Box onClick={() => setLbsCodeNameError("")}>
               <TextField
                 variant="standard"
-                // InputProps={{ sx: { height:"2rem", fontSize: "1.5rem" } }}
-                defaultValue={selectedLbs.codeName}
+                defaultValue={selectedLbs.code_name}
                 margin="normal"
                 id="lbsCodeName"
                 name="lbsCodeName"
-                // autoFocus
-                error={lbsCodeNameError ? true : false}
-                helperText={lbsCodeNameError ? lbsCodeNameError : "Örnek : KABA İNŞAAT --> KAB"}
-                // margin="dense"
+                error={!!lbsCodeNameError}
+                helperText={lbsCodeNameError || "Örnek : ZEMİN KAT --> ZK"}
                 label="Başlık İsminin Kısaltması"
                 type="text"
                 fullWidth
@@ -217,13 +112,11 @@ export default function P_FormLbsUpdate({ setShow, selectedLbs, setSelectedLbs, 
 
           <DialogActions sx={{ padding: "1.5rem" }}>
             <Button onClick={() => setShow()}>İptal</Button>
-            <Button type="submit">Oluştur</Button>
+            <Button type="submit">Güncelle</Button>
           </DialogActions>
 
         </Box>
       </Dialog>
-    </div >
-  );
-
-
+    </div>
+  )
 }

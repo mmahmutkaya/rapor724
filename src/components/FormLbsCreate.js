@@ -1,15 +1,10 @@
 import { useState, useContext } from 'react';
-import { StoreContext } from '../components/store.js'
-import { useApp } from "./useApp.js";
+import { StoreContext } from './store.js'
 import deleteLastSpace from '../functions/deleteLastSpace.js';
 import { DialogAlert } from './general/DialogAlert.js'
-import { useNavigate } from "react-router-dom";
+import { supabase } from '../lib/supabase.js'
 
-
-
-//mui
 import Box from '@mui/material/Box';
-import Grid from '@mui/material/Grid';
 import Button from '@mui/material/Button';
 import TextField from '@mui/material/TextField';
 import Dialog from '@mui/material/Dialog';
@@ -19,240 +14,132 @@ import DialogContentText from '@mui/material/DialogContentText';
 import { Typography } from '@mui/material';
 
 
-export default function P_FormLbsCreate({ setShow, selectedLbs, setSelectedLbs, setOpenSnackBar, setSnackBarMessage }) {
+export default function FormLbsCreate({ setShow, rawNodes, selectedLbs, setSelectedLbs, invalidate }) {
 
-  const navigate = useNavigate()
-  const { appUser, setAppUser } = useContext(StoreContext)
-  const { selectedProje, setSelectedProje } = useContext(StoreContext)
+  const { selectedProje } = useContext(StoreContext)
 
-  if (!selectedProje?._id) {
-    throw new Error("Lbs oluşturulacak projenin database kaydı için _projeId belirtilmemiş, sayfayı yeniden yükleyin, sorun devam ederse Rapor7/24 ile irtibata geçiniz.")
-  }
-
-  const [dialogAlert, setDialogAlert] = useState(false)
-
+  const [dialogAlert, setDialogAlert] = useState()
   const [lbsName, setLbsName] = useState("")
   const [lbsCodeName, setLbsCodeName] = useState("")
-
   const [lbsNameError, setLbsNameError] = useState()
   const [lbsCodeNameError, setLbsCodeNameError] = useState()
 
-  const RealmApp = useApp();
-
   async function handleSubmit(event) {
-
-    event.preventDefault();
-
+    event.preventDefault()
     try {
-
-      // girilen verileri alma ve sonlarındaki boşlukları kaldırma
-      const data = new FormData(event.currentTarget);
-      const lbsName = deleteLastSpace(data.get('lbsName'))
-      const lbsCodeName = deleteLastSpace(data.get('lbsCodeName'))
-
+      const data = new FormData(event.currentTarget)
+      const name = deleteLastSpace(data.get('lbsName'))
+      const codeName = deleteLastSpace(data.get('lbsCodeName'))
 
       let isError = false
+      if (!name) { setLbsNameError("Zorunlu"); isError = true }
+      if (!codeName) { setLbsCodeNameError("Zorunlu"); isError = true }
+      if (codeName.includes(" ")) { setLbsCodeNameError("Boşluk kullanmayınız"); isError = true }
+      if (isError) return
 
-      // bu kısımda frontend kısmında form validation hatalarını ilgili alanlarda gösterme işlemleri yapılır, aşağıda backend de
-      if (!lbsName) {
-        setLbsNameError("Zorunlu")
-        isError = true
-        console.log("lbsName", "yok -- error")
-      }
+      const parentId = selectedLbs?.id ?? null
+      const siblings = rawNodes.filter(n => (n.parent_id ?? null) === parentId)
+      const maxOrder = siblings.length > 0 ? Math.max(...siblings.map(s => s.order_index)) : 0
+      const newOrder = maxOrder + 1
 
-      // bu kısımda frontend kısmında form validation hatalarını ilgili alanlarda gösterme işlemleri yapılır, aşağıda backend de
-      if (!lbsCodeName) {
-        setLbsCodeNameError("Zorunlu")
-        isError = true
-        console.log("lbsCodeName", "yok -- error")
-      }
-
-      if (lbsCodeName.includes(" ")) {
-        setLbsCodeNameError("Boşluk kullanmayınız")
-        isError = true
-        console.log("lbsCodeName", "yok -- error")
-      }
-
-      // ilgili hatalar yukarıda ilgili form alanlarına yazılmış olmalı
-      // db ye sorgu yapılıp db meşgul edilmesin diye burada durduruyoruz
-      // frontendden geçse bile db den errorFormObject kontrolü yapılıyor aşağıda
-      if (isError) {
-        console.log("bu satırın altında fonksiyon --return-- ile durduruldu")
-        return
-      }
-
-
-      // yukarıdaki yapılan _id kontrolü tamamsa bu veri db de kaydolmuş demektir, refetch_mahaller() yapıp db yi yormaya gerek yok
-      // useQuery ile oluşturduğumuz mahaller cash datamızı güncelliyoruz
-      // sorgudan lbs datası güncellenmiş proje dödürüp, gelen data ile aşağıda react useContext deki projeyi update ediyoruz
-      const newLbsItem = {
-        projeId: selectedProje._id,
-        upLbsId: selectedLbs ? selectedLbs._id : "0",
-        newLbsName: lbsName,
-        newLbsCodeName: lbsCodeName
-      }
-
-      // const result = await RealmApp.currentUser.callFunction("collection_projeler__lbs", { functionName: "createLbs", ...newLbsItem });
-      const response = await fetch(process.env.REACT_APP_BASE_URL + `/api/projeler/createlbs`, {
-        method: 'POST',
-        headers: {
-          email: appUser.email,
-          token: appUser.token,
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({ ...newLbsItem })
+      const { error } = await supabase.from('lbs_nodes').insert({
+        project_id: selectedProje.id,
+        parent_id: parentId,
+        name,
+        code_name: codeName,
+        order_index: newOrder,
+        open_for_mahal: false,
       })
 
+      if (error) throw error
 
-      const responseJson = await response.json()
-
-      if (responseJson.error) {
-        if (responseJson.error.includes("expired")) {
-          setAppUser()
-          localStorage.removeItem('appUser')
-          navigate('/')
-          window.location.reload()
-        }
-        throw new Error(responseJson.error);
-      }
-
-      if (responseJson.errorObject) {
-        setLbsNameError(responseJson.errorObject.lbsNameError)
-        setLbsCodeNameError(responseJson.errorObject.lbsCodeNameError)
-        console.log("backend den gelen hata ile durdu")
-        return
-      }
-
-      if (responseJson.snackMessage) {
-        setOpenSnackBar(true)
-        setSnackBarMessage(responseJson.snackMessage)
-        return
-      }
-
-
-      if (responseJson.lbs) {
-        setSelectedProje(proje => {
-          proje.lbs = responseJson.lbs
-          return proje
-        })
-      }
-
-      // sorgu işleminden önce seçilen lbs varsa, temizliyoruz, en büyük gerekçe seçilen lbs silinmiş olabilir, onunla işlem db de hata verir
       setSelectedLbs(null)
-
+      invalidate()
       setShow()
 
-      return
-
-      // setShowDialogSuccess("Lbs kaydı başarı ile gerçekleşti")
-
     } catch (err) {
-
       console.log(err)
-
       setDialogAlert({
         dialogIcon: "warning",
-        dialogMessage:"Beklenmedik hata, sayfayı yenileyiniz, sorun devam ederse Rapor7/24 ile irtibata geçiniz..",
-        detailText: err?.message ? err.message : null
+        dialogMessage: "Beklenmedik hata, sayfayı yenileyiniz, sorun devam ederse Rapor7/24 ile irtibata geçiniz..",
+        detailText: err?.message ?? null
       })
-
-      return
-
     }
-
   }
 
 
   return (
     <div>
 
-
       {dialogAlert &&
         <DialogAlert
           dialogIcon={dialogAlert.dialogIcon}
           dialogMessage={dialogAlert.dialogMessage}
           detailText={dialogAlert.detailText}
-          onCloseAction={dialogAlert.onCloseAction ? dialogAlert.onCloseAction : () => setDialogAlert()}
+          onCloseAction={() => setDialogAlert()}
         />
       }
-
 
       <Dialog
         PaperProps={{ sx: { width: "80%", position: "fixed", top: "10rem" } }}
         open={true}
-        onClose={() => setShow()} >
-        {/* <DialogTitle>Subscribe</DialogTitle> */}
+        onClose={() => setShow()}
+      >
         <Box component="form" onSubmit={handleSubmit} noValidate sx={{ mt: 1 }}>
 
           <DialogContent>
 
             <DialogContentText sx={{ fontWeight: "bold", paddingBottom: "1rem" }}>
-              {/* <Typography sx> */}
               Lbs Oluştur
-              {/* </Typography> */}
             </DialogContentText>
 
             {selectedLbs &&
               <>
                 <DialogContentText sx={{ fontWeight: "bold", paddingBottom: "1rem" }}>
-                  {selectedLbs.code} {"-->"} {selectedLbs.name}
+                  {selectedLbs.code_name ? `(${selectedLbs.code_name}) ` : ''}{selectedLbs.name}
                 </DialogContentText>
-                <Typography >
-                  başlığı altına yeni bir Lbs eklemek üzeresiniz.
-                </Typography>
+                <Typography>başlığı altına yeni bir Lbs eklemek üzeresiniz.</Typography>
               </>
             }
 
             {!selectedLbs &&
               <DialogContentText sx={{ fontWeight: "bold", paddingBottom: "1rem" }}>
-                {/* <Typography > */}
                 En üst düzeye yeni bir Lbs eklemek üzeresiniz.
-                {/* </Typography> */}
               </DialogContentText>
             }
 
-            <Box onClick={() => setLbsNameError(false)}>
+            <Box onClick={() => setLbsNameError()}>
               <TextField
                 variant="standard"
-                // InputProps={{ sx: { height:"2rem", fontSize: "1.5rem" } }}
-                onChange={(e) => setLbsName(() => e.target.value.replace("i", "İ").toUpperCase())}
+                onChange={(e) => setLbsName(e.target.value.replace("i", "İ").toUpperCase())}
                 value={lbsName}
                 margin="normal"
                 id="lbsName"
                 name="lbsName"
                 autoFocus
-                error={lbsNameError ? true : false}
-                helperText={lbsNameError ? lbsNameError : ""}
-                // margin="dense"
+                error={!!lbsNameError}
+                helperText={lbsNameError ?? ""}
                 label="Mahal Başlık İsmi"
                 type="text"
                 fullWidth
               />
             </Box>
 
-
-
-            <Box onClick={() => setLbsCodeNameError(false)}>
+            <Box onClick={() => setLbsCodeNameError()}>
               <TextField
                 variant="standard"
-                // InputProps={{ sx: { height:"2rem", fontSize: "1.5rem" } }}
-                onChange={(e) => setLbsCodeName(() => e.target.value.replace("i", "İ").toUpperCase())}
+                onChange={(e) => setLbsCodeName(e.target.value.replace("i", "İ").toUpperCase())}
                 value={lbsCodeName}
                 margin="normal"
                 id="lbsCodeName"
                 name="lbsCodeName"
-                // autoFocus
-                error={lbsCodeNameError ? true : false}
-                helperText={lbsCodeNameError ? lbsCodeNameError : "Örnek : KABA İNŞAAT --> KAB"}
-                // margin="dense"
+                error={!!lbsCodeNameError}
+                helperText={lbsCodeNameError ?? "Örnek : ZEMİN KAT --> ZK"}
                 label="Başlık İsminin Kısaltması"
                 type="text"
                 fullWidth
               />
             </Box>
-
-
-
 
           </DialogContent>
 
@@ -263,8 +150,6 @@ export default function P_FormLbsCreate({ setShow, selectedLbs, setSelectedLbs, 
 
         </Box>
       </Dialog>
-    </div >
-  );
-
-
+    </div>
+  )
 }
