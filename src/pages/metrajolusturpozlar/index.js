@@ -45,7 +45,7 @@ function nodeColor(depth) {
 
 export default function P_MetrajOlusturPozlar() {
   const navigate = useNavigate()
-  const { selectedProje, selectedIsPaket, setSelectedPoz } = useContext(StoreContext)
+  const { selectedProje, selectedIsPaket, setSelectedPoz, appUser } = useContext(StoreContext)
 
   const { data: rawWbsNodes = [], isLoading: wbsLoading } = useGetWbsNodes()
   const { data: units = [], isLoading: unitsLoading } = useGetPozUnits()
@@ -90,10 +90,12 @@ export default function P_MetrajOlusturPozlar() {
       setPozWithAreasSet(withAreas)
 
       const areaIds = areas.map(a => a.id)
-      const { data: sessions } = await supabase
+      let sessionsQuery = supabase
         .from('measurement_sessions')
         .select('work_package_poz_area_id, total_quantity')
         .in('work_package_poz_area_id', areaIds)
+      if (appUser?.id) sessionsQuery = sessionsQuery.eq('created_by', appUser.id)
+      const { data: sessions } = await sessionsQuery
       if (!sessions) return
       const areaToWpp = {}
       areas.forEach(a => { areaToWpp[a.id] = a.work_package_poz_id })
@@ -105,7 +107,7 @@ export default function P_MetrajOlusturPozlar() {
       })
       setPozMetrajMap(map)
     })()
-  }, [wpPozlar])
+  }, [wpPozlar, appUser?.id])
 
   // work_package_pozlar'dan project_poz objelerini çıkar — sadece mahali atanmış pozlar
   const rawPozlar = useMemo(() =>

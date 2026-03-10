@@ -11,6 +11,7 @@ import Grid from '@mui/material/Grid'
 import Typography from '@mui/material/Typography'
 import LinearProgress from '@mui/material/LinearProgress'
 import Alert from '@mui/material/Alert'
+import Tooltip from '@mui/material/Tooltip'
 import NavigateNextIcon from '@mui/icons-material/NavigateNext'
 
 
@@ -42,17 +43,36 @@ function nodeColor(depth) {
   return palette[depth % palette.length]
 }
 
+// status → renk
+function sessionBg(status) {
+  if (status === 'draft')    return '#FFF9C4'   // sarı  - taslak
+  if (status === 'ready')    return '#C8E6C9'   // yeşil - onaya hazır
+  if (status === 'approved') return '#B3E5FC'   // mavi  - onaylanan
+  return '#f0f0f0'
+}
+
+function statusLabel(status) {
+  if (status === 'draft')    return 'Taslak'
+  if (status === 'ready')    return 'Hazır'
+  if (status === 'approved') return 'Onaylı'
+  return ''
+}
+
 
 export default function P_MetrajOlusturPozMahaller() {
   const navigate = useNavigate()
-  const { selectedProje, selectedIsPaket, selectedPoz, setSelectedMahal } = useContext(StoreContext)
+  const { selectedProje, selectedIsPaket, selectedPoz, setSelectedMahal, appUser } = useContext(StoreContext)
 
   const { data: rawLbsNodes = [], isLoading: lbsLoading } = useGetLbsNodes()
   const { data: wpAreas = [], isLoading: areasLoading, error: areasError } = useGetWorkPackagePozAreas()
   const { data: units = [] } = useGetPozUnits()
 
   const [collapsedIds, setCollapsedIds] = useState(new Set())
-  const [sessionsMap, setSessionsMap] = useState({}) // wpAreaId → { total_quantity, status }
+
+  // wpAreaId → { byUser: { userId: session }, approved: session }
+  const [sessionsMap, setSessionsMap] = useState({})
+  // Sıralı kullanıcı listesi: önce aktif kullanıcı
+  const [sessionUsers, setSessionUsers] = useState([])
 
   const isLoading = lbsLoading || areasLoading
   const queryError = areasError
@@ -63,19 +83,64 @@ export default function P_MetrajOlusturPozMahaller() {
   }, [selectedProje, selectedIsPaket, selectedPoz, navigate])
 
   useEffect(() => {
-    if (!wpAreas || wpAreas.length === 0) { setSessionsMap({}); return }
+    if (!wpAreas || wpAreas.length === 0) {
+      setSessionsMap({})
+      setSessionUsers([])
+      return
+    }
+
     const areaIds = wpAreas.map(a => a.id);
+
     (async () => {
       const { data: sessions } = await supabase
         .from('measurement_sessions')
-        .select('work_package_poz_area_id, total_quantity, status')
+        .select('id, work_package_poz_area_id, status, total_quantity, created_by, created_at, updated_at, creator:users!created_by(first_name, last_name)')
         .in('work_package_poz_area_id', areaIds)
+        .in('status', ['draft', 'ready', 'approved'])
+        .order('updated_at', { ascending: false })
+
       if (!sessions) return
-      const map = {}
-      sessions.forEach(s => { map[s.work_package_poz_area_id] = s })
-      setSessionsMap(map)
+
+      // Aktif kullanıcı her zaman listede
+      const currentUserName = [appUser?.isim, appUser?.soyisim].filter(Boolean).join(' ') || appUser?.email || '(Ben)'
+      const userMap = appUser?.id ? { [appUser.id]: currentUserName } : {}
+
+      const newMap = {}
+      sessions.forEach(s => {
+        const areaId = s.work_package_poz_area_id
+        if (!newMap[areaId]) newMap[areaId] = { byUser: {}, approved: null }
+
+        if (s.status === 'approved') {
+          // İlk bulunan (en yeni) onaylanan metrajı sakla
+          if (!newMap[areaId].approved) {
+            newMap[areaId].approved = s
+          }
+        } else {
+          const uid = s.created_by
+          if (uid) {
+            // Kullanıcı başına en yeni session'ı sakla
+            if (!newMap[areaId].byUser[uid]) {
+              newMap[areaId].byUser[uid] = s
+            }
+            if (s.creator && !userMap[uid]) {
+              userMap[uid] = [s.creator.first_name, s.creator.last_name].filter(Boolean).join(' ') || uid
+            }
+          }
+        }
+      })
+
+      setSessionsMap(newMap)
+
+      // Aktif kullanıcı en başta
+      const users = Object.entries(userMap).map(([id, name]) => ({ id, name }))
+      users.sort((a, b) => {
+        if (appUser?.id && a.id === appUser.id) return -1
+        if (appUser?.id && b.id === appUser.id) return 1
+        return a.name.localeCompare(b.name, 'tr')
+      })
+      setSessionUsers(users)
     })()
-  }, [wpAreas])
+  }, [wpAreas, appUser])
 
   const unitsMap = useMemo(() => {
     const m = {}
@@ -85,7 +150,6 @@ export default function P_MetrajOlusturPozMahaller() {
 
   const pozBirim = unitsMap[selectedPoz?.unit_id] ?? ''
 
-  // work_package_poz_areas'dan work_area objelerini çıkar
   const rawMahaller = useMemo(() =>
     wpAreas
       .filter(wpa => wpa.work_area)
@@ -125,14 +189,17 @@ export default function P_MetrajOlusturPozMahaller() {
     return false
   }
 
-  // Bu düğümde (veya alt düğümlerinde) iş paketine ait mahal var mı
   function nodeHasMahal(nodeId) {
     if (rawMahaller.some(m => m.lbs_node_id === nodeId)) return true
     return rawLbsNodes.filter(n => n.parent_id === nodeId).some(c => nodeHasMahal(c.id))
   }
 
-  const handleMahalClick = (mahal) => {
-    setSelectedMahal(mahal)
+  // session parametresi verilirse o session'ı açar; verilmezse aktif kullanıcının session'ını açar
+  const handleMahalClick = (mahal, session = null) => {
+    const mahalWithSession = session
+      ? { ...mahal, sessionId: session.id, sessionStatus: session.status }
+      : mahal
+    setSelectedMahal(mahalWithSession)
     navigate('/metrajolusturcetvel')
   }
 
@@ -215,11 +282,37 @@ export default function P_MetrajOlusturPozMahaller() {
       {!isLoading && !queryError && rawLbsNodes.length > 0 && rawMahaller.length > 0 &&
         (() => {
           const totalDepthCols = maxLeafDepth + 1
-          const totalCols = totalDepthCols + 4
-          const treeGridCols = `repeat(${totalDepthCols}, 1rem) max-content minmax(20rem, max-content) max-content max-content`
+          // Sabit sütunlar: code, name, area  →  3 adet
+          // Dinamik: sessionUsers.length adet kullanıcı + 1 onaylanan
+          const userColCount = sessionUsers.length
+          const totalCols = totalDepthCols + 3 + userColCount + 1
+          const userColWidth = 'minmax(7rem, 10rem)'
+          const treeGridCols = [
+            `repeat(${totalDepthCols}, 1rem)`,
+            'max-content',
+            'minmax(20rem, max-content)',
+            'max-content',
+            ...Array(userColCount).fill(userColWidth),
+            userColWidth,
+          ].join(' ')
+
+          const css_header = {
+            px: '4px', py: '2px',
+            backgroundColor: '#e0e0e0',
+            borderBottom: '1px solid #bbb',
+            fontSize: '0.75rem',
+            fontWeight: 600,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            textAlign: 'center',
+            whiteSpace: 'nowrap',
+            overflow: 'hidden',
+            textOverflow: 'ellipsis',
+          }
 
           return (
-            <Box sx={{ maxWidth: '80rem', p: '0.5rem', width: 'fit-content' }}>
+            <Box sx={{ p: '0.5rem', width: 'fit-content', overflowX: 'auto', maxWidth: '100%' }}>
 
               {/* Proje adı satırı */}
               <Box sx={{ display: 'grid', gridTemplateColumns: '1rem 1fr' }}>
@@ -232,6 +325,25 @@ export default function P_MetrajOlusturPozMahaller() {
               <Box sx={{ display: 'grid', gridTemplateColumns: '1rem 1fr' }}>
                 <Box sx={{ backgroundColor: 'black' }} />
                 <Box sx={{ display: 'grid', gridTemplateColumns: treeGridCols }}>
+
+                  {/* ── SÜTUN BAŞLIKLARI ── */}
+                  {Array.from({ length: totalDepthCols }).map((_, i) => (
+                    <Box key={`hd-depth-${i}`} sx={{ ...css_header, backgroundColor: 'transparent', borderBottom: '1px solid #bbb' }} />
+                  ))}
+                  <Box sx={{ ...css_header }}>Kod</Box>
+                  <Box sx={{ ...css_header, justifyContent: 'flex-start' }}>Mahal</Box>
+                  <Box sx={{ ...css_header }}>Alan</Box>
+                  {sessionUsers.map(user => (
+                    <Tooltip key={`hd-user-${user.id}`} title={user.name} placement="top">
+                      <Box sx={{ ...css_header, color: appUser?.id === user.id ? '#1565C0' : 'inherit' }}>
+                        {user.name}
+                      </Box>
+                    </Tooltip>
+                  ))}
+                  <Box sx={{ ...css_header, backgroundColor: '#B3E5FC', color: '#01579B' }}>
+                    Onaylanan
+                  </Box>
+                  {/* ── / SÜTUN BAŞLIKLARI ── */}
 
                   {flatNodes.map(node => {
                     if (isHiddenByAncestor(node)) return null
@@ -283,96 +395,152 @@ export default function P_MetrajOlusturPozMahaller() {
                         </Box>
 
                         {/* Mahal satırları */}
-                        {isLeaf && !collapsedIds.has(node.id) && mahallerOfNode.map(mahal => (
-                          <React.Fragment key={mahal.id}>
+                        {isLeaf && !collapsedIds.has(node.id) && mahallerOfNode.map(mahal => {
+                          const areaData = sessionsMap[mahal.wpAreaId] ?? { byUser: {}, approved: null }
 
-                            {Array.from({ length: totalDepthCols }).map((_, i) => (
-                              <Box key={i} sx={{ backgroundColor: i <= depth ? nodeColor(i).bg : 'transparent' }} />
-                            ))}
+                          return (
+                            <React.Fragment key={mahal.id}>
 
-                            {/* Mahal kodu */}
-                            <Box
-                              onClick={() => handleMahalClick(mahal)}
-                              sx={{
-                                px: '6px', py: '2px',
-                                borderBottom: '0.5px solid #ddd',
-                                borderLeft: '1px solid #aaa',
-                                fontFamily: 'monospace', fontSize: '0.8rem', fontWeight: 600,
-                                display: 'flex', alignItems: 'center', whiteSpace: 'nowrap',
-                                backgroundColor: '#f0f0f0',
-                                cursor: 'pointer',
-                                '&:hover': { backgroundColor: '#e3f2fd' }
-                              }}
-                            >
-                              {mahal.code || '—'}
-                            </Box>
+                              {Array.from({ length: totalDepthCols }).map((_, i) => (
+                                <Box key={i} sx={{ backgroundColor: i <= depth ? nodeColor(i).bg : 'transparent' }} />
+                              ))}
 
-                            {/* Mahal adı */}
-                            <Box
-                              onClick={() => handleMahalClick(mahal)}
-                              sx={{
-                                px: '6px', py: '2px',
-                                borderBottom: '0.5px solid #ddd',
-                                fontSize: '0.875rem',
-                                display: 'flex', alignItems: 'center',
-                                backgroundColor: '#f0f0f0',
-                                cursor: 'pointer',
-                                '&:hover': { backgroundColor: '#e3f2fd' }
-                              }}
-                            >
-                              {mahal.name}
-                            </Box>
+                              {/* Mahal kodu */}
+                              <Box
+                                onClick={() => handleMahalClick(mahal)}
+                                sx={{
+                                  px: '6px', py: '2px',
+                                  borderBottom: '0.5px solid #ddd',
+                                  borderLeft: '1px solid #aaa',
+                                  fontFamily: 'monospace', fontSize: '0.8rem', fontWeight: 600,
+                                  display: 'flex', alignItems: 'center', whiteSpace: 'nowrap',
+                                  backgroundColor: '#f0f0f0',
+                                  cursor: 'pointer',
+                                  '&:hover': { backgroundColor: '#e3f2fd' }
+                                }}
+                              >
+                                {mahal.code || '—'}
+                              </Box>
 
-                            {/* Alan m² */}
-                            <Box
-                              onClick={() => handleMahalClick(mahal)}
-                              sx={{
-                                px: '6px', py: '2px',
-                                borderBottom: '0.5px solid #ddd',
-                                fontSize: '0.8rem',
-                                display: 'flex', alignItems: 'center', justifyContent: 'flex-end',
-                                backgroundColor: '#f0f0f0',
-                                whiteSpace: 'nowrap',
-                                cursor: 'pointer',
-                                '&:hover': { backgroundColor: '#e3f2fd' }
-                              }}
-                            >
-                              {mahal.area != null ? `${mahal.area} m²` : '—'}
-                            </Box>
+                              {/* Mahal adı */}
+                              <Box
+                                onClick={() => handleMahalClick(mahal)}
+                                sx={{
+                                  px: '6px', py: '2px',
+                                  borderBottom: '0.5px solid #ddd',
+                                  fontSize: '0.875rem',
+                                  display: 'flex', alignItems: 'center',
+                                  backgroundColor: '#f0f0f0',
+                                  cursor: 'pointer',
+                                  '&:hover': { backgroundColor: '#e3f2fd' }
+                                }}
+                              >
+                                {mahal.name}
+                              </Box>
 
-                            {/* Metraj */}
-                            {(() => {
-                              const ses = sessionsMap[mahal.wpAreaId]
-                              const bg = '#f0f0f0'
-                              return (
-                                <Box
-                                  onClick={() => handleMahalClick(mahal)}
-                                  sx={{
-                                    px: '6px', py: '2px',
-                                    borderBottom: '0.5px solid #ddd',
-                                    fontSize: '0.8rem',
-                                    display: 'flex', alignItems: 'center', justifyContent: 'flex-end',
-                                    backgroundColor: bg,
-                                    whiteSpace: 'nowrap',
-                                    cursor: 'pointer',
-                                    '&:hover': { backgroundColor: '#e3f2fd' }
-                                  }}
-                                >
-                                  {ses
-                                    ? `${ikiHane(ses.total_quantity)} ${pozBirim}`
-                                    : '—'}
-                                </Box>
-                              )
-                            })()}
+                              {/* Alan m² */}
+                              <Box
+                                onClick={() => handleMahalClick(mahal)}
+                                sx={{
+                                  px: '6px', py: '2px',
+                                  borderBottom: '0.5px solid #ddd',
+                                  fontSize: '0.8rem',
+                                  display: 'flex', alignItems: 'center', justifyContent: 'flex-end',
+                                  backgroundColor: '#f0f0f0',
+                                  whiteSpace: 'nowrap',
+                                  cursor: 'pointer',
+                                  '&:hover': { backgroundColor: '#e3f2fd' }
+                                }}
+                              >
+                                {mahal.area != null ? `${mahal.area} m²` : '—'}
+                              </Box>
 
-                          </React.Fragment>
-                        ))}
+                              {/* Kullanıcı başına metraj sütunları */}
+                              {sessionUsers.map(user => {
+                                const ses = areaData.byUser[user.id]
+                                const isCurrentUser = appUser?.id === user.id
+                                const bg = ses ? sessionBg(ses.status) : '#f5f5f5'
+                                const isClickable = !!ses || isCurrentUser
+
+                                return (
+                                  <Tooltip
+                                    key={`cell-${mahal.id}-${user.id}`}
+                                    title={ses ? statusLabel(ses.status) : (isCurrentUser ? 'Metraj başlat' : '')}
+                                    placement="top"
+                                  >
+                                    <Box
+                                      onClick={() => isClickable ? handleMahalClick(mahal, ses || null) : undefined}
+                                      sx={{
+                                        px: '6px', py: '2px',
+                                        borderBottom: '0.5px solid #ddd',
+                                        fontSize: '0.8rem',
+                                        display: 'flex', alignItems: 'center', justifyContent: 'flex-end',
+                                        backgroundColor: bg,
+                                        whiteSpace: 'nowrap',
+                                        cursor: isClickable ? 'pointer' : 'default',
+                                        opacity: !ses && !isCurrentUser ? 0.4 : 1,
+                                        '&:hover': isClickable ? { filter: 'brightness(0.95)' } : {},
+                                      }}
+                                    >
+                                      {ses
+                                        ? `${ikiHane(ses.total_quantity)} ${pozBirim}`
+                                        : (isCurrentUser ? <span style={{ fontSize: '0.75rem', color: '#aaa' }}>+ Ekle</span> : '—')
+                                      }
+                                    </Box>
+                                  </Tooltip>
+                                )
+                              })}
+
+                              {/* Onaylanan metraj sütunu */}
+                              {(() => {
+                                const approvedSes = areaData.approved
+                                return (
+                                  <Tooltip title={approvedSes ? 'Onaylanan metraj — görüntüle / düzenle' : ''} placement="top">
+                                    <Box
+                                      onClick={() => approvedSes ? handleMahalClick(mahal, approvedSes) : undefined}
+                                      sx={{
+                                        px: '6px', py: '2px',
+                                        borderBottom: '0.5px solid #ddd',
+                                        fontSize: '0.8rem',
+                                        display: 'flex', alignItems: 'center', justifyContent: 'flex-end',
+                                        backgroundColor: approvedSes ? sessionBg('approved') : '#f0f8ff',
+                                        whiteSpace: 'nowrap',
+                                        cursor: approvedSes ? 'pointer' : 'default',
+                                        fontWeight: approvedSes ? 600 : 'normal',
+                                        '&:hover': approvedSes ? { filter: 'brightness(0.95)' } : {},
+                                      }}
+                                    >
+                                      {approvedSes
+                                        ? `${ikiHane(approvedSes.total_quantity)} ${pozBirim}`
+                                        : '—'}
+                                    </Box>
+                                  </Tooltip>
+                                )
+                              })()}
+
+                            </React.Fragment>
+                          )
+                        })}
 
                       </React.Fragment>
                     )
                   })}
 
                 </Box>
+              </Box>
+
+              {/* Renk açıklaması */}
+              <Box sx={{ display: 'flex', gap: '1rem', mt: '0.75rem', px: '0.5rem', flexWrap: 'wrap' }}>
+                {[
+                  { color: sessionBg('draft'),    label: 'Taslak' },
+                  { color: sessionBg('ready'),    label: 'Onaya Hazır' },
+                  { color: sessionBg('approved'), label: 'Onaylanan' },
+                ].map(({ color, label }) => (
+                  <Box key={label} sx={{ display: 'flex', alignItems: 'center', gap: '0.3rem' }}>
+                    <Box sx={{ width: 14, height: 14, backgroundColor: color, border: '1px solid #bbb', borderRadius: 1 }} />
+                    <Typography variant="caption" sx={{ color: 'gray' }}>{label}</Typography>
+                  </Box>
+                ))}
               </Box>
             </Box>
           )

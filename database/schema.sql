@@ -355,6 +355,17 @@ create table work_packages (
   updated_at  timestamptz not null default now()
 );
 
+-- İş paketi üyeliği — metraj yetkisi
+-- Üye tanımlı değilse → herkese açık (soft rollout)
+create table work_package_members (
+  id              uuid primary key default gen_random_uuid(),
+  work_package_id uuid not null references work_packages(id) on delete cascade,
+  user_id         uuid not null references auth.users(id) on delete cascade,
+  added_by        uuid references auth.users(id) on delete set null,
+  created_at      timestamptz not null default now(),
+  unique (work_package_id, user_id)
+);
+
 create table work_package_pozlar (
   id              uuid primary key default gen_random_uuid(),
   work_package_id uuid not null references work_packages(id) on delete cascade,
@@ -394,7 +405,7 @@ create table measurement_sessions (
                              )),
   total_quantity           numeric(15,4) not null default 0,
   notes                    text,
-  created_by               uuid references users(id),
+  created_by               uuid references auth.users(id) on delete set null,  -- Supabase Auth UUID
   created_at               timestamptz not null default now(),
   updated_at               timestamptz not null default now()
 );
@@ -435,6 +446,8 @@ create table measurement_approvals (
 );
 
 create index on work_packages (project_id);
+create index on work_package_members (work_package_id);
+create index on work_package_members (user_id);
 create index on work_package_pozlar (work_package_id);
 create index on work_package_pozlar (project_poz_id);
 create index on work_package_poz_areas (work_package_poz_id);

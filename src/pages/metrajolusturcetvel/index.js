@@ -51,7 +51,7 @@ function ikiHane(v) {
 
 export default function P_MetrajOlusturCetvel() {
   const navigate = useNavigate()
-  const { selectedProje, selectedIsPaket, selectedPoz, selectedMahal } = useContext(StoreContext)
+  const { selectedProje, selectedIsPaket, selectedPoz, selectedMahal, appUser } = useContext(StoreContext)
   const { data: units = [] } = useGetPozUnits()
 
   const [session, setSession] = useState(null)
@@ -78,22 +78,37 @@ export default function P_MetrajOlusturCetvel() {
   useEffect(() => {
     if (!wpAreaId) return
     loadData()
-  }, [wpAreaId])
+  }, [wpAreaId, selectedMahal?.sessionId])
 
   const loadData = async () => {
     setIsLoading(true)
     setLoadError(null)
     try {
-      const { data: sessionData, error: sessionError } = await supabase
-        .from('measurement_sessions')
-        .select('*')
-        .eq('work_package_poz_area_id', wpAreaId)
-        .in('status', ['draft', 'ready'])
-        .order('created_at', { ascending: false })
-        .limit(1)
-        .maybeSingle()
+      let sessionData = null
 
-      if (sessionError) throw sessionError
+      if (selectedMahal?.sessionId) {
+        // Belirli bir session ID ile yükle (pozmahaller sayfasından tıklama)
+        const { data, error } = await supabase
+          .from('measurement_sessions')
+          .select('*')
+          .eq('id', selectedMahal.sessionId)
+          .single()
+        if (error) throw error
+        sessionData = data
+      } else {
+        // Mevcut session yükle (created_by migration tamamlanana kadar kullanıcı filtresi yok)
+        const { data, error } = await supabase
+          .from('measurement_sessions')
+          .select('*')
+          .eq('work_package_poz_area_id', wpAreaId)
+          .in('status', ['draft', 'ready'])
+          .order('updated_at', { ascending: false })
+          .limit(1)
+          .maybeSingle()
+
+        if (error) throw error
+        sessionData = data
+      }
 
       if (sessionData) {
         const { data: lineData, error: lineError } = await supabase
@@ -139,7 +154,7 @@ export default function P_MetrajOlusturCetvel() {
     try {
       const { data, error } = await supabase
         .from('measurement_sessions')
-        .insert({ work_package_poz_area_id: wpAreaId, status: 'draft', total_quantity: 0 })
+        .insert({ work_package_poz_area_id: wpAreaId, status: 'draft', total_quantity: 0, created_by: appUser?.id ?? null })
         .select()
         .single()
 
@@ -279,6 +294,55 @@ export default function P_MetrajOlusturCetvel() {
     }
   }
 
+  const handleApprove = () => {
+    setDialogAlert({
+      dialogIcon: 'info',
+      dialogMessage: 'Bu metraj onaylanarak kesinleştirilsin mi?',
+      actionText1: 'Evet, Onayla',
+      action1: async () => {
+        setDialogAlert()
+        try {
+          const total = lines.reduce((sum, l) => sum + computeQuantity(l), 0)
+          const { error } = await supabase
+            .from('measurement_sessions')
+            .update({ status: 'approved', total_quantity: total, updated_at: new Date().toISOString() })
+            .eq('id', session.id)
+
+          if (error) throw error
+
+          setSession(prev => ({ ...prev, status: 'approved', total_quantity: total }))
+        } catch (err) {
+          setDialogAlert({ dialogIcon: 'warning', dialogMessage: err.message, onCloseAction: () => setDialogAlert() })
+        }
+      },
+      onCloseAction: () => setDialogAlert(),
+    })
+  }
+
+  const handleRevise = () => {
+    setDialogAlert({
+      dialogIcon: 'warning',
+      dialogMessage: 'Onaylanan metraj düzenleme için taslağa alınsın mı?',
+      actionText1: 'Evet, Düzenle',
+      action1: async () => {
+        setDialogAlert()
+        try {
+          const { error } = await supabase
+            .from('measurement_sessions')
+            .update({ status: 'draft', updated_at: new Date().toISOString() })
+            .eq('id', session.id)
+
+          if (error) throw error
+
+          setSession(prev => ({ ...prev, status: 'draft' }))
+        } catch (err) {
+          setDialogAlert({ dialogIcon: 'warning', dialogMessage: err.message, onCloseAction: () => setDialogAlert() })
+        }
+      },
+      onCloseAction: () => setDialogAlert(),
+    })
+  }
+
   const unitsMap = useMemo(() => {
     const m = {}
     units.forEach(u => { m[u.id] = u.name })
@@ -289,6 +353,7 @@ export default function P_MetrajOlusturCetvel() {
   const totalQuantity = useMemo(() => lines.reduce((sum, l) => sum + computeQuantity(l), 0), [lines])
   const isDraft = session?.status === 'draft'
   const isReady = session?.status === 'ready'
+  const isApproved = session?.status === 'approved'
 
   const headerIconButton_sx = { width: 40, height: 40 }
   const headerIcon_sx = { fontSize: 24 }
@@ -304,7 +369,6 @@ export default function P_MetrajOlusturCetvel() {
     fontWeight: 600,
     fontSize: '0.8rem',
     whiteSpace: 'nowrap',
-    mb: '1rem',
   }
 
   const css_satir = {
@@ -419,8 +483,18 @@ export default function P_MetrajOlusturCetvel() {
                 </>
               )}
               {session && isReady && (
-                <IconButton sx={headerIconButton_sx} onClick={handleBackToDraft} title="Taslağa geri al">
-                  <ReplyIcon sx={{ ...headerIcon_sx, color: 'orange' }} />
+                <>
+                  <IconButton sx={headerIconButton_sx} onClick={handleBackToDraft} title="Taslağa geri al">
+                    <ReplyIcon sx={{ ...headerIcon_sx, color: 'orange' }} />
+                  </IconButton>
+                  <IconButton sx={headerIconButton_sx} onClick={handleApprove} title="Onayla">
+                    <CheckCircleIcon sx={{ ...headerIcon_sx, color: '#1565C0' }} />
+                  </IconButton>
+                </>
+              )}
+              {session && isApproved && (
+                <IconButton sx={headerIconButton_sx} onClick={handleRevise} title="Düzenlemek için taslağa al">
+                  <EditIcon sx={{ ...headerIcon_sx, color: 'orange' }} />
                 </IconButton>
               )}
             </Box>
@@ -493,7 +567,7 @@ export default function P_MetrajOlusturCetvel() {
             {lines.map((line, index) => {
               const qty = computeQuantity(line)
               const isDeduction = Number(line.multiplier ?? 1) < 0
-              const rowColor = isReady ? 'rgba(200,230,200,0.3)' : null
+              const rowColor = isApproved ? 'rgba(179,229,252,0.35)' : isReady ? 'rgba(200,230,200,0.3)' : null
 
               return (
                 <React.Fragment key={line.id}>

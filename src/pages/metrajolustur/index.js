@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useContext } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { StoreContext } from '../../components/store.js'
-import { useGetWorkPackages } from '../../hooks/useMongo.js'
+import { useGetMyWorkPackages } from '../../hooks/useMongo.js'
 import { DialogAlert } from '../../components/general/DialogAlert.js'
 
 import AppBar from '@mui/material/AppBar'
@@ -11,6 +11,7 @@ import Stack from '@mui/material/Stack'
 import Box from '@mui/material/Box'
 import Typography from '@mui/material/Typography'
 import LinearProgress from '@mui/material/LinearProgress'
+import Chip from '@mui/material/Chip'
 import NavigateNextIcon from '@mui/icons-material/NavigateNext'
 
 
@@ -21,7 +22,7 @@ export default function P_MetrajOlustur() {
 
   const [dialogAlert, setDialogAlert] = useState()
 
-  const { data: isPaketler = [], isFetching, error } = useGetWorkPackages()
+  const { data: isPaketler = [], isFetching, error } = useGetMyWorkPackages()
 
   useEffect(() => {
     setSelectedIsPaket(null)
@@ -29,24 +30,18 @@ export default function P_MetrajOlustur() {
   }, [])
 
   const css_baslik = {
-    display: 'grid',
+    display: 'flex',
     alignItems: 'center',
-    mt: '0.1rem',
-    px: '0.5rem',
-    backgroundColor: 'lightgray',
+    px: '0.6rem',
+    py: '0.3rem',
+    backgroundColor: '#e0e0e0',
     fontWeight: 700,
-    textWrap: 'nowrap',
-    border: '1px solid black',
+    fontSize: '0.8rem',
+    borderBottom: '1px solid #bbb',
+    whiteSpace: 'nowrap',
   }
 
-  const css_satir = {
-    display: 'grid',
-    px: '0.5rem',
-    border: '1px solid black',
-    alignItems: 'center',
-  }
-
-  const columns = 'max-content minmax(20rem, max-content) max-content'
+  const columns = 'max-content minmax(18rem, max-content) minmax(14rem, auto)'
 
   return (
     <Box>
@@ -95,50 +90,76 @@ export default function P_MetrajOlustur() {
         </Stack>
       )}
 
-      {!isFetching && isPaketler.length === 0 && (
+      {!isFetching && !error && isPaketler.length === 0 && (
         <Stack sx={{ width: '100%', padding: '1rem' }}>
           <Alert severity="info">
-            Henüz iş paketi oluşturulmamış. İş Paketleri sayfasından ekleyebilirsiniz.
+            Metraj yapabileceğiniz iş paketi bulunmuyor. Proje yöneticisi sizi bir iş paketine üye etmelidir.
           </Alert>
         </Stack>
       )}
 
       {isPaketler.length > 0 && (
-        <Box sx={{ padding: '1rem', display: 'grid', gridTemplateColumns: columns }}>
+        <Box sx={{ padding: '1rem', maxWidth: '60rem' }}>
 
           {/* Başlık satırı */}
-          <Box sx={{ ...css_baslik, justifyContent: 'center' }}>Sıra</Box>
-          <Box sx={{ ...css_baslik }}>İş Paketi</Box>
-          <Box sx={{ ...css_baslik }}>Açıklama</Box>
+          <Box sx={{ display: 'grid', gridTemplateColumns: columns }}>
+            <Box sx={{ ...css_baslik, justifyContent: 'center' }}>Sıra</Box>
+            <Box sx={{ ...css_baslik }}>İş Paketi</Box>
+            <Box sx={{ ...css_baslik }}>Açıklama</Box>
+          </Box>
 
           {/* Veri satırları */}
           {isPaketler.map((paket, index) => (
-            <React.Fragment key={paket.id}>
-
-              <Box sx={{ ...css_satir, justifyContent: 'center' }}>
+            <Box
+              key={paket.id}
+              sx={{ display: 'grid', gridTemplateColumns: columns }}
+            >
+              <Box
+                sx={{
+                  display: 'flex', alignItems: 'center', justifyContent: 'center',
+                  px: '0.6rem', py: '0.4rem',
+                  borderBottom: '1px solid #eee',
+                  fontSize: '0.85rem', color: '#888',
+                }}
+              >
                 {index + 1}
               </Box>
 
               <Box
                 sx={{
-                  ...css_satir,
+                  display: 'flex', alignItems: 'center',
+                  px: '0.6rem', py: '0.4rem',
+                  borderBottom: '1px solid #eee',
                   cursor: 'pointer',
-                  userSelect: 'none',
-                  '&:hover': { backgroundColor: '#f5f5f5' },
+                  gap: '0.5rem',
+                  '&:hover': { backgroundColor: '#f0f7ff' },
                 }}
                 onClick={() => {
                   setSelectedIsPaket(paket)
                   navigate('/metrajolusturpozlar')
                 }}
               >
-                {paket.name}
+                <Typography variant="body2" sx={{ fontWeight: 600 }}>
+                  {paket.name}
+                </Typography>
+                {paket.code && (
+                  <Typography variant="caption" sx={{ color: '#888', fontFamily: 'monospace' }}>
+                    {paket.code}
+                  </Typography>
+                )}
               </Box>
 
-              <Box sx={{ ...css_satir }}>
+              <Box
+                sx={{
+                  display: 'flex', alignItems: 'center',
+                  px: '0.6rem', py: '0.4rem',
+                  borderBottom: '1px solid #eee',
+                  fontSize: '0.85rem', color: '#555',
+                }}
+              >
                 {paket.description ?? ''}
               </Box>
-
-            </React.Fragment>
+            </Box>
           ))}
         </Box>
       )}

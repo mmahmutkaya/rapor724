@@ -273,7 +273,53 @@ export const useGetWorkPackages = () => {
 }
 
 
-// Supabase - getWorkAreas (Mahaller)
+// Supabase - getMyWorkPackages (kullanıcının metraj yetkisi olan iş paketleri)
+// Üye tanımlı olmayan paketler herkese açık görünür (soft rollout)
+export const useGetMyWorkPackages = () => {
+
+  const { appUser, selectedProje } = useContext(StoreContext)
+
+  return useQuery({
+    queryKey: ['myWorkPackages', selectedProje?.id, appUser?.id],
+    queryFn: async () => {
+      const { data: allPackages, error: pkgError } = await supabase
+        .from('work_packages')
+        .select('id, name, code, description, status, created_at')
+        .eq('project_id', selectedProje.id)
+        .eq('status', 'active')
+        .order('created_at')
+
+      if (pkgError) throw new Error(pkgError.message)
+      if (!allPackages || allPackages.length === 0) return []
+
+      const pkgIds = allPackages.map(p => p.id)
+
+      // Tüm üyelikleri çek (hangi paketlerin üyesi var?)
+      const { data: allMemberships, error: memError } = await supabase
+        .from('work_package_members')
+        .select('work_package_id, user_id')
+        .in('work_package_id', pkgIds)
+
+      if (memError) throw new Error(memError.message)
+
+      const memberships = allMemberships ?? []
+      const pkgsWithAnyMember = new Set(memberships.map(m => m.work_package_id))
+      const myPkgIds = new Set(
+        memberships.filter(m => m.user_id === appUser.id).map(m => m.work_package_id)
+      )
+
+      // Üyesi tanımlı değilse herkese açık; üyesi varsa sadece üyeler görebilir
+      return allPackages.filter(p =>
+        !pkgsWithAnyMember.has(p.id) || myPkgIds.has(p.id)
+      )
+    },
+    enabled: !!appUser && !!selectedProje,
+    retry: false,
+    refetchOnMount: true,
+    refetchOnWindowFocus: false
+  })
+
+}
 export const useGetWorkAreas = () => {
 
   const { appUser, selectedProje } = useContext(StoreContext)
