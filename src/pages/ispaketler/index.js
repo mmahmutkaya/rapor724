@@ -1,114 +1,197 @@
 import React, { useState, useEffect, useContext } from "react";
-import { StoreContext } from "../../components/store.js";
-// import FormIsPaketBaslikCreate from '../../components/FormIsPaketBaslikCreate'
-import FormIsPaketCreate from "../../components/FormIsPaketCreate.js";
 import { useNavigate } from "react-router-dom";
-// import { useGetProjelerNames_byFirma } from '../../hooks/useMongo';
-import { DialogAlert } from "../../components/general/DialogAlert.js";
-import { DialogVersiyonTip } from "../../components/general/DialogVersiyonTip.js";
-import ShowIsPaketBasliklar from "../../components/ShowIsPaketBasliklar.js";
 import { useQueryClient } from "@tanstack/react-query";
 
-import { useGetIsPaketPozlar } from "../../hooks/useMongo.js";
-import useRequestProjeAktifYetkiliKisi from "../../functions/requestProjeAktifYetkiliKisi.js";
-import useDeleteProjeAktifYetkiliKisi from "../../functions/deleteProjeAktifYetkiliKisi.js";
+import { StoreContext } from "../../components/store.js";
+import { useGetWorkPackages, useGetUserSettings } from "../../hooks/useMongo.js";
+import { supabase } from "../../lib/supabase.js";
+import FormIsPaketCreate from "../../components/FormIsPaketCreate.js";
+import { DialogAlert } from "../../components/general/DialogAlert.js";
 
 import AppBar from "@mui/material/AppBar";
 import Grid from "@mui/material/Grid";
 import Alert from "@mui/material/Alert";
 import Stack from "@mui/material/Stack";
-import { Typography } from "@mui/material";
 import Box from "@mui/material/Box";
+import Typography from "@mui/material/Typography";
 import IconButton from "@mui/material/IconButton";
-import Select from "@mui/material/Select";
-import MenuItem from "@mui/material/MenuItem";
-import DeleteIcon from "@mui/icons-material/Delete";
+import LinearProgress from "@mui/material/LinearProgress";
+import Checkbox from "@mui/material/Checkbox";
+import Switch from "@mui/material/Switch";
+import Dialog from "@mui/material/Dialog";
+import DialogTitle from "@mui/material/DialogTitle";
+import DialogActions from "@mui/material/DialogActions";
+import DialogContent from "@mui/material/DialogContent";
+import DialogContentText from "@mui/material/DialogContentText";
+import Button from "@mui/material/Button";
+import TextField from "@mui/material/TextField";
+import List from "@mui/material/List";
+import ListItem from "@mui/material/ListItem";
+import ListItemText from "@mui/material/ListItemText";
 import AddCircleOutlineIcon from "@mui/icons-material/AddCircleOutline";
+import DeleteIcon from "@mui/icons-material/Delete";
+import EditIcon from "@mui/icons-material/Edit";
+import CloseIcon from "@mui/icons-material/Close";
 import VisibilityIcon from "@mui/icons-material/Visibility";
-import NavigateNextIcon from '@mui/icons-material/NavigateNext';
-import ClearOutlined from '@mui/icons-material/ClearOutlined';
-import EditIcon from '@mui/icons-material/Edit';
+import NavigateNextIcon from "@mui/icons-material/NavigateNext";
+
+
+// Sayfa ayarlarının varsayılan değerleri
+const PAGE_KEY = "ispaketler";
+const DEFAULT_PAGE_SETTINGS = {
+  showAciklama: true,
+  showOlusturan: false,
+};
+
 
 export default function P_IsPaketler() {
   const queryClient = useQueryClient();
-
-  const { appUser, setAppUser } = useContext(StoreContext);
-  const { selectedProje, setSelectedProje } = useContext(StoreContext);
-  const { selectedIsPaket, setSelectedIsPaket } = useContext(StoreContext);
-  const { mode_isPaketEdit, setMode_isPaketEdit } = useContext(StoreContext);
-  const { selectedIsPaketVersiyon, setSelectedIsPaketVersiyon } = useContext(StoreContext);
-
-  const requestProjeAktifYetkiliKisi = useRequestProjeAktifYetkiliKisi();
-  const deleteProjeAktifYetkiliKisi = useDeleteProjeAktifYetkiliKisi();
-
-  // console.log("selectedProje",selectedProje)
-
-  const [dialogAlert, setDialogAlert] = useState();
-  const [isPaketler, setIsPaketler] = useState([]);
-  const [showEminMisin_versiyon, setShowEminMisin_versiyon] = useState(false);
-
-  // const { data, error, isFetching } = useGetisPaketler()
-  // console.log("isPaketler",isPaketler)
-
-  const { data: dataIsPaketPozlar } = useGetIsPaketPozlar()
-  const toplamAciktaKalanDugum = dataIsPaketPozlar?.toplamAciktaKalanDugum
-
-  const totalDugum = dataIsPaketPozlar?.pozlar?.reduce((sum, p) => sum + (p.dugumler_totalCount || 0), 0) || 0
-  const totalA = dataIsPaketPozlar?.pozlar?.reduce((sum, p) => sum + ((p.dugumler_totalCount || 0) - (p.isPaketler_empityArrayCounts || 0)), 0) || 0
-  const totalB = dataIsPaketPozlar?.pozlar?.reduce((sum, p) => sum + (p.isPaketler_empityArrayCounts || 0), 0) || 0
-
   const navigate = useNavigate();
 
+  const { appUser, selectedProje, selectedIsPaket, setSelectedIsPaket } = useContext(StoreContext);
+
+  const [show, setShow] = useState("Main");
+  const [dialogAlert, setDialogAlert] = useState();
+  const [selectMode, setSelectMode] = useState(false);
+  const [editMode, setEditMode] = useState(false);
+  const [selectedIds, setSelectedIds] = useState(new Set());
+  const [settingsOpen, setSettingsOpen] = useState(false);
+
+  // Düzenleme state'i
+  const [editPaket, setEditPaket] = useState(null);
+  const [editName, setEditName] = useState("");
+  const [editAciklama, setEditAciklama] = useState("");
+  const [editNameError, setEditNameError] = useState(false);
+
+  const { data: isPaketler = [], isFetching, error } = useGetWorkPackages();
+  const { data: userSettings = {} } = useGetUserSettings();
+
+  // Bu sayfaya ait ayarları çöz
+  const pageSettings = { ...DEFAULT_PAGE_SETTINGS, ...(userSettings[PAGE_KEY] ?? {}) };
 
   useEffect(() => {
     setSelectedIsPaket(null);
     if (!selectedProje) navigate("/projeler");
   }, []);
 
-  useEffect(() => {
-    if (!mode_isPaketEdit && selectedProje?.isPaketVersiyonlar?.length > 0 && !selectedIsPaketVersiyon) {
-      const maxVersiyon = selectedProje.isPaketVersiyonlar.reduce((prev, current) =>
-        (prev.versiyonNumber > current.versiyonNumber) ? prev : current
-      )
-      setSelectedIsPaketVersiyon(maxVersiyon)
-    }
-  }, [selectedProje, selectedIsPaketVersiyon, mode_isPaketEdit, setSelectedIsPaketVersiyon]);
+  // ── Ayar kaydetme ──────────────────────────────────────
+  const savePageSetting = async (key, value) => {
+    const newPageSettings = { ...pageSettings, [key]: value };
+    const newSettings = { ...userSettings, [PAGE_KEY]: newPageSettings };
 
-  useEffect(() => {
-    if (selectedProje) {
-      if (mode_isPaketEdit) {
-        setIsPaketler(selectedProje?.isPaketler);
-      } else {
-        setIsPaketler(selectedIsPaketVersiyon?.isPaketler || []);
-      }
-    }
-  }, [selectedProje, mode_isPaketEdit, selectedIsPaketVersiyon]);
+    // Anlık güncelleme (optimistic)
+    queryClient.setQueryData(["userSettings", appUser?.id], newSettings);
 
-  const [show, setShow] = useState("Main");
-  const [basliklar, setBasliklar] = useState(() => {
-    const existing = appUser.customSettings.pages.ispaketler.basliklar;
-    if (!existing?.find((x) => x.id === "pozSayisi")) {
-      return [...(existing || []), { id: "pozSayisi", baslikName: "Poz Sayısı", show: true, visible: true }];
-    }
-    return existing;
-  });
-  const showAciklama = basliklar?.find((x) => x.id === "aciklama")?.show;
-  const showPozSayisi = basliklar?.find((x) => x.id === "pozSayisi")?.show;
+    const { error } = await supabase
+      .from("user_settings")
+      .upsert(
+        { user_id: appUser.id, settings: newSettings, updated_at: new Date().toISOString() },
+        { onConflict: "user_id" }
+      );
 
-  const goto_isPaketPozlar = () => {
-    if (!isPaketler?.length > 0) {
+    if (error) {
+      // Hata durumunda optimistic güncellemeyi geri al
+      queryClient.setQueryData(["userSettings", appUser?.id], userSettings);
       setDialogAlert({
-        dialogIcon: "info",
-        dialogMessage: "Pozlar sayfasına geçmek için önce en az bir iş paketi oluşturulmalıdır.",
-        onCloseAction: () => setDialogAlert()
-      })
-      return
+        dialogIcon: "warning",
+        dialogMessage: "Ayar kaydedilemedi.",
+        detailText: error.message,
+        onCloseAction: () => setDialogAlert(),
+      });
     }
-    navigate("/ispaketpozlar");
   };
 
-  const css_IsPaketlerBaslik = {
+  // ── Select modu ────────────────────────────────────────
+  const exitSelectMode = () => {
+    setSelectMode(false);
+    setSelectedIds(new Set());
+  };
+
+  const toggleSelect = (id) => {
+    setSelectedIds((prev) => {
+      const next = new Set(prev);
+      next.has(id) ? next.delete(id) : next.add(id);
+      return next;
+    });
+  };
+
+  const allSelected = isPaketler.length > 0 && selectedIds.size === isPaketler.length;
+  const toggleSelectAll = () => {
+    setSelectedIds(allSelected ? new Set() : new Set(isPaketler.map((p) => p.id)));
+  };
+
+  // ── Silme ──────────────────────────────────────────────
+  const handleDeleteSelected = () => {
+    const count = selectedIds.size;
+    setDialogAlert({
+      dialogIcon: "warning",
+      dialogMessage: `Seçili ${count} iş paketi silinsin mi?`,
+      actionText1: "Sil",
+      action1: async () => {
+        setDialogAlert();
+        try {
+          const { error } = await supabase
+            .from("work_packages")
+            .delete()
+            .in("id", [...selectedIds]);
+
+          if (error) throw new Error(error.message);
+
+          exitSelectMode();
+          queryClient.invalidateQueries(["workPackages", selectedProje.id]);
+        } catch (err) {
+          setDialogAlert({
+            dialogIcon: "warning",
+            dialogMessage: "Silme işlemi sırasında hata oluştu.",
+            detailText: err?.message ?? null,
+            onCloseAction: () => setDialogAlert(),
+          });
+        }
+      },
+      onCloseAction: () => setDialogAlert(),
+    });
+  };
+
+  // ── Düzenleme ──────────────────────────────────────────
+  const openEdit = (paket) => {
+    setEditPaket(paket);
+    setEditName(paket.name);
+    setEditAciklama(paket.description ?? "");
+    setEditNameError(false);
+  };
+
+  const handleEditSubmit = async (e) => {
+    e.preventDefault();
+    if (editName.trim().length < 3) {
+      setEditNameError("İş paketi adı en az 3 karakter olmalıdır");
+      return;
+    }
+    try {
+      const { error } = await supabase
+        .from("work_packages")
+        .update({ name: editName.trim(), description: editAciklama.trim() || null })
+        .eq("id", editPaket.id);
+
+      if (error) throw new Error(error.message);
+
+      setEditPaket(null);
+      setEditMode(false);
+      exitSelectMode();
+      queryClient.invalidateQueries(["workPackages", selectedProje.id]);
+    } catch (err) {
+      setDialogAlert({
+        dialogIcon: "warning",
+        dialogMessage: "Güncelleme sırasında hata oluştu.",
+        detailText: err?.message ?? null,
+        onCloseAction: () => setDialogAlert(),
+      });
+    }
+  };
+
+  // ── CSS ────────────────────────────────────────────────
+  const css_baslik = {
     display: "grid",
+    alignItems: "center",
     mt: "0.1rem",
     px: "0.5rem",
     backgroundColor: "lightgray",
@@ -117,168 +200,30 @@ export default function P_IsPaketler() {
     border: "1px solid black",
   };
 
-  const css_IsPaketler = {
+  const css_satir = {
     display: "grid",
     px: "0.5rem",
     border: "1px solid black",
     alignItems: "center",
   };
 
+  // Dinamik sütun tanımı
+  const columns = [
+    selectMode ? "max-content" : null,  // checkbox
+    "max-content",                       // sıra
+    "minmax(20rem, max-content)",        // isim
+    pageSettings.showAciklama  ? "max-content" : null,  // açıklama
+    pageSettings.showOlusturan ? "max-content" : null,  // oluşturan
+  ].filter(Boolean).join(" ");
+
   const headerIconButton_sx = { width: 40, height: 40 };
   const headerIcon_sx = { fontSize: 24 };
 
-  const columns =
-    `max-content minmax(20rem, max-content)${showPozSayisi ? " minmax(5rem, max-content)" : ""} max-content${showAciklama ? " max-content" : ""}`;
-
-  const nextVersiyonNumber = (selectedProje?.isPaketVersiyonlar?.reduce((acc, cur) => Math.max(acc, cur.versiyonNumber), 0) ?? 0) + 1
-
-  const getAssignmentFingerprint = (pozlar) => {
-    if (!pozlar?.length) return null
-    return [...pozlar]
-      .sort((a, b) => a._id.toString().localeCompare(b._id.toString()))
-      .map(p => {
-        const sortedIds = (p.isPaketler || []).map(ip => ip._id.toString()).sort().join(',')
-        const assignedDugum = (p.dugumler_totalCount || 0) - (p.isPaketler_empityArrayCounts || 0)
-        return `${p._id}:${sortedIds}:${assignedDugum}`
-      })
-      .join('|')
-  }
-
-  const isSameAsLastVersion = (() => {
-    if (!selectedProje?.isPaketVersiyonlar?.length) return false
-    const lastVersiyon = selectedProje.isPaketVersiyonlar.reduce((prev, cur) =>
-      cur.versiyonNumber > prev.versiyonNumber ? cur : prev
-    )
-    // Fingerprint karşılaştırması (poz bazında iPaket içeriği + atanmış düğüm sayısı)
-    const currentFingerprint = getAssignmentFingerprint(dataIsPaketPozlar?.pozlar)
-    if (currentFingerprint !== null && lastVersiyon.fingerprint !== undefined) {
-      return currentFingerprint === lastVersiyon.fingerprint
-    }
-    // Fingerprint yoksa (sayfa yenilendiyse vb.) kayda izin ver
-    return false
-  })()
-
-  const createVersiyon_isPaket = async ({ fieldText }) => {
-    try {
-      setSelectedIsPaketVersiyon()
-
-      const response = await fetch(process.env.REACT_APP_BASE_URL + `/api/versiyon/ispaket`, {
-        method: 'POST',
-        headers: {
-          email: appUser.email,
-          token: appUser.token,
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-          projeId: selectedProje?._id,
-          versiyonNumber: nextVersiyonNumber,
-          aciklama: fieldText,
-          fingerprint: getAssignmentFingerprint(dataIsPaketPozlar?.pozlar)
-        })
-      })
-
-      const responseJson = await response.json()
-
-      if (responseJson.error) {
-        if (responseJson.error.includes("expired")) {
-          setAppUser()
-          localStorage.removeItem('appUser')
-          navigate('/')
-          window.location.reload()
-        }
-        throw new Error(responseJson.error)
-      }
-
-      if (responseJson.message) {
-        setDialogAlert({
-          dialogIcon: "info",
-          dialogMessage: responseJson.message,
-          onCloseAction: () => setDialogAlert()
-        })
-        return
-      }
-
-      if (responseJson.ok) {
-        const newVersiyon = responseJson.isPaketVersiyonlar?.find(v => v.versiyonNumber === nextVersiyonNumber)
-          ?? { versiyonNumber: nextVersiyonNumber, isPaketler, aciklama: fieldText }
-        setSelectedIsPaketVersiyon(newVersiyon)
-        const proje2 = { ...selectedProje, isPaketVersiyonlar: responseJson.isPaketVersiyonlar }
-        setSelectedProje(proje2)
-        setMode_isPaketEdit()
-      } else {
-        throw new Error("Kayıt işlemi gerçekleşmedi, sayfayı yenileyiniz, sorun devam ederse Rapor7/24 ile irtibata geçiniz.")
-      }
-
-    } catch (err) {
-      console.log(err)
-      setDialogAlert({
-        dialogIcon: "warning",
-        dialogMessage: "Beklenmedik hata, sayfayı yenileyiniz, sorun devam ederse Rapor7/24 ile irtibata geçiniz..",
-        detailText: err?.message ? err.message : null,
-        onCloseAction: () => setDialogAlert()
-      })
-    }
-  }
-
-
-  const renderIsPaketRows = (paketler) =>
-    paketler.map((onePaket, index) => {
-      const pozSayisi =
-        dataIsPaketPozlar?.isPaketPozSayisi?.[onePaket._id.toString()] ?? "";
-
-      return (
-        <React.Fragment key={onePaket._id.toString()}>
-          <Box sx={{ ...css_IsPaketler, justifyContent: "center" }}>
-            {index + 1}
-          </Box>
-
-          <Box sx={{ ...css_IsPaketler }}>
-            {onePaket.name}
-          </Box>
-
-          {showPozSayisi && (
-            <Box sx={{ ...css_IsPaketler, justifyContent: "center", marginLeft: "0.5rem" }}>
-              {pozSayisi}
-            </Box>
-          )}
-
-          <Box sx={{ ...css_IsPaketler, justifyContent: "center" }}>
-            {dataIsPaketPozlar?.isPaketDugumSayisi?.[onePaket._id.toString()] ?? ""}
-          </Box>
-
-          {showAciklama && (
-            <Box sx={{ ...css_IsPaketler, marginLeft: "0.5rem" }}>
-              {onePaket.aciklama ?? ""}
-            </Box>
-          )}
-        </React.Fragment>
-      );
-    });
-
-  const renderSectionHeaders = () => (
-    <React.Fragment>
-      <Box sx={{ ...css_IsPaketlerBaslik }}>Sıra</Box>
-      <Box sx={{ ...css_IsPaketlerBaslik }}>İş Paketi</Box>
-      {showPozSayisi && (
-        <Box sx={{ ...css_IsPaketlerBaslik, marginLeft: "0.5rem", textAlign: "center" }}>Poz</Box>
-      )}
-      <Box sx={{ ...css_IsPaketlerBaslik, display: "flex", alignItems: "center", gap: "0.3rem" }}>
-        Mahal
-        {totalDugum > 0 && (
-          <Box sx={{ display: "flex", alignItems: "center" }}>
-            <span>(</span>
-            <span>{totalA}</span>
-            {totalB > 0 && <span>{'\u202F/\u202F'}</span>}
-            {totalB > 0 && <Box component="span" sx={{ color: "#c0392b", fontWeight: 700 }}>{totalB}</Box>}
-            <span>)</span>
-          </Box>
-        )}
-      </Box>
-      {showAciklama && (
-        <Box sx={{ ...css_IsPaketlerBaslik, marginLeft: "0.5rem" }}>Açıklama</Box>
-      )}
-    </React.Fragment>
-  );
+  const olusturanAd = (paket) => {
+    const o = paket.olusturan;
+    if (!o) return "—";
+    return [o.first_name, o.last_name].filter(Boolean).join(" ") || "—";
+  };
 
   return (
     <Box>
@@ -287,38 +232,87 @@ export default function P_IsPaketler() {
           dialogIcon={dialogAlert.dialogIcon}
           dialogMessage={dialogAlert.dialogMessage}
           detailText={dialogAlert.detailText}
-          onCloseAction={
-            dialogAlert.onCloseAction
-              ? dialogAlert.onCloseAction
-              : () => setDialogAlert()
-          }
+          actionText1={dialogAlert.actionText1}
+          action1={dialogAlert.action1}
+          onCloseAction={dialogAlert.onCloseAction ?? (() => setDialogAlert())}
         />
       )}
 
-      {showEminMisin_versiyon && (
-        <DialogVersiyonTip
-          dialogBaslikText={`Mevcut iş paket atamaları versiyon (İP${nextVersiyonNumber}) olarak kaydedilsin mi?`}
-          aciklamaBaslikText={"Versiyon hakkında bilgi verebilirsiniz"}
-          aprroveAction={({ fieldText }) => {
-            setShowEminMisin_versiyon(false)
-            createVersiyon_isPaket({ fieldText })
-          }}
-          rejectAction={() => setShowEminMisin_versiyon(false)}
-          onCloseAction={() => setShowEminMisin_versiyon(false)}
-        />
+      {/* ── Görünüm Ayarları Dialog'u ── */}
+      <Dialog open={settingsOpen} onClose={() => setSettingsOpen(false)} PaperProps={{ sx: { position: "fixed", top: "10rem" } }}>
+        <DialogTitle sx={{ fontWeight: 700 }}>Görünüm Ayarları</DialogTitle>
+        <DialogContent sx={{ minWidth: 320, pt: "0 !important" }}>
+          <List disablePadding>
+            <ListItem
+              secondaryAction={
+                <Switch
+                  checked={pageSettings.showAciklama}
+                  onChange={(e) => savePageSetting("showAciklama", e.target.checked)}
+                />
+              }
+            >
+              <ListItemText primary="Açıklama sütunu" />
+            </ListItem>
+            <ListItem
+              secondaryAction={
+                <Switch
+                  checked={pageSettings.showOlusturan}
+                  onChange={(e) => savePageSetting("showOlusturan", e.target.checked)}
+                />
+              }
+            >
+              <ListItemText primary="Oluşturan kişi sütunu" />
+            </ListItem>
+          </List>
+        </DialogContent>
+      </Dialog>
+
+      {/* ── Düzenleme Dialog'u ── */}
+      {editPaket && (
+        <Dialog
+          PaperProps={{ sx: { width: "80%", position: "fixed", top: "10rem" } }}
+          open={true}
+          onClose={() => setEditPaket(null)}
+        >
+          <Box component="form" onSubmit={handleEditSubmit} noValidate sx={{ mt: 1 }}>
+            <DialogContent sx={{ display: "grid", overflow: "visible" }}>
+              <DialogContentText sx={{ fontWeight: "bold", paddingBottom: "1rem" }}>
+                İş Paketi Düzenle
+              </DialogContentText>
+              <Box onClick={() => setEditNameError(false)}>
+                <TextField
+                  variant="standard"
+                  margin="normal"
+                  label="İş Paketi Adı"
+                  type="text"
+                  fullWidth
+                  autoFocus
+                  value={editName}
+                  onChange={(e) => setEditName(e.target.value.replace(/^i/, "İ").toUpperCase())}
+                  error={Boolean(editNameError)}
+                  helperText={editNameError || ""}
+                />
+              </Box>
+              <TextField
+                multiline
+                variant="standard"
+                margin="normal"
+                label="Açıklama"
+                type="text"
+                fullWidth
+                value={editAciklama}
+                onChange={(e) => setEditAciklama(e.target.value)}
+              />
+            </DialogContent>
+            <DialogActions sx={{ padding: "1.5rem" }}>
+              <Button onClick={() => setEditPaket(null)}>İptal</Button>
+              <Button type="submit">Kaydet</Button>
+            </DialogActions>
+          </Box>
+        </Dialog>
       )}
 
-
-      {/* BAŞLIK GÖSTER / GİZLE */}
-      {show == "ShowBaslik" && (
-        <ShowIsPaketBasliklar
-          setShow={setShow}
-          basliklar={basliklar.filter((x) => x.id !== "pasif")}
-          setBasliklar={setBasliklar}
-        />
-      )}
-
-      {/* BAŞLIK */}
+      {/* ── BAŞLIK ── */}
       <AppBar
         position="static"
         sx={{ backgroundColor: "white", color: "black", boxShadow: 4 }}
@@ -329,185 +323,114 @@ export default function P_IsPaketler() {
           alignItems="center"
           sx={{ padding: "0.5rem 1rem", maxHeight: "5rem" }}
         >
-          {/* sol kısım (başlık) */}
           <Grid item xs>
-            <Box sx={{ display: "flex", alignItems: "center" }}>
-              <Typography
-                variant="body1"
-                sx={{ fontWeight: 600, whiteSpace: "nowrap" }}
-              >
+            <Box sx={{ display: "flex", alignItems: "center", gap: "0.5rem" }}>
+              <Typography variant="body1" sx={{ fontWeight: 600, whiteSpace: "nowrap" }}>
                 İş Paketleri
               </Typography>
-              <NavigateNextIcon sx={{ opacity: 0.3, fontSize: 18, mx: "0.1rem" }} />
-              <Typography
-                variant="body1"
-                sx={{
-                  fontWeight: 600,
-                  opacity: 0.3,
-                  whiteSpace: "nowrap",
-                  cursor: "pointer",
-                  transition: "opacity 0.15s ease",
-                  "&:hover": { opacity: 0.75 }
-                }}
-                onClick={() => goto_isPaketPozlar()}
-              >
-                Pozlar
-              </Typography>
+              {editMode && (
+                <Typography variant="body2" sx={{ color: "gray", whiteSpace: "nowrap" }}>
+                  — düzenlenecek satıra tıklayın
+                </Typography>
+              )}
+              {selectMode && (
+                <Typography variant="body2" sx={{ color: "gray", whiteSpace: "nowrap" }}>
+                  — silinecekleri seçin
+                </Typography>
+              )}
+              {!selectMode && !editMode && (
+                <>
+                  <NavigateNextIcon sx={{ opacity: 0.3, fontSize: 18, mx: "0.1rem" }} />
+                  <Typography
+                    variant="body1"
+                    sx={{
+                      fontWeight: 600,
+                      opacity: 0.3,
+                      whiteSpace: "nowrap",
+                      cursor: "pointer",
+                      transition: "opacity 0.15s ease",
+                      "&:hover": { opacity: 0.75 },
+                    }}
+                    onClick={() => {
+                      if (!isPaketler.length) {
+                        setDialogAlert({
+                          dialogIcon: "info",
+                          dialogMessage: "Pozlar sayfasına geçmek için önce en az bir iş paketi oluşturulmalıdır.",
+                          onCloseAction: () => setDialogAlert(),
+                        });
+                        return;
+                      }
+                      if (!selectedIsPaket) {
+                        setDialogAlert({
+                          dialogIcon: "info",
+                          dialogMessage: "Bir iş paketi satırına tıklayarak pozlarını görüntüleyebilirsiniz.",
+                          onCloseAction: () => setDialogAlert(),
+                        });
+                        return;
+                      }
+                      navigate("/ispaketpozlar");
+                    }}
+                  >
+                    Pozlar
+                  </Typography>
+                </>
+              )}
             </Box>
           </Grid>
 
-
-          {/* sağ kısım - (tuşlar)*/}
           <Grid item xs="auto">
-            <Box
-              sx={{
-                display: "grid",
-                gridAutoFlow: "column",
-                alignItems: "center",
-              }}
-            >
-
-              {!mode_isPaketEdit && (
-                <Box>
-                  <IconButton
-                    onClick={() => setShow("ShowBaslik")}
-                    sx={headerIconButton_sx}
-                    disabled={!isPaketler?.length > 0}
-                  >
-                    <VisibilityIcon variant="contained" sx={headerIcon_sx} />
-                  </IconButton>
-                </Box>
-              )}
-
-              {!mode_isPaketEdit && (
-                <IconButton
-                  sx={headerIconButton_sx}
-                  onClick={async () => {
-                    const checkAuth = await requestProjeAktifYetkiliKisi({
-                      projeId: selectedProje?._id,
-                      aktifYetki: "isPaketEdit",
-                      setDialogAlert,
-                      setShow,
-                    })
-                    if (checkAuth?.ok) {
-                      setMode_isPaketEdit(true)
-                    }
-                  }}
-                >
-                  <EditIcon color="success" sx={headerIcon_sx} />
-                </IconButton>
-              )}
-
-              {!mode_isPaketEdit && selectedProje?.isPaketVersiyonlar?.length > 0 && (
-                <Select
-                  size='small'
-                  value={selectedIsPaketVersiyon?.versiyonNumber || ""}
-                  onClose={() => {
-                    setTimeout(() => {
-                      document.activeElement.blur();
-                    }, 0);
-                  }}
-                  sx={{ fontSize: "0.75rem" }}
-                  MenuProps={{
-                    PaperProps: {
-                      style: {
-                        maxHeight: "15rem",
-                        minWidth: "5rem"
-                      },
-                    },
-                  }}
-                >
-                  {selectedProje?.isPaketVersiyonlar?.sort((a, b) => b.versiyonNumber - a.versiyonNumber).map((oneVersiyon, index) => {
-                    let versiyonNumber = oneVersiyon?.versiyonNumber
-                    return (
-                      <MenuItem
-                        onClick={() => setSelectedIsPaketVersiyon(oneVersiyon)}
-                        sx={{ fontSize: "0.75rem" }} key={index} value={versiyonNumber}> İP{versiyonNumber}
-                      </MenuItem>
-                    )
-                  })}
-                </Select>
-              )}
-
-              {!selectedIsPaket && mode_isPaketEdit && (
+            <Box sx={{ display: "flex", alignItems: "center" }}>
+              {!selectMode && !editMode && (
                 <>
-                  <Grid item>
-                    <IconButton
-                      onClick={() => {
-                        deleteProjeAktifYetkiliKisi({
-                          projeId: selectedProje?._id,
-                          aktifYetki: "isPaketEdit",
-                          setDialogAlert,
-                          setShow,
-                          onOk: () => setMode_isPaketEdit(),
-                        })
-                      }}
-                      sx={headerIconButton_sx}
-                    >
-                      <ClearOutlined variant="contained" sx={{ ...headerIcon_sx, color: "red" }} />
-                    </IconButton>
-                  </Grid>
-
-                  <Box>
-                    <IconButton
-                      onClick={() => setShow("FormIsPaketCreate")}
-                      sx={headerIconButton_sx}
-                    >
-                      <AddCircleOutlineIcon
-                        variant="contained"
-                        color="success"
-                        sx={headerIcon_sx}
-                      />
-                    </IconButton>
-                  </Box>
-
-                  <Box
-                    onClick={() => {
-                      if (!isPaketler?.length > 0) return
-                      if (totalB > 0) {
-                        setDialogAlert({
-                          dialogIcon: "warning",
-                          dialogMessage: `${totalB} adet seçilmemiş düğüm bulunmaktadır. Versiyon kaydı yapılabilmesi için tüm düğümlerin bir iş paketine atanmış olması gerekir.`,
-                          onCloseAction: () => setDialogAlert()
-                        })
-                        return
-                      }
-                      if (isSameAsLastVersion) {
-                        setDialogAlert({
-                          dialogIcon: "warning",
-                          dialogMessage: "Mevcut iş paketi listesi son versiyonla aynı. Yeni versiyon oluşturmak için önce değişiklik yapınız.",
-                          onCloseAction: () => setDialogAlert()
-                        })
-                        return
-                      }
-                      setShowEminMisin_versiyon(true)
-                    }}
-                    sx={{
-                      cursor: isPaketler?.length > 0 ? "pointer" : "default",
-                      mx: "0.3rem", py: "0.2rem", px: "0.3rem",
-                      border: isPaketler?.length > 0 ? (totalB > 0 ? "1px solid gray" : "1px solid red") : "1px solid black",
-                      borderRadius: "0.5rem",
-                      fontSize: "0.8rem",
-                      fontWeight: "600",
-                      backgroundColor: totalB > 0 ? "#e0e0e0" : "yellow"
-                    }}
+                  <IconButton sx={headerIconButton_sx} onClick={() => setSettingsOpen(true)}>
+                    <VisibilityIcon sx={headerIcon_sx} />
+                  </IconButton>
+                  <IconButton
+                    sx={headerIconButton_sx}
+                    onClick={() => setEditMode(true)}
+                    disabled={isPaketler.length === 0}
                   >
-                    İP{nextVersiyonNumber}
-                  </Box>
+                    <EditIcon sx={headerIcon_sx} />
+                  </IconButton>
+                  <IconButton
+                    sx={headerIconButton_sx}
+                    onClick={() => setSelectMode(true)}
+                    disabled={isPaketler.length === 0}
+                  >
+                    <DeleteIcon sx={headerIcon_sx} />
+                  </IconButton>
+                  <IconButton
+                    sx={headerIconButton_sx}
+                    onClick={() => setShow("FormIsPaketCreate")}
+                  >
+                    <AddCircleOutlineIcon color="success" sx={headerIcon_sx} />
+                  </IconButton>
                 </>
               )}
 
-              {selectedIsPaket && (
+              {editMode && (
                 <>
-                  <Grid item>
-                    <IconButton
-                      onClick={() => console.log("deleted clicked")}
-                      aria-label="addWbs"
-                      sx={headerIconButton_sx}
-                    >
-                      <DeleteIcon variant="contained" color="error" sx={headerIcon_sx} />
-                    </IconButton>
-                  </Grid>
+                  <IconButton sx={headerIconButton_sx} onClick={() => setEditMode(false)}>
+                    <CloseIcon sx={headerIcon_sx} />
+                  </IconButton>
+                </>
+              )}
+
+              {selectMode && (
+                <>
+                  <IconButton sx={headerIconButton_sx} onClick={exitSelectMode}>
+                    <CloseIcon sx={headerIcon_sx} />
+                  </IconButton>
+                  <IconButton
+                    sx={headerIconButton_sx}
+                    onClick={handleDeleteSelected}
+                    disabled={selectedIds.size === 0}
+                  >
+                    <DeleteIcon
+                      color={selectedIds.size > 0 ? "error" : "disabled"}
+                      sx={headerIcon_sx}
+                    />
+                  </IconButton>
                 </>
               )}
             </Box>
@@ -515,45 +438,123 @@ export default function P_IsPaketler() {
         </Grid>
       </AppBar>
 
-      {show == "FormIsPaketCreate" && (
-        <Box>
-          <FormIsPaketCreate
-            setShow={setShow}
-            onClose={() => setShow("Main")}
-          />
+      {isFetching && <LinearProgress />}
+
+      {error && (
+        <Stack sx={{ width: "100%", padding: "1rem" }}>
+          <Alert severity="error">Veri alınırken hata: {error.message}</Alert>
+        </Stack>
+      )}
+
+      {show === "FormIsPaketCreate" && (
+        <FormIsPaketCreate onClose={() => setShow("Main")} />
+      )}
+
+      {show === "Main" && !isFetching && isPaketler.length === 0 && (
+        <Stack sx={{ width: "100%", padding: "1rem" }}>
+          <Alert severity="info">
+            Henüz iş paketi oluşturulmamış. (+) tuşuna basarak ekleyebilirsiniz.
+          </Alert>
+        </Stack>
+      )}
+
+      {show === "Main" && isPaketler.length > 0 && (
+        <Box sx={{ padding: "1rem", display: "grid", gridTemplateColumns: columns }}>
+
+          {/* ── Başlık satırı ── */}
+          {selectMode && (
+            <Box sx={{ ...css_baslik, justifyContent: "center" }}>
+              <Checkbox
+                size="small"
+                checked={allSelected}
+                indeterminate={selectedIds.size > 0 && !allSelected}
+                onChange={toggleSelectAll}
+                sx={{ p: "2px" }}
+              />
+            </Box>
+          )}
+          <Box sx={{ ...css_baslik, justifyContent: "center" }}>Sıra</Box>
+          <Box sx={{ ...css_baslik }}>İş Paketi</Box>
+          {pageSettings.showAciklama  && <Box sx={{ ...css_baslik }}>Açıklama</Box>}
+          {pageSettings.showOlusturan && <Box sx={{ ...css_baslik }}>Oluşturan</Box>}
+
+          {/* ── Veri satırları ── */}
+          {isPaketler.map((paket, index) => {
+            const isChecked = selectedIds.has(paket.id);
+            const secilenBg = isChecked ? { backgroundColor: "#e3f2fd" } : {};
+            return (
+              <React.Fragment key={paket.id}>
+                {selectMode && (
+                  <Box sx={{ ...css_satir, justifyContent: "center", ...secilenBg }}>
+                    <Checkbox
+                      size="small"
+                      checked={isChecked}
+                      onChange={() => toggleSelect(paket.id)}
+                      sx={{ p: "2px" }}
+                    />
+                  </Box>
+                )}
+
+                <Box sx={{ ...css_satir, justifyContent: "center", ...secilenBg }}>
+                  {index + 1}
+                </Box>
+
+                <Box
+                  sx={{
+                    ...css_satir,
+                    cursor: "pointer",
+                    userSelect: "none",
+                    "&:hover": { backgroundColor: isChecked ? "#d0e8fb" : "#f5f5f5" },
+                    ...secilenBg,
+                    ...(editMode && { "&:hover": { backgroundColor: "#fff9c4" } }),
+                  }}
+                  onClick={() => {
+                    if (editMode)       return openEdit(paket);
+                    if (selectMode)     return toggleSelect(paket.id);
+                    setSelectedIsPaket(paket);
+                    navigate("/ispaketpozlar");
+                  }}
+                >
+                  {paket.name}
+                </Box>
+
+                {pageSettings.showAciklama && (
+                  <Box
+                    sx={{
+                      ...css_satir,
+                      cursor: (selectMode || editMode) ? "pointer" : "default",
+                      ...secilenBg,
+                      ...(editMode && { "&:hover": { backgroundColor: "#fff9c4" } }),
+                    }}
+                    onClick={() => {
+                      if (editMode)   return openEdit(paket);
+                      if (selectMode) return toggleSelect(paket.id);
+                    }}
+                  >
+                    {paket.description ?? ""}
+                  </Box>
+                )}
+
+                {pageSettings.showOlusturan && (
+                  <Box
+                    sx={{
+                      ...css_satir,
+                      cursor: (selectMode || editMode) ? "pointer" : "default",
+                      ...secilenBg,
+                      ...(editMode && { "&:hover": { backgroundColor: "#fff9c4" } }),
+                    }}
+                    onClick={() => {
+                      if (editMode)   return openEdit(paket);
+                      if (selectMode) return toggleSelect(paket.id);
+                    }}
+                  >
+                    {olusturanAd(paket)}
+                  </Box>
+                )}
+              </React.Fragment>
+            );
+          })}
         </Box>
-      )}
-
-      {show == "Main" && mode_isPaketEdit && !isPaketler?.length > 0 && (
-        <Stack sx={{ width: "100%", padding: "1rem" }} spacing={2}>
-          <Alert severity="info">
-            Bir iş paketi oluşturmak için (+) tuşuna basınız..
-          </Alert>
-        </Stack>
-      )}
-
-      {show == "Main" && !mode_isPaketEdit && !selectedIsPaketVersiyon && !(selectedProje?.isPaketVersiyonlar?.length > 0) && (
-        <Stack sx={{ width: "100%", padding: "1rem" }} spacing={2}>
-          <Alert severity="info">
-            Henüz iş paketi versiyonu oluşturulmamış. Düzenlemek için önce edit moduna geçiniz.
-          </Alert>
-        </Stack>
-      )}
-
-      {show == "Main" && isPaketler?.length > 0 && (
-        <Stack
-          sx={{
-            width: "100%",
-            padding: "1rem",
-            display: "grid",
-            gridTemplateColumns: columns,
-            borderTop: mode_isPaketEdit ? "4px solid #e53935" : "4px solid transparent",
-            transition: "border-color 0.3s ease",
-          }}
-        >
-          {renderSectionHeaders()}
-          {renderIsPaketRows(isPaketler)}
-        </Stack>
       )}
     </Box>
   );

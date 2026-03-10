@@ -218,6 +218,61 @@ export const useGetProjectPozlar = () => {
 }
 
 
+// Supabase - getUserSettings (Kullanıcı görünüm ayarları)
+export const useGetUserSettings = () => {
+
+  const { appUser } = useContext(StoreContext)
+
+  return useQuery({
+    queryKey: ['userSettings', appUser?.id],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('user_settings')
+        .select('settings')
+        .eq('user_id', appUser.id)
+        .maybeSingle()
+
+      if (error) throw new Error(error.message)
+
+      return data?.settings ?? {}
+    },
+    enabled: !!appUser,
+    retry: false,
+    refetchOnMount: false,
+    refetchOnWindowFocus: false,
+    staleTime: Infinity
+  })
+
+}
+
+
+// Supabase - getWorkPackages (İş Paketleri)
+export const useGetWorkPackages = () => {
+
+  const { appUser, selectedProje } = useContext(StoreContext)
+
+  return useQuery({
+    queryKey: ['workPackages', selectedProje?.id],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('work_packages')
+        .select('id, name, code, description, status, created_at, olusturan:users!created_by(first_name, last_name)')
+        .eq('project_id', selectedProje.id)
+        .order('created_at')
+
+      if (error) throw new Error(error.message)
+
+      return data ?? []
+    },
+    enabled: !!appUser && !!selectedProje,
+    retry: false,
+    refetchOnMount: true,
+    refetchOnWindowFocus: false
+  })
+
+}
+
+
 // Supabase - getWorkAreas (Mahaller)
 export const useGetWorkAreas = () => {
 
@@ -238,6 +293,70 @@ export const useGetWorkAreas = () => {
       return data ?? []
     },
     enabled: !!appUser && !!selectedProje,
+    retry: false,
+    refetchOnMount: true,
+    refetchOnWindowFocus: false
+  })
+
+}
+
+
+// Supabase - getWorkPackagePozlar (İş paketine atanmış pozlar)
+export const useGetWorkPackagePozlar = () => {
+
+  const { appUser, selectedProje, selectedIsPaket } = useContext(StoreContext)
+
+  return useQuery({
+    queryKey: ['workPackagePozlar', selectedIsPaket?.id],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('work_package_pozlar')
+        .select('id, project_poz_id, order_index, project_poz:project_pozlar(id, code, short_desc, wbs_node_id, unit_id, order_index)')
+        .eq('work_package_id', selectedIsPaket.id)
+        .order('order_index')
+
+      if (error) throw new Error(error.message)
+
+      return data ?? []
+    },
+    enabled: !!appUser && !!selectedProje && !!selectedIsPaket,
+    retry: false,
+    refetchOnMount: true,
+    refetchOnWindowFocus: false
+  })
+
+}
+
+
+// Supabase - getWorkPackagePozAreas (İş paketi + poz'a atanmış mahaller)
+export const useGetWorkPackagePozAreas = () => {
+
+  const { appUser, selectedProje, selectedIsPaket, selectedPoz } = useContext(StoreContext)
+
+  return useQuery({
+    queryKey: ['workPackagePozAreas', selectedIsPaket?.id, selectedPoz?.id],
+    queryFn: async () => {
+      const { data: wppData, error: wppError } = await supabase
+        .from('work_package_pozlar')
+        .select('id')
+        .eq('work_package_id', selectedIsPaket.id)
+        .eq('project_poz_id', selectedPoz.id)
+        .maybeSingle()
+
+      if (wppError) throw new Error(wppError.message)
+      if (!wppData) return []
+
+      const { data, error } = await supabase
+        .from('work_package_poz_areas')
+        .select('id, work_area_id, order_index, work_area:work_areas(id, code, name, lbs_node_id, area, order_index)')
+        .eq('work_package_poz_id', wppData.id)
+        .order('order_index')
+
+      if (error) throw new Error(error.message)
+
+      return data ?? []
+    },
+    enabled: !!appUser && !!selectedProje && !!selectedIsPaket && !!selectedPoz,
     retry: false,
     refetchOnMount: true,
     refetchOnWindowFocus: false

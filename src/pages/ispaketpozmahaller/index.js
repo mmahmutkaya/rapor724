@@ -1,777 +1,319 @@
-import React, { useState, useContext, useEffect, Fragment } from 'react';
-import { useNavigate } from "react-router-dom";
-import { StoreContext } from '../../components/store.js'
-import { useApp } from "../../components/useApp.js";
-import FormPozCreate from '../../components/FormPozCreate.js'
-import EditPozBaslik from '../../components/EditPozBaslik.js'
-import FormPozBaslikCreate from '../../components/FormPozBaslikCreate.js'
-import { DialogAlert } from '../../components/general/DialogAlert.js';
-import { useQuery, useQueryClient } from '@tanstack/react-query'
-import _ from 'lodash';
+import React, { useState, useContext, useEffect, useMemo } from 'react'
+import { useNavigate } from 'react-router-dom'
+
+import { StoreContext } from '../../components/store'
+import { useGetLbsNodes, useGetWorkAreas } from '../../hooks/useMongo'
+
+import Box from '@mui/material/Box'
+import Paper from '@mui/material/Paper'
+import Grid from '@mui/material/Grid'
+import Typography from '@mui/material/Typography'
+import LinearProgress from '@mui/material/LinearProgress'
+import Alert from '@mui/material/Alert'
+import NavigateNextIcon from '@mui/icons-material/NavigateNext'
 
 
-import { useGetDugumler_byPoz, useGetMahaller } from '../../hooks/useMongo.js';
+function flattenTree(nodes, parentId = null, depth = 0) {
+  return nodes
+    .filter(n => (n.parent_id ?? null) === (parentId ?? null))
+    .sort((a, b) => a.order_index - b.order_index)
+    .flatMap(n => [{ ...n, depth }, ...flattenTree(nodes, n.id, depth + 1)])
+}
+
+function nodeColor(depth) {
+  const palette = [
+    { bg: "#7a3333", co: "#e6e6e6" },
+    { bg: "#2d5c3a", co: "#e6e6e6" },
+    { bg: "#2d4f80", co: "#e6e6e6" },
+    { bg: "#6b5a2a", co: "#e6e6e6" },
+    { bg: "#2d6060", co: "#e6e6e6" },
+    { bg: "#4a2d7a", co: "#e6e6e6" },
+    { bg: "#6b2d50", co: "#e6e6e6" },
+    { bg: "#505050", co: "#e6e6e6" },
+  ]
+  return palette[depth % palette.length]
+}
 
 
-// import ShowMetrajYapabilenler from '../../components/ShowMetrajYapabilenler.js'
-// import HeaderMetrajPozMahaller from '../../components/HeaderMetrajPozMahaller.js'
-// import HeaderMahalListesiPozMahaller from '../../components/HeaderMahalListesiPozMahaller.js'
-
-
-import AppBar from '@mui/material/AppBar';
-import Paper from '@mui/material/Paper';
-import Grid from '@mui/material/Grid';
-import Alert from '@mui/material/Alert';
-import Stack from '@mui/material/Stack';
-import Box from '@mui/material/Box';
-import { Check } from '@mui/icons-material';
-import AddCircleOutlineIcon from '@mui/icons-material/AddCircleOutline';
-import EditIcon from '@mui/icons-material/Edit';
-import ClearIcon from '@mui/icons-material/Clear';
-import Tooltip from '@mui/material/Tooltip';
-import FileDownloadDoneIcon from '@mui/icons-material/FileDownloadDone';
-import LinearProgress from '@mui/material/LinearProgress';
-import IconButton from '@mui/material/IconButton';
-import ClearOutlined from '@mui/icons-material/ClearOutlined';
-import NavigateNextIcon from '@mui/icons-material/NavigateNext';
-import Typography from '@mui/material/Typography';
-import ViewWeekIcon from '@mui/icons-material/ViewWeek';
-import MenuItem from '@mui/material/MenuItem';
-import Select from '@mui/material/Select';
-import Popper from '@mui/material/Popper';
-import ClickAwayListener from '@mui/material/ClickAwayListener';
-import MenuList from '@mui/material/MenuList';
-
-
-export default function P_IsPaketPozMahaller() {
-
-  const queryClient = useQueryClient()
-
-  const { appUser, setAppUser, myTema } = useContext(StoreContext)
-  const { selectedProje, selectedPoz, mode_isPaketEdit, setMode_isPaketEdit, selectedIsPaketVersiyon, setSelectedIsPaketVersiyon } = useContext(StoreContext)
-
-
-  const [showEminMisin, setShowEminMisin] = useState(false)
-  const [dialogConfirmAction, setDialogConfirmAction] = useState(null)
-
-  const [dialogAlert, setDialogAlert] = useState()
-
-
-  const [show, setShow] = useState("Main")
-  const [isChanged, setIsChanged] = useState()
-
-
-  const [isChange_select, setIsChange_select] = useState(false)
-  const [dugumler_byPoz_state, setDugumler_byPoz_state] = useState()
-  const [anySelectable, setAnySelectable] = useState()
-
-  const [mahaller_state, setMahaller_state] = useState()
-  const [menuState, setMenuState] = useState({ anchorEl: null, dugumId: null })
-
-  const [autoFocus, setAutoFocus] = useState({ baslikId: null, pozId: null })
-
+export default function P_isPaketPozMahaller() {
   const navigate = useNavigate()
+  const { selectedProje, selectedIsPaket, selectedPoz } = useContext(StoreContext)
 
-  const { data: dataMahaller, error: error1, isFetching: isFetching1 } = useGetMahaller()
-  const { data: dataDugumler_byPoz, error: error2, isFetching: isFetching2 } = useGetDugumler_byPoz()
+  const { data: rawLbsNodes = [], isLoading: lbsLoading } = useGetLbsNodes()
+  const { data: rawMahaller = [], isLoading: mahalLoading, error: mahalError } = useGetWorkAreas()
 
-  // Guard: Redirect back to parent page if context values are not loaded (e.g., on page reload)
-  useEffect(() => {
-    if (!selectedProje || !selectedPoz) {
-      navigate('/ispaketpozlar')
-    }
-  }, [selectedProje, selectedPoz, navigate])
+  const [collapsedIds, setCollapsedIds] = useState(new Set())
+  const [selectedIds, setSelectedIds] = useState(new Set())
 
-  useEffect(() => {
-    if (!mode_isPaketEdit && !selectedIsPaketVersiyon && !(selectedProje?.isPaketVersiyonlar?.length > 0)) {
-      navigate('/ispaketler')
-    }
-  }, [mode_isPaketEdit, selectedIsPaketVersiyon, selectedProje, navigate])
-
-  const pozBirim = selectedProje?.pozBirimleri.find(x => x.id == selectedPoz?.pozBirimId)?.name
-
-
-  // const mahaller = dataMahaller?.mahaller?.filter(oneMahal => dugumler_byPoz_state?.find(oneDugum => oneDugum._mahalId.toString() === oneMahal._id.toString()))
+  const isLoading = lbsLoading || mahalLoading
+  const queryError = mahalError
 
   useEffect(() => {
-    // Guard: Only proceed if we have all required context values
-    if (!selectedProje || !selectedPoz) {
-      return
-    }
+    if (!selectedProje || !selectedIsPaket) navigate('/ispaketler')
+    else if (!selectedPoz) navigate('/ispaketpozlar')
+  }, [selectedProje, selectedIsPaket, selectedPoz, navigate])
 
-    setMahaller_state(_.cloneDeep(dataMahaller?.mahaller))
-    setDugumler_byPoz_state(_.cloneDeep(dataDugumler_byPoz?.dugumler_byPoz))
-    // console.log("dataDugumler_byPoz?.dugumler_byPoz", dataDugumler_byPoz?.dugumler_byPoz)
-    return () => {
-      setMahaller_state()
-    }
-  }, [dataMahaller, dataDugumler_byPoz, selectedProje, selectedPoz])
+  const flatNodes = useMemo(() => flattenTree(rawLbsNodes), [rawLbsNodes])
 
-
-  useEffect(() => {
-    if (error1) {
-      console.log("error", error1)
-      setDialogAlert({
-        dialogIcon: "warning",
-        dialogMessage: "Beklenmedik hata, Rapor7/24 ile irtibata geçiniz..",
-        detailText: error1?.message ? error1.message : null
-      })
-    }
-    if (error2) {
-      console.log("error", error2)
-      setDialogAlert({
-        dialogIcon: "warning",
-        dialogMessage: "Beklenmedik hata, Rapor7/24 ile irtibata geçiniz..",
-        detailText: error2?.message ? error2.message : null
-      })
-    }
-  }, [error1, error2]);
-
-
-
-  const ikiHane = (value) => {
-    if (!value) {
-      return ""
-    }
-    if (value != "") {
-      return new Intl.NumberFormat("de-DE", { minimumFractionDigits: 2, maximumFractionDigits: 2, }).format(value)
-    }
-    return value
-  }
-
-  let openLbsArray = selectedProje?.lbs
-    .filter(oneLbs => oneLbs.openForMahal)
-    .sort(function (a, b) {
-      var nums1 = a.code.split(".");
-      var nums2 = b.code.split(".");
-
-      for (var i = 0; i < nums1.length; i++) {
-        if (nums2[i]) { // assuming 5..2 is invalid
-          if (nums1[i] !== nums2[i]) {
-            return nums1[i] - nums2[i];
-          } // else continue
-        } else {
-          return 1; // no second number in b
-        }
-      }
-      return -1; // was missing case b.len > a.len
+  const isLeafSet = useMemo(() => {
+    const s = new Set()
+    rawLbsNodes.forEach(n => {
+      if (!rawLbsNodes.some(c => c.parent_id === n.id)) s.add(n.id)
     })
+    return s
+  }, [rawLbsNodes])
 
+  const maxLeafDepth = useMemo(() => {
+    const leaves = flatNodes.filter(n => isLeafSet.has(n.id))
+    return leaves.length > 0 ? Math.max(...leaves.map(n => n.depth)) : 0
+  }, [flatNodes, isLeafSet])
 
-
-
-  let getLbsName = (oneLbs) => {
-
-    let cOunt = oneLbs.code.split(".").length
-    let name
-    let code
-
-    oneLbs.code.split(".").map((codePart, index) => {
-
-      if (index == 0 && cOunt == 1) {
-        code = codePart
-        name = selectedProje?.lbs.find(item => item.code == code).name
-      }
-
-      if (index == 0 && cOunt !== 1) {
-        code = codePart
-        name = selectedProje?.lbs.find(item => item.code == code).codeName
-      }
-
-      if (index !== 0 && index + 1 !== cOunt && cOunt !== 1) {
-        code = code + "." + codePart
-        name = name + " > " + selectedProje?.lbs.find(item => item.code == code).codeName
-      }
-
-      if (index !== 0 && index + 1 == cOunt && cOunt !== 1) {
-        code = code + "." + codePart
-        name = name + " > " + selectedProje?.lbs.find(item => item.code == code).name
-      }
-
+  function toggleCollapse(nodeId) {
+    setCollapsedIds(prev => {
+      const next = new Set(prev)
+      next.has(nodeId) ? next.delete(nodeId) : next.add(nodeId)
+      return next
     })
-
-    return { name, code }
-
   }
 
-
-
-
-  const cancelChange = () => {
-    setDugumler_byPoz_state(_.cloneDeep(dataDugumler_byPoz?.dugumler_byPoz))
-    setIsChanged(false)
-  }
-
-
-  const handleOpenMenu = (event, dugumId) => {
-    setMenuState({ anchorEl: event.currentTarget, dugumId })
-  }
-
-  const handleCloseMenu = () => {
-    setMenuState({ anchorEl: null, dugumId: null })
-  }
-
-  const handleAddIsPaket = (isPaketId) => {
-    const dugumId = menuState.dugumId
-    setDugumler_byPoz_state(prev => prev.map(d => {
-      if (d._id.toString() === dugumId) {
-        return { ...d, isPaketler: [{ _id: isPaketId }], newSelected: true }
-      }
-      return d
-    }))
-    setIsChanged(true)
-    handleCloseMenu()
-  }
-
-  const handleRemoveIsPaket = (dugumId, isPaketId) => {
-    setDugumler_byPoz_state(prev => prev.map(d => {
-      if (d._id.toString() === dugumId) {
-        const newIsPaketler = (d.isPaketler || []).filter(p => p._id.toString() !== isPaketId.toString())
-        return { ...d, isPaketler: newIsPaketler, newSelected: true }
-      }
-      return d
-    }))
-    setIsChanged(true)
-  }
-
-
-  const handleBackClick = () => {
-    if (isChanged) {
-      setDialogConfirmAction(() => () => {
-        cancelChange()
-        navigate('/ispaketpozlar')
-      })
-      setShowEminMisin(true)
-    } else {
-      navigate('/ispaketpozlar')
+  function isHiddenByAncestor(node) {
+    let parentId = node.parent_id
+    while (parentId) {
+      if (collapsedIds.has(parentId)) return true
+      const parent = rawLbsNodes.find(n => n.id === parentId)
+      parentId = parent?.parent_id ?? null
     }
+    return false
   }
 
-
-  const saveChange = async () => {
-
-    try {
-
-      const originalDugumler = dataDugumler_byPoz?.dugumler_byPoz || []
-      const changedDugumler = dugumler_byPoz_state.filter(x => x.newSelected)
-
-      // Her değişen dugum için orijinal ile mevcut isPaketler farkını bul
-      const changedIsPaketIds = new Set()
-      changedDugumler.forEach(dugum => {
-        const orig = originalDugumler.find(d => d._id.toString() === dugum._id.toString())
-        const origIds = (orig?.isPaketler || []).map(ip => ip._id.toString())
-        const currIds = (dugum.isPaketler || []).map(ip => ip._id.toString())
-        currIds.filter(id => !origIds.includes(id)).forEach(id => changedIsPaketIds.add(id))
-        origIds.filter(id => !currIds.includes(id)).forEach(id => changedIsPaketIds.add(id))
-      })
-
-      // Her eşsiz isPaket için bir API çağrısı yap
-      for (const isPaketId of changedIsPaketIds) {
-        const dugumlerForCall = changedDugumler.map(dugum => {
-          const orig = originalDugumler.find(d => d._id.toString() === dugum._id.toString())
-          const origIds = (orig?.isPaketler || []).map(ip => ip._id.toString())
-          const currIds = (dugum.isPaketler || []).map(ip => ip._id.toString())
-          const wasHere = origIds.includes(isPaketId)
-          const isHere = currIds.includes(isPaketId)
-          if (wasHere === isHere) return null
-          return { _id: dugum._id, newSelectedValue: isHere }
-        }).filter(Boolean)
-
-        if (dugumlerForCall.length === 0) continue
-
-        const response = await fetch(process.env.REACT_APP_BASE_URL + `/api/dugumler/ispaketler`, {
-          method: 'POST',
-          headers: {
-            email: appUser.email,
-            token: appUser.token,
-            'Content-Type': 'application/json'
-          },
-          body: JSON.stringify({
-            selectedIsPaket: { _id: isPaketId },
-            dugumler: dugumlerForCall
-          })
-        })
-
-        const responseJson = await response.json()
-
-        if (responseJson.error) {
-          if (responseJson.error.includes("expired")) {
-            setAppUser()
-            localStorage.removeItem('appUser')
-            navigate('/')
-            window.location.reload()
-          }
-          throw new Error(responseJson.error)
-        }
-
-        if (!responseJson.ok) {
-          throw new Error("Kayıt işlemi gerçekleşmedi, sayfayı yenileyiniz, sorun devam ederse Rapor7/24 ile irtibata geçiniz..")
-        }
-      }
-
-      queryClient.invalidateQueries(['dataDugumler_byPoz'])
-      setIsChanged()
-
-    } catch (err) {
-
-      setDialogAlert({
-        dialogIcon: "warning",
-        dialogMessage: "Beklenmedik hata, Rapor7/24 ile irtibata geçiniz..",
-        detailText: err?.message ? err.message : null,
-        onCloseAction: () => {
-          setDugumler_byPoz_state(_.cloneDeep(dataDugumler_byPoz?.dugumler_byPoz))
-          setIsChanged()
-          setDialogAlert()
-        }
-      })
-
-    }
+  const toggleMahal = (mahal) => {
+    setSelectedIds(prev => {
+      const next = new Set(prev)
+      next.has(mahal.id) ? next.delete(mahal.id) : next.add(mahal.id)
+      return next
+    })
   }
 
-
-
-
-  // CSS
-  const css_enUstBaslik = {
-    display: "grid",
-    fontWeight: "600",
-    border: "1px solid black",
-    py: "0.05rem",
-    px: "0.5rem",
-    justifyContent: "start",
-    alignItems: "center",
-    backgroundColor: "#415a77",
-    color: "#e0e1dd"
-  }
-
-  const css_LbsBaslik = {
-    border: "1px solid black",
-    borderRight: "1px solid black",
-    mt: "0.5rem",
-    px: "0.5rem",
-    display: "grid",
-    justifyContent: "start",
-    backgroundColor: myTema.renkler.metrajOnaylananBaslik
-  }
-
-  const css_mahaller = {
-    border: "1px solid black",
-    borderTop: "1px solid black", // Ensure top border is visible
-    borderRight: "1px solid black", // Ensure right border is visible
-    px: "0.5rem",
-    display: "grid",
-    justifyContent: "start",
-    alignItems: "center"
-  }
-
-  // used for centering content in third grid column
-  const css_thirdCol = {
-    justifyContent: "center",
-    borderLeft: "1px solid black", // Ensure separation from column 2
-    borderRight: "1px solid black",
-    borderTop: "1px solid black",
-    borderBottom: "1px solid black",
-    paddingLeft: "1rem",
-    marginLeft: "1rem"
-  }
-
-  let paraBirimiAdet = selectedProje?.paraBirimleri?.filter(x => x?.isActive).length
-
-  const activeIsPaketler = mode_isPaketEdit
-    ? (selectedProje?.isPaketler || [])
-    : (selectedProje?.isPaketVersiyonlar?.find(v => v.versiyonNumber === selectedIsPaketVersiyon?.versiyonNumber)?.isPaketler || selectedProje?.isPaketler || [])
-
-  const gridTemplateColumns1 = 'max-content minmax(min-content, 15rem) 1rem max-content'
-
-  // console.log("paraBirimiAdet",paraBirimiAdet)
+  const pozLabel = selectedPoz?.code
+    ? `${selectedPoz.code} · ${selectedPoz.short_desc}`
+    : selectedPoz?.short_desc
 
 
   return (
-
-    <Box sx={{ m: "0rem" }}>
-
-      {!selectedProje || !selectedPoz ? (
-        null
-      ) : (
-        <>
-
-      {dialogAlert &&
-        <DialogAlert
-          dialogIcon={dialogAlert.dialogIcon}
-          dialogMessage={dialogAlert.dialogMessage}
-          detailText={dialogAlert.detailText}
-          onCloseAction={dialogAlert.onCloseAction ? dialogAlert.onCloseAction : () => setDialogAlert()}
-        />
-      }
-
-      {showEminMisin &&
-        <DialogAlert
-          dialogIcon={"warning"}
-          dialogMessage={"Yaptığınız değişiklikleri kaybedeceksiniz ?"}
-          onCloseAction={() => setShowEminMisin()}
-          actionText1={"İptal"}
-          action1={() => setShowEminMisin()}
-          actionText2={"Onayla"}
-          action2={() => {
-            dialogConfirmAction?.()
-            setShowEminMisin()
-          }}
-        />
-      }
-
+    <Box sx={{ m: '0rem' }}>
 
       {/* BAŞLIK */}
-      <AppBar
-        position="static"
-        sx={{ backgroundColor: "white", color: "black", boxShadow: 4 }}
-      >
-
-          <Grid
-            container
-            justifyContent="space-between"
-            alignItems="center"
-            sx={{ padding: "0.5rem 1rem", maxHeight: "5rem" }}
-          >
-
-            {/* sol kısım (başlık) */}
-            <Grid item xs>
-              <Box sx={{ display: "flex", alignItems: "center" }}>
-                <Typography
-                  variant="body1"
-                  sx={{
-                    fontWeight: 600,
-                    opacity: 0.3,
-                    whiteSpace: "nowrap",
-                    cursor: "pointer",
-                    transition: "opacity 0.15s ease",
-                    "&:hover": { opacity: 0.75 }
-                  }}
-                  onClick={() => navigate('/ispaketler')}
-                >
-                  İş Paketleri
-                </Typography>
-                <NavigateNextIcon sx={{ opacity: 0.3, fontSize: 18, mx: "0.1rem" }} />
-                <Typography
-                  variant="body1"
-                  sx={{
-                    fontWeight: 600,
-                    opacity: 0.3,
-                    whiteSpace: "nowrap",
-                    cursor: "pointer",
-                    transition: "opacity 0.15s ease",
-                    "&:hover": { opacity: 0.75 }
-                  }}
-                  onClick={() => navigate('/ispaketpozlar')}
-                >
-                  Pozlar
-                </Typography>
-                <NavigateNextIcon sx={{ opacity: 0.3, fontSize: 18, mx: "0.1rem" }} />
-                <Typography
-                  variant="body2"
-                  sx={{
-                    fontWeight: 600,
-                    whiteSpace: "nowrap",
-                    overflow: "hidden",
-                    textOverflow: "ellipsis",
-                    maxWidth: "14rem",
-                  }}
-                >
-                  {selectedPoz?.pozNo}{selectedPoz?.pozName ? ` · ${selectedPoz.pozName}` : ""}
-                </Typography>
-              </Box>
-            </Grid>
-
-            {/* sağ kısım - (tuşlar)*/}
-            <Grid item xs="auto">
-              <Box sx={{ display: "grid", gridAutoFlow: "column", alignItems: "center" }}>
-
-                {!isChanged && !mode_isPaketEdit &&
-                  <IconButton
-                    sx={{ width: 40, height: 40 }}
-                    onClick={() => setMode_isPaketEdit(true)}>
-                    <EditIcon color="success" sx={{ fontSize: 24 }} />
-                  </IconButton>
-                }
-
-                {!isChanged && mode_isPaketEdit &&
-                  <IconButton
-                    sx={{ width: 40, height: 40 }}
-                    onClick={() => setMode_isPaketEdit()}>
-                    <ClearIcon sx={{ color: "red", fontSize: 24 }} />
-                  </IconButton>
-                }
-
-                {!isChanged && !mode_isPaketEdit && selectedProje?.isPaketVersiyonlar?.length > 0 &&
-                  <Select
-                    size='small'
-                    value={selectedIsPaketVersiyon?.versiyonNumber || ""}
-                    onClose={() => {
-                      setTimeout(() => {
-                        document.activeElement.blur();
-                      }, 0);
-                    }}
-                    sx={{ fontSize: "0.75rem" }}
-                    MenuProps={{
-                      PaperProps: {
-                        style: {
-                          maxHeight: "15rem",
-                          minWidth: "5rem"
-                        },
-                      },
-                    }}
-                  >
-                    {selectedProje?.isPaketVersiyonlar?.sort((a, b) => b.versiyonNumber - a.versiyonNumber).map((oneVersiyon, index) => {
-                      let versiyonNumber = oneVersiyon?.versiyonNumber
-                      return (
-                        <MenuItem
-                          onClick={() => setSelectedIsPaketVersiyon(oneVersiyon)}
-                          sx={{ fontSize: "0.75rem" }} key={index} value={versiyonNumber}> İP{versiyonNumber}
-                        </MenuItem>
-                      )
-                    })}
-                  </Select>
-                }
-
-                {isChanged &&
-                  <>
-                    <IconButton
-                      onClick={() => {
-                        setDialogConfirmAction(() => () => cancelChange())
-                        setShowEminMisin(true)
-                      }}
-                      disabled={!isChanged}
-                    >
-                      <ClearOutlined variant="contained" sx={{ color: "red" }} />
-                    </IconButton>
-
-                    <IconButton
-                      onClick={() => saveChange()}
-                      disabled={!isChanged}
-                    >
-                      <FileDownloadDoneIcon variant="contained" sx={{ color: "green" }} />
-                    </IconButton>
-                  </>
-                }
-
-              </Box>
-            </Grid>
-
+      <Paper>
+        <Grid container alignItems="center" sx={{ px: '1rem', py: '0.5rem', maxHeight: '5rem' }}>
+          <Grid item>
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: '0.2rem', flexWrap: 'nowrap', overflow: 'hidden' }}>
+              <Typography
+                variant="body1"
+                sx={{ fontWeight: 600, opacity: 0.4, cursor: 'pointer', whiteSpace: 'nowrap', '&:hover': { opacity: 0.8 } }}
+                onClick={() => navigate('/ispaketler')}
+              >
+                İş Paketleri
+              </Typography>
+              <NavigateNextIcon sx={{ opacity: 0.4, fontSize: 18, flexShrink: 0 }} />
+              <Typography
+                variant="body1"
+                sx={{
+                  fontWeight: 600, opacity: 0.4, cursor: 'pointer',
+                  maxWidth: '10rem', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
+                  '&:hover': { opacity: 0.8 }
+                }}
+                onClick={() => navigate('/ispaketpozlar')}
+              >
+                {selectedIsPaket?.name}
+              </Typography>
+              <NavigateNextIcon sx={{ opacity: 0.4, fontSize: 18, flexShrink: 0 }} />
+              <Typography
+                variant="body1"
+                sx={{
+                  fontWeight: 600, opacity: 0.4, cursor: 'pointer',
+                  maxWidth: '14rem', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
+                  '&:hover': { opacity: 0.8 }
+                }}
+                onClick={() => navigate('/ispaketpozlar')}
+              >
+                {pozLabel}
+              </Typography>
+              <NavigateNextIcon sx={{ opacity: 0.4, fontSize: 18, flexShrink: 0 }} />
+              <Typography variant="body1" sx={{ fontWeight: 700, whiteSpace: 'nowrap' }}>
+                Mahaller
+              </Typography>
+            </Box>
           </Grid>
+        </Grid>
+      </Paper>
 
-        </AppBar>
-
-
-      {(isFetching1 || isFetching2) &&
-        <Box sx={{ width: '100%', px: "1rem", color: 'gray' }}>
-          <LinearProgress color='inherit' />
-        </Box >
+      {isLoading &&
+        <Box sx={{ m: '1rem', color: 'gray' }}><LinearProgress color="inherit" /></Box>
       }
 
-
-      {!(isFetching1 || isFetching2) && !openLbsArray?.length > 0 &&
-        <Box>
-          Henüz herhangi bir başlık mahal eklemeye açılmamış
-        </Box>
+      {!isLoading && queryError &&
+        <Alert severity="error" sx={{ m: '1rem' }}>
+          Veri alınırken hata oluştu.<br /><small style={{ opacity: 0.7 }}>{queryError.message}</small>
+        </Alert>
       }
 
-      {!(isFetching1 || isFetching2) && !mahaller_state?.length > 0 &&
-        <Box>
-          Henüz herhangi bir mahal oluşturulmamış
-        </Box>
+      {!isLoading && !queryError && rawLbsNodes.length === 0 &&
+        <Alert severity="info" sx={{ m: '1rem' }}>
+          Mahal oluşturmadan önce <strong>LBS (Mahal Başlıkları)</strong> ağacını oluşturun.
+        </Alert>
       }
 
+      {!isLoading && !queryError && rawMahaller.length === 0 && rawLbsNodes.length > 0 &&
+        <Alert severity="info" sx={{ m: '1rem' }}>
+          Henüz mahal eklenmedi.
+        </Alert>
+      }
 
-      {!(isFetching1 || isFetching2) && openLbsArray?.length > 0 &&
+      {/* AĞAÇ GÖRÜNÜMÜ */}
+      {!isLoading && !queryError && rawLbsNodes.length > 0 && rawMahaller.length > 0 &&
+        (() => {
+          const totalDepthCols = maxLeafDepth + 1
+          const totalCols = totalDepthCols + 3
+          const treeGridCols = `repeat(${totalDepthCols}, 1rem) max-content minmax(20rem, max-content) max-content`
 
-        <Box sx={{ p: "1rem", display: "grid", gridTemplateColumns: gridTemplateColumns1, borderTop: mode_isPaketEdit ? "4px solid #e53935" : "4px solid transparent", transition: "border-color 0.3s ease" }}>
+          return (
+            <Box sx={{ maxWidth: '80rem', p: '0.5rem', width: 'fit-content' }}>
 
-          {/* EN ÜST BAŞLIK */}
-          <>
-
-            <Box sx={{ ...css_enUstBaslik, borderLeft: "1px solid black", justifyContent: "start" }}>
-              {selectedPoz.pozNo}
-            </Box>
-
-            <Box sx={{ ...css_enUstBaslik }}>
-              MAHAL
-            </Box>
-
-            <Box />
-
-            <Box sx={{
-              display: "flex",
-              justifyContent: "center",
-              alignItems: "center",
-              fontWeight: "600",
-              border: activeIsPaketler.length > 0 ? "1px solid black" : "none",
-              py: "0.3rem",
-              px: "0.5rem",
-              backgroundColor: "#415a77",
-              color: "#e0e1dd",
-            }}>
-              {activeIsPaketler.length > 0 ? "İŞ PAKETİ" : ""}
-            </Box>
-
-          </>
-
-
-          {/* LBS BAŞLIK BİLGİLERİ SATIRI */}
-
-          {openLbsArray?.map((oneLbs, index) => {
-
-            // console.log("oneLbs", oneLbs)
-            // console.log("mahaller_state", mahaller_state)
-
-            const mahaller_byLbs = mahaller_state?.filter(x => x._lbsId.toString() === oneLbs._id.toString())
-            if (!mahaller_byLbs?.length > 0) {
-              return
-            }
-
-            return (
-              <React.Fragment key={index}>
-
-                {/* LBS BAŞLIKLARI */}
-                <Box sx={{ ...css_LbsBaslik, borderLeft: "1px solid black" }}>
-                  {getLbsName(oneLbs).name}
+              {/* Proje adı satırı */}
+              <Box sx={{ display: 'grid', gridTemplateColumns: '1rem 1fr' }}>
+                <Box sx={{ backgroundColor: 'black' }} />
+                <Box sx={{ backgroundColor: 'black', color: 'white', pl: '4px', py: '2px' }}>
+                  <Typography variant="body2">{selectedProje?.name}</Typography>
                 </Box>
+              </Box>
 
-                <Box sx={{ ...css_LbsBaslik }}>
-                </Box>
+              <Box sx={{ display: 'grid', gridTemplateColumns: '1rem 1fr' }}>
+                <Box sx={{ backgroundColor: 'black' }} />
+                <Box sx={{ display: 'grid', gridTemplateColumns: treeGridCols }}>
 
-                <Box />
+                  {flatNodes.map(node => {
+                    if (isHiddenByAncestor(node)) return null
+                    const { depth } = node
+                    const isLeaf = isLeafSet.has(node.id)
+                    const c = nodeColor(depth)
+                    const mahallerOfNode = rawMahaller
+                      .filter(m => m.lbs_node_id === node.id)
+                      .sort((a, b) => a.order_index - b.order_index)
 
-                <Box sx={{ ...css_LbsBaslik }}>
-                </Box>
+                    return (
+                      <React.Fragment key={node.id}>
 
-                {/* MAHAL SATIRLARI */}
-                {mahaller_byLbs?.map((oneMahal, index) => {
+                        {/* LBS düğüm satırı */}
+                        {Array.from({ length: depth }).map((_, i) => (
+                          <Box key={i} sx={{ backgroundColor: nodeColor(i).bg }} />
+                        ))}
+                        <Box
+                          onClick={() => { if (!isLeaf) toggleCollapse(node.id) }}
+                          sx={{
+                            gridColumn: `span ${totalCols - depth}`,
+                            pl: '6px', py: '1px',
+                            backgroundColor: c.bg,
+                            color: c.co,
+                            cursor: isLeaf ? 'default' : 'pointer',
+                            display: 'flex', alignItems: 'center', gap: '0.4rem',
+                            userSelect: 'none',
+                            '&:hover': { filter: isLeaf ? 'none' : 'brightness(1.2)' }
+                          }}
+                        >
+                          {!isLeaf &&
+                            <Box sx={{ fontSize: '0.7rem', flexShrink: 0 }}>
+                              {collapsedIds.has(node.id) ? '▶' : '▼'}
+                            </Box>
+                          }
+                          {isLeaf &&
+                            <Box sx={{ width: '0.45rem', height: '0.45rem', borderRadius: '50%', backgroundColor: '#65FF00', flexShrink: 0 }} />
+                          }
+                          <Typography variant="body2">
+                            {node.code_name ? `(${node.code_name}) ` : ''}{node.name}
+                          </Typography>
+                          {isLeaf && mahallerOfNode.length > 0 &&
+                            <Box sx={{ ml: 'auto', pr: '0.5rem', fontSize: '0.75rem', opacity: 0.5, flexShrink: 0 }}>
+                              {mahallerOfNode.length} mahal
+                            </Box>
+                          }
+                        </Box>
 
-                  let dugum = dugumler_byPoz_state?.find(oneDugum => oneDugum._mahalId.toString() === oneMahal._id.toString())
-                  if (!dugum) {
-                    return
-                  }
+                        {/* Mahal satırları */}
+                        {isLeaf && !collapsedIds.has(node.id) && mahallerOfNode.map(mahal => {
+                          const isSelected = selectedIds.has(mahal.id)
+                          const bg = isSelected ? '#bbdefb' : '#fafafa'
+                          return (
+                            <React.Fragment key={mahal.id}>
 
-                  // let theMetraj = dugum.metrajOnaylanan
+                              {Array.from({ length: totalDepthCols }).map((_, i) => (
+                                <Box key={i} sx={{ backgroundColor: i <= depth ? nodeColor(i).bg : 'transparent' }} />
+                              ))}
 
-                  // const isPaketler = dugum.isPaketler || []
-
-                  // let isPaketler = []
-                  // if (selectedIsPaketVersiyon === 0) {
-                  //   isPaketler = rawIsPaketler
-                  // } else if (selectedIsPaketVersiyon?.versiyon !== undefined) {
-                  //   const versiyonData = dugum.isPaketVersiyonlar?.find(oneVersiyon => oneVersiyon.versiyon === selectedIsPaketVersiyon.versiyon)
-                  //   isPaketler = versiyonData?.isPaketler || []
-                  // }
-
-                  return (
-                    <React.Fragment key={index}>
-
-                      <Box sx={{ ...css_mahaller, borderLeft: "1px solid black" }}>
-                        {oneMahal.mahalNo}
-                      </Box>
-
-                      <Box sx={{ ...css_mahaller }}>
-                        {oneMahal.mahalName}
-                      </Box>
-
-                      <Box />
-
-                      {(() => {
-                        const isPaketRef = mode_isPaketEdit
-                          ? dugum.isPaketler?.[0]
-                          : (dugum.isPaketVersiyonlar?.find(v => v.versiyonNumber === selectedIsPaketVersiyon?.versiyonNumber)?.isPaketler?.[0] ?? dugum.isPaketler?.[0])
-                        const name = isPaketRef
-                          ? activeIsPaketler.find(p => p._id.toString() === isPaketRef._id.toString())?.name || ""
-                          : ""
-                        return (
-                          <Box
-                            onClick={
-                              !mode_isPaketEdit
-                                ? undefined
-                                : isPaketRef
-                                  ? () => handleRemoveIsPaket(dugum._id.toString(), isPaketRef._id.toString())
-                                  : (e) => handleOpenMenu(e, dugum._id.toString())
-                            }
-                            sx={{
-                              ...css_mahaller,
-                              cursor: mode_isPaketEdit ? "pointer" : "default",
-                              minWidth: "4rem",
-                              ...(!isPaketRef && mode_isPaketEdit && { backgroundColor: "#ffcdd2", display: "flex", justifyContent: "center", alignItems: "center" }),
-                              ...(mode_isPaketEdit && isPaketRef ? {
-                                "&:hover": {
-                                  backgroundColor: "#fde8e8",
-                                  textDecoration: "line-through",
-                                  color: "red"
-                                }
-                              } : mode_isPaketEdit && !isPaketRef ? {
-                                "&:hover": {
-                                  backgroundColor: "#e8f5e9",
-                                },
-                                "&:hover .add-icon": {
-                                  opacity: 1,
-                                  transform: "scale(1.15)"
-                                }
-                              } : {})
-                            }}
-                          >
-                            {name}
-                            {!isPaketRef && mode_isPaketEdit && (
-                              <AddCircleOutlineIcon
-                                className="add-icon"
+                              {/* Mahal kodu */}
+                              <Box
+                                onClick={() => toggleMahal(mahal)}
                                 sx={{
-                                  fontSize: "1rem",
-                                  color: "#388e3c",
-                                  opacity: 0,
-                                  transition: "opacity 0.18s ease, transform 0.18s ease",
-                                  ml: "0.3rem",
-                                  verticalAlign: "middle"
+                                  px: '6px', py: '2px',
+                                  borderBottom: '0.5px solid #ddd',
+                                  borderLeft: '1px solid #aaa',
+                                  fontFamily: 'monospace', fontSize: '0.8rem', fontWeight: 600,
+                                  display: 'flex', alignItems: 'center', whiteSpace: 'nowrap',
+                                  backgroundColor: bg,
+                                  cursor: 'pointer',
+                                  '&:hover': { backgroundColor: '#e3f2fd' }
                                 }}
-                              />
-                            )}
-                          </Box>
-                        )
-                      })()}
+                              >
+                                {mahal.code || '—'}
+                              </Box>
 
+                              {/* Mahal adı */}
+                              <Box
+                                onClick={() => toggleMahal(mahal)}
+                                sx={{
+                                  px: '6px', py: '2px',
+                                  borderBottom: '0.5px solid #ddd',
+                                  fontSize: '0.875rem',
+                                  display: 'flex', alignItems: 'center',
+                                  backgroundColor: bg,
+                                  cursor: 'pointer',
+                                  '&:hover': { backgroundColor: '#e3f2fd' }
+                                }}
+                              >
+                                {mahal.name}
+                              </Box>
 
-                    </React.Fragment>
-                  )
-                })}
+                              {/* Alan m² */}
+                              <Box
+                                onClick={() => toggleMahal(mahal)}
+                                sx={{
+                                  px: '6px', py: '2px',
+                                  borderBottom: '0.5px solid #ddd',
+                                  fontSize: '0.8rem',
+                                  display: 'flex', alignItems: 'center', justifyContent: 'flex-end',
+                                  backgroundColor: bg,
+                                  whiteSpace: 'nowrap',
+                                  cursor: 'pointer',
+                                  '&:hover': { backgroundColor: '#e3f2fd' }
+                                }}
+                              >
+                                {mahal.area != null ? `${mahal.area} m²` : '—'}
+                              </Box>
 
-              </React.Fragment>
-            )
-          })
-          }
+                            </React.Fragment>
+                          )
+                        })}
 
-        </Box >
+                      </React.Fragment>
+                    )
+                  })}
 
+                </Box>
+              </Box>
+            </Box>
+          )
+        })()
       }
 
-      </>
-      )}
-
-      <Popper
-        open={Boolean(menuState.anchorEl)}
-        anchorEl={menuState.anchorEl}
-        placement="bottom-start"
-        style={{ zIndex: 1300 }}
-      >
-        <Paper elevation={8}>
-          <ClickAwayListener onClickAway={handleCloseMenu}>
-            <MenuList>
-              {activeIsPaketler.map(p => (
-                  <MenuItem key={p._id.toString()} onClick={() => handleAddIsPaket(p._id)}>
-                    {p.name}
-                  </MenuItem>
-                ))
-              }
-            </MenuList>
-          </ClickAwayListener>
-        </Paper>
-      </Popper>
-
-    </Box >
-
+    </Box>
   )
-
 }
-

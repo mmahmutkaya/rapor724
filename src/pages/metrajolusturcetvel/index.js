@@ -1,971 +1,562 @@
+import React, { useState, useContext, useEffect, useMemo } from 'react'
+import { useNavigate } from 'react-router-dom'
+import _ from 'lodash'
 
-import React, { useState, useContext, useEffect } from 'react';
-import { useNavigate } from "react-router-dom";
 import { StoreContext } from '../../components/store.js'
-import Tooltip from '@mui/material/Tooltip';
-import _ from 'lodash';
+import { supabase } from '../../lib/supabase.js'
+import { DialogAlert } from '../../components/general/DialogAlert.js'
+import { useGetPozUnits } from '../../hooks/useMongo.js'
 
-import { DialogAlert } from '../../components/general/DialogAlert.js';
-import AppBar from '@mui/material/AppBar';
-import ClearOutlined from '@mui/icons-material/ClearOutlined';
-import SaveIcon from '@mui/icons-material/Save';
-import AddCircleOutlineIcon from '@mui/icons-material/AddCircleOutline';
-import { useQuery, useQueryClient, useMutation } from '@tanstack/react-query'
-
-import { useGetMahaller, useGetMahalListesi, useGetHazirlananMetraj, useUpdateHazirlananMetraj, useUpdateOnaylananMetraj, useGetOnaylananMetraj } from '../../hooks/useMongo.js';
-
-
-import { styled } from '@mui/system';
-import Grid from '@mui/material/Grid';
-import Input from '@mui/material/Input';
-import Alert from '@mui/material/Alert';
-import Stack from '@mui/material/Stack';
-import { Button, TextField, Typography } from '@mui/material';
-import Box from '@mui/material/Box';
-import IconButton from '@mui/material/IconButton';
-import InfoIcon from '@mui/icons-material/Info';
-import Chip from '@mui/material/Chip';
-import HourglassFullSharpIcon from '@mui/icons-material/HourglassFullSharp';
-import CircleIcon from '@mui/icons-material/Circle';
-import CheckCircleIcon from '@mui/icons-material/CheckCircle';
-import CheckIcon from '@mui/icons-material/Check';
-import LockIcon from '@mui/icons-material/Lock';
-import ReplyIcon from '@mui/icons-material/Reply';
-import { Circle, Visibility } from '@mui/icons-material';
-import DoneAllIcon from '@mui/icons-material/DoneAll';
-import EditIcon from '@mui/icons-material/Edit';
+import AppBar from '@mui/material/AppBar'
+import Grid from '@mui/material/Grid'
+import Box from '@mui/material/Box'
+import Typography from '@mui/material/Typography'
+import IconButton from '@mui/material/IconButton'
+import Input from '@mui/material/Input'
+import LinearProgress from '@mui/material/LinearProgress'
+import Alert from '@mui/material/Alert'
+import Chip from '@mui/material/Chip'
+import NavigateNextIcon from '@mui/icons-material/NavigateNext'
+import ReplyIcon from '@mui/icons-material/Reply'
+import EditIcon from '@mui/icons-material/Edit'
+import SaveIcon from '@mui/icons-material/Save'
+import ClearOutlinedIcon from '@mui/icons-material/ClearOutlined'
+import AddCircleOutlineIcon from '@mui/icons-material/AddCircleOutline'
+import CheckCircleIcon from '@mui/icons-material/CheckCircle'
+import DeleteOutlineIcon from '@mui/icons-material/DeleteOutline'
+import PlayCircleOutlineIcon from '@mui/icons-material/PlayCircleOutline'
 
 
-function HeaderMetrajOlusturCetvel({
-  mode_edit, setMode_edit, mode_ready, setMode_ready,
-  isChanged_edit, cancel_edit, save_edit,
-  isChanged_ready, cancel_ready, save_ready
-}) {
+function computeQuantity(line) {
+  if (!line || line.line_type !== 'data') return 0
+  const mult = Number(line.multiplier ?? 1)
+  const cnt  = Number(line.count  ?? 1)
+  const len  = Number(line.length ?? 1)
+  const wid  = Number(line.width  ?? 1)
+  const hei  = Number(line.height ?? 1)
+  const qty  = mult * cnt * len * wid * hei
+  return isNaN(qty) ? 0 : qty
+}
 
-  const navigate = useNavigate()
-  const queryClient = useQueryClient()
-  const [dialogAlert, setDialogAlert] = useState()
-  const { appUser, setAppUser } = useContext(StoreContext)
-  const { selectedPoz, selectedMahal_metraj, selectedNode } = useContext(StoreContext)
-  const [showEminMisin_edit, setShowEminMisin_edit] = useState(false)
-  const [showEminMisin_ready, setShowEminMisin_ready] = useState(false)
-
-  const headerIconButton_sx = { width: 40, height: 40 }
-  const headerIcon_sx = { fontSize: 24 }
-
-  const satirEkle = async () => {
-    try {
-      const response = await fetch(process.env.REACT_APP_BASE_URL + `/api/dugumler/addmetrajsatiri`, {
-        method: 'POST',
-        headers: {
-          email: appUser.email,
-          token: appUser.token,
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({ dugumId: selectedNode._id })
-      })
-
-      const responseJson = await response.json()
-
-      if (responseJson.error) {
-        if (responseJson.error.includes("expired")) {
-          setAppUser()
-          localStorage.removeItem('appUser')
-          navigate('/')
-          window.location.reload()
-        }
-        throw new Error(responseJson.error);
-      }
-
-      if (responseJson.ok) {
-        queryClient.invalidateQueries(['dataHazirlananMetraj'])
-      } else {
-        throw new Error("Kayıt işleminde hata oluştu, sayfayı yenileyiniz, sorun devam ederse, Rapor7/24 ile iletişime geçiniz.")
-      }
-
-    } catch (err) {
-      console.log(err)
-      setDialogAlert({
-        dialogIcon: "warning",
-        dialogMessage: "Beklenmedik hata, sayfayı yenileyiniz, sorun devam ederse Rapor7/24 ile irtibata geçiniz..",
-        detailText: err?.message ? err.message : null,
-        onCloseAction: () => {
-          setDialogAlert()
-          queryClient.invalidateQueries(['hazirlananMetraj', selectedNode?._id.toString()])
-        }
-      })
-    }
-  }
-
-  return (
-    <>
-      {dialogAlert &&
-        <DialogAlert
-          dialogIcon={dialogAlert.dialogIcon}
-          dialogMessage={dialogAlert.dialogMessage}
-          detailText={dialogAlert.detailText}
-          onCloseAction={dialogAlert.onCloseAction ? dialogAlert.onCloseAction : () => setDialogAlert()}
-        />
-      }
-
-      {showEminMisin_edit &&
-        <DialogAlert
-          dialogIcon={"warning"}
-          dialogMessage={"Yaptığınız değişiklikleri kaybedeceksiniz ?"}
-          onCloseAction={() => setShowEminMisin_edit()}
-          actionText1={"İptal"}
-          action1={() => setShowEminMisin_edit()}
-          actionText2={"Onayla"}
-          action2={() => { cancel_edit(); setShowEminMisin_edit() }}
-        />
-      }
-
-      {showEminMisin_ready &&
-        <DialogAlert
-          dialogIcon={"warning"}
-          dialogMessage={"Yaptığınız değişiklikleri kaybedeceksiniz ?"}
-          onCloseAction={() => setShowEminMisin_ready()}
-          actionText1={"İptal"}
-          action1={() => setShowEminMisin_ready()}
-          actionText2={"Onayla"}
-          action2={() => { cancel_ready(); setShowEminMisin_ready() }}
-        />
-      }
-
-      <AppBar position="static" sx={{ backgroundColor: "white", color: "black", boxShadow: 4 }}>
-
-        <Grid
-          container
-          justifyContent="space-between"
-          alignItems="center"
-          sx={{ padding: "0.5rem 1rem", minHeight: "3.5rem", maxHeight: "5rem" }}
-        >
-
-          {/* sol kısım (başlık) */}
-          <Grid item xs>
-            <Box sx={{ display: "flex", alignItems: "center", columnGap: "0.5rem" }}>
-
-              <IconButton sx={headerIconButton_sx} onClick={() => navigate("/metrajolusturpozmahaller")}>
-                <ReplyIcon sx={{ ...headerIcon_sx, color: "gray" }} />
-              </IconButton>
-
-              <Box sx={{ fontWeight: 600, fontSize: "0.875rem", whiteSpace: "nowrap" }}>
-                {selectedPoz?.pozName}
-              </Box>
-              <Box sx={{ color: "#8B0000", fontWeight: 600 }}>{">"}</Box>
-              <Box sx={{ fontWeight: 600, fontSize: "0.875rem" }}>
-                {selectedMahal_metraj?.mahalName}
-              </Box>
-
-            </Box>
-          </Grid>
-
-          {/* sağ kısım - (tuşlar) */}
-          <Grid item xs="auto">
-            <Grid container>
-
-              {!isChanged_edit && !isChanged_ready && !mode_ready &&
-                <Grid item onClick={() => setMode_edit(x => !x)} sx={{ cursor: "pointer" }}>
-                  <IconButton sx={headerIconButton_sx}>
-                    <EditIcon sx={{ ...headerIcon_sx, color: mode_edit ? "black" : "gray" }} />
-                  </IconButton>
-                </Grid>
-              }
-
-              {!isChanged_edit && !isChanged_ready && !mode_edit &&
-                <Grid item onClick={() => setMode_ready(x => !x)} sx={{ cursor: "pointer" }}>
-                  <IconButton sx={headerIconButton_sx}>
-                    <CheckCircleIcon sx={{ ...headerIcon_sx, color: mode_ready ? "black" : "gray" }} />
-                  </IconButton>
-                </Grid>
-              }
-
-              {!isChanged_edit && !isChanged_ready && mode_edit &&
-                <Grid item onClick={() => satirEkle()} sx={{ cursor: "pointer" }}>
-                  <IconButton sx={headerIconButton_sx}>
-                    <AddCircleOutlineIcon sx={{ ...headerIcon_sx, color: mode_ready ? "black" : "gray" }} />
-                  </IconButton>
-                </Grid>
-              }
-
-              {isChanged_edit &&
-                <>
-                  <Grid item>
-                    <IconButton sx={headerIconButton_sx} onClick={() => setShowEminMisin_edit(true)}>
-                      <ClearOutlined sx={{ ...headerIcon_sx, color: "red" }} />
-                    </IconButton>
-                  </Grid>
-                  <Grid item>
-                    <IconButton sx={headerIconButton_sx} onClick={() => save_edit()} disabled={!isChanged_edit}>
-                      <SaveIcon sx={headerIcon_sx} />
-                    </IconButton>
-                  </Grid>
-                </>
-              }
-
-              {isChanged_ready &&
-                <>
-                  <Grid item>
-                    <IconButton sx={headerIconButton_sx} onClick={() => setShowEminMisin_ready(true)}>
-                      <ClearOutlined sx={{ ...headerIcon_sx, color: "red" }} />
-                    </IconButton>
-                  </Grid>
-                  <Grid item>
-                    <IconButton sx={headerIconButton_sx} onClick={() => save_ready()} disabled={!isChanged_ready}>
-                      <SaveIcon sx={headerIcon_sx} />
-                    </IconButton>
-                  </Grid>
-                </>
-              }
-
-            </Grid>
-          </Grid>
-
-        </Grid>
-
-      </AppBar>
-    </>
-  )
+function ikiHane(v) {
+  if (v === null || v === undefined || v === '') return ''
+  const n = Number(v)
+  if (isNaN(n)) return ''
+  return new Intl.NumberFormat('de-DE', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(n)
 }
 
 
 export default function P_MetrajOlusturCetvel() {
-
-  const queryClient = useQueryClient()
-
-  const { selectedProje, setSelectedProje } = useContext(StoreContext)
-  const { appUser, setAppUser } = useContext(StoreContext)
-  const { selectedMahal, setSelectedMahal } = useContext(StoreContext)
-  const { selectedPoz, setSelectedPoz } = useContext(StoreContext)
-  const { selectedMahal_metraj } = useContext(StoreContext)
-  const { myTema, setMyTema } = useContext(StoreContext)
-  const { selectedNode, setSelectedNode } = useContext(StoreContext)
-  const { editNodeMetraj, setEditNodeMetraj } = useContext(StoreContext)
-  const { showNodeMetraj, setShowNodeMetraj } = useContext(StoreContext)
-  const { detailMode, setDetailMode } = useContext(StoreContext)
-
-
-  const [dialogAlert, setDialogAlert] = useState()
-  const [hazirlananMetraj_state, setHazirlananMetraj_state] = useState()
-  const [hazirlananMetraj_backUp, setHazirlananMetraj_backUp] = useState()
-
-
-  const [isChanged_edit, setIsChanged_edit] = useState()
-  const [isChanged_ready, setIsChanged_ready] = useState()
-
-  const [mode_edit, setMode_edit] = useState()
-  const [mode_ready, setMode_ready] = useState()
-
-
-  const [_pozId] = useState()
-
-
-  let pozBirim
-  let pozMetraj
-
-
-  let metrajCesitleri = [{ id: "guncel", name: "Güncel" }]
-
-  // renkler
-
-  const onaylananBaslik_color = "rgba( 253, 197, 123 , 0.6 )" // tarçın
-  const onaylananSatir_color = "rgba(255,255,0, 0.3)" // açık sarı 
-
-  // "rgba( 253, 197, 123 , 0.6 )" // tarçın
-  // "rgba( 0, 255, 0, 0.2 )" // fosforlu yeşil 
-  // "rgba( 128, 128, 128, 0.3 )" // gri 
-  // "rgba(255,255,0, 0.3)" // sarı
-
-  const hazirlananBaslik_color = "rgba( 253, 197, 123 , 0.6 )" // tarçın
-  const hazirlananSatir_color = "rgba(255,255,0, 0.3)" // sarı 
-  const hazirlananOnayliSatir_color = "rgba( 128, 128, 128, 0.2 )" // gri
-  const hazirlananKilitliSatir_color = "rgba( 128, 128, 128, 0.3 )" // gri
-
-
-  const { data: dataHazirlananMetraj } = useGetHazirlananMetraj()
-
-
-
   const navigate = useNavigate()
+  const { selectedProje, selectedIsPaket, selectedPoz, selectedMahal } = useContext(StoreContext)
+  const { data: units = [] } = useGetPozUnits()
+
+  const [session, setSession] = useState(null)
+  const [lines, setLines] = useState([])
+  const [linesBackup, setLinesBackup] = useState([])
+  const [isLoading, setIsLoading] = useState(true)
+  const [loadError, setLoadError] = useState(null)
+  const [mode_edit, setMode_edit] = useState(false)
+  const [isChanged, setIsChanged] = useState(false)
+  const [dialogAlert, setDialogAlert] = useState()
+  const [showCancelConfirm, setShowCancelConfirm] = useState(false)
+
+  // wpAreaId is stored in selectedMahal when building mahaller list
+  const wpAreaId = selectedMahal?.wpAreaId
+
+  // Guards
   useEffect(() => {
-    !selectedNode && navigate("/metrajpozmahaller")
-    setHazirlananMetraj_state(_.cloneDeep(dataHazirlananMetraj?.hazirlananMetraj))
-    setHazirlananMetraj_backUp(_.cloneDeep(dataHazirlananMetraj?.hazirlananMetraj))
-  }, [dataHazirlananMetraj])
-
-
-
-
-  // Edit Metraj Sayfasının Fonksiyonu
-  const handle_input_onKey = async (event) => {
-    if (event.key == "e" || event.key == "E" || event.key == "+" || event.key == "-" || event.keyCode == "38" || event.keyCode == "40") {
-      // console.log("'e' - 'E' - '+' - '-' - 'up' - 'down' - kullanılmasın")
-      return event.preventDefault()
-    }
-  }
-
-
-
-  // Edit Metraj Sayfasının Fonksiyonu
-  const handle_input_onChange = (event, satirNo, oneProperty) => {
-
-    if (!isChanged_edit) {
-      setIsChanged_edit(true)
-    }
-
-    let hazirlananMetraj_state2 = { ...hazirlananMetraj_state }
-
-    // map ile tarayarak, state kısmındaki datanın ilgili satırını güncelliyoruz, ayrıca tüm satırların toplam metrajını, önce önceki değeri çıkartıp yeni değeri ekleyerek
-    hazirlananMetraj_state2["satirlar"] = hazirlananMetraj_state2["satirlar"].map(oneRow => {
-
-      if (oneRow.satirNo == satirNo) {
-
-        delete oneRow.isReadyBack
-        oneRow.newSelected = true
-
-        oneRow[oneProperty] = event.target.value
-
-        let isMinha = oneRow["aciklama"].replace("İ", "i").toLowerCase().includes("minha") ? true : false
-
-        // ya burdan dönüyor
-        if (oneRow.carpan1 == "" && oneRow.carpan2 == "" && oneRow.carpan3 == "" && oneRow.carpan4 == "" && oneRow.carpan5 == "") {
-          oneRow.metraj = ""
-          return oneRow
-        }
-
-        const oneRowMetraj = (
-          (oneRow.carpan1 == "" ? 1 : oneRow.carpan1) *
-          (oneRow.carpan2 == "" ? 1 : oneRow.carpan2) *
-          (oneRow.carpan3 == "" ? 1 : oneRow.carpan3) *
-          (oneRow.carpan4 == "" ? 1 : oneRow.carpan4) *
-          (oneRow.carpan5 == "" ? 1 : oneRow.carpan5)
-        )
-
-        // ya burdan ya da alttakinden dönüyor
-        if (isMinha) {
-          oneRow.metraj = oneRowMetraj * -1
-          return oneRow
-        } else {
-          oneRow.metraj = oneRowMetraj
-          return oneRow
-        }
-
-      }
-
-      // işlenmeyecek bir satursa da burdan dönüyor
-      return oneRow
-
-    })
-
-    let metrajPreparing = 0
-    let metrajReady = 0
-    hazirlananMetraj_state2.satirlar.map(oneSatir => {
-      metrajPreparing += oneSatir.isPreparing ? Number(oneSatir.metraj) : 0
-      metrajReady += oneSatir.isReady || oneSatir.isSelected || oneSatir.hasSelectedCopy ? Number(oneSatir.metraj) : 0
-    })
-    hazirlananMetraj_state2.metrajPreparing = metrajPreparing
-    hazirlananMetraj_state2.metrajReady = metrajReady
-
-    setHazirlananMetraj_state(hazirlananMetraj_state2)
-    // alttaki kod sadece react component render yapılması için biyerde kullanılmıyor -- (sonra bunada gerek kalmadı)
-    // setMetraj(oneRow["aciklama"] + oneRow["carpan1"] + oneRow["carpan2"] + oneRow["carpan3"] + oneRow["carpan4"] + oneRow["carpan5"])
-  }
-
-
-  const cancel_edit = () => {
-    setHazirlananMetraj_state(_.cloneDeep(hazirlananMetraj_backUp))
-    setIsChanged_edit()
-    setMode_edit()
-  }
-
-
-  // Edit Metraj Sayfasının Fonksiyonu
-  const save_edit = async () => {
-
-    if (isChanged_edit || isChanged_ready) {
-      try {
-
-        // await RealmApp?.currentUser.callFunction("update_hazirlananMetraj_preparing", ({ _dugumId: selectedNode._id, hazirlananMetraj_state }))
-        const response = await fetch(process.env.REACT_APP_BASE_URL + `/api/dugumler/updatehazirlananmetrajpreparing`, {
-          method: 'POST',
-          headers: {
-            email: appUser.email,
-            token: appUser.token,
-            'Content-Type': 'application/json'
-          },
-          body: JSON.stringify({
-            dugumId: selectedNode._id,
-            hazirlananMetraj_state
-          })
-        })
-
-        const responseJson = await response.json()
-
-        if (responseJson.error) {
-          if (responseJson.error.includes("expired")) {
-            setAppUser()
-            localStorage.removeItem('appUser')
-            navigate('/')
-            window.location.reload()
-          }
-          throw new Error(responseJson.error);
-        }
-
-        if (!responseJson.ok) {
-          console.log("responseJson", responseJson)
-          throw new Error("Kayıt işlemi gerçekleşmedi, sayfayı yenileyiniz, sorun devam ederse Rapor7/24 ile irtibata geçiniz..")
-        }
-
-        queryClient.invalidateQueries(['dataHazirlananMetraj'])
-        setIsChanged_edit()
-        setMode_edit()
-        return
-
-      } catch (err) {
-
-        console.log(err)
-
-        setDialogAlert({
-          dialogIcon: "warning",
-          dialogMessage: "Beklenmedik hata, sayfayı yenileyiniz, sorun devam ederse Rapor7/24 ile irtibata geçiniz..",
-          detailText: err?.message ? err.message : null,
-          onCloseAction: () => {
-            setDialogAlert()
-            setIsChanged_edit()
-            setMode_edit()
-            queryClient.invalidateQueries(['dataHazirlananMetraj'])
-          }
-        })
-      }
-    }
-
-  }
-
-
-
-
-
-
-
-
-
-
-
-
-  //  READY FONKSİYONLARI - ADD SATIR - REMOVE SATIR - CANCEL DB - SAVE DB
-
-
-
-
-  const add_OneRow_ready_all = () => {
-
-    let hazirlananMetraj_state2 = _.cloneDeep(hazirlananMetraj_state)
-
-    let isIslemYapildi
-
-    hazirlananMetraj_state2.satirlar = hazirlananMetraj_state2.satirlar.map(oneSatir => {
-      if (!oneSatir.isReady && !oneSatir.isReadyBack) {
-        oneSatir.isReady = true
-        oneSatir.isReadyUnSeen = true
-        oneSatir.newSelected = true
-        isIslemYapildi = true
-      }
-      return oneSatir
-    })
-
-
-    if (!isIslemYapildi) {
-      hazirlananMetraj_state2.satirlar = hazirlananMetraj_state2.satirlar.map(oneSatir => {
-        if (oneSatir.isReady && oneSatir.newSelected) {
-          delete oneSatir.isReady
-          delete oneSatir.isReadyUnSeen
-          delete oneSatir.newSelected
-        }
-        return oneSatir
-      })
-    }
-
-
-    setIsChanged_ready()
-
-    for (let j = 0; j < hazirlananMetraj_state2.satirlar?.length; j++) {
-      let oneSatir = hazirlananMetraj_state2.satirlar[j]
-      if (oneSatir.isReady && oneSatir.isReadyUnSeen) {
-        setIsChanged_ready(true)
-        break
-      }
-    }
-
-    setHazirlananMetraj_state(hazirlananMetraj_state2)
-  }
-
-
-
-  const addRow_ready = (oneRow) => {
-
-    let hazirlananMetraj_state2 = _.cloneDeep(hazirlananMetraj_state)
-    hazirlananMetraj_state2.satirlar = hazirlananMetraj_state2.satirlar.map(oneSatir => {
-      if (oneSatir.satirNo === oneRow.satirNo) {
-        oneSatir.isReady = true
-        oneSatir.isReadyUnSeen = true
-        oneSatir.newSelected = true
-      }
-      return oneSatir
-    })
-
-    let metrajPreparing = 0
-    let metrajReady = 0
-    hazirlananMetraj_state2.satirlar.map(oneSatir => {
-      metrajPreparing += oneSatir.isPreparing ? Number(oneSatir.metraj) : 0
-      metrajReady += oneSatir.isReady || oneSatir.isSelected || oneSatir.hasSelectedCopy ? Number(oneSatir.metraj) : 0
-    })
-    hazirlananMetraj_state2.metrajPreparing = metrajPreparing
-    hazirlananMetraj_state2.metrajReady = metrajReady
-
-    hazirlananMetraj_state2.satirlar.find(x => x.newSelected) ? setIsChanged_ready(true) : setIsChanged_ready()
-    setHazirlananMetraj_state(hazirlananMetraj_state2)
-  }
-
-
-  const removeRow_ready = (oneRow) => {
-
-    let hazirlananMetraj_state2 = _.cloneDeep(hazirlananMetraj_state)
-    hazirlananMetraj_state2.satirlar = hazirlananMetraj_state2.satirlar.map(oneSatir => {
-      if (oneSatir.satirNo === oneRow.satirNo) {
-        delete oneSatir.isReady
-        delete oneSatir.isReadyUnSeen
-        // oneSatir.newSelected ? delete oneSatir.newSelected : oneSatir.newSelected = true
-        delete oneSatir.newSelected
-      }
-      return oneSatir
-    })
-
-
-    let metrajPreparing = 0
-    let metrajReady = 0
-    hazirlananMetraj_state2.satirlar.map(oneSatir => {
-      metrajPreparing += oneSatir.isPreparing ? Number(oneSatir.metraj) : 0
-      metrajReady += oneSatir.isReady || oneSatir.isSelected || oneSatir.hasSelectedCopy ? Number(oneSatir.metraj) : 0
-    })
-    hazirlananMetraj_state2.metrajPreparing = metrajPreparing
-    hazirlananMetraj_state2.metrajReady = metrajReady
-
-    hazirlananMetraj_state2.satirlar.find(x => x.newSelected) ? setIsChanged_ready(true) : setIsChanged_ready()
-    setHazirlananMetraj_state(hazirlananMetraj_state2)
-  }
-
-  const cancel_ready = () => {
-    setHazirlananMetraj_state(_.cloneDeep(hazirlananMetraj_backUp))
-    setIsChanged_ready()
-    setMode_ready()
-  }
-
-
-  const save_ready = async () => {
+    if (!selectedProje || !selectedIsPaket) navigate('/metrajolustur')
+    else if (!selectedPoz) navigate('/metrajolusturpozlar')
+    else if (!selectedMahal) navigate('/metrajolusturpozmahaller')
+  }, [selectedProje, selectedIsPaket, selectedPoz, selectedMahal, navigate])
+
+  // Load session and lines
+  useEffect(() => {
+    if (!wpAreaId) return
+    loadData()
+  }, [wpAreaId])
+
+  const loadData = async () => {
+    setIsLoading(true)
+    setLoadError(null)
     try {
+      const { data: sessionData, error: sessionError } = await supabase
+        .from('measurement_sessions')
+        .select('*')
+        .eq('work_package_poz_area_id', wpAreaId)
+        .in('status', ['draft', 'ready'])
+        .order('created_at', { ascending: false })
+        .limit(1)
+        .maybeSingle()
 
-      // console.log("hazirlananMetraj_state",hazirlananMetraj_state)
-      // await RealmApp?.currentUser.callFunction("update_hazirlananMetraj_ready", ({ _dugumId: selectedNode._id, hazirlananMetraj_state }))
+      if (sessionError) throw sessionError
 
-      const response = await fetch(process.env.REACT_APP_BASE_URL + `/api/dugumler/updatehazirlananmetrajready`, {
-        method: 'POST',
-        headers: {
-          email: appUser.email,
-          token: appUser.token,
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-          dugumId: selectedNode._id,
-          hazirlananMetraj_state
-        })
-      })
+      setSession(sessionData)
 
-      const responseJson = await response.json()
+      if (sessionData) {
+        const { data: lineData, error: lineError } = await supabase
+          .from('measurement_lines')
+          .select('*')
+          .eq('session_id', sessionData.id)
+          .order('order_index')
 
-      if (responseJson.error) {
-        if (responseJson.error.includes("expired")) {
-          setAppUser()
-          localStorage.removeItem('appUser')
-          navigate('/')
-          window.location.reload()
-        }
-        throw new Error(responseJson.error);
+        if (lineError) throw lineError
+
+        const ls = lineData ?? []
+        setLines(ls)
+        setLinesBackup(_.cloneDeep(ls))
+      } else {
+        setLines([])
+        setLinesBackup([])
       }
-
-      if (!responseJson.ok) {
-        console.log("responseJson", responseJson)
-        throw new Error("Kayıt işlemi gerçekleşmedi, sayfayı yenileyiniz, sorun devam ederse Rapor7/24 ile irtibata geçiniz..")
-      }
-
-
-      queryClient.invalidateQueries(['dataHazirlananMetraj'])
-      setIsChanged_ready()
-      setMode_ready()
-      return
-
     } catch (err) {
+      setLoadError(err.message)
+    } finally {
+      setIsLoading(false)
+    }
+  }
 
-      console.log(err)
+  const handleStartSession = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('measurement_sessions')
+        .insert({ work_package_poz_area_id: wpAreaId, status: 'draft', total_quantity: 0 })
+        .select()
+        .single()
 
-      setDialogAlert({
-        dialogIcon: "warning",
-        dialogMessage: "Beklenmedik hata, sayfayı yenileyiniz, sorun devam ederse Rapor7/24 ile irtibata geçiniz..",
-        detailText: err?.message ? err.message : null,
-        onCloseAction: () => {
-          setDialogAlert()
-          setIsChanged_ready()
-          setMode_ready()
-          queryClient.invalidateQueries(['dataHazirlananMetraj'])
+      if (error) throw error
+
+      setSession(data)
+      setLines([])
+      setLinesBackup([])
+      setMode_edit(true)
+    } catch (err) {
+      setDialogAlert({ dialogIcon: 'warning', dialogMessage: err.message, onCloseAction: () => setDialogAlert() })
+    }
+  }
+
+  const handleAddLine = async () => {
+    if (!session) return
+    const nextIdx = lines.length > 0 ? Math.max(...lines.map(l => l.order_index)) + 1 : 0
+    try {
+      const { data, error } = await supabase
+        .from('measurement_lines')
+        .insert({ session_id: session.id, line_type: 'data', description: '', multiplier: 1, order_index: nextIdx })
+        .select()
+        .single()
+
+      if (error) throw error
+
+      setLines(prev => [...prev, data])
+      setLinesBackup(prev => [...prev, _.cloneDeep(data)])
+    } catch (err) {
+      setDialogAlert({ dialogIcon: 'warning', dialogMessage: err.message, onCloseAction: () => setDialogAlert() })
+    }
+  }
+
+  const handleDeleteLine = async (lineId) => {
+    try {
+      const { error } = await supabase
+        .from('measurement_lines')
+        .delete()
+        .eq('id', lineId)
+
+      if (error) throw error
+
+      setLines(prev => prev.filter(l => l.id !== lineId))
+      setLinesBackup(prev => prev.filter(l => l.id !== lineId))
+    } catch (err) {
+      setDialogAlert({ dialogIcon: 'warning', dialogMessage: err.message, onCloseAction: () => setDialogAlert() })
+    }
+  }
+
+  const handleLineChange = (lineId, field, value) => {
+    setIsChanged(true)
+    setLines(prev => prev.map(l => l.id === lineId ? { ...l, [field]: value } : l))
+  }
+
+  const handleSave = async () => {
+    try {
+      for (const line of lines) {
+        const backup = linesBackup.find(b => b.id === line.id)
+        if (backup && JSON.stringify(line) === JSON.stringify(backup)) continue
+
+        const { error } = await supabase
+          .from('measurement_lines')
+          .update({
+            description: line.description,
+            multiplier: line.multiplier === '' ? null : line.multiplier,
+            count:  line.count  === '' ? null : line.count,
+            length: line.length === '' ? null : line.length,
+            width:  line.width  === '' ? null : line.width,
+            height: line.height === '' ? null : line.height,
+          })
+          .eq('id', line.id)
+
+        if (error) throw error
+      }
+
+      const total = lines.reduce((sum, l) => sum + computeQuantity(l), 0)
+      await supabase
+        .from('measurement_sessions')
+        .update({ total_quantity: total, updated_at: new Date().toISOString() })
+        .eq('id', session.id)
+
+      setSession(prev => ({ ...prev, total_quantity: total }))
+      setLinesBackup(_.cloneDeep(lines))
+      setIsChanged(false)
+      setMode_edit(false)
+    } catch (err) {
+      setDialogAlert({ dialogIcon: 'warning', dialogMessage: err.message, onCloseAction: () => setDialogAlert() })
+    }
+  }
+
+  const handleCancel = () => {
+    if (isChanged) {
+      setShowCancelConfirm(true)
+    } else {
+      setMode_edit(false)
+    }
+  }
+
+  const handleMarkReady = () => {
+    setDialogAlert({
+      dialogIcon: 'info',
+      dialogMessage: 'Metraj hazırlama onay için gönderilsin mi?',
+      actionText1: 'Evet, Gönder',
+      action1: async () => {
+        setDialogAlert()
+        try {
+          const total = lines.reduce((sum, l) => sum + computeQuantity(l), 0)
+          const { error } = await supabase
+            .from('measurement_sessions')
+            .update({ status: 'ready', total_quantity: total, updated_at: new Date().toISOString() })
+            .eq('id', session.id)
+
+          if (error) throw error
+
+          setSession(prev => ({ ...prev, status: 'ready', total_quantity: total }))
+        } catch (err) {
+          setDialogAlert({ dialogIcon: 'warning', dialogMessage: err.message, onCloseAction: () => setDialogAlert() })
         }
-      })
+      },
+      onCloseAction: () => setDialogAlert(),
+    })
+  }
+
+  const handleBackToDraft = async () => {
+    try {
+      const { error } = await supabase
+        .from('measurement_sessions')
+        .update({ status: 'draft', updated_at: new Date().toISOString() })
+        .eq('id', session.id)
+
+      if (error) throw error
+
+      setSession(prev => ({ ...prev, status: 'draft' }))
+    } catch (err) {
+      setDialogAlert({ dialogIcon: 'warning', dialogMessage: err.message, onCloseAction: () => setDialogAlert() })
     }
   }
 
+  const unitsMap = useMemo(() => {
+    const m = {}
+    units.forEach(u => { m[u.id] = u.name })
+    return m
+  }, [units])
 
+  const pozBirim = unitsMap[selectedPoz?.unit_id] ?? '—'
+  const totalQuantity = useMemo(() => lines.reduce((sum, l) => sum + computeQuantity(l), 0), [lines])
+  const isDraft = session?.status === 'draft'
+  const isReady = session?.status === 'ready'
 
+  const headerIconButton_sx = { width: 40, height: 40 }
+  const headerIcon_sx = { fontSize: 24 }
 
-
-
-
-
-
-
-
-
-  // GENEL - bir string değerinin numerik olup olmadığının kontrolü
-  function isNumeric(str) {
-    if (str) {
-      str.toString()
-    }
-    return !isNaN(str) && // use type coercion to parse the _entirety_ of the string (`parseFloat` alone does not do this)...
-      !isNaN(parseFloat(str)) // ...and ensure strings of whitespace fail
+  const css_baslik = {
+    px: '0.3rem',
+    border: '1px solid black',
+    backgroundColor: 'lightgray',
+    display: 'grid',
+    alignItems: 'center',
+    justifyContent: 'center',
+    textAlign: 'center',
+    fontWeight: 600,
+    fontSize: '0.8rem',
+    whiteSpace: 'nowrap',
+    mb: '1rem',
   }
 
-
-
-  // GENEL - bir fonksiyon, ortak kullanılıyor olabilir
-  const ikiHane = (value) => {
-    if (value != "") {
-      return new Intl.NumberFormat("de-DE", { minimumFractionDigits: 2, maximumFractionDigits: 2, }).format(value)
-    }
-    return value
+  const css_satir = {
+    px: '0.3rem',
+    border: '1px solid black',
+    display: 'grid',
+    alignItems: 'center',
+    justifyContent: 'center',
+    fontSize: '0.85rem',
   }
 
-
-
-  // GENEL - bir fonksiyon, ortak kullanılıyor olabilir
-  const metrajValue = (oneRow, oneProperty, isMinha) => {
-
-    if (oneProperty == "pozBirim") return pozBirim
-    if (oneProperty.includes("carpan")) return mode_edit && oneRow.isPreparing ? oneRow[oneProperty] : ikiHane(oneRow[oneProperty])
-    if (oneProperty == "metraj") return ikiHane(oneRow[oneProperty])
-
-    // yukarıdaki hiçbiri değilse
-    return oneRow[oneProperty]
-
-  }
-
-
-
-
-
-  // CSS
-  const css_enUstBaslik = {
-    mb: "1rem", px: "0.3rem", border: "1px solid black", backgroundColor: "lightgray", display: "grid", alignItems: "center", justifyContent: "center"
-  }
-
-  const css_metrajCetveliBaslik = {
-    px: "0.3rem", border: "1px solid black", backgroundColor: "rgba( 253, 197, 123 , 0.6 )", display: "grid", alignItems: "center", justifyContent: "center"
-  }
-
-  const css_metrajCetveliBaslik_Yayinlanan = {
-    px: "0.3rem", border: "1px solid black", borderBottom: "3px solid black", backgroundColor: myTema.renkler.inaktifGri, display: "grid", alignItems: "center", justifyContent: "center"
-  }
-
-  const css_metrajCetveliSatir = {
-    px: "0.3rem", border: "1px solid black", display: "grid", alignItems: "center", justifyContent: "center"
-  }
-
-
-  const gridTemplateColumns1 = 'max-content minmax(min-content, 5fr) repeat(7, minmax(min-content, 1fr)) 0.5rem max-content'
-
-  pozBirim = selectedProje?.pozBirimleri.find(item => item.id == selectedPoz?.pozBirimId)?.name
+  const gridCols = 'max-content minmax(10rem, 3fr) repeat(5, minmax(4rem, 1fr)) minmax(5rem, 1fr) max-content max-content'
 
 
   return (
-
     <>
-
-      {dialogAlert &&
+      {dialogAlert && (
         <DialogAlert
           dialogIcon={dialogAlert.dialogIcon}
           dialogMessage={dialogAlert.dialogMessage}
           detailText={dialogAlert.detailText}
-          onCloseAction={dialogAlert.onCloseAction ? dialogAlert.onCloseAction : () => setDialogAlert()}
+          actionText1={dialogAlert.actionText1}
+          action1={dialogAlert.action1}
+          onCloseAction={dialogAlert.onCloseAction ?? (() => setDialogAlert())}
         />
-      }
+      )}
 
-      <Grid name="metrajCetveliHeader" item>
-        <HeaderMetrajOlusturCetvel
-
-          mode_edit={mode_edit} setMode_edit={setMode_edit}
-          mode_ready={mode_ready} setMode_ready={setMode_ready}
-
-          save_edit={save_edit} cancel_edit={cancel_edit} isChanged_edit={isChanged_edit} setIsChanged_edit={setIsChanged_edit}
-          save_ready={save_ready} cancel_ready={cancel_ready} isChanged_ready={isChanged_ready} setIsChanged_ready={setIsChanged_ready}
+      {showCancelConfirm && (
+        <DialogAlert
+          dialogIcon="warning"
+          dialogMessage="Yaptığınız değişiklikler kaybolacak. Devam edilsin mi?"
+          actionText1="İptal Et"
+          action1={() => {
+            setLines(_.cloneDeep(linesBackup))
+            setIsChanged(false)
+            setMode_edit(false)
+            setShowCancelConfirm(false)
+          }}
+          onCloseAction={() => setShowCancelConfirm(false)}
         />
-      </Grid>
+      )}
 
-
-      {hazirlananMetraj_state &&
-
-        < Box sx={{ width: "65rem", display: "grid", gridTemplateColumns: gridTemplateColumns1, mb: "1rem", mx: "1rem" }}>
-
-
-          {/* En Üst Başlık Satırı */}
-          < React.Fragment >
-            <Box sx={{ ...css_enUstBaslik }}>
-              Sıra
+      {/* BAŞLIK */}
+      <AppBar position="static" sx={{ backgroundColor: 'white', color: 'black', boxShadow: 4 }}>
+        <Grid
+          container
+          justifyContent="space-between"
+          alignItems="center"
+          sx={{ padding: '0.5rem 1rem', minHeight: '3.5rem', maxHeight: '5rem' }}
+        >
+          <Grid item xs>
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: '0.4rem', flexWrap: 'nowrap', overflow: 'hidden' }}>
+              <IconButton sx={headerIconButton_sx} onClick={() => navigate('/metrajolusturpozmahaller')}>
+                <ReplyIcon sx={{ ...headerIcon_sx, color: 'gray' }} />
+              </IconButton>
+              <Typography
+                variant="body2"
+                sx={{ fontWeight: 600, opacity: 0.5, cursor: 'pointer', whiteSpace: 'nowrap', '&:hover': { opacity: 0.9 } }}
+                onClick={() => navigate('/metrajolusturpozlar')}
+              >
+                {selectedIsPaket?.name}
+              </Typography>
+              <NavigateNextIcon sx={{ opacity: 0.4, fontSize: 16, flexShrink: 0 }} />
+              <Typography
+                variant="body2"
+                sx={{ fontWeight: 600, opacity: 0.5, cursor: 'pointer', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', maxWidth: '10rem', '&:hover': { opacity: 0.9 } }}
+                onClick={() => navigate('/metrajolusturpozmahaller')}
+              >
+                {selectedPoz?.code ? `${selectedPoz.code} · ${selectedPoz.short_desc}` : selectedPoz?.short_desc}
+              </Typography>
+              <NavigateNextIcon sx={{ opacity: 0.4, fontSize: 16, flexShrink: 0 }} />
+              <Typography variant="body2" sx={{ fontWeight: 700, whiteSpace: 'nowrap' }}>
+                {selectedMahal?.code ? `${selectedMahal.code} · ${selectedMahal.name}` : selectedMahal?.name}
+              </Typography>
             </Box>
-            <Box sx={{ ...css_enUstBaslik }}>
-              Açıklama
+          </Grid>
+
+          <Grid item xs="auto">
+            <Box sx={{ display: 'flex', alignItems: 'center' }}>
+              {session && isDraft && !mode_edit && !isChanged && (
+                <>
+                  <IconButton sx={headerIconButton_sx} onClick={() => setMode_edit(true)}>
+                    <EditIcon sx={{ ...headerIcon_sx, color: 'gray' }} />
+                  </IconButton>
+                  {lines.length > 0 && (
+                    <IconButton sx={headerIconButton_sx} onClick={handleMarkReady}>
+                      <CheckCircleIcon sx={{ ...headerIcon_sx, color: 'gray' }} />
+                    </IconButton>
+                  )}
+                </>
+              )}
+              {session && isDraft && mode_edit && !isChanged && (
+                <>
+                  <IconButton sx={headerIconButton_sx} onClick={handleAddLine}>
+                    <AddCircleOutlineIcon sx={{ ...headerIcon_sx, color: 'green' }} />
+                  </IconButton>
+                  <IconButton sx={headerIconButton_sx} onClick={() => setMode_edit(false)}>
+                    <ClearOutlinedIcon sx={{ ...headerIcon_sx, color: 'gray' }} />
+                  </IconButton>
+                </>
+              )}
+              {isChanged && (
+                <>
+                  <IconButton sx={headerIconButton_sx} onClick={handleCancel}>
+                    <ClearOutlinedIcon sx={{ ...headerIcon_sx, color: 'red' }} />
+                  </IconButton>
+                  <IconButton sx={headerIconButton_sx} onClick={handleSave}>
+                    <SaveIcon sx={headerIcon_sx} />
+                  </IconButton>
+                </>
+              )}
+              {session && isReady && (
+                <IconButton sx={headerIconButton_sx} onClick={handleBackToDraft} title="Taslağa geri al">
+                  <ReplyIcon sx={{ ...headerIcon_sx, color: 'orange' }} />
+                </IconButton>
+              )}
             </Box>
-            <Box sx={{ ...css_enUstBaslik }}>
-              Benzer
+          </Grid>
+        </Grid>
+      </AppBar>
+
+      {isLoading && <LinearProgress />}
+
+      {loadError && (
+        <Alert severity="error" sx={{ m: '1rem' }}>
+          Veri alınırken hata: {loadError}
+        </Alert>
+      )}
+
+      {/* Durum chip */}
+      {session && !isLoading && (
+        <Box sx={{ px: '1rem', pt: '0.75rem', display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
+          <Chip
+            size="small"
+            label={isReady ? 'Onay Bekliyor' : 'Taslak'}
+            color={isReady ? 'warning' : 'default'}
+            variant={isReady ? 'filled' : 'outlined'}
+          />
+          <Typography variant="caption" sx={{ color: 'gray' }}>
+            Toplam: <strong>{ikiHane(totalQuantity)}</strong> {pozBirim}
+          </Typography>
+        </Box>
+      )}
+
+      {/* Metraj başlat */}
+      {!isLoading && !loadError && !session && (
+        <Box sx={{ p: '2rem', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '1rem' }}>
+          <Typography variant="body1" sx={{ color: 'gray' }}>
+            Bu mahal için henüz metraj başlatılmamış.
+          </Typography>
+          <IconButton onClick={handleStartSession} sx={{ flexDirection: 'column', borderRadius: 2 }}>
+            <PlayCircleOutlineIcon sx={{ fontSize: 48, color: 'green' }} />
+            <Typography variant="caption">Metraj Başlat</Typography>
+          </IconButton>
+        </Box>
+      )}
+
+      {/* Boş draft */}
+      {!isLoading && !loadError && session && isDraft && lines.length === 0 && (
+        <Box sx={{ p: '2rem', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '1rem' }}>
+          <Typography variant="body1" sx={{ color: 'gray' }}>
+            Henüz metraj satırı eklenmemiş.
+          </Typography>
+          <IconButton onClick={handleAddLine} sx={{ flexDirection: 'column', borderRadius: 2 }}>
+            <AddCircleOutlineIcon sx={{ fontSize: 48, color: 'green' }} />
+            <Typography variant="caption">İlk Satırı Ekle</Typography>
+          </IconButton>
+        </Box>
+      )}
+
+      {/* Cetvel */}
+      {!isLoading && !loadError && session && lines.length > 0 && (
+        <Box sx={{ p: '0.5rem 1rem', overflowX: 'auto' }}>
+          <Box sx={{ display: 'grid', gridTemplateColumns: gridCols, width: 'fit-content', minWidth: '50rem' }}>
+
+            {/* Başlık satırı */}
+            <Box sx={{ ...css_baslik }}>Sıra</Box>
+            <Box sx={{ ...css_baslik, justifyContent: 'start' }}>Açıklama</Box>
+            <Box sx={{ ...css_baslik }}>Çarpan</Box>
+            <Box sx={{ ...css_baslik }}>Adet</Box>
+            <Box sx={{ ...css_baslik }}>Boy</Box>
+            <Box sx={{ ...css_baslik }}>En</Box>
+            <Box sx={{ ...css_baslik }}>Yük.</Box>
+            <Box sx={{ ...css_baslik }}>Metraj</Box>
+            <Box sx={{ ...css_baslik }}>Birim</Box>
+            <Box sx={{ ...css_baslik }}></Box>
+
+            {/* Toplam satırı */}
+            <Box sx={{ ...css_baslik, gridColumn: '1/8', justifyContent: 'end', pr: '0.5rem', backgroundColor: 'rgba(253,197,123,0.6)' }}>
+              Toplam Metraj
             </Box>
-            <Box sx={{ ...css_enUstBaslik }}>
-              Adet
+            <Box sx={{ ...css_baslik, justifyContent: 'end', pr: '0.3rem', backgroundColor: 'rgba(253,197,123,0.6)', color: totalQuantity < 0 ? 'red' : null }}>
+              {ikiHane(totalQuantity)}
             </Box>
-            <Box sx={{ ...css_enUstBaslik }}>
-              En
-            </Box>
-            <Box sx={{ ...css_enUstBaslik }}>
-              Boy
-            </Box>
-            <Box sx={{ ...css_enUstBaslik }}>
-              Yük.
-            </Box>
-            <Box sx={{ ...css_enUstBaslik }}>
-              Metraj
-            </Box>
-            <Box sx={{ ...css_enUstBaslik }}>
-              Birim
-            </Box>
+            <Box sx={{ ...css_baslik, backgroundColor: 'rgba(253,197,123,0.6)' }}>{pozBirim}</Box>
+            <Box sx={{ ...css_baslik, backgroundColor: 'rgba(253,197,123,0.6)' }}></Box>
 
-            <Box>
-            </Box>
+            {/* Veri satırları */}
+            {lines.map((line, index) => {
+              const qty = computeQuantity(line)
+              const isDeduction = Number(line.multiplier ?? 1) < 0
+              const rowColor = isReady ? 'rgba(200,230,200,0.3)' : null
 
-            <Box>
-            </Box>
+              return (
+                <React.Fragment key={line.id}>
 
-          </React.Fragment >
+                  {/* Sıra */}
+                  <Box sx={{ ...css_satir, justifyContent: 'center', backgroundColor: rowColor }}>
+                    {index + 1}
+                  </Box>
 
+                  {/* Açıklama */}
+                  <Box sx={{ ...css_satir, justifyContent: 'start', backgroundColor: rowColor, color: isDeduction ? 'red' : null }}>
+                    {mode_edit && isDraft ? (
+                      <Input
+                        value={line.description ?? ''}
+                        onChange={e => handleLineChange(line.id, 'description', e.target.value)}
+                        disableUnderline
+                        fullWidth
+                        sx={{ fontSize: '0.85rem', color: isDeduction ? 'red' : null }}
+                      />
+                    ) : (
+                      line.description || '—'
+                    )}
+                  </Box>
 
+                  {/* Çarpan */}
+                  {['multiplier', 'count', 'length', 'width', 'height'].map(field => (
+                    <Box key={field} sx={{ ...css_satir, justifyContent: 'end', backgroundColor: mode_edit && isDraft ? 'rgba(255,255,0,0.2)' : rowColor, color: isDeduction ? 'red' : null }}>
+                      {mode_edit && isDraft ? (
+                        <Input
+                          value={line[field] ?? ''}
+                          type="number"
+                          onChange={e => handleLineChange(line.id, field, e.target.value)}
+                          onKeyDown={e => ['e', 'E', '+'].includes(e.key) && e.preventDefault()}
+                          disableUnderline
+                          sx={{ fontSize: '0.85rem', color: isDeduction ? 'red' : null, '& input': { textAlign: 'right' } }}
+                          inputProps={{ style: { textAlign: 'right' } }}
+                        />
+                      ) : (
+                        ikiHane(line[field])
+                      )}
+                    </Box>
+                  ))}
 
-          {/* Metraj Cetveli Başlık Satırı */}
-          <React.Fragment>
+                  {/* Metraj */}
+                  <Box sx={{ ...css_satir, justifyContent: 'end', pr: '0.3rem', backgroundColor: rowColor, color: isDeduction ? 'red' : null }}>
+                    {ikiHane(qty)}
+                  </Box>
 
-            <Box sx={{ ...css_metrajCetveliBaslik, gridColumn: "1/8", justifyContent: "end", pr: "1rem" }}>
-              Hazırlık Aşamasındaki Metraj
-            </Box>
+                  {/* Birim */}
+                  <Box sx={{ ...css_satir, justifyContent: 'center', backgroundColor: rowColor, color: isDeduction ? 'red' : null }}>
+                    {pozBirim}
+                  </Box>
 
-            <Box sx={{ ...css_metrajCetveliBaslik, justifyContent: "end", pr: "0.3rem", color: hazirlananMetraj_state["metraj"] < 0 ? "red" : null }}>
-              {ikiHane(hazirlananMetraj_state["metrajPreparing"])}
-            </Box>
+                  {/* Sil butonu */}
+                  <Box sx={{ ...css_satir, justifyContent: 'center', backgroundColor: rowColor }}>
+                    {mode_edit && isDraft && (
+                      <IconButton size="small" onClick={() => handleDeleteLine(line.id)} sx={{ p: '2px' }}>
+                        <DeleteOutlineIcon sx={{ fontSize: 18, color: 'salmon' }} />
+                      </IconButton>
+                    )}
+                  </Box>
 
-            <Box sx={{ ...css_metrajCetveliBaslik }}>
-              {pozBirim}
-            </Box>
+                </React.Fragment>
+              )
+            })}
 
-            <Box></Box>
-
-            <Box sx={{ ...css_metrajCetveliBaslik }}>
-            </Box>
-
-          </React.Fragment>
-
-
-
-          {/* Metraj Cetveli Başlık Satırı */}
-          <React.Fragment>
-
-            <Box sx={{ ...css_metrajCetveliBaslik_Yayinlanan, gridColumn: "1/8", justifyContent: "end", pr: "1rem" }}>
-              Hazırlanmış Metraj
-            </Box>
-
-            <Box sx={{ ...css_metrajCetveliBaslik_Yayinlanan, justifyContent: "end", pr: "0.3rem", color: hazirlananMetraj_state["metraj"] < 0 ? "red" : null }}>
-              {ikiHane(hazirlananMetraj_state["metrajReady"])}
-            </Box>
-
-            <Box sx={{ ...css_metrajCetveliBaslik_Yayinlanan }}>
-              {pozBirim}
-            </Box>
-
-            <Box></Box>
-
-
-            {/* ALLTAKİ 4 TANEDEN BİRİ GÖSTERİLİYOR */}
-            {!mode_ready &&
-              <Box sx={{ ...css_metrajCetveliBaslik_Yayinlanan }}>
-                Durum
-              </Box>
-            }
-
-            {mode_ready &&
-              <Box onClick={() => add_OneRow_ready_all()} sx={{ ...css_metrajCetveliBaslik_Yayinlanan, cursor: "pointer" }}>
-                <CheckCircleIcon variant="contained" sx={{ minWidth: "3.05rem", color: "gray", fontSize: "1.1rem" }} />
-              </Box>
-            }
-
-
-
-          </React.Fragment>
-
-
-          {hazirlananMetraj_state.satirlar.sort((a, b) => a.satirNo.substring(a.satirNo.indexOf("-") + 1, a.satirNo.length) - b.satirNo.substring(b.satirNo.indexOf("-") + 1, b.satirNo.length)).map((oneRow, index) => {
-            return (
-              < React.Fragment key={index}>
-
-                {["satirNo", "aciklama", "carpan1", "carpan2", "carpan3", "carpan4", "carpan5", "metraj", "pozBirim"].map((oneProperty, index) => {
-                  // let isCellEdit = (oneProperty === "satirNo" || oneProperty === "pozBirim" || oneProperty === "metraj") ? false : true
-                  let isCellEdit = mode_edit && !oneRow.hasSelectedCopy && !oneRow.isSelected && !oneRow.isReady && (oneProperty.includes("aciklama") || oneProperty.includes("carpan")) ? true : false
-                  let isMinha = oneRow["aciklama"].replace("İ", "i").toLowerCase().includes("minha") ? true : false
-
-                  return (
-                    <React.Fragment key={index}>
-
-                      {isCellEdit &&
-                        <Box sx={{
-                          ...css_metrajCetveliSatir,
-                          backgroundColor: !oneRow.isSelected && oneProperty.includes("aciklama") ? "rgba(255,255,0, 0.3)" : !oneRow.isSelected && oneProperty.includes("carpan") ? "rgba(255,255,0, 0.3)" : null,
-                          minWidth: oneProperty.includes("aciklama") ? "10rem" : oneProperty.includes("1") || oneProperty.includes("2") ? "4rem" : "6rem"
-                        }}>
-                          <Input
-                            // autoFocus={autoFocus.baslikId == oneBaslik.id && autoFocus.mahalId == oneMahal._id.toString()}
-                            // autoFocus={autoFocus.mahalId == oneMahal._id.toString()}
-                            // autoFocus={true}
-                            autoComplete='off'
-                            id={oneRow.satirNo + oneProperty}
-                            name={oneRow.satirNo + oneProperty}
-                            readOnly={oneRow.isSelected}
-                            disableUnderline={true}
-                            // size="small"
-                            type={oneProperty.includes("carpan") ? "number" : "text"}
-                            // type={"text"}
-                            // onChange={(e) => parseFloat(e.target.value).toFixed(1)}
-                            // onKeyDown={(evt) => ilaveYasaklilar.some(elem => evt.target.value.includes(elem)) && ilaveYasaklilar.find(item => item == evt.key) && evt.preventDefault()}
-                            onKeyDown={oneProperty.includes("carpan") ? (event) => handle_input_onKey(event) : null}
-                            onChange={(event) => handle_input_onChange(event, oneRow.satirNo, oneProperty)}
-                            sx={{
-                              // height: "100%",
-                              // pt: "0.3rem",
-                              color: isMinha ? "red" : null,
-                              // justifyItems: oneBaslik.yatayHiza,
-                              "& input::-webkit-outer-spin-button, & input::-webkit-inner-spin-button": {
-                                display: "none",
-                              },
-                              "& input[type=number]": {
-                                MozAppearance: "textfield",
-                              },
-                            }}
-                            // metrajValue={oneRow[oneProperty]}
-                            // value={metrajValue(oneRow, oneProperty, isMinha)}
-                            value={metrajValue(oneRow, oneProperty, isMinha)}
-                            inputProps={{
-                              style: {
-                                width: "100%",
-                                boxSizing: "border-box",
-                                // mt: "0.5rem",
-                                // height: "0.95rem",
-                                // minWidth: oneProperty.includes("aciklama") ? "min-content" : "4rem",
-                                // width: "min-content",
-                                textAlign: oneProperty.includes("carpan") || oneProperty.includes("metraj") ? "end" : oneProperty.includes("aciklama") ? "start" : "center"
-                              },
-                              step: "0.1", lang: "en-US"
-                            }}
-                          />
-                        </Box>
-                      }
-
-                      {!isCellEdit &&
-                        <Box sx={{
-                          ...css_metrajCetveliSatir,
-                          backgroundColor: (oneRow.isReady || oneRow.isSelected || oneRow.hasSelectedCopy) ? myTema.renkler.inaktifGri : null,
-                          // backgroundColor: oneRow.isPreparing && "rgba( 253, 197, 123 , 0.2 )",
-                          justifyContent: oneProperty.includes("aciklama") ? "start" : oneProperty.includes("carpan") ? "end" : oneProperty.includes("metraj") ? "end" : "center",
-                          minWidth: oneProperty.includes("carpan") ? "5rem" : oneProperty.includes("metraj") ? "5rem" : null,
-                          color: isMinha ? "red" : null
-                        }}>
-                          {metrajValue(oneRow, oneProperty, isMinha)}
-                        </Box>
-                      }
-
-                    </React.Fragment>
-                  )
-
-                })}
-
-                <Box></Box>
-
-                <Box
-                  onClick={() =>
-                    mode_ready && !oneRow.isReadyBack && !oneRow.isSelected && !oneRow.isReady ? addRow_ready(oneRow) :
-                      mode_ready && !oneRow.isSelected && oneRow.isReady && oneRow.newSelected && removeRow_ready(oneRow)
-
-                  }
-                  sx={{
-                    // backgroundColor: oneRow.isSelected ? null : "rgba(255,255,0, 0.3)",
-                    // backgroundColor: "rgba(255,255,0, 0.3)",
-                    cursor: "pointer",
-                    display: "grid",
-                    alignItems: "center",
-                    justifyItems: "center",
-                    px: "0.3rem",
-                    border: "1px solid black"
-                  }}>
-                  {oneRow.isSelected && !oneRow.hasSelectedCopy &&
-                    <DoneAllIcon variant="contained" sx={{ color: "black", fontSize: "1.2rem" }} />
-                  }
-                  {oneRow.hasSelectedCopy &&
-                    <DoneAllIcon variant="contained" sx={{ color: "gray", fontSize: "1rem" }} />
-                  }
-                  {oneRow.isReady && !oneRow.isReadyUnSeen &&
-                    <Visibility variant="contained" sx={{ color: "gray", fontSize: "1rem" }} />
-                  }
-                  {oneRow.isReady && !oneRow.isSelected && oneRow.isReadyUnSeen && oneRow.newSelected &&
-                    <Circle variant="contained" sx={{ color: "gray", fontSize: "0.8rem" }} />
-                  }
-                  {oneRow.isReady && !oneRow.isSelected && oneRow.isReadyUnSeen && !oneRow.newSelected &&
-                    <CheckIcon variant="contained" sx={{ color: "black", fontSize: "1.2rem" }} />
-                  }
-                  {oneRow.isPreparing && oneRow.isReadyBack &&
-                    <ReplyIcon variant="contained" sx={{ color: "red", fontSize: "0.95rem" }} />
-                  }
-                  {/* {!oneRow.isSelected && oneRow.isReady && oneRow.newSelected &&
-                    <CircleIcon variant="contained" sx={{ color: "rgba(15, 99, 7, 0.52)", fontSize: "0.70rem" }} />
-                  }
-                  {!oneRow.isSelected && !oneRow.isReady &&
-                    <HourglassFullSharpIcon variant="contained" sx={{ color: "rgba( 255,165,0, 1 )", fontSize: "0.95rem" }} />
-                  } */}
-                </Box>
-
-              </React.Fragment>
-            )
-
-          })}
-
-
-        </Box >
-      }
-
-
-
-
-
-    </ >
-
+          </Box>
+        </Box>
+      )}
+    </>
   )
-
 }
-
-

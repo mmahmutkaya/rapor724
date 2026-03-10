@@ -18,9 +18,11 @@ import LinearProgress from '@mui/material/LinearProgress'
 import Alert from '@mui/material/Alert'
 import Chip from '@mui/material/Chip'
 import Tooltip from '@mui/material/Tooltip'
+import Checkbox from '@mui/material/Checkbox'
 import AddCircleOutlineIcon from '@mui/icons-material/AddCircleOutline'
 import DeleteIcon from '@mui/icons-material/Delete'
 import EditIcon from '@mui/icons-material/Edit'
+import CloseIcon from '@mui/icons-material/Close'
 import AccountTreeIcon from '@mui/icons-material/AccountTree'
 import ListIcon from '@mui/icons-material/List'
 
@@ -82,6 +84,51 @@ export default function P_Pozlar() {
   const [dialogAlert, setDialogAlert] = useState()
   const [editingPoz, setEditingPoz] = useState(null)
 
+  // Select modu
+  const [selectMode, setSelectMode] = useState(false)
+  const [selectedIds, setSelectedIds] = useState(new Set())
+
+  const exitSelectMode = () => {
+    setSelectMode(false)
+    setSelectedIds(new Set())
+  }
+
+  const toggleSelect = (id) => {
+    setSelectedIds(prev => {
+      const next = new Set(prev)
+      next.has(id) ? next.delete(id) : next.add(id)
+      return next
+    })
+  }
+
+  const openEditFromHeader = () => {
+    const poz = rawPozlar.find(p => selectedIds.has(p.id))
+    if (poz) {
+      setEditingPoz(poz)
+      exitSelectMode()
+    }
+  }
+
+  const handleDeleteSelected = () => {
+    const count = selectedIds.size
+    setDialogAlert({
+      dialogIcon: 'warning',
+      dialogMessage: `Seçili ${count} poz silinsin mi?`,
+      actionText1: 'Sil',
+      action1: async () => {
+        setDialogAlert()
+        const { error } = await supabase.from('project_pozlar').delete().in('id', [...selectedIds])
+        if (error) {
+          setDialogAlert({ dialogIcon: 'warning', dialogMessage: 'Silme işlemi sırasında hata oluştu.', detailText: error.message, onCloseAction: () => setDialogAlert() })
+          return
+        }
+        exitSelectMode()
+        invalidate()
+      },
+      onCloseAction: () => setDialogAlert()
+    })
+  }
+
   const isLoading = wbsLoading || pozLoading || unitsLoading
   const queryError = pozError || unitsError
 
@@ -138,25 +185,6 @@ export default function P_Pozlar() {
       const next = new Set(prev)
       next.has(nodeId) ? next.delete(nodeId) : next.add(nodeId)
       return next
-    })
-  }
-
-  async function handleDeletePoz(poz) {
-    setDialogAlert({
-      dialogIcon: 'warning',
-      dialogMessage: `"${poz.short_desc}" pozunu silmek istediğinizden emin misiniz?`,
-      actionText1: 'Sil',
-      action1: async () => {
-        setDialogAlert()
-        const { error } = await supabase.from('project_pozlar').delete().eq('id', poz.id)
-        if (error) {
-          setDialogAlert({ dialogIcon: 'warning', dialogMessage: 'Poz silinemedi.', detailText: error.message })
-          return
-        }
-        invalidate()
-      },
-      actionText2: 'İptal',
-      action2: () => setDialogAlert()
     })
   }
 
@@ -219,37 +247,70 @@ export default function P_Pozlar() {
           <Grid item>
             <Grid container spacing={0.5} alignItems="center">
 
-              <Grid item>
-                <Tooltip title="WBS ağaç görünümü">
-                  <IconButton size="small" onClick={() => setViewMode('tree')} color={viewMode === 'tree' ? 'primary' : 'default'}>
-                    <AccountTreeIcon />
-                  </IconButton>
-                </Tooltip>
-              </Grid>
-              <Grid item>
-                <Tooltip title="Düz liste">
-                  <IconButton size="small" onClick={() => setViewMode('flat')} color={viewMode === 'flat' ? 'primary' : 'default'}>
-                    <ListIcon />
-                  </IconButton>
-                </Tooltip>
-              </Grid>
-
-              <Grid item>
-                <Tooltip title={
-                  !canAddPoz ? 'Önce Proje Ayarları\'ndan birim ekleyin'
-                  : viewMode === 'tree' && !activeWbsNodeId ? 'Bir WBS yaprak düğümü seçin'
-                  : 'Poz ekle'
-                }>
-                  <span>
+              {!selectMode && (
+                <>
+                  <Grid item>
+                    <Tooltip title="WBS ağaç görünümü">
+                      <IconButton size="small" onClick={() => setViewMode('tree')} color={viewMode === 'tree' ? 'primary' : 'default'}>
+                        <AccountTreeIcon />
+                      </IconButton>
+                    </Tooltip>
+                  </Grid>
+                  <Grid item>
+                    <Tooltip title="Düz liste">
+                      <IconButton size="small" onClick={() => setViewMode('flat')} color={viewMode === 'flat' ? 'primary' : 'default'}>
+                        <ListIcon />
+                      </IconButton>
+                    </Tooltip>
+                  </Grid>
+                  <Grid item>
                     <IconButton
-                      onClick={() => setShow('PozCreate')}
-                      disabled={!canAddPoz || (viewMode === 'tree' && !activeWbsNodeId)}
+                      onClick={() => setSelectMode(true)}
+                      disabled={rawPozlar.length === 0}
                     >
-                      <AddCircleOutlineIcon />
+                      <DeleteIcon />
                     </IconButton>
-                  </span>
-                </Tooltip>
-              </Grid>
+                  </Grid>
+                  <Grid item>
+                    <Tooltip title={
+                      !canAddPoz ? 'Önce Proje Ayarları\'ndan birim ekleyin'
+                      : viewMode === 'tree' && !activeWbsNodeId ? 'Bir WBS yaprak düğümü seçin'
+                      : 'Poz ekle'
+                    }>
+                      <span>
+                        <IconButton
+                          onClick={() => setShow('PozCreate')}
+                          disabled={!canAddPoz || (viewMode === 'tree' && !activeWbsNodeId)}
+                        >
+                          <AddCircleOutlineIcon />
+                        </IconButton>
+                      </span>
+                    </Tooltip>
+                  </Grid>
+                </>
+              )}
+
+              {selectMode && (
+                <>
+                  <Grid item>
+                    <IconButton onClick={exitSelectMode}>
+                      <CloseIcon />
+                    </IconButton>
+                  </Grid>
+                  {selectedIds.size === 1 && (
+                    <Grid item>
+                      <IconButton onClick={openEditFromHeader}>
+                        <EditIcon />
+                      </IconButton>
+                    </Grid>
+                  )}
+                  <Grid item>
+                    <IconButton onClick={handleDeleteSelected} disabled={selectedIds.size === 0}>
+                      <DeleteIcon color={selectedIds.size > 0 ? 'error' : 'disabled'} />
+                    </IconButton>
+                  </Grid>
+                </>
+              )}
 
             </Grid>
           </Grid>
@@ -379,7 +440,10 @@ export default function P_Pozlar() {
                         </Box>
 
                         {/* Poz satırları — totalDepthCols adet bar (bazıları saydam) + 4 veri hücresi */}
-                        {isLeaf && !collapsedIds.has(node.id) && pozlarOfNode.map(poz => (
+                        {isLeaf && !collapsedIds.has(node.id) && pozlarOfNode.map(poz => {
+                          const isChecked = selectedIds.has(poz.id)
+                          const selectedBg = isChecked ? '#e3f2fd' : '#fafafa'
+                          return (
                           <React.Fragment key={poz.id}>
 
                             {/* Derinlik çubukları: depth+1 adedi renkli, kalanı saydam dolgu */}
@@ -390,55 +454,67 @@ export default function P_Pozlar() {
                             ))}
 
                             {/* Poz kodu */}
-                            <Box sx={{
-                              px: '6px', py: '2px',
-                              borderBottom: '0.5px solid #ddd',
-                              borderLeft: '1px solid #aaa',
-                              fontFamily: 'monospace', fontSize: '0.8rem', fontWeight: 600,
-                              display: 'flex', alignItems: 'center', whiteSpace: 'nowrap',
-                              backgroundColor: '#fafafa'
-                            }}>
+                            <Box
+                              onClick={() => selectMode && toggleSelect(poz.id)}
+                              sx={{
+                                px: '6px', py: '2px',
+                                borderBottom: '0.5px solid #ddd',
+                                borderLeft: '1px solid #aaa',
+                                fontFamily: 'monospace', fontSize: '0.8rem', fontWeight: 600,
+                                display: 'flex', alignItems: 'center', whiteSpace: 'nowrap',
+                                backgroundColor: selectedBg,
+                                cursor: selectMode ? 'pointer' : 'default',
+                              }}>
                               {poz.code || '—'}
                             </Box>
 
                             {/* Açıklama */}
-                            <Box sx={{
-                              px: '6px', py: '2px',
-                              borderBottom: '0.5px solid #ddd',
-                              fontSize: '0.875rem',
-                              display: 'flex', alignItems: 'center',
-                              backgroundColor: '#fafafa'
-                            }}>
+                            <Box
+                              onClick={() => selectMode && toggleSelect(poz.id)}
+                              sx={{
+                                px: '6px', py: '2px',
+                                borderBottom: '0.5px solid #ddd',
+                                fontSize: '0.875rem',
+                                display: 'flex', alignItems: 'center',
+                                backgroundColor: selectedBg,
+                                cursor: selectMode ? 'pointer' : 'default',
+                              }}>
                               {poz.short_desc}
                             </Box>
 
                             {/* Birim */}
-                            <Box sx={{
-                              px: '6px', py: '2px',
-                              borderBottom: '0.5px solid #ddd',
-                              fontSize: '0.8rem',
-                              display: 'flex', alignItems: 'center',
-                              backgroundColor: '#fafafa', whiteSpace: 'nowrap'
-                            }}>
+                            <Box
+                              onClick={() => selectMode && toggleSelect(poz.id)}
+                              sx={{
+                                px: '6px', py: '2px',
+                                borderBottom: '0.5px solid #ddd',
+                                fontSize: '0.8rem',
+                                display: 'flex', alignItems: 'center',
+                                backgroundColor: selectedBg, whiteSpace: 'nowrap',
+                                cursor: selectMode ? 'pointer' : 'default',
+                              }}>
                               {unitsMap[poz.unit_id] ?? '—'}
                             </Box>
 
-                            {/* Düzenle / Sil */}
+                            {/* Checkbox (selectMode) */}
                             <Box sx={{
                               borderBottom: '0.5px solid #ddd',
                               display: 'flex', alignItems: 'center', justifyContent: 'center',
-                              backgroundColor: '#fafafa'
+                              backgroundColor: selectedBg,
                             }}>
-                              <IconButton size="small" onClick={() => setEditingPoz(poz)}>
-                                <EditIcon fontSize="small" />
-                              </IconButton>
-                              <IconButton size="small" onClick={() => handleDeletePoz(poz)}>
-                                <DeleteIcon fontSize="small" />
-                              </IconButton>
+                              {selectMode && (
+                                <Checkbox
+                                  size="small"
+                                  checked={isChecked}
+                                  onChange={() => toggleSelect(poz.id)}
+                                  sx={{ p: '2px' }}
+                                />
+                              )}
                             </Box>
 
                           </React.Fragment>
-                        ))}
+                          )
+                        })}
 
                       </React.Fragment>
                     )
@@ -480,7 +556,24 @@ export default function P_Pozlar() {
 
           <Box sx={{ display: 'grid', gridTemplateColumns: flatColumns }}>
             {colHeaders.map((col, i) => (
-              <Box key={i} sx={{ ...headerCellCss, textAlign: col.align }}>{col.label}</Box>
+              <Box key={i} sx={{ ...headerCellCss, textAlign: col.align }}>
+                {i === colHeaders.length - 1 && selectMode
+                  ? <Checkbox
+                      size="small"
+                      checked={displayedPozlar.length > 0 && displayedPozlar.every(p => selectedIds.has(p.id))}
+                      indeterminate={displayedPozlar.some(p => selectedIds.has(p.id)) && !displayedPozlar.every(p => selectedIds.has(p.id))}
+                      onChange={() => {
+                        const allChecked = displayedPozlar.every(p => selectedIds.has(p.id))
+                        setSelectedIds(allChecked
+                          ? new Set([...selectedIds].filter(id => !displayedPozlar.some(p => p.id === id)))
+                          : new Set([...selectedIds, ...displayedPozlar.map(p => p.id)])
+                        )
+                      }}
+                      sx={{ p: '2px', color: 'white', '&.Mui-checked': { color: 'white' }, '&.MuiCheckbox-indeterminate': { color: 'white' } }}
+                    />
+                  : col.label
+                }
+              </Box>
             ))}
 
             {displayedPozlar.length === 0 &&
@@ -489,23 +582,36 @@ export default function P_Pozlar() {
               </Box>
             }
 
-            {displayedPozlar.map(poz => (
+            {displayedPozlar.map(poz => {
+              const isChecked = selectedIds.has(poz.id)
+              const selectedBg = isChecked ? { backgroundColor: '#e3f2fd' } : {}
+              return (
               <React.Fragment key={poz.id}>
-                <Box sx={{ ...pozCellCss, fontFamily: 'monospace', fontWeight: 600, justifyContent: 'center' }}>
+                <Box sx={{ ...pozCellCss, fontFamily: 'monospace', fontWeight: 600, justifyContent: 'center', cursor: selectMode ? 'pointer' : 'default', ...selectedBg }}
+                  onClick={() => selectMode && toggleSelect(poz.id)}>
                   {poz.code || '—'}
                 </Box>
-                <Box sx={{ ...pozCellCss }}>{poz.short_desc}</Box>
-                <Box sx={{ ...pozCellCss, justifyContent: 'center' }}>{unitsMap[poz.unit_id] ?? '—'}</Box>
-                <Box sx={{ ...pozCellCss, justifyContent: 'center' }}>
-                  <IconButton size="small" onClick={() => setEditingPoz(poz)}>
-                    <EditIcon fontSize="small" />
-                  </IconButton>
-                  <IconButton size="small" onClick={() => handleDeletePoz(poz)}>
-                    <DeleteIcon fontSize="small" />
-                  </IconButton>
+                <Box sx={{ ...pozCellCss, cursor: selectMode ? 'pointer' : 'default', ...selectedBg }}
+                  onClick={() => selectMode && toggleSelect(poz.id)}>
+                  {poz.short_desc}
+                </Box>
+                <Box sx={{ ...pozCellCss, justifyContent: 'center', cursor: selectMode ? 'pointer' : 'default', ...selectedBg }}
+                  onClick={() => selectMode && toggleSelect(poz.id)}>
+                  {unitsMap[poz.unit_id] ?? '—'}
+                </Box>
+                <Box sx={{ ...pozCellCss, justifyContent: 'center', ...selectedBg }}>
+                  {selectMode && (
+                    <Checkbox
+                      size="small"
+                      checked={isChecked}
+                      onChange={() => toggleSelect(poz.id)}
+                      sx={{ p: '2px' }}
+                    />
+                  )}
                 </Box>
               </React.Fragment>
-            ))}
+              )
+            })}
           </Box>
         </Box>
       }

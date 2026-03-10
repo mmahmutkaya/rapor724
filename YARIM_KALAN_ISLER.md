@@ -135,9 +135,23 @@ Sayfaları açılana kadar bekleyecek:
 - `useGetNetworkUsers` (Realm)
 - `useGetProjectNames_firma` (Realm)
 
+#### ✅ İş Paketleri (`src/pages/ispaketler/index.js`)
+- `useGetWorkPackages` → `work_packages` tablosu (Supabase)
+- İş paketi listesi, oluşturma (FormIsPaketCreate), silme
+- Satıra tıklanınca `setSelectedIsPaket` + `/ispaketpozlar` navigate
+- **SQL çalıştırılması gerekiyor** (aşağıya bak)
+
+### Çalıştırılması Gereken SQL — İş Paketleri
+
+```sql
+ALTER TABLE work_packages ENABLE ROW LEVEL SECURITY;
+CREATE POLICY "dev_work_packages_all" ON work_packages
+  FOR ALL TO authenticated USING (true) WITH CHECK (true);
+```
+
 ### Sonraki Adımlar (sırasıyla)
-1. Pozlar sayfası (`/pozlar`) — `poz_items` tablosu, WBS leaf node'larına bağlı
-2. Mahaller sayfası (`/mahaller`) — `mahal_items` tablosu, LBS leaf node'larına bağlı
+1. İş Paketi Pozlar sayfası (`/ispaketpozlar`) — work_packages + project_pozlar ilişkisi
+2. Mahaller sayfası (`/mahaller`) — `work_areas` tablosu, LBS leaf node'larına bağlı
 3. Firma / Proje oluşturma formları (hâlâ eski backend)
 4. RLS politikalarını production için kullanıcı bazlı daralt
 

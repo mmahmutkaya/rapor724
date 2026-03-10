@@ -1,506 +1,322 @@
-
-import React from 'react'
-import { useState, useContext, useEffect } from 'react';
-import { useQueryClient } from '@tanstack/react-query'
-import { useNavigate } from "react-router-dom";
-import { DialogAlert } from '../../components/general/DialogAlert.js';
-
+import React, { useState, useContext, useEffect, useMemo } from 'react'
+import { useNavigate } from 'react-router-dom'
 
 import { StoreContext } from '../../components/store'
-import { useGetPozlar } from '../../hooks/useMongo';
-import getWbsName from '../../functions/getWbsName';
+import { useGetWbsNodes, useGetPozUnits, useGetWorkPackagePozlar } from '../../hooks/useMongo'
+
+import Box from '@mui/material/Box'
+import Paper from '@mui/material/Paper'
+import Grid from '@mui/material/Grid'
+import Typography from '@mui/material/Typography'
+import LinearProgress from '@mui/material/LinearProgress'
+import Alert from '@mui/material/Alert'
+import NavigateNextIcon from '@mui/icons-material/NavigateNext'
 
 
-import ShowMetrajOlusturPozlarBaslik from '../../components/ShowMetrajOlusturPozlarBaslik'
+function flattenTree(nodes, parentId = null, depth = 0) {
+  return nodes
+    .filter(n => (n.parent_id ?? null) === (parentId ?? null))
+    .sort((a, b) => a.order_index - b.order_index)
+    .flatMap(n => [{ ...n, depth }, ...flattenTree(nodes, n.id, depth + 1)])
+}
 
-import AppBar from '@mui/material/AppBar';
-import { borderLeft, fontWeight, grid, styled } from '@mui/system';
-import Grid from '@mui/material/Grid';
-import Input from '@mui/material/Input';
-import Alert from '@mui/material/Alert';
-import Stack from '@mui/material/Stack';
-import { Button, TextField, Typography } from '@mui/material';
-import Box from '@mui/material/Box';
-import InfoIcon from '@mui/icons-material/Info';
-import Tooltip from '@mui/material/Tooltip';
-import { Check } from '@mui/icons-material';
-import LinearProgress from '@mui/material/LinearProgress';
-
-
-function HeaderMetrajOlusturPozlar() {
-
-  return (
-    <AppBar position="static" sx={{ backgroundColor: "white", color: "black", boxShadow: 4 }}>
-
-      <Grid
-        container
-        justifyContent="space-between"
-        alignItems="center"
-        sx={{ padding: "0.5rem 1rem", minHeight: "3.5rem", maxHeight: "5rem" }}
-      >
-
-        {/* sol kısım (başlık) */}
-        <Grid item xs>
-          <Typography variant="body1" sx={{ fontWeight: 600, whiteSpace: "nowrap" }}>
-            Metraj Oluştur
-          </Typography>
-        </Grid>
-
-        {/* sağ kısım - (tuşlar) */}
-        <Grid item xs="auto">
-          <Grid container>
-          </Grid>
-        </Grid>
-
-      </Grid>
-
-    </AppBar>
-  )
+function nodeColor(depth) {
+  const palette = [
+    { bg: '#8b0000', co: '#e6e6e6' },
+    { bg: '#330066', co: '#e6e6e6' },
+    { bg: '#005555', co: '#e6e6e6' },
+    { bg: '#737373', co: '#e6e6e6' },
+    { bg: '#8b008b', co: '#e6e6e6' },
+    { bg: '#2929bc', co: '#e6e6e6' },
+    { bg: '#00853E', co: '#e6e6e6' },
+    { bg: '#4B5320', co: '#e6e6e6' },
+  ]
+  return palette[depth % palette.length]
 }
 
 
 export default function P_MetrajOlusturPozlar() {
-
   const navigate = useNavigate()
-  const queryClient = useQueryClient()
-  const [dialogAlert, setDialogAlert] = useState()
+  const { selectedProje, selectedIsPaket, setSelectedPoz } = useContext(StoreContext)
 
-  // let { data: dataPozlar, error, isLoading } = useGetMahalListesi_pozlar()
-  // let pozlar = dataPozlar?.pozlar?.filter(x => x.hasDugum)
-  let { data, error, isLoading } = useGetPozlar()
-  let pozlar = data?.pozlar?.filter(x => x.hasDugum)
-  // console.log("dataPozlar.pozlar", dataPozlar?.pozlar)
+  const { data: rawWbsNodes = [], isLoading: wbsLoading } = useGetWbsNodes()
+  const { data: units = [], isLoading: unitsLoading } = useGetPozUnits()
+  const { data: wpPozlar = [], isLoading: wpPozLoading, error: wpPozError } = useGetWorkPackagePozlar()
 
-  const { appUser, setAppUser, RealmApp, selectedProje, myTema } = useContext(StoreContext)
-  const { selectedPoz, setSelectedPoz } = useContext(StoreContext)
+  const [collapsedIds, setCollapsedIds] = useState(new Set())
 
-  const metrajYapabilenler = selectedProje?.yetkiliKisiler.filter(x => x.yetkiler.find(x => x.name === "owner"))
-
-  const [showMetrajOnaylanan, setShowMetrajOnaylanan] = useState(false)
-  // const { editNodeMetraj, onayNodeMetraj } = useContext(StoreContext)
-  let editNodeMetraj = true
-
-  // console.log("selectedProje", selectedProje)
-  const pozBirimleri = selectedProje?.pozBirimleri
-  // console.log("pozBirimleri", pozBirimleri)
-
-  const [show, setShow] = useState("Main")
-
+  const isLoading = wbsLoading || unitsLoading || wpPozLoading
+  const queryError = wpPozError
 
   useEffect(() => {
-    !selectedProje && navigate('/projeler')
+    if (!selectedProje) navigate('/projeler')
+    else if (!selectedIsPaket) navigate('/metrajolustur')
+  }, [selectedProje, selectedIsPaket, navigate])
+
+  useEffect(() => {
+    setSelectedPoz(null)
   }, [])
 
-  useEffect(() => {
-    if (error) {
-      console.log("error", error)
-      setDialogAlert({
-        dialogIcon: "warning",
-        dialogMessage: "Beklenmedik hata, Rapor7/24 ile irtibata geçiniz..",
-        detailText: error?.message ? error.message : null
-      })
+  // work_package_pozlar'dan project_poz objelerini çıkar
+  const rawPozlar = useMemo(() =>
+    wpPozlar
+      .filter(wpp => wpp.project_poz)
+      .map(wpp => wpp.project_poz)
+  , [wpPozlar])
+
+  const flatNodes = useMemo(() => flattenTree(rawWbsNodes), [rawWbsNodes])
+
+  const isLeafSet = useMemo(() => {
+    const s = new Set()
+    rawWbsNodes.forEach(n => {
+      if (!rawWbsNodes.some(c => c.parent_id === n.id)) s.add(n.id)
+    })
+    return s
+  }, [rawWbsNodes])
+
+  const maxLeafDepth = useMemo(() => {
+    const leaves = flatNodes.filter(n => isLeafSet.has(n.id))
+    return leaves.length > 0 ? Math.max(...leaves.map(n => n.depth)) : 0
+  }, [flatNodes, isLeafSet])
+
+  const unitsMap = useMemo(() => {
+    const m = {}
+    units.forEach(u => { m[u.id] = u.name })
+    return m
+  }, [units])
+
+  function toggleCollapse(nodeId) {
+    setCollapsedIds(prev => {
+      const next = new Set(prev)
+      next.has(nodeId) ? next.delete(nodeId) : next.add(nodeId)
+      return next
+    })
+  }
+
+  function isHiddenByAncestor(node) {
+    let parentId = node.parent_id
+    while (parentId) {
+      if (collapsedIds.has(parentId)) return true
+      const parent = rawWbsNodes.find(n => n.id === parentId)
+      parentId = parent?.parent_id ?? null
     }
-  }, [error]);
-
-
-  const [basliklar, setBasliklar] = useState(RealmApp?.currentUser.customData.customSettings.pages.metrajpozlar.basliklar)
-
-
-  // const pozAciklamaShow = basliklar?.find(x => x.id === "aciklama").show
-  // const pozVersiyonShow = basliklar?.find(x => x.id === "versiyon").show
-
-  const pozAciklamaShow = false
-  const pozVersiyonShow = false
-
-  const wbsArray_hasMahal = selectedProje?.wbs.filter(oneWbs => pozlar?.find(onePoz => onePoz._wbsId.toString() === oneWbs._id.toString()))
-  // console.log("wbsArray_hasMahal",wbsArray_hasMahal)
-
-
-
-  const ikiHane = (value) => {
-    if (!value) {
-      return ""
-    }
-    if (value != "") {
-      return new Intl.NumberFormat("de-DE", { minimumFractionDigits: 2, maximumFractionDigits: 2, }).format(value)
-    }
-    return value
+    return false
   }
 
-
-  // CSS
-  const enUstBaslik_css = {
-    display: "grid",
-    alignItems: "center",
-    justifyItems: "center",
-    backgroundColor: myTema.renkler.baslik1,
-    fontWeight: 600,
-    border: "1px solid black",
-    px: "0.7rem"
+  // Bu düğümde (veya alt düğümlerinde) iş paketine ait poz var mı
+  function nodeHasPoz(nodeId) {
+    if (rawPozlar.some(p => p.wbs_node_id === nodeId)) return true
+    return rawWbsNodes.filter(n => n.parent_id === nodeId).some(c => nodeHasPoz(c.id))
   }
 
-
-  const wbsBaslik_css = {
-    display: "grid",
-    alignItems: "center",
-    justifyItems: "start",
-    backgroundColor: myTema.renkler.baslik2,
-    fontWeight: 600,
-    pl: "0.5rem",
-    border: "1px solid black",
-    mt: "1rem",
-    px: "0.7rem"
-  }
-
-  const wbsBaslik_css2 = {
-    backgroundColor: myTema.renkler.baslik2,
-    border: "1px solid black",
-    mt: "1rem",
-    px: "0.7rem"
-  }
-
-
-
-  const pozNo_css = {
-    border: "1px solid black",
-    px: "0.7rem",
-    display: "grid",
-    alignItems: "center",
-    justifyItems: "center"
-  }
-
-
-
-  const goTo_MetrajPozmahaller = (onePoz) => {
+  const handlePozClick = (poz) => {
+    setSelectedPoz(poz)
     navigate('/metrajolusturpozmahaller')
-    setSelectedPoz(onePoz)
   }
-
-  const metrajYapabilenlerColumns = " 1rem repeat(" + metrajYapabilenler?.length + ", max-content)"
-  const columns = `max-content minmax(min-content, 3fr)${showMetrajOnaylanan ? " max-content" : ""} max-content${pozAciklamaShow ? " 0.5rem minmax(min-content, 2fr)" : ""}${pozVersiyonShow ? " 0.5rem min-content" : ""}${editNodeMetraj ? " 1rem max-content max-content" : ""}`
 
 
   return (
-    <Box sx={{ m: "0rem" }}>
-
-      {dialogAlert &&
-        <DialogAlert
-          dialogIcon={dialogAlert.dialogIcon}
-          dialogMessage={dialogAlert.dialogMessage}
-          detailText={dialogAlert.detailText}
-          onCloseAction={dialogAlert.onCloseAction ? dialogAlert.onCloseAction : () => setDialogAlert()}
-        />
-      }
+    <Box sx={{ m: '0rem' }}>
 
       {/* BAŞLIK */}
-      <HeaderMetrajOlusturPozlar
-        show={show}
-        setShow={setShow}
-      />
-
-
-      {/* BAŞLIK GÖSTER / GİZLE */}
-      {show == "ShowBaslik" &&
-        <ShowMetrajOlusturPozlarBaslik
-          setShow={setShow}
-          basliklar={basliklar} setBasliklar={setBasliklar}
-        />
-      }
-
+      <Paper>
+        <Grid container alignItems="center" sx={{ px: '1rem', py: '0.5rem', maxHeight: '5rem' }}>
+          <Grid item>
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: '0.2rem' }}>
+              <Typography
+                variant="body1"
+                sx={{ fontWeight: 600, opacity: 0.4, cursor: 'pointer', '&:hover': { opacity: 0.8 } }}
+                onClick={() => navigate('/metrajolustur')}
+              >
+                Metraj Oluştur
+              </Typography>
+              <NavigateNextIcon sx={{ opacity: 0.4, fontSize: 18 }} />
+              <Typography
+                variant="body1"
+                sx={{
+                  fontWeight: 600,
+                  opacity: 0.4,
+                  maxWidth: '14rem',
+                  overflow: 'hidden',
+                  textOverflow: 'ellipsis',
+                  whiteSpace: 'nowrap',
+                }}
+              >
+                {selectedIsPaket?.name}
+              </Typography>
+              <NavigateNextIcon sx={{ opacity: 0.4, fontSize: 18 }} />
+              <Typography variant="body1" sx={{ fontWeight: 700, whiteSpace: 'nowrap' }}>
+                Pozlar
+              </Typography>
+            </Box>
+          </Grid>
+        </Grid>
+      </Paper>
 
       {isLoading &&
-        <Box sx={{ ml: "1rem", color: 'gray' }}>
-          <LinearProgress color='inherit' />
-        </Box>
+        <Box sx={{ m: '1rem', color: 'gray' }}><LinearProgress color="inherit" /></Box>
       }
 
-
-      {/* EĞER POZ BAŞLIĞI YOKSA */}
-      {!isLoading && show == "Main" && !selectedProje?.wbs?.find(x => x.openForPoz === true) &&
-        <Stack sx={{ width: '100%', p: "1rem" }} spacing={2}>
-          <Alert severity="info">
-            Mahallistesi henüz boş.
-          </Alert>
-        </Stack>
+      {!isLoading && queryError &&
+        <Alert severity="error" sx={{ m: '1rem' }}>
+          Veri alınırken hata oluştu.<br /><small style={{ opacity: 0.7 }}>{queryError.message}</small>
+        </Alert>
       }
 
-
-      {/* EĞER POZ YOKSA */}
-      {!isLoading && show == "Main" && selectedProje?.wbs?.find(x => x.openForPoz === true) && !pozlar?.length > 0 &&
-        <Stack sx={{ width: '100%', p: "1rem" }} spacing={2}>
-          <Alert severity="info">
-            Mahallistesi henüz boş.
-          </Alert>
-        </Stack>
+      {!isLoading && !queryError && rawWbsNodes.length === 0 &&
+        <Alert severity="info" sx={{ m: '1rem' }}>
+          Poz oluşturmadan önce <strong>WBS (Poz Başlıkları)</strong> ağacını oluşturun.
+        </Alert>
       }
 
+      {!isLoading && !queryError && rawPozlar.length === 0 && rawWbsNodes.length > 0 &&
+        <Alert severity="info" sx={{ m: '1rem' }}>
+          Bu iş paketine henüz poz atanmamış. İş Paketleri &rsaquo; Pozlar sayfasından atayabilirsiniz.
+        </Alert>
+      }
 
-      {/* ANA SAYFA - POZLAR VARSA */}
+      {/* AĞAÇ GÖRÜNÜMÜ */}
+      {!isLoading && !queryError && rawWbsNodes.length > 0 && rawPozlar.length > 0 &&
+        (() => {
+          const totalDepthCols = maxLeafDepth + 1
+          const totalCols = totalDepthCols + 3
+          const treeGridCols = `repeat(${totalDepthCols}, 1rem) max-content minmax(20rem, max-content) max-content`
 
-      {show == "Main" && wbsArray_hasMahal && pozlar?.length > 0 &&
+          return (
+            <Box sx={{ maxWidth: '80rem', p: '0.5rem', width: 'fit-content' }}>
 
-        <Box sx={{ m: "1rem", display: "grid", gridTemplateColumns: columns }}>
-
-          {/*   EN ÜST BAŞLIK */}
-          <>
-
-            {/* BAŞLIK - POZ NO */}
-            <Box sx={{ ...enUstBaslik_css }}>
-              Poz No
-            </Box>
-
-            {/* BAŞLIK - POZ İSMİ */}
-            <Box sx={{ ...enUstBaslik_css }}>
-              Poz İsmi
-            </Box>
-
-
-            {/* BAŞLIK - POZ BİRİM  */}
-            {showMetrajOnaylanan &&
-              < Box sx={{ ...enUstBaslik_css }}>
-                Miktar
+              {/* Proje adı satırı */}
+              <Box sx={{ display: 'grid', gridTemplateColumns: '1rem 1fr' }}>
+                <Box sx={{ backgroundColor: 'black' }} />
+                <Box sx={{ backgroundColor: 'black', color: 'white', pl: '4px', py: '2px' }}>
+                  <Typography variant="body2">{selectedProje?.name}</Typography>
+                </Box>
               </Box>
-            }
 
-            {/* BAŞLIK - POZ BİRİM  */}
-            <Box sx={{ ...enUstBaslik_css }}>
-              Birim
+              <Box sx={{ display: 'grid', gridTemplateColumns: '1rem 1fr' }}>
+                <Box sx={{ backgroundColor: 'black' }} />
+                <Box sx={{ display: 'grid', gridTemplateColumns: treeGridCols }}>
+
+                  {flatNodes.map(node => {
+                    if (isHiddenByAncestor(node)) return null
+                    if (!nodeHasPoz(node.id)) return null
+
+                    const { depth } = node
+                    const isLeaf = isLeafSet.has(node.id)
+                    const c = nodeColor(depth)
+                    const pozlarOfNode = rawPozlar
+                      .filter(p => p.wbs_node_id === node.id)
+                      .sort((a, b) => a.order_index - b.order_index)
+
+                    return (
+                      <React.Fragment key={node.id}>
+
+                        {/* WBS düğüm satırı */}
+                        {Array.from({ length: depth }).map((_, i) => (
+                          <Box key={i} sx={{ backgroundColor: nodeColor(i).bg }} />
+                        ))}
+                        <Box
+                          onClick={() => { if (!isLeaf) toggleCollapse(node.id) }}
+                          sx={{
+                            gridColumn: `span ${totalCols - depth}`,
+                            pl: '6px', py: '1px',
+                            backgroundColor: c.bg,
+                            color: c.co,
+                            cursor: isLeaf ? 'default' : 'pointer',
+                            display: 'flex', alignItems: 'center', gap: '0.4rem',
+                            userSelect: 'none',
+                            '&:hover': { filter: isLeaf ? 'none' : 'brightness(1.2)' }
+                          }}
+                        >
+                          {!isLeaf &&
+                            <Box sx={{ fontSize: '0.7rem', flexShrink: 0 }}>
+                              {collapsedIds.has(node.id) ? '▶' : '▼'}
+                            </Box>
+                          }
+                          {isLeaf &&
+                            <Box sx={{ width: '0.45rem', height: '0.45rem', borderRadius: '50%', backgroundColor: '#65FF00', flexShrink: 0 }} />
+                          }
+                          <Typography variant="body2">
+                            {node.code_name ? `(${node.code_name}) ` : ''}{node.name}
+                          </Typography>
+                          {isLeaf && pozlarOfNode.length > 0 &&
+                            <Box sx={{ ml: 'auto', pr: '0.5rem', fontSize: '0.75rem', opacity: 0.5, flexShrink: 0 }}>
+                              {pozlarOfNode.length} poz
+                            </Box>
+                          }
+                        </Box>
+
+                        {/* Poz satırları */}
+                        {isLeaf && !collapsedIds.has(node.id) && pozlarOfNode.map(poz => (
+                          <React.Fragment key={poz.id}>
+
+                            {Array.from({ length: totalDepthCols }).map((_, i) => (
+                              <Box key={i} sx={{ backgroundColor: i <= depth ? nodeColor(i).bg : 'transparent' }} />
+                            ))}
+
+                            {/* Poz kodu */}
+                            <Box
+                              onClick={() => handlePozClick(poz)}
+                              sx={{
+                                px: '6px', py: '2px',
+                                borderBottom: '0.5px solid #ddd',
+                                borderLeft: '1px solid #aaa',
+                                fontFamily: 'monospace', fontSize: '0.8rem', fontWeight: 600,
+                                display: 'flex', alignItems: 'center', whiteSpace: 'nowrap',
+                                backgroundColor: '#fafafa',
+                                cursor: 'pointer',
+                                '&:hover': { backgroundColor: '#e3f2fd' }
+                              }}
+                            >
+                              {poz.code || '—'}
+                            </Box>
+
+                            {/* Açıklama */}
+                            <Box
+                              onClick={() => handlePozClick(poz)}
+                              sx={{
+                                px: '6px', py: '2px',
+                                borderBottom: '0.5px solid #ddd',
+                                fontSize: '0.875rem',
+                                display: 'flex', alignItems: 'center',
+                                backgroundColor: '#fafafa',
+                                cursor: 'pointer',
+                                '&:hover': { backgroundColor: '#e3f2fd' }
+                              }}
+                            >
+                              {poz.short_desc}
+                            </Box>
+
+                            {/* Birim */}
+                            <Box
+                              onClick={() => handlePozClick(poz)}
+                              sx={{
+                                px: '6px', py: '2px',
+                                borderBottom: '0.5px solid #ddd',
+                                fontSize: '0.8rem',
+                                display: 'flex', alignItems: 'center',
+                                backgroundColor: '#fafafa', whiteSpace: 'nowrap',
+                                cursor: 'pointer',
+                                '&:hover': { backgroundColor: '#e3f2fd' }
+                              }}
+                            >
+                              {unitsMap[poz.unit_id] ?? '—'}
+                            </Box>
+
+                          </React.Fragment>
+                        ))}
+
+                      </React.Fragment>
+                    )
+                  })}
+
+                </Box>
+              </Box>
             </Box>
-
-            {/* BAŞLIK - POZ BİRİM  */}
-            {pozAciklamaShow &&
-              <>
-                <Box></Box>
-                <Box sx={{ ...enUstBaslik_css }}>
-                  Açıklama
-                </Box>
-              </>
-            }
-
-            {/* BAŞLIK - VERSİYON */}
-            {pozVersiyonShow &&
-              <>
-                <Box></Box>
-                <Box sx={{ ...enUstBaslik_css }}>
-                  Versiyon
-                </Box>
-              </>
-            }
-
-            {/* METRAJ DÜZENLEME AÇIKSA */}
-            {editNodeMetraj &&
-              <>
-                <Box></Box>
-
-                <Box sx={{ ...enUstBaslik_css }}>
-                  Hazırlanıyor
-                </Box>
-                <Box sx={{ ...enUstBaslik_css, minWidth: "6rem" }}>
-                  Hazır
-                </Box>
-
-              </>
-            }
-
-            {/* {onayNodeMetraj &&
-              <>
-                <Box> </Box>
-                {metrajYapabilenler.map((oneYapabilen, index) => {
-                  return (
-                    <Box key={index} sx={{ ...enUstBaslik_css, borderLeft: "1px solid black", justifyContent: "center" }}>
-                      {yetkililer?.find(oneYetkili => oneYetkili.userEmail === oneYapabilen.userEmail).userCode}
-                    </Box>
-                  )
-                })}
-              </>
-            } */}
-
-          </>
-
-
-
-          {/* WBS BAŞLIĞI ve ALTINDA POZLARI*/}
-
-          {wbsArray_hasMahal?.filter(x => x.openForPoz).map((oneWbs, index) => {
-
-            return (
-
-              <React.Fragment key={index}>
-
-                {/* WBS BAŞLIĞININ OLDUĞU TÜM SATIR */}
-                <>
-                  {/* WBS BAŞLIĞI */}
-                  <Box sx={{ ...wbsBaslik_css, gridColumn: showMetrajOnaylanan ? "1 / span 4" : "1 / span 3", textWrap: "nowrap" }}>
-                    {/* <Box sx={{ display: "grid", gridAutoFlow: "column" }} > */}
-                    {getWbsName({ wbsArray: selectedProje?.wbs, oneWbs }).name}
-                    {/* </Box> */}
-                  </Box>
-
-
-                  {/* BAŞLIK - AÇIKLAMA  */}
-                  {pozAciklamaShow &&
-                    <>
-                      <Box></Box>
-                      <Box sx={{ ...wbsBaslik_css2 }} />
-                    </>
-                  }
-
-                  {/* BAŞLIK - VERSİYON */}
-                  {pozVersiyonShow &&
-                    <>
-                      <Box />
-                      <Box sx={{ ...wbsBaslik_css2 }} />
-                    </>
-                  }
-
-                  {/* METRAJ DÜZENLEME AÇIKSA */}
-                  {editNodeMetraj &&
-                    <>
-                      <Box />
-                      <Box sx={{ ...wbsBaslik_css2 }} />
-                      <Box sx={{ ...wbsBaslik_css2 }} />
-                    </>
-                  }
-
-                  {/* {onayNodeMetraj &&
-                    <>
-                      <Box> </Box>
-                      {metrajYapabilenler.map((oneYapabilen, index) => {
-                        return (
-                          <Box key={index} sx={{ ...wbsBaslik_css2, borderLeft: "1px solid black", justifyContent: "center" }}>
-
-                          </Box>
-                        )
-                      })}
-                    </>
-                  } */}
-
-                </>
-
-
-                {/* WBS'İN POZLARI */}
-                {pozlar?.filter(x => x._wbsId.toString() === oneWbs._id.toString()).map((onePoz, index) => {
-
-                  let oneHazirlanan = onePoz.hazirlananMetrajlar.find(x => x.userEmail === appUser.email)
-
-                  let isSelected = false
-
-                  if (selectedPoz?._id.toString() === onePoz._id.toString()) {
-                    isSelected = true
-                  }
-
-                  return (
-                    <React.Fragment key={index} >
-                      <Box sx={{ ...pozNo_css }} >
-                        {onePoz.pozNo}
-                      </Box>
-                      <Box sx={{ ...pozNo_css, justifyItems: "start", pl: "0.5rem" }} >
-                        {onePoz.pozName}
-                      </Box>
-                      {/* <Box onDoubleClick={() => goTo_MetrajPozmahaller(onePoz)} sx={{ ...pozNo_css, cursor: "pointer", display: "grid", gridTemplateColumns: "1rem 1fr", "&:hover": { "& .childClass": { backgroundColor: "red" } } }}>
-                        <Box className="childClass" sx={{ ml: "-1rem", backgroundColor: "white", height: "0.5rem", width: "0.5rem", borderRadius: "50%" }}>
-                        </Box>
-                        <Box sx={{ justifySelf: "end" }}>
-                          {ikiHane(onePoz?.onaylananMetraj)}
-                        </Box>
-                      </Box> */}
-
-                      {showMetrajOnaylanan &&
-                        <Box sx={{ ...pozNo_css, justifyContent: "end" }}>
-                          {ikiHane(onePoz?.metrajOnaylanan)}
-                        </Box>
-                      }
-
-                      <Box sx={{ ...pozNo_css }}>
-                        {pozBirimleri.find(x => x.id === onePoz.pozBirimId).name}
-                      </Box>
-
-                      {/* BAŞLIK - POZ BİRİM  */}
-                      {pozAciklamaShow &&
-                        <>
-                          <Box></Box>
-                          <Box sx={{ ...pozNo_css }}>
-                            {onePoz.aciklaam}
-                          </Box>
-                        </>
-                      }
-
-                      {/* BAŞLIK - VERSİYON */}
-                      {pozVersiyonShow &&
-                        <>
-                          <Box />
-                          <Box sx={{ ...pozNo_css }}>
-                            {onePoz.versiyon}
-                          </Box>
-                        </>
-                      }
-
-                      {/* METRAJ DÜZENLEME AÇIKSA - KİŞİNİN HAZIRLADIĞI TOPLAM POZ METRAJ*/}
-                      {editNodeMetraj &&
-                        <>
-                          <Box />
-
-                          <Box onClick={() => goTo_MetrajPozmahaller(onePoz)} sx={{ ...pozNo_css, justifyContent: "end", cursor: "pointer", backgroundColor: "yellow", display: "grid", gridTemplateColumns: "1rem 1fr", "&:hover": { "& .childClass": { backgroundColor: "red" } } }}>
-                            <Box className="childClass" sx={{ ml: "-1rem", backgroundColor: "yellow", height: "0.5rem", width: "0.5rem", borderRadius: "50%" }}>
-                            </Box>
-                            <Box sx={{ justifySelf: "end" }}>
-                              {ikiHane(oneHazirlanan?.metrajPreparing)}
-                            </Box>
-                          </Box>
-
-                          <Box sx={{ ...pozNo_css, justifyContent: "end", backgroundColor: oneHazirlanan?.hasReady && "rgba(255, 255, 0, 0.24)" }}>
-                            {ikiHane(oneHazirlanan?.metrajReady)}
-                          </Box>
-
-                          {/* <Box sx={{ ...pozNo_css, display: "grid", gridTemplateColumns: "auto 1fr" }}>
-                            <Box sx={{ ml: "-0.2rem", pr: "0.4rem", mb: "-0.3rem" }}>
-                              <Check sx={{ color: "black", fontSize: "0.95rem" }} />
-                            </Box>
-                            <Box sx={{ justifySelf: "end" }}>
-                              {ikiHane(onePoz?.hazirlananMetrajlar.find(x => x.userEmail === appUser.email)?.metrajReady)}
-                            </Box>
-                          </Box> */}
-
-                        </>
-                      }
-
-                      {/* {onayNodeMetraj &&
-                        <>
-                          <Box> </Box>
-                          {metrajYapabilenler.map((oneYapabilen, index) => {
-                            return (
-                              <Box key={index} onDoubleClick={() => goTo_MetrajPozmahaller(onePoz)} sx={{ ...pozNo_css, justifyContent: "end", cursor: "pointer", backgroundColor: "rgb(143,206,0,0.3)", display: "grid", gridTemplateColumns: "1rem 1fr", "&:hover": { "& .childClass": { backgroundColor: "red" } } }}>
-                                <Box className="childClass" sx={{ color: "rgb(143,206,0,0.3)", ml: "-1rem", height: "0.5rem", width: "0.5rem", borderRadius: "50%" }}>
-                                </Box>
-                                <Box sx={{ justifySelf: "end" }}>
-                                  {ikiHane(onePoz?.hazirlananMetrajlar.find(x => x.userEmail === oneYapabilen.userEmail)?.metraj)}
-                                </Box>
-                              </Box>
-                            )
-                          })}
-                        </>
-                      } */}
-
-
-                    </React.Fragment>
-                  )
-                })}
-
-
-              </React.Fragment>
-
-
-            )
-          })}
-
-
-        </Box>
+          )
+        })()
       }
 
-    </Box >
-
+    </Box>
   )
-
 }
-
-

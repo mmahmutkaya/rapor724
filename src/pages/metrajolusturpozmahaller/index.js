@@ -1,563 +1,326 @@
+import React, { useState, useContext, useEffect, useMemo } from 'react'
+import { useNavigate } from 'react-router-dom'
 
-import React, { useState, useContext, useEffect, Fragment } from 'react';
-import { useNavigate } from "react-router-dom";
 import { StoreContext } from '../../components/store'
-import { useApp } from "../../components/useApp";
-import FormPozCreate from '../../components/FormPozCreate'
-import EditPozBaslik from '../../components/EditPozBaslik'
-import FormPozBaslikCreate from '../../components/FormPozBaslikCreate'
+import { useGetLbsNodes, useGetWorkPackagePozAreas } from '../../hooks/useMongo'
 
-import _ from 'lodash';
-import { DialogAlert } from '../../components/general/DialogAlert.js';
-
-import { useGetDugumler_byPoz, useGetMahaller } from '../../hooks/useMongo';
-
-import AppBar from '@mui/material/AppBar';
-import Grid from '@mui/material/Grid';
-import Alert from '@mui/material/Alert';
-import Stack from '@mui/material/Stack';
-import Box from '@mui/material/Box';
-import IconButton from '@mui/material/IconButton';
-import { BorderBottom } from '@mui/icons-material';
-import ReplyIcon from '@mui/icons-material/Reply';
-import Tooltip from '@mui/material/Tooltip';
-import { Check } from '@mui/icons-material';
-import LinearProgress from '@mui/material/LinearProgress';
+import Box from '@mui/material/Box'
+import Paper from '@mui/material/Paper'
+import Grid from '@mui/material/Grid'
+import Typography from '@mui/material/Typography'
+import LinearProgress from '@mui/material/LinearProgress'
+import Alert from '@mui/material/Alert'
+import NavigateNextIcon from '@mui/icons-material/NavigateNext'
 
 
-function HeaderMetrajOlusturPozMahaller() {
+function flattenTree(nodes, parentId = null, depth = 0) {
+  return nodes
+    .filter(n => (n.parent_id ?? null) === (parentId ?? null))
+    .sort((a, b) => a.order_index - b.order_index)
+    .flatMap(n => [{ ...n, depth }, ...flattenTree(nodes, n.id, depth + 1)])
+}
 
-  const navigate = useNavigate()
-  const { selectedPoz, setSelectedPoz } = useContext(StoreContext)
-
-  return (
-    <AppBar position="static" sx={{ backgroundColor: "white", color: "black", boxShadow: 4 }}>
-
-      <Grid
-        container
-        justifyContent="space-between"
-        alignItems="center"
-        sx={{ padding: "0.5rem 1rem", minHeight: "3.5rem", maxHeight: "5rem" }}
-      >
-
-        {/* sol kısım (başlık) */}
-        <Grid item xs>
-          <Box sx={{ display: "flex", alignItems: "center", columnGap: "0.5rem" }}>
-
-            <IconButton
-              sx={{ width: 40, height: 40 }}
-              onClick={() => {
-                navigate("/metrajolusturpozlar")
-                setSelectedPoz()
-              }}
-            >
-              <ReplyIcon sx={{ color: "gray", fontSize: 24 }} />
-            </IconButton>
-
-            <Box sx={{ fontWeight: 600, fontSize: "0.875rem", whiteSpace: "nowrap" }}>
-              {selectedPoz?.pozName}
-            </Box>
-            <Box sx={{ color: "#8B0000", fontWeight: 600 }}>{">"}</Box>
-            <Box sx={{ fontWeight: 600, fontSize: "0.875rem" }}>
-              {"Tüm Açık Mahaller"}
-            </Box>
-
-          </Box>
-        </Grid>
-
-        {/* sağ kısım - (tuşlar) */}
-        <Grid item xs="auto">
-          <Grid container>
-          </Grid>
-        </Grid>
-
-      </Grid>
-
-    </AppBar>
-  )
+function nodeColor(depth) {
+  const palette = [
+    { bg: '#7a3333', co: '#e6e6e6' },
+    { bg: '#2d5c3a', co: '#e6e6e6' },
+    { bg: '#2d4f80', co: '#e6e6e6' },
+    { bg: '#6b5a2a', co: '#e6e6e6' },
+    { bg: '#2d6060', co: '#e6e6e6' },
+    { bg: '#4a2d7a', co: '#e6e6e6' },
+    { bg: '#6b2d50', co: '#e6e6e6' },
+    { bg: '#505050', co: '#e6e6e6' },
+  ]
+  return palette[depth % palette.length]
 }
 
 
 export default function P_MetrajOlusturPozMahaller() {
-
-  const { appUser, myTema } = useContext(StoreContext)
-  const [dialogAlert, setDialogAlert] = useState()
-
-
-  const { selectedProje, selectedPoz } = useContext(StoreContext)
-  const metrajYapabilenler = selectedProje?.yetki?.metrajYapabilenler
-  let editNodeMetraj = true
-
-  const { selectedNode, setSelectedNode } = useContext(StoreContext)
-  const { selectedMahal_metraj, setSelectedMahal_metraj } = useContext(StoreContext)
-
-  const [show, setShow] = useState("Main")
-  const [editPoz, setEditPoz] = useState(false)
-  const [pozBilgiler_willBeSaved, setPozBilgiler_willBeSaved] = useState([])
-  const [autoFocus, setAutoFocus] = useState({ baslikId: null, pozId: null })
-
-  const [dugumler_byPoz, setDugumler_byPoz] = useState()
-  const [lbsMetrajlar, setLbsMetrajlar] = useState([])
-  const [showMetrajOnaylanan, setShowMetrajOnaylanan] = useState(false)
-
   const navigate = useNavigate()
+  const { selectedProje, selectedIsPaket, selectedPoz, setSelectedMahal } = useContext(StoreContext)
 
-  const pozBirim = selectedProje?.pozBirimleri.find(x => x.id == selectedPoz?.pozBirimId)?.name
+  const { data: rawLbsNodes = [], isLoading: lbsLoading } = useGetLbsNodes()
+  const { data: wpAreas = [], isLoading: areasLoading, error: areasError } = useGetWorkPackagePozAreas()
 
+  const [collapsedIds, setCollapsedIds] = useState(new Set())
 
-  const { data: dataMahaller, error: error1, isLoading: isLoading1 } = useGetMahaller()
-  const { data: dataDugumlerByPoz, error: error2, isLoading: isLoading2 } = useGetDugumler_byPoz()
-
-  const mahaller_byPoz = dataMahaller?.mahaller?.filter(oneMahal => dugumler_byPoz?.find(oneDugum => oneDugum._mahalId.toString() === oneMahal._id.toString()))
-
-  useEffect(() => {
-    !selectedPoz && navigate('/metrajpozlar')
-    setDugumler_byPoz(_.cloneDeep(dataDugumlerByPoz?.dugumler_byPoz))
-    setLbsMetrajlar(_.cloneDeep(dataDugumlerByPoz?.lbsMetrajlar))
-    return () => {
-      // setselectedPoz_metraj()
-      // setDugumler_filtered()
-    }
-  }, [dataMahaller, dataDugumlerByPoz])
-
+  const isLoading = lbsLoading || areasLoading
+  const queryError = areasError
 
   useEffect(() => {
-    if (error1) {
-      console.log("error", error1)
-      setDialogAlert({
-        dialogIcon: "warning",
-        dialogMessage: "Beklenmedik hata, Rapor7/24 ile irtibata geçiniz..",
-        detailText: error1?.message ? error1.message : null
-      })
-    }
-    if (error2) {
-      console.log("error", error2)
-      setDialogAlert({
-        dialogIcon: "warning",
-        dialogMessage: "Beklenmedik hata, Rapor7/24 ile irtibata geçiniz..",
-        detailText: error2?.message ? error2.message : null
-      })
-    }
-  }, [error1, error2]);
+    if (!selectedProje || !selectedIsPaket) navigate('/metrajolustur')
+    else if (!selectedPoz) navigate('/metrajolusturpozlar')
+  }, [selectedProje, selectedIsPaket, selectedPoz, navigate])
 
+  // work_package_poz_areas'dan work_area objelerini çıkar
+  const rawMahaller = useMemo(() =>
+    wpAreas
+      .filter(wpa => wpa.work_area)
+      .map(wpa => ({ ...wpa.work_area, wpAreaId: wpa.id }))
+  , [wpAreas])
 
+  const flatNodes = useMemo(() => flattenTree(rawLbsNodes), [rawLbsNodes])
 
+  const isLeafSet = useMemo(() => {
+    const s = new Set()
+    rawLbsNodes.forEach(n => {
+      if (!rawLbsNodes.some(c => c.parent_id === n.id)) s.add(n.id)
+    })
+    return s
+  }, [rawLbsNodes])
 
-  const ikiHane = (value) => {
-    if (!value) {
-      return ""
-    }
-    if (value != "") {
-      return new Intl.NumberFormat("de-DE", { minimumFractionDigits: 2, maximumFractionDigits: 2, }).format(value)
-    }
-    return value
+  const maxLeafDepth = useMemo(() => {
+    const leaves = flatNodes.filter(n => isLeafSet.has(n.id))
+    return leaves.length > 0 ? Math.max(...leaves.map(n => n.depth)) : 0
+  }, [flatNodes, isLeafSet])
+
+  function toggleCollapse(nodeId) {
+    setCollapsedIds(prev => {
+      const next = new Set(prev)
+      next.has(nodeId) ? next.delete(nodeId) : next.add(nodeId)
+      return next
+    })
   }
 
-
-  let openLbsArray = selectedProje?.lbs
-    .filter(oneLbs => mahaller_byPoz?.find(oneMahal => oneMahal._lbsId.toString() === oneLbs._id.toString()))
-    .sort(function (a, b) {
-      var nums1 = a.code.split(".");
-      var nums2 = b.code.split(".");
-
-      for (var i = 0; i < nums1.length; i++) {
-        if (nums2[i]) { // assuming 5..2 is invalid
-          if (nums1[i] !== nums2[i]) {
-            return nums1[i] - nums2[i];
-          } // else continue
-        } else {
-          return 1; // no second number in b
-        }
-      }
-      return -1; // was missing case b.len > a.len
-    })
-
-
-
-
-  let getLbsName = (oneLbs) => {
-
-    let cOunt = oneLbs.code.split(".").length
-    let name
-    let code
-
-    oneLbs.code.split(".").map((codePart, index) => {
-
-      if (index == 0 && cOunt == 1) {
-        code = codePart
-        name = selectedProje?.lbs.find(item => item.code == code).name
-      }
-
-      if (index == 0 && cOunt !== 1) {
-        code = codePart
-        name = selectedProje?.lbs.find(item => item.code == code).codeName
-      }
-
-      if (index !== 0 && index + 1 !== cOunt && cOunt !== 1) {
-        code = code + "." + codePart
-        name = name + " > " + selectedProje?.lbs.find(item => item.code == code).codeName
-      }
-
-      if (index !== 0 && index + 1 == cOunt && cOunt !== 1) {
-        code = code + "." + codePart
-        name = name + " > " + selectedProje?.lbs.find(item => item.code == code).name
-      }
-
-    })
-
-    return { name, code }
-
+  function isHiddenByAncestor(node) {
+    let parentId = node.parent_id
+    while (parentId) {
+      if (collapsedIds.has(parentId)) return true
+      const parent = rawLbsNodes.find(n => n.id === parentId)
+      parentId = parent?.parent_id ?? null
+    }
+    return false
   }
 
+  // Bu düğümde (veya alt düğümlerinde) iş paketine ait mahal var mı
+  function nodeHasMahal(nodeId) {
+    if (rawMahaller.some(m => m.lbs_node_id === nodeId)) return true
+    return rawLbsNodes.filter(n => n.parent_id === nodeId).some(c => nodeHasMahal(c.id))
+  }
 
-  const goto_metrajOlusturCetvel = (dugum, oneMahal) => {
-    setSelectedNode(dugum)
-    setSelectedMahal_metraj(oneMahal)
+  const handleMahalClick = (mahal) => {
+    setSelectedMahal(mahal)
     navigate('/metrajolusturcetvel')
   }
 
-
-
-  const goTo_onayCetveli = ({ dugum, oneMahal }) => {
-    setSelectedNode(dugum)
-    setSelectedMahal_metraj(oneMahal)
-    navigate('/metrajonay')
-  }
-
-
-  // CSS
-  const css_enUstBaslik = {
-    display: "grid",
-    fontWeight: "600",
-    border: "1px solid black",
-    borderLeft: "none",
-    py: "0.05rem",
-    px: "0.5rem",
-    justifyContent: "start",
-    alignItems: "center",
-    backgroundColor: "#415a77",
-    color: "#e0e1dd"
-  }
-
-  const css_LbsBaslik = {
-    border: "1px solid black", borderLeft: "none", mt: "1rem", px: "0.5rem", display: "grid", justifyContent: "start", backgroundColor: myTema.renkler.metrajOnaylananBaslik
-  }
-
-  const css_mahaller = {
-    border: "1px solid black", px: "0.5rem", display: "grid", justifyContent: "start", alignItems: "center"
-  }
-
-
-  const metrajYapabilenlerColumns = " 1rem repeat(" + metrajYapabilenler?.length + ", max-content)"
-  // const gridTemplateColumns1 = `max-content minmax(min-content, 1fr) max-content max-content${editNodeMetraj ? " 1rem max-content" : ""}${onayNodeMetraj ? metrajYapabilenlerColumns : ""}`
-  const gridTemplateColumns1 = `max-content minmax(min-content, 1fr)${showMetrajOnaylanan ? " max-content" : ""} max-content${editNodeMetraj ? " 1rem max-content max-content" : ""}`
+  const pozLabel = selectedPoz?.code
+    ? `${selectedPoz.code} · ${selectedPoz.short_desc}`
+    : selectedPoz?.short_desc
 
 
   return (
+    <Box sx={{ m: '0rem' }}>
 
-    <Box sx={{ m: "0rem" }}>
-
-      {dialogAlert &&
-        <DialogAlert
-          dialogIcon={dialogAlert.dialogIcon}
-          dialogMessage={dialogAlert.dialogMessage}
-          detailText={dialogAlert.detailText}
-          onCloseAction={dialogAlert.onCloseAction ? dialogAlert.onCloseAction : () => setDialogAlert()}
-        />
-      }
-
-      <HeaderMetrajOlusturPozMahaller show={show} setShow={setShow} />
-
-
-      {(isLoading1 || isLoading2) &&
-        <Box sx={{ width: '100%', px: "1rem", color: 'gray' }}>
-          <LinearProgress color='inherit' />
-        </Box >
-      }
-
-
-      {!(isLoading1 || isLoading2) && !openLbsArray?.length > 0 &&
-        <Box>
-          henüz herhangi bir LBS mahal eklemeye açılmamış
-        </Box>
-      }
-
-      {!(isLoading1 || isLoading2) && openLbsArray?.length > 0 &&
-
-        <Box sx={{ m: "1rem", display: "grid", gridTemplateColumns: gridTemplateColumns1 }}>
-
-          {/* EN ÜST BAŞLIĞIN ÜST SATIRI - HANGİ POZ İLE İŞLEM YAPILIYORSA - POZ İSMİ VE TOPLAM METRAJI */}
-          <>
-
-            <Box sx={{ ...css_enUstBaslik, borderLeft: "1px solid black", justifyContent: "start" }}>
-              {selectedPoz.pozNo}
+      {/* BAŞLIK */}
+      <Paper>
+        <Grid container alignItems="center" sx={{ px: '1rem', py: '0.5rem', maxHeight: '5rem' }}>
+          <Grid item>
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: '0.2rem', flexWrap: 'nowrap', overflow: 'hidden' }}>
+              <Typography
+                variant="body1"
+                sx={{ fontWeight: 600, opacity: 0.4, cursor: 'pointer', whiteSpace: 'nowrap', '&:hover': { opacity: 0.8 } }}
+                onClick={() => navigate('/metrajolustur')}
+              >
+                Metraj Oluştur
+              </Typography>
+              <NavigateNextIcon sx={{ opacity: 0.4, fontSize: 18, flexShrink: 0 }} />
+              <Typography
+                variant="body1"
+                sx={{
+                  fontWeight: 600, opacity: 0.4, cursor: 'pointer',
+                  maxWidth: '10rem', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
+                  '&:hover': { opacity: 0.8 }
+                }}
+                onClick={() => navigate('/metrajolusturpozlar')}
+              >
+                {selectedIsPaket?.name}
+              </Typography>
+              <NavigateNextIcon sx={{ opacity: 0.4, fontSize: 18, flexShrink: 0 }} />
+              <Typography
+                variant="body1"
+                sx={{
+                  fontWeight: 600, opacity: 0.4, cursor: 'pointer',
+                  maxWidth: '14rem', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
+                  '&:hover': { opacity: 0.8 }
+                }}
+                onClick={() => navigate('/metrajolusturpozlar')}
+              >
+                {pozLabel}
+              </Typography>
+              <NavigateNextIcon sx={{ opacity: 0.4, fontSize: 18, flexShrink: 0 }} />
+              <Typography variant="body1" sx={{ fontWeight: 700, whiteSpace: 'nowrap' }}>
+                Mahaller
+              </Typography>
             </Box>
-            <Box sx={{ ...css_enUstBaslik }}>
-              {selectedPoz.pozName}
-            </Box>
+          </Grid>
+        </Grid>
+      </Paper>
 
-            {showMetrajOnaylanan &&
-              <Box sx={{ ...css_enUstBaslik, justifyContent: "center" }}>
-                Miktar
+      {isLoading &&
+        <Box sx={{ m: '1rem', color: 'gray' }}><LinearProgress color="inherit" /></Box>
+      }
+
+      {!isLoading && queryError &&
+        <Alert severity="error" sx={{ m: '1rem' }}>
+          Veri alınırken hata oluştu.<br /><small style={{ opacity: 0.7 }}>{queryError.message}</small>
+        </Alert>
+      }
+
+      {!isLoading && !queryError && rawLbsNodes.length === 0 &&
+        <Alert severity="info" sx={{ m: '1rem' }}>
+          Mahal oluşturmadan önce <strong>LBS (Mahal Başlıkları)</strong> ağacını oluşturun.
+        </Alert>
+      }
+
+      {!isLoading && !queryError && rawMahaller.length === 0 && rawLbsNodes.length > 0 &&
+        <Alert severity="info" sx={{ m: '1rem' }}>
+          Bu iş paketi + poz kombinasyonuna henüz mahal atanmamış. İş Paketleri &rsaquo; Mahaller sayfasından atayabilirsiniz.
+        </Alert>
+      }
+
+      {/* AĞAÇ GÖRÜNÜMÜ */}
+      {!isLoading && !queryError && rawLbsNodes.length > 0 && rawMahaller.length > 0 &&
+        (() => {
+          const totalDepthCols = maxLeafDepth + 1
+          const totalCols = totalDepthCols + 3
+          const treeGridCols = `repeat(${totalDepthCols}, 1rem) max-content minmax(20rem, max-content) max-content`
+
+          return (
+            <Box sx={{ maxWidth: '80rem', p: '0.5rem', width: 'fit-content' }}>
+
+              {/* Proje adı satırı */}
+              <Box sx={{ display: 'grid', gridTemplateColumns: '1rem 1fr' }}>
+                <Box sx={{ backgroundColor: 'black' }} />
+                <Box sx={{ backgroundColor: 'black', color: 'white', pl: '4px', py: '2px' }}>
+                  <Typography variant="body2">{selectedProje?.name}</Typography>
+                </Box>
               </Box>
-            }
-            <Box sx={{ ...css_enUstBaslik, justifyContent: "center" }}>
-              Birim
-            </Box>
 
-            {editNodeMetraj &&
-              <>
-                <Box> </Box>
+              <Box sx={{ display: 'grid', gridTemplateColumns: '1rem 1fr' }}>
+                <Box sx={{ backgroundColor: 'black' }} />
+                <Box sx={{ display: 'grid', gridTemplateColumns: treeGridCols }}>
 
-                <Box sx={{ ...css_enUstBaslik, justifyContent: "center" }}>
-                  Hazırlanıyor
+                  {flatNodes.map(node => {
+                    if (isHiddenByAncestor(node)) return null
+                    if (!nodeHasMahal(node.id)) return null
+
+                    const { depth } = node
+                    const isLeaf = isLeafSet.has(node.id)
+                    const c = nodeColor(depth)
+                    const mahallerOfNode = rawMahaller
+                      .filter(m => m.lbs_node_id === node.id)
+                      .sort((a, b) => a.order_index - b.order_index)
+
+                    return (
+                      <React.Fragment key={node.id}>
+
+                        {/* LBS düğüm satırı */}
+                        {Array.from({ length: depth }).map((_, i) => (
+                          <Box key={i} sx={{ backgroundColor: nodeColor(i).bg }} />
+                        ))}
+                        <Box
+                          onClick={() => { if (!isLeaf) toggleCollapse(node.id) }}
+                          sx={{
+                            gridColumn: `span ${totalCols - depth}`,
+                            pl: '6px', py: '1px',
+                            backgroundColor: c.bg,
+                            color: c.co,
+                            cursor: isLeaf ? 'default' : 'pointer',
+                            display: 'flex', alignItems: 'center', gap: '0.4rem',
+                            userSelect: 'none',
+                            '&:hover': { filter: isLeaf ? 'none' : 'brightness(1.2)' }
+                          }}
+                        >
+                          {!isLeaf &&
+                            <Box sx={{ fontSize: '0.7rem', flexShrink: 0 }}>
+                              {collapsedIds.has(node.id) ? '▶' : '▼'}
+                            </Box>
+                          }
+                          {isLeaf &&
+                            <Box sx={{ width: '0.45rem', height: '0.45rem', borderRadius: '50%', backgroundColor: '#65FF00', flexShrink: 0 }} />
+                          }
+                          <Typography variant="body2">
+                            {node.code_name ? `(${node.code_name}) ` : ''}{node.name}
+                          </Typography>
+                          {isLeaf && mahallerOfNode.length > 0 &&
+                            <Box sx={{ ml: 'auto', pr: '0.5rem', fontSize: '0.75rem', opacity: 0.5, flexShrink: 0 }}>
+                              {mahallerOfNode.length} mahal
+                            </Box>
+                          }
+                        </Box>
+
+                        {/* Mahal satırları */}
+                        {isLeaf && !collapsedIds.has(node.id) && mahallerOfNode.map(mahal => (
+                          <React.Fragment key={mahal.id}>
+
+                            {Array.from({ length: totalDepthCols }).map((_, i) => (
+                              <Box key={i} sx={{ backgroundColor: i <= depth ? nodeColor(i).bg : 'transparent' }} />
+                            ))}
+
+                            {/* Mahal kodu */}
+                            <Box
+                              onClick={() => handleMahalClick(mahal)}
+                              sx={{
+                                px: '6px', py: '2px',
+                                borderBottom: '0.5px solid #ddd',
+                                borderLeft: '1px solid #aaa',
+                                fontFamily: 'monospace', fontSize: '0.8rem', fontWeight: 600,
+                                display: 'flex', alignItems: 'center', whiteSpace: 'nowrap',
+                                backgroundColor: '#fafafa',
+                                cursor: 'pointer',
+                                '&:hover': { backgroundColor: '#e3f2fd' }
+                              }}
+                            >
+                              {mahal.code || '—'}
+                            </Box>
+
+                            {/* Mahal adı */}
+                            <Box
+                              onClick={() => handleMahalClick(mahal)}
+                              sx={{
+                                px: '6px', py: '2px',
+                                borderBottom: '0.5px solid #ddd',
+                                fontSize: '0.875rem',
+                                display: 'flex', alignItems: 'center',
+                                backgroundColor: '#fafafa',
+                                cursor: 'pointer',
+                                '&:hover': { backgroundColor: '#e3f2fd' }
+                              }}
+                            >
+                              {mahal.name}
+                            </Box>
+
+                            {/* Alan m² */}
+                            <Box
+                              onClick={() => handleMahalClick(mahal)}
+                              sx={{
+                                px: '6px', py: '2px',
+                                borderBottom: '0.5px solid #ddd',
+                                fontSize: '0.8rem',
+                                display: 'flex', alignItems: 'center', justifyContent: 'flex-end',
+                                backgroundColor: '#fafafa',
+                                whiteSpace: 'nowrap',
+                                cursor: 'pointer',
+                                '&:hover': { backgroundColor: '#e3f2fd' }
+                              }}
+                            >
+                              {mahal.area != null ? `${mahal.area} m²` : '—'}
+                            </Box>
+
+                          </React.Fragment>
+                        ))}
+
+                      </React.Fragment>
+                    )
+                  })}
+
                 </Box>
-
-                <Box sx={{ ...css_enUstBaslik, minWidth: "6rem", justifyContent: "center" }}>
-                  Hazır
-                </Box>
-
-              </>
-            }
-
-            {/* {onayNodeMetraj &&
-              <>
-                <Box> </Box>
-                {metrajYapabilenler.map((oneYapabilen, index) => {
-                  return (
-                    <Box key={index} sx={{ ...css_enUstBaslik, borderLeft: "1px solid black", justifyContent: "center" }}>
-                      {yetkililer?.find(oneYetkili => oneYetkili.userEmail === oneYapabilen.userEmail).userCode}
-                    </Box>
-                  )
-                })}
-              </>
-            } */}
-
-          </>
-
-
-          {/* EN ÜST BAŞLIĞIN ALT SATIRI - HANGİ POZ İLE İŞLEM YAPILIYORSA - POZ İSMİ VE TOPLAM METRAJI */}
-          <>
-            <Box sx={{ ...css_enUstBaslik, borderLeft: "1px solid black", gridColumn: "1/3", justifyContent: "end", borderLeft: "1px solid black" }}>
-              Toplam Metraj
-            </Box>
-
-            {showMetrajOnaylanan &&
-              <Box sx={{ ...css_enUstBaslik, justifyContent: "end" }}>
-                {ikiHane(dataDugumlerByPoz?.metrajOnaylanan)}
               </Box>
-            }
-
-            <Box sx={{ ...css_enUstBaslik, justifyContent: "center" }}>
-              {pozBirim}
             </Box>
-
-            {editNodeMetraj &&
-              <>
-                <Box> </Box>
-                <Box sx={{ ...css_enUstBaslik, justifyContent: "end", borderLeft: "1px solid black" }}>
-                  {ikiHane(dataDugumlerByPoz?.hazirlananMetrajlar?.find(x => x.userEmail === appUser.email)?.metrajPreparing)}
-                </Box>
-                <Box sx={{ ...css_enUstBaslik, justifyContent: "end", borderLeft: "1px solid black" }}>
-                  {ikiHane(dataDugumlerByPoz?.hazirlananMetrajlar?.find(x => x.userEmail === appUser.email)?.metrajReady)}
-                </Box>
-              </>
-            }
-
-            {/* {onayNodeMetraj &&
-              <>
-                <Box> </Box>
-                {metrajYapabilenler.map((oneYapabilen, index) => {
-                  return (
-                    <Box key={index} sx={{ ...css_enUstBaslik, borderLeft: "1px solid black", justifyContent: "end" }}>
-                      {ikiHane(selectedPoz.hazirlananMetrajlar.find(x => x.userEmail === oneYapabilen.userEmail)?.metraj)}
-                    </Box>
-                  )
-                })}
-
-              </>
-            } */}
-
-          </>
-
-
-
-
-          {/* LBS BAŞLIK BİLGİLERİ SATIRI */}
-
-          {openLbsArray?.map((oneLbs, index) => {
-
-            const mahaller_byPoz_byLbs = mahaller_byPoz?.filter(x => x._lbsId.toString() === oneLbs._id.toString())
-            const lbsMetraj = lbsMetrajlar.find(x => x._id.toString() === oneLbs._id.toString())
-
-            return (
-              <React.Fragment key={index}>
-
-                {/* LBS BAŞLIKLARI */}
-                <Box sx={{ ...css_LbsBaslik, borderLeft: "1px solid black", gridColumn: "1/3" }}> {getLbsName(oneLbs).name}</Box>
-
-                {showMetrajOnaylanan &&
-                  <Box sx={{ ...css_LbsBaslik, justifyContent: "end" }}>
-                    {ikiHane(lbsMetraj?.metrajOnaylanan)}
-                  </Box>
-                }
-
-                <Box sx={{ ...css_LbsBaslik, justifyContent: "center" }}> {pozBirim} </Box>
-
-                {editNodeMetraj &&
-                  <>
-                    <Box> </Box>
-                    <Box sx={{ ...css_LbsBaslik, borderLeft: "1px solid black", justifyContent: "end" }}>
-                      {ikiHane(lbsMetraj?.hazirlananMetrajlar?.find(x => x.userEmail === appUser.email)?.metrajPreparing)}
-                    </Box>
-                    <Box sx={{ ...css_LbsBaslik, borderLeft: "1px solid black", justifyContent: "end" }}>
-                      {ikiHane(lbsMetraj?.hazirlananMetrajlar?.find(x => x.userEmail === appUser.email)?.metrajReady)}
-                    </Box>
-                  </>
-                }
-
-                {/* {onayNodeMetraj &&
-                  <>
-                    <Box> </Box>
-                    {metrajYapabilenler.map((oneYapabilen, index) => {
-                      return (
-                        <Box key={index} sx={{ ...css_LbsBaslik, borderLeft: "1px solid black", justifyContent: "end" }}>
-
-                        </Box>
-                      )
-                    })}
-                  </>
-                } */}
-
-
-                {/* MAHAL SATIRLARI */}
-                {mahaller_byPoz_byLbs?.map((oneMahal, index) => {
-
-                  let dugum = dugumler_byPoz?.find(oneDugum => oneDugum._pozId.toString() === selectedPoz._id.toString() && oneDugum._mahalId.toString() === oneMahal._id.toString())
-                  let oneHazirlanan = dugum?.hazirlananMetrajlar?.find(x => x.userEmail === appUser.email)
-
-
-                  return (
-                    <React.Fragment key={index}>
-
-                      <Box sx={{ ...css_mahaller, borderLeft: "1px solid black" }}>
-                        {oneMahal.mahalNo}
-                      </Box>
-
-                      <Box sx={{ ...css_mahaller }}>
-                        {oneMahal.mahalName}
-                      </Box>
-
-                      {/* <Box onDoubleClick={() => goTo_onaylananMetrajDugum(dugum)} sx={{ ...css_mahaller, cursor: "pointer", display: "grid", alignItems: "center", gridTemplateColumns: "1rem 1fr", "&:hover": { "& .childClass": { backgroundColor: "red" } } }}>
-                        <Box className="childClass" sx={{ backgroundColor: "white", height: "0.5rem", width: "0.5rem", borderRadius: "50%" }}>
-                        </Box>
-                        <Box sx={{ justifySelf: "end" }}>
-                          {ikiHane(dugum?.onaylananMetraj)}
-                        </Box>
-                      </Box> */}
-
-
-                      {showMetrajOnaylanan &&
-                        <Box sx={{ ...css_mahaller, justifyContent: "end" }}>
-                          {ikiHane(dugum?.metrajOnaylanan)}
-                        </Box>
-                      }
-
-                      <Box sx={{ ...css_mahaller, justifyContent: "center" }}>
-                        {pozBirim}
-                      </Box>
-
-
-
-                      {editNodeMetraj &&
-                        <>
-                          <Box />
-
-                          <Box
-                            onClick={() => goto_metrajOlusturCetvel(dugum, oneMahal)}
-                            sx={{
-                              ...css_mahaller,
-                              display: "grid",
-                              gridTemplateColumns: "1rem 1fr",
-                              alignItems: "center",
-                              justifyContent: "end",
-                              cursor: "pointer",
-                              backgroundColor: "yellow",
-                              "&:hover": { "& .childClass": { backgroundColor: "red" } }
-                            }}>
-                            <Box className="childClass" sx={{ backgroundColor: "yellow", height: "0.5rem", width: "0.5rem", borderRadius: "50%" }}>
-                            </Box>
-                            <Box sx={{ justifySelf: "end" }}>
-                              {ikiHane(oneHazirlanan?.metrajPreparing)}
-                            </Box>
-                          </Box>
-
-
-
-
-                          <Box sx={{ ...css_mahaller, justifyContent: "end", backgroundColor: oneHazirlanan?.hasReady && "rgba(255, 255, 0, 0.24)" }}>
-                            {ikiHane(oneHazirlanan?.metrajReady)}
-                          </Box>
-
-
-                          {/* <Box
-                            // onDoubleClick={() => goto_metrajOlusturCetvel(dugum, oneMahal)}
-                            sx={{
-                              ...css_mahaller,
-                              display: "grid",
-                              gridTemplateColumns: "auto 1fr",
-                              alignItems: "center",
-                              // justifyContent: "end",
-                              // cursor: "pointer",
-                              // backgroundColor: "rgba(66, 66, 66, 0.12)",
-                              // "&:hover": { "& .childClass": { backgroundColor: "red" } }
-                            }}>
-                            <Box sx={{ ml: "-0.2rem", pr: "0.4rem", mb: "-0.3rem" }}>
-                              <Check sx={{ color: "black", fontSize: "0.95rem" }} />
-                            </Box>
-                            <Box sx={{ justifySelf: "end" }}>
-                              {ikiHane(dugum?.hazirlananMetrajlar?.find(x => x.userEmail === appUser.email)?.metrajReady)}
-                            </Box>
-                          </Box> */}
-
-                        </>
-                      }
-
-                      {/* {onayNodeMetraj &&
-                        <>
-                          <Box> </Box>
-                          {metrajYapabilenler.map((oneYapabilen, index) => {
-                            return (
-                              <Box key={index} onDoubleClick={() => goTo_onayCetveli({ dugum, oneMahal })} sx={{ ...css_mahaller, justifyContent: "end", cursor: "pointer", backgroundColor: "rgb(143,206,0,0.3)", display: "grid", gridTemplateColumns: "1rem 1fr", "&:hover": { "& .childClass": { backgroundColor: "red" } } }}>
-                                <Box className="childClass" sx={{ color: "rgb(143,206,0,0.3)", height: "0.5rem", width: "0.5rem", borderRadius: "50%" }}>
-                                </Box>
-                                <Box sx={{ justifySelf: "end" }}>
-                                  {ikiHane(dugum?.hazirlananMetrajlar?.find(x => x.userEmail === oneYapabilen.userEmail)?.metraj)}
-                                </Box>
-                              </Box>
-                              // <Box key={index} sx={{ ...css_mahaller, backgroundColor: "rgb(143,206,0,0.3)", borderLeft: "1px solid black", justifyContent: "end" }}>
-                              //   {ikiHane(dugum?.hazirlananMetrajlar?.find(x => x.userEmail === oneYapabilen.userEmail)?.metraj)}
-                              // </Box>
-                            )
-                          })}
-                        </>
-                      } */}
-
-                    </React.Fragment>
-                  )
-                })}
-
-              </React.Fragment>
-            )
-          })
-          }
-
-        </Box >
-
+          )
+        })()
       }
-    </Box >
 
+    </Box>
   )
-
 }
-
