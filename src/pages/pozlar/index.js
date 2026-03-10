@@ -442,7 +442,7 @@ export default function P_Pozlar() {
                         {/* Poz satırları — totalDepthCols adet bar (bazıları saydam) + 4 veri hücresi */}
                         {isLeaf && !collapsedIds.has(node.id) && pozlarOfNode.map(poz => {
                           const isChecked = selectedIds.has(poz.id)
-                          const selectedBg = isChecked ? '#e3f2fd' : '#fafafa'
+                          const selectedBg = isChecked ? '#e3f2fd' : '#f0f0f0'
                           return (
                           <React.Fragment key={poz.id}>
 

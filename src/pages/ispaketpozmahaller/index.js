@@ -1,8 +1,11 @@
 import React, { useState, useContext, useEffect, useMemo } from 'react'
 import { useNavigate } from 'react-router-dom'
+import { useQueryClient } from '@tanstack/react-query'
 
 import { StoreContext } from '../../components/store'
-import { useGetLbsNodes, useGetWorkAreas } from '../../hooks/useMongo'
+import { useGetLbsNodes, useGetWorkAreas, useGetWorkPackagePozAreas } from '../../hooks/useMongo'
+import { supabase } from '../../lib/supabase.js'
+import { DialogAlert } from '../../components/general/DialogAlert.js'
 
 import Box from '@mui/material/Box'
 import Paper from '@mui/material/Paper'
@@ -10,7 +13,10 @@ import Grid from '@mui/material/Grid'
 import Typography from '@mui/material/Typography'
 import LinearProgress from '@mui/material/LinearProgress'
 import Alert from '@mui/material/Alert'
+import Button from '@mui/material/Button'
+import CircularProgress from '@mui/material/CircularProgress'
 import NavigateNextIcon from '@mui/icons-material/NavigateNext'
+import SaveIcon from '@mui/icons-material/Save'
 
 
 function flattenTree(nodes, parentId = null, depth = 0) {
@@ -37,21 +43,34 @@ function nodeColor(depth) {
 
 export default function P_isPaketPozMahaller() {
   const navigate = useNavigate()
+  const queryClient = useQueryClient()
   const { selectedProje, selectedIsPaket, selectedPoz } = useContext(StoreContext)
 
   const { data: rawLbsNodes = [], isLoading: lbsLoading } = useGetLbsNodes()
   const { data: rawMahaller = [], isLoading: mahalLoading, error: mahalError } = useGetWorkAreas()
+  const { data: wpAreaData = [], isLoading: wpAreaLoading } = useGetWorkPackagePozAreas()
 
   const [collapsedIds, setCollapsedIds] = useState(new Set())
   const [selectedIds, setSelectedIds] = useState(new Set())
+  const [hasChanges, setHasChanges] = useState(false)
+  const [isSaving, setIsSaving] = useState(false)
+  const [dialogAlert, setDialogAlert] = useState()
 
-  const isLoading = lbsLoading || mahalLoading
+  const isLoading = lbsLoading || mahalLoading || wpAreaLoading
   const queryError = mahalError
 
   useEffect(() => {
     if (!selectedProje || !selectedIsPaket) navigate('/ispaketler')
     else if (!selectedPoz) navigate('/ispaketpozlar')
   }, [selectedProje, selectedIsPaket, selectedPoz, navigate])
+
+  // Mevcut atamalar yüklenince selectedIds'i initialize et
+  useEffect(() => {
+    if (!wpAreaLoading) {
+      setSelectedIds(new Set(wpAreaData.map(d => d.work_area_id)))
+      setHasChanges(false)
+    }
+  }, [wpAreaData, wpAreaLoading])
 
   const flatNodes = useMemo(() => flattenTree(rawLbsNodes), [rawLbsNodes])
 
@@ -87,11 +106,82 @@ export default function P_isPaketPozMahaller() {
   }
 
   const toggleMahal = (mahal) => {
+    setHasChanges(true)
     setSelectedIds(prev => {
       const next = new Set(prev)
       next.has(mahal.id) ? next.delete(mahal.id) : next.add(mahal.id)
       return next
     })
+  }
+
+  const handleCancel = () => {
+    setSelectedIds(new Set(wpAreaData.map(d => d.work_area_id)))
+    setHasChanges(false)
+  }
+
+  const handleSave = async () => {
+    setIsSaving(true)
+    try {
+      // 1. Poz'u bu iş paketine ata (yoksa ekle, varsa var olanı al)
+      let wppId
+      const { data: existingWpp, error: selectError } = await supabase
+        .from('work_package_pozlar')
+        .select('id')
+        .eq('work_package_id', selectedIsPaket.id)
+        .eq('project_poz_id', selectedPoz.id)
+        .maybeSingle()
+
+      if (selectError) throw selectError
+
+      if (existingWpp) {
+        wppId = existingWpp.id
+      } else {
+        const { data: newWpp, error: insertWppError } = await supabase
+          .from('work_package_pozlar')
+          .insert({ work_package_id: selectedIsPaket.id, project_poz_id: selectedPoz.id })
+          .select('id')
+          .single()
+
+        if (insertWppError) throw insertWppError
+        wppId = newWpp.id
+      }
+
+      // 2. Mevcut mahal atamalarını sil
+      const { error: deleteError } = await supabase
+        .from('work_package_poz_areas')
+        .delete()
+        .eq('work_package_poz_id', wppId)
+
+      if (deleteError) throw deleteError
+
+      // 3. Seçili mahalleri ekle
+      if (selectedIds.size > 0) {
+        const newAreas = Array.from(selectedIds).map((areaId, idx) => ({
+          work_package_poz_id: wppId,
+          work_area_id: areaId,
+          order_index: idx,
+        }))
+
+        const { error: insertError } = await supabase
+          .from('work_package_poz_areas')
+          .insert(newAreas)
+
+        if (insertError) throw insertError
+      }
+
+      // 4. Cache'leri güncelle
+      queryClient.invalidateQueries({ queryKey: ['workPackagePozAreas', selectedIsPaket.id, selectedPoz.id] })
+      queryClient.invalidateQueries({ queryKey: ['workPackagePozlar', selectedIsPaket.id] })
+
+      setHasChanges(false)
+    } catch (err) {
+      setDialogAlert({
+        dialogIcon: 'warning',
+        dialogMessage: 'Kaydetme başarısız: ' + (err.message ?? 'Bilinmeyen hata'),
+      })
+    } finally {
+      setIsSaving(false)
+    }
   }
 
   const pozLabel = selectedPoz?.code
@@ -102,9 +192,16 @@ export default function P_isPaketPozMahaller() {
   return (
     <Box sx={{ m: '0rem' }}>
 
+      {dialogAlert && (
+        <DialogAlert
+          {...dialogAlert}
+          onCloseAction={() => setDialogAlert()}
+        />
+      )}
+
       {/* BAŞLIK */}
       <Paper>
-        <Grid container alignItems="center" sx={{ px: '1rem', py: '0.5rem', maxHeight: '5rem' }}>
+        <Grid container alignItems="center" justifyContent="space-between" sx={{ px: '1rem', py: '0.5rem', minHeight: '3.5rem' }}>
           <Grid item>
             <Box sx={{ display: 'flex', alignItems: 'center', gap: '0.2rem', flexWrap: 'nowrap', overflow: 'hidden' }}>
               <Typography
@@ -144,6 +241,33 @@ export default function P_isPaketPozMahaller() {
               </Typography>
             </Box>
           </Grid>
+
+          {/* Kaydet / İptal butonları */}
+          {hasChanges && (
+            <Grid item>
+              <Box sx={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
+                <Button
+                  variant="text"
+                  size="small"
+                  disabled={isSaving}
+                  onClick={handleCancel}
+                  sx={{ textTransform: 'none' }}
+                >
+                  İptal
+                </Button>
+                <Button
+                  variant="contained"
+                  size="small"
+                  disabled={isSaving}
+                  onClick={handleSave}
+                  startIcon={isSaving ? <CircularProgress size={14} color="inherit" /> : <SaveIcon fontSize="small" />}
+                  sx={{ textTransform: 'none' }}
+                >
+                  {isSaving ? 'Kaydediliyor...' : 'Kaydet'}
+                </Button>
+              </Box>
+            </Grid>
+          )}
         </Grid>
       </Paper>
 
@@ -241,7 +365,7 @@ export default function P_isPaketPozMahaller() {
                         {/* Mahal satırları */}
                         {isLeaf && !collapsedIds.has(node.id) && mahallerOfNode.map(mahal => {
                           const isSelected = selectedIds.has(mahal.id)
-                          const bg = isSelected ? '#bbdefb' : '#fafafa'
+                          const bg = isSelected ? '#bbdefb' : '#f0f0f0'
                           return (
                             <React.Fragment key={mahal.id}>
 

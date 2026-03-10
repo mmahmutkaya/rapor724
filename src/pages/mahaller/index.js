@@ -363,7 +363,7 @@ export default function P_Mahaller() {
                               borderLeft: '1px solid #aaa',
                               fontFamily: 'monospace', fontSize: '0.8rem', fontWeight: 600,
                               display: 'flex', alignItems: 'center', whiteSpace: 'nowrap',
-                              backgroundColor: '#fafafa'
+                              backgroundColor: '#f0f0f0'
                             }}>
                               {mahal.code || '—'}
                             </Box>
@@ -374,7 +374,7 @@ export default function P_Mahaller() {
                               borderBottom: '0.5px solid #ddd',
                               fontSize: '0.875rem',
                               display: 'flex', alignItems: 'center',
-                              backgroundColor: '#fafafa'
+                              backgroundColor: '#f0f0f0'
                             }}>
                               {mahal.name}
                             </Box>
@@ -385,7 +385,7 @@ export default function P_Mahaller() {
                               borderBottom: '0.5px solid #ddd',
                               fontSize: '0.8rem',
                               display: 'flex', alignItems: 'center', justifyContent: 'flex-end',
-                              backgroundColor: '#fafafa', whiteSpace: 'nowrap'
+                              backgroundColor: '#f0f0f0', whiteSpace: 'nowrap'
                             }}>
                               {mahal.area != null ? `${mahal.area} m²` : '—'}
                             </Box>
@@ -394,7 +394,7 @@ export default function P_Mahaller() {
                             <Box sx={{
                               borderBottom: '0.5px solid #ddd',
                               display: 'flex', alignItems: 'center', justifyContent: 'center',
-                              backgroundColor: '#fafafa'
+                              backgroundColor: '#f0f0f0'
                             }}>
                               <IconButton size="small" onClick={() => setEditingMahal(mahal)}>
                                 <EditIcon fontSize="small" />

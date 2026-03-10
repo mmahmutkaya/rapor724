@@ -15,7 +15,6 @@ import IconButton from '@mui/material/IconButton'
 import Input from '@mui/material/Input'
 import LinearProgress from '@mui/material/LinearProgress'
 import Alert from '@mui/material/Alert'
-import Chip from '@mui/material/Chip'
 import NavigateNextIcon from '@mui/icons-material/NavigateNext'
 import ReplyIcon from '@mui/icons-material/Reply'
 import EditIcon from '@mui/icons-material/Edit'
@@ -29,11 +28,15 @@ import PlayCircleOutlineIcon from '@mui/icons-material/PlayCircleOutline'
 
 function computeQuantity(line) {
   if (!line || line.line_type !== 'data') return 0
-  const mult = Number(line.multiplier ?? 1)
-  const cnt  = Number(line.count  ?? 1)
-  const len  = Number(line.length ?? 1)
-  const wid  = Number(line.width  ?? 1)
-  const hei  = Number(line.height ?? 1)
+  const isEmpty = (val) => val === null || val === undefined || val === ''
+  const allEmpty = [line.multiplier, line.count, line.length, line.width, line.height].every(isEmpty)
+  if (allEmpty) return 0
+  const v = (val) => isEmpty(val) ? 1 : Number(val)
+  const mult = v(line.multiplier)
+  const cnt  = v(line.count)
+  const len  = v(line.length)
+  const wid  = v(line.width)
+  const hei  = v(line.height)
   const qty  = mult * cnt * len * wid * hei
   return isNaN(qty) ? 0 : qty
 }
@@ -92,8 +95,6 @@ export default function P_MetrajOlusturCetvel() {
 
       if (sessionError) throw sessionError
 
-      setSession(sessionData)
-
       if (sessionData) {
         const { data: lineData, error: lineError } = await supabase
           .from('measurement_lines')
@@ -103,10 +104,27 @@ export default function P_MetrajOlusturCetvel() {
 
         if (lineError) throw lineError
 
-        const ls = lineData ?? []
+        const ls = (lineData ?? []).map(l => {
+          const noDimensions = l.count == null && l.length == null && l.width == null && l.height == null
+          if (l.multiplier === 1 && noDimensions) return { ...l, multiplier: null }
+          return l
+        })
+
+        const computedTotal = ls.reduce((sum, l) => sum + computeQuantity(l), 0)
+        if (sessionData.total_quantity !== computedTotal) {
+          await supabase
+            .from('measurement_sessions')
+            .update({ total_quantity: computedTotal })
+            .eq('id', sessionData.id)
+          setSession({ ...sessionData, total_quantity: computedTotal })
+        } else {
+          setSession(sessionData)
+        }
+
         setLines(ls)
         setLinesBackup(_.cloneDeep(ls))
       } else {
+        setSession(null)
         setLines([])
         setLinesBackup([])
       }
@@ -142,14 +160,15 @@ export default function P_MetrajOlusturCetvel() {
     try {
       const { data, error } = await supabase
         .from('measurement_lines')
-        .insert({ session_id: session.id, line_type: 'data', description: '', multiplier: 1, order_index: nextIdx })
+        .insert({ session_id: session.id, line_type: 'data', description: '', order_index: nextIdx })
         .select()
         .single()
 
       if (error) throw error
 
-      setLines(prev => [...prev, data])
-      setLinesBackup(prev => [...prev, _.cloneDeep(data)])
+      const newLine = { ...data, multiplier: null }
+      setLines(prev => [...prev, newLine])
+      setLinesBackup(prev => [...prev, _.cloneDeep(newLine)])
     } catch (err) {
       setDialogAlert({ dialogIcon: 'warning', dialogMessage: err.message, onCloseAction: () => setDialogAlert() })
     }
@@ -186,7 +205,7 @@ export default function P_MetrajOlusturCetvel() {
           .from('measurement_lines')
           .update({
             description: line.description,
-            multiplier: line.multiplier === '' ? null : line.multiplier,
+            multiplier: (line.multiplier === '' || line.multiplier === null) ? 1 : line.multiplier,
             count:  line.count  === '' ? null : line.count,
             length: line.length === '' ? null : line.length,
             width:  line.width  === '' ? null : line.width,
@@ -379,13 +398,15 @@ export default function P_MetrajOlusturCetvel() {
               )}
               {session && isDraft && mode_edit && !isChanged && (
                 <>
-                  <IconButton sx={headerIconButton_sx} onClick={handleAddLine}>
-                    <AddCircleOutlineIcon sx={{ ...headerIcon_sx, color: 'green' }} />
-                  </IconButton>
                   <IconButton sx={headerIconButton_sx} onClick={() => setMode_edit(false)}>
                     <ClearOutlinedIcon sx={{ ...headerIcon_sx, color: 'gray' }} />
                   </IconButton>
                 </>
+              )}
+              {session && isDraft && mode_edit && (
+                <IconButton sx={headerIconButton_sx} onClick={handleAddLine}>
+                  <AddCircleOutlineIcon sx={{ ...headerIcon_sx, color: 'green' }} />
+                </IconButton>
               )}
               {isChanged && (
                 <>
@@ -413,21 +434,6 @@ export default function P_MetrajOlusturCetvel() {
         <Alert severity="error" sx={{ m: '1rem' }}>
           Veri alınırken hata: {loadError}
         </Alert>
-      )}
-
-      {/* Durum chip */}
-      {session && !isLoading && (
-        <Box sx={{ px: '1rem', pt: '0.75rem', display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
-          <Chip
-            size="small"
-            label={isReady ? 'Onay Bekliyor' : 'Taslak'}
-            color={isReady ? 'warning' : 'default'}
-            variant={isReady ? 'filled' : 'outlined'}
-          />
-          <Typography variant="caption" sx={{ color: 'gray' }}>
-            Toplam: <strong>{ikiHane(totalQuantity)}</strong> {pozBirim}
-          </Typography>
-        </Box>
       )}
 
       {/* Metraj başlat */}
@@ -498,7 +504,7 @@ export default function P_MetrajOlusturCetvel() {
                   </Box>
 
                   {/* Açıklama */}
-                  <Box sx={{ ...css_satir, justifyContent: 'start', backgroundColor: rowColor, color: isDeduction ? 'red' : null }}>
+                  <Box sx={{ ...css_satir, justifyContent: 'start', backgroundColor: mode_edit && isDraft ? 'rgba(255,255,0,0.2)' : rowColor, color: isDeduction ? 'red' : null }}>
                     {mode_edit && isDraft ? (
                       <Input
                         value={line.description ?? ''}
@@ -522,7 +528,13 @@ export default function P_MetrajOlusturCetvel() {
                           onChange={e => handleLineChange(line.id, field, e.target.value)}
                           onKeyDown={e => ['e', 'E', '+'].includes(e.key) && e.preventDefault()}
                           disableUnderline
-                          sx={{ fontSize: '0.85rem', color: isDeduction ? 'red' : null, '& input': { textAlign: 'right' } }}
+                          sx={{
+                            fontSize: '0.85rem',
+                            color: isDeduction ? 'red' : null,
+                            '& input': { textAlign: 'right' },
+                            '& input::-webkit-outer-spin-button, & input::-webkit-inner-spin-button': { WebkitAppearance: 'none', margin: 0 },
+                            '& input[type=number]': { MozAppearance: 'textfield' },
+                          }}
                           inputProps={{ style: { textAlign: 'right' } }}
                         />
                       ) : (

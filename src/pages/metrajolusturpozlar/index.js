@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom'
 
 import { StoreContext } from '../../components/store'
 import { useGetWbsNodes, useGetPozUnits, useGetWorkPackagePozlar } from '../../hooks/useMongo'
+import { supabase } from '../../lib/supabase.js'
 
 import Box from '@mui/material/Box'
 import Paper from '@mui/material/Paper'
@@ -12,6 +13,13 @@ import LinearProgress from '@mui/material/LinearProgress'
 import Alert from '@mui/material/Alert'
 import NavigateNextIcon from '@mui/icons-material/NavigateNext'
 
+
+function ikiHane(v) {
+  if (v === null || v === undefined || v === '') return ''
+  const n = Number(v)
+  if (isNaN(n)) return ''
+  return new Intl.NumberFormat('de-DE', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(n)
+}
 
 function flattenTree(nodes, parentId = null, depth = 0) {
   return nodes
@@ -44,8 +52,10 @@ export default function P_MetrajOlusturPozlar() {
   const { data: wpPozlar = [], isLoading: wpPozLoading, error: wpPozError } = useGetWorkPackagePozlar()
 
   const [collapsedIds, setCollapsedIds] = useState(new Set())
+  const [pozMetrajMap, setPozMetrajMap] = useState({}) // project_poz_id → toplam metraj
+  const [pozWithAreasSet, setPozWithAreasSet] = useState(null) // project_poz_id'leri — en az 1 mahali olanlar
 
-  const isLoading = wbsLoading || unitsLoading || wpPozLoading
+  const isLoading = wbsLoading || unitsLoading || wpPozLoading || pozWithAreasSet === null
   const queryError = wpPozError
 
   useEffect(() => {
@@ -57,12 +67,52 @@ export default function P_MetrajOlusturPozlar() {
     setSelectedPoz(null)
   }, [])
 
-  // work_package_pozlar'dan project_poz objelerini çıkar
+  useEffect(() => {
+    if (!wpPozlar || wpPozlar.length === 0) { setPozMetrajMap({}); setPozWithAreasSet(new Set()); return }
+    setPozWithAreasSet(null) // yükleniyor
+    const wppIds = wpPozlar.map(wpp => wpp.id)
+    const wppToPoz = {}
+    wpPozlar.forEach(wpp => { wppToPoz[wpp.id] = wpp.project_poz_id });
+    (async () => {
+      const { data: areas } = await supabase
+        .from('work_package_poz_areas')
+        .select('id, work_package_poz_id')
+        .in('work_package_poz_id', wppIds)
+
+      if (!areas || areas.length === 0) { setPozWithAreasSet(new Set()); return }
+
+      // En az 1 mahali olan project_poz_id'leri belirle
+      const withAreas = new Set()
+      areas.forEach(a => {
+        const pozId = wppToPoz[a.work_package_poz_id]
+        if (pozId) withAreas.add(pozId)
+      })
+      setPozWithAreasSet(withAreas)
+
+      const areaIds = areas.map(a => a.id)
+      const { data: sessions } = await supabase
+        .from('measurement_sessions')
+        .select('work_package_poz_area_id, total_quantity')
+        .in('work_package_poz_area_id', areaIds)
+      if (!sessions) return
+      const areaToWpp = {}
+      areas.forEach(a => { areaToWpp[a.id] = a.work_package_poz_id })
+      const map = {}
+      sessions.forEach(s => {
+        const wppId = areaToWpp[s.work_package_poz_area_id]
+        const pozId = wppToPoz[wppId]
+        if (pozId) map[pozId] = (map[pozId] ?? 0) + (s.total_quantity ?? 0)
+      })
+      setPozMetrajMap(map)
+    })()
+  }, [wpPozlar])
+
+  // work_package_pozlar'dan project_poz objelerini çıkar — sadece mahali atanmış pozlar
   const rawPozlar = useMemo(() =>
     wpPozlar
-      .filter(wpp => wpp.project_poz)
+      .filter(wpp => wpp.project_poz && pozWithAreasSet?.has(wpp.project_poz_id))
       .map(wpp => wpp.project_poz)
-  , [wpPozlar])
+  , [wpPozlar, pozWithAreasSet])
 
   const flatNodes = useMemo(() => flattenTree(rawWbsNodes), [rawWbsNodes])
 
@@ -179,8 +229,8 @@ export default function P_MetrajOlusturPozlar() {
       {!isLoading && !queryError && rawWbsNodes.length > 0 && rawPozlar.length > 0 &&
         (() => {
           const totalDepthCols = maxLeafDepth + 1
-          const totalCols = totalDepthCols + 3
-          const treeGridCols = `repeat(${totalDepthCols}, 1rem) max-content minmax(20rem, max-content) max-content`
+          const totalCols = totalDepthCols + 4
+          const treeGridCols = `repeat(${totalDepthCols}, 1rem) max-content minmax(20rem, max-content) max-content max-content`
 
           return (
             <Box sx={{ maxWidth: '80rem', p: '0.5rem', width: 'fit-content' }}>
@@ -263,7 +313,7 @@ export default function P_MetrajOlusturPozlar() {
                                 borderLeft: '1px solid #aaa',
                                 fontFamily: 'monospace', fontSize: '0.8rem', fontWeight: 600,
                                 display: 'flex', alignItems: 'center', whiteSpace: 'nowrap',
-                                backgroundColor: '#fafafa',
+                                backgroundColor: '#f0f0f0',
                                 cursor: 'pointer',
                                 '&:hover': { backgroundColor: '#e3f2fd' }
                               }}
@@ -279,7 +329,7 @@ export default function P_MetrajOlusturPozlar() {
                                 borderBottom: '0.5px solid #ddd',
                                 fontSize: '0.875rem',
                                 display: 'flex', alignItems: 'center',
-                                backgroundColor: '#fafafa',
+                                backgroundColor: '#f0f0f0',
                                 cursor: 'pointer',
                                 '&:hover': { backgroundColor: '#e3f2fd' }
                               }}
@@ -295,12 +345,31 @@ export default function P_MetrajOlusturPozlar() {
                                 borderBottom: '0.5px solid #ddd',
                                 fontSize: '0.8rem',
                                 display: 'flex', alignItems: 'center',
-                                backgroundColor: '#fafafa', whiteSpace: 'nowrap',
+                                backgroundColor: '#f0f0f0', whiteSpace: 'nowrap',
                                 cursor: 'pointer',
                                 '&:hover': { backgroundColor: '#e3f2fd' }
                               }}
                             >
                               {unitsMap[poz.unit_id] ?? '—'}
+                            </Box>
+
+                            {/* Metraj toplamı */}
+                            <Box
+                              onClick={() => handlePozClick(poz)}
+                              sx={{
+                                px: '6px', py: '2px',
+                                borderBottom: '0.5px solid #ddd',
+                                fontSize: '0.8rem',
+                                display: 'flex', alignItems: 'center', justifyContent: 'flex-end',
+                                backgroundColor: '#f0f0f0',
+                                whiteSpace: 'nowrap',
+                                cursor: 'pointer',
+                                '&:hover': { backgroundColor: '#e3f2fd' }
+                              }}
+                            >
+                              {pozMetrajMap[poz.id] != null
+                                ? `${ikiHane(pozMetrajMap[poz.id])} ${unitsMap[poz.unit_id] ?? ''}`
+                                : '—'}
                             </Box>
 
                           </React.Fragment>

@@ -248,7 +248,7 @@ export default function P_isPaketPozlar() {
                                 borderLeft: '1px solid #aaa',
                                 fontFamily: 'monospace', fontSize: '0.8rem', fontWeight: 600,
                                 display: 'flex', alignItems: 'center', whiteSpace: 'nowrap',
-                                backgroundColor: '#fafafa',
+                                backgroundColor: '#f0f0f0',
                                 cursor: 'pointer',
                                 '&:hover': { backgroundColor: '#e3f2fd' }
                               }}
@@ -264,7 +264,7 @@ export default function P_isPaketPozlar() {
                                 borderBottom: '0.5px solid #ddd',
                                 fontSize: '0.875rem',
                                 display: 'flex', alignItems: 'center',
-                                backgroundColor: '#fafafa',
+                                backgroundColor: '#f0f0f0',
                                 cursor: 'pointer',
                                 '&:hover': { backgroundColor: '#e3f2fd' }
                               }}
@@ -280,7 +280,7 @@ export default function P_isPaketPozlar() {
                                 borderBottom: '0.5px solid #ddd',
                                 fontSize: '0.8rem',
                                 display: 'flex', alignItems: 'center',
-                                backgroundColor: '#fafafa', whiteSpace: 'nowrap',
+                                backgroundColor: '#f0f0f0', whiteSpace: 'nowrap',
                                 cursor: 'pointer',
                                 '&:hover': { backgroundColor: '#e3f2fd' }
                               }}

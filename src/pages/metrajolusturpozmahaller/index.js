@@ -2,7 +2,8 @@ import React, { useState, useContext, useEffect, useMemo } from 'react'
 import { useNavigate } from 'react-router-dom'
 
 import { StoreContext } from '../../components/store'
-import { useGetLbsNodes, useGetWorkPackagePozAreas } from '../../hooks/useMongo'
+import { useGetLbsNodes, useGetWorkPackagePozAreas, useGetPozUnits } from '../../hooks/useMongo'
+import { supabase } from '../../lib/supabase.js'
 
 import Box from '@mui/material/Box'
 import Paper from '@mui/material/Paper'
@@ -12,6 +13,13 @@ import LinearProgress from '@mui/material/LinearProgress'
 import Alert from '@mui/material/Alert'
 import NavigateNextIcon from '@mui/icons-material/NavigateNext'
 
+
+function ikiHane(v) {
+  if (v === null || v === undefined || v === '') return ''
+  const n = Number(v)
+  if (isNaN(n)) return ''
+  return new Intl.NumberFormat('de-DE', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(n)
+}
 
 function flattenTree(nodes, parentId = null, depth = 0) {
   return nodes
@@ -41,8 +49,10 @@ export default function P_MetrajOlusturPozMahaller() {
 
   const { data: rawLbsNodes = [], isLoading: lbsLoading } = useGetLbsNodes()
   const { data: wpAreas = [], isLoading: areasLoading, error: areasError } = useGetWorkPackagePozAreas()
+  const { data: units = [] } = useGetPozUnits()
 
   const [collapsedIds, setCollapsedIds] = useState(new Set())
+  const [sessionsMap, setSessionsMap] = useState({}) // wpAreaId → { total_quantity, status }
 
   const isLoading = lbsLoading || areasLoading
   const queryError = areasError
@@ -51,6 +61,29 @@ export default function P_MetrajOlusturPozMahaller() {
     if (!selectedProje || !selectedIsPaket) navigate('/metrajolustur')
     else if (!selectedPoz) navigate('/metrajolusturpozlar')
   }, [selectedProje, selectedIsPaket, selectedPoz, navigate])
+
+  useEffect(() => {
+    if (!wpAreas || wpAreas.length === 0) { setSessionsMap({}); return }
+    const areaIds = wpAreas.map(a => a.id);
+    (async () => {
+      const { data: sessions } = await supabase
+        .from('measurement_sessions')
+        .select('work_package_poz_area_id, total_quantity, status')
+        .in('work_package_poz_area_id', areaIds)
+      if (!sessions) return
+      const map = {}
+      sessions.forEach(s => { map[s.work_package_poz_area_id] = s })
+      setSessionsMap(map)
+    })()
+  }, [wpAreas])
+
+  const unitsMap = useMemo(() => {
+    const m = {}
+    units.forEach(u => { m[u.id] = u.name })
+    return m
+  }, [units])
+
+  const pozBirim = unitsMap[selectedPoz?.unit_id] ?? ''
 
   // work_package_poz_areas'dan work_area objelerini çıkar
   const rawMahaller = useMemo(() =>
@@ -182,8 +215,8 @@ export default function P_MetrajOlusturPozMahaller() {
       {!isLoading && !queryError && rawLbsNodes.length > 0 && rawMahaller.length > 0 &&
         (() => {
           const totalDepthCols = maxLeafDepth + 1
-          const totalCols = totalDepthCols + 3
-          const treeGridCols = `repeat(${totalDepthCols}, 1rem) max-content minmax(20rem, max-content) max-content`
+          const totalCols = totalDepthCols + 4
+          const treeGridCols = `repeat(${totalDepthCols}, 1rem) max-content minmax(20rem, max-content) max-content max-content`
 
           return (
             <Box sx={{ maxWidth: '80rem', p: '0.5rem', width: 'fit-content' }}>
@@ -266,7 +299,7 @@ export default function P_MetrajOlusturPozMahaller() {
                                 borderLeft: '1px solid #aaa',
                                 fontFamily: 'monospace', fontSize: '0.8rem', fontWeight: 600,
                                 display: 'flex', alignItems: 'center', whiteSpace: 'nowrap',
-                                backgroundColor: '#fafafa',
+                                backgroundColor: '#f0f0f0',
                                 cursor: 'pointer',
                                 '&:hover': { backgroundColor: '#e3f2fd' }
                               }}
@@ -282,7 +315,7 @@ export default function P_MetrajOlusturPozMahaller() {
                                 borderBottom: '0.5px solid #ddd',
                                 fontSize: '0.875rem',
                                 display: 'flex', alignItems: 'center',
-                                backgroundColor: '#fafafa',
+                                backgroundColor: '#f0f0f0',
                                 cursor: 'pointer',
                                 '&:hover': { backgroundColor: '#e3f2fd' }
                               }}
@@ -298,7 +331,7 @@ export default function P_MetrajOlusturPozMahaller() {
                                 borderBottom: '0.5px solid #ddd',
                                 fontSize: '0.8rem',
                                 display: 'flex', alignItems: 'center', justifyContent: 'flex-end',
-                                backgroundColor: '#fafafa',
+                                backgroundColor: '#f0f0f0',
                                 whiteSpace: 'nowrap',
                                 cursor: 'pointer',
                                 '&:hover': { backgroundColor: '#e3f2fd' }
@@ -306,6 +339,31 @@ export default function P_MetrajOlusturPozMahaller() {
                             >
                               {mahal.area != null ? `${mahal.area} m²` : '—'}
                             </Box>
+
+                            {/* Metraj */}
+                            {(() => {
+                              const ses = sessionsMap[mahal.wpAreaId]
+                              const bg = '#f0f0f0'
+                              return (
+                                <Box
+                                  onClick={() => handleMahalClick(mahal)}
+                                  sx={{
+                                    px: '6px', py: '2px',
+                                    borderBottom: '0.5px solid #ddd',
+                                    fontSize: '0.8rem',
+                                    display: 'flex', alignItems: 'center', justifyContent: 'flex-end',
+                                    backgroundColor: bg,
+                                    whiteSpace: 'nowrap',
+                                    cursor: 'pointer',
+                                    '&:hover': { backgroundColor: '#e3f2fd' }
+                                  }}
+                                >
+                                  {ses
+                                    ? `${ikiHane(ses.total_quantity)} ${pozBirim}`
+                                    : '—'}
+                                </Box>
+                              )
+                            })()}
 
                           </React.Fragment>
                         ))}
