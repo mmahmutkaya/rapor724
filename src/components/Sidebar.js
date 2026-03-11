@@ -194,17 +194,6 @@ export default function Sidebar({ setMobileOpen }) {
 
 
             <ListItemButton
-              onClick={() => navigate('/mahallistesipozlar')}
-              sx={{ backgroundColor: pathname.includes("/mahallistesi") ? seciliSayfaRengi : null, '&:hover': { backgroundColor: seciliSayfaRengi } }}
-            >
-              <ListItemIcon>
-                <SendIcon />
-              </ListItemIcon>
-              <ListItemText primary="Mahal Listesi" />
-            </ListItemButton>
-
-
-            <ListItemButton
               onClick={() => navigate('/metrajolustur')}
               sx={{ backgroundColor: pathname.includes("/metrajolustur") ? seciliSayfaRengi : null, '&:hover': { backgroundColor: seciliSayfaRengi } }}
             >
@@ -222,28 +211,6 @@ export default function Sidebar({ setMobileOpen }) {
                 <SendIcon />
               </ListItemIcon>
               <ListItemText primary="Metraj Onayla" />
-            </ListItemButton>
-
-
-            <ListItemButton
-              onClick={() => navigate('/metrajpozlar')}
-              sx={{ backgroundColor: pathname.includes("/metrajpoz") || pathname.includes("/metrajcetvel") ? seciliSayfaRengi : null, '&:hover': { backgroundColor: seciliSayfaRengi } }}
-            >
-              <ListItemIcon>
-                <SendIcon />
-              </ListItemIcon>
-              <ListItemText primary="Metraj" />
-            </ListItemButton>
-
-
-            <ListItemButton
-              onClick={() => navigate('/birimfiyat')}
-              sx={{ backgroundColor: pathname.includes("/birimfiyat") || pathname.includes("/birimfiyat") ? seciliSayfaRengi : null, '&:hover': { backgroundColor: seciliSayfaRengi } }}
-            >
-              <ListItemIcon>
-                <SendIcon />
-              </ListItemIcon>
-              <ListItemText primary="Birim Fiyat" />
             </ListItemButton>
 
 

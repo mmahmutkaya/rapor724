@@ -82,6 +82,7 @@ const inputSx = {
   backgroundColor: 'rgba(255,250,180,0.6)',
   fontSize: '0.85rem', padding: '2px 4px',
   textAlign: 'right',
+  MozAppearance: 'textfield',
 }
 
 
@@ -306,6 +307,13 @@ export default function P_MetrajOnaylaCetvel() {
 
   return (
     <Box>
+      <style>{`
+        .metraj-num-input::-webkit-outer-spin-button,
+        .metraj-num-input::-webkit-inner-spin-button {
+          -webkit-appearance: none;
+          margin: 0;
+        }
+      `}</style>
       {dialogAlert && (
         <DialogAlert
           dialogIcon={dialogAlert.dialogIcon}
@@ -501,6 +509,7 @@ export default function P_MetrajOnaylaCetvel() {
                             {sess.editMode ? (
                               <input
                                 type="number"
+                                className="metraj-num-input"
                                 style={inputSx}
                                 value={line[field] ?? ''}
                                 onChange={e => handleLineChange(sess.id, line.id, field, e.target.value)}

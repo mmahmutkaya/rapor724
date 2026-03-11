@@ -4,24 +4,26 @@ import _ from 'lodash'
 
 import { StoreContext } from '../../components/store.js'
 import { supabase } from '../../lib/supabase.js'
-import { DialogAlert } from '../../components/general/DialogAlert.js'
 import { useGetPozUnits } from '../../hooks/useMongo.js'
+import { DialogAlert } from '../../components/general/DialogAlert.js'
 
 import AppBar from '@mui/material/AppBar'
-import Grid from '@mui/material/Grid'
 import Box from '@mui/material/Box'
+import Grid from '@mui/material/Grid'
 import Typography from '@mui/material/Typography'
-import IconButton from '@mui/material/IconButton'
-import Input from '@mui/material/Input'
 import LinearProgress from '@mui/material/LinearProgress'
 import Alert from '@mui/material/Alert'
+import Stack from '@mui/material/Stack'
+import IconButton from '@mui/material/IconButton'
+import Tooltip from '@mui/material/Tooltip'
+import Chip from '@mui/material/Chip'
 import NavigateNextIcon from '@mui/icons-material/NavigateNext'
 import ReplyIcon from '@mui/icons-material/Reply'
 import EditIcon from '@mui/icons-material/Edit'
 import SaveIcon from '@mui/icons-material/Save'
-import ClearOutlinedIcon from '@mui/icons-material/ClearOutlined'
-import AddCircleOutlineIcon from '@mui/icons-material/AddCircleOutline'
+import ClearIcon from '@mui/icons-material/Clear'
 import CheckCircleIcon from '@mui/icons-material/CheckCircle'
+import AddIcon from '@mui/icons-material/Add'
 import DeleteOutlineIcon from '@mui/icons-material/DeleteOutline'
 
 
@@ -31,12 +33,7 @@ function computeQuantity(line) {
   const allEmpty = [line.multiplier, line.count, line.length, line.width, line.height].every(isEmpty)
   if (allEmpty) return 0
   const v = (val) => isEmpty(val) ? 1 : Number(val)
-  const mult = v(line.multiplier)
-  const cnt  = v(line.count)
-  const len  = v(line.length)
-  const wid  = v(line.width)
-  const hei  = v(line.height)
-  const qty  = mult * cnt * len * wid * hei
+  const qty = v(line.multiplier) * v(line.count) * v(line.length) * v(line.width) * v(line.height)
   return isNaN(qty) ? 0 : qty
 }
 
@@ -47,101 +44,130 @@ function ikiHane(v) {
   return new Intl.NumberFormat('de-DE', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(n)
 }
 
+function StatusChip({ status }) {
+  if (status === 'draft')    return <Chip size="small" label="Taslak"      sx={{ backgroundColor: '#FFF9C4', color: '#F57F17', fontWeight: 600 }} />
+  if (status === 'ready')    return <Chip size="small" label="Onaya Hazır" sx={{ backgroundColor: '#C8E6C9', color: '#1B5E20', fontWeight: 600 }} />
+  if (status === 'approved') return <Chip size="small" label="Onaylı"      sx={{ backgroundColor: '#B3E5FC', color: '#01579B', fontWeight: 600 }} />
+  return <Chip size="small" label={status ?? '—'} />
+}
+
+const GRID_COLS = '40px 1fr 70px 70px 70px 70px 70px 90px 36px'
+const NUM_FIELDS = ['multiplier', 'count', 'length', 'width', 'height']
+const NUM_LABELS = ['Çarpan', 'Adet', 'Boy', 'En', 'Yükseklik']
+
+const css_lineHeader = {
+  display: 'grid', gridTemplateColumns: GRID_COLS,
+  backgroundColor: '#555555', color: '#f5f5f5',
+  fontSize: '0.75rem', fontWeight: 600,
+}
+const css_lineHeaderCell = {
+  px: '4px', py: '3px',
+  display: 'flex', alignItems: 'center', justifyContent: 'center',
+  borderRight: '1px solid rgba(255,255,255,0.15)',
+}
+const css_lineRow = {
+  display: 'grid', gridTemplateColumns: GRID_COLS,
+  borderBottom: '1px dashed #c8c8c8',
+  '&:hover': { backgroundColor: '#fafafa' },
+}
+const css_lineCell = {
+  px: '4px', py: '3px',
+  fontSize: '0.85rem',
+  display: 'flex', alignItems: 'center',
+  borderRight: '1px dashed #d8d8d8',
+  overflow: 'hidden',
+}
+
+const inputSx = {
+  width: '100%', border: 'none', outline: 'none',
+  backgroundColor: 'rgba(255,250,180,0.6)',
+  fontSize: '0.85rem', padding: '2px 4px',
+  textAlign: 'right',
+  MozAppearance: 'textfield',
+}
+
 
 export default function P_MetrajOlusturCetvel() {
   const navigate = useNavigate()
   const { selectedProje, selectedIsPaket, selectedPoz, selectedMahal, appUser } = useContext(StoreContext)
   const { data: units = [] } = useGetPozUnits()
 
+  const [dialogAlert, setDialogAlert] = useState()
+  const [loading, setLoading] = useState(true)
+  const [loadError, setLoadError] = useState(null)
   const [session, setSession] = useState(null)
   const [lines, setLines] = useState([])
   const [linesBackup, setLinesBackup] = useState([])
-  const [isLoading, setIsLoading] = useState(true)
-  const [loadError, setLoadError] = useState(null)
   const [mode_edit, setMode_edit] = useState(false)
   const [isChanged, setIsChanged] = useState(false)
-  const [dialogAlert, setDialogAlert] = useState()
   const [showCancelConfirm, setShowCancelConfirm] = useState(false)
   const [pendingNav, setPendingNav] = useState(null)
+
+  const wpAreaId = selectedMahal?.wpAreaId
 
   const navGuard = (path) => {
     if (isChanged) { setPendingNav(path); setShowCancelConfirm(true) }
     else navigate(path)
   }
 
-  // wpAreaId is stored in selectedMahal when building mahaller list
-  const wpAreaId = selectedMahal?.wpAreaId
-
-  // Guards
   useEffect(() => {
-    if (!selectedProje || !selectedIsPaket) navigate('/metrajolustur')
-    else if (!selectedPoz) navigate('/metrajolusturpozlar')
-    else if (!selectedMahal) navigate('/metrajolusturpozmahaller')
-  }, [selectedProje, selectedIsPaket, selectedPoz, selectedMahal, navigate])
+    if (!selectedProje || !selectedIsPaket) { navigate('/metrajolustur'); return }
+    if (!selectedPoz) { navigate('/metrajolusturpozlar'); return }
+    if (!wpAreaId) { navigate('/metrajolusturpozmahaller'); return }
+  }, [])
 
-  // Load session and lines
   useEffect(() => {
     if (!wpAreaId) return
-    loadData()
+    setLoading(true)
+    ;(async () => {
+      try {
+        let sessionData = null
+
+        if (selectedMahal?.sessionId) {
+          const { data, error } = await supabase
+            .from('measurement_sessions')
+            .select('*')
+            .eq('id', selectedMahal.sessionId)
+            .single()
+          if (error) throw error
+          sessionData = data
+        } else {
+          let query = supabase
+            .from('measurement_sessions')
+            .select('*')
+            .eq('work_package_poz_area_id', wpAreaId)
+            .in('status', ['draft', 'ready'])
+            .order('updated_at', { ascending: false })
+            .limit(1)
+          if (appUser?.id) query = query.eq('created_by', appUser.id)
+          const { data, error } = await query.maybeSingle()
+          if (error) throw error
+          sessionData = data
+        }
+
+        if (sessionData) {
+          const { data: lineData, error: lineError } = await supabase
+            .from('measurement_lines')
+            .select('*')
+            .eq('session_id', sessionData.id)
+            .order('order_index')
+          if (lineError) throw lineError
+          const ls = lineData ?? []
+          setSession(sessionData)
+          setLines(ls)
+          setLinesBackup(_.cloneDeep(ls))
+        } else {
+          setSession(null)
+          setLines([])
+          setLinesBackup([])
+        }
+      } catch (err) {
+        setLoadError(err.message)
+      } finally {
+        setLoading(false)
+      }
+    })()
   }, [wpAreaId, selectedMahal?.sessionId])
-
-  const loadData = async () => {
-    setIsLoading(true)
-    setLoadError(null)
-    try {
-      let sessionData = null
-
-      if (selectedMahal?.sessionId) {
-        // Belirli bir session ID ile yükle (pozmahaller sayfasından tıklama)
-        const { data, error } = await supabase
-          .from('measurement_sessions')
-          .select('*')
-          .eq('id', selectedMahal.sessionId)
-          .single()
-        if (error) throw error
-        sessionData = data
-      } else {
-        // Mevcut kullanıcının session'ını yükle
-        let query = supabase
-          .from('measurement_sessions')
-          .select('*')
-          .eq('work_package_poz_area_id', wpAreaId)
-          .in('status', ['draft', 'ready'])
-          .order('updated_at', { ascending: false })
-          .limit(1)
-
-        if (appUser?.id) query = query.eq('created_by', appUser.id)
-
-        const { data, error } = await query.maybeSingle()
-        if (error) throw error
-        sessionData = data
-      }
-
-      if (sessionData) {
-        const { data: lineData, error: lineError } = await supabase
-          .from('measurement_lines')
-          .select('*')
-          .eq('session_id', sessionData.id)
-          .order('order_index')
-
-        if (lineError) throw lineError
-
-        const ls = lineData ?? []
-
-        setSession(sessionData)
-        setLines(ls)
-        setLinesBackup(_.cloneDeep(ls))
-      } else {
-        setSession(null)
-        setLines([])
-        setLinesBackup([])
-      }
-    } catch (err) {
-      setLoadError(err.message)
-    } finally {
-      setIsLoading(false)
-    }
-  }
 
   const handleAddLine = async () => {
     let currentSession = session
@@ -161,7 +187,6 @@ export default function P_MetrajOlusturCetvel() {
         return
       }
     }
-
     const nextIdx = lines.length > 0 ? Math.max(...lines.map(l => l.order_index)) + 1 : 0
     try {
       const { data, error } = await supabase
@@ -169,9 +194,7 @@ export default function P_MetrajOlusturCetvel() {
         .insert({ session_id: currentSession.id, line_type: 'data', description: '', order_index: nextIdx })
         .select()
         .single()
-
       if (error) throw error
-
       const newLine = { ...data, multiplier: null }
       setLines(prev => [...prev, newLine])
       setLinesBackup(prev => [...prev, _.cloneDeep(newLine)])
@@ -182,13 +205,8 @@ export default function P_MetrajOlusturCetvel() {
 
   const handleDeleteLine = async (lineId) => {
     try {
-      const { error } = await supabase
-        .from('measurement_lines')
-        .delete()
-        .eq('id', lineId)
-
+      const { error } = await supabase.from('measurement_lines').delete().eq('id', lineId)
       if (error) throw error
-
       setLines(prev => prev.filter(l => l.id !== lineId))
       setLinesBackup(prev => prev.filter(l => l.id !== lineId))
     } catch (err) {
@@ -206,28 +224,24 @@ export default function P_MetrajOlusturCetvel() {
       for (const line of lines) {
         const backup = linesBackup.find(b => b.id === line.id)
         if (backup && JSON.stringify(line) === JSON.stringify(backup)) continue
-
         const { error } = await supabase
           .from('measurement_lines')
           .update({
             description: line.description,
-            multiplier: (line.multiplier === '' || line.multiplier === null) ? null : Number(line.multiplier),
+            multiplier: (line.multiplier === '' || line.multiplier === null) ? 1 : Number(line.multiplier),
             count:  line.count  === '' ? null : line.count,
             length: line.length === '' ? null : line.length,
             width:  line.width  === '' ? null : line.width,
             height: line.height === '' ? null : line.height,
           })
           .eq('id', line.id)
-
         if (error) throw error
       }
-
       const total = lines.reduce((sum, l) => sum + computeQuantity(l), 0)
       await supabase
         .from('measurement_sessions')
         .update({ total_quantity: total, updated_at: new Date().toISOString() })
         .eq('id', session.id)
-
       setSession(prev => ({ ...prev, total_quantity: total }))
       setLinesBackup(_.cloneDeep(lines))
       setIsChanged(false)
@@ -244,11 +258,8 @@ export default function P_MetrajOlusturCetvel() {
   }
 
   const handleCancel = () => {
-    if (isChanged) {
-      setShowCancelConfirm(true)
-    } else {
-      setMode_edit(false)
-    }
+    if (isChanged) { setShowCancelConfirm(true) }
+    else { setMode_edit(false) }
   }
 
   const handleMarkReady = () => {
@@ -264,9 +275,7 @@ export default function P_MetrajOlusturCetvel() {
             .from('measurement_sessions')
             .update({ status: 'ready', total_quantity: total, updated_at: new Date().toISOString() })
             .eq('id', session.id)
-
           if (error) throw error
-
           setSession(prev => ({ ...prev, status: 'ready', total_quantity: total }))
         } catch (err) {
           setDialogAlert({ dialogIcon: 'warning', dialogMessage: err.message, onCloseAction: () => setDialogAlert() })
@@ -282,9 +291,7 @@ export default function P_MetrajOlusturCetvel() {
         .from('measurement_sessions')
         .update({ status: 'draft', updated_at: new Date().toISOString() })
         .eq('id', session.id)
-
       if (error) throw error
-
       setSession(prev => ({ ...prev, status: 'draft' }))
     } catch (err) {
       setDialogAlert({ dialogIcon: 'warning', dialogMessage: err.message, onCloseAction: () => setDialogAlert() })
@@ -304,9 +311,7 @@ export default function P_MetrajOlusturCetvel() {
             .from('measurement_sessions')
             .update({ status: 'approved', total_quantity: total, updated_at: new Date().toISOString() })
             .eq('id', session.id)
-
           if (error) throw error
-
           setSession(prev => ({ ...prev, status: 'approved', total_quantity: total }))
         } catch (err) {
           setDialogAlert({ dialogIcon: 'warning', dialogMessage: err.message, onCloseAction: () => setDialogAlert() })
@@ -328,9 +333,7 @@ export default function P_MetrajOlusturCetvel() {
             .from('measurement_sessions')
             .update({ status: 'draft', updated_at: new Date().toISOString() })
             .eq('id', session.id)
-
           if (error) throw error
-
           setSession(prev => ({ ...prev, status: 'draft' }))
         } catch (err) {
           setDialogAlert({ dialogIcon: 'warning', dialogMessage: err.message, onCloseAction: () => setDialogAlert() })
@@ -346,42 +349,26 @@ export default function P_MetrajOlusturCetvel() {
     return m
   }, [units])
 
-  const pozBirim = unitsMap[selectedPoz?.unit_id] ?? '—'
+  const pozBirim = unitsMap[selectedPoz?.unit_id] ?? ''
   const totalQuantity = useMemo(() => lines.reduce((sum, l) => sum + computeQuantity(l), 0), [lines])
-  const isDraft = session?.status === 'draft'
-  const isReady = session?.status === 'ready'
+  const isDraft   = session?.status === 'draft'
+  const isReady   = session?.status === 'ready'
   const isApproved = session?.status === 'approved'
 
-  const headerIconButton_sx = { width: 40, height: 40 }
-  const headerIcon_sx = { fontSize: 24 }
-
-  const css_baslik = {
-    px: '0.3rem',
-    border: '1px solid black',
-    backgroundColor: 'lightgray',
-    display: 'grid',
-    alignItems: 'center',
-    justifyContent: 'center',
-    textAlign: 'center',
-    fontWeight: 600,
-    fontSize: '0.8rem',
-    whiteSpace: 'nowrap',
-  }
-
-  const css_satir = {
-    px: '0.3rem',
-    border: '1px solid black',
-    display: 'grid',
-    alignItems: 'center',
-    justifyContent: 'center',
-    fontSize: '0.85rem',
-  }
-
-  const gridCols = 'max-content minmax(10rem, 3fr) repeat(5, minmax(4rem, 1fr)) minmax(5rem, 1fr) max-content max-content'
-
+  const pozLabel = selectedPoz?.code
+    ? `${selectedPoz.code} · ${selectedPoz.short_desc}`
+    : selectedPoz?.short_desc
 
   return (
-    <>
+    <Box>
+      <style>{`
+        .metraj-num-input::-webkit-outer-spin-button,
+        .metraj-num-input::-webkit-inner-spin-button {
+          -webkit-appearance: none;
+          margin: 0;
+        }
+      `}</style>
+
       {dialogAlert && (
         <DialogAlert
           dialogIcon={dialogAlert.dialogIcon}
@@ -399,10 +386,7 @@ export default function P_MetrajOlusturCetvel() {
             dialogIcon="warning"
             dialogMessage="Kaydedilmemiş değişiklikler var. Ne yapmak istersiniz?"
             actionText1="Kaydet ve Çık"
-            action1={() => {
-              setShowCancelConfirm(false)
-              handleSave()
-            }}
+            action1={() => { setShowCancelConfirm(false); handleSave() }}
             actionText2="Kaydetmeden Çık"
             action2={() => {
               const dest = pendingNav
@@ -431,221 +415,285 @@ export default function P_MetrajOlusturCetvel() {
         )
       )}
 
-      {/* BAŞLIK */}
+      {/* BAŞLIK — sadece navigasyon */}
       <AppBar position="static" sx={{ backgroundColor: 'white', color: 'black', boxShadow: 4 }}>
-        <Grid
-          container
-          justifyContent="space-between"
-          alignItems="center"
-          sx={{ padding: '0.5rem 1rem', minHeight: '3.5rem', maxHeight: '5rem' }}
-        >
+        <Grid container alignItems="center" sx={{ px: '1rem', py: '0.5rem', maxHeight: '5rem' }}>
           <Grid item xs>
-            <Box sx={{ display: 'flex', alignItems: 'center', gap: '0.4rem', flexWrap: 'nowrap', overflow: 'hidden' }}>
-              <IconButton sx={headerIconButton_sx} onClick={() => navGuard('/metrajolusturpozmahaller')}>
-                <ReplyIcon sx={{ ...headerIcon_sx, color: 'gray' }} />
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: '0.3rem', flexWrap: 'nowrap', overflow: 'hidden' }}>
+              <IconButton sx={{ m: 0, p: 0 }} onClick={() => navGuard('/metrajolusturpozmahaller')}>
+                <ReplyIcon sx={{ color: 'gray' }} />
               </IconButton>
               <Typography
-                variant="body2"
-                sx={{ fontWeight: 600, opacity: 0.5, cursor: 'pointer', whiteSpace: 'nowrap', '&:hover': { opacity: 0.9 } }}
+                variant="body1"
+                sx={{ fontWeight: 600, opacity: 0.4, cursor: 'pointer', whiteSpace: 'nowrap', '&:hover': { opacity: 0.9 } }}
                 onClick={() => navGuard('/metrajolusturpozlar')}
               >
                 {selectedIsPaket?.name}
               </Typography>
-              <NavigateNextIcon sx={{ opacity: 0.4, fontSize: 16, flexShrink: 0 }} />
+              <NavigateNextIcon sx={{ opacity: 0.4, fontSize: 18, flexShrink: 0 }} />
               <Typography
-                variant="body2"
-                sx={{ fontWeight: 600, opacity: 0.5, cursor: 'pointer', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', maxWidth: '10rem', '&:hover': { opacity: 0.9 } }}
+                variant="body1"
+                sx={{ fontWeight: 600, opacity: 0.4, cursor: 'pointer', whiteSpace: 'nowrap', maxWidth: '14rem', overflow: 'hidden', textOverflow: 'ellipsis', '&:hover': { opacity: 0.9 } }}
                 onClick={() => navGuard('/metrajolusturpozmahaller')}
               >
-                {selectedPoz?.code ? `${selectedPoz.code} · ${selectedPoz.short_desc}` : selectedPoz?.short_desc}
+                {pozLabel}
               </Typography>
-              <NavigateNextIcon sx={{ opacity: 0.4, fontSize: 16, flexShrink: 0 }} />
-              <Typography variant="body2" sx={{ fontWeight: 700, whiteSpace: 'nowrap' }}>
+              <NavigateNextIcon sx={{ opacity: 0.4, fontSize: 18, flexShrink: 0 }} />
+              <Typography variant="body1" sx={{ fontWeight: 700, whiteSpace: 'nowrap' }}>
                 {selectedMahal?.code ? `${selectedMahal.code} · ${selectedMahal.name}` : selectedMahal?.name}
               </Typography>
-            </Box>
-          </Grid>
-
-          <Grid item xs="auto">
-            <Box sx={{ display: 'flex', alignItems: 'center' }}>
-              {session && isDraft && !mode_edit && !isChanged && (
-                <>
-                  <IconButton sx={headerIconButton_sx} onClick={() => setMode_edit(true)}>
-                    <EditIcon sx={{ ...headerIcon_sx, color: 'gray' }} />
-                  </IconButton>
-                  {lines.length > 0 && (
-                    <IconButton sx={headerIconButton_sx} onClick={handleMarkReady}>
-                      <CheckCircleIcon sx={{ ...headerIcon_sx, color: 'gray' }} />
-                    </IconButton>
-                  )}
-                </>
-              )}
-              {session && isDraft && mode_edit && !isChanged && (
-                <>
-                  <IconButton sx={headerIconButton_sx} onClick={() => setMode_edit(false)}>
-                    <ClearOutlinedIcon sx={{ ...headerIcon_sx, color: 'gray' }} />
-                  </IconButton>
-                </>
-              )}
-              {(!session || (session && isDraft && mode_edit)) && (
-                <IconButton sx={headerIconButton_sx} onClick={handleAddLine}>
-                  <AddCircleOutlineIcon sx={{ ...headerIcon_sx, color: 'green' }} />
-                </IconButton>
-              )}
-              {isChanged && (
-                <>
-                  <IconButton sx={headerIconButton_sx} onClick={handleCancel}>
-                    <ClearOutlinedIcon sx={{ ...headerIcon_sx, color: 'red' }} />
-                  </IconButton>
-                  <IconButton sx={headerIconButton_sx} onClick={handleSave}>
-                    <SaveIcon sx={headerIcon_sx} />
-                  </IconButton>
-                </>
-              )}
-              {session && isReady && (
-                <>
-                  <IconButton sx={headerIconButton_sx} onClick={handleBackToDraft} title="Taslağa geri al">
-                    <ReplyIcon sx={{ ...headerIcon_sx, color: 'orange' }} />
-                  </IconButton>
-                  <IconButton sx={headerIconButton_sx} onClick={handleApprove} title="Onayla">
-                    <CheckCircleIcon sx={{ ...headerIcon_sx, color: '#1565C0' }} />
-                  </IconButton>
-                </>
-              )}
-              {session && isApproved && (
-                <IconButton sx={headerIconButton_sx} onClick={handleRevise} title="Düzenlemek için taslağa al">
-                  <EditIcon sx={{ ...headerIcon_sx, color: 'orange' }} />
-                </IconButton>
-              )}
             </Box>
           </Grid>
         </Grid>
       </AppBar>
 
-      {isLoading && <LinearProgress />}
+      {loading && <LinearProgress />}
 
       {loadError && (
-        <Alert severity="error" sx={{ m: '1rem' }}>
-          Veri alınırken hata: {loadError}
-        </Alert>
+        <Stack sx={{ width: '100%', p: '1rem' }}>
+          <Alert severity="error">Veri alınırken hata: {loadError}</Alert>
+        </Stack>
       )}
 
-      {/* Boş durum */}
-      {!isLoading && !loadError && (!session || lines.length === 0) && (
-        <Box sx={{ p: '2rem', display: 'flex', justifyContent: 'center' }}>
-          <Typography variant="body1" sx={{ color: 'gray' }}>
-            Satır eklemek için + butonuna tıklayın.
-          </Typography>
-        </Box>
-      )}
-
-      {/* Cetvel */}
-      {!isLoading && !loadError && session && lines.length > 0 && (
-        <Box sx={{ p: '0.5rem 1rem', overflowX: 'auto' }}>
-          <Box sx={{ display: 'grid', gridTemplateColumns: gridCols, width: 'fit-content', minWidth: '50rem' }}>
-
-            {/* Başlık satırı */}
-            <Box sx={{ ...css_baslik }}>Sıra</Box>
-            <Box sx={{ ...css_baslik, justifyContent: 'start' }}>Açıklama</Box>
-            <Box sx={{ ...css_baslik }}>Çarpan</Box>
-            <Box sx={{ ...css_baslik }}>Adet</Box>
-            <Box sx={{ ...css_baslik }}>Boy</Box>
-            <Box sx={{ ...css_baslik }}>En</Box>
-            <Box sx={{ ...css_baslik }}>Yük.</Box>
-            <Box sx={{ ...css_baslik }}>Metraj</Box>
-            <Box sx={{ ...css_baslik }}>Birim</Box>
-            <Box sx={{ ...css_baslik }}></Box>
-
-            {/* Toplam satırı */}
-            <Box sx={{ ...css_baslik, gridColumn: '1/8', justifyContent: 'end', pr: '0.5rem', backgroundColor: 'rgba(253,197,123,0.6)' }}>
-              Toplam Metraj
-            </Box>
-            <Box sx={{ ...css_baslik, justifyContent: 'end', pr: '0.3rem', backgroundColor: 'rgba(253,197,123,0.6)', color: totalQuantity < 0 ? 'red' : null }}>
-              {ikiHane(totalQuantity)}
-            </Box>
-            <Box sx={{ ...css_baslik, backgroundColor: 'rgba(253,197,123,0.6)' }}>{pozBirim}</Box>
-            <Box sx={{ ...css_baslik, backgroundColor: 'rgba(253,197,123,0.6)' }}></Box>
-
-            {/* Veri satırları */}
-            {lines.map((line, index) => {
-              const qty = computeQuantity(line)
-              const isDeduction = Number(line.multiplier ?? 1) < 0
-              const rowColor = isApproved ? 'rgba(179,229,252,0.35)' : isReady ? 'rgba(200,230,200,0.3)' : null
-
-              return (
-                <React.Fragment key={line.id}>
-
-                  {/* Sıra */}
-                  <Box sx={{ ...css_satir, justifyContent: 'center', backgroundColor: rowColor }}>
-                    {index + 1}
-                  </Box>
-
-                  {/* Açıklama */}
-                  <Box sx={{ ...css_satir, justifyContent: 'start', backgroundColor: mode_edit && isDraft ? 'rgba(255,255,0,0.2)' : rowColor, color: isDeduction ? 'red' : null }}>
-                    {mode_edit && isDraft ? (
-                      <Input
-                        value={line.description ?? ''}
-                        onChange={e => handleLineChange(line.id, 'description', e.target.value)}
-                        disableUnderline
-                        fullWidth
-                        sx={{ fontSize: '0.85rem', color: isDeduction ? 'red' : null }}
-                      />
-                    ) : (
-                      line.description || '—'
-                    )}
-                  </Box>
-
-                  {/* Çarpan */}
-                  {['multiplier', 'count', 'length', 'width', 'height'].map(field => (
-                    <Box key={field} sx={{ ...css_satir, justifyContent: 'end', backgroundColor: mode_edit && isDraft ? 'rgba(255,255,0,0.2)' : rowColor, color: isDeduction ? 'red' : null }}>
-                      {mode_edit && isDraft ? (
-                        <Input
-                          value={line[field] ?? ''}
-                          type="number"
-                          onChange={e => handleLineChange(line.id, field, e.target.value)}
-                          onKeyDown={e => ['e', 'E', '+'].includes(e.key) && e.preventDefault()}
-                          disableUnderline
-                          sx={{
-                            fontSize: '0.85rem',
-                            color: isDeduction ? 'red' : null,
-                            '& input': { textAlign: 'right' },
-                            '& input::-webkit-outer-spin-button, & input::-webkit-inner-spin-button': { WebkitAppearance: 'none', margin: 0 },
-                            '& input[type=number]': { MozAppearance: 'textfield' },
-                          }}
-                          inputProps={{ style: { textAlign: 'right' } }}
-                        />
-                      ) : (
-                        ikiHane(line[field])
-                      )}
-                    </Box>
-                  ))}
-
-                  {/* Metraj */}
-                  <Box sx={{ ...css_satir, justifyContent: 'end', pr: '0.3rem', backgroundColor: rowColor, color: isDeduction ? 'red' : null }}>
-                    {ikiHane(qty)}
-                  </Box>
-
-                  {/* Birim */}
-                  <Box sx={{ ...css_satir, justifyContent: 'center', backgroundColor: rowColor, color: isDeduction ? 'red' : null }}>
-                    {pozBirim}
-                  </Box>
-
-                  {/* Sil butonu */}
-                  <Box sx={{ ...css_satir, justifyContent: 'center', backgroundColor: rowColor }}>
-                    {mode_edit && isDraft && (
-                      <IconButton size="small" onClick={() => handleDeleteLine(line.id)} sx={{ p: '2px' }}>
-                        <DeleteOutlineIcon sx={{ fontSize: 18, color: 'salmon' }} />
-                      </IconButton>
-                    )}
-                  </Box>
-
-                </React.Fragment>
-              )
-            })}
-
+      {!loading && !loadError && !session && (
+        <Box sx={{ p: '1rem' }}>
+          <Box
+            sx={{
+              display: 'flex', alignItems: 'center', gap: '0.4rem',
+              px: '6px', py: '4px', cursor: 'pointer', width: 'fit-content',
+            }}
+            onClick={handleAddLine}
+          >
+            <AddIcon sx={{ fontSize: 20, color: '#1565c0' }} />
+            <Typography sx={{ fontSize: '0.85rem', color: '#1565c0' }}>Satır Ekle</Typography>
           </Box>
         </Box>
       )}
-    </>
+
+      {/* SESSION KARTI */}
+      {!loading && !loadError && session && (
+        <Box sx={{ p: '1rem', maxWidth: '900px' }}>
+          <Box
+            sx={{
+              border: '1px solid',
+              borderColor: isApproved ? '#90CAF9' : isReady ? '#A5D6A7' : '#ddd',
+              overflow: 'hidden',
+              boxShadow: 1,
+            }}
+          >
+            {/* Kart başlığı */}
+            <Box
+              sx={{
+                display: 'flex', alignItems: 'center', gap: '0.5rem',
+                px: '1rem', height: '50px',
+                backgroundColor: isApproved ? '#E3F2FD' : isReady ? '#F1F8E9' : '#e0e0e0',
+                borderBottom: '1px solid',
+                borderColor: isApproved ? '#90CAF9' : isReady ? '#A5D6A7' : '#ddd',
+              }}
+            >
+              <Typography variant="body1" sx={{ fontWeight: 700, flexGrow: 1 }}>
+                Metraj
+              </Typography>
+
+              <StatusChip status={session.status} />
+
+              {isDraft && !mode_edit && !isChanged && (
+                <>
+                  <Tooltip title="Düzenle">
+                    <IconButton size="small" onClick={() => setMode_edit(true)}>
+                      <EditIcon sx={{ fontSize: 20 }} />
+                    </IconButton>
+                  </Tooltip>
+                  {lines.length > 0 && (
+                    <Tooltip title="Onaya Gönder">
+                      <IconButton size="small" onClick={handleMarkReady}>
+                        <CheckCircleIcon sx={{ fontSize: 24, color: '#2e7d32' }} />
+                      </IconButton>
+                    </Tooltip>
+                  )}
+                </>
+              )}
+
+              {isDraft && mode_edit && !isChanged && (
+                <Tooltip title="Düzenlemeyi Bitir">
+                  <IconButton size="small" onClick={() => setMode_edit(false)}>
+                    <ClearIcon sx={{ color: '#888', fontSize: 20 }} />
+                  </IconButton>
+                </Tooltip>
+              )}
+
+              {isChanged && (
+                <>
+                  <Tooltip title="İptal">
+                    <IconButton size="small" onClick={handleCancel}>
+                      <ClearIcon sx={{ color: '#c62828', fontSize: 20 }} />
+                    </IconButton>
+                  </Tooltip>
+                  <Tooltip title="Kaydet">
+                    <IconButton size="small" onClick={handleSave}>
+                      <SaveIcon sx={{ color: '#1565c0', fontSize: 20 }} />
+                    </IconButton>
+                  </Tooltip>
+                </>
+              )}
+
+              {isReady && (
+                <>
+                  <Tooltip title="Taslağa geri al">
+                    <IconButton size="small" onClick={handleBackToDraft}>
+                      <ReplyIcon sx={{ color: 'orange', fontSize: 20 }} />
+                    </IconButton>
+                  </Tooltip>
+                  <Tooltip title="Onayla">
+                    <IconButton size="small" onClick={handleApprove}>
+                      <CheckCircleIcon sx={{ color: '#2e7d32', fontSize: 24 }} />
+                    </IconButton>
+                  </Tooltip>
+                </>
+              )}
+
+              {isApproved && (
+                <Tooltip title="Düzenle (Revize)">
+                  <IconButton size="small" onClick={handleRevise}>
+                    <EditIcon sx={{ fontSize: 20 }} />
+                  </IconButton>
+                </Tooltip>
+              )}
+            </Box>
+
+            {/* Satır yok */}
+            {lines.length === 0 && !mode_edit && (
+              <Box sx={{ px: '1rem', py: '0.75rem', color: 'gray', fontSize: '0.85rem' }}>
+                Bu oturumda metraj satırı bulunmuyor.
+              </Box>
+            )}
+
+            {/* Tablo */}
+            {(lines.length > 0 || mode_edit) && (
+              <Box sx={{ overflowX: 'auto' }}>
+
+                {/* Tablo başlığı */}
+                <Box sx={{ ...css_lineHeader, minWidth: 'max-content' }}>
+                  <Box sx={{ ...css_lineHeaderCell, justifyContent: 'center' }}>Sıra</Box>
+                  <Box sx={{ ...css_lineHeaderCell, justifyContent: 'flex-start' }}>Açıklama</Box>
+                  {NUM_LABELS.map(lbl => (
+                    <Box key={lbl} sx={{ ...css_lineHeaderCell }}>{lbl}</Box>
+                  ))}
+                  <Box sx={{ ...css_lineHeaderCell }}>Metraj</Box>
+                  <Box sx={{ ...css_lineHeaderCell }}></Box>
+                </Box>
+
+                {/* Satırlar */}
+                {lines.map((line, index) => {
+                  const qty = computeQuantity(line)
+                  const isDeduction = qty < 0
+                  const rowBg = isApproved
+                    ? 'rgba(179,229,252,0.35)'
+                    : isReady
+                    ? 'rgba(200,230,200,0.3)'
+                    : mode_edit ? 'rgba(255,250,200,0.4)' : 'white'
+                  const deductionColor = isDeduction ? '#b71c1c' : undefined
+
+                  return (
+                    <Box key={line.id} sx={{ ...css_lineRow, backgroundColor: rowBg, minWidth: 'max-content' }}>
+
+                      <Box sx={{ ...css_lineCell, justifyContent: 'center', color: '#888' }}>
+                        {index + 1}
+                      </Box>
+
+                      <Box sx={{ ...css_lineCell, color: deductionColor }}>
+                        {mode_edit && isDraft ? (
+                          <input
+                            style={{ ...inputSx, textAlign: 'left', color: deductionColor }}
+                            value={line.description ?? ''}
+                            onChange={e => handleLineChange(line.id, 'description', e.target.value)}
+                          />
+                        ) : (
+                          line.description ?? ''
+                        )}
+                      </Box>
+
+                      {NUM_FIELDS.map(field => (
+                        <Box key={field} sx={{ ...css_lineCell, justifyContent: 'flex-end', color: deductionColor }}>
+                          {mode_edit && isDraft ? (
+                            <input
+                              type="number"
+                              className="metraj-num-input"
+                              style={{ ...inputSx, color: deductionColor }}
+                              value={line[field] ?? ''}
+                              onChange={e => handleLineChange(line.id, field, e.target.value)}
+                              onKeyDown={e => ['e', 'E', '+'].includes(e.key) && e.preventDefault()}
+                            />
+                          ) : (
+                            line[field] != null ? ikiHane(line[field]) : ''
+                          )}
+                        </Box>
+                      ))}
+
+                      <Box sx={{ ...css_lineCell, justifyContent: 'flex-end', color: deductionColor }}>
+                        {ikiHane(qty)}
+                        {pozBirim && <Box component="span" sx={{ ml: '4px', fontWeight: 400, fontSize: '0.75rem', color: '#888' }}>{pozBirim}</Box>}
+                      </Box>
+
+                      <Box sx={{ ...css_lineCell, justifyContent: 'center', px: '2px' }}>
+                        {mode_edit && isDraft && (
+                          <IconButton size="small" onClick={() => handleDeleteLine(line.id)} sx={{ p: '2px' }}>
+                            <DeleteOutlineIcon sx={{ fontSize: 18, color: 'salmon' }} />
+                          </IconButton>
+                        )}
+                      </Box>
+
+                    </Box>
+                  )
+                })}
+
+                {/* Satır ekle butonu (edit modunda) */}
+                {isDraft && mode_edit && (
+                  <Box
+                    sx={{
+                      display: 'flex', alignItems: 'center', px: '6px', py: '2px',
+                      borderBottom: '1px solid #e0e0e0',
+                      backgroundColor: 'rgba(21,101,192,0.04)',
+                      minWidth: 'max-content',
+                    }}
+                  >
+                    <IconButton size="small" onClick={handleAddLine}>
+                      <AddIcon sx={{ fontSize: 18, color: '#1565c0' }} />
+                    </IconButton>
+                    <Typography
+                      sx={{ fontSize: '0.8rem', color: '#1565c0', ml: '2px', cursor: 'pointer', userSelect: 'none' }}
+                      onClick={handleAddLine}
+                    >
+                      Satır Ekle
+                    </Typography>
+                  </Box>
+                )}
+
+                {/* Toplam satırı */}
+                <Box
+                  sx={{
+                    display: 'grid', gridTemplateColumns: GRID_COLS,
+                    backgroundColor: isApproved ? '#E3F2FD' : isReady ? '#F1F8E9' : '#e0e0e0',
+                    borderTop: '2px solid',
+                    borderColor: isApproved ? '#90CAF9' : isReady ? '#A5D6A7' : '#ddd',
+                    minWidth: 'max-content',
+                  }}
+                >
+                  <Box sx={{ gridColumn: '1 / 8', px: '8px', py: '4px', fontSize: '0.8rem', fontWeight: 600, display: 'flex', alignItems: 'center', justifyContent: 'flex-end', color: '#555' }}>
+                    Toplam
+                  </Box>
+                  <Box sx={{ px: '8px', py: '4px', fontSize: '0.9rem', fontWeight: 700, display: 'flex', alignItems: 'center', justifyContent: 'flex-end', color: totalQuantity < 0 ? 'red' : isApproved ? '#01579B' : '#1B5E20' }}>
+                    {ikiHane(totalQuantity)}
+                    {pozBirim && <Box component="span" sx={{ ml: '4px', fontWeight: 400, fontSize: '0.8rem' }}>{pozBirim}</Box>}
+                  </Box>
+                  <Box />
+                </Box>
+
+              </Box>
+            )}
+          </Box>
+        </Box>
+      )}
+    </Box>
   )
 }

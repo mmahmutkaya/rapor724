@@ -315,7 +315,7 @@ export default function P_MetrajOlusturPozlar() {
                                 borderLeft: '1px solid #aaa',
                                 fontFamily: 'monospace', fontSize: '0.8rem', fontWeight: 600,
                                 display: 'flex', alignItems: 'center', whiteSpace: 'nowrap',
-                                backgroundColor: '#f0f0f0',
+                                backgroundColor: '#f2f2f2',
                                 cursor: 'pointer',
                                 '&:hover': { backgroundColor: '#e3f2fd' }
                               }}
@@ -331,7 +331,7 @@ export default function P_MetrajOlusturPozlar() {
                                 borderBottom: '0.5px solid #ddd',
                                 fontSize: '0.875rem',
                                 display: 'flex', alignItems: 'center',
-                                backgroundColor: '#f0f0f0',
+                                backgroundColor: '#f2f2f2',
                                 cursor: 'pointer',
                                 '&:hover': { backgroundColor: '#e3f2fd' }
                               }}
@@ -347,7 +347,7 @@ export default function P_MetrajOlusturPozlar() {
                                 borderBottom: '0.5px solid #ddd',
                                 fontSize: '0.8rem',
                                 display: 'flex', alignItems: 'center',
-                                backgroundColor: '#f0f0f0', whiteSpace: 'nowrap',
+                                backgroundColor: '#f2f2f2', whiteSpace: 'nowrap',
                                 cursor: 'pointer',
                                 '&:hover': { backgroundColor: '#e3f2fd' }
                               }}
@@ -363,7 +363,7 @@ export default function P_MetrajOlusturPozlar() {
                                 borderBottom: '0.5px solid #ddd',
                                 fontSize: '0.8rem',
                                 display: 'flex', alignItems: 'center', justifyContent: 'flex-end',
-                                backgroundColor: '#f0f0f0',
+                                backgroundColor: '#f2f2f2',
                                 whiteSpace: 'nowrap',
                                 cursor: 'pointer',
                                 '&:hover': { backgroundColor: '#e3f2fd' }

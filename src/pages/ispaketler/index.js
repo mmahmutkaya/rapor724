@@ -190,21 +190,26 @@ export default function P_IsPaketler() {
 
   // ── CSS ────────────────────────────────────────────────
   const css_baslik = {
-    display: "grid",
+    display: "flex",
     alignItems: "center",
-    mt: "0.1rem",
-    px: "0.5rem",
-    backgroundColor: "lightgray",
+    px: "0.6rem",
+    py: "0.3rem",
+    backgroundColor: "#c8c8c8",
     fontWeight: 700,
-    textWrap: "nowrap",
-    border: "1px solid black",
+    fontSize: "0.8rem",
+    textTransform: "uppercase",
+    borderBottom: "1px solid #aaa",
+    whiteSpace: "nowrap",
   };
 
   const css_satir = {
-    display: "grid",
-    px: "0.5rem",
-    border: "1px solid black",
+    display: "flex",
     alignItems: "center",
+    px: "0.6rem",
+    py: "0.4rem",
+    borderBottom: "1px solid #ddd",
+    backgroundColor: "#f2f2f2",
+    fontSize: "0.85rem",
   };
 
   // Dinamik sütun tanımı

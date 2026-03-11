@@ -21,8 +21,8 @@ import P_Lbs from './pages/lbs'
 import P_Mahaller from './pages/mahaller'
 import P_ProjeAyarlari from './pages/projeayarlari'
 
-import P_MahalListesiPozlar from './pages/mahallistesipozlar'
-import P_MahalListesiPozMahaller from './pages/mahallistesipozmahaller'
+// import P_MahalListesiPozlar from './pages/mahallistesipozlar'
+// import P_MahalListesiPozMahaller from './pages/mahallistesipozmahaller'
 
 
 import P_MahalMetraj from './pages/mahalmetraj'
@@ -39,11 +39,11 @@ import P_MetrajOnaylaPozMahaller from './pages/metrajonaylapozmahaller'
 import P_MetrajOnayla from './pages/metrajonayla'
 import P_MetrajOnaylaCetvel from './pages/metrajonaylacetvel'
 
-import P_MetrajPozlar from './pages/metrajpozlar'
-import P_MetrajPozMahaller from './pages/metrajpozmahaller'
-import P_MetrajCetvel from './pages/metrajcetvel'
+// import P_MetrajPozlar from './pages/metrajpozlar'
+// import P_MetrajPozMahaller from './pages/metrajpozmahaller'
+// import P_MetrajCetvel from './pages/metrajcetvel'
 
-import P_BirimFiyat from './pages/birimfiyat'
+// import P_BirimFiyat from './pages/birimfiyat'
 
 import P_IsPaketler from './pages/ispaketler'
 import P_KesifButce from './pages/butce'
@@ -78,8 +78,8 @@ function App() {
       <Route path='/mahaller' element={<P_Mahaller />} />
       <Route path='/proje-ayarlari' element={<P_ProjeAyarlari />} />
 
-      <Route path='/mahallistesipozlar' element={<P_MahalListesiPozlar />} />
-      <Route path='/mahallistesipozmahaller' element={<P_MahalListesiPozMahaller />} />
+      {/* <Route path='/mahallistesipozlar' element={<P_MahalListesiPozlar />} />
+      <Route path='/mahallistesipozmahaller' element={<P_MahalListesiPozMahaller />} /> */}
 
       {/* <Route path='/mahalmetraj' element={<P_MahalMetraj />} />
       <Route path='/kisilerproject' element={<P_KisilerProject />} />
@@ -95,11 +95,11 @@ function App() {
       <Route path='/metrajonayla' element={<P_MetrajOnayla />} />
       <Route path='/metrajonaylacetvel' element={<P_MetrajOnaylaCetvel />} />
       
-      <Route path='/birimfiyat' element={<P_BirimFiyat />} />
+      {/* <Route path='/birimfiyat' element={<P_BirimFiyat />} /> */}
 
-      <Route path='/metrajpozlar' element={<P_MetrajPozlar />} />
+      {/* <Route path='/metrajpozlar' element={<P_MetrajPozlar />} />
       <Route path='/metrajpozmahaller' element={<P_MetrajPozMahaller />} />
-      <Route path='/metrajcetvel' element={<P_MetrajCetvel />} />
+      <Route path='/metrajcetvel' element={<P_MetrajCetvel />} /> */}
 
       <Route path='/ispaketler' element={<P_IsPaketler />} />
       <Route path='/butce' element={<P_KesifButce />} />
