@@ -209,7 +209,7 @@ export default function P_MetrajOnaylaCetvel() {
       const newRevised = { ...sess.revisedLines }
       if (!newRevised[lineId]) {
         const origLine = sess.editBackup?.find(l => l.id === lineId)
-        if (origLine) newRevised[lineId] = { originalMetraj: calcMetraj(origLine) }
+        if (origLine) newRevised[lineId] = { ...origLine, originalMetraj: calcMetraj(origLine) }
       }
       const parsed = value === '' ? null : value
       return {
@@ -479,7 +479,6 @@ export default function P_MetrajOnaylaCetvel() {
                   {sess.lines.map(line => {
                     const metraj = calcMetraj(line)
                     const isRevised = !!sess.revisedLines[line.id]
-                    const origMetraj = sess.revisedLines[line.id]?.originalMetraj
                     const rowBg = isRevised && !sess.editMode && sess.showOriginals
                       ? 'rgba(255,160,0,0.07)'
                       : sess.editMode ? 'rgba(255,250,200,0.4)' : 'white'
@@ -524,21 +523,8 @@ export default function P_MetrajOnaylaCetvel() {
                         ))}
 
                         {/* Metraj */}
-                        <Box
-                          sx={{
-                            ...css_lineCell, flexDirection: 'column', alignItems: 'flex-end',
-                            justifyContent: 'center', gap: '1px',
-                          }}
-                        >
-                          <Box sx={{ fontWeight: isRevised && !sess.editMode ? 600 : 'normal' }}>
-                            {ikiHane(metraj)}
-                          </Box>
-                          {isRevised && !sess.editMode && sess.showOriginals && (
-                            <Box sx={{ fontSize: '0.7rem', color: '#e65100', display: 'flex', alignItems: 'center', gap: '2px' }}>
-                              <span>←</span>
-                              <span>{ikiHane(origMetraj)}</span>
-                            </Box>
-                          )}
+                        <Box sx={{ ...css_lineCell, justifyContent: 'flex-end', fontWeight: isRevised && !sess.editMode ? 600 : 'normal' }}>
+                          {ikiHane(metraj)}
                         </Box>
 
                       </Box>
@@ -583,12 +569,62 @@ export default function P_MetrajOnaylaCetvel() {
                     </Box>
                   </Box>
 
-                  {/* Revize notu */}
-                  {hasRevisions && !sess.editMode && sess.showOriginals && (
-                    <Box sx={{ px: '8px', py: '4px', fontSize: '0.72rem', color: '#e65100', backgroundColor: 'rgba(255,160,0,0.06)' }}>
-                      ← işareti: orijinal değer (revize edilmiş satırlar turuncu arka planla gösterilmektedir)
-                    </Box>
-                  )}
+                  {/* Orijinal Değerler Tablosu */}
+                  {hasRevisions && !sess.editMode && sess.showOriginals && (() => {
+                    const revisedEntries = Object.entries(sess.revisedLines)
+                    const origTotal = revisedEntries.reduce((s, [, r]) => s + (r.originalMetraj ?? 0), 0)
+                    return (
+                      <Box>
+                        {/* Bölüm başlığı */}
+                        <Box sx={{
+                          display: 'grid', gridTemplateColumns: GRID_COLS,
+                          backgroundColor: '#bf360c', color: 'white',
+                          fontSize: '0.72rem', fontWeight: 700,
+                          minWidth: 'max-content',
+                        }}>
+                          <Box sx={{ ...css_lineHeaderCell, justifyContent: 'flex-start', gridColumn: '1 / -1', borderRight: 'none' }}>
+                            Revize Öncesi
+                          </Box>
+                        </Box>
+
+                        {/* Orijinal satırlar */}
+                        {revisedEntries.map(([lineId, origData]) => (
+                          <Box key={lineId} sx={{ ...css_lineRow, backgroundColor: 'rgba(191,54,12,0.05)', minWidth: 'max-content' }}>
+                            <Box sx={{ ...css_lineCell, justifyContent: 'center', color: '#888' }}>
+                              {origData.order_index}
+                            </Box>
+                            <Box sx={{ ...css_lineCell }}>
+                              {origData.description ?? ''}
+                            </Box>
+                            {NUM_FIELDS.map(field => (
+                              <Box key={field} sx={{ ...css_lineCell, justifyContent: 'flex-end', color: '#777' }}>
+                                {origData[field] != null ? origData[field] : ''}
+                              </Box>
+                            ))}
+                            <Box sx={{ ...css_lineCell, justifyContent: 'flex-end', color: '#bf360c', fontWeight: 600 }}>
+                              {ikiHane(origData.originalMetraj)}
+                            </Box>
+                          </Box>
+                        ))}
+
+                        {/* Orijinal toplam */}
+                        <Box sx={{
+                          display: 'grid', gridTemplateColumns: GRID_COLS,
+                          backgroundColor: 'rgba(191,54,12,0.08)',
+                          borderTop: '1px solid rgba(191,54,12,0.25)',
+                          minWidth: 'max-content',
+                        }}>
+                          <Box sx={{ gridColumn: '1 / 8', px: '8px', py: '3px', fontSize: '0.75rem', fontWeight: 600, display: 'flex', alignItems: 'center', justifyContent: 'flex-end', color: '#888' }}>
+                            Önceki Toplam
+                          </Box>
+                          <Box sx={{ px: '8px', py: '3px', fontSize: '0.85rem', fontWeight: 700, display: 'flex', alignItems: 'center', justifyContent: 'flex-end', color: '#bf360c' }}>
+                            {ikiHane(origTotal)}
+                            {pozBirim && <Box component="span" sx={{ ml: '4px', fontWeight: 400, fontSize: '0.75rem' }}>{pozBirim}</Box>}
+                          </Box>
+                        </Box>
+                      </Box>
+                    )
+                  })()}
 
                 </Box>
               )}

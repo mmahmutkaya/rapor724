@@ -88,7 +88,7 @@ export default function P_MetrajOnaylaPozMahaller() {
         .from('measurement_sessions')
         .select('id, work_package_poz_area_id, status, total_quantity, created_by, updated_at')
         .in('work_package_poz_area_id', areaIds)
-        .in('status', ['ready', 'approved'])
+        .in('status', ['ready', 'seen', 'approved', 'revised'])
         .order('updated_at', { ascending: false })
 
       if (sessionsError || !sessions || sessions.length === 0) {
@@ -116,9 +116,9 @@ export default function P_MetrajOnaylaPozMahaller() {
         const areaId = s.work_package_poz_area_id
         if (!newMap[areaId]) newMap[areaId] = { byUser: {}, approvedTotal: 0 }
 
-        if (s.status === 'approved') {
+        if (s.status === 'approved' || s.status === 'revised') {
           newMap[areaId].approvedTotal += s.total_quantity ?? 0
-        } else if (s.status === 'ready') {
+        } else if (s.status === 'ready' || s.status === 'seen') {
           const uid = s.created_by
           if (uid && !newMap[areaId].byUser[uid]) {
             newMap[areaId].byUser[uid] = { session: s, userName: userMap[uid] ?? uid }
@@ -437,17 +437,13 @@ export default function P_MetrajOnaylaPozMahaller() {
                                     ml: '0.5rem', mr: '0.5rem',
                                     fontSize: '0.8rem', fontWeight: 600,
                                     display: 'flex', alignItems: 'center', justifyContent: 'flex-end',
-                                    gap: '0.3rem',
                                     backgroundColor: rowBg,
                                     whiteSpace: 'nowrap', cursor: 'pointer',
                                     '&:hover': { backgroundColor: hoverBg }
                                   }}
                                 >
                                   {areaData.approvedTotal !== 0
-                                    ? <>
-                                        <Box sx={{ width: '8px', height: '8px', borderRadius: '50%', backgroundColor: '#1565c0', flexShrink: 0 }} />
-                                        {`${ikiHane(areaData.approvedTotal)} ${pozBirim}`}
-                                      </>
+                                    ? `${ikiHane(areaData.approvedTotal)} ${pozBirim}`
                                     : <Box component="span" sx={{ color: '#ccc' }}>—</Box>
                                   }
                                 </Box>
@@ -475,7 +471,7 @@ export default function P_MetrajOnaylaPozMahaller() {
                                     >
                                       {ses
                                         ? <>
-                                            <Box sx={{ width: '8px', height: '8px', borderRadius: '50%', backgroundColor: '#e65100', flexShrink: 0 }} />
+                                            <Box sx={{ width: '8px', height: '8px', borderRadius: '50%', backgroundColor: ses.status === 'seen' ? '#616161' : '#B71C1C', flexShrink: 0 }} />
                                             {`${ikiHane(ses.total_quantity)} ${pozBirim}`}
                                           </>
                                         : <Box component="span" sx={{ color: '#ccc' }}>—</Box>
