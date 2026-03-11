@@ -1,1067 +1,491 @@
 
-import React, { useState, useContext, useEffect, Fragment } from 'react';
-import { useNavigate } from "react-router-dom";
+import React, { useState, useContext, useEffect, useMemo } from 'react'
+import { useNavigate } from 'react-router-dom'
+
 import { StoreContext } from '../../components/store'
-import { useApp } from "../../components/useApp";
-import FormPozCreate from '../../components/FormPozCreate'
-import EditPozBaslik from '../../components/EditPozBaslik'
-import FormPozBaslikCreate from '../../components/FormPozBaslikCreate'
-import { DialogAlert } from '../../components/general/DialogAlert.js';
-import { useQuery, useQueryClient } from '@tanstack/react-query'
+import { useGetLbsNodes, useGetWorkPackagePozAreas, useGetPozUnits } from '../../hooks/useMongo'
+import { supabase } from '../../lib/supabase.js'
 
-import _ from 'lodash';
-
-
-import ShowMetrajYapabilenler from '../../components/ShowMetrajYapabilenler'
-
-import AppBar from '@mui/material/AppBar';
-import Typography from '@mui/material/Typography';
-import Paper from '@mui/material/Paper';
-import IconButton from '@mui/material/IconButton';
-import DeleteIcon from '@mui/icons-material/Delete';
-import ReplyIcon from '@mui/icons-material/Reply';
-import AddCircleOutlineIcon from '@mui/icons-material/AddCircleOutline';
-import ClearOutlined from '@mui/icons-material/ClearOutlined';
-import UnfoldMoreIcon from '@mui/icons-material/UnfoldMore';
-import UnfoldLessIcon from '@mui/icons-material/UnfoldLess';
-import VisibilityIcon from '@mui/icons-material/Visibility';
-import AlignHorizontalLeftOutlinedIcon from '@mui/icons-material/AlignHorizontalLeftOutlined';
-import AlignHorizontalRightOutlinedIcon from '@mui/icons-material/AlignHorizontalRightOutlined';
-import AlignHorizontalCenterOutlinedIcon from '@mui/icons-material/AlignHorizontalCenterOutlined';
-import EditIcon from '@mui/icons-material/Edit';
-import GroupWorkIcon from '@mui/icons-material/GroupWork';
-import SaveIcon from '@mui/icons-material/Save';
-import PersonIcon from '@mui/icons-material/Person';
-import CheckCircleIcon from '@mui/icons-material/CheckCircle';
+import Box from '@mui/material/Box'
+import Grid from '@mui/material/Grid'
+import Typography from '@mui/material/Typography'
+import LinearProgress from '@mui/material/LinearProgress'
+import Alert from '@mui/material/Alert'
+import Tooltip from '@mui/material/Tooltip'
+import IconButton from '@mui/material/IconButton'
+import AppBar from '@mui/material/AppBar'
+import NavigateNextIcon from '@mui/icons-material/NavigateNext'
+import ReplyIcon from '@mui/icons-material/Reply'
 
 
-import { useGetPozlar, useGetDugumler_byPoz, useGetMahaller } from '../../hooks/useMongo';
-
-import Grid from '@mui/material/Grid';
-import Alert from '@mui/material/Alert';
-import Stack from '@mui/material/Stack';
-import Box from '@mui/material/Box';
-import { Check } from '@mui/icons-material';
-import Tooltip from '@mui/material/Tooltip';
-import FileDownloadDoneIcon from '@mui/icons-material/FileDownloadDone';
-import CircleIcon from '@mui/icons-material/Circle';
-import AddCircleIcon from '@mui/icons-material/AddCircle';
-import LinearProgress from '@mui/material/LinearProgress';
-
-
-function HeaderMetrajOnaylaPozMahaller({
-  setShow, anySelectable,
-  mode_select, setMode_select, isChange_select, setIsChange_select, save_select, cancel_select
-}) {
-
-  const navigate = useNavigate()
-
-  const { drawerWidth, topBarHeight } = useContext(StoreContext)
-
-  const { selectedPoz, setSelectedPoz } = useContext(StoreContext)
-
-  const [showEminMisin_select, setShowEminMisin_select] = useState(false)
-
-
-  return (
-    <Paper >
-
-      {showEminMisin_select &&
-        <DialogAlert
-          dialogIcon={"warning"}
-          dialogMessage={"Yaptığınız değişiklikleri kaybedeceksiniz ?"}
-          onCloseAction={() => setShowEminMisin_select()}
-          actionText1={"İptal"}
-          action1={() => setShowEminMisin_select()}
-          actionText2={"Onayla"}
-          action2={() => {
-            cancel_select()
-            setShowEminMisin_select()
-          }}
-        />
-      }
-
-
-      <AppBar
-        position="fixed"
-        sx={{
-          backgroundColor: "white",
-          color: "black",
-          width: { md: `calc(100% - ${drawerWidth}px)` },
-          mt: topBarHeight,
-          // pt:"3rem",
-          ml: { md: `${drawerWidth}px` }
-        }}
-      >
-
-
-        <Grid
-          container
-          justifyContent="space-between"
-          alignItems="center"
-          sx={{ padding: "0.5rem 1rem", maxHeight: "5rem" }}
-        >
-
-
-
-          {/* sol kısım (başlık) */}
-          {/* <Grid item xs>
-            <Typography
-              // nowrap={true}
-              variant="h6"
-              fontWeight="bold"
-            >
-              {selectedPoz?.pozName}
-            </Typography>
-          </Grid> */}
-
-          <Grid item xs>
-            <Box sx={{ display: "grid", gridAutoFlow: "column", alignItems: "center", justifyContent: "start", columnGap: "0.5rem" }}>
-
-              <IconButton sx={{ m: 0, p: 0 }}
-                onClick={() => {
-                  navigate("/metrajonaylapozlar")
-                  setSelectedPoz()
-                }}
-                aria-label="wbsUncliced">
-                <ReplyIcon variant="contained"
-                  sx={{ color: "gray" }} />
-              </IconButton>
-
-              <Box>
-                {selectedPoz?.pozName}
-              </Box>
-              <Box sx={{ color: "#8B0000", fontWeight: "600" }}>
-                {" > "}
-              </Box>
-              <Box>
-                {"(Poza Açık Tüm Mahaller)"}
-              </Box>
-            </Box>
-          </Grid>
-
-
-
-
-          {/* sağ kısım - (tuşlar)*/}
-          <Grid item xs="auto">
-            <Grid container>
-
-
-              {/* {!mode_select &&
-                <Grid item >
-                  <IconButton
-                    onClick={() => {
-                      navigate("/metrajonaylapozlar")
-                      setSelectedPoz()
-                    }}
-                    aria-label="wbsUncliced">
-                    <ReplyIcon variant="contained"
-                      sx={{ color: "gray" }} />
-                  </IconButton>
-                </Grid>
-              } */}
-
-
-              {!mode_select &&
-                <Grid item >
-                  <IconButton onClick={() => setShow("ShowMetrajYapabilenler")} disabled={false}>
-                    <PersonIcon variant="contained" />
-                  </IconButton>
-                </Grid>
-              }
-
-
-              {!isChange_select &&
-                <Grid item sx={{ cursor: "pointer" }}>
-                  <IconButton onClick={() => setMode_select(x => !x)} disabled={!anySelectable}>
-                    <CheckCircleIcon variant="contained" sx={{ color: mode_select ? "gray" : "lightgray" }} />
-                  </IconButton>
-                </Grid>
-              }
-
-
-              {isChange_select &&
-
-                <>
-
-                  <Grid item >
-                    <IconButton onClick={() => {
-                      if (isChange_select) {
-                        setShowEminMisin_select(true)
-                      } else {
-                        cancel_select()
-                      }
-                    }} aria-label="lbsUncliced">
-                      <ClearOutlined variant="contained" sx={{ color: "red" }} />
-                    </IconButton>
-                  </Grid>
-
-                  <Grid item >
-                    <IconButton
-                      onClick={() => {
-                        save_select()
-                      }}
-                      aria-label="lbsUncliced"
-                      disabled={!isChange_select}
-                    >
-                      <SaveIcon variant="contained" />
-                    </IconButton>
-                  </Grid>
-
-                </>
-              }
-
-
-            </Grid>
-          </Grid>
-
-        </Grid>
-
-      </AppBar>
-
-    </Paper>
-  )
+function ikiHane(v) {
+  if (v === null || v === undefined || v === '') return ''
+  const n = Number(v)
+  if (isNaN(n)) return ''
+  return new Intl.NumberFormat('de-DE', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(n)
 }
 
+function flattenTree(nodes, parentId = null, depth = 0) {
+  return nodes
+    .filter(n => (n.parent_id ?? null) === (parentId ?? null))
+    .sort((a, b) => a.order_index - b.order_index)
+    .flatMap(n => [{ ...n, depth }, ...flattenTree(nodes, n.id, depth + 1)])
+}
+
+function nodeColor(depth) {
+  const palette = [
+    { bg: '#7a3333', co: '#e6e6e6' },
+    { bg: '#2d5c3a', co: '#e6e6e6' },
+    { bg: '#2d4f80', co: '#e6e6e6' },
+    { bg: '#6b5a2a', co: '#e6e6e6' },
+    { bg: '#2d6060', co: '#e6e6e6' },
+    { bg: '#4a2d7a', co: '#e6e6e6' },
+    { bg: '#6b2d50', co: '#e6e6e6' },
+    { bg: '#505050', co: '#e6e6e6' },
+  ]
+  return palette[depth % palette.length]
+}
+
+function sessionBg(status) {
+  if (status === 'ready')    return '#C8E6C9'
+  if (status === 'approved') return '#B3E5FC'
+  return '#f0f0f0'
+}
 
 export default function P_MetrajOnaylaPozMahaller() {
-
-  const queryClient = useQueryClient()
-
-  const { appUser, setAppUser, myTema } = useContext(StoreContext)
-
-  const [dialogAlert, setDialogAlert] = useState()
-
-  const { selectedProje, selectedPoz } = useContext(StoreContext)
-  const { showMetrajYapabilenler, setShowMetrajYapabilenler } = useContext(StoreContext)
-
-  const yetkililer = selectedProje?.yetkiliKisiler
-
-  const { selectedNode, setSelectedNode } = useContext(StoreContext)
-  const { selectedMahal_metraj, setSelectedMahal_metraj } = useContext(StoreContext)
-
-
-  let editNodeMetraj = false
-  let onayNodeMetraj = true
-
-  // useEffect(() => {
-  //   setShowMetrajYapabilenler(RealmApp.currentUser.customData.customSettings.showMetrajYapabilenler)
-  // }, [])
-
-
-
-
-  const [show, setShow] = useState("Main")
-
-  const [mode_select, setMode_select] = useState(false)
-  const [isChange_select, setIsChange_select] = useState(false)
-  const [dugumler_byPoz_state, setDugumler_byPoz_state] = useState()
-  const [dugumler_byPoz_backUp, setDugumler_byPoz_backup] = useState()
-  const [anySelectable, setAnySelectable] = useState()
-
-
-
-  const [lbsMetrajlar, setLbsMetrajlar] = useState([])
-  const [autoFocus, setAutoFocus] = useState({ baslikId: null, pozId: null })
-
   const navigate = useNavigate()
+  const {
+    selectedProje, selectedIsPaket, selectedPoz,
+    setSelectedMahal_metraj, appUser
+  } = useContext(StoreContext)
 
-  const pozBirim = selectedProje?.pozBirimleri.find(x => x.id == selectedPoz?.pozBirimId)?.name
+  const { data: rawLbsNodes = [], isLoading: lbsLoading } = useGetLbsNodes()
+  const { data: wpAreas = [], isLoading: areasLoading, error: areasError } = useGetWorkPackagePozAreas()
+  const { data: units = [] } = useGetPozUnits()
 
+  const [collapsedIds, setCollapsedIds] = useState(new Set())
+  // wpAreaId → { byUser: { userId: { session, userName } }, approvedSession }
+  const [sessionsMap, setSessionsMap] = useState({})
+  // ordered array of { id, name }
+  const [sessionUsers, setSessionUsers] = useState([])
 
-  const { data: dataMahaller, error: error1, isFetching: isLoading1 } = useGetMahaller()
-  const { data: dataDugumler_byPoz, error: error2, isFetching: isLoading2 } = useGetDugumler_byPoz()
-
-
-  const mahaller_byPoz = dataMahaller?.mahaller?.filter(oneMahal => dugumler_byPoz_state?.find(oneDugum => oneDugum._mahalId.toString() === oneMahal._id.toString()))
-
-  useEffect(() => {
-    !selectedPoz && navigate('/metrajonaylapozlar')
-    setDugumler_byPoz_state(_.cloneDeep(dataDugumler_byPoz?.dugumler_byPoz))
-    setDugumler_byPoz_backup(_.cloneDeep(dataDugumler_byPoz?.dugumler_byPoz))
-    // console.log("dugumler_byPoz",dataDugumler_byPoz?.dugumler_byPoz)
-    setLbsMetrajlar(_.cloneDeep(dataDugumler_byPoz?.lbsMetrajlar))
-    setAnySelectable(dataDugumler_byPoz?.anySelectable)
-    return () => {
-      // setselectedPoz_metraj()
-      // setDugumler_filtered()
-    }
-  }, [dataDugumler_byPoz])
-
+  const isLoading = lbsLoading || areasLoading
+  const queryError = areasError
 
   useEffect(() => {
-    if (error1) {
-      console.log("error", error1)
-      setDialogAlert({
-        dialogIcon: "warning",
-        dialogMessage: "Beklenmedik hata, Rapor7/24 ile irtibata geçiniz..",
-        detailText: error1?.message ? error1.message : null
-      })
+    if (!selectedProje || !selectedIsPaket) navigate('/metrajonayla')
+    else if (!selectedPoz) navigate('/metrajonaylapozlar')
+  }, [selectedProje, selectedIsPaket, selectedPoz, navigate])
+
+  useEffect(() => {
+    if (!wpAreas || wpAreas.length === 0) {
+      setSessionsMap({})
+      setSessionUsers([])
+      return
     }
-    if (error2) {
-      console.log("error", error2)
-      setDialogAlert({
-        dialogIcon: "warning",
-        dialogMessage: "Beklenmedik hata, Rapor7/24 ile irtibata geçiniz..",
-        detailText: error2?.message ? error2.message : null
-      })
-    }
-  }, [error1, error2]);
 
+    const areaIds = wpAreas.map(a => a.id);
 
+    (async () => {
+      const { data: sessions, error: sessionsError } = await supabase
+        .from('measurement_sessions')
+        .select('id, work_package_poz_area_id, status, total_quantity, created_by, updated_at, creator:users!created_by(first_name, last_name)')
+        .in('work_package_poz_area_id', areaIds)
+        .in('status', ['ready', 'approved'])
+        .order('updated_at', { ascending: false })
 
-  const ikiHane = (value) => {
-    if (!value) {
-      return ""
-    }
-    if (value != "") {
-      return new Intl.NumberFormat("de-DE", { minimumFractionDigits: 2, maximumFractionDigits: 2, }).format(value)
-    }
-    return value
-  }
-
-
-  let openLbsArray = selectedProje?.lbs
-    .filter(oneLbs => mahaller_byPoz?.find(oneMahal => oneMahal._lbsId.toString() === oneLbs._id.toString()))
-    .sort(function (a, b) {
-      var nums1 = a.code.split(".");
-      var nums2 = b.code.split(".");
-
-      for (var i = 0; i < nums1.length; i++) {
-        if (nums2[i]) {
-          if (nums1[i] !== nums2[i]) {
-            return nums1[i] - nums2[i];
-          } // else continue
-        } else {
-          return 1; // no second number in b
-        }
+      if (sessionsError || !sessions || sessions.length === 0) {
+        setSessionsMap({})
+        setSessionUsers([])
+        return
       }
-      return -1; // was missing case b.len > a.len
+
+      // Build userMap from joined creator data
+      const uniqueUserIds = [...new Set(sessions.map(s => s.created_by).filter(Boolean))]
+      const userMap = {}
+      sessions.forEach(s => {
+        if (s.created_by && s.creator && !userMap[s.created_by]) {
+          userMap[s.created_by] = [s.creator.first_name, s.creator.last_name].filter(Boolean).join(' ') || s.created_by
+        }
+      })
+
+      // Build sessionsMap
+      const newMap = {}
+      sessions.forEach(s => {
+        const areaId = s.work_package_poz_area_id
+        if (!newMap[areaId]) newMap[areaId] = { byUser: {}, approvedSession: null }
+
+        if (s.status === 'approved') {
+          if (!newMap[areaId].approvedSession) {
+            newMap[areaId].approvedSession = s
+          }
+        } else if (s.status === 'ready') {
+          const uid = s.created_by
+          if (uid && !newMap[areaId].byUser[uid]) {
+            newMap[areaId].byUser[uid] = { session: s, userName: userMap[uid] ?? uid }
+          }
+        }
+      })
+
+      setSessionsMap(newMap)
+
+      // Build ordered user list
+      const users = uniqueUserIds.map(uid => ({ id: uid, name: userMap[uid] ?? uid }))
+      users.sort((a, b) => a.name.localeCompare(b.name, 'tr'))
+      setSessionUsers(users)
+    })()
+  }, [wpAreas])
+
+  const unitsMap = useMemo(() => {
+    const m = {}
+    units.forEach(u => { m[u.id] = u.name })
+    return m
+  }, [units])
+
+  const pozBirim = unitsMap[selectedPoz?.unit_id] ?? ''
+
+  const rawMahaller = useMemo(() =>
+    wpAreas
+      .filter(wpa => wpa.work_area)
+      .map(wpa => ({ ...wpa.work_area, wpAreaId: wpa.id }))
+  , [wpAreas])
+
+  const flatNodes = useMemo(() => flattenTree(rawLbsNodes), [rawLbsNodes])
+
+  const isLeafSet = useMemo(() => {
+    const s = new Set()
+    rawLbsNodes.forEach(n => {
+      if (!rawLbsNodes.some(c => c.parent_id === n.id)) s.add(n.id)
     })
+    return s
+  }, [rawLbsNodes])
 
+  const maxLeafDepth = useMemo(() => {
+    const leaves = flatNodes.filter(n => isLeafSet.has(n.id))
+    return leaves.length > 0 ? Math.max(...leaves.map(n => n.depth)) : 0
+  }, [flatNodes, isLeafSet])
 
-
-
-  let getLbsName = (oneLbs) => {
-
-    let cOunt = oneLbs.code.split(".").length
-    let name
-    let code
-
-    oneLbs.code.split(".").map((codePart, index) => {
-
-      if (index == 0 && cOunt == 1) {
-        code = codePart
-        name = selectedProje?.lbs.find(item => item.code == code).name
-      }
-
-      if (index == 0 && cOunt !== 1) {
-        code = codePart
-        name = selectedProje?.lbs.find(item => item.code == code).codeName
-      }
-
-      if (index !== 0 && index + 1 !== cOunt && cOunt !== 1) {
-        code = code + "." + codePart
-        name = name + " > " + selectedProje?.lbs.find(item => item.code == code).codeName
-      }
-
-      if (index !== 0 && index + 1 == cOunt && cOunt !== 1) {
-        code = code + "." + codePart
-        name = name + " > " + selectedProje?.lbs.find(item => item.code == code).name
-      }
-
+  function toggleCollapse(nodeId) {
+    setCollapsedIds(prev => {
+      const next = new Set(prev)
+      next.has(nodeId) ? next.delete(nodeId) : next.add(nodeId)
+      return next
     })
-
-    return { name, code }
-
   }
 
-
-
-
-
-
-
-  //  SELECTED FULL - FONKSİYONLARI - ADD - REMOVE - CANCEL - SAVE
-
-  const addNodes_select = ({ tip, mahaller, mahal, userEmail }) => {
-
-    let dugumler_byPoz_state2 = _.cloneDeep(dugumler_byPoz_state)
-
-
-    if (tip === "all") {
-
-
-      // içinde seçilmemiş varsa hepsini seçiçez - önce bir tarayalım
-      let isAllSelected = true
-      outerLoop: for (let i = 0; i < dugumler_byPoz_state2.length; i++) {
-        let oneDugum = dugumler_byPoz_state2[i]
-        for (let j = 0; j < oneDugum?.hazirlananMetrajlar.length; j++) {
-          let oneHazirlanan = oneDugum?.hazirlananMetrajlar[j]
-          if (!(oneHazirlanan?.userEmail === userEmail && oneHazirlanan?.hasUnSelected)) {
-            continue
-          }
-          if (!oneHazirlanan.hasSelectedFull_aday) {
-            isAllSelected = false
-            break outerLoop; // Exits both loops
-          }
-        }
-      }
-
-
-      if (!isAllSelected) {
-
-        dugumler_byPoz_state2 = dugumler_byPoz_state2?.map(oneDugum => {
-          oneDugum?.hazirlananMetrajlar?.map(oneHazirlanan => {
-            if (oneHazirlanan.userEmail === userEmail && oneHazirlanan.hasUnSelected) {
-              oneHazirlanan.hasSelectedFull_aday = true
-            }
-            return oneHazirlanan
-          })
-          return oneDugum
-        })
-
-      } else {
-
-        dugumler_byPoz_state2 = dugumler_byPoz_state2?.map(oneDugum => {
-          oneDugum?.hazirlananMetrajlar?.map(oneHazirlanan => {
-            if (oneHazirlanan.userEmail === userEmail && oneHazirlanan.hasSelectedFull_aday) {
-              delete oneHazirlanan.hasSelectedFull_aday
-            }
-            return oneHazirlanan
-          })
-          return oneDugum
-        })
-
-      }
-
+  function isHiddenByAncestor(node) {
+    let parentId = node.parent_id
+    while (parentId) {
+      if (collapsedIds.has(parentId)) return true
+      const parent = rawLbsNodes.find(n => n.id === parentId)
+      parentId = parent?.parent_id ?? null
     }
-
-
-    if (tip === "mahaller_byPoz_byLbs") {
-
-
-      // içinde seçilmemiş varsa hepsini seçiçez - önce bir tarayalım
-      let isAllSelected = true
-      outerLoop: for (let i = 0; i < dugumler_byPoz_state2.length; i++) {
-        let oneDugum = dugumler_byPoz_state2[i]
-        if (!mahaller.find(x => x._id.toString() === oneDugum._mahalId.toString())) {
-          continue
-        }
-        for (let j = 0; j < oneDugum?.hazirlananMetrajlar.length; j++) {
-          let oneHazirlanan = oneDugum?.hazirlananMetrajlar[j]
-          if (!(oneHazirlanan?.userEmail === userEmail && oneHazirlanan?.hasUnSelected)) {
-            continue
-          }
-          if (!oneHazirlanan.hasSelectedFull_aday) {
-            isAllSelected = false
-            break outerLoop; // Exits both loops
-          }
-        }
-      }
-
-
-      if (!isAllSelected) {
-
-        dugumler_byPoz_state2 = dugumler_byPoz_state2?.map(oneDugum => {
-          if (!mahaller.find(x => x._id.toString() === oneDugum._mahalId.toString())) {
-            return oneDugum
-          }
-          oneDugum?.hazirlananMetrajlar?.map(oneHazirlanan => {
-            if (oneHazirlanan.userEmail === userEmail && oneHazirlanan.hasUnSelected) {
-              oneHazirlanan.hasSelectedFull_aday = true
-            }
-            return oneHazirlanan
-          })
-          return oneDugum
-        })
-
-      } else {
-
-        dugumler_byPoz_state2 = dugumler_byPoz_state2?.map(oneDugum => {
-          if (!mahaller.find(x => x._id.toString() === oneDugum._mahalId.toString())) {
-            return oneDugum
-          }
-          oneDugum?.hazirlananMetrajlar?.map(oneHazirlanan => {
-            if (oneHazirlanan.userEmail === userEmail && oneHazirlanan.hasSelectedFull_aday) {
-              delete oneHazirlanan.hasSelectedFull_aday
-            }
-            return oneHazirlanan
-          })
-          return oneDugum
-        })
-
-      }
-
-    }
-
-
-    if (tip === "mahal") {
-
-      dugumler_byPoz_state2 = dugumler_byPoz_state2?.map(oneDugum => {
-        if (mahal?._id?.toString() !== oneDugum?._mahalId?.toString()) {
-          return oneDugum
-        }
-        oneDugum?.hazirlananMetrajlar?.map(oneHazirlanan => {
-          if (!(oneHazirlanan.userEmail === userEmail && oneHazirlanan.hasUnSelected)) {
-            return oneHazirlanan
-          }
-          if (!oneHazirlanan.hasSelectedFull_aday) {
-            oneHazirlanan.hasSelectedFull_aday = true
-          } else {
-            delete oneHazirlanan.hasSelectedFull_aday
-          }
-          return oneHazirlanan
-        })
-        return oneDugum
-      })
-
-
-    }
-
-    setIsChange_select(false)
-    outerLoop: for (let i = 0; i < dugumler_byPoz_state2.length; i++) {
-      let oneDugum = dugumler_byPoz_state2[i]
-      for (let j = 0; j < oneDugum.hazirlananMetrajlar.length; j++) {
-        let oneHazirlanan = oneDugum.hazirlananMetrajlar[j]
-        if (oneHazirlanan?.hasSelectedFull_aday) {
-          setIsChange_select(true)
-          break outerLoop; // Exits both loops
-        }
-      }
-    }
-
-    setDugumler_byPoz_state(dugumler_byPoz_state2)
-
+    return false
   }
 
-
-  const cancel_select = () => {
-    setDugumler_byPoz_state(_.cloneDeep(dugumler_byPoz_backUp))
-    setIsChange_select()
-    setMode_select()
+  function nodeHasMahal(nodeId) {
+    if (rawMahaller.some(m => m.lbs_node_id === nodeId)) return true
+    return rawLbsNodes.filter(n => n.parent_id === nodeId).some(c => nodeHasMahal(c.id))
   }
 
-
-  // Edit Metraj Sayfasının Fonksiyonu
-  const save_select = async () => {
-
-    if (isChange_select) {
-
-      try {
-
-        // await RealmApp?.currentUser.callFunction("update_hazirlananMetrajlar_selectedFull", ({ dugumler_byPoz_state }))
-
-        const response = await fetch(process.env.REACT_APP_BASE_URL + `/api/dugumler/updatehazirlananmetrajlarselectedfull`, {
-          method: 'POST',
-          headers: {
-            email: appUser.email,
-            token: appUser.token,
-            'Content-Type': 'application/json'
-          },
-          body: JSON.stringify({
-            dugumler_byPoz_state
-          })
-        })
-
-        const responseJson = await response.json()
-
-        if (responseJson.error) {
-          if (responseJson.error.includes("expired")) {
-            setAppUser()
-            localStorage.removeItem('appUser')
-            navigate('/')
-            window.location.reload()
-          }
-          throw new Error(responseJson.error);
-        }
-
-        if (responseJson.ok) {
-          setShow("Main")
-          setIsChange_select()
-          setMode_select()
-          queryClient.invalidateQueries(['dataDugumler_byPoz'])
-        } else {
-          throw new Error("Kayıt işleminde hata oluştu, sayfayı yenileyiniz, sorun devam ederse, Rapor7/24 ile iletişime geçiniz.")
-        }
-
-      } catch (err) {
-
-        console.log(err)
-
-        setDialogAlert({
-          dialogIcon: "warning",
-          dialogMessage: "Beklenmedik hata, sayfayı yenileyiniz, sorun devam ederse Rapor7/24 ile irtibata geçiniz..",
-          detailText: err?.message ? err.message : null,
-          onCloseAction: () => {
-            setShow("Main")
-            setIsChange_select()
-            setMode_select()
-            queryClient.invalidateQueries(['dataDugumler_byPoz'])
-            setDialogAlert()
-          }
-        })
-
-      }
-    }
-
-  }
-
-
-
-
-
-
-
-
-
-
-  const goTo_MetrajOnaylaCetvel = ({ dugum, oneMahal }) => {
-    setSelectedNode(dugum)
-    setSelectedMahal_metraj(oneMahal)
+  const handleMahalClick = (mahal) => {
+    setSelectedMahal_metraj({
+      wpAreaId: mahal.wpAreaId,
+      name: mahal.name,
+      code: mahal.code,
+    })
     navigate('/metrajonaylacetvel')
   }
 
-
-
-
-  const goTo_onayCetveli = ({ dugum, oneMahal, userEmail }) => {
-    // console.log("userEmail", userEmail)
-    setSelectedNode(dugum)
-    setSelectedMahal_metraj(oneMahal)
-
-    let showMetrajYapabilenler2 = _.cloneDeep(showMetrajYapabilenler)
-
-    showMetrajYapabilenler2 = showMetrajYapabilenler2.map(oneYapabilen => {
-      if (oneYapabilen.userEmail === userEmail) {
-        oneYapabilen.isSelected = true
-      } else {
-        oneYapabilen.isSelected = false
-      }
-      return oneYapabilen
-    })
-
-    setShowMetrajYapabilenler(showMetrajYapabilenler2)
-
-    navigate('/metrajonayla')
-  }
-
-
-  // CSS
-  const css_enUstBaslik = {
-    display: "grid",
-    fontWeight: "600",
-    border: "1px solid black",
-    borderLeft: "none",
-    py: "0.05rem",
-    px: "0.5rem",
-    justifyContent: "start",
-    alignItems: "center",
-    backgroundColor: "#415a77",
-    color: "#e0e1dd"
-  }
-
-  const css_LbsBaslik = {
-    border: "1px solid black", borderLeft: "none", mt: "1rem", px: "0.5rem", display: "grid", justifyContent: "start", backgroundColor: myTema.renkler.metrajOnaylananBaslik
-  }
-
-  const css_mahaller = {
-    border: "1px solid black", px: "0.5rem", display: "grid", justifyContent: "start", alignItems: "center"
-  }
-
-  const showMetrajYapabilenlerColumns = " 1rem repeat(" + showMetrajYapabilenler?.filter(x => x.isShow).length + ", max-content)"
-  const gridTemplateColumns1 = `max-content minmax(min-content, 1fr) max-content max-content${showMetrajYapabilenler?.filter(x => x.isShow).length > 0 ? showMetrajYapabilenlerColumns : ""}`
-
+  const pozLabel = selectedPoz?.code
+    ? `${selectedPoz.code} · ${selectedPoz.short_desc}`
+    : selectedPoz?.short_desc
 
   return (
+    <Box sx={{ m: '0rem' }}>
 
-    <Box sx={{ m: "0rem", maxWidth: "60rem" }}>
+      {/* BAŞLIK */}
+      <AppBar position="static" sx={{ backgroundColor: 'white', color: 'black', boxShadow: 4 }}>
+        <Grid container alignItems="center" sx={{ px: '1rem', py: '0.5rem', maxHeight: '5rem' }}>
+          <Grid item xs>
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: '0.3rem', flexWrap: 'nowrap', overflow: 'hidden' }}>
+              <IconButton sx={{ m: 0, p: 0 }} onClick={() => navigate('/metrajonaylapozlar')}>
+                <ReplyIcon sx={{ color: 'gray' }} />
+              </IconButton>
+              <Typography
+                variant="body1"
+                sx={{ fontWeight: 600, opacity: 0.4, cursor: 'pointer', whiteSpace: 'nowrap', '&:hover': { opacity: 0.9 } }}
+                onClick={() => navigate('/metrajonayla')}
+              >
+                Metraj Onayla
+              </Typography>
+              <NavigateNextIcon sx={{ opacity: 0.4, fontSize: 18, flexShrink: 0 }} />
+              <Typography
+                variant="body1"
+                sx={{
+                  fontWeight: 600, opacity: 0.4, cursor: 'pointer',
+                  maxWidth: '10rem', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
+                  '&:hover': { opacity: 0.9 }
+                }}
+                onClick={() => navigate('/metrajonaylapozlar')}
+              >
+                {selectedIsPaket?.name}
+              </Typography>
+              <NavigateNextIcon sx={{ opacity: 0.4, fontSize: 18, flexShrink: 0 }} />
+              <Typography
+                variant="body1"
+                sx={{
+                  fontWeight: 600, opacity: 0.6,
+                  maxWidth: '14rem', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
+                  cursor: 'pointer', '&:hover': { opacity: 0.9 }
+                }}
+                onClick={() => navigate('/metrajonaylapozlar')}
+              >
+                {pozLabel}
+              </Typography>
+              <NavigateNextIcon sx={{ opacity: 0.4, fontSize: 18, flexShrink: 0 }} />
+              <Typography variant="body1" sx={{ fontWeight: 700, whiteSpace: 'nowrap' }}>
+                Mahaller
+              </Typography>
+            </Box>
+          </Grid>
+        </Grid>
+      </AppBar>
 
-
-      {dialogAlert &&
-        <DialogAlert
-          dialogIcon={dialogAlert.dialogIcon}
-          dialogMessage={dialogAlert.dialogMessage}
-          detailText={dialogAlert.detailText}
-          onCloseAction={dialogAlert.onCloseAction ? dialogAlert.onCloseAction : () => setDialogAlert()}
-        />
+      {isLoading &&
+        <Box sx={{ m: '1rem', color: 'gray' }}><LinearProgress color="inherit" /></Box>
       }
 
-      <Grid item >
-        <HeaderMetrajOnaylaPozMahaller
-          setShow={setShow}
-          anySelectable={anySelectable}
-          setMode_select={setMode_select} mode_select={mode_select}
-          isChange_select={isChange_select} setIsChange_select={setIsChange_select} cancel_select={cancel_select} save_select={save_select}
-        />
-      </Grid>
-
-
-      {/* BAŞLIK GÖSTER / GİZLE DIALOG PENCERESİ*/}
-      {show == "ShowMetrajYapabilenler" &&
-        <ShowMetrajYapabilenler
-          setShow={setShow}
-        />
+      {!isLoading && queryError &&
+        <Alert severity="error" sx={{ m: '1rem' }}>
+          Veri alınırken hata oluştu.<br /><small style={{ opacity: 0.7 }}>{queryError.message}</small>
+        </Alert>
       }
 
-
-      {(isLoading1 || isLoading2) &&
-        <Box sx={{ width: '100%', px: "1rem", mt: "5rem", color: 'gray' }}>
-          <LinearProgress color='inherit' />
-        </Box >
+      {!isLoading && !queryError && rawMahaller.length === 0 && rawLbsNodes.length > 0 &&
+        <Alert severity="info" sx={{ m: '1rem' }}>
+          Bu iş paketi + poz kombinasyonuna henüz mahal atanmamış.
+        </Alert>
       }
 
-      {!(isLoading1 || isLoading2) && !openLbsArray?.length > 0 &&
-        <Box>
-          henüz herhangi bir LBS mahal eklemeye açılmamış
-        </Box>
-      }
+      {/* AĞAÇ GÖRÜNÜMÜ */}
+      {!isLoading && !queryError && rawLbsNodes.length > 0 && rawMahaller.length > 0 &&
+        (() => {
+          const totalDepthCols = maxLeafDepth + 1
+          const userColCount = sessionUsers.length
+          const totalCols = totalDepthCols + 3 + userColCount + 1
+          const userColWidth = 'minmax(7rem, 10rem)'
+          const treeGridCols = [
+            `repeat(${totalDepthCols}, 1rem)`,
+            'max-content',
+            'minmax(20rem, max-content)',
+            'max-content',
+            ...Array(userColCount).fill(userColWidth),
+            userColWidth,
+          ].join(' ')
 
-
-      {!(isLoading1 || isLoading2) && openLbsArray?.length > 0 &&
-
-        <Box sx={{ m: "1rem", mt: "4.5rem", display: "grid", gridTemplateColumns: gridTemplateColumns1 }}>
-
-          {/* EN ÜST BAŞLIĞIN ÜST SATIRI - HANGİ POZ İLE İŞLEM YAPILIYORSA - POZ İSMİ VE TOPLAM METRAJI */}
-          <>
-
-            <Box sx={{ ...css_enUstBaslik, borderLeft: "1px solid black", justifyContent: "start" }}>
-              {selectedPoz.pozNo}
-            </Box>
-            <Box sx={{ ...css_enUstBaslik }}>
-              {selectedPoz.pozName}
-            </Box>
-            <Box sx={{ ...css_enUstBaslik, justifyContent: "center" }}>
-              Miktar
-            </Box>
-            <Box sx={{ ...css_enUstBaslik, justifyContent: "center" }}>
-              Birim
-            </Box>
-
-            {/* {editNodeMetraj &&
-              <>
-                <Box> </Box>
-                <Box sx={{ ...css_enUstBaslik, justifyContent: "center" }}>
-                  {yetkililer?.find(oneYetkili => oneYetkili.userEmail === customData.email).userCode}
-                </Box>
-              </>
-            } */}
-
-            {showMetrajYapabilenler?.filter(x => x.isShow).length > 0 &&
-              <>
-                <Box> </Box>
-                {showMetrajYapabilenler?.filter(x => x.isShow).map((oneYapabilen, index) => {
-                  let yetkili = yetkililer?.find(oneYetkili => oneYetkili.userEmail === oneYapabilen.userEmail)
-                  return (
-                    // <Box key={index} sx={{ ...css_enUstBaslik, borderLeft: "1px solid black", justifyContent: "center" }}>
-                    //   <Tooltip placement="top" title={yetkili.isim + " " + yetkili.soyisim}>
-                    //     <Box>
-                    //       {yetkili.userCode}
-                    //     </Box>
-                    //   </Tooltip>
-                    // </Box>
-                    <Box
-                      key={index}
-                      sx={{ ...css_enUstBaslik, borderLeft: "1px solid black", justifyContent: "center" }}>
-                      <Box sx={{ display: "grid", alignItems: "center", justifyItems: "center", fontSize: "0.75rem" }}>
-                        <Box>
-                          {yetkili.isim}
-                        </Box>
-                        <Box>
-                          {yetkili.soyisim}
-                        </Box>
-                      </Box>
-                    </Box>
-                  )
-                })}
-              </>
-            }
-
-          </>
-
-
-          {/* EN ÜST BAŞLIĞIN ALT SATIRI - HANGİ POZ İLE İŞLEM YAPILIYORSA - POZ İSMİ VE TOPLAM METRAJI */}
-          <>
-            <Box sx={{ ...css_enUstBaslik, borderLeft: "1px solid black", gridColumn: "1/3", justifyContent: "end", borderLeft: "1px solid black" }}>
-              Toplam Metraj
-            </Box>
-            <Box sx={{ ...css_enUstBaslik, justifyContent: "end" }}>
-              {ikiHane(dataDugumler_byPoz?.metrajOnaylanan)}
-            </Box>
-            <Box sx={{ ...css_enUstBaslik, justifyContent: "center" }}>
-              {pozBirim}
-            </Box>
-
-            {/* {editNodeMetraj &&
-              <>
-                <Box> </Box>
-                <Box sx={{ ...css_enUstBaslik, justifyContent: "end", borderLeft: "1px solid black" }}>
-                  {ikiHane(selectedPoz?.hazirlananMetrajlar?.find(x => x.userEmail === customData.email)?.metraj)}
-                </Box>
-              </>
-            } */}
-
-            {showMetrajYapabilenler?.filter(x => x.isShow).length > 0 &&
-              <>
-                <Box> </Box>
-                {showMetrajYapabilenler?.filter(x => x.isShow).map((oneYapabilen, index) => {
-                  return (
-                    <Box
-                      onClick={() => mode_select && addNodes_select({ tip: "all", userEmail: oneYapabilen.userEmail })}
-                      key={index}
-                      sx={{ ...css_enUstBaslik, cursor: mode_select && "pointer", borderLeft: "1px solid black", justifyContent: "end" }}>
-                      {ikiHane(dataDugumler_byPoz?.hazirlananMetrajlar.find(x => x.userEmail === oneYapabilen.userEmail)?.metrajReady)}
-                    </Box>
-                  )
-                })}
-
-              </>
-            }
-          </>
-
-
-
-
-          {/* LBS BAŞLIK BİLGİLERİ SATIRI */}
-
-          {openLbsArray?.map((oneLbs, index) => {
-
-            const mahaller_byPoz_byLbs = mahaller_byPoz?.filter(x => x._lbsId.toString() === oneLbs._id.toString())
-            const lbsMetraj = lbsMetrajlar.find(x => x._id.toString() === oneLbs._id.toString())
-
-            return (
-              <React.Fragment key={index}>
-
-                {/* LBS BAŞLIKLARI */}
-                <Box sx={{ ...css_LbsBaslik, borderLeft: "1px solid black", gridColumn: "1/3" }}>
-                  {getLbsName(oneLbs).name}
-                </Box>
-                <Box sx={{ ...css_LbsBaslik, justifyContent: "end" }}>
-                  {ikiHane(lbsMetraj?.metrajOnaylanan)}
-                </Box>
-                <Box sx={{ ...css_LbsBaslik, justifyContent: "center" }}> {pozBirim} </Box>
-
-                {/* {editNodeMetraj &&
-                  <>
-                    <Box> </Box>
-                    <Box sx={{ ...css_LbsBaslik, borderLeft: "1px solid black", justifyContent: "center" }}>
-                      {"deneme"}
-                    </Box>
-                  </>
-                } */}
-
-                {showMetrajYapabilenler?.filter(x => x.isShow).length > 0 &&
-                  <>
-                    <Box> </Box>
-                    {showMetrajYapabilenler?.filter(x => x.isShow).map((oneYapabilen, index) => {
-                      return (
-                        <Box
-                          onClick={() => mode_select && addNodes_select({ tip: "mahaller_byPoz_byLbs", mahaller: mahaller_byPoz_byLbs, userEmail: oneYapabilen.userEmail })}
-                          key={index}
-                          sx={{ ...css_LbsBaslik, cursor: mode_select && "pointer", borderLeft: "1px solid black", justifyContent: "end" }}
-                        >
-                          {ikiHane(lbsMetraj?.hazirlananMetrajlar?.find(x => x.userEmail === oneYapabilen.userEmail).metrajReady)}
-                        </Box>
-                      )
-                    })}
-                  </>
-                }
-
-
-                {/* MAHAL SATIRLARI */}
-                {mahaller_byPoz_byLbs?.map((oneMahal, index) => {
-
-                  let dugum = dugumler_byPoz_state?.find(oneDugum => oneDugum._pozId.toString() === selectedPoz._id.toString() && oneDugum._mahalId.toString() === oneMahal._id.toString())
-                  if (!dugum) {
-                    // console.log("olmayan dugum tespit edildi ve return oldu hata olmaması için")
-                    return
-                  }
-
-                  let hasOnaylananMetraj = dugum?.hazirlananMetrajlar?.find(x => x.hasSelected)
-                  const hazirlananSum = dugum?.hazirlananMetrajlar?.reduce((sum, x) => sum + (x.metrajOnaylanan || 0), 0) || null
-                  const dugumMetrajOnaylanan = dugum?.metrajOnaylanan ?? hazirlananSum
-                  let isMiktarSifir = !(dugumMetrajOnaylanan > 0)
-
-                  return (
-                    <React.Fragment key={index}>
-
-                      <Box sx={{ ...css_mahaller, borderLeft: "1px solid black" }}>
-                        {oneMahal.mahalNo}
-                      </Box>
-
-                      <Box sx={{ ...css_mahaller }}>
-                        {oneMahal.mahalName}
-                      </Box>
-
-                      <Box onClick={() => hasOnaylananMetraj && !mode_select && goTo_MetrajOnaylaCetvel({ dugum, oneMahal })} sx={{ ...css_mahaller, cursor: hasOnaylananMetraj && !mode_select && "pointer", display: "grid", alignItems: "center", gridTemplateColumns: "1rem 1fr", backgroundColor: isMiktarSifir ? "rgba(255, 182, 193, 0.6)" : mode_select ? null : dugum?.hasVersiyonZero && "rgba(255, 251, 0, 0.55)", "&:hover": hasOnaylananMetraj && !mode_select && { "& .childClass": { backgroundColor: "red" } } }}>
-                        <Box className="childClass" sx={{ backgroundColor: isMiktarSifir ? "rgba(255, 182, 193, 0.6)" : mode_select ? null : dugum?.hasVersiyonZero && "rgba(255, 251, 0, 0.55)", height: "0.5rem", width: "0.5rem", borderRadius: "50%" }}>
-                        </Box>
-                        <Box sx={{ justifySelf: "end" }}>
-                          {ikiHane(dugumMetrajOnaylanan)}
-                        </Box>
-                      </Box>
-
-                      <Box sx={{ ...css_mahaller, justifyContent: "center" }}>
-                        {pozBirim}
-                      </Box>
-
-                      {/* {editNodeMetraj &&
-                        <>
-                          <Box />
-                          <Box
-                            onDoubleClick={() => goto_metrajOlusturCetvel(dugum, oneMahal)}
-                            sx={{
-                              ...css_mahaller,
-                              display: "grid",
-                              gridTemplateColumns: "1rem 1fr",
-                              alignItems: "center",
-                              justifyContent: "end",
-                              cursor: "pointer",
-                              backgroundColor: "yellow",
-                              "&:hover": { "& .childClass": { backgroundColor: "red" } }
-                            }}>
-                            <Box className="childClass" sx={{ backgroundColor: "yellow", height: "0.5rem", width: "0.5rem", borderRadius: "50%" }}>
-                            </Box>
-                            <Box sx={{ justifySelf: "end" }}>
-                              {ikiHane(dugum?.hazirlananMetrajlar?.find(x => x.userEmail === customData.email)?.metraj)}
-                            </Box>
-                          </Box>
-                        </>
-                      } */}
-
-                      {showMetrajYapabilenler?.filter(x => x.isShow).length > 0 &&
-
-                        <>
-                          <Box> </Box>
-                          {showMetrajYapabilenler?.filter(x => x.isShow).map((oneYapabilen, index) => {
-
-                            let oneHazirlanan = dugum?.hazirlananMetrajlar?.find(x => x.userEmail === oneYapabilen.userEmail)
-                            // let hasReadyUnSeen = oneHazirlanan?.hasReadyUnSeen
-                            // let hasSelected = oneHazirlanan?.hasSelected
-                            let hasUnSelected = oneHazirlanan?.hasUnSelected
-                            let metrajReady = oneHazirlanan?.metrajReady
-                            let clickAble = oneHazirlanan?.hasReady || oneHazirlanan?.hasSelected || oneHazirlanan?.hasUnSelected
-                            let allSelected = oneHazirlanan?.hasSelected && !oneHazirlanan?.hasUnSelected
-                            let someSelected = oneHazirlanan?.hasSelected && oneHazirlanan?.hasUnSelected
-                            let hasReadyUnSeen = oneHazirlanan?.hasReadyUnSeen
-                            let hasSelectedFull_aday = oneHazirlanan?.hasSelectedFull_aday
-
-                            return (
-
-                              <Box
-                                key={index}
-                                // onClick={() =>
-                                //   mode_select && hasUnSelected && !hasSelectedFull_aday ? addNodes_select({ tip: "mahal", mahal: oneMahal, userEmail: oneYapabilen.userEmail }) :
-                                //     mode_select && hasUnSelected && hasSelectedFull_aday ? removeNodes_select({ tip: "mahal", mahal: oneMahal, userEmail: oneYapabilen.userEmail }) :
-                                //       !mode_select && clickAble && goTo_onayCetveli({ dugum, oneMahal, userEmail: oneYapabilen.userEmail })
-                                // }
-                                onClick={() =>
-                                  mode_select && hasUnSelected ? addNodes_select({ tip: "mahal", mahal: oneMahal, userEmail: oneYapabilen.userEmail }) :
-                                    !mode_select && clickAble && goTo_onayCetveli({ dugum, oneMahal, userEmail: oneYapabilen.userEmail })
-                                }
-                                sx={{
-                                  ...css_mahaller,
-                                  justifyContent: "end",
-                                  cursor: clickAble && "pointer",
-                                  // backgroundColor: !hasUnSelected ? "lightgray" : "rgba(255, 251, 0, 0.55)",
-                                  backgroundColor: hasReadyUnSeen ? "rgba(255, 251, 0, 0.55)" : !clickAble && "lightgray",
-                                  display: "grid",
-                                  gridTemplateColumns: "1rem 1fr",
-                                  "&:hover":
-                                    !mode_select && clickAble ? { "& .childClass": { color: "red" } } :
-                                      mode_select && hasUnSelected && { "& .childClass": { color: "red" } }
-                                }}
-                              >
-
-                                {/* {!mode_select &&
-                                  <Box
-                                    className="childClass"
-                                    sx={{
-                                      // backgroundColor: !hasUnSelected ? "lightgray" : hasSelected ? "gray" : "rgba(255, 251, 0, 0.55)",
-                                      backgroundColor: hasSelected && hasUnSelected && "gray",
-                                      height: "0.5rem", width: "0.5rem",
-                                      borderRadius: "50%"
-                                    }}>
-                                  </Box>
-                                } */}
-
-
-                                {/* metrajın solundaki ikon */}
-                                {!hasSelectedFull_aday &&
-                                  <Box sx={{ px: "0.5rem", display: "grid", alignItems: "center", justifyContent: "center" }}>
-
-                                    {someSelected &&
-                                      <CircleIcon variant="contained" className="childClass"
-                                        sx={{
-                                          mr: "0.3rem", fontSize: "0.60rem",
-                                          color: "gray"
-                                        }} />
-                                    }
-
-                                    {allSelected &&
-                                      <Check variant="contained" className="childClass"
-                                        sx={{
-                                          mr: "0.3rem", fontSize: "1rem",
-                                          color: "black"
-                                        }} />
-                                    }
-
-                                    {!someSelected && !allSelected && clickAble &&
-                                      <CircleIcon variant="contained" className="childClass"
-                                        sx={{
-                                          mr: "0.3rem", fontSize: "0.6rem",
-                                          color: hasReadyUnSeen ? "rgba(255, 251, 0, 0.55)" : "white"
-                                        }} />
-                                    }
-
-                                  </Box>
-                                }
-
-                                {mode_select && hasSelectedFull_aday &&
-                                  <Box sx={{ display: "grid", alignItems: "center", justifyContent: "center" }}>
-                                    <AddCircleIcon variant="contained" sx={{ mr: "0.3rem", fontSize: "0.80rem", color: "green" }} />
-                                  </Box>
-                                }
-
-                                {/* {mode_select && hasSelected &&
-                                  <Box sx={{ display: "grid", alignItems: "center", justifyContent: "center" }}>
-                                    <CircleIcon variant="contained" sx={{ fontSize: "0.6rem", color: "gray", "&:hover": { color: "gray" } }} />
-                                  </Box>
-                                } */}
-                                {/* {mode_select && hasReady && hasUnSelected && hasSelectedFull_aday &&
-                                  <Box sx={{ display: "grid", alignItems: "center", justifyContent: "center" }}>
-                                    <AddCircleIcon variant="contained" sx={{ fontSize: "0.90rem", color: "green", "&:hover": { color: "green" } }} />
-                                  </Box>
-                                } */}
-
-                                <Box sx={{ justifySelf: "end" }}>
-                                  {ikiHane(metrajReady)}
-                                </Box>
-                              </Box>
-                              // <Box key={index} sx={{ ...css_mahaller, backgroundColor: "rgb(143,206,0,0.3)", borderLeft: "1px solid black", justifyContent: "end" }}>
-                              //   {ikiHane(dugum?.hazirlananMetrajlar?.find(x => x.userEmail === oneYapabilen)?.metraj)}
-                              // </Box>
-                            )
-                          })}
-                        </>
-                      }
-
-                    </React.Fragment>
-                  )
-                })}
-
-              </React.Fragment>
-            )
-          })
+          const css_header = {
+            px: '4px', py: '2px',
+            backgroundColor: '#e0e0e0',
+            borderBottom: '1px solid #bbb',
+            fontSize: '0.75rem', fontWeight: 600,
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            textAlign: 'center', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis',
           }
 
-        </Box >
+          return (
+            <Box sx={{ p: '0.5rem', width: 'fit-content', overflowX: 'auto', maxWidth: '100%' }}>
 
+              <Box sx={{ display: 'grid', gridTemplateColumns: '1rem 1fr' }}>
+                <Box sx={{ backgroundColor: 'black' }} />
+                <Box sx={{ backgroundColor: 'black', color: 'white', pl: '4px', py: '2px' }}>
+                  <Typography variant="body2">{selectedProje?.name}</Typography>
+                </Box>
+              </Box>
+
+              <Box sx={{ display: 'grid', gridTemplateColumns: '1rem 1fr' }}>
+                <Box sx={{ backgroundColor: 'black' }} />
+                <Box sx={{ display: 'grid', gridTemplateColumns: treeGridCols }}>
+
+                  {/* SÜTUN BAŞLIKLARI */}
+                  {Array.from({ length: totalDepthCols }).map((_, i) => (
+                    <Box key={`hd-depth-${i}`} sx={{ ...css_header, backgroundColor: 'transparent' }} />
+                  ))}
+                  <Box sx={{ ...css_header }}>Kod</Box>
+                  <Box sx={{ ...css_header, justifyContent: 'flex-start' }}>Mahal</Box>
+                  <Box sx={{ ...css_header }}>Alan</Box>
+                  {sessionUsers.map(user => (
+                    <Box key={`hd-${user.id}`} sx={{ ...css_header, flexDirection: 'column', lineHeight: 1.2 }}>
+                      <span>{user.name.split(' ')[0]}</span>
+                      <span>{user.name.split(' ').slice(1).join(' ')}</span>
+                    </Box>
+                  ))}
+                  <Box sx={{ ...css_header, backgroundColor: '#B3E5FC', color: '#01579B' }}>Onaylanan</Box>
+
+                  {flatNodes.map(node => {
+                    if (isHiddenByAncestor(node)) return null
+                    if (!nodeHasMahal(node.id)) return null
+
+                    const { depth } = node
+                    const isLeaf = isLeafSet.has(node.id)
+                    const c = nodeColor(depth)
+                    const mahallerOfNode = rawMahaller
+                      .filter(m => m.lbs_node_id === node.id)
+                      .sort((a, b) => a.order_index - b.order_index)
+
+                    return (
+                      <React.Fragment key={node.id}>
+                        {Array.from({ length: depth }).map((_, i) => (
+                          <Box key={i} sx={{ backgroundColor: nodeColor(i).bg }} />
+                        ))}
+                        <Box
+                          onClick={() => { if (!isLeaf) toggleCollapse(node.id) }}
+                          sx={{
+                            gridColumn: `span ${totalCols - depth}`,
+                            pl: '6px', py: '1px',
+                            backgroundColor: c.bg, color: c.co,
+                            cursor: isLeaf ? 'default' : 'pointer',
+                            display: 'flex', alignItems: 'center', gap: '0.4rem',
+                            userSelect: 'none',
+                            '&:hover': { filter: isLeaf ? 'none' : 'brightness(1.2)' }
+                          }}
+                        >
+                          {!isLeaf && <Box sx={{ fontSize: '0.7rem', flexShrink: 0 }}>{collapsedIds.has(node.id) ? '▶' : '▼'}</Box>}
+                          {isLeaf && <Box sx={{ width: '0.45rem', height: '0.45rem', borderRadius: '50%', backgroundColor: '#65FF00', flexShrink: 0 }} />}
+                          <Typography variant="body2">
+                            {node.code_name ? `(${node.code_name}) ` : ''}{node.name}
+                          </Typography>
+                          {isLeaf && mahallerOfNode.length > 0 &&
+                            <Box sx={{ ml: 'auto', pr: '0.5rem', fontSize: '0.75rem', opacity: 0.5, flexShrink: 0 }}>
+                              {mahallerOfNode.length} mahal
+                            </Box>
+                          }
+                        </Box>
+
+                        {/* MAHAL SATIRLARI */}
+                        {isLeaf && !collapsedIds.has(node.id) && mahallerOfNode.map(mahal => {
+                          const areaData = sessionsMap[mahal.wpAreaId] ?? { byUser: {}, approvedSession: null }
+                          const hasAnyData = sessionUsers.some(u => areaData.byUser[u.id]) || !!areaData.approvedSession
+
+                          return (
+                            <React.Fragment key={mahal.id}>
+                              {Array.from({ length: totalDepthCols }).map((_, i) => (
+                                <Box key={i} sx={{ backgroundColor: i <= depth ? nodeColor(i).bg : 'transparent' }} />
+                              ))}
+
+                              {/* Mahal kodu */}
+                              <Box
+                                onClick={() => handleMahalClick(mahal)}
+                                sx={{
+                                  px: '6px', py: '2px', borderBottom: '0.5px solid #ddd', borderLeft: '1px solid #aaa',
+                                  fontFamily: 'monospace', fontSize: '0.8rem', fontWeight: 600,
+                                  display: 'flex', alignItems: 'center', whiteSpace: 'nowrap',
+                                  backgroundColor: hasAnyData ? '#f0f4ff' : '#f0f0f0',
+                                  cursor: 'pointer', '&:hover': { backgroundColor: '#e3f2fd' }
+                                }}
+                              >
+                                {mahal.code || '—'}
+                              </Box>
+
+                              {/* Mahal adı */}
+                              <Box
+                                onClick={() => handleMahalClick(mahal)}
+                                sx={{
+                                  px: '6px', py: '2px', borderBottom: '0.5px solid #ddd',
+                                  fontSize: '0.875rem', display: 'flex', alignItems: 'center',
+                                  backgroundColor: hasAnyData ? '#f0f4ff' : '#f0f0f0',
+                                  cursor: 'pointer', '&:hover': { backgroundColor: '#e3f2fd' }
+                                }}
+                              >
+                                {mahal.name}
+                              </Box>
+
+                              {/* Alan */}
+                              <Box
+                                onClick={() => handleMahalClick(mahal)}
+                                sx={{
+                                  px: '6px', py: '2px', borderBottom: '0.5px solid #ddd',
+                                  fontSize: '0.8rem', display: 'flex', alignItems: 'center', justifyContent: 'flex-end',
+                                  backgroundColor: hasAnyData ? '#f0f4ff' : '#f0f0f0',
+                                  whiteSpace: 'nowrap', cursor: 'pointer', '&:hover': { backgroundColor: '#e3f2fd' }
+                                }}
+                              >
+                                {mahal.area != null ? `${mahal.area} m²` : '—'}
+                              </Box>
+
+                              {/* Per-user ready sessions */}
+                              {sessionUsers.map(user => {
+                                const ud = areaData.byUser[user.id]
+                                const ses = ud?.session
+                                return (
+                                  <Tooltip key={`cell-${mahal.id}-${user.id}`} title={ses ? 'Onaya hazır — görüntüle' : ''} placement="top">
+                                    <Box
+                                      onClick={() => handleMahalClick(mahal)}
+                                      sx={{
+                                        px: '6px', py: '2px', borderBottom: '0.5px solid #ddd', borderLeft: '1px solid #e0e0e0',
+                                        fontSize: '0.8rem', display: 'flex', alignItems: 'center', justifyContent: 'flex-end',
+                                        backgroundColor: ses ? sessionBg('ready') : '#f5f5f5',
+                                        whiteSpace: 'nowrap', cursor: 'pointer',
+                                        opacity: !ses ? 0.4 : 1,
+                                        '&:hover': { filter: 'brightness(0.95)' }
+                                      }}
+                                    >
+                                      {ses
+                                        ? `${ikiHane(ses.total_quantity)} ${pozBirim}`
+                                        : '—'
+                                      }
+                                    </Box>
+                                  </Tooltip>
+                                )
+                              })}
+
+                              {/* Onaylanan sütun */}
+                              <Tooltip title={areaData.approvedSession ? 'Onaylanan metraj — görüntüle / düzenle' : 'Henüz onaylanan metraj yok'} placement="top">
+                                <Box
+                                  onClick={() => handleMahalClick(mahal)}
+                                  sx={{
+                                    px: '6px', py: '2px', borderBottom: '0.5px solid #ddd', borderLeft: '2px solid #1565c0',
+                                    fontSize: '0.8rem', fontWeight: areaData.approvedSession ? 600 : 'normal',
+                                    display: 'flex', alignItems: 'center', justifyContent: 'flex-end',
+                                    backgroundColor: areaData.approvedSession ? sessionBg('approved') : '#f0f8ff',
+                                    whiteSpace: 'nowrap', cursor: 'pointer',
+                                    '&:hover': { filter: 'brightness(0.95)' }
+                                  }}
+                                >
+                                  {areaData.approvedSession
+                                    ? `${ikiHane(areaData.approvedSession.total_quantity)} ${pozBirim}`
+                                    : '—'}
+                                </Box>
+                              </Tooltip>
+
+                            </React.Fragment>
+                          )
+                        })}
+
+                      </React.Fragment>
+                    )
+                  })}
+
+                </Box>
+              </Box>
+
+              {/* Renk açıklaması */}
+              <Box sx={{ display: 'flex', gap: '1rem', mt: '0.75rem', px: '0.5rem', flexWrap: 'wrap' }}>
+                {[
+                  { color: sessionBg('ready'),    label: 'Onaya Hazır' },
+                  { color: sessionBg('approved'), label: 'Onaylanan' },
+                ].map(({ color, label }) => (
+                  <Box key={label} sx={{ display: 'flex', alignItems: 'center', gap: '0.3rem' }}>
+                    <Box sx={{ width: 14, height: 14, backgroundColor: color, border: '1px solid #bbb', borderRadius: 1 }} />
+                    <Typography variant="caption" sx={{ color: 'gray' }}>{label}</Typography>
+                  </Box>
+                ))}
+              </Box>
+            </Box>
+          )
+        })()
       }
-    </Box >
 
+    </Box>
   )
-
 }
-

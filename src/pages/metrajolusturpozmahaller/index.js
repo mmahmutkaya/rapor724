@@ -92,18 +92,42 @@ export default function P_MetrajOlusturPozMahaller() {
     const areaIds = wpAreas.map(a => a.id);
 
     (async () => {
-      const { data: sessions } = await supabase
+      // Aktif kullanıcı her zaman listede (sessions yüklenemese bile göster)
+      const currentUserName = [appUser?.isim, appUser?.soyisim].filter(Boolean).join(' ') || appUser?.email || '(Ben)'
+      const userMap = appUser?.id ? { [appUser.id]: currentUserName } : {}
+
+      const { data: sessions, error: sessionsError } = await supabase
         .from('measurement_sessions')
-        .select('id, work_package_poz_area_id, status, total_quantity, created_by, created_at, updated_at, creator:users!created_by(first_name, last_name)')
+        .select('id, work_package_poz_area_id, status, total_quantity, created_by, created_at, updated_at')
         .in('work_package_poz_area_id', areaIds)
         .in('status', ['draft', 'ready', 'approved'])
         .order('updated_at', { ascending: false })
 
-      if (!sessions) return
+      if (sessionsError || !sessions) {
+        // Sessions yüklenemedi — en azından aktif kullanıcıyı göster
+        setSessionsMap({})
+        const users = appUser?.id ? [{ id: appUser.id, name: currentUserName }] : []
+        setSessionUsers(users)
+        return
+      }
 
-      // Aktif kullanıcı her zaman listede
-      const currentUserName = [appUser?.isim, appUser?.soyisim].filter(Boolean).join(' ') || appUser?.email || '(Ben)'
-      const userMap = appUser?.id ? { [appUser.id]: currentUserName } : {}
+      // created_by ID'lerini topla, users tablosundan isimleri al
+      const uniqueUserIds = [...new Set(
+        sessions.map(s => s.created_by).filter(id => id && id !== appUser?.id)
+      )]
+
+      if (uniqueUserIds.length > 0) {
+        const { data: usersData } = await supabase
+          .from('users')
+          .select('id, first_name, last_name')
+          .in('id', uniqueUserIds)
+
+        if (usersData) {
+          usersData.forEach(u => {
+            userMap[u.id] = [u.first_name, u.last_name].filter(Boolean).join(' ') || u.id
+          })
+        }
+      }
 
       const newMap = {}
       sessions.forEach(s => {
@@ -116,14 +140,12 @@ export default function P_MetrajOlusturPozMahaller() {
             newMap[areaId].approved = s
           }
         } else {
-          const uid = s.created_by
+          // created_by null ise (migration öncesi session) aktif kullanıcıya ata
+          const uid = s.created_by ?? appUser?.id
           if (uid) {
             // Kullanıcı başına en yeni session'ı sakla
             if (!newMap[areaId].byUser[uid]) {
               newMap[areaId].byUser[uid] = s
-            }
-            if (s.creator && !userMap[uid]) {
-              userMap[uid] = [s.creator.first_name, s.creator.last_name].filter(Boolean).join(' ') || uid
             }
           }
         }

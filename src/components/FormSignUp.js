@@ -1,9 +1,7 @@
-import { useEffect, useState, useContext } from 'react';
+import { useState, useContext } from 'react';
 import { StoreContext } from './store.js'
 import { DialogAlert } from './general/DialogAlert.js';
-
-
-import { useNavigate } from "react-router-dom";
+import { supabase } from '../lib/supabase.js'
 
 import Avatar from '@mui/material/Avatar';
 import Button from '@mui/material/Button';
@@ -41,15 +39,13 @@ const theme = createTheme();
 
 export default function FormSignUp() {
 
-  const navigate = useNavigate()
-  const { Layout_Show, setLayout_Show } = useContext(StoreContext)
-  const { setAppUser } = useContext(StoreContext)
-
+  const { setLayout_Show } = useContext(StoreContext)
 
   const [emailError, setEmailError] = useState()
   const [passwordError, setPasswordError] = useState()
   const [passwordError2, setPasswordError2] = useState()
   const [dialogAlert, setDialogAlert] = useState()
+  const [kayitBasarili, setKayitBasarili] = useState(false)
 
 
   async function handleSubmit(event) {
@@ -134,50 +130,19 @@ export default function FormSignUp() {
       }
 
 
-      // console.log("email", email)
-      // console.log("password", password)
-      // console.log("password2", password2)
+      const { error } = await supabase.auth.signUp({ email, password })
 
-
-      // await RealmApp.emailPasswordAuth.registerUser({ email, password });
-      // const credentials = Realm.Credentials.emailPassword(email, password);
-      // await RealmApp.logIn(credentials);
-
-
-      const response = await fetch(process.env.REACT_APP_BASE_URL + '/api/user/signup', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email, password })
-      })
-
-
-      const responseJson = await response.json()
-
-      if (responseJson.error) {
-        throw new Error(responseJson.error);
-      }
-
-
-      // form validation - backend
-      if (responseJson.errorObject) {
-        let { errorObject } = responseJson
-        setEmailError(errorObject.emailError)
-        setPasswordError(errorObject.passwordError)
-        setPasswordError2(errorObject.passwordError2)
+      if (error) {
+        if (error.message.toLowerCase().includes('already registered') ||
+            error.message.toLowerCase().includes('user already registered')) {
+          setEmailError("Bu email adresi zaten kayıtlı")
+        } else {
+          throw error
+        }
         return
       }
 
-
-
-      if (responseJson.user) {
-
-        // save the user to local storage
-        localStorage.setItem('appUser', JSON.stringify(responseJson.user))
-
-        // save the user to react context
-        setAppUser(responseJson.user)
-        // navigate(0)
-      }
+      setKayitBasarili(true)
 
 
     } catch (err) {
@@ -241,7 +206,18 @@ export default function FormSignUp() {
             Yeni Kullanıcı Kaydı
           </Typography>
 
-          <Box component="form" onSubmit={handleSubmit} noValidate sx={{ mt: 1 }}>
+          {kayitBasarili ? (
+            <Box sx={{ mt: 3, textAlign: 'center' }}>
+              <Typography color="success.main" sx={{ mb: 2 }}>
+                Kayıt başarılı! Email adresinize bir doğrulama linki gönderdik.
+                Lütfen emailinizi kontrol ederek hesabınızı doğrulayın.
+              </Typography>
+              <Link onClick={() => setLayout_Show("login")} href="#" variant="body2">
+                Giriş Sayfasına Dön
+              </Link>
+            </Box>
+          ) : (
+            <Box component="form" onSubmit={handleSubmit} noValidate sx={{ mt: 1 }}>
 
             <TextField
               // onClick={() => setEmailError()}
@@ -322,6 +298,7 @@ export default function FormSignUp() {
             </Grid>
 
           </Box>
+          )}
         </Box>
         {/* <Copyright sx={{ mt: 8, mb: 4 }} /> */}
       </Container>

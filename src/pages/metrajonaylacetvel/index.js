@@ -1,1210 +1,523 @@
 
-import React, { useState, useContext, useEffect } from 'react';
-import { useNavigate } from "react-router-dom";
+import React, { useState, useContext, useEffect, useMemo } from 'react'
+import { useNavigate } from 'react-router-dom'
+import _ from 'lodash'
+
 import { StoreContext } from '../../components/store.js'
-import _ from 'lodash';
+import { supabase } from '../../lib/supabase.js'
+import { useGetPozUnits } from '../../hooks/useMongo.js'
+import { DialogAlert } from '../../components/general/DialogAlert.js'
+
+import AppBar from '@mui/material/AppBar'
+import Box from '@mui/material/Box'
+import Grid from '@mui/material/Grid'
+import Typography from '@mui/material/Typography'
+import LinearProgress from '@mui/material/LinearProgress'
+import Alert from '@mui/material/Alert'
+import Stack from '@mui/material/Stack'
+import IconButton from '@mui/material/IconButton'
+import Tooltip from '@mui/material/Tooltip'
+import Chip from '@mui/material/Chip'
+import NavigateNextIcon from '@mui/icons-material/NavigateNext'
+import ReplyIcon from '@mui/icons-material/Reply'
+import CheckCircleIcon from '@mui/icons-material/CheckCircle'
+import EditIcon from '@mui/icons-material/Edit'
+import SaveIcon from '@mui/icons-material/Save'
+import ClearIcon from '@mui/icons-material/Clear'
+import VisibilityIcon from '@mui/icons-material/Visibility'
+import VisibilityOffIcon from '@mui/icons-material/VisibilityOff'
 
 
-import { DialogAlert } from '../../components/general/DialogAlert.js';
-import { useQuery, useQueryClient, useMutation } from '@tanstack/react-query'
+function ikiHane(v) {
+  if (v === null || v === undefined || v === '') return ''
+  const n = Number(v)
+  if (isNaN(n)) return ''
+  return new Intl.NumberFormat('de-DE', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(n)
+}
 
-import { useGetOnaylananMetraj } from '../../hooks/useMongo.js';
+function calcMetraj(line) {
+  const vals = [line.carpan, line.adet, line.boy, line.en, line.yukseklik]
+    .map(v => (v != null && v !== '' ? parseFloat(v) : null))
+    .filter(v => v !== null && !isNaN(v))
+  if (vals.length === 0) return 0
+  return vals.reduce((prod, v) => prod * v, 1)
+}
 
-import { useApp } from "../../components/useApp";
-import AppBar from '@mui/material/AppBar';
-import Paper from '@mui/material/Paper';
-import AddCircleOutlineIcon from '@mui/icons-material/AddCircleOutline';
-import ClearOutlined from '@mui/icons-material/ClearOutlined';
-import UnfoldMoreIcon from '@mui/icons-material/UnfoldMore';
-import UnfoldLessIcon from '@mui/icons-material/UnfoldLess';
-import VisibilityIcon from '@mui/icons-material/Visibility';
-import AlignHorizontalLeftOutlinedIcon from '@mui/icons-material/AlignHorizontalLeftOutlined';
-import AlignHorizontalRightOutlinedIcon from '@mui/icons-material/AlignHorizontalRightOutlined';
-import AlignHorizontalCenterOutlinedIcon from '@mui/icons-material/AlignHorizontalCenterOutlined';
-import FileDownloadDoneIcon from '@mui/icons-material/FileDownloadDone';
-import TuneIcon from '@mui/icons-material/Tune';
-import TaskAltIcon from '@mui/icons-material/TaskAlt';
-import ForwardIcon from '@mui/icons-material/Forward';
-import SaveIcon from '@mui/icons-material/Save';
-import Tooltip from '@mui/material/Tooltip';
-import ShowMetrajYapabilenler from '../../components/ShowMetrajYapabilenler';
+function StatusChip({ status }) {
+  if (status === 'ready')    return <Chip size="small" label="Onaya Hazır" sx={{ backgroundColor: '#C8E6C9', color: '#1B5E20', fontWeight: 600 }} />
+  if (status === 'approved') return <Chip size="small" label="Onaylı" sx={{ backgroundColor: '#B3E5FC', color: '#01579B', fontWeight: 600 }} />
+  return <Chip size="small" label={status} />
+}
 
+const GRID_COLS = '40px 1fr 70px 70px 70px 70px 70px 90px'
+const NUM_FIELDS = ['carpan', 'adet', 'boy', 'en', 'yukseklik']
+const NUM_LABELS = ['Çarpan', 'Adet', 'Boy', 'En', 'Yükseklik']
 
-import { borderBottom, fontWeight, styled } from '@mui/system';
-import Grid from '@mui/material/Grid';
-import Input from '@mui/material/Input';
-import Alert from '@mui/material/Alert';
-import Stack from '@mui/material/Stack';
-import { Button, TextField, Typography } from '@mui/material';
-import Box from '@mui/material/Box';
-import IconButton from '@mui/material/IconButton';
-import InfoIcon from '@mui/icons-material/Info';
-import Chip from '@mui/material/Chip';
-import HourglassFullSharpIcon from '@mui/icons-material/HourglassFullSharp';
-import CircleIcon from '@mui/icons-material/Circle';
-import CheckCircleIcon from '@mui/icons-material/CheckCircle';
-import CheckIcon from '@mui/icons-material/Check';
-import LockIcon from '@mui/icons-material/Lock';
-import StarIcon from '@mui/icons-material/Star';
-import ReplyIcon from '@mui/icons-material/Reply';
-import EditIcon from '@mui/icons-material/Edit';
-import DeleteIcon from '@mui/icons-material/Delete';
-import DeleteForeverIcon from '@mui/icons-material/DeleteForever';
-import LinearProgress from '@mui/material/LinearProgress';
+const css_lineHeader = {
+  display: 'grid', gridTemplateColumns: GRID_COLS,
+  backgroundColor: '#415a77', color: '#e0e1dd',
+  fontSize: '0.75rem', fontWeight: 600,
+}
+const css_lineHeaderCell = {
+  px: '4px', py: '3px',
+  display: 'flex', alignItems: 'center', justifyContent: 'center',
+  borderRight: '1px solid rgba(255,255,255,0.15)',
+}
+const css_lineRow = {
+  display: 'grid', gridTemplateColumns: GRID_COLS,
+  borderBottom: '1px solid #e0e0e0',
+  '&:hover': { backgroundColor: '#fafafa' },
+}
+const css_lineCell = {
+  px: '4px', py: '3px',
+  fontSize: '0.85rem',
+  display: 'flex', alignItems: 'center',
+  borderRight: '1px solid #eeeeee',
+  overflow: 'hidden',
+}
 
-
-
-function HeaderMetrajOnaylaCetvel({
-  show, setShow,
-  isChanged, cancel, save,
-  copySelectedRow,
-  hasSelectedCopySatirlar,
-  mode_sil, setMode_sil,
-  isChanged_sil, cancel_sil, save_sil
-}) {
-
-  const navigate = useNavigate()
-
-  const { drawerWidth, topBarHeight } = useContext(StoreContext)
-
-  const { detailMode, setDetailMode } = useContext(StoreContext)
-
-  const { selectedPoz, selectedMahal_metraj } = useContext(StoreContext)
-
-  const [showEminMisin, setShowEminMisin] = useState(false)
-
-  const [showEminMisin_sil, setShowEminMisin_sil] = useState(false)
-
-
-  return (
-    <Paper >
-
-      {showEminMisin &&
-        <DialogAlert
-          dialogIcon={"warning"}
-          dialogMessage={"Yaptığınız değişiklikleri kaybedeceksiniz ?"}
-          onCloseAction={() => setShowEminMisin()}
-          actionText1={"İptal"}
-          action1={() => setShowEminMisin()}
-          actionText2={"Onayla"}
-          action2={() => {
-            cancel()
-            setShowEminMisin()
-          }}
-        />
-      }
-
-
-
-      {showEminMisin_sil &&
-        <DialogAlert
-          dialogIcon={"warning"}
-          dialogMessage={"Yaptığınız değişiklikleri kaybedeceksiniz ?"}
-          onCloseAction={() => setShowEminMisin_sil()}
-          actionText1={"İptal"}
-          action1={() => setShowEminMisin_sil()}
-          actionText2={"Onayla"}
-          action2={() => {
-            cancel_sil()
-            setShowEminMisin_sil()
-          }}
-        />
-      }
-
-
-      <AppBar
-        position="fixed"
-        sx={{
-          backgroundColor: "white",
-          color: "black",
-          width: { md: `calc(100% - ${drawerWidth}px)` },
-          mt: topBarHeight,
-          // pt:"3rem",
-          ml: { md: `${drawerWidth}px` }
-        }}
-      >
-
-        <Grid
-          container
-          justifyContent="space-between"
-          alignItems="center"
-          sx={{ padding: "0.5rem 1rem", maxHeight: "5rem" }}
-        >
-
-
-          {/* sol kısım (başlık) */}
-          <Grid item xs>
-            <Box sx={{ display: "grid", gridAutoFlow: "column", alignItems: "center", justifyContent: "start", columnGap: "0.5rem" }}>
-
-              <IconButton sx={{ m: 0, p: 0 }}
-                onClick={() => {
-                  navigate("/metrajonaylapozmahaller")
-                }} aria-label="lbsUncliced">
-                <ReplyIcon variant="contained" sx={{ color: "gray" }} />
-              </IconButton>
-
-              <Box>
-                {selectedPoz?.pozName}
-              </Box>
-              <Box sx={{ color: "#8B0000", fontWeight: "600" }}>
-                {" > "}
-              </Box>
-              <Box>
-                {selectedMahal_metraj?.mahalName}
-              </Box>
-            </Box>
-          </Grid>
-
-
-
-
-          {/* sağ kısım - (tuşlar)*/}
-          <Grid item xs="auto">
-            <Grid container>
-
-
-              {show !== "EditMetraj" && !mode_sil &&
-                <Grid item >
-                  <IconButton onClick={() => {
-                    setShow("EditMetraj")
-                    setMode_sil()
-                  }} aria-label="lbsUncliced">
-                    <EditIcon variant="contained" />
-                  </IconButton>
-                </Grid>
-              }
-
-              {!isChanged_sil && show !== "EditMetraj" && mode_sil &&
-                <Grid item >
-                  <IconButton onClick={() => setMode_sil(x => !x)} >
-                    <DeleteIcon variant="contained" sx={{ color: "red" }} />
-                  </IconButton>
-                </Grid>
-              }
-
-              {!isChanged_sil && show !== "EditMetraj" && !mode_sil &&
-                <Grid item >
-                  <IconButton onClick={() => setMode_sil(x => !x)} >
-                    <DeleteIcon variant="contained" sx={{ color: "rgba(209, 17, 17, 0.31)" }} />
-                  </IconButton>
-                </Grid>
-              }
-
-
-
-              {show == "EditMetraj" &&
-
-                <>
-
-                  <Grid item >
-                    <IconButton
-                      disabled={!hasSelectedCopySatirlar}
-                      onClick={() => {
-                        copySelectedRow()
-                      }} aria-label="lbsUncliced">
-                      <AddCircleOutlineIcon variant="contained" sx={{ color: "rgba(70, 140, 55, 0.6)" }} />
-                    </IconButton>
-                  </Grid>
-
-                  <Grid item >
-                    <IconButton onClick={() => {
-                      if (isChanged) {
-                        setShowEminMisin(true)
-                      } else {
-                        setShow("Main")
-                      }
-                    }} aria-label="lbsUncliced">
-                      <ClearOutlined variant="contained" sx={{ color: "red" }} />
-                    </IconButton>
-                  </Grid>
-
-                  <Grid item >
-                    <IconButton onClick={() => save()} disabled={!isChanged}>
-                      <SaveIcon variant="contained" />
-                    </IconButton>
-                  </Grid>
-
-                </>
-              }
-
-
-
-              {isChanged_sil &&
-
-                <>
-
-                  <Grid item >
-                    <IconButton onClick={() => {
-                      if (isChanged_sil) {
-                        setShowEminMisin_sil(true)
-                      } else {
-                        setShow("Main")
-                      }
-                    }} aria-label="lbsUncliced">
-                      <ClearOutlined variant="contained" sx={{ color: "red" }} />
-                    </IconButton>
-                  </Grid>
-
-                  <Grid item >
-                    <IconButton onClick={() => save_sil()} disabled={!isChanged_sil}>
-                      <SaveIcon variant="contained" />
-                    </IconButton>
-                  </Grid>
-
-                </>
-              }
-
-
-            </Grid>
-
-          </Grid>
-
-        </Grid>
-
-      </AppBar>
-
-    </Paper >
-  )
+const inputSx = {
+  width: '100%', border: 'none', outline: 'none',
+  backgroundColor: 'rgba(255,250,180,0.6)',
+  fontSize: '0.85rem', padding: '2px 4px',
+  textAlign: 'right',
 }
 
 
-export default function P_MetrajCetveliOnaylanan() {
-
-  const queryClient = useQueryClient()
-
-  const { appUser, setAppUser, RealmApp, myTema, subHeaderHeight } = useContext(StoreContext)
-  const { selectedProje, selectedPoz, selectedNode } = useContext(StoreContext)
-
-  const [dialogAlert, setDialogAlert] = useState()
-  const [show, setShow] = useState("Main")
-  const [isChanged, setIsChanged] = useState()
-  const [selectedRow, setSelectedRow] = useState()
-
-  const [onaylananMetraj_state, setOnaylananMetraj_state] = useState()
-  const [onaylananMetraj_backUp, setOnaylananMetraj_backUp] = useState()
-
-  const [hasSelectedCopySatirlar, setHasSelectedCopySatirlar] = useState()
-
-  const [_pozId] = useState()
-  const [isChanged_sil, setIsChanged_sil] = useState()
-
-  const [mode_sil, setMode_sil] = useState()
-
-
-  let pozBirim
-
-
-  const { data: dataOnaylananMetraj, error, isFetching } = useGetOnaylananMetraj()
-
+export default function P_MetrajOnaylaCetvel() {
   const navigate = useNavigate()
-  useEffect(() => {
-    !selectedNode && navigate("/metrajonaylapozlar")
-    setOnaylananMetraj_state(_.cloneDeep(dataOnaylananMetraj?.onaylananMetraj))
-    setOnaylananMetraj_backUp(_.cloneDeep(dataOnaylananMetraj?.onaylananMetraj))
-    setHasSelectedCopySatirlar(dataOnaylananMetraj?.onaylananMetraj?.satirlar.find(x => x.hasSelectedCopy) ? true : false)
-    // console.log("dataOnaylananMetraj?.onaylananMetraj", dataOnaylananMetraj?.onaylananMetraj)
-    setShow("Main")
-  }, [dataOnaylananMetraj])
+  const {
+    selectedProje, selectedIsPaket, selectedPoz, selectedMahal_metraj,
+  } = useContext(StoreContext)
+
+  const { data: units = [] } = useGetPozUnits()
+  const [dialogAlert, setDialogAlert] = useState()
+  const [loading, setLoading] = useState(true)
+  // sessions: array with UI state mixed in
+  const [sessions, setSessions] = useState([])
+
+  const wpAreaId = selectedMahal_metraj?.wpAreaId
+
+  const unitsMap = useMemo(() => {
+    const m = {}
+    units.forEach(u => { m[u.id] = u.name })
+    return m
+  }, [units])
+  const pozBirim = unitsMap[selectedPoz?.unit_id] ?? ''
 
   useEffect(() => {
-    if (error) {
-      console.log("error", error)
-      setDialogAlert({
-        dialogIcon: "warning",
-        dialogMessage: "Beklenmedik hata, Rapor7/24 ile irtibata geçiniz..",
-        detailText: error?.message ? error.message : null
+    if (!selectedProje || !selectedIsPaket) { navigate('/metrajonayla'); return }
+    if (!selectedPoz) { navigate('/metrajonaylapozlar'); return }
+    if (!wpAreaId) { navigate('/metrajonaylapozmahaller'); return }
+  }, [])
+
+  useEffect(() => {
+    if (!wpAreaId) return
+    setLoading(true)
+    ;(async () => {
+      const { data: sessData, error: sessError } = await supabase
+        .from('measurement_sessions')
+        .select('id, status, total_quantity, created_by, creator:users!created_by(first_name, last_name)')
+        .eq('work_package_poz_area_id', wpAreaId)
+        .in('status', ['ready', 'approved'])
+        .order('created_by')
+
+      if (sessError) {
+        setDialogAlert({ dialogIcon: 'warning', dialogMessage: 'Veri alınırken hata oluştu.', detailText: sessError.message, onCloseAction: () => setDialogAlert() })
+        setLoading(false)
+        return
+      }
+
+      if (!sessData?.length) { setSessions([]); setLoading(false); return }
+
+      // Build userMap from joined creator data
+      const uniqueUserIds = [...new Set(sessData.map(s => s.created_by).filter(Boolean))]
+      const userMap = {}
+      sessData.forEach(s => {
+        if (s.created_by && s.creator && !userMap[s.created_by]) {
+          userMap[s.created_by] = [s.creator.first_name, s.creator.last_name].filter(Boolean).join(' ') || '?'
+        }
       })
-    }
-  }, [error]);
 
+      // Load lines for all sessions
+      const sessionIds = sessData.map(s => s.id)
+      const { data: linesData } = await supabase
+        .from('measurement_lines')
+        .select('id, session_id, sira, aciklama, carpan, adet, boy, en, yukseklik')
+        .in('session_id', sessionIds)
+        .order('sira')
 
+      const linesBySession = {}
+      ;(linesData ?? []).forEach(l => {
+        if (!linesBySession[l.session_id]) linesBySession[l.session_id] = []
+        linesBySession[l.session_id].push(l)
+      })
 
+      // approved sessions first, then ready
+      const sorted = [...sessData].sort((a, b) => {
+        if (a.status === b.status) return 0
+        if (a.status === 'approved') return -1
+        return 1
+      })
 
-  // METRAJ REVİZE ETME FONKSİYONLARI
+      setSessions(sorted.map(sess => ({
+        ...sess,
+        userName: userMap[sess.created_by] ?? '?',
+        lines: linesBySession[sess.id] ?? [],
+        editMode: false,
+        editBackup: null,
+        revisedLines: {},   // lineId → { originalMetraj }
+        showOriginals: true,
+      })))
+      setLoading(false)
+    })()
+  }, [wpAreaId])
 
-  // Edit Metraj Sayfasının Fonksiyonu
-  const handle_input_onKey = async (event) => {
-    if (event.key == "e" || event.key == "E" || event.key == "+" || event.key == "-" || event.keyCode == "38" || event.keyCode == "40") {
-      // console.log("'e' - 'E' - '+' - '-' - 'up' - 'down' - kullanılmasın")
-      return event.preventDefault()
-    }
-  }
-
-
-  // Edit Metraj Sayfasının Fonksiyonu
-  const handle_input_onChange = (event, oneSatir, oneProperty) => {
-
-    if (!isChanged) {
-      setIsChanged(true)
-    }
-
-    let onaylananMetraj_state2 = _.cloneDeep(onaylananMetraj_state)
-    // console.log("onaylananMetraj_state2", onaylananMetraj_state2)
-
-
-    // eğer düzenlenmeye başlanan satır orjinal satır ise düzenlemeler yapılarak ilk revize kopyası oluşturulur ve satirlar array'ine eklenir
-    let originalSatirNo
-    if (!oneSatir.satirNo.includes(".")) {
-      originalSatirNo = oneSatir.satirNo
-      oneSatir.satirNo = originalSatirNo + ".1"
-
-      delete oneSatir.hasSelectedCopy
-      delete oneSatir.isSelected
-      oneSatir.originalSatirNo = originalSatirNo
-      oneSatir.isSelectedCopy = true
-      oneSatir.isFirstCopy = true
-      oneSatir.isLastCopy = true
-      oneSatir.versiyon = 0
-
-      onaylananMetraj_state2.satirlar = [...onaylananMetraj_state2.satirlar, { ...oneSatir }]
-
-      // düzenlenmeye başlanan zaten revize bir satırsa orjinal satır numarası tespit edilir ve db de işlem yapmak için aşağıda newSelected=true değeri atanır, 
-    } else {
-      originalSatirNo = oneSatir.satirNo.substring(0, oneSatir.satirNo.indexOf("."))
-    }
-
-    // map ile tarayarak, state kısmındaki datanın ilgili satırını güncelliyoruz, ayrıca tüm satırların toplam metrajını, önce önceki değeri çıkartıp yeni değeri ekleyerek
-    let oncekiVersiyon_originalSatir
-    let oncekiVersiyon_revizeSatir
-    onaylananMetraj_state2["satirlar"] = onaylananMetraj_state2["satirlar"].map(oneRow => {
-
-      // orjinal satırın değiştirilmesi ile yapılmışsa originalSatır diye bişey var yoksa alttan devam edecek
-      if (oneRow.satirNo === originalSatirNo) {
-
-        // eğer önceki versiyonlarda yer alan bir satır ise güncel vrsiyondan çıkartıp
-        // kopyasını alıp map döngüsü bitince aşağıda ekliyoruz
-        // yeni kopyaya güncel versiyon veriyoruz 0
-        // if (oneRow.versiyon !== 0) {
-        //   oncekiVersiyon_originalSatir = { ...oneRow, isPasif: true }
-        //   oneRow.pasifEdilenVersiyon = oneRow.versiyon
-        //   oneRow.versiyon = 0
-        // }
-
-        // ilk satır ilk kopyası oluşturulurken gereki ama olsun
-        oneRow.hasSelectedCopy = true
-        //  bu da db işlemi için gerekli
-        oneRow.newSelected = true
-        // original satırdaki değişiklilerimizi yaptık map içine gönderiyoruz
-        return oneRow
-      }
-
-      // yukarıda satırno değiştirdik kopyasına yeni satır numarası verdik noktalı
-      // bu revizenin ilk kopyası sonraki kopyalar aşağıdaki fonksiyonda oluşuyor
-      if (oneRow.satirNo === oneSatir.satirNo && !oneRow?.isPasif) {
-
-        // eğer önceki versiyonlarda yer alan bir satır ise güncel vrsiyondan çıkartıp
-        // kopyasını alıp map döngüsü bitince aşağıda ekliyoruz
-        // yeni kopyaya güncel versiyon veriyoruz 0
-        if (oneRow.versiyon !== 0) {
-          oncekiVersiyon_revizeSatir = { ...oneRow, isPasif: true }
-          oneRow.pasifEdilenVersiyon = oneRow.versiyon
-          oneRow.versiyon = 0
-        }
-
-        // + tuşuna basılıp satır çoğaltma yapılması işlemi için gerekli
-        setSelectedRow(oneRow)
-        setHasSelectedCopySatirlar(true)
-
-        oneRow[oneProperty] = event.target.value
-
-
-        let isMinha = oneRow["aciklama"].replace("İ", "i").toLowerCase().includes("minha") ? true : false
-
-        if (oneRow.carpan1 == "" && oneRow.carpan2 == "" && oneRow.carpan3 == "" && oneRow.carpan4 == "" && oneRow.carpan5 == "") {
-          oneRow.metraj = ""
-          return oneRow
-        }
-
-        const oneRowMetraj = (
-          (oneRow.carpan1 == "" ? 1 : oneRow.carpan1) *
-          (oneRow.carpan2 == "" ? 1 : oneRow.carpan2) *
-          (oneRow.carpan3 == "" ? 1 : oneRow.carpan3) *
-          (oneRow.carpan4 == "" ? 1 : oneRow.carpan4) *
-          (oneRow.carpan5 == "" ? 1 : oneRow.carpan5)
-        )
-
-        if (isMinha) {
-          oneRow.metraj = oneRowMetraj * -1
-          return oneRow
-        } else {
-          oneRow.metraj = oneRowMetraj
-          return oneRow
-        }
-
-      }
-
-      return oneRow
-
-    })
-
-    if (oncekiVersiyon_originalSatir) {
-      onaylananMetraj_state2.satirlar = [...onaylananMetraj_state2.satirlar, oncekiVersiyon_originalSatir]
-    }
-
-    if (oncekiVersiyon_revizeSatir) {
-      onaylananMetraj_state2.satirlar = [...onaylananMetraj_state2.satirlar, oncekiVersiyon_revizeSatir]
-    }
-
-    let metrajOnaylanan = 0
-    onaylananMetraj_state2.satirlar.map(oneSatir => {
-      if (!oneSatir?.hasSelectedCopy && !oneSatir?.isPasif) {
-        metrajOnaylanan += oneSatir.metraj ? Number(oneSatir.metraj) : 0
-      }
-    })
-    onaylananMetraj_state2.metrajOnaylanan = metrajOnaylanan
-
-    onaylananMetraj_state2.satirlar = onaylananMetraj_state2.satirlar.map(oneSatir => {
-      if (oneSatir.versiyon === 0) {
-        oneSatir.dizi = "b"
-      } else {
-        oneSatir.dizi = "a" + oneSatir.versiyon
-      }
-      return oneSatir
-    })
-
-    setOnaylananMetraj_state(onaylananMetraj_state2)
-    // alttaki kod sadece react component render yapılması için biyerde kullanılmıyor -- (sonra bunada gerek kalmadı)
-    // setMetraj(oneRow["aciklama"] + oneRow["carpan1"] + oneRow["carpan2"] + oneRow["carpan3"] + oneRow["carpan4"] + oneRow["carpan5"])
-  }
-
-
-  // ilk kopya yukarıda orjinalinin düzenlenmeye başlaması ile oluyor bunlar sonraki kopyalar
-  const copySelectedRow = () => {
-
-    if (!selectedRow || !selectedRow.isSelectedCopy) {
+  // Actions
+  const handleApprove = async (sessId) => {
+    const { error } = await supabase
+      .from('measurement_sessions').update({ status: 'approved' }).eq('id', sessId)
+    if (error) {
+      setDialogAlert({ dialogIcon: 'warning', dialogMessage: 'Onaylama sırasında hata.', detailText: error.message, onCloseAction: () => setDialogAlert() })
       return
     }
+    setSessions(s => s.map(sess => sess.id === sessId ? { ...sess, status: 'approved' } : sess))
+  }
 
-    let onaylananMetraj_state2 = _.cloneDeep(onaylananMetraj_state)
-    let oneRow = _.cloneDeep(selectedRow)
+  const enterEditMode = (sessId) => {
+    setSessions(s => s.map(sess => {
+      if (sess.id !== sessId) return sess
+      return { ...sess, editMode: true, editBackup: _.cloneDeep(sess.lines) }
+    }))
+  }
 
+  const cancelEdit = (sessId) => {
+    setSessions(s => s.map(sess => {
+      if (sess.id !== sessId) return sess
+      return { ...sess, editMode: false, lines: _.cloneDeep(sess.editBackup), editBackup: null, revisedLines: {} }
+    }))
+  }
 
-    // let rightPart = oneRow.satirNo.substring(oneRow.satirNo.indexOf(".") + 1, oneRow.satirNo.length)
-
-    oneRow.aciklama = ""
-    oneRow.carpan1 = ""
-    oneRow.carpan2 = ""
-    oneRow.carpan3 = ""
-    oneRow.carpan4 = ""
-    oneRow.carpan5 = ""
-    oneRow.metraj = ""
-    oneRow.versiyon = 0
-    delete oneRow.pasifEdilenVersiyon
-    delete oneRow.isFirstCopy
-
-
-    let leftPart1 = oneRow.satirNo.substring(0, oneRow.satirNo.indexOf(".") + 1)
-
-    // hem yeni sıra numarası belirleme
-    // hem lastCopy silme, aşağıda yeni eklenene verilecek çünkü bu property
-    let newSiraNo = 1
-    onaylananMetraj_state2.satirlar = onaylananMetraj_state2.satirlar.map(oneSatir => {
-      let leftPart2 = oneSatir.satirNo.substring(0, oneSatir.satirNo.indexOf(".") + 1)
-      if (leftPart2 === leftPart1) {
-        let rightPart2 = oneSatir.satirNo.substring(oneSatir.satirNo.indexOf(".") + 1, oneSatir.satirNo.length)
-        if (Number(rightPart2) >= newSiraNo) {
-          newSiraNo = Number(rightPart2) + 1
-        }
-        delete oneSatir.isLastCopy
+  const handleLineChange = (sessId, lineId, field, value) => {
+    setSessions(s => s.map(sess => {
+      if (sess.id !== sessId) return sess
+      const newRevised = { ...sess.revisedLines }
+      if (!newRevised[lineId]) {
+        const origLine = sess.editBackup?.find(l => l.id === lineId)
+        if (origLine) newRevised[lineId] = { originalMetraj: calcMetraj(origLine) }
       }
-      return oneSatir
+      const parsed = value === '' ? null : value
+      return {
+        ...sess,
+        revisedLines: newRevised,
+        lines: sess.lines.map(l => l.id === lineId ? { ...l, [field]: parsed } : l),
+      }
+    }))
+  }
+
+  const saveEdit = async (sessId) => {
+    const sess = sessions.find(s => s.id === sessId)
+    if (!sess) return
+    const changedLines = sess.lines.filter(l => {
+      const orig = sess.editBackup?.find(b => b.id === l.id)
+      if (!orig) return false
+      return ['carpan', 'adet', 'boy', 'en', 'yukseklik', 'aciklama'].some(f => String(orig[f] ?? '') !== String(l[f] ?? ''))
     })
-
-
-
-    oneRow.satirNo = leftPart1 + newSiraNo
-    oneRow.isLastCopy = true
-    onaylananMetraj_state2.satirlar = [...onaylananMetraj_state2.satirlar, oneRow]
-
-    onaylananMetraj_state2.satirlar = onaylananMetraj_state2.satirlar.map(oneSatir => {
-      if (oneSatir.versiyon === 0) {
-        oneSatir.dizi = "b"
-      } else {
-        oneSatir.dizi = "a" + oneSatir.versiyon
-      }
-      return oneSatir
-    })
-
-
-    setOnaylananMetraj_state(onaylananMetraj_state2)
-    // console.log("onaylananMetraj_state2", onaylananMetraj_state2.satirlar)
-    setIsChanged(true)
-    // setSelectedRow()
-    // oneRow.satirNo
-  }
-
-
-
-  const cancel = () => {
-    setOnaylananMetraj_state(_.cloneDeep(onaylananMetraj_backUp))
-    setHasSelectedCopySatirlar(onaylananMetraj_backUp?.satirlar.find(x => x.hasSelectedCopy) ? true : false)
-    setIsChanged()
-    setShow("Main")
-  }
-
-
-
-  const save = async () => {
-
-    if (isChanged) {
-
-      try {
-
-
-        // await RealmApp?.currentUser.callFunction("update_onaylananMetraj_revize", ({ _dugumId: selectedNode._id, onaylananMetraj_state }))
-
-        const response = await fetch(process.env.REACT_APP_BASE_URL + `/api/dugumler/updateonaylananmetrajrevize`, {
-          method: 'POST',
-          headers: {
-            email: appUser.email,
-            token: appUser.token,
-            'Content-Type': 'application/json'
-          },
-          body: JSON.stringify({
-            dugumId: selectedNode._id,
-            onaylananMetraj_state
-          })
-        })
-
-        const responseJson = await response.json()
-
-        if (responseJson.error) {
-          if (responseJson.error.includes("expired")) {
-            setAppUser()
-            localStorage.removeItem('appUser')
-            navigate('/')
-            window.location.reload()
-          }
-          throw new Error(responseJson.error);
-        }
-
-        if (responseJson.ok) {
-          setShow("Main")
-          setIsChanged()
-          queryClient.invalidateQueries(['dataOnaylananMetraj'])
-        } else {
-          throw new Error("Kayıt işleminde hata oluştu, sayfayı yenileyiniz, sorun devam ederse, Rapor7/24 ile iletişime geçiniz.")
-        }
-
-      } catch (err) {
-
-        console.log(err)
-
-        setDialogAlert({
-          dialogIcon: "warning",
-          dialogMessage: "Beklenmedik hata, sayfayı yenileyiniz, sorun devam ederse Rapor7/24 ile irtibata geçiniz..",
-          detailText: err?.message ? err.message : null,
-          onCloseAction: () => {
-            setShow("Main")
-            setIsChanged()
-            queryClient.resetQueries(['dataOnaylananMetraj'])
-            setDialogAlert()
-          }
-        })
-
-      }
-    }
-
-  }
-
-
-
-
-
-
-
-
-
-
-  // ORJİNAL SATIRLARI VE REVİZELERİ SİLME FONKSİYONU
-
-
-  const toggle_sil_all = () => {
-
-    let onaylananMetraj_state2 = _.cloneDeep(onaylananMetraj_state)
-
-    let copySatirlar = onaylananMetraj_state2.satirlar.filter(x => x.isSelectedCopy && x.versiyon === 0)
-
-    if (copySatirlar.length > 0) {
-      if (copySatirlar.find(x => !x.newSelected)) {
-        onaylananMetraj_state2.satirlar = onaylananMetraj_state2.satirlar.map(oneSatir => {
-          if (oneSatir.isSelectedCopy && oneSatir.versiyon === 0) {
-            oneSatir.newSelected = true
-          }
-          if (oneSatir.isSelected || oneSatir.hasSelectedCopy) {
-            delete oneSatir.newSelected
-          }
-          return oneSatir
-        })
-      } else {
-        if (onaylananMetraj_state2.satirlar.find(x => !x.newSelected && x.versiyon === 0)) {
-          onaylananMetraj_state2.satirlar = onaylananMetraj_state2.satirlar.map(oneSatir => {
-            if (oneSatir.versiyon === 0) {
-              oneSatir.newSelected = true
-            }
-            return oneSatir
-          })
-        } else {
-          onaylananMetraj_state2.satirlar = onaylananMetraj_state2.satirlar.map(oneSatir => {
-            delete oneSatir.newSelected
-            return oneSatir
-          })
-        }
-      }
-
-    } else {
-      if (onaylananMetraj_state2.satirlar.find(x => !x.newSelected && x.versiyon === 0)) {
-        onaylananMetraj_state2.satirlar = onaylananMetraj_state2.satirlar.map(oneSatir => {
-          if (oneSatir.versiyon === 0) {
-            oneSatir.newSelected = true
-          }
-          return oneSatir
-        })
-      } else {
-        onaylananMetraj_state2.satirlar = onaylananMetraj_state2.satirlar.map(oneSatir => {
-          delete oneSatir.newSelected
-          return oneSatir
-        })
-      }
-    }
-
-
-    setIsChanged_sil()
-    if (onaylananMetraj_state2.satirlar.find(x => x.newSelected)) {
-      setIsChanged_sil(true)
-    }
-
-    setOnaylananMetraj_state(onaylananMetraj_state2)
-  }
-
-
-  const update_onaylananMetraj_sil = (oneRow) => {
-
-    let onaylananMetraj_state2 = _.cloneDeep(onaylananMetraj_state)
-
-    // reviz edilmiş bir satırsa
-    if (oneRow.isSelected && !oneRow.hasSelectedCopy && oneRow.versiyon === 0) {
-
-      if (!oneRow.newSelected) {
-        onaylananMetraj_state2.satirlar = onaylananMetraj_state2.satirlar.map(oneSatir => {
-          if (oneSatir.satirNo === oneRow.satirNo && oneSatir.versiyon === 0) {
-            oneSatir.newSelected = true
-          }
-          return oneSatir
-        })
-      } else {
-        onaylananMetraj_state2.satirlar = onaylananMetraj_state2.satirlar.map(oneSatir => {
-          if (oneSatir.satirNo === oneRow.satirNo && oneSatir.versiyon === 0) {
-            delete oneSatir.newSelected
-          }
-          return oneSatir
-        })
-      }
-
-    }
-
-    if (oneRow.isSelectedCopy && oneRow.versiyon === 0) {
-
-      if (!oneRow.newSelected) {
-        onaylananMetraj_state2.satirlar = onaylananMetraj_state2.satirlar.map(oneSatir => {
-          if (oneSatir.satirNo === oneRow.satirNo && oneSatir.versiyon === 0) {
-            oneSatir.newSelected = true
-          }
-          return oneSatir
-        })
-      } else {
-        onaylananMetraj_state2.satirlar = onaylananMetraj_state2.satirlar.map(oneSatir => {
-          if (oneSatir.satirNo === oneRow.satirNo && oneSatir.versiyon === 0) {
-            delete oneSatir.newSelected
-          }
-          if (oneSatir.satirNo === oneRow.originalSatirNo) {
-            delete oneSatir.newSelected
-          }
-          return oneSatir
-        })
-      }
-
-    }
-
-    if (oneRow.hasSelectedCopy && oneRow.versiyon === 0) {
-
-      let originalSatirNo = oneRow.satirNo
-
-      if (!oneRow.newSelected) {
-        onaylananMetraj_state2.satirlar = onaylananMetraj_state2.satirlar.map(oneSatir => {
-          if (oneSatir.satirNo === oneRow.satirNo && oneSatir.versiyon === 0) {
-            oneSatir.newSelected = true
-          }
-          if (oneSatir.originalSatirNo === originalSatirNo && oneSatir.versiyon === 0) {
-            oneSatir.newSelected = true
-          }
-          return oneSatir
-        })
-      } else {
-        onaylananMetraj_state2.satirlar = onaylananMetraj_state2.satirlar.map(oneSatir => {
-          if (oneSatir.satirNo === oneRow.satirNo && oneSatir.versiyon === 0) {
-            delete oneSatir.newSelected
-          }
-          if (oneSatir.originalSatirNo === originalSatirNo && oneSatir.versiyon === 0) {
-            delete oneSatir.newSelected
-          }
-
-          return oneSatir
-        })
-      }
-
-    }
-
-    setIsChanged_sil()
-    if (onaylananMetraj_state2.satirlar.find(x => x.newSelected)) {
-      setIsChanged_sil(true)
-    }
-
-    setOnaylananMetraj_state(onaylananMetraj_state2)
-
-  }
-
-
-
-
-  const cancel_sil = () => {
-    setOnaylananMetraj_state(_.cloneDeep(onaylananMetraj_backUp))
-    // setHasSelectedCopySatirlar(onaylananMetraj_backUp?.satirlar.find(x => x.hasSelectedCopy) ? true : false)
-    setIsChanged_sil()
-    setMode_sil()
-    setShow("Main")
-  }
-
-
-  const save_sil = async () => {
-
     try {
-
-      // await RealmApp?.currentUser.callFunction("update_onaylananMetraj_sil", ({ _dugumId: selectedNode._id, onaylananMetraj_state }))
-
-      setHasSelectedCopySatirlar(onaylananMetraj_state?.satirlar.find(x => x.hasSelectedCopy) ? true : false)
-
-      const response = await fetch(process.env.REACT_APP_BASE_URL + `/api/dugumler/updateonaylananmetrajsil`, {
-        method: 'POST',
-        headers: {
-          email: appUser.email,
-          token: appUser.token,
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-          dugumId: selectedNode._id,
-          onaylananMetraj_state
-        })
-      })
-
-      const responseJson = await response.json()
-
-      if (responseJson.error) {
-        if (responseJson.error.includes("expired")) {
-          setAppUser()
-          localStorage.removeItem('appUser')
-          navigate('/')
-          window.location.reload()
-        }
-        throw new Error(responseJson.error);
+      for (const line of changedLines) {
+        const { error } = await supabase
+          .from('measurement_lines')
+          .update({ carpan: line.carpan, adet: line.adet, boy: line.boy, en: line.en, yukseklik: line.yukseklik, aciklama: line.aciklama })
+          .eq('id', line.id)
+        if (error) throw error
       }
-
-      if (responseJson.ok) {
-        setShow("Main")
-        setIsChanged_sil()
-        setMode_sil()
-        queryClient.invalidateQueries(['dataOnaylananMetraj'])
-      } else {
-        throw new Error("Kayıt işleminde hata oluştu, sayfayı yenileyiniz, sorun devam ederse, Rapor7/24 ile iletişime geçiniz.")
-      }
-
+      const total = sess.lines.reduce((s, l) => s + calcMetraj(l), 0)
+      const { error: updError } = await supabase
+        .from('measurement_sessions').update({ total_quantity: total }).eq('id', sessId)
+      if (updError) throw updError
+      setSessions(s => s.map(sess2 => {
+        if (sess2.id !== sessId) return sess2
+        return { ...sess2, editMode: false, editBackup: null, total_quantity: total }
+        // revisedLines intentionally kept to show revision history
+      }))
     } catch (err) {
-
-      console.log(err)
-
-      setDialogAlert({
-        dialogIcon: "warning",
-        dialogMessage: "Beklenmedik hata, sayfayı yenileyiniz, sorun devam ederse Rapor7/24 ile irtibata geçiniz..",
-        detailText: err?.message ? err.message : null,
-        onCloseAction: () => {
-          setShow("Main")
-          setIsChanged_sil()
-          setMode_sil()
-          queryClient.resetQueries(['dataOnaylananMetraj'])
-
-          setDialogAlert()
-        }
-      })
-
+      setDialogAlert({ dialogIcon: 'warning', dialogMessage: 'Kaydetme sırasında hata oluştu.', detailText: err.message, onCloseAction: () => setDialogAlert() })
     }
   }
 
-
-
-
-
-
-  // GENEL - bir string değerinin numerik olup olmadığının kontrolü
-  function isNumeric(str) {
-    if (str) {
-      str.toString()
-    }
-    return !isNaN(str) && // use type coercion to parse the _entirety_ of the string (`parseFloat` alone does not do this)...
-      !isNaN(parseFloat(str)) // ...and ensure strings of whitespace fail
+  const toggleShowOriginals = (sessId) => {
+    setSessions(s => s.map(sess =>
+      sess.id === sessId ? { ...sess, showOriginals: !sess.showOriginals } : sess
+    ))
   }
 
-
-
-  // GENEL - bir fonksiyon, ortak kullanılıyor olabilir
-  const ikiHane = (value) => {
-    if (value != "") {
-      return new Intl.NumberFormat("de-DE", { minimumFractionDigits: 2, maximumFractionDigits: 2, }).format(value)
-    }
-    return value
-  }
-
-
-
-
-  // GENEL - bir fonksiyon, ortak kullanılıyor olabilir
-  const metrajValue = (oneRow, oneProperty, isMinha) => {
-
-    if (oneProperty == "pozBirim") return pozBirim
-    if (oneProperty.includes("carpan")) return show !== "EditMetraj" ? ikiHane(oneRow[oneProperty]) : oneRow[oneProperty]
-    if (oneProperty == "metraj") return ikiHane(oneRow[oneProperty])
-
-    // yukarıdaki hiçbiri değilse
-    return oneRow[oneProperty]
-
-  }
-
-
-
-
-  // CSS
-  const css_enUstBaslik = {
-    px: "0.3rem", border: "1px solid black", backgroundColor: "lightgray", display: "grid", alignItems: "center", justifyContent: "center"
-  }
-
-  const css_metrajCetveliBaslik = {
-    mt: "1rem", px: "0.3rem", border: "1px solid black", backgroundColor: myTema.renkler.metrajOnaylananBaslik, display: "grid", alignItems: "center", justifyContent: "center", fontWeight: "700"
-  }
-
-  const css_metrajCetveliSatir = {
-    px: "0.3rem", border: "1px solid black", display: "grid", alignItems: "center", justifyContent: "center"
-  }
-
-
-  const gridTemplateColumns1 = 'max-content minmax(min-content, 5fr) repeat(7, minmax(min-content, 1fr)) 0.5rem max-content'
-
-  pozBirim = selectedProje?.pozBirimleri.find(item => item.id == selectedPoz?.pozBirimId)?.name
-
-  let emailAdress
+  const pozLabel = selectedPoz?.code
+    ? `${selectedPoz.code} · ${selectedPoz.short_desc}`
+    : selectedPoz?.short_desc
 
   return (
-
-    <>
-
-      {dialogAlert &&
+    <Box>
+      {dialogAlert && (
         <DialogAlert
           dialogIcon={dialogAlert.dialogIcon}
           dialogMessage={dialogAlert.dialogMessage}
           detailText={dialogAlert.detailText}
-          onCloseAction={dialogAlert.onCloseAction ? dialogAlert.onCloseAction : () => setDialogAlert()}
+          onCloseAction={dialogAlert.onCloseAction ?? (() => setDialogAlert())}
         />
-      }
+      )}
 
-      <Grid name="metrajCetveliHeader" item sx={{ mt: (parseFloat(subHeaderHeight) + 1) + "rem", }}>
-        <HeaderMetrajOnaylaCetvel
-          show={show} setShow={setShow}
-          mode_sil={mode_sil} setMode_sil={setMode_sil}
-
-          save={save} cancel={cancel}
-          isChanged={isChanged} setIsChanged={setIsChanged}
-          copySelectedRow={copySelectedRow}
-
-          hasSelectedCopySatirlar={hasSelectedCopySatirlar}
-          onaylananMetraj_state={onaylananMetraj_state}
-          save_sil={save_sil} cancel_sil={cancel_sil}
-          isChanged_sil={isChanged_sil} setIsChanged_sil={setIsChanged_sil}
-        />
-      </Grid>
-
-
-      {(isFetching) &&
-        <Box sx={{ width: '100%', px: "1rem", mt: "5rem", color: 'gray' }}>
-          <LinearProgress color='inherit' />
-        </Box >
-      }
-
-
-      {!isFetching && onaylananMetraj_state &&
-
-        < Box sx={{ maxWidth: "65rem", display: "grid", gridTemplateColumns: gridTemplateColumns1, mt: subHeaderHeight, mb: "1rem", mx: "1rem" }}>
-
-
-          {/* En Üst Başlık Satırı */}
-          < React.Fragment >
-            <Box sx={{ ...css_enUstBaslik }}>
-              Sıra
+      {/* BAŞLIK */}
+      <AppBar position="static" sx={{ backgroundColor: 'white', color: 'black', boxShadow: 4 }}>
+        <Grid container alignItems="center" sx={{ px: '1rem', py: '0.5rem', maxHeight: '5rem' }}>
+          <Grid item xs>
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: '0.3rem', flexWrap: 'nowrap', overflow: 'hidden' }}>
+              <IconButton sx={{ m: 0, p: 0 }} onClick={() => navigate('/metrajonaylapozmahaller')}>
+                <ReplyIcon sx={{ color: 'gray' }} />
+              </IconButton>
+              <Typography
+                variant="body1"
+                sx={{ fontWeight: 600, opacity: 0.4, cursor: 'pointer', whiteSpace: 'nowrap', '&:hover': { opacity: 0.9 } }}
+                onClick={() => navigate('/metrajonayla')}
+              >
+                Metraj Onayla
+              </Typography>
+              <NavigateNextIcon sx={{ opacity: 0.4, fontSize: 18, flexShrink: 0 }} />
+              <Typography
+                variant="body1"
+                sx={{ fontWeight: 600, opacity: 0.4, cursor: 'pointer', whiteSpace: 'nowrap', maxWidth: '10rem', overflow: 'hidden', textOverflow: 'ellipsis', '&:hover': { opacity: 0.9 } }}
+                onClick={() => navigate('/metrajonaylapozlar')}
+              >
+                {selectedIsPaket?.name}
+              </Typography>
+              <NavigateNextIcon sx={{ opacity: 0.4, fontSize: 18, flexShrink: 0 }} />
+              <Typography
+                variant="body1"
+                sx={{ fontWeight: 600, opacity: 0.6, cursor: 'pointer', whiteSpace: 'nowrap', maxWidth: '14rem', overflow: 'hidden', textOverflow: 'ellipsis', '&:hover': { opacity: 0.9 } }}
+                onClick={() => navigate('/metrajonaylapozmahaller')}
+              >
+                {pozLabel}
+              </Typography>
+              <NavigateNextIcon sx={{ opacity: 0.4, fontSize: 18, flexShrink: 0 }} />
+              <Typography variant="body1" sx={{ fontWeight: 700, whiteSpace: 'nowrap' }}>
+                {selectedMahal_metraj?.name ?? 'Mahal'}
+              </Typography>
             </Box>
-            <Box sx={{ ...css_enUstBaslik }}>
-              Açıklama
-            </Box>
-            <Box sx={{ ...css_enUstBaslik }}>
-              Benzer
-            </Box>
-            <Box sx={{ ...css_enUstBaslik }}>
-              Adet
-            </Box>
-            <Box sx={{ ...css_enUstBaslik }}>
-              En
-            </Box>
-            <Box sx={{ ...css_enUstBaslik }}>
-              Boy
-            </Box>
-            <Box sx={{ ...css_enUstBaslik }}>
-              Yük.
-            </Box>
-            <Box sx={{ ...css_enUstBaslik }}>
-              Metraj
-            </Box>
-            <Box sx={{ ...css_enUstBaslik }}>
-              Birim
-            </Box>
+          </Grid>
+        </Grid>
+      </AppBar>
 
-            <Box>
-            </Box>
+      {loading && <LinearProgress />}
 
-            <Box>
-            </Box>
+      {!loading && sessions.length === 0 && (
+        <Stack sx={{ width: '100%', p: '1rem' }}>
+          <Alert severity="info">
+            Bu mahal için henüz onaya hazır veya onaylanmış metraj bulunmuyor.
+          </Alert>
+        </Stack>
+      )}
 
-          </React.Fragment >
+      {/* SESSION KARTLARI */}
+      <Box sx={{ p: '1rem', display: 'flex', flexDirection: 'column', gap: '1.5rem', maxWidth: '900px' }}>
+        {sessions.map(sess => {
+          const hasRevisions = Object.keys(sess.revisedLines).length > 0
+          const editTotal = sess.editMode ? sess.lines.reduce((s, l) => s + calcMetraj(l), 0) : null
 
+          return (
+            <Box
+              key={sess.id}
+              sx={{
+                border: '1px solid',
+                borderColor: sess.status === 'approved' ? '#90CAF9' : '#A5D6A7',
+                borderRadius: '8px',
+                overflow: 'hidden',
+                boxShadow: 1,
+              }}
+            >
+              {/* Session başlığı */}
+              <Box
+                sx={{
+                  display: 'flex', alignItems: 'center', gap: '0.5rem',
+                  px: '1rem', py: '0.5rem',
+                  backgroundColor: sess.status === 'approved' ? '#E3F2FD' : '#F1F8E9',
+                  borderBottom: '1px solid',
+                  borderColor: sess.status === 'approved' ? '#90CAF9' : '#A5D6A7',
+                }}
+              >
+                <Typography variant="body1" sx={{ fontWeight: 700, flexGrow: 1 }}>
+                  {sess.userName}
+                </Typography>
 
-          {/* Metraj Cetveli Başlık Satırı */}
-          <React.Fragment>
+                <StatusChip status={sess.status} />
 
-            <Box sx={{ ...css_metrajCetveliBaslik, gridColumn: "1/8", justifyContent: "end", pr: "1rem" }}>
-              {"Onaylanan Metraj"}
-            </Box>
+                {/* Revize geçmişini göster/gizle */}
+                {hasRevisions && !sess.editMode && (
+                  <Tooltip title={sess.showOriginals ? 'Orijinal değerleri gizle' : 'Orijinal değerleri göster'}>
+                    <IconButton size="small" onClick={() => toggleShowOriginals(sess.id)}>
+                      {sess.showOriginals
+                        ? <VisibilityIcon sx={{ fontSize: 20, color: '#e65100' }} />
+                        : <VisibilityOffIcon sx={{ fontSize: 20, color: '#888' }} />
+                      }
+                    </IconButton>
+                  </Tooltip>
+                )}
 
-            <Box sx={{ ...css_metrajCetveliBaslik, justifyContent: "end", pr: "0.3rem", color: onaylananMetraj_state["metraj"] < 0 ? "red" : null }}>
-              {ikiHane(onaylananMetraj_state.metrajOnaylanan)}
-            </Box>
+                {/* Onayla */}
+                {sess.status === 'ready' && !sess.editMode && (
+                  <Tooltip title="Onayla">
+                    <IconButton size="small" onClick={() => handleApprove(sess.id)}>
+                      <CheckCircleIcon sx={{ color: '#2e7d32', fontSize: 24 }} />
+                    </IconButton>
+                  </Tooltip>
+                )}
 
-            <Box sx={{ ...css_metrajCetveliBaslik }}>
-              {pozBirim}
-            </Box>
+                {/* Düzenle */}
+                {sess.status === 'approved' && !sess.editMode && (
+                  <Tooltip title="Düzenle (Revize)">
+                    <IconButton size="small" onClick={() => enterEditMode(sess.id)}>
+                      <EditIcon sx={{ fontSize: 20 }} />
+                    </IconButton>
+                  </Tooltip>
+                )}
 
-            <Box></Box>
-
-
-            {/* ALLTAKİ 4 TANEDEN BİRİ GÖSTERİLİYOR */}
-            {!mode_sil &&
-              <Box sx={{ ...css_metrajCetveliBaslik }}>
-                Durum
+                {/* Düzenleme modunda: İptal + Kaydet */}
+                {sess.editMode && (
+                  <>
+                    <Tooltip title="İptal">
+                      <IconButton size="small" onClick={() => cancelEdit(sess.id)}>
+                        <ClearIcon sx={{ color: '#c62828', fontSize: 20 }} />
+                      </IconButton>
+                    </Tooltip>
+                    <Tooltip title="Kaydet">
+                      <IconButton size="small" onClick={() => saveEdit(sess.id)}>
+                        <SaveIcon sx={{ color: '#1565c0', fontSize: 20 }} />
+                      </IconButton>
+                    </Tooltip>
+                  </>
+                )}
               </Box>
-            }
 
-            {mode_sil &&
-              <Box onClick={() => toggle_sil_all()} sx={{ ...css_metrajCetveliBaslik, cursor: "pointer" }}>
-                <DeleteIcon variant="contained" sx={{ minWidth: "3.05rem", color: "gray", fontSize: "1rem" }} />
-              </Box>
-            }
+              {/* Satır yok */}
+              {sess.lines.length === 0 && (
+                <Box sx={{ px: '1rem', py: '0.75rem', color: 'gray', fontSize: '0.85rem' }}>
+                  Bu oturumda metraj satırı bulunmuyor.
+                </Box>
+              )}
 
+              {/* Satırlar tablosu */}
+              {sess.lines.length > 0 && (
+                <Box sx={{ overflowX: 'auto' }}>
 
-          </React.Fragment>
-
-
-          {onaylananMetraj_state.satirlar.filter(x => !mode_sil ? !x.isPasif : x).filter(x => mode_sil ? x : !x.hasSelectedCopy)
-            .sort((a, b) => {
-              // let a1 = a?.dizi?.substring(1, a?.dizi?.length)
-              // let b1 = b?.dizi?.substring(1, b?.dizi?.length)
-              let a1 = a?.dizi
-              let b1 = b?.dizi
-              return a1?.localeCompare(b1, 'en', { numeric: true })
-            })
-            .sort((a, b) => {
-
-              let a1 = a.satirNo.substring(0, a.satirNo.indexOf("-"))
-              let b1 = b.satirNo.substring(0, b.satirNo.indexOf("-"))
-
-              let a2 = a.satirNo.substring(a.satirNo.indexOf("-") + 1, a.satirNo.length)
-              let b2 = b.satirNo.substring(b.satirNo.indexOf("-") + 1, b.satirNo.length)
-
-              return a1.localeCompare(b1) || a2.localeCompare(b2, undefined, { numeric: true, sensitivity: 'base' })
-
-            }).sort().map((oneRow, index) => {
-
-              // console.log("oneRow", oneRow)
-
-              let kullaniciDegisti
-              if (index !== 0 && oneRow.userEmail !== emailAdress) {
-                kullaniciDegisti = true
-              }
-              emailAdress = oneRow.userEmail
-
-              return (
-                < React.Fragment key={index}>
-
-                  {["satirNo", "aciklama", "carpan1", "carpan2", "carpan3", "carpan4", "carpan5", "metraj", "pozBirim"].map((oneProperty, index) => {
-                    // let isCellEdit = (oneProperty === "satirNo" || oneProperty === "pozBirim" || oneProperty === "metraj") ? false : true
-                    // let isCellEdit = show === "EditMetraj" && !oneRow.isSelected && (oneProperty.includes("aciklama") || oneProperty.includes("carpan")) ? true : false
-                    let isCellEdit = show === "EditMetraj" && (oneProperty.includes("aciklama") || oneProperty.includes("carpan")) ? true : false
-                    let isMinha = oneRow["aciklama"].replace("İ", "i").toLowerCase().includes("minha") ? true : false
-
-                    return (
-                      <React.Fragment key={index}>
-
-                        {isCellEdit &&
-
-                          <Box
-                            onClick={() => setSelectedRow(oneRow)}
-                            sx={{
-                              ...css_metrajCetveliSatir,
-                              borderBottom: oneRow.isLastCopy && "2px solid black",
-                              borderTop: kullaniciDegisti ? "2px solid red" : oneRow.isFirstCopy && "2px solid black",
-                              backgroundColor: oneRow.isSelectedCopy && (oneProperty.includes("aciklama") || oneProperty.includes("carpan")) ? "rgba(255,255,0, 0.3)" : "rgba(255,255,0, 0.1)",
-                              minWidth: oneProperty.includes("aciklama") ? "10rem" : oneProperty.includes("1") || oneProperty.includes("2") ? "4rem" : "6rem"
-                            }}>
-                            <Input
-                              // autoFocus={autoFocus.baslikId == oneBaslik.id && autoFocus.mahalId == oneMahal._id.toString()}
-                              // autoFocus={autoFocus.mahalId == oneMahal._id.toString()}
-                              // autoFocus={true}
-                              autoComplete='off'
-                              id={oneRow.satirNo + oneProperty}
-                              name={oneRow.satirNo + oneProperty}
-                              // readOnly={oneRow.isSelected}
-                              disableUnderline={true}
-                              // size="small"
-                              type={oneProperty.includes("carpan") ? "number" : "text"}
-                              // type={"text"}
-                              // onChange={(e) => parseFloat(e.target.value).toFixed(1)}
-                              // onKeyDown={(evt) => ilaveYasaklilar.some(elem => evt.target.value.includes(elem)) && ilaveYasaklilar.find(item => item == evt.key) && evt.preventDefault()}
-                              onKeyDown={oneProperty.includes("carpan") ? (event) => handle_input_onKey(event) : null}
-                              onChange={(event) => handle_input_onChange(event, oneRow, oneProperty)}
-                              sx={{
-                                // height: "100%",
-                                // pt: "0.3rem",
-                                color: isMinha ? "red" : null,
-                                // justifyItems: oneBaslik.yatayHiza,
-                                "& input::-webkit-outer-spin-button, & input::-webkit-inner-spin-button": {
-                                  display: "none",
-                                },
-                                "& input[type=number]": {
-                                  MozAppearance: "textfield",
-                                },
-                              }}
-                              // metrajValue={oneRow[oneProperty]}
-                              // value={metrajValue(oneRow, oneProperty, isMinha)}
-                              value={metrajValue(oneRow, oneProperty, isMinha)}
-                              inputProps={{
-                                style: {
-                                  boxSizing: "border-box",
-                                  fontWeight: oneProperty === "metraj" && "700",
-                                  // mt: "0.5rem",
-                                  // height: "0.95rem",
-                                  // minWidth: oneProperty.includes("aciklama") ? "min-content" : "4rem",
-                                  // width: "min-content",
-                                  textAlign: oneProperty.includes("carpan") || oneProperty.includes("metraj") ? "end" : oneProperty.includes("aciklama") ? "start" : "center"
-                                },
-                                step: "0.1", lang: "en-US"
-                              }}
-                            />
-                          </Box>
-                        }
-                        
-
-                        {!isCellEdit &&
-                          <Box
-                            sx={{
-                              ...css_metrajCetveliSatir,
-                              borderBottom: oneRow.isLastCopy && "2px solid black",
-                              borderTop: kullaniciDegisti ? "2px solid red" : oneRow.isFirstCopy && "2px solid black",
-                              // backgroundColor: (mode_sil) && (oneRow.isSelected || oneRow.hasSelectedCopy) ? "rgba(0, 0, 0, 0.15)" :
-                              //   mode_sil && oneRow?.isSelectedCopy && oneRow?.versiyon !== 0 && oneRow.isPasif ? "rgba(0, 0, 0, 0.15)" :
-                              //     mode_sil && oneRow?.isSelectedCopy && oneRow?.versiyon === 0 && "rgba(255, 234, 0, 0.22)",
-                              backgroundColor: oneRow?.versiyon === 0 ? "rgba(255, 234, 0, 0.22)" :
-                                (oneRow?.isPasif || oneRow.hasSelectedCopy) && "rgba(0, 0, 0, 0.15)",
-                              justifyContent: (oneProperty.includes("satirNo") || oneProperty.includes("aciklama")) ? "start" : oneProperty.includes("carpan") ? "end" : oneProperty.includes("metraj") ? "end" : "center",
-                              minWidth: oneProperty.includes("carpan") ? "5rem" : oneProperty.includes("metraj") ? "5rem" : null,
-                              color: isMinha ? "red" : null,
-                              fontWeight: (oneRow.isSelected || oneRow.hasSelectedCopy) && "700",
-                            }}>
-                            {metrajValue(oneRow, oneProperty, isMinha)}
-                          </Box>
-                        }
-
-                      </React.Fragment>
-                    )
-
-                  })}
-
-                  <Box></Box>
-
-                  <Box
-                    onClick={() => mode_sil && update_onaylananMetraj_sil(oneRow)}
-                    // onMouseEnter={() => mode_sil && setIsHovered(true)}
-                    // onMouseLeave={() => mode_sil && setIsHovered(false)}
-                    sx={{
-                      // backgroundColor: oneRow.isSelected ? null : "rgba(255,255,0, 0.3)",
-                      // backgroundColor: "rgba(255,255,0, 0.3)",
-                      cursor: "pointer",
-                      display: "grid",
-                      alignItems: "center",
-                      justifyItems: "center",
-                      px: "0.3rem",
-                      border: "1px solid black",
-                      borderBottom: oneRow.isLastCopy && "2px solid black",
-                      borderTop: kullaniciDegisti ? "2px solid red" : oneRow.isFirstCopy && "2px solid black",
-                    }}
-                  >
-                    {/* {!mode_sil && oneRow.isSelected && !oneRow.hasSelectedCopy &&
-                    <LockIcon
-                      variant="contained"
-                      sx={{ color: "gray", fontSize: "0.9rem" }} />
-                  } */}
-                    {mode_sil && oneRow.versiyon !== 0 &&
-                      <Box sx={{ fontSize: "0.7rem", fontWeight: (oneRow.isSelected || oneRow.hasSelectedCopy) && "700" }}>v{oneRow.versiyon}</Box>
-                    }
-
-                    {!mode_sil && oneRow.isSelectedCopy && oneRow.versiyon !== 0 &&
-                      <EditIcon variant="contained" sx={{ color: mode_sil ? "lightgray" : "gray", fontSize: "0.9rem" }} />
-                    }
-
-                    {oneRow.isSelectedCopy && !oneRow.newSelected && oneRow.versiyon === 0 &&
-                      <EditIcon variant="contained" sx={{ color: mode_sil ? "lightgray" : "gray", fontSize: "0.9rem" }} />
-                    }
-
-                    {mode_sil && oneRow.newSelected && oneRow.versiyon == 0 &&
-                      <ReplyIcon
-                        variant="contained"
-                        sx={{ color: "red", fontSize: "0.9rem" }} />
-                    }
-                    {/* {mode_sil && oneRow.isSelectedCopy &&
-                    <ReplyIcon variant="contained" sx={{ color: "rgba(255, 132, 0, 1)", fontSize: "0.9rem" }} />
-                  } */}
-
+                  {/* Tablo başlığı */}
+                  <Box sx={{ ...css_lineHeader, minWidth: 'max-content' }}>
+                    <Box sx={{ ...css_lineHeaderCell, justifyContent: 'center' }}>Sıra</Box>
+                    <Box sx={{ ...css_lineHeaderCell, justifyContent: 'flex-start' }}>Açıklama</Box>
+                    {NUM_LABELS.map(lbl => (
+                      <Box key={lbl} sx={{ ...css_lineHeaderCell }}>{lbl}</Box>
+                    ))}
+                    <Box sx={{ ...css_lineHeaderCell }}>Metraj</Box>
                   </Box>
 
-                </React.Fragment>
-              )
+                  {/* Satırlar */}
+                  {sess.lines.map(line => {
+                    const metraj = calcMetraj(line)
+                    const isRevised = !!sess.revisedLines[line.id]
+                    const origMetraj = sess.revisedLines[line.id]?.originalMetraj
+                    const rowBg = isRevised && !sess.editMode && sess.showOriginals
+                      ? 'rgba(255,160,0,0.07)'
+                      : sess.editMode ? 'rgba(255,250,200,0.4)' : 'white'
 
-            })}
+                    return (
+                      <Box key={line.id} sx={{ ...css_lineRow, backgroundColor: rowBg, minWidth: 'max-content' }}>
 
+                        {/* Sıra */}
+                        <Box sx={{ ...css_lineCell, justifyContent: 'center', color: '#888' }}>
+                          {line.sira}
+                        </Box>
 
-        </Box >
-      }
+                        {/* Açıklama */}
+                        <Box sx={{ ...css_lineCell }}>
+                          {sess.editMode ? (
+                            <input
+                              style={{ ...inputSx, textAlign: 'left' }}
+                              value={line.aciklama ?? ''}
+                              onChange={e => handleLineChange(sess.id, line.id, 'aciklama', e.target.value)}
+                            />
+                          ) : (
+                            line.aciklama ?? ''
+                          )}
+                        </Box>
 
+                        {/* Sayısal alanlar */}
+                        {NUM_FIELDS.map(field => (
+                          <Box key={field} sx={{ ...css_lineCell, justifyContent: 'flex-end' }}>
+                            {sess.editMode ? (
+                              <input
+                                type="number"
+                                style={inputSx}
+                                value={line[field] ?? ''}
+                                onChange={e => handleLineChange(sess.id, line.id, field, e.target.value)}
+                                onKeyDown={e => ['e', 'E', '+'].includes(e.key) && e.preventDefault()}
+                              />
+                            ) : (
+                              line[field] != null ? line[field] : ''
+                            )}
+                          </Box>
+                        ))}
 
+                        {/* Metraj */}
+                        <Box
+                          sx={{
+                            ...css_lineCell, flexDirection: 'column', alignItems: 'flex-end',
+                            justifyContent: 'center', gap: '1px',
+                          }}
+                        >
+                          <Box sx={{ fontWeight: isRevised && !sess.editMode ? 600 : 'normal' }}>
+                            {ikiHane(metraj)}
+                          </Box>
+                          {isRevised && !sess.editMode && sess.showOriginals && (
+                            <Box sx={{ fontSize: '0.7rem', color: '#e65100', display: 'flex', alignItems: 'center', gap: '2px' }}>
+                              <span>←</span>
+                              <span>{ikiHane(origMetraj)}</span>
+                            </Box>
+                          )}
+                        </Box>
 
+                      </Box>
+                    )
+                  })}
 
+                  {/* Toplam satırı */}
+                  <Box
+                    sx={{
+                      display: 'grid', gridTemplateColumns: GRID_COLS,
+                      backgroundColor: sess.status === 'approved' ? '#E3F2FD' : '#F1F8E9',
+                      borderTop: '2px solid',
+                      borderColor: sess.status === 'approved' ? '#90CAF9' : '#A5D6A7',
+                      minWidth: 'max-content',
+                    }}
+                  >
+                    <Box sx={{ gridColumn: '1 / 8', px: '8px', py: '4px', fontSize: '0.8rem', fontWeight: 600, display: 'flex', alignItems: 'center', justifyContent: 'flex-end', color: '#555' }}>
+                      Toplam
+                    </Box>
+                    <Box sx={{ px: '8px', py: '4px', fontSize: '0.9rem', fontWeight: 700, display: 'flex', alignItems: 'center', justifyContent: 'flex-end', color: sess.status === 'approved' ? '#01579B' : '#1B5E20' }}>
+                      {ikiHane(sess.editMode ? editTotal : sess.total_quantity)}
+                      {pozBirim && <Box component="span" sx={{ ml: '4px', fontWeight: 400, fontSize: '0.8rem' }}>{pozBirim}</Box>}
+                    </Box>
+                  </Box>
 
-    </ >
+                  {/* Revize notu */}
+                  {hasRevisions && !sess.editMode && sess.showOriginals && (
+                    <Box sx={{ px: '8px', py: '4px', fontSize: '0.72rem', color: '#e65100', backgroundColor: 'rgba(255,160,0,0.06)' }}>
+                      ← işareti: orijinal değer (revize edilmiş satırlar turuncu arka planla gösterilmektedir)
+                    </Box>
+                  )}
 
+                </Box>
+              )}
+            </Box>
+          )
+        })}
+      </Box>
+    </Box>
   )
-
 }
-
-

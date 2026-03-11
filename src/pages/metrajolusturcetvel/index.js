@@ -23,7 +23,6 @@ import ClearOutlinedIcon from '@mui/icons-material/ClearOutlined'
 import AddCircleOutlineIcon from '@mui/icons-material/AddCircleOutline'
 import CheckCircleIcon from '@mui/icons-material/CheckCircle'
 import DeleteOutlineIcon from '@mui/icons-material/DeleteOutline'
-import PlayCircleOutlineIcon from '@mui/icons-material/PlayCircleOutline'
 
 
 function computeQuantity(line) {
@@ -63,6 +62,12 @@ export default function P_MetrajOlusturCetvel() {
   const [isChanged, setIsChanged] = useState(false)
   const [dialogAlert, setDialogAlert] = useState()
   const [showCancelConfirm, setShowCancelConfirm] = useState(false)
+  const [pendingNav, setPendingNav] = useState(null)
+
+  const navGuard = (path) => {
+    if (isChanged) { setPendingNav(path); setShowCancelConfirm(true) }
+    else navigate(path)
+  }
 
   // wpAreaId is stored in selectedMahal when building mahaller list
   const wpAreaId = selectedMahal?.wpAreaId
@@ -96,16 +101,18 @@ export default function P_MetrajOlusturCetvel() {
         if (error) throw error
         sessionData = data
       } else {
-        // Mevcut session yükle (created_by migration tamamlanana kadar kullanıcı filtresi yok)
-        const { data, error } = await supabase
+        // Mevcut kullanıcının session'ını yükle
+        let query = supabase
           .from('measurement_sessions')
           .select('*')
           .eq('work_package_poz_area_id', wpAreaId)
           .in('status', ['draft', 'ready'])
           .order('updated_at', { ascending: false })
           .limit(1)
-          .maybeSingle()
 
+        if (appUser?.id) query = query.eq('created_by', appUser.id)
+
+        const { data, error } = await query.maybeSingle()
         if (error) throw error
         sessionData = data
       }
@@ -119,23 +126,9 @@ export default function P_MetrajOlusturCetvel() {
 
         if (lineError) throw lineError
 
-        const ls = (lineData ?? []).map(l => {
-          const noDimensions = l.count == null && l.length == null && l.width == null && l.height == null
-          if (l.multiplier === 1 && noDimensions) return { ...l, multiplier: null }
-          return l
-        })
+        const ls = lineData ?? []
 
-        const computedTotal = ls.reduce((sum, l) => sum + computeQuantity(l), 0)
-        if (sessionData.total_quantity !== computedTotal) {
-          await supabase
-            .from('measurement_sessions')
-            .update({ total_quantity: computedTotal })
-            .eq('id', sessionData.id)
-          setSession({ ...sessionData, total_quantity: computedTotal })
-        } else {
-          setSession(sessionData)
-        }
-
+        setSession(sessionData)
         setLines(ls)
         setLinesBackup(_.cloneDeep(ls))
       } else {
@@ -150,32 +143,30 @@ export default function P_MetrajOlusturCetvel() {
     }
   }
 
-  const handleStartSession = async () => {
-    try {
-      const { data, error } = await supabase
-        .from('measurement_sessions')
-        .insert({ work_package_poz_area_id: wpAreaId, status: 'draft', total_quantity: 0, created_by: appUser?.id ?? null })
-        .select()
-        .single()
-
-      if (error) throw error
-
-      setSession(data)
-      setLines([])
-      setLinesBackup([])
-      setMode_edit(true)
-    } catch (err) {
-      setDialogAlert({ dialogIcon: 'warning', dialogMessage: err.message, onCloseAction: () => setDialogAlert() })
-    }
-  }
-
   const handleAddLine = async () => {
-    if (!session) return
+    let currentSession = session
+    if (!currentSession) {
+      try {
+        const { data, error } = await supabase
+          .from('measurement_sessions')
+          .insert({ work_package_poz_area_id: wpAreaId, status: 'draft', total_quantity: 0, created_by: appUser?.id ?? null })
+          .select()
+          .single()
+        if (error) throw error
+        currentSession = data
+        setSession(data)
+        setMode_edit(true)
+      } catch (err) {
+        setDialogAlert({ dialogIcon: 'warning', dialogMessage: err.message, onCloseAction: () => setDialogAlert() })
+        return
+      }
+    }
+
     const nextIdx = lines.length > 0 ? Math.max(...lines.map(l => l.order_index)) + 1 : 0
     try {
       const { data, error } = await supabase
         .from('measurement_lines')
-        .insert({ session_id: session.id, line_type: 'data', description: '', order_index: nextIdx })
+        .insert({ session_id: currentSession.id, line_type: 'data', description: '', order_index: nextIdx })
         .select()
         .single()
 
@@ -220,7 +211,7 @@ export default function P_MetrajOlusturCetvel() {
           .from('measurement_lines')
           .update({
             description: line.description,
-            multiplier: (line.multiplier === '' || line.multiplier === null) ? 1 : line.multiplier,
+            multiplier: (line.multiplier === '' || line.multiplier === null) ? null : Number(line.multiplier),
             count:  line.count  === '' ? null : line.count,
             length: line.length === '' ? null : line.length,
             width:  line.width  === '' ? null : line.width,
@@ -241,6 +232,12 @@ export default function P_MetrajOlusturCetvel() {
       setLinesBackup(_.cloneDeep(lines))
       setIsChanged(false)
       setMode_edit(false)
+      if (pendingNav) {
+        const dest = pendingNav
+        setPendingNav(null)
+        setShowCancelConfirm(false)
+        navigate(dest)
+      }
     } catch (err) {
       setDialogAlert({ dialogIcon: 'warning', dialogMessage: err.message, onCloseAction: () => setDialogAlert() })
     }
@@ -397,18 +394,41 @@ export default function P_MetrajOlusturCetvel() {
       )}
 
       {showCancelConfirm && (
-        <DialogAlert
-          dialogIcon="warning"
-          dialogMessage="Yaptığınız değişiklikler kaybolacak. Devam edilsin mi?"
-          actionText1="İptal Et"
-          action1={() => {
-            setLines(_.cloneDeep(linesBackup))
-            setIsChanged(false)
-            setMode_edit(false)
-            setShowCancelConfirm(false)
-          }}
-          onCloseAction={() => setShowCancelConfirm(false)}
-        />
+        pendingNav ? (
+          <DialogAlert
+            dialogIcon="warning"
+            dialogMessage="Kaydedilmemiş değişiklikler var. Ne yapmak istersiniz?"
+            actionText1="Kaydet ve Çık"
+            action1={() => {
+              setShowCancelConfirm(false)
+              handleSave()
+            }}
+            actionText2="Kaydetmeden Çık"
+            action2={() => {
+              const dest = pendingNav
+              setPendingNav(null)
+              setLines(_.cloneDeep(linesBackup))
+              setIsChanged(false)
+              setMode_edit(false)
+              setShowCancelConfirm(false)
+              navigate(dest)
+            }}
+            onCloseAction={() => { setShowCancelConfirm(false); setPendingNav(null) }}
+          />
+        ) : (
+          <DialogAlert
+            dialogIcon="warning"
+            dialogMessage="Yaptığınız değişiklikler iptal edilsin mi?"
+            actionText1="İptal Et"
+            action1={() => {
+              setLines(_.cloneDeep(linesBackup))
+              setIsChanged(false)
+              setMode_edit(false)
+              setShowCancelConfirm(false)
+            }}
+            onCloseAction={() => setShowCancelConfirm(false)}
+          />
+        )
       )}
 
       {/* BAŞLIK */}
@@ -421,13 +441,13 @@ export default function P_MetrajOlusturCetvel() {
         >
           <Grid item xs>
             <Box sx={{ display: 'flex', alignItems: 'center', gap: '0.4rem', flexWrap: 'nowrap', overflow: 'hidden' }}>
-              <IconButton sx={headerIconButton_sx} onClick={() => navigate('/metrajolusturpozmahaller')}>
+              <IconButton sx={headerIconButton_sx} onClick={() => navGuard('/metrajolusturpozmahaller')}>
                 <ReplyIcon sx={{ ...headerIcon_sx, color: 'gray' }} />
               </IconButton>
               <Typography
                 variant="body2"
                 sx={{ fontWeight: 600, opacity: 0.5, cursor: 'pointer', whiteSpace: 'nowrap', '&:hover': { opacity: 0.9 } }}
-                onClick={() => navigate('/metrajolusturpozlar')}
+                onClick={() => navGuard('/metrajolusturpozlar')}
               >
                 {selectedIsPaket?.name}
               </Typography>
@@ -435,7 +455,7 @@ export default function P_MetrajOlusturCetvel() {
               <Typography
                 variant="body2"
                 sx={{ fontWeight: 600, opacity: 0.5, cursor: 'pointer', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', maxWidth: '10rem', '&:hover': { opacity: 0.9 } }}
-                onClick={() => navigate('/metrajolusturpozmahaller')}
+                onClick={() => navGuard('/metrajolusturpozmahaller')}
               >
                 {selectedPoz?.code ? `${selectedPoz.code} · ${selectedPoz.short_desc}` : selectedPoz?.short_desc}
               </Typography>
@@ -467,7 +487,7 @@ export default function P_MetrajOlusturCetvel() {
                   </IconButton>
                 </>
               )}
-              {session && isDraft && mode_edit && (
+              {(!session || (session && isDraft && mode_edit)) && (
                 <IconButton sx={headerIconButton_sx} onClick={handleAddLine}>
                   <AddCircleOutlineIcon sx={{ ...headerIcon_sx, color: 'green' }} />
                 </IconButton>
@@ -510,29 +530,12 @@ export default function P_MetrajOlusturCetvel() {
         </Alert>
       )}
 
-      {/* Metraj başlat */}
-      {!isLoading && !loadError && !session && (
-        <Box sx={{ p: '2rem', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '1rem' }}>
+      {/* Boş durum */}
+      {!isLoading && !loadError && (!session || lines.length === 0) && (
+        <Box sx={{ p: '2rem', display: 'flex', justifyContent: 'center' }}>
           <Typography variant="body1" sx={{ color: 'gray' }}>
-            Bu mahal için henüz metraj başlatılmamış.
+            Satır eklemek için + butonuna tıklayın.
           </Typography>
-          <IconButton onClick={handleStartSession} sx={{ flexDirection: 'column', borderRadius: 2 }}>
-            <PlayCircleOutlineIcon sx={{ fontSize: 48, color: 'green' }} />
-            <Typography variant="caption">Metraj Başlat</Typography>
-          </IconButton>
-        </Box>
-      )}
-
-      {/* Boş draft */}
-      {!isLoading && !loadError && session && isDraft && lines.length === 0 && (
-        <Box sx={{ p: '2rem', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '1rem' }}>
-          <Typography variant="body1" sx={{ color: 'gray' }}>
-            Henüz metraj satırı eklenmemiş.
-          </Typography>
-          <IconButton onClick={handleAddLine} sx={{ flexDirection: 'column', borderRadius: 2 }}>
-            <AddCircleOutlineIcon sx={{ fontSize: 48, color: 'green' }} />
-            <Typography variant="caption">İlk Satırı Ekle</Typography>
-          </IconButton>
         </Box>
       )}
 

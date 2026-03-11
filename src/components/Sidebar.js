@@ -215,7 +215,7 @@ export default function Sidebar({ setMobileOpen }) {
             </ListItemButton>
 
             <ListItemButton
-              onClick={() => navigate('/metrajonaylapozlar')}
+              onClick={() => navigate('/metrajonayla')}
               sx={{ backgroundColor: pathname.includes("/metrajonayla") ? seciliSayfaRengi : null, '&:hover': { backgroundColor: seciliSayfaRengi } }}
             >
               <ListItemIcon>
