@@ -26,6 +26,7 @@ import SaveIcon from '@mui/icons-material/Save'
 import ClearIcon from '@mui/icons-material/Clear'
 import VisibilityIcon from '@mui/icons-material/Visibility'
 import VisibilityOffIcon from '@mui/icons-material/VisibilityOff'
+import AddIcon from '@mui/icons-material/Add'
 
 
 function ikiHane(v) {
@@ -36,7 +37,7 @@ function ikiHane(v) {
 }
 
 function calcMetraj(line) {
-  const vals = [line.carpan, line.adet, line.boy, line.en, line.yukseklik]
+  const vals = [line.multiplier, line.count, line.length, line.width, line.height]
     .map(v => (v != null && v !== '' ? parseFloat(v) : null))
     .filter(v => v !== null && !isNaN(v))
   if (vals.length === 0) return 0
@@ -50,7 +51,7 @@ function StatusChip({ status }) {
 }
 
 const GRID_COLS = '40px 1fr 70px 70px 70px 70px 70px 90px'
-const NUM_FIELDS = ['carpan', 'adet', 'boy', 'en', 'yukseklik']
+const NUM_FIELDS = ['multiplier', 'count', 'length', 'width', 'height']
 const NUM_LABELS = ['Çarpan', 'Adet', 'Boy', 'En', 'Yükseklik']
 
 const css_lineHeader = {
@@ -117,7 +118,7 @@ export default function P_MetrajOnaylaCetvel() {
     ;(async () => {
       const { data: sessData, error: sessError } = await supabase
         .from('measurement_sessions')
-        .select('id, status, total_quantity, created_by, creator:users!created_by(first_name, last_name)')
+        .select('id, status, total_quantity, created_by')
         .eq('work_package_poz_area_id', wpAreaId)
         .in('status', ['ready', 'approved'])
         .order('created_by')
@@ -130,22 +131,24 @@ export default function P_MetrajOnaylaCetvel() {
 
       if (!sessData?.length) { setSessions([]); setLoading(false); return }
 
-      // Build userMap from joined creator data
+      // Fetch user display names via security-definer RPC (accesses auth.users metadata)
       const uniqueUserIds = [...new Set(sessData.map(s => s.created_by).filter(Boolean))]
       const userMap = {}
-      sessData.forEach(s => {
-        if (s.created_by && s.creator && !userMap[s.created_by]) {
-          userMap[s.created_by] = [s.creator.first_name, s.creator.last_name].filter(Boolean).join(' ') || '?'
+      if (uniqueUserIds.length > 0) {
+        const { data: nameRows } = await supabase
+          .rpc('get_user_display_names', { user_ids: uniqueUserIds })
+        if (nameRows) {
+          nameRows.forEach(row => { userMap[row.id] = row.display_name || row.id })
         }
-      })
+      }
 
       // Load lines for all sessions
       const sessionIds = sessData.map(s => s.id)
       const { data: linesData } = await supabase
         .from('measurement_lines')
-        .select('id, session_id, sira, aciklama, carpan, adet, boy, en, yukseklik')
+        .select('id, session_id, order_index, description, multiplier, count, length, width, height')
         .in('session_id', sessionIds)
-        .order('sira')
+        .order('order_index')
 
       const linesBySession = {}
       ;(linesData ?? []).forEach(l => {
@@ -218,18 +221,38 @@ export default function P_MetrajOnaylaCetvel() {
   const saveEdit = async (sessId) => {
     const sess = sessions.find(s => s.id === sessId)
     if (!sess) return
-    const changedLines = sess.lines.filter(l => {
+    const newLines = sess.lines.filter(l => l.isNew)
+    const changedLines = sess.lines.filter(l => !l.isNew).filter(l => {
       const orig = sess.editBackup?.find(b => b.id === l.id)
       if (!orig) return false
-      return ['carpan', 'adet', 'boy', 'en', 'yukseklik', 'aciklama'].some(f => String(orig[f] ?? '') !== String(l[f] ?? ''))
+      return ['multiplier', 'count', 'length', 'width', 'height', 'description'].some(f => String(orig[f] ?? '') !== String(l[f] ?? ''))
     })
     try {
       for (const line of changedLines) {
         const { error } = await supabase
           .from('measurement_lines')
-          .update({ carpan: line.carpan, adet: line.adet, boy: line.boy, en: line.en, yukseklik: line.yukseklik, aciklama: line.aciklama })
+          .update({ multiplier: line.multiplier, count: line.count, length: line.length, width: line.width, height: line.height, description: line.description })
           .eq('id', line.id)
         if (error) throw error
+      }
+      const insertedMap = {}
+      for (const line of newLines) {
+        const { data: inserted, error } = await supabase
+          .from('measurement_lines')
+          .insert({
+            session_id: sessId,
+            order_index: line.order_index,
+            description: line.description || null,
+            multiplier: line.multiplier,
+            count: line.count,
+            length: line.length,
+            width: line.width,
+            height: line.height,
+          })
+          .select()
+          .single()
+        if (error) throw error
+        insertedMap[line.id] = inserted
       }
       const total = sess.lines.reduce((s, l) => s + calcMetraj(l), 0)
       const { error: updError } = await supabase
@@ -237,7 +260,10 @@ export default function P_MetrajOnaylaCetvel() {
       if (updError) throw updError
       setSessions(s => s.map(sess2 => {
         if (sess2.id !== sessId) return sess2
-        return { ...sess2, editMode: false, editBackup: null, total_quantity: total }
+        const updatedLines = sess2.lines.map(l =>
+          insertedMap[l.id] ? { ...insertedMap[l.id] } : l
+        )
+        return { ...sess2, editMode: false, editBackup: null, total_quantity: total, lines: updatedLines }
         // revisedLines intentionally kept to show revision history
       }))
     } catch (err) {
@@ -249,6 +275,29 @@ export default function P_MetrajOnaylaCetvel() {
     setSessions(s => s.map(sess =>
       sess.id === sessId ? { ...sess, showOriginals: !sess.showOriginals } : sess
     ))
+  }
+
+  const addNewLine = (sessId) => {
+    setSessions(s => s.map(sess => {
+      if (sess.id !== sessId) return sess
+      const maxOrder = sess.lines.reduce((max, l) => Math.max(max, l.order_index ?? 0), 0)
+      const tempId = `new-${Date.now()}-${Math.random()}`
+      return {
+        ...sess,
+        lines: [...sess.lines, {
+          id: tempId,
+          session_id: sessId,
+          order_index: maxOrder + 1,
+          description: '',
+          multiplier: null,
+          count: null,
+          length: null,
+          width: null,
+          height: null,
+          isNew: true,
+        }]
+      }
+    }))
   }
 
   const pozLabel = selectedPoz?.code
@@ -328,7 +377,6 @@ export default function P_MetrajOnaylaCetvel() {
               sx={{
                 border: '1px solid',
                 borderColor: sess.status === 'approved' ? '#90CAF9' : '#A5D6A7',
-                borderRadius: '8px',
                 overflow: 'hidden',
                 boxShadow: 1,
               }}
@@ -397,14 +445,14 @@ export default function P_MetrajOnaylaCetvel() {
               </Box>
 
               {/* Satır yok */}
-              {sess.lines.length === 0 && (
+              {sess.lines.length === 0 && !sess.editMode && (
                 <Box sx={{ px: '1rem', py: '0.75rem', color: 'gray', fontSize: '0.85rem' }}>
                   Bu oturumda metraj satırı bulunmuyor.
                 </Box>
               )}
 
               {/* Satırlar tablosu */}
-              {sess.lines.length > 0 && (
+              {(sess.lines.length > 0 || sess.editMode) && (
                 <Box sx={{ overflowX: 'auto' }}>
 
                   {/* Tablo başlığı */}
@@ -431,7 +479,7 @@ export default function P_MetrajOnaylaCetvel() {
 
                         {/* Sıra */}
                         <Box sx={{ ...css_lineCell, justifyContent: 'center', color: '#888' }}>
-                          {line.sira}
+                          {line.order_index}
                         </Box>
 
                         {/* Açıklama */}
@@ -439,11 +487,11 @@ export default function P_MetrajOnaylaCetvel() {
                           {sess.editMode ? (
                             <input
                               style={{ ...inputSx, textAlign: 'left' }}
-                              value={line.aciklama ?? ''}
-                              onChange={e => handleLineChange(sess.id, line.id, 'aciklama', e.target.value)}
+                              value={line.description ?? ''}
+                              onChange={e => handleLineChange(sess.id, line.id, 'description', e.target.value)}
                             />
                           ) : (
-                            line.aciklama ?? ''
+                            line.description ?? ''
                           )}
                         </Box>
 
@@ -485,6 +533,25 @@ export default function P_MetrajOnaylaCetvel() {
                       </Box>
                     )
                   })}
+
+                  {/* Satır ekle butonu (edit modunda) */}
+                  {sess.editMode && (
+                    <Box
+                      sx={{
+                        display: 'flex', alignItems: 'center', px: '6px', py: '2px',
+                        borderBottom: '1px solid #e0e0e0',
+                        backgroundColor: 'rgba(21,101,192,0.04)',
+                        minWidth: 'max-content',
+                      }}
+                    >
+                      <IconButton size="small" onClick={() => addNewLine(sess.id)}>
+                        <AddIcon sx={{ fontSize: 18, color: '#1565c0' }} />
+                      </IconButton>
+                      <Typography sx={{ fontSize: '0.8rem', color: '#1565c0', ml: '2px', cursor: 'pointer', userSelect: 'none' }} onClick={() => addNewLine(sess.id)}>
+                        Satır Ekle
+                      </Typography>
+                    </Box>
+                  )}
 
                   {/* Toplam satırı */}
                   <Box

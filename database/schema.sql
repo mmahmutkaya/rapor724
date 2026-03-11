@@ -459,6 +459,36 @@ create index on measurement_approvals (session_id);
 
 
 -- ============================================================
+-- YARDIMCI FONKSİYONLAR
+-- ============================================================
+
+-- measurement_sessions.created_by → auth.users(id) olduğu için istemciden direkt
+-- auth.users sorgulanamazr. Bu fonksiyon security definer ile çalışarak
+-- auth.users meta verisinden kullanıcı adlarını döner.
+-- Metadata boşsa (isim kaydedilmemişse) email'in @ öncesi kısmı kullanılır.
+create or replace function get_user_display_names(user_ids uuid[])
+returns table(id uuid, display_name text)
+language sql
+security definer
+set search_path = public
+as $$
+  select
+    u.id,
+    coalesce(
+      nullif(trim(
+        coalesce(u.raw_user_meta_data->>'first_name', '') || ' ' ||
+        coalesce(u.raw_user_meta_data->>'last_name',  '')
+      ), ''),
+      split_part(u.email, '@', 1)
+    ) as display_name
+  from auth.users u
+  where u.id = any(user_ids)
+$$;
+
+grant execute on function get_user_display_names(uuid[]) to authenticated;
+
+
+-- ============================================================
 -- FAZ 5: İHALE · TEKLİF · SÖZLEŞME · DEĞİŞİKLİKLER
 -- ============================================================
 

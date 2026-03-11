@@ -64,7 +64,7 @@ export default function P_MetrajOnaylaPozMahaller() {
   const { data: units = [] } = useGetPozUnits()
 
   const [collapsedIds, setCollapsedIds] = useState(new Set())
-  // wpAreaId → { byUser: { userId: { session, userName } }, approvedSession }
+  // wpAreaId → { byUser: { userId: { session, userName } }, approvedTotal }
   const [sessionsMap, setSessionsMap] = useState({})
   // ordered array of { id, name }
   const [sessionUsers, setSessionUsers] = useState([])
@@ -89,7 +89,7 @@ export default function P_MetrajOnaylaPozMahaller() {
     (async () => {
       const { data: sessions, error: sessionsError } = await supabase
         .from('measurement_sessions')
-        .select('id, work_package_poz_area_id, status, total_quantity, created_by, updated_at, creator:users!created_by(first_name, last_name)')
+        .select('id, work_package_poz_area_id, status, total_quantity, created_by, updated_at')
         .in('work_package_poz_area_id', areaIds)
         .in('status', ['ready', 'approved'])
         .order('updated_at', { ascending: false })
@@ -100,25 +100,27 @@ export default function P_MetrajOnaylaPozMahaller() {
         return
       }
 
-      // Build userMap from joined creator data
+      // Fetch user display names via security-definer RPC (accesses auth.users metadata)
       const uniqueUserIds = [...new Set(sessions.map(s => s.created_by).filter(Boolean))]
       const userMap = {}
-      sessions.forEach(s => {
-        if (s.created_by && s.creator && !userMap[s.created_by]) {
-          userMap[s.created_by] = [s.creator.first_name, s.creator.last_name].filter(Boolean).join(' ') || s.created_by
+      if (uniqueUserIds.length > 0) {
+        const { data: nameRows } = await supabase
+          .rpc('get_user_display_names', { user_ids: uniqueUserIds })
+        if (nameRows) {
+          nameRows.forEach(row => {
+            userMap[row.id] = row.display_name || row.id
+          })
         }
-      })
+      }
 
       // Build sessionsMap
       const newMap = {}
       sessions.forEach(s => {
         const areaId = s.work_package_poz_area_id
-        if (!newMap[areaId]) newMap[areaId] = { byUser: {}, approvedSession: null }
+        if (!newMap[areaId]) newMap[areaId] = { byUser: {}, approvedTotal: 0 }
 
         if (s.status === 'approved') {
-          if (!newMap[areaId].approvedSession) {
-            newMap[areaId].approvedSession = s
-          }
+          newMap[areaId].approvedTotal += s.total_quantity ?? 0
         } else if (s.status === 'ready') {
           const uid = s.created_by
           if (uid && !newMap[areaId].byUser[uid]) {
@@ -273,21 +275,20 @@ export default function P_MetrajOnaylaPozMahaller() {
         (() => {
           const totalDepthCols = maxLeafDepth + 1
           const userColCount = sessionUsers.length
-          const totalCols = totalDepthCols + 3 + userColCount + 1
           const userColWidth = 'minmax(7rem, 10rem)'
           const treeGridCols = [
             `repeat(${totalDepthCols}, 1rem)`,
             'max-content',
             'minmax(20rem, max-content)',
             'max-content',
-            ...Array(userColCount).fill(userColWidth),
-            userColWidth,
+            ...(userColCount > 0 ? ['0.5rem', userColWidth, '0.5rem', ...Array(userColCount).fill(userColWidth)] : [userColWidth]),
           ].join(' ')
 
           const css_header = {
             px: '4px', py: '2px',
-            backgroundColor: '#e0e0e0',
-            borderBottom: '1px solid #bbb',
+            backgroundColor: '#000000',
+            color: '#e0e1dd',
+            borderBottom: '1px solid #444',
             fontSize: '0.75rem', fontWeight: 600,
             display: 'flex', alignItems: 'center', justifyContent: 'center',
             textAlign: 'center', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis',
@@ -298,29 +299,24 @@ export default function P_MetrajOnaylaPozMahaller() {
 
               <Box sx={{ display: 'grid', gridTemplateColumns: '1rem 1fr' }}>
                 <Box sx={{ backgroundColor: 'black' }} />
-                <Box sx={{ backgroundColor: 'black', color: 'white', pl: '4px', py: '2px' }}>
-                  <Typography variant="body2">{selectedProje?.name}</Typography>
-                </Box>
-              </Box>
-
-              <Box sx={{ display: 'grid', gridTemplateColumns: '1rem 1fr' }}>
-                <Box sx={{ backgroundColor: 'black' }} />
                 <Box sx={{ display: 'grid', gridTemplateColumns: treeGridCols }}>
 
                   {/* SÜTUN BAŞLIKLARI */}
                   {Array.from({ length: totalDepthCols }).map((_, i) => (
-                    <Box key={`hd-depth-${i}`} sx={{ ...css_header, backgroundColor: 'transparent' }} />
+                    <Box key={`hd-depth-${i}`} sx={{ ...css_header }} />
                   ))}
-                  <Box sx={{ ...css_header }}>Kod</Box>
-                  <Box sx={{ ...css_header, justifyContent: 'flex-start' }}>Mahal</Box>
-                  <Box sx={{ ...css_header }}>Alan</Box>
+                  <Box sx={{ ...css_header }} />
+                  <Box sx={{ ...css_header }} />
+                  <Box sx={{ ...css_header }} />
+                  {userColCount > 0 && <Box sx={{ backgroundColor: 'transparent' }} />}
+                  <Box sx={{ ...css_header }}>Onaylanan</Box>
+                  {userColCount > 0 && <Box sx={{ backgroundColor: 'transparent' }} />}
                   {sessionUsers.map(user => (
                     <Box key={`hd-${user.id}`} sx={{ ...css_header, flexDirection: 'column', lineHeight: 1.2 }}>
                       <span>{user.name.split(' ')[0]}</span>
                       <span>{user.name.split(' ').slice(1).join(' ')}</span>
                     </Box>
                   ))}
-                  <Box sx={{ ...css_header, backgroundColor: '#B3E5FC', color: '#01579B' }}>Onaylanan</Box>
 
                   {flatNodes.map(node => {
                     if (isHiddenByAncestor(node)) return null
@@ -341,7 +337,7 @@ export default function P_MetrajOnaylaPozMahaller() {
                         <Box
                           onClick={() => { if (!isLeaf) toggleCollapse(node.id) }}
                           sx={{
-                            gridColumn: `span ${totalCols - depth}`,
+                            gridColumn: `span ${totalDepthCols - depth + (userColCount > 0 ? 3 : 4)}`,
                             pl: '6px', py: '1px',
                             backgroundColor: c.bg, color: c.co,
                             cursor: isLeaf ? 'default' : 'pointer',
@@ -361,11 +357,21 @@ export default function P_MetrajOnaylaPozMahaller() {
                             </Box>
                           }
                         </Box>
+                        {userColCount > 0 && (
+                          <>
+                            <Box />
+                            <Box sx={{ backgroundColor: c.bg }} />
+                            <Box />
+                            {sessionUsers.map((_, i) => (
+                              <Box key={i} sx={{ backgroundColor: c.bg }} />
+                            ))}
+                          </>
+                        )}
 
                         {/* MAHAL SATIRLARI */}
                         {isLeaf && !collapsedIds.has(node.id) && mahallerOfNode.map(mahal => {
-                          const areaData = sessionsMap[mahal.wpAreaId] ?? { byUser: {}, approvedSession: null }
-                          const hasAnyData = sessionUsers.some(u => areaData.byUser[u.id]) || !!areaData.approvedSession
+                          const areaData = sessionsMap[mahal.wpAreaId] ?? { byUser: {}, approvedTotal: 0 }
+                          const hasAnyData = sessionUsers.some(u => areaData.byUser[u.id]) || areaData.approvedTotal > 0
 
                           return (
                             <React.Fragment key={mahal.id}>
@@ -413,7 +419,28 @@ export default function P_MetrajOnaylaPozMahaller() {
                                 {mahal.area != null ? `${mahal.area} m²` : '—'}
                               </Box>
 
-                              {/* Per-user ready sessions */}
+                              {/* Sol 0.5rem boşluk + Onaylanan sütun */}
+                              {userColCount > 0 && <Box sx={{ borderBottom: '0.5px solid #ddd', backgroundColor: hasAnyData ? '#f0f4ff' : '#f0f0f0' }} />}
+                              <Tooltip title={areaData.approvedTotal > 0 ? 'Onaylanan metraj — görüntüle / düzenle' : 'Henüz onaylanan metraj yok'} placement="top">
+                                <Box
+                                  onClick={() => handleMahalClick(mahal)}
+                                  sx={{
+                                    px: '6px', py: '2px', borderBottom: '0.5px solid #ddd', borderLeft: '2px solid #1565c0',
+                                    fontSize: '0.8rem', fontWeight: areaData.approvedTotal > 0 ? 600 : 'normal',
+                                    display: 'flex', alignItems: 'center', justifyContent: 'flex-end',
+                                    backgroundColor: areaData.approvedTotal > 0 ? sessionBg('approved') : '#f0f8ff',
+                                    whiteSpace: 'nowrap', cursor: 'pointer',
+                                    '&:hover': { filter: 'brightness(0.95)' }
+                                  }}
+                                >
+                                  {areaData.approvedTotal > 0
+                                    ? `${ikiHane(areaData.approvedTotal)} ${pozBirim}`
+                                    : '—'}
+                                </Box>
+                              </Tooltip>
+
+                              {/* 0.5rem ayırıcı boşluk + per-user sütunları */}
+                              {userColCount > 0 && <Box sx={{ borderBottom: '0.5px solid #ddd', backgroundColor: hasAnyData ? '#f0f4ff' : '#f0f0f0' }} />}
                               {sessionUsers.map(user => {
                                 const ud = areaData.byUser[user.id]
                                 const ses = ud?.session
@@ -438,25 +465,6 @@ export default function P_MetrajOnaylaPozMahaller() {
                                   </Tooltip>
                                 )
                               })}
-
-                              {/* Onaylanan sütun */}
-                              <Tooltip title={areaData.approvedSession ? 'Onaylanan metraj — görüntüle / düzenle' : 'Henüz onaylanan metraj yok'} placement="top">
-                                <Box
-                                  onClick={() => handleMahalClick(mahal)}
-                                  sx={{
-                                    px: '6px', py: '2px', borderBottom: '0.5px solid #ddd', borderLeft: '2px solid #1565c0',
-                                    fontSize: '0.8rem', fontWeight: areaData.approvedSession ? 600 : 'normal',
-                                    display: 'flex', alignItems: 'center', justifyContent: 'flex-end',
-                                    backgroundColor: areaData.approvedSession ? sessionBg('approved') : '#f0f8ff',
-                                    whiteSpace: 'nowrap', cursor: 'pointer',
-                                    '&:hover': { filter: 'brightness(0.95)' }
-                                  }}
-                                >
-                                  {areaData.approvedSession
-                                    ? `${ikiHane(areaData.approvedSession.total_quantity)} ${pozBirim}`
-                                    : '—'}
-                                </Box>
-                              </Tooltip>
 
                             </React.Fragment>
                           )
