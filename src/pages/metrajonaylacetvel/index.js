@@ -27,6 +27,7 @@ import ClearIcon from '@mui/icons-material/Clear'
 import VisibilityIcon from '@mui/icons-material/Visibility'
 import VisibilityOffIcon from '@mui/icons-material/VisibilityOff'
 import AddIcon from '@mui/icons-material/Add'
+import SubdirectoryArrowRightIcon from '@mui/icons-material/SubdirectoryArrowRight'
 
 
 function ikiHane(v) {
@@ -48,6 +49,29 @@ function StatusChip({ status }) {
   if (status === 'ready')    return <Chip size="small" label="Onaya Hazır" sx={{ backgroundColor: '#C8E6C9', color: '#1B5E20', fontWeight: 600 }} />
   if (status === 'approved') return <Chip size="small" label="Onaylı" sx={{ backgroundColor: '#B3E5FC', color: '#01579B', fontWeight: 600 }} />
   return <Chip size="small" label={status} />
+}
+
+// Düz listeyi depth-first ağaç sırasına çevirir; her öğeye siraNo ve depth ekler
+function buildDisplayTree(lines) {
+  const childrenOf = {}
+  const roots = []
+  lines.forEach(l => {
+    if (!l.parent_line_id) roots.push(l)
+    else {
+      if (!childrenOf[l.parent_line_id]) childrenOf[l.parent_line_id] = []
+      childrenOf[l.parent_line_id].push(l)
+    }
+  })
+  const sort = arr => arr.sort((a, b) => (a.order_index ?? 0) - (b.order_index ?? 0))
+  sort(roots)
+  Object.values(childrenOf).forEach(sort)
+  const result = []
+  function visit(line, siraNo, depth) {
+    result.push({ ...line, siraNo, depth })
+    ;(childrenOf[line.id] ?? []).forEach((child, i) => visit(child, `${siraNo}.${i + 1}`, depth + 1))
+  }
+  roots.forEach((root, i) => visit(root, `${i + 1}`, 0))
+  return result
 }
 
 const GRID_COLS = '40px 1fr 70px 70px 70px 70px 70px 90px'
@@ -95,7 +119,6 @@ export default function P_MetrajOnaylaCetvel() {
   const { data: units = [] } = useGetPozUnits()
   const [dialogAlert, setDialogAlert] = useState()
   const [loading, setLoading] = useState(true)
-  // sessions: array with UI state mixed in
   const [sessions, setSessions] = useState([])
 
   const wpAreaId = selectedMahal_metraj?.wpAreaId
@@ -119,7 +142,7 @@ export default function P_MetrajOnaylaCetvel() {
     ;(async () => {
       const { data: sessData, error: sessError } = await supabase
         .from('measurement_sessions')
-        .select('id, status, total_quantity, created_by')
+        .select('id, status, total_quantity, created_by, revision_snapshot')
         .eq('work_package_poz_area_id', wpAreaId)
         .in('status', ['ready', 'approved'])
         .order('created_by')
@@ -132,7 +155,6 @@ export default function P_MetrajOnaylaCetvel() {
 
       if (!sessData?.length) { setSessions([]); setLoading(false); return }
 
-      // Fetch user display names via security-definer RPC (accesses auth.users metadata)
       const uniqueUserIds = [...new Set(sessData.map(s => s.created_by).filter(Boolean))]
       const userMap = {}
       if (uniqueUserIds.length > 0) {
@@ -143,11 +165,10 @@ export default function P_MetrajOnaylaCetvel() {
         }
       }
 
-      // Load lines for all sessions
       const sessionIds = sessData.map(s => s.id)
       const { data: linesData } = await supabase
         .from('measurement_lines')
-        .select('id, session_id, order_index, description, multiplier, count, length, width, height')
+        .select('id, session_id, order_index, description, multiplier, count, length, width, height, parent_line_id')
         .in('session_id', sessionIds)
         .order('order_index')
 
@@ -157,22 +178,26 @@ export default function P_MetrajOnaylaCetvel() {
         linesBySession[l.session_id].push(l)
       })
 
-      // approved sessions first, then ready
       const sorted = [...sessData].sort((a, b) => {
         if (a.status === b.status) return 0
         if (a.status === 'approved') return -1
         return 1
       })
 
-      setSessions(sorted.map(sess => ({
-        ...sess,
-        userName: userMap[sess.created_by] ?? '?',
-        lines: linesBySession[sess.id] ?? [],
-        editMode: false,
-        editBackup: null,
-        revisedLines: {},   // lineId → { originalMetraj }
-        showOriginals: true,
-      })))
+      setSessions(sorted.map(sess => {
+        const revisedLines = Array.isArray(sess.revision_snapshot) && sess.revision_snapshot.length > 0
+          ? Object.fromEntries(sess.revision_snapshot.map(entry => [entry.id, entry]))
+          : {}
+        return {
+          ...sess,
+          userName: userMap[sess.created_by] ?? '?',
+          lines: linesBySession[sess.id] ?? [],
+          editMode: false,
+          editBackup: null,
+          revisedLines,
+          showOriginals: Object.keys(revisedLines).length > 0,
+        }
+      }))
 
       setLoading(false)
     })()
@@ -189,17 +214,52 @@ export default function P_MetrajOnaylaCetvel() {
     setSessions(s => s.map(sess => sess.id === sessId ? { ...sess, status: 'approved' } : sess))
   }
 
+  const handleDismiss = (sessId) => {
+    setDialogAlert({
+      dialogIcon: 'warning',
+      dialogMessage: 'Bu metraj hazırlığı reddedilerek hazırlayana geri gönderilsin mi? İleride yeniden düzenleyip onaya sunabilir.',
+      actionText1: 'Evet, Geri Gönder',
+      action1: async () => {
+        setDialogAlert()
+        const { error } = await supabase
+          .from('measurement_sessions')
+          .update({ status: 'draft', updated_at: new Date().toISOString() })
+          .eq('id', sessId)
+        if (error) {
+          setDialogAlert({ dialogIcon: 'warning', dialogMessage: 'Hata oluştu.', detailText: error.message, onCloseAction: () => setDialogAlert() })
+          return
+        }
+        setSessions(s => s.filter(sess => sess.id !== sessId))
+      },
+      onCloseAction: () => setDialogAlert(),
+    })
+  }
+
   const enterEditMode = (sessId) => {
     setSessions(s => s.map(sess => {
       if (sess.id !== sessId) return sess
-      return { ...sess, editMode: true, editBackup: _.cloneDeep(sess.lines) }
+      return {
+        ...sess,
+        editMode: true,
+        editBackup: _.cloneDeep(sess.lines),
+        savedRevisedLines: { ...sess.revisedLines },
+      }
     }))
   }
 
   const cancelEdit = (sessId) => {
     setSessions(s => s.map(sess => {
       if (sess.id !== sessId) return sess
-      return { ...sess, editMode: false, lines: _.cloneDeep(sess.editBackup), editBackup: null, revisedLines: {} }
+      const restored = { ...(sess.savedRevisedLines ?? {}) }
+      return {
+        ...sess,
+        editMode: false,
+        lines: _.cloneDeep(sess.editBackup),
+        editBackup: null,
+        savedRevisedLines: null,
+        revisedLines: restored,
+        showOriginals: Object.keys(restored).length > 0,
+      }
     }))
   }
 
@@ -233,7 +293,14 @@ export default function P_MetrajOnaylaCetvel() {
       for (const line of changedLines) {
         const { error } = await supabase
           .from('measurement_lines')
-          .update({ multiplier: line.multiplier, count: line.count, length: line.length, width: line.width, height: line.height, description: line.description })
+          .update({
+            multiplier: (line.multiplier === '' || line.multiplier === null) ? 1 : Number(line.multiplier),
+            count: line.count === '' ? null : line.count,
+            length: line.length === '' ? null : line.length,
+            width: line.width === '' ? null : line.width,
+            height: line.height === '' ? null : line.height,
+            description: line.description,
+          })
           .eq('id', line.id)
         if (error) throw error
       }
@@ -245,11 +312,12 @@ export default function P_MetrajOnaylaCetvel() {
             session_id: sessId,
             order_index: line.order_index,
             description: line.description || null,
-            multiplier: line.multiplier,
-            count: line.count,
-            length: line.length,
-            width: line.width,
-            height: line.height,
+            multiplier: (line.multiplier === '' || line.multiplier === null) ? 1 : Number(line.multiplier),
+            count: line.count === '' ? null : line.count,
+            length: line.length === '' ? null : line.length,
+            width: line.width === '' ? null : line.width,
+            height: line.height === '' ? null : line.height,
+            parent_line_id: line.parent_line_id || null,
           })
           .select()
           .single()
@@ -257,17 +325,37 @@ export default function P_MetrajOnaylaCetvel() {
         insertedMap[line.id] = inserted
       }
       const total = sess.lines.reduce((s, l) => s + calcMetraj(l), 0)
-      const updatePayload = { total_quantity: total }
+
+      const prevSnapshot = Array.isArray(sess.revision_snapshot) ? sess.revision_snapshot : []
+      const prevSnapshotMap = Object.fromEntries(prevSnapshot.map(e => [e.id, e]))
+      const mergedSnapshot = { ...prevSnapshotMap, ...sess.revisedLines }
+      const snapshotArray = Object.values(mergedSnapshot)
+
+      const updatePayload = {
+        total_quantity: total,
+        ...(snapshotArray.length > 0 ? { revision_snapshot: snapshotArray } : {}),
+      }
       const { error: updError } = await supabase
         .from('measurement_sessions').update(updatePayload).eq('id', sessId)
       if (updError) throw updError
+
       setSessions(s => s.map(sess2 => {
         if (sess2.id !== sessId) return sess2
         const updatedLines = sess2.lines.map(l =>
           insertedMap[l.id] ? { ...insertedMap[l.id] } : l
         )
-        return { ...sess2, editMode: false, editBackup: null, total_quantity: total, lines: updatedLines }
-        // revisedLines intentionally kept to show revision history
+        const newRevisedLines = { ...prevSnapshotMap, ...sess2.revisedLines }
+        return {
+          ...sess2,
+          editMode: false,
+          editBackup: null,
+          savedRevisedLines: null,
+          total_quantity: total,
+          lines: updatedLines,
+          revision_snapshot: snapshotArray,
+          revisedLines: newRevisedLines,
+          showOriginals: Object.keys(newRevisedLines).length > 0,
+        }
       }))
     } catch (err) {
       setDialogAlert({ dialogIcon: 'warning', dialogMessage: 'Kaydetme sırasında hata oluştu.', detailText: err.message, onCloseAction: () => setDialogAlert() })
@@ -280,10 +368,14 @@ export default function P_MetrajOnaylaCetvel() {
     ))
   }
 
-  const addNewLine = (sessId) => {
+  // parentId: null → kök satır, string → alt satır
+  const addNewLine = (sessId, parentId = null) => {
     setSessions(s => s.map(sess => {
       if (sess.id !== sessId) return sess
-      const maxOrder = sess.lines.reduce((max, l) => Math.max(max, l.order_index ?? 0), 0)
+      const siblings = parentId
+        ? sess.lines.filter(l => l.parent_line_id === parentId)
+        : sess.lines.filter(l => !l.parent_line_id)
+      const maxOrder = siblings.reduce((max, l) => Math.max(max, l.order_index ?? 0), 0)
       const tempId = `new-${Date.now()}-${Math.random()}`
       return {
         ...sess,
@@ -297,6 +389,7 @@ export default function P_MetrajOnaylaCetvel() {
           length: null,
           width: null,
           height: null,
+          parent_line_id: parentId,
           isNew: true,
         }]
       }
@@ -321,6 +414,8 @@ export default function P_MetrajOnaylaCetvel() {
           dialogIcon={dialogAlert.dialogIcon}
           dialogMessage={dialogAlert.dialogMessage}
           detailText={dialogAlert.detailText}
+          actionText1={dialogAlert.actionText1}
+          action1={dialogAlert.action1}
           onCloseAction={dialogAlert.onCloseAction ?? (() => setDialogAlert())}
         />
       )}
@@ -379,6 +474,7 @@ export default function P_MetrajOnaylaCetvel() {
       <Box sx={{ p: '1rem', display: 'flex', flexDirection: 'column', gap: '1.5rem', maxWidth: '900px' }}>
         {sessions.map(sess => {
           const hasRevisions = Object.keys(sess.revisedLines).length > 0
+          const displayTree = buildDisplayTree(sess.lines)
           const editTotal = sess.editMode ? sess.lines.reduce((s, l) => s + calcMetraj(l), 0) : null
 
           return (
@@ -409,12 +505,21 @@ export default function P_MetrajOnaylaCetvel() {
 
                 {/* Revize geçmişini göster/gizle */}
                 {hasRevisions && !sess.editMode && (
-                  <Tooltip title={sess.showOriginals ? 'Orijinal değerleri gizle' : 'Orijinal değerleri göster'}>
+                  <Tooltip title={sess.showOriginals ? 'Revize öncesini gizle' : 'Revize öncesini göster'}>
                     <IconButton size="small" onClick={() => toggleShowOriginals(sess.id)}>
                       {sess.showOriginals
                         ? <VisibilityIcon sx={{ fontSize: 20, color: '#e65100' }} />
                         : <VisibilityOffIcon sx={{ fontSize: 20, color: '#888' }} />
                       }
+                    </IconButton>
+                  </Tooltip>
+                )}
+
+                {/* Görüldü — hazırlayana geri gönder */}
+                {sess.status === 'ready' && !sess.editMode && (
+                  <Tooltip title="Görüldü — Geri Gönder (Reddet)">
+                    <IconButton size="small" onClick={() => handleDismiss(sess.id)}>
+                      <ReplyIcon sx={{ color: '#e65100', fontSize: 20 }} />
                     </IconButton>
                   </Tooltip>
                 )}
@@ -461,7 +566,7 @@ export default function P_MetrajOnaylaCetvel() {
                 </Box>
               )}
 
-              {/* Satırlar tablosu */}
+              {/* Tablo */}
               {(sess.lines.length > 0 || sess.editMode) && (
                 <Box sx={{ overflowX: 'auto' }}>
 
@@ -475,24 +580,45 @@ export default function P_MetrajOnaylaCetvel() {
                     <Box sx={{ ...css_lineHeaderCell }}>Metraj</Box>
                   </Box>
 
-                  {/* Satırlar */}
-                  {sess.lines.map(line => {
+                  {/* Satırlar — ağaç düzeninde */}
+                  {displayTree.flatMap(line => {
                     const metraj = calcMetraj(line)
                     const isRevised = !!sess.revisedLines[line.id]
+                    const origData = sess.revisedLines[line.id]
+                    const depthStyle = line.depth > 0
+                      ? { borderLeft: `${Math.min(line.depth, 3) * 3}px solid rgba(144,202,249,0.7)` }
+                      : {}
                     const rowBg = isRevised && !sess.editMode && sess.showOriginals
                       ? 'rgba(255,160,0,0.07)'
                       : sess.editMode ? 'rgba(255,250,200,0.4)' : 'white'
 
-                    return (
-                      <Box key={line.id} sx={{ ...css_lineRow, backgroundColor: rowBg, minWidth: 'max-content' }}>
-
+                    const mainRow = (
+                      <Box
+                        key={line.id}
+                        sx={{ ...css_lineRow, backgroundColor: rowBg, minWidth: 'max-content', ...depthStyle }}
+                      >
                         {/* Sıra */}
-                        <Box sx={{ ...css_lineCell, justifyContent: 'center', color: '#888' }}>
-                          {line.order_index}
+                        <Box sx={{
+                          ...css_lineCell, justifyContent: 'flex-end', pr: '4px',
+                          color: line.depth > 0 ? '#1565c0' : '#888',
+                          fontSize: line.depth > 0 ? '0.78rem' : undefined,
+                        }}>
+                          {line.siraNo}
                         </Box>
 
-                        {/* Açıklama */}
+                        {/* Açıklama + alt satır ekle butonu (edit modunda) */}
                         <Box sx={{ ...css_lineCell }}>
+                          {sess.editMode && (
+                            <Tooltip title={`Alt satır ekle (${line.siraNo}.1…)`}>
+                              <IconButton
+                                size="small"
+                                sx={{ p: '1px', mr: '3px', flexShrink: 0 }}
+                                onClick={() => addNewLine(sess.id, line.id)}
+                              >
+                                <SubdirectoryArrowRightIcon sx={{ fontSize: 13, color: '#1565c0', opacity: 0.7 }} />
+                              </IconButton>
+                            </Tooltip>
+                          )}
                           {sess.editMode ? (
                             <input
                               style={{ ...inputSx, textAlign: 'left' }}
@@ -525,13 +651,45 @@ export default function P_MetrajOnaylaCetvel() {
                         {/* Metraj */}
                         <Box sx={{ ...css_lineCell, justifyContent: 'flex-end', fontWeight: isRevised && !sess.editMode ? 600 : 'normal' }}>
                           {ikiHane(metraj)}
+                          {pozBirim && !sess.editMode && (
+                            <Box component="span" sx={{ ml: '3px', fontWeight: 400, fontSize: '0.73rem', color: '#888' }}>{pozBirim}</Box>
+                          )}
                         </Box>
-
                       </Box>
                     )
+
+                    // Inline "Revize Öncesi" satırı — doğrudan revize edilen satırın altında
+                    const beforeRow = isRevised && !sess.editMode && sess.showOriginals ? (
+                      <Box
+                        key={`${line.id}-before`}
+                        sx={{
+                          ...css_lineRow,
+                          backgroundColor: 'rgba(191,54,12,0.06)',
+                          minWidth: 'max-content',
+                          ...depthStyle,
+                        }}
+                      >
+                        <Box sx={{ ...css_lineCell, justifyContent: 'center', color: '#bf360c', fontSize: '0.72rem', fontWeight: 700 }}>
+                          ↑
+                        </Box>
+                        <Box sx={{ ...css_lineCell, color: '#af5b3f', fontStyle: 'italic', fontSize: '0.82rem', pl: '6px' }}>
+                          {origData.description ?? ''}
+                        </Box>
+                        {NUM_FIELDS.map(field => (
+                          <Box key={field} sx={{ ...css_lineCell, justifyContent: 'flex-end', color: '#777', fontSize: '0.82rem' }}>
+                            {origData[field] != null ? origData[field] : ''}
+                          </Box>
+                        ))}
+                        <Box sx={{ ...css_lineCell, justifyContent: 'flex-end', color: '#bf360c', fontWeight: 600, fontSize: '0.82rem' }}>
+                          {ikiHane(origData.originalMetraj)}
+                        </Box>
+                      </Box>
+                    ) : null
+
+                    return [mainRow, beforeRow].filter(Boolean)
                   })}
 
-                  {/* Satır ekle butonu (edit modunda) */}
+                  {/* Kök seviye satır ekle butonu (edit modunda) */}
                   {sess.editMode && (
                     <Box
                       sx={{
@@ -568,63 +726,6 @@ export default function P_MetrajOnaylaCetvel() {
                       {pozBirim && <Box component="span" sx={{ ml: '4px', fontWeight: 400, fontSize: '0.8rem' }}>{pozBirim}</Box>}
                     </Box>
                   </Box>
-
-                  {/* Orijinal Değerler Tablosu */}
-                  {hasRevisions && !sess.editMode && sess.showOriginals && (() => {
-                    const revisedEntries = Object.entries(sess.revisedLines)
-                    const origTotal = revisedEntries.reduce((s, [, r]) => s + (r.originalMetraj ?? 0), 0)
-                    return (
-                      <Box>
-                        {/* Bölüm başlığı */}
-                        <Box sx={{
-                          display: 'grid', gridTemplateColumns: GRID_COLS,
-                          backgroundColor: '#bf360c', color: 'white',
-                          fontSize: '0.72rem', fontWeight: 700,
-                          minWidth: 'max-content',
-                        }}>
-                          <Box sx={{ ...css_lineHeaderCell, justifyContent: 'flex-start', gridColumn: '1 / -1', borderRight: 'none' }}>
-                            Revize Öncesi
-                          </Box>
-                        </Box>
-
-                        {/* Orijinal satırlar */}
-                        {revisedEntries.map(([lineId, origData]) => (
-                          <Box key={lineId} sx={{ ...css_lineRow, backgroundColor: 'rgba(191,54,12,0.05)', minWidth: 'max-content' }}>
-                            <Box sx={{ ...css_lineCell, justifyContent: 'center', color: '#888' }}>
-                              {origData.order_index}
-                            </Box>
-                            <Box sx={{ ...css_lineCell }}>
-                              {origData.description ?? ''}
-                            </Box>
-                            {NUM_FIELDS.map(field => (
-                              <Box key={field} sx={{ ...css_lineCell, justifyContent: 'flex-end', color: '#777' }}>
-                                {origData[field] != null ? origData[field] : ''}
-                              </Box>
-                            ))}
-                            <Box sx={{ ...css_lineCell, justifyContent: 'flex-end', color: '#bf360c', fontWeight: 600 }}>
-                              {ikiHane(origData.originalMetraj)}
-                            </Box>
-                          </Box>
-                        ))}
-
-                        {/* Orijinal toplam */}
-                        <Box sx={{
-                          display: 'grid', gridTemplateColumns: GRID_COLS,
-                          backgroundColor: 'rgba(191,54,12,0.08)',
-                          borderTop: '1px solid rgba(191,54,12,0.25)',
-                          minWidth: 'max-content',
-                        }}>
-                          <Box sx={{ gridColumn: '1 / 8', px: '8px', py: '3px', fontSize: '0.75rem', fontWeight: 600, display: 'flex', alignItems: 'center', justifyContent: 'flex-end', color: '#888' }}>
-                            Önceki Toplam
-                          </Box>
-                          <Box sx={{ px: '8px', py: '3px', fontSize: '0.85rem', fontWeight: 700, display: 'flex', alignItems: 'center', justifyContent: 'flex-end', color: '#bf360c' }}>
-                            {ikiHane(origTotal)}
-                            {pozBirim && <Box component="span" sx={{ ml: '4px', fontWeight: 400, fontSize: '0.75rem' }}>{pozBirim}</Box>}
-                          </Box>
-                        </Box>
-                      </Box>
-                    )
-                  })()}
 
                 </Box>
               )}

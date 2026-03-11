@@ -25,6 +25,8 @@ import ClearIcon from '@mui/icons-material/Clear'
 import CheckCircleIcon from '@mui/icons-material/CheckCircle'
 import AddIcon from '@mui/icons-material/Add'
 import DeleteOutlineIcon from '@mui/icons-material/DeleteOutline'
+import ContentCopyIcon from '@mui/icons-material/ContentCopy'
+import SubdirectoryArrowRightIcon from '@mui/icons-material/SubdirectoryArrowRight'
 
 
 function computeQuantity(line) {
@@ -35,6 +37,29 @@ function computeQuantity(line) {
   const v = (val) => isEmpty(val) ? 1 : Number(val)
   const qty = v(line.multiplier) * v(line.count) * v(line.length) * v(line.width) * v(line.height)
   return isNaN(qty) ? 0 : qty
+}
+
+// Düz listeyi depth-first ağaç sırasına çevirir; her öğeye siraNo ve depth ekler
+function buildDisplayTree(lines) {
+  const childrenOf = {}
+  const roots = []
+  lines.forEach(l => {
+    if (!l.parent_line_id) roots.push(l)
+    else {
+      if (!childrenOf[l.parent_line_id]) childrenOf[l.parent_line_id] = []
+      childrenOf[l.parent_line_id].push(l)
+    }
+  })
+  const sort = arr => arr.sort((a, b) => (a.order_index ?? 0) - (b.order_index ?? 0))
+  sort(roots)
+  Object.values(childrenOf).forEach(sort)
+  const result = []
+  function visit(line, siraNo, depth) {
+    result.push({ ...line, siraNo, depth })
+    ;(childrenOf[line.id] ?? []).forEach((child, i) => visit(child, `${siraNo}.${i + 1}`, depth + 1))
+  }
+  roots.forEach((root, i) => visit(root, `${i + 1}`, 0))
+  return result
 }
 
 function ikiHane(v) {
@@ -51,6 +76,7 @@ function StatusChip({ status }) {
   return <Chip size="small" label={status ?? '—'} />
 }
 
+const STATUS_ORDER = { approved: 0, ready: 1, draft: 2 }
 const GRID_COLS = '40px 1fr 70px 70px 70px 70px 70px 90px 36px'
 const NUM_FIELDS = ['multiplier', 'count', 'length', 'width', 'height']
 const NUM_LABELS = ['Çarpan', 'Adet', 'Boy', 'En', 'Yükseklik']
@@ -77,7 +103,6 @@ const css_lineCell = {
   borderRight: '1px dashed #d8d8d8',
   overflow: 'hidden',
 }
-
 const inputSx = {
   width: '100%', border: 'none', outline: 'none',
   backgroundColor: 'rgba(255,250,180,0.6)',
@@ -95,19 +120,22 @@ export default function P_MetrajOlusturCetvel() {
   const [dialogAlert, setDialogAlert] = useState()
   const [loading, setLoading] = useState(true)
   const [loadError, setLoadError] = useState(null)
-  const [session, setSession] = useState(null)
-  const [lines, setLines] = useState([])
-  const [linesBackup, setLinesBackup] = useState([])
-  const [mode_edit, setMode_edit] = useState(false)
-  const [isChanged, setIsChanged] = useState(false)
-  const [showCancelConfirm, setShowCancelConfirm] = useState(false)
-  const [pendingNav, setPendingNav] = useState(null)
+  const [sessions, setSessions] = useState([])
 
   const wpAreaId = selectedMahal?.wpAreaId
 
+  const anyChanged = sessions.some(s => s.isChanged)
+
   const navGuard = (path) => {
-    if (isChanged) { setPendingNav(path); setShowCancelConfirm(true) }
-    else navigate(path)
+    if (anyChanged) {
+      setDialogAlert({
+        dialogIcon: 'warning',
+        dialogMessage: 'Kaydedilmemiş değişiklikler var. Devam etmeden önce kaydedin veya değişiklikleri iptal edin.',
+        onCloseAction: () => setDialogAlert(),
+      })
+    } else {
+      navigate(path)
+    }
   }
 
   useEffect(() => {
@@ -116,113 +144,121 @@ export default function P_MetrajOlusturCetvel() {
     if (!wpAreaId) { navigate('/metrajolusturpozmahaller'); return }
   }, [])
 
-  useEffect(() => {
+  const loadSessions = async () => {
     if (!wpAreaId) return
     setLoading(true)
-    ;(async () => {
-      try {
-        let sessionData = null
+    try {
+      const { data: sessData, error: sessError } = await supabase
+        .from('measurement_sessions')
+        .select('*')
+        .eq('work_package_poz_area_id', wpAreaId)
+        .order('updated_at', { ascending: false })
+      if (sessError) throw sessError
 
-        if (selectedMahal?.sessionId) {
-          const { data, error } = await supabase
-            .from('measurement_sessions')
-            .select('*')
-            .eq('id', selectedMahal.sessionId)
-            .single()
-          if (error) throw error
-          sessionData = data
-        } else {
-          let query = supabase
-            .from('measurement_sessions')
-            .select('*')
-            .eq('work_package_poz_area_id', wpAreaId)
-            .in('status', ['draft', 'ready'])
-            .order('updated_at', { ascending: false })
-            .limit(1)
-          if (appUser?.id) query = query.eq('created_by', appUser.id)
-          const { data, error } = await query.maybeSingle()
-          if (error) throw error
-          sessionData = data
-        }
+      if (!sessData?.length) { setSessions([]); setLoading(false); return }
 
-        if (sessionData) {
-          const { data: lineData, error: lineError } = await supabase
-            .from('measurement_lines')
-            .select('*')
-            .eq('session_id', sessionData.id)
-            .order('order_index')
-          if (lineError) throw lineError
-          const ls = lineData ?? []
-          setSession(sessionData)
-          setLines(ls)
-          setLinesBackup(_.cloneDeep(ls))
-        } else {
-          setSession(null)
-          setLines([])
-          setLinesBackup([])
-        }
-      } catch (err) {
-        setLoadError(err.message)
-      } finally {
-        setLoading(false)
+      // Kullanıcı görünen adlarını çek
+      const uniqueUserIds = [...new Set(sessData.map(s => s.created_by).filter(Boolean))]
+      const userMap = {}
+      if (uniqueUserIds.length > 0) {
+        const { data: nameRows } = await supabase.rpc('get_user_display_names', { user_ids: uniqueUserIds })
+        if (nameRows) nameRows.forEach(row => { userMap[row.id] = row.display_name || row.id })
       }
-    })()
-  }, [wpAreaId, selectedMahal?.sessionId])
 
-  const handleAddLine = async () => {
-    let currentSession = session
-    if (!currentSession) {
-      try {
-        const { data, error } = await supabase
-          .from('measurement_sessions')
-          .insert({ work_package_poz_area_id: wpAreaId, status: 'draft', total_quantity: 0, created_by: appUser?.id ?? null })
-          .select()
-          .single()
-        if (error) throw error
-        currentSession = data
-        setSession(data)
-        setMode_edit(true)
-      } catch (err) {
-        setDialogAlert({ dialogIcon: 'warning', dialogMessage: err.message, onCloseAction: () => setDialogAlert() })
-        return
-      }
+      // Tüm satırları çek
+      const sessionIds = sessData.map(s => s.id)
+      const { data: linesData } = await supabase
+        .from('measurement_lines')
+        .select('*')
+        .in('session_id', sessionIds)
+        .order('order_index')
+
+      const linesBySession = {}
+      ;(linesData ?? []).forEach(l => {
+        if (!linesBySession[l.session_id]) linesBySession[l.session_id] = []
+        linesBySession[l.session_id].push(l)
+      })
+
+      // Onaylı → Onay Bekleyen → Taslak sırasıyla sırala
+      const sorted = [...sessData].sort((a, b) =>
+        (STATUS_ORDER[a.status] ?? 3) - (STATUS_ORDER[b.status] ?? 3)
+      )
+
+      setSessions(sorted.map(sess => ({
+        ...sess,
+        userName: userMap[sess.created_by] ?? '?',
+        isOwn: sess.created_by === appUser?.id,
+        lines: linesBySession[sess.id] ?? [],
+        linesBackup: _.cloneDeep(linesBySession[sess.id] ?? []),
+        mode_edit: false,
+        isChanged: false,
+      })))
+    } catch (err) {
+      setLoadError(err.message)
+    } finally {
+      setLoading(false)
     }
-    const nextIdx = lines.length > 0 ? Math.max(...lines.map(l => l.order_index)) + 1 : 0
+  }
+
+  useEffect(() => { loadSessions() }, [wpAreaId])
+
+  // ── Yardımcı: belirli session'ı günceller ───────────────────
+  const updateSess = (sessId, updater) =>
+    setSessions(prev => prev.map(s => s.id === sessId ? { ...s, ...updater(s) } : s))
+
+  // ── Satır işlemleri ─────────────────────────────────────────
+  // parentId: null → kök satır, string → alt satır
+  const handleAddLine = async (sessId, parentId = null) => {
+    const sess = sessions.find(s => s.id === sessId)
+    if (!sess) return
+    const siblings = parentId
+      ? sess.lines.filter(l => l.parent_line_id === parentId)
+      : sess.lines.filter(l => !l.parent_line_id)
+    const nextIdx = siblings.length > 0 ? Math.max(...siblings.map(l => l.order_index)) + 1 : 0
     try {
       const { data, error } = await supabase
         .from('measurement_lines')
-        .insert({ session_id: currentSession.id, line_type: 'data', description: '', order_index: nextIdx })
-        .select()
-        .single()
+        .insert({ session_id: sessId, line_type: 'data', description: '', order_index: nextIdx, parent_line_id: parentId || null })
+        .select().single()
       if (error) throw error
       const newLine = { ...data, multiplier: null }
-      setLines(prev => [...prev, newLine])
-      setLinesBackup(prev => [...prev, _.cloneDeep(newLine)])
+      updateSess(sessId, s => ({
+        lines: [...s.lines, newLine],
+        linesBackup: [...s.linesBackup, _.cloneDeep(newLine)],
+        mode_edit: true,
+      }))
     } catch (err) {
       setDialogAlert({ dialogIcon: 'warning', dialogMessage: err.message, onCloseAction: () => setDialogAlert() })
     }
   }
 
-  const handleDeleteLine = async (lineId) => {
+  const handleDeleteLine = async (sessId, lineId) => {
     try {
       const { error } = await supabase.from('measurement_lines').delete().eq('id', lineId)
       if (error) throw error
-      setLines(prev => prev.filter(l => l.id !== lineId))
-      setLinesBackup(prev => prev.filter(l => l.id !== lineId))
+      updateSess(sessId, s => ({
+        lines: s.lines.filter(l => l.id !== lineId),
+        linesBackup: s.linesBackup.filter(l => l.id !== lineId),
+      }))
     } catch (err) {
       setDialogAlert({ dialogIcon: 'warning', dialogMessage: err.message, onCloseAction: () => setDialogAlert() })
     }
   }
 
-  const handleLineChange = (lineId, field, value) => {
-    setIsChanged(true)
-    setLines(prev => prev.map(l => l.id === lineId ? { ...l, [field]: value } : l))
+  const handleLineChange = (sessId, lineId, field, value) => {
+    updateSess(sessId, s => ({
+      isChanged: true,
+      lines: s.lines.map(l => l.id === lineId ? { ...l, [field]: value } : l),
+    }))
   }
 
-  const handleSave = async () => {
+  // ── Kaydet ──────────────────────────────────────────────────
+  const handleSave = async (sessId) => {
+    const sess = sessions.find(s => s.id === sessId)
+    if (!sess) return
     try {
-      for (const line of lines) {
-        const backup = linesBackup.find(b => b.id === line.id)
+      for (const line of sess.lines) {
+        const backup = sess.linesBackup.find(b => b.id === line.id)
         if (backup && JSON.stringify(line) === JSON.stringify(backup)) continue
         const { error } = await supabase
           .from('measurement_lines')
@@ -237,104 +273,159 @@ export default function P_MetrajOlusturCetvel() {
           .eq('id', line.id)
         if (error) throw error
       }
-      const total = lines.reduce((sum, l) => sum + computeQuantity(l), 0)
+      const total = sess.lines.reduce((sum, l) => sum + computeQuantity(l), 0)
       await supabase
         .from('measurement_sessions')
         .update({ total_quantity: total, updated_at: new Date().toISOString() })
-        .eq('id', session.id)
-      setSession(prev => ({ ...prev, total_quantity: total }))
-      setLinesBackup(_.cloneDeep(lines))
-      setIsChanged(false)
-      setMode_edit(false)
-      if (pendingNav) {
-        const dest = pendingNav
-        setPendingNav(null)
-        setShowCancelConfirm(false)
-        navigate(dest)
-      }
+        .eq('id', sessId)
+      updateSess(sessId, s => ({
+        total_quantity: total,
+        linesBackup: _.cloneDeep(s.lines),
+        isChanged: false,
+        mode_edit: false,
+      }))
     } catch (err) {
       setDialogAlert({ dialogIcon: 'warning', dialogMessage: err.message, onCloseAction: () => setDialogAlert() })
     }
   }
 
-  const handleCancel = () => {
-    if (isChanged) { setShowCancelConfirm(true) }
-    else { setMode_edit(false) }
+  const handleCancelEdit = (sessId) => {
+    updateSess(sessId, s => ({
+      lines: _.cloneDeep(s.linesBackup),
+      isChanged: false,
+      mode_edit: false,
+    }))
   }
 
-  const handleMarkReady = () => {
+  // ── Durum değişiklikleri ─────────────────────────────────────
+  const handleMarkReady = (sessId) => {
     setDialogAlert({
       dialogIcon: 'info',
-      dialogMessage: 'Metraj hazırlama onay için gönderilsin mi?',
+      dialogMessage: 'Metraj onay için gönderilsin mi?',
       actionText1: 'Evet, Gönder',
       action1: async () => {
         setDialogAlert()
-        try {
-          const total = lines.reduce((sum, l) => sum + computeQuantity(l), 0)
-          const { error } = await supabase
-            .from('measurement_sessions')
-            .update({ status: 'ready', total_quantity: total, updated_at: new Date().toISOString() })
-            .eq('id', session.id)
-          if (error) throw error
-          setSession(prev => ({ ...prev, status: 'ready', total_quantity: total }))
-        } catch (err) {
-          setDialogAlert({ dialogIcon: 'warning', dialogMessage: err.message, onCloseAction: () => setDialogAlert() })
+        const sess = sessions.find(s => s.id === sessId)
+        if (!sess) return
+        const total = sess.lines.reduce((sum, l) => sum + computeQuantity(l), 0)
+        const { error } = await supabase
+          .from('measurement_sessions')
+          .update({ status: 'ready', total_quantity: total, updated_at: new Date().toISOString() })
+          .eq('id', sessId)
+        if (error) {
+          setDialogAlert({ dialogIcon: 'warning', dialogMessage: error.message, onCloseAction: () => setDialogAlert() })
+          return
         }
+        updateSess(sessId, () => ({ status: 'ready', total_quantity: total }))
       },
       onCloseAction: () => setDialogAlert(),
     })
   }
 
-  const handleBackToDraft = async () => {
+  const handleBackToDraft = async (sessId) => {
+    const { error } = await supabase
+      .from('measurement_sessions')
+      .update({ status: 'draft', updated_at: new Date().toISOString() })
+      .eq('id', sessId)
+    if (error) {
+      setDialogAlert({ dialogIcon: 'warning', dialogMessage: error.message, onCloseAction: () => setDialogAlert() })
+      return
+    }
+    updateSess(sessId, () => ({ status: 'draft' }))
+  }
+
+  // ── Yeni metraj oturumu başlat ───────────────────────────────
+  const handleStartNew = async () => {
     try {
-      const { error } = await supabase
+      const { data, error } = await supabase
         .from('measurement_sessions')
-        .update({ status: 'draft', updated_at: new Date().toISOString() })
-        .eq('id', session.id)
+        .insert({ work_package_poz_area_id: wpAreaId, status: 'draft', total_quantity: 0, created_by: appUser?.id ?? null })
+        .select().single()
       if (error) throw error
-      setSession(prev => ({ ...prev, status: 'draft' }))
+      setSessions(prev => [
+        ...prev,
+        {
+          ...data,
+          userName: appUser?.email ?? '?',
+          isOwn: true,
+          lines: [],
+          linesBackup: [],
+          mode_edit: true,
+          isChanged: false,
+        },
+      ])
     } catch (err) {
       setDialogAlert({ dialogIcon: 'warning', dialogMessage: err.message, onCloseAction: () => setDialogAlert() })
     }
   }
 
-  const handleApprove = () => {
+  // ── Onaylı metrajı kopyalayarak revize teklifi oluştur ──────
+  const handleStartRevision = (sourceSessionId) => {
+    const myExisting = sessions.find(s => s.isOwn && s.status !== 'approved')
+    if (myExisting) {
+      setDialogAlert({
+        dialogIcon: 'warning',
+        dialogMessage: 'Zaten devam eden bir metraj oturumunuz var. Önce mevcut oturumunuzu tamamlayın.',
+        onCloseAction: () => setDialogAlert(),
+      })
+      return
+    }
+
+    const sourceSess = sessions.find(s => s.id === sourceSessionId)
+    if (!sourceSess) return
+
     setDialogAlert({
       dialogIcon: 'info',
-      dialogMessage: 'Bu metraj onaylanarak kesinleştirilsin mi?',
-      actionText1: 'Evet, Onayla',
+      dialogMessage: 'Onaylanan metraj kopyalanarak revize teklifi oluşturulsun mu? Kopyayı düzenleyip onaya sunabilirsiniz.',
+      actionText1: 'Evet, Revize Başlat',
       action1: async () => {
         setDialogAlert()
         try {
-          const total = lines.reduce((sum, l) => sum + computeQuantity(l), 0)
-          const { error } = await supabase
+          const { data: newSess, error: sessErr } = await supabase
             .from('measurement_sessions')
-            .update({ status: 'approved', total_quantity: total, updated_at: new Date().toISOString() })
-            .eq('id', session.id)
-          if (error) throw error
-          setSession(prev => ({ ...prev, status: 'approved', total_quantity: total }))
-        } catch (err) {
-          setDialogAlert({ dialogIcon: 'warning', dialogMessage: err.message, onCloseAction: () => setDialogAlert() })
-        }
-      },
-      onCloseAction: () => setDialogAlert(),
-    })
-  }
+            .insert({
+              work_package_poz_area_id: wpAreaId,
+              status: 'draft',
+              total_quantity: sourceSess.total_quantity,
+              created_by: appUser?.id ?? null,
+            })
+            .select().single()
+          if (sessErr) throw sessErr
 
-  const handleRevise = () => {
-    setDialogAlert({
-      dialogIcon: 'warning',
-      dialogMessage: 'Onaylanan metraj düzenleme için taslağa alınsın mı?',
-      actionText1: 'Evet, Düzenle',
-      action1: async () => {
-        setDialogAlert()
-        try {
-          const { error } = await supabase
-            .from('measurement_sessions')
-            .update({ status: 'draft', updated_at: new Date().toISOString() })
-            .eq('id', session.id)
-          if (error) throw error
-          setSession(prev => ({ ...prev, status: 'draft' }))
+          let newLines = []
+          if (sourceSess.lines.length > 0) {
+            const linesToCopy = sourceSess.lines.map(l => ({
+              session_id: newSess.id,
+              order_index: l.order_index,
+              description: l.description,
+              multiplier: l.multiplier,
+              count: l.count,
+              length: l.length,
+              width: l.width,
+              height: l.height,
+              line_type: l.line_type ?? 'data',
+              parent_line_id: null,   // kopyada hiyerarşi sıfırlanır; kullanıcı yeniden düzenler
+            }))
+            const { data: inserted, error: linesErr } = await supabase
+              .from('measurement_lines')
+              .insert(linesToCopy)
+              .select()
+            if (linesErr) throw linesErr
+            newLines = inserted ?? []
+          }
+
+          setSessions(prev => [
+            ...prev,
+            {
+              ...newSess,
+              userName: appUser?.email ?? '?',
+              isOwn: true,
+              lines: newLines,
+              linesBackup: _.cloneDeep(newLines),
+              mode_edit: true,
+              isChanged: false,
+            },
+          ].sort((a, b) => (STATUS_ORDER[a.status] ?? 3) - (STATUS_ORDER[b.status] ?? 3)))
         } catch (err) {
           setDialogAlert({ dialogIcon: 'warning', dialogMessage: err.message, onCloseAction: () => setDialogAlert() })
         }
@@ -350,23 +441,17 @@ export default function P_MetrajOlusturCetvel() {
   }, [units])
 
   const pozBirim = unitsMap[selectedPoz?.unit_id] ?? ''
-  const totalQuantity = useMemo(() => lines.reduce((sum, l) => sum + computeQuantity(l), 0), [lines])
-  const isDraft   = session?.status === 'draft'
-  const isReady   = session?.status === 'ready'
-  const isApproved = session?.status === 'approved'
-
   const pozLabel = selectedPoz?.code
     ? `${selectedPoz.code} · ${selectedPoz.short_desc}`
     : selectedPoz?.short_desc
+
+  const hasMyActiveSess = sessions.some(s => s.isOwn && s.status !== 'approved')
 
   return (
     <Box>
       <style>{`
         .metraj-num-input::-webkit-outer-spin-button,
-        .metraj-num-input::-webkit-inner-spin-button {
-          -webkit-appearance: none;
-          margin: 0;
-        }
+        .metraj-num-input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
       `}</style>
 
       {dialogAlert && (
@@ -380,42 +465,7 @@ export default function P_MetrajOlusturCetvel() {
         />
       )}
 
-      {showCancelConfirm && (
-        pendingNav ? (
-          <DialogAlert
-            dialogIcon="warning"
-            dialogMessage="Kaydedilmemiş değişiklikler var. Ne yapmak istersiniz?"
-            actionText1="Kaydet ve Çık"
-            action1={() => { setShowCancelConfirm(false); handleSave() }}
-            actionText2="Kaydetmeden Çık"
-            action2={() => {
-              const dest = pendingNav
-              setPendingNav(null)
-              setLines(_.cloneDeep(linesBackup))
-              setIsChanged(false)
-              setMode_edit(false)
-              setShowCancelConfirm(false)
-              navigate(dest)
-            }}
-            onCloseAction={() => { setShowCancelConfirm(false); setPendingNav(null) }}
-          />
-        ) : (
-          <DialogAlert
-            dialogIcon="warning"
-            dialogMessage="Yaptığınız değişiklikler iptal edilsin mi?"
-            actionText1="İptal Et"
-            action1={() => {
-              setLines(_.cloneDeep(linesBackup))
-              setIsChanged(false)
-              setMode_edit(false)
-              setShowCancelConfirm(false)
-            }}
-            onCloseAction={() => setShowCancelConfirm(false)}
-          />
-        )
-      )}
-
-      {/* BAŞLIK — sadece navigasyon */}
+      {/* BAŞLIK */}
       <AppBar position="static" sx={{ backgroundColor: 'white', color: 'black', boxShadow: 4 }}>
         <Grid container alignItems="center" sx={{ px: '1rem', py: '0.5rem', maxHeight: '5rem' }}>
           <Grid item xs>
@@ -455,245 +505,268 @@ export default function P_MetrajOlusturCetvel() {
         </Stack>
       )}
 
-      {!loading && !loadError && !session && (
-        <Box sx={{ p: '1rem' }}>
+      {/* Yeni metraj başlatma butonu (aktif oturum yoksa) */}
+      {!loading && !loadError && !hasMyActiveSess && (
+        <Box sx={{ px: '1rem', pt: '1rem' }}>
           <Box
-            sx={{
-              display: 'flex', alignItems: 'center', gap: '0.4rem',
-              px: '6px', py: '4px', cursor: 'pointer', width: 'fit-content',
-            }}
-            onClick={handleAddLine}
+            sx={{ display: 'flex', alignItems: 'center', gap: '0.4rem', px: '6px', py: '4px', cursor: 'pointer', width: 'fit-content' }}
+            onClick={handleStartNew}
           >
             <AddIcon sx={{ fontSize: 20, color: '#1565c0' }} />
-            <Typography sx={{ fontSize: '0.85rem', color: '#1565c0' }}>Satır Ekle</Typography>
+            <Typography sx={{ fontSize: '0.85rem', color: '#1565c0' }}>Yeni Metraj Başlat</Typography>
           </Box>
         </Box>
       )}
 
-      {/* SESSION KARTI */}
-      {!loading && !loadError && session && (
-        <Box sx={{ p: '1rem', maxWidth: '900px' }}>
-          <Box
-            sx={{
-              border: '1px solid',
-              borderColor: isApproved ? '#90CAF9' : isReady ? '#A5D6A7' : '#ddd',
-              overflow: 'hidden',
-              boxShadow: 1,
-            }}
-          >
-            {/* Kart başlığı */}
+      {/* SESSION KARTLARI */}
+      <Box sx={{ p: '1rem', display: 'flex', flexDirection: 'column', gap: '1.5rem', maxWidth: '900px' }}>
+        {sessions.map(sess => {
+          const isDraft    = sess.status === 'draft'
+          const isReady    = sess.status === 'ready'
+          const isApproved = sess.status === 'approved'
+          const canEdit    = sess.isOwn && isDraft
+          const totalQuantity = sess.lines.reduce((sum, l) => sum + computeQuantity(l), 0)
+
+          return (
             <Box
+              key={sess.id}
               sx={{
-                display: 'flex', alignItems: 'center', gap: '0.5rem',
-                px: '1rem', height: '50px',
-                backgroundColor: isApproved ? '#E3F2FD' : isReady ? '#F1F8E9' : '#e0e0e0',
-                borderBottom: '1px solid',
+                border: '1px solid',
                 borderColor: isApproved ? '#90CAF9' : isReady ? '#A5D6A7' : '#ddd',
+                overflow: 'hidden',
+                boxShadow: 1,
               }}
             >
-              <Typography variant="body1" sx={{ fontWeight: 700, flexGrow: 1 }}>
-                Metraj
-              </Typography>
+              {/* Kart başlığı */}
+              <Box
+                sx={{
+                  display: 'flex', alignItems: 'center', gap: '0.5rem',
+                  px: '1rem', height: '50px',
+                  backgroundColor: isApproved ? '#E3F2FD' : isReady ? '#F1F8E9' : '#e0e0e0',
+                  borderBottom: '1px solid',
+                  borderColor: isApproved ? '#90CAF9' : isReady ? '#A5D6A7' : '#ddd',
+                }}
+              >
+                <Typography variant="body1" sx={{ fontWeight: 700, flexGrow: 1 }}>
+                  {sess.isOwn ? 'Benim Metrajım' : sess.userName}
+                  {!sess.isOwn && (
+                    <Box component="span" sx={{ fontWeight: 400, fontSize: '0.78rem', ml: '6px', color: '#888' }}>
+                      (salt okunur)
+                    </Box>
+                  )}
+                </Typography>
 
-              <StatusChip status={session.status} />
+                <StatusChip status={sess.status} />
 
-              {isDraft && !mode_edit && !isChanged && (
-                <>
-                  <Tooltip title="Düzenle">
-                    <IconButton size="small" onClick={() => setMode_edit(true)}>
-                      <EditIcon sx={{ fontSize: 20 }} />
+                {/* Onaylı oturum için: Revize Teklifi Başlat */}
+                {isApproved && !hasMyActiveSess && (
+                  <Tooltip title="Bu onaylı metrajı kopyalayarak revize teklifi oluştur">
+                    <IconButton size="small" onClick={() => handleStartRevision(sess.id)}>
+                      <ContentCopyIcon sx={{ fontSize: 18, color: '#1565c0' }} />
                     </IconButton>
                   </Tooltip>
-                  {lines.length > 0 && (
-                    <Tooltip title="Onaya Gönder">
-                      <IconButton size="small" onClick={handleMarkReady}>
-                        <CheckCircleIcon sx={{ fontSize: 24, color: '#2e7d32' }} />
+                )}
+
+                {/* Kendi taslağı — düzenle / onaya gönder */}
+                {isDraft && sess.isOwn && !sess.mode_edit && !sess.isChanged && (
+                  <>
+                    <Tooltip title="Düzenle">
+                      <IconButton size="small" onClick={() => updateSess(sess.id, () => ({ mode_edit: true }))}>
+                        <EditIcon sx={{ fontSize: 20 }} />
                       </IconButton>
                     </Tooltip>
-                  )}
-                </>
-              )}
+                    {sess.lines.length > 0 && (
+                      <Tooltip title="Onaya Gönder">
+                        <IconButton size="small" onClick={() => handleMarkReady(sess.id)}>
+                          <CheckCircleIcon sx={{ fontSize: 24, color: '#2e7d32' }} />
+                        </IconButton>
+                      </Tooltip>
+                    )}
+                  </>
+                )}
 
-              {isDraft && mode_edit && !isChanged && (
-                <Tooltip title="Düzenlemeyi Bitir">
-                  <IconButton size="small" onClick={() => setMode_edit(false)}>
-                    <ClearIcon sx={{ color: '#888', fontSize: 20 }} />
-                  </IconButton>
-                </Tooltip>
-              )}
-
-              {isChanged && (
-                <>
-                  <Tooltip title="İptal">
-                    <IconButton size="small" onClick={handleCancel}>
-                      <ClearIcon sx={{ color: '#c62828', fontSize: 20 }} />
+                {/* Düzenleme modu — değişiklik yoksa bitir */}
+                {isDraft && sess.isOwn && sess.mode_edit && !sess.isChanged && (
+                  <Tooltip title="Düzenlemeyi Bitir">
+                    <IconButton size="small" onClick={() => updateSess(sess.id, () => ({ mode_edit: false }))}>
+                      <ClearIcon sx={{ color: '#888', fontSize: 20 }} />
                     </IconButton>
                   </Tooltip>
-                  <Tooltip title="Kaydet">
-                    <IconButton size="small" onClick={handleSave}>
-                      <SaveIcon sx={{ color: '#1565c0', fontSize: 20 }} />
-                    </IconButton>
-                  </Tooltip>
-                </>
-              )}
+                )}
 
-              {isReady && (
-                <>
+                {/* Değişiklik varsa — iptal / kaydet */}
+                {sess.isChanged && (
+                  <>
+                    <Tooltip title="İptal">
+                      <IconButton size="small" onClick={() => handleCancelEdit(sess.id)}>
+                        <ClearIcon sx={{ color: '#c62828', fontSize: 20 }} />
+                      </IconButton>
+                    </Tooltip>
+                    <Tooltip title="Kaydet">
+                      <IconButton size="small" onClick={() => handleSave(sess.id)}>
+                        <SaveIcon sx={{ color: '#1565c0', fontSize: 20 }} />
+                      </IconButton>
+                    </Tooltip>
+                  </>
+                )}
+
+                {/* Kendi oturumu onay bekliyor — taslağa geri al */}
+                {isReady && sess.isOwn && (
                   <Tooltip title="Taslağa geri al">
-                    <IconButton size="small" onClick={handleBackToDraft}>
+                    <IconButton size="small" onClick={() => handleBackToDraft(sess.id)}>
                       <ReplyIcon sx={{ color: 'orange', fontSize: 20 }} />
                     </IconButton>
                   </Tooltip>
-                  <Tooltip title="Onayla">
-                    <IconButton size="small" onClick={handleApprove}>
-                      <CheckCircleIcon sx={{ color: '#2e7d32', fontSize: 24 }} />
-                    </IconButton>
-                  </Tooltip>
-                </>
-              )}
-
-              {isApproved && (
-                <Tooltip title="Düzenle (Revize)">
-                  <IconButton size="small" onClick={handleRevise}>
-                    <EditIcon sx={{ fontSize: 20 }} />
-                  </IconButton>
-                </Tooltip>
-              )}
-            </Box>
-
-            {/* Satır yok */}
-            {lines.length === 0 && !mode_edit && (
-              <Box sx={{ px: '1rem', py: '0.75rem', color: 'gray', fontSize: '0.85rem' }}>
-                Bu oturumda metraj satırı bulunmuyor.
+                )}
               </Box>
-            )}
 
-            {/* Tablo */}
-            {(lines.length > 0 || mode_edit) && (
-              <Box sx={{ overflowX: 'auto' }}>
-
-                {/* Tablo başlığı */}
-                <Box sx={{ ...css_lineHeader, minWidth: 'max-content' }}>
-                  <Box sx={{ ...css_lineHeaderCell, justifyContent: 'center' }}>Sıra</Box>
-                  <Box sx={{ ...css_lineHeaderCell, justifyContent: 'flex-start' }}>Açıklama</Box>
-                  {NUM_LABELS.map(lbl => (
-                    <Box key={lbl} sx={{ ...css_lineHeaderCell }}>{lbl}</Box>
-                  ))}
-                  <Box sx={{ ...css_lineHeaderCell }}>Metraj</Box>
-                  <Box sx={{ ...css_lineHeaderCell }}></Box>
+              {/* Satır yok */}
+              {sess.lines.length === 0 && !sess.mode_edit && (
+                <Box sx={{ px: '1rem', py: '0.75rem', color: 'gray', fontSize: '0.85rem' }}>
+                  Bu oturumda metraj satırı bulunmuyor.
                 </Box>
+              )}
 
-                {/* Satırlar */}
-                {lines.map((line, index) => {
-                  const qty = computeQuantity(line)
-                  const isDeduction = qty < 0
-                  const rowBg = isApproved
-                    ? 'rgba(179,229,252,0.35)'
-                    : isReady
-                    ? 'rgba(200,230,200,0.3)'
-                    : mode_edit ? 'rgba(255,250,200,0.4)' : 'white'
-                  const deductionColor = isDeduction ? '#b71c1c' : undefined
+              {/* Tablo */}
+              {(sess.lines.length > 0 || (canEdit && sess.mode_edit)) && (
+                <Box sx={{ overflowX: 'auto' }}>
 
-                  return (
-                    <Box key={line.id} sx={{ ...css_lineRow, backgroundColor: rowBg, minWidth: 'max-content' }}>
+                  {/* Tablo başlığı */}
+                  <Box sx={{ ...css_lineHeader, minWidth: 'max-content' }}>
+                    <Box sx={{ ...css_lineHeaderCell, justifyContent: 'center' }}>Sıra</Box>
+                    <Box sx={{ ...css_lineHeaderCell, justifyContent: 'flex-start' }}>Açıklama</Box>
+                    {NUM_LABELS.map(lbl => <Box key={lbl} sx={{ ...css_lineHeaderCell }}>{lbl}</Box>)}
+                    <Box sx={{ ...css_lineHeaderCell }}>Metraj</Box>
+                    <Box sx={{ ...css_lineHeaderCell }}></Box>
+                  </Box>
 
-                      <Box sx={{ ...css_lineCell, justifyContent: 'center', color: '#888' }}>
-                        {index + 1}
-                      </Box>
+                  {/* Satırlar — ağaç düzeninde */}
+                  {buildDisplayTree(sess.lines).map(line => {
+                    const qty = computeQuantity(line)
+                    const isDeduction = qty < 0
+                    const rowBg = isApproved
+                      ? 'rgba(179,229,252,0.35)'
+                      : isReady
+                      ? 'rgba(200,230,200,0.3)'
+                      : sess.mode_edit ? 'rgba(255,250,200,0.4)' : 'white'
+                    const deductionColor = isDeduction ? '#b71c1c' : undefined
+                    const editActive = canEdit && sess.mode_edit
+                    const depthStyle = line.depth > 0
+                      ? { borderLeft: `${Math.min(line.depth, 3) * 3}px solid rgba(144,202,249,0.7)` }
+                      : {}
 
-                      <Box sx={{ ...css_lineCell, color: deductionColor }}>
-                        {mode_edit && isDraft ? (
-                          <input
-                            style={{ ...inputSx, textAlign: 'left', color: deductionColor }}
-                            value={line.description ?? ''}
-                            onChange={e => handleLineChange(line.id, 'description', e.target.value)}
-                          />
-                        ) : (
-                          line.description ?? ''
-                        )}
-                      </Box>
+                    return (
+                      <Box key={line.id} sx={{ ...css_lineRow, backgroundColor: rowBg, minWidth: 'max-content', ...depthStyle }}>
 
-                      {NUM_FIELDS.map(field => (
-                        <Box key={field} sx={{ ...css_lineCell, justifyContent: 'flex-end', color: deductionColor }}>
-                          {mode_edit && isDraft ? (
+                        <Box sx={{
+                          ...css_lineCell, justifyContent: 'flex-end', pr: '4px',
+                          color: line.depth > 0 ? '#1565c0' : '#888',
+                          fontSize: line.depth > 0 ? '0.78rem' : undefined,
+                        }}>
+                          {line.siraNo}
+                        </Box>
+
+                        <Box sx={{ ...css_lineCell, color: deductionColor }}>
+                          {editActive && (
+                            <Tooltip title={`Alt satır ekle (${line.siraNo}.1…)`}>
+                              <IconButton size="small" sx={{ p: '1px', mr: '3px', flexShrink: 0 }} onClick={() => handleAddLine(sess.id, line.id)}>
+                                <SubdirectoryArrowRightIcon sx={{ fontSize: 13, color: '#1565c0', opacity: 0.7 }} />
+                              </IconButton>
+                            </Tooltip>
+                          )}
+                          {editActive ? (
                             <input
-                              type="number"
-                              className="metraj-num-input"
-                              style={{ ...inputSx, color: deductionColor }}
-                              value={line[field] ?? ''}
-                              onChange={e => handleLineChange(line.id, field, e.target.value)}
-                              onKeyDown={e => ['e', 'E', '+'].includes(e.key) && e.preventDefault()}
+                              style={{ ...inputSx, textAlign: 'left', color: deductionColor }}
+                              value={line.description ?? ''}
+                              onChange={e => handleLineChange(sess.id, line.id, 'description', e.target.value)}
                             />
                           ) : (
-                            line[field] != null ? ikiHane(line[field]) : ''
+                            line.description ?? ''
                           )}
                         </Box>
-                      ))}
 
-                      <Box sx={{ ...css_lineCell, justifyContent: 'flex-end', color: deductionColor }}>
-                        {ikiHane(qty)}
-                        {pozBirim && <Box component="span" sx={{ ml: '4px', fontWeight: 400, fontSize: '0.75rem', color: '#888' }}>{pozBirim}</Box>}
+                        {NUM_FIELDS.map(field => (
+                          <Box key={field} sx={{ ...css_lineCell, justifyContent: 'flex-end', color: deductionColor }}>
+                            {editActive ? (
+                              <input
+                                type="number"
+                                className="metraj-num-input"
+                                style={{ ...inputSx, color: deductionColor }}
+                                value={line[field] ?? ''}
+                                onChange={e => handleLineChange(sess.id, line.id, field, e.target.value)}
+                                onKeyDown={e => ['e', 'E', '+'].includes(e.key) && e.preventDefault()}
+                              />
+                            ) : (
+                              line[field] != null ? ikiHane(line[field]) : ''
+                            )}
+                          </Box>
+                        ))}
+
+                        <Box sx={{ ...css_lineCell, justifyContent: 'flex-end', color: deductionColor }}>
+                          {ikiHane(qty)}
+                          {pozBirim && <Box component="span" sx={{ ml: '4px', fontWeight: 400, fontSize: '0.75rem', color: '#888' }}>{pozBirim}</Box>}
+                        </Box>
+
+                        <Box sx={{ ...css_lineCell, justifyContent: 'center', px: '2px' }}>
+                          {editActive && (
+                            <IconButton size="small" onClick={() => handleDeleteLine(sess.id, line.id)} sx={{ p: '2px' }}>
+                              <DeleteOutlineIcon sx={{ fontSize: 18, color: 'salmon' }} />
+                            </IconButton>
+                          )}
+                        </Box>
+
                       </Box>
+                    )
+                  })}
 
-                      <Box sx={{ ...css_lineCell, justifyContent: 'center', px: '2px' }}>
-                        {mode_edit && isDraft && (
-                          <IconButton size="small" onClick={() => handleDeleteLine(line.id)} sx={{ p: '2px' }}>
-                            <DeleteOutlineIcon sx={{ fontSize: 18, color: 'salmon' }} />
-                          </IconButton>
-                        )}
-                      </Box>
-
+                  {/* Satır ekle (düzenleme modunda) */}
+                  {canEdit && sess.mode_edit && (
+                    <Box
+                      sx={{
+                        display: 'flex', alignItems: 'center', px: '6px', py: '2px',
+                        borderBottom: '1px solid #e0e0e0',
+                        backgroundColor: 'rgba(21,101,192,0.04)',
+                        minWidth: 'max-content',
+                      }}
+                    >
+                      <IconButton size="small" onClick={() => handleAddLine(sess.id)}>
+                        <AddIcon sx={{ fontSize: 18, color: '#1565c0' }} />
+                      </IconButton>
+                      <Typography
+                        sx={{ fontSize: '0.8rem', color: '#1565c0', ml: '2px', cursor: 'pointer', userSelect: 'none' }}
+                        onClick={() => handleAddLine(sess.id)}
+                      >
+                        Satır Ekle
+                      </Typography>
                     </Box>
-                  )
-                })}
+                  )}
 
-                {/* Satır ekle butonu (edit modunda) */}
-                {isDraft && mode_edit && (
+                  {/* Toplam satırı */}
                   <Box
                     sx={{
-                      display: 'flex', alignItems: 'center', px: '6px', py: '2px',
-                      borderBottom: '1px solid #e0e0e0',
-                      backgroundColor: 'rgba(21,101,192,0.04)',
+                      display: 'grid', gridTemplateColumns: GRID_COLS,
+                      backgroundColor: isApproved ? '#E3F2FD' : isReady ? '#F1F8E9' : '#e0e0e0',
+                      borderTop: '2px solid',
+                      borderColor: isApproved ? '#90CAF9' : isReady ? '#A5D6A7' : '#ddd',
                       minWidth: 'max-content',
                     }}
                   >
-                    <IconButton size="small" onClick={handleAddLine}>
-                      <AddIcon sx={{ fontSize: 18, color: '#1565c0' }} />
-                    </IconButton>
-                    <Typography
-                      sx={{ fontSize: '0.8rem', color: '#1565c0', ml: '2px', cursor: 'pointer', userSelect: 'none' }}
-                      onClick={handleAddLine}
-                    >
-                      Satır Ekle
-                    </Typography>
+                    <Box sx={{ gridColumn: '1 / 8', px: '8px', py: '4px', fontSize: '0.8rem', fontWeight: 600, display: 'flex', alignItems: 'center', justifyContent: 'flex-end', color: '#555' }}>
+                      Toplam
+                    </Box>
+                    <Box sx={{ px: '8px', py: '4px', fontSize: '0.9rem', fontWeight: 700, display: 'flex', alignItems: 'center', justifyContent: 'flex-end', color: totalQuantity < 0 ? 'red' : isApproved ? '#01579B' : '#1B5E20' }}>
+                      {ikiHane(totalQuantity)}
+                      {pozBirim && <Box component="span" sx={{ ml: '4px', fontWeight: 400, fontSize: '0.8rem' }}>{pozBirim}</Box>}
+                    </Box>
+                    <Box />
                   </Box>
-                )}
 
-                {/* Toplam satırı */}
-                <Box
-                  sx={{
-                    display: 'grid', gridTemplateColumns: GRID_COLS,
-                    backgroundColor: isApproved ? '#E3F2FD' : isReady ? '#F1F8E9' : '#e0e0e0',
-                    borderTop: '2px solid',
-                    borderColor: isApproved ? '#90CAF9' : isReady ? '#A5D6A7' : '#ddd',
-                    minWidth: 'max-content',
-                  }}
-                >
-                  <Box sx={{ gridColumn: '1 / 8', px: '8px', py: '4px', fontSize: '0.8rem', fontWeight: 600, display: 'flex', alignItems: 'center', justifyContent: 'flex-end', color: '#555' }}>
-                    Toplam
-                  </Box>
-                  <Box sx={{ px: '8px', py: '4px', fontSize: '0.9rem', fontWeight: 700, display: 'flex', alignItems: 'center', justifyContent: 'flex-end', color: totalQuantity < 0 ? 'red' : isApproved ? '#01579B' : '#1B5E20' }}>
-                    {ikiHane(totalQuantity)}
-                    {pozBirim && <Box component="span" sx={{ ml: '4px', fontWeight: 400, fontSize: '0.8rem' }}>{pozBirim}</Box>}
-                  </Box>
-                  <Box />
                 </Box>
-
-              </Box>
-            )}
-          </Box>
-        </Box>
-      )}
+              )}
+            </Box>
+          )
+        })}
+      </Box>
     </Box>
   )
 }
