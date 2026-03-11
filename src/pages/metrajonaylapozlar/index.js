@@ -142,16 +142,19 @@ export default function P_MetrajOnaylaPozlar() {
       })
       setColumnUsers(sortedUserIds)
 
-      // Build pozId → { [userId]: { readySum, approvedSum }, approvedSum }
+      // Build pozId → { [userId]: { readySum, approvedSum, hasReady, allReadySeen, anyRevised }, approvedSum }
       const map = {}
       sessions.forEach(s => {
         const wppId = areaToWpp[s.work_package_poz_area_id]
         const pozId = wppToPoz[wppId]
         if (!pozId) return
         if (!map[pozId]) map[pozId] = { byUser: {}, approvedSum: 0 }
-        if (!map[pozId].byUser[s.created_by]) map[pozId].byUser[s.created_by] = { readySum: 0, approvedSum: 0 }
+        if (!map[pozId].byUser[s.created_by]) map[pozId].byUser[s.created_by] = { readySum: 0, approvedSum: 0, hasReady: false, allReadySeen: true, anyRevised: false }
         const qty = s.total_quantity ?? 0
-        if (s.status === 'ready') map[pozId].byUser[s.created_by].readySum += qty
+        if (s.status === 'ready') {
+          map[pozId].byUser[s.created_by].readySum += qty
+          map[pozId].byUser[s.created_by].hasReady = true
+        }
         if (s.status === 'approved') {
           map[pozId].byUser[s.created_by].approvedSum += qty
           map[pozId].approvedSum = (map[pozId].approvedSum ?? 0) + qty
@@ -243,7 +246,7 @@ export default function P_MetrajOnaylaPozlar() {
         position="static"
         sx={{ backgroundColor: 'white', color: 'black', boxShadow: 4 }}
       >
-        <Grid container alignItems="center" sx={{ px: '1rem', py: '0.5rem', maxHeight: '5rem' }}>
+        <Grid container justifyContent="space-between" alignItems="center" sx={{ px: '1rem', py: '0.5rem', maxHeight: '5rem' }}>
           <Grid item xs>
             <Box sx={{ display: 'flex', alignItems: 'center', gap: '0.3rem' }}>
               <IconButton sx={{ m: 0, p: 0 }} onClick={() => navigate('/metrajonayla')}>
@@ -276,14 +279,18 @@ export default function P_MetrajOnaylaPozlar() {
               </Typography>
             </Box>
           </Grid>
-          <Grid item>
+          <Grid item xs="auto">
             <Tooltip title="Hazırlayanlar">
               <IconButton
-                size="small"
                 onClick={() => setUserVisDialogOpen(true)}
-                sx={{ opacity: columnUsers.length > 0 && hiddenUsers.size === columnUsers.length ? 0.4 : 1, p: '4px' }}
+                sx={{ opacity: columnUsers.length > 0 && hiddenUsers.size === columnUsers.length ? 0.4 : 1, width: 40, height: 40 }}
               >
-                <Badge badgeContent={visibleColumnUsers.length} color="primary" max={99}>
+                <Badge
+                  badgeContent={visibleColumnUsers.length}
+                  color="primary"
+                  max={99}
+                  sx={{ '& .MuiBadge-badge': { fontSize: '0.6rem', height: 14, minWidth: 14, padding: '0 3px' } }}
+                >
                   <PersonIcon fontSize="small" />
                 </Badge>
               </IconButton>
@@ -482,6 +489,10 @@ export default function P_MetrajOnaylaPozlar() {
                                 const hasReady = ud?.readySum != null && ud.readySum !== 0
                                 const hasApproved = ud?.approvedSum != null && ud.approvedSum !== 0
                                 const isLast = idx === visibleColumnUsers.length - 1
+                                // Renk önceliği: mavi > yeşil > gri > kırmızı
+                                let dotColor = null
+                                if (hasApproved) dotColor = ud.anyRevised ? '#1565c0' : '#2e7d32'
+                                else if (hasReady) dotColor = ud.allReadySeen ? '#9e9e9e' : '#d32f2f'
                                 return (
                                   <Box
                                     key={uid}
@@ -496,21 +507,13 @@ export default function P_MetrajOnaylaPozlar() {
                                       '&:hover': { backgroundColor: hoverBg }
                                     }}
                                   >
-                                    {hasApproved && (
-                                      <>
-                                        <Box sx={{ width: '8px', height: '8px', borderRadius: '50%', backgroundColor: '#1565c0', flexShrink: 0 }} />
-                                        <Box component="span">{ikiHane(ud.approvedSum)}</Box>
-                                      </>
-                                    )}
-                                    {!hasApproved && hasReady && (
-                                      <>
-                                        <Box sx={{ width: '8px', height: '8px', borderRadius: '50%', backgroundColor: '#e65100', flexShrink: 0 }} />
-                                        <Box component="span">{ikiHane(ud.readySum)}</Box>
-                                      </>
-                                    )}
-                                    {!hasApproved && !hasReady && (
-                                      <Box component="span" sx={{ color: '#ccc' }}>—</Box>
-                                    )}
+                                    {dotColor
+                                      ? <>
+                                          <Box sx={{ width: '8px', height: '8px', borderRadius: '50%', backgroundColor: dotColor, flexShrink: 0 }} />
+                                          <Box component="span">{hasApproved ? ikiHane(ud.approvedSum) : ikiHane(ud.readySum)}</Box>
+                                        </>
+                                      : <Box component="span" sx={{ color: '#ccc' }}>—</Box>
+                                    }
                                   </Box>
                                 )
                               })}
@@ -531,15 +534,24 @@ export default function P_MetrajOnaylaPozlar() {
       }
 
       {/* Hazırlayanlar Dialog */}
-      <Dialog open={userVisDialogOpen} onClose={() => setUserVisDialogOpen(false)} maxWidth="xs" fullWidth>
-        <DialogTitle sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', py: 1.5 }}>
+      <Dialog
+        open={userVisDialogOpen}
+        onClose={() => setUserVisDialogOpen(false)}
+        maxWidth="xs"
+        fullWidth
+        sx={{
+          '& .MuiDialog-container': { alignItems: 'flex-start' },
+          '& .MuiDialog-paper': { mt: '10rem' },
+        }}
+      >
+        <DialogTitle sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', px: 2, py: 1.5 }}>
           <Typography variant="subtitle1" fontWeight={600}>Hazırlayanlar</Typography>
           <IconButton size="small" onClick={() => setUserVisDialogOpen(false)}>
             <CloseIcon fontSize="small" />
           </IconButton>
         </DialogTitle>
         <Divider />
-        <DialogContent sx={{ p: 0 }}>
+        <DialogContent sx={{ p: 0, pb: 1.5 }}>
           {columnUsers.length === 0 ? (
             <Box sx={{ px: 2, py: 2, color: 'text.secondary', fontSize: '0.875rem' }}>
               Hazır metraj bulunamadı.

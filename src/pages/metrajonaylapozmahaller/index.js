@@ -205,7 +205,7 @@ export default function P_MetrajOnaylaPozMahaller() {
 
       {/* BAŞLIK */}
       <AppBar position="static" sx={{ backgroundColor: 'white', color: 'black', boxShadow: 4 }}>
-        <Grid container alignItems="center" sx={{ px: '1rem', py: '0.5rem', maxHeight: '5rem' }}>
+        <Grid container justifyContent="space-between" alignItems="center" sx={{ px: '1rem', py: '0.5rem', maxHeight: '5rem' }}>
           <Grid item xs>
             <Box sx={{ display: 'flex', alignItems: 'center', gap: '0.3rem', flexWrap: 'nowrap', overflow: 'hidden' }}>
               <IconButton sx={{ m: 0, p: 0 }} onClick={() => navigate('/metrajonaylapozlar')}>
@@ -248,9 +248,9 @@ export default function P_MetrajOnaylaPozMahaller() {
               </Typography>
             </Box>
           </Grid>
-          <Grid item>
+          <Grid item xs="auto">
             <Tooltip title={showUserCols ? 'Hazırlayanları gizle' : 'Hazırlayanları göster'}>
-              <IconButton size="small" onClick={() => setShowUserCols(v => !v)} sx={{ opacity: showUserCols ? 1 : 0.4, p: '4px' }}>
+              <IconButton onClick={() => setShowUserCols(v => !v)} sx={{ opacity: showUserCols ? 1 : 0.4, width: 40, height: 40 }}>
                 <Badge badgeContent={sessionUsers.length} color="primary" max={99}>
                   <PersonIcon fontSize="small" />
                 </Badge>

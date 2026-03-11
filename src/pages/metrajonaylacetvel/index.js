@@ -173,6 +173,7 @@ export default function P_MetrajOnaylaCetvel() {
         revisedLines: {},   // lineId → { originalMetraj }
         showOriginals: true,
       })))
+
       setLoading(false)
     })()
   }, [wpAreaId])
@@ -256,8 +257,9 @@ export default function P_MetrajOnaylaCetvel() {
         insertedMap[line.id] = inserted
       }
       const total = sess.lines.reduce((s, l) => s + calcMetraj(l), 0)
+      const updatePayload = { total_quantity: total }
       const { error: updError } = await supabase
-        .from('measurement_sessions').update({ total_quantity: total }).eq('id', sessId)
+        .from('measurement_sessions').update(updatePayload).eq('id', sessId)
       if (updError) throw updError
       setSessions(s => s.map(sess2 => {
         if (sess2.id !== sessId) return sess2
