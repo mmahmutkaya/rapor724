@@ -13,8 +13,11 @@ import Typography from '@mui/material/Typography'
 import LinearProgress from '@mui/material/LinearProgress'
 import Alert from '@mui/material/Alert'
 import IconButton from '@mui/material/IconButton'
+import Badge from '@mui/material/Badge'
+import Tooltip from '@mui/material/Tooltip'
 import ReplyIcon from '@mui/icons-material/Reply'
 import NavigateNextIcon from '@mui/icons-material/NavigateNext'
+import PersonIcon from '@mui/icons-material/Person'
 import { AppBar } from '@mui/material'
 
 
@@ -55,6 +58,7 @@ export default function P_MetrajOnaylaPozlar() {
   const { data: wpPozlar = [], isLoading: wpPozLoading, error: wpPozError } = useGetWorkPackagePozlar()
 
   const [collapsedIds, setCollapsedIds] = useState(new Set())
+  const [showUserCols, setShowUserCols] = useState(true)
   // pozId → { [userId]: { readySum, approvedSum }, approvedSum }
   const [sessionMap, setSessionMap] = useState(null)
   // userId → { first_name, last_name }
@@ -120,7 +124,12 @@ export default function P_MetrajOnaylaPozlar() {
         }
       }
       setUserMap(uMap)
-      setColumnUsers(uniqueUserIds)
+      const sortedUserIds = [...uniqueUserIds].sort((a, b) => {
+        const nameA = [uMap[a]?.first_name, uMap[a]?.last_name].filter(Boolean).join(' ')
+        const nameB = [uMap[b]?.first_name, uMap[b]?.last_name].filter(Boolean).join(' ')
+        return nameA.localeCompare(nameB, 'tr')
+      })
+      setColumnUsers(sortedUserIds)
 
       // Build pozId → { [userId]: { readySum, approvedSum }, approvedSum }
       const map = {}
@@ -243,6 +252,15 @@ export default function P_MetrajOnaylaPozlar() {
               </Typography>
             </Box>
           </Grid>
+          <Grid item>
+            <Tooltip title={showUserCols ? 'Hazırlayanları gizle' : 'Hazırlayanları göster'}>
+              <IconButton size="small" onClick={() => setShowUserCols(v => !v)} sx={{ opacity: showUserCols ? 1 : 0.4, p: '4px' }}>
+                <Badge badgeContent={columnUsers.length} color="primary" max={99}>
+                  <PersonIcon fontSize="small" />
+                </Badge>
+              </IconButton>
+            </Tooltip>
+          </Grid>
         </Grid>
       </AppBar>
 
@@ -268,7 +286,14 @@ export default function P_MetrajOnaylaPozlar() {
       {!isLoading && !queryError && rawPozlar.length > 0 &&
         (() => {
           const totalDepthCols = maxLeafDepth + 1
-          const treeGridCols = `repeat(${totalDepthCols}, 1rem) max-content minmax(20rem, max-content) max-content${columnUsers.length > 0 ? ` 0.5rem max-content 0.5rem${columnUsers.map(() => ' max-content').join('')}` : ' max-content'}`
+          const treeGridCols = [
+            `repeat(${totalDepthCols}, 1rem)`,
+            'max-content',
+            'minmax(20rem, max-content)',
+            'max-content',
+            'max-content',
+            ...(showUserCols && columnUsers.length > 0 ? columnUsers.map(() => 'max-content') : []),
+          ].join(' ')
 
           const headerBg = '#000000'
           const headerCo = '#e0e1dd'
@@ -281,29 +306,24 @@ export default function P_MetrajOnaylaPozlar() {
           }
 
           return (
-            <Box sx={{ p: '0.5rem', width: 'fit-content', maxWidth: '100%', overflowX: 'auto' }}>
+            <Box sx={{ pt: 0, px: '0.5rem', pb: '0.5rem', width: 'fit-content', maxWidth: '100%', overflowX: 'auto' }}>
 
               {/* Header + WBS satırları — tek grid içinde, sütun genişlikleri ortak hesaplanır */}
               <Box sx={{ display: 'grid', gridTemplateColumns: '1rem 1fr' }}>
                 <Box sx={{ backgroundColor: 'black' }} />
                 <Box sx={{ display: 'grid', gridTemplateColumns: treeGridCols }}>
 
-                  {/* Sütun başlıkları — kullanıcı sütunları varsa */}
-                  {columnUsers.length > 0 && (
-                    <>
-                      <Box sx={{ gridColumn: `span ${totalDepthCols + 2}`, ...css_header, justifyContent: 'flex-start', mb: '2px' }} />
-                      <Box sx={{ ...css_header, mb: '2px' }} />
-                      <Box sx={{ mb: '2px' }} />
-                      <Box sx={{ ...css_header, mb: '2px' }}>Onaylanan</Box>
-                      <Box sx={{ mb: '2px' }} />
-                      {columnUsers.map(uid => (
-                        <Box key={uid} sx={{ ...css_header, flexDirection: 'column', gap: '0px', mb: '2px' }}>
-                          <Box>{userName(uid).split(' ')[0]}</Box>
-                          <Box>{userName(uid).split(' ').slice(1).join(' ')}</Box>
-                        </Box>
-                      ))}
-                    </>
-                  )}
+                  {/* Sütun başlıkları */}
+                  <>
+                    <Box sx={{ gridColumn: `span ${totalDepthCols + 3}`, ...css_header, justifyContent: 'flex-start' }} />
+                    <Box sx={{ ...css_header, ml: '0.5rem', mr: '0.5rem' }}>Onaylanan</Box>
+                    {showUserCols && columnUsers.map((uid, idx) => (
+                      <Box key={uid} sx={{ ...css_header, flexDirection: 'column', gap: '0px', ...(idx === columnUsers.length - 1 && { mr: '0.5rem' }) }}>
+                        <Box>{userName(uid).split(' ')[0]}</Box>
+                        <Box>{userName(uid).split(' ').slice(1).join(' ')}</Box>
+                      </Box>
+                    ))}
+                  </>
 
                   {flatNodes.map(node => {
                     if (isHiddenByAncestor(node)) return null
@@ -325,7 +345,7 @@ export default function P_MetrajOnaylaPozlar() {
                         <Box
                           onClick={() => { if (!isLeaf) toggleCollapse(node.id) }}
                           sx={{
-                            gridColumn: `span ${totalDepthCols - depth + (columnUsers.length > 0 ? 3 : 4)}`,
+                            gridColumn: `span ${totalDepthCols - depth + (showUserCols && columnUsers.length > 0 ? 3 : 4)}`,
                             pl: '6px', py: '1px',
                             backgroundColor: c.bg, color: c.co,
                             cursor: isLeaf ? 'default' : 'pointer',
@@ -340,13 +360,15 @@ export default function P_MetrajOnaylaPozlar() {
                             {node.code_name ? `(${node.code_name}) ` : ''}{node.name}
                           </Typography>
                         </Box>
-                        {columnUsers.length > 0 && (
+                        {showUserCols && columnUsers.length > 0 && (
                           <>
-                            <Box />
-                            <Box sx={{ backgroundColor: c.bg }} />
-                            <Box />
+                            <Box sx={{ ml: '0.5rem', mr: '0.5rem', backgroundColor: c.bg, borderLeft: '1px solid rgba(255,255,255,0.25)', borderRight: '1px solid rgba(255,255,255,0.25)' }} />
                             {columnUsers.map((_, i) => (
-                              <Box key={i} sx={{ backgroundColor: c.bg }} />
+                              <Box key={i} sx={{
+                                backgroundColor: c.bg,
+                                borderLeft: '1px solid rgba(255,255,255,0.25)',
+                                ...(i === columnUsers.length - 1 && { mr: '0.5rem', borderRight: '1px solid rgba(255,255,255,0.25)' })
+                              }} />
                             ))}
                           </>
                         )}
@@ -354,11 +376,8 @@ export default function P_MetrajOnaylaPozlar() {
                         {/* Poz satırları */}
                         {isLeaf && !collapsedIds.has(node.id) && pozlarOfNode.map(poz => {
                           const pozData = sessionMap?.[poz.id]
-                          const hasAnySession = pozData && (
-                            Object.values(pozData.byUser ?? {}).some(u => u.readySum > 0 || u.approvedSum > 0)
-                          )
-                          const rowBg = hasAnySession ? '#f0f4ff' : '#f8f8f8'
-                          const hoverBg = hasAnySession ? '#dce9ff' : '#f0f0f0'
+                          const rowBg = '#eeeeee'
+                          const hoverBg = '#e0e0e0'
 
                           return (
                             <React.Fragment key={poz.id}>
@@ -398,6 +417,7 @@ export default function P_MetrajOnaylaPozlar() {
                                 onClick={() => handlePozClick(poz)}
                                 sx={{
                                   px: '6px', py: '2px', borderBottom: '0.5px solid #ddd',
+                                  borderRight: '1px solid #c0c0c0',
                                   fontSize: '0.8rem', display: 'flex', alignItems: 'center', whiteSpace: 'nowrap',
                                   backgroundColor: rowBg, cursor: 'pointer',
                                   '&:hover': { backgroundColor: hoverBg }
@@ -406,51 +426,59 @@ export default function P_MetrajOnaylaPozlar() {
                                 {unitsMap[poz.unit_id] ?? '—'}
                               </Box>
 
-                              {/* Sol 0.5rem boşluk + Onaylanan toplam */}
-                              {columnUsers.length > 0 && <Box sx={{ borderBottom: '0.5px solid #ddd', backgroundColor: rowBg }} />}
+                              {/* Onaylanan toplam */}
                               <Box
                                 onClick={() => handlePozClick(poz)}
                                 sx={{
-                                  px: '6px', py: '2px', borderBottom: '0.5px solid #ddd', borderLeft: '2px solid #1565c0',
+                                  px: '6px', py: '2px', borderBottom: '0.5px solid #ddd',
+                                  borderLeft: '1px solid #c0c0c0', borderRight: '1px solid #c0c0c0',
+                                  ml: '0.5rem', mr: '0.5rem',
                                   fontSize: '0.8rem', fontWeight: 600, display: 'flex', alignItems: 'center', justifyContent: 'flex-end',
-                                  whiteSpace: 'nowrap', cursor: 'pointer',
-                                  backgroundColor: pozData?.approvedSum > 0 ? 'rgba(144,202,249,0.3)' : rowBg,
+                                  whiteSpace: 'nowrap', cursor: 'pointer', gap: '0.3rem',
+                                  backgroundColor: rowBg,
                                   '&:hover': { backgroundColor: hoverBg }
                                 }}
                               >
-                                {pozData?.approvedSum > 0
-                                  ? <Box component="span" sx={{ color: '#1565c0' }}>{ikiHane(pozData.approvedSum)}</Box>
+                                {pozData?.approvedSum != null && pozData.approvedSum !== 0
+                                  ? <>
+                                      <Box sx={{ width: '8px', height: '8px', borderRadius: '50%', backgroundColor: '#1565c0', flexShrink: 0 }} />
+                                      <Box component="span">{ikiHane(pozData.approvedSum)}</Box>
+                                    </>
                                   : <Box component="span" sx={{ color: '#ccc' }}>—</Box>
                                 }
                               </Box>
 
-                              {/* 0.5rem ayırıcı boşluk + per-user sütunları */}
-                              {columnUsers.length > 0 && <Box sx={{ borderBottom: '0.5px solid #ddd', backgroundColor: rowBg }} />}
-                              {columnUsers.map(uid => {
+                              {/* Per-user sütunları */}
+                              {showUserCols && columnUsers.map((uid, idx) => {
                                 const ud = pozData?.byUser?.[uid]
-                                const hasReady = ud?.readySum > 0
-                                const hasApproved = ud?.approvedSum > 0
+                                const hasReady = ud?.readySum != null && ud.readySum !== 0
+                                const hasApproved = ud?.approvedSum != null && ud.approvedSum !== 0
+                                const isLast = idx === columnUsers.length - 1
                                 return (
                                   <Box
                                     key={uid}
                                     onClick={() => handlePozClick(poz)}
                                     sx={{
-                                      px: '6px', py: '2px', borderBottom: '0.5px solid #ddd', borderLeft: '1px solid #e0e0e0',
+                                      px: '6px', py: '2px', borderBottom: '0.5px solid #ddd',
+                                      borderLeft: '1px solid #c0c0c0',
+                                      ...(isLast && { borderRight: '1px solid #c0c0c0', mr: '0.5rem' }),
                                       fontSize: '0.8rem', display: 'flex', alignItems: 'center', justifyContent: 'flex-end',
-                                      gap: '0.25rem', whiteSpace: 'nowrap', cursor: 'pointer',
-                                      backgroundColor: hasApproved ? 'rgba(144,202,249,0.2)' : hasReady ? 'rgba(255,224,102,0.3)' : rowBg,
+                                      gap: '0.3rem', whiteSpace: 'nowrap', cursor: 'pointer',
+                                      backgroundColor: rowBg,
                                       '&:hover': { backgroundColor: hoverBg }
                                     }}
                                   >
                                     {hasApproved && (
-                                      <Box component="span" sx={{ color: '#1565c0', fontWeight: 600 }}>
-                                        {ikiHane(ud.approvedSum)}
-                                      </Box>
+                                      <>
+                                        <Box sx={{ width: '8px', height: '8px', borderRadius: '50%', backgroundColor: '#1565c0', flexShrink: 0 }} />
+                                        <Box component="span">{ikiHane(ud.approvedSum)}</Box>
+                                      </>
                                     )}
                                     {!hasApproved && hasReady && (
-                                      <Box component="span" sx={{ color: '#e65100' }}>
-                                        {ikiHane(ud.readySum)}
-                                      </Box>
+                                      <>
+                                        <Box sx={{ width: '8px', height: '8px', borderRadius: '50%', backgroundColor: '#e65100', flexShrink: 0 }} />
+                                        <Box component="span">{ikiHane(ud.readySum)}</Box>
+                                      </>
                                     )}
                                     {!hasApproved && !hasReady && (
                                       <Box component="span" sx={{ color: '#ccc' }}>—</Box>

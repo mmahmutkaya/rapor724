@@ -11,7 +11,11 @@ import Grid from '@mui/material/Grid'
 import Typography from '@mui/material/Typography'
 import LinearProgress from '@mui/material/LinearProgress'
 import Alert from '@mui/material/Alert'
+import Badge from '@mui/material/Badge'
+import IconButton from '@mui/material/IconButton'
+import Tooltip from '@mui/material/Tooltip'
 import NavigateNextIcon from '@mui/icons-material/NavigateNext'
+import PersonIcon from '@mui/icons-material/Person'
 
 
 function ikiHane(v) {
@@ -52,7 +56,9 @@ export default function P_MetrajOlusturPozlar() {
   const { data: wpPozlar = [], isLoading: wpPozLoading, error: wpPozError } = useGetWorkPackagePozlar()
 
   const [collapsedIds, setCollapsedIds] = useState(new Set())
-  const [pozMetrajMap, setPozMetrajMap] = useState({}) // project_poz_id → toplam metraj
+  const [showUserCols, setShowUserCols] = useState(true)
+  const [pozHazMap, setPozHazMap] = useState({})   // project_poz_id → aktif kullanıcı draft+ready toplam
+  const [pozOnayMap, setPozOnayMap] = useState({}) // project_poz_id → approved toplam (tüm kullanıcılar)
   const [pozWithAreasSet, setPozWithAreasSet] = useState(null) // project_poz_id'leri — en az 1 mahali olanlar
 
   const isLoading = wbsLoading || unitsLoading || wpPozLoading || pozWithAreasSet === null
@@ -68,7 +74,7 @@ export default function P_MetrajOlusturPozlar() {
   }, [])
 
   useEffect(() => {
-    if (!wpPozlar || wpPozlar.length === 0) { setPozMetrajMap({}); setPozWithAreasSet(new Set()); return }
+    if (!wpPozlar || wpPozlar.length === 0) { setPozHazMap({}); setPozOnayMap({}); setPozWithAreasSet(new Set()); return }
     setPozWithAreasSet(null) // yükleniyor
     const wppIds = wpPozlar.map(wpp => wpp.id)
     const wppToPoz = {}
@@ -79,7 +85,7 @@ export default function P_MetrajOlusturPozlar() {
         .select('id, work_package_poz_id')
         .in('work_package_poz_id', wppIds)
 
-      if (!areas || areas.length === 0) { setPozWithAreasSet(new Set()); return }
+      if (!areas || areas.length === 0) { setPozWithAreasSet(new Set()); setPozHazMap({}); setPozOnayMap({}); return }
 
       // En az 1 mahali olan project_poz_id'leri belirle
       const withAreas = new Set()
@@ -90,22 +96,32 @@ export default function P_MetrajOlusturPozlar() {
       setPozWithAreasSet(withAreas)
 
       const areaIds = areas.map(a => a.id)
-      let sessionsQuery = supabase
-        .from('measurement_sessions')
-        .select('work_package_poz_area_id, total_quantity')
-        .in('work_package_poz_area_id', areaIds)
-      if (appUser?.id) sessionsQuery = sessionsQuery.eq('created_by', appUser.id)
-      const { data: sessions } = await sessionsQuery
-      if (!sessions) return
       const areaToWpp = {}
       areas.forEach(a => { areaToWpp[a.id] = a.work_package_poz_id })
-      const map = {}
+
+      const { data: sessions } = await supabase
+        .from('measurement_sessions')
+        .select('work_package_poz_area_id, total_quantity, status, created_by')
+        .in('work_package_poz_area_id', areaIds)
+        .in('status', ['draft', 'ready', 'approved'])
+
+      if (!sessions) return
+
+      const hazMap = {}
+      const onayMap = {}
       sessions.forEach(s => {
         const wppId = areaToWpp[s.work_package_poz_area_id]
         const pozId = wppToPoz[wppId]
-        if (pozId) map[pozId] = (map[pozId] ?? 0) + (s.total_quantity ?? 0)
+        if (!pozId) return
+        const qty = s.total_quantity ?? 0
+        if (s.status === 'approved') {
+          onayMap[pozId] = (onayMap[pozId] ?? 0) + qty
+        } else if (appUser?.id && s.created_by === appUser.id) {
+          hazMap[pozId] = (hazMap[pozId] ?? 0) + qty
+        }
       })
-      setPozMetrajMap(map)
+      setPozHazMap(hazMap)
+      setPozOnayMap(onayMap)
     })()
   }, [wpPozlar, appUser?.id])
 
@@ -170,24 +186,23 @@ export default function P_MetrajOlusturPozlar() {
   return (
     <Box sx={{ m: '0rem' }}>
 
-      {/* BAŞLIK */}
       <Paper>
         <Grid container alignItems="center" sx={{ px: '1rem', py: '0.5rem', maxHeight: '5rem' }}>
           <Grid item>
             <Box sx={{ display: 'flex', alignItems: 'center', gap: '0.2rem' }}>
               <Typography
                 variant="body1"
-                sx={{ fontWeight: 600, opacity: 0.4, cursor: 'pointer', '&:hover': { opacity: 0.8 } }}
+                sx={{ fontWeight: 600, opacity: 0.6, cursor: 'pointer', '&:hover': { opacity: 0.9 } }}
                 onClick={() => navigate('/metrajolustur')}
               >
                 Metraj Oluştur
               </Typography>
-              <NavigateNextIcon sx={{ opacity: 0.4, fontSize: 18 }} />
+              <NavigateNextIcon sx={{ opacity: 0.6, fontSize: 18 }} />
               <Typography
                 variant="body1"
                 sx={{
                   fontWeight: 600,
-                  opacity: 0.4,
+                  opacity: 0.6,
                   maxWidth: '14rem',
                   overflow: 'hidden',
                   textOverflow: 'ellipsis',
@@ -196,11 +211,20 @@ export default function P_MetrajOlusturPozlar() {
               >
                 {selectedIsPaket?.name}
               </Typography>
-              <NavigateNextIcon sx={{ opacity: 0.4, fontSize: 18 }} />
+              <NavigateNextIcon sx={{ opacity: 0.6, fontSize: 18 }} />
               <Typography variant="body1" sx={{ fontWeight: 700, whiteSpace: 'nowrap' }}>
                 Pozlar
               </Typography>
             </Box>
+          </Grid>
+          <Grid item sx={{ ml: 'auto' }}>
+            <Tooltip title={showUserCols ? 'Hazırlayanları gizle' : 'Hazırlayanları göster'}>
+              <IconButton size="small" onClick={() => setShowUserCols(v => !v)} sx={{ opacity: showUserCols ? 1 : 0.4, p: '4px' }}>
+                <Badge badgeContent={1} color="primary" max={99}>
+                  <PersonIcon fontSize="small" />
+                </Badge>
+              </IconButton>
+            </Tooltip>
           </Grid>
         </Grid>
       </Paper>
@@ -231,23 +255,40 @@ export default function P_MetrajOlusturPozlar() {
       {!isLoading && !queryError && rawWbsNodes.length > 0 && rawPozlar.length > 0 &&
         (() => {
           const totalDepthCols = maxLeafDepth + 1
-          const totalCols = totalDepthCols + 4
-          const treeGridCols = `repeat(${totalDepthCols}, 1rem) max-content minmax(20rem, max-content) max-content max-content`
+          const treeGridCols = `repeat(${totalDepthCols}, 1rem) max-content minmax(20rem, max-content) max-content max-content${showUserCols ? ' max-content' : ''}`
+
+          const css_header = {
+            px: '4px', py: '2px',
+            backgroundColor: 'black',
+            color: 'white',
+            borderBottom: '1px solid #333',
+            fontSize: '0.75rem',
+            fontWeight: 600,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            textAlign: 'center',
+            whiteSpace: 'nowrap',
+            overflow: 'hidden',
+            textOverflow: 'ellipsis',
+          }
 
           return (
-            <Box sx={{ maxWidth: '80rem', p: '0.5rem', width: 'fit-content' }}>
-
-              {/* Proje adı satırı */}
-              <Box sx={{ display: 'grid', gridTemplateColumns: '1rem 1fr' }}>
-                <Box sx={{ backgroundColor: 'black' }} />
-                <Box sx={{ backgroundColor: 'black', color: 'white', pl: '4px', py: '2px' }}>
-                  <Typography variant="body2">{selectedProje?.name}</Typography>
-                </Box>
-              </Box>
+            <Box sx={{ maxWidth: '80rem', pt: 0, px: '0.5rem', pb: '0.5rem', width: 'fit-content' }}>
 
               <Box sx={{ display: 'grid', gridTemplateColumns: '1rem 1fr' }}>
                 <Box sx={{ backgroundColor: 'black' }} />
                 <Box sx={{ display: 'grid', gridTemplateColumns: treeGridCols }}>
+
+                  {/* ── SÜTUN BAŞLIKLARI ── */}
+                  {Array.from({ length: totalDepthCols }).map((_, i) => (
+                    <Box key={`hd-depth-${i}`} sx={{ ...css_header }} />
+                  ))}
+                  <Box sx={{ ...css_header }} />
+                  <Box sx={{ ...css_header }} />
+                  <Box sx={{ ...css_header }} />
+                  <Box sx={{ ...css_header, ml: '0.5rem', mr: '0.5rem' }}>Onaylanan</Box>
+                  {showUserCols && <Box sx={{ ...css_header, mr: '0.5rem' }}>Hazırlanan</Box>}
 
                   {flatNodes.map(node => {
                     if (isHiddenByAncestor(node)) return null
@@ -270,7 +311,7 @@ export default function P_MetrajOlusturPozlar() {
                         <Box
                           onClick={() => { if (!isLeaf) toggleCollapse(node.id) }}
                           sx={{
-                            gridColumn: `span ${totalCols - depth}`,
+                            gridColumn: `span ${totalDepthCols - depth + 3}`,
                             pl: '6px', py: '1px',
                             backgroundColor: c.bg,
                             color: c.co,
@@ -292,11 +333,13 @@ export default function P_MetrajOlusturPozlar() {
                             {node.code_name ? `(${node.code_name}) ` : ''}{node.name}
                           </Typography>
                           {isLeaf && pozlarOfNode.length > 0 &&
-                            <Box sx={{ ml: 'auto', pr: '0.5rem', fontSize: '0.75rem', opacity: 0.5, flexShrink: 0 }}>
+                            <Box sx={{ ml: 'auto', pr: '0.5rem', fontSize: '0.75rem', opacity: 0.7, flexShrink: 0 }}>
                               {pozlarOfNode.length} poz
                             </Box>
                           }
                         </Box>
+                        <Box sx={{ ml: '0.5rem', mr: '0.5rem', backgroundColor: c.bg }} />
+                        {showUserCols && <Box sx={{ mr: '0.5rem', backgroundColor: c.bg }} />}
 
                         {/* Poz satırları */}
                         {isLeaf && !collapsedIds.has(node.id) && pozlarOfNode.map(poz => (
@@ -315,9 +358,9 @@ export default function P_MetrajOlusturPozlar() {
                                 borderLeft: '1px solid #aaa',
                                 fontFamily: 'monospace', fontSize: '0.8rem', fontWeight: 600,
                                 display: 'flex', alignItems: 'center', whiteSpace: 'nowrap',
-                                backgroundColor: '#f2f2f2',
+                                backgroundColor: '#eeeeee',
                                 cursor: 'pointer',
-                                '&:hover': { backgroundColor: '#e3f2fd' }
+                                '&:hover': { backgroundColor: '#e0e0e0' }
                               }}
                             >
                               {poz.code || '—'}
@@ -331,9 +374,9 @@ export default function P_MetrajOlusturPozlar() {
                                 borderBottom: '0.5px solid #ddd',
                                 fontSize: '0.875rem',
                                 display: 'flex', alignItems: 'center',
-                                backgroundColor: '#f2f2f2',
+                                backgroundColor: '#eeeeee',
                                 cursor: 'pointer',
-                                '&:hover': { backgroundColor: '#e3f2fd' }
+                                '&:hover': { backgroundColor: '#e0e0e0' }
                               }}
                             >
                               {poz.short_desc}
@@ -345,34 +388,69 @@ export default function P_MetrajOlusturPozlar() {
                               sx={{
                                 px: '6px', py: '2px',
                                 borderBottom: '0.5px solid #ddd',
+                                borderRight: '1px solid #c0c0c0',
                                 fontSize: '0.8rem',
                                 display: 'flex', alignItems: 'center',
-                                backgroundColor: '#f2f2f2', whiteSpace: 'nowrap',
+                                backgroundColor: '#eeeeee', whiteSpace: 'nowrap',
                                 cursor: 'pointer',
-                                '&:hover': { backgroundColor: '#e3f2fd' }
+                                '&:hover': { backgroundColor: '#e0e0e0' }
                               }}
                             >
                               {unitsMap[poz.unit_id] ?? '—'}
                             </Box>
 
-                            {/* Metraj toplamı */}
+                            {/* Onaylanan (tüm kullanıcılar) */}
                             <Box
                               onClick={() => handlePozClick(poz)}
                               sx={{
                                 px: '6px', py: '2px',
                                 borderBottom: '0.5px solid #ddd',
-                                fontSize: '0.8rem',
+                                borderLeft: '1px solid #c0c0c0', borderRight: '1px solid #c0c0c0',
+                                ml: '0.5rem', mr: '0.5rem',
+                                fontSize: '0.8rem', fontWeight: 600,
                                 display: 'flex', alignItems: 'center', justifyContent: 'flex-end',
-                                backgroundColor: '#f2f2f2',
+                                gap: '0.3rem',
+                                backgroundColor: '#eeeeee',
                                 whiteSpace: 'nowrap',
                                 cursor: 'pointer',
-                                '&:hover': { backgroundColor: '#e3f2fd' }
+                                '&:hover': { backgroundColor: '#e0e0e0' }
                               }}
                             >
-                              {pozMetrajMap[poz.id] != null
-                                ? `${ikiHane(pozMetrajMap[poz.id])} ${unitsMap[poz.unit_id] ?? ''}`
-                                : '—'}
+                              {pozOnayMap[poz.id] != null && pozOnayMap[poz.id] !== 0
+                                ? <>
+                                    <Box sx={{ width: '8px', height: '8px', borderRadius: '50%', backgroundColor: '#1565c0', flexShrink: 0 }} />
+                                    {`${ikiHane(pozOnayMap[poz.id])} ${unitsMap[poz.unit_id] ?? ''}`}
+                                  </>
+                                : <Box component="span" sx={{ color: '#999' }}>—</Box>
+                              }
                             </Box>
+
+                            {/* Hazırlanan (aktif kullanıcı) */}
+                            {showUserCols && <Box
+                              onClick={() => handlePozClick(poz)}
+                              sx={{
+                                px: '6px', py: '2px',
+                                borderBottom: '0.5px solid #ddd',
+                                borderLeft: '1px solid #c0c0c0',
+                                borderRight: '1px solid #c0c0c0',
+                                mr: '0.5rem',
+                                fontSize: '0.8rem',
+                                display: 'flex', alignItems: 'center', justifyContent: 'flex-end',
+                                gap: '0.3rem',
+                                backgroundColor: '#eeeeee',
+                                whiteSpace: 'nowrap',
+                                cursor: 'pointer',
+                                '&:hover': { backgroundColor: '#e0e0e0' }
+                              }}
+                            >
+                              {pozHazMap[poz.id] != null && pozHazMap[poz.id] !== 0
+                                ? <>
+                                    <Box sx={{ width: '8px', height: '8px', borderRadius: '50%', backgroundColor: '#757575', flexShrink: 0 }} />
+                                    {`${ikiHane(pozHazMap[poz.id])} ${unitsMap[poz.unit_id] ?? ''}`}
+                                  </>
+                                : <Box component="span" sx={{ color: '#999' }}>—</Box>
+                              }
+                            </Box>}
 
                           </React.Fragment>
                         ))}

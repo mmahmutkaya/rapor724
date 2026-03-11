@@ -12,7 +12,10 @@ import Typography from '@mui/material/Typography'
 import LinearProgress from '@mui/material/LinearProgress'
 import Alert from '@mui/material/Alert'
 import Tooltip from '@mui/material/Tooltip'
+import Badge from '@mui/material/Badge'
+import IconButton from '@mui/material/IconButton'
 import NavigateNextIcon from '@mui/icons-material/NavigateNext'
+import PersonIcon from '@mui/icons-material/Person'
 
 
 function ikiHane(v) {
@@ -43,22 +46,6 @@ function nodeColor(depth) {
   return palette[depth % palette.length]
 }
 
-// status → renk
-function sessionBg(status) {
-  if (status === 'draft')    return '#FFF9C4'   // sarı  - taslak
-  if (status === 'ready')    return '#C8E6C9'   // yeşil - onaya hazır
-  if (status === 'approved') return '#B3E5FC'   // mavi  - onaylanan
-  return '#f0f0f0'
-}
-
-function statusLabel(status) {
-  if (status === 'draft')    return 'Taslak'
-  if (status === 'ready')    return 'Hazır'
-  if (status === 'approved') return 'Onaylı'
-  return ''
-}
-
-
 export default function P_MetrajOlusturPozMahaller() {
   const navigate = useNavigate()
   const { selectedProje, selectedIsPaket, selectedPoz, setSelectedMahal, appUser } = useContext(StoreContext)
@@ -68,6 +55,7 @@ export default function P_MetrajOlusturPozMahaller() {
   const { data: units = [] } = useGetPozUnits()
 
   const [collapsedIds, setCollapsedIds] = useState(new Set())
+  const [showUserCols, setShowUserCols] = useState(true)
 
   // wpAreaId → { byUser: { userId: session }, approved: session }
   const [sessionsMap, setSessionsMap] = useState({})
@@ -93,7 +81,7 @@ export default function P_MetrajOlusturPozMahaller() {
 
     (async () => {
       // Aktif kullanıcı her zaman listede (sessions yüklenemese bile göster)
-      const currentUserName = [appUser?.isim, appUser?.soyisim].filter(Boolean).join(' ') || appUser?.email || '(Ben)'
+      const currentUserName = [appUser?.isim, appUser?.soyisim].filter(v => v && v !== '-').join(' ') || appUser?.email || '(Ben)'
       const userMap = appUser?.id ? { [appUser.id]: currentUserName } : {}
 
       const { data: sessions, error: sessionsError } = await supabase
@@ -124,7 +112,7 @@ export default function P_MetrajOlusturPozMahaller() {
 
         if (usersData) {
           usersData.forEach(u => {
-            userMap[u.id] = [u.first_name, u.last_name].filter(Boolean).join(' ') || u.id
+            userMap[u.id] = [u.first_name, u.last_name].filter(v => v && v !== '-').join(' ') || u.id
           })
         }
       }
@@ -275,6 +263,15 @@ export default function P_MetrajOlusturPozMahaller() {
               </Typography>
             </Box>
           </Grid>
+          <Grid item sx={{ ml: 'auto' }}>
+            <Tooltip title={showUserCols ? 'Hazırlayanları gizle' : 'Hazırlayanları göster'}>
+              <IconButton size="small" onClick={() => setShowUserCols(v => !v)} sx={{ opacity: showUserCols ? 1 : 0.4, p: '4px' }}>
+                <Badge badgeContent={sessionUsers.length} color="primary" max={99}>
+                  <PersonIcon fontSize="small" />
+                </Badge>
+              </IconButton>
+            </Tooltip>
+          </Grid>
         </Grid>
       </Paper>
 
@@ -307,21 +304,20 @@ export default function P_MetrajOlusturPozMahaller() {
           // Sabit sütunlar: code, name, area  →  3 adet
           // Dinamik: sessionUsers.length adet kullanıcı + 1 onaylanan
           const userColCount = sessionUsers.length
-          const totalCols = totalDepthCols + 3 + userColCount + 1
-          const userColWidth = 'minmax(7rem, 10rem)'
           const treeGridCols = [
             `repeat(${totalDepthCols}, 1rem)`,
             'max-content',
             'minmax(20rem, max-content)',
             'max-content',
-            ...Array(userColCount).fill(userColWidth),
-            userColWidth,
+            'max-content',
+            ...(showUserCols ? Array(userColCount).fill('max-content') : []),
           ].join(' ')
 
           const css_header = {
             px: '4px', py: '2px',
-            backgroundColor: '#e0e0e0',
-            borderBottom: '1px solid #bbb',
+            backgroundColor: 'black',
+            color: 'white',
+            borderBottom: '1px solid #333',
             fontSize: '0.75rem',
             fontWeight: 600,
             display: 'flex',
@@ -334,15 +330,7 @@ export default function P_MetrajOlusturPozMahaller() {
           }
 
           return (
-            <Box sx={{ p: '0.5rem', width: 'fit-content', overflowX: 'auto', maxWidth: '100%' }}>
-
-              {/* Proje adı satırı */}
-              <Box sx={{ display: 'grid', gridTemplateColumns: '1rem 1fr' }}>
-                <Box sx={{ backgroundColor: 'black' }} />
-                <Box sx={{ backgroundColor: 'black', color: 'white', pl: '4px', py: '2px' }}>
-                  <Typography variant="body2">{selectedProje?.name}</Typography>
-                </Box>
-              </Box>
+            <Box sx={{ pt: 0, px: '0.5rem', pb: '0.5rem', width: 'fit-content', overflowX: 'auto', maxWidth: '100%' }}>
 
               <Box sx={{ display: 'grid', gridTemplateColumns: '1rem 1fr' }}>
                 <Box sx={{ backgroundColor: 'black' }} />
@@ -350,21 +338,24 @@ export default function P_MetrajOlusturPozMahaller() {
 
                   {/* ── SÜTUN BAŞLIKLARI ── */}
                   {Array.from({ length: totalDepthCols }).map((_, i) => (
-                    <Box key={`hd-depth-${i}`} sx={{ ...css_header, backgroundColor: 'transparent', borderBottom: '1px solid #bbb' }} />
+                    <Box key={`hd-depth-${i}`} sx={{ ...css_header, borderBottom: '1px solid #333' }} />
                   ))}
-                  <Box sx={{ ...css_header }}>Kod</Box>
-                  <Box sx={{ ...css_header, justifyContent: 'flex-start' }}>Mahal</Box>
-                  <Box sx={{ ...css_header }}>Alan</Box>
-                  {sessionUsers.map(user => (
+                  <Box sx={{ ...css_header }} />
+                  <Box sx={{ ...css_header }} />
+                  <Box sx={{ ...css_header }} />
+                  <Box sx={{ ...css_header, ml: '0.5rem', mr: '0.5rem' }}>
+                    Onaylanan
+                  </Box>
+                  {showUserCols && sessionUsers.map((user, idx) => (
                     <Tooltip key={`hd-user-${user.id}`} title={user.name} placement="top">
-                      <Box sx={{ ...css_header, color: appUser?.id === user.id ? '#1565C0' : 'inherit' }}>
+                      <Box sx={{
+                        ...css_header,
+                        ...(idx === sessionUsers.length - 1 && { mr: '0.5rem' }),
+                      }}>
                         {user.name}
                       </Box>
                     </Tooltip>
                   ))}
-                  <Box sx={{ ...css_header, backgroundColor: '#B3E5FC', color: '#01579B' }}>
-                    Onaylanan
-                  </Box>
                   {/* ── / SÜTUN BAŞLIKLARI ── */}
 
                   {flatNodes.map(node => {
@@ -388,7 +379,7 @@ export default function P_MetrajOlusturPozMahaller() {
                         <Box
                           onClick={() => { if (!isLeaf) toggleCollapse(node.id) }}
                           sx={{
-                            gridColumn: `span ${totalCols - depth}`,
+                            gridColumn: `span ${totalDepthCols - depth + 3}`,
                             pl: '6px', py: '1px',
                             backgroundColor: c.bg,
                             color: c.co,
@@ -415,10 +406,20 @@ export default function P_MetrajOlusturPozMahaller() {
                             </Box>
                           }
                         </Box>
+                        <Box sx={{ ml: '0.5rem', mr: '0.5rem', backgroundColor: c.bg, borderLeft: '1px solid rgba(255,255,255,0.25)', borderRight: '1px solid rgba(255,255,255,0.25)' }} />
+                        {showUserCols && sessionUsers.map((_, i) => (
+                          <Box key={i} sx={{
+                            backgroundColor: c.bg,
+                            borderLeft: '1px solid rgba(255,255,255,0.25)',
+                            ...(i === sessionUsers.length - 1 && { mr: '0.5rem', borderRight: '1px solid rgba(255,255,255,0.25)' })
+                          }} />
+                        ))}
 
                         {/* Mahal satırları */}
                         {isLeaf && !collapsedIds.has(node.id) && mahallerOfNode.map(mahal => {
                           const areaData = sessionsMap[mahal.wpAreaId] ?? { byUser: {}, approved: null }
+                          const rowBg = '#eeeeee'
+                          const hoverBg = '#e0e0e0'
 
                           return (
                             <React.Fragment key={mahal.id}>
@@ -436,9 +437,9 @@ export default function P_MetrajOlusturPozMahaller() {
                                   borderLeft: '1px solid #aaa',
                                   fontFamily: 'monospace', fontSize: '0.8rem', fontWeight: 600,
                                   display: 'flex', alignItems: 'center', whiteSpace: 'nowrap',
-                                  backgroundColor: '#f0f0f0',
+                                  backgroundColor: rowBg,
                                   cursor: 'pointer',
-                                  '&:hover': { backgroundColor: '#e3f2fd' }
+                                  '&:hover': { backgroundColor: hoverBg }
                                 }}
                               >
                                 {mahal.code || '—'}
@@ -452,9 +453,9 @@ export default function P_MetrajOlusturPozMahaller() {
                                   borderBottom: '0.5px solid #ddd',
                                   fontSize: '0.875rem',
                                   display: 'flex', alignItems: 'center',
-                                  backgroundColor: '#f0f0f0',
+                                  backgroundColor: rowBg,
                                   cursor: 'pointer',
-                                  '&:hover': { backgroundColor: '#e3f2fd' }
+                                  '&:hover': { backgroundColor: hoverBg }
                                 }}
                               >
                                 {mahal.name}
@@ -466,52 +467,17 @@ export default function P_MetrajOlusturPozMahaller() {
                                 sx={{
                                   px: '6px', py: '2px',
                                   borderBottom: '0.5px solid #ddd',
+                                  borderRight: '1px solid #c0c0c0',
                                   fontSize: '0.8rem',
                                   display: 'flex', alignItems: 'center', justifyContent: 'flex-end',
-                                  backgroundColor: '#f0f0f0',
+                                  backgroundColor: rowBg,
                                   whiteSpace: 'nowrap',
                                   cursor: 'pointer',
-                                  '&:hover': { backgroundColor: '#e3f2fd' }
+                                  '&:hover': { backgroundColor: hoverBg }
                                 }}
                               >
                                 {mahal.area != null ? `${mahal.area} m²` : '—'}
                               </Box>
-
-                              {/* Kullanıcı başına metraj sütunları */}
-                              {sessionUsers.map(user => {
-                                const ses = areaData.byUser[user.id]
-                                const isCurrentUser = appUser?.id === user.id
-                                const bg = ses ? sessionBg(ses.status) : '#f5f5f5'
-                                const isClickable = !!ses || isCurrentUser
-
-                                return (
-                                  <Tooltip
-                                    key={`cell-${mahal.id}-${user.id}`}
-                                    title={ses ? statusLabel(ses.status) : (isCurrentUser ? 'Metraj başlat' : '')}
-                                    placement="top"
-                                  >
-                                    <Box
-                                      onClick={() => isClickable ? handleMahalClick(mahal, ses || null) : undefined}
-                                      sx={{
-                                        px: '6px', py: '2px',
-                                        borderBottom: '0.5px solid #ddd',
-                                        fontSize: '0.8rem',
-                                        display: 'flex', alignItems: 'center', justifyContent: 'flex-end',
-                                        backgroundColor: bg,
-                                        whiteSpace: 'nowrap',
-                                        cursor: isClickable ? 'pointer' : 'default',
-                                        opacity: !ses && !isCurrentUser ? 0.4 : 1,
-                                        '&:hover': isClickable ? { filter: 'brightness(0.95)' } : {},
-                                      }}
-                                    >
-                                      {ses
-                                        ? `${ikiHane(ses.total_quantity)} ${pozBirim}`
-                                        : (isCurrentUser ? <span style={{ fontSize: '0.75rem', color: '#aaa' }}>+ Ekle</span> : '—')
-                                      }
-                                    </Box>
-                                  </Tooltip>
-                                )
-                              })}
 
                               {/* Onaylanan metraj sütunu */}
                               {(() => {
@@ -523,22 +489,73 @@ export default function P_MetrajOlusturPozMahaller() {
                                       sx={{
                                         px: '6px', py: '2px',
                                         borderBottom: '0.5px solid #ddd',
-                                        fontSize: '0.8rem',
+                                        borderLeft: '1px solid #c0c0c0', borderRight: '1px solid #c0c0c0',
+                                        ml: '0.5rem', mr: '0.5rem',
+                                        fontSize: '0.8rem', fontWeight: 600,
                                         display: 'flex', alignItems: 'center', justifyContent: 'flex-end',
-                                        backgroundColor: approvedSes ? sessionBg('approved') : '#f0f8ff',
+                                        gap: '0.3rem',
+                                        backgroundColor: rowBg,
                                         whiteSpace: 'nowrap',
                                         cursor: approvedSes ? 'pointer' : 'default',
-                                        fontWeight: approvedSes ? 600 : 'normal',
-                                        '&:hover': approvedSes ? { filter: 'brightness(0.95)' } : {},
+                                        '&:hover': approvedSes ? { backgroundColor: hoverBg } : {},
                                       }}
                                     >
                                       {approvedSes
-                                        ? `${ikiHane(approvedSes.total_quantity)} ${pozBirim}`
-                                        : '—'}
+                                        ? <>
+                                            <Box sx={{ width: '8px', height: '8px', borderRadius: '50%', backgroundColor: '#1565c0', flexShrink: 0 }} />
+                                            {`${ikiHane(approvedSes.total_quantity)} ${pozBirim}`}
+                                          </>
+                                        : <Box component="span" sx={{ color: '#ccc' }}>—</Box>
+                                      }
                                     </Box>
                                   </Tooltip>
                                 )
                               })()}
+
+                              {/* Kullanıcı başına metraj sütunları */}
+                              {showUserCols && sessionUsers.map((user, idx) => {
+                                const ses = areaData.byUser[user.id]
+                                const isCurrentUser = appUser?.id === user.id
+                                const isClickable = !!ses || isCurrentUser
+                                const isLast = idx === sessionUsers.length - 1
+                                const dotColor = ses?.status === 'ready' ? '#e65100' : '#757575'
+
+                                return (
+                                  <Tooltip
+                                    key={`cell-${mahal.id}-${user.id}`}
+                                    title={ses ? (ses.status === 'ready' ? 'Onaya Hazır' : ses.status === 'draft' ? 'Taslak' : '') : (isCurrentUser ? 'Metraj başlat' : '')}
+                                    placement="top"
+                                  >
+                                    <Box
+                                      onClick={() => isClickable ? handleMahalClick(mahal, ses || null) : undefined}
+                                      sx={{
+                                        px: '6px', py: '2px',
+                                        borderBottom: '0.5px solid #ddd',
+                                        borderLeft: '1px solid #c0c0c0',
+                                        ...(isLast && { borderRight: '1px solid #c0c0c0', mr: '0.5rem' }),
+                                        fontSize: '0.8rem',
+                                        display: 'flex', alignItems: 'center', justifyContent: 'flex-end',
+                                        gap: '0.3rem',
+                                        backgroundColor: rowBg,
+                                        whiteSpace: 'nowrap',
+                                        cursor: isClickable ? 'pointer' : 'default',
+                                        '&:hover': isClickable ? { backgroundColor: hoverBg } : {},
+                                      }}
+                                    >
+                                      {ses
+                                        ? <>
+                                            <Box sx={{ width: '8px', height: '8px', borderRadius: '50%', backgroundColor: dotColor, flexShrink: 0 }} />
+                                            {`${ikiHane(ses.total_quantity)} ${pozBirim}`}
+                                          </>
+                                        : (isCurrentUser
+                                            ? <Box component="span" sx={{ fontSize: '0.75rem', color: '#aaa' }}>+ Ekle</Box>
+                                            : <Box component="span" sx={{ color: '#ccc' }}>—</Box>
+                                          )
+                                      }
+                                    </Box>
+                                  </Tooltip>
+                                )
+                              })}
 
                             </React.Fragment>
                           )
@@ -549,20 +566,6 @@ export default function P_MetrajOlusturPozMahaller() {
                   })}
 
                 </Box>
-              </Box>
-
-              {/* Renk açıklaması */}
-              <Box sx={{ display: 'flex', gap: '1rem', mt: '0.75rem', px: '0.5rem', flexWrap: 'wrap' }}>
-                {[
-                  { color: sessionBg('draft'),    label: 'Taslak' },
-                  { color: sessionBg('ready'),    label: 'Onaya Hazır' },
-                  { color: sessionBg('approved'), label: 'Onaylanan' },
-                ].map(({ color, label }) => (
-                  <Box key={label} sx={{ display: 'flex', alignItems: 'center', gap: '0.3rem' }}>
-                    <Box sx={{ width: 14, height: 14, backgroundColor: color, border: '1px solid #bbb', borderRadius: 1 }} />
-                    <Typography variant="caption" sx={{ color: 'gray' }}>{label}</Typography>
-                  </Box>
-                ))}
               </Box>
             </Box>
           )
