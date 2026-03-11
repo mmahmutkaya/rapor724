@@ -15,9 +15,19 @@ import Alert from '@mui/material/Alert'
 import IconButton from '@mui/material/IconButton'
 import Badge from '@mui/material/Badge'
 import Tooltip from '@mui/material/Tooltip'
+import Dialog from '@mui/material/Dialog'
+import DialogTitle from '@mui/material/DialogTitle'
+import DialogContent from '@mui/material/DialogContent'
+import List from '@mui/material/List'
+import ListItem from '@mui/material/ListItem'
+import ListItemText from '@mui/material/ListItemText'
+import Divider from '@mui/material/Divider'
 import ReplyIcon from '@mui/icons-material/Reply'
 import NavigateNextIcon from '@mui/icons-material/NavigateNext'
 import PersonIcon from '@mui/icons-material/Person'
+import VisibilityIcon from '@mui/icons-material/Visibility'
+import VisibilityOffIcon from '@mui/icons-material/VisibilityOff'
+import CloseIcon from '@mui/icons-material/Close'
 import { AppBar } from '@mui/material'
 
 
@@ -58,7 +68,8 @@ export default function P_MetrajOnaylaPozlar() {
   const { data: wpPozlar = [], isLoading: wpPozLoading, error: wpPozError } = useGetWorkPackagePozlar()
 
   const [collapsedIds, setCollapsedIds] = useState(new Set())
-  const [showUserCols, setShowUserCols] = useState(true)
+  const [userVisDialogOpen, setUserVisDialogOpen] = useState(false)
+  const [hiddenUsers, setHiddenUsers] = useState(new Set())
   // pozId → { [userId]: { readySum, approvedSum }, approvedSum }
   const [sessionMap, setSessionMap] = useState(null)
   // userId → { first_name, last_name }
@@ -185,6 +196,19 @@ export default function P_MetrajOnaylaPozlar() {
     })
   }
 
+  function toggleUserVisibility(uid) {
+    setHiddenUsers(prev => {
+      const next = new Set(prev)
+      next.has(uid) ? next.delete(uid) : next.add(uid)
+      return next
+    })
+  }
+
+  const visibleColumnUsers = useMemo(
+    () => columnUsers.filter(uid => !hiddenUsers.has(uid)),
+    [columnUsers, hiddenUsers]
+  )
+
   function isHiddenByAncestor(node) {
     let parentId = node.parent_id
     while (parentId) {
@@ -253,9 +277,13 @@ export default function P_MetrajOnaylaPozlar() {
             </Box>
           </Grid>
           <Grid item>
-            <Tooltip title={showUserCols ? 'Hazırlayanları gizle' : 'Hazırlayanları göster'}>
-              <IconButton size="small" onClick={() => setShowUserCols(v => !v)} sx={{ opacity: showUserCols ? 1 : 0.4, p: '4px' }}>
-                <Badge badgeContent={columnUsers.length} color="primary" max={99}>
+            <Tooltip title="Hazırlayanlar">
+              <IconButton
+                size="small"
+                onClick={() => setUserVisDialogOpen(true)}
+                sx={{ opacity: columnUsers.length > 0 && hiddenUsers.size === columnUsers.length ? 0.4 : 1, p: '4px' }}
+              >
+                <Badge badgeContent={visibleColumnUsers.length} color="primary" max={99}>
                   <PersonIcon fontSize="small" />
                 </Badge>
               </IconButton>
@@ -292,7 +320,7 @@ export default function P_MetrajOnaylaPozlar() {
             'minmax(20rem, max-content)',
             'max-content',
             'max-content',
-            ...(showUserCols && columnUsers.length > 0 ? columnUsers.map(() => 'max-content') : []),
+            ...(visibleColumnUsers.length > 0 ? visibleColumnUsers.map(() => 'max-content') : []),
           ].join(' ')
 
           const headerBg = '#000000'
@@ -317,8 +345,8 @@ export default function P_MetrajOnaylaPozlar() {
                   <>
                     <Box sx={{ gridColumn: `span ${totalDepthCols + 3}`, ...css_header, justifyContent: 'flex-start' }} />
                     <Box sx={{ ...css_header, ml: '0.5rem', mr: '0.5rem' }}>Onaylanan</Box>
-                    {showUserCols && columnUsers.map((uid, idx) => (
-                      <Box key={uid} sx={{ ...css_header, flexDirection: 'column', gap: '0px', ...(idx === columnUsers.length - 1 && { mr: '0.5rem' }) }}>
+                    {visibleColumnUsers.map((uid, idx) => (
+                      <Box key={uid} sx={{ ...css_header, flexDirection: 'column', gap: '0px', ...(idx === visibleColumnUsers.length - 1 && { mr: '0.5rem' }) }}>
                         <Box>{userName(uid).split(' ')[0]}</Box>
                         <Box>{userName(uid).split(' ').slice(1).join(' ')}</Box>
                       </Box>
@@ -345,7 +373,7 @@ export default function P_MetrajOnaylaPozlar() {
                         <Box
                           onClick={() => { if (!isLeaf) toggleCollapse(node.id) }}
                           sx={{
-                            gridColumn: `span ${totalDepthCols - depth + (showUserCols && columnUsers.length > 0 ? 3 : 4)}`,
+                            gridColumn: `span ${totalDepthCols - depth + (visibleColumnUsers.length > 0 ? 3 : 4)}`,
                             pl: '6px', py: '1px',
                             backgroundColor: c.bg, color: c.co,
                             cursor: isLeaf ? 'default' : 'pointer',
@@ -360,14 +388,14 @@ export default function P_MetrajOnaylaPozlar() {
                             {node.code_name ? `(${node.code_name}) ` : ''}{node.name}
                           </Typography>
                         </Box>
-                        {showUserCols && columnUsers.length > 0 && (
+                        {visibleColumnUsers.length > 0 && (
                           <>
                             <Box sx={{ ml: '0.5rem', mr: '0.5rem', backgroundColor: c.bg, borderLeft: '1px solid rgba(255,255,255,0.25)', borderRight: '1px solid rgba(255,255,255,0.25)' }} />
-                            {columnUsers.map((_, i) => (
+                            {visibleColumnUsers.map((_, i) => (
                               <Box key={i} sx={{
                                 backgroundColor: c.bg,
                                 borderLeft: '1px solid rgba(255,255,255,0.25)',
-                                ...(i === columnUsers.length - 1 && { mr: '0.5rem', borderRight: '1px solid rgba(255,255,255,0.25)' })
+                                ...(i === visibleColumnUsers.length - 1 && { mr: '0.5rem', borderRight: '1px solid rgba(255,255,255,0.25)' })
                               }} />
                             ))}
                           </>
@@ -449,11 +477,11 @@ export default function P_MetrajOnaylaPozlar() {
                               </Box>
 
                               {/* Per-user sütunları */}
-                              {showUserCols && columnUsers.map((uid, idx) => {
+                              {visibleColumnUsers.map((uid, idx) => {
                                 const ud = pozData?.byUser?.[uid]
                                 const hasReady = ud?.readySum != null && ud.readySum !== 0
                                 const hasApproved = ud?.approvedSum != null && ud.approvedSum !== 0
-                                const isLast = idx === columnUsers.length - 1
+                                const isLast = idx === visibleColumnUsers.length - 1
                                 return (
                                   <Box
                                     key={uid}
@@ -501,6 +529,56 @@ export default function P_MetrajOnaylaPozlar() {
           )
         })()
       }
+
+      {/* Hazırlayanlar Dialog */}
+      <Dialog open={userVisDialogOpen} onClose={() => setUserVisDialogOpen(false)} maxWidth="xs" fullWidth>
+        <DialogTitle sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', py: 1.5 }}>
+          <Typography variant="subtitle1" fontWeight={600}>Hazırlayanlar</Typography>
+          <IconButton size="small" onClick={() => setUserVisDialogOpen(false)}>
+            <CloseIcon fontSize="small" />
+          </IconButton>
+        </DialogTitle>
+        <Divider />
+        <DialogContent sx={{ p: 0 }}>
+          {columnUsers.length === 0 ? (
+            <Box sx={{ px: 2, py: 2, color: 'text.secondary', fontSize: '0.875rem' }}>
+              Hazır metraj bulunamadı.
+            </Box>
+          ) : (
+            <List dense disablePadding>
+              {columnUsers.map((uid, idx) => {
+                const isVisible = !hiddenUsers.has(uid)
+                return (
+                  <React.Fragment key={uid}>
+                    <ListItem
+                      secondaryAction={
+                        <IconButton size="small" edge="end" onClick={(e) => { e.stopPropagation(); toggleUserVisibility(uid) }}>
+                          {isVisible
+                            ? <VisibilityIcon sx={{ fontSize: 18, color: '#1565c0' }} />
+                            : <VisibilityOffIcon sx={{ fontSize: 18, color: '#bbb' }} />
+                          }
+                        </IconButton>
+                      }
+                      sx={{ px: 2, py: 0.75, cursor: 'pointer', '&:hover': { backgroundColor: '#f5f5f5' } }}
+                      onClick={() => toggleUserVisibility(uid)}
+                    >
+                      <ListItemText
+                        primary={userName(uid)}
+                        primaryTypographyProps={{
+                          fontSize: '0.875rem',
+                          fontWeight: isVisible ? 500 : 400,
+                          opacity: isVisible ? 1 : 0.4,
+                        }}
+                      />
+                    </ListItem>
+                    {idx < columnUsers.length - 1 && <Divider />}
+                  </React.Fragment>
+                )
+              })}
+            </List>
+          )}
+        </DialogContent>
+      </Dialog>
 
     </Box>
   )
