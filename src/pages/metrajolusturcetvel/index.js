@@ -547,7 +547,8 @@ export default function P_MetrajOlusturCetvel() {
           const isReady    = sess.status === 'ready'
           const isApproved = visualStatus === 'approved' || visualStatus === 'revised'
           const canEdit    = sess.isOwn && isDraft
-          const totalQuantity = sess.lines.reduce((sum, l) => sum + computeQuantity(l), 0)
+          const revisedParentIds = new Set(sess.lines.filter(l => l.parent_line_id).map(l => l.parent_line_id))
+          const totalQuantity = sess.lines.filter(l => !revisedParentIds.has(l.id)).reduce((sum, l) => sum + computeQuantity(l), 0)
 
           return (
             <Box
@@ -670,13 +671,16 @@ export default function P_MetrajOlusturCetvel() {
                   {/* Satırlar — ağaç düzeninde */}
                   {buildDisplayTree(sess.lines).map(line => {
                     const qty = computeQuantity(line)
+                    const isRevisedParent = revisedParentIds.has(line.id)
                     const isDeduction = qty < 0
-                    const rowBg = isApproved
+                    const rowBg = isRevisedParent
+                      ? 'rgba(191,54,12,0.04)'
+                      : isApproved
                       ? cardColors.row
                       : visualStatus === 'unread'
                       ? cardColors.row
                       : sess.mode_edit ? 'rgba(255,250,200,0.4)' : 'white'
-                    const deductionColor = isDeduction ? '#b71c1c' : undefined
+                    const deductionColor = isRevisedParent ? '#bbb' : isDeduction ? '#b71c1c' : undefined
                     const editActive = canEdit && sess.mode_edit
                     const depthStyle = line.depth > 0
                       ? { borderLeft: `${Math.min(line.depth, 3) * 3}px solid rgba(144,202,249,0.7)` }
@@ -687,13 +691,18 @@ export default function P_MetrajOlusturCetvel() {
 
                         <Box sx={{
                           ...css_lineCell, justifyContent: 'flex-end', pr: '4px',
-                          color: line.depth > 0 ? '#1565c0' : '#888',
+                          color: isRevisedParent ? '#bf360c' : line.depth > 0 ? '#1565c0' : '#888',
                           fontSize: line.depth > 0 ? '0.78rem' : undefined,
+                          opacity: isRevisedParent ? 0.5 : 1,
                         }}>
                           {line.siraNo}
                         </Box>
 
-                        <Box sx={{ ...css_lineCell, color: deductionColor }}>
+                        <Box sx={{
+                          ...css_lineCell, color: deductionColor,
+                          textDecoration: isRevisedParent ? 'line-through' : undefined,
+                          fontStyle: isRevisedParent ? 'italic' : undefined,
+                        }}>
                           {editActive ? (
                             <input
                               style={{ ...inputSx, textAlign: 'left', color: deductionColor }}
@@ -722,9 +731,12 @@ export default function P_MetrajOlusturCetvel() {
                           </Box>
                         ))}
 
-                        <Box sx={{ ...css_lineCell, justifyContent: 'flex-end', color: deductionColor }}>
+                        <Box sx={{
+                          ...css_lineCell, justifyContent: 'flex-end', color: deductionColor,
+                          textDecoration: isRevisedParent ? 'line-through' : undefined,
+                        }}>
                           {ikiHane(qty)}
-                          {pozBirim && <Box component="span" sx={{ ml: '4px', fontWeight: 400, fontSize: '0.75rem', color: '#888' }}>{pozBirim}</Box>}
+                          {pozBirim && !isRevisedParent && <Box component="span" sx={{ ml: '4px', fontWeight: 400, fontSize: '0.75rem', color: '#888' }}>{pozBirim}</Box>}
                         </Box>
 
                         <Box sx={{ ...css_lineCell, justifyContent: 'center', px: '2px' }}>

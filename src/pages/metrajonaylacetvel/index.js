@@ -29,9 +29,7 @@ import VisibilityIcon from '@mui/icons-material/Visibility'
 import VisibilityOffIcon from '@mui/icons-material/VisibilityOff'
 import AddIcon from '@mui/icons-material/Add'
 import SubdirectoryArrowRightIcon from '@mui/icons-material/SubdirectoryArrowRight'
-
-const MAX_REVISION_DEPTH = 1
-
+import DeleteOutlineIcon from '@mui/icons-material/DeleteOutline'
 
 function ikiHane(v) {
   if (v === null || v === undefined || v === '') return ''
@@ -81,7 +79,8 @@ function buildDisplayTree(lines) {
   return result
 }
 
-const GRID_COLS = '40px 1fr 70px 70px 70px 70px 70px 90px'
+const getGridCols = (siraWidth) => `${siraWidth}px 1fr 70px 70px 70px 70px 70px 90px 36px`
+const GRID_COLS = getGridCols(44)   // varsayılan (header için)
 const NUM_FIELDS = ['multiplier', 'count', 'length', 'width', 'height']
 const NUM_LABELS = ['Çarpan', 'Adet', 'Boy', 'En', 'Yükseklik']
 
@@ -227,7 +226,11 @@ export default function P_MetrajOnaylaCetvel() {
       setDialogAlert({ dialogIcon: 'warning', dialogMessage: 'Onaylama sırasında hata.', detailText: error.message, onCloseAction: () => setDialogAlert() })
       return
     }
-    setSessions(s => s.map(sess => sess.id === sessId ? { ...sess, status: 'approved' } : sess))
+    setSessions(s => s.map(sess => {
+      if (sess.id !== sessId) return sess
+      const updated = { ...sess, status: 'approved' }
+      return { ...updated, visualStatus: getMeasurementVisualStatus(updated) }
+    }))
   }
 
   const handleDismiss = (sessId) => {
@@ -340,7 +343,8 @@ export default function P_MetrajOnaylaCetvel() {
         if (error) throw error
         insertedMap[line.id] = inserted
       }
-      const total = sess.lines.reduce((s, l) => s + calcMetraj(l), 0)
+      const savedParentIds = new Set(sess.lines.filter(l => l.parent_line_id).map(l => l.parent_line_id))
+      const total = sess.lines.filter(l => !savedParentIds.has(l.id)).reduce((s, l) => s + calcMetraj(l), 0)
 
       const prevSnapshot = Array.isArray(sess.revision_snapshot) ? sess.revision_snapshot : []
       const prevSnapshotMap = Object.fromEntries(prevSnapshot.map(e => [e.id, e]))
@@ -384,22 +388,8 @@ export default function P_MetrajOnaylaCetvel() {
     ))
   }
 
-  // Revizede en fazla 1 alt seviye (root -> child) izinli.
+  // Mevcut bir satır için alt seviye revize satırı oluşturur (derinlik sınırı yok).
   const addNewLine = (sessId, parentId = null) => {
-    const targetSess = sessions.find(sess => sess.id === sessId)
-    if (!targetSess) return
-    if (parentId) {
-      const parentDepth = buildDisplayTree(targetSess.lines).find(l => l.id === parentId)?.depth ?? 0
-      if (parentDepth >= MAX_REVISION_DEPTH) {
-        setDialogAlert({
-          dialogIcon: 'info',
-          dialogMessage: 'Revize modunda en fazla bir alt seviye satir ekleyebilirsiniz.',
-          onCloseAction: () => setDialogAlert(),
-        })
-        return
-      }
-    }
-
     setSessions(s => s.map(sess => {
       if (sess.id !== sessId) return sess
       const siblings = parentId
@@ -424,6 +414,30 @@ export default function P_MetrajOnaylaCetvel() {
         }]
       }
     }))
+  }
+
+  const handleDeleteLine = async (sessId, lineId) => {
+    const sess = sessions.find(s => s.id === sessId)
+    if (!sess) return
+    // Silinecek satır ve tüm torunlarını topla
+    const toDelete = new Set()
+    const collect = (id) => {
+      toDelete.add(id)
+      sess.lines.filter(l => l.parent_line_id === id).forEach(child => collect(child.id))
+    }
+    collect(lineId)
+    // DB'de kayıtlı olanları sil
+    const savedIds = [...toDelete].filter(id => !sess.lines.find(l => l.id === id)?.isNew)
+    if (savedIds.length > 0) {
+      try {
+        const { error } = await supabase.from('measurement_lines').delete().in('id', savedIds)
+        if (error) throw error
+      } catch (err) {
+        setDialogAlert({ dialogIcon: 'warning', dialogMessage: err.message, onCloseAction: () => setDialogAlert() })
+        return
+      }
+    }
+    setSessions(s => s.map(sess2 => sess2.id !== sessId ? sess2 : { ...sess2, lines: sess2.lines.filter(l => !toDelete.has(l.id)) }))
   }
 
   const pozLabel = selectedPoz?.code
@@ -505,9 +519,14 @@ export default function P_MetrajOnaylaCetvel() {
         {sessions.map(sess => {
           const visualStatus = sess.visualStatus ?? getMeasurementVisualStatus(sess)
           const cardColors = getCardColors(visualStatus)
-          const hasRevisions = Object.keys(sess.revisedLines).length > 0
+          const revisedParentIds = new Set(sess.lines.filter(l => l.parent_line_id).map(l => l.parent_line_id))
+          const hasRevisions = Object.keys(sess.revisedLines).length > 0 || revisedParentIds.size > 0
           const displayTree = buildDisplayTree(sess.lines)
-          const editTotal = sess.editMode ? sess.lines.reduce((s, l) => s + calcMetraj(l), 0) : null
+          const leafTotal = sess.lines.filter(l => !revisedParentIds.has(l.id)).reduce((s, l) => s + calcMetraj(l), 0)
+          const editTotal = sess.editMode ? leafTotal : null
+          const maxSiraNoLen = displayTree.length > 0 ? Math.max(...displayTree.map(l => l.siraNo?.length ?? 1)) : 1
+          const siraColWidth = Math.max(44, maxSiraNoLen * 8 + 8)
+          const gridCols = getGridCols(siraColWidth)
 
           return (
             <Box
@@ -608,45 +627,59 @@ export default function P_MetrajOnaylaCetvel() {
                 <Box sx={{ overflowX: 'auto' }}>
 
                   {/* Tablo başlığı */}
-                  <Box sx={{ ...css_lineHeader, minWidth: 'max-content' }}>
+                  <Box sx={{ ...css_lineHeader, gridTemplateColumns: gridCols, minWidth: 'max-content' }}>
                     <Box sx={{ ...css_lineHeaderCell, justifyContent: 'center' }}>Sıra</Box>
                     <Box sx={{ ...css_lineHeaderCell, justifyContent: 'flex-start' }}>Açıklama</Box>
                     {NUM_LABELS.map(lbl => (
                       <Box key={lbl} sx={{ ...css_lineHeaderCell }}>{lbl}</Box>
                     ))}
                     <Box sx={{ ...css_lineHeaderCell }}>Metraj</Box>
+                    <Box sx={{ ...css_lineHeaderCell }}></Box>
                   </Box>
 
                   {/* Satırlar — ağaç düzeninde */}
                   {displayTree.flatMap(line => {
                     const metraj = calcMetraj(line)
                     const isRevised = !!sess.revisedLines[line.id]
+                    const isRevisedParent = revisedParentIds.has(line.id)
                     const origData = sess.revisedLines[line.id]
                     const depthStyle = line.depth > 0
-                      ? { borderLeft: `${Math.min(line.depth, 3) * 3}px solid rgba(144,202,249,0.7)` }
+                      ? { boxShadow: `inset ${Math.min(line.depth, 3) * 3}px 0 0 rgba(144,202,249,0.7)` }
                       : {}
-                    const rowBg = isRevised && !sess.editMode && sess.showOriginals
+
+                    // Revize edilmiş ata satırları: edit dışında showOriginals false ise gizle
+                    if (isRevisedParent && !sess.editMode && !sess.showOriginals) return []
+
+                    const rowBg = isRevisedParent && !sess.editMode
+                      ? 'rgba(191,54,12,0.06)'
+                      : isRevised && !sess.editMode && sess.showOriginals
                       ? 'rgba(255,160,0,0.07)'
                       : sess.editMode ? 'rgba(255,250,200,0.4)' : 'white'
 
                     const mainRow = (
                       <Box
                         key={line.id}
-                        sx={{ ...css_lineRow, backgroundColor: rowBg, minWidth: 'max-content', ...depthStyle }}
+                        sx={{ ...css_lineRow, gridTemplateColumns: gridCols, backgroundColor: rowBg, minWidth: 'max-content', ...depthStyle }}
                       >
                         {/* Sıra */}
                         <Box sx={{
                           ...css_lineCell, justifyContent: 'flex-end', pr: '4px',
-                          color: line.depth > 0 ? '#1565c0' : '#888',
+                          color: isRevisedParent && !sess.editMode ? '#bf360c' : line.depth > 0 ? '#1565c0' : '#888',
                           fontSize: line.depth > 0 ? '0.78rem' : undefined,
+                          opacity: isRevisedParent && !sess.editMode ? 0.6 : 1,
                         }}>
                           {line.siraNo}
                         </Box>
 
                         {/* Açıklama + alt satır ekle butonu (edit modunda) */}
-                        <Box sx={{ ...css_lineCell }}>
-                          {sess.editMode && line.depth < MAX_REVISION_DEPTH && (
-                            <Tooltip title={`Alt satır ekle (${line.siraNo}.1…)`}>
+                        <Box sx={{
+                          ...css_lineCell,
+                          color: isRevisedParent && !sess.editMode ? '#888' : undefined,
+                          textDecoration: isRevisedParent && !sess.editMode ? 'line-through' : undefined,
+                          fontStyle: isRevisedParent && !sess.editMode ? 'italic' : undefined,
+                        }}>
+                          {sess.editMode && !line.isNew && line.parent_line_id === null && (
+                            <Tooltip title={`Revize satırı ekle → ${line.siraNo}.${sess.lines.filter(l => l.parent_line_id === line.id).length + 1}`}>
                               <IconButton
                                 size="small"
                                 sx={{ p: '1px', mr: '3px', flexShrink: 0 }}
@@ -656,7 +689,7 @@ export default function P_MetrajOnaylaCetvel() {
                               </IconButton>
                             </Tooltip>
                           )}
-                          {sess.editMode ? (
+                          {(sess.editMode && line.isNew) ? (
                             <input
                               style={{ ...inputSx, textAlign: 'left' }}
                               value={line.description ?? ''}
@@ -669,8 +702,11 @@ export default function P_MetrajOnaylaCetvel() {
 
                         {/* Sayısal alanlar */}
                         {NUM_FIELDS.map(field => (
-                          <Box key={field} sx={{ ...css_lineCell, justifyContent: 'flex-end' }}>
-                            {sess.editMode ? (
+                          <Box key={field} sx={{
+                            ...css_lineCell, justifyContent: 'flex-end',
+                            color: isRevisedParent && !sess.editMode ? '#bbb' : undefined,
+                          }}>
+                            {(sess.editMode && line.isNew) ? (
                               <input
                                 type="number"
                                 className="metraj-num-input"
@@ -686,10 +722,24 @@ export default function P_MetrajOnaylaCetvel() {
                         ))}
 
                         {/* Metraj */}
-                        <Box sx={{ ...css_lineCell, justifyContent: 'flex-end', fontWeight: isRevised && !sess.editMode ? 600 : 'normal' }}>
+                        <Box sx={{
+                          ...css_lineCell, justifyContent: 'flex-end',
+                          fontWeight: isRevised && !sess.editMode ? 600 : 'normal',
+                          color: isRevisedParent && !sess.editMode ? '#bbb' : undefined,
+                          textDecoration: isRevisedParent && !sess.editMode ? 'line-through' : undefined,
+                        }}>
                           {ikiHane(metraj)}
-                          {pozBirim && !sess.editMode && (
+                          {pozBirim && !sess.editMode && !isRevisedParent && (
                             <Box component="span" sx={{ ml: '3px', fontWeight: 400, fontSize: '0.73rem', color: '#888' }}>{pozBirim}</Box>
+                          )}
+                        </Box>
+
+                        {/* Aksiyon — revize satırını sil */}
+                        <Box sx={{ ...css_lineCell, justifyContent: 'center', px: '2px' }}>
+                          {sess.editMode && (line.isNew || line.parent_line_id !== null) && (
+                            <IconButton size="small" onClick={() => handleDeleteLine(sess.id, line.id)} sx={{ p: '2px' }}>
+                              <DeleteOutlineIcon sx={{ fontSize: 18, color: 'salmon' }} />
+                            </IconButton>
                           )}
                         </Box>
                       </Box>
@@ -701,6 +751,7 @@ export default function P_MetrajOnaylaCetvel() {
                         key={`${line.id}-before`}
                         sx={{
                           ...css_lineRow,
+                          gridTemplateColumns: gridCols,
                           backgroundColor: 'rgba(191,54,12,0.06)',
                           minWidth: 'max-content',
                           ...depthStyle,
@@ -720,6 +771,7 @@ export default function P_MetrajOnaylaCetvel() {
                         <Box sx={{ ...css_lineCell, justifyContent: 'flex-end', color: '#bf360c', fontWeight: 600, fontSize: '0.82rem' }}>
                           {ikiHane(origData.originalMetraj)}
                         </Box>
+                        <Box />
                       </Box>
                     ) : null
 
@@ -748,7 +800,7 @@ export default function P_MetrajOnaylaCetvel() {
                   {/* Toplam satırı */}
                   <Box
                     sx={{
-                      display: 'grid', gridTemplateColumns: GRID_COLS,
+                      display: 'grid', gridTemplateColumns: gridCols,
                       backgroundColor: cardColors.header,
                       borderTop: '2px solid',
                       borderColor: cardColors.border,
@@ -759,9 +811,10 @@ export default function P_MetrajOnaylaCetvel() {
                       Toplam
                     </Box>
                     <Box sx={{ px: '8px', py: '4px', fontSize: '0.9rem', fontWeight: 700, display: 'flex', alignItems: 'center', justifyContent: 'flex-end', color: cardColors.totalText }}>
-                      {ikiHane(sess.editMode ? editTotal : sess.total_quantity)}
+                      {ikiHane(sess.editMode ? editTotal : leafTotal)}
                       {pozBirim && <Box component="span" sx={{ ml: '4px', fontWeight: 400, fontSize: '0.8rem' }}>{pozBirim}</Box>}
                     </Box>
+                    <Box />
                   </Box>
 
                 </Box>
