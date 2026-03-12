@@ -7,6 +7,7 @@ import { StoreContext } from '../../components/store.js'
 import { supabase } from '../../lib/supabase.js'
 import { useGetPozUnits } from '../../hooks/useMongo.js'
 import { DialogAlert } from '../../components/general/DialogAlert.js'
+import { getMeasurementChipStyle, getMeasurementDotColor, getMeasurementStatusLabel, getMeasurementVisualStatus } from '../../lib/measurementStatus.js'
 
 import AppBar from '@mui/material/AppBar'
 import Box from '@mui/material/Box'
@@ -29,6 +30,8 @@ import VisibilityOffIcon from '@mui/icons-material/VisibilityOff'
 import AddIcon from '@mui/icons-material/Add'
 import SubdirectoryArrowRightIcon from '@mui/icons-material/SubdirectoryArrowRight'
 
+const MAX_REVISION_DEPTH = 1
+
 
 function ikiHane(v) {
   if (v === null || v === undefined || v === '') return ''
@@ -45,10 +48,14 @@ function calcMetraj(line) {
   return vals.reduce((prod, v) => prod * v, 1)
 }
 
-function StatusChip({ status }) {
-  if (status === 'ready')    return <Chip size="small" label="Onaya Hazır" sx={{ backgroundColor: '#C8E6C9', color: '#1B5E20', fontWeight: 600 }} />
-  if (status === 'approved') return <Chip size="small" label="Onaylı" sx={{ backgroundColor: '#B3E5FC', color: '#01579B', fontWeight: 600 }} />
-  return <Chip size="small" label={status} />
+function StatusChip({ session }) {
+  const visual = getMeasurementVisualStatus(session)
+  if (visual === 'unread') return <Chip size="small" label="Henüz Okunmamış" sx={getMeasurementChipStyle(session)} />
+  if (visual === 'approved') return <Chip size="small" label="Onaylanmış" sx={getMeasurementChipStyle(session)} />
+  if (visual === 'revised') return <Chip size="small" label="Onay Sonrası Revize" sx={getMeasurementChipStyle(session)} />
+  if (visual === 'rejected') return <Chip size="small" label="Reddedilmiş" sx={getMeasurementChipStyle(session)} />
+  if ((session?.status ?? '') === 'draft') return <Chip size="small" label="Taslak" sx={getMeasurementChipStyle(session)} />
+  return <Chip size="small" label="Görüldü" sx={getMeasurementChipStyle(session)} />
 }
 
 // Düz listeyi depth-first ağaç sırasına çevirir; her öğeye siraNo ve depth ekler
@@ -109,6 +116,14 @@ const inputSx = {
   MozAppearance: 'textfield',
 }
 
+function getCardColors(visualStatus) {
+  if (visualStatus === 'approved') return { border: '#A5D6A7', header: '#E8F5E9', row: 'rgba(200,230,201,0.35)', totalText: '#1B5E20' }
+  if (visualStatus === 'revised') return { border: '#90CAF9', header: '#E3F2FD', row: 'rgba(187,222,251,0.35)', totalText: '#0D47A1' }
+  if (visualStatus === 'unread') return { border: '#FFCC80', header: '#FFF3E0', row: 'rgba(255,224,178,0.3)', totalText: '#E65100' }
+  if (visualStatus === 'rejected') return { border: '#EF9A9A', header: '#FFEBEE', row: 'rgba(255,205,210,0.28)', totalText: '#B71C1C' }
+  return { border: '#B0BEC5', header: '#ECEFF1', row: 'rgba(236,239,241,0.3)', totalText: '#455A64' }
+}
+
 
 export default function P_MetrajOnaylaCetvel() {
   const navigate = useNavigate()
@@ -144,7 +159,7 @@ export default function P_MetrajOnaylaCetvel() {
         .from('measurement_sessions')
         .select('id, status, total_quantity, created_by, revision_snapshot')
         .eq('work_package_poz_area_id', wpAreaId)
-        .in('status', ['ready', 'approved'])
+        .in('status', ['draft', 'ready', 'seen', 'approved', 'revised', 'rejected', 'revise_requested'])
         .order('created_by')
 
       if (sessError) {
@@ -190,6 +205,7 @@ export default function P_MetrajOnaylaCetvel() {
           : {}
         return {
           ...sess,
+          visualStatus: getMeasurementVisualStatus(sess),
           userName: userMap[sess.created_by] ?? '?',
           lines: linesBySession[sess.id] ?? [],
           editMode: false,
@@ -368,8 +384,22 @@ export default function P_MetrajOnaylaCetvel() {
     ))
   }
 
-  // parentId: null → kök satır, string → alt satır
+  // Revizede en fazla 1 alt seviye (root -> child) izinli.
   const addNewLine = (sessId, parentId = null) => {
+    const targetSess = sessions.find(sess => sess.id === sessId)
+    if (!targetSess) return
+    if (parentId) {
+      const parentDepth = buildDisplayTree(targetSess.lines).find(l => l.id === parentId)?.depth ?? 0
+      if (parentDepth >= MAX_REVISION_DEPTH) {
+        setDialogAlert({
+          dialogIcon: 'info',
+          dialogMessage: 'Revize modunda en fazla bir alt seviye satir ekleyebilirsiniz.',
+          onCloseAction: () => setDialogAlert(),
+        })
+        return
+      }
+    }
+
     setSessions(s => s.map(sess => {
       if (sess.id !== sessId) return sess
       const siblings = parentId
@@ -473,6 +503,8 @@ export default function P_MetrajOnaylaCetvel() {
       {/* SESSION KARTLARI */}
       <Box sx={{ p: '1rem', display: 'flex', flexDirection: 'column', gap: '1.5rem', maxWidth: '900px' }}>
         {sessions.map(sess => {
+          const visualStatus = sess.visualStatus ?? getMeasurementVisualStatus(sess)
+          const cardColors = getCardColors(visualStatus)
           const hasRevisions = Object.keys(sess.revisedLines).length > 0
           const displayTree = buildDisplayTree(sess.lines)
           const editTotal = sess.editMode ? sess.lines.reduce((s, l) => s + calcMetraj(l), 0) : null
@@ -482,7 +514,7 @@ export default function P_MetrajOnaylaCetvel() {
               key={sess.id}
               sx={{
                 border: '1px solid',
-                borderColor: sess.status === 'approved' ? '#90CAF9' : '#A5D6A7',
+                borderColor: cardColors.border,
                 overflow: 'hidden',
                 boxShadow: 1,
               }}
@@ -492,16 +524,21 @@ export default function P_MetrajOnaylaCetvel() {
                 sx={{
                   display: 'flex', alignItems: 'center', gap: '0.5rem',
                   px: '1rem', py: '0.5rem',
-                  backgroundColor: sess.status === 'approved' ? '#E3F2FD' : '#F1F8E9',
+                  backgroundColor: cardColors.header,
                   borderBottom: '1px solid',
-                  borderColor: sess.status === 'approved' ? '#90CAF9' : '#A5D6A7',
+                  borderColor: cardColors.border,
                 }}
               >
                 <Typography variant="body1" sx={{ fontWeight: 700, flexGrow: 1 }}>
                   {sess.userName}
                 </Typography>
 
-                <StatusChip status={sess.status} />
+                <Box
+                  title={getMeasurementStatusLabel(sess)}
+                  sx={{ width: '10px', height: '10px', borderRadius: '50%', backgroundColor: getMeasurementDotColor(sess), flexShrink: 0 }}
+                />
+
+                <StatusChip session={sess} />
 
                 {/* Revize geçmişini göster/gizle */}
                 {hasRevisions && !sess.editMode && (
@@ -534,7 +571,7 @@ export default function P_MetrajOnaylaCetvel() {
                 )}
 
                 {/* Düzenle */}
-                {sess.status === 'approved' && !sess.editMode && (
+                {(sess.status === 'approved' || sess.status === 'revised') && !sess.editMode && (
                   <Tooltip title="Düzenle (Revize)">
                     <IconButton size="small" onClick={() => enterEditMode(sess.id)}>
                       <EditIcon sx={{ fontSize: 20 }} />
@@ -608,7 +645,7 @@ export default function P_MetrajOnaylaCetvel() {
 
                         {/* Açıklama + alt satır ekle butonu (edit modunda) */}
                         <Box sx={{ ...css_lineCell }}>
-                          {sess.editMode && (
+                          {sess.editMode && line.depth < MAX_REVISION_DEPTH && (
                             <Tooltip title={`Alt satır ekle (${line.siraNo}.1…)`}>
                               <IconButton
                                 size="small"
@@ -712,16 +749,16 @@ export default function P_MetrajOnaylaCetvel() {
                   <Box
                     sx={{
                       display: 'grid', gridTemplateColumns: GRID_COLS,
-                      backgroundColor: sess.status === 'approved' ? '#E3F2FD' : '#F1F8E9',
+                      backgroundColor: cardColors.header,
                       borderTop: '2px solid',
-                      borderColor: sess.status === 'approved' ? '#90CAF9' : '#A5D6A7',
+                      borderColor: cardColors.border,
                       minWidth: 'max-content',
                     }}
                   >
                     <Box sx={{ gridColumn: '1 / 8', px: '8px', py: '4px', fontSize: '0.8rem', fontWeight: 600, display: 'flex', alignItems: 'center', justifyContent: 'flex-end', color: '#555' }}>
                       Toplam
                     </Box>
-                    <Box sx={{ px: '8px', py: '4px', fontSize: '0.9rem', fontWeight: 700, display: 'flex', alignItems: 'center', justifyContent: 'flex-end', color: sess.status === 'approved' ? '#01579B' : '#1B5E20' }}>
+                    <Box sx={{ px: '8px', py: '4px', fontSize: '0.9rem', fontWeight: 700, display: 'flex', alignItems: 'center', justifyContent: 'flex-end', color: cardColors.totalText }}>
                       {ikiHane(sess.editMode ? editTotal : sess.total_quantity)}
                       {pozBirim && <Box component="span" sx={{ ml: '4px', fontWeight: 400, fontSize: '0.8rem' }}>{pozBirim}</Box>}
                     </Box>

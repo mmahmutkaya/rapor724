@@ -11,11 +11,9 @@ import Grid from '@mui/material/Grid'
 import Typography from '@mui/material/Typography'
 import LinearProgress from '@mui/material/LinearProgress'
 import Alert from '@mui/material/Alert'
-import Badge from '@mui/material/Badge'
-import IconButton from '@mui/material/IconButton'
-import Tooltip from '@mui/material/Tooltip'
 import NavigateNextIcon from '@mui/icons-material/NavigateNext'
-import PersonIcon from '@mui/icons-material/Person'
+
+const EMPTY_ARRAY = []
 
 
 function ikiHane(v) {
@@ -51,12 +49,16 @@ export default function P_MetrajOlusturPozlar() {
   const navigate = useNavigate()
   const { selectedProje, selectedIsPaket, setSelectedPoz, appUser } = useContext(StoreContext)
 
-  const { data: rawWbsNodes = [], isLoading: wbsLoading } = useGetWbsNodes()
-  const { data: units = [], isLoading: unitsLoading } = useGetPozUnits()
-  const { data: wpPozlar = [], isLoading: wpPozLoading, error: wpPozError } = useGetWorkPackagePozlar()
+  const { data: rawWbsNodesData, isLoading: wbsLoading } = useGetWbsNodes()
+  const { data: unitsData, isLoading: unitsLoading } = useGetPozUnits()
+  const { data: wpPozlarData, isLoading: wpPozLoading, error: wpPozError } = useGetWorkPackagePozlar()
+
+  const rawWbsNodes = rawWbsNodesData ?? EMPTY_ARRAY
+  const units = unitsData ?? EMPTY_ARRAY
+  const wpPozlar = wpPozlarData ?? EMPTY_ARRAY
 
   const [collapsedIds, setCollapsedIds] = useState(new Set())
-  const [showUserCols, setShowUserCols] = useState(true)
+  const showUserCols = true
   const [pozHazMap, setPozHazMap] = useState({})   // project_poz_id → aktif kullanıcı draft+ready toplam
   const [pozOnayMap, setPozOnayMap] = useState({}) // project_poz_id → approved toplam (tüm kullanıcılar)
   const [pozWithAreasSet, setPozWithAreasSet] = useState(null) // project_poz_id'leri — en az 1 mahali olanlar
@@ -216,15 +218,6 @@ export default function P_MetrajOlusturPozlar() {
                 Pozlar
               </Typography>
             </Box>
-          </Grid>
-          <Grid item sx={{ ml: 'auto' }}>
-            <Tooltip title={showUserCols ? 'Hazırlayanları gizle' : 'Hazırlayanları göster'}>
-              <IconButton size="small" onClick={() => setShowUserCols(v => !v)} sx={{ opacity: showUserCols ? 1 : 0.4, p: '4px' }}>
-                <Badge badgeContent={1} color="primary" max={99}>
-                  <PersonIcon fontSize="small" />
-                </Badge>
-              </IconButton>
-            </Tooltip>
           </Grid>
         </Grid>
       </Paper>
@@ -418,7 +411,6 @@ export default function P_MetrajOlusturPozlar() {
                             >
                               {pozOnayMap[poz.id] != null && pozOnayMap[poz.id] !== 0
                                 ? <>
-                                    <Box sx={{ width: '8px', height: '8px', borderRadius: '50%', backgroundColor: '#1565c0', flexShrink: 0 }} />
                                     {`${ikiHane(pozOnayMap[poz.id])} ${unitsMap[poz.unit_id] ?? ''}`}
                                   </>
                                 : <Box component="span" sx={{ color: '#999' }}>—</Box>

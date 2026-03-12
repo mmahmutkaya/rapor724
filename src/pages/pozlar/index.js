@@ -14,6 +14,7 @@ import Paper from '@mui/material/Paper'
 import Grid from '@mui/material/Grid'
 import Typography from '@mui/material/Typography'
 import IconButton from '@mui/material/IconButton'
+import Button from '@mui/material/Button'
 import LinearProgress from '@mui/material/LinearProgress'
 import Alert from '@mui/material/Alert'
 import Chip from '@mui/material/Chip'
@@ -23,8 +24,7 @@ import AddCircleOutlineIcon from '@mui/icons-material/AddCircleOutline'
 import DeleteIcon from '@mui/icons-material/Delete'
 import EditIcon from '@mui/icons-material/Edit'
 import CloseIcon from '@mui/icons-material/Close'
-import AccountTreeIcon from '@mui/icons-material/AccountTree'
-import ListIcon from '@mui/icons-material/List'
+import ViewAgendaIcon from '@mui/icons-material/ViewAgenda'
 
 
 // WBS sayfasından aynı yardımcılar
@@ -76,7 +76,7 @@ export default function P_Pozlar() {
   const { data: rawPozlar = [], isLoading: pozLoading, error: pozError } = useGetProjectPozlar()
   const { data: units = [], isLoading: unitsLoading, error: unitsError } = useGetPozUnits()
 
-  const [viewMode, setViewMode] = useState('tree')
+  const [viewMode, setViewMode] = useState('wbsPoz')
   const [collapsedIds, setCollapsedIds] = useState(new Set())
   const [filterWbsIds, setFilterWbsIds] = useState(new Set())
   const [activeWbsNodeId, setActiveWbsNodeId] = useState(null)
@@ -131,6 +131,21 @@ export default function P_Pozlar() {
 
   const isLoading = wbsLoading || pozLoading || unitsLoading
   const queryError = pozError || unitsError
+  const modeMinWidth = '40rem'
+
+  const cycleViewMode = () => {
+    setViewMode(prev => {
+      if (prev === 'wbsOnly') return 'pozOnly'
+      if (prev === 'pozOnly') return 'wbsPoz'
+      return 'wbsOnly'
+    })
+  }
+
+  const viewModeLabel = useMemo(() => {
+    if (viewMode === 'wbsOnly') return 'WBS'
+    if (viewMode === 'pozOnly') return 'Poz'
+    return 'W+P'
+  }, [viewMode])
 
   useEffect(() => {
     if (!selectedProje) navigate('/projeler')
@@ -164,7 +179,7 @@ export default function P_Pozlar() {
   }, [units])
 
   const displayedPozlar = useMemo(() => {
-    if (viewMode === 'flat' && filterWbsIds.size > 0) {
+    if (viewMode === 'pozOnly' && filterWbsIds.size > 0) {
       return rawPozlar.filter(p => filterWbsIds.has(p.wbs_node_id))
     }
     return rawPozlar
@@ -223,7 +238,7 @@ export default function P_Pozlar() {
 
 
   return (
-    <Box sx={{ m: '0rem' }}>
+    <Box sx={{ m: '0rem', overflowX: 'auto' }}>
 
       {dialogAlert &&
         <DialogAlert
@@ -250,20 +265,6 @@ export default function P_Pozlar() {
               {!selectMode && (
                 <>
                   <Grid item>
-                    <Tooltip title="WBS ağaç görünümü">
-                      <IconButton size="small" onClick={() => setViewMode('tree')} color={viewMode === 'tree' ? 'primary' : 'default'}>
-                        <AccountTreeIcon />
-                      </IconButton>
-                    </Tooltip>
-                  </Grid>
-                  <Grid item>
-                    <Tooltip title="Düz liste">
-                      <IconButton size="small" onClick={() => setViewMode('flat')} color={viewMode === 'flat' ? 'primary' : 'default'}>
-                        <ListIcon />
-                      </IconButton>
-                    </Tooltip>
-                  </Grid>
-                  <Grid item>
                     <IconButton
                       onClick={() => setSelectMode(true)}
                       disabled={rawPozlar.length === 0}
@@ -274,17 +275,41 @@ export default function P_Pozlar() {
                   <Grid item>
                     <Tooltip title={
                       !canAddPoz ? 'Önce Proje Ayarları\'ndan birim ekleyin'
-                      : viewMode === 'tree' && !activeWbsNodeId ? 'Bir WBS yaprak düğümü seçin'
+                      : viewMode === 'wbsOnly' ? 'Poz eklemek için sadece poz ya da WBS+Poz moduna geçin'
+                      : viewMode === 'wbsPoz' && !activeWbsNodeId ? 'Bir WBS yaprak düğümü seçin'
                       : 'Poz ekle'
                     }>
                       <span>
                         <IconButton
                           onClick={() => setShow('PozCreate')}
-                          disabled={!canAddPoz || (viewMode === 'tree' && !activeWbsNodeId)}
+                          disabled={!canAddPoz || viewMode === 'wbsOnly' || (viewMode === 'wbsPoz' && !activeWbsNodeId)}
                         >
                           <AddCircleOutlineIcon />
                         </IconButton>
                       </span>
+                    </Tooltip>
+                  </Grid>
+                  <Grid item>
+                    <Tooltip title={`Görünüm: ${viewModeLabel} (tıkla: sonraki mod)`}>
+                      <Button
+                        size="small"
+                        variant="outlined"
+                        onClick={cycleViewMode}
+                        startIcon={<ViewAgendaIcon />}
+                        sx={{
+                          textTransform: 'none',
+                          minWidth: '5.25rem',
+                          px: '0.5rem',
+                          color: 'text.secondary',
+                          borderColor: 'grey.400',
+                          '&:hover': {
+                            borderColor: 'grey.600',
+                            backgroundColor: 'grey.100',
+                          },
+                        }}
+                      >
+                        {viewModeLabel}
+                      </Button>
                     </Tooltip>
                   </Grid>
                 </>
@@ -325,7 +350,7 @@ export default function P_Pozlar() {
       {show === 'PozCreate' &&
         <FormPozCreate
           setShow={setShow}
-          wbsNodeId={viewMode === 'tree' ? activeWbsNodeId : null}
+          wbsNodeId={viewMode === 'wbsPoz' ? activeWbsNodeId : null}
           rawWbsNodes={rawWbsNodes}
           rawPozlar={rawPozlar}
           units={units}
@@ -361,16 +386,98 @@ export default function P_Pozlar() {
       }
 
 
-      {/* ===== AĞAÇ GÖRÜNÜMÜ — WBS sayfasıyla aynı stil, tek ortak grid ===== */}
-      {!isLoading && !queryError && show === 'Main' && !editingPoz && viewMode === 'tree' && rawWbsNodes.length > 0 &&
+      {/* ===== SADECE WBS GÖRÜNÜMÜ ===== */}
+      {!isLoading && !queryError && show === 'Main' && !editingPoz && viewMode === 'wbsOnly' && rawWbsNodes.length > 0 &&
+        (() => {
+          return (
+            <Box sx={{ maxWidth: '80rem', minWidth: modeMinWidth, p: '0.5rem', width: 'fit-content' }}>
+
+              <Box sx={{ display: 'grid', gridTemplateColumns: '1rem 1fr' }}>
+                <Box sx={{ backgroundColor: 'black' }} />
+                <Box sx={{ backgroundColor: 'black', color: 'white', pl: '4px', py: '2px' }}>
+                  <Typography variant="body2">{selectedProje?.name}</Typography>
+                </Box>
+              </Box>
+
+              <Box sx={{ display: 'grid', gridTemplateColumns: '1rem 1fr' }}>
+                <Box sx={{ backgroundColor: 'black' }} />
+                <Box>
+                  {flatNodes.map(node => {
+                    if (isHiddenByAncestor(node)) return null
+                    const { depth } = node
+                    const isLeaf = isLeafSet.has(node.id)
+                    const isSelected = activeWbsNodeId === node.id
+                    const cols = depth === 0 ? '1fr' : `repeat(${depth}, 1rem) 1fr`
+                    const c = nodeColor(depth)
+
+                    return (
+                      <Box key={node.id} sx={{ display: 'grid', gridTemplateColumns: cols }}>
+                        {Array.from({ length: depth }).map((_, i) => (
+                          <Box key={i} sx={{ backgroundColor: nodeColor(i).bg }} />
+                        ))}
+
+                        <Box
+                          onClick={() => {
+                            if (!isLeaf) { toggleCollapse(node.id); return }
+                            setActiveWbsNodeId(prev => prev === node.id ? null : node.id)
+                          }}
+                          sx={{
+                            pl: '6px',
+                            py: '1px',
+                            backgroundColor: isSelected ? '#1a3a5c' : c.bg,
+                            color: c.co,
+                            cursor: 'pointer',
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: '0.4rem',
+                            userSelect: 'none',
+                            '&:hover': { filter: 'brightness(1.2)' }
+                          }}
+                        >
+                          {!isLeaf &&
+                            <Box sx={{ fontSize: '0.7rem', flexShrink: 0 }}>
+                              {collapsedIds.has(node.id) ? '▶' : '▼'}
+                            </Box>
+                          }
+                          {isLeaf &&
+                            <Box sx={{
+                              width: '0.45rem', height: '0.45rem', borderRadius: '50%',
+                              backgroundColor: '#65FF00', flexShrink: 0
+                            }} />
+                          }
+
+                          <Typography variant="body2">
+                            {node.code_name ? `(${node.code_name}) ` : ''}{node.name}
+                          </Typography>
+
+                          {isSelected &&
+                            <Box sx={{
+                              ml: '0.3rem', width: '0.4rem', height: '0.4rem',
+                              borderRadius: '50%', backgroundColor: 'yellow'
+                            }} />
+                          }
+                        </Box>
+                      </Box>
+                    )
+                  })}
+                </Box>
+              </Box>
+            </Box>
+          )
+        })()
+      }
+
+
+      {/* ===== WBS+POZ GÖRÜNÜMÜ — WBS sayfasıyla aynı stil, tek ortak grid ===== */}
+      {!isLoading && !queryError && show === 'Main' && !editingPoz && viewMode === 'wbsPoz' && rawWbsNodes.length > 0 &&
         (() => {
           // Tüm WBS + poz satırları için tek ortak grid sütun tanımı
           const totalDepthCols = maxLeafDepth + 1   // 1rem'lik derinlik çubuğu sayısı
-          const totalCols = totalDepthCols + 4      // +4: kod, açıklama, birim, sil
-          const treeGridCols = `repeat(${totalDepthCols}, 1rem) max-content minmax(20rem, max-content) max-content max-content`
+          const totalCols = totalDepthCols + 5      // +5: kod, açıklama, birim, sil, esnek dolgu
+          const treeGridCols = `repeat(${totalDepthCols}, 1rem) max-content minmax(20rem, max-content) max-content max-content minmax(0, 1fr)`
 
           return (
-            <Box sx={{ maxWidth: '80rem', p: '0.5rem', width: 'fit-content' }}>
+            <Box sx={{ maxWidth: '80rem', minWidth: modeMinWidth, p: '0.5rem', width: 'fit-content' }}>
 
               {/* Proje adı satırı */}
               <Box sx={{ display: 'grid', gridTemplateColumns: '1rem 1fr' }}>
@@ -512,6 +619,12 @@ export default function P_Pozlar() {
                               )}
                             </Box>
 
+                            {/* Esnek dolgu sütunu: satırı proje başlığı genişliğine kadar uzatır */}
+                            <Box sx={{
+                              borderBottom: '0.5px solid #ddd',
+                              backgroundColor: selectedBg,
+                            }} />
+
                           </React.Fragment>
                           )
                         })}
@@ -529,8 +642,8 @@ export default function P_Pozlar() {
 
 
       {/* ===== DÜZ LİSTE GÖRÜNÜMÜ ===== */}
-      {!isLoading && !queryError && show === 'Main' && !editingPoz && viewMode === 'flat' && rawWbsNodes.length > 0 &&
-        <Box sx={{ m: '1rem' }}>
+      {!isLoading && !queryError && show === 'Main' && !editingPoz && viewMode === 'pozOnly' && rawWbsNodes.length > 0 &&
+        <Box sx={{ m: '1rem', minWidth: modeMinWidth, width: 'fit-content' }}>
 
           {leafNodes.length > 0 &&
             <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: '0.5rem', mb: '1rem' }}>

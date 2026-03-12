@@ -5,6 +5,7 @@ import { useNavigate } from 'react-router-dom'
 import { StoreContext } from '../../components/store'
 import { useGetLbsNodes, useGetWorkPackagePozAreas, useGetPozUnits } from '../../hooks/useMongo'
 import { supabase } from '../../lib/supabase.js'
+import { getMeasurementDotColor, getMeasurementStatusLabel } from '../../lib/measurementStatus.js'
 
 import Box from '@mui/material/Box'
 import Grid from '@mui/material/Grid'
@@ -18,6 +19,8 @@ import AppBar from '@mui/material/AppBar'
 import NavigateNextIcon from '@mui/icons-material/NavigateNext'
 import ReplyIcon from '@mui/icons-material/Reply'
 import PersonIcon from '@mui/icons-material/Person'
+
+const EMPTY_ARRAY = []
 
 
 function ikiHane(v) {
@@ -55,9 +58,13 @@ export default function P_MetrajOnaylaPozMahaller() {
     setSelectedMahal_metraj, appUser
   } = useContext(StoreContext)
 
-  const { data: rawLbsNodes = [], isLoading: lbsLoading } = useGetLbsNodes()
-  const { data: wpAreas = [], isLoading: areasLoading, error: areasError } = useGetWorkPackagePozAreas()
-  const { data: units = [] } = useGetPozUnits()
+  const { data: rawLbsNodesData, isLoading: lbsLoading } = useGetLbsNodes()
+  const { data: wpAreasData, isLoading: areasLoading, error: areasError } = useGetWorkPackagePozAreas()
+  const { data: unitsData } = useGetPozUnits()
+
+  const rawLbsNodes = rawLbsNodesData ?? EMPTY_ARRAY
+  const wpAreas = wpAreasData ?? EMPTY_ARRAY
+  const units = unitsData ?? EMPTY_ARRAY
 
   const [collapsedIds, setCollapsedIds] = useState(new Set())
   const [showUserCols, setShowUserCols] = useState(true)
@@ -86,9 +93,9 @@ export default function P_MetrajOnaylaPozMahaller() {
     (async () => {
       const { data: sessions, error: sessionsError } = await supabase
         .from('measurement_sessions')
-        .select('id, work_package_poz_area_id, status, total_quantity, created_by, updated_at')
+        .select('id, work_package_poz_area_id, status, total_quantity, created_by, updated_at, revision_snapshot')
         .in('work_package_poz_area_id', areaIds)
-        .in('status', ['ready', 'seen', 'approved', 'revised'])
+        .in('status', ['draft', 'ready', 'seen', 'approved', 'revised', 'rejected', 'revise_requested'])
         .order('updated_at', { ascending: false })
 
       if (sessionsError || !sessions || sessions.length === 0) {
@@ -118,11 +125,11 @@ export default function P_MetrajOnaylaPozMahaller() {
 
         if (s.status === 'approved' || s.status === 'revised') {
           newMap[areaId].approvedTotal += s.total_quantity ?? 0
-        } else if (s.status === 'ready' || s.status === 'seen') {
-          const uid = s.created_by
-          if (uid && !newMap[areaId].byUser[uid]) {
-            newMap[areaId].byUser[uid] = { session: s, userName: userMap[uid] ?? uid }
-          }
+        }
+
+        const uid = s.created_by
+        if (uid && !newMap[areaId].byUser[uid]) {
+          newMap[areaId].byUser[uid] = { session: s, userName: userMap[uid] ?? uid }
         }
       })
 
@@ -454,8 +461,10 @@ export default function P_MetrajOnaylaPozMahaller() {
                                 const ud = areaData.byUser[user.id]
                                 const ses = ud?.session
                                 const isLast = idx === sessionUsers.length - 1
+                                const dotColor = ses ? getMeasurementDotColor(ses) : null
+                                const statusLabel = ses ? getMeasurementStatusLabel(ses) : null
                                 return (
-                                  <Tooltip key={`cell-${mahal.id}-${user.id}`} title={ses ? 'Onaya hazır — görüntüle' : ''} placement="top">
+                                  <Tooltip key={`cell-${mahal.id}-${user.id}`} title={statusLabel ?? ''} placement="top">
                                     <Box
                                       onClick={() => handleMahalClick(mahal)}
                                       sx={{
@@ -471,7 +480,7 @@ export default function P_MetrajOnaylaPozMahaller() {
                                     >
                                       {ses
                                         ? <>
-                                            <Box sx={{ width: '8px', height: '8px', borderRadius: '50%', backgroundColor: ses.status === 'seen' ? '#616161' : '#B71C1C', flexShrink: 0 }} />
+                                            <Box sx={{ width: '8px', height: '8px', borderRadius: '50%', backgroundColor: dotColor, flexShrink: 0 }} />
                                             {`${ikiHane(ses.total_quantity)} ${pozBirim}`}
                                           </>
                                         : <Box component="span" sx={{ color: '#ccc' }}>—</Box>

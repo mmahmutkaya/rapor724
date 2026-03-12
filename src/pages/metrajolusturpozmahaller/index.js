@@ -4,6 +4,7 @@ import { useNavigate } from 'react-router-dom'
 import { StoreContext } from '../../components/store'
 import { useGetLbsNodes, useGetWorkPackagePozAreas, useGetPozUnits } from '../../hooks/useMongo'
 import { supabase } from '../../lib/supabase.js'
+import { getMeasurementDotColor, getMeasurementStatusLabel } from '../../lib/measurementStatus.js'
 
 import Box from '@mui/material/Box'
 import Paper from '@mui/material/Paper'
@@ -12,10 +13,9 @@ import Typography from '@mui/material/Typography'
 import LinearProgress from '@mui/material/LinearProgress'
 import Alert from '@mui/material/Alert'
 import Tooltip from '@mui/material/Tooltip'
-import Badge from '@mui/material/Badge'
-import IconButton from '@mui/material/IconButton'
 import NavigateNextIcon from '@mui/icons-material/NavigateNext'
-import PersonIcon from '@mui/icons-material/Person'
+
+const EMPTY_ARRAY = []
 
 
 function ikiHane(v) {
@@ -50,12 +50,16 @@ export default function P_MetrajOlusturPozMahaller() {
   const navigate = useNavigate()
   const { selectedProje, selectedIsPaket, selectedPoz, setSelectedMahal, appUser } = useContext(StoreContext)
 
-  const { data: rawLbsNodes = [], isLoading: lbsLoading } = useGetLbsNodes()
-  const { data: wpAreas = [], isLoading: areasLoading, error: areasError } = useGetWorkPackagePozAreas()
-  const { data: units = [] } = useGetPozUnits()
+  const { data: rawLbsNodesData, isLoading: lbsLoading } = useGetLbsNodes()
+  const { data: wpAreasData, isLoading: areasLoading, error: areasError } = useGetWorkPackagePozAreas()
+  const { data: unitsData } = useGetPozUnits()
+
+  const rawLbsNodes = rawLbsNodesData ?? EMPTY_ARRAY
+  const wpAreas = wpAreasData ?? EMPTY_ARRAY
+  const units = unitsData ?? EMPTY_ARRAY
 
   const [collapsedIds, setCollapsedIds] = useState(new Set())
-  const [showUserCols, setShowUserCols] = useState(true)
+  const showUserCols = true
 
   // wpAreaId → { byUser: { userId: session }, approved: session }
   const [sessionsMap, setSessionsMap] = useState({})
@@ -86,9 +90,9 @@ export default function P_MetrajOlusturPozMahaller() {
 
       const { data: sessions, error: sessionsError } = await supabase
         .from('measurement_sessions')
-        .select('id, work_package_poz_area_id, status, total_quantity, created_by, created_at, updated_at')
+        .select('id, work_package_poz_area_id, status, total_quantity, created_by, created_at, updated_at, revision_snapshot')
         .in('work_package_poz_area_id', areaIds)
-        .in('status', ['draft', 'ready', 'approved'])
+        .in('status', ['draft', 'ready', 'seen', 'approved', 'rejected', 'revise_requested', 'revised'])
         .order('updated_at', { ascending: false })
 
       if (sessionsError || !sessions) {
@@ -120,22 +124,18 @@ export default function P_MetrajOlusturPozMahaller() {
       const newMap = {}
       sessions.forEach(s => {
         const areaId = s.work_package_poz_area_id
-        if (!newMap[areaId]) newMap[areaId] = { byUser: {}, approved: null }
+        if (!newMap[areaId]) newMap[areaId] = { byUser: {}, approved: null, approvedTotal: 0 }
 
-        if (s.status === 'approved') {
-          // İlk bulunan (en yeni) onaylanan metrajı sakla
-          if (!newMap[areaId].approved) {
-            newMap[areaId].approved = s
-          }
-        } else {
-          // created_by null ise (migration öncesi session) aktif kullanıcıya ata
-          const uid = s.created_by ?? appUser?.id
-          if (uid) {
-            // Kullanıcı başına en yeni session'ı sakla
-            if (!newMap[areaId].byUser[uid]) {
-              newMap[areaId].byUser[uid] = s
-            }
-          }
+        if (s.status === 'approved' || s.status === 'revised') {
+          newMap[areaId].approvedTotal += s.total_quantity ?? 0
+          if (!newMap[areaId].approved) newMap[areaId].approved = s
+        }
+
+        // created_by null ise (migration öncesi session) aktif kullanıcıya ata
+        const uid = s.created_by ?? appUser?.id
+        if (uid && !newMap[areaId].byUser[uid]) {
+          // Kullanıcı başına en yeni session'ı sakla
+          newMap[areaId].byUser[uid] = s
         }
       })
 
@@ -262,15 +262,6 @@ export default function P_MetrajOlusturPozMahaller() {
                 Mahaller
               </Typography>
             </Box>
-          </Grid>
-          <Grid item sx={{ ml: 'auto' }}>
-            <Tooltip title={showUserCols ? 'Hazırlayanları gizle' : 'Hazırlayanları göster'}>
-              <IconButton size="small" onClick={() => setShowUserCols(v => !v)} sx={{ opacity: showUserCols ? 1 : 0.4, p: '4px' }}>
-                <Badge badgeContent={sessionUsers.length} color="primary" max={99}>
-                  <PersonIcon fontSize="small" />
-                </Badge>
-              </IconButton>
-            </Tooltip>
           </Grid>
         </Grid>
       </Paper>
@@ -417,7 +408,7 @@ export default function P_MetrajOlusturPozMahaller() {
 
                         {/* Mahal satırları */}
                         {isLeaf && !collapsedIds.has(node.id) && mahallerOfNode.map(mahal => {
-                          const areaData = sessionsMap[mahal.wpAreaId] ?? { byUser: {}, approved: null }
+                          const areaData = sessionsMap[mahal.wpAreaId] ?? { byUser: {}, approved: null, approvedTotal: 0 }
                           const rowBg = '#eeeeee'
                           const hoverBg = '#e0e0e0'
 
@@ -500,10 +491,9 @@ export default function P_MetrajOlusturPozMahaller() {
                                         '&:hover': approvedSes ? { backgroundColor: hoverBg } : {},
                                       }}
                                     >
-                                      {approvedSes
+                                      {areaData.approvedTotal !== 0
                                         ? <>
-                                            <Box sx={{ width: '8px', height: '8px', borderRadius: '50%', backgroundColor: '#1565c0', flexShrink: 0 }} />
-                                            {`${ikiHane(approvedSes.total_quantity)} ${pozBirim}`}
+                                            {`${ikiHane(areaData.approvedTotal)} ${pozBirim}`}
                                           </>
                                         : <Box component="span" sx={{ color: '#ccc' }}>—</Box>
                                       }
@@ -518,12 +508,13 @@ export default function P_MetrajOlusturPozMahaller() {
                                 const isCurrentUser = appUser?.id === user.id
                                 const isClickable = !!ses || isCurrentUser
                                 const isLast = idx === sessionUsers.length - 1
-                                const dotColor = ses?.status === 'ready' ? '#e65100' : '#757575'
+                                const dotColor = ses ? getMeasurementDotColor(ses) : null
+                                const statusLabel = ses ? getMeasurementStatusLabel(ses) : null
 
                                 return (
                                   <Tooltip
                                     key={`cell-${mahal.id}-${user.id}`}
-                                    title={ses ? (ses.status === 'ready' ? 'Onaya Hazır' : ses.status === 'draft' ? 'Taslak' : '') : (isCurrentUser ? 'Metraj başlat' : '')}
+                                    title={ses ? statusLabel : (isCurrentUser ? 'Metraj başlat' : '')}
                                     placement="top"
                                   >
                                     <Box

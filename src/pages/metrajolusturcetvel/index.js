@@ -6,6 +6,7 @@ import { StoreContext } from '../../components/store.js'
 import { supabase } from '../../lib/supabase.js'
 import { useGetPozUnits } from '../../hooks/useMongo.js'
 import { DialogAlert } from '../../components/general/DialogAlert.js'
+import { getMeasurementChipStyle, getMeasurementDotColor, getMeasurementStatusLabel, getMeasurementVisualStatus } from '../../lib/measurementStatus.js'
 
 import AppBar from '@mui/material/AppBar'
 import Box from '@mui/material/Box'
@@ -26,7 +27,6 @@ import CheckCircleIcon from '@mui/icons-material/CheckCircle'
 import AddIcon from '@mui/icons-material/Add'
 import DeleteOutlineIcon from '@mui/icons-material/DeleteOutline'
 import ContentCopyIcon from '@mui/icons-material/ContentCopy'
-import SubdirectoryArrowRightIcon from '@mui/icons-material/SubdirectoryArrowRight'
 
 
 function computeQuantity(line) {
@@ -69,11 +69,14 @@ function ikiHane(v) {
   return new Intl.NumberFormat('de-DE', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(n)
 }
 
-function StatusChip({ status }) {
-  if (status === 'draft')    return <Chip size="small" label="Taslak"      sx={{ backgroundColor: '#FFF9C4', color: '#F57F17', fontWeight: 600 }} />
-  if (status === 'ready')    return <Chip size="small" label="Onaya Hazır" sx={{ backgroundColor: '#C8E6C9', color: '#1B5E20', fontWeight: 600 }} />
-  if (status === 'approved') return <Chip size="small" label="Onaylı"      sx={{ backgroundColor: '#B3E5FC', color: '#01579B', fontWeight: 600 }} />
-  return <Chip size="small" label={status ?? '—'} />
+function StatusChip({ session }) {
+  const visual = getMeasurementVisualStatus(session)
+  if (visual === 'unread') return <Chip size="small" label="Henüz Okunmamış" sx={getMeasurementChipStyle(session)} />
+  if (visual === 'approved') return <Chip size="small" label="Onaylanmış" sx={getMeasurementChipStyle(session)} />
+  if (visual === 'revised') return <Chip size="small" label="Onay Sonrası Revize" sx={getMeasurementChipStyle(session)} />
+  if (visual === 'rejected') return <Chip size="small" label="Reddedilmiş" sx={getMeasurementChipStyle(session)} />
+  if ((session?.status ?? '') === 'draft') return <Chip size="small" label="Taslak" sx={getMeasurementChipStyle(session)} />
+  return <Chip size="small" label="Görüldü" sx={getMeasurementChipStyle(session)} />
 }
 
 const STATUS_ORDER = { approved: 0, ready: 1, draft: 2 }
@@ -109,6 +112,14 @@ const inputSx = {
   fontSize: '0.85rem', padding: '2px 4px',
   textAlign: 'right',
   MozAppearance: 'textfield',
+}
+
+function getCardColors(visualStatus) {
+  if (visualStatus === 'approved') return { border: '#A5D6A7', header: '#E8F5E9', row: 'rgba(200,230,201,0.35)', totalText: '#1B5E20' }
+  if (visualStatus === 'revised') return { border: '#90CAF9', header: '#E3F2FD', row: 'rgba(187,222,251,0.35)', totalText: '#0D47A1' }
+  if (visualStatus === 'unread') return { border: '#FFCC80', header: '#FFF3E0', row: 'rgba(255,224,178,0.3)', totalText: '#E65100' }
+  if (visualStatus === 'rejected') return { border: '#EF9A9A', header: '#FFEBEE', row: 'rgba(255,205,210,0.28)', totalText: '#B71C1C' }
+  return { border: '#B0BEC5', header: '#ECEFF1', row: 'rgba(236,239,241,0.3)', totalText: '#455A64' }
 }
 
 
@@ -186,6 +197,7 @@ export default function P_MetrajOlusturCetvel() {
 
       setSessions(sorted.map(sess => ({
         ...sess,
+        visualStatus: getMeasurementVisualStatus(sess),
         userName: userMap[sess.created_by] ?? '?',
         isOwn: sess.created_by === appUser?.id,
         lines: linesBySession[sess.id] ?? [],
@@ -207,8 +219,16 @@ export default function P_MetrajOlusturCetvel() {
     setSessions(prev => prev.map(s => s.id === sessId ? { ...s, ...updater(s) } : s))
 
   // ── Satır işlemleri ─────────────────────────────────────────
-  // parentId: null → kök satır, string → alt satır
+  // Bu ekranda hiyerarsik (alt seviye) satir olusturma kapali.
   const handleAddLine = async (sessId, parentId = null) => {
+    if (parentId) {
+      setDialogAlert({
+        dialogIcon: 'info',
+        dialogMessage: 'Yeni metraj olustururken alt seviye satir eklenemez.',
+        onCloseAction: () => setDialogAlert(),
+      })
+      return
+    }
     const sess = sessions.find(s => s.id === sessId)
     if (!sess) return
     const siblings = parentId
@@ -521,9 +541,11 @@ export default function P_MetrajOlusturCetvel() {
       {/* SESSION KARTLARI */}
       <Box sx={{ p: '1rem', display: 'flex', flexDirection: 'column', gap: '1.5rem', maxWidth: '900px' }}>
         {sessions.map(sess => {
+          const visualStatus = sess.visualStatus ?? getMeasurementVisualStatus(sess)
+          const cardColors = getCardColors(visualStatus)
           const isDraft    = sess.status === 'draft'
           const isReady    = sess.status === 'ready'
-          const isApproved = sess.status === 'approved'
+          const isApproved = visualStatus === 'approved' || visualStatus === 'revised'
           const canEdit    = sess.isOwn && isDraft
           const totalQuantity = sess.lines.reduce((sum, l) => sum + computeQuantity(l), 0)
 
@@ -532,7 +554,7 @@ export default function P_MetrajOlusturCetvel() {
               key={sess.id}
               sx={{
                 border: '1px solid',
-                borderColor: isApproved ? '#90CAF9' : isReady ? '#A5D6A7' : '#ddd',
+                borderColor: cardColors.border,
                 overflow: 'hidden',
                 boxShadow: 1,
               }}
@@ -542,9 +564,9 @@ export default function P_MetrajOlusturCetvel() {
                 sx={{
                   display: 'flex', alignItems: 'center', gap: '0.5rem',
                   px: '1rem', height: '50px',
-                  backgroundColor: isApproved ? '#E3F2FD' : isReady ? '#F1F8E9' : '#e0e0e0',
+                  backgroundColor: cardColors.header,
                   borderBottom: '1px solid',
-                  borderColor: isApproved ? '#90CAF9' : isReady ? '#A5D6A7' : '#ddd',
+                  borderColor: cardColors.border,
                 }}
               >
                 <Typography variant="body1" sx={{ fontWeight: 700, flexGrow: 1 }}>
@@ -556,7 +578,12 @@ export default function P_MetrajOlusturCetvel() {
                   )}
                 </Typography>
 
-                <StatusChip status={sess.status} />
+                <Box
+                  title={getMeasurementStatusLabel(sess)}
+                  sx={{ width: '10px', height: '10px', borderRadius: '50%', backgroundColor: getMeasurementDotColor(sess), flexShrink: 0 }}
+                />
+
+                <StatusChip session={sess} />
 
                 {/* Onaylı oturum için: Revize Teklifi Başlat */}
                 {isApproved && !hasMyActiveSess && (
@@ -645,9 +672,9 @@ export default function P_MetrajOlusturCetvel() {
                     const qty = computeQuantity(line)
                     const isDeduction = qty < 0
                     const rowBg = isApproved
-                      ? 'rgba(179,229,252,0.35)'
-                      : isReady
-                      ? 'rgba(200,230,200,0.3)'
+                      ? cardColors.row
+                      : visualStatus === 'unread'
+                      ? cardColors.row
                       : sess.mode_edit ? 'rgba(255,250,200,0.4)' : 'white'
                     const deductionColor = isDeduction ? '#b71c1c' : undefined
                     const editActive = canEdit && sess.mode_edit
@@ -667,13 +694,6 @@ export default function P_MetrajOlusturCetvel() {
                         </Box>
 
                         <Box sx={{ ...css_lineCell, color: deductionColor }}>
-                          {editActive && (
-                            <Tooltip title={`Alt satır ekle (${line.siraNo}.1…)`}>
-                              <IconButton size="small" sx={{ p: '1px', mr: '3px', flexShrink: 0 }} onClick={() => handleAddLine(sess.id, line.id)}>
-                                <SubdirectoryArrowRightIcon sx={{ fontSize: 13, color: '#1565c0', opacity: 0.7 }} />
-                              </IconButton>
-                            </Tooltip>
-                          )}
                           {editActive ? (
                             <input
                               style={{ ...inputSx, textAlign: 'left', color: deductionColor }}
@@ -745,16 +765,16 @@ export default function P_MetrajOlusturCetvel() {
                   <Box
                     sx={{
                       display: 'grid', gridTemplateColumns: GRID_COLS,
-                      backgroundColor: isApproved ? '#E3F2FD' : isReady ? '#F1F8E9' : '#e0e0e0',
+                      backgroundColor: cardColors.header,
                       borderTop: '2px solid',
-                      borderColor: isApproved ? '#90CAF9' : isReady ? '#A5D6A7' : '#ddd',
+                      borderColor: cardColors.border,
                       minWidth: 'max-content',
                     }}
                   >
                     <Box sx={{ gridColumn: '1 / 8', px: '8px', py: '4px', fontSize: '0.8rem', fontWeight: 600, display: 'flex', alignItems: 'center', justifyContent: 'flex-end', color: '#555' }}>
                       Toplam
                     </Box>
-                    <Box sx={{ px: '8px', py: '4px', fontSize: '0.9rem', fontWeight: 700, display: 'flex', alignItems: 'center', justifyContent: 'flex-end', color: totalQuantity < 0 ? 'red' : isApproved ? '#01579B' : '#1B5E20' }}>
+                    <Box sx={{ px: '8px', py: '4px', fontSize: '0.9rem', fontWeight: 700, display: 'flex', alignItems: 'center', justifyContent: 'flex-end', color: totalQuantity < 0 ? 'red' : cardColors.totalText }}>
                       {ikiHane(totalQuantity)}
                       {pozBirim && <Box component="span" sx={{ ml: '4px', fontWeight: 400, fontSize: '0.8rem' }}>{pozBirim}</Box>}
                     </Box>

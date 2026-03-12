@@ -30,6 +30,8 @@ import VisibilityOffIcon from '@mui/icons-material/VisibilityOff'
 import CloseIcon from '@mui/icons-material/Close'
 import { AppBar } from '@mui/material'
 
+const EMPTY_ARRAY = []
+
 
 function ikiHane(v) {
   if (v === null || v === undefined || v === '') return ''
@@ -63,9 +65,13 @@ export default function P_MetrajOnaylaPozlar() {
   const navigate = useNavigate()
   const { selectedProje, selectedIsPaket, setSelectedPoz, appUser, drawerWidth, topBarHeight } = useContext(StoreContext)
 
-  const { data: rawWbsNodes = [], isLoading: wbsLoading } = useGetWbsNodes()
-  const { data: units = [], isLoading: unitsLoading } = useGetPozUnits()
-  const { data: wpPozlar = [], isLoading: wpPozLoading, error: wpPozError } = useGetWorkPackagePozlar()
+  const { data: rawWbsNodesData, isLoading: wbsLoading } = useGetWbsNodes()
+  const { data: unitsData, isLoading: unitsLoading } = useGetPozUnits()
+  const { data: wpPozlarData, isLoading: wpPozLoading, error: wpPozError } = useGetWorkPackagePozlar()
+
+  const rawWbsNodes = rawWbsNodesData ?? EMPTY_ARRAY
+  const units = unitsData ?? EMPTY_ARRAY
+  const wpPozlar = wpPozlarData ?? EMPTY_ARRAY
 
   const [collapsedIds, setCollapsedIds] = useState(new Set())
   const [userVisDialogOpen, setUserVisDialogOpen] = useState(false)

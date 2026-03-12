@@ -150,17 +150,6 @@ export default function Sidebar({ setMobileOpen }) {
 
 
             <ListItemButton
-              onClick={() => navigate('/wbs')}
-              sx={{ backgroundColor: pathname == "/wbs" ? seciliSayfaRengi : null, '&:hover': { backgroundColor: seciliSayfaRengi } }}
-            >
-              <ListItemIcon>
-                <SendIcon />
-              </ListItemIcon>
-              <ListItemText primary="Poz Başlıkları" />
-            </ListItemButton>
-
-
-            <ListItemButton
               onClick={() => navigate('/pozlar')}
               sx={{ backgroundColor: pathname == "/pozlar" ? seciliSayfaRengi : null, '&:hover': { backgroundColor: seciliSayfaRengi } }}
             >
@@ -168,17 +157,6 @@ export default function Sidebar({ setMobileOpen }) {
                 <SendIcon />
               </ListItemIcon>
               <ListItemText primary="Pozlar" />
-            </ListItemButton>
-
-
-            <ListItemButton
-              onClick={() => navigate('/lbs')}
-              sx={{ backgroundColor: pathname == "/lbs" ? seciliSayfaRengi : null, '&:hover': { backgroundColor: seciliSayfaRengi } }}
-            >
-              <ListItemIcon>
-                <SendIcon />
-              </ListItemIcon>
-              <ListItemText primary="Mahal Başlıkları" />
             </ListItemButton>
 
 

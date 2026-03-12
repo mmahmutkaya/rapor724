@@ -160,6 +160,7 @@ export default function P_Lbs() {
   const [openSnack, setOpenSnack] = useState(false)
   const [snackMsg, setSnackMsg] = useState('')
   const [dialogAlert, setDialogAlert] = useState()
+  const pageMinWidth = '40rem'
 
   useEffect(() => {
     if (!selectedProje) navigate('/projeler')
@@ -269,7 +270,7 @@ export default function P_Lbs() {
   }
 
   return (
-    <Grid container direction="column" spacing={0} sx={{ mt: subHeaderHeight }}>
+    <Grid container direction="column" spacing={0} sx={{ mt: subHeaderHeight, overflowX: 'auto' }}>
 
       {dialogAlert &&
         <DialogAlert {...dialogAlert} onCloseAction={() => setDialogAlert()} />
@@ -339,7 +340,7 @@ export default function P_Lbs() {
       }
 
       {flatNodes.length > 0 &&
-        <Stack sx={{ maxWidth: "60rem", padding: "0.5rem" }} spacing={0}>
+        <Stack sx={{ maxWidth: "60rem", minWidth: pageMinWidth, padding: "0.5rem", width: 'fit-content' }} spacing={0}>
 
           <Box sx={{ display: "grid", gridTemplateColumns: "1rem 1fr" }}>
             <Box sx={{ backgroundColor: "black" }} />
