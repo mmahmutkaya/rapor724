@@ -124,7 +124,7 @@ export default function P_MetrajOnaylaPozlar() {
         .from('measurement_sessions')
         .select('id, work_package_poz_area_id, total_quantity, status, created_by')
         .in('work_package_poz_area_id', areaIds)
-        .in('status', ['ready', 'approved'])
+        .in('status', ['ready', 'approved', 'revised'])
 
       if (!sessions || sessions.length === 0) { setSessionMap({}); return }
 
@@ -162,9 +162,10 @@ export default function P_MetrajOnaylaPozlar() {
           map[pozId].byUser[s.created_by].readySum += qty
           map[pozId].byUser[s.created_by].hasReady = true
         }
-        if (s.status === 'approved') {
+        if (s.status === 'approved' || s.status === 'revised') {
           map[pozId].byUser[s.created_by].approvedSum += qty
           map[pozId].approvedSum = (map[pozId].approvedSum ?? 0) + qty
+          if (s.status === 'revised') map[pozId].byUser[s.created_by].anyRevised = true
         }
       })
       setSessionMap(map)

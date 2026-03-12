@@ -26,7 +26,7 @@ import ClearIcon from '@mui/icons-material/Clear'
 import CheckCircleIcon from '@mui/icons-material/CheckCircle'
 import AddIcon from '@mui/icons-material/Add'
 import DeleteOutlineIcon from '@mui/icons-material/DeleteOutline'
-import ContentCopyIcon from '@mui/icons-material/ContentCopy'
+import SubdirectoryArrowRightIcon from '@mui/icons-material/SubdirectoryArrowRight'
 
 
 function computeQuantity(line) {
@@ -71,6 +71,8 @@ function ikiHane(v) {
 
 function StatusChip({ session }) {
   const visual = getMeasurementVisualStatus(session)
+  const hasRevision = Array.isArray(session?.revision_snapshot) && session?.revision_snapshot.length > 0
+  if (visual === 'unread' && hasRevision) return <Chip size="small" label="Revize Edildi (Onay Bekliyor)" sx={{ backgroundColor: '#E3F2FD', color: '#0D47A1', fontWeight: 600 }} />
   if (visual === 'unread') return <Chip size="small" label="Henüz Okunmamış" sx={getMeasurementChipStyle(session)} />
   if (visual === 'approved') return <Chip size="small" label="Onaylanmış" sx={getMeasurementChipStyle(session)} />
   if (visual === 'revised') return <Chip size="small" label="Onay Sonrası Revize" sx={getMeasurementChipStyle(session)} />
@@ -195,16 +197,23 @@ export default function P_MetrajOlusturCetvel() {
         (STATUS_ORDER[a.status] ?? 3) - (STATUS_ORDER[b.status] ?? 3)
       )
 
-      setSessions(sorted.map(sess => ({
-        ...sess,
-        visualStatus: getMeasurementVisualStatus(sess),
-        userName: userMap[sess.created_by] ?? '?',
-        isOwn: sess.created_by === appUser?.id,
-        lines: linesBySession[sess.id] ?? [],
-        linesBackup: _.cloneDeep(linesBySession[sess.id] ?? []),
-        mode_edit: false,
-        isChanged: false,
-      })))
+      setSessions(sorted.map(sess => {
+        const revisedLines = Array.isArray(sess.revision_snapshot) && sess.revision_snapshot.length > 0
+          ? Object.fromEntries(sess.revision_snapshot.map(e => [e.id, e]))
+          : {}
+        return {
+          ...sess,
+          visualStatus: getMeasurementVisualStatus(sess),
+          userName: userMap[sess.created_by] ?? '?',
+          isOwn: sess.created_by === appUser?.id,
+          lines: linesBySession[sess.id] ?? [],
+          linesBackup: _.cloneDeep(linesBySession[sess.id] ?? []),
+          mode_edit: false,
+          isRevisionEdit: false,
+          isChanged: false,
+          revisedLines,
+        }
+      }))
     } catch (err) {
       setLoadError(err.message)
     } finally {
@@ -253,23 +262,43 @@ export default function P_MetrajOlusturCetvel() {
   }
 
   const handleDeleteLine = async (sessId, lineId) => {
-    try {
-      const { error } = await supabase.from('measurement_lines').delete().eq('id', lineId)
-      if (error) throw error
-      updateSess(sessId, s => ({
-        lines: s.lines.filter(l => l.id !== lineId),
-        linesBackup: s.linesBackup.filter(l => l.id !== lineId),
-      }))
-    } catch (err) {
-      setDialogAlert({ dialogIcon: 'warning', dialogMessage: err.message, onCloseAction: () => setDialogAlert() })
+    const sess = sessions.find(s => s.id === sessId)
+    if (!sess) return
+    const toDelete = new Set()
+    const collect = (id) => {
+      toDelete.add(id)
+      sess.lines.filter(l => l.parent_line_id === id).forEach(child => collect(child.id))
     }
+    collect(lineId)
+    const savedIds = [...toDelete].filter(id => !sess.lines.find(l => l.id === id)?.isNew)
+    if (savedIds.length > 0) {
+      try {
+        const { error } = await supabase.from('measurement_lines').delete().in('id', savedIds)
+        if (error) throw error
+      } catch (err) {
+        setDialogAlert({ dialogIcon: 'warning', dialogMessage: err.message, onCloseAction: () => setDialogAlert() })
+        return
+      }
+    }
+    updateSess(sessId, s => ({
+      lines: s.lines.filter(l => !toDelete.has(l.id)),
+      linesBackup: s.linesBackup.filter(l => !toDelete.has(l.id)),
+    }))
   }
 
   const handleLineChange = (sessId, lineId, field, value) => {
-    updateSess(sessId, s => ({
-      isChanged: true,
-      lines: s.lines.map(l => l.id === lineId ? { ...l, [field]: value } : l),
-    }))
+    updateSess(sessId, s => {
+      const newRevised = { ...s.revisedLines }
+      if (s.isRevisionEdit && !newRevised[lineId] && !s.lines.find(l => l.id === lineId)?.isNew) {
+        const origLine = s.linesBackup?.find(l => l.id === lineId)
+        if (origLine) newRevised[lineId] = { ...origLine, originalMetraj: computeQuantity(origLine) }
+      }
+      return {
+        isChanged: true,
+        revisedLines: newRevised,
+        lines: s.lines.map(l => l.id === lineId ? { ...l, [field]: value } : l),
+      }
+    })
   }
 
   // ── Kaydet ──────────────────────────────────────────────────
@@ -293,7 +322,8 @@ export default function P_MetrajOlusturCetvel() {
           .eq('id', line.id)
         if (error) throw error
       }
-      const total = sess.lines.reduce((sum, l) => sum + computeQuantity(l), 0)
+      const parentIds = new Set(sess.lines.filter(l => l.parent_line_id).map(l => l.parent_line_id))
+      const total = sess.lines.filter(l => !parentIds.has(l.id)).reduce((sum, l) => sum + computeQuantity(l), 0)
       await supabase
         .from('measurement_sessions')
         .update({ total_quantity: total, updated_at: new Date().toISOString() })
@@ -327,7 +357,8 @@ export default function P_MetrajOlusturCetvel() {
         setDialogAlert()
         const sess = sessions.find(s => s.id === sessId)
         if (!sess) return
-        const total = sess.lines.reduce((sum, l) => sum + computeQuantity(l), 0)
+        const parentIds = new Set(sess.lines.filter(l => l.parent_line_id).map(l => l.parent_line_id))
+        const total = sess.lines.filter(l => !parentIds.has(l.id)).reduce((sum, l) => sum + computeQuantity(l), 0)
         const { error } = await supabase
           .from('measurement_sessions')
           .update({ status: 'ready', total_quantity: total, updated_at: new Date().toISOString() })
@@ -379,79 +410,150 @@ export default function P_MetrajOlusturCetvel() {
     }
   }
 
-  // ── Onaylı metrajı kopyalayarak revize teklifi oluştur ──────
-  const handleStartRevision = (sourceSessionId) => {
-    const myExisting = sessions.find(s => s.isOwn && s.status !== 'approved')
-    if (myExisting) {
-      setDialogAlert({
-        dialogIcon: 'warning',
-        dialogMessage: 'Zaten devam eden bir metraj oturumunuz var. Önce mevcut oturumunuzu tamamlayın.',
-        onCloseAction: () => setDialogAlert(),
-      })
-      return
+  // ── Onaylı metraj üzerinde doğrudan revize başlat ──────────
+  const handleStartRevision = (sessId) => {
+    updateSess(sessId, s => ({
+      mode_edit: true,
+      isRevisionEdit: true,
+      linesBackup: _.cloneDeep(s.lines),
+      isChanged: false,
+      revisedLines: {},
+    }))
+  }
+
+  // ── Revize düzenleme modunu iptal et ────────────────────────
+  const handleCancelRevisionEdit = (sessId) => {
+    updateSess(sessId, s => ({
+      lines: _.cloneDeep(s.linesBackup),
+      mode_edit: false,
+      isRevisionEdit: false,
+      isChanged: false,
+      revisedLines: {},
+    }))
+  }
+
+  // ── Revize düzenlemesini kaydet ─────────────────────────────
+  const handleSaveRevision = async (sessId) => {
+    const sess = sessions.find(s => s.id === sessId)
+    if (!sess) return
+    try {
+      // Yeni (isNew) alt satırları DB'ye kaydet — parent'tan önce child eklenmemesi için topolojik sıra
+      const insertedMap = {}
+      const newLines = sess.lines.filter(l => l.isNew)
+      const toInsert = [...newLines]
+      while (toInsert.length > 0) {
+        const candidate = toInsert.find(l =>
+          !l.parent_line_id ||
+          !newLines.find(p => p.id === l.parent_line_id) ||
+          insertedMap[l.parent_line_id]
+        )
+        if (!candidate) break
+        const realParentId = candidate.parent_line_id
+          ? (insertedMap[candidate.parent_line_id]?.id ?? candidate.parent_line_id)
+          : null
+        const { data: inserted, error } = await supabase
+          .from('measurement_lines')
+          .insert({
+            session_id: sessId,
+            order_index: candidate.order_index,
+            description: candidate.description || null,
+            multiplier: (candidate.multiplier === '' || candidate.multiplier === null) ? 1 : Number(candidate.multiplier),
+            count:  candidate.count  === '' ? null : candidate.count,
+            length: candidate.length === '' ? null : candidate.length,
+            width:  candidate.width  === '' ? null : candidate.width,
+            height: candidate.height === '' ? null : candidate.height,
+            parent_line_id: realParentId,
+            line_type: 'data',
+          })
+          .select().single()
+        if (error) throw error
+        insertedMap[candidate.id] = inserted
+        toInsert.splice(toInsert.indexOf(candidate), 1)
+      }
+
+      // Değişen mevcut satırları güncelle
+      for (const line of sess.lines.filter(l => !l.isNew)) {
+        const backup = sess.linesBackup.find(b => b.id === line.id)
+        if (backup && JSON.stringify(line) === JSON.stringify(backup)) continue
+        const { error } = await supabase
+          .from('measurement_lines')
+          .update({
+            description: line.description,
+            multiplier: (line.multiplier === '' || line.multiplier === null) ? 1 : Number(line.multiplier),
+            count:  line.count  === '' ? null : line.count,
+            length: line.length === '' ? null : line.length,
+            width:  line.width  === '' ? null : line.width,
+            height: line.height === '' ? null : line.height,
+          })
+          .eq('id', line.id)
+        if (error) throw error
+      }
+
+      // Yaprak (parent olmayan) satırların toplamını hesapla
+      const parentIds = new Set(sess.lines.filter(l => l.parent_line_id).map(l => l.parent_line_id))
+      const leafTotal = sess.lines.filter(l => !parentIds.has(l.id)).reduce((sum, l) => sum + computeQuantity(l), 0)
+
+      // Revize snapshot'ını birleştir
+      const prevSnapshot = Array.isArray(sess.revision_snapshot) ? sess.revision_snapshot : []
+      const prevSnapshotMap = Object.fromEntries(prevSnapshot.map(e => [e.id, e]))
+      const snapshotArray = Object.values({ ...prevSnapshotMap, ...sess.revisedLines })
+
+      const { error: updErr } = await supabase
+        .from('measurement_sessions')
+        .update({
+          status: 'ready',
+          total_quantity: leafTotal,
+          updated_at: new Date().toISOString(),
+          ...(snapshotArray.length > 0 ? { revision_snapshot: snapshotArray } : {}),
+        })
+        .eq('id', sessId)
+      if (updErr) throw updErr
+
+      const updatedLines = sess.lines.map(l => insertedMap[l.id] ? { ...insertedMap[l.id] } : l)
+      const newRevisedLines = { ...prevSnapshotMap, ...sess.revisedLines }
+      updateSess(sessId, () => ({
+        status: 'ready',
+        visualStatus: getMeasurementVisualStatus({ status: 'ready', revision_snapshot: snapshotArray }),
+        total_quantity: leafTotal,
+        lines: updatedLines,
+        linesBackup: _.cloneDeep(updatedLines),
+        mode_edit: false,
+        isRevisionEdit: false,
+        isChanged: false,
+        revisedLines: newRevisedLines,
+        revision_snapshot: snapshotArray,
+      }))
+    } catch (err) {
+      setDialogAlert({ dialogIcon: 'warning', dialogMessage: err.message, onCloseAction: () => setDialogAlert() })
     }
+  }
 
-    const sourceSess = sessions.find(s => s.id === sourceSessionId)
-    if (!sourceSess) return
-
-    setDialogAlert({
-      dialogIcon: 'info',
-      dialogMessage: 'Onaylanan metraj kopyalanarak revize teklifi oluşturulsun mu? Kopyayı düzenleyip onaya sunabilirsiniz.',
-      actionText1: 'Evet, Revize Başlat',
-      action1: async () => {
-        setDialogAlert()
-        try {
-          const { data: newSess, error: sessErr } = await supabase
-            .from('measurement_sessions')
-            .insert({
-              work_package_poz_area_id: wpAreaId,
-              status: 'draft',
-              total_quantity: sourceSess.total_quantity,
-              created_by: appUser?.id ?? null,
-            })
-            .select().single()
-          if (sessErr) throw sessErr
-
-          let newLines = []
-          if (sourceSess.lines.length > 0) {
-            const linesToCopy = sourceSess.lines.map(l => ({
-              session_id: newSess.id,
-              order_index: l.order_index,
-              description: l.description,
-              multiplier: l.multiplier,
-              count: l.count,
-              length: l.length,
-              width: l.width,
-              height: l.height,
-              line_type: l.line_type ?? 'data',
-              parent_line_id: null,   // kopyada hiyerarşi sıfırlanır; kullanıcı yeniden düzenler
-            }))
-            const { data: inserted, error: linesErr } = await supabase
-              .from('measurement_lines')
-              .insert(linesToCopy)
-              .select()
-            if (linesErr) throw linesErr
-            newLines = inserted ?? []
-          }
-
-          setSessions(prev => [
-            ...prev,
-            {
-              ...newSess,
-              userName: appUser?.email ?? '?',
-              isOwn: true,
-              lines: newLines,
-              linesBackup: _.cloneDeep(newLines),
-              mode_edit: true,
-              isChanged: false,
-            },
-          ].sort((a, b) => (STATUS_ORDER[a.status] ?? 3) - (STATUS_ORDER[b.status] ?? 3)))
-        } catch (err) {
-          setDialogAlert({ dialogIcon: 'warning', dialogMessage: err.message, onCloseAction: () => setDialogAlert() })
-        }
-      },
-      onCloseAction: () => setDialogAlert(),
-    })
+  // ── Revize modunda alt satır ekle (yerel, kayıt sonraya) ────
+  const addSubLineLocal = (sessId, parentLineId) => {
+    setSessions(prev => prev.map(s => {
+      if (s.id !== sessId) return s
+      const siblings = s.lines.filter(l => l.parent_line_id === parentLineId)
+      const maxOrder = siblings.reduce((max, l) => Math.max(max, l.order_index ?? 0), 0)
+      const tempId = `new-${Date.now()}-${Math.random()}`
+      return {
+        ...s,
+        isChanged: true,
+        lines: [...s.lines, {
+          id: tempId,
+          session_id: sessId,
+          order_index: maxOrder + 1,
+          description: '',
+          multiplier: null,
+          count: null,
+          length: null,
+          width: null,
+          height: null,
+          parent_line_id: parentLineId,
+          line_type: 'data',
+          isNew: true,
+        }],
+      }
+    }))
   }
 
   const unitsMap = useMemo(() => {
@@ -465,7 +567,7 @@ export default function P_MetrajOlusturCetvel() {
     ? `${selectedPoz.code} · ${selectedPoz.short_desc}`
     : selectedPoz?.short_desc
 
-  const hasMyActiveSess = sessions.some(s => s.isOwn && s.status !== 'approved')
+  const hasMyActiveSess = sessions.some(s => s.isOwn && (s.status !== 'approved' || s.isRevisionEdit))
 
   return (
     <Box>
@@ -586,13 +688,31 @@ export default function P_MetrajOlusturCetvel() {
 
                 <StatusChip session={sess} />
 
-                {/* Onaylı oturum için: Revize Teklifi Başlat */}
-                {isApproved && !hasMyActiveSess && (
-                  <Tooltip title="Bu onaylı metrajı kopyalayarak revize teklifi oluştur">
+                {/* Kendi onaylı oturumu için revize düzenle */}
+                {isApproved && sess.isOwn && !sess.mode_edit && (
+                  <Tooltip title="Revize et">
                     <IconButton size="small" onClick={() => handleStartRevision(sess.id)}>
-                      <ContentCopyIcon sx={{ fontSize: 18, color: '#1565c0' }} />
+                      <EditIcon sx={{ fontSize: 20, color: '#1565c0' }} />
                     </IconButton>
                   </Tooltip>
+                )}
+
+                {/* Revize düzenleme modu — iptal / kaydet */}
+                {sess.isRevisionEdit && sess.mode_edit && (
+                  <>
+                    <Tooltip title={sess.isChanged ? 'İptal' : 'Düzenlemeyi Bitir'}>
+                      <IconButton size="small" onClick={() => handleCancelRevisionEdit(sess.id)}>
+                        <ClearIcon sx={{ color: sess.isChanged ? '#c62828' : '#888', fontSize: 20 }} />
+                      </IconButton>
+                    </Tooltip>
+                    {sess.isChanged && (
+                      <Tooltip title="Kaydet (Revize)">
+                        <IconButton size="small" onClick={() => handleSaveRevision(sess.id)}>
+                          <SaveIcon sx={{ color: '#1565c0', fontSize: 20 }} />
+                        </IconButton>
+                      </Tooltip>
+                    )}
+                  </>
                 )}
 
                 {/* Kendi taslağı — düzenle / onaya gönder */}
@@ -613,7 +733,7 @@ export default function P_MetrajOlusturCetvel() {
                   </>
                 )}
 
-                {/* Düzenleme modu — değişiklik yoksa bitir */}
+                {/* Taslak düzenleme modu — değişiklik yoksa bitir */}
                 {isDraft && sess.isOwn && sess.mode_edit && !sess.isChanged && (
                   <Tooltip title="Düzenlemeyi Bitir">
                     <IconButton size="small" onClick={() => updateSess(sess.id, () => ({ mode_edit: false }))}>
@@ -622,8 +742,8 @@ export default function P_MetrajOlusturCetvel() {
                   </Tooltip>
                 )}
 
-                {/* Değişiklik varsa — iptal / kaydet */}
-                {sess.isChanged && (
+                {/* Taslak değişiklik varsa — iptal / kaydet */}
+                {isDraft && sess.isChanged && (
                   <>
                     <Tooltip title="İptal">
                       <IconButton size="small" onClick={() => handleCancelEdit(sess.id)}>
@@ -656,7 +776,7 @@ export default function P_MetrajOlusturCetvel() {
               )}
 
               {/* Tablo */}
-              {(sess.lines.length > 0 || (canEdit && sess.mode_edit)) && (
+              {(sess.lines.length > 0 || (canEdit && sess.mode_edit) || (sess.isRevisionEdit && sess.mode_edit)) && (
                 <Box sx={{ overflowX: 'auto' }}>
 
                   {/* Tablo başlığı */}
@@ -675,13 +795,15 @@ export default function P_MetrajOlusturCetvel() {
                     const isDeduction = qty < 0
                     const rowBg = isRevisedParent
                       ? 'rgba(191,54,12,0.04)'
+                      : (line.isNew && sess.isRevisionEdit)
+                      ? 'rgba(255,250,200,0.6)'
                       : isApproved
                       ? cardColors.row
                       : visualStatus === 'unread'
                       ? cardColors.row
                       : sess.mode_edit ? 'rgba(255,250,200,0.4)' : 'white'
                     const deductionColor = isRevisedParent ? '#bbb' : isDeduction ? '#b71c1c' : undefined
-                    const editActive = canEdit && sess.mode_edit
+                    const editActive = (canEdit && sess.mode_edit) || (sess.isRevisionEdit && sess.mode_edit && line.isNew)
                     const depthStyle = line.depth > 0
                       ? { borderLeft: `${Math.min(line.depth, 3) * 3}px solid rgba(144,202,249,0.7)` }
                       : {}
@@ -703,6 +825,17 @@ export default function P_MetrajOlusturCetvel() {
                           textDecoration: isRevisedParent ? 'line-through' : undefined,
                           fontStyle: isRevisedParent ? 'italic' : undefined,
                         }}>
+                          {sess.isRevisionEdit && sess.mode_edit && !line.isNew && (
+                            <Tooltip title={`Alt satır ekle → ${line.siraNo}.${sess.lines.filter(l => l.parent_line_id === line.id).length + 1}`}>
+                              <IconButton
+                                size="small"
+                                sx={{ p: '1px', mr: '3px', flexShrink: 0 }}
+                                onClick={() => addSubLineLocal(sess.id, line.id)}
+                              >
+                                <SubdirectoryArrowRightIcon sx={{ fontSize: 13, color: '#1565c0', opacity: 0.7 }} />
+                              </IconButton>
+                            </Tooltip>
+                          )}
                           {editActive ? (
                             <input
                               style={{ ...inputSx, textAlign: 'left', color: deductionColor }}
@@ -740,7 +873,8 @@ export default function P_MetrajOlusturCetvel() {
                         </Box>
 
                         <Box sx={{ ...css_lineCell, justifyContent: 'center', px: '2px' }}>
-                          {editActive && (
+                          {((canEdit && sess.mode_edit) ||
+                            (sess.isRevisionEdit && sess.mode_edit && line.isNew)) && (
                             <IconButton size="small" onClick={() => handleDeleteLine(sess.id, line.id)} sx={{ p: '2px' }}>
                               <DeleteOutlineIcon sx={{ fontSize: 18, color: 'salmon' }} />
                             </IconButton>
@@ -751,8 +885,8 @@ export default function P_MetrajOlusturCetvel() {
                     )
                   })}
 
-                  {/* Satır ekle (düzenleme modunda) */}
-                  {canEdit && sess.mode_edit && (
+                  {/* Satır ekle (taslak düzenleme modunda) */}
+                  {canEdit && sess.mode_edit && !sess.isRevisionEdit && (
                     <Box
                       sx={{
                         display: 'flex', alignItems: 'center', px: '6px', py: '2px',
