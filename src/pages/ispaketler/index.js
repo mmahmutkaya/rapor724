@@ -56,6 +56,7 @@ export default function P_IsPaketler() {
   const [editMode, setEditMode] = useState(false);
   const [selectedIds, setSelectedIds] = useState(new Set());
   const [settingsOpen, setSettingsOpen] = useState(false);
+  const [hoveredRowId, setHoveredRowId] = useState(null);
 
   // Düzenleme state'i
   const [editPaket, setEditPaket] = useState(null);
@@ -464,7 +465,7 @@ export default function P_IsPaketler() {
       )}
 
       {show === "Main" && isPaketler.length > 0 && (
-        <Box sx={{ padding: "1rem", display: "grid", gridTemplateColumns: columns }}>
+        <Box sx={{ padding: "1rem", display: "grid", gridTemplateColumns: columns, minWidth: "40rem" }}>
 
           {/* ── Başlık satırı ── */}
           {selectMode && (
@@ -486,11 +487,17 @@ export default function P_IsPaketler() {
           {/* ── Veri satırları ── */}
           {isPaketler.map((paket, index) => {
             const isChecked = selectedIds.has(paket.id);
-            const secilenBg = isChecked ? { backgroundColor: "#e3f2fd" } : {};
+            const defaultBg = isChecked ? "#e3f2fd" : "#f2f2f2";
+            const hoverBg = editMode ? "#fff9c4" : (isChecked ? "#d0e8fb" : "#f5f5f5");
+            const rowBg = hoveredRowId === paket.id ? hoverBg : defaultBg;
+            const rowHandlers = {
+              onMouseEnter: () => setHoveredRowId(paket.id),
+              onMouseLeave: () => setHoveredRowId(null),
+            };
             return (
               <React.Fragment key={paket.id}>
                 {selectMode && (
-                  <Box sx={{ ...css_satir, justifyContent: "center", ...secilenBg }}>
+                  <Box {...rowHandlers} sx={{ ...css_satir, justifyContent: "center", backgroundColor: rowBg }}>
                     <Checkbox
                       size="small"
                       checked={isChecked}
@@ -500,18 +507,17 @@ export default function P_IsPaketler() {
                   </Box>
                 )}
 
-                <Box sx={{ ...css_satir, justifyContent: "center", ...secilenBg }}>
+                <Box {...rowHandlers} sx={{ ...css_satir, justifyContent: "center", backgroundColor: rowBg }}>
                   {index + 1}
                 </Box>
 
                 <Box
+                  {...rowHandlers}
                   sx={{
                     ...css_satir,
                     cursor: "pointer",
                     userSelect: "none",
-                    "&:hover": { backgroundColor: isChecked ? "#d0e8fb" : "#f5f5f5" },
-                    ...secilenBg,
-                    ...(editMode && { "&:hover": { backgroundColor: "#fff9c4" } }),
+                    backgroundColor: rowBg,
                   }}
                   onClick={() => {
                     if (editMode)       return openEdit(paket);
@@ -525,11 +531,11 @@ export default function P_IsPaketler() {
 
                 {pageSettings.showAciklama && (
                   <Box
+                    {...rowHandlers}
                     sx={{
                       ...css_satir,
                       cursor: (selectMode || editMode) ? "pointer" : "default",
-                      ...secilenBg,
-                      ...(editMode && { "&:hover": { backgroundColor: "#fff9c4" } }),
+                      backgroundColor: rowBg,
                     }}
                     onClick={() => {
                       if (editMode)   return openEdit(paket);
@@ -542,11 +548,11 @@ export default function P_IsPaketler() {
 
                 {pageSettings.showOlusturan && (
                   <Box
+                    {...rowHandlers}
                     sx={{
                       ...css_satir,
                       cursor: (selectMode || editMode) ? "pointer" : "default",
-                      ...secilenBg,
-                      ...(editMode && { "&:hover": { backgroundColor: "#fff9c4" } }),
+                      backgroundColor: rowBg,
                     }}
                     onClick={() => {
                       if (editMode)   return openEdit(paket);

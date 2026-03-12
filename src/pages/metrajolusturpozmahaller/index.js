@@ -59,6 +59,7 @@ export default function P_MetrajOlusturPozMahaller() {
   const units = unitsData ?? EMPTY_ARRAY
 
   const [collapsedIds, setCollapsedIds] = useState(new Set())
+  const [hoveredMahalId, setHoveredMahalId] = useState(null)
   const showUserCols = true
 
   // wpAreaId → { byUser: { userId: session }, approved: session }
@@ -292,6 +293,7 @@ export default function P_MetrajOlusturPozMahaller() {
       {!isLoading && !queryError && rawLbsNodes.length > 0 && rawMahaller.length > 0 &&
         (() => {
           const totalDepthCols = maxLeafDepth + 1
+          const statusColWidth = '8rem'
           // Sabit sütunlar: code, name, area  →  3 adet
           // Dinamik: sessionUsers.length adet kullanıcı + 1 onaylanan
           const userColCount = sessionUsers.length
@@ -300,8 +302,8 @@ export default function P_MetrajOlusturPozMahaller() {
             'max-content',
             'minmax(20rem, max-content)',
             'max-content',
-            'max-content',
-            ...(showUserCols ? Array(userColCount).fill('max-content') : []),
+            statusColWidth,
+            ...(showUserCols ? Array(userColCount).fill(statusColWidth) : []),
           ].join(' ')
 
           const css_header = {
@@ -411,6 +413,9 @@ export default function P_MetrajOlusturPozMahaller() {
                           const areaData = sessionsMap[mahal.wpAreaId] ?? { byUser: {}, approved: null, approvedTotal: 0 }
                           const rowBg = '#eeeeee'
                           const hoverBg = '#e0e0e0'
+                          const isRowHovered = hoveredMahalId === mahal.id
+                          const rowTextColor = '#1f2937'
+                          const mutedTextColor = '#6b7280'
 
                           return (
                             <React.Fragment key={mahal.id}>
@@ -422,15 +427,17 @@ export default function P_MetrajOlusturPozMahaller() {
                               {/* Mahal kodu */}
                               <Box
                                 onClick={() => handleMahalClick(mahal)}
+                                onMouseEnter={() => setHoveredMahalId(mahal.id)}
+                                onMouseLeave={() => setHoveredMahalId(null)}
                                 sx={{
                                   px: '6px', py: '2px',
                                   borderBottom: '0.5px solid #ddd',
                                   borderLeft: '1px solid #aaa',
                                   fontFamily: 'monospace', fontSize: '0.8rem', fontWeight: 600,
                                   display: 'flex', alignItems: 'center', whiteSpace: 'nowrap',
-                                  backgroundColor: rowBg,
+                                  backgroundColor: isRowHovered ? hoverBg : rowBg,
+                                  color: rowTextColor,
                                   cursor: 'pointer',
-                                  '&:hover': { backgroundColor: hoverBg }
                                 }}
                               >
                                 {mahal.code || '—'}
@@ -439,14 +446,16 @@ export default function P_MetrajOlusturPozMahaller() {
                               {/* Mahal adı */}
                               <Box
                                 onClick={() => handleMahalClick(mahal)}
+                                onMouseEnter={() => setHoveredMahalId(mahal.id)}
+                                onMouseLeave={() => setHoveredMahalId(null)}
                                 sx={{
                                   px: '6px', py: '2px',
                                   borderBottom: '0.5px solid #ddd',
                                   fontSize: '0.875rem',
                                   display: 'flex', alignItems: 'center',
-                                  backgroundColor: rowBg,
+                                  backgroundColor: isRowHovered ? hoverBg : rowBg,
+                                  color: rowTextColor,
                                   cursor: 'pointer',
-                                  '&:hover': { backgroundColor: hoverBg }
                                 }}
                               >
                                 {mahal.name}
@@ -455,16 +464,18 @@ export default function P_MetrajOlusturPozMahaller() {
                               {/* Alan m² */}
                               <Box
                                 onClick={() => handleMahalClick(mahal)}
+                                onMouseEnter={() => setHoveredMahalId(mahal.id)}
+                                onMouseLeave={() => setHoveredMahalId(null)}
                                 sx={{
                                   px: '6px', py: '2px',
                                   borderBottom: '0.5px solid #ddd',
                                   borderRight: '1px solid #c0c0c0',
                                   fontSize: '0.8rem',
                                   display: 'flex', alignItems: 'center', justifyContent: 'flex-end',
-                                  backgroundColor: rowBg,
+                                  backgroundColor: isRowHovered ? hoverBg : rowBg,
+                                  color: rowTextColor,
                                   whiteSpace: 'nowrap',
                                   cursor: 'pointer',
-                                  '&:hover': { backgroundColor: hoverBg }
                                 }}
                               >
                                 {mahal.area != null ? `${mahal.area} m²` : '—'}
@@ -477,25 +488,28 @@ export default function P_MetrajOlusturPozMahaller() {
                                   <Tooltip title={approvedSes ? 'Onaylanan metraj — görüntüle / düzenle' : ''} placement="top">
                                     <Box
                                       onClick={() => approvedSes ? handleMahalClick(mahal, approvedSes) : undefined}
+                                      onMouseEnter={() => setHoveredMahalId(mahal.id)}
+                                      onMouseLeave={() => setHoveredMahalId(null)}
                                       sx={{
-                                        px: '6px', py: '2px',
+                                        px: '4px', py: '2px',
                                         borderBottom: '0.5px solid #ddd',
                                         borderLeft: '1px solid #c0c0c0', borderRight: '1px solid #c0c0c0',
                                         ml: '0.5rem', mr: '0.5rem',
                                         fontSize: '0.8rem', fontWeight: 600,
                                         display: 'flex', alignItems: 'center', justifyContent: 'flex-end',
                                         gap: '0.3rem',
-                                        backgroundColor: rowBg,
+                                        backgroundColor: isRowHovered ? hoverBg : rowBg,
+                                        color: rowTextColor,
                                         whiteSpace: 'nowrap',
+                                        overflow: 'hidden',
                                         cursor: approvedSes ? 'pointer' : 'default',
-                                        '&:hover': approvedSes ? { backgroundColor: hoverBg } : {},
                                       }}
                                     >
                                       {areaData.approvedTotal !== 0
                                         ? <>
                                             {`${ikiHane(areaData.approvedTotal)} ${pozBirim}`}
                                           </>
-                                        : <Box component="span" sx={{ color: '#ccc' }}>—</Box>
+                                        : <Box component="span" sx={{ color: mutedTextColor }}>—</Box>
                                       }
                                     </Box>
                                   </Tooltip>
@@ -519,18 +533,21 @@ export default function P_MetrajOlusturPozMahaller() {
                                   >
                                     <Box
                                       onClick={() => isClickable ? handleMahalClick(mahal, ses || null) : undefined}
+                                      onMouseEnter={() => setHoveredMahalId(mahal.id)}
+                                      onMouseLeave={() => setHoveredMahalId(null)}
                                       sx={{
-                                        px: '6px', py: '2px',
+                                        px: '4px', py: '2px',
                                         borderBottom: '0.5px solid #ddd',
                                         borderLeft: '1px solid #c0c0c0',
                                         ...(isLast && { borderRight: '1px solid #c0c0c0', mr: '0.5rem' }),
                                         fontSize: '0.8rem',
                                         display: 'flex', alignItems: 'center', justifyContent: 'flex-end',
                                         gap: '0.3rem',
-                                        backgroundColor: rowBg,
+                                        backgroundColor: isRowHovered ? hoverBg : rowBg,
+                                        color: rowTextColor,
                                         whiteSpace: 'nowrap',
+                                        overflow: 'hidden',
                                         cursor: isClickable ? 'pointer' : 'default',
-                                        '&:hover': isClickable ? { backgroundColor: hoverBg } : {},
                                       }}
                                     >
                                       {ses
@@ -539,8 +556,8 @@ export default function P_MetrajOlusturPozMahaller() {
                                             {`${ikiHane(ses.total_quantity)} ${pozBirim}`}
                                           </>
                                         : (isCurrentUser
-                                            ? <Box component="span" sx={{ fontSize: '0.75rem', color: '#aaa' }}>+ Ekle</Box>
-                                            : <Box component="span" sx={{ color: '#ccc' }}>—</Box>
+                                            ? <Box component="span" sx={{ fontSize: '0.75rem', color: mutedTextColor }}>+ Ekle</Box>
+                                            : <Box component="span" sx={{ color: mutedTextColor }}>—</Box>
                                           )
                                       }
                                     </Box>

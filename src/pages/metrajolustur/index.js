@@ -39,6 +39,7 @@ export default function P_MetrajOlustur() {
 
   const [dialogAlert, setDialogAlert] = useState()
   const [settingsOpen, setSettingsOpen] = useState(false)
+  const [hoveredRowId, setHoveredRowId] = useState(null)
 
   const { data: isPaketler = [], isFetching, error } = useGetMyWorkPackages()
   const { data: userSettings = {} } = useGetUserSettings()
@@ -176,7 +177,7 @@ export default function P_MetrajOlustur() {
       )}
 
       {isPaketler.length > 0 && (
-        <Box sx={{ padding: '1rem', maxWidth: '60rem' }}>
+        <Box sx={{ padding: '1rem', maxWidth: '60rem', minWidth: '40rem' }}>
           {/* Tek grid konteyneri — başlık + tüm satırlar hizalı */}
           <Box sx={{ display: 'grid', gridTemplateColumns: columns }}>
 
@@ -186,60 +187,71 @@ export default function P_MetrajOlustur() {
             {pageSettings.showAciklama && <Box sx={{ ...css_baslik }}>Açıklama</Box>}
 
             {/* Veri satırları */}
-            {isPaketler.map((paket, index) => (
-              <React.Fragment key={paket.id}>
-                <Box
-                  sx={{
-                    display: 'flex', alignItems: 'center', justifyContent: 'center',
-                    px: '0.6rem', py: '0.4rem',
-                    borderBottom: '1px solid #ddd',
-                    backgroundColor: css_satir_bg,
-                    fontSize: '0.85rem', color: '#888',
-                  }}
-                >
-                  {index + 1}
-                </Box>
+            {isPaketler.map((paket, index) => {
+              const isHovered = hoveredRowId === paket.id
+              const rowBg = isHovered ? '#e0ecff' : css_satir_bg
+              const rowHandlers = {
+                onMouseEnter: () => setHoveredRowId(paket.id),
+                onMouseLeave: () => setHoveredRowId(null),
+              }
 
-                <Box
-                  sx={{
-                    display: 'flex', alignItems: 'center',
-                    px: '0.6rem', py: '0.4rem',
-                    borderBottom: '1px solid #ddd',
-                    backgroundColor: css_satir_bg,
-                    cursor: 'pointer',
-                    gap: '0.5rem',
-                    '&:hover': { backgroundColor: '#e0ecff' },
-                  }}
-                  onClick={() => {
-                    setSelectedIsPaket(paket)
-                    navigate('/metrajolusturpozlar')
-                  }}
-                >
-                  <Typography variant="body2">
-                    {paket.name}
-                  </Typography>
-                  {paket.code && (
-                    <Typography variant="caption" sx={{ color: '#888', fontFamily: 'monospace' }}>
-                      {paket.code}
-                    </Typography>
-                  )}
-                </Box>
-
-                {pageSettings.showAciklama && (
+              return (
+                <React.Fragment key={paket.id}>
                   <Box
+                    {...rowHandlers}
+                    sx={{
+                      display: 'flex', alignItems: 'center', justifyContent: 'center',
+                      px: '0.6rem', py: '0.4rem',
+                      borderBottom: '1px solid #ddd',
+                      backgroundColor: rowBg,
+                      fontSize: '0.85rem', color: '#888',
+                    }}
+                  >
+                    {index + 1}
+                  </Box>
+
+                  <Box
+                    {...rowHandlers}
                     sx={{
                       display: 'flex', alignItems: 'center',
                       px: '0.6rem', py: '0.4rem',
                       borderBottom: '1px solid #ddd',
-                      backgroundColor: css_satir_bg,
-                      fontSize: '0.85rem', color: '#555',
+                      backgroundColor: rowBg,
+                      cursor: 'pointer',
+                      gap: '0.5rem',
+                    }}
+                    onClick={() => {
+                      setSelectedIsPaket(paket)
+                      navigate('/metrajolusturpozlar')
                     }}
                   >
-                    {paket.description ?? ''}
+                    <Typography variant="body2">
+                      {paket.name}
+                    </Typography>
+                    {paket.code && (
+                      <Typography variant="caption" sx={{ color: '#888', fontFamily: 'monospace' }}>
+                        {paket.code}
+                      </Typography>
+                    )}
                   </Box>
-                )}
-              </React.Fragment>
-            ))}
+
+                  {pageSettings.showAciklama && (
+                    <Box
+                      {...rowHandlers}
+                      sx={{
+                        display: 'flex', alignItems: 'center',
+                        px: '0.6rem', py: '0.4rem',
+                        borderBottom: '1px solid #ddd',
+                        backgroundColor: rowBg,
+                        fontSize: '0.85rem', color: '#555',
+                      }}
+                    >
+                      {paket.description ?? ''}
+                    </Box>
+                  )}
+                </React.Fragment>
+              )
+            })}
           </Box>
         </Box>
       )}

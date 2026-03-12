@@ -74,6 +74,7 @@ export default function P_MetrajOnaylaPozlar() {
   const wpPozlar = wpPozlarData ?? EMPTY_ARRAY
 
   const [collapsedIds, setCollapsedIds] = useState(new Set())
+  const [hoveredPozId, setHoveredPozId] = useState(null)
   const [userVisDialogOpen, setUserVisDialogOpen] = useState(false)
   const [hiddenUsers, setHiddenUsers] = useState(new Set())
   // pozId → { [userId]: { readySum, approvedSum }, approvedSum }
@@ -327,20 +328,21 @@ export default function P_MetrajOnaylaPozlar() {
       {!isLoading && !queryError && rawPozlar.length > 0 &&
         (() => {
           const totalDepthCols = maxLeafDepth + 1
+          const statusColWidth = '8rem'
           const treeGridCols = [
             `repeat(${totalDepthCols}, 1rem)`,
             'max-content',
             'minmax(20rem, max-content)',
             'max-content',
-            'max-content',
-            ...(visibleColumnUsers.length > 0 ? visibleColumnUsers.map(() => 'max-content') : []),
+            statusColWidth,
+            ...(visibleColumnUsers.length > 0 ? visibleColumnUsers.map(() => statusColWidth) : []),
           ].join(' ')
 
           const headerBg = '#000000'
           const headerCo = '#e0e1dd'
           const css_header = {
             backgroundColor: headerBg, color: headerCo,
-            px: '0.4rem', py: '0.2rem',
+            px: '4px', py: '0.2rem',
             fontSize: '0.75rem', fontWeight: 600,
             display: 'flex', alignItems: 'center', justifyContent: 'center',
             textAlign: 'center', whiteSpace: 'nowrap',
@@ -419,6 +421,9 @@ export default function P_MetrajOnaylaPozlar() {
                           const pozData = sessionMap?.[poz.id]
                           const rowBg = '#eeeeee'
                           const hoverBg = '#e0e0e0'
+                          const isRowHovered = hoveredPozId === poz.id
+                          const rowTextColor = '#1f2937'
+                          const mutedTextColor = '#6b7280'
 
                           return (
                             <React.Fragment key={poz.id}>
@@ -429,12 +434,13 @@ export default function P_MetrajOnaylaPozlar() {
                               {/* Poz kodu */}
                               <Box
                                 onClick={() => handlePozClick(poz)}
+                                onMouseEnter={() => setHoveredPozId(poz.id)}
+                                onMouseLeave={() => setHoveredPozId(null)}
                                 sx={{
                                   px: '6px', py: '2px', borderBottom: '0.5px solid #ddd', borderLeft: '1px solid #aaa',
                                   fontFamily: 'monospace', fontSize: '0.8rem', fontWeight: 600,
                                   display: 'flex', alignItems: 'center', whiteSpace: 'nowrap',
-                                  backgroundColor: rowBg, cursor: 'pointer',
-                                  '&:hover': { backgroundColor: hoverBg }
+                                  backgroundColor: isRowHovered ? hoverBg : rowBg, color: rowTextColor, cursor: 'pointer',
                                 }}
                               >
                                 {poz.code || '—'}
@@ -443,11 +449,12 @@ export default function P_MetrajOnaylaPozlar() {
                               {/* Poz adı */}
                               <Box
                                 onClick={() => handlePozClick(poz)}
+                                onMouseEnter={() => setHoveredPozId(poz.id)}
+                                onMouseLeave={() => setHoveredPozId(null)}
                                 sx={{
                                   px: '6px', py: '2px', borderBottom: '0.5px solid #ddd',
                                   fontSize: '0.875rem', display: 'flex', alignItems: 'center',
-                                  backgroundColor: rowBg, cursor: 'pointer',
-                                  '&:hover': { backgroundColor: hoverBg }
+                                  backgroundColor: isRowHovered ? hoverBg : rowBg, color: rowTextColor, cursor: 'pointer',
                                 }}
                               >
                                 {poz.short_desc}
@@ -456,12 +463,13 @@ export default function P_MetrajOnaylaPozlar() {
                               {/* Birim */}
                               <Box
                                 onClick={() => handlePozClick(poz)}
+                                onMouseEnter={() => setHoveredPozId(poz.id)}
+                                onMouseLeave={() => setHoveredPozId(null)}
                                 sx={{
                                   px: '6px', py: '2px', borderBottom: '0.5px solid #ddd',
                                   borderRight: '1px solid #c0c0c0',
                                   fontSize: '0.8rem', display: 'flex', alignItems: 'center', whiteSpace: 'nowrap',
-                                  backgroundColor: rowBg, cursor: 'pointer',
-                                  '&:hover': { backgroundColor: hoverBg }
+                                  backgroundColor: isRowHovered ? hoverBg : rowBg, color: rowTextColor, cursor: 'pointer',
                                 }}
                               >
                                 {unitsMap[poz.unit_id] ?? '—'}
@@ -470,14 +478,16 @@ export default function P_MetrajOnaylaPozlar() {
                               {/* Onaylanan toplam */}
                               <Box
                                 onClick={() => handlePozClick(poz)}
+                                onMouseEnter={() => setHoveredPozId(poz.id)}
+                                onMouseLeave={() => setHoveredPozId(null)}
                                 sx={{
-                                  px: '6px', py: '2px', borderBottom: '0.5px solid #ddd',
+                                  px: '4px', py: '2px', borderBottom: '0.5px solid #ddd',
                                   borderLeft: '1px solid #c0c0c0', borderRight: '1px solid #c0c0c0',
                                   ml: '0.5rem', mr: '0.5rem',
                                   fontSize: '0.8rem', fontWeight: 600, display: 'flex', alignItems: 'center', justifyContent: 'flex-end',
                                   whiteSpace: 'nowrap', cursor: 'pointer', gap: '0.3rem',
-                                  backgroundColor: rowBg,
-                                  '&:hover': { backgroundColor: hoverBg }
+                                  overflow: 'hidden',
+                                  backgroundColor: isRowHovered ? hoverBg : rowBg, color: rowTextColor,
                                 }}
                               >
                                 {pozData?.approvedSum != null && pozData.approvedSum !== 0
@@ -485,7 +495,7 @@ export default function P_MetrajOnaylaPozlar() {
                                       <Box sx={{ width: '8px', height: '8px', borderRadius: '50%', backgroundColor: '#1565c0', flexShrink: 0 }} />
                                       <Box component="span">{ikiHane(pozData.approvedSum)}</Box>
                                     </>
-                                  : <Box component="span" sx={{ color: '#ccc' }}>—</Box>
+                                  : <Box component="span" sx={{ color: mutedTextColor }}>—</Box>
                                 }
                               </Box>
 
@@ -503,14 +513,16 @@ export default function P_MetrajOnaylaPozlar() {
                                   <Box
                                     key={uid}
                                     onClick={() => handlePozClick(poz)}
+                                    onMouseEnter={() => setHoveredPozId(poz.id)}
+                                    onMouseLeave={() => setHoveredPozId(null)}
                                     sx={{
-                                      px: '6px', py: '2px', borderBottom: '0.5px solid #ddd',
+                                      px: '4px', py: '2px', borderBottom: '0.5px solid #ddd',
                                       borderLeft: '1px solid #c0c0c0',
                                       ...(isLast && { borderRight: '1px solid #c0c0c0', mr: '0.5rem' }),
                                       fontSize: '0.8rem', display: 'flex', alignItems: 'center', justifyContent: 'flex-end',
                                       gap: '0.3rem', whiteSpace: 'nowrap', cursor: 'pointer',
-                                      backgroundColor: rowBg,
-                                      '&:hover': { backgroundColor: hoverBg }
+                                      overflow: 'hidden',
+                                      backgroundColor: isRowHovered ? hoverBg : rowBg, color: rowTextColor,
                                     }}
                                   >
                                     {dotColor
@@ -518,7 +530,7 @@ export default function P_MetrajOnaylaPozlar() {
                                           <Box sx={{ width: '8px', height: '8px', borderRadius: '50%', backgroundColor: dotColor, flexShrink: 0 }} />
                                           <Box component="span">{hasApproved ? ikiHane(ud.approvedSum) : ikiHane(ud.readySum)}</Box>
                                         </>
-                                      : <Box component="span" sx={{ color: '#ccc' }}>—</Box>
+                                      : <Box component="span" sx={{ color: mutedTextColor }}>—</Box>
                                     }
                                   </Box>
                                 )

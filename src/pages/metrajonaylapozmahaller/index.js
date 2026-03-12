@@ -16,9 +16,19 @@ import Tooltip from '@mui/material/Tooltip'
 import IconButton from '@mui/material/IconButton'
 import Badge from '@mui/material/Badge'
 import AppBar from '@mui/material/AppBar'
+import Dialog from '@mui/material/Dialog'
+import DialogTitle from '@mui/material/DialogTitle'
+import DialogContent from '@mui/material/DialogContent'
+import List from '@mui/material/List'
+import ListItem from '@mui/material/ListItem'
+import ListItemText from '@mui/material/ListItemText'
+import Divider from '@mui/material/Divider'
 import NavigateNextIcon from '@mui/icons-material/NavigateNext'
 import ReplyIcon from '@mui/icons-material/Reply'
 import PersonIcon from '@mui/icons-material/Person'
+import VisibilityIcon from '@mui/icons-material/Visibility'
+import VisibilityOffIcon from '@mui/icons-material/VisibilityOff'
+import CloseIcon from '@mui/icons-material/Close'
 
 const EMPTY_ARRAY = []
 
@@ -55,7 +65,7 @@ export default function P_MetrajOnaylaPozMahaller() {
   const navigate = useNavigate()
   const {
     selectedProje, selectedIsPaket, selectedPoz,
-    setSelectedMahal_metraj, appUser
+    setSelectedMahal_metraj
   } = useContext(StoreContext)
 
   const { data: rawLbsNodesData, isLoading: lbsLoading } = useGetLbsNodes()
@@ -67,13 +77,16 @@ export default function P_MetrajOnaylaPozMahaller() {
   const units = unitsData ?? EMPTY_ARRAY
 
   const [collapsedIds, setCollapsedIds] = useState(new Set())
-  const [showUserCols, setShowUserCols] = useState(true)
+  const [hoveredMahalId, setHoveredMahalId] = useState(null)
+  const [userVisDialogOpen, setUserVisDialogOpen] = useState(false)
+  const [hiddenUsers, setHiddenUsers] = useState(new Set())
   // wpAreaId → { byUser: { userId: { session, userName } }, approvedTotal }
   const [sessionsMap, setSessionsMap] = useState({})
   // ordered array of { id, name }
   const [sessionUsers, setSessionUsers] = useState([])
+  const [sessionsLoading, setSessionsLoading] = useState(true)
 
-  const isLoading = lbsLoading || areasLoading
+  const isLoading = lbsLoading || areasLoading || sessionsLoading
   const queryError = areasError
 
   useEffect(() => {
@@ -82,12 +95,15 @@ export default function P_MetrajOnaylaPozMahaller() {
   }, [selectedProje, selectedIsPaket, selectedPoz, navigate])
 
   useEffect(() => {
+    if (areasLoading) return  // henüz yükleniyor, sessions bekletmeye devam
     if (!wpAreas || wpAreas.length === 0) {
       setSessionsMap({})
       setSessionUsers([])
+      setSessionsLoading(false)
       return
     }
 
+    setSessionsLoading(true)
     const areaIds = wpAreas.map(a => a.id);
 
     (async () => {
@@ -101,6 +117,7 @@ export default function P_MetrajOnaylaPozMahaller() {
       if (sessionsError || !sessions || sessions.length === 0) {
         setSessionsMap({})
         setSessionUsers([])
+        setSessionsLoading(false)
         return
       }
 
@@ -139,8 +156,9 @@ export default function P_MetrajOnaylaPozMahaller() {
       const users = uniqueUserIds.map(uid => ({ id: uid, name: userMap[uid] ?? uid }))
       users.sort((a, b) => a.name.localeCompare(b.name, 'tr'))
       setSessionUsers(users)
+      setSessionsLoading(false)
     })()
-  }, [wpAreas])
+  }, [wpAreas, areasLoading])
 
   const unitsMap = useMemo(() => {
     const m = {}
@@ -178,6 +196,19 @@ export default function P_MetrajOnaylaPozMahaller() {
       return next
     })
   }
+
+  function toggleUserVisibility(uid) {
+    setHiddenUsers(prev => {
+      const next = new Set(prev)
+      next.has(uid) ? next.delete(uid) : next.add(uid)
+      return next
+    })
+  }
+
+  const visibleSessionUsers = useMemo(
+    () => sessionUsers.filter(user => !hiddenUsers.has(user.id)),
+    [sessionUsers, hiddenUsers]
+  )
 
   function isHiddenByAncestor(node) {
     let parentId = node.parent_id
@@ -256,9 +287,12 @@ export default function P_MetrajOnaylaPozMahaller() {
             </Box>
           </Grid>
           <Grid item xs="auto">
-            <Tooltip title={showUserCols ? 'Hazırlayanları gizle' : 'Hazırlayanları göster'}>
-              <IconButton onClick={() => setShowUserCols(v => !v)} sx={{ opacity: showUserCols ? 1 : 0.4, width: 40, height: 40 }}>
-                <Badge badgeContent={sessionUsers.length} color="primary" max={99}>
+            <Tooltip title="Hazırlayanlar">
+              <IconButton
+                onClick={() => setUserVisDialogOpen(true)}
+                sx={{ opacity: sessionUsers.length > 0 && hiddenUsers.size === sessionUsers.length ? 0.4 : 1, width: 40, height: 40 }}
+              >
+                <Badge badgeContent={visibleSessionUsers.length} color="primary" max={99}>
                   <PersonIcon fontSize="small" />
                 </Badge>
               </IconButton>
@@ -267,9 +301,7 @@ export default function P_MetrajOnaylaPozMahaller() {
         </Grid>
       </AppBar>
 
-      {isLoading &&
-        <Box sx={{ m: '1rem', color: 'gray' }}><LinearProgress color="inherit" /></Box>
-      }
+      {isLoading && <LinearProgress color="inherit" sx={{ color: 'gray' }} />}
 
       {!isLoading && queryError &&
         <Alert severity="error" sx={{ m: '1rem' }}>
@@ -287,14 +319,15 @@ export default function P_MetrajOnaylaPozMahaller() {
       {!isLoading && !queryError && rawLbsNodes.length > 0 && rawMahaller.length > 0 &&
         (() => {
           const totalDepthCols = maxLeafDepth + 1
-          const userColCount = sessionUsers.length
+          const statusColWidth = '8rem'
+          const userColCount = visibleSessionUsers.length
           const treeGridCols = [
             `repeat(${totalDepthCols}, 1rem)`,
             'max-content',
             'minmax(20rem, max-content)',
             'max-content',
-            'max-content',
-            ...(showUserCols && userColCount > 0 ? Array(userColCount).fill('max-content') : []),
+            statusColWidth,
+            ...(userColCount > 0 ? Array(userColCount).fill(statusColWidth) : []),
           ].join(' ')
 
           const css_header = {
@@ -322,8 +355,8 @@ export default function P_MetrajOnaylaPozMahaller() {
                   <Box sx={{ ...css_header }} />
                   <Box sx={{ ...css_header }} />
                   <Box sx={{ ...css_header, ml: '0.5rem', mr: '0.5rem' }}>Onaylanan</Box>
-                  {showUserCols && sessionUsers.map((user, idx) => (
-                    <Box key={`hd-${user.id}`} sx={{ ...css_header, flexDirection: 'column', lineHeight: 1.2, ...(idx === sessionUsers.length - 1 && { mr: '0.5rem' }) }}>
+                  {visibleSessionUsers.map((user, idx) => (
+                    <Box key={`hd-${user.id}`} sx={{ ...css_header, flexDirection: 'column', lineHeight: 1.2, ...(idx === visibleSessionUsers.length - 1 && { mr: '0.5rem' }) }}>
                       <span>{user.name.split(' ')[0]}</span>
                       <span>{user.name.split(' ').slice(1).join(' ')}</span>
                     </Box>
@@ -348,7 +381,7 @@ export default function P_MetrajOnaylaPozMahaller() {
                         <Box
                           onClick={() => { if (!isLeaf) toggleCollapse(node.id) }}
                           sx={{
-                            gridColumn: `span ${totalDepthCols - depth + (showUserCols && userColCount > 0 ? 3 : 4)}`,
+                            gridColumn: `span ${totalDepthCols - depth + (userColCount > 0 ? 3 : 4)}`,
                             pl: '6px', py: '1px',
                             backgroundColor: c.bg, color: c.co,
                             cursor: isLeaf ? 'default' : 'pointer',
@@ -368,14 +401,14 @@ export default function P_MetrajOnaylaPozMahaller() {
                             </Box>
                           }
                         </Box>
-                        {showUserCols && userColCount > 0 && (
+                        {userColCount > 0 && (
                           <>
                             <Box sx={{ ml: '0.5rem', mr: '0.5rem', backgroundColor: c.bg, borderLeft: '1px solid rgba(255,255,255,0.25)', borderRight: '1px solid rgba(255,255,255,0.25)' }} />
-                            {sessionUsers.map((_, i) => (
+                            {visibleSessionUsers.map((_, i) => (
                               <Box key={i} sx={{
                                 backgroundColor: c.bg,
                                 borderLeft: '1px solid rgba(255,255,255,0.25)',
-                                ...(i === sessionUsers.length - 1 && { mr: '0.5rem', borderRight: '1px solid rgba(255,255,255,0.25)' })
+                                ...(i === visibleSessionUsers.length - 1 && { mr: '0.5rem', borderRight: '1px solid rgba(255,255,255,0.25)' })
                               }} />
                             ))}
                           </>
@@ -386,6 +419,9 @@ export default function P_MetrajOnaylaPozMahaller() {
                           const areaData = sessionsMap[mahal.wpAreaId] ?? { byUser: {}, approvedTotal: 0 }
                           const rowBg = '#eeeeee'
                           const hoverBg = '#e0e0e0'
+                          const isRowHovered = hoveredMahalId === mahal.id
+                          const rowTextColor = '#1f2937'
+                          const mutedTextColor = '#6b7280'
 
                           return (
                             <React.Fragment key={mahal.id}>
@@ -396,12 +432,15 @@ export default function P_MetrajOnaylaPozMahaller() {
                               {/* Mahal kodu */}
                               <Box
                                 onClick={() => handleMahalClick(mahal)}
+                                onMouseEnter={() => setHoveredMahalId(mahal.id)}
+                                onMouseLeave={() => setHoveredMahalId(null)}
                                 sx={{
                                   px: '6px', py: '2px', borderBottom: '0.5px solid #ddd', borderLeft: '1px solid #aaa',
                                   fontFamily: 'monospace', fontSize: '0.8rem', fontWeight: 600,
                                   display: 'flex', alignItems: 'center', whiteSpace: 'nowrap',
-                                  backgroundColor: rowBg,
-                                  cursor: 'pointer', '&:hover': { backgroundColor: hoverBg }
+                                  backgroundColor: isRowHovered ? hoverBg : rowBg,
+                                  color: rowTextColor,
+                                  cursor: 'pointer'
                                 }}
                               >
                                 {mahal.code || '—'}
@@ -410,11 +449,14 @@ export default function P_MetrajOnaylaPozMahaller() {
                               {/* Mahal adı */}
                               <Box
                                 onClick={() => handleMahalClick(mahal)}
+                                onMouseEnter={() => setHoveredMahalId(mahal.id)}
+                                onMouseLeave={() => setHoveredMahalId(null)}
                                 sx={{
                                   px: '6px', py: '2px', borderBottom: '0.5px solid #ddd',
                                   fontSize: '0.875rem', display: 'flex', alignItems: 'center',
-                                  backgroundColor: rowBg,
-                                  cursor: 'pointer', '&:hover': { backgroundColor: hoverBg }
+                                  backgroundColor: isRowHovered ? hoverBg : rowBg,
+                                  color: rowTextColor,
+                                  cursor: 'pointer'
                                 }}
                               >
                                 {mahal.name}
@@ -423,12 +465,15 @@ export default function P_MetrajOnaylaPozMahaller() {
                               {/* Alan */}
                               <Box
                                 onClick={() => handleMahalClick(mahal)}
+                                onMouseEnter={() => setHoveredMahalId(mahal.id)}
+                                onMouseLeave={() => setHoveredMahalId(null)}
                                 sx={{
                                   px: '6px', py: '2px', borderBottom: '0.5px solid #ddd',
                                   borderRight: '1px solid #c0c0c0',
                                   fontSize: '0.8rem', display: 'flex', alignItems: 'center', justifyContent: 'flex-end',
-                                  backgroundColor: rowBg,
-                                  whiteSpace: 'nowrap', cursor: 'pointer', '&:hover': { backgroundColor: hoverBg }
+                                  backgroundColor: isRowHovered ? hoverBg : rowBg,
+                                  color: rowTextColor,
+                                  whiteSpace: 'nowrap', cursor: 'pointer'
                                 }}
                               >
                                 {mahal.area != null ? `${mahal.area} m²` : '—'}
@@ -438,44 +483,48 @@ export default function P_MetrajOnaylaPozMahaller() {
                               <Tooltip title={areaData.approvedTotal !== 0 ? 'Onaylanan metraj — görüntüle / düzenle' : 'Henüz onaylanan metraj yok'} placement="top">
                                 <Box
                                   onClick={() => handleMahalClick(mahal)}
+                                  onMouseEnter={() => setHoveredMahalId(mahal.id)}
+                                  onMouseLeave={() => setHoveredMahalId(null)}
                                   sx={{
-                                    px: '6px', py: '2px', borderBottom: '0.5px solid #ddd',
+                                    px: '4px', py: '2px', borderBottom: '0.5px solid #ddd',
                                     borderLeft: '1px solid #c0c0c0', borderRight: '1px solid #c0c0c0',
                                     ml: '0.5rem', mr: '0.5rem',
                                     fontSize: '0.8rem', fontWeight: 600,
                                     display: 'flex', alignItems: 'center', justifyContent: 'flex-end',
-                                    backgroundColor: rowBg,
-                                    whiteSpace: 'nowrap', cursor: 'pointer',
-                                    '&:hover': { backgroundColor: hoverBg }
+                                    backgroundColor: isRowHovered ? hoverBg : rowBg,
+                                    color: rowTextColor,
+                                    whiteSpace: 'nowrap', overflow: 'hidden', cursor: 'pointer',
                                   }}
                                 >
                                   {areaData.approvedTotal !== 0
                                     ? `${ikiHane(areaData.approvedTotal)} ${pozBirim}`
-                                    : <Box component="span" sx={{ color: '#ccc' }}>—</Box>
+                                    : <Box component="span" sx={{ color: mutedTextColor }}>—</Box>
                                   }
                                 </Box>
                               </Tooltip>
 
                               {/* Per-user sütunları */}
-                              {showUserCols && sessionUsers.map((user, idx) => {
+                              {visibleSessionUsers.map((user, idx) => {
                                 const ud = areaData.byUser[user.id]
                                 const ses = ud?.session
-                                const isLast = idx === sessionUsers.length - 1
+                                const isLast = idx === visibleSessionUsers.length - 1
                                 const dotColor = ses ? getMeasurementDotColor(ses) : null
                                 const statusLabel = ses ? getMeasurementStatusLabel(ses) : null
                                 return (
                                   <Tooltip key={`cell-${mahal.id}-${user.id}`} title={statusLabel ?? ''} placement="top">
                                     <Box
                                       onClick={() => handleMahalClick(mahal)}
+                                      onMouseEnter={() => setHoveredMahalId(mahal.id)}
+                                      onMouseLeave={() => setHoveredMahalId(null)}
                                       sx={{
-                                        px: '6px', py: '2px', borderBottom: '0.5px solid #ddd',
+                                        px: '4px', py: '2px', borderBottom: '0.5px solid #ddd',
                                         borderLeft: '1px solid #c0c0c0',
                                         ...(isLast && { borderRight: '1px solid #c0c0c0', mr: '0.5rem' }),
                                         fontSize: '0.8rem', display: 'flex', alignItems: 'center', justifyContent: 'flex-end',
                                         gap: '0.3rem',
-                                        backgroundColor: rowBg,
-                                        whiteSpace: 'nowrap', cursor: 'pointer',
-                                        '&:hover': { backgroundColor: hoverBg }
+                                        backgroundColor: isRowHovered ? hoverBg : rowBg,
+                                        color: rowTextColor,
+                                        whiteSpace: 'nowrap', overflow: 'hidden', cursor: 'pointer',
                                       }}
                                     >
                                       {ses
@@ -483,7 +532,7 @@ export default function P_MetrajOnaylaPozMahaller() {
                                             <Box sx={{ width: '8px', height: '8px', borderRadius: '50%', backgroundColor: dotColor, flexShrink: 0 }} />
                                             {`${ikiHane(ses.total_quantity)} ${pozBirim}`}
                                           </>
-                                        : <Box component="span" sx={{ color: '#ccc' }}>—</Box>
+                                        : <Box component="span" sx={{ color: mutedTextColor }}>—</Box>
                                       }
                                     </Box>
                                   </Tooltip>
@@ -504,6 +553,65 @@ export default function P_MetrajOnaylaPozMahaller() {
           )
         })()
       }
+
+      {/* Hazırlayanlar Dialog */}
+      <Dialog
+        open={userVisDialogOpen}
+        onClose={() => setUserVisDialogOpen(false)}
+        maxWidth="xs"
+        fullWidth
+        sx={{
+          '& .MuiDialog-container': { alignItems: 'flex-start' },
+          '& .MuiDialog-paper': { mt: '10rem' },
+        }}
+      >
+        <DialogTitle sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', px: 2, py: 1.5 }}>
+          <Typography variant="subtitle1" fontWeight={600}>Hazırlayanlar</Typography>
+          <IconButton size="small" onClick={() => setUserVisDialogOpen(false)}>
+            <CloseIcon fontSize="small" />
+          </IconButton>
+        </DialogTitle>
+        <Divider />
+        <DialogContent sx={{ p: 0, pb: 1.5 }}>
+          {sessionUsers.length === 0 ? (
+            <Box sx={{ px: 2, py: 2, color: 'text.secondary', fontSize: '0.875rem' }}>
+              Hazır metraj bulunamadı.
+            </Box>
+          ) : (
+            <List dense disablePadding>
+              {sessionUsers.map((user, idx) => {
+                const isVisible = !hiddenUsers.has(user.id)
+                return (
+                  <React.Fragment key={user.id}>
+                    <ListItem
+                      secondaryAction={
+                        <IconButton size="small" edge="end" onClick={(e) => { e.stopPropagation(); toggleUserVisibility(user.id) }}>
+                          {isVisible
+                            ? <VisibilityIcon sx={{ fontSize: 18, color: '#1565c0' }} />
+                            : <VisibilityOffIcon sx={{ fontSize: 18, color: '#bbb' }} />
+                          }
+                        </IconButton>
+                      }
+                      sx={{ px: 2, py: 0.75, cursor: 'pointer', '&:hover': { backgroundColor: '#f5f5f5' } }}
+                      onClick={() => toggleUserVisibility(user.id)}
+                    >
+                      <ListItemText
+                        primary={user.name}
+                        primaryTypographyProps={{
+                          fontSize: '0.875rem',
+                          fontWeight: isVisible ? 500 : 400,
+                          opacity: isVisible ? 1 : 0.4,
+                        }}
+                      />
+                    </ListItem>
+                    {idx < sessionUsers.length - 1 && <Divider />}
+                  </React.Fragment>
+                )
+              })}
+            </List>
+          )}
+        </DialogContent>
+      </Dialog>
 
     </Box>
   )

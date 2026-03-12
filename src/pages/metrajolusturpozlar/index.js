@@ -48,6 +48,7 @@ function nodeColor(depth) {
 export default function P_MetrajOlusturPozlar() {
   const navigate = useNavigate()
   const { selectedProje, selectedIsPaket, setSelectedPoz, appUser } = useContext(StoreContext)
+  const preparedByLabel = (appUser?.email?.split('@')?.[0] || appUser?.email || 'Hazirlayan').trim()
 
   const { data: rawWbsNodesData, isLoading: wbsLoading } = useGetWbsNodes()
   const { data: unitsData, isLoading: unitsLoading } = useGetPozUnits()
@@ -58,6 +59,7 @@ export default function P_MetrajOlusturPozlar() {
   const wpPozlar = wpPozlarData ?? EMPTY_ARRAY
 
   const [collapsedIds, setCollapsedIds] = useState(new Set())
+  const [hoveredPozId, setHoveredPozId] = useState(null)
   const showUserCols = true
   const [pozHazMap, setPozHazMap] = useState({})   // project_poz_id → aktif kullanıcı draft+ready toplam
   const [pozOnayMap, setPozOnayMap] = useState({}) // project_poz_id → approved toplam (tüm kullanıcılar)
@@ -248,7 +250,8 @@ export default function P_MetrajOlusturPozlar() {
       {!isLoading && !queryError && rawWbsNodes.length > 0 && rawPozlar.length > 0 &&
         (() => {
           const totalDepthCols = maxLeafDepth + 1
-          const treeGridCols = `repeat(${totalDepthCols}, 1rem) max-content minmax(20rem, max-content) max-content max-content${showUserCols ? ' max-content' : ''}`
+          const statusColWidth = '8rem'
+          const treeGridCols = `repeat(${totalDepthCols}, 1rem) max-content minmax(20rem, max-content) max-content ${statusColWidth}${showUserCols ? ` ${statusColWidth}` : ''}`
 
           const css_header = {
             px: '4px', py: '2px',
@@ -280,8 +283,8 @@ export default function P_MetrajOlusturPozlar() {
                   <Box sx={{ ...css_header }} />
                   <Box sx={{ ...css_header }} />
                   <Box sx={{ ...css_header }} />
-                  <Box sx={{ ...css_header, ml: '0.5rem', mr: '0.5rem' }}>Onaylanan</Box>
-                  {showUserCols && <Box sx={{ ...css_header, mr: '0.5rem' }}>Hazırlanan</Box>}
+                  <Box sx={{ ...css_header, px: '4px', ml: '0.5rem', mr: '0.5rem' }}>Onaylanan</Box>
+                  {showUserCols && <Box sx={{ ...css_header, px: '4px', mr: '0.5rem' }}>{preparedByLabel}</Box>}
 
                   {flatNodes.map(node => {
                     if (isHiddenByAncestor(node)) return null
@@ -335,7 +338,11 @@ export default function P_MetrajOlusturPozlar() {
                         {showUserCols && <Box sx={{ mr: '0.5rem', backgroundColor: c.bg }} />}
 
                         {/* Poz satırları */}
-                        {isLeaf && !collapsedIds.has(node.id) && pozlarOfNode.map(poz => (
+                        {isLeaf && !collapsedIds.has(node.id) && pozlarOfNode.map(poz => {
+                          const isRowHovered = hoveredPozId === poz.id
+                          const rowTextColor = '#1f2937'
+                          const mutedTextColor = '#6b7280'
+                          return (
                           <React.Fragment key={poz.id}>
 
                             {Array.from({ length: totalDepthCols }).map((_, i) => (
@@ -345,15 +352,17 @@ export default function P_MetrajOlusturPozlar() {
                             {/* Poz kodu */}
                             <Box
                               onClick={() => handlePozClick(poz)}
+                              onMouseEnter={() => setHoveredPozId(poz.id)}
+                              onMouseLeave={() => setHoveredPozId(null)}
                               sx={{
-                                px: '6px', py: '2px',
+                                px: '4px', py: '2px',
                                 borderBottom: '0.5px solid #ddd',
                                 borderLeft: '1px solid #aaa',
                                 fontFamily: 'monospace', fontSize: '0.8rem', fontWeight: 600,
                                 display: 'flex', alignItems: 'center', whiteSpace: 'nowrap',
-                                backgroundColor: '#eeeeee',
+                                backgroundColor: isRowHovered ? '#e0e0e0' : '#eeeeee',
+                                color: rowTextColor,
                                 cursor: 'pointer',
-                                '&:hover': { backgroundColor: '#e0e0e0' }
                               }}
                             >
                               {poz.code || '—'}
@@ -362,14 +371,16 @@ export default function P_MetrajOlusturPozlar() {
                             {/* Açıklama */}
                             <Box
                               onClick={() => handlePozClick(poz)}
+                              onMouseEnter={() => setHoveredPozId(poz.id)}
+                              onMouseLeave={() => setHoveredPozId(null)}
                               sx={{
-                                px: '6px', py: '2px',
+                                px: '4px', py: '2px',
                                 borderBottom: '0.5px solid #ddd',
                                 fontSize: '0.875rem',
                                 display: 'flex', alignItems: 'center',
-                                backgroundColor: '#eeeeee',
+                                backgroundColor: isRowHovered ? '#e0e0e0' : '#eeeeee',
+                                color: rowTextColor,
                                 cursor: 'pointer',
-                                '&:hover': { backgroundColor: '#e0e0e0' }
                               }}
                             >
                               {poz.short_desc}
@@ -378,15 +389,17 @@ export default function P_MetrajOlusturPozlar() {
                             {/* Birim */}
                             <Box
                               onClick={() => handlePozClick(poz)}
+                              onMouseEnter={() => setHoveredPozId(poz.id)}
+                              onMouseLeave={() => setHoveredPozId(null)}
                               sx={{
                                 px: '6px', py: '2px',
                                 borderBottom: '0.5px solid #ddd',
                                 borderRight: '1px solid #c0c0c0',
                                 fontSize: '0.8rem',
                                 display: 'flex', alignItems: 'center',
-                                backgroundColor: '#eeeeee', whiteSpace: 'nowrap',
+                                backgroundColor: isRowHovered ? '#e0e0e0' : '#eeeeee', whiteSpace: 'nowrap',
+                                color: rowTextColor,
                                 cursor: 'pointer',
-                                '&:hover': { backgroundColor: '#e0e0e0' }
                               }}
                             >
                               {unitsMap[poz.unit_id] ?? '—'}
@@ -395,6 +408,8 @@ export default function P_MetrajOlusturPozlar() {
                             {/* Onaylanan (tüm kullanıcılar) */}
                             <Box
                               onClick={() => handlePozClick(poz)}
+                              onMouseEnter={() => setHoveredPozId(poz.id)}
+                              onMouseLeave={() => setHoveredPozId(null)}
                               sx={{
                                 px: '6px', py: '2px',
                                 borderBottom: '0.5px solid #ddd',
@@ -403,23 +418,26 @@ export default function P_MetrajOlusturPozlar() {
                                 fontSize: '0.8rem', fontWeight: 600,
                                 display: 'flex', alignItems: 'center', justifyContent: 'flex-end',
                                 gap: '0.3rem',
-                                backgroundColor: '#eeeeee',
+                                backgroundColor: isRowHovered ? '#e0e0e0' : '#eeeeee',
+                                color: rowTextColor,
                                 whiteSpace: 'nowrap',
+                                overflow: 'hidden',
                                 cursor: 'pointer',
-                                '&:hover': { backgroundColor: '#e0e0e0' }
                               }}
                             >
                               {pozOnayMap[poz.id] != null && pozOnayMap[poz.id] !== 0
                                 ? <>
                                     {`${ikiHane(pozOnayMap[poz.id])} ${unitsMap[poz.unit_id] ?? ''}`}
                                   </>
-                                : <Box component="span" sx={{ color: '#999' }}>—</Box>
+                                : <Box component="span" sx={{ color: mutedTextColor }}>—</Box>
                               }
                             </Box>
 
                             {/* Hazırlanan (aktif kullanıcı) */}
                             {showUserCols && <Box
                               onClick={() => handlePozClick(poz)}
+                              onMouseEnter={() => setHoveredPozId(poz.id)}
+                              onMouseLeave={() => setHoveredPozId(null)}
                               sx={{
                                 px: '6px', py: '2px',
                                 borderBottom: '0.5px solid #ddd',
@@ -429,10 +447,11 @@ export default function P_MetrajOlusturPozlar() {
                                 fontSize: '0.8rem',
                                 display: 'flex', alignItems: 'center', justifyContent: 'flex-end',
                                 gap: '0.3rem',
-                                backgroundColor: '#eeeeee',
+                                backgroundColor: isRowHovered ? '#e0e0e0' : '#eeeeee',
+                                color: rowTextColor,
                                 whiteSpace: 'nowrap',
+                                overflow: 'hidden',
                                 cursor: 'pointer',
-                                '&:hover': { backgroundColor: '#e0e0e0' }
                               }}
                             >
                               {pozHazMap[poz.id] != null && pozHazMap[poz.id] !== 0
@@ -440,12 +459,12 @@ export default function P_MetrajOlusturPozlar() {
                                     <Box sx={{ width: '8px', height: '8px', borderRadius: '50%', backgroundColor: '#757575', flexShrink: 0 }} />
                                     {`${ikiHane(pozHazMap[poz.id])} ${unitsMap[poz.unit_id] ?? ''}`}
                                   </>
-                                : <Box component="span" sx={{ color: '#999' }}>—</Box>
+                                : <Box component="span" sx={{ color: mutedTextColor }}>—</Box>
                               }
                             </Box>}
 
                           </React.Fragment>
-                        ))}
+                        )})}
 
                       </React.Fragment>
                     )
