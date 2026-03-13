@@ -125,24 +125,16 @@ function StatusChip({ session }) {
 }
 
 const STATUS_ORDER = { approved: 0, ready: 1, draft: 2 }
-const GRID_COLS = '40px 1fr 70px 70px 70px 70px 70px 90px 52px'
+const GRID_COLS = 'max-content 1fr 70px 70px 70px 70px 70px 90px 52px'
 const NUM_FIELDS = ['multiplier', 'count', 'length', 'width', 'height']
 const NUM_LABELS = ['Çarpan', 'Adet', 'Boy', 'En', 'Yükseklik']
 
-const css_lineHeader = {
-  display: 'grid', gridTemplateColumns: GRID_COLS,
-  backgroundColor: '#555555', color: '#f5f5f5',
-  fontSize: '0.75rem', fontWeight: 600,
-}
 const css_lineHeaderCell = {
   px: '4px', py: '3px',
   display: 'flex', alignItems: 'center', justifyContent: 'center',
   borderRight: '1px solid rgba(255,255,255,0.15)',
-}
-const css_lineRow = {
-  display: 'grid', gridTemplateColumns: GRID_COLS,
-  borderBottom: '1px dashed #c8c8c8',
-  '&:hover': { backgroundColor: '#fafafa' },
+  backgroundColor: '#555555', color: '#f5f5f5',
+  fontSize: '0.75rem', fontWeight: 600,
 }
 const css_lineCell = {
   px: '4px', py: '3px',
@@ -1021,166 +1013,153 @@ export default function P_MetrajOlusturCetvel() {
               {/* Tablo */}
               {(rootLines.length > 0 || canEdit || (sess.isRevisionEdit && sess.mode_edit)) && (
                 <Box sx={{ overflowX: 'auto' }}>
+                  <Box sx={{ display: 'grid', gridTemplateColumns: GRID_COLS, minWidth: 'max-content' }}>
 
-                  {/* Tablo başlığı */}
-                  <Box sx={{ ...css_lineHeader, minWidth: 'max-content' }}>
-                    <Box sx={{ ...css_lineHeaderCell, justifyContent: 'center' }}>Sıra</Box>
+                    {/* Tablo başlığı */}
+                    <Box sx={{ ...css_lineHeaderCell }}>Sıra</Box>
                     <Box sx={{ ...css_lineHeaderCell, justifyContent: 'flex-start' }}>Açıklama</Box>
                     {NUM_LABELS.map(lbl => <Box key={lbl} sx={{ ...css_lineHeaderCell }}>{lbl}</Box>)}
                     <Box sx={{ ...css_lineHeaderCell }}>Metraj</Box>
                     <Box sx={{ ...css_lineHeaderCell }}>Durum</Box>
-                  </Box>
 
-                  {/* Satırlar — sadece kök satırlar (revize alt satırları onaylanan metraj kartında gösterilir) */}
-                  {buildDisplayTree(rootLines).map(line => {
-                    const qty = computeQuantity(line)
-                    const isDeduction = qty < 0
-                    const rowBg = (line.isNew && sess.isRevisionEdit)
-                      ? 'rgba(255,250,200,0.6)'
-                      : isApproved
-                      ? cardColors.row
-                      : visualStatus === 'unread'
-                      ? cardColors.row
-                      : sess.mode_edit ? 'rgba(255,250,200,0.4)' : 'white'
-                    const deductionColor = isDeduction ? '#b71c1c' : undefined
-                    const editActive = (canEdit && sess.mode_edit && line.status !== 'approved') || (sess.isRevisionEdit && sess.mode_edit && line.isNew)
-                    const depthStyle = line.depth > 0
-                      ? { borderLeft: `${Math.min(line.depth, 3) * 3}px solid rgba(144,202,249,0.7)` }
-                      : {}
+                    {/* Satırlar — sadece kök satırlar (revize alt satırları onaylanan metraj kartında gösterilir) */}
+                    {buildDisplayTree(rootLines).map(line => {
+                      const qty = computeQuantity(line)
+                      const isDeduction = qty < 0
+                      const rowBg = (line.isNew && sess.isRevisionEdit)
+                        ? 'rgba(255,250,200,0.6)'
+                        : isApproved
+                        ? cardColors.row
+                        : visualStatus === 'unread'
+                        ? cardColors.row
+                        : sess.mode_edit ? 'rgba(255,250,200,0.4)' : 'white'
+                      const deductionColor = isDeduction ? '#b71c1c' : undefined
+                      const editActive = (canEdit && sess.mode_edit && line.status !== 'approved') || (sess.isRevisionEdit && sess.mode_edit && line.isNew)
+                      const depthStyle = line.depth > 0
+                        ? { borderLeft: `${Math.min(line.depth, 3) * 3}px solid rgba(144,202,249,0.7)` }
+                        : {}
+                      const cellBg = { backgroundColor: rowBg, borderBottom: '1px dashed #c8c8c8', ...depthStyle }
 
-                    return (
-                      <Box key={line.id} sx={{ ...css_lineRow, backgroundColor: rowBg, minWidth: 'max-content', ...depthStyle, ...((isApproved || line.status === 'approved') && { '&:hover': {} }) }}>
+                      return (
+                        <React.Fragment key={line.id}>
+                          <Box sx={{
+                            ...css_lineCell, ...cellBg, justifyContent: 'flex-start', pl: '0.5rem',
+                            color: qty < 0 ? '#c62828' : (line.depth > 0 ? '#1565c0' : '#888'),
+                          }}>
+                            {line.siraNo}
+                          </Box>
 
-                        <Box sx={{
-                          ...css_lineCell, justifyContent: 'flex-end', pr: '4px',
-                          color: qty < 0 ? '#c62828' : (line.depth > 0 ? '#1565c0' : '#888'),
-                          fontSize: line.depth > 0 ? '0.78rem' : undefined,
-                        }}>
-                          {line.siraNo}
-                        </Box>
-
-                        <Box sx={{ ...css_lineCell, color: deductionColor }}>
-                          {sess.isRevisionEdit && sess.mode_edit && !line.isNew && (
-                            <IconButton
-                              size="small"
-                              sx={{ p: '1px', mr: '3px', flexShrink: 0 }}
-                              onClick={() => addSubLineLocal(sess.id, line.id)}
-                            >
-                              <SubdirectoryArrowRightIcon sx={{ fontSize: 13, color: '#1565c0', opacity: 0.7 }} />
-                            </IconButton>
-                          )}
-                          {editActive ? (
-                            <input
-                              style={{ ...inputSx, textAlign: 'left', color: deductionColor }}
-                              value={line.description ?? ''}
-                              onChange={e => handleLineChange(sess.id, line.id, 'description', e.target.value)}
-                            />
-                          ) : (
-                            line.description ?? ''
-                          )}
-                        </Box>
-
-                        {NUM_FIELDS.map(field => (
-                          <Box key={field} sx={{ ...css_lineCell, justifyContent: 'flex-end', color: deductionColor }}>
+                          <Box sx={{ ...css_lineCell, ...cellBg, color: deductionColor }}>
+                            {sess.isRevisionEdit && sess.mode_edit && !line.isNew && (
+                              <IconButton
+                                size="small"
+                                sx={{ p: '1px', mr: '3px', flexShrink: 0 }}
+                                onClick={() => addSubLineLocal(sess.id, line.id)}
+                              >
+                                <SubdirectoryArrowRightIcon sx={{ fontSize: 13, color: '#1565c0', opacity: 0.7 }} />
+                              </IconButton>
+                            )}
                             {editActive ? (
                               <input
-                                type="number"
-                                className="metraj-num-input"
-                                style={{ ...inputSx, color: deductionColor }}
-                                value={line[field] ?? ''}
-                                onChange={e => handleLineChange(sess.id, line.id, field, e.target.value)}
-                                onKeyDown={e => ['e', 'E', '+'].includes(e.key) && e.preventDefault()}
+                                style={{ ...inputSx, textAlign: 'left', color: deductionColor }}
+                                value={line.description ?? ''}
+                                onChange={e => handleLineChange(sess.id, line.id, 'description', e.target.value)}
                               />
                             ) : (
-                              line[field] != null ? ikiHane(line[field]) : ''
+                              line.description ?? ''
                             )}
                           </Box>
-                        ))}
 
-                        <Box sx={{ ...css_lineCell, justifyContent: 'flex-end', color: qty < 0 ? '#c62828' : deductionColor }}>
-                          {qty !== 0 ? ikiHane(qty) : (() => {
-                            const isEmpty = v => v === null || v === undefined || v === ''
-                            const hasData = !isEmpty(line.description) ||
-                              [(line.multiplier === 1 ? null : line.multiplier), line.count, line.length, line.width, line.height].some(v => !isEmpty(v))
-                            return hasData ? ikiHane(qty) : ''
-                          })()}
-                          {pozBirim && <Box component="span" sx={{ ml: '4px', fontWeight: 400, fontSize: '0.75rem', color: '#888' }}>{pozBirim}</Box>}
-                        </Box>
+                          {NUM_FIELDS.map(field => (
+                            <Box key={field} sx={{ ...css_lineCell, ...cellBg, justifyContent: 'flex-end', color: deductionColor }}>
+                              {editActive ? (
+                                <input
+                                  type="number"
+                                  className="metraj-num-input"
+                                  style={{ ...inputSx, color: deductionColor }}
+                                  value={line[field] ?? ''}
+                                  onChange={e => handleLineChange(sess.id, line.id, field, e.target.value)}
+                                  onKeyDown={e => ['e', 'E', '+'].includes(e.key) && e.preventDefault()}
+                                />
+                              ) : (
+                                line[field] != null ? ikiHane(line[field]) : ''
+                              )}
+                            </Box>
+                          ))}
 
-                        <Box sx={{ ...css_lineCell, justifyContent: 'center', px: '2px' }}>
-                          {((canEdit && sess.mode_edit && line.status !== 'approved') || (sess.isRevisionEdit && sess.mode_edit && line.isNew)) ? (
-                            <IconButton size="small" onClick={() => handleDeleteLine(sess.id, line.id)} sx={{ p: '2px' }}>
-                              <DeleteOutlineIcon sx={{ fontSize: 18, color: 'salmon' }} />
-                            </IconButton>
-                          ) : line.status === 'approved' ? (
-                            <CheckCircleIcon sx={{ fontSize: 18, color: '#2e7d32' }} />
-                          ) : line.status === 'rejected' ? (
-                            <ClearIcon sx={{ fontSize: 18, color: '#c62828' }} />
-                          ) : line.status === 'ignored' ? (
-                            <Box sx={{ width: 10, height: 10, borderRadius: '50%', backgroundColor: '#90A4AE' }} />
-                          ) : (sess.isOwn && line.status === 'pending') ? (
-                            <IconButton size="small" onClick={() => handleDeleteLine(sess.id, line.id)} sx={{ p: '2px' }}>
-                              <ReplyIcon sx={{ fontSize: 18, color: 'orange' }} />
-                            </IconButton>
-                          ) : null}
-                        </Box>
+                          <Box sx={{ ...css_lineCell, ...cellBg, justifyContent: 'flex-end', color: qty < 0 ? '#c62828' : deductionColor }}>
+                            {qty !== 0 ? ikiHane(qty) : (() => {
+                              const isEmpty = v => v === null || v === undefined || v === ''
+                              const hasData = !isEmpty(line.description) ||
+                                [(line.multiplier === 1 ? null : line.multiplier), line.count, line.length, line.width, line.height].some(v => !isEmpty(v))
+                              return hasData ? ikiHane(qty) : ''
+                            })()}
+                            {pozBirim && <Box component="span" sx={{ ml: '4px', fontWeight: 400, fontSize: '0.75rem', color: '#888' }}>{pozBirim}</Box>}
+                          </Box>
 
-                      </Box>
-                    )
-                  })}
+                          <Box sx={{ ...css_lineCell, ...cellBg, justifyContent: 'center', px: '2px' }}>
+                            {((canEdit && sess.mode_edit && line.status !== 'approved') || (sess.isRevisionEdit && sess.mode_edit && line.isNew)) ? (
+                              <IconButton size="small" onClick={() => handleDeleteLine(sess.id, line.id)} sx={{ p: '2px' }}>
+                                <DeleteOutlineIcon sx={{ fontSize: 18, color: 'salmon' }} />
+                              </IconButton>
+                            ) : line.status === 'approved' ? (
+                              <CheckCircleIcon sx={{ fontSize: 18, color: '#2e7d32' }} />
+                            ) : line.status === 'rejected' ? (
+                              <ClearIcon sx={{ fontSize: 18, color: '#c62828' }} />
+                            ) : line.status === 'ignored' ? (
+                              <Box sx={{ width: 10, height: 10, borderRadius: '50%', backgroundColor: '#90A4AE' }} />
+                            ) : (sess.isOwn && line.status === 'pending') ? (
+                              <IconButton size="small" onClick={() => handleDeleteLine(sess.id, line.id)} sx={{ p: '2px' }}>
+                                <ReplyIcon sx={{ fontSize: 18, color: 'orange' }} />
+                              </IconButton>
+                            ) : null}
+                          </Box>
+                        </React.Fragment>
+                      )
+                    })}
 
-                  {/* Satır ekle */}
-                  {(canEdit || (isReady && sess.isOwn) || (isApproved && sess.isOwn) || (sess.isRevisionEdit && sess.mode_edit)) && (
-                    <Box
-                      sx={{
-                        display: 'flex', alignItems: 'center', px: '6px', py: '2px',
-                        borderBottom: '1px solid #e0e0e0',
-                        backgroundColor: 'rgba(21,101,192,0.04)',
-                        minWidth: 'max-content',
-                      }}
-                    >
-                      <IconButton size="small" onClick={() => {
-                        if (sess.isRevisionEdit && sess.mode_edit) { addSubLineLocal(sess.id, null) }
-                        else if (isApproved) { handleStartRevision(sess.id); addSubLineLocal(sess.id, null) }
-                        else if (isReady) { handleBackToDraftAndAddLine(sess.id) }
-                        else { updateSess(sess.id, () => ({ mode_edit: true })); handleAddLine(sess.id) }
-                      }}>
-                        <AddIcon sx={{ fontSize: 18, color: '#1565c0' }} />
-                      </IconButton>
-                      <Typography
-                        sx={{ fontSize: '0.8rem', color: '#1565c0', ml: '2px', cursor: 'pointer', userSelect: 'none' }}
-                        onClick={() => {
+                    {/* Satır ekle */}
+                    {(canEdit || (isReady && sess.isOwn) || (isApproved && sess.isOwn) || (sess.isRevisionEdit && sess.mode_edit)) && (
+                      <Box
+                        sx={{
+                          gridColumn: '1 / -1', display: 'flex', alignItems: 'center', px: '6px', py: '2px',
+                          borderBottom: '1px solid #e0e0e0',
+                          backgroundColor: 'rgba(21,101,192,0.04)',
+                        }}
+                      >
+                        <IconButton size="small" onClick={() => {
                           if (sess.isRevisionEdit && sess.mode_edit) { addSubLineLocal(sess.id, null) }
                           else if (isApproved) { handleStartRevision(sess.id); addSubLineLocal(sess.id, null) }
                           else if (isReady) { handleBackToDraftAndAddLine(sess.id) }
                           else { updateSess(sess.id, () => ({ mode_edit: true })); handleAddLine(sess.id) }
-                        }}
-                      >
-                        Satır Ekle
-                      </Typography>
-                    </Box>
-                  )}
+                        }}>
+                          <AddIcon sx={{ fontSize: 18, color: '#1565c0' }} />
+                        </IconButton>
+                        <Typography
+                          sx={{ fontSize: '0.8rem', color: '#1565c0', ml: '2px', cursor: 'pointer', userSelect: 'none' }}
+                          onClick={() => {
+                            if (sess.isRevisionEdit && sess.mode_edit) { addSubLineLocal(sess.id, null) }
+                            else if (isApproved) { handleStartRevision(sess.id); addSubLineLocal(sess.id, null) }
+                            else if (isReady) { handleBackToDraftAndAddLine(sess.id) }
+                            else { updateSess(sess.id, () => ({ mode_edit: true })); handleAddLine(sess.id) }
+                          }}
+                        >
+                          Satır Ekle
+                        </Typography>
+                      </Box>
+                    )}
 
-                  {/* Toplam satırı */}
-                  <Box
-                    sx={{
-                      display: 'grid', gridTemplateColumns: GRID_COLS,
-                      backgroundColor: cardColors.header,
-                      borderTop: '2px solid',
-                      borderColor: cardColors.border,
-                      minWidth: 'max-content',
-                    }}
-                  >
-                    <Box sx={{ gridColumn: '1 / 8', px: '8px', py: '4px', fontSize: '0.8rem', fontWeight: 600, display: 'flex', alignItems: 'center', justifyContent: 'flex-end', color: '#555' }}>
+                    {/* Toplam satırı */}
+                    <Box sx={{ gridColumn: '1 / 8', px: '8px', py: '4px', fontSize: '0.8rem', fontWeight: 600, display: 'flex', alignItems: 'center', justifyContent: 'flex-end', color: '#555', backgroundColor: cardColors.header, borderTop: '2px solid', borderTopColor: cardColors.border }}>
                       Toplam
                     </Box>
-                    <Box sx={{ px: '8px', py: '4px', fontSize: '0.9rem', fontWeight: 700, display: 'flex', alignItems: 'center', justifyContent: 'flex-end', color: totalQuantity < 0 ? 'red' : cardColors.totalText }}>
+                    <Box sx={{ px: '8px', py: '4px', fontSize: '0.9rem', fontWeight: 700, display: 'flex', alignItems: 'center', justifyContent: 'flex-end', color: totalQuantity < 0 ? 'red' : cardColors.totalText, backgroundColor: cardColors.header, borderTop: '2px solid', borderTopColor: cardColors.border }}>
                       {ikiHane(totalQuantity)}
                       {pozBirim && <Box component="span" sx={{ ml: '4px', fontWeight: 400, fontSize: '0.8rem' }}>{pozBirim}</Box>}
                     </Box>
-                    <Box />
-                  </Box>
+                    <Box sx={{ backgroundColor: cardColors.header, borderTop: '2px solid', borderTopColor: cardColors.border }} />
 
+                  </Box>
                 </Box>
               )}
             </Box>
@@ -1190,7 +1169,7 @@ export default function P_MetrajOlusturCetvel() {
 
       {/* ONAYLANAN METRAJ — Hazırlayan için salt-okunur; onaylı satırlara revize talebi gönderilebilir */}
       {!loading && approvalTree.length > 0 && (() => {
-        const ONAY_GRID = '40px 1fr 65px 65px 65px 65px 65px 80px 90px 90px 36px'
+        const ONAY_GRID = 'max-content 1fr 65px 65px 65px 65px 65px 80px 90px 90px 36px'
         const NUM_ONAY_LABELS = ['Çarpan', 'Adet', 'Boy', 'En', 'Yük']
         const NUM_ONAY_FIELDS = ['multiplier', 'count', 'length', 'width', 'height']
         const calcMetrajOnay = (line) => {
@@ -1208,9 +1187,7 @@ export default function P_MetrajOlusturCetvel() {
           rejected: <Chip size="small" label="Reddedildi" sx={{ backgroundColor: '#FFEBEE', color: '#B71C1C', fontWeight: 600, fontSize: '0.7rem', height: 20 }} />,
           ignored:  <Chip size="small" label="Ignore"     sx={{ backgroundColor: '#ECEFF1', color: '#455A64', fontWeight: 600, fontSize: '0.7rem', height: 20 }} />,
         }
-        const css_oh = { display: 'grid', gridTemplateColumns: ONAY_GRID, fontSize: '0.75rem', fontWeight: 600, backgroundColor: '#1b5e20', color: '#fff' }
-        const css_ohc = { px: '4px', py: '3px', display: 'flex', alignItems: 'center', justifyContent: 'center', borderRight: '1px solid rgba(255,255,255,0.15)' }
-        const css_or = { display: 'grid', gridTemplateColumns: ONAY_GRID, borderBottom: '1px dashed #c8c8c8', '&:hover': { backgroundColor: '#fafafa' } }
+        const css_ohc = { px: '4px', py: '3px', display: 'flex', alignItems: 'center', justifyContent: 'center', borderRight: '1px solid rgba(255,255,255,0.15)', fontSize: '0.75rem', fontWeight: 600, backgroundColor: '#1b5e20', color: '#fff' }
         const css_oc = { px: '4px', py: '6px', fontSize: '0.85rem', display: 'flex', alignItems: 'center', borderRight: '1px dashed #d8d8d8', overflow: 'hidden' }
         const inputOnay = { width: '100%', border: 'none', outline: 'none', backgroundColor: 'rgba(255,250,180,0.8)', fontSize: '0.85rem', padding: '2px 4px', MozAppearance: 'textfield' }
 
@@ -1234,72 +1211,75 @@ export default function P_MetrajOlusturCetvel() {
           const nodeRevizeRows = revizeForms[node.id] ?? []
           const revizeEditor = isRevizeOpen && nodeRevizeRows.length > 0 ? (
             <>
-              {nodeRevizeRows.map((row, rowIdx) => (
-                <Box key={row.tempId} sx={{ ...css_or, backgroundColor: 'rgba(243,229,245,0.8)', borderBottom: '1px solid #7b1fa2', minWidth: 'max-content' }}>
-                  <Box sx={{ ...css_oc, justifyContent: 'center', color: '#7b1fa2', fontSize: '0.82rem' }}>
-                    <SubdirectoryArrowRightIcon sx={{ fontSize: 12, color: '#CE93D8', mr: '2px' }} />
-                    {`${node.siraNo}.${(node.children?.length ?? 0) + rowIdx + 1}`}
-                  </Box>
-                  <Box sx={{ ...css_oc }}>
-                    <input style={{ ...inputOnay, textAlign: 'left' }} value={row.description} placeholder="Açıklama"
-                      onChange={e => setRevizeForms(prev => ({ ...prev, [node.id]: prev[node.id].map(r => r.tempId === row.tempId ? { ...r, description: e.target.value } : r) }))} />
-                  </Box>
-                  {NUM_ONAY_FIELDS.map(f => (
-                    <Box key={f} sx={{ ...css_oc }}>
-                      <input type="number" className="metraj-num-input" style={{ ...inputOnay, textAlign: 'right' }}
-                        value={row[f]} placeholder="—"
-                        onChange={e => setRevizeForms(prev => ({ ...prev, [node.id]: prev[node.id].map(r => r.tempId === row.tempId ? { ...r, [f]: e.target.value } : r) }))}
-                        onKeyDown={e => ['e', 'E', '+'].includes(e.key) && e.preventDefault()} />
+              {nodeRevizeRows.map((row, rowIdx) => {
+                const revizeCellBg = { backgroundColor: 'rgba(243,229,245,0.8)', borderBottom: '1px solid #7b1fa2' }
+                return (
+                  <React.Fragment key={row.tempId}>
+                    <Box sx={{ ...css_oc, ...revizeCellBg, justifyContent: 'flex-start', pl: '0.5rem', color: '#7b1fa2', fontSize: '0.82rem' }}>
+                      {`${node.siraNo}.${(node.children?.length ?? 0) + rowIdx + 1}`}
                     </Box>
-                  ))}
-                  <Box sx={{ ...css_oc, justifyContent: 'flex-end', fontWeight: 700, color: calcMetrajOnay(row) < 0 ? '#c62828' : '#7b1fa2' }}>
-                    {(() => {
-                      const qty = calcMetrajOnay(row)
-                      const isEmpty = v => v === null || v === undefined || v === ''
-                      const hasData = [row.multiplier, row.count, row.length, row.width, row.height].some(v => !isEmpty(v))
-                      return (qty !== 0 || hasData) ? ikiHane(qty) : ''
-                    })()}
-                  </Box>
-                  <Box sx={{ ...css_oc, fontSize: '0.78rem', color: '#455a64' }}>{appUser?.displayName ?? appUser?.email ?? '(ben)'}</Box>
-                  <Box sx={{ ...css_oc, fontSize: '0.78rem', color: '#e65100' }}>(bekliyor)</Box>
-                  <Box sx={{ ...css_oc, justifyContent: 'center' }}>
-                    <IconButton size="small" sx={{ p: '2px' }}
-                        onClick={() => {
-                          if (nodeRevizeRows.length === 1) {
-                            setRevizeForms(prev => { const n = { ...prev }; delete n[node.id]; return n })
-                          } else {
-                            setRevizeForms(prev => ({ ...prev, [node.id]: prev[node.id].filter(r => r.tempId !== row.tempId) }))
-                          }
-                        }}>
-                        <DeleteOutlineIcon sx={{ fontSize: 18, color: 'salmon' }} />
-                      </IconButton>
-                  </Box>
-                </Box>
-              ))}
+                    <Box sx={{ ...css_oc, ...revizeCellBg }}>
+                      <input style={{ ...inputOnay, textAlign: 'left' }} value={row.description} placeholder="Açıklama"
+                        onChange={e => setRevizeForms(prev => ({ ...prev, [node.id]: prev[node.id].map(r => r.tempId === row.tempId ? { ...r, description: e.target.value } : r) }))} />
+                    </Box>
+                    {NUM_ONAY_FIELDS.map(f => (
+                      <Box key={f} sx={{ ...css_oc, ...revizeCellBg }}>
+                        <input type="number" className="metraj-num-input" style={{ ...inputOnay, textAlign: 'right' }}
+                          value={row[f]} placeholder="—"
+                          onChange={e => setRevizeForms(prev => ({ ...prev, [node.id]: prev[node.id].map(r => r.tempId === row.tempId ? { ...r, [f]: e.target.value } : r) }))}
+                          onKeyDown={e => ['e', 'E', '+'].includes(e.key) && e.preventDefault()} />
+                      </Box>
+                    ))}
+                    <Box sx={{ ...css_oc, ...revizeCellBg, justifyContent: 'flex-end', fontWeight: 700, color: calcMetrajOnay(row) < 0 ? '#c62828' : '#7b1fa2' }}>
+                      {(() => {
+                        const qty = calcMetrajOnay(row)
+                        const isEmpty = v => v === null || v === undefined || v === ''
+                        const hasData = [row.multiplier, row.count, row.length, row.width, row.height].some(v => !isEmpty(v))
+                        return (qty !== 0 || hasData) ? ikiHane(qty) : ''
+                      })()}
+                    </Box>
+                    <Box sx={{ ...css_oc, ...revizeCellBg, fontSize: '0.78rem', color: '#455a64' }}>{appUser?.displayName ?? appUser?.email ?? '(ben)'}</Box>
+                    <Box sx={{ ...css_oc, ...revizeCellBg, fontSize: '0.78rem', color: '#e65100' }}>(bekliyor)</Box>
+                    <Box sx={{ ...css_oc, ...revizeCellBg, justifyContent: 'center' }}>
+                      <IconButton size="small" sx={{ p: '2px' }}
+                          onClick={() => {
+                            if (nodeRevizeRows.length === 1) {
+                              setRevizeForms(prev => { const n = { ...prev }; delete n[node.id]; return n })
+                            } else {
+                              setRevizeForms(prev => ({ ...prev, [node.id]: prev[node.id].filter(r => r.tempId !== row.tempId) }))
+                            }
+                          }}>
+                          <DeleteOutlineIcon sx={{ fontSize: 18, color: 'salmon' }} />
+                        </IconButton>
+                    </Box>
+                  </React.Fragment>
+                )
+              })}
             </>
           ) : null
 
           if (isRevised) {
+            const origCellBg = { backgroundColor: 'rgba(200,230,201,0.2)', borderBottom: '1px dashed #c8c8c8', opacity: 0.7 }
             return (
               <>
                 {showAllOriginals && (
-                  <Box sx={{ ...css_or, backgroundColor: 'rgba(200,230,201,0.2)', minWidth: 'max-content', opacity: 0.7 }}>
-                    <Box sx={{ ...css_oc, justifyContent: 'center', color: '#888', fontSize: '0.78rem' }}>{node.siraNo}</Box>
-                    <Box sx={{ ...css_oc, color: '#777', fontStyle: 'italic', fontSize: '0.82rem' }}>{node.description ?? ''}</Box>
+                  <>
+                    <Box sx={{ ...css_oc, ...origCellBg, justifyContent: 'flex-start', pl: '0.5rem', color: '#888', fontSize: '0.78rem' }}>{node.siraNo}</Box>
+                    <Box sx={{ ...css_oc, ...origCellBg, color: '#777', fontStyle: 'italic', fontSize: '0.82rem' }}>{node.description ?? ''}</Box>
                     {NUM_ONAY_FIELDS.map(f => (
-                      <Box key={f} sx={{ ...css_oc, justifyContent: 'flex-end', color: '#888' }}>{f === 'multiplier' && node[f] === 1 ? '' : (node[f] != null ? node[f] : '')}</Box>
+                      <Box key={f} sx={{ ...css_oc, ...origCellBg, justifyContent: 'flex-end', color: '#888' }}>{f === 'multiplier' && node[f] === 1 ? '' : (node[f] != null ? node[f] : '')}</Box>
                     ))}
-                    <Box sx={{ ...css_oc, justifyContent: 'flex-end', fontWeight: 700, color: '#888' }}>{ikiHane(calcMetrajOnay(node))}</Box>
-                    <Box sx={{ ...css_oc, fontSize: '0.78rem', color: '#9E9E9E' }}>{node.hazırlayan}</Box>
-                    <Box sx={{ ...css_oc, fontSize: '0.78rem', color: '#9E9E9E' }}>{node.onaylayan}</Box>
-                    <Box sx={{ ...css_oc, justifyContent: 'center' }}>
+                    <Box sx={{ ...css_oc, ...origCellBg, justifyContent: 'flex-end', fontWeight: 700, color: '#888' }}>{ikiHane(calcMetrajOnay(node))}</Box>
+                    <Box sx={{ ...css_oc, ...origCellBg, fontSize: '0.78rem', color: '#9E9E9E' }}>{node.hazırlayan}</Box>
+                    <Box sx={{ ...css_oc, ...origCellBg, fontSize: '0.78rem', color: '#9E9E9E' }}>{node.onaylayan}</Box>
+                    <Box sx={{ ...css_oc, ...origCellBg, justifyContent: 'center' }}>
                       {!isRevizeOpen && (
                         <IconButton size="small" sx={{ p: '2px' }} onClick={() => openRevize(node.id)}>
                           <EditIcon sx={{ fontSize: 16, color: '#7b1fa2' }} />
                         </IconButton>
                       )}
                     </Box>
-                  </Box>
+                  </>
                 )}
                 {node.children.map(child => (
                   <React.Fragment key={child.id}>{renderOnayRow(child)}</React.Fragment>
@@ -1313,54 +1293,52 @@ export default function P_MetrajOlusturCetvel() {
             ? (node.status === 'pending' ? 'rgba(255,243,224,0.5)' : node.status === 'rejected' ? 'rgba(255,235,238,0.5)' : 'rgba(236,239,241,0.5)')
             : node.depth > 0 ? 'rgba(187,222,251,0.2)' : 'white'
           const onaylayanText = node.status === 'pending' ? '(bekliyor)' : node.status === 'rejected' ? '(reddedildi)' : node.status === 'ignored' ? '(ignore)' : (node.onaylayan ?? '')
+          const cellBg = { backgroundColor: rowBg, borderBottom: '1px dashed #c8c8c8', ...(metraj < 0 && { color: '#c62828' }) }
 
           return (
             <>
-              <Box sx={{ ...css_or, backgroundColor: rowBg, minWidth: 'max-content', ...(metraj < 0 && { color: '#c62828' }) }}>
-                <Box sx={{ ...css_oc, justifyContent: 'center', color: node.depth > 0 ? '#1565c0' : '#555', fontSize: node.depth > 0 ? '0.78rem' : undefined }}>
-                  {node.depth > 0 && <SubdirectoryArrowRightIcon sx={{ fontSize: 12, color: '#90CAF9', mr: '2px' }} />}
-                  {node.siraNo}
-                </Box>
-                <Box sx={{ ...css_oc }}>{node.description ?? ''}</Box>
-                {NUM_ONAY_FIELDS.map(f => (
-                  <Box key={f} sx={{ ...css_oc, justifyContent: 'flex-end' }}>{f === 'multiplier' && node[f] === 1 ? '' : (node[f] != null ? node[f] : '')}</Box>
-                ))}
-                <Box sx={{ ...css_oc, justifyContent: 'flex-end', fontWeight: 700, ...(metraj < 0 && { color: '#c62828' }) }}>
-                  {metraj !== 0 ? ikiHane(metraj) : (() => {
-                    const isEmpty = v => v === null || v === undefined || v === ''
-                    const hasData = !isEmpty(node.description) ||
-                      [(node.multiplier === 1 ? null : node.multiplier), node.count, node.length, node.width, node.height].some(v => !isEmpty(v))
-                    return hasData ? ikiHane(metraj) : ''
-                  })()}
-                  {pozBirim && !hasKids && metraj !== 0 && <Box component="span" sx={{ ml: '3px', fontWeight: 400, fontSize: '0.72rem', color: '#888' }}>{pozBirim}</Box>}
-                </Box>
-                <Box sx={{ ...css_oc, fontSize: '0.78rem', color: '#455a64' }}>{node.hazırlayan}</Box>
-                <Box sx={{ ...css_oc, fontSize: '0.78rem', color: node.status === 'pending' ? '#e65100' : node.status === 'rejected' ? '#b71c1c' : '#1b5e20' }}>
-                  {onaylayanText}
-                </Box>
-                <Box sx={{ ...css_oc, justifyContent: 'center', gap: '2px' }}>
-                  {node.status === 'approved' && !isRevizeOpen && (
-                    <IconButton size="small" sx={{ p: '2px' }} onClick={() => openRevize(node.id)}>
-                      <EditIcon sx={{ fontSize: 16, color: '#7b1fa2' }} />
-                    </IconButton>
-                  )}
-                  {node.status === 'approved' && isRevizeOpen && (
-                    <IconButton size="small" sx={{ p: '2px' }}
-                      onClick={() => setRevizeForms(prev => ({ ...prev, [node.id]: [...(prev[node.id] ?? []), { tempId: `tmp-${Date.now()}-${Math.random()}`, description: '', multiplier: '', count: '', length: '', width: '', height: '' }] }))}>
-                      <AddCircleOutlineIcon sx={{ fontSize: 18, color: '#7b1fa2' }} />
-                    </IconButton>
-                  )}
-                  {node.status === 'pending' && sessions.find(s => s.id === node.session_id)?.isOwn && (
-                    <IconButton size="small" sx={{ p: '2px' }} onClick={() => handleCancelRevizeTalebi(node.id, node.session_id)}>
-                      <ClearIcon sx={{ fontSize: 16, color: '#c62828' }} />
-                    </IconButton>
-                  )}
-                  {hasKids && (
-                    <IconButton size="small" sx={{ p: '2px' }} onClick={() => setExpandedApproved(prev => ({ ...prev, [node.id]: !prev[node.id] }))}>
-                      {isExp ? <ExpandLessIcon sx={{ fontSize: 18, color: '#888' }} /> : <ExpandMoreIcon sx={{ fontSize: 18, color: '#888' }} />}
-                    </IconButton>
-                  )}
-                </Box>
+              <Box sx={{ ...css_oc, ...cellBg, justifyContent: 'flex-start', pl: '0.5rem', color: node.depth > 0 ? '#1565c0' : '#555' }}>
+                {node.siraNo}
+              </Box>
+              <Box sx={{ ...css_oc, ...cellBg }}>{node.description ?? ''}</Box>
+              {NUM_ONAY_FIELDS.map(f => (
+                <Box key={f} sx={{ ...css_oc, ...cellBg, justifyContent: 'flex-end' }}>{f === 'multiplier' && node[f] === 1 ? '' : (node[f] != null ? node[f] : '')}</Box>
+              ))}
+              <Box sx={{ ...css_oc, ...cellBg, justifyContent: 'flex-end', fontWeight: 700, ...(metraj < 0 && { color: '#c62828' }) }}>
+                {metraj !== 0 ? ikiHane(metraj) : (() => {
+                  const isEmpty = v => v === null || v === undefined || v === ''
+                  const hasData = !isEmpty(node.description) ||
+                    [(node.multiplier === 1 ? null : node.multiplier), node.count, node.length, node.width, node.height].some(v => !isEmpty(v))
+                  return hasData ? ikiHane(metraj) : ''
+                })()}
+                {pozBirim && !hasKids && metraj !== 0 && <Box component="span" sx={{ ml: '3px', fontWeight: 400, fontSize: '0.72rem', color: '#888' }}>{pozBirim}</Box>}
+              </Box>
+              <Box sx={{ ...css_oc, ...cellBg, fontSize: '0.78rem', color: '#455a64' }}>{node.hazırlayan}</Box>
+              <Box sx={{ ...css_oc, ...cellBg, fontSize: '0.78rem', color: node.status === 'pending' ? '#e65100' : node.status === 'rejected' ? '#b71c1c' : '#1b5e20' }}>
+                {onaylayanText}
+              </Box>
+              <Box sx={{ ...css_oc, ...cellBg, justifyContent: 'center', gap: '2px' }}>
+                {node.status === 'approved' && !isRevizeOpen && (
+                  <IconButton size="small" sx={{ p: '2px' }} onClick={() => openRevize(node.id)}>
+                    <EditIcon sx={{ fontSize: 16, color: '#7b1fa2' }} />
+                  </IconButton>
+                )}
+                {node.status === 'approved' && isRevizeOpen && (
+                  <IconButton size="small" sx={{ p: '2px' }}
+                    onClick={() => setRevizeForms(prev => ({ ...prev, [node.id]: [...(prev[node.id] ?? []), { tempId: `tmp-${Date.now()}-${Math.random()}`, description: '', multiplier: '', count: '', length: '', width: '', height: '' }] }))}>
+                    <AddCircleOutlineIcon sx={{ fontSize: 18, color: '#7b1fa2' }} />
+                  </IconButton>
+                )}
+                {node.status === 'pending' && sessions.find(s => s.id === node.session_id)?.isOwn && (
+                  <IconButton size="small" sx={{ p: '2px' }} onClick={() => handleCancelRevizeTalebi(node.id, node.session_id)}>
+                    <ClearIcon sx={{ fontSize: 16, color: '#c62828' }} />
+                  </IconButton>
+                )}
+                {hasKids && (
+                  <IconButton size="small" sx={{ p: '2px' }} onClick={() => setExpandedApproved(prev => ({ ...prev, [node.id]: !prev[node.id] }))}>
+                    {isExp ? <ExpandLessIcon sx={{ fontSize: 18, color: '#888' }} /> : <ExpandMoreIcon sx={{ fontSize: 18, color: '#888' }} />}
+                  </IconButton>
+                )}
               </Box>
 
               {hasKids && isExp && node.children.map(child => (
@@ -1415,31 +1393,31 @@ export default function P_MetrajOlusturCetvel() {
               </Box>
 
               <Box sx={{ overflowX: 'auto' }}>
-                {/* Tablo başlığı */}
-                <Box sx={{ ...css_oh, minWidth: 'max-content' }}>
-                  <Box sx={{ ...css_ohc, textAlign: 'center' }}>Sıra No</Box>
+                <Box sx={{ display: 'grid', gridTemplateColumns: ONAY_GRID, minWidth: 'max-content' }}>
+                  {/* Tablo başlığı */}
+                  <Box sx={{ ...css_ohc }}>Sıra</Box>
                   <Box sx={{ ...css_ohc, justifyContent: 'flex-start' }}>Açıklama</Box>
                   {NUM_ONAY_LABELS.map(lbl => <Box key={lbl} sx={{ ...css_ohc }}>{lbl}</Box>)}
                   <Box sx={{ ...css_ohc }}>Metraj</Box>
                   <Box sx={{ ...css_ohc }}>Hazırlayan</Box>
                   <Box sx={{ ...css_ohc }}>Onaylayan</Box>
                   <Box sx={{ ...css_ohc }}></Box>
-                </Box>
 
-                {approvalTree.map(rootNode => (
-                  <React.Fragment key={rootNode.id}>{renderOnayRow(rootNode)}</React.Fragment>
-                ))}
+                  {approvalTree.map(rootNode => (
+                    <React.Fragment key={rootNode.id}>{renderOnayRow(rootNode)}</React.Fragment>
+                  ))}
 
-                {/* Toplam */}
-                <Box sx={{ display: 'grid', gridTemplateColumns: ONAY_GRID, backgroundColor: '#E8F5E9', borderTop: '2px solid #43A047', minWidth: 'max-content' }}>
-                  <Box sx={{ gridColumn: '1 / 8', px: '8px', py: '5px', fontWeight: 600, fontSize: '0.85rem', display: 'flex', alignItems: 'center', justifyContent: 'flex-end', color: '#1b5e20' }}>
+                  {/* Toplam */}
+                  <Box sx={{ gridColumn: '1 / 8', px: '8px', py: '5px', fontWeight: 600, fontSize: '0.85rem', display: 'flex', alignItems: 'center', justifyContent: 'flex-end', color: '#1b5e20', backgroundColor: '#E8F5E9', borderTop: '2px solid #43A047' }}>
                     Onaylanan Toplam
                   </Box>
-                  <Box sx={{ px: '8px', py: '5px', fontWeight: 700, fontSize: '0.95rem', display: 'flex', alignItems: 'center', justifyContent: 'flex-end', color: '#1b5e20' }}>
+                  <Box sx={{ px: '8px', py: '5px', fontWeight: 700, fontSize: '0.95rem', display: 'flex', alignItems: 'center', justifyContent: 'flex-end', color: '#1b5e20', backgroundColor: '#E8F5E9', borderTop: '2px solid #43A047' }}>
                     {ikiHane(onayKartiTotal)}
                     {pozBirim && <Box component="span" sx={{ ml: '4px', fontWeight: 400, fontSize: '0.8rem' }}>{pozBirim}</Box>}
                   </Box>
-                  <Box /><Box /><Box />
+                  <Box sx={{ backgroundColor: '#E8F5E9', borderTop: '2px solid #43A047' }} />
+                  <Box sx={{ backgroundColor: '#E8F5E9', borderTop: '2px solid #43A047' }} />
+                  <Box sx={{ backgroundColor: '#E8F5E9', borderTop: '2px solid #43A047' }} />
                 </Box>
               </Box>
             </Box>

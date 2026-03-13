@@ -35,7 +35,6 @@ import AddIcon from '@mui/icons-material/Add'
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore'
 import ExpandLessIcon from '@mui/icons-material/ExpandLess'
 import BlockIcon from '@mui/icons-material/Block'
-import SubdirectoryArrowRightIcon from '@mui/icons-material/SubdirectoryArrowRight'
 import DeleteOutlineIcon from '@mui/icons-material/DeleteOutline'
 import VisibilityIcon from '@mui/icons-material/Visibility'
 import VisibilityOffIcon from '@mui/icons-material/VisibilityOff'
@@ -84,6 +83,12 @@ const css_headerCell = {
   px: '4px', py: '3px', display: 'flex', alignItems: 'center', justifyContent: 'center',
   borderRight: '1px solid rgba(255,255,255,0.15)',
 }
+const css_tableHeaderCell = {
+  px: '4px', py: '3px', display: 'flex', alignItems: 'center', justifyContent: 'center',
+  borderRight: '1px solid rgba(255,255,255,0.15)',
+  fontSize: '0.75rem', fontWeight: 600,
+  backgroundColor: '#415a77', color: '#e0e1dd',
+}
 const css_dataRow = { display: 'grid', borderBottom: '1px solid #e0e0e0' }
 const css_dataCell = {
   px: '4px', py: '3px', fontSize: '0.85rem',
@@ -98,9 +103,9 @@ const inputSx = {
 }
 
 // Kişi kartı: sütun yapısı — sıra | açıklama | çarpan | adet | boy | en | yük | metraj | aksiyonlar
-const KISI_GRID = '40px 1fr 65px 65px 65px 65px 65px 80px 96px'
+const KISI_GRID = 'max-content 1fr 65px 65px 65px 65px 65px 80px 96px'
 // Onay kartı: aynı + hazırlayan | onaylayan | revize-btn
-const ONAY_GRID = '60px 1fr 65px 65px 65px 65px 65px 80px 100px 100px 36px'
+const ONAY_GRID = 'max-content 1fr 65px 65px 65px 65px 65px 80px 100px 100px 36px'
 
 const NUM_FIELDS  = ['multiplier', 'count', 'length', 'width', 'height']
 const NUM_LABELS  = ['Çarpan', 'Adet', 'Boy', 'En', 'Yük']
@@ -451,27 +456,23 @@ export default function P_MetrajOnaylaCetvel() {
   const KisiLineRow = ({ line, rowBg }) => {
     const metraj = calcMetraj(line)
     const isPending = line.status === 'pending'
+    const cellBg = { backgroundColor: rowBg, borderBottom: '1px solid #e0e0e0', ...(metraj < 0 && { color: '#c62828' }) }
     return (
-      <Box sx={{ ...css_dataRow, gridTemplateColumns: KISI_GRID, backgroundColor: rowBg, ...(metraj < 0 && { color: '#c62828' }) }}>
-        {/* Sıra */}
-        <Box sx={{ ...css_dataCell, justifyContent: 'flex-end', color: '#888' }}>
+      <>
+        <Box sx={{ ...css_dataCell, ...cellBg, justifyContent: 'flex-start', pl: '0.5rem', color: '#888' }}>
           {(line.order_index ?? 0) + 1}
         </Box>
-        {/* Açıklama */}
-        <Box sx={{ ...css_dataCell }}>{line.description ?? ''}</Box>
-        {/* Sayısal alanlar */}
+        <Box sx={{ ...css_dataCell, ...cellBg }}>{line.description ?? ''}</Box>
         {NUM_FIELDS.map(f => (
-          <Box key={f} sx={{ ...css_dataCell, justifyContent: 'flex-end' }}>
+          <Box key={f} sx={{ ...css_dataCell, ...cellBg, justifyContent: 'flex-end' }}>
             {line[f] != null ? line[f] : ''}
           </Box>
         ))}
-        {/* Metraj */}
-        <Box sx={{ ...css_dataCell, justifyContent: 'flex-end', fontWeight: 700, ...(metraj < 0 && { color: '#c62828' }) }}>
+        <Box sx={{ ...css_dataCell, ...cellBg, justifyContent: 'flex-end', fontWeight: 700 }}>
           {ikiHane(metraj)}
           {pozBirim && <Box component="span" sx={{ ml: '3px', fontWeight: 400, fontSize: '0.72rem', color: '#888' }}>{pozBirim}</Box>}
         </Box>
-        {/* Aksiyon butonları (pending → onayla/reddet/ignore; diğerleri → durum ikonu) */}
-        <Box sx={{ ...css_dataCell, justifyContent: 'center', gap: '2px' }}>
+        <Box sx={{ ...css_dataCell, ...cellBg, justifyContent: 'center', gap: '2px' }}>
           {isPending ? (
             <>
               <Tooltip title="Onayla">
@@ -500,7 +501,7 @@ export default function P_MetrajOnaylaCetvel() {
             </Tooltip>
           ) : null}
         </Box>
-      </Box>
+      </>
     )
   }
 
@@ -508,50 +509,80 @@ export default function P_MetrajOnaylaCetvel() {
   // ── ONAY KARTI TABLO SATIRI ───────────────────────────────────────────────────
 
   const OnayLineRow = ({ node }) => {
-    const metraj     = calcMetraj(node)
+    const metraj      = calcMetraj(node)
     const hasChildren = (node.children?.length ?? 0) > 0
-    const isExpanded  = expandedLines[node.id] ?? false
-    const depthIndent = node.depth * 16
-
-    // Onaylı ama üzerine revize yapılmış → hesaplamaya dahil değil
-    const isRevised = node.status === 'approved' && hasChildren
-
-    // Revize formu bu satır için açık mı?
+    const isRevized   = node.status === 'approved' && hasChildren
     const isRevizeOpen = revizeForm?.parentLineId === node.id
+    const showRevizeBtn = node.status === 'approved' && !isRevizeOpen
 
-    // Satır arka plan rengi
     const rowBg = node.status === 'pending'  ? 'rgba(255,243,224,0.5)' :
                   node.status === 'rejected' ? 'rgba(255,235,238,0.5)' :
                   node.status === 'ignored'  ? 'rgba(236,239,241,0.5)' :
-                  isRevised                  ? 'rgba(224,224,224,0.5)' :
+                  isRevized                  ? 'rgba(224,224,224,0.5)' :
                   node.depth > 0             ? 'rgba(187,222,251,0.25)' : 'white'
 
-    // Onaylayan sütun değeri
     const onaylayanText = node.status === 'pending'  ? '(bekliyor)' :
                           node.status === 'rejected' ? '(reddedildi)' :
                           node.status === 'ignored'  ? '(ignore)' :
                           node.onaylayan ?? ''
 
-    // Revize butonu: sadece approved ve kök satırlar için onay yetkilisi görebilir
-    const showRevizeBtn = node.status === 'approved' && !isRevizeOpen
+    const cellBg = { backgroundColor: rowBg, borderBottom: '1px solid #e0e0e0', ...(metraj < 0 && { color: '#c62828' }) }
 
-    // Çoklu satır revize editörü — hem hideOriginals hem normal dalda kullanılır
-    const revizeEditor = isRevizeOpen && revizeForm?.rows ? (
+    if (hideOriginals && isRevized) {
+      return <>{node.children.map(child => <OnayLineRow key={child.id} node={child} />)}</>
+    }
+
+    return (
       <>
-        {revizeForm.rows.map((row, rowIdx) => (
-          <Box key={row.tempId} sx={{ ...css_dataRow, gridTemplateColumns: ONAY_GRID, backgroundColor: 'rgba(255,250,180,0.7)', borderBottom: '1px solid #FFB300' }}>
-            <Box sx={{ ...css_dataCell, justifyContent: 'flex-end', color: '#1565c0', fontSize: '0.82rem' }}>
-              <SubdirectoryArrowRightIcon sx={{ fontSize: 13, color: '#90CAF9', mr: '2px' }} />
+        <Box sx={{ ...css_dataCell, ...cellBg, justifyContent: 'flex-start', pl: '0.5rem', color: node.depth > 0 ? '#1565c0' : '#555' }}>
+          {node.siraNo}
+        </Box>
+        <Box sx={{ ...css_dataCell, ...cellBg }}>{node.description ?? ''}</Box>
+        {NUM_FIELDS.map(f => (
+          <Box key={f} sx={{ ...css_dataCell, ...cellBg, justifyContent: 'flex-end' }}>
+            {f === 'multiplier' && node[f] === 1 ? '' : (node[f] != null ? node[f] : '')}
+          </Box>
+        ))}
+        <Box sx={{ ...css_dataCell, ...cellBg, justifyContent: 'flex-end', fontWeight: 700, opacity: isRevized ? 0.45 : 1, textDecoration: isRevized ? 'line-through' : 'none' }}>
+          {ikiHane(metraj)}
+          {pozBirim && !hasChildren && (
+            <Box component="span" sx={{ ml: '3px', fontWeight: 400, fontSize: '0.72rem', color: '#888' }}>{pozBirim}</Box>
+          )}
+        </Box>
+        <Box sx={{ ...css_dataCell, ...cellBg, fontSize: '0.78rem', color: '#455a64' }}>{node.hazırlayan}</Box>
+        <Box sx={{ ...css_dataCell, ...cellBg, fontSize: '0.78rem',
+          color: node.status === 'pending' ? '#e65100' : node.status === 'rejected' ? '#b71c1c' : node.status === 'ignored' ? '#607d8b' : '#1b5e20',
+        }}>
+          {onaylayanText}
+        </Box>
+        <Box sx={{ ...css_dataCell, ...cellBg, justifyContent: 'center', gap: '2px' }}>
+          {showRevizeBtn && (
+            <Tooltip title="Revize ekle">
+              <IconButton size="small" sx={{ p: '2px' }}
+                onClick={() => setRevizeForm({ parentLineId: node.id, rows: [{ tempId: `tmp-${Date.now()}`, description: '', multiplier: '', count: '', length: '', width: '', height: '' }] })}>
+                <EditIcon sx={{ fontSize: 16, color: '#1565c0' }} />
+              </IconButton>
+            </Tooltip>
+          )}
+        </Box>
+
+        {/* Alt satırlar — parent grid içinde flat */}
+        {hasChildren && node.children.map(child => <OnayLineRow key={child.id} node={child} />)}
+
+        {/* Revize editörü hücreleri */}
+        {isRevizeOpen && revizeForm?.rows && revizeForm.rows.map((row, rowIdx) => (
+          <React.Fragment key={row.tempId}>
+            <Box sx={{ ...css_dataCell, backgroundColor: 'rgba(255,250,180,0.7)', borderBottom: '1px solid #FFB300', justifyContent: 'flex-start', pl: '0.5rem', color: '#1565c0', fontSize: '0.82rem' }}>
               {`${node.siraNo}.${(node.children?.length ?? 0) + rowIdx + 1}`}
             </Box>
-            <Box sx={{ ...css_dataCell }}>
+            <Box sx={{ ...css_dataCell, backgroundColor: 'rgba(255,250,180,0.7)', borderBottom: '1px solid #FFB300' }}>
               <input style={{ ...inputSx, textAlign: 'left' }}
                 value={row.description} placeholder="Açıklama"
                 onChange={e => setRevizeForm(prev => ({ ...prev, rows: prev.rows.map(r => r.tempId === row.tempId ? { ...r, description: e.target.value } : r) }))}
               />
             </Box>
             {NUM_FIELDS.map(f => (
-              <Box key={f} sx={{ ...css_dataCell }}>
+              <Box key={f} sx={{ ...css_dataCell, backgroundColor: 'rgba(255,250,180,0.7)', borderBottom: '1px solid #FFB300' }}>
                 <input type="number" className="metraj-num-input" style={{ ...inputSx, textAlign: 'right' }}
                   value={row[f]} placeholder="—"
                   onChange={e => setRevizeForm(prev => ({ ...prev, rows: prev.rows.map(r => r.tempId === row.tempId ? { ...r, [f]: e.target.value } : r) }))}
@@ -559,12 +590,12 @@ export default function P_MetrajOnaylaCetvel() {
                 />
               </Box>
             ))}
-            <Box sx={{ ...css_dataCell, justifyContent: 'flex-end', fontWeight: 700, color: calcMetraj(row) < 0 ? '#c62828' : '#1565c0' }}>
+            <Box sx={{ ...css_dataCell, backgroundColor: 'rgba(255,250,180,0.7)', borderBottom: '1px solid #FFB300', justifyContent: 'flex-end', fontWeight: 700, color: calcMetraj(row) < 0 ? '#c62828' : '#1565c0' }}>
               {ikiHane(calcMetraj(row))}
             </Box>
-            <Box sx={{ ...css_dataCell, fontSize: '0.78rem', color: '#455a64' }}>{userMap[currentUserId] ?? '(ben)'}</Box>
-            <Box sx={{ ...css_dataCell, fontSize: '0.78rem', color: '#1b5e20' }}>{userMap[currentUserId] ?? '(ben)'}</Box>
-            <Box sx={{ ...css_dataCell, justifyContent: 'center' }}>
+            <Box sx={{ ...css_dataCell, backgroundColor: 'rgba(255,250,180,0.7)', borderBottom: '1px solid #FFB300', fontSize: '0.78rem', color: '#455a64' }}>{userMap[currentUserId] ?? '(ben)'}</Box>
+            <Box sx={{ ...css_dataCell, backgroundColor: 'rgba(255,250,180,0.7)', borderBottom: '1px solid #FFB300', fontSize: '0.78rem', color: '#1b5e20' }}>{userMap[currentUserId] ?? '(ben)'}</Box>
+            <Box sx={{ ...css_dataCell, backgroundColor: 'rgba(255,250,180,0.7)', borderBottom: '1px solid #FFB300', justifyContent: 'center' }}>
               <Tooltip title="Satırı kaldır">
                 <IconButton size="small" sx={{ p: '2px' }}
                   onClick={() => revizeForm.rows.length === 1
@@ -575,104 +606,31 @@ export default function P_MetrajOnaylaCetvel() {
                 </IconButton>
               </Tooltip>
             </Box>
-          </Box>
+          </React.Fragment>
         ))}
-        <Box sx={{ display: 'flex', alignItems: 'center', px: '8px', py: '4px', gap: '8px', backgroundColor: 'rgba(255,250,180,0.4)', borderBottom: '2px solid #FFB300', minWidth: 'max-content' }}>
-          <Box
-            sx={{ display: 'flex', alignItems: 'center', gap: '4px', cursor: 'pointer', flexGrow: 1, userSelect: 'none' }}
-            onClick={() => setRevizeForm(prev => ({ ...prev, rows: [...prev.rows, { tempId: `tmp-${Date.now()}-${Math.random()}`, description: '', multiplier: '', count: '', length: '', width: '', height: '' }] }))}
-          >
-            <AddIcon sx={{ fontSize: 18, color: '#1565c0' }} />
-            <Typography sx={{ fontSize: '0.8rem', color: '#1565c0' }}>Satır Ekle</Typography>
-          </Box>
-          <Tooltip title="İptal">
-            <IconButton size="small" sx={{ p: '2px' }} onClick={() => setRevizeForm(null)}>
-              <ClearIcon sx={{ fontSize: 16, color: '#c62828' }} />
-            </IconButton>
-          </Tooltip>
-          <Tooltip title="Hepsini Kaydet">
-            <IconButton size="small" sx={{ p: '2px' }} onClick={saveRevize}>
-              <SaveIcon sx={{ fontSize: 16, color: '#1565c0' }} />
-            </IconButton>
-          </Tooltip>
-        </Box>
-      </>
-    ) : null
 
-    // Orijinalleri gizle modunda: revize edilmiş satırı atla, children'ı doğrudan göster
-    if (hideOriginals && isRevised) {
-      return (
-        <>
-          {node.children.map(child => (
-            <OnayLineRow key={child.id} node={child} />
-          ))}
-        </>
-      )
-    }
-
-    return (
-      <>
-        <Box sx={{ ...css_dataRow, gridTemplateColumns: ONAY_GRID, backgroundColor: rowBg, ...(metraj < 0 && { color: '#c62828' }) }}>
-          {/* Sıra — depth ile girinti */}
-          <Box sx={{
-            ...css_dataCell, justifyContent: 'flex-end',
-            color: node.depth > 0 ? '#1565c0' : '#555', fontSize: node.depth > 0 ? '0.78rem' : undefined,
-          }}>
-            <Box component="span" sx={{ display: 'inline-block', width: depthIndent }} />
-            {node.depth > 0 && <SubdirectoryArrowRightIcon sx={{ fontSize: 12, color: '#90CAF9', mr: '2px' }} />}
-            {node.siraNo}
-          </Box>
-          {/* Açıklama */}
-          <Box sx={{ ...css_dataCell }}>{node.description ?? ''}</Box>
-          {/* Sayısal alanlar */}
-          {NUM_FIELDS.map(f => (
-            <Box key={f} sx={{ ...css_dataCell, justifyContent: 'flex-end' }}>
-              {f === 'multiplier' && node[f] === 1 ? '' : (node[f] != null ? node[f] : '')}
+        {/* Satır Ekle / Kaydet / İptal araç çubuğu — tüm kolonları kaplar */}
+        {isRevizeOpen && revizeForm?.rows && (
+          <Box sx={{ gridColumn: '1 / -1', display: 'flex', alignItems: 'center', px: '8px', py: '4px', gap: '8px', backgroundColor: 'rgba(255,250,180,0.4)', borderBottom: '2px solid #FFB300' }}>
+            <Box
+              sx={{ display: 'flex', alignItems: 'center', gap: '4px', cursor: 'pointer', flexGrow: 1, userSelect: 'none' }}
+              onClick={() => setRevizeForm(prev => ({ ...prev, rows: [...prev.rows, { tempId: `tmp-${Date.now()}-${Math.random()}`, description: '', multiplier: '', count: '', length: '', width: '', height: '' }] }))}
+            >
+              <AddIcon sx={{ fontSize: 18, color: '#1565c0' }} />
+              <Typography sx={{ fontSize: '0.8rem', color: '#1565c0' }}>Satır Ekle</Typography>
             </Box>
-          ))}
-          {/* Metraj */}
-          <Box sx={{ ...css_dataCell, justifyContent: 'flex-end', fontWeight: 700, opacity: isRevised ? 0.45 : 1, textDecoration: isRevised ? 'line-through' : 'none', ...(metraj < 0 && { color: '#c62828' }) }}>
-            {ikiHane(metraj)}
-            {pozBirim && !node.children?.length && (
-              <Box component="span" sx={{ ml: '3px', fontWeight: 400, fontSize: '0.72rem', color: '#888' }}>{pozBirim}</Box>
-            )}
+            <Tooltip title="İptal">
+              <IconButton size="small" sx={{ p: '2px' }} onClick={() => setRevizeForm(null)}>
+                <ClearIcon sx={{ fontSize: 16, color: '#c62828' }} />
+              </IconButton>
+            </Tooltip>
+            <Tooltip title="Hepsini Kaydet">
+              <IconButton size="small" sx={{ p: '2px' }} onClick={saveRevize}>
+                <SaveIcon sx={{ fontSize: 16, color: '#1565c0' }} />
+              </IconButton>
+            </Tooltip>
           </Box>
-          {/* Hazırlayan */}
-          <Box sx={{ ...css_dataCell, fontSize: '0.78rem', color: '#455a64' }}>
-            {node.hazırlayan}
-          </Box>
-          {/* Onaylayan */}
-          <Box sx={{
-            ...css_dataCell, fontSize: '0.78rem',
-            color: node.status === 'pending' ? '#e65100' :
-                   node.status === 'rejected' ? '#b71c1c' :
-                   node.status === 'ignored' ? '#607d8b' : '#1b5e20',
-          }}>
-            {onaylayanText}
-          </Box>
-          {/* Revize / Genişlet butonu */}
-          <Box sx={{ ...css_dataCell, justifyContent: 'center', gap: '2px' }}>
-            {showRevizeBtn && (
-              <Tooltip title="Revize ekle">
-                <IconButton size="small" sx={{ p: '2px' }}
-                  onClick={() => setRevizeForm({
-                    parentLineId: node.id,
-                    rows: [{ tempId: `tmp-${Date.now()}`, description: '', multiplier: '', count: '', length: '', width: '', height: '' }],
-                  })}>
-                  <EditIcon sx={{ fontSize: 16, color: '#1565c0' }} />
-                </IconButton>
-              </Tooltip>
-            )}
-          </Box>
-        </Box>
-
-        {/* Alt satırlar */}
-        {hasChildren && node.children.map(child => (
-          <OnayLineRow key={child.id} node={child} />
-        ))}
-
-        {/* Revize ekleme formu */}
-        {revizeEditor}
+        )}
       </>
     )
   }
@@ -686,8 +644,7 @@ export default function P_MetrajOnaylaCetvel() {
       backgroundColor: 'rgba(255,250,180,0.7)', borderBottom: '2px solid #FFB300',
     }}>
       {/* Sıra no */}
-      <Box sx={{ ...css_dataCell, justifyContent: 'flex-end', color: '#1565c0', fontSize: '0.82rem' }}>
-        <SubdirectoryArrowRightIcon sx={{ fontSize: 13, color: '#90CAF9', mr: '2px' }} />
+      <Box sx={{ ...css_dataCell, justifyContent: 'flex-start', pl: '0.5rem', color: '#1565c0', fontSize: '0.82rem' }}>
         {`${parentSiraNo}.${siblingCount}`}
       </Box>
       {/* Açıklama */}
@@ -913,35 +870,29 @@ export default function P_MetrajOnaylaCetvel() {
                         )}
                       </Box>
 
-                      {/* Tablo başlığı */}
+                      {/* Tablo */}
                       <Box sx={{ overflowX: 'auto' }}>
-                        <Box sx={{ ...css_tableHeader, gridTemplateColumns: KISI_GRID, minWidth: 'max-content' }}>
-                          <Box sx={{ ...css_headerCell }}>Sıra</Box>
-                          <Box sx={{ ...css_headerCell, justifyContent: 'flex-start' }}>Açıklama</Box>
-                          {NUM_LABELS.map(lbl => <Box key={lbl} sx={{ ...css_headerCell }}>{lbl}</Box>)}
-                          <Box sx={{ ...css_headerCell }}>Metraj</Box>
-                          <Box sx={{ ...css_headerCell }}>İşlem</Box>
-                        </Box>
+                        <Box sx={{ display: 'grid', gridTemplateColumns: KISI_GRID, minWidth: 'max-content' }}>
+                          <Box sx={{ ...css_tableHeaderCell }}>Sıra</Box>
+                          <Box sx={{ ...css_tableHeaderCell, justifyContent: 'flex-start' }}>Açıklama</Box>
+                          {NUM_LABELS.map(lbl => <Box key={lbl} sx={{ ...css_tableHeaderCell }}>{lbl}</Box>)}
+                          <Box sx={{ ...css_tableHeaderCell }}>Metraj</Box>
+                          <Box sx={{ ...css_tableHeaderCell }}>İşlem</Box>
 
-                        {allLines.map(line => (
-                          <KisiLineRow key={line.id} line={line}
-                            rowBg={LINE_STATUS_COLORS[line.status]?.bg ?? 'white'}
-                          />
-                        ))}
+                          {allLines.map(line => (
+                            <KisiLineRow key={line.id} line={line}
+                              rowBg={LINE_STATUS_COLORS[line.status]?.bg ?? 'white'}
+                            />
+                          ))}
 
-                        {/* Kart toplamı */}
-                        <Box sx={{
-                          display: 'grid', gridTemplateColumns: KISI_GRID,
-                          backgroundColor: '#ECEFF1', borderTop: '2px solid #B0BEC5', minWidth: 'max-content',
-                        }}>
-                          <Box sx={{ gridColumn: '1/8', px: '8px', py: '4px', fontSize: '0.8rem', fontWeight: 600, display: 'flex', justifyContent: 'flex-end', alignItems: 'center', color: '#455a64' }}>
+                          <Box sx={{ gridColumn: '1/8', px: '8px', py: '4px', fontSize: '0.8rem', fontWeight: 600, display: 'flex', justifyContent: 'flex-end', alignItems: 'center', color: '#455a64', backgroundColor: '#ECEFF1', borderTop: '2px solid #B0BEC5' }}>
                             Toplam hazırlanan
                           </Box>
-                          <Box sx={{ px: '8px', py: '4px', fontWeight: 700, display: 'flex', justifyContent: 'flex-end', alignItems: 'center' }}>
+                          <Box sx={{ px: '8px', py: '4px', fontWeight: 700, display: 'flex', justifyContent: 'flex-end', alignItems: 'center', backgroundColor: '#ECEFF1', borderTop: '2px solid #B0BEC5' }}>
                             {ikiHane(allLines.reduce((s, l) => s + calcMetraj(l), 0))}
                             {pozBirim && <Box component="span" sx={{ ml: '4px', fontWeight: 400, fontSize: '0.8rem' }}>{pozBirim}</Box>}
                           </Box>
-                          <Box />
+                          <Box sx={{ backgroundColor: '#ECEFF1', borderTop: '2px solid #B0BEC5' }} />
                         </Box>
                       </Box>
                     </Box>
@@ -986,33 +937,29 @@ export default function P_MetrajOnaylaCetvel() {
 
                 {/* Tablo */}
                 <Box sx={{ overflowX: 'auto' }}>
-                  <Box sx={{ ...css_tableHeader, gridTemplateColumns: ONAY_GRID, minWidth: 'max-content' }}>
-                    <Box sx={{ ...css_headerCell }}>Sıra No</Box>
-                    <Box sx={{ ...css_headerCell, justifyContent: 'flex-start' }}>Açıklama</Box>
-                    {NUM_LABELS.map(lbl => <Box key={lbl} sx={{ ...css_headerCell }}>{lbl}</Box>)}
-                    <Box sx={{ ...css_headerCell }}>Metraj</Box>
-                    <Box sx={{ ...css_headerCell }}>Hazırlayan</Box>
-                    <Box sx={{ ...css_headerCell }}>Onaylayan</Box>
-                    <Box sx={{ ...css_headerCell }}></Box>
-                  </Box>
+                  <Box sx={{ display: 'grid', gridTemplateColumns: ONAY_GRID, minWidth: 'max-content' }}>
+                    <Box sx={{ ...css_tableHeaderCell }}>Sıra</Box>
+                    <Box sx={{ ...css_tableHeaderCell, justifyContent: 'flex-start' }}>Açıklama</Box>
+                    {NUM_LABELS.map(lbl => <Box key={lbl} sx={{ ...css_tableHeaderCell }}>{lbl}</Box>)}
+                    <Box sx={{ ...css_tableHeaderCell }}>Metraj</Box>
+                    <Box sx={{ ...css_tableHeaderCell }}>Hazırlayan</Box>
+                    <Box sx={{ ...css_tableHeaderCell }}>Onaylayan</Box>
+                    <Box sx={{ ...css_tableHeaderCell }}></Box>
 
-                  {approvalTree.map(rootNode => (
-                    <OnayLineRow key={rootNode.id} node={rootNode} />
-                  ))}
+                    {approvalTree.map(rootNode => (
+                      <OnayLineRow key={rootNode.id} node={rootNode} />
+                    ))}
 
-                  {/* Toplam satırı */}
-                  <Box sx={{
-                    display: 'grid', gridTemplateColumns: ONAY_GRID,
-                    backgroundColor: '#E8F5E9', borderTop: '2px solid #43A047', minWidth: 'max-content',
-                  }}>
-                    <Box sx={{ gridColumn: '1/8', px: '8px', py: '5px', fontWeight: 600, fontSize: '0.85rem', display: 'flex', justifyContent: 'flex-end', alignItems: 'center', color: '#1b5e20' }}>
+                    <Box sx={{ gridColumn: '1/8', px: '8px', py: '5px', fontWeight: 600, fontSize: '0.85rem', display: 'flex', justifyContent: 'flex-end', alignItems: 'center', color: '#1b5e20', backgroundColor: '#E8F5E9', borderTop: '2px solid #43A047' }}>
                       Onaylanan Toplam
                     </Box>
-                    <Box sx={{ px: '8px', py: '5px', fontWeight: 700, fontSize: '0.95rem', display: 'flex', justifyContent: 'flex-end', alignItems: 'center', color: '#1b5e20' }}>
+                    <Box sx={{ px: '8px', py: '5px', fontWeight: 700, fontSize: '0.95rem', display: 'flex', justifyContent: 'flex-end', alignItems: 'center', color: '#1b5e20', backgroundColor: '#E8F5E9', borderTop: '2px solid #43A047' }}>
                       {ikiHane(onayKartiTotal)}
                       {pozBirim && <Box component="span" sx={{ ml: '4px', fontWeight: 400, fontSize: '0.8rem' }}>{pozBirim}</Box>}
                     </Box>
-                    <Box /><Box /><Box />
+                    <Box sx={{ backgroundColor: '#E8F5E9', borderTop: '2px solid #43A047' }} />
+                    <Box sx={{ backgroundColor: '#E8F5E9', borderTop: '2px solid #43A047' }} />
+                    <Box sx={{ backgroundColor: '#E8F5E9', borderTop: '2px solid #43A047' }} />
                   </Box>
                 </Box>
               </Box>
