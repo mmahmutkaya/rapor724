@@ -104,8 +104,8 @@ const inputSx = {
 
 // Kişi kartı: sütun yapısı — sıra | açıklama | çarpan | adet | boy | en | yük | metraj | aksiyonlar
 const KISI_GRID = 'max-content 1fr 65px 65px 65px 65px 65px 80px 96px'
-// Onay kartı: aynı + hazırlayan | onaylayan | revize-btn
-const ONAY_GRID = 'max-content 1fr 65px 65px 65px 65px 65px 80px 100px 100px 36px'
+// Onay kartı: aynı + hazırlayan | onaylayan | aksiyonlar
+const ONAY_GRID = 'max-content 1fr 65px 65px 65px 65px 65px 80px 100px 100px 64px'
 
 const NUM_FIELDS  = ['multiplier', 'count', 'length', 'width', 'height']
 const NUM_LABELS  = ['Çarpan', 'Adet', 'Boy', 'En', 'Yük']
@@ -459,7 +459,7 @@ export default function P_MetrajOnaylaCetvel() {
     const cellBg = { backgroundColor: rowBg, borderBottom: '1px solid #e0e0e0', ...(metraj < 0 && { color: '#c62828' }) }
     return (
       <>
-        <Box sx={{ ...css_dataCell, ...cellBg, justifyContent: 'flex-start', pl: '0.5rem', color: '#888' }}>
+        <Box sx={{ ...css_dataCell, ...cellBg, justifyContent: 'center', color: '#888' }}>
           {(line.order_index ?? 0) + 1}
         </Box>
         <Box sx={{ ...css_dataCell, ...cellBg }}>{line.description ?? ''}</Box>
@@ -478,11 +478,6 @@ export default function P_MetrajOnaylaCetvel() {
               <Tooltip title="Onayla">
                 <IconButton size="small" sx={{ p: '2px' }} onClick={() => approveLine(line.id)}>
                   <CheckCircleIcon sx={{ fontSize: 18, color: '#2e7d32' }} />
-                </IconButton>
-              </Tooltip>
-              <Tooltip title="Reddet">
-                <IconButton size="small" sx={{ p: '2px' }} onClick={() => rejectLine(line.id)}>
-                  <ClearIcon sx={{ fontSize: 18, color: '#c62828' }} />
                 </IconButton>
               </Tooltip>
               <Tooltip title="Ignore">
@@ -852,22 +847,6 @@ export default function P_MetrajOnaylaCetvel() {
                         <Typography variant="body1" sx={{ fontWeight: 700, flexGrow: 1 }}>
                           {group.userName}
                         </Typography>
-                        {group.approved.length > 0 && (
-                          <Chip size="small" label={`${group.approved.length} onaylı`}
-                            sx={{ backgroundColor: '#E8F5E9', color: '#1B5E20', fontWeight: 600, fontSize: '0.72rem' }} />
-                        )}
-                        {group.pending.length > 0 && (
-                          <Chip size="small" label={`${group.pending.length} bekliyor`}
-                            sx={{ backgroundColor: '#FFF3E0', color: '#E65100', fontWeight: 600, fontSize: '0.72rem' }} />
-                        )}
-                        {group.rejected.length > 0 && (
-                          <Chip size="small" label={`${group.rejected.length} reddedildi`}
-                            sx={{ backgroundColor: '#FFEBEE', color: '#B71C1C', fontWeight: 600, fontSize: '0.72rem' }} />
-                        )}
-                        {group.ignored.length > 0 && (
-                          <Chip size="small" label={`${group.ignored.length} ignore`}
-                            sx={{ backgroundColor: '#ECEFF1', color: '#455A64', fontWeight: 600, fontSize: '0.72rem' }} />
-                        )}
                       </Box>
 
                       {/* Tablo */}
