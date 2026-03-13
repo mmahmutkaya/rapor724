@@ -27,6 +27,8 @@ import CheckCircleIcon from '@mui/icons-material/CheckCircle'
 import AddIcon from '@mui/icons-material/Add'
 import DeleteOutlineIcon from '@mui/icons-material/DeleteOutline'
 import SubdirectoryArrowRightIcon from '@mui/icons-material/SubdirectoryArrowRight'
+import ExpandMoreIcon from '@mui/icons-material/ExpandMore'
+import ExpandLessIcon from '@mui/icons-material/ExpandLess'
 
 
 function computeQuantity(line) {
@@ -62,6 +64,41 @@ function buildDisplayTree(lines) {
   return result
 }
 
+/**
+ * Onaylanan Metraj ağacı:
+ *   Kök: parent_line_id IS NULL AND status = 'approved'
+ *   Çocuk: parent_line_id IS NOT NULL (tüm alt satırlar, her durumda)
+ */
+function buildApprovalTree(allLines, allSessions, userMap) {
+  const sessionMap = {}
+  allSessions.forEach(s => { sessionMap[s.id] = s })
+
+  const childrenOf = {}
+  allLines.filter(l => l.parent_line_id).forEach(l => {
+    if (!childrenOf[l.parent_line_id]) childrenOf[l.parent_line_id] = []
+    childrenOf[l.parent_line_id].push(l)
+  })
+
+  function enrich(line, siraNo, depth) {
+    const sess = sessionMap[line.session_id]
+    const hazırlayan = userMap[sess?.created_by] ?? sess?.userName ?? '?'
+    const onaylayan  = line.approved_by
+      ? (userMap[line.approved_by] ?? '?')
+      : line.status === 'pending' ? '(bekliyor)' : null
+    const kids = (childrenOf[line.id] ?? [])
+      .sort((a, b) => (a.order_index ?? 0) - (b.order_index ?? 0))
+    return {
+      ...line, siraNo, depth, hazırlayan, onaylayan,
+      children: kids.map((c, i) => enrich(c, `${siraNo}.${i + 1}`, depth + 1)),
+    }
+  }
+
+  return allLines
+    .filter(l => !l.parent_line_id && l.status === 'approved')
+    .sort((a, b) => (a.order_index ?? 0) - (b.order_index ?? 0))
+    .map((l, i) => enrich(l, `${i + 1}`, 0))
+}
+
 function ikiHane(v) {
   if (v === null || v === undefined || v === '') return ''
   const n = Number(v)
@@ -83,7 +120,7 @@ function StatusChip({ session }) {
 }
 
 const STATUS_ORDER = { approved: 0, ready: 1, draft: 2 }
-const GRID_COLS = '40px 1fr 70px 70px 70px 70px 70px 90px 36px'
+const GRID_COLS = '40px 1fr 70px 70px 70px 70px 70px 90px 52px'
 const NUM_FIELDS = ['multiplier', 'count', 'length', 'width', 'height']
 const NUM_LABELS = ['Çarpan', 'Adet', 'Boy', 'En', 'Yükseklik']
 
@@ -136,6 +173,10 @@ export default function P_MetrajOlusturCetvel() {
   const [loading, setLoading] = useState(true)
   const [loadError, setLoadError] = useState(null)
   const [sessions, setSessions] = useState([])
+  const [userMap, setUserMap] = useState({})
+  const [expandedApproved, setExpandedApproved] = useState({})   // { lineId: bool }
+  const [revizeTalebiForm, setRevizeTalebiForm] = useState(null) // { targetLineId, targetSiraNo, fields }
+  const [showAllOriginals, setShowAllOriginals] = useState(false)
 
   const wpAreaId = selectedMahal?.wpAreaId
 
@@ -172,14 +213,6 @@ export default function P_MetrajOlusturCetvel() {
 
       if (!sessData?.length) { setSessions([]); setLoading(false); return }
 
-      // Kullanıcı görünen adlarını çek
-      const uniqueUserIds = [...new Set(sessData.map(s => s.created_by).filter(Boolean))]
-      const userMap = {}
-      if (uniqueUserIds.length > 0) {
-        const { data: nameRows } = await supabase.rpc('get_user_display_names', { user_ids: uniqueUserIds })
-        if (nameRows) nameRows.forEach(row => { userMap[row.id] = row.display_name || row.id })
-      }
-
       // Tüm satırları çek
       const sessionIds = sessData.map(s => s.id)
       const { data: linesData } = await supabase
@@ -187,6 +220,18 @@ export default function P_MetrajOlusturCetvel() {
         .select('*')
         .in('session_id', sessionIds)
         .order('order_index')
+
+      // Kullanıcı görünen adlarını çek (hazırlayanlar + onaylayanlar)
+      const uniqueUserIds = [...new Set([
+        ...sessData.map(s => s.created_by),
+        ...(linesData ?? []).map(l => l.approved_by),
+      ].filter(Boolean))]
+      const nameMap = {}
+      if (uniqueUserIds.length > 0) {
+        const { data: nameRows } = await supabase.rpc('get_user_display_names', { user_ids: uniqueUserIds })
+        if (nameRows) nameRows.forEach(row => { nameMap[row.id] = row.display_name || row.id })
+      }
+      setUserMap(nameMap)
 
       const linesBySession = {}
       ;(linesData ?? []).forEach(l => {
@@ -206,7 +251,7 @@ export default function P_MetrajOlusturCetvel() {
         return {
           ...sess,
           visualStatus: getMeasurementVisualStatus(sess),
-          userName: userMap[sess.created_by] ?? '?',
+          userName: nameMap[sess.created_by] ?? '?',
           isOwn: sess.created_by === appUser?.id,
           lines: linesBySession[sess.id] ?? [],
           linesBackup: _.cloneDeep(linesBySession[sess.id] ?? []),
@@ -385,6 +430,19 @@ export default function P_MetrajOlusturCetvel() {
       return
     }
     updateSess(sessId, () => ({ status: 'draft' }))
+  }
+
+  const handleBackToDraftAndAddLine = async (sessId) => {
+    const { error } = await supabase
+      .from('measurement_sessions')
+      .update({ status: 'draft', updated_at: new Date().toISOString() })
+      .eq('id', sessId)
+    if (error) {
+      setDialogAlert({ dialogIcon: 'warning', dialogMessage: error.message, onCloseAction: () => setDialogAlert() })
+      return
+    }
+    updateSess(sessId, () => ({ status: 'draft', mode_edit: true }))
+    await handleAddLine(sessId)
   }
 
   // ── Yeni metraj oturumu başlat ───────────────────────────────
@@ -642,6 +700,93 @@ export default function P_MetrajOlusturCetvel() {
     return m
   }, [units])
 
+  // Tüm session satırlarından onaylanan ağacı türet
+  const approvalTree = useMemo(() => {
+    const allLines = sessions.flatMap(s => s.lines ?? [])
+    return buildApprovalTree(allLines, sessions, userMap)
+  }, [sessions, userMap])
+
+  // ── Revize talebi gönder ─────────────────────────────────────
+  const handleSendRevizeTalebi = async () => {
+    if (!revizeTalebiForm) return
+    const { targetLineId, fields } = revizeTalebiForm
+
+    // Mevcut kullanıcının oturumunu bul veya yeni oluştur
+    let mySess = sessions.find(s => s.isOwn)
+    if (!mySess) {
+      try {
+        const { data, error } = await supabase
+          .from('measurement_sessions')
+          .insert({ work_package_poz_area_id: wpAreaId, status: 'draft', total_quantity: 0, created_by: appUser?.id ?? null })
+          .select().single()
+        if (error) throw error
+        mySess = {
+          ...data,
+          userName: appUser?.email ?? '?',
+          isOwn: true,
+          lines: [],
+          linesBackup: [],
+          mode_edit: false,
+          isRevisionEdit: false,
+          isChanged: false,
+          revisedLines: {},
+        }
+        setSessions(prev => [...prev, mySess])
+      } catch (err) {
+        setDialogAlert({ dialogIcon: 'warning', dialogMessage: err.message, onCloseAction: () => setDialogAlert() })
+        return
+      }
+    }
+
+    // Kardeş satırlar arasındaki en büyük order_index
+    const allLines = sessions.flatMap(s => s.lines ?? [])
+    const siblings = allLines.filter(l => l.parent_line_id === targetLineId)
+    const maxOrder = siblings.reduce((mx, l) => Math.max(mx, l.order_index ?? 0), 0)
+
+    try {
+      const { data: newLine, error } = await supabase
+        .from('measurement_lines')
+        .insert({
+          session_id: mySess.id,
+          parent_line_id: targetLineId,
+          order_index: maxOrder + 1,
+          description: fields.description || null,
+          multiplier: fields.multiplier !== '' ? Number(fields.multiplier) : 1,
+          count:  fields.count  !== '' ? Number(fields.count)  : null,
+          length: fields.length !== '' ? Number(fields.length) : null,
+          width:  fields.width  !== '' ? Number(fields.width)  : null,
+          height: fields.height !== '' ? Number(fields.height) : null,
+          status: 'pending',
+          line_type: 'data',
+        })
+        .select().single()
+      if (error) throw error
+
+      // Satırı oturuma ekle
+      setSessions(prev => prev.map(s =>
+        s.id === mySess.id ? { ...s, lines: [...s.lines, newLine] } : s
+      ))
+      // Formu kapatma — alanları sıfırla, yeni kardeş satır eklenebilsin
+      setRevizeTalebiForm(prev => ({ ...prev, fields: { description: '', multiplier: '', count: '', length: '', width: '', height: '' } }))
+      // Üst satırı genişlet
+      setExpandedApproved(prev => ({ ...prev, [targetLineId]: true }))
+    } catch (err) {
+      setDialogAlert({ dialogIcon: 'warning', dialogMessage: err.message, onCloseAction: () => setDialogAlert() })
+    }
+  }
+
+  const handleCancelRevizeTalebi = async (lineId, sessId) => {
+    try {
+      const { error } = await supabase.from('measurement_lines').delete().eq('id', lineId)
+      if (error) throw error
+      setSessions(prev => prev.map(s =>
+        s.id === sessId ? { ...s, lines: s.lines.filter(l => l.id !== lineId) } : s
+      ))
+    } catch (err) {
+      setDialogAlert({ dialogIcon: 'warning', dialogMessage: err.message, onCloseAction: () => setDialogAlert() })
+    }
+  }
+
   const pozBirim = unitsMap[selectedPoz?.unit_id] ?? ''
   const pozLabel = selectedPoz?.code
     ? `${selectedPoz.code} · ${selectedPoz.short_desc}`
@@ -729,8 +874,9 @@ export default function P_MetrajOlusturCetvel() {
           const isReady    = sess.status === 'ready'
           const isApproved = visualStatus === 'approved' || visualStatus === 'revised'
           const canEdit    = sess.isOwn && isDraft
-          const revisedParentIds = new Set(sess.lines.filter(l => l.parent_line_id).map(l => l.parent_line_id))
-          const totalQuantity = sess.lines.filter(l => !revisedParentIds.has(l.id)).reduce((sum, l) => sum + computeQuantity(l), 0)
+          const rootLines = sess.lines.filter(l => !l.parent_line_id)
+          const hasApprovedLines = rootLines.some(l => l.status === 'approved')
+          const totalQuantity = rootLines.reduce((sum, l) => sum + computeQuantity(l), 0)
 
           return (
             <Box
@@ -761,12 +907,31 @@ export default function P_MetrajOlusturCetvel() {
                   )}
                 </Typography>
 
-                <Box
-                  title={getMeasurementStatusLabel(sess)}
-                  sx={{ width: '10px', height: '10px', borderRadius: '50%', backgroundColor: getMeasurementDotColor(sess), flexShrink: 0 }}
-                />
-
-                <StatusChip session={sess} />
+                {isReady ? (() => {
+                  const aCount = rootLines.filter(l => l.status === 'approved').length
+                  const pCount = rootLines.filter(l => !l.status || l.status === 'pending').length
+                  const rCount = rootLines.filter(l => l.status === 'rejected').length
+                  const iCount = rootLines.filter(l => l.status === 'ignored').length
+                  return (
+                    <>
+                      {aCount > 0 && <Chip size="small" label={`${aCount} onaylı`} sx={{ backgroundColor: '#E8F5E9', color: '#1B5E20', fontWeight: 600, fontSize: '0.72rem' }} />}
+                      {pCount > 0 && <Chip size="small" label={`${pCount} bekliyor`} sx={{ backgroundColor: '#FFF3E0', color: '#E65100', fontWeight: 600, fontSize: '0.72rem' }} />}
+                      {rCount > 0 && <Chip size="small" label={`${rCount} reddedildi`} sx={{ backgroundColor: '#FFEBEE', color: '#B71C1C', fontWeight: 600, fontSize: '0.72rem' }} />}
+                      {iCount > 0 && <Chip size="small" label={`${iCount} ignore`} sx={{ backgroundColor: '#ECEFF1', color: '#455A64', fontWeight: 600, fontSize: '0.72rem' }} />}
+                      {aCount === 0 && pCount === 0 && rCount === 0 && iCount === 0 && (
+                        <Chip size="small" label="Onay Bekliyor" sx={{ backgroundColor: '#FFF3E0', color: '#E65100', fontWeight: 600, fontSize: '0.72rem' }} />
+                      )}
+                    </>
+                  )
+                })() : (
+                  <>
+                    <Box
+                      title={getMeasurementStatusLabel(sess)}
+                      sx={{ width: '10px', height: '10px', borderRadius: '50%', backgroundColor: getMeasurementDotColor(sess), flexShrink: 0 }}
+                    />
+                    <StatusChip session={sess} />
+                  </>
+                )}
 
                 {/* Kendi onaylı oturumu için revize düzenle */}
                 {isApproved && sess.isOwn && !sess.mode_edit && (
@@ -803,7 +968,7 @@ export default function P_MetrajOlusturCetvel() {
                         <EditIcon sx={{ fontSize: 20 }} />
                       </IconButton>
                     </Tooltip>
-                    {sess.lines.length > 0 && (
+                    {rootLines.length > 0 && (
                       <Tooltip title="Onaya Gönder">
                         <IconButton size="small" onClick={() => handleMarkReady(sess.id)}>
                           <CheckCircleIcon sx={{ fontSize: 24, color: '#2e7d32' }} />
@@ -838,8 +1003,8 @@ export default function P_MetrajOlusturCetvel() {
                   </>
                 )}
 
-                {/* Kendi oturumu onay bekliyor — taslağa geri al */}
-                {isReady && sess.isOwn && (
+                {/* Kendi oturumu onay bekliyor — taslağa geri al (henüz onaylanmış satır yoksa) */}
+                {isReady && sess.isOwn && !hasApprovedLines && (
                   <Tooltip title="Taslağa geri al">
                     <IconButton size="small" onClick={() => handleBackToDraft(sess.id)}>
                       <ReplyIcon sx={{ color: 'orange', fontSize: 20 }} />
@@ -858,14 +1023,14 @@ export default function P_MetrajOlusturCetvel() {
               </Box>
 
               {/* Satır yok */}
-              {sess.lines.length === 0 && !sess.mode_edit && (
+              {rootLines.length === 0 && !sess.mode_edit && !canEdit && (
                 <Box sx={{ px: '1rem', py: '0.75rem', color: 'gray', fontSize: '0.85rem' }}>
                   Bu oturumda metraj satırı bulunmuyor.
                 </Box>
               )}
 
               {/* Tablo */}
-              {(sess.lines.length > 0 || (canEdit && sess.mode_edit) || (sess.isRevisionEdit && sess.mode_edit)) && (
+              {(rootLines.length > 0 || canEdit || (sess.isRevisionEdit && sess.mode_edit)) && (
                 <Box sx={{ overflowX: 'auto' }}>
 
                   {/* Tablo başlığı */}
@@ -874,46 +1039,38 @@ export default function P_MetrajOlusturCetvel() {
                     <Box sx={{ ...css_lineHeaderCell, justifyContent: 'flex-start' }}>Açıklama</Box>
                     {NUM_LABELS.map(lbl => <Box key={lbl} sx={{ ...css_lineHeaderCell }}>{lbl}</Box>)}
                     <Box sx={{ ...css_lineHeaderCell }}>Metraj</Box>
-                    <Box sx={{ ...css_lineHeaderCell }}></Box>
+                    <Box sx={{ ...css_lineHeaderCell }}>Durum</Box>
                   </Box>
 
-                  {/* Satırlar — ağaç düzeninde */}
-                  {buildDisplayTree(sess.lines).map(line => {
+                  {/* Satırlar — sadece kök satırlar (revize alt satırları onaylanan metraj kartında gösterilir) */}
+                  {buildDisplayTree(rootLines).map(line => {
                     const qty = computeQuantity(line)
-                    const isRevisedParent = revisedParentIds.has(line.id)
                     const isDeduction = qty < 0
-                    const rowBg = isRevisedParent
-                      ? 'rgba(191,54,12,0.04)'
-                      : (line.isNew && sess.isRevisionEdit)
+                    const rowBg = (line.isNew && sess.isRevisionEdit)
                       ? 'rgba(255,250,200,0.6)'
                       : isApproved
                       ? cardColors.row
                       : visualStatus === 'unread'
                       ? cardColors.row
                       : sess.mode_edit ? 'rgba(255,250,200,0.4)' : 'white'
-                    const deductionColor = isRevisedParent ? '#bbb' : isDeduction ? '#b71c1c' : undefined
-                    const editActive = (canEdit && sess.mode_edit) || (sess.isRevisionEdit && sess.mode_edit && line.isNew)
+                    const deductionColor = isDeduction ? '#b71c1c' : undefined
+                    const editActive = (canEdit && sess.mode_edit && line.status !== 'approved') || (sess.isRevisionEdit && sess.mode_edit && line.isNew)
                     const depthStyle = line.depth > 0
                       ? { borderLeft: `${Math.min(line.depth, 3) * 3}px solid rgba(144,202,249,0.7)` }
                       : {}
 
                     return (
-                      <Box key={line.id} sx={{ ...css_lineRow, backgroundColor: rowBg, minWidth: 'max-content', ...depthStyle }}>
+                      <Box key={line.id} sx={{ ...css_lineRow, backgroundColor: rowBg, minWidth: 'max-content', ...depthStyle, ...((isApproved || line.status === 'approved') && { '&:hover': {} }) }}>
 
                         <Box sx={{
                           ...css_lineCell, justifyContent: 'flex-end', pr: '4px',
-                          color: isRevisedParent ? '#bf360c' : line.depth > 0 ? '#1565c0' : '#888',
+                          color: qty < 0 ? '#c62828' : (line.depth > 0 ? '#1565c0' : '#888'),
                           fontSize: line.depth > 0 ? '0.78rem' : undefined,
-                          opacity: isRevisedParent ? 0.5 : 1,
                         }}>
                           {line.siraNo}
                         </Box>
 
-                        <Box sx={{
-                          ...css_lineCell, color: deductionColor,
-                          textDecoration: isRevisedParent ? 'line-through' : undefined,
-                          fontStyle: isRevisedParent ? 'italic' : undefined,
-                        }}>
+                        <Box sx={{ ...css_lineCell, color: deductionColor }}>
                           {sess.isRevisionEdit && sess.mode_edit && !line.isNew && (
                             <Tooltip title={`Alt satır ekle → ${line.siraNo}.${sess.lines.filter(l => l.parent_line_id === line.id).length + 1}`}>
                               <IconButton
@@ -953,29 +1110,43 @@ export default function P_MetrajOlusturCetvel() {
                           </Box>
                         ))}
 
-                        <Box sx={{
-                          ...css_lineCell, justifyContent: 'flex-end', color: deductionColor,
-                          textDecoration: isRevisedParent ? 'line-through' : undefined,
-                        }}>
+                        <Box sx={{ ...css_lineCell, justifyContent: 'flex-end', color: qty < 0 ? '#c62828' : deductionColor }}>
                           {ikiHane(qty)}
-                          {pozBirim && !isRevisedParent && <Box component="span" sx={{ ml: '4px', fontWeight: 400, fontSize: '0.75rem', color: '#888' }}>{pozBirim}</Box>}
+                          {pozBirim && <Box component="span" sx={{ ml: '4px', fontWeight: 400, fontSize: '0.75rem', color: '#888' }}>{pozBirim}</Box>}
                         </Box>
 
                         <Box sx={{ ...css_lineCell, justifyContent: 'center', px: '2px' }}>
-                          {((canEdit && sess.mode_edit) ||
-                            (sess.isRevisionEdit && sess.mode_edit && line.isNew)) && (
+                          {((canEdit && sess.mode_edit && line.status !== 'approved') || (sess.isRevisionEdit && sess.mode_edit && line.isNew)) ? (
                             <IconButton size="small" onClick={() => handleDeleteLine(sess.id, line.id)} sx={{ p: '2px' }}>
                               <DeleteOutlineIcon sx={{ fontSize: 18, color: 'salmon' }} />
                             </IconButton>
-                          )}
+                          ) : line.status === 'approved' ? (
+                            <Tooltip title="Onaylandı">
+                              <CheckCircleIcon sx={{ fontSize: 18, color: '#2e7d32' }} />
+                            </Tooltip>
+                          ) : line.status === 'rejected' ? (
+                            <Tooltip title="Reddedildi">
+                              <ClearIcon sx={{ fontSize: 18, color: '#c62828' }} />
+                            </Tooltip>
+                          ) : line.status === 'ignored' ? (
+                            <Tooltip title="Ignore edildi">
+                              <Box sx={{ width: 10, height: 10, borderRadius: '50%', backgroundColor: '#90A4AE' }} />
+                            </Tooltip>
+                          ) : (sess.isOwn && line.status === 'pending') ? (
+                            <Tooltip title="Satırı geri çek">
+                              <IconButton size="small" onClick={() => handleDeleteLine(sess.id, line.id)} sx={{ p: '2px' }}>
+                                <ReplyIcon sx={{ fontSize: 18, color: 'orange' }} />
+                              </IconButton>
+                            </Tooltip>
+                          ) : null}
                         </Box>
 
                       </Box>
                     )
                   })}
 
-                  {/* Satır ekle (taslak düzenleme modunda) */}
-                  {canEdit && sess.mode_edit && !sess.isRevisionEdit && (
+                  {/* Satır ekle */}
+                  {(canEdit || (isReady && sess.isOwn) || (isApproved && sess.isOwn) || (sess.isRevisionEdit && sess.mode_edit)) && (
                     <Box
                       sx={{
                         display: 'flex', alignItems: 'center', px: '6px', py: '2px',
@@ -984,12 +1155,22 @@ export default function P_MetrajOlusturCetvel() {
                         minWidth: 'max-content',
                       }}
                     >
-                      <IconButton size="small" onClick={() => handleAddLine(sess.id)}>
+                      <IconButton size="small" onClick={() => {
+                        if (sess.isRevisionEdit && sess.mode_edit) { addSubLineLocal(sess.id, null) }
+                        else if (isApproved) { handleStartRevision(sess.id); addSubLineLocal(sess.id, null) }
+                        else if (isReady) { handleBackToDraftAndAddLine(sess.id) }
+                        else { updateSess(sess.id, () => ({ mode_edit: true })); handleAddLine(sess.id) }
+                      }}>
                         <AddIcon sx={{ fontSize: 18, color: '#1565c0' }} />
                       </IconButton>
                       <Typography
                         sx={{ fontSize: '0.8rem', color: '#1565c0', ml: '2px', cursor: 'pointer', userSelect: 'none' }}
-                        onClick={() => handleAddLine(sess.id)}
+                        onClick={() => {
+                          if (sess.isRevisionEdit && sess.mode_edit) { addSubLineLocal(sess.id, null) }
+                          else if (isApproved) { handleStartRevision(sess.id); addSubLineLocal(sess.id, null) }
+                          else if (isReady) { handleBackToDraftAndAddLine(sess.id) }
+                          else { updateSess(sess.id, () => ({ mode_edit: true })); handleAddLine(sess.id) }
+                        }}
                       >
                         Satır Ekle
                       </Typography>
@@ -1022,6 +1203,250 @@ export default function P_MetrajOlusturCetvel() {
           )
         })}
       </Box>
+
+      {/* ONAYLANAN METRAJ — Hazırlayan için salt-okunur; onaylı satırlara revize talebi gönderilebilir */}
+      {!loading && approvalTree.length > 0 && (() => {
+        const ONAY_GRID = '40px 1fr 65px 65px 65px 65px 65px 80px 36px 90px 90px 36px'
+        const NUM_ONAY_LABELS = ['Çarpan', 'Adet', 'Boy', 'En', 'Yük']
+        const NUM_ONAY_FIELDS = ['multiplier', 'count', 'length', 'width', 'height']
+        const calcMetrajOnay = (line) => {
+          const vals = [line.multiplier, line.count, line.length, line.width, line.height]
+            .map(v => (v != null && v !== '' ? parseFloat(v) : null))
+            .filter(v => v !== null && !isNaN(v))
+          if (vals.length === 0) return 0
+          return vals.reduce((p, v) => p * v, 1)
+        }
+        const LINE_STATUS_CHIP = {
+          pending:  <Chip size="small" label="Bekliyor"   sx={{ backgroundColor: '#FFF3E0', color: '#E65100', fontWeight: 600, fontSize: '0.7rem', height: 20 }} />,
+          rejected: <Chip size="small" label="Reddedildi" sx={{ backgroundColor: '#FFEBEE', color: '#B71C1C', fontWeight: 600, fontSize: '0.7rem', height: 20 }} />,
+          ignored:  <Chip size="small" label="Ignore"     sx={{ backgroundColor: '#ECEFF1', color: '#455A64', fontWeight: 600, fontSize: '0.7rem', height: 20 }} />,
+        }
+        const css_oh = { display: 'grid', gridTemplateColumns: ONAY_GRID, fontSize: '0.75rem', fontWeight: 600, backgroundColor: '#1b5e20', color: '#fff' }
+        const css_ohc = { px: '4px', py: '3px', display: 'flex', alignItems: 'center', justifyContent: 'center', borderRight: '1px solid rgba(255,255,255,0.15)' }
+        const css_or = { display: 'grid', gridTemplateColumns: ONAY_GRID, borderBottom: '1px solid #e0e0e0' }
+        const css_oc = { px: '4px', py: '3px', fontSize: '0.85rem', display: 'flex', alignItems: 'center', borderRight: '1px solid #eee', overflow: 'hidden' }
+        const inputOnay = { width: '100%', border: 'none', outline: 'none', backgroundColor: 'rgba(255,250,180,0.8)', fontSize: '0.85rem', padding: '2px 4px', MozAppearance: 'textfield' }
+
+        function OnayRow({ node }) {
+          const metraj = calcMetrajOnay(node)
+          const hasKids = (node.children?.length ?? 0) > 0
+          const isExp   = expandedApproved[node.id] ?? false
+          const isTalebiOpen = revizeTalebiForm?.targetLineId === node.id
+          const isRevised = node.status === 'approved' && hasKids
+
+          // Revize edilmiş orijinal satırı atla — children'ı doğrudan göster
+          if (isRevised) {
+            return (
+              <>
+                {showAllOriginals && (
+                  <Box sx={{ ...css_or, backgroundColor: 'rgba(200,230,201,0.2)', minWidth: 'max-content', opacity: 0.7 }}>
+                    <Box sx={{ ...css_oc, justifyContent: 'flex-end', color: '#888', fontSize: '0.78rem' }}>{node.siraNo}</Box>
+                    <Box sx={{ ...css_oc, color: '#777', fontStyle: 'italic', fontSize: '0.82rem' }}>{node.description ?? ''}</Box>
+                    {NUM_ONAY_FIELDS.map(f => (
+                      <Box key={f} sx={{ ...css_oc, justifyContent: 'flex-end', color: '#888' }}>{f === 'multiplier' && node[f] === 1 ? '' : (node[f] != null ? node[f] : '')}</Box>
+                    ))}
+                    <Box sx={{ ...css_oc, justifyContent: 'flex-end', fontWeight: 700, color: '#888' }}>{ikiHane(calcMetrajOnay(node))}</Box>
+                    <Box sx={{ ...css_oc, justifyContent: 'center' }}>
+                      <Chip size="small" label="Orjinal" sx={{ backgroundColor: '#F5F5F5', color: '#9E9E9E', fontWeight: 600, fontSize: '0.7rem', height: 20 }} />
+                    </Box>
+                    <Box sx={{ ...css_oc, fontSize: '0.78rem', color: '#9E9E9E' }}>{node.hazırlayan}</Box>
+                    <Box sx={{ ...css_oc, fontSize: '0.78rem', color: '#9E9E9E' }}>{node.onaylayan}</Box>
+                    <Box sx={{ ...css_oc, justifyContent: 'center' }}>
+                      {!isTalebiOpen && (
+                        <Tooltip title="Yeni revize talebi ekle">
+                          <IconButton size="small" sx={{ p: '2px' }}
+                            onClick={() => setRevizeTalebiForm({ targetLineId: node.id, targetSiraNo: node.siraNo, fields: { description: '', multiplier: '', count: '', length: '', width: '', height: '' } })}>
+                            <EditIcon sx={{ fontSize: 16, color: '#7b1fa2' }} />                          </IconButton>
+                        </Tooltip>
+                      )}
+                    </Box>
+                  </Box>
+                )}
+                {node.children.map(child => <OnayRow key={child.id} node={child} />)}
+                {isTalebiOpen && (
+                  <Box sx={{ ...css_or, backgroundColor: 'rgba(243,229,245,0.8)', borderBottom: '2px solid #7b1fa2', minWidth: 'max-content' }}>
+                    <Box sx={{ ...css_oc, justifyContent: 'flex-end', color: '#7b1fa2', fontSize: '0.82rem' }}>
+                      <SubdirectoryArrowRightIcon sx={{ fontSize: 12, color: '#CE93D8', mr: '2px' }} />
+                      {`${node.siraNo}.${(node.children?.length ?? 0) + 1}`}
+                    </Box>
+                    <Box sx={{ ...css_oc }}>
+                      <input style={{ ...inputOnay, textAlign: 'left' }} value={revizeTalebiForm.fields.description} placeholder="Açıklama"
+                        onChange={e => setRevizeTalebiForm(prev => ({ ...prev, fields: { ...prev.fields, description: e.target.value } }))} />
+                    </Box>
+                    {NUM_ONAY_FIELDS.map(f => (
+                      <Box key={f} sx={{ ...css_oc }}>
+                        <input type="number" className="metraj-num-input" style={{ ...inputOnay, textAlign: 'right' }} value={revizeTalebiForm.fields[f]} placeholder="—"
+                          onChange={e => setRevizeTalebiForm(prev => ({ ...prev, fields: { ...prev.fields, [f]: e.target.value } }))}
+                          onKeyDown={e => ['e', 'E', '+'].includes(e.key) && e.preventDefault()} />
+                      </Box>
+                    ))}
+                    <Box sx={{ ...css_oc, justifyContent: 'flex-end', fontWeight: 700, color: calcMetrajOnay(revizeTalebiForm.fields) < 0 ? '#c62828' : '#7b1fa2' }}>
+                      {ikiHane(calcMetrajOnay(revizeTalebiForm.fields))}
+                    </Box>
+                    <Box sx={{ ...css_oc }} />
+                    <Box sx={{ ...css_oc, fontSize: '0.78rem', color: '#455a64' }}>{appUser?.displayName ?? appUser?.email ?? '(ben)'}</Box>
+                    <Box sx={{ ...css_oc, fontSize: '0.78rem', color: '#e65100' }}>(bekliyor)</Box>
+                    <Box sx={{ ...css_oc, justifyContent: 'center', gap: '2px' }}>
+                      <Tooltip title="İptal"><IconButton size="small" sx={{ p: '2px' }} onClick={() => setRevizeTalebiForm(null)}><ClearIcon sx={{ fontSize: 18, color: '#c62828' }} /></IconButton></Tooltip>
+                      <Tooltip title="Gönder"><IconButton size="small" sx={{ p: '2px' }} onClick={handleSendRevizeTalebi}><SaveIcon sx={{ fontSize: 18, color: '#7b1fa2' }} /></IconButton></Tooltip>
+                    </Box>
+                  </Box>
+                )}
+              </>
+            )
+          }
+
+          const rowBg   = node.status !== 'approved'
+            ? (node.status === 'pending' ? 'rgba(255,243,224,0.5)' : node.status === 'rejected' ? 'rgba(255,235,238,0.5)' : 'rgba(236,239,241,0.5)')
+            : node.depth > 0 ? 'rgba(187,222,251,0.2)' : 'white'
+          const onaylayanText = node.status === 'pending' ? '(bekliyor)' : node.status === 'rejected' ? '(reddedildi)' : node.status === 'ignored' ? '(ignore)' : (node.onaylayan ?? '')
+
+          return (
+            <>
+              <Box sx={{ ...css_or, backgroundColor: rowBg, minWidth: 'max-content', ...(metraj < 0 && { color: '#c62828' }) }}>
+                <Box sx={{ ...css_oc, justifyContent: 'flex-end', color: metraj < 0 ? '#c62828' : (node.depth > 0 ? '#1565c0' : '#555'), fontSize: node.depth > 0 ? '0.78rem' : undefined }}>
+                  {node.depth > 0 && <SubdirectoryArrowRightIcon sx={{ fontSize: 12, color: '#90CAF9', mr: '2px' }} />}
+                  {node.siraNo}
+                </Box>
+                <Box sx={{ ...css_oc }}>{node.description ?? ''}</Box>
+                {NUM_ONAY_FIELDS.map(f => (
+                  <Box key={f} sx={{ ...css_oc, justifyContent: 'flex-end' }}>{f === 'multiplier' && node[f] === 1 ? '' : (node[f] != null ? node[f] : '')}</Box>
+                ))}
+                <Box sx={{ ...css_oc, justifyContent: 'flex-end', fontWeight: 700, ...(metraj < 0 && { color: '#c62828' }) }}>
+                  {ikiHane(metraj)}
+                  {pozBirim && !hasKids && <Box component="span" sx={{ ml: '3px', fontWeight: 400, fontSize: '0.72rem', color: '#888' }}>{pozBirim}</Box>}
+                </Box>
+                <Box sx={{ ...css_oc, justifyContent: 'center' }}>
+                  {node.status !== 'approved' && (LINE_STATUS_CHIP[node.status] ?? null)}
+                </Box>
+                <Box sx={{ ...css_oc, fontSize: '0.78rem', color: metraj < 0 ? '#c62828' : '#455a64' }}>{node.hazırlayan}</Box>
+                <Box sx={{ ...css_oc, fontSize: '0.78rem', color: metraj < 0 ? '#c62828' : node.status === 'pending' ? '#e65100' : node.status === 'rejected' ? '#b71c1c' : '#1b5e20' }}>
+                  {onaylayanText}
+                </Box>
+                <Box sx={{ ...css_oc, justifyContent: 'center', gap: '2px' }}>
+                  {node.status === 'approved' && !isTalebiOpen && (
+                    <Tooltip title="Revize Talebi Gönder">
+                      <IconButton size="small" sx={{ p: '2px' }}
+                        onClick={() => setRevizeTalebiForm({ targetLineId: node.id, targetSiraNo: node.siraNo, fields: { description: '', multiplier: '', count: '', length: '', width: '', height: '' } })}>
+                        <EditIcon sx={{ fontSize: 16, color: '#7b1fa2' }} />
+                      </IconButton>
+                    </Tooltip>
+                  )}
+                  {node.status === 'pending' && sessions.find(s => s.id === node.session_id)?.isOwn && (
+                    <Tooltip title="Revize talebini geri al">
+                      <IconButton size="small" sx={{ p: '2px' }} onClick={() => handleCancelRevizeTalebi(node.id, node.session_id)}>
+                        <ClearIcon sx={{ fontSize: 16, color: '#c62828' }} />
+                      </IconButton>
+                    </Tooltip>
+                  )}
+                  {hasKids && (
+                    <Tooltip title={isExp ? 'Revizeleri gizle' : 'Revizeleri göster'}>
+                      <IconButton size="small" sx={{ p: '2px' }} onClick={() => setExpandedApproved(prev => ({ ...prev, [node.id]: !prev[node.id] }))}>
+                        {isExp ? <ExpandLessIcon sx={{ fontSize: 18, color: '#888' }} /> : <ExpandMoreIcon sx={{ fontSize: 18, color: '#888' }} />}
+                      </IconButton>
+                    </Tooltip>
+                  )}
+                </Box>
+              </Box>
+
+              {/* Alt satırlar */}
+              {hasKids && isExp && node.children.map(child => <OnayRow key={child.id} node={child} />)}
+
+              {/* Revize talebi formu */}
+              {isTalebiOpen && (
+                <Box sx={{ ...css_or, backgroundColor: 'rgba(243,229,245,0.8)', borderBottom: '2px solid #7b1fa2', minWidth: 'max-content' }}>
+                  <Box sx={{ ...css_oc, justifyContent: 'flex-end', color: '#7b1fa2', fontSize: '0.82rem' }}>
+                    <SubdirectoryArrowRightIcon sx={{ fontSize: 12, color: '#CE93D8', mr: '2px' }} />
+                    {`${node.siraNo}.${(node.children?.length ?? 0) + 1}`}
+                  </Box>
+                  <Box sx={{ ...css_oc }}>
+                    <input style={{ ...inputOnay, textAlign: 'left' }} value={revizeTalebiForm.fields.description} placeholder="Açıklama"
+                      onChange={e => setRevizeTalebiForm(prev => ({ ...prev, fields: { ...prev.fields, description: e.target.value } }))} />
+                  </Box>
+                  {NUM_ONAY_FIELDS.map(f => (
+                    <Box key={f} sx={{ ...css_oc }}>
+                      <input type="number" className="metraj-num-input" style={{ ...inputOnay, textAlign: 'right' }} value={revizeTalebiForm.fields[f]} placeholder="—"
+                        onChange={e => setRevizeTalebiForm(prev => ({ ...prev, fields: { ...prev.fields, [f]: e.target.value } }))}
+                        onKeyDown={e => ['e', 'E', '+'].includes(e.key) && e.preventDefault()} />
+                    </Box>
+                  ))}
+                  <Box sx={{ ...css_oc, justifyContent: 'flex-end', fontWeight: 700, color: calcMetrajOnay(revizeTalebiForm.fields) < 0 ? '#c62828' : '#7b1fa2' }}>
+                    {ikiHane(calcMetrajOnay(revizeTalebiForm.fields))}
+                  </Box>
+                  <Box sx={{ ...css_oc }} />
+                  <Box sx={{ ...css_oc, fontSize: '0.78rem', color: '#455a64' }}>{appUser?.displayName ?? appUser?.email ?? '(ben)'}</Box>
+                  <Box sx={{ ...css_oc, fontSize: '0.78rem', color: '#e65100' }}>(bekliyor)</Box>
+                  <Box sx={{ ...css_oc, justifyContent: 'center', gap: '2px' }}>
+                    <Tooltip title="İptal"><IconButton size="small" sx={{ p: '2px' }} onClick={() => setRevizeTalebiForm(null)}><ClearIcon sx={{ fontSize: 18, color: '#c62828' }} /></IconButton></Tooltip>
+                    <Tooltip title="Gönder"><IconButton size="small" sx={{ p: '2px' }} onClick={handleSendRevizeTalebi}><SaveIcon sx={{ fontSize: 18, color: '#7b1fa2' }} /></IconButton></Tooltip>
+                  </Box>
+                </Box>
+              )}
+            </>
+          )
+        }
+
+        const flattenAll = (nodes) => {
+          const result = []
+          const visit = (n) => { result.push(n); if (n.children) n.children.forEach(visit) }
+          nodes.forEach(visit)
+          return result
+        }
+        const onayKartiTotal = flattenAll(approvalTree)
+          .filter(n => !(n.children?.length > 0))
+          .reduce((s, n) => s + calcMetrajOnay(n), 0)
+
+        return (
+          <Box sx={{ px: '1rem', pb: '2rem', maxWidth: '1100px' }}>
+            <Typography variant="subtitle2" sx={{ mb: '0.5rem', color: '#1b5e20', fontWeight: 700, letterSpacing: '0.04em', textTransform: 'uppercase', fontSize: '0.75rem' }}>
+              Onaylanan Metraj
+            </Typography>
+            <Box sx={{ border: '2px solid #43A047', overflow: 'hidden', boxShadow: 2 }}>
+              <Box sx={{ backgroundColor: '#1b5e20', color: '#fff', px: '1rem', py: '0.5rem', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                <Typography variant="body2" sx={{ fontWeight: 700 }}>
+                  Onaylı satırlar — Revize Talebi Gönder için <EditIcon sx={{ fontSize: 14, verticalAlign: 'middle', mx: '3px', color: '#CE93D8' }} /> ikonunu kullan
+                </Typography>
+                <Box
+                  sx={{ display: 'flex', alignItems: 'center', gap: '4px', cursor: 'pointer', fontSize: '0.78rem', opacity: 0.85, userSelect: 'none', '&:hover': { opacity: 1 } }}
+                  onClick={() => setShowAllOriginals(prev => !prev)}
+                >
+                  {showAllOriginals ? <ExpandLessIcon sx={{ fontSize: 16 }} /> : <ExpandMoreIcon sx={{ fontSize: 16 }} />}
+                  {showAllOriginals ? 'Orjinalleri gizle' : 'Tüm orjinalleri göster'}
+                </Box>
+              </Box>
+              <Box sx={{ overflowX: 'auto' }}>
+                <Box sx={{ ...css_oh, minWidth: 'max-content' }}>
+                  <Box sx={{ ...css_ohc }}>Sıra No</Box>
+                  <Box sx={{ ...css_ohc, justifyContent: 'flex-start' }}>Açıklama</Box>
+                  {NUM_ONAY_LABELS.map(lbl => <Box key={lbl} sx={{ ...css_ohc }}>{lbl}</Box>)}
+                  <Box sx={{ ...css_ohc }}>Metraj</Box>
+                  <Box sx={{ ...css_ohc }}>Durum</Box>
+                  <Box sx={{ ...css_ohc }}>Hazırlayan</Box>
+                  <Box sx={{ ...css_ohc }}>Onaylayan</Box>
+                  <Box sx={{ ...css_ohc }}></Box>
+                </Box>
+                {approvalTree.map(rootNode => <OnayRow key={rootNode.id} node={rootNode} />)}
+
+                {/* Toplam satırı */}
+                <Box sx={{
+                  display: 'grid', gridTemplateColumns: ONAY_GRID,
+                  backgroundColor: '#E8F5E9', borderTop: '2px solid #43A047', minWidth: 'max-content',
+                }}>
+                  <Box sx={{ gridColumn: '1 / 8', px: '8px', py: '5px', fontWeight: 600, fontSize: '0.85rem', display: 'flex', alignItems: 'center', justifyContent: 'flex-end', color: '#1b5e20' }}>
+                    Onaylanan Toplam
+                  </Box>
+                  <Box sx={{ px: '8px', py: '5px', fontWeight: 700, fontSize: '0.95rem', display: 'flex', alignItems: 'center', justifyContent: 'flex-end', color: '#1b5e20' }}>
+                    {ikiHane(onayKartiTotal)}
+                    {pozBirim && <Box component="span" sx={{ ml: '4px', fontWeight: 400, fontSize: '0.8rem' }}>{pozBirim}</Box>}
+                  </Box>
+                  <Box /><Box /><Box />
+                </Box>
+              </Box>
+            </Box>
+          </Box>
+        )
+      })()}
+
     </Box>
   )
 }

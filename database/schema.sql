@@ -389,11 +389,16 @@ create table work_package_poz_areas (
 
 -- Metraj oturumları
 -- Aynı iş_paketi+poz+iş_alanı için farklı kişiler farklı zamanlarda metraj oluşturabilir
--- supersedes_session_id: revizyon zinciri — en son onaylı session geçerlidir
+-- revision_snapshot: onay sonrası satır değişikliklerinin önceki hallerini saklar
 --
 -- Durum akışı: draft → ready → approved
 --                       ↓         ↓
 --                    rejected  revise_requested → draft
+--
+-- Genişletilmiş durumlar (migration 002 ile):
+--   seen              → hazırlayan oturumu hazırladı, onay yetkilisi gördü
+--   revised           → onaylandı, sonradan satır revizeleri yapıldı
+--   ignored           → kayıt altına alındı, işleme konulmadı
 create table measurement_sessions (
   id                       uuid primary key default gen_random_uuid(),
   work_package_poz_area_id uuid not null
@@ -401,9 +406,11 @@ create table measurement_sessions (
   supersedes_session_id    uuid references measurement_sessions(id),
   status                   text not null default 'draft'
                              check (status in (
-                               'draft', 'ready', 'approved', 'rejected', 'revise_requested'
+                               'draft', 'ready', 'seen', 'approved', 'revised',
+                               'rejected', 'revise_requested', 'ignored'
                              )),
   total_quantity           numeric(15,4) not null default 0,
+  revision_snapshot        jsonb,          -- onay öncesi satır değerlerini saklar
   notes                    text,
   created_by               uuid references auth.users(id) on delete set null,  -- Supabase Auth UUID
   created_at               timestamptz not null default now(),
@@ -414,20 +421,33 @@ create table measurement_sessions (
 -- Miktar = multiplier × coalesce(count,1) × coalesce(length,1)
 --                      × coalesce(width,1) × coalesce(height,1)
 -- header/subtotal satırlarda miktar hesaplanmaz
+--
+-- Satır Düzeyinde Onay (Kart Mimarisi — migration 002):
+--   status:        pending → approved / rejected / ignored
+--   approved_by:   onay veren kullanıcı UUID
+--   parent_line_id: revize ağacı için üst satır referansı (derinlik sınırı yok)
+--     Kök satır  (parent_line_id IS NULL, status=approved) → Onay Kartında
+--     Kök satır  (parent_line_id IS NULL, status!=approved) → Hazırlayan Kartında
+--     Alt satır  (parent_line_id IS NOT NULL)               → Onay Kartında (tüm durumlar)
 create table measurement_lines (
-  id          uuid primary key default gen_random_uuid(),
-  session_id  uuid not null references measurement_sessions(id) on delete cascade,
-  line_type   text not null default 'data'
-                check (line_type in ('data', 'header', 'subtotal')),
-  description text,
-  multiplier  numeric(6,4)  not null default 1,   -- 1 normal, -1 çıkarma (pencere boşluğu vb.)
-  count       numeric(12,4),                       -- adet
-  length      numeric(12,4),                       -- boy
-  width       numeric(12,4),                       -- en
-  height      numeric(12,4),                       -- yükseklik
-  order_index int not null default 0,
-  created_at  timestamptz not null default now(),
-  updated_at  timestamptz not null default now()
+  id             uuid primary key default gen_random_uuid(),
+  session_id     uuid not null references measurement_sessions(id) on delete cascade,
+  parent_line_id uuid references measurement_lines(id),
+  line_type      text not null default 'data'
+                   check (line_type in ('data', 'header', 'subtotal')),
+  status         text not null default 'pending'
+                   check (status in ('pending', 'approved', 'rejected', 'ignored')),
+  description    text,
+  multiplier     numeric(6,4)  not null default 1,   -- 1 normal, -1 çıkarma (pencere boşluğu vb.)
+  count          numeric(12,4),                       -- adet
+  length         numeric(12,4),                       -- boy
+  width          numeric(12,4),                       -- en
+  height         numeric(12,4),                       -- yükseklik
+  approved_by    uuid references auth.users(id),      -- onaylayan kullanıcı
+  approved_at    timestamptz,                         -- onay zamanı
+  order_index    int not null default 0,
+  created_at     timestamptz not null default now(),
+  updated_at     timestamptz not null default now()
 );
 
 -- Metraj onay geçmişi
@@ -455,6 +475,9 @@ create index on work_package_poz_areas (work_area_id);
 create index on measurement_sessions (work_package_poz_area_id);
 create index on measurement_sessions (status);
 create index on measurement_lines (session_id);
+create index on measurement_lines (parent_line_id);
+create index on measurement_lines (status);
+create index on measurement_lines (approved_by);
 create index on measurement_approvals (session_id);
 
 

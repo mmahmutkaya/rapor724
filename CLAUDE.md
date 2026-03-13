@@ -422,6 +422,88 @@ Sözleşme işlemleri
 
 ---
 
+## Metraj Modülü — İş Mantığı
+
+### Aktörler
+
+| Rol | Açıklama |
+|-----|----------|
+| **Metraj Hazırlayan** | Seçilmiş bir poz + mahal için metraj satırları oluşturur |
+| **Onay Yetkilisi** | Hazırlanan satırları onaylar, reddeder veya ignore eder |
+
+Birden fazla hazırlayan aynı poz+mahal kombinasyonu için bağımsız çalışabilir. Birden fazla onay yetkilisi olabilir; kim onay verdiği kayıt altına alınır.
+
+### Satır Durumları
+
+| Durum | Renk | Açıklama |
+|-------|------|----------|
+| **Bekliyor** | sarı/turuncu | Onay yetkilisinin aksiyonu bekleniyor |
+| **Onaylı** | yeşil | Onay yetkilisi tarafından kabul edildi |
+| **Reddedildi** | kırmızı | Hazırlayana geri gönderildi; yeniden hazırlanması isteniyor |
+| **Ignore** | gri | Kayıt altına alındı, değiştirilemez hale getirildi, işleme konulmadı |
+
+### Revize Sistemi (Ağaç Yapısı)
+
+Her revize, parent satırın altına yerleşir. Derinlik sınırı yoktur.
+
+```
+A3          ← Ayşe'nin orijinal satırı (Onaylı → Revize edildi)
+└── A3.1    ← Mehmet'in revizyonu (Onaylı)
+    └── A3.1.1  ← Fatma'nın revize talebi (Bekliyor)
+```
+
+**Revize kuralları:**
+- **Onay yetkilisi** onayladığı satırı revize edebilir → orijinal yerinde kalır, revize alt satır olarak eklenir (A3 → A3.1)
+- **Metraj hazırlayanlar** onaylanmış/revize görmüş satırlara revize talebi gönderebilir → yeni alt satır oluşur (A3.1 → A3.1.1)
+- Revize talepleri de Onaylı / Reddedildi / Ignore statüsü alabilir
+- Revizeler göster/gizle toggle ile açılıp kapanabilir
+
+### Kart (Card) Mimarisi
+
+Arayüz iki tip kart içerir:
+
+**1. Kişi Kartları** — her hazırlayan için ayrı
+- O kişinin oluşturduğu **orijinal satırları** gösterir: bekleyen, reddedilen, ignore edilenler
+- Kişi, onaylanmış bir satır için revize talebi gönderince bu talep **kendi kartında görünmez — Onay Kartında** açılır
+- Revize talebinin akıbeti (onaylandı / reddedildi / ignore) de kişi kartına yansımaz; takip Onay Kartı üzerinden yapılır
+
+**2. Onay Kartı** — tek, ortak
+- Onaylanmış tüm aktif satırlar burada birikir
+- Onay yetkilisinin kendi revizeleri (örn. A3 → A3.1) burada yer alır
+- Hazırlayanların revize talepleri (örn. A3.1 → A3.1.1) de bu kartta, ilgili satırın altında görünür
+- Reddedilen veya ignore edilen revize talepleri de Onay Kartında kalır (collapsed/gizli halde); hazırlayanın kartına yansımaz
+- Her satır için göster/gizle toggle ile revize geçmişi açılıp kapanabilir
+
+**Onay Kartı sütunları:**
+
+| Satır No | Açıklama | Miktar | Birim | … | Hazırlayan | Onaylayan |
+|----------|----------|--------|-------|---|------------|-----------|
+| A2 | … | … | … | … | Ayşe | Mehmet |
+| A3 | … | … | … | … | Ayşe | Mehmet *(revize edildi)* |
+| A3.1 | … | … | … | … | Mehmet | Mehmet |
+| A3.1.1 | … | … | … | … | Fatma | *(bekliyor)* |
+
+- **Hazırlayan**: satırı ilk oluşturan kişi
+- **Onaylayan**: onay veren yetkili (birden fazla yetkili olabilir; kim onayladı görünür)
+- Onay yetkilisinin kendi revisezi için Hazırlayan = Onaylayan olabilir (örn. A3.1 → Mehmet/Mehmet)
+
+**Onay Kartı aksiyonları:** Her bekleyen satır için → Onayla / Reddet / Ignore butonları
+
+**Örnek senaryo:**
+```
+Ayşe:  A1(bekliyor)  A2(onaylı→onay kartına geçti)  A3(onaylı→revize edildi)
+Fatma: F1(bekliyor)  F2(onaylı→onay kartına geçti)  F3(reddedildi)
+
+Onay Kartı:
+  A2        Ayşe / Mehmet
+  A3        Ayşe / Mehmet  [revize edildi ▼]
+    A3.1    Mehmet / Mehmet
+      A3.1.1  Fatma / (bekliyor)   ← Fatma'nın revize talebi, kendi kartında değil burada
+  F2        Fatma / Mehmet
+```
+
+---
+
 ## Kritik API Kontratları
 
 ### `POST /api/dugumler/ispaketler` — İş Paketi Atama/Kaldırma
@@ -541,6 +623,11 @@ useEffect(() => {
 | mahalBaslik | location category / section header |
 | hazirlanan | prepared / draft |
 | onaylanan | approved |
+| bekliyor | pending (awaiting approval) |
+| reddedildi | rejected |
+| ignore | ignored (recorded but excluded) |
+| revize | revision / amended row |
+| satir | row / measurement line |
 | versiyon | version |
 | kadro | staff / crew |
 | butce | budget |
