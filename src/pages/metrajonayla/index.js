@@ -79,7 +79,7 @@ export default function P_MetrajOnayla() {
   const columns = [
     'max-content',
     'minmax(18rem, max-content)',
-    pageSettings.showAciklama ? 'minmax(14rem, auto)' : null,
+    pageSettings.showAciklama ? 'minmax(14rem, max-content)' : null,
   ].filter(Boolean).join(' ')
 
   const css_baslik = {
@@ -98,7 +98,7 @@ export default function P_MetrajOnayla() {
   const css_satir_bg = '#f2f2f2'
 
   return (
-    <Box>
+    <Box sx={{ minWidth: '40rem' }}>
       {dialogAlert && (
         <DialogAlert
           dialogIcon={dialogAlert.dialogIcon}
@@ -178,7 +178,7 @@ export default function P_MetrajOnayla() {
       )}
 
       {isPaketler.length > 0 && (
-        <Box sx={{ padding: '1rem', maxWidth: '60rem', minWidth: '40rem' }}>
+        <Box sx={{ padding: '1rem', width: 'fit-content', minWidth: '40rem', maxWidth: '60rem' }}>
           <Box sx={{ display: 'grid', gridTemplateColumns: columns }}>
 
             {/* Başlık hücreleri */}

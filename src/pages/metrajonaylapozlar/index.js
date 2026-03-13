@@ -122,9 +122,9 @@ export default function P_MetrajOnaylaPozlar() {
       // Get all ready/approved sessions (no FK join — created_by refs auth.users, not public.users)
       const { data: sessions } = await supabase
         .from('measurement_sessions')
-        .select('id, work_package_poz_area_id, total_quantity, status, created_by')
+        .select('id, work_package_poz_area_id, total_quantity, status, created_by, revision_snapshot')
         .in('work_package_poz_area_id', areaIds)
-        .in('status', ['ready', 'approved', 'revised'])
+        .in('status', ['ready', 'approved', 'revised', 'revise_requested'])
 
       if (!sessions || sessions.length === 0) { setSessionMap({}); return }
 
@@ -166,6 +166,13 @@ export default function P_MetrajOnaylaPozlar() {
           map[pozId].byUser[s.created_by].approvedSum += qty
           map[pozId].approvedSum = (map[pozId].approvedSum ?? 0) + qty
           if (s.status === 'revised') map[pozId].byUser[s.created_by].anyRevised = true
+        }
+        if (s.status === 'revise_requested') {
+          const meta = Array.isArray(s.revision_snapshot) ? s.revision_snapshot.find(e => e.__revision_meta__) : null
+          const approvedQty = meta?.approved_total ?? 0
+          map[pozId].byUser[s.created_by].approvedSum += approvedQty
+          map[pozId].approvedSum = (map[pozId].approvedSum ?? 0) + approvedQty
+          map[pozId].byUser[s.created_by].anyRevised = true
         }
       })
       setSessionMap(map)

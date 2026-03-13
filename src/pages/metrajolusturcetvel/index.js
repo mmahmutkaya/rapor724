@@ -77,6 +77,7 @@ function StatusChip({ session }) {
   if (visual === 'approved') return <Chip size="small" label="Onaylanmış" sx={getMeasurementChipStyle(session)} />
   if (visual === 'revised') return <Chip size="small" label="Onay Sonrası Revize" sx={getMeasurementChipStyle(session)} />
   if (visual === 'rejected') return <Chip size="small" label="Reddedilmiş" sx={getMeasurementChipStyle(session)} />
+  if (visual === 'pendingRevision') return <Chip size="small" label="Revize Talebi (Onay Bekliyor)" sx={getMeasurementChipStyle(session)} />
   if ((session?.status ?? '') === 'draft') return <Chip size="small" label="Taslak" sx={getMeasurementChipStyle(session)} />
   return <Chip size="small" label="Görüldü" sx={getMeasurementChipStyle(session)} />
 }
@@ -121,6 +122,7 @@ function getCardColors(visualStatus) {
   if (visualStatus === 'revised') return { border: '#90CAF9', header: '#E3F2FD', row: 'rgba(187,222,251,0.35)', totalText: '#0D47A1' }
   if (visualStatus === 'unread') return { border: '#FFCC80', header: '#FFF3E0', row: 'rgba(255,224,178,0.3)', totalText: '#E65100' }
   if (visualStatus === 'rejected') return { border: '#EF9A9A', header: '#FFEBEE', row: 'rgba(255,205,210,0.28)', totalText: '#B71C1C' }
+  if (visualStatus === 'pendingRevision') return { border: '#CE93D8', header: '#F3E5F5', row: 'rgba(206,147,216,0.15)', totalText: '#4A148C' }
   return { border: '#B0BEC5', header: '#ECEFF1', row: 'rgba(236,239,241,0.3)', totalText: '#455A64' }
 }
 
@@ -199,7 +201,7 @@ export default function P_MetrajOlusturCetvel() {
 
       setSessions(sorted.map(sess => {
         const revisedLines = Array.isArray(sess.revision_snapshot) && sess.revision_snapshot.length > 0
-          ? Object.fromEntries(sess.revision_snapshot.map(e => [e.id, e]))
+          ? Object.fromEntries(sess.revision_snapshot.filter(e => !e.__revision_meta__ && e.id).map(e => [e.id, e]))
           : {}
         return {
           ...sess,
@@ -432,6 +434,74 @@ export default function P_MetrajOlusturCetvel() {
     }))
   }
 
+  // ── Revize talebini geri çek (approved'a dön) ────────────────
+  const handleCancelRevisionRequest = (sessId) => {
+    setDialogAlert({
+      dialogIcon: 'warning',
+      dialogMessage: 'Revize talebi geri çekilsin mi? Metraj önceki onaylı değere döner.',
+      actionText1: 'Evet, Geri Çek',
+      action1: async () => {
+        setDialogAlert()
+        const sess = sessions.find(s => s.id === sessId)
+        if (!sess) return
+        const meta = Array.isArray(sess.revision_snapshot)
+          ? sess.revision_snapshot.find(e => e.__revision_meta__)
+          : null
+        if (!meta) return
+        const { approved_total, new_line_ids, changed_line_ids } = meta
+        try {
+          const restoreEntries = (sess.revision_snapshot ?? []).filter(
+            e => !e.__revision_meta__ && Array.isArray(changed_line_ids) && changed_line_ids.includes(e.id)
+          )
+          for (const entry of restoreEntries) {
+            const { error } = await supabase.from('measurement_lines').update({
+              multiplier: entry.multiplier, count: entry.count, length: entry.length,
+              width: entry.width, height: entry.height, description: entry.description,
+            }).eq('id', entry.id)
+            if (error) throw error
+          }
+          if (Array.isArray(new_line_ids) && new_line_ids.length > 0) {
+            const { error } = await supabase.from('measurement_lines').delete().in('id', new_line_ids)
+            if (error) throw error
+          }
+          const cleanSnapshot = (sess.revision_snapshot ?? []).filter(
+            e => !e.__revision_meta__ && !(Array.isArray(changed_line_ids) && changed_line_ids.includes(e.id))
+          )
+          const { error: updErr } = await supabase.from('measurement_sessions').update({
+            status: 'approved',
+            total_quantity: approved_total,
+            revision_snapshot: cleanSnapshot.length > 0 ? cleanSnapshot : null,
+            updated_at: new Date().toISOString(),
+          }).eq('id', sessId)
+          if (updErr) throw updErr
+
+          updateSess(sessId, s => {
+            const restoredLines = s.lines
+              .filter(l => !Array.isArray(new_line_ids) || !new_line_ids.includes(l.id))
+              .map(l => {
+                const entry = restoreEntries.find(e => e.id === l.id)
+                if (entry) return { ...l, multiplier: entry.multiplier, count: entry.count, length: entry.length, width: entry.width, height: entry.height, description: entry.description }
+                return l
+              })
+            const newRevisedLines = cleanSnapshot.length > 0 ? Object.fromEntries(cleanSnapshot.map(e => [e.id, e])) : {}
+            const updated = {
+              status: 'approved',
+              total_quantity: approved_total,
+              revision_snapshot: cleanSnapshot.length > 0 ? cleanSnapshot : null,
+              lines: restoredLines,
+              linesBackup: _.cloneDeep(restoredLines),
+              revisedLines: newRevisedLines,
+            }
+            return { ...updated, visualStatus: getMeasurementVisualStatus(updated) }
+          })
+        } catch (err) {
+          setDialogAlert({ dialogIcon: 'warning', dialogMessage: err.message, onCloseAction: () => setDialogAlert() })
+        }
+      },
+      onCloseAction: () => setDialogAlert(),
+    })
+  }
+
   // ── Revize düzenlemesini kaydet ─────────────────────────────
   const handleSaveRevision = async (sessId) => {
     const sess = sessions.find(s => s.id === sessId)
@@ -495,16 +565,26 @@ export default function P_MetrajOlusturCetvel() {
 
       // Revize snapshot'ını birleştir
       const prevSnapshot = Array.isArray(sess.revision_snapshot) ? sess.revision_snapshot : []
-      const prevSnapshotMap = Object.fromEntries(prevSnapshot.map(e => [e.id, e]))
+      const prevSnapshotMap = Object.fromEntries(prevSnapshot.filter(e => !e.__revision_meta__).map(e => [e.id, e]))
       const snapshotArray = Object.values({ ...prevSnapshotMap, ...sess.revisedLines })
+
+      // Meta girişi: onaylı toplam ve değişen/yeni satır listesini sakla
+      const newLineIds = Object.values(insertedMap).map(l => l.id)
+      const metaEntry = {
+        __revision_meta__: true,
+        approved_total: sess.total_quantity,
+        new_line_ids: newLineIds,
+        changed_line_ids: Object.keys(sess.revisedLines),
+      }
+      const fullSnapshot = [...snapshotArray, metaEntry]
 
       const { error: updErr } = await supabase
         .from('measurement_sessions')
         .update({
-          status: 'ready',
+          status: 'revise_requested',
           total_quantity: leafTotal,
           updated_at: new Date().toISOString(),
-          ...(snapshotArray.length > 0 ? { revision_snapshot: snapshotArray } : {}),
+          revision_snapshot: fullSnapshot,
         })
         .eq('id', sessId)
       if (updErr) throw updErr
@@ -512,8 +592,8 @@ export default function P_MetrajOlusturCetvel() {
       const updatedLines = sess.lines.map(l => insertedMap[l.id] ? { ...insertedMap[l.id] } : l)
       const newRevisedLines = { ...prevSnapshotMap, ...sess.revisedLines }
       updateSess(sessId, () => ({
-        status: 'ready',
-        visualStatus: getMeasurementVisualStatus({ status: 'ready', revision_snapshot: snapshotArray }),
+        status: 'revise_requested',
+        visualStatus: getMeasurementVisualStatus({ status: 'revise_requested' }),
         total_quantity: leafTotal,
         lines: updatedLines,
         linesBackup: _.cloneDeep(updatedLines),
@@ -521,7 +601,7 @@ export default function P_MetrajOlusturCetvel() {
         isRevisionEdit: false,
         isChanged: false,
         revisedLines: newRevisedLines,
-        revision_snapshot: snapshotArray,
+        revision_snapshot: fullSnapshot,
       }))
     } catch (err) {
       setDialogAlert({ dialogIcon: 'warning', dialogMessage: err.message, onCloseAction: () => setDialogAlert() })
@@ -763,6 +843,15 @@ export default function P_MetrajOlusturCetvel() {
                   <Tooltip title="Taslağa geri al">
                     <IconButton size="small" onClick={() => handleBackToDraft(sess.id)}>
                       <ReplyIcon sx={{ color: 'orange', fontSize: 20 }} />
+                    </IconButton>
+                  </Tooltip>
+                )}
+
+                {/* Kendi revize talebi — geri çek */}
+                {sess.status === 'revise_requested' && sess.isOwn && !sess.mode_edit && (
+                  <Tooltip title="Revize talebini geri çek (önceki onaylı değere dön)">
+                    <IconButton size="small" onClick={() => handleCancelRevisionRequest(sess.id)}>
+                      <ReplyIcon sx={{ color: '#6a1fa2', fontSize: 20 }} />
                     </IconButton>
                   </Tooltip>
                 )}

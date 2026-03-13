@@ -143,6 +143,10 @@ export default function P_MetrajOnaylaPozMahaller() {
         if (s.status === 'approved' || s.status === 'revised') {
           newMap[areaId].approvedTotal += s.total_quantity ?? 0
         }
+        if (s.status === 'revise_requested') {
+          const meta = Array.isArray(s.revision_snapshot) ? s.revision_snapshot.find(e => e.__revision_meta__) : null
+          newMap[areaId].approvedTotal += meta?.approved_total ?? 0
+        }
 
         const uid = s.created_by
         if (uid && !newMap[areaId].byUser[uid]) {

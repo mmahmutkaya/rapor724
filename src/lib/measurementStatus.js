@@ -4,6 +4,7 @@ export const METRAJ_STATUS_COLORS = {
   revised: '#1565c0',
   seen: '#757575',
   rejected: '#d32f2f',
+  pendingRevision: '#6a1fa2',
 }
 
 function normalizeSession(input) {
@@ -15,14 +16,15 @@ function normalizeSession(input) {
 export function getMeasurementVisualStatus(input) {
   const sess = normalizeSession(input)
   const status = sess.status
-  const hasRevision = Array.isArray(sess.revision_snapshot) && sess.revision_snapshot.length > 0
+  const hasRevision = Array.isArray(sess.revision_snapshot) && sess.revision_snapshot.some(e => !e.__revision_meta__ && e.id)
 
   if (status === 'approved' && hasRevision) return 'revised'
   if (status === 'revised') return 'revised'
   if (status === 'approved') return 'approved'
   if (status === 'ready') return 'unread'
   if (status === 'seen') return 'seen'
-  if (status === 'rejected' || status === 'revise_requested') return 'rejected'
+  if (status === 'revise_requested') return 'pendingRevision'
+  if (status === 'rejected') return 'rejected'
   if (status === 'draft') return 'seen'
 
   return 'seen'
@@ -39,6 +41,7 @@ export function getMeasurementStatusLabel(input) {
   if (visual === 'approved') return 'Onaylanmış'
   if (visual === 'revised') return 'Onay sonrası revize'
   if (visual === 'rejected') return 'Reddedilmiş'
+  if (visual === 'pendingRevision') return 'Revize Talebi'
   return 'Görüldü'
 }
 
@@ -48,5 +51,6 @@ export function getMeasurementChipStyle(input) {
   if (visual === 'approved') return { backgroundColor: '#E8F5E9', color: '#1B5E20', fontWeight: 600 }
   if (visual === 'revised') return { backgroundColor: '#E3F2FD', color: '#0D47A1', fontWeight: 600 }
   if (visual === 'rejected') return { backgroundColor: '#FFEBEE', color: '#B71C1C', fontWeight: 600 }
+  if (visual === 'pendingRevision') return { backgroundColor: '#F3E5F5', color: '#4A148C', fontWeight: 600 }
   return { backgroundColor: '#ECEFF1', color: '#37474F', fontWeight: 600 }
 }

@@ -232,7 +232,7 @@ export default function P_IsPaketler() {
   };
 
   return (
-    <Box>
+    <Box sx={{ minWidth: '40rem' }}>
       {dialogAlert && (
         <DialogAlert
           dialogIcon={dialogAlert.dialogIcon}
@@ -465,7 +465,7 @@ export default function P_IsPaketler() {
       )}
 
       {show === "Main" && isPaketler.length > 0 && (
-        <Box sx={{ padding: "1rem", display: "grid", gridTemplateColumns: columns, minWidth: "40rem" }}>
+        <Box sx={{ padding: "1rem", display: "grid", gridTemplateColumns: columns, minWidth: "40rem", width: "fit-content" }}>
 
           {/* ── Başlık satırı ── */}
           {selectMode && (
