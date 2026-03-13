@@ -45,7 +45,11 @@ import VisibilityOffIcon from '@mui/icons-material/VisibilityOff'
 
 function calcMetraj(line) {
   if (!line) return 0
-  const vals = [line.multiplier, line.count, line.length, line.width, line.height]
+  const vals = [
+    // multiplier=1 is the neutral default (shown as blank in UI), treat as not-set
+    (line.multiplier === 1 ? null : line.multiplier),
+    line.count, line.length, line.width, line.height,
+  ]
     .map(v => (v != null && v !== '' ? parseFloat(v) : null))
     .filter(v => v !== null && !isNaN(v))
   if (vals.length === 0) return 0
@@ -96,7 +100,7 @@ const inputSx = {
 // Kişi kartı: sütun yapısı — sıra | açıklama | çarpan | adet | boy | en | yük | metraj | aksiyonlar
 const KISI_GRID = '40px 1fr 65px 65px 65px 65px 65px 80px 96px'
 // Onay kartı: aynı + hazırlayan | onaylayan | revize-btn
-const ONAY_GRID = '60px 1fr 65px 65px 65px 65px 65px 80px 36px 100px 100px 36px'
+const ONAY_GRID = '60px 1fr 65px 65px 65px 65px 65px 80px 100px 100px 36px'
 
 const NUM_FIELDS  = ['multiplier', 'count', 'length', 'width', 'height']
 const NUM_LABELS  = ['Çarpan', 'Adet', 'Boy', 'En', 'Yük']
@@ -441,13 +445,6 @@ export default function P_MetrajOnaylaCetvel() {
     }} />
   )
 
-  const LineStatusChip = ({ status }) => (
-    <Chip size="small"
-      label={LINE_STATUS_COLORS[status]?.label ?? status}
-      sx={{ ...(LINE_STATUS_COLORS[status]?.chip ?? {}), fontSize: '0.7rem', height: '20px' }}
-    />
-  )
-
 
   // ── KİŞİ KARTI TABLO SATIRI ───────────────────────────────────────────────────
 
@@ -457,8 +454,8 @@ export default function P_MetrajOnaylaCetvel() {
     return (
       <Box sx={{ ...css_dataRow, gridTemplateColumns: KISI_GRID, backgroundColor: rowBg, ...(metraj < 0 && { color: '#c62828' }) }}>
         {/* Sıra */}
-        <Box sx={{ ...css_dataCell, justifyContent: 'flex-end', color: metraj < 0 ? '#c62828' : '#888' }}>
-          {line.order_index}
+        <Box sx={{ ...css_dataCell, justifyContent: 'flex-end', color: '#888' }}>
+          {(line.order_index ?? 0) + 1}
         </Box>
         {/* Açıklama */}
         <Box sx={{ ...css_dataCell }}>{line.description ?? ''}</Box>
@@ -565,7 +562,6 @@ export default function P_MetrajOnaylaCetvel() {
             <Box sx={{ ...css_dataCell, justifyContent: 'flex-end', fontWeight: 700, color: calcMetraj(row) < 0 ? '#c62828' : '#1565c0' }}>
               {ikiHane(calcMetraj(row))}
             </Box>
-            <Box sx={{ ...css_dataCell }} />
             <Box sx={{ ...css_dataCell, fontSize: '0.78rem', color: '#455a64' }}>{userMap[currentUserId] ?? '(ben)'}</Box>
             <Box sx={{ ...css_dataCell, fontSize: '0.78rem', color: '#1b5e20' }}>{userMap[currentUserId] ?? '(ben)'}</Box>
             <Box sx={{ ...css_dataCell, justifyContent: 'center' }}>
@@ -620,7 +616,7 @@ export default function P_MetrajOnaylaCetvel() {
           {/* Sıra — depth ile girinti */}
           <Box sx={{
             ...css_dataCell, justifyContent: 'flex-end',
-            color: metraj < 0 ? '#c62828' : (node.depth > 0 ? '#1565c0' : '#555'), fontSize: node.depth > 0 ? '0.78rem' : undefined,
+            color: node.depth > 0 ? '#1565c0' : '#555', fontSize: node.depth > 0 ? '0.78rem' : undefined,
           }}>
             <Box component="span" sx={{ display: 'inline-block', width: depthIndent }} />
             {node.depth > 0 && <SubdirectoryArrowRightIcon sx={{ fontSize: 12, color: '#90CAF9', mr: '2px' }} />}
@@ -641,19 +637,14 @@ export default function P_MetrajOnaylaCetvel() {
               <Box component="span" sx={{ ml: '3px', fontWeight: 400, fontSize: '0.72rem', color: '#888' }}>{pozBirim}</Box>
             )}
           </Box>
-          {/* Durum */}
-          <Box sx={{ ...css_dataCell, justifyContent: 'center' }}>
-            {node.status !== 'approved' && <LineStatusChip status={node.status} />}
-          </Box>
           {/* Hazırlayan */}
-          <Box sx={{ ...css_dataCell, fontSize: '0.78rem', color: metraj < 0 ? '#c62828' : '#455a64' }}>
+          <Box sx={{ ...css_dataCell, fontSize: '0.78rem', color: '#455a64' }}>
             {node.hazırlayan}
           </Box>
           {/* Onaylayan */}
           <Box sx={{
             ...css_dataCell, fontSize: '0.78rem',
-            color: metraj < 0 ? '#c62828' :
-                   node.status === 'pending' ? '#e65100' :
+            color: node.status === 'pending' ? '#e65100' :
                    node.status === 'rejected' ? '#b71c1c' :
                    node.status === 'ignored' ? '#607d8b' : '#1b5e20',
           }}>
@@ -722,8 +713,6 @@ export default function P_MetrajOnaylaCetvel() {
       <Box sx={{ ...css_dataCell, justifyContent: 'flex-end', fontWeight: 700, fontSize: '0.85rem', color: '#1565c0' }}>
         {ikiHane(calcMetraj(fields))}
       </Box>
-      {/* Durum */}
-      <Box sx={{ ...css_dataCell }} />
       {/* Hazırlayan */}
       <Box sx={{ ...css_dataCell, fontSize: '0.78rem', color: '#455a64' }}>
         {userMap[currentUserId] ?? '(ben)'}
@@ -1002,7 +991,6 @@ export default function P_MetrajOnaylaCetvel() {
                     <Box sx={{ ...css_headerCell, justifyContent: 'flex-start' }}>Açıklama</Box>
                     {NUM_LABELS.map(lbl => <Box key={lbl} sx={{ ...css_headerCell }}>{lbl}</Box>)}
                     <Box sx={{ ...css_headerCell }}>Metraj</Box>
-                    <Box sx={{ ...css_headerCell }}>Durum</Box>
                     <Box sx={{ ...css_headerCell }}>Hazırlayan</Box>
                     <Box sx={{ ...css_headerCell }}>Onaylayan</Box>
                     <Box sx={{ ...css_headerCell }}></Box>

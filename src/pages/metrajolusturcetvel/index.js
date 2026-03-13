@@ -16,7 +16,6 @@ import LinearProgress from '@mui/material/LinearProgress'
 import Alert from '@mui/material/Alert'
 import Stack from '@mui/material/Stack'
 import IconButton from '@mui/material/IconButton'
-import Tooltip from '@mui/material/Tooltip'
 import Chip from '@mui/material/Chip'
 import NavigateNextIcon from '@mui/icons-material/NavigateNext'
 import ReplyIcon from '@mui/icons-material/Reply'
@@ -29,12 +28,18 @@ import DeleteOutlineIcon from '@mui/icons-material/DeleteOutline'
 import SubdirectoryArrowRightIcon from '@mui/icons-material/SubdirectoryArrowRight'
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore'
 import ExpandLessIcon from '@mui/icons-material/ExpandLess'
+import AddCircleOutlineIcon from '@mui/icons-material/AddCircleOutline'
 
 
 function computeQuantity(line) {
   if (!line || line.line_type !== 'data') return 0
   const isEmpty = (val) => val === null || val === undefined || val === ''
-  const allEmpty = [line.multiplier, line.count, line.length, line.width, line.height].every(isEmpty)
+  // multiplier=1 is the neutral default (shown as blank in UI), treat as not-set for allEmpty check
+  const vals = [
+    (line.multiplier === 1 ? null : line.multiplier),
+    line.count, line.length, line.width, line.height,
+  ]
+  const allEmpty = vals.every(isEmpty)
   if (allEmpty) return 0
   const v = (val) => isEmpty(val) ? 1 : Number(val)
   const qty = v(line.multiplier) * v(line.count) * v(line.length) * v(line.width) * v(line.height)
@@ -175,7 +180,7 @@ export default function P_MetrajOlusturCetvel() {
   const [sessions, setSessions] = useState([])
   const [userMap, setUserMap] = useState({})
   const [expandedApproved, setExpandedApproved] = useState({})   // { lineId: bool }
-  const [revizeTalebiForm, setRevizeTalebiForm] = useState(null) // { targetLineId, targetSiraNo, fields }
+  const [revizeForms, setRevizeForms] = useState({}) // { [lineId]: [{ tempId, description, multiplier, count, length, width, height }] }
   const [showAllOriginals, setShowAllOriginals] = useState(false)
 
   const wpAreaId = selectedMahal?.wpAreaId
@@ -708,8 +713,8 @@ export default function P_MetrajOlusturCetvel() {
 
   // ── Revize talebi gönder ─────────────────────────────────────
   const handleSendRevizeTalebi = async () => {
-    if (!revizeTalebiForm) return
-    const { targetLineId, fields } = revizeTalebiForm
+    const formEntries = Object.entries(revizeForms)
+    if (formEntries.length === 0 || !formEntries.some(([, rows]) => rows.length > 0)) return
 
     // Mevcut kullanıcının oturumunu bul veya yeni oluştur
     let mySess = sessions.find(s => s.isOwn)
@@ -721,15 +726,9 @@ export default function P_MetrajOlusturCetvel() {
           .select().single()
         if (error) throw error
         mySess = {
-          ...data,
-          userName: appUser?.email ?? '?',
-          isOwn: true,
-          lines: [],
-          linesBackup: [],
-          mode_edit: false,
-          isRevisionEdit: false,
-          isChanged: false,
-          revisedLines: {},
+          ...data, userName: appUser?.email ?? '?', isOwn: true,
+          lines: [], linesBackup: [], mode_edit: false,
+          isRevisionEdit: false, isChanged: false, revisedLines: {},
         }
         setSessions(prev => [...prev, mySess])
       } catch (err) {
@@ -738,41 +737,51 @@ export default function P_MetrajOlusturCetvel() {
       }
     }
 
-    // Kardeş satırlar arasındaki en büyük order_index
     const allLines = sessions.flatMap(s => s.lines ?? [])
-    const siblings = allLines.filter(l => l.parent_line_id === targetLineId)
-    const maxOrder = siblings.reduce((mx, l) => Math.max(mx, l.order_index ?? 0), 0)
+    const allSavedLines = []
+    const expandUpdates = {}
 
-    try {
-      const { data: newLine, error } = await supabase
-        .from('measurement_lines')
-        .insert({
-          session_id: mySess.id,
-          parent_line_id: targetLineId,
-          order_index: maxOrder + 1,
-          description: fields.description || null,
-          multiplier: fields.multiplier !== '' ? Number(fields.multiplier) : 1,
-          count:  fields.count  !== '' ? Number(fields.count)  : null,
-          length: fields.length !== '' ? Number(fields.length) : null,
-          width:  fields.width  !== '' ? Number(fields.width)  : null,
-          height: fields.height !== '' ? Number(fields.height) : null,
-          status: 'pending',
-          line_type: 'data',
-        })
-        .select().single()
-      if (error) throw error
+    for (const [parentLineId, rows] of formEntries) {
+      if (rows.length === 0) continue
+      const siblings = allLines.filter(l => l.parent_line_id === parentLineId)
+      const maxOrder = siblings.reduce((mx, l) => Math.max(mx, l.order_index ?? 0), 0)
+      const savedLines = []
 
-      // Satırı oturuma ekle
-      setSessions(prev => prev.map(s =>
-        s.id === mySess.id ? { ...s, lines: [...s.lines, newLine] } : s
-      ))
-      // Formu kapatma — alanları sıfırla, yeni kardeş satır eklenebilsin
-      setRevizeTalebiForm(prev => ({ ...prev, fields: { description: '', multiplier: '', count: '', length: '', width: '', height: '' } }))
-      // Üst satırı genişlet
-      setExpandedApproved(prev => ({ ...prev, [targetLineId]: true }))
-    } catch (err) {
-      setDialogAlert({ dialogIcon: 'warning', dialogMessage: err.message, onCloseAction: () => setDialogAlert() })
+      for (let i = 0; i < rows.length; i++) {
+        const row = rows[i]
+        try {
+          const { data: newLine, error } = await supabase
+            .from('measurement_lines')
+            .insert({
+              session_id: mySess.id,
+              parent_line_id: parentLineId,
+              order_index: maxOrder + i + 1,
+              description: row.description || null,
+              multiplier: row.multiplier !== '' ? Number(row.multiplier) : 1,
+              count:  row.count  !== '' ? Number(row.count)  : null,
+              length: row.length !== '' ? Number(row.length) : null,
+              width:  row.width  !== '' ? Number(row.width)  : null,
+              height: row.height !== '' ? Number(row.height) : null,
+              status: 'pending',
+              line_type: 'data',
+            })
+            .select().single()
+          if (error) throw error
+          savedLines.push(newLine)
+        } catch (err) {
+          setDialogAlert({ dialogIcon: 'warning', dialogMessage: err.message, onCloseAction: () => setDialogAlert() })
+          return
+        }
+      }
+      allSavedLines.push(...savedLines)
+      expandUpdates[parentLineId] = true
     }
+
+    setSessions(prev => prev.map(s =>
+      s.id === mySess.id ? { ...s, lines: [...s.lines, ...allSavedLines] } : s
+    ))
+    setExpandedApproved(prev => ({ ...prev, ...expandUpdates }))
+    setRevizeForms({})
   }
 
   const handleCancelRevizeTalebi = async (lineId, sessId) => {
@@ -935,27 +944,21 @@ export default function P_MetrajOlusturCetvel() {
 
                 {/* Kendi onaylı oturumu için revize düzenle */}
                 {isApproved && sess.isOwn && !sess.mode_edit && (
-                  <Tooltip title="Revize et">
-                    <IconButton size="small" onClick={() => handleStartRevision(sess.id)}>
-                      <EditIcon sx={{ fontSize: 20, color: '#1565c0' }} />
-                    </IconButton>
-                  </Tooltip>
+                  <IconButton size="small" onClick={() => handleStartRevision(sess.id)}>
+                    <EditIcon sx={{ fontSize: 20, color: '#1565c0' }} />
+                  </IconButton>
                 )}
 
                 {/* Revize düzenleme modu — iptal / kaydet */}
                 {sess.isRevisionEdit && sess.mode_edit && (
                   <>
-                    <Tooltip title={sess.isChanged ? 'İptal' : 'Düzenlemeyi Bitir'}>
-                      <IconButton size="small" onClick={() => handleCancelRevisionEdit(sess.id)}>
-                        <ClearIcon sx={{ color: sess.isChanged ? '#c62828' : '#888', fontSize: 20 }} />
-                      </IconButton>
-                    </Tooltip>
+                    <IconButton size="small" onClick={() => handleCancelRevisionEdit(sess.id)}>
+                      <ClearIcon sx={{ color: sess.isChanged ? '#c62828' : '#888', fontSize: 20 }} />
+                    </IconButton>
                     {sess.isChanged && (
-                      <Tooltip title="Kaydet (Revize)">
-                        <IconButton size="small" onClick={() => handleSaveRevision(sess.id)}>
-                          <SaveIcon sx={{ color: '#1565c0', fontSize: 20 }} />
-                        </IconButton>
-                      </Tooltip>
+                      <IconButton size="small" onClick={() => handleSaveRevision(sess.id)}>
+                        <SaveIcon sx={{ color: '#1565c0', fontSize: 20 }} />
+                      </IconButton>
                     )}
                   </>
                 )}
@@ -963,62 +966,48 @@ export default function P_MetrajOlusturCetvel() {
                 {/* Kendi taslağı — düzenle / onaya gönder */}
                 {isDraft && sess.isOwn && !sess.mode_edit && !sess.isChanged && (
                   <>
-                    <Tooltip title="Düzenle">
-                      <IconButton size="small" onClick={() => updateSess(sess.id, () => ({ mode_edit: true }))}>
-                        <EditIcon sx={{ fontSize: 20 }} />
-                      </IconButton>
-                    </Tooltip>
+                    <IconButton size="small" onClick={() => updateSess(sess.id, () => ({ mode_edit: true }))}>
+                      <EditIcon sx={{ fontSize: 20 }} />
+                    </IconButton>
                     {rootLines.length > 0 && (
-                      <Tooltip title="Onaya Gönder">
-                        <IconButton size="small" onClick={() => handleMarkReady(sess.id)}>
-                          <CheckCircleIcon sx={{ fontSize: 24, color: '#2e7d32' }} />
-                        </IconButton>
-                      </Tooltip>
+                      <IconButton size="small" onClick={() => handleMarkReady(sess.id)}>
+                        <CheckCircleIcon sx={{ fontSize: 24, color: '#2e7d32' }} />
+                      </IconButton>
                     )}
                   </>
                 )}
 
                 {/* Taslak düzenleme modu — değişiklik yoksa bitir */}
                 {isDraft && sess.isOwn && sess.mode_edit && !sess.isChanged && (
-                  <Tooltip title="Düzenlemeyi Bitir">
-                    <IconButton size="small" onClick={() => updateSess(sess.id, () => ({ mode_edit: false }))}>
-                      <ClearIcon sx={{ color: '#888', fontSize: 20 }} />
-                    </IconButton>
-                  </Tooltip>
+                  <IconButton size="small" onClick={() => updateSess(sess.id, () => ({ mode_edit: false }))}>
+                    <ClearIcon sx={{ color: '#888', fontSize: 20 }} />
+                  </IconButton>
                 )}
 
                 {/* Taslak değişiklik varsa — iptal / kaydet */}
                 {isDraft && sess.isChanged && (
                   <>
-                    <Tooltip title="İptal">
-                      <IconButton size="small" onClick={() => handleCancelEdit(sess.id)}>
-                        <ClearIcon sx={{ color: '#c62828', fontSize: 20 }} />
-                      </IconButton>
-                    </Tooltip>
-                    <Tooltip title="Kaydet">
-                      <IconButton size="small" onClick={() => handleSave(sess.id)}>
-                        <SaveIcon sx={{ color: '#1565c0', fontSize: 20 }} />
-                      </IconButton>
-                    </Tooltip>
+                    <IconButton size="small" onClick={() => handleCancelEdit(sess.id)}>
+                      <ClearIcon sx={{ color: '#c62828', fontSize: 20 }} />
+                    </IconButton>
+                    <IconButton size="small" onClick={() => handleSave(sess.id)}>
+                      <SaveIcon sx={{ color: '#1565c0', fontSize: 20 }} />
+                    </IconButton>
                   </>
                 )}
 
                 {/* Kendi oturumu onay bekliyor — taslağa geri al (henüz onaylanmış satır yoksa) */}
                 {isReady && sess.isOwn && !hasApprovedLines && (
-                  <Tooltip title="Taslağa geri al">
-                    <IconButton size="small" onClick={() => handleBackToDraft(sess.id)}>
-                      <ReplyIcon sx={{ color: 'orange', fontSize: 20 }} />
-                    </IconButton>
-                  </Tooltip>
+                  <IconButton size="small" onClick={() => handleBackToDraft(sess.id)}>
+                    <ReplyIcon sx={{ color: 'orange', fontSize: 20 }} />
+                  </IconButton>
                 )}
 
                 {/* Kendi revize talebi — geri çek */}
                 {sess.status === 'revise_requested' && sess.isOwn && !sess.mode_edit && (
-                  <Tooltip title="Revize talebini geri çek (önceki onaylı değere dön)">
-                    <IconButton size="small" onClick={() => handleCancelRevisionRequest(sess.id)}>
-                      <ReplyIcon sx={{ color: '#6a1fa2', fontSize: 20 }} />
-                    </IconButton>
-                  </Tooltip>
+                  <IconButton size="small" onClick={() => handleCancelRevisionRequest(sess.id)}>
+                    <ReplyIcon sx={{ color: '#6a1fa2', fontSize: 20 }} />
+                  </IconButton>
                 )}
               </Box>
 
@@ -1072,15 +1061,13 @@ export default function P_MetrajOlusturCetvel() {
 
                         <Box sx={{ ...css_lineCell, color: deductionColor }}>
                           {sess.isRevisionEdit && sess.mode_edit && !line.isNew && (
-                            <Tooltip title={`Alt satır ekle → ${line.siraNo}.${sess.lines.filter(l => l.parent_line_id === line.id).length + 1}`}>
-                              <IconButton
-                                size="small"
-                                sx={{ p: '1px', mr: '3px', flexShrink: 0 }}
-                                onClick={() => addSubLineLocal(sess.id, line.id)}
-                              >
-                                <SubdirectoryArrowRightIcon sx={{ fontSize: 13, color: '#1565c0', opacity: 0.7 }} />
-                              </IconButton>
-                            </Tooltip>
+                            <IconButton
+                              size="small"
+                              sx={{ p: '1px', mr: '3px', flexShrink: 0 }}
+                              onClick={() => addSubLineLocal(sess.id, line.id)}
+                            >
+                              <SubdirectoryArrowRightIcon sx={{ fontSize: 13, color: '#1565c0', opacity: 0.7 }} />
+                            </IconButton>
                           )}
                           {editActive ? (
                             <input
@@ -1111,7 +1098,12 @@ export default function P_MetrajOlusturCetvel() {
                         ))}
 
                         <Box sx={{ ...css_lineCell, justifyContent: 'flex-end', color: qty < 0 ? '#c62828' : deductionColor }}>
-                          {ikiHane(qty)}
+                          {qty !== 0 ? ikiHane(qty) : (() => {
+                            const isEmpty = v => v === null || v === undefined || v === ''
+                            const hasData = !isEmpty(line.description) ||
+                              [(line.multiplier === 1 ? null : line.multiplier), line.count, line.length, line.width, line.height].some(v => !isEmpty(v))
+                            return hasData ? ikiHane(qty) : ''
+                          })()}
                           {pozBirim && <Box component="span" sx={{ ml: '4px', fontWeight: 400, fontSize: '0.75rem', color: '#888' }}>{pozBirim}</Box>}
                         </Box>
 
@@ -1121,23 +1113,15 @@ export default function P_MetrajOlusturCetvel() {
                               <DeleteOutlineIcon sx={{ fontSize: 18, color: 'salmon' }} />
                             </IconButton>
                           ) : line.status === 'approved' ? (
-                            <Tooltip title="Onaylandı">
-                              <CheckCircleIcon sx={{ fontSize: 18, color: '#2e7d32' }} />
-                            </Tooltip>
+                            <CheckCircleIcon sx={{ fontSize: 18, color: '#2e7d32' }} />
                           ) : line.status === 'rejected' ? (
-                            <Tooltip title="Reddedildi">
-                              <ClearIcon sx={{ fontSize: 18, color: '#c62828' }} />
-                            </Tooltip>
+                            <ClearIcon sx={{ fontSize: 18, color: '#c62828' }} />
                           ) : line.status === 'ignored' ? (
-                            <Tooltip title="Ignore edildi">
-                              <Box sx={{ width: 10, height: 10, borderRadius: '50%', backgroundColor: '#90A4AE' }} />
-                            </Tooltip>
+                            <Box sx={{ width: 10, height: 10, borderRadius: '50%', backgroundColor: '#90A4AE' }} />
                           ) : (sess.isOwn && line.status === 'pending') ? (
-                            <Tooltip title="Satırı geri çek">
-                              <IconButton size="small" onClick={() => handleDeleteLine(sess.id, line.id)} sx={{ p: '2px' }}>
-                                <ReplyIcon sx={{ fontSize: 18, color: 'orange' }} />
-                              </IconButton>
-                            </Tooltip>
+                            <IconButton size="small" onClick={() => handleDeleteLine(sess.id, line.id)} sx={{ p: '2px' }}>
+                              <ReplyIcon sx={{ fontSize: 18, color: 'orange' }} />
+                            </IconButton>
                           ) : null}
                         </Box>
 
@@ -1206,11 +1190,14 @@ export default function P_MetrajOlusturCetvel() {
 
       {/* ONAYLANAN METRAJ — Hazırlayan için salt-okunur; onaylı satırlara revize talebi gönderilebilir */}
       {!loading && approvalTree.length > 0 && (() => {
-        const ONAY_GRID = '40px 1fr 65px 65px 65px 65px 65px 80px 36px 90px 90px 36px'
+        const ONAY_GRID = '40px 1fr 65px 65px 65px 65px 65px 80px 90px 90px 36px'
         const NUM_ONAY_LABELS = ['Çarpan', 'Adet', 'Boy', 'En', 'Yük']
         const NUM_ONAY_FIELDS = ['multiplier', 'count', 'length', 'width', 'height']
         const calcMetrajOnay = (line) => {
-          const vals = [line.multiplier, line.count, line.length, line.width, line.height]
+          const vals = [
+            (line.multiplier === 1 ? null : line.multiplier),
+            line.count, line.length, line.width, line.height,
+          ]
             .map(v => (v != null && v !== '' ? parseFloat(v) : null))
             .filter(v => v !== null && !isNaN(v))
           if (vals.length === 0) return 0
@@ -1223,80 +1210,106 @@ export default function P_MetrajOlusturCetvel() {
         }
         const css_oh = { display: 'grid', gridTemplateColumns: ONAY_GRID, fontSize: '0.75rem', fontWeight: 600, backgroundColor: '#1b5e20', color: '#fff' }
         const css_ohc = { px: '4px', py: '3px', display: 'flex', alignItems: 'center', justifyContent: 'center', borderRight: '1px solid rgba(255,255,255,0.15)' }
-        const css_or = { display: 'grid', gridTemplateColumns: ONAY_GRID, borderBottom: '1px solid #e0e0e0' }
-        const css_oc = { px: '4px', py: '3px', fontSize: '0.85rem', display: 'flex', alignItems: 'center', borderRight: '1px solid #eee', overflow: 'hidden' }
+        const css_or = { display: 'grid', gridTemplateColumns: ONAY_GRID, borderBottom: '1px dashed #c8c8c8', '&:hover': { backgroundColor: '#fafafa' } }
+        const css_oc = { px: '4px', py: '6px', fontSize: '0.85rem', display: 'flex', alignItems: 'center', borderRight: '1px dashed #d8d8d8', overflow: 'hidden' }
         const inputOnay = { width: '100%', border: 'none', outline: 'none', backgroundColor: 'rgba(255,250,180,0.8)', fontSize: '0.85rem', padding: '2px 4px', MozAppearance: 'textfield' }
 
-        function OnayRow({ node }) {
+        const openRevize = (lineId) => {
+          if (revizeForms[lineId]) return // zaten açık
+          setRevizeForms(prev => ({
+            ...prev,
+            [lineId]: [{ tempId: `tmp-${Date.now()}`, description: '', multiplier: '', count: '', length: '', width: '', height: '' }],
+          }))
+        }
+
+        // Plain function (not component) — prevents React unmount/remount on state change
+        function renderOnayRow(node) {
           const metraj = calcMetrajOnay(node)
           const hasKids = (node.children?.length ?? 0) > 0
           const isExp   = expandedApproved[node.id] ?? false
-          const isTalebiOpen = revizeTalebiForm?.targetLineId === node.id
+          const isRevizeOpen = !!(revizeForms[node.id]?.length)
           const isRevised = node.status === 'approved' && hasKids
 
-          // Revize edilmiş orijinal satırı atla — children'ı doğrudan göster
+          // Çoklu satır revize editörü (metrajonaylacetvel ile aynı)
+          const nodeRevizeRows = revizeForms[node.id] ?? []
+          const revizeEditor = isRevizeOpen && nodeRevizeRows.length > 0 ? (
+            <>
+              {nodeRevizeRows.map((row, rowIdx) => (
+                <Box key={row.tempId} sx={{ ...css_or, backgroundColor: 'rgba(243,229,245,0.8)', borderBottom: '1px solid #7b1fa2', minWidth: 'max-content' }}>
+                  <Box sx={{ ...css_oc, justifyContent: 'center', color: '#7b1fa2', fontSize: '0.82rem' }}>
+                    <SubdirectoryArrowRightIcon sx={{ fontSize: 12, color: '#CE93D8', mr: '2px' }} />
+                    {`${node.siraNo}.${(node.children?.length ?? 0) + rowIdx + 1}`}
+                  </Box>
+                  <Box sx={{ ...css_oc }}>
+                    <input style={{ ...inputOnay, textAlign: 'left' }} value={row.description} placeholder="Açıklama"
+                      onChange={e => setRevizeForms(prev => ({ ...prev, [node.id]: prev[node.id].map(r => r.tempId === row.tempId ? { ...r, description: e.target.value } : r) }))} />
+                  </Box>
+                  {NUM_ONAY_FIELDS.map(f => (
+                    <Box key={f} sx={{ ...css_oc }}>
+                      <input type="number" className="metraj-num-input" style={{ ...inputOnay, textAlign: 'right' }}
+                        value={row[f]} placeholder="—"
+                        onChange={e => setRevizeForms(prev => ({ ...prev, [node.id]: prev[node.id].map(r => r.tempId === row.tempId ? { ...r, [f]: e.target.value } : r) }))}
+                        onKeyDown={e => ['e', 'E', '+'].includes(e.key) && e.preventDefault()} />
+                    </Box>
+                  ))}
+                  <Box sx={{ ...css_oc, justifyContent: 'flex-end', fontWeight: 700, color: calcMetrajOnay(row) < 0 ? '#c62828' : '#7b1fa2' }}>
+                    {(() => {
+                      const qty = calcMetrajOnay(row)
+                      const isEmpty = v => v === null || v === undefined || v === ''
+                      const hasData = [row.multiplier, row.count, row.length, row.width, row.height].some(v => !isEmpty(v))
+                      return (qty !== 0 || hasData) ? ikiHane(qty) : ''
+                    })()}
+                  </Box>
+                  <Box sx={{ ...css_oc, fontSize: '0.78rem', color: '#455a64' }}>{appUser?.displayName ?? appUser?.email ?? '(ben)'}</Box>
+                  <Box sx={{ ...css_oc, fontSize: '0.78rem', color: '#e65100' }}>(bekliyor)</Box>
+                  <Box sx={{ ...css_oc, justifyContent: 'center' }}>
+                    <IconButton size="small" sx={{ p: '2px' }}
+                        onClick={() => {
+                          if (nodeRevizeRows.length === 1) {
+                            setRevizeForms(prev => { const n = { ...prev }; delete n[node.id]; return n })
+                          } else {
+                            setRevizeForms(prev => ({ ...prev, [node.id]: prev[node.id].filter(r => r.tempId !== row.tempId) }))
+                          }
+                        }}>
+                        <DeleteOutlineIcon sx={{ fontSize: 18, color: 'salmon' }} />
+                      </IconButton>
+                  </Box>
+                </Box>
+              ))}
+            </>
+          ) : null
+
           if (isRevised) {
             return (
               <>
                 {showAllOriginals && (
                   <Box sx={{ ...css_or, backgroundColor: 'rgba(200,230,201,0.2)', minWidth: 'max-content', opacity: 0.7 }}>
-                    <Box sx={{ ...css_oc, justifyContent: 'flex-end', color: '#888', fontSize: '0.78rem' }}>{node.siraNo}</Box>
+                    <Box sx={{ ...css_oc, justifyContent: 'center', color: '#888', fontSize: '0.78rem' }}>{node.siraNo}</Box>
                     <Box sx={{ ...css_oc, color: '#777', fontStyle: 'italic', fontSize: '0.82rem' }}>{node.description ?? ''}</Box>
                     {NUM_ONAY_FIELDS.map(f => (
                       <Box key={f} sx={{ ...css_oc, justifyContent: 'flex-end', color: '#888' }}>{f === 'multiplier' && node[f] === 1 ? '' : (node[f] != null ? node[f] : '')}</Box>
                     ))}
                     <Box sx={{ ...css_oc, justifyContent: 'flex-end', fontWeight: 700, color: '#888' }}>{ikiHane(calcMetrajOnay(node))}</Box>
-                    <Box sx={{ ...css_oc, justifyContent: 'center' }}>
-                      <Chip size="small" label="Orjinal" sx={{ backgroundColor: '#F5F5F5', color: '#9E9E9E', fontWeight: 600, fontSize: '0.7rem', height: 20 }} />
-                    </Box>
                     <Box sx={{ ...css_oc, fontSize: '0.78rem', color: '#9E9E9E' }}>{node.hazırlayan}</Box>
                     <Box sx={{ ...css_oc, fontSize: '0.78rem', color: '#9E9E9E' }}>{node.onaylayan}</Box>
                     <Box sx={{ ...css_oc, justifyContent: 'center' }}>
-                      {!isTalebiOpen && (
-                        <Tooltip title="Yeni revize talebi ekle">
-                          <IconButton size="small" sx={{ p: '2px' }}
-                            onClick={() => setRevizeTalebiForm({ targetLineId: node.id, targetSiraNo: node.siraNo, fields: { description: '', multiplier: '', count: '', length: '', width: '', height: '' } })}>
-                            <EditIcon sx={{ fontSize: 16, color: '#7b1fa2' }} />                          </IconButton>
-                        </Tooltip>
+                      {!isRevizeOpen && (
+                        <IconButton size="small" sx={{ p: '2px' }} onClick={() => openRevize(node.id)}>
+                          <EditIcon sx={{ fontSize: 16, color: '#7b1fa2' }} />
+                        </IconButton>
                       )}
                     </Box>
                   </Box>
                 )}
-                {node.children.map(child => <OnayRow key={child.id} node={child} />)}
-                {isTalebiOpen && (
-                  <Box sx={{ ...css_or, backgroundColor: 'rgba(243,229,245,0.8)', borderBottom: '2px solid #7b1fa2', minWidth: 'max-content' }}>
-                    <Box sx={{ ...css_oc, justifyContent: 'flex-end', color: '#7b1fa2', fontSize: '0.82rem' }}>
-                      <SubdirectoryArrowRightIcon sx={{ fontSize: 12, color: '#CE93D8', mr: '2px' }} />
-                      {`${node.siraNo}.${(node.children?.length ?? 0) + 1}`}
-                    </Box>
-                    <Box sx={{ ...css_oc }}>
-                      <input style={{ ...inputOnay, textAlign: 'left' }} value={revizeTalebiForm.fields.description} placeholder="Açıklama"
-                        onChange={e => setRevizeTalebiForm(prev => ({ ...prev, fields: { ...prev.fields, description: e.target.value } }))} />
-                    </Box>
-                    {NUM_ONAY_FIELDS.map(f => (
-                      <Box key={f} sx={{ ...css_oc }}>
-                        <input type="number" className="metraj-num-input" style={{ ...inputOnay, textAlign: 'right' }} value={revizeTalebiForm.fields[f]} placeholder="—"
-                          onChange={e => setRevizeTalebiForm(prev => ({ ...prev, fields: { ...prev.fields, [f]: e.target.value } }))}
-                          onKeyDown={e => ['e', 'E', '+'].includes(e.key) && e.preventDefault()} />
-                      </Box>
-                    ))}
-                    <Box sx={{ ...css_oc, justifyContent: 'flex-end', fontWeight: 700, color: calcMetrajOnay(revizeTalebiForm.fields) < 0 ? '#c62828' : '#7b1fa2' }}>
-                      {ikiHane(calcMetrajOnay(revizeTalebiForm.fields))}
-                    </Box>
-                    <Box sx={{ ...css_oc }} />
-                    <Box sx={{ ...css_oc, fontSize: '0.78rem', color: '#455a64' }}>{appUser?.displayName ?? appUser?.email ?? '(ben)'}</Box>
-                    <Box sx={{ ...css_oc, fontSize: '0.78rem', color: '#e65100' }}>(bekliyor)</Box>
-                    <Box sx={{ ...css_oc, justifyContent: 'center', gap: '2px' }}>
-                      <Tooltip title="İptal"><IconButton size="small" sx={{ p: '2px' }} onClick={() => setRevizeTalebiForm(null)}><ClearIcon sx={{ fontSize: 18, color: '#c62828' }} /></IconButton></Tooltip>
-                      <Tooltip title="Gönder"><IconButton size="small" sx={{ p: '2px' }} onClick={handleSendRevizeTalebi}><SaveIcon sx={{ fontSize: 18, color: '#7b1fa2' }} /></IconButton></Tooltip>
-                    </Box>
-                  </Box>
-                )}
+                {node.children.map(child => (
+                  <React.Fragment key={child.id}>{renderOnayRow(child)}</React.Fragment>
+                ))}
+                {revizeEditor}
               </>
             )
           }
 
-          const rowBg   = node.status !== 'approved'
+          const rowBg = node.status !== 'approved'
             ? (node.status === 'pending' ? 'rgba(255,243,224,0.5)' : node.status === 'rejected' ? 'rgba(255,235,238,0.5)' : 'rgba(236,239,241,0.5)')
             : node.depth > 0 ? 'rgba(187,222,251,0.2)' : 'white'
           const onaylayanText = node.status === 'pending' ? '(bekliyor)' : node.status === 'rejected' ? '(reddedildi)' : node.status === 'ignored' ? '(ignore)' : (node.onaylayan ?? '')
@@ -1304,7 +1317,7 @@ export default function P_MetrajOlusturCetvel() {
           return (
             <>
               <Box sx={{ ...css_or, backgroundColor: rowBg, minWidth: 'max-content', ...(metraj < 0 && { color: '#c62828' }) }}>
-                <Box sx={{ ...css_oc, justifyContent: 'flex-end', color: metraj < 0 ? '#c62828' : (node.depth > 0 ? '#1565c0' : '#555'), fontSize: node.depth > 0 ? '0.78rem' : undefined }}>
+                <Box sx={{ ...css_oc, justifyContent: 'center', color: node.depth > 0 ? '#1565c0' : '#555', fontSize: node.depth > 0 ? '0.78rem' : undefined }}>
                   {node.depth > 0 && <SubdirectoryArrowRightIcon sx={{ fontSize: 12, color: '#90CAF9', mr: '2px' }} />}
                   {node.siraNo}
                 </Box>
@@ -1313,75 +1326,48 @@ export default function P_MetrajOlusturCetvel() {
                   <Box key={f} sx={{ ...css_oc, justifyContent: 'flex-end' }}>{f === 'multiplier' && node[f] === 1 ? '' : (node[f] != null ? node[f] : '')}</Box>
                 ))}
                 <Box sx={{ ...css_oc, justifyContent: 'flex-end', fontWeight: 700, ...(metraj < 0 && { color: '#c62828' }) }}>
-                  {ikiHane(metraj)}
-                  {pozBirim && !hasKids && <Box component="span" sx={{ ml: '3px', fontWeight: 400, fontSize: '0.72rem', color: '#888' }}>{pozBirim}</Box>}
+                  {metraj !== 0 ? ikiHane(metraj) : (() => {
+                    const isEmpty = v => v === null || v === undefined || v === ''
+                    const hasData = !isEmpty(node.description) ||
+                      [(node.multiplier === 1 ? null : node.multiplier), node.count, node.length, node.width, node.height].some(v => !isEmpty(v))
+                    return hasData ? ikiHane(metraj) : ''
+                  })()}
+                  {pozBirim && !hasKids && metraj !== 0 && <Box component="span" sx={{ ml: '3px', fontWeight: 400, fontSize: '0.72rem', color: '#888' }}>{pozBirim}</Box>}
                 </Box>
-                <Box sx={{ ...css_oc, justifyContent: 'center' }}>
-                  {node.status !== 'approved' && (LINE_STATUS_CHIP[node.status] ?? null)}
-                </Box>
-                <Box sx={{ ...css_oc, fontSize: '0.78rem', color: metraj < 0 ? '#c62828' : '#455a64' }}>{node.hazırlayan}</Box>
-                <Box sx={{ ...css_oc, fontSize: '0.78rem', color: metraj < 0 ? '#c62828' : node.status === 'pending' ? '#e65100' : node.status === 'rejected' ? '#b71c1c' : '#1b5e20' }}>
+                <Box sx={{ ...css_oc, fontSize: '0.78rem', color: '#455a64' }}>{node.hazırlayan}</Box>
+                <Box sx={{ ...css_oc, fontSize: '0.78rem', color: node.status === 'pending' ? '#e65100' : node.status === 'rejected' ? '#b71c1c' : '#1b5e20' }}>
                   {onaylayanText}
                 </Box>
                 <Box sx={{ ...css_oc, justifyContent: 'center', gap: '2px' }}>
-                  {node.status === 'approved' && !isTalebiOpen && (
-                    <Tooltip title="Revize Talebi Gönder">
-                      <IconButton size="small" sx={{ p: '2px' }}
-                        onClick={() => setRevizeTalebiForm({ targetLineId: node.id, targetSiraNo: node.siraNo, fields: { description: '', multiplier: '', count: '', length: '', width: '', height: '' } })}>
-                        <EditIcon sx={{ fontSize: 16, color: '#7b1fa2' }} />
-                      </IconButton>
-                    </Tooltip>
+                  {node.status === 'approved' && !isRevizeOpen && (
+                    <IconButton size="small" sx={{ p: '2px' }} onClick={() => openRevize(node.id)}>
+                      <EditIcon sx={{ fontSize: 16, color: '#7b1fa2' }} />
+                    </IconButton>
+                  )}
+                  {node.status === 'approved' && isRevizeOpen && (
+                    <IconButton size="small" sx={{ p: '2px' }}
+                      onClick={() => setRevizeForms(prev => ({ ...prev, [node.id]: [...(prev[node.id] ?? []), { tempId: `tmp-${Date.now()}-${Math.random()}`, description: '', multiplier: '', count: '', length: '', width: '', height: '' }] }))}>
+                      <AddCircleOutlineIcon sx={{ fontSize: 18, color: '#7b1fa2' }} />
+                    </IconButton>
                   )}
                   {node.status === 'pending' && sessions.find(s => s.id === node.session_id)?.isOwn && (
-                    <Tooltip title="Revize talebini geri al">
-                      <IconButton size="small" sx={{ p: '2px' }} onClick={() => handleCancelRevizeTalebi(node.id, node.session_id)}>
-                        <ClearIcon sx={{ fontSize: 16, color: '#c62828' }} />
-                      </IconButton>
-                    </Tooltip>
+                    <IconButton size="small" sx={{ p: '2px' }} onClick={() => handleCancelRevizeTalebi(node.id, node.session_id)}>
+                      <ClearIcon sx={{ fontSize: 16, color: '#c62828' }} />
+                    </IconButton>
                   )}
                   {hasKids && (
-                    <Tooltip title={isExp ? 'Revizeleri gizle' : 'Revizeleri göster'}>
-                      <IconButton size="small" sx={{ p: '2px' }} onClick={() => setExpandedApproved(prev => ({ ...prev, [node.id]: !prev[node.id] }))}>
-                        {isExp ? <ExpandLessIcon sx={{ fontSize: 18, color: '#888' }} /> : <ExpandMoreIcon sx={{ fontSize: 18, color: '#888' }} />}
-                      </IconButton>
-                    </Tooltip>
+                    <IconButton size="small" sx={{ p: '2px' }} onClick={() => setExpandedApproved(prev => ({ ...prev, [node.id]: !prev[node.id] }))}>
+                      {isExp ? <ExpandLessIcon sx={{ fontSize: 18, color: '#888' }} /> : <ExpandMoreIcon sx={{ fontSize: 18, color: '#888' }} />}
+                    </IconButton>
                   )}
                 </Box>
               </Box>
 
-              {/* Alt satırlar */}
-              {hasKids && isExp && node.children.map(child => <OnayRow key={child.id} node={child} />)}
+              {hasKids && isExp && node.children.map(child => (
+                <React.Fragment key={child.id}>{renderOnayRow(child)}</React.Fragment>
+              ))}
 
-              {/* Revize talebi formu */}
-              {isTalebiOpen && (
-                <Box sx={{ ...css_or, backgroundColor: 'rgba(243,229,245,0.8)', borderBottom: '2px solid #7b1fa2', minWidth: 'max-content' }}>
-                  <Box sx={{ ...css_oc, justifyContent: 'flex-end', color: '#7b1fa2', fontSize: '0.82rem' }}>
-                    <SubdirectoryArrowRightIcon sx={{ fontSize: 12, color: '#CE93D8', mr: '2px' }} />
-                    {`${node.siraNo}.${(node.children?.length ?? 0) + 1}`}
-                  </Box>
-                  <Box sx={{ ...css_oc }}>
-                    <input style={{ ...inputOnay, textAlign: 'left' }} value={revizeTalebiForm.fields.description} placeholder="Açıklama"
-                      onChange={e => setRevizeTalebiForm(prev => ({ ...prev, fields: { ...prev.fields, description: e.target.value } }))} />
-                  </Box>
-                  {NUM_ONAY_FIELDS.map(f => (
-                    <Box key={f} sx={{ ...css_oc }}>
-                      <input type="number" className="metraj-num-input" style={{ ...inputOnay, textAlign: 'right' }} value={revizeTalebiForm.fields[f]} placeholder="—"
-                        onChange={e => setRevizeTalebiForm(prev => ({ ...prev, fields: { ...prev.fields, [f]: e.target.value } }))}
-                        onKeyDown={e => ['e', 'E', '+'].includes(e.key) && e.preventDefault()} />
-                    </Box>
-                  ))}
-                  <Box sx={{ ...css_oc, justifyContent: 'flex-end', fontWeight: 700, color: calcMetrajOnay(revizeTalebiForm.fields) < 0 ? '#c62828' : '#7b1fa2' }}>
-                    {ikiHane(calcMetrajOnay(revizeTalebiForm.fields))}
-                  </Box>
-                  <Box sx={{ ...css_oc }} />
-                  <Box sx={{ ...css_oc, fontSize: '0.78rem', color: '#455a64' }}>{appUser?.displayName ?? appUser?.email ?? '(ben)'}</Box>
-                  <Box sx={{ ...css_oc, fontSize: '0.78rem', color: '#e65100' }}>(bekliyor)</Box>
-                  <Box sx={{ ...css_oc, justifyContent: 'center', gap: '2px' }}>
-                    <Tooltip title="İptal"><IconButton size="small" sx={{ p: '2px' }} onClick={() => setRevizeTalebiForm(null)}><ClearIcon sx={{ fontSize: 18, color: '#c62828' }} /></IconButton></Tooltip>
-                    <Tooltip title="Gönder"><IconButton size="small" sx={{ p: '2px' }} onClick={handleSendRevizeTalebi}><SaveIcon sx={{ fontSize: 18, color: '#7b1fa2' }} /></IconButton></Tooltip>
-                  </Box>
-                </Box>
-              )}
+              {revizeEditor}
             </>
           )
         }
@@ -1394,44 +1380,58 @@ export default function P_MetrajOlusturCetvel() {
         }
         const onayKartiTotal = flattenAll(approvalTree)
           .filter(n => !(n.children?.length > 0))
+          .filter(n => !revizeForms[n.id]?.length)
           .reduce((s, n) => s + calcMetrajOnay(n), 0)
+          + Object.values(revizeForms).flat().reduce((s, row) => s + calcMetrajOnay(row), 0)
 
         return (
           <Box sx={{ px: '1rem', pb: '2rem', maxWidth: '1100px' }}>
             <Typography variant="subtitle2" sx={{ mb: '0.5rem', color: '#1b5e20', fontWeight: 700, letterSpacing: '0.04em', textTransform: 'uppercase', fontSize: '0.75rem' }}>
-              Onaylanan Metraj
+              Onaylı Metraj
             </Typography>
             <Box sx={{ border: '2px solid #43A047', overflow: 'hidden', boxShadow: 2 }}>
-              <Box sx={{ backgroundColor: '#1b5e20', color: '#fff', px: '1rem', py: '0.5rem', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                <Typography variant="body2" sx={{ fontWeight: 700 }}>
-                  Onaylı satırlar — Revize Talebi Gönder için <EditIcon sx={{ fontSize: 14, verticalAlign: 'middle', mx: '3px', color: '#CE93D8' }} /> ikonunu kullan
-                </Typography>
-                <Box
-                  sx={{ display: 'flex', alignItems: 'center', gap: '4px', cursor: 'pointer', fontSize: '0.78rem', opacity: 0.85, userSelect: 'none', '&:hover': { opacity: 1 } }}
-                  onClick={() => setShowAllOriginals(prev => !prev)}
-                >
-                  {showAllOriginals ? <ExpandLessIcon sx={{ fontSize: 16 }} /> : <ExpandMoreIcon sx={{ fontSize: 16 }} />}
-                  {showAllOriginals ? 'Orjinalleri gizle' : 'Tüm orjinalleri göster'}
+              {/* Kart başlığı */}
+              <Box sx={{ backgroundColor: '#1b5e20', color: '#fff', px: '1rem', minHeight: '44px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                <Typography variant="body2" sx={{ fontWeight: 700 }}>Onaylı Metraj</Typography>
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  <Box
+                    sx={{ display: 'flex', alignItems: 'center', gap: '4px', cursor: 'pointer', fontSize: '0.78rem', opacity: 0.85, userSelect: 'none', '&:hover': { opacity: 1 } }}
+                    onClick={() => setShowAllOriginals(prev => !prev)}
+                  >
+                    {showAllOriginals ? <ExpandLessIcon sx={{ fontSize: 16 }} /> : <ExpandMoreIcon sx={{ fontSize: 16 }} />}
+                    {showAllOriginals ? 'Orjinalleri gizle' : 'Tüm orjinalleri göster'}
+                  </Box>
+                  {Object.keys(revizeForms).length > 0 && (
+                    <>
+                      <IconButton size="small" sx={{ p: '2px', color: '#ffcdd2' }} onClick={() => setRevizeForms({})}>
+                        <ClearIcon sx={{ fontSize: 20 }} />
+                      </IconButton>
+                      <IconButton size="small" sx={{ p: '2px', color: '#c8e6c9' }} onClick={handleSendRevizeTalebi}>
+                        <SaveIcon sx={{ fontSize: 20 }} />
+                      </IconButton>
+                    </>
+                  )}
                 </Box>
               </Box>
+
               <Box sx={{ overflowX: 'auto' }}>
+                {/* Tablo başlığı */}
                 <Box sx={{ ...css_oh, minWidth: 'max-content' }}>
-                  <Box sx={{ ...css_ohc }}>Sıra No</Box>
+                  <Box sx={{ ...css_ohc, textAlign: 'center' }}>Sıra No</Box>
                   <Box sx={{ ...css_ohc, justifyContent: 'flex-start' }}>Açıklama</Box>
                   {NUM_ONAY_LABELS.map(lbl => <Box key={lbl} sx={{ ...css_ohc }}>{lbl}</Box>)}
                   <Box sx={{ ...css_ohc }}>Metraj</Box>
-                  <Box sx={{ ...css_ohc }}>Durum</Box>
                   <Box sx={{ ...css_ohc }}>Hazırlayan</Box>
                   <Box sx={{ ...css_ohc }}>Onaylayan</Box>
                   <Box sx={{ ...css_ohc }}></Box>
                 </Box>
-                {approvalTree.map(rootNode => <OnayRow key={rootNode.id} node={rootNode} />)}
 
-                {/* Toplam satırı */}
-                <Box sx={{
-                  display: 'grid', gridTemplateColumns: ONAY_GRID,
-                  backgroundColor: '#E8F5E9', borderTop: '2px solid #43A047', minWidth: 'max-content',
-                }}>
+                {approvalTree.map(rootNode => (
+                  <React.Fragment key={rootNode.id}>{renderOnayRow(rootNode)}</React.Fragment>
+                ))}
+
+                {/* Toplam */}
+                <Box sx={{ display: 'grid', gridTemplateColumns: ONAY_GRID, backgroundColor: '#E8F5E9', borderTop: '2px solid #43A047', minWidth: 'max-content' }}>
                   <Box sx={{ gridColumn: '1 / 8', px: '8px', py: '5px', fontWeight: 600, fontSize: '0.85rem', display: 'flex', alignItems: 'center', justifyContent: 'flex-end', color: '#1b5e20' }}>
                     Onaylanan Toplam
                   </Box>
