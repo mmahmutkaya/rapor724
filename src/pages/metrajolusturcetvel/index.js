@@ -29,6 +29,8 @@ import SubdirectoryArrowRightIcon from '@mui/icons-material/SubdirectoryArrowRig
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore'
 import ExpandLessIcon from '@mui/icons-material/ExpandLess'
 import AddCircleOutlineIcon from '@mui/icons-material/AddCircleOutline'
+import HourglassFullIcon from '@mui/icons-material/HourglassFull'
+import CheckIcon from '@mui/icons-material/Check'
 
 
 function computeQuantity(line) {
@@ -160,6 +162,7 @@ export default function P_MetrajOlusturCetvel() {
   const [expandedApproved, setExpandedApproved] = useState({})   // { lineId: bool }
   const [revizeForms, setRevizeForms] = useState({}) // { [lineId]: [{ tempId, description, multiplier, count, length, width, height }] }
   const [showAllOriginals, setShowAllOriginals] = useState(false)
+  const [hoveredStatusLineId, setHoveredStatusLineId] = useState(null)
 
   const wpAreaId = selectedMahal?.wpAreaId
 
@@ -295,7 +298,7 @@ export default function P_MetrajOlusturCetvel() {
     }))
   }
 
-  const handleDeleteLine = async (sessId, lineId) => {
+  const handleDeleteLine = (sessId, lineId) => {
     const sess = sessions.find(s => s.id === sessId)
     if (!sess) return
     const toDelete = new Set()
@@ -304,19 +307,10 @@ export default function P_MetrajOlusturCetvel() {
       sess.lines.filter(l => l.parent_line_id === id).forEach(child => collect(child.id))
     }
     collect(lineId)
-    const savedIds = [...toDelete].filter(id => !sess.lines.find(l => l.id === id)?.isNew)
-    if (savedIds.length > 0) {
-      try {
-        const { error } = await supabase.from('measurement_lines').delete().in('id', savedIds)
-        if (error) throw error
-      } catch (err) {
-        setDialogAlert({ dialogIcon: 'warning', dialogMessage: err.message, onCloseAction: () => setDialogAlert() })
-        return
-      }
-    }
     updateSess(sessId, s => ({
       lines: s.lines.filter(l => !toDelete.has(l.id)),
-      linesBackup: s.linesBackup.filter(l => !toDelete.has(l.id)),
+      isChanged: true,
+      // linesBackup değiştirilmiyor — iptal edilince geri gelir
     }))
   }
 
@@ -340,6 +334,15 @@ export default function P_MetrajOlusturCetvel() {
     const sess = sessions.find(s => s.id === sessId)
     if (!sess) return
     try {
+      // Silinen (backup'ta olan ama lines'ta olmayan) kayıtlı satırları sil
+      const backupIds = new Set(sess.linesBackup.map(l => l.id))
+      const currentIds = new Set(sess.lines.filter(l => !l.isNew).map(l => l.id))
+      const deletedIds = [...backupIds].filter(id => !currentIds.has(id))
+      if (deletedIds.length > 0) {
+        const { error } = await supabase.from('measurement_lines').delete().in('id', deletedIds)
+        if (error) throw error
+      }
+
       // Insert new (local-only) lines
       const insertedMap = {}
       const newLines = sess.lines.filter(l => l.isNew)
@@ -367,6 +370,7 @@ export default function P_MetrajOlusturCetvel() {
             height: candidate.height === '' ? null : candidate.height,
             parent_line_id: realParentId,
             line_type: 'data',
+            status: 'draft',
           })
           .select().single()
         if (error) throw error
@@ -492,6 +496,42 @@ export default function P_MetrajOlusturCetvel() {
         }],
       }
     }))
+  }
+
+  // ── Onay bekleyen oturumu düzenleme moduna al ────────────────
+  // Oturumu draft'a, bekleyen satırları draft'a geri çeker ve edit moduna girer
+  const handleStartEditReadySession = async (sessId) => {
+    const sess = sessions.find(s => s.id === sessId)
+    if (!sess) return
+    const pendingLineIds = (sess.lines ?? []).filter(l => l.status === 'pending').map(l => l.id)
+    try {
+      const { error: sessErr } = await supabase
+        .from('measurement_sessions')
+        .update({ status: 'draft', updated_at: new Date().toISOString() })
+        .eq('id', sessId)
+      if (sessErr) throw sessErr
+      if (pendingLineIds.length > 0) {
+        const { error: lineErr } = await supabase
+          .from('measurement_lines')
+          .update({ status: 'draft' })
+          .in('id', pendingLineIds)
+        if (lineErr) throw lineErr
+      }
+      updateSess(sessId, s => {
+        const updatedLines = s.lines.map(l =>
+          l.status === 'pending' ? { ...l, status: 'draft' } : l
+        )
+        return {
+          status: 'draft',
+          mode_edit: true,
+          lines: updatedLines,
+          linesBackup: _.cloneDeep(updatedLines),
+          isChanged: false,
+        }
+      })
+    } catch (err) {
+      setDialogAlert({ dialogIcon: 'warning', dialogMessage: err.message, onCloseAction: () => setDialogAlert() })
+    }
   }
 
   // ── Yeni metraj oturumu başlat ───────────────────────────────
@@ -641,6 +681,7 @@ export default function P_MetrajOlusturCetvel() {
             height: candidate.height === '' ? null : candidate.height,
             parent_line_id: realParentId,
             line_type: 'data',
+            status: 'draft',
           })
           .select().single()
         if (error) throw error
@@ -982,13 +1023,16 @@ export default function P_MetrajOlusturCetvel() {
                   </>
                 )}
 
-                {/* Kendi taslağı — düzenle / onaya gönder */}
-                {isDraft && sess.isOwn && !sess.mode_edit && !sess.isChanged && (
+                {/* Taslak veya onay bekleyen oturum — her zaman düzenleme ikonu */}
+                {(isDraft || isReady) && sess.isOwn && !sess.mode_edit && !sess.isRevisionEdit && (
                   <>
-                    <IconButton size="small" onClick={() => updateSess(sess.id, () => ({ mode_edit: true }))}>
+                    <IconButton size="small" onClick={() => {
+                      if (isReady) handleStartEditReadySession(sess.id)
+                      else updateSess(sess.id, () => ({ mode_edit: true }))
+                    }}>
                       <EditIcon sx={{ fontSize: 20 }} />
                     </IconButton>
-                    {rootLines.length > 0 && (
+                    {isDraft && rootLines.length > 0 && (
                       <IconButton size="small" onClick={() => handleMarkReady(sess.id)}>
                         <CheckCircleIcon sx={{ fontSize: 24, color: '#2e7d32' }} />
                       </IconButton>
@@ -996,30 +1040,16 @@ export default function P_MetrajOlusturCetvel() {
                   </>
                 )}
 
-                {/* Taslak düzenleme modu — değişiklik yoksa bitir */}
-                {isDraft && sess.isOwn && sess.mode_edit && !sess.isChanged && (
-                  <IconButton size="small" onClick={() => updateSess(sess.id, () => ({ mode_edit: false }))}>
-                    <ClearIcon sx={{ color: '#888', fontSize: 20 }} />
-                  </IconButton>
-                )}
-
-                {/* Taslak değişiklik varsa — iptal / kaydet */}
-                {isDraft && sess.isChanged && (
+                {/* Taslak düzenleme modu — iptal / kaydet */}
+                {isDraft && sess.isOwn && sess.mode_edit && (
                   <>
                     <IconButton size="small" onClick={() => handleCancelEdit(sess.id)}>
-                      <ClearIcon sx={{ color: '#c62828', fontSize: 20 }} />
+                      <ClearIcon sx={{ color: sess.isChanged ? '#c62828' : '#888', fontSize: 20 }} />
                     </IconButton>
-                    <IconButton size="small" onClick={() => handleSave(sess.id)}>
-                      <SaveIcon sx={{ color: '#1565c0', fontSize: 20 }} />
+                    <IconButton size="small" onClick={() => handleSave(sess.id)} disabled={!sess.isChanged}>
+                      <SaveIcon sx={{ color: sess.isChanged ? '#1565c0' : '#bbb', fontSize: 20 }} />
                     </IconButton>
                   </>
-                )}
-
-                {/* Kendi oturumu onay bekliyor — taslağa geri al (henüz onaylanmış satır yoksa) */}
-                {isReady && sess.isOwn && !hasApprovedLines && (
-                  <IconButton size="small" onClick={() => handleBackToDraft(sess.id)}>
-                    <EditIcon sx={{ fontSize: 20 }} />
-                  </IconButton>
                 )}
 
                 {/* Kendi revize talebi — geri çek */}
@@ -1034,7 +1064,6 @@ export default function P_MetrajOlusturCetvel() {
                   <IconButton size="small" title="Satır Ekle" onClick={() => {
                     if (sess.isRevisionEdit && sess.mode_edit) { addSubLineLocal(sess.id, null) }
                     else if (isApproved) { handleStartRevision(sess.id); addSubLineLocal(sess.id, null) }
-                    else if (isReady) { handleBackToDraftAndAddLine(sess.id) }
                     else { handleAddLine(sess.id) }
                   }}>
                     <AddCircleOutlineIcon sx={{ fontSize: 22, color: '#1565c0' }} />
@@ -1147,10 +1176,44 @@ export default function P_MetrajOlusturCetvel() {
                               <ClearIcon sx={{ fontSize: 18, color: '#c62828' }} />
                             ) : line.status === 'ignored' ? (
                               <Box sx={{ width: 10, height: 10, borderRadius: '50%', backgroundColor: '#90A4AE' }} />
-                            ) : (sess.isOwn && line.status === 'pending') ? (
+                            ) : line.status === 'pending' && isApproved ? (
                               <IconButton size="small" onClick={() => handleDeleteLine(sess.id, line.id)} sx={{ p: '2px' }}>
                                 <ReplyIcon sx={{ fontSize: 18, color: 'orange' }} />
                               </IconButton>
+                            ) : line.status === 'pending' ? (
+                              <CheckIcon sx={{ fontSize: 18, color: '#2e7d32' }} />
+                            ) : sess.isOwn && (!line.status || line.status === 'draft') && !sess.mode_edit && !sess.isRevisionEdit ? (
+                              <Box
+                                onMouseEnter={() => setHoveredStatusLineId(line.id)}
+                                onMouseLeave={() => setHoveredStatusLineId(null)}
+                                sx={{ cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+                                onClick={async () => {
+                                  try {
+                                    const { error } = await supabase.from('measurement_lines').update({ status: 'pending' }).eq('id', line.id)
+                                    if (error) throw error
+                                    // Session draft ise ready'e geçir
+                                    if (isDraft) {
+                                      const { error: sErr } = await supabase
+                                        .from('measurement_sessions')
+                                        .update({ status: 'ready', updated_at: new Date().toISOString() })
+                                        .eq('id', sess.id)
+                                      if (sErr) throw sErr
+                                    }
+                                    updateSess(sess.id, s => ({
+                                      ...(isDraft ? { status: 'ready' } : {}),
+                                      lines: s.lines.map(l => l.id === line.id ? { ...l, status: 'pending' } : l),
+                                    }))
+                                  } catch (err) {
+                                    setDialogAlert({ dialogIcon: 'warning', dialogMessage: err.message, onCloseAction: () => setDialogAlert() })
+                                  }
+                                  setHoveredStatusLineId(null)
+                                }}
+                              >
+                                {hoveredStatusLineId === line.id
+                                  ? <CheckIcon sx={{ fontSize: 18, color: '#2e7d32' }} />
+                                  : <HourglassFullIcon sx={{ fontSize: 15, color: '#f57c00' }} />
+                                }
+                              </Box>
                             ) : null}
                           </Box>
                         </React.Fragment>

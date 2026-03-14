@@ -38,6 +38,7 @@ import BlockIcon from '@mui/icons-material/Block'
 import DeleteOutlineIcon from '@mui/icons-material/DeleteOutline'
 import VisibilityIcon from '@mui/icons-material/Visibility'
 import VisibilityOffIcon from '@mui/icons-material/VisibilityOff'
+import DoneAllIcon from '@mui/icons-material/DoneAll'
 
 
 // ─── YARDIMCI HESAPLAMALAR ────────────────────────────────────────────────────
@@ -488,11 +489,11 @@ export default function P_MetrajOnaylaCetvel() {
             </>
           ) : line.status === 'approved' ? (
             <Tooltip title="Onaylandı">
-              <CheckCircleIcon sx={{ fontSize: 18, color: '#2e7d32' }} />
+              <DoneAllIcon sx={{ fontSize: 18, color: '#2e7d32' }} />
             </Tooltip>
           ) : line.status === 'ignored' ? (
             <Tooltip title="Ignore edildi">
-              <Box sx={{ width: 10, height: 10, borderRadius: '50%', backgroundColor: '#90A4AE' }} />
+              <DoneAllIcon sx={{ fontSize: 18, color: '#90A4AE' }} />
             </Tooltip>
           ) : null}
         </Box>

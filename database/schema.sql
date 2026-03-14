@@ -435,8 +435,8 @@ create table measurement_lines (
   parent_line_id uuid references measurement_lines(id),
   line_type      text not null default 'data'
                    check (line_type in ('data', 'header', 'subtotal')),
-  status         text not null default 'pending'
-                   check (status in ('pending', 'approved', 'rejected', 'ignored')),
+  status         text not null default 'draft'
+                   check (status in ('draft', 'pending', 'approved', 'rejected', 'ignored')),
   description    text,
   multiplier     numeric(6,4)  not null default 1,   -- 1 normal, -1 çıkarma (pencere boşluğu vb.)
   count          numeric(12,4),                       -- adet
