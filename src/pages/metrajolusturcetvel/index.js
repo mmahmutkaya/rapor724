@@ -38,7 +38,7 @@ function computeQuantity(line) {
   const isEmpty = (val) => val === null || val === undefined || val === ''
   // multiplier=1 is the neutral default (shown as blank in UI), treat as not-set for allEmpty check
   const vals = [
-    (line.multiplier === 1 ? null : line.multiplier),
+    (Number(line.multiplier) === 1 ? null : line.multiplier),
     line.count, line.length, line.width, line.height,
   ]
   const allEmpty = vals.every(isEmpty)
@@ -162,7 +162,6 @@ export default function P_MetrajOlusturCetvel() {
   const [expandedApproved, setExpandedApproved] = useState({})   // { lineId: bool }
   const [revizeForms, setRevizeForms] = useState({}) // { [lineId]: [{ tempId, description, multiplier, count, length, width, height }] }
   const [showAllOriginals, setShowAllOriginals] = useState(false)
-  const [hoveredStatusLineId, setHoveredStatusLineId] = useState(null)
 
   const wpAreaId = selectedMahal?.wpAreaId
 
@@ -370,7 +369,7 @@ export default function P_MetrajOlusturCetvel() {
             height: candidate.height === '' ? null : candidate.height,
             parent_line_id: realParentId,
             line_type: 'data',
-            status: 'draft',
+            status: candidate.status ?? 'draft',
           })
           .select().single()
         if (error) throw error
@@ -391,6 +390,7 @@ export default function P_MetrajOlusturCetvel() {
             length: line.length === '' ? null : line.length,
             width:  line.width  === '' ? null : line.width,
             height: line.height === '' ? null : line.height,
+            status: line.status ?? 'draft',
           })
           .eq('id', line.id)
         if (error) throw error
@@ -399,12 +399,14 @@ export default function P_MetrajOlusturCetvel() {
       const updatedLines = sess.lines.map(l => insertedMap[l.id] ? { ...insertedMap[l.id] } : l)
       const parentIds = new Set(updatedLines.filter(l => l.parent_line_id).map(l => l.parent_line_id))
       const total = updatedLines.filter(l => !parentIds.has(l.id)).reduce((sum, l) => sum + computeQuantity(l), 0)
+      const anyPending = updatedLines.some(l => l.status === 'pending')
       await supabase
         .from('measurement_sessions')
-        .update({ total_quantity: total, updated_at: new Date().toISOString() })
+        .update({ total_quantity: total, status: anyPending ? 'ready' : 'draft', updated_at: new Date().toISOString() })
         .eq('id', sessId)
       updateSess(sessId, s => ({
         total_quantity: total,
+        status: anyPending ? 'ready' : 'draft',
         lines: updatedLines,
         linesBackup: _.cloneDeep(updatedLines),
         isChanged: false,
@@ -967,7 +969,7 @@ export default function P_MetrajOlusturCetvel() {
           const isDraft    = sess.status === 'draft'
           const isReady    = sess.status === 'ready'
           const isApproved = visualStatus === 'approved' || visualStatus === 'revised'
-          const canEdit    = sess.isOwn && isDraft
+          const canEdit    = sess.isOwn && (isDraft || isReady)
           const rootLines = sess.lines.filter(l => !l.parent_line_id)
           const hasApprovedLines = rootLines.some(l => l.status === 'approved')
           const totalQuantity = rootLines.reduce((sum, l) => sum + computeQuantity(l), 0)
@@ -1026,10 +1028,7 @@ export default function P_MetrajOlusturCetvel() {
                 {/* Taslak veya onay bekleyen oturum — her zaman düzenleme ikonu */}
                 {(isDraft || isReady) && sess.isOwn && !sess.mode_edit && !sess.isRevisionEdit && (
                   <>
-                    <IconButton size="small" onClick={() => {
-                      if (isReady) handleStartEditReadySession(sess.id)
-                      else updateSess(sess.id, () => ({ mode_edit: true }))
-                    }}>
+                    <IconButton size="small" onClick={() => updateSess(sess.id, () => ({ mode_edit: true }))}>
                       <EditIcon sx={{ fontSize: 20 }} />
                     </IconButton>
                     {isDraft && rootLines.length > 0 && (
@@ -1041,7 +1040,7 @@ export default function P_MetrajOlusturCetvel() {
                 )}
 
                 {/* Taslak düzenleme modu — iptal / kaydet */}
-                {isDraft && sess.isOwn && sess.mode_edit && (
+                {(isDraft || isReady) && sess.isOwn && sess.mode_edit && (
                   <>
                     <IconButton size="small" onClick={() => handleCancelEdit(sess.id)}>
                       <ClearIcon sx={{ color: sess.isChanged ? '#c62828' : '#888', fontSize: 20 }} />
@@ -1094,15 +1093,16 @@ export default function P_MetrajOlusturCetvel() {
                     {buildDisplayTree(rootLines).map(line => {
                       const qty = computeQuantity(line)
                       const isDeduction = qty < 0
+                      const isPendingLocked = isReady && line.status === 'pending'
                       const rowBg = (line.isNew && sess.isRevisionEdit)
                         ? 'rgba(255,250,200,0.6)'
                         : isApproved
                         ? cardColors.row
                         : visualStatus === 'unread'
                         ? cardColors.row
-                        : sess.mode_edit ? 'rgba(255,250,200,0.4)' : 'white'
+                        : (sess.mode_edit && !isPendingLocked) ? 'rgba(255,250,200,0.4)' : 'white'
                       const deductionColor = isDeduction ? '#b71c1c' : undefined
-                      const editActive = (canEdit && sess.mode_edit && line.status !== 'approved') || (sess.isRevisionEdit && sess.mode_edit && line.isNew)
+                      const editActive = (canEdit && sess.mode_edit && line.status !== 'approved' && !isPendingLocked) || (sess.isRevisionEdit && sess.mode_edit && line.isNew)
                       const depthStyle = line.depth > 0
                         ? { borderLeft: `${Math.min(line.depth, 3) * 3}px solid rgba(144,202,249,0.7)` }
                         : {}
@@ -1127,6 +1127,15 @@ export default function P_MetrajOlusturCetvel() {
                                 <SubdirectoryArrowRightIcon sx={{ fontSize: 13, color: '#1565c0', opacity: 0.7 }} />
                               </IconButton>
                             )}
+                            {canEdit && sess.mode_edit && !sess.isRevisionEdit && line.status !== 'approved' && !isPendingLocked && (
+                              <IconButton
+                                size="small"
+                                sx={{ p: '1px', mr: '3px', flexShrink: 0 }}
+                                onClick={() => handleDeleteLine(sess.id, line.id)}
+                              >
+                                <DeleteOutlineIcon sx={{ fontSize: 13, color: 'salmon', opacity: 0.8 }} />
+                              </IconButton>
+                            )}
                             {editActive ? (
                               <input
                                 style={{ ...inputSx, textAlign: 'left', color: deductionColor }}
@@ -1145,12 +1154,12 @@ export default function P_MetrajOlusturCetvel() {
                                   type="number"
                                   className="metraj-num-input"
                                   style={{ ...inputSx, color: deductionColor }}
-                                  value={field === 'multiplier' && line[field] === 1 ? '' : (line[field] ?? '')}
+                                  value={field === 'multiplier' && Number(line[field]) === 1 ? '' : (line[field] ?? '')}
                                   onChange={e => handleLineChange(sess.id, line.id, field, e.target.value)}
                                   onKeyDown={e => ['e', 'E', '+'].includes(e.key) && e.preventDefault()}
                                 />
                               ) : (
-                                field === 'multiplier' && line[field] === 1 ? '' : (line[field] != null ? ikiHane(line[field]) : '')
+                                field === 'multiplier' && Number(line[field]) === 1 ? '' : (line[field] != null ? ikiHane(line[field]) : '')
                               )}
                             </Box>
                           ))}
@@ -1158,14 +1167,14 @@ export default function P_MetrajOlusturCetvel() {
                           <Box sx={{ ...css_lineCell, ...cellBg, justifyContent: 'flex-end', color: qty < 0 ? '#c62828' : deductionColor }}>
                             {qty !== 0 ? ikiHane(qty) : (() => {
                               const isEmpty = v => v === null || v === undefined || v === ''
-                              const hasData = [(line.multiplier === 1 ? null : line.multiplier), line.count, line.length, line.width, line.height].some(v => !isEmpty(v))
+                              const hasData = [(Number(line.multiplier) === 1 ? null : line.multiplier), line.count, line.length, line.width, line.height].some(v => !isEmpty(v))
                               return hasData ? ikiHane(qty) : ''
                             })()}
                             {pozBirim && <Box component="span" sx={{ ml: '4px', fontWeight: 400, fontSize: '0.75rem', color: '#888' }}>{pozBirim}</Box>}
                           </Box>
 
                           <Box sx={{ ...css_lineCell, ...cellBg, justifyContent: 'center', px: '2px' }}>
-                            {((canEdit && sess.mode_edit && line.status !== 'approved') || (sess.isRevisionEdit && sess.mode_edit && line.isNew)) ? (
+                            {(sess.isRevisionEdit && sess.mode_edit && line.isNew) ? (
                               <IconButton size="small" onClick={() => handleDeleteLine(sess.id, line.id)} sx={{ p: '2px' }}>
                                 <DeleteOutlineIcon sx={{ fontSize: 18, color: 'salmon' }} />
                               </IconButton>
@@ -1179,40 +1188,27 @@ export default function P_MetrajOlusturCetvel() {
                               <IconButton size="small" onClick={() => handleDeleteLine(sess.id, line.id)} sx={{ p: '2px' }}>
                                 <ReplyIcon sx={{ fontSize: 18, color: 'orange' }} />
                               </IconButton>
-                            ) : line.status === 'pending' ? (
-                              <CheckIcon sx={{ fontSize: 18, color: '#2e7d32' }} />
-                            ) : sess.isOwn && (!line.status || line.status === 'draft') && !sess.mode_edit && !sess.isRevisionEdit ? (
-                              <Box
-                                onMouseEnter={() => setHoveredStatusLineId(line.id)}
-                                onMouseLeave={() => setHoveredStatusLineId(null)}
-                                sx={{ cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
-                                onClick={async () => {
-                                  try {
-                                    const { error } = await supabase.from('measurement_lines').update({ status: 'pending' }).eq('id', line.id)
-                                    if (error) throw error
-                                    // Session draft ise ready'e geçir
-                                    if (isDraft) {
-                                      const { error: sErr } = await supabase
-                                        .from('measurement_sessions')
-                                        .update({ status: 'ready', updated_at: new Date().toISOString() })
-                                        .eq('id', sess.id)
-                                      if (sErr) throw sErr
-                                    }
-                                    updateSess(sess.id, s => ({
-                                      ...(isDraft ? { status: 'ready' } : {}),
-                                      lines: s.lines.map(l => l.id === line.id ? { ...l, status: 'pending' } : l),
-                                    }))
-                                  } catch (err) {
-                                    setDialogAlert({ dialogIcon: 'warning', dialogMessage: err.message, onCloseAction: () => setDialogAlert() })
-                                  }
-                                  setHoveredStatusLineId(null)
+                            ) : canEdit && sess.mode_edit && (!line.status || line.status === 'draft' || line.status === 'pending') ? (
+                              <IconButton
+                                size="small"
+                                sx={{ p: '2px' }}
+                                onClick={() => {
+                                  const newStatus = (!line.status || line.status === 'draft') ? 'pending' : 'draft'
+                                  updateSess(sess.id, s => ({
+                                    isChanged: true,
+                                    lines: s.lines.map(l => l.id === line.id ? { ...l, status: newStatus } : l),
+                                  }))
                                 }}
                               >
-                                {hoveredStatusLineId === line.id
-                                  ? <CheckIcon sx={{ fontSize: 18, color: '#2e7d32' }} />
-                                  : <HourglassFullIcon sx={{ fontSize: 15, color: '#f57c00' }} />
+                                {(!line.status || line.status === 'draft')
+                                  ? <HourglassFullIcon sx={{ fontSize: 15, color: '#f57c00' }} />
+                                  : <CheckIcon sx={{ fontSize: 18, color: '#2e7d32' }} />
                                 }
-                              </Box>
+                              </IconButton>
+                            ) : line.status === 'pending' ? (
+                              <CheckIcon sx={{ fontSize: 18, color: '#2e7d32' }} />
+                            ) : (!line.status || line.status === 'draft') ? (
+                              <HourglassFullIcon sx={{ fontSize: 15, color: '#f57c00' }} />
                             ) : null}
                           </Box>
                         </React.Fragment>
@@ -1244,7 +1240,7 @@ export default function P_MetrajOlusturCetvel() {
         const NUM_ONAY_FIELDS = ['multiplier', 'count', 'length', 'width', 'height']
         const calcMetrajOnay = (line) => {
           const vals = [
-            (line.multiplier === 1 ? null : line.multiplier),
+            (Number(line.multiplier) === 1 ? null : line.multiplier),
             line.count, line.length, line.width, line.height,
           ]
             .map(v => (v != null && v !== '' ? parseFloat(v) : null))
@@ -1337,7 +1333,7 @@ export default function P_MetrajOlusturCetvel() {
                     <Box sx={{ ...css_oc, ...origCellBg, justifyContent: 'flex-start', pl: '0.5rem', color: '#888', fontSize: '0.78rem' }}>{node.siraNo}</Box>
                     <Box sx={{ ...css_oc, ...origCellBg, color: '#777', fontStyle: 'italic', fontSize: '0.82rem' }}>{node.description ?? ''}</Box>
                     {NUM_ONAY_FIELDS.map(f => (
-                      <Box key={f} sx={{ ...css_oc, ...origCellBg, justifyContent: 'flex-end', color: '#888' }}>{f === 'multiplier' && node[f] === 1 ? '' : (node[f] != null ? node[f] : '')}</Box>
+                      <Box key={f} sx={{ ...css_oc, ...origCellBg, justifyContent: 'flex-end', color: '#888' }}>{f === 'multiplier' && Number(node[f]) === 1 ? '' : (node[f] != null ? ikiHane(node[f]) : '')}</Box>
                     ))}
                     <Box sx={{ ...css_oc, ...origCellBg, justifyContent: 'flex-end', fontWeight: 700, color: '#888' }}>{ikiHane(calcMetrajOnay(node))}</Box>
                     <Box sx={{ ...css_oc, ...origCellBg, fontSize: '0.78rem', color: '#9E9E9E' }}>{node.hazırlayan}</Box>
@@ -1372,13 +1368,13 @@ export default function P_MetrajOlusturCetvel() {
               </Box>
               <Box sx={{ ...css_oc, ...cellBg }}>{node.description ?? ''}</Box>
               {NUM_ONAY_FIELDS.map(f => (
-                <Box key={f} sx={{ ...css_oc, ...cellBg, justifyContent: 'flex-end' }}>{f === 'multiplier' && node[f] === 1 ? '' : (node[f] != null ? node[f] : '')}</Box>
+                <Box key={f} sx={{ ...css_oc, ...cellBg, justifyContent: 'flex-end' }}>{f === 'multiplier' && Number(node[f]) === 1 ? '' : (node[f] != null ? ikiHane(node[f]) : '')}</Box>
               ))}
               <Box sx={{ ...css_oc, ...cellBg, justifyContent: 'flex-end', fontWeight: 700, ...(metraj < 0 && { color: '#c62828' }) }}>
                 {metraj !== 0 ? ikiHane(metraj) : (() => {
                   const isEmpty = v => v === null || v === undefined || v === ''
                   const hasData = !isEmpty(node.description) ||
-                    [(node.multiplier === 1 ? null : node.multiplier), node.count, node.length, node.width, node.height].some(v => !isEmpty(v))
+                    [(Number(node.multiplier) === 1 ? null : node.multiplier), node.count, node.length, node.width, node.height].some(v => !isEmpty(v))
                   return hasData ? ikiHane(metraj) : ''
                 })()}
                 {pozBirim && !hasKids && metraj !== 0 && <Box component="span" sx={{ ml: '3px', fontWeight: 400, fontSize: '0.72rem', color: '#888' }}>{pozBirim}</Box>}

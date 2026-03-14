@@ -47,7 +47,7 @@ function calcMetraj(line) {
   if (!line) return 0
   const vals = [
     // multiplier=1 is the neutral default (shown as blank in UI), treat as not-set
-    (line.multiplier === 1 ? null : line.multiplier),
+    (Number(line.multiplier) === 1 ? null : line.multiplier),
     line.count, line.length, line.width, line.height,
   ]
     .map(v => (v != null && v !== '' ? parseFloat(v) : null))
@@ -536,7 +536,7 @@ export default function P_MetrajOnaylaCetvel() {
         <Box sx={{ ...css_dataCell, ...cellBg }}>{node.description ?? ''}</Box>
         {NUM_FIELDS.map(f => (
           <Box key={f} sx={{ ...css_dataCell, ...cellBg, justifyContent: 'flex-end' }}>
-            {f === 'multiplier' && node[f] === 1 ? '' : (node[f] != null ? node[f] : '')}
+            {f === 'multiplier' && Number(node[f]) === 1 ? '' : (node[f] != null ? ikiHane(node[f]) : '')}
           </Box>
         ))}
         <Box sx={{ ...css_dataCell, ...cellBg, justifyContent: 'flex-end', fontWeight: 700, opacity: isRevized ? 0.45 : 1, textDecoration: isRevized ? 'line-through' : 'none' }}>
