@@ -52,7 +52,7 @@ function calcMetraj(line) {
   ]
     .map(v => (v != null && v !== '' ? parseFloat(v) : null))
     .filter(v => v !== null && !isNaN(v))
-  if (vals.length === 0) return 0
+  if (vals.length === 0) return null
   return vals.reduce((prod, v) => prod * v, 1)
 }
 
@@ -338,7 +338,7 @@ export default function P_MetrajOnaylaCetvel() {
     const hasChildSet = new Set(lines.filter(l => l.parent_line_id).map(l => l.parent_line_id))
     return lines
       .filter(l => l.status === 'approved' && !hasChildSet.has(l.id))
-      .reduce((s, l) => s + calcMetraj(l), 0)
+      .reduce((s, l) => s + (calcMetraj(l) ?? 0), 0)
   }, [lines])
 
 
@@ -869,7 +869,7 @@ export default function P_MetrajOnaylaCetvel() {
                             Toplam hazırlanan
                           </Box>
                           <Box sx={{ px: '8px', py: '4px', fontWeight: 700, display: 'flex', justifyContent: 'flex-end', alignItems: 'center', backgroundColor: '#ECEFF1', borderTop: '2px solid #B0BEC5' }}>
-                            {ikiHane(allLines.reduce((s, l) => s + calcMetraj(l), 0))}
+                            {ikiHane(allLines.reduce((s, l) => s + (calcMetraj(l) ?? 0), 0))}
                             {pozBirim && <Box component="span" sx={{ ml: '4px', fontWeight: 400, fontSize: '0.8rem' }}>{pozBirim}</Box>}
                           </Box>
                           <Box sx={{ backgroundColor: '#ECEFF1', borderTop: '2px solid #B0BEC5' }} />

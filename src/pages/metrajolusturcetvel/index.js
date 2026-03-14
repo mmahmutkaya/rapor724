@@ -1158,8 +1158,7 @@ export default function P_MetrajOlusturCetvel() {
                           <Box sx={{ ...css_lineCell, ...cellBg, justifyContent: 'flex-end', color: qty < 0 ? '#c62828' : deductionColor }}>
                             {qty !== 0 ? ikiHane(qty) : (() => {
                               const isEmpty = v => v === null || v === undefined || v === ''
-                              const hasData = !isEmpty(line.description) ||
-                                [(line.multiplier === 1 ? null : line.multiplier), line.count, line.length, line.width, line.height].some(v => !isEmpty(v))
+                              const hasData = [(line.multiplier === 1 ? null : line.multiplier), line.count, line.length, line.width, line.height].some(v => !isEmpty(v))
                               return hasData ? ikiHane(qty) : ''
                             })()}
                             {pozBirim && <Box component="span" sx={{ ml: '4px', fontWeight: 400, fontSize: '0.75rem', color: '#888' }}>{pozBirim}</Box>}
