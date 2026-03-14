@@ -478,7 +478,7 @@ export default function P_MetrajOlusturPozMahaller() {
                                   cursor: 'pointer',
                                 }}
                               >
-                                {mahal.area != null ? `${mahal.area} m²` : '—'}
+                                {mahal.area != null && mahal.area !== 0 ? `${mahal.area} m²` : ''}
                               </Box>
 
                               {/* Onaylanan metraj sütunu */}
@@ -509,7 +509,7 @@ export default function P_MetrajOlusturPozMahaller() {
                                         ? <>
                                             {`${ikiHane(areaData.approvedTotal)} ${pozBirim}`}
                                           </>
-                                        : <Box component="span" sx={{ color: mutedTextColor }}>—</Box>
+                                        : null
                                       }
                                     </Box>
                                   </Tooltip>
@@ -552,8 +552,13 @@ export default function P_MetrajOlusturPozMahaller() {
                                     >
                                       {ses
                                         ? <>
-                                            <Box sx={{ width: '8px', height: '8px', borderRadius: '50%', backgroundColor: dotColor, flexShrink: 0 }} />
-                                            {`${ikiHane(ses.total_quantity)} ${pozBirim}`}
+                                            {ses.total_quantity
+                                              ? <>
+                                                  <Box sx={{ width: '8px', height: '8px', borderRadius: '50%', backgroundColor: dotColor, flexShrink: 0 }} />
+                                                  {`${ikiHane(ses.total_quantity)} ${pozBirim}`}
+                                                </>
+                                              : null
+                                            }
                                           </>
                                         : (isCurrentUser
                                             ? <Box component="span" sx={{ fontSize: '0.75rem', color: mutedTextColor }}>+ Ekle</Box>

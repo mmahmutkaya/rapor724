@@ -6,7 +6,7 @@ import { StoreContext } from '../../components/store.js'
 import { supabase } from '../../lib/supabase.js'
 import { useGetPozUnits } from '../../hooks/useMongo.js'
 import { DialogAlert } from '../../components/general/DialogAlert.js'
-import { getMeasurementChipStyle, getMeasurementDotColor, getMeasurementStatusLabel, getMeasurementVisualStatus } from '../../lib/measurementStatus.js'
+import { getMeasurementVisualStatus } from '../../lib/measurementStatus.js'
 
 import AppBar from '@mui/material/AppBar'
 import Box from '@mui/material/Box'
@@ -111,19 +111,6 @@ function ikiHane(v) {
   return new Intl.NumberFormat('de-DE', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(n)
 }
 
-function StatusChip({ session }) {
-  const visual = getMeasurementVisualStatus(session)
-  const hasRevision = Array.isArray(session?.revision_snapshot) && session?.revision_snapshot.length > 0
-  if (visual === 'unread' && hasRevision) return <Chip size="small" label="Revize Edildi (Onay Bekliyor)" sx={{ backgroundColor: '#E3F2FD', color: '#0D47A1', fontWeight: 600 }} />
-  if (visual === 'unread') return <Chip size="small" label="Henüz Okunmamış" sx={getMeasurementChipStyle(session)} />
-  if (visual === 'approved') return <Chip size="small" label="Onaylanmış" sx={getMeasurementChipStyle(session)} />
-  if (visual === 'revised') return <Chip size="small" label="Onay Sonrası Revize" sx={getMeasurementChipStyle(session)} />
-  if (visual === 'rejected') return <Chip size="small" label="Reddedilmiş" sx={getMeasurementChipStyle(session)} />
-  if (visual === 'pendingRevision') return <Chip size="small" label="Revize Talebi (Onay Bekliyor)" sx={getMeasurementChipStyle(session)} />
-  if ((session?.status ?? '') === 'draft') return <Chip size="small" label="Taslak" sx={getMeasurementChipStyle(session)} />
-  return <Chip size="small" label="Görüldü" sx={getMeasurementChipStyle(session)} />
-}
-
 const STATUS_ORDER = { approved: 0, ready: 1, draft: 2 }
 const GRID_COLS = 'max-content 1fr 70px 70px 70px 70px 70px 90px 52px'
 const NUM_FIELDS = ['multiplier', 'count', 'length', 'width', 'height']
@@ -154,7 +141,6 @@ const inputSx = {
 function getCardColors(visualStatus) {
   if (visualStatus === 'approved') return { border: '#A5D6A7', header: '#E8F5E9', row: 'rgba(200,230,201,0.35)', totalText: '#1B5E20' }
   if (visualStatus === 'revised') return { border: '#90CAF9', header: '#E3F2FD', row: 'rgba(187,222,251,0.35)', totalText: '#0D47A1' }
-  if (visualStatus === 'unread') return { border: '#FFCC80', header: '#FFF3E0', row: 'rgba(255,224,178,0.3)', totalText: '#E65100' }
   if (visualStatus === 'rejected') return { border: '#EF9A9A', header: '#FFEBEE', row: 'rgba(255,205,210,0.28)', totalText: '#B71C1C' }
   if (visualStatus === 'pendingRevision') return { border: '#CE93D8', header: '#F3E5F5', row: 'rgba(206,147,216,0.15)', totalText: '#4A148C' }
   return { border: '#B0BEC5', header: '#ECEFF1', row: 'rgba(236,239,241,0.3)', totalText: '#455A64' }
@@ -273,7 +259,7 @@ export default function P_MetrajOlusturCetvel() {
 
   // ── Satır işlemleri ─────────────────────────────────────────
   // Bu ekranda hiyerarsik (alt seviye) satir olusturma kapali.
-  const handleAddLine = async (sessId, parentId = null) => {
+  const handleAddLine = (sessId, parentId = null) => {
     if (parentId) {
       setDialogAlert({
         dialogIcon: 'info',
@@ -282,27 +268,31 @@ export default function P_MetrajOlusturCetvel() {
       })
       return
     }
-    const sess = sessions.find(s => s.id === sessId)
-    if (!sess) return
-    const siblings = parentId
-      ? sess.lines.filter(l => l.parent_line_id === parentId)
-      : sess.lines.filter(l => !l.parent_line_id)
-    const nextIdx = siblings.length > 0 ? Math.max(...siblings.map(l => l.order_index)) + 1 : 0
-    try {
-      const { data, error } = await supabase
-        .from('measurement_lines')
-        .insert({ session_id: sessId, line_type: 'data', description: '', order_index: nextIdx, parent_line_id: parentId || null })
-        .select().single()
-      if (error) throw error
-      const newLine = { ...data, multiplier: null }
-      updateSess(sessId, s => ({
-        lines: [...s.lines, newLine],
-        linesBackup: [...s.linesBackup, _.cloneDeep(newLine)],
+    setSessions(prev => prev.map(s => {
+      if (s.id !== sessId) return s
+      const siblings = s.lines.filter(l => !l.parent_line_id)
+      const maxOrder = siblings.length > 0 ? Math.max(...siblings.map(l => l.order_index ?? 0)) : 0
+      const tempId = `new-${Date.now()}-${Math.random()}`
+      return {
+        ...s,
         mode_edit: true,
-      }))
-    } catch (err) {
-      setDialogAlert({ dialogIcon: 'warning', dialogMessage: err.message, onCloseAction: () => setDialogAlert() })
-    }
+        isChanged: true,
+        lines: [...s.lines, {
+          id: tempId,
+          session_id: sessId,
+          order_index: maxOrder + 1,
+          description: '',
+          multiplier: null,
+          count: null,
+          length: null,
+          width: null,
+          height: null,
+          parent_line_id: null,
+          line_type: 'data',
+          isNew: true,
+        }],
+      }
+    }))
   }
 
   const handleDeleteLine = async (sessId, lineId) => {
@@ -350,7 +340,42 @@ export default function P_MetrajOlusturCetvel() {
     const sess = sessions.find(s => s.id === sessId)
     if (!sess) return
     try {
-      for (const line of sess.lines) {
+      // Insert new (local-only) lines
+      const insertedMap = {}
+      const newLines = sess.lines.filter(l => l.isNew)
+      const toInsert = [...newLines]
+      while (toInsert.length > 0) {
+        const candidate = toInsert.find(l =>
+          !l.parent_line_id ||
+          !newLines.find(p => p.id === l.parent_line_id) ||
+          insertedMap[l.parent_line_id]
+        )
+        if (!candidate) break
+        const realParentId = candidate.parent_line_id
+          ? (insertedMap[candidate.parent_line_id]?.id ?? candidate.parent_line_id)
+          : null
+        const { data: inserted, error } = await supabase
+          .from('measurement_lines')
+          .insert({
+            session_id: sessId,
+            order_index: candidate.order_index,
+            description: candidate.description || null,
+            multiplier: (candidate.multiplier === '' || candidate.multiplier === null) ? 1 : Number(candidate.multiplier),
+            count:  candidate.count  === '' ? null : candidate.count,
+            length: candidate.length === '' ? null : candidate.length,
+            width:  candidate.width  === '' ? null : candidate.width,
+            height: candidate.height === '' ? null : candidate.height,
+            parent_line_id: realParentId,
+            line_type: 'data',
+          })
+          .select().single()
+        if (error) throw error
+        insertedMap[candidate.id] = inserted
+        toInsert.splice(toInsert.indexOf(candidate), 1)
+      }
+
+      // Update existing changed lines
+      for (const line of sess.lines.filter(l => !l.isNew)) {
         const backup = sess.linesBackup.find(b => b.id === line.id)
         if (backup && JSON.stringify(line) === JSON.stringify(backup)) continue
         const { error } = await supabase
@@ -366,15 +391,18 @@ export default function P_MetrajOlusturCetvel() {
           .eq('id', line.id)
         if (error) throw error
       }
-      const parentIds = new Set(sess.lines.filter(l => l.parent_line_id).map(l => l.parent_line_id))
-      const total = sess.lines.filter(l => !parentIds.has(l.id)).reduce((sum, l) => sum + computeQuantity(l), 0)
+
+      const updatedLines = sess.lines.map(l => insertedMap[l.id] ? { ...insertedMap[l.id] } : l)
+      const parentIds = new Set(updatedLines.filter(l => l.parent_line_id).map(l => l.parent_line_id))
+      const total = updatedLines.filter(l => !parentIds.has(l.id)).reduce((sum, l) => sum + computeQuantity(l), 0)
       await supabase
         .from('measurement_sessions')
         .update({ total_quantity: total, updated_at: new Date().toISOString() })
         .eq('id', sessId)
       updateSess(sessId, s => ({
         total_quantity: total,
-        linesBackup: _.cloneDeep(s.lines),
+        lines: updatedLines,
+        linesBackup: _.cloneDeep(updatedLines),
         isChanged: false,
         mode_edit: false,
       }))
@@ -438,8 +466,32 @@ export default function P_MetrajOlusturCetvel() {
       setDialogAlert({ dialogIcon: 'warning', dialogMessage: error.message, onCloseAction: () => setDialogAlert() })
       return
     }
-    updateSess(sessId, () => ({ status: 'draft', mode_edit: true }))
-    await handleAddLine(sessId)
+    setSessions(prev => prev.map(s => {
+      if (s.id !== sessId) return s
+      const siblings = s.lines.filter(l => !l.parent_line_id)
+      const maxOrder = siblings.length > 0 ? Math.max(...siblings.map(l => l.order_index ?? 0)) : 0
+      const tempId = `new-${Date.now()}-${Math.random()}`
+      return {
+        ...s,
+        status: 'draft',
+        mode_edit: true,
+        isChanged: true,
+        lines: [...s.lines, {
+          id: tempId,
+          session_id: sessId,
+          order_index: maxOrder + 1,
+          description: '',
+          multiplier: null,
+          count: null,
+          length: null,
+          width: null,
+          height: null,
+          parent_line_id: null,
+          line_type: 'data',
+          isNew: true,
+        }],
+      }
+    }))
   }
 
   // ── Yeni metraj oturumu başlat ───────────────────────────────
@@ -908,31 +960,6 @@ export default function P_MetrajOlusturCetvel() {
                   )}
                 </Typography>
 
-                {isReady ? (() => {
-                  const aCount = rootLines.filter(l => l.status === 'approved').length
-                  const pCount = rootLines.filter(l => !l.status || l.status === 'pending').length
-                  const rCount = rootLines.filter(l => l.status === 'rejected').length
-                  const iCount = rootLines.filter(l => l.status === 'ignored').length
-                  return (
-                    <>
-                      {aCount > 0 && <Chip size="small" label={`${aCount} onaylı`} sx={{ backgroundColor: '#E8F5E9', color: '#1B5E20', fontWeight: 600, fontSize: '0.72rem' }} />}
-                      {pCount > 0 && <Chip size="small" label={`${pCount} bekliyor`} sx={{ backgroundColor: '#FFF3E0', color: '#E65100', fontWeight: 600, fontSize: '0.72rem' }} />}
-                      {rCount > 0 && <Chip size="small" label={`${rCount} reddedildi`} sx={{ backgroundColor: '#FFEBEE', color: '#B71C1C', fontWeight: 600, fontSize: '0.72rem' }} />}
-                      {iCount > 0 && <Chip size="small" label={`${iCount} ignore`} sx={{ backgroundColor: '#ECEFF1', color: '#455A64', fontWeight: 600, fontSize: '0.72rem' }} />}
-                      {aCount === 0 && pCount === 0 && rCount === 0 && iCount === 0 && (
-                        <Chip size="small" label="Onay Bekliyor" sx={{ backgroundColor: '#FFF3E0', color: '#E65100', fontWeight: 600, fontSize: '0.72rem' }} />
-                      )}
-                    </>
-                  )
-                })() : (
-                  <>
-                    <Box
-                      title={getMeasurementStatusLabel(sess)}
-                      sx={{ width: '10px', height: '10px', borderRadius: '50%', backgroundColor: getMeasurementDotColor(sess), flexShrink: 0 }}
-                    />
-                    <StatusChip session={sess} />
-                  </>
-                )}
 
                 {/* Kendi onaylı oturumu için revize düzenle */}
                 {isApproved && sess.isOwn && !sess.mode_edit && (
@@ -991,7 +1018,7 @@ export default function P_MetrajOlusturCetvel() {
                 {/* Kendi oturumu onay bekliyor — taslağa geri al (henüz onaylanmış satır yoksa) */}
                 {isReady && sess.isOwn && !hasApprovedLines && (
                   <IconButton size="small" onClick={() => handleBackToDraft(sess.id)}>
-                    <ReplyIcon sx={{ color: 'orange', fontSize: 20 }} />
+                    <EditIcon sx={{ fontSize: 20 }} />
                   </IconButton>
                 )}
 
@@ -999,6 +1026,18 @@ export default function P_MetrajOlusturCetvel() {
                 {sess.status === 'revise_requested' && sess.isOwn && !sess.mode_edit && (
                   <IconButton size="small" onClick={() => handleCancelRevisionRequest(sess.id)}>
                     <ReplyIcon sx={{ color: '#6a1fa2', fontSize: 20 }} />
+                  </IconButton>
+                )}
+
+                {/* Satır ekle */}
+                {sess.mode_edit && (canEdit || (isApproved && sess.isOwn) || sess.isRevisionEdit) && (
+                  <IconButton size="small" title="Satır Ekle" onClick={() => {
+                    if (sess.isRevisionEdit && sess.mode_edit) { addSubLineLocal(sess.id, null) }
+                    else if (isApproved) { handleStartRevision(sess.id); addSubLineLocal(sess.id, null) }
+                    else if (isReady) { handleBackToDraftAndAddLine(sess.id) }
+                    else { handleAddLine(sess.id) }
+                  }}>
+                    <AddCircleOutlineIcon sx={{ fontSize: 22, color: '#1565c0' }} />
                   </IconButton>
                 )}
               </Box>
@@ -1043,7 +1082,7 @@ export default function P_MetrajOlusturCetvel() {
                       return (
                         <React.Fragment key={line.id}>
                           <Box sx={{
-                            ...css_lineCell, ...cellBg, justifyContent: 'flex-start', pl: '0.5rem',
+                            ...css_lineCell, ...cellBg, justifyContent: 'center',
                             color: qty < 0 ? '#c62828' : (line.depth > 0 ? '#1565c0' : '#888'),
                           }}>
                             {line.siraNo}
@@ -1077,12 +1116,12 @@ export default function P_MetrajOlusturCetvel() {
                                   type="number"
                                   className="metraj-num-input"
                                   style={{ ...inputSx, color: deductionColor }}
-                                  value={line[field] ?? ''}
+                                  value={field === 'multiplier' && line[field] === 1 ? '' : (line[field] ?? '')}
                                   onChange={e => handleLineChange(sess.id, line.id, field, e.target.value)}
                                   onKeyDown={e => ['e', 'E', '+'].includes(e.key) && e.preventDefault()}
                                 />
                               ) : (
-                                line[field] != null ? ikiHane(line[field]) : ''
+                                field === 'multiplier' && line[field] === 1 ? '' : (line[field] != null ? ikiHane(line[field]) : '')
                               )}
                             </Box>
                           ))}
@@ -1117,37 +1156,6 @@ export default function P_MetrajOlusturCetvel() {
                         </React.Fragment>
                       )
                     })}
-
-                    {/* Satır ekle */}
-                    {(canEdit || (isReady && sess.isOwn) || (isApproved && sess.isOwn) || (sess.isRevisionEdit && sess.mode_edit)) && (
-                      <Box
-                        sx={{
-                          gridColumn: '1 / -1', display: 'flex', alignItems: 'center', px: '6px', py: '2px',
-                          borderBottom: '1px solid #e0e0e0',
-                          backgroundColor: 'rgba(21,101,192,0.04)',
-                        }}
-                      >
-                        <IconButton size="small" onClick={() => {
-                          if (sess.isRevisionEdit && sess.mode_edit) { addSubLineLocal(sess.id, null) }
-                          else if (isApproved) { handleStartRevision(sess.id); addSubLineLocal(sess.id, null) }
-                          else if (isReady) { handleBackToDraftAndAddLine(sess.id) }
-                          else { updateSess(sess.id, () => ({ mode_edit: true })); handleAddLine(sess.id) }
-                        }}>
-                          <AddIcon sx={{ fontSize: 18, color: '#1565c0' }} />
-                        </IconButton>
-                        <Typography
-                          sx={{ fontSize: '0.8rem', color: '#1565c0', ml: '2px', cursor: 'pointer', userSelect: 'none' }}
-                          onClick={() => {
-                            if (sess.isRevisionEdit && sess.mode_edit) { addSubLineLocal(sess.id, null) }
-                            else if (isApproved) { handleStartRevision(sess.id); addSubLineLocal(sess.id, null) }
-                            else if (isReady) { handleBackToDraftAndAddLine(sess.id) }
-                            else { updateSess(sess.id, () => ({ mode_edit: true })); handleAddLine(sess.id) }
-                          }}
-                        >
-                          Satır Ekle
-                        </Typography>
-                      </Box>
-                    )}
 
                     {/* Toplam satırı */}
                     <Box sx={{ gridColumn: '1 / 8', px: '8px', py: '4px', fontSize: '0.8rem', fontWeight: 600, display: 'flex', alignItems: 'center', justifyContent: 'flex-end', color: '#555', backgroundColor: cardColors.header, borderTop: '2px solid', borderTopColor: cardColors.border }}>
