@@ -24,7 +24,6 @@ import SaveIcon from '@mui/icons-material/Save'
 import ClearIcon from '@mui/icons-material/Clear'
 import CheckCircleIcon from '@mui/icons-material/CheckCircle'
 import AddIcon from '@mui/icons-material/Add'
-import DeleteOutlineIcon from '@mui/icons-material/DeleteOutline'
 import SubdirectoryArrowRightIcon from '@mui/icons-material/SubdirectoryArrowRight'
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore'
 import ExpandLessIcon from '@mui/icons-material/ExpandLess'
@@ -141,6 +140,7 @@ const css_lineCell = {
   px: '4px',
   height: '34px',
   fontSize: '0.85rem',
+  color: '#333',
   display: 'flex', alignItems: 'center',
   borderRight: '1px dashed #d8d8d8',
   overflow: 'hidden',
@@ -1178,9 +1178,9 @@ export default function P_MetrajOlusturCetvel() {
                         : isIgnoredLocked
                         ? '#BDBDBD'
                         : line.status === 'pending' && !isApproved
-                        ? (sess.mode_edit ? 'rgba(187,222,251,0.5)' : '#BBDEFB')
+                        ? '#BBDEFB'
                         : isDraftLine && !isApproved
-                        ? (sess.mode_edit ? 'rgba(255,250,200,0.4)' : '#FFE0B2')
+                        ? (sess.mode_edit ? 'rgba(255,250,180,0.6)' : '#FFE0B2')
                         : line.status === 'approved'
                         ? '#C8E6C9'
                         : isApproved
@@ -1199,7 +1199,7 @@ export default function P_MetrajOlusturCetvel() {
                         <React.Fragment key={line.id}>
                           <Box sx={{
                             ...css_lineCell, ...cellBg, justifyContent: 'center',
-                            color: line.depth > 0 ? '#1565c0' : '#888',
+                            color: line.depth > 0 ? '#1565C0' : '#555',
                           }}>
                             {line.siraNo}
                           </Box>
@@ -1220,13 +1220,14 @@ export default function P_MetrajOlusturCetvel() {
                                 sx={{ p: '1px', mr: '3px', flexShrink: 0 }}
                                 onClick={() => handleDeleteLine(sess.id, line.id)}
                               >
-                                <DeleteOutlineIcon sx={{ fontSize: 13, color: 'salmon', opacity: 0.8 }} />
+                                <ClearIcon sx={{ fontSize: 14, color: '#b71c1c' }} />
                               </IconButton>
                             )}
                             {editActive ? (
                               <input
                                 style={{ ...inputSx, textAlign: 'left', color: deductionColor }}
                                 value={line.description ?? ''}
+                                placeholder="Açıklama"
                                 onChange={e => handleLineChange(sess.id, line.id, 'description', e.target.value)}
                               />
                             ) : (
@@ -1242,6 +1243,7 @@ export default function P_MetrajOlusturCetvel() {
                                   className="metraj-num-input"
                                   style={{ ...inputSx, color: deductionColor }}
                                   value={field === 'multiplier' && Number(line[field]) === 1 ? '' : (line[field] ?? '')}
+                                  placeholder="—"
                                   onChange={e => handleLineChange(sess.id, line.id, field, e.target.value)}
                                   onKeyDown={e => ['e', 'E', '+'].includes(e.key) && e.preventDefault()}
                                 />
@@ -1257,20 +1259,20 @@ export default function P_MetrajOlusturCetvel() {
                               const hasData = [(Number(line.multiplier) === 1 ? null : line.multiplier), line.count, line.length, line.width, line.height].some(v => !isEmpty(v))
                               return hasData ? ikiHane(qty) : ''
                             })()}
-                            {pozBirim && qty !== 0 && <Box component="span" sx={{ ml: '4px', fontWeight: 400, fontSize: '0.75rem', color: '#888' }}>{pozBirim}</Box>}
+                            {pozBirim && qty !== 0 && <Box component="span" sx={{ ml: '4px', fontWeight: 400, fontSize: '0.75rem', color: '#555' }}>{pozBirim}</Box>}
                           </Box>
 
                           <Box sx={{ ...css_lineCell, ...cellBg, justifyContent: 'center', px: '2px' }}>
                             {(sess.isRevisionEdit && sess.mode_edit && line.isNew) ? (
                               <IconButton size="small" onClick={() => handleDeleteLine(sess.id, line.id)} sx={{ p: '2px' }}>
-                                <DeleteOutlineIcon sx={{ fontSize: 18, color: 'salmon' }} />
+                                <ClearIcon sx={{ fontSize: 18, color: '#b71c1c' }} />
                               </IconButton>
                             ) : line.status === 'approved' ? (
                               <DoneAllIcon sx={{ fontSize: 18, color: '#2e7d32', fontWeight: 700 }} />
                             ) : line.status === 'rejected' ? (
                               <ClearIcon sx={{ fontSize: 18, color: '#c62828' }} />
                             ) : line.status === 'ignored' ? (
-                              <DoneAllIcon sx={{ fontSize: 18, color: '#9E9E9E' }} />
+                              <DoneAllIcon sx={{ fontSize: 18, color: '#424242' }} />
                             ) : line.status === 'pending' && isApproved ? (
                               <IconButton size="small" onClick={() => handleDeleteLine(sess.id, line.id)} sx={{ p: '2px' }}>
                                 <ReplyIcon sx={{ fontSize: 18, color: 'orange' }} />
@@ -1288,14 +1290,14 @@ export default function P_MetrajOlusturCetvel() {
                                 }}
                               >
                                 {(!line.status || line.status === 'draft')
-                                  ? <HourglassFullIcon sx={{ fontSize: 15, color: '#f57c00' }} />
-                                  : <CheckIcon sx={{ fontSize: 18, color: '#9E9E9E' }} />
+                                  ? <HourglassFullIcon sx={{ fontSize: 15, color: '#E65100' }} />
+                                  : <CheckIcon sx={{ fontSize: 18, color: '#1565C0' }} />
                                 }
                               </IconButton>
                             ) : line.status === 'pending' ? (
-                              <CheckIcon sx={{ fontSize: 18, color: '#9E9E9E' }} />
+                              <CheckIcon sx={{ fontSize: 18, color: '#1565C0' }} />
                             ) : (!line.status || line.status === 'draft') ? (
-                              <HourglassFullIcon sx={{ fontSize: 15, color: '#f57c00' }} />
+                              <HourglassFullIcon sx={{ fontSize: 15, color: '#E65100' }} />
                             ) : null}
                           </Box>
                         </React.Fragment>
@@ -1374,7 +1376,7 @@ export default function P_MetrajOlusturCetvel() {
           if (revizeForms[lineId]) return // zaten açık
           setRevizeForms(prev => ({
             ...prev,
-            [lineId]: [{ tempId: `tmp-${Date.now()}`, description: '', multiplier: '', count: '', length: '', width: '', height: '' }],
+            [lineId]: [{ tempId: `tmp-${Date.now()}`, description: '', multiplier: '', count: '', length: '', width: '', height: '', status: 'draft' }],
           }))
         }
 
@@ -1391,10 +1393,10 @@ export default function P_MetrajOlusturCetvel() {
           const revizeEditor = isRevizeOpen && nodeRevizeRows.length > 0 ? (
             <>
               {nodeRevizeRows.map((row, rowIdx) => {
-                const revizeCellBg = { backgroundColor: 'rgba(243,229,245,0.8)', borderBottom: '1px solid #7b1fa2' }
+                const revizeCellBg = { backgroundColor: '#BBDEFB', borderBottom: '1px solid #1565C0' }
                 return (
                   <React.Fragment key={row.tempId}>
-                    <Box sx={{ ...css_oc, ...revizeCellBg, justifyContent: 'flex-start', pl: '0.5rem', color: '#7b1fa2', fontSize: '0.82rem' }}>
+                    <Box sx={{ ...css_oc, ...revizeCellBg, justifyContent: 'flex-start', pl: '0.5rem', color: '#1565C0', fontSize: '0.82rem' }}>
                       {`${node.siraNo}.${(node.children?.length ?? 0) + rowIdx + 1}`}
                     </Box>
                     <Box sx={{ ...css_oc, ...revizeCellBg }}>
@@ -1409,7 +1411,7 @@ export default function P_MetrajOlusturCetvel() {
                           onKeyDown={e => ['e', 'E', '+'].includes(e.key) && e.preventDefault()} />
                       </Box>
                     ))}
-                    <Box sx={{ ...css_oc, ...revizeCellBg, justifyContent: 'flex-end', fontWeight: 700, color: calcMetrajOnay(row) < 0 ? '#c62828' : '#7b1fa2' }}>
+                    <Box sx={{ ...css_oc, ...revizeCellBg, justifyContent: 'flex-end', fontWeight: 700, color: calcMetrajOnay(row) < 0 ? '#c62828' : '#1565C0' }}>
                       {(() => {
                         const qty = calcMetrajOnay(row)
                         const isEmpty = v => v === null || v === undefined || v === ''
@@ -1428,7 +1430,7 @@ export default function P_MetrajOlusturCetvel() {
                               setRevizeForms(prev => ({ ...prev, [node.id]: prev[node.id].filter(r => r.tempId !== row.tempId) }))
                             }
                           }}>
-                          <DeleteOutlineIcon sx={{ fontSize: 18, color: 'salmon' }} />
+                          <ClearIcon sx={{ fontSize: 18, color: '#b71c1c' }} />
                         </IconButton>
                     </Box>
                   </React.Fragment>
@@ -1490,7 +1492,7 @@ export default function P_MetrajOlusturCetvel() {
                     [(Number(node.multiplier) === 1 ? null : node.multiplier), node.count, node.length, node.width, node.height].some(v => !isEmpty(v))
                   return hasData ? ikiHane(metraj) : ''
                 })()}
-                {pozBirim && !hasKids && metraj !== 0 && <Box component="span" sx={{ ml: '3px', fontWeight: 400, fontSize: '0.72rem', color: '#888' }}>{pozBirim}</Box>}
+                {pozBirim && !hasKids && metraj !== 0 && <Box component="span" sx={{ ml: '3px', fontWeight: 400, fontSize: '0.72rem', color: '#555' }}>{pozBirim}</Box>}
               </Box>
               <Box sx={{ ...css_oc, ...cellBg, fontSize: '0.78rem', color: '#455a64' }}>{node.hazırlayan}</Box>
               <Box sx={{ ...css_oc, ...cellBg, fontSize: '0.78rem', color: node.status === 'pending' ? '#e65100' : node.status === 'rejected' ? '#b71c1c' : '#1b5e20' }}>
