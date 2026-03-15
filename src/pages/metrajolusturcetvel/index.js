@@ -138,7 +138,8 @@ const css_lineHeaderCell = {
   fontSize: '0.75rem', fontWeight: 600,
 }
 const css_lineCell = {
-  px: '4px', py: '3px',
+  px: '4px',
+  height: '34px',
   fontSize: '0.85rem',
   display: 'flex', alignItems: 'center',
   borderRight: '1px dashed #d8d8d8',
@@ -1065,7 +1066,7 @@ export default function P_MetrajOlusturCetvel() {
               <Box
                 sx={{
                   display: 'flex', alignItems: 'center', gap: '0.5rem',
-                  px: '1rem', height: '50px',
+                  px: '1rem', height: '50px', flexWrap: 'nowrap', overflow: 'hidden',
                   backgroundColor: cardColors.header,
                   color: '#e0e1dd',
                 }}
@@ -1175,8 +1176,10 @@ export default function P_MetrajOlusturCetvel() {
                       const rowBg = (line.isNew && sess.isRevisionEdit)
                         ? 'rgba(255,250,200,0.6)'
                         : isIgnoredLocked
-                        ? '#DEDEDE'
-                        : (line.status === 'pending' || isDraftLine) && !isApproved
+                        ? '#BDBDBD'
+                        : line.status === 'pending' && !isApproved
+                        ? (sess.mode_edit ? 'rgba(187,222,251,0.5)' : '#BBDEFB')
+                        : isDraftLine && !isApproved
                         ? (sess.mode_edit ? 'rgba(255,250,200,0.4)' : '#FFE0B2')
                         : line.status === 'approved'
                         ? '#C8E6C9'
@@ -1254,7 +1257,7 @@ export default function P_MetrajOlusturCetvel() {
                               const hasData = [(Number(line.multiplier) === 1 ? null : line.multiplier), line.count, line.length, line.width, line.height].some(v => !isEmpty(v))
                               return hasData ? ikiHane(qty) : ''
                             })()}
-                            {pozBirim && <Box component="span" sx={{ ml: '4px', fontWeight: 400, fontSize: '0.75rem', color: '#888' }}>{pozBirim}</Box>}
+                            {pozBirim && qty !== 0 && <Box component="span" sx={{ ml: '4px', fontWeight: 400, fontSize: '0.75rem', color: '#888' }}>{pozBirim}</Box>}
                           </Box>
 
                           <Box sx={{ ...css_lineCell, ...cellBg, justifyContent: 'center', px: '2px' }}>
@@ -1302,25 +1305,33 @@ export default function P_MetrajOlusturCetvel() {
                     {/* Toplam satırları */}
                     <Box sx={{ gridColumn: '1 / -1', backgroundColor: cardColors.header, borderTop: '2px solid', borderTopColor: cardColors.border, display: 'flex', justifyContent: 'space-between', flexWrap: 'wrap', px: '14px', py: '8px', minHeight: '44px' }}>
                       <Box sx={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
-                        <HourglassFullIcon sx={{ fontSize: 16, color: '#FFCC80' }} />
+                        <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', borderRadius: '50%', backgroundColor: '#FFE0B2', width: 26, height: 26, flexShrink: 0 }}>
+                          <HourglassFullIcon sx={{ fontSize: 16, color: '#E65100', filter: 'drop-shadow(0 0 0.4px #E65100)' }} />
+                        </Box>
                         <Box component="span" sx={{ fontSize: '0.82rem', color: 'rgba(255,255,255,0.75)' }}>Hazırlanan</Box>
                         <Box component="span" sx={{ fontSize: '0.95rem', fontWeight: 700, color: '#e0e1dd', ml: '2px' }}>{ikiHane(totalDraft)}</Box>
                         {pozBirim && <Box component="span" sx={{ fontSize: '0.78rem', color: 'rgba(255,255,255,0.55)' }}>{pozBirim}</Box>}
                       </Box>
                       <Box sx={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
-                        <CheckIcon sx={{ fontSize: 16, color: '#80CBC4' }} />
+                        <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', borderRadius: '50%', backgroundColor: '#BBDEFB', width: 26, height: 26, flexShrink: 0 }}>
+                          <CheckIcon sx={{ fontSize: 16, color: '#1565C0', filter: 'drop-shadow(0 0 0.4px #1565C0)' }} />
+                        </Box>
                         <Box component="span" sx={{ fontSize: '0.82rem', color: 'rgba(255,255,255,0.75)' }}>Onaya Sunulan</Box>
                         <Box component="span" sx={{ fontSize: '0.95rem', fontWeight: 700, color: '#e0e1dd', ml: '2px' }}>{ikiHane(totalPending)}</Box>
                         {pozBirim && <Box component="span" sx={{ fontSize: '0.78rem', color: 'rgba(255,255,255,0.55)' }}>{pozBirim}</Box>}
                       </Box>
                       <Box sx={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
-                        <DoneAllIcon sx={{ fontSize: 16, color: '#B0BEC5' }} />
+                        <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', borderRadius: '50%', backgroundColor: '#BDBDBD', width: 26, height: 26, flexShrink: 0 }}>
+                          <DoneAllIcon sx={{ fontSize: 16, color: '#424242', filter: 'drop-shadow(0 0 0.4px #424242)' }} />
+                        </Box>
                         <Box component="span" sx={{ fontSize: '0.82rem', color: 'rgba(255,255,255,0.75)' }}>Ignore</Box>
                         <Box component="span" sx={{ fontSize: '0.95rem', fontWeight: 700, color: '#e0e1dd', ml: '2px' }}>{ikiHane(totalIgnored)}</Box>
                         {pozBirim && <Box component="span" sx={{ fontSize: '0.78rem', color: 'rgba(255,255,255,0.55)' }}>{pozBirim}</Box>}
                       </Box>
                       <Box sx={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
-                        <DoneAllIcon sx={{ fontSize: 16, color: '#A5D6A7' }} />
+                        <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', borderRadius: '50%', backgroundColor: '#C8E6C9', width: 26, height: 26, flexShrink: 0 }}>
+                          <DoneAllIcon sx={{ fontSize: 16, color: '#2E7D32', filter: 'drop-shadow(0 0 0.4px #2E7D32)' }} />
+                        </Box>
                         <Box component="span" sx={{ fontSize: '0.82rem', color: 'rgba(255,255,255,0.75)' }}>Onaylanan</Box>
                         <Box component="span" sx={{ fontSize: '0.95rem', fontWeight: 700, color: '#e0e1dd', ml: '2px' }}>{ikiHane(totalApproved)}</Box>
                         {pozBirim && <Box component="span" sx={{ fontSize: '0.78rem', color: 'rgba(255,255,255,0.55)' }}>{pozBirim}</Box>}
@@ -1459,7 +1470,7 @@ export default function P_MetrajOlusturCetvel() {
 
           const rowBg = node.status !== 'approved'
             ? (node.status === 'pending' ? '#FFCC80' : node.status === 'rejected' ? 'rgba(255,235,238,0.5)' : 'rgba(236,239,241,0.5)')
-            : node.depth > 0 ? 'rgba(187,222,251,0.2)' : 'white'
+            : '#C8E6C9'
           const onaylayanText = node.status === 'pending' ? '(bekliyor)' : node.status === 'rejected' ? '(reddedildi)' : node.status === 'ignored' ? '(ignore)' : (node.onaylayan ?? '')
           const cellBg = { backgroundColor: rowBg, borderBottom: '1px dashed #c8c8c8', ...(metraj < 0 && { color: '#c62828' }) }
 
@@ -1573,16 +1584,16 @@ export default function P_MetrajOlusturCetvel() {
                   ))}
 
                   {/* Toplam */}
-                  <Box sx={{ gridColumn: '1 / 8', px: '8px', py: '5px', fontWeight: 600, fontSize: '0.85rem', display: 'flex', alignItems: 'center', justifyContent: 'flex-end', color: '#1b5e20', backgroundColor: '#E8F5E9', borderTop: '2px solid #43A047' }}>
+                  <Box sx={{ gridColumn: '1 / 8', px: '8px', py: '5px', fontWeight: 600, fontSize: '0.85rem', display: 'flex', alignItems: 'center', justifyContent: 'flex-end', color: '#fff', backgroundColor: '#1b5e20', borderTop: '2px solid #43A047' }}>
                     Onaylanan Toplam
                   </Box>
-                  <Box sx={{ px: '8px', py: '5px', fontWeight: 700, fontSize: '0.95rem', display: 'flex', alignItems: 'center', justifyContent: 'flex-end', color: '#1b5e20', backgroundColor: '#E8F5E9', borderTop: '2px solid #43A047' }}>
+                  <Box sx={{ px: '8px', py: '5px', fontWeight: 700, fontSize: '0.95rem', display: 'flex', alignItems: 'center', justifyContent: 'flex-end', color: '#fff', backgroundColor: '#1b5e20', borderTop: '2px solid #43A047' }}>
                     {ikiHane(onayKartiTotal)}
                     {pozBirim && <Box component="span" sx={{ ml: '4px', fontWeight: 400, fontSize: '0.8rem' }}>{pozBirim}</Box>}
                   </Box>
-                  <Box sx={{ backgroundColor: '#E8F5E9', borderTop: '2px solid #43A047' }} />
-                  <Box sx={{ backgroundColor: '#E8F5E9', borderTop: '2px solid #43A047' }} />
-                  <Box sx={{ backgroundColor: '#E8F5E9', borderTop: '2px solid #43A047' }} />
+                  <Box sx={{ backgroundColor: '#1b5e20', borderTop: '2px solid #43A047' }} />
+                  <Box sx={{ backgroundColor: '#1b5e20', borderTop: '2px solid #43A047' }} />
+                  <Box sx={{ backgroundColor: '#1b5e20', borderTop: '2px solid #43A047' }} />
                 </Box>
               </Box>
             </Box>
