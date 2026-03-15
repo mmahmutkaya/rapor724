@@ -1309,7 +1309,7 @@ export default function P_MetrajOlusturCetvel() {
                           <HourglassFullIcon sx={{ fontSize: 16, color: '#E65100', filter: 'drop-shadow(0 0 0.4px #E65100)' }} />
                         </Box>
                         <Box component="span" sx={{ fontSize: '0.82rem', color: 'rgba(255,255,255,0.75)' }}>Hazırlanan</Box>
-                        <Box component="span" sx={{ fontSize: '0.95rem', fontWeight: 700, color: '#e0e1dd', ml: '2px' }}>{ikiHane(totalDraft)}</Box>
+                        <Box component="span" sx={{ fontSize: '0.95rem', fontWeight: 700, color: totalDraft === 0 ? 'rgba(255,255,255,0.55)' : '#e0e1dd', ml: '2px' }}>{ikiHane(totalDraft)}</Box>
                         {pozBirim && <Box component="span" sx={{ fontSize: '0.78rem', color: 'rgba(255,255,255,0.55)' }}>{pozBirim}</Box>}
                       </Box>
                       <Box sx={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
@@ -1317,7 +1317,7 @@ export default function P_MetrajOlusturCetvel() {
                           <CheckIcon sx={{ fontSize: 16, color: '#1565C0', filter: 'drop-shadow(0 0 0.4px #1565C0)' }} />
                         </Box>
                         <Box component="span" sx={{ fontSize: '0.82rem', color: 'rgba(255,255,255,0.75)' }}>Onaya Sunulan</Box>
-                        <Box component="span" sx={{ fontSize: '0.95rem', fontWeight: 700, color: '#e0e1dd', ml: '2px' }}>{ikiHane(totalPending)}</Box>
+                        <Box component="span" sx={{ fontSize: '0.95rem', fontWeight: 700, color: totalPending === 0 ? 'rgba(255,255,255,0.55)' : '#e0e1dd', ml: '2px' }}>{ikiHane(totalPending)}</Box>
                         {pozBirim && <Box component="span" sx={{ fontSize: '0.78rem', color: 'rgba(255,255,255,0.55)' }}>{pozBirim}</Box>}
                       </Box>
                       <Box sx={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
@@ -1325,7 +1325,7 @@ export default function P_MetrajOlusturCetvel() {
                           <DoneAllIcon sx={{ fontSize: 16, color: '#424242', filter: 'drop-shadow(0 0 0.4px #424242)' }} />
                         </Box>
                         <Box component="span" sx={{ fontSize: '0.82rem', color: 'rgba(255,255,255,0.75)' }}>Ignore</Box>
-                        <Box component="span" sx={{ fontSize: '0.95rem', fontWeight: 700, color: '#e0e1dd', ml: '2px' }}>{ikiHane(totalIgnored)}</Box>
+                        <Box component="span" sx={{ fontSize: '0.95rem', fontWeight: 700, color: totalIgnored === 0 ? 'rgba(255,255,255,0.55)' : '#e0e1dd', ml: '2px' }}>{ikiHane(totalIgnored)}</Box>
                         {pozBirim && <Box component="span" sx={{ fontSize: '0.78rem', color: 'rgba(255,255,255,0.55)' }}>{pozBirim}</Box>}
                       </Box>
                       <Box sx={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
@@ -1333,7 +1333,7 @@ export default function P_MetrajOlusturCetvel() {
                           <DoneAllIcon sx={{ fontSize: 16, color: '#2E7D32', filter: 'drop-shadow(0 0 0.4px #2E7D32)' }} />
                         </Box>
                         <Box component="span" sx={{ fontSize: '0.82rem', color: 'rgba(255,255,255,0.75)' }}>Onaylanan</Box>
-                        <Box component="span" sx={{ fontSize: '0.95rem', fontWeight: 700, color: '#e0e1dd', ml: '2px' }}>{ikiHane(totalApproved)}</Box>
+                        <Box component="span" sx={{ fontSize: '0.95rem', fontWeight: 700, color: totalApproved === 0 ? 'rgba(255,255,255,0.55)' : '#e0e1dd', ml: '2px' }}>{ikiHane(totalApproved)}</Box>
                         {pozBirim && <Box component="span" sx={{ fontSize: '0.78rem', color: 'rgba(255,255,255,0.55)' }}>{pozBirim}</Box>}
                       </Box>
                     </Box>
