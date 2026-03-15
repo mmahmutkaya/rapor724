@@ -143,11 +143,11 @@ const inputSx = {
 }
 
 function getCardColors(visualStatus) {
-  if (visualStatus === 'approved') return { border: '#A5D6A7', header: '#E0E0E0', row: 'rgba(200,230,201,0.35)', totalText: '#212121' }
-  if (visualStatus === 'revised') return { border: '#90CAF9', header: '#E0E0E0', row: 'rgba(187,222,251,0.35)', totalText: '#212121' }
-  if (visualStatus === 'rejected') return { border: '#EF9A9A', header: '#E0E0E0', row: 'rgba(255,205,210,0.28)', totalText: '#212121' }
-  if (visualStatus === 'pendingRevision') return { border: '#CE93D8', header: '#E0E0E0', row: 'rgba(206,147,216,0.15)', totalText: '#212121' }
-  return { border: '#B0BEC5', header: '#E0E0E0', row: 'rgba(236,239,241,0.3)', totalText: '#212121' }
+  if (visualStatus === 'approved') return { border: '#A5D6A7', header: '#BDBDBD', row: 'rgba(200,230,201,0.35)', totalText: '#212121' }
+  if (visualStatus === 'revised') return { border: '#90CAF9', header: '#BDBDBD', row: 'rgba(187,222,251,0.35)', totalText: '#212121' }
+  if (visualStatus === 'rejected') return { border: '#EF9A9A', header: '#BDBDBD', row: 'rgba(255,205,210,0.28)', totalText: '#212121' }
+  if (visualStatus === 'pendingRevision') return { border: '#CE93D8', header: '#BDBDBD', row: 'rgba(206,147,216,0.15)', totalText: '#212121' }
+  return { border: '#B0BEC5', header: '#BDBDBD', row: 'rgba(236,239,241,0.3)', totalText: '#212121' }
 }
 
 
