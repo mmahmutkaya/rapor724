@@ -461,12 +461,12 @@ export default function P_MetrajOnaylaCetvel() {
     return (
       <>
         <Box sx={{ ...css_dataCell, ...cellBg, justifyContent: 'center', color: '#888' }}>
-          {(line.order_index ?? 0) + 1}
+          {line.order_index ?? 1}
         </Box>
         <Box sx={{ ...css_dataCell, ...cellBg }}>{line.description ?? ''}</Box>
         {NUM_FIELDS.map(f => (
           <Box key={f} sx={{ ...css_dataCell, ...cellBg, justifyContent: 'flex-end' }}>
-            {line[f] != null ? line[f] : ''}
+            {f === 'multiplier' && Number(line[f]) === 1 ? '' : (line[f] != null ? ikiHane(line[f]) : '')}
           </Box>
         ))}
         <Box sx={{ ...css_dataCell, ...cellBg, justifyContent: 'flex-end', fontWeight: 700 }}>
@@ -511,7 +511,7 @@ export default function P_MetrajOnaylaCetvel() {
     const isRevizeOpen = revizeForm?.parentLineId === node.id
     const showRevizeBtn = node.status === 'approved' && !isRevizeOpen
 
-    const rowBg = node.status === 'pending'  ? 'rgba(255,243,224,0.5)' :
+    const rowBg = node.status === 'pending'  ? '#FFCC80' :
                   node.status === 'rejected' ? 'rgba(255,235,238,0.5)' :
                   node.status === 'ignored'  ? 'rgba(236,239,241,0.5)' :
                   isRevized                  ? 'rgba(224,224,224,0.5)' :

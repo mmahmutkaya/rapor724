@@ -31,6 +31,8 @@ import ExpandLessIcon from '@mui/icons-material/ExpandLess'
 import AddCircleOutlineIcon from '@mui/icons-material/AddCircleOutline'
 import HourglassFullIcon from '@mui/icons-material/HourglassFull'
 import CheckIcon from '@mui/icons-material/Check'
+import DoneAllIcon from '@mui/icons-material/DoneAll'
+import Tooltip from '@mui/material/Tooltip'
 
 
 function computeQuantity(line) {
@@ -122,7 +124,7 @@ const css_lineHeaderCell = {
   px: '4px', py: '3px',
   display: 'flex', alignItems: 'center', justifyContent: 'center',
   borderRight: '1px solid rgba(255,255,255,0.15)',
-  backgroundColor: '#555555', color: '#f5f5f5',
+  backgroundColor: '#4E5C6E', color: '#f5f5f5',
   fontSize: '0.75rem', fontWeight: 600,
 }
 const css_lineCell = {
@@ -145,7 +147,7 @@ function getCardColors(visualStatus) {
   if (visualStatus === 'revised') return { border: '#90CAF9', header: '#E3F2FD', row: 'rgba(187,222,251,0.35)', totalText: '#0D47A1' }
   if (visualStatus === 'rejected') return { border: '#EF9A9A', header: '#FFEBEE', row: 'rgba(255,205,210,0.28)', totalText: '#B71C1C' }
   if (visualStatus === 'pendingRevision') return { border: '#CE93D8', header: '#F3E5F5', row: 'rgba(206,147,216,0.15)', totalText: '#4A148C' }
-  return { border: '#B0BEC5', header: '#ECEFF1', row: 'rgba(236,239,241,0.3)', totalText: '#455A64' }
+  return { border: '#B0BEC5', header: '#4E5C6E', row: 'rgba(236,239,241,0.3)', totalText: '#fff' }
 }
 
 
@@ -162,6 +164,8 @@ export default function P_MetrajOlusturCetvel() {
   const [expandedApproved, setExpandedApproved] = useState({})   // { lineId: bool }
   const [revizeForms, setRevizeForms] = useState({}) // { [lineId]: [{ tempId, description, multiplier, count, length, width, height }] }
   const [showAllOriginals, setShowAllOriginals] = useState(false)
+  const [showOwnSess, setShowOwnSess] = useState(true)
+  const [showApprovalSect, setShowApprovalSect] = useState(true)
 
   const wpAreaId = selectedMahal?.wpAreaId
 
@@ -889,6 +893,7 @@ export default function P_MetrajOlusturCetvel() {
     : selectedPoz?.short_desc
 
   const hasMyActiveSess = sessions.some(s => s.isOwn && (s.status !== 'approved' || s.isRevisionEdit))
+  const ownUserLabel = sessions.find(s => s.isOwn)?.userName ?? userMap[appUser?.id] ?? appUser?.email ?? '?'
 
   return (
     <Box>
@@ -937,6 +942,40 @@ export default function P_MetrajOlusturCetvel() {
               </Typography>
             </Box>
           </Grid>
+          <Grid item>
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: '2px' }}>
+              <Tooltip title={showOwnSess ? 'Metrajı gizle' : 'Metrajı göster'}>
+                <Chip
+                  label={ownUserLabel}
+                  size="small"
+                  onClick={() => setShowOwnSess(v => !v)}
+                  sx={{
+                    cursor: 'pointer', fontWeight: 600, fontSize: '0.75rem',
+                    backgroundColor: showOwnSess ? 'rgba(69,90,100,0.12)' : 'transparent',
+                    color: showOwnSess ? '#37474f' : '#b0bec5',
+                    border: '1px solid',
+                    borderColor: showOwnSess ? '#78909c' : '#cfd8dc',
+                    '&:hover': { backgroundColor: 'rgba(69,90,100,0.2)' },
+                  }}
+                />
+              </Tooltip>
+              <Tooltip title={showApprovalSect ? 'Onaylı metrajı gizle' : 'Onaylı metrajı göster'}>
+                <Chip
+                  label="Onaylı"
+                  size="small"
+                  onClick={() => setShowApprovalSect(v => !v)}
+                  sx={{
+                    cursor: 'pointer', fontWeight: 600, fontSize: '0.75rem',
+                    backgroundColor: showApprovalSect ? 'rgba(27,94,32,0.1)' : 'transparent',
+                    color: showApprovalSect ? '#1b5e20' : '#b0bec5',
+                    border: '1px solid',
+                    borderColor: showApprovalSect ? '#43a047' : '#cfd8dc',
+                    '&:hover': { backgroundColor: 'rgba(27,94,32,0.18)' },
+                  }}
+                />
+              </Tooltip>
+            </Box>
+          </Grid>
         </Grid>
       </AppBar>
 
@@ -963,7 +1002,7 @@ export default function P_MetrajOlusturCetvel() {
 
       {/* SESSION KARTLARI */}
       <Box sx={{ p: '1rem', display: 'flex', flexDirection: 'column', gap: '1.5rem', maxWidth: '900px' }}>
-        {sessions.map(sess => {
+        {sessions.filter(sess => sess.isOwn ? showOwnSess : true).map(sess => {
           const visualStatus = sess.visualStatus ?? getMeasurementVisualStatus(sess)
           const cardColors = getCardColors(visualStatus)
           const isDraft    = sess.status === 'draft'
@@ -972,7 +1011,10 @@ export default function P_MetrajOlusturCetvel() {
           const canEdit    = sess.isOwn && (isDraft || isReady)
           const rootLines = sess.lines.filter(l => !l.parent_line_id)
           const hasApprovedLines = rootLines.some(l => l.status === 'approved')
-          const totalQuantity = rootLines.reduce((sum, l) => sum + computeQuantity(l), 0)
+          const totalDraft     = rootLines.filter(l => !l.status || l.status === 'draft').reduce((sum, l) => sum + computeQuantity(l), 0)
+          const totalPending   = rootLines.filter(l => l.status === 'pending').reduce((sum, l) => sum + computeQuantity(l), 0)
+          const totalIgnored   = rootLines.filter(l => l.status === 'ignored').reduce((sum, l) => sum + computeQuantity(l), 0)
+          const totalApproved  = rootLines.filter(l => l.status === 'approved').reduce((sum, l) => sum + computeQuantity(l), 0)
 
           return (
             <Box
@@ -990,14 +1032,13 @@ export default function P_MetrajOlusturCetvel() {
                   display: 'flex', alignItems: 'center', gap: '0.5rem',
                   px: '1rem', height: '50px',
                   backgroundColor: cardColors.header,
-                  borderBottom: '1px solid',
-                  borderColor: cardColors.border,
+                  color: 'white',
                 }}
               >
                 <Typography variant="body1" sx={{ fontWeight: 700, flexGrow: 1 }}>
-                  {sess.isOwn ? 'Benim Metrajım' : sess.userName}
+                  {sess.userName}
                   {!sess.isOwn && (
-                    <Box component="span" sx={{ fontWeight: 400, fontSize: '0.78rem', ml: '6px', color: '#888' }}>
+                    <Box component="span" sx={{ fontWeight: 400, fontSize: '0.78rem', ml: '6px', color: 'rgba(255,255,255,0.7)' }}>
                       (salt okunur)
                     </Box>
                   )}
@@ -1007,7 +1048,7 @@ export default function P_MetrajOlusturCetvel() {
                 {/* Kendi onaylı oturumu için revize düzenle */}
                 {isApproved && sess.isOwn && !sess.mode_edit && (
                   <IconButton size="small" onClick={() => handleStartRevision(sess.id)}>
-                    <EditIcon sx={{ fontSize: 20, color: '#1565c0' }} />
+                    <EditIcon sx={{ fontSize: 20, color: '#90CAF9' }} />
                   </IconButton>
                 )}
 
@@ -1015,11 +1056,11 @@ export default function P_MetrajOlusturCetvel() {
                 {sess.isRevisionEdit && sess.mode_edit && (
                   <>
                     <IconButton size="small" onClick={() => handleCancelRevisionEdit(sess.id)}>
-                      <ClearIcon sx={{ color: sess.isChanged ? '#c62828' : '#888', fontSize: 20 }} />
+                      <ClearIcon sx={{ color: sess.isChanged ? '#EF9A9A' : 'rgba(255,255,255,0.5)', fontSize: 20 }} />
                     </IconButton>
                     {sess.isChanged && (
                       <IconButton size="small" onClick={() => handleSaveRevision(sess.id)}>
-                        <SaveIcon sx={{ color: '#1565c0', fontSize: 20 }} />
+                        <SaveIcon sx={{ color: '#90CAF9', fontSize: 20 }} />
                       </IconButton>
                     )}
                   </>
@@ -1029,11 +1070,11 @@ export default function P_MetrajOlusturCetvel() {
                 {(isDraft || isReady) && sess.isOwn && !sess.mode_edit && !sess.isRevisionEdit && (
                   <>
                     <IconButton size="small" onClick={() => updateSess(sess.id, () => ({ mode_edit: true }))}>
-                      <EditIcon sx={{ fontSize: 20 }} />
+                      <EditIcon sx={{ fontSize: 20, color: 'rgba(255,255,255,0.85)' }} />
                     </IconButton>
                     {isDraft && rootLines.length > 0 && (
                       <IconButton size="small" onClick={() => handleMarkReady(sess.id)}>
-                        <CheckCircleIcon sx={{ fontSize: 24, color: '#2e7d32' }} />
+                        <CheckCircleIcon sx={{ fontSize: 24, color: '#A5D6A7' }} />
                       </IconButton>
                     )}
                   </>
@@ -1043,10 +1084,10 @@ export default function P_MetrajOlusturCetvel() {
                 {(isDraft || isReady) && sess.isOwn && sess.mode_edit && (
                   <>
                     <IconButton size="small" onClick={() => handleCancelEdit(sess.id)}>
-                      <ClearIcon sx={{ color: sess.isChanged ? '#c62828' : '#888', fontSize: 20 }} />
+                      <ClearIcon sx={{ color: sess.isChanged ? '#EF9A9A' : 'rgba(255,255,255,0.5)', fontSize: 20 }} />
                     </IconButton>
                     <IconButton size="small" onClick={() => handleSave(sess.id)} disabled={!sess.isChanged}>
-                      <SaveIcon sx={{ color: sess.isChanged ? '#1565c0' : '#bbb', fontSize: 20 }} />
+                      <SaveIcon sx={{ color: sess.isChanged ? '#90CAF9' : 'rgba(255,255,255,0.25)', fontSize: 20 }} />
                     </IconButton>
                   </>
                 )}
@@ -1054,7 +1095,7 @@ export default function P_MetrajOlusturCetvel() {
                 {/* Kendi revize talebi — geri çek */}
                 {sess.status === 'revise_requested' && sess.isOwn && !sess.mode_edit && (
                   <IconButton size="small" onClick={() => handleCancelRevisionRequest(sess.id)}>
-                    <ReplyIcon sx={{ color: '#6a1fa2', fontSize: 20 }} />
+                    <ReplyIcon sx={{ color: '#CE93D8', fontSize: 20 }} />
                   </IconButton>
                 )}
 
@@ -1065,7 +1106,7 @@ export default function P_MetrajOlusturCetvel() {
                     else if (isApproved) { handleStartRevision(sess.id); addSubLineLocal(sess.id, null) }
                     else { handleAddLine(sess.id) }
                   }}>
-                    <AddCircleOutlineIcon sx={{ fontSize: 22, color: '#1565c0' }} />
+                    <AddCircleOutlineIcon sx={{ fontSize: 22, color: '#90CAF9' }} />
                   </IconButton>
                 )}
               </Box>
@@ -1094,15 +1135,23 @@ export default function P_MetrajOlusturCetvel() {
                       const qty = computeQuantity(line)
                       const isDeduction = qty < 0
                       const isPendingLocked = isReady && line.status === 'pending'
+                      const isIgnoredLocked = line.status === 'ignored'
+                      const isDraftLine = !line.status || line.status === 'draft'
                       const rowBg = (line.isNew && sess.isRevisionEdit)
                         ? 'rgba(255,250,200,0.6)'
+                        : isIgnoredLocked
+                        ? '#DEDEDE'
+                        : (line.status === 'pending' || isDraftLine) && !isApproved
+                        ? (sess.mode_edit ? 'rgba(255,250,200,0.4)' : '#FFE0B2')
+                        : line.status === 'approved'
+                        ? '#C8E6C9'
                         : isApproved
                         ? cardColors.row
                         : visualStatus === 'unread'
                         ? cardColors.row
-                        : (sess.mode_edit && !isPendingLocked) ? 'rgba(255,250,200,0.4)' : 'white'
+                        : sess.mode_edit ? 'rgba(255,250,200,0.4)' : 'white'
                       const deductionColor = isDeduction ? '#b71c1c' : undefined
-                      const editActive = (canEdit && sess.mode_edit && line.status !== 'approved' && !isPendingLocked) || (sess.isRevisionEdit && sess.mode_edit && line.isNew)
+                      const editActive = (canEdit && sess.mode_edit && line.status !== 'approved' && !isPendingLocked && !isIgnoredLocked) || (sess.isRevisionEdit && sess.mode_edit && line.isNew)
                       const depthStyle = line.depth > 0
                         ? { borderLeft: `${Math.min(line.depth, 3) * 3}px solid rgba(144,202,249,0.7)` }
                         : {}
@@ -1112,7 +1161,7 @@ export default function P_MetrajOlusturCetvel() {
                         <React.Fragment key={line.id}>
                           <Box sx={{
                             ...css_lineCell, ...cellBg, justifyContent: 'center',
-                            color: qty < 0 ? '#c62828' : (line.depth > 0 ? '#1565c0' : '#888'),
+                            color: line.depth > 0 ? '#1565c0' : '#888',
                           }}>
                             {line.siraNo}
                           </Box>
@@ -1127,7 +1176,7 @@ export default function P_MetrajOlusturCetvel() {
                                 <SubdirectoryArrowRightIcon sx={{ fontSize: 13, color: '#1565c0', opacity: 0.7 }} />
                               </IconButton>
                             )}
-                            {canEdit && sess.mode_edit && !sess.isRevisionEdit && line.status !== 'approved' && !isPendingLocked && (
+                            {canEdit && sess.mode_edit && !sess.isRevisionEdit && line.status !== 'approved' && !isPendingLocked && !isIgnoredLocked && (
                               <IconButton
                                 size="small"
                                 sx={{ p: '1px', mr: '3px', flexShrink: 0 }}
@@ -1179,11 +1228,11 @@ export default function P_MetrajOlusturCetvel() {
                                 <DeleteOutlineIcon sx={{ fontSize: 18, color: 'salmon' }} />
                               </IconButton>
                             ) : line.status === 'approved' ? (
-                              <CheckCircleIcon sx={{ fontSize: 18, color: '#2e7d32' }} />
+                              <DoneAllIcon sx={{ fontSize: 18, color: '#2e7d32', fontWeight: 700 }} />
                             ) : line.status === 'rejected' ? (
                               <ClearIcon sx={{ fontSize: 18, color: '#c62828' }} />
                             ) : line.status === 'ignored' ? (
-                              <Box sx={{ width: 10, height: 10, borderRadius: '50%', backgroundColor: '#90A4AE' }} />
+                              <DoneAllIcon sx={{ fontSize: 18, color: '#9E9E9E' }} />
                             ) : line.status === 'pending' && isApproved ? (
                               <IconButton size="small" onClick={() => handleDeleteLine(sess.id, line.id)} sx={{ p: '2px' }}>
                                 <ReplyIcon sx={{ fontSize: 18, color: 'orange' }} />
@@ -1202,11 +1251,11 @@ export default function P_MetrajOlusturCetvel() {
                               >
                                 {(!line.status || line.status === 'draft')
                                   ? <HourglassFullIcon sx={{ fontSize: 15, color: '#f57c00' }} />
-                                  : <CheckIcon sx={{ fontSize: 18, color: '#2e7d32' }} />
+                                  : <CheckIcon sx={{ fontSize: 18, color: '#9E9E9E' }} />
                                 }
                               </IconButton>
                             ) : line.status === 'pending' ? (
-                              <CheckIcon sx={{ fontSize: 18, color: '#2e7d32' }} />
+                              <CheckIcon sx={{ fontSize: 18, color: '#9E9E9E' }} />
                             ) : (!line.status || line.status === 'draft') ? (
                               <HourglassFullIcon sx={{ fontSize: 15, color: '#f57c00' }} />
                             ) : null}
@@ -1215,15 +1264,33 @@ export default function P_MetrajOlusturCetvel() {
                       )
                     })}
 
-                    {/* Toplam satırı */}
-                    <Box sx={{ gridColumn: '1 / 8', px: '8px', py: '4px', fontSize: '0.8rem', fontWeight: 600, display: 'flex', alignItems: 'center', justifyContent: 'flex-end', color: '#555', backgroundColor: cardColors.header, borderTop: '2px solid', borderTopColor: cardColors.border }}>
-                      Toplam
+                    {/* Toplam satırları */}
+                    <Box sx={{ gridColumn: '1 / -1', backgroundColor: cardColors.header, borderTop: '2px solid', borderTopColor: cardColors.border, display: 'flex', justifyContent: 'space-between', flexWrap: 'wrap', px: '14px', py: '8px', minHeight: '44px' }}>
+                      <Box sx={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
+                        <HourglassFullIcon sx={{ fontSize: 16, color: '#f57c00' }} />
+                        <Box component="span" sx={{ fontSize: '0.82rem', color: 'rgba(255,255,255,0.65)' }}>Hazırlanan</Box>
+                        <Box component="span" sx={{ fontSize: '0.95rem', fontWeight: 700, color: '#fff', ml: '2px' }}>{ikiHane(totalDraft)}</Box>
+                        {pozBirim && <Box component="span" sx={{ fontSize: '0.78rem', color: 'rgba(255,255,255,0.45)' }}>{pozBirim}</Box>}
+                      </Box>
+                      <Box sx={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
+                        <CheckIcon sx={{ fontSize: 16, color: '#80CBC4' }} />
+                        <Box component="span" sx={{ fontSize: '0.82rem', color: 'rgba(255,255,255,0.65)' }}>Onaya Sunulan</Box>
+                        <Box component="span" sx={{ fontSize: '0.95rem', fontWeight: 700, color: '#fff', ml: '2px' }}>{ikiHane(totalPending)}</Box>
+                        {pozBirim && <Box component="span" sx={{ fontSize: '0.78rem', color: 'rgba(255,255,255,0.45)' }}>{pozBirim}</Box>}
+                      </Box>
+                      <Box sx={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
+                        <DoneAllIcon sx={{ fontSize: 16, color: '#90A4AE' }} />
+                        <Box component="span" sx={{ fontSize: '0.82rem', color: 'rgba(255,255,255,0.65)' }}>Ignore</Box>
+                        <Box component="span" sx={{ fontSize: '0.95rem', fontWeight: 700, color: '#fff', ml: '2px' }}>{ikiHane(totalIgnored)}</Box>
+                        {pozBirim && <Box component="span" sx={{ fontSize: '0.78rem', color: 'rgba(255,255,255,0.45)' }}>{pozBirim}</Box>}
+                      </Box>
+                      <Box sx={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
+                        <DoneAllIcon sx={{ fontSize: 16, color: '#A5D6A7' }} />
+                        <Box component="span" sx={{ fontSize: '0.82rem', color: 'rgba(255,255,255,0.65)' }}>Onaylanan</Box>
+                        <Box component="span" sx={{ fontSize: '0.95rem', fontWeight: 700, color: '#fff', ml: '2px' }}>{ikiHane(totalApproved)}</Box>
+                        {pozBirim && <Box component="span" sx={{ fontSize: '0.78rem', color: 'rgba(255,255,255,0.45)' }}>{pozBirim}</Box>}
+                      </Box>
                     </Box>
-                    <Box sx={{ px: '8px', py: '4px', fontSize: '0.9rem', fontWeight: 700, display: 'flex', alignItems: 'center', justifyContent: 'flex-end', color: totalQuantity < 0 ? 'red' : cardColors.totalText, backgroundColor: cardColors.header, borderTop: '2px solid', borderTopColor: cardColors.border }}>
-                      {ikiHane(totalQuantity)}
-                      {pozBirim && <Box component="span" sx={{ ml: '4px', fontWeight: 400, fontSize: '0.8rem' }}>{pozBirim}</Box>}
-                    </Box>
-                    <Box sx={{ backgroundColor: cardColors.header, borderTop: '2px solid', borderTopColor: cardColors.border }} />
 
                   </Box>
                 </Box>
@@ -1234,7 +1301,7 @@ export default function P_MetrajOlusturCetvel() {
       </Box>
 
       {/* ONAYLANAN METRAJ — Hazırlayan için salt-okunur; onaylı satırlara revize talebi gönderilebilir */}
-      {!loading && approvalTree.length > 0 && (() => {
+      {!loading && showApprovalSect && approvalTree.length > 0 && (() => {
         const ONAY_GRID = 'max-content 1fr 65px 65px 65px 65px 65px 80px 90px 90px 36px'
         const NUM_ONAY_LABELS = ['Çarpan', 'Adet', 'Boy', 'En', 'Yük']
         const NUM_ONAY_FIELDS = ['multiplier', 'count', 'length', 'width', 'height']
@@ -1356,7 +1423,7 @@ export default function P_MetrajOlusturCetvel() {
           }
 
           const rowBg = node.status !== 'approved'
-            ? (node.status === 'pending' ? 'rgba(255,243,224,0.5)' : node.status === 'rejected' ? 'rgba(255,235,238,0.5)' : 'rgba(236,239,241,0.5)')
+            ? (node.status === 'pending' ? '#FFCC80' : node.status === 'rejected' ? 'rgba(255,235,238,0.5)' : 'rgba(236,239,241,0.5)')
             : node.depth > 0 ? 'rgba(187,222,251,0.2)' : 'white'
           const onaylayanText = node.status === 'pending' ? '(bekliyor)' : node.status === 'rejected' ? '(reddedildi)' : node.status === 'ignored' ? '(ignore)' : (node.onaylayan ?? '')
           const cellBg = { backgroundColor: rowBg, borderBottom: '1px dashed #c8c8c8', ...(metraj < 0 && { color: '#c62828' }) }
@@ -1430,9 +1497,6 @@ export default function P_MetrajOlusturCetvel() {
 
         return (
           <Box sx={{ px: '1rem', pb: '2rem', maxWidth: '1100px' }}>
-            <Typography variant="subtitle2" sx={{ mb: '0.5rem', color: '#1b5e20', fontWeight: 700, letterSpacing: '0.04em', textTransform: 'uppercase', fontSize: '0.75rem' }}>
-              Onaylı Metraj
-            </Typography>
             <Box sx={{ border: '2px solid #43A047', overflow: 'hidden', boxShadow: 2 }}>
               {/* Kart başlığı */}
               <Box sx={{ backgroundColor: '#1b5e20', color: '#fff', px: '1rem', minHeight: '44px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
