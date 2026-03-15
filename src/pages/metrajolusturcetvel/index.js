@@ -32,7 +32,17 @@ import AddCircleOutlineIcon from '@mui/icons-material/AddCircleOutline'
 import HourglassFullIcon from '@mui/icons-material/HourglassFull'
 import CheckIcon from '@mui/icons-material/Check'
 import DoneAllIcon from '@mui/icons-material/DoneAll'
+import VisibilityIcon from '@mui/icons-material/Visibility'
+import VisibilityOffIcon from '@mui/icons-material/VisibilityOff'
 import Tooltip from '@mui/material/Tooltip'
+import Dialog from '@mui/material/Dialog'
+import DialogTitle from '@mui/material/DialogTitle'
+import DialogContent from '@mui/material/DialogContent'
+import List from '@mui/material/List'
+import ListItem from '@mui/material/ListItem'
+import ListItemIcon from '@mui/material/ListItemIcon'
+import ListItemText from '@mui/material/ListItemText'
+import Divider from '@mui/material/Divider'
 
 
 function computeQuantity(line) {
@@ -164,8 +174,9 @@ export default function P_MetrajOlusturCetvel() {
   const [expandedApproved, setExpandedApproved] = useState({})   // { lineId: bool }
   const [revizeForms, setRevizeForms] = useState({}) // { [lineId]: [{ tempId, description, multiplier, count, length, width, height }] }
   const [showAllOriginals, setShowAllOriginals] = useState(false)
-  const [showOwnSess, setShowOwnSess] = useState(true)
-  const [showApprovalSect, setShowApprovalSect] = useState(true)
+  const [openVisibilityDialog, setOpenVisibilityDialog] = useState(false)
+  const [visibleOnayKarti, setVisibleOnayKarti] = useState(true)
+  const [visibleSessCards, setVisibleSessCards] = useState({})  // { sessId: boolean }
 
   const wpAreaId = selectedMahal?.wpAreaId
 
@@ -250,6 +261,11 @@ export default function P_MetrajOlusturCetvel() {
           revisedLines,
         }
       }))
+      setVisibleSessCards(prev => {
+        const next = { ...prev }
+        sorted.forEach(sess => { if (next[sess.id] === undefined) next[sess.id] = true })
+        return next
+      })
     } catch (err) {
       setLoadError(err.message)
     } finally {
@@ -560,6 +576,7 @@ export default function P_MetrajOlusturCetvel() {
           isChanged: false,
         },
       ])
+      setVisibleSessCards(prev => ({ ...prev, [data.id]: true }))
     } catch (err) {
       setDialogAlert({ dialogIcon: 'warning', dialogMessage: err.message, onCloseAction: () => setDialogAlert() })
     }
@@ -893,7 +910,6 @@ export default function P_MetrajOlusturCetvel() {
     : selectedPoz?.short_desc
 
   const hasMyActiveSess = sessions.some(s => s.isOwn && (s.status !== 'approved' || s.isRevisionEdit))
-  const ownUserLabel = sessions.find(s => s.isOwn)?.userName ?? userMap[appUser?.id] ?? appUser?.email ?? '?'
 
   return (
     <Box>
@@ -912,6 +928,52 @@ export default function P_MetrajOlusturCetvel() {
           onCloseAction={dialogAlert.onCloseAction ?? (() => setDialogAlert())}
         />
       )}
+
+      {/* KART GÖRÜNÜRLÜĞÜ DİALOG */}
+      <Dialog open={openVisibilityDialog} onClose={() => setOpenVisibilityDialog(false)} maxWidth="xs" fullWidth>
+        <DialogTitle sx={{ fontWeight: 700, fontSize: '1rem', pb: 1 }}>Kart Görünürlüğü</DialogTitle>
+        <DialogContent>
+          <List dense disablePadding>
+            <ListItem
+              sx={{ cursor: 'pointer', borderRadius: 1, '&:hover': { backgroundColor: 'rgba(27,94,32,0.06)' } }}
+              onClick={() => setVisibleOnayKarti(v => !v)}
+            >
+              <ListItemIcon sx={{ minWidth: 36 }}>
+                {visibleOnayKarti
+                  ? <VisibilityIcon sx={{ fontSize: 20, color: '#1b5e20' }} />
+                  : <VisibilityOffIcon sx={{ fontSize: 20, color: '#90a4ae' }} />}
+              </ListItemIcon>
+              <ListItemText
+                primary="Onaylı Metraj"
+                primaryTypographyProps={{ fontSize: '0.88rem', fontWeight: 600, color: visibleOnayKarti ? '#1b5e20' : '#9e9e9e', sx: { textDecoration: visibleOnayKarti ? 'none' : 'line-through' } }}
+              />
+            </ListItem>
+
+            {sessions.length > 0 && <Divider sx={{ my: 1 }} />}
+
+            {sessions.map(sess => {
+              const isVisible = visibleSessCards[sess.id] ?? true
+              return (
+                <ListItem
+                  key={sess.id}
+                  sx={{ cursor: 'pointer', borderRadius: 1, '&:hover': { backgroundColor: 'rgba(65,90,119,0.06)' } }}
+                  onClick={() => setVisibleSessCards(prev => ({ ...prev, [sess.id]: !isVisible }))}
+                >
+                  <ListItemIcon sx={{ minWidth: 36 }}>
+                    {isVisible
+                      ? <VisibilityIcon sx={{ fontSize: 20, color: '#415a77' }} />
+                      : <VisibilityOffIcon sx={{ fontSize: 20, color: '#90a4ae' }} />}
+                  </ListItemIcon>
+                  <ListItemText
+                    primary={sess.userName}
+                    primaryTypographyProps={{ fontSize: '0.88rem', color: isVisible ? '#263238' : '#9e9e9e', sx: { textDecoration: isVisible ? 'none' : 'line-through' } }}
+                  />
+                </ListItem>
+              )
+            })}
+          </List>
+        </DialogContent>
+      </Dialog>
 
       {/* BAŞLIK */}
       <AppBar position="static" sx={{ backgroundColor: 'white', color: 'black', boxShadow: 4 }}>
@@ -943,38 +1005,11 @@ export default function P_MetrajOlusturCetvel() {
             </Box>
           </Grid>
           <Grid item>
-            <Box sx={{ display: 'flex', alignItems: 'center', gap: '2px' }}>
-              <Tooltip title={showOwnSess ? 'Metrajı gizle' : 'Metrajı göster'}>
-                <Chip
-                  label={ownUserLabel}
-                  size="small"
-                  onClick={() => setShowOwnSess(v => !v)}
-                  sx={{
-                    cursor: 'pointer', fontWeight: 600, fontSize: '0.75rem',
-                    backgroundColor: showOwnSess ? 'rgba(69,90,100,0.12)' : 'transparent',
-                    color: showOwnSess ? '#37474f' : '#b0bec5',
-                    border: '1px solid',
-                    borderColor: showOwnSess ? '#78909c' : '#cfd8dc',
-                    '&:hover': { backgroundColor: 'rgba(69,90,100,0.2)' },
-                  }}
-                />
-              </Tooltip>
-              <Tooltip title={showApprovalSect ? 'Onaylı metrajı gizle' : 'Onaylı metrajı göster'}>
-                <Chip
-                  label="Onaylı"
-                  size="small"
-                  onClick={() => setShowApprovalSect(v => !v)}
-                  sx={{
-                    cursor: 'pointer', fontWeight: 600, fontSize: '0.75rem',
-                    backgroundColor: showApprovalSect ? 'rgba(27,94,32,0.1)' : 'transparent',
-                    color: showApprovalSect ? '#1b5e20' : '#b0bec5',
-                    border: '1px solid',
-                    borderColor: showApprovalSect ? '#43a047' : '#cfd8dc',
-                    '&:hover': { backgroundColor: 'rgba(27,94,32,0.18)' },
-                  }}
-                />
-              </Tooltip>
-            </Box>
+            <Tooltip title="Kart görünürlüğü">
+              <IconButton onClick={() => setOpenVisibilityDialog(true)}>
+                <VisibilityIcon sx={{ color: '#455a64' }} />
+              </IconButton>
+            </Tooltip>
           </Grid>
         </Grid>
       </AppBar>
@@ -1001,8 +1036,8 @@ export default function P_MetrajOlusturCetvel() {
       )}
 
       {/* SESSION KARTLARI */}
-      <Box sx={{ p: '1rem', display: 'flex', flexDirection: 'column', gap: '1.5rem', maxWidth: '900px' }}>
-        {sessions.filter(sess => sess.isOwn ? showOwnSess : true).map(sess => {
+      <Box sx={{ p: '1rem', display: 'flex', flexDirection: 'column', gap: '1.5rem', maxWidth: '900px', ...(sessions.filter(sess => visibleSessCards[sess.id] ?? true).length > 0 && visibleOnayKarti && approvalTree.length > 0 ? { pb: '2rem' } : {}) }}>
+        {sessions.filter(sess => visibleSessCards[sess.id] ?? true).map(sess => {
           const visualStatus = sess.visualStatus ?? getMeasurementVisualStatus(sess)
           const cardColors = getCardColors(visualStatus)
           const isDraft    = sess.status === 'draft'
@@ -1301,7 +1336,7 @@ export default function P_MetrajOlusturCetvel() {
       </Box>
 
       {/* ONAYLANAN METRAJ — Hazırlayan için salt-okunur; onaylı satırlara revize talebi gönderilebilir */}
-      {!loading && showApprovalSect && approvalTree.length > 0 && (() => {
+      {!loading && visibleOnayKarti && approvalTree.length > 0 && (() => {
         const ONAY_GRID = 'max-content 1fr 65px 65px 65px 65px 65px 80px 90px 90px 36px'
         const NUM_ONAY_LABELS = ['Çarpan', 'Adet', 'Boy', 'En', 'Yük']
         const NUM_ONAY_FIELDS = ['multiplier', 'count', 'length', 'width', 'height']
