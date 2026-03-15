@@ -133,8 +133,8 @@ const NUM_LABELS = ['Çarpan', 'Adet', 'Boy', 'En', 'Yükseklik']
 const css_lineHeaderCell = {
   px: '4px', py: '3px',
   display: 'flex', alignItems: 'center', justifyContent: 'center',
-  borderRight: '1px solid rgba(0,0,0,0.15)',
-  backgroundColor: '#BDBDBD', color: '#212121',
+  borderRight: '1px solid rgba(255,255,255,0.15)',
+  backgroundColor: '#415a77', color: '#e0e1dd',
   fontSize: '0.75rem', fontWeight: 600,
 }
 const css_lineCell = {
@@ -153,11 +153,11 @@ const inputSx = {
 }
 
 function getCardColors(visualStatus) {
-  if (visualStatus === 'approved') return { border: '#A5D6A7', header: '#BDBDBD', row: 'rgba(200,230,201,0.35)', totalText: '#212121' }
-  if (visualStatus === 'revised') return { border: '#90CAF9', header: '#BDBDBD', row: 'rgba(187,222,251,0.35)', totalText: '#212121' }
-  if (visualStatus === 'rejected') return { border: '#EF9A9A', header: '#BDBDBD', row: 'rgba(255,205,210,0.28)', totalText: '#212121' }
-  if (visualStatus === 'pendingRevision') return { border: '#CE93D8', header: '#BDBDBD', row: 'rgba(206,147,216,0.15)', totalText: '#212121' }
-  return { border: '#B0BEC5', header: '#BDBDBD', row: 'rgba(236,239,241,0.3)', totalText: '#212121' }
+  if (visualStatus === 'approved') return { border: '#A5D6A7', header: '#415a77', row: 'rgba(200,230,201,0.35)', totalText: '#e0e1dd' }
+  if (visualStatus === 'revised') return { border: '#90CAF9', header: '#415a77', row: 'rgba(187,222,251,0.35)', totalText: '#e0e1dd' }
+  if (visualStatus === 'rejected') return { border: '#EF9A9A', header: '#415a77', row: 'rgba(255,205,210,0.28)', totalText: '#e0e1dd' }
+  if (visualStatus === 'pendingRevision') return { border: '#CE93D8', header: '#415a77', row: 'rgba(206,147,216,0.15)', totalText: '#e0e1dd' }
+  return { border: '#B0BEC5', header: '#415a77', row: 'rgba(236,239,241,0.3)', totalText: '#e0e1dd' }
 }
 
 
@@ -1036,7 +1036,7 @@ export default function P_MetrajOlusturCetvel() {
       )}
 
       {/* SESSION KARTLARI */}
-      <Box sx={{ p: '1rem', display: 'flex', flexDirection: 'column', gap: '1.5rem', maxWidth: '900px', ...(sessions.filter(sess => visibleSessCards[sess.id] ?? true).length > 0 && visibleOnayKarti && approvalTree.length > 0 ? { pb: '2rem' } : {}) }}>
+      <Box sx={{ p: '1rem', display: 'flex', flexDirection: 'column', gap: '1.5rem', maxWidth: '1100px', ...(sessions.filter(sess => visibleSessCards[sess.id] ?? true).length > 0 && visibleOnayKarti && approvalTree.length > 0 ? { pb: '2rem' } : {}) }}>
         {sessions.filter(sess => visibleSessCards[sess.id] ?? true).map(sess => {
           const visualStatus = sess.visualStatus ?? getMeasurementVisualStatus(sess)
           const cardColors = getCardColors(visualStatus)
@@ -1067,13 +1067,13 @@ export default function P_MetrajOlusturCetvel() {
                   display: 'flex', alignItems: 'center', gap: '0.5rem',
                   px: '1rem', height: '50px',
                   backgroundColor: cardColors.header,
-                  color: '#212121',
+                  color: '#e0e1dd',
                 }}
               >
                 <Typography variant="body1" sx={{ fontWeight: 700, flexGrow: 1 }}>
                   {sess.userName}
                   {!sess.isOwn && (
-                    <Box component="span" sx={{ fontWeight: 400, fontSize: '0.78rem', ml: '6px', color: 'rgba(0,0,0,0.55)' }}>
+                    <Box component="span" sx={{ fontWeight: 400, fontSize: '0.78rem', ml: '6px', color: 'rgba(255,255,255,0.6)' }}>
                       (salt okunur)
                     </Box>
                   )}
@@ -1083,7 +1083,7 @@ export default function P_MetrajOlusturCetvel() {
                 {/* Kendi onaylı oturumu için revize düzenle */}
                 {isApproved && sess.isOwn && !sess.mode_edit && (
                   <IconButton size="small" onClick={() => handleStartRevision(sess.id)}>
-                    <EditIcon sx={{ fontSize: 20, color: '#1565C0' }} />
+                    <EditIcon sx={{ fontSize: 20, color: '#90CAF9' }} />
                   </IconButton>
                 )}
 
@@ -1091,11 +1091,11 @@ export default function P_MetrajOlusturCetvel() {
                 {sess.isRevisionEdit && sess.mode_edit && (
                   <>
                     <IconButton size="small" onClick={() => handleCancelRevisionEdit(sess.id)}>
-                      <ClearIcon sx={{ color: sess.isChanged ? '#C62828' : 'rgba(0,0,0,0.3)', fontSize: 20 }} />
+                      <ClearIcon sx={{ color: sess.isChanged ? '#FFCDD2' : 'rgba(255,255,255,0.3)', fontSize: 20 }} />
                     </IconButton>
                     {sess.isChanged && (
                       <IconButton size="small" onClick={() => handleSaveRevision(sess.id)}>
-                        <SaveIcon sx={{ color: '#1565C0', fontSize: 20 }} />
+                        <SaveIcon sx={{ color: '#90CAF9', fontSize: 20 }} />
                       </IconButton>
                     )}
                   </>
@@ -1105,11 +1105,11 @@ export default function P_MetrajOlusturCetvel() {
                 {(isDraft || isReady) && sess.isOwn && !sess.mode_edit && !sess.isRevisionEdit && (
                   <>
                     <IconButton size="small" onClick={() => updateSess(sess.id, () => ({ mode_edit: true }))}>
-                      <EditIcon sx={{ fontSize: 20, color: '#424242' }} />
+                      <EditIcon sx={{ fontSize: 20, color: '#e0e1dd' }} />
                     </IconButton>
                     {isDraft && rootLines.length > 0 && (
                       <IconButton size="small" onClick={() => handleMarkReady(sess.id)}>
-                        <CheckCircleIcon sx={{ fontSize: 24, color: '#2E7D32' }} />
+                        <CheckCircleIcon sx={{ fontSize: 24, color: '#A5D6A7' }} />
                       </IconButton>
                     )}
                   </>
@@ -1119,10 +1119,10 @@ export default function P_MetrajOlusturCetvel() {
                 {(isDraft || isReady) && sess.isOwn && sess.mode_edit && (
                   <>
                     <IconButton size="small" onClick={() => handleCancelEdit(sess.id)}>
-                      <ClearIcon sx={{ color: sess.isChanged ? '#C62828' : 'rgba(0,0,0,0.3)', fontSize: 20 }} />
+                      <ClearIcon sx={{ color: sess.isChanged ? '#FFCDD2' : 'rgba(255,255,255,0.3)', fontSize: 20 }} />
                     </IconButton>
                     <IconButton size="small" onClick={() => handleSave(sess.id)} disabled={!sess.isChanged}>
-                      <SaveIcon sx={{ color: sess.isChanged ? '#1565C0' : 'rgba(0,0,0,0.25)', fontSize: 20 }} />
+                      <SaveIcon sx={{ color: sess.isChanged ? '#90CAF9' : 'rgba(255,255,255,0.25)', fontSize: 20 }} />
                     </IconButton>
                   </>
                 )}
@@ -1130,7 +1130,7 @@ export default function P_MetrajOlusturCetvel() {
                 {/* Kendi revize talebi — geri çek */}
                 {sess.status === 'revise_requested' && sess.isOwn && !sess.mode_edit && (
                   <IconButton size="small" onClick={() => handleCancelRevisionRequest(sess.id)}>
-                    <ReplyIcon sx={{ color: '#6A1B9A', fontSize: 20 }} />
+                    <ReplyIcon sx={{ color: '#CE93D8', fontSize: 20 }} />
                   </IconButton>
                 )}
 
@@ -1141,7 +1141,7 @@ export default function P_MetrajOlusturCetvel() {
                     else if (isApproved) { handleStartRevision(sess.id); addSubLineLocal(sess.id, null) }
                     else { handleAddLine(sess.id) }
                   }}>
-                    <AddCircleOutlineIcon sx={{ fontSize: 22, color: '#1565C0' }} />
+                    <AddCircleOutlineIcon sx={{ fontSize: 22, color: '#90CAF9' }} />
                   </IconButton>
                 )}
               </Box>
@@ -1302,28 +1302,28 @@ export default function P_MetrajOlusturCetvel() {
                     {/* Toplam satırları */}
                     <Box sx={{ gridColumn: '1 / -1', backgroundColor: cardColors.header, borderTop: '2px solid', borderTopColor: cardColors.border, display: 'flex', justifyContent: 'space-between', flexWrap: 'wrap', px: '14px', py: '8px', minHeight: '44px' }}>
                       <Box sx={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
-                        <HourglassFullIcon sx={{ fontSize: 16, color: '#f57c00' }} />
-                        <Box component="span" sx={{ fontSize: '0.82rem', color: 'rgba(0,0,0,0.7)' }}>Hazırlanan</Box>
-                        <Box component="span" sx={{ fontSize: '0.95rem', fontWeight: 700, color: '#212121', ml: '2px' }}>{ikiHane(totalDraft)}</Box>
-                        {pozBirim && <Box component="span" sx={{ fontSize: '0.78rem', color: 'rgba(0,0,0,0.5)' }}>{pozBirim}</Box>}
+                        <HourglassFullIcon sx={{ fontSize: 16, color: '#FFCC80' }} />
+                        <Box component="span" sx={{ fontSize: '0.82rem', color: 'rgba(255,255,255,0.75)' }}>Hazırlanan</Box>
+                        <Box component="span" sx={{ fontSize: '0.95rem', fontWeight: 700, color: '#e0e1dd', ml: '2px' }}>{ikiHane(totalDraft)}</Box>
+                        {pozBirim && <Box component="span" sx={{ fontSize: '0.78rem', color: 'rgba(255,255,255,0.55)' }}>{pozBirim}</Box>}
                       </Box>
                       <Box sx={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
-                        <CheckIcon sx={{ fontSize: 16, color: '#00796B' }} />
-                        <Box component="span" sx={{ fontSize: '0.82rem', color: 'rgba(0,0,0,0.7)' }}>Onaya Sunulan</Box>
-                        <Box component="span" sx={{ fontSize: '0.95rem', fontWeight: 700, color: '#212121', ml: '2px' }}>{ikiHane(totalPending)}</Box>
-                        {pozBirim && <Box component="span" sx={{ fontSize: '0.78rem', color: 'rgba(0,0,0,0.5)' }}>{pozBirim}</Box>}
+                        <CheckIcon sx={{ fontSize: 16, color: '#80CBC4' }} />
+                        <Box component="span" sx={{ fontSize: '0.82rem', color: 'rgba(255,255,255,0.75)' }}>Onaya Sunulan</Box>
+                        <Box component="span" sx={{ fontSize: '0.95rem', fontWeight: 700, color: '#e0e1dd', ml: '2px' }}>{ikiHane(totalPending)}</Box>
+                        {pozBirim && <Box component="span" sx={{ fontSize: '0.78rem', color: 'rgba(255,255,255,0.55)' }}>{pozBirim}</Box>}
                       </Box>
                       <Box sx={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
-                        <DoneAllIcon sx={{ fontSize: 16, color: '#546E7A' }} />
-                        <Box component="span" sx={{ fontSize: '0.82rem', color: 'rgba(0,0,0,0.7)' }}>Ignore</Box>
-                        <Box component="span" sx={{ fontSize: '0.95rem', fontWeight: 700, color: '#212121', ml: '2px' }}>{ikiHane(totalIgnored)}</Box>
-                        {pozBirim && <Box component="span" sx={{ fontSize: '0.78rem', color: 'rgba(0,0,0,0.5)' }}>{pozBirim}</Box>}
+                        <DoneAllIcon sx={{ fontSize: 16, color: '#B0BEC5' }} />
+                        <Box component="span" sx={{ fontSize: '0.82rem', color: 'rgba(255,255,255,0.75)' }}>Ignore</Box>
+                        <Box component="span" sx={{ fontSize: '0.95rem', fontWeight: 700, color: '#e0e1dd', ml: '2px' }}>{ikiHane(totalIgnored)}</Box>
+                        {pozBirim && <Box component="span" sx={{ fontSize: '0.78rem', color: 'rgba(255,255,255,0.55)' }}>{pozBirim}</Box>}
                       </Box>
                       <Box sx={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
-                        <DoneAllIcon sx={{ fontSize: 16, color: '#2E7D32' }} />
-                        <Box component="span" sx={{ fontSize: '0.82rem', color: 'rgba(0,0,0,0.7)' }}>Onaylanan</Box>
-                        <Box component="span" sx={{ fontSize: '0.95rem', fontWeight: 700, color: '#212121', ml: '2px' }}>{ikiHane(totalApproved)}</Box>
-                        {pozBirim && <Box component="span" sx={{ fontSize: '0.78rem', color: 'rgba(0,0,0,0.5)' }}>{pozBirim}</Box>}
+                        <DoneAllIcon sx={{ fontSize: 16, color: '#A5D6A7' }} />
+                        <Box component="span" sx={{ fontSize: '0.82rem', color: 'rgba(255,255,255,0.75)' }}>Onaylanan</Box>
+                        <Box component="span" sx={{ fontSize: '0.95rem', fontWeight: 700, color: '#e0e1dd', ml: '2px' }}>{ikiHane(totalApproved)}</Box>
+                        {pozBirim && <Box component="span" sx={{ fontSize: '0.78rem', color: 'rgba(255,255,255,0.55)' }}>{pozBirim}</Box>}
                       </Box>
                     </Box>
 
