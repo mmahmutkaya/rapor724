@@ -905,6 +905,32 @@ export default function P_MetrajOlusturCetvel() {
     }
   }
 
+  const handleDeletePendingLine = async (lineId) => {
+    try {
+      const { error } = await supabase.from('measurement_lines').delete().eq('id', lineId)
+      if (error) throw error
+      setSessions(prev => prev.map(s => ({
+        ...s,
+        lines: s.lines.filter(l => l.id !== lineId)
+      })))
+    } catch (err) {
+      setDialogAlert({ dialogIcon: 'warning', dialogMessage: err.message, onCloseAction: () => setDialogAlert() })
+    }
+  }
+
+  const handleApprovePendingLine = async (lineId) => {
+    try {
+      const { error } = await supabase.from('measurement_lines').update({ status: 'approved' }).eq('id', lineId)
+      if (error) throw error
+      setSessions(prev => prev.map(s => ({
+        ...s,
+        lines: s.lines.map(l => l.id === lineId ? { ...l, status: 'approved' } : l)
+      })))
+    } catch (err) {
+      setDialogAlert({ dialogIcon: 'warning', dialogMessage: err.message, onCloseAction: () => setDialogAlert() })
+    }
+  }
+
   const pozBirim = unitsMap[selectedPoz?.unit_id] ?? ''
   const pozLabel = selectedPoz?.code
     ? `${selectedPoz.code} · ${selectedPoz.short_desc}`
@@ -931,19 +957,43 @@ export default function P_MetrajOlusturCetvel() {
       )}
 
       {/* KART GÖRÜNÜRLÜĞÜ DİALOG */}
-      <Dialog open={openVisibilityDialog} onClose={() => setOpenVisibilityDialog(false)} maxWidth="xs" fullWidth>
-        <DialogTitle sx={{ fontWeight: 700, fontSize: '1rem', pb: 1 }}>Kart Görünürlüğü</DialogTitle>
+      <Dialog
+        open={openVisibilityDialog}
+        onClose={() => setOpenVisibilityDialog(false)}
+        maxWidth="xs"
+        fullWidth
+        PaperProps={{
+          sx: {
+            position: 'fixed',
+            top: '10rem !important',
+            transform: 'none',
+            margin: 0,
+          }
+        }}
+      >
+        <DialogTitle sx={{ fontWeight: 700, fontSize: '1rem', pb: 1 }}>Göster / Gizle</DialogTitle>
         <DialogContent>
           <List dense disablePadding>
+            <Divider sx={{ mb: 0.5 }} />
             <ListItem
               sx={{ cursor: 'pointer', borderRadius: 1, '&:hover': { backgroundColor: 'rgba(27,94,32,0.06)' } }}
               onClick={() => setVisibleOnayKarti(v => !v)}
+              secondaryAction={
+                <IconButton
+                  edge="end"
+                  size="small"
+                  onClick={(e) => {
+                    e.stopPropagation()
+                    setVisibleOnayKarti(v => !v)
+                  }}
+                  sx={{ color: visibleOnayKarti ? '#1b5e20' : '#90a4ae' }}
+                >
+                  {visibleOnayKarti
+                    ? <VisibilityIcon sx={{ fontSize: 20 }} />
+                    : <VisibilityOffIcon sx={{ fontSize: 20 }} />}
+                </IconButton>
+              }
             >
-              <ListItemIcon sx={{ minWidth: 36 }}>
-                {visibleOnayKarti
-                  ? <VisibilityIcon sx={{ fontSize: 20, color: '#1b5e20' }} />
-                  : <VisibilityOffIcon sx={{ fontSize: 20, color: '#90a4ae' }} />}
-              </ListItemIcon>
               <ListItemText
                 primary="Onaylı Metraj"
                 primaryTypographyProps={{ fontSize: '0.88rem', fontWeight: 600, color: visibleOnayKarti ? '#1b5e20' : '#9e9e9e', sx: { textDecoration: visibleOnayKarti ? 'none' : 'line-through' } }}
@@ -952,19 +1002,35 @@ export default function P_MetrajOlusturCetvel() {
 
             {sessions.length > 0 && <Divider sx={{ my: 1 }} />}
 
-            {sessions.map(sess => {
+            {sessions
+              .sort((a, b) => {
+                if (a.isOwn && !b.isOwn) return -1
+                if (!a.isOwn && b.isOwn) return 1
+                return 0
+              })
+              .map(sess => {
               const isVisible = visibleSessCards[sess.id] ?? true
               return (
                 <ListItem
                   key={sess.id}
                   sx={{ cursor: 'pointer', borderRadius: 1, '&:hover': { backgroundColor: 'rgba(65,90,119,0.06)' } }}
                   onClick={() => setVisibleSessCards(prev => ({ ...prev, [sess.id]: !isVisible }))}
+                  secondaryAction={
+                    <IconButton
+                      edge="end"
+                      size="small"
+                      onClick={(e) => {
+                        e.stopPropagation()
+                        setVisibleSessCards(prev => ({ ...prev, [sess.id]: !isVisible }))
+                      }}
+                      sx={{ color: isVisible ? '#415a77' : '#90a4ae' }}
+                    >
+                      {isVisible
+                        ? <VisibilityIcon sx={{ fontSize: 20 }} />
+                        : <VisibilityOffIcon sx={{ fontSize: 20 }} />}
+                    </IconButton>
+                  }
                 >
-                  <ListItemIcon sx={{ minWidth: 36 }}>
-                    {isVisible
-                      ? <VisibilityIcon sx={{ fontSize: 20, color: '#415a77' }} />
-                      : <VisibilityOffIcon sx={{ fontSize: 20, color: '#90a4ae' }} />}
-                  </ListItemIcon>
                   <ListItemText
                     primary={sess.userName}
                     primaryTypographyProps={{ fontSize: '0.88rem', color: isVisible ? '#263238' : '#9e9e9e', sx: { textDecoration: isVisible ? 'none' : 'line-through' } }}
@@ -1037,8 +1103,17 @@ export default function P_MetrajOlusturCetvel() {
       )}
 
       {/* SESSION KARTLARI */}
-      <Box sx={{ p: '1rem', display: 'flex', flexDirection: 'column', gap: '1.5rem', maxWidth: '1100px', ...(sessions.filter(sess => visibleSessCards[sess.id] ?? true).length > 0 && visibleOnayKarti && approvalTree.length > 0 ? { pb: '2rem' } : {}) }}>
-        {sessions.filter(sess => visibleSessCards[sess.id] ?? true).map(sess => {
+      {(() => {
+        const visibleSessions = sessions.filter(sess => visibleSessCards[sess.id] ?? true)
+        return visibleSessions.length > 0 ? (
+          <Box sx={{ mt: '1.5rem', px: '1rem', display: 'flex', flexDirection: 'column', gap: '1.5rem', maxWidth: '1100px' }}>
+            {visibleSessions
+              .sort((a, b) => {
+                if (a.isOwn && !b.isOwn) return -1
+                if (!a.isOwn && b.isOwn) return 1
+                return 0
+              })
+              .map(sess => {
           const visualStatus = sess.visualStatus ?? getMeasurementVisualStatus(sess)
           const cardColors = getCardColors(visualStatus)
           const isDraft    = sess.status === 'draft'
@@ -1346,7 +1421,9 @@ export default function P_MetrajOlusturCetvel() {
             </Box>
           )
         })}
-      </Box>
+          </Box>
+        ) : null
+      })()}
 
       {/* ONAYLANAN METRAJ — Hazırlayan için salt-okunur; onaylı satırlara revize talebi gönderilebilir */}
       {!loading && visibleOnayKarti && approvalTree.length > 0 && (() => {
@@ -1369,8 +1446,8 @@ export default function P_MetrajOlusturCetvel() {
           ignored:  <Chip size="small" label="Ignore"     sx={{ backgroundColor: '#ECEFF1', color: '#455A64', fontWeight: 600, fontSize: '0.7rem', height: 20 }} />,
         }
         const css_ohc = { px: '4px', py: '3px', display: 'flex', alignItems: 'center', justifyContent: 'center', borderRight: '1px solid rgba(255,255,255,0.15)', fontSize: '0.75rem', fontWeight: 600, backgroundColor: '#1b5e20', color: '#fff' }
-        const css_oc = { px: '4px', py: '6px', fontSize: '0.85rem', display: 'flex', alignItems: 'center', borderRight: '1px dashed #d8d8d8', overflow: 'hidden' }
-        const inputOnay = { width: '100%', border: 'none', outline: 'none', backgroundColor: 'rgba(255,250,180,0.8)', fontSize: '0.85rem', padding: '2px 4px', MozAppearance: 'textfield' }
+        const css_oc = { px: '4px', py: '6px', height: '34px', fontSize: '0.85rem', display: 'flex', alignItems: 'center', borderRight: '1px dashed #d8d8d8', overflow: 'hidden' }
+        const inputOnay = { width: '100%', border: 'none', outline: 'none', backgroundColor: '#FFE0B2', fontSize: '0.85rem', padding: '2px 4px', MozAppearance: 'textfield' }
 
         const openRevize = (lineId) => {
           if (revizeForms[lineId]) return // zaten açık
@@ -1393,13 +1470,22 @@ export default function P_MetrajOlusturCetvel() {
           const revizeEditor = isRevizeOpen && nodeRevizeRows.length > 0 ? (
             <>
               {nodeRevizeRows.map((row, rowIdx) => {
-                const revizeCellBg = { backgroundColor: '#BBDEFB', borderBottom: '1px solid #1565C0' }
+                const revizeCellBg = { backgroundColor: '#FFE0B2', borderBottom: '1px solid #E65100' }
                 return (
                   <React.Fragment key={row.tempId}>
-                    <Box sx={{ ...css_oc, ...revizeCellBg, justifyContent: 'flex-start', pl: '0.5rem', color: '#1565C0', fontSize: '0.82rem' }}>
+                    <Box sx={{ ...css_oc, ...revizeCellBg, justifyContent: 'flex-start', pl: '0.5rem', color: '#E65100', fontSize: '0.82rem' }}>
                       {`${node.siraNo}.${(node.children?.length ?? 0) + rowIdx + 1}`}
                     </Box>
-                    <Box sx={{ ...css_oc, ...revizeCellBg }}>
+                    <Box sx={{ ...css_oc, ...revizeCellBg, display: 'flex', alignItems: 'center', gap: '4px' }}>
+                      <IconButton size="small" sx={{ p: '1px', flexShrink: 0 }} onClick={() => {
+                        if (nodeRevizeRows.length === 1) {
+                          setRevizeForms(prev => { const n = { ...prev }; delete n[node.id]; return n })
+                        } else {
+                          setRevizeForms(prev => ({ ...prev, [node.id]: prev[node.id].filter(r => r.tempId !== row.tempId) }))
+                        }
+                      }}>
+                        <ClearIcon sx={{ fontSize: 14, color: '#c62828' }} />
+                      </IconButton>
                       <input style={{ ...inputOnay, textAlign: 'left' }} value={row.description} placeholder="Açıklama"
                         onChange={e => setRevizeForms(prev => ({ ...prev, [node.id]: prev[node.id].map(r => r.tempId === row.tempId ? { ...r, description: e.target.value } : r) }))} />
                     </Box>
@@ -1411,7 +1497,7 @@ export default function P_MetrajOlusturCetvel() {
                           onKeyDown={e => ['e', 'E', '+'].includes(e.key) && e.preventDefault()} />
                       </Box>
                     ))}
-                    <Box sx={{ ...css_oc, ...revizeCellBg, justifyContent: 'flex-end', fontWeight: 700, color: calcMetrajOnay(row) < 0 ? '#c62828' : '#1565C0' }}>
+                    <Box sx={{ ...css_oc, ...revizeCellBg, justifyContent: 'flex-end', fontWeight: 700, color: calcMetrajOnay(row) < 0 ? '#c62828' : '#E65100' }}>
                       {(() => {
                         const qty = calcMetrajOnay(row)
                         const isEmpty = v => v === null || v === undefined || v === ''
@@ -1419,19 +1505,14 @@ export default function P_MetrajOlusturCetvel() {
                         return (qty !== 0 || hasData) ? ikiHane(qty) : ''
                       })()}
                     </Box>
-                    <Box sx={{ ...css_oc, ...revizeCellBg, fontSize: '0.78rem', color: '#455a64' }}>{appUser?.displayName ?? appUser?.email ?? '(ben)'}</Box>
+                    <Box sx={{ ...css_oc, ...revizeCellBg, fontSize: '0.78rem', color: '#E65100' }}>{appUser?.displayName ?? appUser?.email ?? '(ben)'}</Box>
                     <Box sx={{ ...css_oc, ...revizeCellBg, fontSize: '0.78rem', color: '#e65100' }}>(bekliyor)</Box>
                     <Box sx={{ ...css_oc, ...revizeCellBg, justifyContent: 'center' }}>
-                      <IconButton size="small" sx={{ p: '2px' }}
-                          onClick={() => {
-                            if (nodeRevizeRows.length === 1) {
-                              setRevizeForms(prev => { const n = { ...prev }; delete n[node.id]; return n })
-                            } else {
-                              setRevizeForms(prev => ({ ...prev, [node.id]: prev[node.id].filter(r => r.tempId !== row.tempId) }))
-                            }
-                          }}>
-                          <ClearIcon sx={{ fontSize: 18, color: '#b71c1c' }} />
+                      <Tooltip title="Onaya Sunulan Modu">
+                        <IconButton size="small" sx={{ p: '2px' }}>
+                          <HourglassFullIcon sx={{ fontSize: 16, color: '#E65100' }} />
                         </IconButton>
+                      </Tooltip>
                     </Box>
                   </React.Fragment>
                 )
@@ -1481,7 +1562,14 @@ export default function P_MetrajOlusturCetvel() {
               <Box sx={{ ...css_oc, ...cellBg, justifyContent: 'flex-start', pl: '0.5rem', color: node.depth > 0 ? '#1565c0' : '#555' }}>
                 {node.siraNo}
               </Box>
-              <Box sx={{ ...css_oc, ...cellBg }}>{node.description ?? ''}</Box>
+              <Box sx={{ ...css_oc, ...cellBg, display: 'flex', alignItems: 'center', gap: '4px' }}>
+                {node.status === 'pending' && (
+                  <IconButton size="small" sx={{ p: '1px', flexShrink: 0 }} onClick={() => handleDeletePendingLine(node.id)}>
+                    <ClearIcon sx={{ fontSize: 14, color: '#c62828' }} />
+                  </IconButton>
+                )}
+                {node.description ?? ''}
+              </Box>
               {NUM_ONAY_FIELDS.map(f => (
                 <Box key={f} sx={{ ...css_oc, ...cellBg, justifyContent: 'flex-end' }}>{f === 'multiplier' && Number(node[f]) === 1 ? '' : (node[f] != null ? ikiHane(node[f]) : '')}</Box>
               ))}
@@ -1511,9 +1599,14 @@ export default function P_MetrajOlusturCetvel() {
                   </IconButton>
                 )}
                 {node.status === 'pending' && sessions.find(s => s.id === node.session_id)?.isOwn && (
-                  <IconButton size="small" sx={{ p: '2px' }} onClick={() => handleCancelRevizeTalebi(node.id, node.session_id)}>
-                    <ClearIcon sx={{ fontSize: 16, color: '#c62828' }} />
-                  </IconButton>
+                  <>
+                    <IconButton size="small" sx={{ p: '2px' }} title="Onaya Sunulan" onClick={() => handleApprovePendingLine(node.id)}>
+                      <HourglassFullIcon sx={{ fontSize: 16, color: '#E65100' }} />
+                    </IconButton>
+                    <IconButton size="small" sx={{ p: '2px' }} title="Onaylandı" onClick={() => handleApprovePendingLine(node.id)}>
+                      <CheckIcon sx={{ fontSize: 16, color: '#1565C0' }} />
+                    </IconButton>
+                  </>
                 )}
                 {hasKids && (
                   <IconButton size="small" sx={{ p: '2px' }} onClick={() => setExpandedApproved(prev => ({ ...prev, [node.id]: !prev[node.id] }))}>
@@ -1544,7 +1637,7 @@ export default function P_MetrajOlusturCetvel() {
           + Object.values(revizeForms).flat().reduce((s, row) => s + calcMetrajOnay(row), 0)
 
         return (
-          <Box sx={{ px: '1rem', pb: '2rem', maxWidth: '1100px' }}>
+          <Box sx={{ mt: '1.5rem', px: '1rem', maxWidth: '1100px' }}>
             <Box sx={{ border: '2px solid #43A047', overflow: 'hidden', boxShadow: 2 }}>
               {/* Kart başlığı */}
               <Box sx={{ backgroundColor: '#1b5e20', color: '#fff', px: '1rem', minHeight: '44px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
