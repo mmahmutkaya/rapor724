@@ -1264,7 +1264,7 @@ export default function P_MetrajOlusturCetvel() {
                         ? cardColors.row
                         : sess.mode_edit ? 'rgba(255,250,200,0.4)' : 'white'
                       const deductionColor = isDeduction ? '#b71c1c' : undefined
-                      const editActive = (canEdit && sess.mode_edit && line.status !== 'approved' && !isPendingLocked && !isIgnoredLocked) || (sess.isRevisionEdit && sess.mode_edit && line.isNew)
+                      const editActive = (canEdit && sess.mode_edit && line.status !== 'approved' && line.status !== 'pending' && !isIgnoredLocked) || (sess.isRevisionEdit && sess.mode_edit && line.isNew)
                       const depthStyle = line.depth > 0
                         ? { borderLeft: `${Math.min(line.depth, 3) * 3}px solid rgba(144,202,249,0.7)` }
                         : {}
@@ -1289,7 +1289,7 @@ export default function P_MetrajOlusturCetvel() {
                                 <SubdirectoryArrowRightIcon sx={{ fontSize: 13, color: '#1565c0', opacity: 0.7 }} />
                               </IconButton>
                             )}
-                            {canEdit && sess.mode_edit && !sess.isRevisionEdit && line.status !== 'approved' && !isPendingLocked && !isIgnoredLocked && (
+                            {canEdit && sess.mode_edit && !sess.isRevisionEdit && line.status !== 'approved' && line.status !== 'pending' && !isIgnoredLocked && (
                               <IconButton
                                 size="small"
                                 sx={{ p: '1px', mr: '3px', flexShrink: 0 }}
