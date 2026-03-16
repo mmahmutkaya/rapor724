@@ -1453,7 +1453,7 @@ export default function P_MetrajOlusturCetvel() {
           if (revizeForms[lineId]) return // zaten açık
           setRevizeForms(prev => ({
             ...prev,
-            [lineId]: [{ tempId: `tmp-${Date.now()}`, description: '', multiplier: '', count: '', length: '', width: '', height: '' }],
+            [lineId]: [{ tempId: `tmp-${Date.now()}`, description: '', multiplier: '', count: '', length: '', width: '', height: '', status: 'draft' }],
           }))
         }
 
@@ -1470,26 +1470,31 @@ export default function P_MetrajOlusturCetvel() {
           const revizeEditor = isRevizeOpen && nodeRevizeRows.length > 0 ? (
             <>
               {nodeRevizeRows.map((row, rowIdx) => {
-                const revizeCellBg = { backgroundColor: '#BBDEFB', borderBottom: '1px solid #90CAF9' }
+                const isSubmitted = row.status === 'submitted_for_approval'
+                const revizeCellBg = isSubmitted
+                  ? { backgroundColor: '#BBDEFB', borderBottom: '1px solid #90CAF9' }
+                  : { backgroundColor: 'rgba(255,250,180,0.6)', borderBottom: '1px solid #c8c8c8' }
 
                 return (
                   <React.Fragment key={row.tempId}>
-                    <Box sx={{ ...css_oc, ...revizeCellBg, justifyContent: 'flex-start', pl: '0.5rem', color: '#1565c0', fontSize: '0.82rem' }}>
+                    <Box sx={{ ...css_oc, ...revizeCellBg, justifyContent: 'flex-start', pl: '0.5rem', color: isSubmitted ? '#1565c0' : '#E65100', fontSize: '0.82rem' }}>
                       {`${node.siraNo}.${(node.children?.length ?? 0) + rowIdx + 1}`}
                     </Box>
                     <Box sx={{ ...css_oc, ...revizeCellBg, display: 'flex', alignItems: 'center', gap: '4px' }}>
-                      <input style={{ ...inputOnay, textAlign: 'left', backgroundColor: '#BBDEFB' }} value={row.description} placeholder="Açıklama"
+                      <input style={{ ...inputOnay, textAlign: 'left', backgroundColor: isSubmitted ? '#BBDEFB' : 'rgba(255,250,180,0.6)' }} value={row.description} placeholder="Açıklama"
+                        disabled={isSubmitted}
                         onChange={e => setRevizeForms(prev => ({ ...prev, [node.id]: prev[node.id].map(r => r.tempId === row.tempId ? { ...r, description: e.target.value } : r) }))} />
                     </Box>
                     {NUM_ONAY_FIELDS.map(f => (
                       <Box key={f} sx={{ ...css_oc, ...revizeCellBg }}>
-                        <input type="number" className="metraj-num-input" style={{ ...inputOnay, textAlign: 'right', backgroundColor: '#BBDEFB' }}
+                        <input type="number" className="metraj-num-input" style={{ ...inputOnay, textAlign: 'right', backgroundColor: isSubmitted ? '#BBDEFB' : 'rgba(255,250,180,0.6)' }}
                           value={row[f]} placeholder="—"
+                          disabled={isSubmitted}
                           onChange={e => setRevizeForms(prev => ({ ...prev, [node.id]: prev[node.id].map(r => r.tempId === row.tempId ? { ...r, [f]: e.target.value } : r) }))}
                           onKeyDown={e => ['e', 'E', '+'].includes(e.key) && e.preventDefault()} />
                       </Box>
                     ))}
-                    <Box sx={{ ...css_oc, ...revizeCellBg, justifyContent: 'flex-end', fontWeight: 700, color: calcMetrajOnay(row) < 0 ? '#c62828' : '#1565c0' }}>
+                    <Box sx={{ ...css_oc, ...revizeCellBg, justifyContent: 'flex-end', fontWeight: 700, color: calcMetrajOnay(row) < 0 ? '#c62828' : (isSubmitted ? '#1565c0' : '#E65100') }}>
                       {(() => {
                         const qty = calcMetrajOnay(row)
                         const isEmpty = v => v === null || v === undefined || v === ''
@@ -1497,9 +1502,18 @@ export default function P_MetrajOlusturCetvel() {
                         return (qty !== 0 || hasData) ? ikiHane(qty) : ''
                       })()}
                     </Box>
-                    <Box sx={{ ...css_oc, ...revizeCellBg, fontSize: '0.78rem', color: '#1565c0' }}>{appUser?.displayName ?? appUser?.email ?? '(ben)'}</Box>
-                    <Box sx={{ ...css_oc, ...revizeCellBg, fontSize: '0.78rem', color: '#1565c0' }}></Box>
-                    <Box sx={{ ...css_oc, ...revizeCellBg, justifyContent: 'center' }}>
+                    <Box sx={{ ...css_oc, ...revizeCellBg, fontSize: '0.78rem', color: isSubmitted ? '#1565c0' : '#455a64' }}>{appUser?.displayName ?? appUser?.email ?? '(ben)'}</Box>
+                    <Box sx={{ ...css_oc, ...revizeCellBg, fontSize: '0.78rem', color: isSubmitted ? '#1565c0' : '#455a64' }}></Box>
+                    <Box sx={{ ...css_oc, ...revizeCellBg, justifyContent: 'center', gap: '2px' }}>
+                      {!isSubmitted && (
+                        <IconButton size="small" sx={{ p: '2px' }} title="Onaya Sunulan"
+                          onClick={() => setRevizeForms(prev => ({ ...prev, [node.id]: prev[node.id].map(r => r.tempId === row.tempId ? { ...r, status: 'submitted_for_approval' } : r) }))}>
+                          <HourglassFullIcon sx={{ fontSize: 16, color: '#E65100' }} />
+                        </IconButton>
+                      )}
+                      {isSubmitted && (
+                        <CheckIcon sx={{ fontSize: 16, color: '#1565C0' }} />
+                      )}
                     </Box>
                   </React.Fragment>
                 )
