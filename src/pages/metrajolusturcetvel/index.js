@@ -1447,7 +1447,7 @@ export default function P_MetrajOlusturCetvel() {
         }
         const css_ohc = { px: '4px', py: '3px', display: 'flex', alignItems: 'center', justifyContent: 'center', borderRight: '1px solid rgba(255,255,255,0.15)', fontSize: '0.75rem', fontWeight: 600, backgroundColor: '#1b5e20', color: '#fff' }
         const css_oc = { px: '4px', py: '6px', height: '34px', fontSize: '0.85rem', display: 'flex', alignItems: 'center', borderRight: '1px dashed #d8d8d8', overflow: 'hidden' }
-        const inputOnay = { width: '100%', border: 'none', outline: 'none', backgroundColor: '#FFE0B2', fontSize: '0.85rem', padding: '2px 4px', MozAppearance: 'textfield' }
+        const inputOnay = { width: '100%', border: 'none', outline: 'none', backgroundColor: 'rgba(255,250,180,0.6)', fontSize: '0.85rem', padding: '2px 4px', MozAppearance: 'textfield' }
 
         const openRevize = (lineId) => {
           if (revizeForms[lineId]) return // zaten açık
@@ -1470,7 +1470,7 @@ export default function P_MetrajOlusturCetvel() {
           const revizeEditor = isRevizeOpen && nodeRevizeRows.length > 0 ? (
             <>
               {nodeRevizeRows.map((row, rowIdx) => {
-                const revizeCellBg = { backgroundColor: '#FFE0B2', borderBottom: '1px solid #E65100' }
+                const revizeCellBg = { backgroundColor: 'rgba(255,250,180,0.6)', borderBottom: '1px solid #E65100' }
                 return (
                   <React.Fragment key={row.tempId}>
                     <Box sx={{ ...css_oc, ...revizeCellBg, justifyContent: 'flex-start', pl: '0.5rem', color: '#E65100', fontSize: '0.82rem' }}>
