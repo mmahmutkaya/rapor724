@@ -1453,7 +1453,7 @@ export default function P_MetrajOlusturCetvel() {
           if (revizeForms[lineId]) return // zaten açık
           setRevizeForms(prev => ({
             ...prev,
-            [lineId]: [{ tempId: `tmp-${Date.now()}`, description: '', multiplier: '', count: '', length: '', width: '', height: '', status: 'draft' }],
+            [lineId]: [{ tempId: `tmp-${Date.now()}`, description: '', multiplier: '', count: '', length: '', width: '', height: '' }],
           }))
         }
 
@@ -1470,41 +1470,26 @@ export default function P_MetrajOlusturCetvel() {
           const revizeEditor = isRevizeOpen && nodeRevizeRows.length > 0 ? (
             <>
               {nodeRevizeRows.map((row, rowIdx) => {
-                const isSubmitted = row.status === 'submitted_for_approval'
-                const revizeCellBg = isSubmitted
-                  ? { backgroundColor: 'rgba(187,222,251,0.7)', borderBottom: '1px solid #1976d2' }
-                  : { backgroundColor: 'rgba(255,250,180,0.6)', borderBottom: '1px solid #E65100' }
-                const textColor = isSubmitted ? '#1565c0' : '#E65100'
+                const revizeCellBg = { backgroundColor: '#BBDEFB', borderBottom: '1px solid #90CAF9' }
 
                 return (
                   <React.Fragment key={row.tempId}>
-                    <Box sx={{ ...css_oc, ...revizeCellBg, justifyContent: 'flex-start', pl: '0.5rem', color: textColor, fontSize: '0.82rem' }}>
+                    <Box sx={{ ...css_oc, ...revizeCellBg, justifyContent: 'flex-start', pl: '0.5rem', color: '#1565c0', fontSize: '0.82rem' }}>
                       {`${node.siraNo}.${(node.children?.length ?? 0) + rowIdx + 1}`}
                     </Box>
                     <Box sx={{ ...css_oc, ...revizeCellBg, display: 'flex', alignItems: 'center', gap: '4px' }}>
-                      <IconButton size="small" sx={{ p: '1px', flexShrink: 0 }} onClick={() => {
-                        if (nodeRevizeRows.length === 1) {
-                          setRevizeForms(prev => { const n = { ...prev }; delete n[node.id]; return n })
-                        } else {
-                          setRevizeForms(prev => ({ ...prev, [node.id]: prev[node.id].filter(r => r.tempId !== row.tempId) }))
-                        }
-                      }}>
-                        <ClearIcon sx={{ fontSize: 14, color: '#c62828' }} />
-                      </IconButton>
-                      <input style={{ ...inputOnay, textAlign: 'left', backgroundColor: isSubmitted ? 'rgba(187,222,251,0.7)' : 'rgba(255,250,180,0.6)' }} value={row.description} placeholder="Açıklama"
-                        onChange={e => !isSubmitted && setRevizeForms(prev => ({ ...prev, [node.id]: prev[node.id].map(r => r.tempId === row.tempId ? { ...r, description: e.target.value } : r) }))}
-                        disabled={isSubmitted} />
+                      <input style={{ ...inputOnay, textAlign: 'left', backgroundColor: '#BBDEFB' }} value={row.description} placeholder="Açıklama"
+                        onChange={e => setRevizeForms(prev => ({ ...prev, [node.id]: prev[node.id].map(r => r.tempId === row.tempId ? { ...r, description: e.target.value } : r) }))} />
                     </Box>
                     {NUM_ONAY_FIELDS.map(f => (
                       <Box key={f} sx={{ ...css_oc, ...revizeCellBg }}>
-                        <input type="number" className="metraj-num-input" style={{ ...inputOnay, textAlign: 'right', backgroundColor: isSubmitted ? 'rgba(187,222,251,0.7)' : 'rgba(255,250,180,0.6)' }}
+                        <input type="number" className="metraj-num-input" style={{ ...inputOnay, textAlign: 'right', backgroundColor: '#BBDEFB' }}
                           value={row[f]} placeholder="—"
-                          onChange={e => !isSubmitted && setRevizeForms(prev => ({ ...prev, [node.id]: prev[node.id].map(r => r.tempId === row.tempId ? { ...r, [f]: e.target.value } : r) }))}
-                          onKeyDown={e => ['e', 'E', '+'].includes(e.key) && e.preventDefault()}
-                          disabled={isSubmitted} />
+                          onChange={e => setRevizeForms(prev => ({ ...prev, [node.id]: prev[node.id].map(r => r.tempId === row.tempId ? { ...r, [f]: e.target.value } : r) }))}
+                          onKeyDown={e => ['e', 'E', '+'].includes(e.key) && e.preventDefault()} />
                       </Box>
                     ))}
-                    <Box sx={{ ...css_oc, ...revizeCellBg, justifyContent: 'flex-end', fontWeight: 700, color: isSubmitted ? '#1565c0' : (calcMetrajOnay(row) < 0 ? '#c62828' : '#E65100') }}>
+                    <Box sx={{ ...css_oc, ...revizeCellBg, justifyContent: 'flex-end', fontWeight: 700, color: calcMetrajOnay(row) < 0 ? '#c62828' : '#1565c0' }}>
                       {(() => {
                         const qty = calcMetrajOnay(row)
                         const isEmpty = v => v === null || v === undefined || v === ''
@@ -1512,23 +1497,9 @@ export default function P_MetrajOlusturCetvel() {
                         return (qty !== 0 || hasData) ? ikiHane(qty) : ''
                       })()}
                     </Box>
-                    <Box sx={{ ...css_oc, ...revizeCellBg, fontSize: '0.78rem', color: textColor }}>{appUser?.displayName ?? appUser?.email ?? '(ben)'}</Box>
-                    <Box sx={{ ...css_oc, ...revizeCellBg, fontSize: '0.78rem', color: textColor }}>{isSubmitted ? '(onaya sunulan)' : ''}</Box>
+                    <Box sx={{ ...css_oc, ...revizeCellBg, fontSize: '0.78rem', color: '#1565c0' }}>{appUser?.displayName ?? appUser?.email ?? '(ben)'}</Box>
+                    <Box sx={{ ...css_oc, ...revizeCellBg, fontSize: '0.78rem', color: '#1565c0' }}></Box>
                     <Box sx={{ ...css_oc, ...revizeCellBg, justifyContent: 'center' }}>
-                      {!isSubmitted ? (
-                        <Tooltip title="Onaya Sunulan Modu">
-                          <IconButton size="small" sx={{ p: '2px' }} onClick={() => {
-                            setRevizeForms(prev => ({
-                              ...prev,
-                              [node.id]: prev[node.id].map(r => r.tempId === row.tempId ? { ...r, status: 'submitted_for_approval' } : r)
-                            }))
-                          }}>
-                            <HourglassFullIcon sx={{ fontSize: 16, color: '#E65100' }} />
-                          </IconButton>
-                        </Tooltip>
-                      ) : (
-                        <CheckIcon sx={{ fontSize: 16, color: '#1565c0' }} />
-                      )}
                     </Box>
                   </React.Fragment>
                 )
