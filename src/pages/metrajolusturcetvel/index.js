@@ -1513,7 +1513,7 @@ export default function P_MetrajOlusturCetvel() {
                       })()}
                     </Box>
                     <Box sx={{ ...css_oc, ...revizeCellBg, fontSize: '0.78rem', color: textColor }}>{appUser?.displayName ?? appUser?.email ?? '(ben)'}</Box>
-                    <Box sx={{ ...css_oc, ...revizeCellBg, fontSize: '0.78rem', color: textColor }}>{isSubmitted ? '(onaya sunulan)' : '(bekliyor)'}</Box>
+                    <Box sx={{ ...css_oc, ...revizeCellBg, fontSize: '0.78rem', color: textColor }}>{isSubmitted ? '(onaya sunulan)' : ''}</Box>
                     <Box sx={{ ...css_oc, ...revizeCellBg, justifyContent: 'center' }}>
                       {!isSubmitted ? (
                         <Tooltip title="Onaya Sunulan Modu">
