@@ -1481,6 +1481,17 @@ export default function P_MetrajOlusturCetvel() {
                       {`${node.siraNo}.${(node.children?.length ?? 0) + rowIdx + 1}`}
                     </Box>
                     <Box sx={{ ...css_oc, ...revizeCellBg, display: 'flex', alignItems: 'center', gap: '4px' }}>
+                      {!isSubmitted && (
+                        <IconButton size="small" sx={{ p: '1px', flexShrink: 0 }}
+                          onClick={() => setRevizeForms(prev => {
+                            const filtered = (prev[node.id] ?? []).filter(r => r.tempId !== row.tempId)
+                            return filtered.length > 0
+                              ? { ...prev, [node.id]: filtered }
+                              : Object.fromEntries(Object.entries(prev).filter(([k]) => k !== String(node.id)))
+                          })}>
+                          <ClearIcon sx={{ fontSize: 14, color: '#c62828' }} />
+                        </IconButton>
+                      )}
                       <input style={{ ...inputOnay, textAlign: 'left', backgroundColor: isSubmitted ? '#BBDEFB' : 'rgba(255,250,180,0.6)' }} value={row.description} placeholder="Açıklama"
                         disabled={isSubmitted}
                         onChange={e => setRevizeForms(prev => ({ ...prev, [node.id]: prev[node.id].map(r => r.tempId === row.tempId ? { ...r, description: e.target.value } : r) }))} />
@@ -1494,13 +1505,14 @@ export default function P_MetrajOlusturCetvel() {
                           onKeyDown={e => ['e', 'E', '+'].includes(e.key) && e.preventDefault()} />
                       </Box>
                     ))}
-                    <Box sx={{ ...css_oc, ...revizeCellBg, justifyContent: 'flex-end', fontWeight: 700, color: calcMetrajOnay(row) < 0 ? '#c62828' : (isSubmitted ? '#1565c0' : '#E65100') }}>
+                    <Box sx={{ ...css_oc, ...revizeCellBg, justifyContent: 'flex-end', fontWeight: 700, color: calcMetrajOnay(row) < 0 ? '#c62828' : (isSubmitted ? '#1565c0' : '#333') }}>
                       {(() => {
                         const qty = calcMetrajOnay(row)
                         const isEmpty = v => v === null || v === undefined || v === ''
                         const hasData = [row.multiplier, row.count, row.length, row.width, row.height].some(v => !isEmpty(v))
                         return (qty !== 0 || hasData) ? ikiHane(qty) : ''
                       })()}
+                      {pozBirim && calcMetrajOnay(row) !== 0 && <Box component="span" sx={{ ml: '3px', fontWeight: 400, fontSize: '0.72rem', color: isSubmitted ? '#1565c0' : '#555' }}>{pozBirim}</Box>}
                     </Box>
                     <Box sx={{ ...css_oc, ...revizeCellBg, fontSize: '0.78rem', color: isSubmitted ? '#1565c0' : '#455a64' }}>{appUser?.displayName ?? appUser?.email ?? '(ben)'}</Box>
                     <Box sx={{ ...css_oc, ...revizeCellBg, fontSize: '0.78rem', color: isSubmitted ? '#1565c0' : '#455a64' }}></Box>
