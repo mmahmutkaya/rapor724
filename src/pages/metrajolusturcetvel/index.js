@@ -1807,8 +1807,16 @@ export default function P_MetrajOlusturCetvel() {
 
         // Onaylı Metraj kartı için istatistikleri hesapla
         const allApprovalLines = flattenAll(approvalTree)
-        const totalApprovalDraft = allApprovalLines.filter(n => !n.status || n.status === 'draft').reduce((s, n) => s + calcMetrajOnay(n), 0)
+        // childEditValues içindeki güncel değerleri de hesaba kat
+        const calcWithEdits = (n) => {
+          const vals = childEditValues[n.id]
+          if (!vals) return calcMetrajOnay(n)
+          return calcMetrajOnay({ ...n, multiplier: vals.multiplier === '' ? null : vals.multiplier, count: vals.count === '' ? null : vals.count, length: vals.length === '' ? null : vals.length, width: vals.width === '' ? null : vals.width, height: vals.height === '' ? null : vals.height })
+        }
+        const totalApprovalDraft = allApprovalLines.filter(n => !n.status || n.status === 'draft').reduce((s, n) => s + calcWithEdits(n), 0)
+          + Object.values(revizeForms).flat().filter(r => r.status !== 'submitted_for_approval').reduce((s, r) => s + calcMetrajOnay(r), 0)
         const totalApprovalPending = allApprovalLines.filter(n => n.status === 'pending').reduce((s, n) => s + calcMetrajOnay(n), 0)
+          + Object.values(revizeForms).flat().filter(r => r.status === 'submitted_for_approval').reduce((s, r) => s + calcMetrajOnay(r), 0)
         const totalApprovalIgnored = allApprovalLines.filter(n => n.status === 'ignored').reduce((s, n) => s + calcMetrajOnay(n), 0)
         const totalApprovalApproved = allApprovalLines.filter(n => n.status === 'approved').reduce((s, n) => s + calcMetrajOnay(n), 0)
 
