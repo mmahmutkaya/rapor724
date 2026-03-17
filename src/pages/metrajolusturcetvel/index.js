@@ -178,6 +178,9 @@ export default function P_MetrajOlusturCetvel() {
   const [openVisibilityDialog, setOpenVisibilityDialog] = useState(false)
   const [visibleOnayKarti, setVisibleOnayKarti] = useState(true)
   const [visibleSessCards, setVisibleSessCards] = useState({})  // { sessId: boolean }
+  const [childEditParents, setChildEditParents] = useState({}) // { parentLineId: bool } — onay kartında alt satır düzenleme modu
+  const [childEditValues, setChildEditValues] = useState({})   // { lineId: {description,multiplier,count,length,width,height} }
+  const [onayKartiEditMode, setOnayKartiEditMode] = useState(false)
 
   const wpAreaId = selectedMahal?.wpAreaId
 
@@ -808,6 +811,48 @@ export default function P_MetrajOlusturCetvel() {
     }))
   }
 
+  // ── Onaylı Metraj kartı — tüm düzenlemeleri kaydet ─────────
+  const handleSaveAllEdits = async () => {
+    if (Object.keys(childEditValues).length > 0) {
+      for (const [lineId, vals] of Object.entries(childEditValues)) {
+        const { error } = await supabase.from('measurement_lines').update({
+          description: vals.description || null,
+          multiplier: (vals.multiplier === '' || vals.multiplier === null) ? 1 : Number(vals.multiplier),
+          count:  vals.count  === '' ? null : (vals.count  != null ? Number(vals.count)  : null),
+          length: vals.length === '' ? null : (vals.length != null ? Number(vals.length) : null),
+          width:  vals.width  === '' ? null : (vals.width  != null ? Number(vals.width)  : null),
+          height: vals.height === '' ? null : (vals.height != null ? Number(vals.height) : null),
+        }).eq('id', lineId)
+        if (error) {
+          setDialogAlert({ dialogIcon: 'warning', dialogMessage: error.message, onCloseAction: () => setDialogAlert() })
+          return
+        }
+      }
+      setSessions(prev => prev.map(s => ({
+        ...s,
+        lines: s.lines.map(l => {
+          const vals = childEditValues[l.id]
+          if (!vals) return l
+          return {
+            ...l,
+            description: vals.description || null,
+            multiplier: (vals.multiplier === '' || vals.multiplier === null) ? 1 : Number(vals.multiplier),
+            count:  vals.count  === '' ? null : (vals.count  != null ? Number(vals.count)  : null),
+            length: vals.length === '' ? null : (vals.length != null ? Number(vals.length) : null),
+            width:  vals.width  === '' ? null : (vals.width  != null ? Number(vals.width)  : null),
+            height: vals.height === '' ? null : (vals.height != null ? Number(vals.height) : null),
+          }
+        })
+      })))
+      setChildEditValues({})
+      setChildEditParents({})
+    }
+    if (Object.keys(revizeForms).length > 0) {
+      await handleSendRevizeTalebi()
+    }
+    setOnayKartiEditMode(false)
+  }
+
   const unitsMap = useMemo(() => {
     const m = {}
     units.forEach(u => { m[u.id] = u.name })
@@ -871,7 +916,7 @@ export default function P_MetrajOlusturCetvel() {
               length: row.length !== '' ? Number(row.length) : null,
               width:  row.width  !== '' ? Number(row.width)  : null,
               height: row.height !== '' ? Number(row.height) : null,
-              status: 'pending',
+              status: row.status === 'submitted_for_approval' ? 'pending' : 'draft',
               line_type: 'data',
             })
             .select().single()
@@ -918,6 +963,32 @@ export default function P_MetrajOlusturCetvel() {
     }
   }
 
+  const handleRevertPendingToDraft = async (lineId) => {
+    try {
+      const { error } = await supabase.from('measurement_lines').update({ status: 'draft' }).eq('id', lineId)
+      if (error) throw error
+      setSessions(prev => prev.map(s => ({
+        ...s,
+        lines: s.lines.map(l => l.id === lineId ? { ...l, status: 'draft' } : l)
+      })))
+    } catch (err) {
+      setDialogAlert({ dialogIcon: 'warning', dialogMessage: err.message, onCloseAction: () => setDialogAlert() })
+    }
+  }
+
+  const handleSubmitDraftChildToPending = async (lineId) => {
+    try {
+      const { error } = await supabase.from('measurement_lines').update({ status: 'pending' }).eq('id', lineId)
+      if (error) throw error
+      setSessions(prev => prev.map(s => ({
+        ...s,
+        lines: s.lines.map(l => l.id === lineId ? { ...l, status: 'pending' } : l)
+      })))
+    } catch (err) {
+      setDialogAlert({ dialogIcon: 'warning', dialogMessage: err.message, onCloseAction: () => setDialogAlert() })
+    }
+  }
+
   const handleApprovePendingLine = async (lineId) => {
     try {
       const { error } = await supabase.from('measurement_lines').update({ status: 'approved' }).eq('id', lineId)
@@ -929,6 +1000,48 @@ export default function P_MetrajOlusturCetvel() {
     } catch (err) {
       setDialogAlert({ dialogIcon: 'warning', dialogMessage: err.message, onCloseAction: () => setDialogAlert() })
     }
+  }
+
+  // ── Onay Kartı — alt satır düzenleme kaydet ─────────────────
+  const handleSaveChildEdits = async (parentId, children) => {
+    for (const child of children) {
+      const vals = childEditValues[child.id]
+      if (!vals) continue
+      const { error } = await supabase.from('measurement_lines').update({
+        description: vals.description || null,
+        multiplier: (vals.multiplier === '' || vals.multiplier === null) ? 1 : Number(vals.multiplier),
+        count:  vals.count  === '' ? null : (vals.count  != null ? Number(vals.count)  : null),
+        length: vals.length === '' ? null : (vals.length != null ? Number(vals.length) : null),
+        width:  vals.width  === '' ? null : (vals.width  != null ? Number(vals.width)  : null),
+        height: vals.height === '' ? null : (vals.height != null ? Number(vals.height) : null),
+      }).eq('id', child.id)
+      if (error) {
+        setDialogAlert({ dialogIcon: 'warning', dialogMessage: error.message, onCloseAction: () => setDialogAlert() })
+        return
+      }
+    }
+    setSessions(prev => prev.map(s => ({
+      ...s,
+      lines: s.lines.map(l => {
+        const vals = childEditValues[l.id]
+        if (!vals) return l
+        return {
+          ...l,
+          description: vals.description || null,
+          multiplier: (vals.multiplier === '' || vals.multiplier === null) ? 1 : Number(vals.multiplier),
+          count:  vals.count  === '' ? null : (vals.count  != null ? Number(vals.count)  : null),
+          length: vals.length === '' ? null : (vals.length != null ? Number(vals.length) : null),
+          width:  vals.width  === '' ? null : (vals.width  != null ? Number(vals.width)  : null),
+          height: vals.height === '' ? null : (vals.height != null ? Number(vals.height) : null),
+        }
+      })
+    })))
+    setChildEditParents(prev => { const n = { ...prev }; delete n[parentId]; return n })
+    setChildEditValues(prev => {
+      const n = { ...prev }
+      children.forEach(c => delete n[c.id])
+      return n
+    })
   }
 
   const pozBirim = unitsMap[selectedPoz?.unit_id] ?? ''
@@ -1427,7 +1540,7 @@ export default function P_MetrajOlusturCetvel() {
 
       {/* ONAYLANAN METRAJ — Hazırlayan için salt-okunur; onaylı satırlara revize talebi gönderilebilir */}
       {!loading && visibleOnayKarti && approvalTree.length > 0 && (() => {
-        const ONAY_GRID = 'max-content 1fr 65px 65px 65px 65px 65px 80px 90px 90px 36px'
+        const ONAY_GRID = 'max-content 1fr 65px 65px 65px 65px 65px 80px 90px 90px 52px'
         const NUM_ONAY_LABELS = ['Çarpan', 'Adet', 'Boy', 'En', 'Yük']
         const NUM_ONAY_FIELDS = ['multiplier', 'count', 'length', 'width', 'height']
         const calcMetrajOnay = (line) => {
@@ -1463,7 +1576,7 @@ export default function P_MetrajOlusturCetvel() {
           const hasKids = (node.children?.length ?? 0) > 0
           const isExp   = expandedApproved[node.id] ?? false
           const isRevizeOpen = !!(revizeForms[node.id]?.length)
-          const isRevised = node.status === 'approved' && hasKids
+          const isRevised = node.status === 'approved' && hasKids && (node.children ?? []).some(c => c.status === 'approved')
 
           // Çoklu satır revize editörü (metrajonaylacetvel ile aynı)
           const nodeRevizeRows = revizeForms[node.id] ?? []
@@ -1497,12 +1610,14 @@ export default function P_MetrajOlusturCetvel() {
                         onChange={e => setRevizeForms(prev => ({ ...prev, [node.id]: prev[node.id].map(r => r.tempId === row.tempId ? { ...r, description: e.target.value } : r) }))} />
                     </Box>
                     {NUM_ONAY_FIELDS.map(f => (
-                      <Box key={f} sx={{ ...css_oc, ...revizeCellBg }}>
-                        <input type="number" className="metraj-num-input" style={{ ...inputOnay, textAlign: 'right', backgroundColor: isSubmitted ? '#BBDEFB' : 'rgba(255,250,180,0.6)' }}
-                          value={row[f]} placeholder="—"
-                          disabled={isSubmitted}
-                          onChange={e => setRevizeForms(prev => ({ ...prev, [node.id]: prev[node.id].map(r => r.tempId === row.tempId ? { ...r, [f]: e.target.value } : r) }))}
-                          onKeyDown={e => ['e', 'E', '+'].includes(e.key) && e.preventDefault()} />
+                      <Box key={f} sx={{ ...css_oc, ...revizeCellBg, justifyContent: 'flex-end' }}>
+                        {isSubmitted
+                          ? <Box sx={{ fontSize: '0.85rem', color: '#333' }}>{(row[f] !== '' && row[f] != null) ? ikiHane(Number(row[f])) : ''}</Box>
+                          : <input type="number" className="metraj-num-input" style={{ ...inputOnay, textAlign: 'right' }}
+                              value={row[f]} placeholder="—"
+                              onChange={e => setRevizeForms(prev => ({ ...prev, [node.id]: prev[node.id].map(r => r.tempId === row.tempId ? { ...r, [f]: e.target.value } : r) }))}
+                              onKeyDown={e => ['e', 'E', '+'].includes(e.key) && e.preventDefault()} />
+                        }
                       </Box>
                     ))}
                     <Box sx={{ ...css_oc, ...revizeCellBg, justifyContent: 'flex-end', fontWeight: 700, color: calcMetrajOnay(row) < 0 ? '#c62828' : (isSubmitted ? '#1565c0' : '#333') }}>
@@ -1524,7 +1639,10 @@ export default function P_MetrajOlusturCetvel() {
                         </IconButton>
                       )}
                       {isSubmitted && (
-                        <CheckIcon sx={{ fontSize: 16, color: '#1565C0' }} />
+                        <IconButton size="small" sx={{ p: '2px' }}
+                          onClick={() => setRevizeForms(prev => ({ ...prev, [node.id]: prev[node.id].map(r => r.tempId === row.tempId ? { ...r, status: 'draft' } : r) }))}>
+                          <CheckIcon sx={{ fontSize: 16, color: '#1565C0' }} />
+                        </IconButton>
                       )}
                     </Box>
                   </React.Fragment>
@@ -1547,13 +1665,7 @@ export default function P_MetrajOlusturCetvel() {
                     <Box sx={{ ...css_oc, ...origCellBg, justifyContent: 'flex-end', fontWeight: 700, color: '#888' }}>{ikiHane(calcMetrajOnay(node))}</Box>
                     <Box sx={{ ...css_oc, ...origCellBg, fontSize: '0.78rem', color: '#9E9E9E' }}>{node.hazırlayan}</Box>
                     <Box sx={{ ...css_oc, ...origCellBg, fontSize: '0.78rem', color: '#9E9E9E' }}>{node.onaylayan}</Box>
-                    <Box sx={{ ...css_oc, ...origCellBg, justifyContent: 'center' }}>
-                      {!isRevizeOpen && (
-                        <IconButton size="small" sx={{ p: '2px' }} onClick={() => openRevize(node.id)}>
-                          <EditIcon sx={{ fontSize: 16, color: '#7b1fa2' }} />
-                        </IconButton>
-                      )}
-                    </Box>
+                    <Box sx={{ ...css_oc, ...origCellBg, justifyContent: 'center' }}></Box>
                   </>
                 )}
                 {node.children.map(child => (
@@ -1565,26 +1677,39 @@ export default function P_MetrajOlusturCetvel() {
           }
 
           const rowBg = node.status !== 'approved'
-            ? (node.status === 'pending' ? '#FFCC80' : node.status === 'rejected' ? 'rgba(255,235,238,0.5)' : 'rgba(236,239,241,0.5)')
+            ? (node.status === 'pending' ? '#BBDEFB' : node.status === 'rejected' ? 'rgba(255,235,238,0.5)' : (!node.status || node.status === 'draft') ? '#FFE0B2' : 'rgba(236,239,241,0.5)')
             : '#C8E6C9'
           const onaylayanText = node.status === 'pending' ? '(bekliyor)' : node.status === 'rejected' ? '(reddedildi)' : node.status === 'ignored' ? '(ignore)' : (node.onaylayan ?? '')
           const cellBg = { backgroundColor: rowBg, borderBottom: '1px dashed #c8c8c8', ...(metraj < 0 && { color: '#c62828' }) }
+          const isChildEditable = onayKartiEditMode && !!node.parent_line_id && (node.status === 'draft' || !node.status) && sessions.some(s => s.id === node.session_id && s.created_by === appUser?.id)
+          const childVals = childEditValues[node.id] ?? null
 
           return (
             <>
-              <Box sx={{ ...css_oc, ...cellBg, justifyContent: 'flex-start', pl: '0.5rem', color: node.depth > 0 ? '#1565c0' : '#555' }}>
+              {/* Sıra sütunu — expand/collapse oku buraya taşındı */}
+              <Box sx={{ ...css_oc, ...cellBg, justifyContent: 'flex-start', pl: hasKids ? '2px' : '0.5rem', display: 'flex', alignItems: 'center', gap: '2px', color: node.depth > 0 ? '#1565c0' : '#555' }}>
+                {hasKids && (
+                  <IconButton size="small" sx={{ p: '1px', flexShrink: 0 }} onClick={() => setExpandedApproved(prev => ({ ...prev, [node.id]: !prev[node.id] }))}>
+                    {isExp ? <ExpandLessIcon sx={{ fontSize: 16, color: '#888' }} /> : <ExpandMoreIcon sx={{ fontSize: 16, color: '#888' }} />}
+                  </IconButton>
+                )}
                 {node.siraNo}
               </Box>
               <Box sx={{ ...css_oc, ...cellBg, display: 'flex', alignItems: 'center', gap: '4px' }}>
-                {node.status === 'pending' && (
-                  <IconButton size="small" sx={{ p: '1px', flexShrink: 0 }} onClick={() => handleDeletePendingLine(node.id)}>
-                    <ClearIcon sx={{ fontSize: 14, color: '#c62828' }} />
-                  </IconButton>
-                )}
-                {node.description ?? ''}
+                {isChildEditable && childVals
+                  ? <input style={{ ...inputOnay, textAlign: 'left' }} value={childVals.description} placeholder="Açıklama"
+                      onChange={e => setChildEditValues(prev => ({ ...prev, [node.id]: { ...prev[node.id], description: e.target.value } }))} />
+                  : node.description ?? ''}
               </Box>
               {NUM_ONAY_FIELDS.map(f => (
-                <Box key={f} sx={{ ...css_oc, ...cellBg, justifyContent: 'flex-end' }}>{f === 'multiplier' && Number(node[f]) === 1 ? '' : (node[f] != null ? ikiHane(node[f]) : '')}</Box>
+                <Box key={f} sx={{ ...css_oc, ...cellBg, justifyContent: 'flex-end' }}>
+                  {isChildEditable && childVals
+                    ? <input type="number" className="metraj-num-input" style={{ ...inputOnay, textAlign: 'right' }}
+                        value={childVals[f]} placeholder="—"
+                        onChange={e => setChildEditValues(prev => ({ ...prev, [node.id]: { ...prev[node.id], [f]: e.target.value } }))}
+                        onKeyDown={e => ['e', 'E', '+'].includes(e.key) && e.preventDefault()} />
+                    : f === 'multiplier' && Number(node[f]) === 1 ? '' : (node[f] != null ? ikiHane(node[f]) : '')}
+                </Box>
               ))}
               <Box sx={{ ...css_oc, ...cellBg, justifyContent: 'flex-end', fontWeight: 700, ...(metraj < 0 && { color: '#c62828' }) }}>
                 {metraj !== 0 ? ikiHane(metraj) : (() => {
@@ -1596,34 +1721,32 @@ export default function P_MetrajOlusturCetvel() {
                 {pozBirim && !hasKids && metraj !== 0 && <Box component="span" sx={{ ml: '3px', fontWeight: 400, fontSize: '0.72rem', color: '#555' }}>{pozBirim}</Box>}
               </Box>
               <Box sx={{ ...css_oc, ...cellBg, fontSize: '0.78rem', color: '#455a64' }}>{node.hazırlayan}</Box>
-              <Box sx={{ ...css_oc, ...cellBg, fontSize: '0.78rem', color: node.status === 'pending' ? '#e65100' : node.status === 'rejected' ? '#b71c1c' : '#1b5e20' }}>
+              <Box sx={{ ...css_oc, ...cellBg, fontSize: '0.78rem', color: node.status === 'pending' ? '#1565c0' : node.status === 'rejected' ? '#b71c1c' : '#1b5e20' }}>
                 {onaylayanText}
               </Box>
               <Box sx={{ ...css_oc, ...cellBg, justifyContent: 'center', gap: '2px' }}>
-                {node.status === 'approved' && !isRevizeOpen && (
-                  <IconButton size="small" sx={{ p: '2px' }} onClick={() => openRevize(node.id)}>
-                    <EditIcon sx={{ fontSize: 16, color: '#7b1fa2' }} />
+                {/* Onaylı satır — edit modda + ikonu */}
+                {node.status === 'approved' && onayKartiEditMode && (
+                  <IconButton size="small" sx={{ p: '2px' }} title="Alt satır ekle" onClick={() => {
+                    setRevizeForms(prev => {
+                      const existing = prev[node.id] ?? []
+                      return { ...prev, [node.id]: [...existing, { tempId: `tmp-${Date.now()}-${Math.random()}`, description: '', multiplier: '', count: '', length: '', width: '', height: '', status: 'draft' }] }
+                    })
+                    setExpandedApproved(prev => ({ ...prev, [node.id]: true }))
+                  }}>
+                    <AddCircleOutlineIcon sx={{ fontSize: 18, color: '#c8e6c9' }} />
                   </IconButton>
                 )}
-                {node.status === 'approved' && isRevizeOpen && (
-                  <IconButton size="small" sx={{ p: '2px' }}
-                    onClick={() => setRevizeForms(prev => ({ ...prev, [node.id]: [...(prev[node.id] ?? []), { tempId: `tmp-${Date.now()}-${Math.random()}`, description: '', multiplier: '', count: '', length: '', width: '', height: '' }] }))}>
-                    <AddCircleOutlineIcon sx={{ fontSize: 18, color: '#7b1fa2' }} />
+                {/* Hazırlanan alt satır — edit modda kum saati (onaya sun) */}
+                {onayKartiEditMode && (!node.status || node.status === 'draft') && !!node.parent_line_id && (
+                  <IconButton size="small" sx={{ p: '2px' }} title="Onaya Sun" onClick={() => handleSubmitDraftChildToPending(node.id)}>
+                    <HourglassFullIcon sx={{ fontSize: 16, color: '#E65100' }} />
                   </IconButton>
                 )}
-                {node.status === 'pending' && sessions.find(s => s.id === node.session_id)?.isOwn && (
-                  <>
-                    <IconButton size="small" sx={{ p: '2px' }} title="Onaya Sunulan" onClick={() => handleApprovePendingLine(node.id)}>
-                      <HourglassFullIcon sx={{ fontSize: 16, color: '#E65100' }} />
-                    </IconButton>
-                    <IconButton size="small" sx={{ p: '2px' }} title="Onaylandı" onClick={() => handleApprovePendingLine(node.id)}>
-                      <CheckIcon sx={{ fontSize: 16, color: '#1565C0' }} />
-                    </IconButton>
-                  </>
-                )}
-                {hasKids && (
-                  <IconButton size="small" sx={{ p: '2px' }} onClick={() => setExpandedApproved(prev => ({ ...prev, [node.id]: !prev[node.id] }))}>
-                    {isExp ? <ExpandLessIcon sx={{ fontSize: 18, color: '#888' }} /> : <ExpandMoreIcon sx={{ fontSize: 18, color: '#888' }} />}
+                {/* Onaya sunulan alt satır — edit modda tik (hazırlanana çevir) */}
+                {onayKartiEditMode && node.status === 'pending' && (
+                  <IconButton size="small" sx={{ p: '2px' }} title="Hazırlanana çevir" onClick={() => handleRevertPendingToDraft(node.id)}>
+                    <CheckIcon sx={{ fontSize: 16, color: '#1565C0' }} />
                   </IconButton>
                 )}
               </Box>
@@ -1670,12 +1793,46 @@ export default function P_MetrajOlusturCetvel() {
                     {showAllOriginals ? <ExpandLessIcon sx={{ fontSize: 16 }} /> : <ExpandMoreIcon sx={{ fontSize: 16 }} />}
                     {showAllOriginals ? 'Orjinalleri gizle' : 'Tüm orjinalleri göster'}
                   </Box>
-                  {Object.keys(revizeForms).length > 0 && (
+                  {!onayKartiEditMode && (
+                    <IconButton size="small" sx={{ p: '2px', color: '#c8e6c9' }} title="Düzenle" onClick={() => {
+                      setOnayKartiEditMode(true)
+                      const newExpanded = {}
+                      const expandAll = (nodes) => nodes.forEach(n => {
+                        if ((n.children?.length ?? 0) > 0) { newExpanded[n.id] = true; expandAll(n.children) }
+                      })
+                      expandAll(approvalTree)
+                      setExpandedApproved(prev => ({ ...prev, ...newExpanded }))
+                      const initVals = {}
+                      const initChildren = (nodes) => nodes.forEach(n => {
+                        if (n.parent_line_id && (n.status === 'draft' || !n.status) && sessions.some(s => s.id === n.session_id && s.created_by === appUser?.id)) {
+                          initVals[n.id] = {
+                            description: n.description ?? '',
+                            multiplier: (n.multiplier != null && Number(n.multiplier) !== 1) ? String(n.multiplier) : '',
+                            count:  n.count  != null ? String(n.count)  : '',
+                            length: n.length != null ? String(n.length) : '',
+                            width:  n.width  != null ? String(n.width)  : '',
+                            height: n.height != null ? String(n.height) : '',
+                          }
+                        }
+                        if (n.children?.length > 0) initChildren(n.children)
+                      })
+                      initChildren(approvalTree)
+                      setChildEditValues(initVals)
+                    }}>
+                      <EditIcon sx={{ fontSize: 20 }} />
+                    </IconButton>
+                  )}
+                  {onayKartiEditMode && (
                     <>
-                      <IconButton size="small" sx={{ p: '2px', color: '#ffcdd2' }} onClick={() => setRevizeForms({})}>
+                      <IconButton size="small" sx={{ p: '2px', color: '#ffcdd2' }} title="İptal" onClick={() => {
+                        setOnayKartiEditMode(false)
+                        setRevizeForms({})
+                        setChildEditValues({})
+                        setChildEditParents({})
+                      }}>
                         <ClearIcon sx={{ fontSize: 20 }} />
                       </IconButton>
-                      <IconButton size="small" sx={{ p: '2px', color: '#c8e6c9' }} onClick={handleSendRevizeTalebi}>
+                      <IconButton size="small" sx={{ p: '2px', color: '#c8e6c9' }} title="Kaydet" onClick={handleSaveAllEdits}>
                         <SaveIcon sx={{ fontSize: 20 }} />
                       </IconButton>
                     </>
