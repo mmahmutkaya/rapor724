@@ -1605,9 +1605,11 @@ export default function P_MetrajOlusturCetvel() {
                           <ClearIcon sx={{ fontSize: 14, color: '#c62828' }} />
                         </IconButton>
                       )}
-                      <input style={{ ...inputOnay, textAlign: 'left', backgroundColor: isSubmitted ? '#BBDEFB' : 'rgba(255,250,180,0.6)' }} value={row.description} placeholder="Açıklama"
-                        disabled={isSubmitted}
-                        onChange={e => setRevizeForms(prev => ({ ...prev, [node.id]: prev[node.id].map(r => r.tempId === row.tempId ? { ...r, description: e.target.value } : r) }))} />
+                      {isSubmitted
+                        ? <Box sx={{ fontSize: '0.85rem', color: '#1565c0' }}>{row.description || ''}</Box>
+                        : <input style={{ ...inputOnay, textAlign: 'left' }} value={row.description} placeholder="Açıklama"
+                            onChange={e => setRevizeForms(prev => ({ ...prev, [node.id]: prev[node.id].map(r => r.tempId === row.tempId ? { ...r, description: e.target.value } : r) }))} />
+                      }
                     </Box>
                     {NUM_ONAY_FIELDS.map(f => (
                       <Box key={f} sx={{ ...css_oc, ...revizeCellBg, justifyContent: 'flex-end' }}>
@@ -1734,7 +1736,7 @@ export default function P_MetrajOlusturCetvel() {
                     })
                     setExpandedApproved(prev => ({ ...prev, [node.id]: true }))
                   }}>
-                    <AddCircleOutlineIcon sx={{ fontSize: 18, color: '#c8e6c9' }} />
+                    <AddCircleOutlineIcon sx={{ fontSize: 20, color: '#1b5e20' }} />
                   </IconButton>
                 )}
                 {/* Hazırlanan alt satır — edit modda kum saati (onaya sun) */}

@@ -1,0 +1,8 @@
+{
+  "permissions": {
+    "allow": [
+      "Read(//c/github/rapor724/**)",
+      "Bash(npm start:*)"
+    ]
+  }
+}
