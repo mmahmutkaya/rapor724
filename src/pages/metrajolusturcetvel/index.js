@@ -1590,7 +1590,7 @@ export default function P_MetrajOlusturCetvel() {
 
                 return (
                   <React.Fragment key={row.tempId}>
-                    <Box sx={{ ...css_oc, ...revizeCellBg, justifyContent: 'flex-start', pl: '0.5rem', color: isSubmitted ? '#1565c0' : '#E65100', fontSize: '0.82rem' }}>
+                    <Box sx={{ ...css_oc, ...revizeCellBg, justifyContent: 'flex-start', pl: '0.5rem', color: '#1565c0', fontSize: '0.82rem' }}>
                       {`${node.siraNo}.${(node.children?.length ?? 0) + rowIdx + 1}`}
                     </Box>
                     <Box sx={{ ...css_oc, ...revizeCellBg, display: 'flex', alignItems: 'center', gap: '4px' }}>
@@ -1720,7 +1720,7 @@ export default function P_MetrajOlusturCetvel() {
                     [(Number(node.multiplier) === 1 ? null : node.multiplier), node.count, node.length, node.width, node.height].some(v => !isEmpty(v))
                   return hasData ? ikiHane(metraj) : ''
                 })()}
-                {pozBirim && !hasKids && metraj !== 0 && <Box component="span" sx={{ ml: '3px', fontWeight: 400, fontSize: '0.72rem', color: '#555' }}>{pozBirim}</Box>}
+                {pozBirim && metraj !== 0 && <Box component="span" sx={{ ml: '3px', fontWeight: 400, fontSize: '0.72rem', color: metraj < 0 ? '#c62828' : '#555' }}>{pozBirim}</Box>}
               </Box>
               <Box sx={{ ...css_oc, ...cellBg, fontSize: '0.78rem', color: '#455a64' }}>{node.hazırlayan}</Box>
               <Box sx={{ ...css_oc, ...cellBg, fontSize: '0.78rem', color: node.status === 'pending' ? '#1565c0' : node.status === 'rejected' ? '#b71c1c' : '#1b5e20' }}>
