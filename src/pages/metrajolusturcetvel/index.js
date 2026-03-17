@@ -976,6 +976,19 @@ export default function P_MetrajOlusturCetvel() {
     }
   }
 
+  const handleDeleteDraftChild = async (lineId) => {
+    try {
+      const { error } = await supabase.from('measurement_lines').delete().eq('id', lineId)
+      if (error) throw error
+      setSessions(prev => prev.map(s => ({
+        ...s,
+        lines: s.lines.filter(l => l.id !== lineId)
+      })))
+    } catch (err) {
+      setDialogAlert({ dialogIcon: 'warning', dialogMessage: err.message, onCloseAction: () => setDialogAlert() })
+    }
+  }
+
   const handleSubmitDraftChildToPending = async (lineId) => {
     try {
       const { error } = await supabase.from('measurement_lines').update({ status: 'pending' }).eq('id', lineId)
@@ -1698,15 +1711,21 @@ export default function P_MetrajOlusturCetvel() {
                 {node.siraNo}
               </Box>
               <Box sx={{ ...css_oc, ...cellBg, display: 'flex', alignItems: 'center', gap: '4px' }}>
+                {isChildEditable && (
+                  <IconButton size="small" sx={{ p: '1px', flexShrink: 0 }}
+                    onClick={() => handleDeleteDraftChild(node.id)}>
+                    <ClearIcon sx={{ fontSize: 14, color: '#c62828' }} />
+                  </IconButton>
+                )}
                 {isChildEditable && childVals
-                  ? <input style={{ ...inputOnay, textAlign: 'left' }} value={childVals.description} placeholder="Açıklama"
+                  ? <input style={{ ...inputOnay, textAlign: 'left', ...(metraj < 0 && { color: '#c62828' }) }} value={childVals.description} placeholder="Açıklama"
                       onChange={e => setChildEditValues(prev => ({ ...prev, [node.id]: { ...prev[node.id], description: e.target.value } }))} />
                   : node.description ?? ''}
               </Box>
               {NUM_ONAY_FIELDS.map(f => (
                 <Box key={f} sx={{ ...css_oc, ...cellBg, justifyContent: 'flex-end' }}>
                   {isChildEditable && childVals
-                    ? <input type="number" className="metraj-num-input" style={{ ...inputOnay, textAlign: 'right' }}
+                    ? <input type="number" className="metraj-num-input" style={{ ...inputOnay, textAlign: 'right', ...(metraj < 0 && { color: '#c62828' }) }}
                         value={childVals[f]} placeholder="—"
                         onChange={e => setChildEditValues(prev => ({ ...prev, [node.id]: { ...prev[node.id], [f]: e.target.value } }))}
                         onKeyDown={e => ['e', 'E', '+'].includes(e.key) && e.preventDefault()} />
@@ -1757,7 +1776,7 @@ export default function P_MetrajOlusturCetvel() {
                 <React.Fragment key={child.id}>{renderOnayRow(child)}</React.Fragment>
               ))}
 
-              {revizeEditor}
+              {(!hasKids || isExp) && revizeEditor}
             </>
           )
         }
