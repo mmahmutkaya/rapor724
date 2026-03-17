@@ -1370,9 +1370,9 @@ export default function P_MetrajOlusturCetvel() {
                         : isDraftLine && !isApproved
                         ? (sess.mode_edit ? 'rgba(255,250,180,0.6)' : '#FFE0B2')
                         : line.status === 'approved'
-                        ? '#C8E6C9'
+                        ? (sess.isRevisionEdit && sess.mode_edit ? 'rgba(255,250,200,0.6)' : '#C8E6C9')
                         : isApproved
-                        ? cardColors.row
+                        ? (sess.isRevisionEdit && sess.mode_edit ? 'rgba(255,250,200,0.6)' : cardColors.row)
                         : visualStatus === 'unread'
                         ? cardColors.row
                         : sess.mode_edit ? 'rgba(255,250,200,0.4)' : 'white'
@@ -1679,7 +1679,7 @@ export default function P_MetrajOlusturCetvel() {
           }
 
           const rowBg = node.status !== 'approved'
-            ? (node.status === 'pending' ? '#BBDEFB' : node.status === 'rejected' ? 'rgba(255,235,238,0.5)' : (!node.status || node.status === 'draft') ? '#FFE0B2' : 'rgba(236,239,241,0.5)')
+            ? (node.status === 'pending' ? '#BBDEFB' : node.status === 'rejected' ? 'rgba(255,235,238,0.5)' : (!node.status || node.status === 'draft') ? 'rgba(255,250,180,0.6)' : 'rgba(236,239,241,0.5)')
             : '#C8E6C9'
           const onaylayanText = node.status === 'pending' ? '(bekliyor)' : node.status === 'rejected' ? '(reddedildi)' : node.status === 'ignored' ? '(ignore)' : (node.onaylayan ?? '')
           const cellBg = { backgroundColor: rowBg, borderBottom: '1px dashed #c8c8c8', ...(metraj < 0 && { color: '#c62828' }) }
