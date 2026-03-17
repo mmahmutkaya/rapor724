@@ -181,6 +181,7 @@ export default function P_MetrajOlusturCetvel() {
   const [childEditParents, setChildEditParents] = useState({}) // { parentLineId: bool } — onay kartında alt satır düzenleme modu
   const [childEditValues, setChildEditValues] = useState({})   // { lineId: {description,multiplier,count,length,width,height} }
   const [onayKartiEditMode, setOnayKartiEditMode] = useState(false)
+  const [pendingDeletes, setPendingDeletes] = useState([])     // { lineId: string }[] — henüz DB'ye yansıtılmamış silmeler
 
   const wpAreaId = selectedMahal?.wpAreaId
 
@@ -813,6 +814,20 @@ export default function P_MetrajOlusturCetvel() {
 
   // ── Onaylı Metraj kartı — tüm düzenlemeleri kaydet ─────────
   const handleSaveAllEdits = async () => {
+    if (pendingDeletes.length > 0) {
+      for (const lineId of pendingDeletes) {
+        const { error } = await supabase.from('measurement_lines').delete().eq('id', lineId)
+        if (error) {
+          setDialogAlert({ dialogIcon: 'warning', dialogMessage: error.message, onCloseAction: () => setDialogAlert() })
+          return
+        }
+      }
+      setSessions(prev => prev.map(s => ({
+        ...s,
+        lines: s.lines.filter(l => !l._pendingDelete)
+      })))
+      setPendingDeletes([])
+    }
     if (Object.keys(childEditValues).length > 0) {
       for (const [lineId, vals] of Object.entries(childEditValues)) {
         const { error } = await supabase.from('measurement_lines').update({
@@ -861,7 +876,7 @@ export default function P_MetrajOlusturCetvel() {
 
   // Tüm session satırlarından onaylanan ağacı türet
   const approvalTree = useMemo(() => {
-    const allLines = sessions.flatMap(s => s.lines ?? [])
+    const allLines = sessions.flatMap(s => s.lines ?? []).filter(l => !l._pendingDelete)
     return buildApprovalTree(allLines, sessions, userMap)
   }, [sessions, userMap])
 
@@ -976,17 +991,12 @@ export default function P_MetrajOlusturCetvel() {
     }
   }
 
-  const handleDeleteDraftChild = async (lineId) => {
-    try {
-      const { error } = await supabase.from('measurement_lines').delete().eq('id', lineId)
-      if (error) throw error
-      setSessions(prev => prev.map(s => ({
-        ...s,
-        lines: s.lines.filter(l => l.id !== lineId)
-      })))
-    } catch (err) {
-      setDialogAlert({ dialogIcon: 'warning', dialogMessage: err.message, onCloseAction: () => setDialogAlert() })
-    }
+  const handleDeleteDraftChild = (lineId) => {
+    setPendingDeletes(prev => [...prev, lineId])
+    setSessions(prev => prev.map(s => ({
+      ...s,
+      lines: s.lines.map(l => l.id === lineId ? { ...l, _pendingDelete: true } : l)
+    })))
   }
 
   const handleSubmitDraftChildToPending = async (lineId) => {
@@ -1852,6 +1862,13 @@ export default function P_MetrajOlusturCetvel() {
                         setRevizeForms({})
                         setChildEditValues({})
                         setChildEditParents({})
+                        if (pendingDeletes.length > 0) {
+                          setSessions(prev => prev.map(s => ({
+                            ...s,
+                            lines: s.lines.map(l => { const { _pendingDelete, ...rest } = l; return rest })
+                          })))
+                          setPendingDeletes([])
+                        }
                       }}>
                         <ClearIcon sx={{ fontSize: 20 }} />
                       </IconButton>
