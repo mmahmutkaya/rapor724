@@ -1649,14 +1649,14 @@ export default function P_MetrajOlusturCetvel() {
                         }
                       </Box>
                     ))}
-                    <Box sx={{ ...css_oc, ...revizeCellBg, justifyContent: 'flex-end', fontWeight: 700, color: calcMetrajOnay(row) < 0 ? '#c62828' : (isSubmitted ? '#1565c0' : '#333') }}>
+                    <Box sx={{ ...css_oc, ...revizeCellBg, justifyContent: 'flex-end', fontWeight: 700, color: calcMetrajOnay(row) < 0 ? '#c62828' : '#333' }}>
                       {(() => {
                         const qty = calcMetrajOnay(row)
                         const isEmpty = v => v === null || v === undefined || v === ''
                         const hasData = [row.multiplier, row.count, row.length, row.width, row.height].some(v => !isEmpty(v))
                         return (qty !== 0 || hasData) ? ikiHane(qty) : ''
                       })()}
-                      {pozBirim && calcMetrajOnay(row) !== 0 && <Box component="span" sx={{ ml: '3px', fontWeight: 400, fontSize: '0.72rem', color: isSubmitted ? '#1565c0' : '#555' }}>{pozBirim}</Box>}
+                      {pozBirim && calcMetrajOnay(row) !== 0 && <Box component="span" sx={{ ml: '3px', fontWeight: 400, fontSize: '0.72rem', color: calcMetrajOnay(row) < 0 ? '#c62828' : '#555' }}>{pozBirim}</Box>}
                     </Box>
                     <Box sx={{ ...css_oc, ...revizeCellBg, fontSize: '0.78rem', color: isSubmitted ? '#1565c0' : '#455a64' }}>{appUser?.displayName ?? appUser?.email ?? '(ben)'}</Box>
                     <Box sx={{ ...css_oc, ...revizeCellBg, fontSize: '0.78rem', color: isSubmitted ? '#1565c0' : '#455a64' }}></Box>
@@ -1708,7 +1708,7 @@ export default function P_MetrajOlusturCetvel() {
           const rowBg = node.status !== 'approved'
             ? (node.status === 'pending' ? '#BBDEFB' : node.status === 'rejected' ? 'rgba(255,235,238,0.5)' : (!node.status || node.status === 'draft') ? 'rgba(255,250,180,0.6)' : 'rgba(236,239,241,0.5)')
             : '#C8E6C9'
-          const onaylayanText = node.status === 'pending' ? '(bekliyor)' : node.status === 'rejected' ? '(reddedildi)' : node.status === 'ignored' ? '(ignore)' : (node.onaylayan ?? '')
+          const onaylayanText = node.status === 'pending' ? '' : node.status === 'rejected' ? '(reddedildi)' : node.status === 'ignored' ? '(ignore)' : (node.onaylayan ?? '')
           const cellBg = { backgroundColor: rowBg, borderBottom: '1px dashed #c8c8c8', ...(metraj < 0 && { color: '#c62828' }) }
 
           return (
