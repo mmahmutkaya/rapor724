@@ -1585,9 +1585,13 @@ export default function P_MetrajOlusturCetvel() {
 
         // Plain function (not component) — prevents React unmount/remount on state change
         function renderOnayRow(node) {
-          const metraj = calcMetrajOnay(node)
           const hasKids = (node.children?.length ?? 0) > 0
           const isExp   = expandedApproved[node.id] ?? false
+          const isChildEditable = onayKartiEditMode && !!node.parent_line_id && (node.status === 'draft' || !node.status) && sessions.some(s => s.id === node.session_id && s.created_by === appUser?.id)
+          const childVals = childEditValues[node.id] ?? null
+          const metraj = (isChildEditable && childVals)
+            ? calcMetrajOnay({ ...node, multiplier: childVals.multiplier === '' ? null : childVals.multiplier, count: childVals.count === '' ? null : childVals.count, length: childVals.length === '' ? null : childVals.length, width: childVals.width === '' ? null : childVals.width, height: childVals.height === '' ? null : childVals.height })
+            : calcMetrajOnay(node)
           const isRevizeOpen = !!(revizeForms[node.id]?.length)
           const isRevised = node.status === 'approved' && hasKids && (node.children ?? []).some(c => c.status === 'approved')
 
@@ -1696,8 +1700,6 @@ export default function P_MetrajOlusturCetvel() {
             : '#C8E6C9'
           const onaylayanText = node.status === 'pending' ? '(bekliyor)' : node.status === 'rejected' ? '(reddedildi)' : node.status === 'ignored' ? '(ignore)' : (node.onaylayan ?? '')
           const cellBg = { backgroundColor: rowBg, borderBottom: '1px dashed #c8c8c8', ...(metraj < 0 && { color: '#c62828' }) }
-          const isChildEditable = onayKartiEditMode && !!node.parent_line_id && (node.status === 'draft' || !node.status) && sessions.some(s => s.id === node.session_id && s.created_by === appUser?.id)
-          const childVals = childEditValues[node.id] ?? null
 
           return (
             <>
