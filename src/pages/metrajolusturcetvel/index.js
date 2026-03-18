@@ -1848,21 +1848,7 @@ export default function P_MetrajOlusturCetvel() {
           if (!vals) return calcMetrajOnay(n)
           return calcMetrajOnay({ ...n, multiplier: vals.multiplier === '' ? null : vals.multiplier, count: vals.count === '' ? null : vals.count, length: vals.length === '' ? null : vals.length, width: vals.width === '' ? null : vals.width, height: vals.height === '' ? null : vals.height })
         }
-        // Hazırlanan = a - b
-        // a = hazırlanan revize talepleri (çocuk satırlar, parent_line_id var, draft/null)
-        // b = bu revize taleplerinin yapıldığı üst satırlar (unique)
-        const draftRevizeLines = allApprovalLines.filter(n => (!n.status || n.status === 'draft') && n.parent_line_id)
-        const a_draft_tree = draftRevizeLines.reduce((s, n) => s + calcWithEdits(n), 0)
-        const draftParentIds = new Set(draftRevizeLines.map(n => String(n.parent_line_id)))
-        const b_draft_tree = allApprovalLines.filter(n => draftParentIds.has(String(n.id))).reduce((s, n) => s + calcMetrajOnay(n), 0)
-        const draftFormEntries = Object.entries(revizeForms).filter(([, rows]) => rows.some(r => r.status !== 'submitted_for_approval'))
-        const a_draft_forms = draftFormEntries.flatMap(([, rows]) => rows.filter(r => r.status !== 'submitted_for_approval')).reduce((s, r) => s + calcMetrajOnay(r), 0)
-        const draftFormParentIds = new Set(draftFormEntries.map(([parentId]) => String(parentId)))
-        const b_draft_forms = allApprovalLines.filter(n => draftFormParentIds.has(String(n.id))).reduce((s, n) => s + calcMetrajOnay(n), 0)
-        const totalApprovalDraft = (a_draft_tree - b_draft_tree) + (a_draft_forms - b_draft_forms)
-        // Onaya Sunulan = a - b
-        // a = bekleyen revize talepleri (çocuk satırlar, parent_line_id var)
-        // b = bu revize taleplerinin yapıldığı üst satırlar (unique)
+        // Revize Talebi = pending alt satırlar (tree + revizeForms) - üst satırları
         const pendingRevizeLines = allApprovalLines.filter(n => n.status === 'pending' && n.parent_line_id)
         const a_tree = pendingRevizeLines.reduce((s, n) => s + calcMetrajOnay(n), 0)
         const pendingParentIds = new Set(pendingRevizeLines.map(n => String(n.parent_line_id)))
@@ -1874,10 +1860,25 @@ export default function P_MetrajOlusturCetvel() {
         )
         const a_forms = Object.values(revizeForms).flat().filter(r => r.status === 'submitted_for_approval').reduce((s, r) => s + calcMetrajOnay(r), 0)
         const b_forms = allApprovalLines.filter(n => submittedFormParentIds.has(String(n.id))).reduce((s, n) => s + calcMetrajOnay(n), 0)
-        const totalApprovalPending = (a_tree - b_tree) + (a_forms - b_forms)
-        const totalApprovalIgnored = allApprovalLines.filter(n => n.status === 'ignored').reduce((s, n) => s + calcMetrajOnay(n), 0)
-        const totalApprovalApproved = allApprovalLines
-          .filter(n => n.status === 'approved' && !(n.children ?? []).some(c => c.status === 'approved'))
+        const totalRevizeTalebi = (a_tree - b_tree) + (a_forms - b_forms)
+
+        // Ret Edilen = ignore alt satırlar - üst satırları
+        const ignoredRevizeLines = allApprovalLines.filter(n => n.status === 'ignored' && n.parent_line_id)
+        const a_ign = ignoredRevizeLines.reduce((s, n) => s + calcMetrajOnay(n), 0)
+        const ignoredParentIds = new Set(ignoredRevizeLines.map(n => String(n.parent_line_id)))
+        const b_ign = allApprovalLines.filter(n => ignoredParentIds.has(String(n.id))).reduce((s, n) => s + calcMetrajOnay(n), 0)
+        const totalRetEdilen = a_ign - b_ign
+
+        // Kabul Edilen = onaylanan alt satırlar - üst satırları
+        const approvedRevizeLines = allApprovalLines.filter(n => n.status === 'approved' && n.parent_line_id)
+        const a_kab = approvedRevizeLines.reduce((s, n) => s + calcMetrajOnay(n), 0)
+        const approvedRevizeParentIds = new Set(approvedRevizeLines.map(n => String(n.parent_line_id)))
+        const b_kab = allApprovalLines.filter(n => approvedRevizeParentIds.has(String(n.id))).reduce((s, n) => s + calcMetrajOnay(n), 0)
+        const totalKabulEdilen = a_kab - b_kab
+
+        // Onaylanan = onaylanan satırlar, onaylanmış alt satırı olanlar (geçersiz kılınanlar) hariç
+        const totalOnaylanan = allApprovalLines
+          .filter(n => n.status === 'approved' && !(n.children?.some(c => c.status === 'approved')))
           .reduce((s, n) => s + calcMetrajOnay(n), 0)
 
         return (
@@ -1971,24 +1972,24 @@ export default function P_MetrajOlusturCetvel() {
                   <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', borderRadius: '50%', backgroundColor: '#FFE0B2', width: 26, height: 26, flexShrink: 0 }}>
                     <HourglassFullIcon sx={{ fontSize: 16, color: '#E65100', filter: 'drop-shadow(0 0 0.4px #E65100)' }} />
                   </Box>
-                  <Box component="span" sx={{ fontSize: '0.82rem', color: 'rgba(255,255,255,0.75)' }}>Hazırlanan</Box>
-                  <Box component="span" sx={{ fontSize: '0.95rem', fontWeight: 700, color: totalApprovalDraft === 0 ? 'rgba(255,255,255,0.55)' : '#e0e1dd', ml: '2px' }}>{ikiHane(totalApprovalDraft)}</Box>
+                  <Box component="span" sx={{ fontSize: '0.82rem', color: 'rgba(255,255,255,0.75)' }}>Revize Talebi</Box>
+                  <Box component="span" sx={{ fontSize: '0.95rem', fontWeight: 700, color: totalRevizeTalebi === 0 ? 'rgba(255,255,255,0.55)' : '#e0e1dd', ml: '2px' }}>{ikiHane(totalRevizeTalebi)}</Box>
                   {pozBirim && <Box component="span" sx={{ fontSize: '0.78rem', color: 'rgba(255,255,255,0.55)' }}>{pozBirim}</Box>}
                 </Box>
                 <Box sx={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
                   <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', borderRadius: '50%', backgroundColor: '#BBDEFB', width: 26, height: 26, flexShrink: 0 }}>
                     <CheckIcon sx={{ fontSize: 16, color: '#1565C0', filter: 'drop-shadow(0 0 0.4px #1565C0)' }} />
                   </Box>
-                  <Box component="span" sx={{ fontSize: '0.82rem', color: 'rgba(255,255,255,0.75)' }}>Onaya Sunulan</Box>
-                  <Box component="span" sx={{ fontSize: '0.95rem', fontWeight: 700, color: totalApprovalPending === 0 ? 'rgba(255,255,255,0.55)' : '#e0e1dd', ml: '2px' }}>{ikiHane(totalApprovalPending)}</Box>
+                  <Box component="span" sx={{ fontSize: '0.82rem', color: 'rgba(255,255,255,0.75)' }}>Ret Edilen</Box>
+                  <Box component="span" sx={{ fontSize: '0.95rem', fontWeight: 700, color: totalRetEdilen === 0 ? 'rgba(255,255,255,0.55)' : '#e0e1dd', ml: '2px' }}>{ikiHane(totalRetEdilen)}</Box>
                   {pozBirim && <Box component="span" sx={{ fontSize: '0.78rem', color: 'rgba(255,255,255,0.55)' }}>{pozBirim}</Box>}
                 </Box>
                 <Box sx={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
                   <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', borderRadius: '50%', backgroundColor: '#BDBDBD', width: 26, height: 26, flexShrink: 0 }}>
                     <DoneAllIcon sx={{ fontSize: 16, color: '#424242', filter: 'drop-shadow(0 0 0.4px #424242)' }} />
                   </Box>
-                  <Box component="span" sx={{ fontSize: '0.82rem', color: 'rgba(255,255,255,0.75)' }}>Ignore</Box>
-                  <Box component="span" sx={{ fontSize: '0.95rem', fontWeight: 700, color: totalApprovalIgnored === 0 ? 'rgba(255,255,255,0.55)' : '#e0e1dd', ml: '2px' }}>{ikiHane(totalApprovalIgnored)}</Box>
+                  <Box component="span" sx={{ fontSize: '0.82rem', color: 'rgba(255,255,255,0.75)' }}>Kabul Edilen</Box>
+                  <Box component="span" sx={{ fontSize: '0.95rem', fontWeight: 700, color: totalKabulEdilen === 0 ? 'rgba(255,255,255,0.55)' : '#e0e1dd', ml: '2px' }}>{ikiHane(totalKabulEdilen)}</Box>
                   {pozBirim && <Box component="span" sx={{ fontSize: '0.78rem', color: 'rgba(255,255,255,0.55)' }}>{pozBirim}</Box>}
                 </Box>
                 <Box sx={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
@@ -1996,7 +1997,7 @@ export default function P_MetrajOlusturCetvel() {
                     <DoneAllIcon sx={{ fontSize: 16, color: '#2E7D32', filter: 'drop-shadow(0 0 0.4px #2E7D32)' }} />
                   </Box>
                   <Box component="span" sx={{ fontSize: '0.82rem', color: 'rgba(255,255,255,0.75)' }}>Onaylanan</Box>
-                  <Box component="span" sx={{ fontSize: '0.95rem', fontWeight: 700, color: totalApprovalApproved === 0 ? 'rgba(255,255,255,0.55)' : '#e0e1dd', ml: '2px' }}>{ikiHane(totalApprovalApproved)}</Box>
+                  <Box component="span" sx={{ fontSize: '0.95rem', fontWeight: 700, color: totalOnaylanan === 0 ? 'rgba(255,255,255,0.55)' : '#e0e1dd', ml: '2px' }}>{ikiHane(totalOnaylanan)}</Box>
                   {pozBirim && <Box component="span" sx={{ fontSize: '0.78rem', color: 'rgba(255,255,255,0.55)' }}>{pozBirim}</Box>}
                 </Box>
               </Box>
