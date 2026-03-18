@@ -1689,7 +1689,11 @@ export default function P_MetrajOlusturCetvel() {
                       )}
                       {isSubmitted && (
                         <IconButton size="small" sx={{ p: '2px' }}
-                          onClick={() => setRevizeForms(prev => ({ ...prev, [node.id]: prev[node.id].map(r => r.tempId === row.tempId ? { ...r, status: 'draft' } : r) }))}>
+                          onClick={() => setRevizeForms(prev => {
+                            const rows = prev[node.id] ?? []
+                            const clickedIdx = rows.findIndex(r => r.tempId === row.tempId)
+                            return { ...prev, [node.id]: rows.map((r, i) => i >= clickedIdx && r.status === 'submitted_for_approval' ? { ...r, status: 'draft' } : r) }
+                          })}>
                           <CheckIcon sx={{ fontSize: 16, color: '#1565C0' }} />
                         </IconButton>
                       )}
