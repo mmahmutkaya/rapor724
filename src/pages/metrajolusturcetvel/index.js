@@ -1001,11 +1001,24 @@ export default function P_MetrajOlusturCetvel() {
 
   const handleSubmitDraftChildToPending = async (lineId) => {
     try {
-      const { error } = await supabase.from('measurement_lines').update({ status: 'pending' }).eq('id', lineId)
+      // Tıklanan satırı bul
+      const allLines = sessions.flatMap(s => s.lines ?? [])
+      const targetLine = allLines.find(l => l.id === lineId)
+
+      // Aynı parent altındaki, tıklanan satır dahil ve üstündeki (order_index <=) draft satırları topla
+      const toMarkPending = allLines.filter(l =>
+        l.parent_line_id === targetLine?.parent_line_id &&
+        (l.order_index ?? 0) <= (targetLine?.order_index ?? 0) &&
+        (!l.status || l.status === 'draft')
+      )
+      const pendingIds = new Set(toMarkPending.map(l => l.id))
+
+      if (pendingIds.size === 0) return
+      const { error } = await supabase.from('measurement_lines').update({ status: 'pending' }).in('id', [...pendingIds])
       if (error) throw error
       setSessions(prev => prev.map(s => ({
         ...s,
-        lines: s.lines.map(l => l.id === lineId ? { ...l, status: 'pending' } : l)
+        lines: s.lines.map(l => pendingIds.has(l.id) ? { ...l, status: 'pending' } : l)
       })))
     } catch (err) {
       setDialogAlert({ dialogIcon: 'warning', dialogMessage: err.message, onCloseAction: () => setDialogAlert() })
@@ -1666,7 +1679,11 @@ export default function P_MetrajOlusturCetvel() {
                     <Box sx={{ ...css_oc, ...revizeCellBg, justifyContent: 'center', gap: '2px' }}>
                       {!isSubmitted && (
                         <IconButton size="small" sx={{ p: '2px' }} title="Onaya Sunulan"
-                          onClick={() => setRevizeForms(prev => ({ ...prev, [node.id]: prev[node.id].map(r => r.tempId === row.tempId ? { ...r, status: 'submitted_for_approval' } : r) }))}>
+                          onClick={() => setRevizeForms(prev => {
+                            const rows = prev[node.id] ?? []
+                            const clickedIdx = rows.findIndex(r => r.tempId === row.tempId)
+                            return { ...prev, [node.id]: rows.map((r, i) => i <= clickedIdx && r.status !== 'submitted_for_approval' ? { ...r, status: 'submitted_for_approval' } : r) }
+                          })}>
                           <HourglassFullIcon sx={{ fontSize: 16, color: '#E65100' }} />
                         </IconButton>
                       )}
