@@ -1,11 +1,11 @@
-import React, { useState, useContext, useEffect, useMemo, useCallback } from 'react'
+import React, { useState, useContext, useEffect, useMemo } from 'react'
 import { useNavigate } from 'react-router-dom'
-import _ from 'lodash'
 
 import { StoreContext } from '../../components/store.js'
 import { supabase } from '../../lib/supabase.js'
 import { useGetPozUnits } from '../../hooks/useMongo.js'
 import { DialogAlert } from '../../components/general/DialogAlert.js'
+import { getMeasurementVisualStatus } from '../../lib/measurementStatus.js'
 
 import AppBar from '@mui/material/AppBar'
 import Box from '@mui/material/Box'
@@ -16,114 +16,81 @@ import Alert from '@mui/material/Alert'
 import Stack from '@mui/material/Stack'
 import IconButton from '@mui/material/IconButton'
 import Tooltip from '@mui/material/Tooltip'
-import Chip from '@mui/material/Chip'
 import Dialog from '@mui/material/Dialog'
 import DialogTitle from '@mui/material/DialogTitle'
 import DialogContent from '@mui/material/DialogContent'
-import Divider from '@mui/material/Divider'
 import List from '@mui/material/List'
 import ListItem from '@mui/material/ListItem'
 import ListItemText from '@mui/material/ListItemText'
-import ListItemIcon from '@mui/material/ListItemIcon'
+import Divider from '@mui/material/Divider'
 import NavigateNextIcon from '@mui/icons-material/NavigateNext'
 import ReplyIcon from '@mui/icons-material/Reply'
 import CheckCircleIcon from '@mui/icons-material/CheckCircle'
+import DoneAllIcon from '@mui/icons-material/DoneAll'
+import ClearIcon from '@mui/icons-material/Clear'
+import BlockIcon from '@mui/icons-material/Block'
+import HourglassFullIcon from '@mui/icons-material/HourglassFull'
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore'
 import ExpandLessIcon from '@mui/icons-material/ExpandLess'
-import BlockIcon from '@mui/icons-material/Block'
 import VisibilityIcon from '@mui/icons-material/Visibility'
 import VisibilityOffIcon from '@mui/icons-material/VisibilityOff'
-import DoneAllIcon from '@mui/icons-material/DoneAll'
 
 
-// ─── YARDIMCI HESAPLAMALAR ────────────────────────────────────────────────────
-
-function calcMetraj(line) {
-  if (!line) return 0
+function computeQuantity(line) {
+  if (!line || line.line_type !== 'data') return 0
+  const isEmpty = (val) => val === null || val === undefined || val === ''
   const vals = [
-    // multiplier=1 is the neutral default (shown as blank in UI), treat as not-set
     (Number(line.multiplier) === 1 ? null : line.multiplier),
     line.count, line.length, line.width, line.height,
   ]
-    .map(v => (v != null && v !== '' ? parseFloat(v) : null))
-    .filter(v => v !== null && !isNaN(v))
-  if (vals.length === 0) return null
-  return vals.reduce((prod, v) => prod * v, 1)
+  const allEmpty = vals.every(isEmpty)
+  if (allEmpty) return 0
+  const v = (val) => isEmpty(val) ? 1 : Number(val)
+  const qty = v(line.multiplier) * v(line.count) * v(line.length) * v(line.width) * v(line.height)
+  return isNaN(qty) ? 0 : qty
 }
 
-function ikiHane(v) {
-  if (v === null || v === undefined || v === '') return ''
-  const n = Number(v)
-  if (isNaN(n)) return ''
-  return new Intl.NumberFormat('de-DE', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(n)
+// Düz listeyi depth-first ağaç sırasına çevirir; her öğeye siraNo ve depth ekler
+function buildDisplayTree(lines) {
+  const childrenOf = {}
+  const roots = []
+  lines.forEach(l => {
+    if (!l.parent_line_id) roots.push(l)
+    else {
+      if (!childrenOf[l.parent_line_id]) childrenOf[l.parent_line_id] = []
+      childrenOf[l.parent_line_id].push(l)
+    }
+  })
+  const sort = arr => arr.sort((a, b) => (a.order_index ?? 0) - (b.order_index ?? 0))
+  sort(roots)
+  Object.values(childrenOf).forEach(sort)
+  const result = []
+  function visit(line, siraNo, depth) {
+    result.push({ ...line, siraNo, depth })
+    ;(childrenOf[line.id] ?? []).forEach((child, i) => visit(child, `${siraNo}.${i + 1}`, depth + 1))
+  }
+  roots.forEach((root, i) => visit(root, `${i + 1}`, 0))
+  return result
 }
-
-
-// ─── STİL SABİTLERİ ───────────────────────────────────────────────────────────
-
-const LINE_STATUS_COLORS = {
-  pending:  { bg: 'rgba(255,243,224,0.7)', border: '#FFB300', dot: '#FF8F00',  label: 'Bekliyor',   chip: { backgroundColor: '#FFF3E0', color: '#E65100', fontWeight: 600 } },
-  rejected: { bg: 'rgba(255,235,238,0.7)', border: '#E53935', dot: '#C62828',  label: 'Reddedildi', chip: { backgroundColor: '#FFEBEE', color: '#B71C1C', fontWeight: 600 } },
-  ignored:  { bg: 'rgba(236,239,241,0.7)', border: '#90A4AE', dot: '#607D8B',  label: 'Ignore',     chip: { backgroundColor: '#ECEFF1', color: '#455A64', fontWeight: 600 } },
-  approved: { bg: 'rgba(232,245,233,0.7)', border: '#43A047', dot: '#2E7D32',  label: 'Onaylı',     chip: { backgroundColor: '#E8F5E9', color: '#1B5E20', fontWeight: 600 } },
-}
-
-const KISI_CARD_HEADER = { backgroundColor: '#415a77', color: '#e0e1dd' }
-const ONAY_CARD_HEADER = { backgroundColor: '#1b5e20', color: '#fff' }
-
-const css_tableHeader = {
-  display: 'grid', fontSize: '0.75rem', fontWeight: 600,
-  backgroundColor: '#415a77', color: '#e0e1dd',
-}
-const css_headerCell = {
-  px: '4px', py: '3px', display: 'flex', alignItems: 'center', justifyContent: 'center',
-  borderRight: '1px solid rgba(255,255,255,0.15)',
-}
-const css_tableHeaderCell = {
-  px: '4px', py: '3px', display: 'flex', alignItems: 'center', justifyContent: 'center',
-  borderRight: '1px solid rgba(255,255,255,0.15)',
-  fontSize: '0.75rem', fontWeight: 600,
-  backgroundColor: '#415a77', color: '#e0e1dd',
-}
-const css_dataRow = { display: 'grid', borderBottom: '1px solid #e0e0e0' }
-const css_dataCell = {
-  px: '4px', py: '3px', fontSize: '0.85rem',
-  display: 'flex', alignItems: 'center',
-  borderRight: '1px solid #eeeeee', overflow: 'hidden',
-}
-
-// Kişi kartı: sütun yapısı — sıra | açıklama | çarpan | adet | boy | en | yük | metraj | aksiyonlar
-const KISI_GRID = 'max-content 1fr 65px 65px 65px 65px 65px 80px 96px'
-// Onay kartı: aynı + hazırlayan | onaylayan | aksiyonlar
-const ONAY_GRID = 'max-content 1fr 65px 65px 65px 65px 65px 80px 100px 100px 64px'
-
-const NUM_FIELDS  = ['multiplier', 'count', 'length', 'width', 'height']
-const NUM_LABELS  = ['Çarpan', 'Adet', 'Boy', 'En', 'Yük']
-
-
-// ─── AĞAÇ İNŞASI ──────────────────────────────────────────────────────────────
 
 /**
- * Onay Kartı için ağaç yapısı:
+ * Onaylanan Metraj ağacı:
  *   Kök: parent_line_id IS NULL AND status = 'approved'
- *   Çocuk: parent_line_id IS NOT NULL (tüm alt satırlar, herhangi bir durumda)
- *
- * Her öğeye siraNo ve depth eklenir.
+ *   Çocuk: parent_line_id IS NOT NULL (tüm alt satırlar, her durumda)
  */
-function buildApprovalTree(allLines, sessions, userMap) {
-  const rootLines = allLines.filter(l => !l.parent_line_id && l.status === 'approved')
+function buildApprovalTree(allLines, allSessions, userMap) {
+  const sessionMap = {}
+  allSessions.forEach(s => { sessionMap[s.id] = s })
+
   const childrenOf = {}
   allLines.filter(l => l.parent_line_id).forEach(l => {
     if (!childrenOf[l.parent_line_id]) childrenOf[l.parent_line_id] = []
     childrenOf[l.parent_line_id].push(l)
   })
 
-  const sessionMap = {}
-  sessions.forEach(s => { sessionMap[s.id] = s })
-
   function enrich(line, siraNo, depth) {
     const sess = sessionMap[line.session_id]
-    const hazırlayan = userMap[sess?.created_by] ?? '?'
+    const hazırlayan = userMap[sess?.created_by] ?? sess?.userName ?? '?'
     const onaylayan  = line.approved_by
       ? (userMap[line.approved_by] ?? '?')
       : line.status === 'pending' ? '(bekliyor)' : null
@@ -135,203 +102,158 @@ function buildApprovalTree(allLines, sessions, userMap) {
     }
   }
 
-  return rootLines
+  return allLines
+    .filter(l => !l.parent_line_id && l.status === 'approved')
     .sort((a, b) => (a.order_index ?? 0) - (b.order_index ?? 0))
     .map((l, i) => enrich(l, `${i + 1}`, 0))
 }
 
-/** Ağaç düğümlerini depth-first düzlüğe çıkar */
-function flattenTree(nodes) {
-  const result = []
-  function visit(node) { result.push(node); node.children?.forEach(visit) }
-  nodes.forEach(visit)
-  return result
+function ikiHane(v) {
+  if (v === null || v === undefined || v === '') return ''
+  const n = Number(v)
+  if (isNaN(n)) return ''
+  return new Intl.NumberFormat('de-DE', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(n)
 }
 
-/**
- * Kişi grupları:
- *   Her kişi için kendi session'larından gelen kök (parent yok) NON-approved satırlar.
- *   parent_line_id olan satırlar (revize talepleri) Onay Kartına gittiğinden dahil edilmez.
- */
-function buildKisiGroups(sessions, allLines, userMap) {
-  const groups = {}
-  sessions.forEach(s => {
-    if (!groups[s.created_by]) {
-      groups[s.created_by] = {
-        userId: s.created_by, userName: userMap[s.created_by] ?? '?',
-        pending: [], rejected: [], ignored: [], approved: [],
-      }
-    }
-  })
+const STATUS_ORDER = { approved: 0, ready: 1, draft: 2 }
+const GRID_COLS = 'max-content 1fr 70px 70px 70px 70px 70px 90px 80px'
+const NUM_FIELDS = ['multiplier', 'count', 'length', 'width', 'height']
+const NUM_LABELS = ['Çarpan', 'Adet', 'Boy', 'En', 'Yükseklik']
 
-  const sessionMap = {}
-  sessions.forEach(s => { sessionMap[s.id] = s })
-
-  allLines.forEach(line => {
-    if (line.parent_line_id) return            // Onay Kartına gider
-    const sess = sessionMap[line.session_id]
-    if (!sess) return
-    const g = groups[sess.created_by]
-    if (!g) return
-    if (line.status === 'pending')  g.pending.push(line)
-    if (line.status === 'rejected') g.rejected.push(line)
-    if (line.status === 'ignored')  g.ignored.push(line)
-    if (line.status === 'approved') g.approved.push(line)
-  })
-
-  return Object.values(groups).filter(
-    g => g.pending.length + g.rejected.length + g.ignored.length + g.approved.length > 0
-  )
+const css_lineHeaderCell = {
+  px: '4px', py: '3px',
+  display: 'flex', alignItems: 'center', justifyContent: 'center',
+  borderRight: '1px solid rgba(255,255,255,0.15)',
+  backgroundColor: '#415a77', color: '#e0e1dd',
+  fontSize: '0.75rem', fontWeight: 600,
+}
+const css_lineCell = {
+  px: '4px',
+  height: '34px',
+  fontSize: '0.85rem',
+  color: '#333',
+  display: 'flex', alignItems: 'center',
+  borderRight: '1px dashed #d8d8d8',
+  overflow: 'hidden',
 }
 
+function getCardColors(visualStatus) {
+  if (visualStatus === 'approved') return { border: '#A5D6A7', header: '#415a77', row: 'rgba(200,230,201,0.35)' }
+  if (visualStatus === 'revised') return { border: '#90CAF9', header: '#415a77', row: 'rgba(187,222,251,0.35)' }
+  if (visualStatus === 'rejected') return { border: '#EF9A9A', header: '#415a77', row: 'rgba(255,205,210,0.28)' }
+  if (visualStatus === 'pendingRevision') return { border: '#CE93D8', header: '#415a77', row: 'rgba(206,147,216,0.15)' }
+  return { border: '#64B5F6', header: '#415a77', row: 'rgba(100,181,246,0.15)' }
+}
 
-// ─── ANA SAYFA BİLEŞENİ ───────────────────────────────────────────────────────
 
 export default function P_MetrajOnaylaCetvel() {
   const navigate = useNavigate()
   const { selectedProje, selectedIsPaket, selectedPoz, selectedMahal_metraj } = useContext(StoreContext)
-  const { data: pozUnits = [] } = useGetPozUnits()
+  const { data: units = [] } = useGetPozUnits()
+
+  const [dialogAlert, setDialogAlert]       = useState()
+  const [loading, setLoading]               = useState(true)
+  const [sessions, setSessions]             = useState([])
+  const [userMap, setUserMap]               = useState({})
+  const [currentUserId, setCurrentUserId]   = useState(null)
+  const [expandedApproved, setExpandedApproved] = useState({})
+  const [showAllOriginals, setShowAllOriginals] = useState(false)
+  const [openVisibilityDialog, setOpenVisibilityDialog] = useState(false)
+  const [visibleOnayKarti, setVisibleOnayKarti]         = useState(true)
+  const [visibleSessCards, setVisibleSessCards]         = useState({})
 
   const wpAreaId = selectedMahal_metraj?.wpAreaId
 
-  const unitsMap = useMemo(() => {
-    const m = {}; pozUnits.forEach(u => { m[u.id] = u.name }); return m
-  }, [pozUnits])
-  const pozBirim = unitsMap[selectedPoz?.unit_id] ?? ''
-
-  // ── State ────────────────────────────────────────────────────────────────────
-  const [loading, setLoading]           = useState(true)
-  const [sessions, setSessions]         = useState([])
-  const [lines, setLines]               = useState([])
-  const [userMap, setUserMap]           = useState({})
-  const [userEmailMap, setUserEmailMap] = useState({})
-  const [currentUserId, setCurrentUserId] = useState(null)
-  const [dialogAlert, setDialogAlert]   = useState()
-
-  // Onay kartındaki her kök satır için genişlet/daralt durumu
-  const [expandedLines, setExpandedLines] = useState({})   // { lineId: boolean }
-  // Orijinal (revize edilmiş, hesaba katılmayan) satırları gizle
-  const [hideOriginals, setHideOriginals] = useState(true)
-
-  // Görünürlük dialog ve kart görünürlük state'leri
-  const [openVisibilityDialog, setOpenVisibilityDialog] = useState(false)
-  const [visibleOnayKarti, setVisibleOnayKarti]         = useState(true)
-  const [visibleKisiCards, setVisibleKisiCards]         = useState({}) // { userId: boolean }
-
-  // ── Veri Yükleme ─────────────────────────────────────────────────────────────
   useEffect(() => {
     if (!selectedProje || !selectedIsPaket) { navigate('/metrajonayla'); return }
     if (!selectedPoz)                        { navigate('/metrajonaylapozlar'); return }
     if (!wpAreaId)                           { navigate('/metrajonaylapozmahaller'); return }
   }, [])
 
-  useEffect(() => {
+  const loadData = async () => {
     if (!wpAreaId) return
-    ;(async () => {
-      setLoading(true)
-
-      // Mevcut oturum kullanıcı ID'si
+    setLoading(true)
+    try {
       const { data: { session: authSess } } = await supabase.auth.getSession()
-      setCurrentUserId(authSess?.user?.id ?? null)
+      const currentUid = authSess?.user?.id ?? null
+      setCurrentUserId(currentUid)
 
-      // Session'lar
-      const { data: sessData, error: sessErr } = await supabase
+      const { data: sessData, error: sessError } = await supabase
         .from('measurement_sessions')
-        .select('id, status, total_quantity, created_by')
+        .select('*')
         .eq('work_package_poz_area_id', wpAreaId)
+        .order('updated_at', { ascending: false })
+      if (sessError) throw sessError
 
-      if (sessErr) {
-        setDialogAlert({ dialogIcon: 'warning', dialogMessage: 'Veriler yüklenirken hata oluştu.', detailText: sessErr.message, onCloseAction: () => setDialogAlert() })
-        setLoading(false); return
-      }
+      if (!sessData?.length) { setSessions([]); setLoading(false); return }
 
-      const sessionIds = (sessData ?? []).map(s => s.id)
+      const sessionIds = sessData.map(s => s.id)
+      const { data: linesData, error: linesError } = await supabase
+        .from('measurement_lines')
+        .select('*')
+        .in('session_id', sessionIds)
+        .order('order_index')
+      if (linesError) throw linesError
 
-      // Satırlar
-      let linesData = []
-      if (sessionIds.length > 0) {
-        const { data: ld, error: lErr } = await supabase
-          .from('measurement_lines')
-          .select('id, session_id, order_index, line_type, description, multiplier, count, length, width, height, parent_line_id, status, approved_by, approved_at')
-          .in('session_id', sessionIds)
-          .order('order_index')
-        if (lErr) {
-          setDialogAlert({ dialogIcon: 'warning', dialogMessage: 'Satırlar yüklenirken hata.', detailText: lErr.message, onCloseAction: () => setDialogAlert() })
-          setLoading(false); return
-        }
-        linesData = ld ?? []
-      }
-
-      // Kullanıcı adları
-      const allUserIds = [...new Set([
-        ...(sessData ?? []).map(s => s.created_by),
-        ...linesData.map(l => l.approved_by),
+      const uniqueUserIds = [...new Set([
+        currentUid,
+        ...sessData.map(s => s.created_by),
+        ...(linesData ?? []).map(l => l.approved_by),
       ].filter(Boolean))]
-      let nameMap = {}
-      let emailMap = {}
-      if (allUserIds.length > 0) {
-        const { data: nameRows } = await supabase.rpc('get_user_display_names', { user_ids: allUserIds })
-        if (nameRows) nameRows.forEach(r => {
-          nameMap[r.id] = r.display_name || r.id
-          if (r.email) emailMap[r.id] = r.email
-        })
+      const nameMap = {}
+      if (uniqueUserIds.length > 0) {
+        const { data: nameRows } = await supabase.rpc('get_user_display_names', { user_ids: uniqueUserIds })
+        if (nameRows) nameRows.forEach(row => { nameMap[row.id] = row.display_name || row.id })
       }
-
-      setSessions(sessData ?? [])
-      setLines(linesData)
       setUserMap(nameMap)
-      setUserEmailMap(emailMap)
-      // Yeni yüklenen session sahipleri için görünürlüğü true olarak başlat
-      setVisibleKisiCards(prev => {
+
+      const linesBySession = {}
+      ;(linesData ?? []).forEach(l => {
+        if (!linesBySession[l.session_id]) linesBySession[l.session_id] = []
+        linesBySession[l.session_id].push(l)
+      })
+
+      const sorted = [...sessData].sort((a, b) =>
+        (STATUS_ORDER[a.status] ?? 3) - (STATUS_ORDER[b.status] ?? 3)
+      )
+
+      setSessions(sorted.map(sess => ({
+        ...sess,
+        visualStatus: getMeasurementVisualStatus(sess),
+        userName: nameMap[sess.created_by] ?? '?',
+        lines: linesBySession[sess.id] ?? [],
+      })))
+
+      setVisibleSessCards(prev => {
         const next = { ...prev }
-        const uniqueUsers = [...new Set((sessData ?? []).map(s => s.created_by))]
-        uniqueUsers.forEach(uid => { if (next[uid] === undefined) next[uid] = true })
+        sorted.forEach(sess => { if (next[sess.id] === undefined) next[sess.id] = true })
         return next
       })
+    } catch (err) {
+      setDialogAlert({ dialogIcon: 'warning', dialogMessage: 'Veriler yüklenirken hata oluştu.', detailText: err.message, onCloseAction: () => setDialogAlert() })
+    } finally {
       setLoading(false)
-    })()
-  }, [wpAreaId])
-
-
-  // ── Türetilmiş Veri ───────────────────────────────────────────────────────────
-
-  const kisiGroups   = useMemo(() => buildKisiGroups(sessions, lines, userMap),  [sessions, lines, userMap])
-  const approvalTree = useMemo(() => buildApprovalTree(lines, sessions, userMap), [lines, sessions, userMap])
-  const flatTree     = useMemo(() => flattenTree(approvalTree), [approvalTree])
-
-  // Revize satırı olan tüm node ID'leri (header'daki global toggle için)
-  const nodesWithChildren = useMemo(() =>
-    flatTree.filter(n => (n.children?.length ?? 0) > 0).map(n => n.id),
-  [flatTree])
-
-  const toggleHideOriginals = () => {
-    setHideOriginals(prev => {
-      if (prev) {
-        // Orijinaller tekrar gösterilince hepsini genişlet
-        setExpandedLines(curr => {
-          const next = { ...curr }
-          nodesWithChildren.forEach(id => { next[id] = true })
-          return next
-        })
-      }
-      return !prev
-    })
+    }
   }
 
-  const onayKartiTotal = useMemo(() => {
-    // Tüm yaprak-benzeri = child'ı OLMAYAN approved satırların toplamı
-    const hasChildSet = new Set(lines.filter(l => l.parent_line_id).map(l => l.parent_line_id))
-    return lines
-      .filter(l => l.status === 'approved' && !hasChildSet.has(l.id))
-      .reduce((s, l) => s + (calcMetraj(l) ?? 0), 0)
-  }, [lines])
+  useEffect(() => { loadData() }, [wpAreaId])
 
+  // ── Türetilmiş Veri ────────────────────────────────────────────────────────────
+
+  const approvalTree = useMemo(() => {
+    const allLines = sessions.flatMap(s => s.lines ?? [])
+    return buildApprovalTree(allLines, sessions, userMap)
+  }, [sessions, userMap])
+
+  const unitsMap = useMemo(() => {
+    const m = {}
+    units.forEach(u => { m[u.id] = u.name })
+    return m
+  }, [units])
+
+  const pozBirim = unitsMap[selectedPoz?.unit_id] ?? ''
 
   // ── Aksiyonlar ────────────────────────────────────────────────────────────────
-
-  const showErr = useCallback((msg, detail) => {
-    setDialogAlert({ dialogIcon: 'warning', dialogMessage: msg, detailText: detail, onCloseAction: () => setDialogAlert() })
-  }, [])
 
   const approveLine = async (lineId) => {
     const now = new Date().toISOString()
@@ -339,155 +261,50 @@ export default function P_MetrajOnaylaCetvel() {
       .from('measurement_lines')
       .update({ status: 'approved', approved_by: currentUserId, approved_at: now })
       .eq('id', lineId)
-    if (error) { showErr('Onaylama sırasında hata.', error.message); return }
-    setLines(prev => prev.map(l =>
-      l.id === lineId ? { ...l, status: 'approved', approved_by: currentUserId, approved_at: now } : l
-    ))
-    setUserMap(prev => {
-      if (currentUserId && !prev[currentUserId]) {
-        // Kendi adımızı da userMap'e ekle (zaten mevcut olmalı ama güvence için)
-        return prev
-      }
-      return prev
-    })
-  }
-
-  const rejectLine = async (lineId) => {
-    const { error } = await supabase
-      .from('measurement_lines').update({ status: 'rejected' }).eq('id', lineId)
-    if (error) { showErr('Reddetme sırasında hata.', error.message); return }
-    setLines(prev => prev.map(l => l.id === lineId ? { ...l, status: 'rejected' } : l))
+    if (error) {
+      setDialogAlert({ dialogIcon: 'warning', dialogMessage: 'Onaylama sırasında hata.', detailText: error.message, onCloseAction: () => setDialogAlert() })
+      return
+    }
+    setSessions(prev => prev.map(s => ({
+      ...s,
+      lines: s.lines.map(l => l.id === lineId ? { ...l, status: 'approved', approved_by: currentUserId, approved_at: now } : l),
+    })))
   }
 
   const ignoreLine = async (lineId) => {
     const { error } = await supabase
       .from('measurement_lines').update({ status: 'ignored' }).eq('id', lineId)
-    if (error) { showErr('Ignore sırasında hata.', error.message); return }
-    setLines(prev => prev.map(l => l.id === lineId ? { ...l, status: 'ignored' } : l))
-  }
-
-  const toggleExpand = (lineId) => {
-    setExpandedLines(prev => ({ ...prev, [lineId]: !prev[lineId] }))
-  }
-
-
-  // ── RENDER YARDIMCILARI ───────────────────────────────────────────────────────
-
-  const StatusDot = ({ status }) => (
-    <Box sx={{
-      width: 8, height: 8, borderRadius: '50%', flexShrink: 0,
-      backgroundColor: LINE_STATUS_COLORS[status]?.dot ?? '#90A4AE',
-    }} />
-  )
-
-
-  // ── KİŞİ KARTI TABLO SATIRI ───────────────────────────────────────────────────
-
-  const KisiLineRow = ({ line, rowBg }) => {
-    const metraj = calcMetraj(line)
-    const isPending = line.status === 'pending'
-    const cellBg = { backgroundColor: rowBg, borderBottom: '1px solid #e0e0e0', ...(metraj < 0 && { color: '#c62828' }) }
-    return (
-      <>
-        <Box sx={{ ...css_dataCell, ...cellBg, justifyContent: 'center', color: '#888' }}>
-          {line.order_index ?? 1}
-        </Box>
-        <Box sx={{ ...css_dataCell, ...cellBg }}>{line.description ?? ''}</Box>
-        {NUM_FIELDS.map(f => (
-          <Box key={f} sx={{ ...css_dataCell, ...cellBg, justifyContent: 'flex-end' }}>
-            {f === 'multiplier' && Number(line[f]) === 1 ? '' : (line[f] != null ? ikiHane(line[f]) : '')}
-          </Box>
-        ))}
-        <Box sx={{ ...css_dataCell, ...cellBg, justifyContent: 'flex-end', fontWeight: 700 }}>
-          {ikiHane(metraj)}
-          {pozBirim && <Box component="span" sx={{ ml: '3px', fontWeight: 400, fontSize: '0.72rem', color: '#888' }}>{pozBirim}</Box>}
-        </Box>
-        <Box sx={{ ...css_dataCell, ...cellBg, justifyContent: 'center', gap: '2px' }}>
-          {isPending ? (
-            <>
-              <Tooltip title="Onayla">
-                <IconButton size="small" sx={{ p: '2px' }} onClick={() => approveLine(line.id)}>
-                  <CheckCircleIcon sx={{ fontSize: 18, color: '#2e7d32' }} />
-                </IconButton>
-              </Tooltip>
-              <Tooltip title="Ignore">
-                <IconButton size="small" sx={{ p: '2px' }} onClick={() => ignoreLine(line.id)}>
-                  <BlockIcon sx={{ fontSize: 18, color: '#607d8b' }} />
-                </IconButton>
-              </Tooltip>
-            </>
-          ) : line.status === 'approved' ? (
-            <Tooltip title="Onaylandı">
-              <DoneAllIcon sx={{ fontSize: 18, color: '#2e7d32' }} />
-            </Tooltip>
-          ) : line.status === 'ignored' ? (
-            <Tooltip title="Ignore edildi">
-              <DoneAllIcon sx={{ fontSize: 18, color: '#90A4AE' }} />
-            </Tooltip>
-          ) : null}
-        </Box>
-      </>
-    )
-  }
-
-
-  // ── ONAY KARTI TABLO SATIRI ───────────────────────────────────────────────────
-
-  const OnayLineRow = ({ node }) => {
-    const metraj      = calcMetraj(node)
-    const hasChildren = (node.children?.length ?? 0) > 0
-    const isRevized   = node.status === 'approved' && hasChildren
-
-    const rowBg = node.status === 'pending'  ? '#FFCC80' :
-                  node.status === 'rejected' ? 'rgba(255,235,238,0.5)' :
-                  node.status === 'ignored'  ? 'rgba(236,239,241,0.5)' :
-                  isRevized                  ? 'rgba(224,224,224,0.5)' :
-                  node.depth > 0             ? 'rgba(187,222,251,0.25)' : 'white'
-
-    const onaylayanText = node.status === 'pending'  ? '(bekliyor)' :
-                          node.status === 'rejected' ? '(reddedildi)' :
-                          node.status === 'ignored'  ? '(ignore)' :
-                          node.onaylayan ?? ''
-
-    const cellBg = { backgroundColor: rowBg, borderBottom: '1px solid #e0e0e0', ...(metraj < 0 && { color: '#c62828' }) }
-
-    if (hideOriginals && isRevized) {
-      return <>{node.children.map(child => <OnayLineRow key={child.id} node={child} />)}</>
+    if (error) {
+      setDialogAlert({ dialogIcon: 'warning', dialogMessage: 'Ignore sırasında hata.', detailText: error.message, onCloseAction: () => setDialogAlert() })
+      return
     }
-
-    return (
-      <>
-        <Box sx={{ ...css_dataCell, ...cellBg, justifyContent: 'flex-start', pl: '0.5rem', color: node.depth > 0 ? '#1565c0' : '#555' }}>
-          {node.siraNo}
-        </Box>
-        <Box sx={{ ...css_dataCell, ...cellBg }}>{node.description ?? ''}</Box>
-        {NUM_FIELDS.map(f => (
-          <Box key={f} sx={{ ...css_dataCell, ...cellBg, justifyContent: 'flex-end' }}>
-            {f === 'multiplier' && Number(node[f]) === 1 ? '' : (node[f] != null ? ikiHane(node[f]) : '')}
-          </Box>
-        ))}
-        <Box sx={{ ...css_dataCell, ...cellBg, justifyContent: 'flex-end', fontWeight: 700, opacity: isRevized ? 0.45 : 1, textDecoration: isRevized ? 'line-through' : 'none' }}>
-          {ikiHane(metraj)}
-          {pozBirim && !hasChildren && (
-            <Box component="span" sx={{ ml: '3px', fontWeight: 400, fontSize: '0.72rem', color: '#888' }}>{pozBirim}</Box>
-          )}
-        </Box>
-        <Box sx={{ ...css_dataCell, ...cellBg, fontSize: '0.78rem', color: '#455a64' }}>{node.hazırlayan}</Box>
-        <Box sx={{ ...css_dataCell, ...cellBg, fontSize: '0.78rem',
-          color: node.status === 'pending' ? '#e65100' : node.status === 'rejected' ? '#b71c1c' : node.status === 'ignored' ? '#607d8b' : '#1b5e20',
-        }}>
-          {onaylayanText}
-        </Box>
-        <Box sx={{ ...css_dataCell, ...cellBg }} />
-
-        {/* Alt satırlar — parent grid içinde flat */}
-        {hasChildren && node.children.map(child => <OnayLineRow key={child.id} node={child} />)}
-      </>
-    )
+    setSessions(prev => prev.map(s => ({
+      ...s,
+      lines: s.lines.map(l => l.id === lineId ? { ...l, status: 'ignored' } : l),
+    })))
   }
 
+  const rejectLine = async (lineId) => {
+    const { error } = await supabase
+      .from('measurement_lines').update({ status: 'rejected' }).eq('id', lineId)
+    if (error) {
+      setDialogAlert({ dialogIcon: 'warning', dialogMessage: 'Reddetme sırasında hata.', detailText: error.message, onCloseAction: () => setDialogAlert() })
+      return
+    }
+    setSessions(prev => prev.map(s => ({
+      ...s,
+      lines: s.lines.map(l => l.id === lineId ? { ...l, status: 'rejected' } : l),
+    })))
+  }
 
+  // ── Onay ağacı yardımcıları ───────────────────────────────────────────────────
 
+  const flattenAll = (nodes) => {
+    const result = []
+    const visit = (n) => { result.push(n); if (n.children) n.children.forEach(visit) }
+    nodes.forEach(visit)
+    return result
+  }
 
   // ── RENDER ────────────────────────────────────────────────────────────────────
 
@@ -497,6 +314,10 @@ export default function P_MetrajOnaylaCetvel() {
 
   return (
     <Box>
+      <style>{`
+        .metraj-num-input::-webkit-outer-spin-button,
+        .metraj-num-input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+      `}</style>
 
       {dialogAlert && (
         <DialogAlert
@@ -509,61 +330,72 @@ export default function P_MetrajOnaylaCetvel() {
         />
       )}
 
-      {/* GÖRÜNÜRLÜK DİALOGU */}
-      <Dialog open={openVisibilityDialog} onClose={() => setOpenVisibilityDialog(false)} maxWidth="xs" fullWidth>
-        <DialogTitle sx={{ fontWeight: 700, fontSize: '1rem', pb: 1 }}>Kart Görünürlüğü</DialogTitle>
-        <DialogContent sx={{ pt: '0 !important', px: 2, pb: 2 }}>
+      {/* KART GÖRÜNÜRLÜĞÜ DİALOG */}
+      <Dialog
+        open={openVisibilityDialog}
+        onClose={() => setOpenVisibilityDialog(false)}
+        maxWidth="xs"
+        fullWidth
+        PaperProps={{
+          sx: {
+            position: 'fixed',
+            top: '10rem !important',
+            transform: 'none',
+            margin: 0,
+          }
+        }}
+      >
+        <DialogTitle sx={{ fontWeight: 700, fontSize: '1rem', pb: 1 }}>Göster / Gizle</DialogTitle>
+        <DialogContent>
           <List dense disablePadding>
-            {/* Onaylanan Metraj — sabit üstte */}
+            <Divider sx={{ mb: 0.5 }} />
             <ListItem
-              disableGutters
-              sx={{ cursor: 'pointer', borderRadius: 1, px: 1, '&:hover': { bgcolor: 'rgba(0,0,0,0.04)' } }}
+              sx={{ cursor: 'pointer', borderRadius: 1, '&:hover': { backgroundColor: 'rgba(27,94,32,0.06)' } }}
               onClick={() => setVisibleOnayKarti(v => !v)}
+              secondaryAction={
+                <IconButton
+                  edge="end"
+                  size="small"
+                  onClick={(e) => { e.stopPropagation(); setVisibleOnayKarti(v => !v) }}
+                  sx={{ color: visibleOnayKarti ? '#1b5e20' : '#90a4ae' }}
+                >
+                  {visibleOnayKarti
+                    ? <VisibilityIcon sx={{ fontSize: 20 }} />
+                    : <VisibilityOffIcon sx={{ fontSize: 20 }} />}
+                </IconButton>
+              }
             >
-              <ListItemIcon sx={{ minWidth: 36 }}>
-                {visibleOnayKarti
-                  ? <VisibilityIcon sx={{ fontSize: 20, color: '#1b5e20' }} />
-                  : <VisibilityOffIcon sx={{ fontSize: 20, color: '#90a4ae' }} />}
-              </ListItemIcon>
               <ListItemText
-                primary="Onaylanan Metraj"
-                primaryTypographyProps={{ fontWeight: 700, color: '#1b5e20', fontSize: '0.9rem' }}
+                primary="Onaylı Metraj"
+                primaryTypographyProps={{ fontSize: '0.88rem', fontWeight: 600, color: visibleOnayKarti ? '#1b5e20' : '#9e9e9e', sx: { textDecoration: visibleOnayKarti ? 'none' : 'line-through' } }}
               />
             </ListItem>
 
-            <Divider sx={{ my: 1 }} />
+            {sessions.length > 0 && <Divider sx={{ my: 1 }} />}
 
-            {/* Kişi listesi */}
-            {kisiGroups.length === 0 && (
-              <ListItem disableGutters sx={{ px: 1 }}>
-                <ListItemText
-                  primary="Henüz metraj hazırlayan yok"
-                  primaryTypographyProps={{ fontSize: '0.85rem', color: '#9e9e9e', fontStyle: 'italic' }}
-                />
-              </ListItem>
-            )}
-            {kisiGroups.map(group => {
-              const isVisible = visibleKisiCards[group.userId] ?? true
-              const label = userEmailMap[group.userId] || group.userName
+            {sessions.map(sess => {
+              const isVisible = visibleSessCards[sess.id] ?? true
               return (
                 <ListItem
-                  key={group.userId}
-                  disableGutters
-                  sx={{ cursor: 'pointer', borderRadius: 1, px: 1, '&:hover': { bgcolor: 'rgba(0,0,0,0.04)' } }}
-                  onClick={() => setVisibleKisiCards(prev => ({ ...prev, [group.userId]: !isVisible }))}
+                  key={sess.id}
+                  sx={{ cursor: 'pointer', borderRadius: 1, '&:hover': { backgroundColor: 'rgba(65,90,119,0.06)' } }}
+                  onClick={() => setVisibleSessCards(prev => ({ ...prev, [sess.id]: !isVisible }))}
+                  secondaryAction={
+                    <IconButton
+                      edge="end"
+                      size="small"
+                      onClick={(e) => { e.stopPropagation(); setVisibleSessCards(prev => ({ ...prev, [sess.id]: !isVisible })) }}
+                      sx={{ color: isVisible ? '#415a77' : '#90a4ae' }}
+                    >
+                      {isVisible
+                        ? <VisibilityIcon sx={{ fontSize: 20 }} />
+                        : <VisibilityOffIcon sx={{ fontSize: 20 }} />}
+                    </IconButton>
+                  }
                 >
-                  <ListItemIcon sx={{ minWidth: 36 }}>
-                    {isVisible
-                      ? <VisibilityIcon sx={{ fontSize: 20, color: '#415a77' }} />
-                      : <VisibilityOffIcon sx={{ fontSize: 20, color: '#90a4ae' }} />}
-                  </ListItemIcon>
                   <ListItemText
-                    primary={label}
-                    primaryTypographyProps={{
-                      fontSize: '0.88rem',
-                      color: isVisible ? '#263238' : '#9e9e9e',
-                      sx: { textDecoration: isVisible ? 'none' : 'line-through' },
-                    }}
+                    primary={sess.userName}
+                    primaryTypographyProps={{ fontSize: '0.88rem', color: isVisible ? '#263238' : '#9e9e9e', sx: { textDecoration: isVisible ? 'none' : 'line-through' } }}
                   />
                 </ListItem>
               )
@@ -574,24 +406,33 @@ export default function P_MetrajOnaylaCetvel() {
 
       {/* BAŞLIK */}
       <AppBar position="static" sx={{ backgroundColor: 'white', color: 'black', boxShadow: 4 }}>
-        <Grid container alignItems="center" sx={{ px: '1rem', py: '0.5rem' }}>
+        <Grid container alignItems="center" sx={{ px: '1rem', py: '0.5rem', maxHeight: '5rem' }}>
           <Grid item xs>
             <Box sx={{ display: 'flex', alignItems: 'center', gap: '0.3rem', flexWrap: 'nowrap', overflow: 'hidden' }}>
               <IconButton sx={{ m: 0, p: 0 }} onClick={() => navigate('/metrajonaylapozmahaller')}>
                 <ReplyIcon sx={{ color: 'gray' }} />
               </IconButton>
-              <Typography variant="body1" sx={{ fontWeight: 600, opacity: 0.4, cursor: 'pointer', whiteSpace: 'nowrap', '&:hover': { opacity: 0.9 } }}
-                onClick={() => navigate('/metrajonayla')}>
+              <Typography
+                variant="body1"
+                sx={{ fontWeight: 600, opacity: 0.4, cursor: 'pointer', whiteSpace: 'nowrap', '&:hover': { opacity: 0.9 } }}
+                onClick={() => navigate('/metrajonayla')}
+              >
                 Metraj Onayla
               </Typography>
               <NavigateNextIcon sx={{ opacity: 0.4, fontSize: 18, flexShrink: 0 }} />
-              <Typography variant="body1" sx={{ fontWeight: 600, opacity: 0.4, cursor: 'pointer', whiteSpace: 'nowrap', maxWidth: '10rem', overflow: 'hidden', textOverflow: 'ellipsis', '&:hover': { opacity: 0.9 } }}
-                onClick={() => navigate('/metrajonaylapozlar')}>
+              <Typography
+                variant="body1"
+                sx={{ fontWeight: 600, opacity: 0.4, cursor: 'pointer', whiteSpace: 'nowrap', maxWidth: '10rem', overflow: 'hidden', textOverflow: 'ellipsis', '&:hover': { opacity: 0.9 } }}
+                onClick={() => navigate('/metrajonaylapozlar')}
+              >
                 {selectedIsPaket?.name}
               </Typography>
               <NavigateNextIcon sx={{ opacity: 0.4, fontSize: 18, flexShrink: 0 }} />
-              <Typography variant="body1" sx={{ fontWeight: 600, opacity: 0.6, cursor: 'pointer', whiteSpace: 'nowrap', maxWidth: '14rem', overflow: 'hidden', textOverflow: 'ellipsis', '&:hover': { opacity: 0.9 } }}
-                onClick={() => navigate('/metrajonaylapozmahaller')}>
+              <Typography
+                variant="body1"
+                sx={{ fontWeight: 600, opacity: 0.6, cursor: 'pointer', whiteSpace: 'nowrap', maxWidth: '14rem', overflow: 'hidden', textOverflow: 'ellipsis', '&:hover': { opacity: 0.9 } }}
+                onClick={() => navigate('/metrajonaylapozmahaller')}
+              >
                 {pozLabel}
               </Typography>
               <NavigateNextIcon sx={{ opacity: 0.4, fontSize: 18, flexShrink: 0 }} />
@@ -618,135 +459,397 @@ export default function P_MetrajOnaylaCetvel() {
         </Stack>
       )}
 
-      {!loading && sessions.length > 0 && (
-        <Box sx={{ p: '1rem', display: 'flex', flexDirection: 'column', gap: '2rem', maxWidth: '1100px' }}>
+      {/* SESSION KARTLARI */}
+      {(() => {
+        const visibleSessions = sessions.filter(sess => visibleSessCards[sess.id] ?? true)
+        return visibleSessions.length > 0 ? (
+          <Box sx={{ mt: '1.5rem', px: '1rem', display: 'flex', flexDirection: 'column', gap: '1.5rem', maxWidth: '1100px' }}>
+            {visibleSessions.map(sess => {
+              const visualStatus = sess.visualStatus ?? getMeasurementVisualStatus(sess)
+              const cardColors   = getCardColors(visualStatus)
+              const isApproved   = visualStatus === 'approved' || visualStatus === 'revised'
+              const rootLines    = sess.lines.filter(l => !l.parent_line_id)
+              const totalDraft   = rootLines.filter(l => !l.status || l.status === 'draft').reduce((sum, l) => sum + computeQuantity(l), 0)
+              const totalPending = rootLines.filter(l => l.status === 'pending').reduce((sum, l) => sum + computeQuantity(l), 0)
+              const totalIgnored = rootLines.filter(l => l.status === 'ignored').reduce((sum, l) => sum + computeQuantity(l), 0)
+              const totalApproved = rootLines.filter(l => l.status === 'approved').reduce((sum, l) => sum + computeQuantity(l), 0)
 
-          {/* ── KİŞİ KARTLARI ───────────────────────────────────────────── */}
-          {kisiGroups.length > 0 && (
-            <Box>
-              <Typography variant="subtitle2" sx={{ mb: '0.5rem', color: '#37474f', fontWeight: 700, letterSpacing: '0.04em', textTransform: 'uppercase', fontSize: '0.75rem' }}>
-                Hazırlanan Metrajlar
-              </Typography>
+              return (
+                <Box
+                  key={sess.id}
+                  sx={{
+                    border: '2px solid',
+                    borderColor: cardColors.border,
+                    overflow: 'hidden',
+                    boxShadow: 1,
+                  }}
+                >
+                  {/* Kart başlığı */}
+                  <Box
+                    sx={{
+                      display: 'flex', alignItems: 'center', gap: '0.5rem',
+                      px: '1rem', height: '50px', flexWrap: 'nowrap', overflow: 'hidden',
+                      backgroundColor: cardColors.header,
+                      color: '#e0e1dd',
+                    }}
+                  >
+                    <Typography variant="body1" sx={{ fontWeight: 700, flexGrow: 1 }}>
+                      {sess.userName}
+                    </Typography>
+                  </Box>
 
-              <Box sx={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-                {kisiGroups.filter(group => visibleKisiCards[group.userId] ?? true).map(group => {
-                  const allLines = [...group.pending, ...group.rejected, ...group.ignored, ...group.approved]
-                    .sort((a, b) => (a.order_index ?? 0) - (b.order_index ?? 0))
-                  return (
-                    <Box key={group.userId} sx={{ border: '1px solid #B0BEC5', overflow: 'hidden', boxShadow: 1 }}>
-                      {/* Kart başlığı */}
-                      <Box sx={{
-                        ...KISI_CARD_HEADER, display: 'flex', alignItems: 'center', gap: '0.5rem',
-                        px: '1rem', py: '0.5rem',
-                      }}>
-                        <Typography variant="body1" sx={{ fontWeight: 700, flexGrow: 1 }}>
-                          {group.userName}
-                        </Typography>
-                      </Box>
-
-                      {/* Tablo */}
-                      <Box sx={{ overflowX: 'auto' }}>
-                        <Box sx={{ display: 'grid', gridTemplateColumns: KISI_GRID, minWidth: 'max-content' }}>
-                          <Box sx={{ ...css_tableHeaderCell }}>Sıra</Box>
-                          <Box sx={{ ...css_tableHeaderCell, justifyContent: 'flex-start' }}>Açıklama</Box>
-                          {NUM_LABELS.map(lbl => <Box key={lbl} sx={{ ...css_tableHeaderCell }}>{lbl}</Box>)}
-                          <Box sx={{ ...css_tableHeaderCell }}>Metraj</Box>
-                          <Box sx={{ ...css_tableHeaderCell }}>İşlem</Box>
-
-                          {allLines.map(line => (
-                            <KisiLineRow key={line.id} line={line}
-                              rowBg={LINE_STATUS_COLORS[line.status]?.bg ?? 'white'}
-                            />
-                          ))}
-
-                          <Box sx={{ gridColumn: '1/8', px: '8px', py: '4px', fontSize: '0.8rem', fontWeight: 600, display: 'flex', justifyContent: 'flex-end', alignItems: 'center', color: '#455a64', backgroundColor: '#ECEFF1', borderTop: '2px solid #B0BEC5' }}>
-                            Toplam hazırlanan
-                          </Box>
-                          <Box sx={{ px: '8px', py: '4px', fontWeight: 700, display: 'flex', justifyContent: 'flex-end', alignItems: 'center', backgroundColor: '#ECEFF1', borderTop: '2px solid #B0BEC5' }}>
-                            {ikiHane(allLines.reduce((s, l) => s + (calcMetraj(l) ?? 0), 0))}
-                            {pozBirim && <Box component="span" sx={{ ml: '4px', fontWeight: 400, fontSize: '0.8rem' }}>{pozBirim}</Box>}
-                          </Box>
-                          <Box sx={{ backgroundColor: '#ECEFF1', borderTop: '2px solid #B0BEC5' }} />
-                        </Box>
-                      </Box>
+                  {/* Satır yok */}
+                  {rootLines.length === 0 && (
+                    <Box sx={{ px: '1rem', py: '0.75rem', color: 'gray', fontSize: '0.85rem' }}>
+                      Bu oturumda metraj satırı bulunmuyor.
                     </Box>
-                  )
-                })}
-              </Box>
-            </Box>
-          )}
-
-          {/* ── ONAY KARTI ──────────────────────────────────────────────── */}
-          {visibleOnayKarti && flatTree.length > 0 && (
-            <Box>
-              <Typography variant="subtitle2" sx={{ mb: '0.5rem', color: '#1b5e20', fontWeight: 700, letterSpacing: '0.04em', textTransform: 'uppercase', fontSize: '0.75rem' }}>
-                Onaylanan Metraj
-              </Typography>
-
-              <Box sx={{ border: '2px solid #43A047', overflow: 'hidden', boxShadow: 2 }}>
-                {/* Kart başlığı */}
-                <Box sx={{
-                  ...ONAY_CARD_HEADER, display: 'flex', alignItems: 'center', gap: '0.5rem',
-                  px: '1rem', py: '0.6rem',
-                }}>
-                  <Typography variant="body1" sx={{ fontWeight: 700, flexGrow: 1 }}>
-                    Onaylı Metraj
-                  </Typography>
-                  {nodesWithChildren.length > 0 && (
-                    <Tooltip title={hideOriginals ? 'Orijinalleri Göster' : 'Orijinalleri Gizle'}>
-                      <Chip
-                        size="small"
-                        icon={hideOriginals ? <ExpandMoreIcon sx={{ fontSize: '16px !important', color: '#a5d6a7 !important' }} /> : <ExpandLessIcon sx={{ fontSize: '16px !important', color: '#a5d6a7 !important' }} />}
-                        label={hideOriginals ? 'Orijinalleri Göster' : 'Orijinalleri Gizle'}
-                        onClick={toggleHideOriginals}
-                        sx={{ backgroundColor: 'rgba(255,255,255,0.15)', color: '#fff', fontWeight: 500, fontSize: '0.72rem', cursor: 'pointer', '&:hover': { backgroundColor: 'rgba(255,255,255,0.25)' } }}
-                      />
-                    </Tooltip>
                   )}
-                  <Typography variant="body2" sx={{ opacity: 0.85 }}>
-                    Toplam: <strong>{ikiHane(onayKartiTotal)}</strong>
-                    {pozBirim && ` ${pozBirim}`}
-                  </Typography>
+
+                  {/* Tablo */}
+                  {rootLines.length > 0 && (
+                    <Box sx={{ overflowX: 'auto' }}>
+                      <Box sx={{ display: 'grid', gridTemplateColumns: GRID_COLS, minWidth: 'max-content' }}>
+
+                        {/* Tablo başlığı */}
+                        <Box sx={{ ...css_lineHeaderCell }}>Sıra</Box>
+                        <Box sx={{ ...css_lineHeaderCell, justifyContent: 'flex-start' }}>Açıklama</Box>
+                        {NUM_LABELS.map(lbl => <Box key={lbl} sx={{ ...css_lineHeaderCell }}>{lbl}</Box>)}
+                        <Box sx={{ ...css_lineHeaderCell }}>Metraj</Box>
+                        <Box sx={{ ...css_lineHeaderCell }}>Durum</Box>
+
+                        {/* Satırlar — sadece kök satırlar */}
+                        {buildDisplayTree(rootLines).map(line => {
+                          const qty = computeQuantity(line)
+                          const isDeduction = qty < 0
+                          const isIgnoredLocked = line.status === 'ignored'
+                          const rowBg = isIgnoredLocked
+                            ? '#BDBDBD'
+                            : line.status === 'pending' && !isApproved
+                            ? '#BBDEFB'
+                            : (!line.status || line.status === 'draft') && !isApproved
+                            ? '#FFE0B2'
+                            : line.status === 'approved'
+                            ? '#C8E6C9'
+                            : isApproved
+                            ? cardColors.row
+                            : 'white'
+                          const deductionColor = isDeduction ? '#b71c1c' : undefined
+                          const depthStyle = line.depth > 0
+                            ? { borderLeft: `${Math.min(line.depth, 3) * 3}px solid rgba(144,202,249,0.7)` }
+                            : {}
+                          const cellBg = { backgroundColor: rowBg, borderBottom: '1px dashed #c8c8c8', ...depthStyle }
+
+                          return (
+                            <React.Fragment key={line.id}>
+                              <Box sx={{
+                                ...css_lineCell, ...cellBg, justifyContent: 'center',
+                                color: line.depth > 0 ? '#1565C0' : '#555',
+                              }}>
+                                {line.siraNo}
+                              </Box>
+
+                              <Box sx={{ ...css_lineCell, ...cellBg, color: deductionColor }}>
+                                {line.description ?? ''}
+                              </Box>
+
+                              {NUM_FIELDS.map(field => (
+                                <Box key={field} sx={{ ...css_lineCell, ...cellBg, justifyContent: 'flex-end', color: deductionColor }}>
+                                  {field === 'multiplier' && Number(line[field]) === 1 ? '' : (line[field] != null ? ikiHane(line[field]) : '')}
+                                </Box>
+                              ))}
+
+                              <Box sx={{ ...css_lineCell, ...cellBg, justifyContent: 'flex-end', color: qty < 0 ? '#c62828' : deductionColor }}>
+                                {qty !== 0 ? ikiHane(qty) : (() => {
+                                  const isEmpty = v => v === null || v === undefined || v === ''
+                                  const hasData = [(Number(line.multiplier) === 1 ? null : line.multiplier), line.count, line.length, line.width, line.height].some(v => !isEmpty(v))
+                                  return hasData ? ikiHane(qty) : ''
+                                })()}
+                                {pozBirim && qty !== 0 && <Box component="span" sx={{ ml: '4px', fontWeight: 400, fontSize: '0.75rem', color: '#555' }}>{pozBirim}</Box>}
+                              </Box>
+
+                              {/* DURUM sütunu */}
+                              <Box sx={{ ...css_lineCell, ...cellBg, justifyContent: 'center', px: '2px' }}>
+                                {line.status === 'approved' ? (
+                                  <DoneAllIcon sx={{ fontSize: 18, color: '#2e7d32', fontWeight: 700 }} />
+                                ) : line.status === 'rejected' ? (
+                                  <ClearIcon sx={{ fontSize: 18, color: '#c62828' }} />
+                                ) : line.status === 'ignored' ? (
+                                  <DoneAllIcon sx={{ fontSize: 18, color: '#424242' }} />
+                                ) : line.status === 'pending' ? (
+                                  <>
+                                    <Tooltip title="Onayla">
+                                      <IconButton size="small" sx={{ p: '2px' }} onClick={() => approveLine(line.id)}>
+                                        <CheckCircleIcon sx={{ fontSize: 18, color: '#2e7d32' }} />
+                                      </IconButton>
+                                    </Tooltip>
+                                    <Tooltip title="Ignore">
+                                      <IconButton size="small" sx={{ p: '2px' }} onClick={() => ignoreLine(line.id)}>
+                                        <BlockIcon sx={{ fontSize: 18, color: '#607d8b' }} />
+                                      </IconButton>
+                                    </Tooltip>
+                                  </>
+                                ) : (!line.status || line.status === 'draft') ? (
+                                  <HourglassFullIcon sx={{ fontSize: 15, color: '#E65100' }} />
+                                ) : null}
+                              </Box>
+                            </React.Fragment>
+                          )
+                        })}
+
+                        {/* Toplam satırları */}
+                        <Box sx={{ gridColumn: '1 / -1', backgroundColor: cardColors.header, borderTop: '2px solid', borderTopColor: cardColors.border, display: 'flex', justifyContent: 'space-between', flexWrap: 'wrap', px: '14px', py: '8px', minHeight: '44px' }}>
+                          <Box sx={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
+                            <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', borderRadius: '50%', backgroundColor: '#FFE0B2', width: 26, height: 26, flexShrink: 0 }}>
+                              <HourglassFullIcon sx={{ fontSize: 16, color: '#E65100', filter: 'drop-shadow(0 0 0.4px #E65100)' }} />
+                            </Box>
+                            <Box component="span" sx={{ fontSize: '0.82rem', color: 'rgba(255,255,255,0.75)' }}>Hazırlanan</Box>
+                            <Box component="span" sx={{ fontSize: '0.95rem', fontWeight: 700, color: totalDraft === 0 ? 'rgba(255,255,255,0.55)' : '#e0e1dd', ml: '2px' }}>{ikiHane(totalDraft)}</Box>
+                            {pozBirim && <Box component="span" sx={{ fontSize: '0.78rem', color: 'rgba(255,255,255,0.55)' }}>{pozBirim}</Box>}
+                          </Box>
+                          <Box sx={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
+                            <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', borderRadius: '50%', backgroundColor: '#BBDEFB', width: 26, height: 26, flexShrink: 0 }}>
+                              <CheckCircleIcon sx={{ fontSize: 16, color: '#1565C0', filter: 'drop-shadow(0 0 0.4px #1565C0)' }} />
+                            </Box>
+                            <Box component="span" sx={{ fontSize: '0.82rem', color: 'rgba(255,255,255,0.75)' }}>Onaya Sunulan</Box>
+                            <Box component="span" sx={{ fontSize: '0.95rem', fontWeight: 700, color: totalPending === 0 ? 'rgba(255,255,255,0.55)' : '#e0e1dd', ml: '2px' }}>{ikiHane(totalPending)}</Box>
+                            {pozBirim && <Box component="span" sx={{ fontSize: '0.78rem', color: 'rgba(255,255,255,0.55)' }}>{pozBirim}</Box>}
+                          </Box>
+                          <Box sx={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
+                            <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', borderRadius: '50%', backgroundColor: '#BDBDBD', width: 26, height: 26, flexShrink: 0 }}>
+                              <DoneAllIcon sx={{ fontSize: 16, color: '#424242', filter: 'drop-shadow(0 0 0.4px #424242)' }} />
+                            </Box>
+                            <Box component="span" sx={{ fontSize: '0.82rem', color: 'rgba(255,255,255,0.75)' }}>Ignore</Box>
+                            <Box component="span" sx={{ fontSize: '0.95rem', fontWeight: 700, color: totalIgnored === 0 ? 'rgba(255,255,255,0.55)' : '#e0e1dd', ml: '2px' }}>{ikiHane(totalIgnored)}</Box>
+                            {pozBirim && <Box component="span" sx={{ fontSize: '0.78rem', color: 'rgba(255,255,255,0.55)' }}>{pozBirim}</Box>}
+                          </Box>
+                          <Box sx={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
+                            <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', borderRadius: '50%', backgroundColor: '#C8E6C9', width: 26, height: 26, flexShrink: 0 }}>
+                              <DoneAllIcon sx={{ fontSize: 16, color: '#2E7D32', filter: 'drop-shadow(0 0 0.4px #2E7D32)' }} />
+                            </Box>
+                            <Box component="span" sx={{ fontSize: '0.82rem', color: 'rgba(255,255,255,0.75)' }}>Onaylanan</Box>
+                            <Box component="span" sx={{ fontSize: '0.95rem', fontWeight: 700, color: totalApproved === 0 ? 'rgba(255,255,255,0.55)' : '#e0e1dd', ml: '2px' }}>{ikiHane(totalApproved)}</Box>
+                            {pozBirim && <Box component="span" sx={{ fontSize: '0.78rem', color: 'rgba(255,255,255,0.55)' }}>{pozBirim}</Box>}
+                          </Box>
+                        </Box>
+
+                      </Box>
+                    </Box>
+                  )}
                 </Box>
+              )
+            })}
+          </Box>
+        ) : null
+      })()}
 
-                {/* Tablo */}
-                <Box sx={{ overflowX: 'auto' }}>
-                  <Box sx={{ display: 'grid', gridTemplateColumns: ONAY_GRID, minWidth: 'max-content' }}>
-                    <Box sx={{ ...css_tableHeaderCell }}>Sıra</Box>
-                    <Box sx={{ ...css_tableHeaderCell, justifyContent: 'flex-start' }}>Açıklama</Box>
-                    {NUM_LABELS.map(lbl => <Box key={lbl} sx={{ ...css_tableHeaderCell }}>{lbl}</Box>)}
-                    <Box sx={{ ...css_tableHeaderCell }}>Metraj</Box>
-                    <Box sx={{ ...css_tableHeaderCell }}>Hazırlayan</Box>
-                    <Box sx={{ ...css_tableHeaderCell }}>Onaylayan</Box>
-                    <Box sx={{ ...css_tableHeaderCell }}></Box>
+      {/* ONAYLANAN METRAJ KARTI */}
+      {!loading && visibleOnayKarti && approvalTree.length > 0 && (() => {
+        const ONAY_GRID = 'max-content 1fr 65px 65px 65px 65px 65px 80px 90px 90px 80px'
+        const NUM_ONAY_LABELS = ['Çarpan', 'Adet', 'Boy', 'En', 'Yük']
+        const NUM_ONAY_FIELDS = ['multiplier', 'count', 'length', 'width', 'height']
+        const calcMetrajOnay = (line) => {
+          const vals = [
+            (Number(line.multiplier) === 1 ? null : line.multiplier),
+            line.count, line.length, line.width, line.height,
+          ]
+            .map(v => (v != null && v !== '' ? parseFloat(v) : null))
+            .filter(v => v !== null && !isNaN(v))
+          if (vals.length === 0) return 0
+          return vals.reduce((p, v) => p * v, 1)
+        }
+        const css_ohc = { px: '4px', py: '3px', display: 'flex', alignItems: 'center', justifyContent: 'center', borderRight: '1px solid rgba(255,255,255,0.15)', fontSize: '0.75rem', fontWeight: 600, backgroundColor: '#1b5e20', color: '#fff' }
+        const css_oc = { px: '4px', py: '6px', height: '34px', fontSize: '0.85rem', display: 'flex', alignItems: 'center', borderRight: '1px dashed #d8d8d8', overflow: 'hidden' }
 
-                    {approvalTree.map(rootNode => (
-                      <OnayLineRow key={rootNode.id} node={rootNode} />
+        function renderOnayRow(node) {
+          const hasKids = (node.children?.length ?? 0) > 0
+          const isExp   = expandedApproved[node.id] ?? false
+          const metraj  = calcMetrajOnay(node)
+          const isRevised = node.status === 'approved' && hasKids && (node.children ?? []).some(c => c.status === 'approved')
+
+          if (isRevised) {
+            const origCellBg = { backgroundColor: 'rgba(200,230,201,0.2)', borderBottom: '1px dashed #c8c8c8', opacity: 0.7 }
+            return (
+              <>
+                {showAllOriginals && (
+                  <>
+                    <Box sx={{ ...css_oc, ...origCellBg, justifyContent: 'flex-start', pl: '0.5rem', color: '#888', fontSize: '0.78rem' }}>{node.siraNo}</Box>
+                    <Box sx={{ ...css_oc, ...origCellBg, color: '#777', fontStyle: 'italic', fontSize: '0.82rem' }}>{node.description ?? ''}</Box>
+                    {NUM_ONAY_FIELDS.map(f => (
+                      <Box key={f} sx={{ ...css_oc, ...origCellBg, justifyContent: 'flex-end', color: '#888' }}>{f === 'multiplier' && Number(node[f]) === 1 ? '' : (node[f] != null ? ikiHane(node[f]) : '')}</Box>
                     ))}
+                    <Box sx={{ ...css_oc, ...origCellBg, justifyContent: 'flex-end', fontWeight: 700, color: '#888' }}>{ikiHane(calcMetrajOnay(node))}</Box>
+                    <Box sx={{ ...css_oc, ...origCellBg, fontSize: '0.78rem', color: '#9E9E9E' }}>{node.hazırlayan}</Box>
+                    <Box sx={{ ...css_oc, ...origCellBg, fontSize: '0.78rem', color: '#9E9E9E' }}>{node.onaylayan}</Box>
+                    <Box sx={{ ...css_oc, ...origCellBg, justifyContent: 'center' }}></Box>
+                  </>
+                )}
+                {node.children.map(child => (
+                  <React.Fragment key={child.id}>{renderOnayRow(child)}</React.Fragment>
+                ))}
+              </>
+            )
+          }
 
-                    <Box sx={{ gridColumn: '1/8', px: '8px', py: '5px', fontWeight: 600, fontSize: '0.85rem', display: 'flex', justifyContent: 'flex-end', alignItems: 'center', color: '#1b5e20', backgroundColor: '#E8F5E9', borderTop: '2px solid #43A047' }}>
-                      Onaylanan Toplam
-                    </Box>
-                    <Box sx={{ px: '8px', py: '5px', fontWeight: 700, fontSize: '0.95rem', display: 'flex', justifyContent: 'flex-end', alignItems: 'center', color: '#1b5e20', backgroundColor: '#E8F5E9', borderTop: '2px solid #43A047' }}>
-                      {ikiHane(onayKartiTotal)}
-                      {pozBirim && <Box component="span" sx={{ ml: '4px', fontWeight: 400, fontSize: '0.8rem' }}>{pozBirim}</Box>}
-                    </Box>
-                    <Box sx={{ backgroundColor: '#E8F5E9', borderTop: '2px solid #43A047' }} />
-                    <Box sx={{ backgroundColor: '#E8F5E9', borderTop: '2px solid #43A047' }} />
-                    <Box sx={{ backgroundColor: '#E8F5E9', borderTop: '2px solid #43A047' }} />
+          const rowBg = node.status !== 'approved'
+            ? (node.status === 'pending' ? '#BBDEFB' : node.status === 'rejected' ? 'rgba(255,235,238,0.5)' : (!node.status || node.status === 'draft') ? 'rgba(255,250,180,0.6)' : 'rgba(236,239,241,0.5)')
+            : '#C8E6C9'
+          const onaylayanText = node.status === 'pending' ? '' : node.status === 'rejected' ? '(reddedildi)' : node.status === 'ignored' ? '(ignore)' : (node.onaylayan ?? '')
+          const cellBg = { backgroundColor: rowBg, borderBottom: '1px dashed #c8c8c8' }
+          const negColor = metraj < 0 ? '#c62828' : undefined
+
+          return (
+            <>
+              {/* Sıra sütunu */}
+              <Box sx={{ ...css_oc, ...cellBg, justifyContent: 'flex-start', pl: hasKids ? '2px' : '0.5rem', display: 'flex', alignItems: 'center', gap: '2px', color: node.depth > 0 ? '#1565c0' : '#555' }}>
+                {hasKids && (
+                  <IconButton size="small" sx={{ p: '1px', flexShrink: 0 }} onClick={() => setExpandedApproved(prev => ({ ...prev, [node.id]: !prev[node.id] }))}>
+                    {isExp ? <ExpandLessIcon sx={{ fontSize: 16, color: '#888' }} /> : <ExpandMoreIcon sx={{ fontSize: 16, color: '#888' }} />}
+                  </IconButton>
+                )}
+                {node.siraNo}
+              </Box>
+              <Box sx={{ ...css_oc, ...cellBg, color: negColor }}>
+                {node.description ?? ''}
+              </Box>
+              {NUM_ONAY_FIELDS.map(f => (
+                <Box key={f} sx={{ ...css_oc, ...cellBg, justifyContent: 'flex-end', color: negColor }}>
+                  {f === 'multiplier' && Number(node[f]) === 1 ? '' : (node[f] != null ? ikiHane(node[f]) : '')}
+                </Box>
+              ))}
+              <Box sx={{ ...css_oc, ...cellBg, justifyContent: 'flex-end', fontWeight: 700, color: negColor }}>
+                {metraj !== 0 ? ikiHane(metraj) : (() => {
+                  const isEmpty = v => v === null || v === undefined || v === ''
+                  const hasData = !isEmpty(node.description) ||
+                    [(Number(node.multiplier) === 1 ? null : node.multiplier), node.count, node.length, node.width, node.height].some(v => !isEmpty(v))
+                  return hasData ? ikiHane(metraj) : ''
+                })()}
+                {pozBirim && metraj !== 0 && <Box component="span" sx={{ ml: '3px', fontWeight: 400, fontSize: '0.72rem', color: metraj < 0 ? '#c62828' : '#555' }}>{pozBirim}</Box>}
+              </Box>
+              <Box sx={{ ...css_oc, ...cellBg, fontSize: '0.78rem', color: '#455a64' }}>{node.hazırlayan}</Box>
+              <Box sx={{ ...css_oc, ...cellBg, fontSize: '0.78rem', color: node.status === 'pending' ? '#1565c0' : node.status === 'rejected' ? '#b71c1c' : '#1b5e20' }}>
+                {onaylayanText}
+              </Box>
+
+              {/* Aksiyon sütunu — pending satırlar için onay butonları */}
+              <Box sx={{ ...css_oc, ...cellBg, justifyContent: 'center', gap: '2px' }}>
+                {node.status === 'pending' && (
+                  <>
+                    <Tooltip title="Onayla">
+                      <IconButton size="small" sx={{ p: '2px' }} onClick={() => approveLine(node.id)}>
+                        <CheckCircleIcon sx={{ fontSize: 18, color: '#2e7d32' }} />
+                      </IconButton>
+                    </Tooltip>
+                    <Tooltip title="Ignore">
+                      <IconButton size="small" sx={{ p: '2px' }} onClick={() => ignoreLine(node.id)}>
+                        <BlockIcon sx={{ fontSize: 18, color: '#607d8b' }} />
+                      </IconButton>
+                    </Tooltip>
+                  </>
+                )}
+              </Box>
+
+              {hasKids && isExp && node.children.map(child => (
+                <React.Fragment key={child.id}>{renderOnayRow(child)}</React.Fragment>
+              ))}
+            </>
+          )
+        }
+
+        const allApprovalLines = flattenAll(approvalTree)
+        const onayKartiTotal = allApprovalLines
+          .filter(n => !(n.children?.length > 0))
+          .reduce((s, n) => s + calcMetrajOnay(n), 0)
+
+        // İstatistikler
+        const draftRevizeLines = allApprovalLines.filter(n => (!n.status || n.status === 'draft') && n.parent_line_id)
+        const a_draft = draftRevizeLines.reduce((s, n) => s + calcMetrajOnay(n), 0)
+        const draftParentIds = new Set(draftRevizeLines.map(n => String(n.parent_line_id)))
+        const b_draft = allApprovalLines.filter(n => draftParentIds.has(String(n.id))).reduce((s, n) => s + calcMetrajOnay(n), 0)
+        const totalApprovalDraft = a_draft - b_draft
+
+        const pendingRevizeLines = allApprovalLines.filter(n => n.status === 'pending' && n.parent_line_id)
+        const a_pend = pendingRevizeLines.reduce((s, n) => s + calcMetrajOnay(n), 0)
+        const pendingParentIds = new Set(pendingRevizeLines.map(n => String(n.parent_line_id)))
+        const b_pend = allApprovalLines.filter(n => pendingParentIds.has(String(n.id))).reduce((s, n) => s + calcMetrajOnay(n), 0)
+        const totalApprovalPending = a_pend - b_pend
+
+        const totalApprovalIgnored  = allApprovalLines.filter(n => n.status === 'ignored').reduce((s, n) => s + calcMetrajOnay(n), 0)
+        const totalApprovalApproved = allApprovalLines.filter(n => n.status === 'approved').reduce((s, n) => s + calcMetrajOnay(n), 0)
+
+        return (
+          <Box sx={{ mt: '1.5rem', px: '1rem', maxWidth: '1100px' }}>
+            <Box sx={{ border: '2px solid #43A047', overflow: 'hidden', boxShadow: 2 }}>
+              {/* Kart başlığı */}
+              <Box sx={{ backgroundColor: '#1b5e20', color: '#fff', px: '1rem', minHeight: '44px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                <Typography variant="body2" sx={{ fontWeight: 700 }}>Onaylı Metraj</Typography>
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  <Box
+                    sx={{ display: 'flex', alignItems: 'center', gap: '4px', cursor: 'pointer', fontSize: '0.78rem', opacity: 0.85, userSelect: 'none', '&:hover': { opacity: 1 } }}
+                    onClick={() => setShowAllOriginals(prev => !prev)}
+                  >
+                    {showAllOriginals ? <ExpandLessIcon sx={{ fontSize: 16 }} /> : <ExpandMoreIcon sx={{ fontSize: 16 }} />}
+                    {showAllOriginals ? 'Orjinalleri gizle' : 'Tüm orjinalleri göster'}
                   </Box>
                 </Box>
               </Box>
+
+              <Box sx={{ overflowX: 'auto' }}>
+                <Box sx={{ display: 'grid', gridTemplateColumns: ONAY_GRID, minWidth: 'max-content' }}>
+                  {/* Tablo başlığı */}
+                  <Box sx={{ ...css_ohc }}>Sıra</Box>
+                  <Box sx={{ ...css_ohc, justifyContent: 'flex-start' }}>Açıklama</Box>
+                  {NUM_ONAY_LABELS.map(lbl => <Box key={lbl} sx={{ ...css_ohc }}>{lbl}</Box>)}
+                  <Box sx={{ ...css_ohc }}>Metraj</Box>
+                  <Box sx={{ ...css_ohc }}>Hazırlayan</Box>
+                  <Box sx={{ ...css_ohc }}>Onaylayan</Box>
+                  <Box sx={{ ...css_ohc }}></Box>
+
+                  {approvalTree.map(rootNode => (
+                    <React.Fragment key={rootNode.id}>{renderOnayRow(rootNode)}</React.Fragment>
+                  ))}
+                </Box>
+              </Box>
+
+              {/* Onaylı Metraj Statü Kutuları */}
+              <Box sx={{ backgroundColor: '#1b5e20', color: '#fff', px: '1rem', py: '8px', display: 'flex', justifyContent: 'space-between', flexWrap: 'wrap', gap: '8px', borderTop: '1px solid rgba(67, 160, 71, 0.5)' }}>
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
+                  <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', borderRadius: '50%', backgroundColor: '#FFE0B2', width: 26, height: 26, flexShrink: 0 }}>
+                    <HourglassFullIcon sx={{ fontSize: 16, color: '#E65100', filter: 'drop-shadow(0 0 0.4px #E65100)' }} />
+                  </Box>
+                  <Box component="span" sx={{ fontSize: '0.82rem', color: 'rgba(255,255,255,0.75)' }}>Hazırlanan</Box>
+                  <Box component="span" sx={{ fontSize: '0.95rem', fontWeight: 700, color: totalApprovalDraft === 0 ? 'rgba(255,255,255,0.55)' : '#e0e1dd', ml: '2px' }}>{ikiHane(totalApprovalDraft)}</Box>
+                  {pozBirim && <Box component="span" sx={{ fontSize: '0.78rem', color: 'rgba(255,255,255,0.55)' }}>{pozBirim}</Box>}
+                </Box>
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
+                  <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', borderRadius: '50%', backgroundColor: '#BBDEFB', width: 26, height: 26, flexShrink: 0 }}>
+                    <CheckCircleIcon sx={{ fontSize: 16, color: '#1565C0', filter: 'drop-shadow(0 0 0.4px #1565C0)' }} />
+                  </Box>
+                  <Box component="span" sx={{ fontSize: '0.82rem', color: 'rgba(255,255,255,0.75)' }}>Onaya Sunulan</Box>
+                  <Box component="span" sx={{ fontSize: '0.95rem', fontWeight: 700, color: totalApprovalPending === 0 ? 'rgba(255,255,255,0.55)' : '#e0e1dd', ml: '2px' }}>{ikiHane(totalApprovalPending)}</Box>
+                  {pozBirim && <Box component="span" sx={{ fontSize: '0.78rem', color: 'rgba(255,255,255,0.55)' }}>{pozBirim}</Box>}
+                </Box>
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
+                  <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', borderRadius: '50%', backgroundColor: '#BDBDBD', width: 26, height: 26, flexShrink: 0 }}>
+                    <DoneAllIcon sx={{ fontSize: 16, color: '#424242', filter: 'drop-shadow(0 0 0.4px #424242)' }} />
+                  </Box>
+                  <Box component="span" sx={{ fontSize: '0.82rem', color: 'rgba(255,255,255,0.75)' }}>Ignore</Box>
+                  <Box component="span" sx={{ fontSize: '0.95rem', fontWeight: 700, color: totalApprovalIgnored === 0 ? 'rgba(255,255,255,0.55)' : '#e0e1dd', ml: '2px' }}>{ikiHane(totalApprovalIgnored)}</Box>
+                  {pozBirim && <Box component="span" sx={{ fontSize: '0.78rem', color: 'rgba(255,255,255,0.55)' }}>{pozBirim}</Box>}
+                </Box>
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
+                  <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', borderRadius: '50%', backgroundColor: '#C8E6C9', width: 26, height: 26, flexShrink: 0 }}>
+                    <DoneAllIcon sx={{ fontSize: 16, color: '#2E7D32', filter: 'drop-shadow(0 0 0.4px #2E7D32)' }} />
+                  </Box>
+                  <Box component="span" sx={{ fontSize: '0.82rem', color: 'rgba(255,255,255,0.75)' }}>Onaylanan</Box>
+                  <Box component="span" sx={{ fontSize: '0.95rem', fontWeight: 700, color: totalApprovalApproved === 0 ? 'rgba(255,255,255,0.55)' : '#e0e1dd', ml: '2px' }}>{ikiHane(totalApprovalApproved)}</Box>
+                  {pozBirim && <Box component="span" sx={{ fontSize: '0.78rem', color: 'rgba(255,255,255,0.55)' }}>{pozBirim}</Box>}
+                </Box>
+              </Box>
             </Box>
-          )}
+          </Box>
+        )
+      })()}
 
-          {/* Hiç onaylı satır yokken kişi kartı da yoksa */}
-          {kisiGroups.length === 0 && flatTree.length === 0 && (
-            <Alert severity="info">Bu mahal için henüz onaya hazır veya onaylanmış metraj satırı bulunmuyor.</Alert>
-          )}
-
-        </Box>
-      )}
     </Box>
   )
 }
