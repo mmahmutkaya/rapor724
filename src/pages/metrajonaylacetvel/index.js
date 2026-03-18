@@ -690,7 +690,7 @@ export default function P_MetrajOnaylaCetvel() {
                   px: '1rem', py: '0.6rem',
                 }}>
                   <Typography variant="body1" sx={{ fontWeight: 700, flexGrow: 1 }}>
-                    Onaylanmış Satırlar
+                    Onaylı Metraj
                   </Typography>
                   {nodesWithChildren.length > 0 && (
                     <Tooltip title={hideOriginals ? 'Orijinalleri Göster' : 'Orijinalleri Gizle'}>
