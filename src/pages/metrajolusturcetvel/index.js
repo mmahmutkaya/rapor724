@@ -1079,6 +1079,8 @@ export default function P_MetrajOlusturCetvel() {
       <style>{`
         .metraj-num-input::-webkit-outer-spin-button,
         .metraj-num-input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+        .input-neg { color: #c62828 !important; }
+        .input-neg::placeholder { color: #c62828 !important; opacity: 1; }
       `}</style>
 
       {dialogAlert && (
@@ -1722,7 +1724,7 @@ export default function P_MetrajOlusturCetvel() {
                 )}
                 {node.siraNo}
               </Box>
-              <Box sx={{ ...css_oc, ...cellBg, display: 'flex', alignItems: 'center', gap: '4px' }}>
+              <Box sx={{ ...css_oc, ...cellBg, display: 'flex', alignItems: 'center', gap: '4px', ...(metraj < 0 && { '& input::placeholder': { color: '#c62828', opacity: 1 } }) }}>
                 {isChildEditable && (
                   <IconButton size="small" sx={{ p: '1px', flexShrink: 0 }}
                     onClick={() => handleDeleteDraftChild(node.id)}>
@@ -1730,14 +1732,14 @@ export default function P_MetrajOlusturCetvel() {
                   </IconButton>
                 )}
                 {isChildEditable && childVals
-                  ? <input style={{ ...inputOnay, textAlign: 'left', ...(metraj < 0 && { color: '#c62828' }) }} value={childVals.description} placeholder="Açıklama"
+                  ? <input className={metraj < 0 ? 'input-neg' : undefined} style={{ ...inputOnay, textAlign: 'left', color: metraj < 0 ? '#c62828' : 'inherit' }} value={childVals.description} placeholder="Açıklama"
                       onChange={e => setChildEditValues(prev => ({ ...prev, [node.id]: { ...prev[node.id], description: e.target.value } }))} />
                   : node.description ?? ''}
               </Box>
               {NUM_ONAY_FIELDS.map(f => (
-                <Box key={f} sx={{ ...css_oc, ...cellBg, justifyContent: 'flex-end' }}>
+                <Box key={f} sx={{ ...css_oc, ...cellBg, justifyContent: 'flex-end', ...(metraj < 0 && { '& input::placeholder': { color: '#c62828', opacity: 1 } }) }}>
                   {isChildEditable && childVals
-                    ? <input type="number" className="metraj-num-input" style={{ ...inputOnay, textAlign: 'right', ...(metraj < 0 && { color: '#c62828' }) }}
+                    ? <input type="number" className={metraj < 0 ? 'metraj-num-input input-neg' : 'metraj-num-input'} style={{ ...inputOnay, textAlign: 'right', color: metraj < 0 ? '#c62828' : 'inherit' }}
                         value={childVals[f]} placeholder="—"
                         onChange={e => setChildEditValues(prev => ({ ...prev, [node.id]: { ...prev[node.id], [f]: e.target.value } }))}
                         onKeyDown={e => ['e', 'E', '+'].includes(e.key) && e.preventDefault()} />
@@ -1813,10 +1815,33 @@ export default function P_MetrajOlusturCetvel() {
           if (!vals) return calcMetrajOnay(n)
           return calcMetrajOnay({ ...n, multiplier: vals.multiplier === '' ? null : vals.multiplier, count: vals.count === '' ? null : vals.count, length: vals.length === '' ? null : vals.length, width: vals.width === '' ? null : vals.width, height: vals.height === '' ? null : vals.height })
         }
-        const totalApprovalDraft = allApprovalLines.filter(n => !n.status || n.status === 'draft').reduce((s, n) => s + calcWithEdits(n), 0)
-          + Object.values(revizeForms).flat().filter(r => r.status !== 'submitted_for_approval').reduce((s, r) => s + calcMetrajOnay(r), 0)
-        const totalApprovalPending = allApprovalLines.filter(n => n.status === 'pending').reduce((s, n) => s + calcMetrajOnay(n), 0)
-          + Object.values(revizeForms).flat().filter(r => r.status === 'submitted_for_approval').reduce((s, r) => s + calcMetrajOnay(r), 0)
+        // Hazırlanan = a - b
+        // a = hazırlanan revize talepleri (çocuk satırlar, parent_line_id var, draft/null)
+        // b = bu revize taleplerinin yapıldığı üst satırlar (unique)
+        const draftRevizeLines = allApprovalLines.filter(n => (!n.status || n.status === 'draft') && n.parent_line_id)
+        const a_draft_tree = draftRevizeLines.reduce((s, n) => s + calcWithEdits(n), 0)
+        const draftParentIds = new Set(draftRevizeLines.map(n => String(n.parent_line_id)))
+        const b_draft_tree = allApprovalLines.filter(n => draftParentIds.has(String(n.id))).reduce((s, n) => s + calcMetrajOnay(n), 0)
+        const draftFormEntries = Object.entries(revizeForms).filter(([, rows]) => rows.some(r => r.status !== 'submitted_for_approval'))
+        const a_draft_forms = draftFormEntries.flatMap(([, rows]) => rows.filter(r => r.status !== 'submitted_for_approval')).reduce((s, r) => s + calcMetrajOnay(r), 0)
+        const draftFormParentIds = new Set(draftFormEntries.map(([parentId]) => String(parentId)))
+        const b_draft_forms = allApprovalLines.filter(n => draftFormParentIds.has(String(n.id))).reduce((s, n) => s + calcMetrajOnay(n), 0)
+        const totalApprovalDraft = (a_draft_tree - b_draft_tree) + (a_draft_forms - b_draft_forms)
+        // Onaya Sunulan = a - b
+        // a = bekleyen revize talepleri (çocuk satırlar, parent_line_id var)
+        // b = bu revize taleplerinin yapıldığı üst satırlar (unique)
+        const pendingRevizeLines = allApprovalLines.filter(n => n.status === 'pending' && n.parent_line_id)
+        const a_tree = pendingRevizeLines.reduce((s, n) => s + calcMetrajOnay(n), 0)
+        const pendingParentIds = new Set(pendingRevizeLines.map(n => String(n.parent_line_id)))
+        const b_tree = allApprovalLines.filter(n => pendingParentIds.has(String(n.id))).reduce((s, n) => s + calcMetrajOnay(n), 0)
+        const submittedFormParentIds = new Set(
+          Object.entries(revizeForms)
+            .filter(([, rows]) => rows.some(r => r.status === 'submitted_for_approval'))
+            .map(([parentId]) => String(parentId))
+        )
+        const a_forms = Object.values(revizeForms).flat().filter(r => r.status === 'submitted_for_approval').reduce((s, r) => s + calcMetrajOnay(r), 0)
+        const b_forms = allApprovalLines.filter(n => submittedFormParentIds.has(String(n.id))).reduce((s, n) => s + calcMetrajOnay(n), 0)
+        const totalApprovalPending = (a_tree - b_tree) + (a_forms - b_forms)
         const totalApprovalIgnored = allApprovalLines.filter(n => n.status === 'ignored').reduce((s, n) => s + calcMetrajOnay(n), 0)
         const totalApprovalApproved = allApprovalLines.filter(n => n.status === 'approved').reduce((s, n) => s + calcMetrajOnay(n), 0)
 
