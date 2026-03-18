@@ -28,14 +28,9 @@ import ListItemIcon from '@mui/material/ListItemIcon'
 import NavigateNextIcon from '@mui/icons-material/NavigateNext'
 import ReplyIcon from '@mui/icons-material/Reply'
 import CheckCircleIcon from '@mui/icons-material/CheckCircle'
-import ClearIcon from '@mui/icons-material/Clear'
-import SaveIcon from '@mui/icons-material/Save'
-import EditIcon from '@mui/icons-material/Edit'
-import AddIcon from '@mui/icons-material/Add'
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore'
 import ExpandLessIcon from '@mui/icons-material/ExpandLess'
 import BlockIcon from '@mui/icons-material/Block'
-import DeleteOutlineIcon from '@mui/icons-material/DeleteOutline'
 import VisibilityIcon from '@mui/icons-material/Visibility'
 import VisibilityOffIcon from '@mui/icons-material/VisibilityOff'
 import DoneAllIcon from '@mui/icons-material/DoneAll'
@@ -95,12 +90,6 @@ const css_dataCell = {
   px: '4px', py: '3px', fontSize: '0.85rem',
   display: 'flex', alignItems: 'center',
   borderRight: '1px solid #eeeeee', overflow: 'hidden',
-}
-const inputSx = {
-  width: '100%', border: 'none', outline: 'none',
-  backgroundColor: 'rgba(255,250,180,0.8)',
-  fontSize: '0.85rem', padding: '2px 4px',
-  MozAppearance: 'textfield',
 }
 
 // Kişi kartı: sütun yapısı — sıra | açıklama | çarpan | adet | boy | en | yük | metraj | aksiyonlar
@@ -223,10 +212,6 @@ export default function P_MetrajOnaylaCetvel() {
   const [expandedLines, setExpandedLines] = useState({})   // { lineId: boolean }
   // Orijinal (revize edilmiş, hesaba katılmayan) satırları gizle
   const [hideOriginals, setHideOriginals] = useState(true)
-
-  // Revize ekleme modundan kimin satırı düzenlediği
-  // { parentLineId, fields: { description, multiplier, count, length, width, height } }
-  const [revizeForm, setRevizeForm] = useState(null)
 
   // Görünürlük dialog ve kart görünürlük state'leri
   const [openVisibilityDialog, setOpenVisibilityDialog] = useState(false)
@@ -381,62 +366,6 @@ export default function P_MetrajOnaylaCetvel() {
     setLines(prev => prev.map(l => l.id === lineId ? { ...l, status: 'ignored' } : l))
   }
 
-  /** Onay yetkilisinin onay kartındaki bir satıra revize eklemesi */
-  const saveRevize = async () => {
-    if (!revizeForm || !revizeForm.rows || revizeForm.rows.length === 0) return
-    const { parentLineId, rows } = revizeForm
-
-    // Onay yetkilisinin bu area için mevcut session'ı var mı?
-    let approverSession = sessions.find(s => s.created_by === currentUserId)
-    if (!approverSession) {
-      const { data: newSess, error: sessErr } = await supabase
-        .from('measurement_sessions')
-        .insert({
-          work_package_poz_area_id: wpAreaId,
-          status: 'approved',
-          created_by: currentUserId,
-          total_quantity: 0,
-        })
-        .select().single()
-      if (sessErr) { showErr('Revize session oluşturulamadı.', sessErr.message); return }
-      approverSession = newSess
-      setSessions(prev => [...prev, newSess])
-    }
-
-    // Kardeş satırlar arasındaki max order_index'i bul
-    const siblings = lines.filter(l => l.parent_line_id === parentLineId)
-    let maxOrder = siblings.reduce((mx, l) => Math.max(mx, l.order_index ?? 0), 0)
-    const now = new Date().toISOString()
-
-    const newLines = []
-    for (const row of rows) {
-      maxOrder++
-      const { data: newLine, error: lineErr } = await supabase
-        .from('measurement_lines')
-        .insert({
-          session_id:     approverSession.id,
-          parent_line_id: parentLineId,
-          order_index:    maxOrder,
-          description:    row.description || null,
-          multiplier:     row.multiplier !== '' ? Number(row.multiplier) : 1,
-          count:          row.count   !== '' ? Number(row.count)   : null,
-          length:         row.length  !== '' ? Number(row.length)  : null,
-          width:          row.width   !== '' ? Number(row.width)   : null,
-          height:         row.height  !== '' ? Number(row.height)  : null,
-          status:         'approved',
-          approved_by:    currentUserId,
-          approved_at:    now,
-        })
-        .select().single()
-      if (lineErr) { showErr('Revize satırı kaydedilemedi.', lineErr.message); return }
-      newLines.push(newLine)
-    }
-
-    setLines(prev => [...prev, ...newLines])
-    setRevizeForm(null)
-    setExpandedLines(prev => ({ ...prev, [parentLineId]: true }))
-  }
-
   const toggleExpand = (lineId) => {
     setExpandedLines(prev => ({ ...prev, [lineId]: !prev[lineId] }))
   }
@@ -508,8 +437,6 @@ export default function P_MetrajOnaylaCetvel() {
     const metraj      = calcMetraj(node)
     const hasChildren = (node.children?.length ?? 0) > 0
     const isRevized   = node.status === 'approved' && hasChildren
-    const isRevizeOpen = revizeForm?.parentLineId === node.id
-    const showRevizeBtn = node.status === 'approved' && !isRevizeOpen
 
     const rowBg = node.status === 'pending'  ? '#FFCC80' :
                   node.status === 'rejected' ? 'rgba(255,235,238,0.5)' :
@@ -551,144 +478,15 @@ export default function P_MetrajOnaylaCetvel() {
         }}>
           {onaylayanText}
         </Box>
-        <Box sx={{ ...css_dataCell, ...cellBg, justifyContent: 'center', gap: '2px' }}>
-          {showRevizeBtn && (
-            <Tooltip title="Revize ekle">
-              <IconButton size="small" sx={{ p: '2px' }}
-                onClick={() => setRevizeForm({ parentLineId: node.id, rows: [{ tempId: `tmp-${Date.now()}`, description: '', multiplier: '', count: '', length: '', width: '', height: '' }] })}>
-                <EditIcon sx={{ fontSize: 16, color: '#1565c0' }} />
-              </IconButton>
-            </Tooltip>
-          )}
-        </Box>
+        <Box sx={{ ...css_dataCell, ...cellBg }} />
 
         {/* Alt satırlar — parent grid içinde flat */}
         {hasChildren && node.children.map(child => <OnayLineRow key={child.id} node={child} />)}
-
-        {/* Revize editörü hücreleri */}
-        {isRevizeOpen && revizeForm?.rows && revizeForm.rows.map((row, rowIdx) => (
-          <React.Fragment key={row.tempId}>
-            <Box sx={{ ...css_dataCell, backgroundColor: 'rgba(255,250,180,0.7)', borderBottom: '1px solid #FFB300', justifyContent: 'flex-start', pl: '0.5rem', color: '#1565c0', fontSize: '0.82rem' }}>
-              {`${node.siraNo}.${(node.children?.length ?? 0) + rowIdx + 1}`}
-            </Box>
-            <Box sx={{ ...css_dataCell, backgroundColor: 'rgba(255,250,180,0.7)', borderBottom: '1px solid #FFB300' }}>
-              <input style={{ ...inputSx, textAlign: 'left' }}
-                value={row.description} placeholder="Açıklama"
-                onChange={e => setRevizeForm(prev => ({ ...prev, rows: prev.rows.map(r => r.tempId === row.tempId ? { ...r, description: e.target.value } : r) }))}
-              />
-            </Box>
-            {NUM_FIELDS.map(f => (
-              <Box key={f} sx={{ ...css_dataCell, backgroundColor: 'rgba(255,250,180,0.7)', borderBottom: '1px solid #FFB300' }}>
-                <input type="number" className="metraj-num-input" style={{ ...inputSx, textAlign: 'right' }}
-                  value={row[f]} placeholder="—"
-                  onChange={e => setRevizeForm(prev => ({ ...prev, rows: prev.rows.map(r => r.tempId === row.tempId ? { ...r, [f]: e.target.value } : r) }))}
-                  onKeyDown={e => ['e', 'E', '+'].includes(e.key) && e.preventDefault()}
-                />
-              </Box>
-            ))}
-            <Box sx={{ ...css_dataCell, backgroundColor: 'rgba(255,250,180,0.7)', borderBottom: '1px solid #FFB300', justifyContent: 'flex-end', fontWeight: 700, color: calcMetraj(row) < 0 ? '#c62828' : '#1565c0' }}>
-              {ikiHane(calcMetraj(row))}
-            </Box>
-            <Box sx={{ ...css_dataCell, backgroundColor: 'rgba(255,250,180,0.7)', borderBottom: '1px solid #FFB300', fontSize: '0.78rem', color: '#455a64' }}>{userMap[currentUserId] ?? '(ben)'}</Box>
-            <Box sx={{ ...css_dataCell, backgroundColor: 'rgba(255,250,180,0.7)', borderBottom: '1px solid #FFB300', fontSize: '0.78rem', color: '#1b5e20' }}>{userMap[currentUserId] ?? '(ben)'}</Box>
-            <Box sx={{ ...css_dataCell, backgroundColor: 'rgba(255,250,180,0.7)', borderBottom: '1px solid #FFB300', justifyContent: 'center' }}>
-              <Tooltip title="Satırı kaldır">
-                <IconButton size="small" sx={{ p: '2px' }}
-                  onClick={() => revizeForm.rows.length === 1
-                    ? setRevizeForm(null)
-                    : setRevizeForm(prev => ({ ...prev, rows: prev.rows.filter(r => r.tempId !== row.tempId) }))
-                  }>
-                  <DeleteOutlineIcon sx={{ fontSize: 18, color: 'salmon' }} />
-                </IconButton>
-              </Tooltip>
-            </Box>
-          </React.Fragment>
-        ))}
-
-        {/* Satır Ekle / Kaydet / İptal araç çubuğu — tüm kolonları kaplar */}
-        {isRevizeOpen && revizeForm?.rows && (
-          <Box sx={{ gridColumn: '1 / -1', display: 'flex', alignItems: 'center', px: '8px', py: '4px', gap: '8px', backgroundColor: 'rgba(255,250,180,0.4)', borderBottom: '2px solid #FFB300' }}>
-            <Box
-              sx={{ display: 'flex', alignItems: 'center', gap: '4px', cursor: 'pointer', flexGrow: 1, userSelect: 'none' }}
-              onClick={() => setRevizeForm(prev => ({ ...prev, rows: [...prev.rows, { tempId: `tmp-${Date.now()}-${Math.random()}`, description: '', multiplier: '', count: '', length: '', width: '', height: '' }] }))}
-            >
-              <AddIcon sx={{ fontSize: 18, color: '#1565c0' }} />
-              <Typography sx={{ fontSize: '0.8rem', color: '#1565c0' }}>Satır Ekle</Typography>
-            </Box>
-            <Tooltip title="İptal">
-              <IconButton size="small" sx={{ p: '2px' }} onClick={() => setRevizeForm(null)}>
-                <ClearIcon sx={{ fontSize: 16, color: '#c62828' }} />
-              </IconButton>
-            </Tooltip>
-            <Tooltip title="Hepsini Kaydet">
-              <IconButton size="small" sx={{ p: '2px' }} onClick={saveRevize}>
-                <SaveIcon sx={{ fontSize: 16, color: '#1565c0' }} />
-              </IconButton>
-            </Tooltip>
-          </Box>
-        )}
       </>
     )
   }
 
 
-  // ── REVİZE FORM SATIRI ────────────────────────────────────────────────────────
-
-  const RevizeFormRow = ({ parentSiraNo, siblingCount, fields, onChange, onSave, onCancel }) => (
-    <Box sx={{
-      ...css_dataRow, gridTemplateColumns: ONAY_GRID,
-      backgroundColor: 'rgba(255,250,180,0.7)', borderBottom: '2px solid #FFB300',
-    }}>
-      {/* Sıra no */}
-      <Box sx={{ ...css_dataCell, justifyContent: 'flex-start', pl: '0.5rem', color: '#1565c0', fontSize: '0.82rem' }}>
-        {`${parentSiraNo}.${siblingCount}`}
-      </Box>
-      {/* Açıklama */}
-      <Box sx={{ ...css_dataCell }}>
-        <input style={{ ...inputSx, textAlign: 'left' }}
-          value={fields.description}
-          placeholder="Açıklama"
-          onChange={e => onChange('description', e.target.value)}
-        />
-      </Box>
-      {/* Sayısal alanlar */}
-      {NUM_FIELDS.map(f => (
-        <Box key={f} sx={{ ...css_dataCell }}>
-          <input type="number" className="metraj-num-input" style={{ ...inputSx, textAlign: 'right' }}
-            value={fields[f]}
-            placeholder="—"
-            onChange={e => onChange(f, e.target.value)}
-            onKeyDown={e => ['e', 'E', '+'].includes(e.key) && e.preventDefault()}
-          />
-        </Box>
-      ))}
-      {/* Hesaplanan metraj */}
-      <Box sx={{ ...css_dataCell, justifyContent: 'flex-end', fontWeight: 700, fontSize: '0.85rem', color: '#1565c0' }}>
-        {ikiHane(calcMetraj(fields))}
-      </Box>
-      {/* Hazırlayan */}
-      <Box sx={{ ...css_dataCell, fontSize: '0.78rem', color: '#455a64' }}>
-        {userMap[currentUserId] ?? '(ben)'}
-      </Box>
-      {/* Onaylayan */}
-      <Box sx={{ ...css_dataCell, fontSize: '0.78rem', color: '#1b5e20' }}>
-        {userMap[currentUserId] ?? '(ben)'}
-      </Box>
-      {/* Kaydet / İptal */}
-      <Box sx={{ ...css_dataCell, justifyContent: 'center', gap: '2px' }}>
-        <Tooltip title="İptal">
-          <IconButton size="small" sx={{ p: '2px' }} onClick={onCancel}>
-            <ClearIcon sx={{ fontSize: 18, color: '#c62828' }} />
-          </IconButton>
-        </Tooltip>
-        <Tooltip title="Kaydet">
-          <IconButton size="small" sx={{ p: '2px' }} onClick={onSave}>
-            <SaveIcon sx={{ fontSize: 18, color: '#1565c0' }} />
-          </IconButton>
-        </Tooltip>
-      </Box>
-    </Box>
-  )
 
 
   // ── RENDER ────────────────────────────────────────────────────────────────────
@@ -699,10 +497,6 @@ export default function P_MetrajOnaylaCetvel() {
 
   return (
     <Box>
-      <style>{`
-        .metraj-num-input::-webkit-outer-spin-button,
-        .metraj-num-input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
-      `}</style>
 
       {dialogAlert && (
         <DialogAlert
