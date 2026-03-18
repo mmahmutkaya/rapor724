@@ -78,8 +78,8 @@ export default function P_MetrajOnayla() {
 
   const columns = [
     'max-content',
-    'minmax(18rem, max-content)',
-    pageSettings.showAciklama ? 'minmax(14rem, max-content)' : null,
+    pageSettings.showAciklama ? 'minmax(30rem, max-content)' : 'minmax(40rem, max-content)',
+    pageSettings.showAciklama ? 'minmax(10rem, 1fr)' : null,
   ].filter(Boolean).join(' ')
 
   const css_baslik = {

@@ -217,8 +217,8 @@ export default function P_IsPaketler() {
   const columns = [
     selectMode ? "max-content" : null,  // checkbox
     "max-content",                       // sıra
-    "minmax(20rem, max-content)",        // isim
-    pageSettings.showAciklama  ? "max-content" : null,  // açıklama
+    pageSettings.showAciklama ? "minmax(30rem, max-content)" : "minmax(40rem, max-content)",  // isim
+    pageSettings.showAciklama  ? "minmax(10rem, 1fr)" : null,  // açıklama
     pageSettings.showOlusturan ? "max-content" : null,  // oluşturan
   ].filter(Boolean).join(" ");
 

@@ -1702,7 +1702,7 @@ export default function P_MetrajOlusturCetvel() {
           ) : null
 
           if (isRevised) {
-            const origCellBg = { backgroundColor: '#C8E6C9', borderBottom: '1px dashed #c8c8c8', opacity: 0.5 }
+            const origCellBg = { backgroundColor: '#D5D5D5', borderBottom: '1px dashed #c8c8c8' }
             return (
               <>
                 {showAllOriginals && (
@@ -1716,8 +1716,8 @@ export default function P_MetrajOlusturCetvel() {
                       {ikiHane(calcMetrajOnay(node))}
                       {pozBirim && calcMetrajOnay(node) !== 0 && <Box component="span" sx={{ ml: '3px', fontWeight: 400, fontSize: '0.72rem', color: '#888' }}>{pozBirim}</Box>}
                     </Box>
-                    <Box sx={{ ...css_oc, ...origCellBg, fontSize: '0.78rem', color: '#9E9E9E' }}>{node.hazırlayan}</Box>
-                    <Box sx={{ ...css_oc, ...origCellBg, fontSize: '0.78rem', color: '#9E9E9E' }}>{node.onaylayan}</Box>
+                    <Box sx={{ ...css_oc, ...origCellBg, fontSize: '0.78rem', color: '#666' }}>{node.hazırlayan}</Box>
+                    <Box sx={{ ...css_oc, ...origCellBg, fontSize: '0.78rem', color: '#666' }}>{node.onaylayan}</Box>
                     <Box sx={{ ...css_oc, ...origCellBg, justifyContent: 'center' }}></Box>
                   </>
                 )}
@@ -1731,7 +1731,7 @@ export default function P_MetrajOlusturCetvel() {
 
           const isSuperseded = node.status === 'approved' && node.children?.some(c => c.status === 'approved')
           const rowBg = node.status !== 'approved'
-            ? (node.status === 'pending' ? '#BBDEFB' : (!node.status || node.status === 'draft') ? 'rgba(255,250,180,0.6)' : node.status === 'ignored' ? '#BDBDBD' : 'rgba(236,239,241,0.5)')
+            ? (node.status === 'pending' ? '#BBDEFB' : (!node.status || node.status === 'draft') ? 'rgba(255,250,180,0.6)' : node.status === 'ignored' ? '#D5D5D5' : 'rgba(236,239,241,0.5)')
             : (isSuperseded ? '#c5e1a5' : '#C8E6C9')
           const onaylayanText = node.status === 'pending' ? '' : (node.onaylayan ?? '')
           const isIgnored = node.status === 'ignored'
@@ -1782,8 +1782,8 @@ export default function P_MetrajOlusturCetvel() {
                 })()}
                 {pozBirim && metraj !== 0 && <Box component="span" sx={{ ml: '3px', fontWeight: 400, fontSize: '0.72rem', color: isDim ? dimColor : (metraj < 0 ? '#c62828' : '#555') }}>{pozBirim}</Box>}
               </Box>
-              <Box sx={{ ...css_oc, ...cellBg, fontSize: '0.78rem', color: isDim ? dimColor : '#455a64' }}>{node.hazırlayan}</Box>
-              <Box sx={{ ...css_oc, ...cellBg, fontSize: '0.78rem', color: isDim ? dimColor : (node.status === 'pending' ? '#1565c0' : '#1b5e20') }}>
+              <Box sx={{ ...css_oc, ...cellBg, fontSize: '0.78rem', color: isDim ? '#666' : '#455a64' }}>{node.hazırlayan}</Box>
+              <Box sx={{ ...css_oc, ...cellBg, fontSize: '0.78rem', color: isDim ? '#666' : (node.status === 'pending' ? '#1565c0' : '#1b5e20') }}>
                 {onaylayanText}
               </Box>
               <Box sx={{ ...css_oc, ...cellBg, justifyContent: 'center', gap: '2px' }}>

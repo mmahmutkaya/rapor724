@@ -34,6 +34,9 @@ import ExpandMoreIcon from '@mui/icons-material/ExpandMore'
 import ExpandLessIcon from '@mui/icons-material/ExpandLess'
 import VisibilityIcon from '@mui/icons-material/Visibility'
 import VisibilityOffIcon from '@mui/icons-material/VisibilityOff'
+import EditIcon from '@mui/icons-material/Edit'
+import SaveIcon from '@mui/icons-material/Save'
+import CloseIcon from '@mui/icons-material/Close'
 
 
 function computeQuantity(line) {
@@ -160,6 +163,8 @@ export default function P_MetrajOnaylaCetvel() {
   const [openVisibilityDialog, setOpenVisibilityDialog] = useState(false)
   const [visibleOnayKarti, setVisibleOnayKarti]         = useState(true)
   const [visibleSessCards, setVisibleSessCards]         = useState({})
+  const [cardEditMode, setCardEditMode]                 = useState({})  // { [sessId]: boolean }
+  const [draftLines, setDraftLines]                     = useState({})  // { [lineId]: { status, ... } }
 
   const wpAreaId = selectedMahal_metraj?.wpAreaId
 
@@ -254,8 +259,12 @@ export default function P_MetrajOnaylaCetvel() {
 
   // ── Aksiyonlar ────────────────────────────────────────────────────────────────
 
-  const approveLine = async (lineId) => {
+  const approveLine = async (lineId, sessId) => {
     const now = new Date().toISOString()
+    if (sessId && cardEditMode[sessId]) {
+      setDraftLines(prev => ({ ...prev, [lineId]: { status: 'approved', approved_by: currentUserId, approved_at: now } }))
+      return
+    }
     const { error } = await supabase
       .from('measurement_lines')
       .update({ status: 'approved', approved_by: currentUserId, approved_at: now })
@@ -270,7 +279,11 @@ export default function P_MetrajOnaylaCetvel() {
     })))
   }
 
-  const ignoreLine = async (lineId) => {
+  const ignoreLine = async (lineId, sessId) => {
+    if (sessId && cardEditMode[sessId]) {
+      setDraftLines(prev => ({ ...prev, [lineId]: { status: 'ignored' } }))
+      return
+    }
     const { error } = await supabase
       .from('measurement_lines').update({ status: 'ignored' }).eq('id', lineId)
     if (error) {
@@ -281,6 +294,36 @@ export default function P_MetrajOnaylaCetvel() {
       ...s,
       lines: s.lines.map(l => l.id === lineId ? { ...l, status: 'ignored' } : l),
     })))
+  }
+
+  // ── Düzenleme modu ────────────────────────────────────────────────────────────
+
+  const saveCardEdits = async (sessId) => {
+    const sess = sessions.find(s => s.id === sessId)
+    if (!sess) return
+    const lineIds = new Set(sess.lines.map(l => l.id))
+    const changes = Object.entries(draftLines).filter(([id]) => lineIds.has(id))
+    for (const [lineId, draft] of changes) {
+      const { error } = await supabase.from('measurement_lines').update(draft).eq('id', lineId)
+      if (error) {
+        setDialogAlert({ dialogIcon: 'warning', dialogMessage: 'Kayıt sırasında hata.', detailText: error.message, onCloseAction: () => setDialogAlert() })
+        return
+      }
+    }
+    setSessions(prev => prev.map(s => s.id !== sessId ? s : {
+      ...s,
+      lines: s.lines.map(l => draftLines[l.id] ? { ...l, ...draftLines[l.id] } : l),
+    }))
+    setDraftLines(prev => { const next = { ...prev }; lineIds.forEach(id => delete next[id]); return next })
+    setCardEditMode(prev => ({ ...prev, [sessId]: false }))
+  }
+
+  const cancelCardEdits = (sessId) => {
+    const sess = sessions.find(s => s.id === sessId)
+    if (!sess) return
+    const lineIds = new Set(sess.lines.map(l => l.id))
+    setDraftLines(prev => { const next = { ...prev }; lineIds.forEach(id => delete next[id]); return next })
+    setCardEditMode(prev => ({ ...prev, [sessId]: false }))
   }
 
   // ── Onay ağacı yardımcıları ───────────────────────────────────────────────────
@@ -482,6 +525,26 @@ export default function P_MetrajOnaylaCetvel() {
                     <Typography variant="body1" sx={{ fontWeight: 700, flexGrow: 1 }}>
                       {sess.userName}
                     </Typography>
+                    {cardEditMode[sess.id] ? (
+                      <>
+                        <Tooltip title="Kaydet">
+                          <IconButton size="small" sx={{ color: '#a5d6a7' }} onClick={() => saveCardEdits(sess.id)}>
+                            <SaveIcon sx={{ fontSize: 20 }} />
+                          </IconButton>
+                        </Tooltip>
+                        <Tooltip title="İptal">
+                          <IconButton size="small" sx={{ color: '#ef9a9a' }} onClick={() => cancelCardEdits(sess.id)}>
+                            <CloseIcon sx={{ fontSize: 20 }} />
+                          </IconButton>
+                        </Tooltip>
+                      </>
+                    ) : (
+                      <Tooltip title="Düzenle">
+                        <IconButton size="small" sx={{ color: 'rgba(224,225,221,0.6)', '&:hover': { color: '#e0e1dd' } }} onClick={() => setCardEditMode(prev => ({ ...prev, [sess.id]: true }))}>
+                          <EditIcon sx={{ fontSize: 18 }} />
+                        </IconButton>
+                      </Tooltip>
+                    )}
                   </Box>
 
                   {/* Satır yok */}
@@ -507,14 +570,15 @@ export default function P_MetrajOnaylaCetvel() {
                         {buildDisplayTree(rootLines).map(line => {
                           const qty = computeQuantity(line)
                           const isDeduction = qty < 0
-                          const isIgnoredLocked = line.status === 'ignored'
+                          const effStatus = draftLines[line.id]?.status ?? line.status
+                          const isIgnoredLocked = effStatus === 'ignored'
                           const rowBg = isIgnoredLocked
                             ? '#BDBDBD'
-                            : line.status === 'pending' && !isApproved
+                            : effStatus === 'pending' && !isApproved
                             ? '#BBDEFB'
-                            : (!line.status || line.status === 'draft') && !isApproved
+                            : (!effStatus || effStatus === 'draft') && !isApproved
                             ? '#FFE0B2'
-                            : line.status === 'approved'
+                            : effStatus === 'approved'
                             ? '#C8E6C9'
                             : isApproved
                             ? cardColors.row
@@ -555,24 +619,28 @@ export default function P_MetrajOnaylaCetvel() {
 
                               {/* DURUM sütunu */}
                               <Box sx={{ ...css_lineCell, ...cellBg, justifyContent: 'center', px: '2px' }}>
-                                {line.status === 'approved' ? (
+                                {effStatus === 'approved' ? (
                                   <DoneAllIcon sx={{ fontSize: 18, color: '#2e7d32', fontWeight: 700 }} />
-                                ) : line.status === 'ignored' ? (
+                                ) : effStatus === 'ignored' ? (
                                   <DoneAllIcon sx={{ fontSize: 18, color: '#424242' }} />
-                                ) : line.status === 'pending' ? (
-                                  <>
-                                    <Tooltip title="Onayla">
-                                      <IconButton size="small" sx={{ p: '2px' }} onClick={() => approveLine(line.id)}>
-                                        <CheckCircleIcon sx={{ fontSize: 18, color: '#2e7d32' }} />
-                                      </IconButton>
-                                    </Tooltip>
-                                    <Tooltip title="Ignore">
-                                      <IconButton size="small" sx={{ p: '2px' }} onClick={() => ignoreLine(line.id)}>
-                                        <BlockIcon sx={{ fontSize: 18, color: '#607d8b' }} />
-                                      </IconButton>
-                                    </Tooltip>
-                                  </>
-                                ) : (!line.status || line.status === 'draft') ? (
+                                ) : effStatus === 'pending' ? (
+                                  cardEditMode[sess.id] ? (
+                                    <>
+                                      <Tooltip title="Onayla">
+                                        <IconButton size="small" sx={{ p: '2px' }} onClick={() => approveLine(line.id, sess.id)}>
+                                          <CheckCircleIcon sx={{ fontSize: 18, color: '#2e7d32' }} />
+                                        </IconButton>
+                                      </Tooltip>
+                                      <Tooltip title="Ignore">
+                                        <IconButton size="small" sx={{ p: '2px' }} onClick={() => ignoreLine(line.id, sess.id)}>
+                                          <BlockIcon sx={{ fontSize: 18, color: '#607d8b' }} />
+                                        </IconButton>
+                                      </Tooltip>
+                                    </>
+                                  ) : (
+                                    <HourglassFullIcon sx={{ fontSize: 15, color: '#E65100' }} />
+                                  )
+                                ) : (!effStatus || effStatus === 'draft') ? (
                                   <HourglassFullIcon sx={{ fontSize: 15, color: '#E65100' }} />
                                 ) : null}
                               </Box>
@@ -651,7 +719,7 @@ export default function P_MetrajOnaylaCetvel() {
           const isRevised = node.status === 'approved' && hasKids && (node.children ?? []).some(c => c.status === 'approved')
 
           if (isRevised) {
-            const origCellBg = { backgroundColor: '#C8E6C9', borderBottom: '1px dashed #c8c8c8', opacity: 0.5 }
+            const origCellBg = { backgroundColor: '#D5D5D5', borderBottom: '1px dashed #c8c8c8' }
             return (
               <>
                 {showAllOriginals && (
@@ -665,8 +733,8 @@ export default function P_MetrajOnaylaCetvel() {
                       {ikiHane(calcMetrajOnay(node))}
                       {pozBirim && calcMetrajOnay(node) !== 0 && <Box component="span" sx={{ ml: '3px', fontWeight: 400, fontSize: '0.72rem', color: '#888' }}>{pozBirim}</Box>}
                     </Box>
-                    <Box sx={{ ...css_oc, ...origCellBg, fontSize: '0.78rem', color: '#9E9E9E' }}>{node.hazırlayan}</Box>
-                    <Box sx={{ ...css_oc, ...origCellBg, fontSize: '0.78rem', color: '#9E9E9E' }}>{node.onaylayan}</Box>
+                    <Box sx={{ ...css_oc, ...origCellBg, fontSize: '0.78rem', color: '#666' }}>{node.hazırlayan}</Box>
+                    <Box sx={{ ...css_oc, ...origCellBg, fontSize: '0.78rem', color: '#666' }}>{node.onaylayan}</Box>
                     <Box sx={{ ...css_oc, ...origCellBg, justifyContent: 'center' }}></Box>
                   </>
                 )}
@@ -679,8 +747,8 @@ export default function P_MetrajOnaylaCetvel() {
 
           const isSuperseded = node.status === 'approved' && node.children?.some(c => c.status === 'approved')
           const rowBg = node.status !== 'approved'
-            ? (node.status === 'pending' ? '#BBDEFB' : (!node.status || node.status === 'draft') ? 'rgba(255,250,180,0.6)' : node.status === 'ignored' ? '#EEEEEE' : 'rgba(236,239,241,0.5)')
-            : (isSuperseded ? '#D6ECD7' : '#C8E6C9')
+            ? (node.status === 'pending' ? '#BBDEFB' : (!node.status || node.status === 'draft') ? 'rgba(255,250,180,0.6)' : node.status === 'ignored' ? '#D5D5D5' : 'rgba(236,239,241,0.5)')
+            : (isSuperseded ? '#c5e1a5' : '#C8E6C9')
           const onaylayanText = node.status === 'pending' ? '' : (node.onaylayan ?? '')
           const isIgnored = node.status === 'ignored'
           const dimColor = 'rgba(0,0,0,0.28)'
@@ -716,8 +784,8 @@ export default function P_MetrajOnaylaCetvel() {
                 })()}
                 {pozBirim && metraj !== 0 && <Box component="span" sx={{ ml: '3px', fontWeight: 400, fontSize: '0.72rem', color: isDim ? dimColor : (metraj < 0 ? '#c62828' : '#555') }}>{pozBirim}</Box>}
               </Box>
-              <Box sx={{ ...css_oc, ...cellBg, fontSize: '0.78rem', color: isDim ? dimColor : '#455a64' }}>{node.hazırlayan}</Box>
-              <Box sx={{ ...css_oc, ...cellBg, fontSize: '0.78rem', color: isDim ? dimColor : (node.status === 'pending' ? '#1565c0' : '#1b5e20') }}>
+              <Box sx={{ ...css_oc, ...cellBg, fontSize: '0.78rem', color: isDim ? '#666' : '#455a64' }}>{node.hazırlayan}</Box>
+              <Box sx={{ ...css_oc, ...cellBg, fontSize: '0.78rem', color: isDim ? '#666' : (node.status === 'pending' ? '#1565c0' : '#1b5e20') }}>
                 {onaylayanText}
               </Box>
 
@@ -805,8 +873,11 @@ export default function P_MetrajOnaylaCetvel() {
                   <Box sx={{ ...css_ohc }}>Onaylayan</Box>
                   <Box sx={{ ...css_ohc }}></Box>
 
-                  {approvalTree.map(rootNode => (
-                    <React.Fragment key={rootNode.id}>{renderOnayRow(rootNode)}</React.Fragment>
+                  {approvalTree.map((rootNode, idx) => (
+                    <React.Fragment key={rootNode.id}>
+                      {idx > 0 && <Box sx={{ gridColumn: '1 / -1', borderTop: '2px solid #9e9e9e' }} />}
+                      {renderOnayRow(rootNode)}
+                    </React.Fragment>
                   ))}
                 </Box>
               </Box>
