@@ -16,7 +16,6 @@ import LinearProgress from '@mui/material/LinearProgress'
 import Alert from '@mui/material/Alert'
 import Stack from '@mui/material/Stack'
 import IconButton from '@mui/material/IconButton'
-import Chip from '@mui/material/Chip'
 import NavigateNextIcon from '@mui/icons-material/NavigateNext'
 import ReplyIcon from '@mui/icons-material/Reply'
 import EditIcon from '@mui/icons-material/Edit'
@@ -156,7 +155,7 @@ const inputSx = {
 function getCardColors(visualStatus) {
   if (visualStatus === 'approved') return { border: '#A5D6A7', header: '#415a77', row: 'rgba(200,230,201,0.35)', totalText: '#e0e1dd' }
   if (visualStatus === 'revised') return { border: '#90CAF9', header: '#415a77', row: 'rgba(187,222,251,0.35)', totalText: '#e0e1dd' }
-  if (visualStatus === 'rejected') return { border: '#EF9A9A', header: '#415a77', row: 'rgba(255,205,210,0.28)', totalText: '#e0e1dd' }
+
   if (visualStatus === 'pendingRevision') return { border: '#CE93D8', header: '#415a77', row: 'rgba(206,147,216,0.15)', totalText: '#e0e1dd' }
   return { border: '#64B5F6', header: '#415a77', row: 'rgba(100,181,246,0.15)', totalText: '#e0e1dd' }
 }
@@ -1502,8 +1501,6 @@ export default function P_MetrajOlusturCetvel() {
                               </IconButton>
                             ) : line.status === 'approved' ? (
                               <DoneAllIcon sx={{ fontSize: 18, color: '#2e7d32', fontWeight: 700 }} />
-                            ) : line.status === 'rejected' ? (
-                              <ClearIcon sx={{ fontSize: 18, color: '#c62828' }} />
                             ) : line.status === 'ignored' ? (
                               <DoneAllIcon sx={{ fontSize: 18, color: '#424242' }} />
                             ) : line.status === 'pending' && isApproved ? (
@@ -1597,11 +1594,6 @@ export default function P_MetrajOlusturCetvel() {
             .filter(v => v !== null && !isNaN(v))
           if (vals.length === 0) return 0
           return vals.reduce((p, v) => p * v, 1)
-        }
-        const LINE_STATUS_CHIP = {
-          pending:  <Chip size="small" label="Bekliyor"   sx={{ backgroundColor: '#FFF3E0', color: '#E65100', fontWeight: 600, fontSize: '0.7rem', height: 20 }} />,
-          rejected: <Chip size="small" label="Reddedildi" sx={{ backgroundColor: '#FFEBEE', color: '#B71C1C', fontWeight: 600, fontSize: '0.7rem', height: 20 }} />,
-          ignored:  <Chip size="small" label="Ignore"     sx={{ backgroundColor: '#ECEFF1', color: '#455A64', fontWeight: 600, fontSize: '0.7rem', height: 20 }} />,
         }
         const css_ohc = { px: '4px', py: '3px', display: 'flex', alignItems: 'center', justifyContent: 'center', borderRight: '1px solid rgba(255,255,255,0.15)', fontSize: '0.75rem', fontWeight: 600, backgroundColor: '#1b5e20', color: '#fff' }
         const css_oc = { px: '4px', py: '6px', height: '34px', fontSize: '0.85rem', display: 'flex', alignItems: 'center', borderRight: '1px dashed #d8d8d8', overflow: 'hidden' }
@@ -1710,7 +1702,7 @@ export default function P_MetrajOlusturCetvel() {
           ) : null
 
           if (isRevised) {
-            const origCellBg = { backgroundColor: 'rgba(200,230,201,0.2)', borderBottom: '1px dashed #c8c8c8', opacity: 0.7 }
+            const origCellBg = { backgroundColor: '#C8E6C9', borderBottom: '1px dashed #c8c8c8', opacity: 0.5 }
             return (
               <>
                 {showAllOriginals && (
@@ -1737,19 +1729,21 @@ export default function P_MetrajOlusturCetvel() {
             )
           }
 
+          const isSuperseded = node.status === 'approved' && node.children?.some(c => c.status === 'approved')
           const rowBg = node.status !== 'approved'
-            ? (node.status === 'pending' ? '#BBDEFB' : node.status === 'rejected' ? 'rgba(255,235,238,0.5)' : (!node.status || node.status === 'draft') ? 'rgba(255,250,180,0.6)' : node.status === 'ignored' ? '#EEEEEE' : 'rgba(236,239,241,0.5)')
-            : '#C8E6C9'
-          const onaylayanText = node.status === 'pending' ? '' : node.status === 'rejected' ? '(reddedildi)' : (node.onaylayan ?? '')
+            ? (node.status === 'pending' ? '#BBDEFB' : (!node.status || node.status === 'draft') ? 'rgba(255,250,180,0.6)' : node.status === 'ignored' ? '#BDBDBD' : 'rgba(236,239,241,0.5)')
+            : (isSuperseded ? '#c5e1a5' : '#C8E6C9')
+          const onaylayanText = node.status === 'pending' ? '' : (node.onaylayan ?? '')
           const isIgnored = node.status === 'ignored'
           const dimColor = 'rgba(0,0,0,0.28)'
-          const cellBg = { backgroundColor: rowBg, borderBottom: '1px dashed #c8c8c8', ...(isIgnored ? { color: dimColor } : {}) }
-          const negColor = isIgnored ? dimColor : (metraj < 0 ? '#c62828' : undefined)
+          const isDim = isIgnored || isSuperseded
+          const cellBg = { backgroundColor: rowBg, borderBottom: '1px dashed #c8c8c8', ...(isDim ? { color: dimColor } : {}) }
+          const negColor = isDim ? dimColor : (metraj < 0 ? '#c62828' : undefined)
 
           return (
             <>
               {/* Sıra sütunu — expand/collapse oku buraya taşındı */}
-              <Box sx={{ ...css_oc, ...cellBg, justifyContent: 'flex-start', pl: hasKids ? '2px' : '0.5rem', display: 'flex', alignItems: 'center', gap: '2px', color: isIgnored ? dimColor : (node.depth > 0 ? '#1565c0' : '#555') }}>
+              <Box sx={{ ...css_oc, ...cellBg, justifyContent: 'flex-start', pl: hasKids ? '2px' : '0.5rem', display: 'flex', alignItems: 'center', gap: '2px', color: isDim ? dimColor : (node.depth > 0 ? '#1565c0' : '#555') }}>
                 {hasKids && (
                   <IconButton size="small" sx={{ p: '1px', flexShrink: 0 }} onClick={() => setExpandedApproved(prev => ({ ...prev, [node.id]: !prev[node.id] }))}>
                     {isExp ? <ExpandLessIcon sx={{ fontSize: 16, color: '#888' }} /> : <ExpandMoreIcon sx={{ fontSize: 16, color: '#888' }} />}
@@ -1786,10 +1780,10 @@ export default function P_MetrajOlusturCetvel() {
                     [(Number(node.multiplier) === 1 ? null : node.multiplier), node.count, node.length, node.width, node.height].some(v => !isEmpty(v))
                   return hasData ? ikiHane(metraj) : ''
                 })()}
-                {pozBirim && metraj !== 0 && <Box component="span" sx={{ ml: '3px', fontWeight: 400, fontSize: '0.72rem', color: isIgnored ? dimColor : (metraj < 0 ? '#c62828' : '#555') }}>{pozBirim}</Box>}
+                {pozBirim && metraj !== 0 && <Box component="span" sx={{ ml: '3px', fontWeight: 400, fontSize: '0.72rem', color: isDim ? dimColor : (metraj < 0 ? '#c62828' : '#555') }}>{pozBirim}</Box>}
               </Box>
-              <Box sx={{ ...css_oc, ...cellBg, fontSize: '0.78rem', color: isIgnored ? dimColor : '#455a64' }}>{node.hazırlayan}</Box>
-              <Box sx={{ ...css_oc, ...cellBg, fontSize: '0.78rem', color: isIgnored ? dimColor : (node.status === 'pending' ? '#1565c0' : node.status === 'rejected' ? '#b71c1c' : '#1b5e20') }}>
+              <Box sx={{ ...css_oc, ...cellBg, fontSize: '0.78rem', color: isDim ? dimColor : '#455a64' }}>{node.hazırlayan}</Box>
+              <Box sx={{ ...css_oc, ...cellBg, fontSize: '0.78rem', color: isDim ? dimColor : (node.status === 'pending' ? '#1565c0' : '#1b5e20') }}>
                 {onaylayanText}
               </Box>
               <Box sx={{ ...css_oc, ...cellBg, justifyContent: 'center', gap: '2px' }}>

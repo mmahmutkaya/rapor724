@@ -93,7 +93,7 @@ export default function P_MetrajOlusturPozMahaller() {
         .from('measurement_sessions')
         .select('id, work_package_poz_area_id, status, total_quantity, created_by, created_at, updated_at, revision_snapshot')
         .in('work_package_poz_area_id', areaIds)
-        .in('status', ['draft', 'ready', 'seen', 'approved', 'rejected', 'revise_requested', 'revised'])
+        .in('status', ['draft', 'ready', 'seen', 'approved', 'revise_requested', 'revised'])
         .order('updated_at', { ascending: false })
 
       if (sessionsError || !sessions) {

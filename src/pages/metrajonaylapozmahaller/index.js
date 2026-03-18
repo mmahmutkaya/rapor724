@@ -111,7 +111,7 @@ export default function P_MetrajOnaylaPozMahaller() {
         .from('measurement_sessions')
         .select('id, work_package_poz_area_id, status, total_quantity, created_by, updated_at, revision_snapshot')
         .in('work_package_poz_area_id', areaIds)
-        .in('status', ['draft', 'ready', 'seen', 'approved', 'revised', 'rejected', 'revise_requested'])
+        .in('status', ['draft', 'ready', 'seen', 'approved', 'revised', 'revise_requested'])
         .order('updated_at', { ascending: false })
 
       if (sessionsError || !sessions || sessions.length === 0) {
