@@ -1616,13 +1616,14 @@ export default function P_MetrajOlusturCetvel() {
                 const revizeCellBg = isSubmitted
                   ? { backgroundColor: '#BBDEFB', borderBottom: '1px solid #90CAF9' }
                   : { backgroundColor: 'rgba(255,250,180,0.6)', borderBottom: '1px solid #c8c8c8' }
+                const revizeNegColor = calcMetrajOnay(row) < 0 ? '#c62828' : undefined
 
                 return (
                   <React.Fragment key={row.tempId}>
                     <Box sx={{ ...css_oc, ...revizeCellBg, justifyContent: 'flex-start', pl: '0.5rem', color: '#1565c0', fontSize: '0.82rem' }}>
                       {`${node.siraNo}.${(node.children?.length ?? 0) + rowIdx + 1}`}
                     </Box>
-                    <Box sx={{ ...css_oc, ...revizeCellBg, display: 'flex', alignItems: 'center', gap: '4px' }}>
+                    <Box sx={{ ...css_oc, ...revizeCellBg, display: 'flex', alignItems: 'center', gap: '4px', color: revizeNegColor }}>
                       {!isSubmitted && (
                         <IconButton size="small" sx={{ p: '1px', flexShrink: 0 }}
                           onClick={() => setRevizeForms(prev => {
@@ -1636,15 +1637,15 @@ export default function P_MetrajOlusturCetvel() {
                       )}
                       {isSubmitted
                         ? <Box sx={{ fontSize: '0.85rem', color: '#1565c0' }}>{row.description || ''}</Box>
-                        : <input style={{ ...inputOnay, textAlign: 'left' }} value={row.description} placeholder="Açıklama"
+                        : <input style={{ ...inputOnay, textAlign: 'left', color: revizeNegColor }} value={row.description} placeholder="Açıklama"
                             onChange={e => setRevizeForms(prev => ({ ...prev, [node.id]: prev[node.id].map(r => r.tempId === row.tempId ? { ...r, description: e.target.value } : r) }))} />
                       }
                     </Box>
                     {NUM_ONAY_FIELDS.map(f => (
-                      <Box key={f} sx={{ ...css_oc, ...revizeCellBg, justifyContent: 'flex-end' }}>
+                      <Box key={f} sx={{ ...css_oc, ...revizeCellBg, justifyContent: 'flex-end', color: revizeNegColor }}>
                         {isSubmitted
                           ? <Box sx={{ fontSize: '0.85rem', color: '#333' }}>{(row[f] !== '' && row[f] != null) ? ikiHane(Number(row[f])) : ''}</Box>
-                          : <input type="number" className="metraj-num-input" style={{ ...inputOnay, textAlign: 'right' }}
+                          : <input type="number" className="metraj-num-input" style={{ ...inputOnay, textAlign: 'right', color: revizeNegColor }}
                               value={row[f]} placeholder="—"
                               onChange={e => setRevizeForms(prev => ({ ...prev, [node.id]: prev[node.id].map(r => r.tempId === row.tempId ? { ...r, [f]: e.target.value } : r) }))}
                               onKeyDown={e => ['e', 'E', '+'].includes(e.key) && e.preventDefault()} />
@@ -1711,7 +1712,8 @@ export default function P_MetrajOlusturCetvel() {
             ? (node.status === 'pending' ? '#BBDEFB' : node.status === 'rejected' ? 'rgba(255,235,238,0.5)' : (!node.status || node.status === 'draft') ? 'rgba(255,250,180,0.6)' : 'rgba(236,239,241,0.5)')
             : '#C8E6C9'
           const onaylayanText = node.status === 'pending' ? '' : node.status === 'rejected' ? '(reddedildi)' : node.status === 'ignored' ? '(ignore)' : (node.onaylayan ?? '')
-          const cellBg = { backgroundColor: rowBg, borderBottom: '1px dashed #c8c8c8', ...(metraj < 0 && { color: '#c62828' }) }
+          const cellBg = { backgroundColor: rowBg, borderBottom: '1px dashed #c8c8c8' }
+          const negColor = metraj < 0 ? '#c62828' : undefined
 
           return (
             <>
@@ -1724,7 +1726,7 @@ export default function P_MetrajOlusturCetvel() {
                 )}
                 {node.siraNo}
               </Box>
-              <Box sx={{ ...css_oc, ...cellBg, display: 'flex', alignItems: 'center', gap: '4px', ...(metraj < 0 && { '& input::placeholder': { color: '#c62828', opacity: 1 } }) }}>
+              <Box sx={{ ...css_oc, ...cellBg, display: 'flex', alignItems: 'center', gap: '4px', color: negColor }}>
                 {isChildEditable && (
                   <IconButton size="small" sx={{ p: '1px', flexShrink: 0 }}
                     onClick={() => handleDeleteDraftChild(node.id)}>
@@ -1732,21 +1734,21 @@ export default function P_MetrajOlusturCetvel() {
                   </IconButton>
                 )}
                 {isChildEditable && childVals
-                  ? <input className={metraj < 0 ? 'input-neg' : undefined} style={{ ...inputOnay, textAlign: 'left', color: metraj < 0 ? '#c62828' : 'inherit' }} value={childVals.description} placeholder="Açıklama"
+                  ? <input className={metraj < 0 ? 'input-neg' : undefined} style={{ ...inputOnay, textAlign: 'left', color: negColor }} value={childVals.description} placeholder="Açıklama"
                       onChange={e => setChildEditValues(prev => ({ ...prev, [node.id]: { ...prev[node.id], description: e.target.value } }))} />
                   : node.description ?? ''}
               </Box>
               {NUM_ONAY_FIELDS.map(f => (
-                <Box key={f} sx={{ ...css_oc, ...cellBg, justifyContent: 'flex-end', ...(metraj < 0 && { '& input::placeholder': { color: '#c62828', opacity: 1 } }) }}>
+                <Box key={f} sx={{ ...css_oc, ...cellBg, justifyContent: 'flex-end', color: negColor }}>
                   {isChildEditable && childVals
-                    ? <input type="number" className={metraj < 0 ? 'metraj-num-input input-neg' : 'metraj-num-input'} style={{ ...inputOnay, textAlign: 'right', color: metraj < 0 ? '#c62828' : 'inherit' }}
+                    ? <input type="number" className={metraj < 0 ? 'metraj-num-input input-neg' : 'metraj-num-input'} style={{ ...inputOnay, textAlign: 'right', color: negColor }}
                         value={childVals[f]} placeholder="—"
                         onChange={e => setChildEditValues(prev => ({ ...prev, [node.id]: { ...prev[node.id], [f]: e.target.value } }))}
                         onKeyDown={e => ['e', 'E', '+'].includes(e.key) && e.preventDefault()} />
                     : f === 'multiplier' && Number(node[f]) === 1 ? '' : (node[f] != null ? ikiHane(node[f]) : '')}
                 </Box>
               ))}
-              <Box sx={{ ...css_oc, ...cellBg, justifyContent: 'flex-end', fontWeight: 700, ...(metraj < 0 && { color: '#c62828' }) }}>
+              <Box sx={{ ...css_oc, ...cellBg, justifyContent: 'flex-end', fontWeight: 700, color: negColor }}>
                 {metraj !== 0 ? ikiHane(metraj) : (() => {
                   const isEmpty = v => v === null || v === undefined || v === ''
                   const hasData = !isEmpty(node.description) ||
