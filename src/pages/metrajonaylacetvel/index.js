@@ -30,6 +30,7 @@ import DoneAllIcon from '@mui/icons-material/DoneAll'
 import ClearIcon from '@mui/icons-material/Clear'
 import BlockIcon from '@mui/icons-material/Block'
 import HourglassFullIcon from '@mui/icons-material/HourglassFull'
+import CheckIcon from '@mui/icons-material/Check'
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore'
 import ExpandLessIcon from '@mui/icons-material/ExpandLess'
 import VisibilityIcon from '@mui/icons-material/Visibility'
@@ -608,7 +609,7 @@ export default function P_MetrajOnaylaCetvel() {
                           </Box>
                           <Box sx={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
                             <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', borderRadius: '50%', backgroundColor: '#BBDEFB', width: 26, height: 26, flexShrink: 0 }}>
-                              <CheckCircleIcon sx={{ fontSize: 16, color: '#1565C0', filter: 'drop-shadow(0 0 0.4px #1565C0)' }} />
+                              <CheckIcon sx={{ fontSize: 16, color: '#1565C0', filter: 'drop-shadow(0 0 0.4px #1565C0)' }} />
                             </Box>
                             <Box component="span" sx={{ fontSize: '0.82rem', color: 'rgba(255,255,255,0.75)' }}>Onaya Sunulan</Box>
                             <Box component="span" sx={{ fontSize: '0.95rem', fontWeight: 700, color: totalPending === 0 ? 'rgba(255,255,255,0.55)' : '#e0e1dd', ml: '2px' }}>{ikiHane(totalPending)}</Box>
@@ -677,7 +678,10 @@ export default function P_MetrajOnaylaCetvel() {
                     {NUM_ONAY_FIELDS.map(f => (
                       <Box key={f} sx={{ ...css_oc, ...origCellBg, justifyContent: 'flex-end', color: '#888' }}>{f === 'multiplier' && Number(node[f]) === 1 ? '' : (node[f] != null ? ikiHane(node[f]) : '')}</Box>
                     ))}
-                    <Box sx={{ ...css_oc, ...origCellBg, justifyContent: 'flex-end', fontWeight: 700, color: '#888' }}>{ikiHane(calcMetrajOnay(node))}</Box>
+                    <Box sx={{ ...css_oc, ...origCellBg, justifyContent: 'flex-end', fontWeight: 700, color: '#888' }}>
+                      {ikiHane(calcMetrajOnay(node))}
+                      {pozBirim && calcMetrajOnay(node) !== 0 && <Box component="span" sx={{ ml: '3px', fontWeight: 400, fontSize: '0.72rem', color: '#888' }}>{pozBirim}</Box>}
+                    </Box>
                     <Box sx={{ ...css_oc, ...origCellBg, fontSize: '0.78rem', color: '#9E9E9E' }}>{node.hazırlayan}</Box>
                     <Box sx={{ ...css_oc, ...origCellBg, fontSize: '0.78rem', color: '#9E9E9E' }}>{node.onaylayan}</Box>
                     <Box sx={{ ...css_oc, ...origCellBg, justifyContent: 'center' }}></Box>
@@ -691,16 +695,18 @@ export default function P_MetrajOnaylaCetvel() {
           }
 
           const rowBg = node.status !== 'approved'
-            ? (node.status === 'pending' ? '#BBDEFB' : node.status === 'rejected' ? 'rgba(255,235,238,0.5)' : (!node.status || node.status === 'draft') ? 'rgba(255,250,180,0.6)' : 'rgba(236,239,241,0.5)')
+            ? (node.status === 'pending' ? '#BBDEFB' : node.status === 'rejected' ? 'rgba(255,235,238,0.5)' : (!node.status || node.status === 'draft') ? 'rgba(255,250,180,0.6)' : node.status === 'ignored' ? '#EEEEEE' : 'rgba(236,239,241,0.5)')
             : '#C8E6C9'
-          const onaylayanText = node.status === 'pending' ? '' : node.status === 'rejected' ? '(reddedildi)' : node.status === 'ignored' ? '(ignore)' : (node.onaylayan ?? '')
-          const cellBg = { backgroundColor: rowBg, borderBottom: '1px dashed #c8c8c8' }
-          const negColor = metraj < 0 ? '#c62828' : undefined
+          const onaylayanText = node.status === 'pending' ? '' : node.status === 'rejected' ? '(reddedildi)' : (node.onaylayan ?? '')
+          const isIgnored = node.status === 'ignored'
+          const dimColor = 'rgba(0,0,0,0.28)'
+          const cellBg = { backgroundColor: rowBg, borderBottom: '1px dashed #c8c8c8', ...(isIgnored ? { color: dimColor } : {}) }
+          const negColor = isIgnored ? dimColor : (metraj < 0 ? '#c62828' : undefined)
 
           return (
             <>
               {/* Sıra sütunu */}
-              <Box sx={{ ...css_oc, ...cellBg, justifyContent: 'flex-start', pl: hasKids ? '2px' : '0.5rem', display: 'flex', alignItems: 'center', gap: '2px', color: node.depth > 0 ? '#1565c0' : '#555' }}>
+              <Box sx={{ ...css_oc, ...cellBg, justifyContent: 'flex-start', pl: hasKids ? '2px' : '0.5rem', display: 'flex', alignItems: 'center', gap: '2px', color: isIgnored ? dimColor : (node.depth > 0 ? '#1565c0' : '#555') }}>
                 {hasKids && (
                   <IconButton size="small" sx={{ p: '1px', flexShrink: 0 }} onClick={() => setExpandedApproved(prev => ({ ...prev, [node.id]: !prev[node.id] }))}>
                     {isExp ? <ExpandLessIcon sx={{ fontSize: 16, color: '#888' }} /> : <ExpandMoreIcon sx={{ fontSize: 16, color: '#888' }} />}
@@ -723,10 +729,10 @@ export default function P_MetrajOnaylaCetvel() {
                     [(Number(node.multiplier) === 1 ? null : node.multiplier), node.count, node.length, node.width, node.height].some(v => !isEmpty(v))
                   return hasData ? ikiHane(metraj) : ''
                 })()}
-                {pozBirim && metraj !== 0 && <Box component="span" sx={{ ml: '3px', fontWeight: 400, fontSize: '0.72rem', color: metraj < 0 ? '#c62828' : '#555' }}>{pozBirim}</Box>}
+                {pozBirim && metraj !== 0 && <Box component="span" sx={{ ml: '3px', fontWeight: 400, fontSize: '0.72rem', color: isIgnored ? dimColor : (metraj < 0 ? '#c62828' : '#555') }}>{pozBirim}</Box>}
               </Box>
-              <Box sx={{ ...css_oc, ...cellBg, fontSize: '0.78rem', color: '#455a64' }}>{node.hazırlayan}</Box>
-              <Box sx={{ ...css_oc, ...cellBg, fontSize: '0.78rem', color: node.status === 'pending' ? '#1565c0' : node.status === 'rejected' ? '#b71c1c' : '#1b5e20' }}>
+              <Box sx={{ ...css_oc, ...cellBg, fontSize: '0.78rem', color: isIgnored ? dimColor : '#455a64' }}>{node.hazırlayan}</Box>
+              <Box sx={{ ...css_oc, ...cellBg, fontSize: '0.78rem', color: isIgnored ? dimColor : (node.status === 'pending' ? '#1565c0' : node.status === 'rejected' ? '#b71c1c' : '#1b5e20') }}>
                 {onaylayanText}
               </Box>
 
@@ -774,7 +780,9 @@ export default function P_MetrajOnaylaCetvel() {
         const totalApprovalPending = a_pend - b_pend
 
         const totalApprovalIgnored  = allApprovalLines.filter(n => n.status === 'ignored').reduce((s, n) => s + calcMetrajOnay(n), 0)
-        const totalApprovalApproved = allApprovalLines.filter(n => n.status === 'approved').reduce((s, n) => s + calcMetrajOnay(n), 0)
+        const totalApprovalApproved = allApprovalLines
+          .filter(n => n.status === 'approved' && !(n.children ?? []).some(c => c.status === 'approved'))
+          .reduce((s, n) => s + calcMetrajOnay(n), 0)
 
         return (
           <Box sx={{ mt: '1.5rem', px: '1rem', maxWidth: '1100px' }}>
@@ -822,7 +830,7 @@ export default function P_MetrajOnaylaCetvel() {
                 </Box>
                 <Box sx={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
                   <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', borderRadius: '50%', backgroundColor: '#BBDEFB', width: 26, height: 26, flexShrink: 0 }}>
-                    <CheckCircleIcon sx={{ fontSize: 16, color: '#1565C0', filter: 'drop-shadow(0 0 0.4px #1565C0)' }} />
+                    <CheckIcon sx={{ fontSize: 16, color: '#1565C0', filter: 'drop-shadow(0 0 0.4px #1565C0)' }} />
                   </Box>
                   <Box component="span" sx={{ fontSize: '0.82rem', color: 'rgba(255,255,255,0.75)' }}>Onaya Sunulan</Box>
                   <Box component="span" sx={{ fontSize: '0.95rem', fontWeight: 700, color: totalApprovalPending === 0 ? 'rgba(255,255,255,0.55)' : '#e0e1dd', ml: '2px' }}>{ikiHane(totalApprovalPending)}</Box>
