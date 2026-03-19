@@ -848,7 +848,7 @@ export default function P_MetrajOnaylaCetvel() {
             const origCellBg = { backgroundColor: '#D5D5D5', borderBottom: '1px dashed #c8c8c8' }
             return (
               <>
-                {expandedOnayKarti && showAllOriginals && (
+                {showAllOriginals && (
                   <>
                     <Box sx={{ ...css_oc, ...origCellBg, justifyContent: 'flex-start', pl: '0.5rem', color: '#888', fontSize: '0.78rem' }}>{node.siraNo}</Box>
                     <Box sx={{ ...css_oc, ...origCellBg, color: '#777', fontStyle: 'italic', fontSize: '0.82rem' }}>{node.description ?? ''}</Box>
@@ -859,7 +859,7 @@ export default function P_MetrajOnaylaCetvel() {
                       {(() => {
                         const q = calcMetrajOnay(node)
                         const isEmpty = v => v === null || v === undefined || v === ''
-                        const hasData = !isEmpty(node.description) || [(Number(node.multiplier) === 1 ? null : node.multiplier), node.count, node.length, node.width, node.height].some(v => !isEmpty(v))
+                        const hasData = [(Number(node.multiplier) === 1 ? null : node.multiplier), node.count, node.length, node.width, node.height].some(v => !isEmpty(v))
                         return (q !== 0 || hasData) ? ikiHane(q) : ''
                       })()}
                       {pozBirim && calcMetrajOnay(node) !== 0 && <Box component="span" sx={{ ml: '3px', fontWeight: 400, fontSize: '0.72rem', color: '#888' }}>{pozBirim}</Box>}
@@ -871,7 +871,11 @@ export default function P_MetrajOnaylaCetvel() {
                     </Box>
                   </>
                 )}
-                {expandedOnayKarti && node.children.filter(c => showAllOriginals || c.status !== 'ignored').map(child => (
+                {node.children.filter(c => {
+                  if (c.status === 'approved') return true
+                  if (c.status === 'ignored') return showAllOriginals
+                  return expandedOnayKarti
+                }).map(child => (
                   <React.Fragment key={child.id}>{renderOnayRow(child)}</React.Fragment>
                 ))}
               </>
@@ -906,8 +910,7 @@ export default function P_MetrajOnaylaCetvel() {
               <Box sx={{ ...css_oc, ...cellBg, justifyContent: 'flex-end', fontWeight: 700, color: negColor }}>
                 {metraj !== 0 ? ikiHane(metraj) : (() => {
                   const isEmpty = v => v === null || v === undefined || v === ''
-                  const hasData = !isEmpty(node.description) ||
-                    [(Number(node.multiplier) === 1 ? null : node.multiplier), node.count, node.length, node.width, node.height].some(v => !isEmpty(v))
+                  const hasData = [(Number(node.multiplier) === 1 ? null : node.multiplier), node.count, node.length, node.width, node.height].some(v => !isEmpty(v))
                   return hasData ? ikiHane(metraj) : ''
                 })()}
                 {pozBirim && metraj !== 0 && <Box component="span" sx={{ ml: '3px', fontWeight: 400, fontSize: '0.72rem', color: isDim ? dimColor : (metraj < 0 ? '#c62828' : '#555') }}>{pozBirim}</Box>}
