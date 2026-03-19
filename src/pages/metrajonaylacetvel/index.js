@@ -952,7 +952,7 @@ export default function P_MetrajOnaylaCetvel() {
               {/* Kart başlığı */}
               <Box sx={{ backgroundColor: '#1b5e20', color: '#fff', px: '1rem', minHeight: '44px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                 <Typography variant="body2" sx={{ fontWeight: 700 }}>Onaylı Metraj</Typography>
-                <Box sx={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: '4px', flexShrink: 0 }}>
                 <Box component="span" onClick={() => setShowHazırlayan(prev => !prev)}
                   sx={{ cursor: 'pointer', px: '6px', py: '2px', borderRadius: '10px', fontSize: '0.7rem', fontWeight: 600, border: '1px solid', userSelect: 'none',
                     ...(showHazırlayan ? { backgroundColor: 'rgba(255,255,255,0.18)', borderColor: 'rgba(255,255,255,0.5)', color: '#fff' } : { backgroundColor: 'transparent', borderColor: 'rgba(255,255,255,0.25)', color: 'rgba(255,255,255,0.4)' }) }}>
@@ -993,7 +993,7 @@ export default function P_MetrajOnaylaCetvel() {
                     }}
                     sx={{ color: 'rgba(224,225,221,0.75)', '&:hover': { color: '#e0e1dd' }, '&.Mui-disabled': { color: 'rgba(255,255,255,0.28)' } }}
                   >
-                    <EditIcon sx={{ fontSize: 18, filter: 'drop-shadow(0 0 0.6px currentColor)' }} />
+                    <EditIcon sx={{ fontSize: 20 }} />
                   </IconButton>
                 )}
                 </Box>
