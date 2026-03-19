@@ -14,8 +14,10 @@ import Link from '@mui/material/Link';
 import Grid from '@mui/material/Grid';
 import Box from '@mui/material/Box';
 import LockOutlinedIcon from '@mui/icons-material/LockOutlined';
+import GoogleIcon from '@mui/icons-material/Google';
 import Typography from '@mui/material/Typography';
 import Container from '@mui/material/Container';
+import Divider from '@mui/material/Divider';
 import { createTheme, ThemeProvider } from '@mui/material/styles';
 // import backgroundPicture from '../public/background_image_PM.png';
 
@@ -47,6 +49,23 @@ export default function SignIn() {
 
   const [dialogAlert, setDialogAlert] = useState()
 
+
+  async function handleGoogleSignIn() {
+    try {
+      const { error } = await supabase.auth.signInWithOAuth({
+        provider: 'google',
+        options: { redirectTo: window.location.origin }
+      })
+      if (error) throw error
+    } catch (err) {
+      console.log(err)
+      setDialogAlert({
+        dialogIcon: "warning",
+        dialogMessage: "Google ile giriş başarısız, tekrar deneyiniz..",
+        detailText: err?.message || null
+      })
+    }
+  }
 
   async function handleSubmit(event) {
 
@@ -232,6 +251,18 @@ export default function SignIn() {
               sx={{ mt: 1, mb: 2 }}
             >
               GİRİŞ
+            </Button>
+
+            <Divider sx={{ my: 1 }}>veya</Divider>
+
+            <Button
+              fullWidth
+              variant="outlined"
+              startIcon={<GoogleIcon />}
+              onClick={handleGoogleSignIn}
+              sx={{ mt: 1, mb: 2 }}
+            >
+              Google ile Giriş Yap
             </Button>
 
             <Grid container>

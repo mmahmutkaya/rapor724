@@ -6,12 +6,15 @@ export const StoreContext = createContext(null)
 // Supabase auth user'ını appUser formatına çevirir
 function mapUser(user) {
   if (!user) return null
+  const isGoogle = user.app_metadata?.provider === 'google'
+  const fullName = user.user_metadata?.full_name || ''
+  const [firstName, ...rest] = fullName.split(' ')
   return {
     id:        user.id,
     email:     user.email,
-    mailTeyit: !!user.email_confirmed_at,
-    isim:      user.user_metadata?.first_name || user.email.split('@')[0],
-    soyisim:   user.user_metadata?.last_name  || '-',
+    mailTeyit: isGoogle ? true : !!user.email_confirmed_at,
+    isim:      user.user_metadata?.first_name || firstName || user.email.split('@')[0],
+    soyisim:   user.user_metadata?.last_name  || rest.join(' ') || '-',
   }
 }
 
