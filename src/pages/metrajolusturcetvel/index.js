@@ -264,9 +264,13 @@ export default function P_MetrajOlusturCetvel() {
       })
 
       // Onaylı → Onay Bekleyen → Taslak sırasıyla sırala
-      const sorted = [...sessData].sort((a, b) =>
-        (STATUS_ORDER[a.status] ?? 3) - (STATUS_ORDER[b.status] ?? 3)
-      )
+      const sorted = [...sessData].sort((a, b) => {
+        const aOwn = a.created_by === appUser?.id
+        const bOwn = b.created_by === appUser?.id
+        if (aOwn && !bOwn) return -1
+        if (!aOwn && bOwn) return 1
+        return new Date(b.updated_at) - new Date(a.updated_at)
+      })
 
       const sessionsArr = sorted.map(sess => {
         const revisedLines = Array.isArray(sess.revision_snapshot) && sess.revision_snapshot.length > 0
@@ -1265,7 +1269,7 @@ export default function P_MetrajOlusturCetvel() {
               .sort((a, b) => {
                 if (a.isOwn && !b.isOwn) return -1
                 if (!a.isOwn && b.isOwn) return 1
-                return 0
+                return new Date(b.updated_at ?? 0) - new Date(a.updated_at ?? 0)
               })
               .map(sess => {
               const isVisible = visibleSessCards[sess.id] ?? true
@@ -1348,16 +1352,17 @@ export default function P_MetrajOlusturCetvel() {
         </Stack>
       )}
 
+      <Box sx={{ display: 'flex', flexDirection: 'column' }}>
       {/* SESSION KARTLARI */}
       {(() => {
         const visibleSessions = sessions.filter(sess => visibleSessCards[sess.id] ?? true)
         return visibleSessions.length > 0 ? (
-          <Box sx={{ mt: '1.5rem', px: '1rem', display: 'flex', flexDirection: 'column', gap: '1.5rem', maxWidth: '1100px' }}>
+          <Box sx={{ mt: '1.5rem', px: '1rem', display: 'flex', flexDirection: 'column', gap: '1.5rem', maxWidth: '1100px', order: 1 }}>
             {visibleSessions
               .sort((a, b) => {
                 if (a.isOwn && !b.isOwn) return -1
                 if (!a.isOwn && b.isOwn) return 1
-                return 0
+                return new Date(b.updated_at ?? 0) - new Date(a.updated_at ?? 0)
               })
               .map(sess => {
           const visualStatus = sess.visualStatus ?? getMeasurementVisualStatus(sess)
@@ -1635,8 +1640,7 @@ export default function P_MetrajOlusturCetvel() {
                 </Box>
               )}
               </>}
-              {rootLines.length > 0 && (
-                <Box sx={{ backgroundColor: cardColors.header, borderTop: '2px solid', borderTopColor: cardColors.border, display: 'flex', justifyContent: 'space-between', flexWrap: 'wrap', px: '14px', py: '8px', minHeight: '44px' }}>
+              <Box sx={{ backgroundColor: cardColors.header, borderTop: '2px solid', borderTopColor: cardColors.border, display: 'flex', justifyContent: 'space-between', flexWrap: 'wrap', px: '14px', py: '8px', minHeight: '44px' }}>
                   <Box sx={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
                     <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', borderRadius: '50%', backgroundColor: '#FFE0B2', width: 26, height: 26, flexShrink: 0 }}>
                       <HourglassFullIcon sx={{ fontSize: 16, color: '#E65100', filter: 'drop-shadow(0 0 0.4px #E65100)' }} />
@@ -1670,7 +1674,6 @@ export default function P_MetrajOlusturCetvel() {
                     {pozBirim && <Box component="span" sx={{ fontSize: '0.78rem', color: 'rgba(255,255,255,0.55)' }}>{pozBirim}</Box>}
                   </Box>
                 </Box>
-              )}
             </Box>
           )
         })}
@@ -1679,7 +1682,7 @@ export default function P_MetrajOlusturCetvel() {
       })()}
 
       {/* ONAYLANAN METRAJ — Hazırlayan için salt-okunur; onaylı satırlara revize talebi gönderilebilir */}
-      {!loading && visibleOnayKarti && approvalTree.length > 0 && (() => {
+      {!loading && visibleOnayKarti && (() => {
         const ONAY_GRID = 'max-content 1fr 65px 65px 65px 65px 65px 80px'
           + (showHazırlayan ? ' max-content' : '')
           + (showOnaylayan  ? ' max-content' : '')
@@ -1983,7 +1986,7 @@ export default function P_MetrajOlusturCetvel() {
           .reduce((s, n) => s + calcMetrajOnay(n), 0)
 
         return (
-          <Box sx={{ mt: '1.5rem', px: '1rem', maxWidth: '1100px' }}>
+          <Box sx={{ mt: '1.5rem', px: '1rem', maxWidth: '1100px', order: 0 }}>
             <Box sx={{ border: '2px solid #43A047', overflow: 'hidden', boxShadow: 2 }}>
               {/* Kart başlığı */}
               <Box sx={{ backgroundColor: '#1b5e20', color: '#fff', px: '1rem', minHeight: '44px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
@@ -2065,7 +2068,7 @@ export default function P_MetrajOlusturCetvel() {
               </Box>
 
 
-              {expandedOnayKarti && <>
+              {expandedOnayKarti && approvalTree.length > 0 && (
               <Box sx={{ overflowX: 'auto' }}>
                 <Box sx={{ display: 'grid', gridTemplateColumns: ONAY_GRID, minWidth: 'max-content' }}>
                   {/* Tablo başlığı */}
@@ -2082,6 +2085,7 @@ export default function P_MetrajOlusturCetvel() {
                   ))}
                 </Box>
               </Box>
+              )}
 
               {/* Onaylı Metraj Statü Kutuları */}
               <Box sx={{ backgroundColor: '#1b5e20', color: '#fff', px: '1rem', py: '8px', display: 'flex', justifyContent: 'space-between', flexWrap: 'wrap', gap: '8px', borderTop: '1px solid rgba(67, 160, 71, 0.5)' }}>
@@ -2118,12 +2122,12 @@ export default function P_MetrajOlusturCetvel() {
                   {pozBirim && <Box component="span" sx={{ fontSize: '0.78rem', color: 'rgba(255,255,255,0.55)' }}>{pozBirim}</Box>}
                 </Box>
               </Box>
-              </>}
             </Box>
           </Box>
         )
       })()}
 
+      </Box>
     </Box>
   )
 }

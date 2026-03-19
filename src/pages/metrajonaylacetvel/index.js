@@ -223,9 +223,13 @@ export default function P_MetrajOnaylaCetvel() {
         linesBySession[l.session_id].push(l)
       })
 
-      const sorted = [...sessData].sort((a, b) =>
-        (STATUS_ORDER[a.status] ?? 3) - (STATUS_ORDER[b.status] ?? 3)
-      )
+      const sorted = [...sessData].sort((a, b) => {
+        const aOwn = a.created_by === currentUid
+        const bOwn = b.created_by === currentUid
+        if (aOwn && !bOwn) return -1
+        if (!aOwn && bOwn) return 1
+        return new Date(b.updated_at) - new Date(a.updated_at)
+      })
 
       setSessions(sorted.map(sess => ({
         ...sess,
@@ -262,11 +266,12 @@ export default function P_MetrajOnaylaCetvel() {
   // ── Türetilmiş Veri ────────────────────────────────────────────────────────────
 
   const approvalTree = useMemo(() => {
-    const allLines = sessions.flatMap(s => s.lines ?? []).map(l =>
-      draftLines[l.id] ? { ...l, ...draftLines[l.id] } : l
-    )
+    const allLines = sessions.flatMap(s => s.lines ?? []).map(l => {
+      if (cardEditMode[l.session_id]) return l  // session kart edit modundaki değişiklikler save'e kadar onay kartına yansımasın
+      return draftLines[l.id] ? { ...l, ...draftLines[l.id] } : l
+    })
     return buildApprovalTree(allLines, sessions, userMap)
-  }, [sessions, userMap, draftLines])
+  }, [sessions, userMap, draftLines, cardEditMode])
 
   const autoExpandDone = useRef(false)
   useEffect(() => {
@@ -771,8 +776,7 @@ export default function P_MetrajOnaylaCetvel() {
                     </Box>
                   )}
                   </>}
-                  {rootLines.length > 0 && (
-                    <Box sx={{ backgroundColor: cardColors.header, borderTop: '2px solid', borderTopColor: cardColors.border, display: 'flex', justifyContent: 'space-between', flexWrap: 'wrap', px: '14px', py: '8px', minHeight: '44px' }}>
+                  <Box sx={{ backgroundColor: cardColors.header, borderTop: '2px solid', borderTopColor: cardColors.border, display: 'flex', justifyContent: 'space-between', flexWrap: 'wrap', px: '14px', py: '8px', minHeight: '44px' }}>
                       <Box sx={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
                         <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', borderRadius: '50%', backgroundColor: '#FFE0B2', width: 26, height: 26, flexShrink: 0 }}>
                           <HourglassFullIcon sx={{ fontSize: 16, color: '#E65100', filter: 'drop-shadow(0 0 0.4px #E65100)' }} />
@@ -806,7 +810,6 @@ export default function P_MetrajOnaylaCetvel() {
                         {pozBirim && <Box component="span" sx={{ fontSize: '0.78rem', color: 'rgba(255,255,255,0.55)' }}>{pozBirim}</Box>}
                       </Box>
                     </Box>
-                  )}
                 </Box>
               )
             })}
@@ -815,7 +818,7 @@ export default function P_MetrajOnaylaCetvel() {
       })()}
 
       {/* ONAYLANAN METRAJ KARTI */}
-      {!loading && visibleOnayKarti && approvalTree.length > 0 && (() => {
+      {!loading && visibleOnayKarti && (() => {
         const ONAY_GRID = 'max-content 1fr 65px 65px 65px 65px 65px 80px'
           + (showHazırlayan ? ' max-content' : '')
           + (showOnaylayan  ? ' max-content' : '')
@@ -1035,7 +1038,7 @@ export default function P_MetrajOnaylaCetvel() {
               </Box>
 
 
-              {expandedOnayKarti && <>
+              {expandedOnayKarti && approvalTree.length > 0 && (
               <Box sx={{ overflowX: 'auto' }}>
                 <Box sx={{ display: 'grid', gridTemplateColumns: ONAY_GRID, minWidth: 'max-content' }}>
                   {/* Tablo başlığı */}
@@ -1055,6 +1058,7 @@ export default function P_MetrajOnaylaCetvel() {
                   ))}
                 </Box>
               </Box>
+              )}
 
               {/* Onaylı Metraj Statü Kutuları */}
               <Box sx={{ backgroundColor: '#1b5e20', color: '#fff', px: '1rem', py: '8px', display: 'flex', justifyContent: 'space-between', flexWrap: 'wrap', gap: '8px', borderTop: '1px solid rgba(67, 160, 71, 0.5)' }}>
@@ -1091,7 +1095,6 @@ export default function P_MetrajOnaylaCetvel() {
                   {pozBirim && <Box component="span" sx={{ fontSize: '0.78rem', color: 'rgba(255,255,255,0.55)' }}>{pozBirim}</Box>}
                 </Box>
               </Box>
-              </>}
             </Box>
           </Box>
         )
