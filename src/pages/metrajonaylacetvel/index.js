@@ -1,4 +1,4 @@
-import React, { useState, useContext, useEffect, useMemo } from 'react'
+import React, { useState, useContext, useEffect, useMemo, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
 
 import { StoreContext } from '../../components/store.js'
@@ -255,6 +255,19 @@ export default function P_MetrajOnaylaCetvel() {
     return buildApprovalTree(allLines, sessions, userMap)
   }, [sessions, userMap, draftLines])
 
+  const autoExpandDone = useRef(false)
+  useEffect(() => {
+    if (autoExpandDone.current || approvalTree.length === 0) return
+    autoExpandDone.current = true
+    const expand = {}
+    function markExpand(node) {
+      const kids = node.children ?? []
+      if (kids.length > 0) { expand[node.id] = true; kids.forEach(markExpand) }
+    }
+    approvalTree.forEach(markExpand)
+    if (Object.keys(expand).length > 0) setExpandedApproved(expand)
+  }, [approvalTree])
+
   const unitsMap = useMemo(() => {
     const m = {}
     units.forEach(u => { m[u.id] = u.name })
@@ -346,7 +359,7 @@ export default function P_MetrajOnaylaCetvel() {
 
   const saveOnayKartiEdits = async () => {
     const changes = Object.entries(draftLines)
-    if (changes.length === 0) { setOnayKartiEditMode(false); return }
+    if (changes.length === 0) { setOnayKartiEditMode(false); setExpandedApproved({}); return }
     for (const [lineId, draft] of changes) {
       const { error } = await supabase.from('measurement_lines').update(draft).eq('id', lineId)
       if (error) {
@@ -360,11 +373,13 @@ export default function P_MetrajOnaylaCetvel() {
     })))
     setDraftLines({})
     setOnayKartiEditMode(false)
+    setExpandedApproved({})
   }
 
   const cancelOnayKartiEdits = () => {
     setDraftLines({})
     setOnayKartiEditMode(false)
+    setExpandedApproved({})
   }
 
   const approveAllPending = (sessId) => {
@@ -813,8 +828,8 @@ export default function P_MetrajOnaylaCetvel() {
                       {ikiHane(calcMetrajOnay(node))}
                       {pozBirim && calcMetrajOnay(node) !== 0 && <Box component="span" sx={{ ml: '3px', fontWeight: 400, fontSize: '0.72rem', color: '#888' }}>{pozBirim}</Box>}
                     </Box>
-                    {showHazırlayan && <Box sx={{ ...css_oc, ...origCellBg, fontSize: '0.78rem', color: '#666' }}>{node.hazırlayan}</Box>}
-                    {showOnaylayan  && <Box sx={{ ...css_oc, ...origCellBg, fontSize: '0.78rem', color: '#666' }}>{node.onaylayan}</Box>}
+                    {showHazırlayan && <Box sx={{ ...css_oc, ...origCellBg, justifyContent: 'center', fontSize: '0.78rem', color: '#666' }}>{node.hazırlayan}</Box>}
+                    {showOnaylayan  && <Box sx={{ ...css_oc, ...origCellBg, justifyContent: 'center', fontSize: '0.78rem', color: '#666' }}>{node.onaylayan}</Box>}
                     <Box sx={{ ...css_oc, ...origCellBg, justifyContent: 'center' }}>
                       <DoneAllIcon sx={{ fontSize: 18, color: '#9e9e9e', filter: 'drop-shadow(0 0 0.6px #9e9e9e)' }} />
                     </Box>
@@ -866,8 +881,8 @@ export default function P_MetrajOnaylaCetvel() {
                 })()}
                 {pozBirim && metraj !== 0 && <Box component="span" sx={{ ml: '3px', fontWeight: 400, fontSize: '0.72rem', color: isDim ? dimColor : (metraj < 0 ? '#c62828' : '#555') }}>{pozBirim}</Box>}
               </Box>
-              {showHazırlayan && <Box sx={{ ...css_oc, ...cellBg, fontSize: '0.78rem', color: isDim ? '#666' : '#455a64' }}>{node.hazırlayan}</Box>}
-              {showOnaylayan  && <Box sx={{ ...css_oc, ...cellBg, fontSize: '0.78rem', color: isDim ? '#666' : (node.status === 'pending' ? '#1565c0' : '#1b5e20') }}>
+              {showHazırlayan && <Box sx={{ ...css_oc, ...cellBg, justifyContent: 'center', fontSize: '0.78rem', color: isDim ? '#666' : '#455a64' }}>{node.hazırlayan}</Box>}
+              {showOnaylayan  && <Box sx={{ ...css_oc, ...cellBg, justifyContent: 'center', fontSize: '0.78rem', color: isDim ? '#666' : (node.status === 'pending' ? '#1565c0' : '#1b5e20') }}>
                 {onaylayanText}
               </Box>}
 
@@ -935,8 +950,9 @@ export default function P_MetrajOnaylaCetvel() {
           <Box sx={{ mt: '1.5rem', px: '1rem', maxWidth: '1100px' }}>
             <Box sx={{ border: '2px solid #43A047', overflow: 'hidden', boxShadow: 2 }}>
               {/* Kart başlığı */}
-              <Box sx={{ backgroundColor: '#1b5e20', color: '#fff', px: '1rem', minHeight: '44px', display: 'flex', alignItems: 'center', gap: '4px' }}>
-                <Typography variant="body2" sx={{ fontWeight: 700, flexGrow: 1 }}>Onaylı Metraj</Typography>
+              <Box sx={{ backgroundColor: '#1b5e20', color: '#fff', px: '1rem', minHeight: '44px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                <Typography variant="body2" sx={{ fontWeight: 700 }}>Onaylı Metraj</Typography>
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
                 <Box component="span" onClick={() => setShowHazırlayan(prev => !prev)}
                   sx={{ cursor: 'pointer', px: '6px', py: '2px', borderRadius: '10px', fontSize: '0.7rem', fontWeight: 600, border: '1px solid', userSelect: 'none',
                     ...(showHazırlayan ? { backgroundColor: 'rgba(255,255,255,0.18)', borderColor: 'rgba(255,255,255,0.5)', color: '#fff' } : { backgroundColor: 'transparent', borderColor: 'rgba(255,255,255,0.25)', color: 'rgba(255,255,255,0.4)' }) }}>
@@ -950,24 +966,20 @@ export default function P_MetrajOnaylaCetvel() {
                 <IconButton size="small" sx={{ color: 'rgba(224,225,221,0.75)', '&:hover': { color: '#fff' } }} onClick={() => setShowAllOriginals(prev => !prev)}>
                   {showAllOriginals ? <ExpandLessIcon sx={{ fontSize: 20, filter: 'drop-shadow(0 0 0.6px currentColor)' }} /> : <ExpandMoreIcon sx={{ fontSize: 20, filter: 'drop-shadow(0 0 0.6px currentColor)' }} />}
                 </IconButton>
-                {onayKartiEditMode ? (
-                  <>
-                    <IconButton size="small" sx={{ color: '#ef9a9a' }} onClick={cancelOnayKartiEdits}>
-                      <CloseIcon sx={{ fontSize: 20 }} />
-                    </IconButton>
-                    <IconButton size="small"
-                      sx={{ color: '#a5d6a7', '&.Mui-disabled': { color: 'rgba(255,255,255,0.65)' } }}
-                      onClick={saveOnayKartiEdits}
-                      disabled={Object.keys(draftLines).length === 0}
-                    >
-                      <SaveIcon sx={{ fontSize: 20 }} />
-                    </IconButton>
-                  </>
-                ) : (
-                  <IconButton size="small"
-                    disabled={!hasPendingInOnayKart}
-                    sx={{ color: 'rgba(224,225,221,0.75)', '&:hover': { color: '#e0e1dd' }, '&.Mui-disabled': { color: 'rgba(255,255,255,0.28)' } }}
-                    onClick={() => {
+                <IconButton size="small" disabled={!onayKartiEditMode} onClick={cancelOnayKartiEdits}
+                  sx={{ color: '#ef9a9a', '&.Mui-disabled': { color: 'transparent' } }}>
+                  <CloseIcon sx={{ fontSize: 20 }} />
+                </IconButton>
+                <IconButton size="small"
+                  disabled={!onayKartiEditMode || Object.keys(draftLines).length === 0}
+                  onClick={saveOnayKartiEdits}
+                  sx={{ color: '#a5d6a7', '&.Mui-disabled': { color: !onayKartiEditMode ? 'transparent' : 'rgba(255,255,255,0.65)' } }}
+                >
+                  <SaveIcon sx={{ fontSize: 20 }} />
+                </IconButton>
+                <IconButton size="small"
+                  disabled={onayKartiEditMode || !hasPendingInOnayKart}
+                  onClick={() => {
                     const expand = {}
                     function markExpand(node) {
                       const kids = node.children ?? []
@@ -976,10 +988,12 @@ export default function P_MetrajOnaylaCetvel() {
                     approvalTree.forEach(markExpand)
                     setExpandedApproved(prev => ({ ...prev, ...expand }))
                     setOnayKartiEditMode(true)
-                  }}>
-                    <EditIcon sx={{ fontSize: 18, filter: 'drop-shadow(0 0 0.6px currentColor)' }} />
-                  </IconButton>
-                )}
+                  }}
+                  sx={{ color: 'rgba(224,225,221,0.75)', '&:hover': { color: '#e0e1dd' }, '&.Mui-disabled': { color: onayKartiEditMode ? 'transparent' : 'rgba(255,255,255,0.28)' } }}
+                >
+                  <EditIcon sx={{ fontSize: 18, filter: 'drop-shadow(0 0 0.6px currentColor)' }} />
+                </IconButton>
+                </Box>
               </Box>
 
 

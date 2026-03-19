@@ -1,4 +1,4 @@
-import React, { useState, useContext, useEffect, useMemo } from 'react'
+import React, { useState, useContext, useEffect, useMemo, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
 import _ from 'lodash'
 
@@ -230,6 +230,7 @@ export default function P_MetrajOlusturCetvel() {
 
       // Kullanıcı görünen adlarını çek (hazırlayanlar + onaylayanlar)
       const uniqueUserIds = [...new Set([
+        appUser?.id,
         ...sessData.map(s => s.created_by),
         ...(linesData ?? []).map(l => l.approved_by),
       ].filter(Boolean))]
@@ -575,7 +576,7 @@ export default function P_MetrajOlusturCetvel() {
         ...prev,
         {
           ...data,
-          userName: appUser?.email ?? '?',
+          userName: userMap[appUser?.id] ?? ([appUser?.isim, appUser?.soyisim].filter(Boolean).join(' ') || appUser?.email || '?'),
           isOwn: true,
           lines: [],
           linesBackup: [],
@@ -868,6 +869,7 @@ export default function P_MetrajOlusturCetvel() {
       await handleSendRevizeTalebi()
     }
     setOnayKartiEditMode(false)
+    setExpandedApproved({})
   }
 
   const unitsMap = useMemo(() => {
@@ -881,6 +883,19 @@ export default function P_MetrajOlusturCetvel() {
     const allLines = sessions.flatMap(s => s.lines ?? []).filter(l => !l._pendingDelete)
     return buildApprovalTree(allLines, sessions, userMap)
   }, [sessions, userMap])
+
+  const autoExpandDone = useRef(false)
+  useEffect(() => {
+    if (autoExpandDone.current || approvalTree.length === 0) return
+    autoExpandDone.current = true
+    const expand = {}
+    function markExpand(node) {
+      const kids = node.children ?? []
+      if (kids.length > 0) { expand[node.id] = true; kids.forEach(markExpand) }
+    }
+    approvalTree.forEach(markExpand)
+    if (Object.keys(expand).length > 0) setExpandedApproved(expand)
+  }, [approvalTree])
 
   // ── Revize talebi gönder ─────────────────────────────────────
   const handleSendRevizeTalebi = async () => {
@@ -897,7 +912,7 @@ export default function P_MetrajOlusturCetvel() {
           .select().single()
         if (error) throw error
         mySess = {
-          ...data, userName: appUser?.email ?? '?', isOwn: true,
+          ...data, userName: userMap[appUser?.id] ?? ([appUser?.isim, appUser?.soyisim].filter(Boolean).join(' ') || appUser?.email || '?'), isOwn: true,
           lines: [], linesBackup: [], mode_edit: false,
           isRevisionEdit: false, isChanged: false, revisedLines: {},
         }
@@ -1723,8 +1738,8 @@ export default function P_MetrajOlusturCetvel() {
                       {ikiHane(calcMetrajOnay(node))}
                       {pozBirim && calcMetrajOnay(node) !== 0 && <Box component="span" sx={{ ml: '3px', fontWeight: 400, fontSize: '0.72rem', color: '#888' }}>{pozBirim}</Box>}
                     </Box>
-                    {showHazırlayan && <Box sx={{ ...css_oc, ...origCellBg, fontSize: '0.78rem', color: '#666' }}>{node.hazırlayan}</Box>}
-                    {showOnaylayan  && <Box sx={{ ...css_oc, ...origCellBg, fontSize: '0.78rem', color: '#666' }}>{node.onaylayan}</Box>}
+                    {showHazırlayan && <Box sx={{ ...css_oc, ...origCellBg, justifyContent: 'center', fontSize: '0.78rem', color: '#666' }}>{node.hazırlayan}</Box>}
+                    {showOnaylayan  && <Box sx={{ ...css_oc, ...origCellBg, justifyContent: 'center', fontSize: '0.78rem', color: '#666' }}>{node.onaylayan}</Box>}
                     <Box sx={{ ...css_oc, ...origCellBg, justifyContent: 'center' }}>
                       <DoneAllIcon sx={{ fontSize: 18, color: '#9e9e9e', filter: 'drop-shadow(0 0 0.6px #9e9e9e)' }} />
                     </Box>
@@ -1791,8 +1806,8 @@ export default function P_MetrajOlusturCetvel() {
                 })()}
                 {pozBirim && metraj !== 0 && <Box component="span" sx={{ ml: '3px', fontWeight: 400, fontSize: '0.72rem', color: isDim ? dimColor : (metraj < 0 ? '#c62828' : '#555') }}>{pozBirim}</Box>}
               </Box>
-              {showHazırlayan && <Box sx={{ ...css_oc, ...cellBg, fontSize: '0.78rem', color: isDim ? '#666' : '#455a64' }}>{node.hazırlayan}</Box>}
-              {showOnaylayan  && <Box sx={{ ...css_oc, ...cellBg, fontSize: '0.78rem', color: isDim ? '#666' : (node.status === 'pending' ? '#1565c0' : '#1b5e20') }}>
+              {showHazırlayan && <Box sx={{ ...css_oc, ...cellBg, justifyContent: 'center', fontSize: '0.78rem', color: isDim ? '#666' : '#455a64' }}>{node.hazırlayan}</Box>}
+              {showOnaylayan  && <Box sx={{ ...css_oc, ...cellBg, justifyContent: 'center', fontSize: '0.78rem', color: isDim ? '#666' : (node.status === 'pending' ? '#1565c0' : '#1b5e20') }}>
                 {onaylayanText}
               </Box>}
               <Box sx={{ ...css_oc, ...cellBg, justifyContent: 'center', gap: '2px' }}>
@@ -1908,6 +1923,29 @@ export default function P_MetrajOlusturCetvel() {
                   <IconButton size="small" sx={{ color: 'rgba(224,225,221,0.9)', '&:hover': { color: '#fff' } }} onClick={() => setShowAllOriginals(prev => !prev)}>
                     {showAllOriginals ? <ExpandLessIcon sx={{ fontSize: 22, filter: 'drop-shadow(0 0 0.7px currentColor)' }} /> : <ExpandMoreIcon sx={{ fontSize: 22, filter: 'drop-shadow(0 0 0.7px currentColor)' }} />}
                   </IconButton>
+                  <IconButton size="small" disabled={!onayKartiEditMode} title="İptal"
+                    sx={{ p: '2px', color: '#ffcdd2', '&.Mui-disabled': { color: 'transparent' } }}
+                    onClick={() => {
+                      setOnayKartiEditMode(false)
+                      setExpandedApproved({})
+                      setRevizeForms({})
+                      setChildEditValues({})
+                      setChildEditParents({})
+                      if (pendingDeletes.length > 0) {
+                        setSessions(prev => prev.map(s => ({
+                          ...s,
+                          lines: s.lines.map(l => { const { _pendingDelete, ...rest } = l; return rest })
+                        })))
+                        setPendingDeletes([])
+                      }
+                    }}>
+                    <ClearIcon sx={{ fontSize: 20 }} />
+                  </IconButton>
+                  {onayKartiEditMode && (
+                    <IconButton size="small" sx={{ p: '2px', color: '#c8e6c9' }} title="Kaydet" onClick={handleSaveAllEdits}>
+                      <SaveIcon sx={{ fontSize: 20 }} />
+                    </IconButton>
+                  )}
                   {!onayKartiEditMode && (
                     <IconButton size="small" sx={{ p: '2px', color: '#c8e6c9' }} title="Düzenle" onClick={() => {
                       setOnayKartiEditMode(true)
@@ -1936,28 +1974,6 @@ export default function P_MetrajOlusturCetvel() {
                     }}>
                       <EditIcon sx={{ fontSize: 20 }} />
                     </IconButton>
-                  )}
-                  {onayKartiEditMode && (
-                    <>
-                      <IconButton size="small" sx={{ p: '2px', color: '#ffcdd2' }} title="İptal" onClick={() => {
-                        setOnayKartiEditMode(false)
-                        setRevizeForms({})
-                        setChildEditValues({})
-                        setChildEditParents({})
-                        if (pendingDeletes.length > 0) {
-                          setSessions(prev => prev.map(s => ({
-                            ...s,
-                            lines: s.lines.map(l => { const { _pendingDelete, ...rest } = l; return rest })
-                          })))
-                          setPendingDeletes([])
-                        }
-                      }}>
-                        <ClearIcon sx={{ fontSize: 20 }} />
-                      </IconButton>
-                      <IconButton size="small" sx={{ p: '2px', color: '#c8e6c9' }} title="Kaydet" onClick={handleSaveAllEdits}>
-                        <SaveIcon sx={{ fontSize: 20 }} />
-                      </IconButton>
-                    </>
                   )}
                 </Box>
               </Box>
