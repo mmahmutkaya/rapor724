@@ -169,6 +169,8 @@ export default function P_MetrajOnaylaCetvel() {
   const [cardEditMode, setCardEditMode]                 = useState({})  // { [sessId]: boolean }
   const [draftLines, setDraftLines]                     = useState({})  // { [lineId]: { status, ... } }
   const [onayKartiEditMode, setOnayKartiEditMode]       = useState(false)
+  const [expandedSessCards, setExpandedSessCards]       = useState({})
+  const [expandedOnayKarti, setExpandedOnayKarti]       = useState(true)
 
   const wpAreaId = selectedMahal_metraj?.wpAreaId
 
@@ -237,6 +239,17 @@ export default function P_MetrajOnaylaCetvel() {
         sorted.forEach(sess => { if (next[sess.id] === undefined) next[sess.id] = true })
         return next
       })
+
+      setExpandedSessCards(prev => {
+        const next = { ...prev }
+        sorted.forEach(sess => {
+          if (next[sess.id] === undefined) {
+            const hasPending = (linesBySession[sess.id] ?? []).some(l => !l.parent_line_id && l.status === 'pending')
+            next[sess.id] = hasPending
+          }
+        })
+        return next
+      })
     } catch (err) {
       setDialogAlert({ dialogIcon: 'warning', dialogMessage: 'Veriler yüklenirken hata oluştu.', detailText: err.message, onCloseAction: () => setDialogAlert() })
     } finally {
@@ -260,12 +273,15 @@ export default function P_MetrajOnaylaCetvel() {
     if (autoExpandDone.current || approvalTree.length === 0) return
     autoExpandDone.current = true
     const expand = {}
+    let hasPending = false
     function markExpand(node) {
       const kids = node.children ?? []
       if (kids.length > 0) { expand[node.id] = true; kids.forEach(markExpand) }
+      if (node.status === 'pending') hasPending = true
     }
     approvalTree.forEach(markExpand)
     if (Object.keys(expand).length > 0) setExpandedApproved(expand)
+    if (hasPending) setShowAllOriginals(true)
   }, [approvalTree])
 
   const unitsMap = useMemo(() => {
@@ -359,7 +375,7 @@ export default function P_MetrajOnaylaCetvel() {
 
   const saveOnayKartiEdits = async () => {
     const changes = Object.entries(draftLines)
-    if (changes.length === 0) { setOnayKartiEditMode(false); setExpandedApproved({}); return }
+    if (changes.length === 0) { setOnayKartiEditMode(false); setExpandedApproved({}); setShowAllOriginals(false); return }
     for (const [lineId, draft] of changes) {
       const { error } = await supabase.from('measurement_lines').update(draft).eq('id', lineId)
       if (error) {
@@ -374,12 +390,14 @@ export default function P_MetrajOnaylaCetvel() {
     setDraftLines({})
     setOnayKartiEditMode(false)
     setExpandedApproved({})
+    setShowAllOriginals(false)
   }
 
   const cancelOnayKartiEdits = () => {
     setDraftLines({})
     setOnayKartiEditMode(false)
     setExpandedApproved({})
+    setShowAllOriginals(false)
   }
 
   const approveAllPending = (sessId) => {
@@ -565,11 +583,12 @@ export default function P_MetrajOnaylaCetvel() {
         </Stack>
       )}
 
+      <Box sx={{ display: 'flex', flexDirection: 'column' }}>
       {/* SESSION KARTLARI */}
       {(() => {
         const visibleSessions = sessions.filter(sess => visibleSessCards[sess.id] ?? true)
         return visibleSessions.length > 0 ? (
-          <Box sx={{ mt: '1.5rem', px: '1rem', display: 'flex', flexDirection: 'column', gap: '1.5rem', maxWidth: '1100px' }}>
+          <Box sx={{ mt: '1.5rem', px: '1rem', display: 'flex', flexDirection: 'column', gap: '1.5rem', maxWidth: '1100px', order: 1 }}>
             {visibleSessions.map(sess => {
               const visualStatus = sess.visualStatus ?? getMeasurementVisualStatus(sess)
               const cardColors   = getCardColors(visualStatus)
@@ -619,16 +638,24 @@ export default function P_MetrajOnaylaCetvel() {
                       </>
                     ) : (
                       <>
-                        <Typography variant="body1" sx={{ fontWeight: 700, flexGrow: 1 }}>
+                        <IconButton size="small"
+                          sx={{ color: 'rgba(224,225,221,0.7)', flexShrink: 0, mr: '-4px' }}
+                          onClick={() => setExpandedSessCards(prev => ({ ...prev, [sess.id]: !prev[sess.id] }))}>
+                          {expandedSessCards[sess.id] ? <ExpandLessIcon sx={{ fontSize: 18 }} /> : <ExpandMoreIcon sx={{ fontSize: 18 }} />}
+                        </IconButton>
+                        <Typography variant="body1" sx={{ fontWeight: 700, flexGrow: 1, cursor: 'pointer' }}
+                          onClick={() => setExpandedSessCards(prev => ({ ...prev, [sess.id]: !prev[sess.id] }))}>
                           {sess.userName}
                         </Typography>
-                        <IconButton size="small" sx={{ color: 'rgba(224,225,221,0.6)', '&:hover': { color: '#e0e1dd' } }} onClick={() => setCardEditMode(prev => ({ ...prev, [sess.id]: true }))}>
+                        <IconButton size="small" sx={{ color: 'rgba(224,225,221,0.6)', '&:hover': { color: '#e0e1dd' } }}
+                          onClick={() => { setExpandedSessCards(prev => ({ ...prev, [sess.id]: true })); setCardEditMode(prev => ({ ...prev, [sess.id]: true })) }}>
                           <EditIcon sx={{ fontSize: 18 }} />
                         </IconButton>
                       </>
                     )}
                   </Box>
 
+                  {(expandedSessCards[sess.id] || cardEditMode[sess.id]) && <>
                   {/* Satır yok */}
                   {rootLines.length === 0 && (
                     <Box sx={{ px: '1rem', py: '0.75rem', color: 'gray', fontSize: '0.85rem' }}>
@@ -779,6 +806,7 @@ export default function P_MetrajOnaylaCetvel() {
                       </Box>
                     </Box>
                   )}
+                  </>}
                 </Box>
               )
             })}
@@ -947,11 +975,17 @@ export default function P_MetrajOnaylaCetvel() {
           .reduce((s, n) => s + calcMetrajOnay(n), 0)
 
         return (
-          <Box sx={{ mt: '1.5rem', px: '1rem', maxWidth: '1100px' }}>
+          <Box sx={{ mt: '1.5rem', px: '1rem', maxWidth: '1100px', order: 0 }}>
             <Box sx={{ border: '2px solid #43A047', overflow: 'hidden', boxShadow: 2 }}>
               {/* Kart başlığı */}
               <Box sx={{ backgroundColor: '#1b5e20', color: '#fff', px: '1rem', minHeight: '44px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                <Typography variant="body2" sx={{ fontWeight: 700 }}>Onaylı Metraj</Typography>
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: '2px', cursor: 'pointer' }}
+                  onClick={() => setExpandedOnayKarti(prev => !prev)}>
+                  <IconButton size="small" sx={{ color: 'rgba(255,255,255,0.8)', p: '2px' }}>
+                    {expandedOnayKarti ? <ExpandLessIcon sx={{ fontSize: 18 }} /> : <ExpandMoreIcon sx={{ fontSize: 18 }} />}
+                  </IconButton>
+                  <Typography variant="body2" sx={{ fontWeight: 700 }}>Onaylı Metraj</Typography>
+                </Box>
                 <Box sx={{ display: 'flex', alignItems: 'center', gap: '4px', flexShrink: 0 }}>
                 <Box component="span" onClick={() => setShowHazırlayan(prev => !prev)}
                   sx={{ cursor: 'pointer', px: '6px', py: '2px', borderRadius: '10px', fontSize: '0.7rem', fontWeight: 600, border: '1px solid', userSelect: 'none',
@@ -970,33 +1004,38 @@ export default function P_MetrajOnaylaCetvel() {
                   sx={{ color: '#ef9a9a', visibility: onayKartiEditMode ? 'visible' : 'hidden', pointerEvents: onayKartiEditMode ? 'auto' : 'none' }}>
                   <CloseIcon sx={{ fontSize: 20 }} />
                 </IconButton>
-                <IconButton size="small"
-                  disabled={Object.keys(draftLines).length === 0}
-                  onClick={saveOnayKartiEdits}
-                  sx={{ color: '#a5d6a7', '&.Mui-disabled': { color: 'rgba(255,255,255,0.65)' }, visibility: onayKartiEditMode ? 'visible' : 'hidden', pointerEvents: onayKartiEditMode ? 'auto' : 'none' }}
-                >
-                  <SaveIcon sx={{ fontSize: 20 }} />
-                </IconButton>
-                <IconButton size="small"
-                  disabled={!hasPendingInOnayKart}
-                  onClick={() => {
-                    const expand = {}
-                    function markExpand(node) {
-                      const kids = node.children ?? []
-                      if (kids.length > 0) { expand[node.id] = true; kids.forEach(markExpand) }
-                    }
-                    approvalTree.forEach(markExpand)
-                    setExpandedApproved(prev => ({ ...prev, ...expand }))
-                    setOnayKartiEditMode(true)
-                  }}
-                  sx={{ color: 'rgba(224,225,221,0.75)', '&:hover': { color: '#e0e1dd' }, '&.Mui-disabled': { color: 'rgba(255,255,255,0.28)' }, visibility: !onayKartiEditMode ? 'visible' : 'hidden', pointerEvents: !onayKartiEditMode ? 'auto' : 'none' }}
-                >
-                  <EditIcon sx={{ fontSize: 20 }} />
-                </IconButton>
+                <Box sx={{ position: 'relative', width: '30px', height: '30px', flexShrink: 0 }}>
+                  <IconButton size="small"
+                    disabled={Object.keys(draftLines).length === 0}
+                    onClick={saveOnayKartiEdits}
+                    sx={{ position: 'absolute', inset: 0, color: '#a5d6a7', '&.Mui-disabled': { color: 'rgba(255,255,255,0.65)' }, visibility: onayKartiEditMode ? 'visible' : 'hidden', pointerEvents: onayKartiEditMode ? 'auto' : 'none' }}
+                  >
+                    <SaveIcon sx={{ fontSize: 20 }} />
+                  </IconButton>
+                  <IconButton size="small"
+                    disabled={!hasPendingInOnayKart}
+                    onClick={() => {
+                      const expand = {}
+                      function markExpand(node) {
+                        const kids = node.children ?? []
+                        if (kids.length > 0) { expand[node.id] = true; kids.forEach(markExpand) }
+                      }
+                      approvalTree.forEach(markExpand)
+                      setExpandedApproved(prev => ({ ...prev, ...expand }))
+                      setShowAllOriginals(true)
+                      setExpandedOnayKarti(true)
+                      setOnayKartiEditMode(true)
+                    }}
+                    sx={{ position: 'absolute', inset: 0, color: 'rgba(224,225,221,0.75)', '&:hover': { color: '#e0e1dd' }, '&.Mui-disabled': { color: 'rgba(255,255,255,0.28)' }, visibility: !onayKartiEditMode ? 'visible' : 'hidden', pointerEvents: !onayKartiEditMode ? 'auto' : 'none' }}
+                  >
+                    <EditIcon sx={{ fontSize: 20 }} />
+                  </IconButton>
+                </Box>
                 </Box>
               </Box>
 
 
+              {expandedOnayKarti && <>
               <Box sx={{ overflowX: 'auto' }}>
                 <Box sx={{ display: 'grid', gridTemplateColumns: ONAY_GRID, minWidth: 'max-content' }}>
                   {/* Tablo başlığı */}
@@ -1052,11 +1091,13 @@ export default function P_MetrajOnaylaCetvel() {
                   {pozBirim && <Box component="span" sx={{ fontSize: '0.78rem', color: 'rgba(255,255,255,0.55)' }}>{pozBirim}</Box>}
                 </Box>
               </Box>
+              </>}
             </Box>
           </Box>
         )
       })()}
 
+      </Box>
     </Box>
   )
 }
