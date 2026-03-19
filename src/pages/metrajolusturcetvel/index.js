@@ -22,7 +22,6 @@ import EditIcon from '@mui/icons-material/Edit'
 import SaveIcon from '@mui/icons-material/Save'
 import ClearIcon from '@mui/icons-material/Clear'
 import CheckCircleIcon from '@mui/icons-material/CheckCircle'
-import AddIcon from '@mui/icons-material/Add'
 import SubdirectoryArrowRightIcon from '@mui/icons-material/SubdirectoryArrowRight'
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore'
 import ExpandLessIcon from '@mui/icons-material/ExpandLess'
@@ -162,6 +161,8 @@ function getCardColors(visualStatus) {
 }
 
 
+const VIRTUAL_SESS_ID = 'virtual-new'
+
 export default function P_MetrajOlusturCetvel() {
   const navigate = useNavigate()
   const { selectedProje, selectedIsPaket, selectedPoz, selectedMahal, appUser } = useContext(StoreContext)
@@ -220,7 +221,20 @@ export default function P_MetrajOlusturCetvel() {
         .order('updated_at', { ascending: false })
       if (sessError) throw sessError
 
-      if (!sessData?.length) { setSessions([]); setLoading(false); return }
+      if (!sessData?.length) {
+        const virtualUserName = [appUser?.isim, appUser?.soyisim].filter(Boolean).join(' ') || appUser?.email || '?'
+        const virtualSess = {
+          id: VIRTUAL_SESS_ID, isVirtual: true, isOwn: true, created_by: appUser?.id ?? null,
+          userName: virtualUserName, status: 'draft', lines: [], linesBackup: [], mode_edit: false,
+          isChanged: false, isRevisionEdit: false, visualStatus: 'draft',
+          revisedLines: {}, work_package_poz_area_id: wpAreaId, total_quantity: 0,
+        }
+        setSessions([virtualSess])
+        setVisibleSessCards({ [VIRTUAL_SESS_ID]: true })
+        setExpandedSessCards({ [VIRTUAL_SESS_ID]: true })
+        setLoading(false)
+        return
+      }
 
       // Tüm satırları çek
       const sessionIds = sessData.map(s => s.id)
@@ -254,7 +268,7 @@ export default function P_MetrajOlusturCetvel() {
         (STATUS_ORDER[a.status] ?? 3) - (STATUS_ORDER[b.status] ?? 3)
       )
 
-      setSessions(sorted.map(sess => {
+      const sessionsArr = sorted.map(sess => {
         const revisedLines = Array.isArray(sess.revision_snapshot) && sess.revision_snapshot.length > 0
           ? Object.fromEntries(sess.revision_snapshot.filter(e => !e.__revision_meta__ && e.id).map(e => [e.id, e]))
           : {}
@@ -270,19 +284,31 @@ export default function P_MetrajOlusturCetvel() {
           isChanged: false,
           revisedLines,
         }
-      }))
+      })
+      const ownExists = sorted.some(s => s.created_by === appUser?.id)
+      if (!ownExists) {
+        const virtualUserName = nameMap[appUser?.id] ?? ([appUser?.isim, appUser?.soyisim].filter(Boolean).join(' ') || appUser?.email || '?')
+        sessionsArr.push({
+          id: VIRTUAL_SESS_ID, isVirtual: true, isOwn: true, created_by: appUser?.id ?? null,
+          userName: virtualUserName, status: 'draft', lines: [], linesBackup: [], mode_edit: false,
+          isChanged: false, isRevisionEdit: false, visualStatus: 'draft',
+          revisedLines: {}, work_package_poz_area_id: wpAreaId, total_quantity: 0,
+        })
+      }
+      setSessions(sessionsArr)
       setVisibleSessCards(prev => {
         const next = { ...prev }
-        sorted.forEach(sess => { if (next[sess.id] === undefined) next[sess.id] = true })
+        sessionsArr.forEach(sess => { if (next[sess.id] === undefined) next[sess.id] = true })
         return next
       })
 
       setExpandedSessCards(prev => {
         const next = { ...prev }
-        sorted.forEach(sess => {
+        sessionsArr.forEach(sess => {
           if (next[sess.id] === undefined) {
-            const hasPending = (linesBySession[sess.id] ?? []).some(l => !l.parent_line_id && l.status === 'pending')
-            next[sess.id] = hasPending
+            next[sess.id] = sess.isVirtual
+              ? true
+              : (linesBySession[sess.id] ?? []).some(l => !l.parent_line_id && l.status === 'pending')
           }
         })
         return next
@@ -374,6 +400,73 @@ export default function P_MetrajOlusturCetvel() {
     const sess = sessions.find(s => s.id === sessId)
     if (!sess) return
     try {
+      // ── Virtual session: create session + lines together in DB ──
+      if (sess.isVirtual) {
+        const { data: newSessData, error: sessError } = await supabase
+          .from('measurement_sessions')
+          .insert({ work_package_poz_area_id: wpAreaId, status: 'draft', total_quantity: 0, created_by: appUser?.id ?? null })
+          .select().single()
+        if (sessError) throw sessError
+        const realSessId = newSessData.id
+
+        const insertedMap = {}
+        const newLines = sess.lines.filter(l => l.isNew)
+        const toInsert = [...newLines]
+        while (toInsert.length > 0) {
+          const candidate = toInsert.find(l =>
+            !l.parent_line_id ||
+            !newLines.find(p => p.id === l.parent_line_id) ||
+            insertedMap[l.parent_line_id]
+          )
+          if (!candidate) break
+          const realParentId = candidate.parent_line_id
+            ? (insertedMap[candidate.parent_line_id]?.id ?? candidate.parent_line_id)
+            : null
+          const { data: inserted, error } = await supabase
+            .from('measurement_lines')
+            .insert({
+              session_id: realSessId,
+              order_index: candidate.order_index,
+              description: candidate.description || null,
+              multiplier: (candidate.multiplier === '' || candidate.multiplier === null) ? 1 : Number(candidate.multiplier),
+              count:  candidate.count  === '' ? null : candidate.count,
+              length: candidate.length === '' ? null : candidate.length,
+              width:  candidate.width  === '' ? null : candidate.width,
+              height: candidate.height === '' ? null : candidate.height,
+              parent_line_id: realParentId,
+              line_type: 'data',
+              status: candidate.status ?? 'draft',
+            })
+            .select().single()
+          if (error) throw error
+          insertedMap[candidate.id] = inserted
+          toInsert.splice(toInsert.indexOf(candidate), 1)
+        }
+
+        const updatedLines = Object.values(insertedMap)
+        const parentIds = new Set(updatedLines.filter(l => l.parent_line_id).map(l => l.parent_line_id))
+        const total = updatedLines.filter(l => !parentIds.has(l.id)).reduce((sum, l) => sum + computeQuantity(l), 0)
+        await supabase.from('measurement_sessions').update({ total_quantity: total, updated_at: new Date().toISOString() }).eq('id', realSessId)
+
+        setSessions(prev => prev.map(s => s.id === VIRTUAL_SESS_ID ? {
+          ...newSessData,
+          visualStatus: 'draft',
+          userName: s.userName,
+          isOwn: true,
+          isVirtual: false,
+          total_quantity: total,
+          lines: updatedLines,
+          linesBackup: _.cloneDeep(updatedLines),
+          mode_edit: false,
+          isChanged: false,
+          isRevisionEdit: false,
+          revisedLines: {},
+        } : s))
+        setExpandedSessCards(prev => { const { [VIRTUAL_SESS_ID]: v, ...rest } = prev; return { ...rest, [realSessId]: v ?? true } })
+        setVisibleSessCards(prev => { const { [VIRTUAL_SESS_ID]: v, ...rest } = prev; return { ...rest, [realSessId]: v ?? true } })
+        return
+      }
+
       // Silinen (backup'ta olan ama lines'ta olmayan) kayıtlı satırları sil
       const backupIds = new Set(sess.linesBackup.map(l => l.id))
       const currentIds = new Set(sess.lines.filter(l => !l.isNew).map(l => l.id))
@@ -459,6 +552,11 @@ export default function P_MetrajOlusturCetvel() {
   }
 
   const handleCancelEdit = (sessId) => {
+    const sess = sessions.find(s => s.id === sessId)
+    if (sess?.isVirtual) {
+      updateSess(sessId, () => ({ lines: [], linesBackup: [], isChanged: false, mode_edit: false }))
+      return
+    }
     updateSess(sessId, s => ({
       lines: _.cloneDeep(s.linesBackup),
       isChanged: false,
@@ -572,32 +670,6 @@ export default function P_MetrajOlusturCetvel() {
           isChanged: false,
         }
       })
-    } catch (err) {
-      setDialogAlert({ dialogIcon: 'warning', dialogMessage: err.message, onCloseAction: () => setDialogAlert() })
-    }
-  }
-
-  // ── Yeni metraj oturumu başlat ───────────────────────────────
-  const handleStartNew = async () => {
-    try {
-      const { data, error } = await supabase
-        .from('measurement_sessions')
-        .insert({ work_package_poz_area_id: wpAreaId, status: 'draft', total_quantity: 0, created_by: appUser?.id ?? null })
-        .select().single()
-      if (error) throw error
-      setSessions(prev => [
-        ...prev,
-        {
-          ...data,
-          userName: userMap[appUser?.id] ?? ([appUser?.isim, appUser?.soyisim].filter(Boolean).join(' ') || appUser?.email || '?'),
-          isOwn: true,
-          lines: [],
-          linesBackup: [],
-          mode_edit: true,
-          isChanged: false,
-        },
-      ])
-      setVisibleSessCards(prev => ({ ...prev, [data.id]: true }))
     } catch (err) {
       setDialogAlert({ dialogIcon: 'warning', dialogMessage: err.message, onCloseAction: () => setDialogAlert() })
     }
@@ -1123,8 +1195,6 @@ export default function P_MetrajOlusturCetvel() {
     ? `${selectedPoz.code} · ${selectedPoz.short_desc}`
     : selectedPoz?.short_desc
 
-  const hasMyActiveSess = sessions.some(s => s.isOwn && (s.status !== 'approved' || s.isRevisionEdit))
-
   return (
     <Box>
       <style>{`
@@ -1276,19 +1346,6 @@ export default function P_MetrajOlusturCetvel() {
         <Stack sx={{ width: '100%', p: '1rem' }}>
           <Alert severity="error">Veri alınırken hata: {loadError}</Alert>
         </Stack>
-      )}
-
-      {/* Yeni metraj başlatma butonu (aktif oturum yoksa) */}
-      {!loading && !loadError && !hasMyActiveSess && (
-        <Box sx={{ px: '1rem', pt: '1rem' }}>
-          <Box
-            sx={{ display: 'flex', alignItems: 'center', gap: '0.4rem', px: '6px', py: '4px', cursor: 'pointer', width: 'fit-content' }}
-            onClick={handleStartNew}
-          >
-            <AddIcon sx={{ fontSize: 20, color: '#1565c0' }} />
-            <Typography sx={{ fontSize: '0.85rem', color: '#1565c0' }}>Yeni Metraj Başlat</Typography>
-          </Box>
-        </Box>
       )}
 
       {/* SESSION KARTLARI */}
@@ -1573,46 +1630,47 @@ export default function P_MetrajOlusturCetvel() {
                       )
                     })}
 
-                    {/* Toplam satırları */}
-                    <Box sx={{ gridColumn: '1 / -1', backgroundColor: cardColors.header, borderTop: '2px solid', borderTopColor: cardColors.border, display: 'flex', justifyContent: 'space-between', flexWrap: 'wrap', px: '14px', py: '8px', minHeight: '44px' }}>
-                      <Box sx={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
-                        <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', borderRadius: '50%', backgroundColor: '#FFE0B2', width: 26, height: 26, flexShrink: 0 }}>
-                          <HourglassFullIcon sx={{ fontSize: 16, color: '#E65100', filter: 'drop-shadow(0 0 0.4px #E65100)' }} />
-                        </Box>
-                        <Box component="span" sx={{ fontSize: '0.82rem', color: 'rgba(255,255,255,0.75)' }}>Hazırlanan</Box>
-                        <Box component="span" sx={{ fontSize: '0.95rem', fontWeight: 700, color: totalDraft === 0 ? 'rgba(255,255,255,0.55)' : '#e0e1dd', ml: '2px' }}>{ikiHane(totalDraft)}</Box>
-                        {pozBirim && <Box component="span" sx={{ fontSize: '0.78rem', color: 'rgba(255,255,255,0.55)' }}>{pozBirim}</Box>}
-                      </Box>
-                      <Box sx={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
-                        <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', borderRadius: '50%', backgroundColor: '#BBDEFB', width: 26, height: 26, flexShrink: 0 }}>
-                          <CheckIcon sx={{ fontSize: 16, color: '#1565C0', filter: 'drop-shadow(0 0 0.4px #1565C0)' }} />
-                        </Box>
-                        <Box component="span" sx={{ fontSize: '0.82rem', color: 'rgba(255,255,255,0.75)' }}>Onaya Sunulan</Box>
-                        <Box component="span" sx={{ fontSize: '0.95rem', fontWeight: 700, color: totalPending === 0 ? 'rgba(255,255,255,0.55)' : '#e0e1dd', ml: '2px' }}>{ikiHane(totalPending)}</Box>
-                        {pozBirim && <Box component="span" sx={{ fontSize: '0.78rem', color: 'rgba(255,255,255,0.55)' }}>{pozBirim}</Box>}
-                      </Box>
-                      <Box sx={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
-                        <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', borderRadius: '50%', backgroundColor: '#BDBDBD', width: 26, height: 26, flexShrink: 0 }}>
-                          <DoneAllIcon sx={{ fontSize: 16, color: '#424242', filter: 'drop-shadow(0 0 0.4px #424242)' }} />
-                        </Box>
-                        <Box component="span" sx={{ fontSize: '0.82rem', color: 'rgba(255,255,255,0.75)' }}>Ignore</Box>
-                        <Box component="span" sx={{ fontSize: '0.95rem', fontWeight: 700, color: totalIgnored === 0 ? 'rgba(255,255,255,0.55)' : '#e0e1dd', ml: '2px' }}>{ikiHane(totalIgnored)}</Box>
-                        {pozBirim && <Box component="span" sx={{ fontSize: '0.78rem', color: 'rgba(255,255,255,0.55)' }}>{pozBirim}</Box>}
-                      </Box>
-                      <Box sx={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
-                        <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', borderRadius: '50%', backgroundColor: '#C8E6C9', width: 26, height: 26, flexShrink: 0 }}>
-                          <DoneAllIcon sx={{ fontSize: 16, color: '#2E7D32', filter: 'drop-shadow(0 0 0.4px #2E7D32)' }} />
-                        </Box>
-                        <Box component="span" sx={{ fontSize: '0.82rem', color: 'rgba(255,255,255,0.75)' }}>Onaylanan</Box>
-                        <Box component="span" sx={{ fontSize: '0.95rem', fontWeight: 700, color: totalApproved === 0 ? 'rgba(255,255,255,0.55)' : '#e0e1dd', ml: '2px' }}>{ikiHane(totalApproved)}</Box>
-                        {pozBirim && <Box component="span" sx={{ fontSize: '0.78rem', color: 'rgba(255,255,255,0.55)' }}>{pozBirim}</Box>}
-                      </Box>
-                    </Box>
 
                   </Box>
                 </Box>
               )}
               </>}
+              {rootLines.length > 0 && (
+                <Box sx={{ backgroundColor: cardColors.header, borderTop: '2px solid', borderTopColor: cardColors.border, display: 'flex', justifyContent: 'space-between', flexWrap: 'wrap', px: '14px', py: '8px', minHeight: '44px' }}>
+                  <Box sx={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
+                    <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', borderRadius: '50%', backgroundColor: '#FFE0B2', width: 26, height: 26, flexShrink: 0 }}>
+                      <HourglassFullIcon sx={{ fontSize: 16, color: '#E65100', filter: 'drop-shadow(0 0 0.4px #E65100)' }} />
+                    </Box>
+                    <Box component="span" sx={{ fontSize: '0.82rem', color: 'rgba(255,255,255,0.75)' }}>Hazırlanan</Box>
+                    <Box component="span" sx={{ fontSize: '0.95rem', fontWeight: 700, color: totalDraft === 0 ? 'rgba(255,255,255,0.55)' : '#e0e1dd', ml: '2px' }}>{ikiHane(totalDraft)}</Box>
+                    {pozBirim && <Box component="span" sx={{ fontSize: '0.78rem', color: 'rgba(255,255,255,0.55)' }}>{pozBirim}</Box>}
+                  </Box>
+                  <Box sx={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
+                    <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', borderRadius: '50%', backgroundColor: '#BBDEFB', width: 26, height: 26, flexShrink: 0 }}>
+                      <CheckIcon sx={{ fontSize: 16, color: '#1565C0', filter: 'drop-shadow(0 0 0.4px #1565C0)' }} />
+                    </Box>
+                    <Box component="span" sx={{ fontSize: '0.82rem', color: 'rgba(255,255,255,0.75)' }}>Onaya Sunulan</Box>
+                    <Box component="span" sx={{ fontSize: '0.95rem', fontWeight: 700, color: totalPending === 0 ? 'rgba(255,255,255,0.55)' : '#e0e1dd', ml: '2px' }}>{ikiHane(totalPending)}</Box>
+                    {pozBirim && <Box component="span" sx={{ fontSize: '0.78rem', color: 'rgba(255,255,255,0.55)' }}>{pozBirim}</Box>}
+                  </Box>
+                  <Box sx={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
+                    <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', borderRadius: '50%', backgroundColor: '#BDBDBD', width: 26, height: 26, flexShrink: 0 }}>
+                      <DoneAllIcon sx={{ fontSize: 16, color: '#424242', filter: 'drop-shadow(0 0 0.4px #424242)' }} />
+                    </Box>
+                    <Box component="span" sx={{ fontSize: '0.82rem', color: 'rgba(255,255,255,0.75)' }}>Ignore</Box>
+                    <Box component="span" sx={{ fontSize: '0.95rem', fontWeight: 700, color: totalIgnored === 0 ? 'rgba(255,255,255,0.55)' : '#e0e1dd', ml: '2px' }}>{ikiHane(totalIgnored)}</Box>
+                    {pozBirim && <Box component="span" sx={{ fontSize: '0.78rem', color: 'rgba(255,255,255,0.55)' }}>{pozBirim}</Box>}
+                  </Box>
+                  <Box sx={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
+                    <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', borderRadius: '50%', backgroundColor: '#C8E6C9', width: 26, height: 26, flexShrink: 0 }}>
+                      <DoneAllIcon sx={{ fontSize: 16, color: '#2E7D32', filter: 'drop-shadow(0 0 0.4px #2E7D32)' }} />
+                    </Box>
+                    <Box component="span" sx={{ fontSize: '0.82rem', color: 'rgba(255,255,255,0.75)' }}>Onaylanan</Box>
+                    <Box component="span" sx={{ fontSize: '0.95rem', fontWeight: 700, color: totalApproved === 0 ? 'rgba(255,255,255,0.55)' : '#e0e1dd', ml: '2px' }}>{ikiHane(totalApproved)}</Box>
+                    {pozBirim && <Box component="span" sx={{ fontSize: '0.78rem', color: 'rgba(255,255,255,0.55)' }}>{pozBirim}</Box>}
+                  </Box>
+                </Box>
+              )}
             </Box>
           )
         })}
