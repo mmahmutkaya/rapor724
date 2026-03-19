@@ -152,12 +152,12 @@ const inputSx = {
   MozAppearance: 'textfield',
 }
 
-function getCardColors(visualStatus) {
-  if (visualStatus === 'approved') return { border: '#A5D6A7', header: '#415a77', row: 'rgba(200,230,201,0.35)', totalText: '#e0e1dd' }
-  if (visualStatus === 'revised') return { border: '#90CAF9', header: '#415a77', row: 'rgba(187,222,251,0.35)', totalText: '#e0e1dd' }
+function getCardColors(visualStatus, isOwn = true) {
+  if (visualStatus === 'approved') return { border: '#A5D6A7', header: isOwn ? '#415a77' : '#555555', row: 'rgba(200,230,201,0.35)', totalText: '#e0e1dd' }
+  if (visualStatus === 'revised') return { border: isOwn ? '#90CAF9' : '#9e9e9e', header: isOwn ? '#415a77' : '#555555', row: isOwn ? 'rgba(187,222,251,0.35)' : 'rgba(158,158,158,0.18)', totalText: '#e0e1dd' }
 
-  if (visualStatus === 'pendingRevision') return { border: '#CE93D8', header: '#415a77', row: 'rgba(206,147,216,0.15)', totalText: '#e0e1dd' }
-  return { border: '#64B5F6', header: '#415a77', row: 'rgba(100,181,246,0.15)', totalText: '#e0e1dd' }
+  if (visualStatus === 'pendingRevision') return { border: '#CE93D8', header: isOwn ? '#415a77' : '#555555', row: 'rgba(206,147,216,0.15)', totalText: '#e0e1dd' }
+  return { border: isOwn ? '#64B5F6' : '#9e9e9e', header: isOwn ? '#415a77' : '#555555', row: isOwn ? 'rgba(100,181,246,0.15)' : 'rgba(158,158,158,0.12)', totalText: '#e0e1dd' }
 }
 
 
@@ -187,6 +187,8 @@ export default function P_MetrajOlusturCetvel() {
   const [expandedSessCards, setExpandedSessCards] = useState({})
   const [expandedOnayKarti, setExpandedOnayKarti] = useState(true)
   const [pendingDeletes, setPendingDeletes] = useState([])     // { lineId: string }[] — henüz DB'ye yansıtılmamış silmeler
+  const [pendingStatusReverts,  setPendingStatusReverts]  = useState([]) // lineId[] — pending→draft, save'e kadar DB'ye yazılmaz
+  const [pendingStatusForwards, setPendingStatusForwards] = useState([]) // lineId[] — draft→pending, save'e kadar DB'ye yazılmaz
 
   const wpAreaId = selectedMahal?.wpAreaId
 
@@ -960,6 +962,22 @@ export default function P_MetrajOlusturCetvel() {
     if (Object.keys(revizeForms).length > 0) {
       await handleSendRevizeTalebi()
     }
+    if (pendingStatusReverts.length > 0) {
+      const { error } = await supabase.from('measurement_lines').update({ status: 'draft' }).in('id', pendingStatusReverts)
+      if (error) {
+        setDialogAlert({ dialogIcon: 'warning', dialogMessage: error.message, onCloseAction: () => setDialogAlert() })
+        return
+      }
+      setPendingStatusReverts([])
+    }
+    if (pendingStatusForwards.length > 0) {
+      const { error } = await supabase.from('measurement_lines').update({ status: 'pending' }).in('id', pendingStatusForwards)
+      if (error) {
+        setDialogAlert({ dialogIcon: 'warning', dialogMessage: error.message, onCloseAction: () => setDialogAlert() })
+        return
+      }
+      setPendingStatusForwards([])
+    }
     setOnayKartiEditMode(false)
     setExpandedApproved({})
   }
@@ -996,19 +1014,26 @@ export default function P_MetrajOlusturCetvel() {
 
     // Mevcut kullanıcının oturumunu bul veya yeni oluştur
     let mySess = sessions.find(s => s.isOwn)
-    if (!mySess) {
+    if (!mySess || mySess.isVirtual) {
       try {
         const { data, error } = await supabase
           .from('measurement_sessions')
           .insert({ work_package_poz_area_id: wpAreaId, status: 'draft', total_quantity: 0, created_by: appUser?.id ?? null })
           .select().single()
         if (error) throw error
+        const prevVirtual = mySess
         mySess = {
-          ...data, userName: userMap[appUser?.id] ?? ([appUser?.isim, appUser?.soyisim].filter(Boolean).join(' ') || appUser?.email || '?'), isOwn: true,
-          lines: [], linesBackup: [], mode_edit: false,
-          isRevisionEdit: false, isChanged: false, revisedLines: {},
+          ...data, userName: prevVirtual?.userName ?? (userMap[appUser?.id] ?? ([appUser?.isim, appUser?.soyisim].filter(Boolean).join(' ') || appUser?.email || '?')), isOwn: true,
+          lines: prevVirtual?.lines ?? [], linesBackup: prevVirtual?.linesBackup ?? [], mode_edit: false,
+          isRevisionEdit: false, isChanged: false, revisedLines: {}, isVirtual: false,
         }
-        setSessions(prev => [...prev, mySess])
+        if (prevVirtual?.isVirtual) {
+          setSessions(prev => prev.map(s => s.id === VIRTUAL_SESS_ID ? mySess : s))
+          setExpandedSessCards(prev => { const { [VIRTUAL_SESS_ID]: v, ...rest } = prev; return { ...rest, [mySess.id]: v ?? true } })
+          setVisibleSessCards(prev => { const { [VIRTUAL_SESS_ID]: v, ...rest } = prev; return { ...rest, [mySess.id]: v ?? true } })
+        } else {
+          setSessions(prev => [...prev, mySess])
+        }
       } catch (err) {
         setDialogAlert({ dialogIcon: 'warning', dialogMessage: err.message, onCloseAction: () => setDialogAlert() })
         return
@@ -1087,26 +1112,27 @@ export default function P_MetrajOlusturCetvel() {
     }
   }
 
-  const handleRevertPendingToDraft = async (lineId) => {
-    try {
-      const allLines = sessions.flatMap(s => s.lines ?? [])
-      const targetLine = allLines.find(l => l.id === lineId)
-      const toRevert = allLines.filter(l =>
-        l.parent_line_id === targetLine?.parent_line_id &&
-        l.status === 'pending' &&
-        sessions.some(s => s.id === l.session_id && s.created_by === appUser?.id)
-      )
-      const revertIds = new Set(toRevert.map(l => l.id))
-      if (revertIds.size === 0) return
-      const { error } = await supabase.from('measurement_lines').update({ status: 'draft' }).in('id', [...revertIds])
-      if (error) throw error
-      setSessions(prev => prev.map(s => ({
-        ...s,
-        lines: s.lines.map(l => revertIds.has(l.id) ? { ...l, status: 'draft' } : l)
-      })))
-    } catch (err) {
-      setDialogAlert({ dialogIcon: 'warning', dialogMessage: err.message, onCloseAction: () => setDialogAlert() })
-    }
+  const handleRevertPendingToDraft = (lineId) => {
+    const allLines = sessions.flatMap(s => s.lines ?? [])
+    const targetLine = allLines.find(l => l.id === lineId)
+    const toRevert = allLines.filter(l =>
+      l.parent_line_id === targetLine?.parent_line_id &&
+      l.status === 'pending' &&
+      sessions.some(s => s.id === l.session_id && s.created_by === appUser?.id)
+    )
+    const revertIds = toRevert.map(l => l.id)
+    if (revertIds.length === 0) return
+    setSessions(prev => prev.map(s => ({
+      ...s,
+      lines: s.lines.map(l => revertIds.includes(l.id) ? { ...l, status: 'draft' } : l)
+    })))
+    // draft→pending olarak işaretlenmiş satırlar geri alınıyor — net değişiklik yok
+    const wasForwarded = revertIds.filter(id => pendingStatusForwards.includes(id))
+    const newToRevert   = revertIds.filter(id => !pendingStatusForwards.includes(id))
+    if (wasForwarded.length > 0)
+      setPendingStatusForwards(prev => prev.filter(id => !wasForwarded.includes(id)))
+    if (newToRevert.length > 0)
+      setPendingStatusReverts(prev => [...new Set([...prev, ...newToRevert])])
   }
 
   const handleDeleteDraftChild = (lineId) => {
@@ -1117,29 +1143,26 @@ export default function P_MetrajOlusturCetvel() {
     })))
   }
 
-  const handleSubmitDraftChildToPending = async (lineId) => {
-    try {
-      // Tıklanan satırı bul
-      const allLines = sessions.flatMap(s => s.lines ?? [])
-      const targetLine = allLines.find(l => l.id === lineId)
-
-      // Aynı parent altındaki tüm draft satırları topla
-      const toMarkPending = allLines.filter(l =>
-        l.parent_line_id === targetLine?.parent_line_id &&
-        (!l.status || l.status === 'draft')
-      )
-      const pendingIds = new Set(toMarkPending.map(l => l.id))
-
-      if (pendingIds.size === 0) return
-      const { error } = await supabase.from('measurement_lines').update({ status: 'pending' }).in('id', [...pendingIds])
-      if (error) throw error
-      setSessions(prev => prev.map(s => ({
-        ...s,
-        lines: s.lines.map(l => pendingIds.has(l.id) ? { ...l, status: 'pending' } : l)
-      })))
-    } catch (err) {
-      setDialogAlert({ dialogIcon: 'warning', dialogMessage: err.message, onCloseAction: () => setDialogAlert() })
-    }
+  const handleSubmitDraftChildToPending = (lineId) => {
+    const allLines = sessions.flatMap(s => s.lines ?? [])
+    const targetLine = allLines.find(l => l.id === lineId)
+    const toMarkPending = allLines.filter(l =>
+      l.parent_line_id === targetLine?.parent_line_id &&
+      (!l.status || l.status === 'draft')
+    )
+    const pendingIds = toMarkPending.map(l => l.id)
+    if (pendingIds.length === 0) return
+    setSessions(prev => prev.map(s => ({
+      ...s,
+      lines: s.lines.map(l => pendingIds.includes(l.id) ? { ...l, status: 'pending' } : l)
+    })))
+    // pending→draft olarak işaretlenmiş satırlar geri alınıyor — net değişiklik yok
+    const wasReverted   = pendingIds.filter(id => pendingStatusReverts.includes(id))
+    const newToForward  = pendingIds.filter(id => !pendingStatusReverts.includes(id))
+    if (wasReverted.length > 0)
+      setPendingStatusReverts(prev => prev.filter(id => !wasReverted.includes(id)))
+    if (newToForward.length > 0)
+      setPendingStatusForwards(prev => [...new Set([...prev, ...newToForward])])
   }
 
   const handleApprovePendingLine = async (lineId) => {
@@ -1369,7 +1392,7 @@ export default function P_MetrajOlusturCetvel() {
               })
               .map(sess => {
           const visualStatus = sess.visualStatus ?? getMeasurementVisualStatus(sess)
-          const cardColors = getCardColors(visualStatus)
+          const cardColors = getCardColors(visualStatus, sess.isOwn)
           const isDraft    = sess.status === 'draft'
           const isReady    = sess.status === 'ready'
           const isApproved = visualStatus === 'approved' || visualStatus === 'revised'
@@ -1408,11 +1431,6 @@ export default function P_MetrajOlusturCetvel() {
                 <Typography variant="body1" sx={{ fontWeight: 700, flexGrow: 1, cursor: 'pointer' }}
                   onClick={() => setExpandedSessCards(prev => ({ ...prev, [sess.id]: !prev[sess.id] }))}>
                   {sess.userName}
-                  {!sess.isOwn && (
-                    <Box component="span" sx={{ fontWeight: 400, fontSize: '0.78rem', ml: '6px', color: 'rgba(255,255,255,0.6)' }}>
-                      (salt okunur)
-                    </Box>
-                  )}
                 </Typography>
 
 
@@ -1496,11 +1514,11 @@ export default function P_MetrajOlusturCetvel() {
                   <Box sx={{ display: 'grid', gridTemplateColumns: GRID_COLS, minWidth: 'max-content' }}>
 
                     {/* Tablo başlığı */}
-                    <Box sx={{ ...css_lineHeaderCell }}>Sıra</Box>
-                    <Box sx={{ ...css_lineHeaderCell, justifyContent: 'flex-start' }}>Açıklama</Box>
-                    {NUM_LABELS.map(lbl => <Box key={lbl} sx={{ ...css_lineHeaderCell }}>{lbl}</Box>)}
-                    <Box sx={{ ...css_lineHeaderCell }}>Metraj</Box>
-                    <Box sx={{ ...css_lineHeaderCell }}>Durum</Box>
+                    <Box sx={{ ...css_lineHeaderCell, backgroundColor: cardColors.header }}>Sıra</Box>
+                    <Box sx={{ ...css_lineHeaderCell, justifyContent: 'flex-start', backgroundColor: cardColors.header }}>Açıklama</Box>
+                    {NUM_LABELS.map(lbl => <Box key={lbl} sx={{ ...css_lineHeaderCell, backgroundColor: cardColors.header }}>{lbl}</Box>)}
+                    <Box sx={{ ...css_lineHeaderCell, backgroundColor: cardColors.header }}>Metraj</Box>
+                    <Box sx={{ ...css_lineHeaderCell, backgroundColor: cardColors.header }}>Durum</Box>
 
                     {/* Satırlar — sadece kök satırlar (revize alt satırları onaylanan metraj kartında gösterilir) */}
                     {buildDisplayTree(rootLines).map(line => {
@@ -1763,7 +1781,7 @@ export default function P_MetrajOlusturCetvel() {
                     {NUM_ONAY_FIELDS.map(f => (
                       <Box key={f} sx={{ ...css_oc, ...revizeCellBg, justifyContent: 'flex-end', color: revizeNegColor }}>
                         {isSubmitted
-                          ? <Box sx={{ fontSize: '0.85rem', color: '#333' }}>{(row[f] !== '' && row[f] != null) ? ikiHane(Number(row[f])) : ''}</Box>
+                          ? <Box sx={{ fontSize: '0.85rem', color: revizeNegColor ?? '#333' }}>{(row[f] !== '' && row[f] != null) ? ikiHane(Number(row[f])) : ''}</Box>
                           : <input type="number" className="metraj-num-input" style={{ ...inputOnay, textAlign: 'right', color: revizeNegColor }}
                               value={row[f]} placeholder="—"
                               onChange={e => setRevizeForms(prev => ({ ...prev, [node.id]: prev[node.id].map(r => r.tempId === row.tempId ? { ...r, [f]: e.target.value } : r) }))}
@@ -1775,13 +1793,13 @@ export default function P_MetrajOlusturCetvel() {
                       {(() => {
                         const qty = calcMetrajOnay(row)
                         const isEmpty = v => v === null || v === undefined || v === ''
-                        const hasData = [row.multiplier, row.count, row.length, row.width, row.height].some(v => !isEmpty(v))
+                        const hasData = [(Number(row.multiplier) === 1 ? null : row.multiplier), row.count, row.length, row.width, row.height].some(v => !isEmpty(v))
                         return (qty !== 0 || hasData) ? ikiHane(qty) : ''
                       })()}
                       {pozBirim && calcMetrajOnay(row) !== 0 && <Box component="span" sx={{ ml: '3px', fontWeight: 400, fontSize: '0.72rem', color: calcMetrajOnay(row) < 0 ? '#c62828' : '#555' }}>{pozBirim}</Box>}
                     </Box>
-                    <Box sx={{ ...css_oc, ...revizeCellBg, fontSize: '0.78rem', color: isSubmitted ? '#1565c0' : '#455a64' }}>{appUser?.displayName ?? appUser?.email ?? '(ben)'}</Box>
-                    <Box sx={{ ...css_oc, ...revizeCellBg, fontSize: '0.78rem', color: isSubmitted ? '#1565c0' : '#455a64' }}></Box>
+                    {showHazırlayan && <Box sx={{ ...css_oc, ...revizeCellBg, justifyContent: 'center', fontSize: '0.78rem', color: isSubmitted ? '#1565c0' : '#455a64' }}>{userMap[appUser?.id] ?? sessions.find(s => s.isOwn)?.userName ?? appUser?.email ?? '(ben)'}</Box>}
+                    {showOnaylayan  && <Box sx={{ ...css_oc, ...revizeCellBg, justifyContent: 'center', fontSize: '0.78rem', color: isSubmitted ? '#1565c0' : '#455a64' }}></Box>}
                     <Box sx={{ ...css_oc, ...revizeCellBg, justifyContent: 'center', gap: '2px' }}>
                       {!isSubmitted && (
                         <IconButton size="small" sx={{ p: '2px' }} title="Onaya Sunulan"
@@ -1812,7 +1830,7 @@ export default function P_MetrajOlusturCetvel() {
             const origCellBg = { backgroundColor: '#D5D5D5', borderBottom: '1px dashed #c8c8c8' }
             return (
               <>
-                {showAllOriginals && (
+                {expandedOnayKarti && showAllOriginals && (
                   <>
                     <Box sx={{ ...css_oc, ...origCellBg, justifyContent: 'flex-start', pl: '0.5rem', color: '#888', fontSize: '0.78rem' }}>{node.siraNo}</Box>
                     <Box sx={{ ...css_oc, ...origCellBg, color: '#777', fontStyle: 'italic', fontSize: '0.82rem' }}>{node.description ?? ''}</Box>
@@ -1820,7 +1838,12 @@ export default function P_MetrajOlusturCetvel() {
                       <Box key={f} sx={{ ...css_oc, ...origCellBg, justifyContent: 'flex-end', color: '#888' }}>{f === 'multiplier' && Number(node[f]) === 1 ? '' : (node[f] != null ? ikiHane(node[f]) : '')}</Box>
                     ))}
                     <Box sx={{ ...css_oc, ...origCellBg, justifyContent: 'flex-end', fontWeight: 700, color: '#888' }}>
-                      {ikiHane(calcMetrajOnay(node))}
+                      {(() => {
+                        const q = calcMetrajOnay(node)
+                        const isEmpty = v => v === null || v === undefined || v === ''
+                        const hasData = !isEmpty(node.description) || [(Number(node.multiplier) === 1 ? null : node.multiplier), node.count, node.length, node.width, node.height].some(v => !isEmpty(v))
+                        return (q !== 0 || hasData) ? ikiHane(q) : ''
+                      })()}
                       {pozBirim && calcMetrajOnay(node) !== 0 && <Box component="span" sx={{ ml: '3px', fontWeight: 400, fontSize: '0.72rem', color: '#888' }}>{pozBirim}</Box>}
                     </Box>
                     {showHazırlayan && <Box sx={{ ...css_oc, ...origCellBg, justifyContent: 'center', fontSize: '0.78rem', color: '#666' }}>{node.hazırlayan}</Box>}
@@ -1830,10 +1853,10 @@ export default function P_MetrajOlusturCetvel() {
                     </Box>
                   </>
                 )}
-                {node.children.filter(c => showAllOriginals || c.status !== 'ignored').map(child => (
+                {expandedOnayKarti && node.children.filter(c => showAllOriginals || c.status !== 'ignored').map(child => (
                   <React.Fragment key={child.id}>{renderOnayRow(child)}</React.Fragment>
                 ))}
-                {revizeEditor}
+                {expandedOnayKarti && revizeEditor}
               </>
             )
           }
@@ -1851,13 +1874,8 @@ export default function P_MetrajOlusturCetvel() {
 
           return (
             <>
-              {/* Sıra sütunu — expand/collapse oku buraya taşındı */}
-              <Box sx={{ ...css_oc, ...cellBg, justifyContent: 'flex-start', pl: hasKids ? '2px' : '0.5rem', display: 'flex', alignItems: 'center', gap: '2px', color: isDim ? dimColor : (node.depth > 0 ? '#1565c0' : '#555') }}>
-                {hasKids && (
-                  <IconButton size="small" sx={{ p: '1px', flexShrink: 0 }} onClick={() => setExpandedApproved(prev => ({ ...prev, [node.id]: !prev[node.id] }))}>
-                    {isExp ? <ExpandLessIcon sx={{ fontSize: 16, color: '#888' }} /> : <ExpandMoreIcon sx={{ fontSize: 16, color: '#888' }} />}
-                  </IconButton>
-                )}
+              {/* Sıra sütunu */}
+              <Box sx={{ ...css_oc, ...cellBg, justifyContent: 'flex-start', pl: '0.5rem', display: 'flex', alignItems: 'center', gap: '2px', color: isDim ? dimColor : (node.depth > 0 ? '#1565c0' : '#555') }}>
                 {node.siraNo}
               </Box>
               <Box sx={{ ...css_oc, ...cellBg, display: 'flex', alignItems: 'center', gap: '4px', color: negColor }}>
@@ -1926,11 +1944,11 @@ export default function P_MetrajOlusturCetvel() {
                 {!onayKartiEditMode && node.status === 'approved' && !node.depth && <DoneAllIcon sx={{ fontSize: 18, color: '#2E7D32', filter: 'drop-shadow(0 0 0.6px #2E7D32)' }} />}
               </Box>
 
-              {hasKids && isExp && node.children.filter(c => showAllOriginals || c.status !== 'ignored').map(child => (
+              {hasKids && expandedOnayKarti && node.children.filter(c => showAllOriginals || c.status !== 'ignored').map(child => (
                 <React.Fragment key={child.id}>{renderOnayRow(child)}</React.Fragment>
               ))}
 
-              {(!hasKids || isExp) && revizeEditor}
+              {expandedOnayKarti && revizeEditor}
             </>
           )
         }
@@ -1994,9 +2012,9 @@ export default function P_MetrajOlusturCetvel() {
               {/* Kart başlığı */}
               <Box sx={{ backgroundColor: '#1b5e20', color: '#fff', px: '1rem', minHeight: '44px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                 <Box sx={{ display: 'flex', alignItems: 'center', gap: '2px', cursor: 'pointer' }}
-                  onClick={() => setExpandedOnayKarti(prev => !prev)}>
+                  onClick={() => setShowAllOriginals(prev => !prev)}>
                   <IconButton size="small" sx={{ color: 'rgba(255,255,255,0.8)', p: '2px' }}>
-                    {expandedOnayKarti ? <ExpandLessIcon sx={{ fontSize: 18 }} /> : <ExpandMoreIcon sx={{ fontSize: 18 }} />}
+                    {showAllOriginals ? <ExpandLessIcon sx={{ fontSize: 18 }} /> : <ExpandMoreIcon sx={{ fontSize: 18 }} />}
                   </IconButton>
                   <Typography variant="body2" sx={{ fontWeight: 700 }}>Onaylı Metraj</Typography>
                 </Box>
@@ -2011,8 +2029,8 @@ export default function P_MetrajOlusturCetvel() {
                       ...(showOnaylayan ? { backgroundColor: 'rgba(255,255,255,0.18)', borderColor: 'rgba(255,255,255,0.5)', color: '#fff' } : { backgroundColor: 'transparent', borderColor: 'rgba(255,255,255,0.25)', color: 'rgba(255,255,255,0.4)' }) }}>
                     Onaylayan
                   </Box>
-                  <IconButton size="small" sx={{ color: 'rgba(224,225,221,0.9)', '&:hover': { color: '#fff' } }} onClick={() => setShowAllOriginals(prev => !prev)}>
-                    {showAllOriginals ? <ExpandLessIcon sx={{ fontSize: 22, filter: 'drop-shadow(0 0 0.7px currentColor)' }} /> : <ExpandMoreIcon sx={{ fontSize: 22, filter: 'drop-shadow(0 0 0.7px currentColor)' }} />}
+                  <IconButton size="small" sx={{ color: 'rgba(224,225,221,0.9)', '&:hover': { color: '#fff' } }} onClick={() => setExpandedOnayKarti(prev => !prev)}>
+                    {expandedOnayKarti ? <ExpandLessIcon sx={{ fontSize: 22, filter: 'drop-shadow(0 0 0.7px currentColor)' }} /> : <ExpandMoreIcon sx={{ fontSize: 22, filter: 'drop-shadow(0 0 0.7px currentColor)' }} />}
                   </IconButton>
                   <IconButton size="small" title="İptal"
                     sx={{ p: '2px', color: '#ffcdd2', visibility: onayKartiEditMode ? 'visible' : 'hidden', pointerEvents: onayKartiEditMode ? 'auto' : 'none' }}
@@ -2028,6 +2046,22 @@ export default function P_MetrajOlusturCetvel() {
                           lines: s.lines.map(l => { const { _pendingDelete, ...rest } = l; return rest })
                         })))
                         setPendingDeletes([])
+                      }
+                      if (pendingStatusReverts.length > 0) {
+                        const revertSet = new Set(pendingStatusReverts)
+                        setSessions(prev => prev.map(s => ({
+                          ...s,
+                          lines: s.lines.map(l => revertSet.has(l.id) ? { ...l, status: 'pending' } : l)
+                        })))
+                        setPendingStatusReverts([])
+                      }
+                      if (pendingStatusForwards.length > 0) {
+                        const forwardSet = new Set(pendingStatusForwards)
+                        setSessions(prev => prev.map(s => ({
+                          ...s,
+                          lines: s.lines.map(l => forwardSet.has(l.id) ? { ...l, status: 'draft' } : l)
+                        })))
+                        setPendingStatusForwards([])
                       }
                     }}>
                     <ClearIcon sx={{ fontSize: 20 }} />
@@ -2071,7 +2105,7 @@ export default function P_MetrajOlusturCetvel() {
               </Box>
 
 
-              {expandedOnayKarti && approvalTree.length > 0 && (
+              {approvalTree.length > 0 && (
               <Box sx={{ overflowX: 'auto' }}>
                 <Box sx={{ display: 'grid', gridTemplateColumns: ONAY_GRID, minWidth: 'max-content' }}>
                   {/* Tablo başlığı */}

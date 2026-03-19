@@ -141,11 +141,11 @@ const css_lineCell = {
   overflow: 'hidden',
 }
 
-function getCardColors(visualStatus) {
-  if (visualStatus === 'approved') return { border: '#A5D6A7', header: '#415a77', row: 'rgba(200,230,201,0.35)' }
-  if (visualStatus === 'revised') return { border: '#90CAF9', header: '#415a77', row: 'rgba(187,222,251,0.35)' }
-  if (visualStatus === 'pendingRevision') return { border: '#CE93D8', header: '#415a77', row: 'rgba(206,147,216,0.15)' }
-  return { border: '#64B5F6', header: '#415a77', row: 'rgba(100,181,246,0.15)' }
+function getCardColors(visualStatus, isOwn = true) {
+  if (visualStatus === 'approved') return { border: '#A5D6A7', header: isOwn ? '#415a77' : '#555555', row: 'rgba(200,230,201,0.35)' }
+  if (visualStatus === 'revised') return { border: isOwn ? '#90CAF9' : '#9e9e9e', header: isOwn ? '#415a77' : '#555555', row: isOwn ? 'rgba(187,222,251,0.35)' : 'rgba(158,158,158,0.18)' }
+  if (visualStatus === 'pendingRevision') return { border: '#CE93D8', header: isOwn ? '#415a77' : '#555555', row: 'rgba(206,147,216,0.15)' }
+  return { border: isOwn ? '#64B5F6' : '#9e9e9e', header: isOwn ? '#415a77' : '#555555', row: isOwn ? 'rgba(100,181,246,0.15)' : 'rgba(158,158,158,0.12)' }
 }
 
 
@@ -596,7 +596,7 @@ export default function P_MetrajOnaylaCetvel() {
           <Box sx={{ mt: '1.5rem', px: '1rem', display: 'flex', flexDirection: 'column', gap: '1.5rem', maxWidth: '1100px', order: 1 }}>
             {visibleSessions.map(sess => {
               const visualStatus = sess.visualStatus ?? getMeasurementVisualStatus(sess)
-              const cardColors   = getCardColors(visualStatus)
+              const cardColors   = getCardColors(visualStatus, sess.created_by === currentUserId)
               const isApproved   = visualStatus === 'approved' || visualStatus === 'revised'
               const rootLines    = sess.lines.filter(l => !l.parent_line_id)
               const totalDraft   = rootLines.filter(l => !l.status || l.status === 'draft').reduce((sum, l) => sum + computeQuantity(l), 0)
@@ -674,11 +674,11 @@ export default function P_MetrajOnaylaCetvel() {
                       <Box sx={{ display: 'grid', gridTemplateColumns: GRID_COLS, minWidth: 'max-content' }}>
 
                         {/* Tablo başlığı */}
-                        <Box sx={{ ...css_lineHeaderCell }}>Sıra</Box>
-                        <Box sx={{ ...css_lineHeaderCell, justifyContent: 'flex-start' }}>Açıklama</Box>
-                        {NUM_LABELS.map(lbl => <Box key={lbl} sx={{ ...css_lineHeaderCell }}>{lbl}</Box>)}
-                        <Box sx={{ ...css_lineHeaderCell }}>Metraj</Box>
-                        <Box sx={{ ...css_lineHeaderCell }}>Durum</Box>
+                        <Box sx={{ ...css_lineHeaderCell, backgroundColor: cardColors.header }}>Sıra</Box>
+                        <Box sx={{ ...css_lineHeaderCell, justifyContent: 'flex-start', backgroundColor: cardColors.header }}>Açıklama</Box>
+                        {NUM_LABELS.map(lbl => <Box key={lbl} sx={{ ...css_lineHeaderCell, backgroundColor: cardColors.header }}>{lbl}</Box>)}
+                        <Box sx={{ ...css_lineHeaderCell, backgroundColor: cardColors.header }}>Metraj</Box>
+                        <Box sx={{ ...css_lineHeaderCell, backgroundColor: cardColors.header }}>Durum</Box>
 
                         {/* Satırlar — sadece kök satırlar */}
                         {buildDisplayTree(rootLines).map(line => {
@@ -848,7 +848,7 @@ export default function P_MetrajOnaylaCetvel() {
             const origCellBg = { backgroundColor: '#D5D5D5', borderBottom: '1px dashed #c8c8c8' }
             return (
               <>
-                {showAllOriginals && (
+                {expandedOnayKarti && showAllOriginals && (
                   <>
                     <Box sx={{ ...css_oc, ...origCellBg, justifyContent: 'flex-start', pl: '0.5rem', color: '#888', fontSize: '0.78rem' }}>{node.siraNo}</Box>
                     <Box sx={{ ...css_oc, ...origCellBg, color: '#777', fontStyle: 'italic', fontSize: '0.82rem' }}>{node.description ?? ''}</Box>
@@ -856,7 +856,12 @@ export default function P_MetrajOnaylaCetvel() {
                       <Box key={f} sx={{ ...css_oc, ...origCellBg, justifyContent: 'flex-end', color: '#888' }}>{f === 'multiplier' && Number(node[f]) === 1 ? '' : (node[f] != null ? ikiHane(node[f]) : '')}</Box>
                     ))}
                     <Box sx={{ ...css_oc, ...origCellBg, justifyContent: 'flex-end', fontWeight: 700, color: '#888' }}>
-                      {ikiHane(calcMetrajOnay(node))}
+                      {(() => {
+                        const q = calcMetrajOnay(node)
+                        const isEmpty = v => v === null || v === undefined || v === ''
+                        const hasData = !isEmpty(node.description) || [(Number(node.multiplier) === 1 ? null : node.multiplier), node.count, node.length, node.width, node.height].some(v => !isEmpty(v))
+                        return (q !== 0 || hasData) ? ikiHane(q) : ''
+                      })()}
                       {pozBirim && calcMetrajOnay(node) !== 0 && <Box component="span" sx={{ ml: '3px', fontWeight: 400, fontSize: '0.72rem', color: '#888' }}>{pozBirim}</Box>}
                     </Box>
                     {showHazırlayan && <Box sx={{ ...css_oc, ...origCellBg, justifyContent: 'center', fontSize: '0.78rem', color: '#666' }}>{node.hazırlayan}</Box>}
@@ -866,7 +871,7 @@ export default function P_MetrajOnaylaCetvel() {
                     </Box>
                   </>
                 )}
-                {node.children.filter(c => showAllOriginals || c.status !== 'ignored').map(child => (
+                {expandedOnayKarti && node.children.filter(c => showAllOriginals || c.status !== 'ignored').map(child => (
                   <React.Fragment key={child.id}>{renderOnayRow(child)}</React.Fragment>
                 ))}
               </>
@@ -887,12 +892,7 @@ export default function P_MetrajOnaylaCetvel() {
           return (
             <>
               {/* Sıra sütunu */}
-              <Box sx={{ ...css_oc, ...cellBg, justifyContent: 'flex-start', pl: hasKids ? '2px' : '0.5rem', display: 'flex', alignItems: 'center', gap: '2px', color: isDim ? dimColor : (node.depth > 0 ? '#1565c0' : '#555') }}>
-                {hasKids && (
-                  <IconButton size="small" sx={{ p: '1px', flexShrink: 0 }} onClick={() => { if (onayKartiEditMode && isExp) return; setExpandedApproved(prev => ({ ...prev, [node.id]: !prev[node.id] })) }}>
-                    {isExp ? <ExpandLessIcon sx={{ fontSize: 16, color: onayKartiEditMode ? 'rgba(136,136,136,0.3)' : '#888' }} /> : <ExpandMoreIcon sx={{ fontSize: 16, color: '#888' }} />}
-                  </IconButton>
-                )}
+              <Box sx={{ ...css_oc, ...cellBg, justifyContent: 'flex-start', pl: '0.5rem', display: 'flex', alignItems: 'center', gap: '2px', color: isDim ? dimColor : (node.depth > 0 ? '#1565c0' : '#555') }}>
                 {node.siraNo}
               </Box>
               <Box sx={{ ...css_oc, ...cellBg, color: negColor }}>
@@ -938,7 +938,7 @@ export default function P_MetrajOnaylaCetvel() {
                 {(!onayKartiEditMode || !draftLines[node.id]) && node.status === 'approved' && !node.depth && <DoneAllIcon sx={{ fontSize: 18, color: '#2E7D32', filter: 'drop-shadow(0 0 0.6px #2E7D32)' }} />}
               </Box>
 
-              {hasKids && isExp && node.children.filter(c => showAllOriginals || c.status !== 'ignored').map(child => (
+              {hasKids && expandedOnayKarti && node.children.filter(c => showAllOriginals || c.status !== 'ignored').map(child => (
                 <React.Fragment key={child.id}>{renderOnayRow(child)}</React.Fragment>
               ))}
             </>
@@ -983,9 +983,9 @@ export default function P_MetrajOnaylaCetvel() {
               {/* Kart başlığı */}
               <Box sx={{ backgroundColor: '#1b5e20', color: '#fff', px: '1rem', minHeight: '44px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                 <Box sx={{ display: 'flex', alignItems: 'center', gap: '2px', cursor: 'pointer' }}
-                  onClick={() => setExpandedOnayKarti(prev => !prev)}>
+                  onClick={() => setShowAllOriginals(prev => !prev)}>
                   <IconButton size="small" sx={{ color: 'rgba(255,255,255,0.8)', p: '2px' }}>
-                    {expandedOnayKarti ? <ExpandLessIcon sx={{ fontSize: 18 }} /> : <ExpandMoreIcon sx={{ fontSize: 18 }} />}
+                    {showAllOriginals ? <ExpandLessIcon sx={{ fontSize: 18 }} /> : <ExpandMoreIcon sx={{ fontSize: 18 }} />}
                   </IconButton>
                   <Typography variant="body2" sx={{ fontWeight: 700 }}>Onaylı Metraj</Typography>
                 </Box>
@@ -1000,8 +1000,8 @@ export default function P_MetrajOnaylaCetvel() {
                     ...(showOnaylayan ? { backgroundColor: 'rgba(255,255,255,0.18)', borderColor: 'rgba(255,255,255,0.5)', color: '#fff' } : { backgroundColor: 'transparent', borderColor: 'rgba(255,255,255,0.25)', color: 'rgba(255,255,255,0.4)' }) }}>
                   Onaylayan
                 </Box>
-                <IconButton size="small" sx={{ color: 'rgba(224,225,221,0.75)', '&:hover': { color: '#fff' } }} onClick={() => setShowAllOriginals(prev => !prev)}>
-                  {showAllOriginals ? <ExpandLessIcon sx={{ fontSize: 20, filter: 'drop-shadow(0 0 0.6px currentColor)' }} /> : <ExpandMoreIcon sx={{ fontSize: 20, filter: 'drop-shadow(0 0 0.6px currentColor)' }} />}
+                <IconButton size="small" sx={{ color: 'rgba(224,225,221,0.75)', '&:hover': { color: '#fff' } }} onClick={() => setExpandedOnayKarti(prev => !prev)}>
+                  {expandedOnayKarti ? <ExpandLessIcon sx={{ fontSize: 20, filter: 'drop-shadow(0 0 0.6px currentColor)' }} /> : <ExpandMoreIcon sx={{ fontSize: 20, filter: 'drop-shadow(0 0 0.6px currentColor)' }} />}
                 </IconButton>
                 <IconButton size="small" onClick={cancelOnayKartiEdits}
                   sx={{ color: '#ef9a9a', visibility: onayKartiEditMode ? 'visible' : 'hidden', pointerEvents: onayKartiEditMode ? 'auto' : 'none' }}>
@@ -1038,7 +1038,7 @@ export default function P_MetrajOnaylaCetvel() {
               </Box>
 
 
-              {expandedOnayKarti && approvalTree.length > 0 && (
+              {approvalTree.length > 0 && (
               <Box sx={{ overflowX: 'auto' }}>
                 <Box sx={{ display: 'grid', gridTemplateColumns: ONAY_GRID, minWidth: 'max-content' }}>
                   {/* Tablo başlığı */}
