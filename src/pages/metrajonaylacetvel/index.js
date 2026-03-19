@@ -27,7 +27,7 @@ import ReplyIcon from '@mui/icons-material/Reply'
 import CheckCircleIcon from '@mui/icons-material/CheckCircle'
 import DoneAllIcon from '@mui/icons-material/DoneAll'
 import BlockIcon from '@mui/icons-material/Block'
-import RemoveCircleIcon from '@mui/icons-material/RemoveCircle'
+import DoNotDisturbIcon from '@mui/icons-material/DoNotDisturb'
 import HourglassFullIcon from '@mui/icons-material/HourglassFull'
 import CheckIcon from '@mui/icons-material/Check'
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore'
@@ -164,8 +164,10 @@ export default function P_MetrajOnaylaCetvel() {
   const [openVisibilityDialog, setOpenVisibilityDialog] = useState(false)
   const [visibleOnayKarti, setVisibleOnayKarti]         = useState(true)
   const [visibleSessCards, setVisibleSessCards]         = useState({})
+  const [visibilityMode, setVisibilityMode]             = useState(2) // 0=sadece hazırlayan, 1=sadece onaylayan, 2=ikisi, 3=hiçbiri
   const [cardEditMode, setCardEditMode]                 = useState({})  // { [sessId]: boolean }
   const [draftLines, setDraftLines]                     = useState({})  // { [lineId]: { status, ... } }
+  const [onayKartiEditMode, setOnayKartiEditMode]       = useState(false)
 
   const wpAreaId = selectedMahal_metraj?.wpAreaId
 
@@ -268,6 +270,10 @@ export default function P_MetrajOnaylaCetvel() {
       setDraftLines(prev => ({ ...prev, [lineId]: { status: 'approved', approved_by: currentUserId, approved_at: now } }))
       return
     }
+    if (!sessId && onayKartiEditMode) {
+      setDraftLines(prev => ({ ...prev, [lineId]: { status: 'approved', approved_by: currentUserId, approved_at: now } }))
+      return
+    }
     const { error } = await supabase
       .from('measurement_lines')
       .update({ status: 'approved', approved_by: currentUserId, approved_at: now })
@@ -284,6 +290,10 @@ export default function P_MetrajOnaylaCetvel() {
 
   const ignoreLine = async (lineId, sessId) => {
     if (sessId && cardEditMode[sessId]) {
+      setDraftLines(prev => ({ ...prev, [lineId]: { status: 'ignored' } }))
+      return
+    }
+    if (!sessId && onayKartiEditMode) {
       setDraftLines(prev => ({ ...prev, [lineId]: { status: 'ignored' } }))
       return
     }
@@ -331,6 +341,52 @@ export default function P_MetrajOnaylaCetvel() {
     const lineIds = new Set(sess.lines.map(l => l.id))
     setDraftLines(prev => { const next = { ...prev }; lineIds.forEach(id => delete next[id]); return next })
     setCardEditMode(prev => ({ ...prev, [sessId]: false }))
+  }
+
+  const saveOnayKartiEdits = async () => {
+    const changes = Object.entries(draftLines)
+    if (changes.length === 0) { setOnayKartiEditMode(false); return }
+    for (const [lineId, draft] of changes) {
+      const { error } = await supabase.from('measurement_lines').update(draft).eq('id', lineId)
+      if (error) {
+        setDialogAlert({ dialogIcon: 'warning', dialogMessage: 'Kayıt sırasında hata.', detailText: error.message, onCloseAction: () => setDialogAlert() })
+        return
+      }
+    }
+    setSessions(prev => prev.map(s => ({
+      ...s,
+      lines: s.lines.map(l => draftLines[l.id] ? { ...l, ...draftLines[l.id] } : l),
+    })))
+    setDraftLines({})
+    setOnayKartiEditMode(false)
+  }
+
+  const cancelOnayKartiEdits = () => {
+    setDraftLines({})
+    setOnayKartiEditMode(false)
+  }
+
+  const approveAllPending = (sessId) => {
+    const sess = sessions.find(s => s.id === sessId)
+    if (!sess) return
+    const now = new Date().toISOString()
+    const updates = {}
+    sess.lines.forEach(l => {
+      const eff = draftLines[l.id]?.status ?? l.status
+      if (eff === 'pending') updates[l.id] = { status: 'approved', approved_by: currentUserId, approved_at: now }
+    })
+    setDraftLines(prev => ({ ...prev, ...updates }))
+  }
+
+  const ignoreAllPending = (sessId) => {
+    const sess = sessions.find(s => s.id === sessId)
+    if (!sess) return
+    const updates = {}
+    sess.lines.forEach(l => {
+      const eff = draftLines[l.id]?.status ?? l.status
+      if (eff === 'pending') updates[l.id] = { status: 'ignored' }
+    })
+    setDraftLines(prev => ({ ...prev, ...updates }))
   }
 
   // ── Onay ağacı yardımcıları ───────────────────────────────────────────────────
@@ -535,6 +591,12 @@ export default function P_MetrajOnaylaCetvel() {
                         <IconButton size="small" sx={{ color: '#ef9a9a' }} onClick={() => cancelCardEdits(sess.id)}>
                           <CloseIcon sx={{ fontSize: 20 }} />
                         </IconButton>
+                        <IconButton size="small" sx={{ color: '#a5d6a7' }} onClick={() => approveAllPending(sess.id)}>
+                          <CheckCircleIcon sx={{ fontSize: 20 }} />
+                        </IconButton>
+                        <IconButton size="small" sx={{ color: '#b0bec5' }} onClick={() => ignoreAllPending(sess.id)}>
+                          <DoNotDisturbIcon sx={{ fontSize: 20 }} />
+                        </IconButton>
                         <IconButton size="small" sx={{ color: '#a5d6a7' }} onClick={() => saveCardEdits(sess.id)}>
                           <SaveIcon sx={{ fontSize: 20 }} />
                         </IconButton>
@@ -634,7 +696,7 @@ export default function P_MetrajOnaylaCetvel() {
                                   </>
                                 ) : effStatus === 'ignored' ? (
                                   <>
-                                    <RemoveCircleIcon sx={{ fontSize: 18, color: '#424242' }} />
+                                    <DoNotDisturbIcon sx={{ fontSize: 18, color: '#424242' }} />
                                     {cardEditMode[sess.id] && (
                                       <IconButton size="small" sx={{ p: '2px' }} onClick={() => revertLine(line.id)}>
                                         <UndoIcon sx={{ fontSize: 16, color: '#e53935' }} />
@@ -682,7 +744,7 @@ export default function P_MetrajOnaylaCetvel() {
                           </Box>
                           <Box sx={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
                             <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', borderRadius: '50%', backgroundColor: '#BDBDBD', width: 26, height: 26, flexShrink: 0 }}>
-                              <RemoveCircleIcon sx={{ fontSize: 16, color: '#424242', filter: 'drop-shadow(0 0 0.4px #424242)' }} />
+                              <DoNotDisturbIcon sx={{ fontSize: 16, color: '#424242', filter: 'drop-shadow(0 0 0.4px #424242)' }} />
                             </Box>
                             <Box component="span" sx={{ fontSize: '0.82rem', color: 'rgba(255,255,255,0.75)' }}>Ignore</Box>
                             <Box component="span" sx={{ fontSize: '0.95rem', fontWeight: 700, color: totalIgnored === 0 ? 'rgba(255,255,255,0.55)' : '#e0e1dd', ml: '2px' }}>{ikiHane(totalIgnored)}</Box>
@@ -710,7 +772,12 @@ export default function P_MetrajOnaylaCetvel() {
 
       {/* ONAYLANAN METRAJ KARTI */}
       {!loading && visibleOnayKarti && approvalTree.length > 0 && (() => {
-        const ONAY_GRID = 'max-content 1fr 65px 65px 65px 65px 65px 80px 90px 90px 80px'
+        const showHazırlayan = visibilityMode === 0 || visibilityMode === 2
+        const showOnaylayan  = visibilityMode === 1 || visibilityMode === 2
+        const ONAY_GRID = 'max-content 1fr 65px 65px 65px 65px 65px 80px'
+          + (showHazırlayan ? ' max-content' : '')
+          + (showOnaylayan  ? ' max-content' : '')
+          + ' 80px'
         const NUM_ONAY_LABELS = ['Çarpan', 'Adet', 'Boy', 'En', 'Yük']
         const NUM_ONAY_FIELDS = ['multiplier', 'count', 'length', 'width', 'height']
         const calcMetrajOnay = (line) => {
@@ -747,12 +814,14 @@ export default function P_MetrajOnaylaCetvel() {
                       {ikiHane(calcMetrajOnay(node))}
                       {pozBirim && calcMetrajOnay(node) !== 0 && <Box component="span" sx={{ ml: '3px', fontWeight: 400, fontSize: '0.72rem', color: '#888' }}>{pozBirim}</Box>}
                     </Box>
-                    <Box sx={{ ...css_oc, ...origCellBg, fontSize: '0.78rem', color: '#666' }}>{node.hazırlayan}</Box>
-                    <Box sx={{ ...css_oc, ...origCellBg, fontSize: '0.78rem', color: '#666' }}>{node.onaylayan}</Box>
-                    <Box sx={{ ...css_oc, ...origCellBg, justifyContent: 'center' }}></Box>
+                    {showHazırlayan && <Box sx={{ ...css_oc, ...origCellBg, fontSize: '0.78rem', color: '#666' }}>{node.hazırlayan}</Box>}
+                    {showOnaylayan  && <Box sx={{ ...css_oc, ...origCellBg, fontSize: '0.78rem', color: '#666' }}>{node.onaylayan}</Box>}
+                    <Box sx={{ ...css_oc, ...origCellBg, justifyContent: 'center' }}>
+                      <DoneAllIcon sx={{ fontSize: 18, color: '#9e9e9e', filter: 'drop-shadow(0 0 0.6px #9e9e9e)' }} />
+                    </Box>
                   </>
                 )}
-                {node.children.map(child => (
+                {node.children.filter(c => showAllOriginals || c.status !== 'ignored').map(child => (
                   <React.Fragment key={child.id}>{renderOnayRow(child)}</React.Fragment>
                 ))}
               </>
@@ -775,8 +844,8 @@ export default function P_MetrajOnaylaCetvel() {
               {/* Sıra sütunu */}
               <Box sx={{ ...css_oc, ...cellBg, justifyContent: 'flex-start', pl: hasKids ? '2px' : '0.5rem', display: 'flex', alignItems: 'center', gap: '2px', color: isDim ? dimColor : (node.depth > 0 ? '#1565c0' : '#555') }}>
                 {hasKids && (
-                  <IconButton size="small" sx={{ p: '1px', flexShrink: 0 }} onClick={() => setExpandedApproved(prev => ({ ...prev, [node.id]: !prev[node.id] }))}>
-                    {isExp ? <ExpandLessIcon sx={{ fontSize: 16, color: '#888' }} /> : <ExpandMoreIcon sx={{ fontSize: 16, color: '#888' }} />}
+                  <IconButton size="small" sx={{ p: '1px', flexShrink: 0 }} onClick={() => { if (onayKartiEditMode && isExp) return; setExpandedApproved(prev => ({ ...prev, [node.id]: !prev[node.id] })) }}>
+                    {isExp ? <ExpandLessIcon sx={{ fontSize: 16, color: onayKartiEditMode ? 'rgba(136,136,136,0.3)' : '#888' }} /> : <ExpandMoreIcon sx={{ fontSize: 16, color: '#888' }} />}
                   </IconButton>
                 )}
                 {node.siraNo}
@@ -798,14 +867,13 @@ export default function P_MetrajOnaylaCetvel() {
                 })()}
                 {pozBirim && metraj !== 0 && <Box component="span" sx={{ ml: '3px', fontWeight: 400, fontSize: '0.72rem', color: isDim ? dimColor : (metraj < 0 ? '#c62828' : '#555') }}>{pozBirim}</Box>}
               </Box>
-              <Box sx={{ ...css_oc, ...cellBg, fontSize: '0.78rem', color: isDim ? '#666' : '#455a64' }}>{node.hazırlayan}</Box>
-              <Box sx={{ ...css_oc, ...cellBg, fontSize: '0.78rem', color: isDim ? '#666' : (node.status === 'pending' ? '#1565c0' : '#1b5e20') }}>
+              {showHazırlayan && <Box sx={{ ...css_oc, ...cellBg, fontSize: '0.78rem', color: isDim ? '#666' : '#455a64' }}>{node.hazırlayan}</Box>}
+              {showOnaylayan  && <Box sx={{ ...css_oc, ...cellBg, fontSize: '0.78rem', color: isDim ? '#666' : (node.status === 'pending' ? '#1565c0' : '#1b5e20') }}>
                 {onaylayanText}
-              </Box>
+              </Box>}
 
-              {/* Aksiyon sütunu — pending satırlar için onay butonları */}
               <Box sx={{ ...css_oc, ...cellBg, justifyContent: 'center', gap: '2px' }}>
-                {node.status === 'pending' && (
+                {onayKartiEditMode && node.status === 'pending' && (
                   <>
                     <IconButton size="small" sx={{ p: '2px' }} onClick={() => approveLine(node.id)}>
                       <CheckCircleIcon sx={{ fontSize: 18, color: '#2e7d32' }} />
@@ -815,9 +883,17 @@ export default function P_MetrajOnaylaCetvel() {
                     </IconButton>
                   </>
                 )}
+                {onayKartiEditMode && (node.status === 'approved' || node.status === 'ignored') && draftLines[node.id] && (
+                  <IconButton size="small" sx={{ p: '2px' }} onClick={() => revertLine(node.id)}>
+                    <UndoIcon sx={{ fontSize: 16, color: '#e53935' }} />
+                  </IconButton>
+                )}
+                {(!onayKartiEditMode || !draftLines[node.id]) && node.status === 'ignored' && <DoNotDisturbIcon sx={{ fontSize: 16, color: '#424242' }} />}
+                {(!onayKartiEditMode || !draftLines[node.id]) && node.status === 'approved' && node.depth > 0 && <Typography sx={{ fontSize: '0.9rem', fontWeight: 900, color: '#2E7D32', lineHeight: 1 }}>R</Typography>}
+                {(!onayKartiEditMode || !draftLines[node.id]) && node.status === 'approved' && !node.depth && <DoneAllIcon sx={{ fontSize: 18, color: '#2E7D32', filter: 'drop-shadow(0 0 0.6px #2E7D32)' }} />}
               </Box>
 
-              {hasKids && isExp && node.children.map(child => (
+              {hasKids && isExp && node.children.filter(c => showAllOriginals || c.status !== 'ignored').map(child => (
                 <React.Fragment key={child.id}>{renderOnayRow(child)}</React.Fragment>
               ))}
             </>
@@ -825,6 +901,7 @@ export default function P_MetrajOnaylaCetvel() {
         }
 
         const allApprovalLines = flattenAll(approvalTree)
+        const hasPendingInOnayKart = allApprovalLines.some(n => n.status === 'pending')
         const onayKartiTotal = allApprovalLines
           .filter(n => !(n.children?.length > 0))
           .reduce((s, n) => s + calcMetrajOnay(n), 0)
@@ -859,18 +936,47 @@ export default function P_MetrajOnaylaCetvel() {
           <Box sx={{ mt: '1.5rem', px: '1rem', maxWidth: '1100px' }}>
             <Box sx={{ border: '2px solid #43A047', overflow: 'hidden', boxShadow: 2 }}>
               {/* Kart başlığı */}
-              <Box sx={{ backgroundColor: '#1b5e20', color: '#fff', px: '1rem', minHeight: '44px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                <Typography variant="body2" sx={{ fontWeight: 700 }}>Onaylı Metraj</Typography>
-                <Box sx={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                  <Box
-                    sx={{ display: 'flex', alignItems: 'center', gap: '4px', cursor: 'pointer', fontSize: '0.78rem', opacity: 0.85, userSelect: 'none', '&:hover': { opacity: 1 } }}
-                    onClick={() => setShowAllOriginals(prev => !prev)}
-                  >
-                    {showAllOriginals ? <ExpandLessIcon sx={{ fontSize: 16 }} /> : <ExpandMoreIcon sx={{ fontSize: 16 }} />}
-                    {showAllOriginals ? 'Orjinalleri gizle' : 'Tüm orjinalleri göster'}
-                  </Box>
-                </Box>
+              <Box sx={{ backgroundColor: '#1b5e20', color: '#fff', px: '1rem', minHeight: '44px', display: 'flex', alignItems: 'center', gap: '4px' }}>
+                <Typography variant="body2" sx={{ fontWeight: 700, flexGrow: 1 }}>Onaylı Metraj</Typography>
+                <IconButton size="small" onClick={() => setVisibilityMode(m => (m + 1) % 4)}
+                  sx={{ color: visibilityMode === 3 ? '#9e9e9e' : visibilityMode === 0 ? '#FF8F00' : visibilityMode === 1 ? '#a5d6a7' : 'rgba(224,225,221,0.75)', '&:hover': { color: '#fff' } }}>
+                  {visibilityMode === 3 ? <VisibilityOffIcon sx={{ fontSize: 20 }} /> : <VisibilityIcon sx={{ fontSize: 20 }} />}
+                </IconButton>
+                <IconButton size="small" sx={{ color: 'rgba(224,225,221,0.75)', '&:hover': { color: '#fff' } }} onClick={() => setShowAllOriginals(prev => !prev)}>
+                  {showAllOriginals ? <ExpandLessIcon sx={{ fontSize: 20, filter: 'drop-shadow(0 0 0.6px currentColor)' }} /> : <ExpandMoreIcon sx={{ fontSize: 20, filter: 'drop-shadow(0 0 0.6px currentColor)' }} />}
+                </IconButton>
+                {onayKartiEditMode ? (
+                  <>
+                    <IconButton size="small" sx={{ color: '#ef9a9a' }} onClick={cancelOnayKartiEdits}>
+                      <CloseIcon sx={{ fontSize: 20 }} />
+                    </IconButton>
+                    <IconButton size="small"
+                      sx={{ color: '#a5d6a7', '&.Mui-disabled': { color: 'rgba(255,255,255,0.65)' } }}
+                      onClick={saveOnayKartiEdits}
+                      disabled={Object.keys(draftLines).length === 0}
+                    >
+                      <SaveIcon sx={{ fontSize: 20 }} />
+                    </IconButton>
+                  </>
+                ) : (
+                  <IconButton size="small"
+                    disabled={!hasPendingInOnayKart}
+                    sx={{ color: 'rgba(224,225,221,0.75)', '&:hover': { color: '#e0e1dd' }, '&.Mui-disabled': { color: 'rgba(255,255,255,0.28)' } }}
+                    onClick={() => {
+                    const expand = {}
+                    function markExpand(node) {
+                      const kids = node.children ?? []
+                      if (kids.length > 0) { expand[node.id] = true; kids.forEach(markExpand) }
+                    }
+                    approvalTree.forEach(markExpand)
+                    setExpandedApproved(prev => ({ ...prev, ...expand }))
+                    setOnayKartiEditMode(true)
+                  }}>
+                    <EditIcon sx={{ fontSize: 18, filter: 'drop-shadow(0 0 0.6px currentColor)' }} />
+                  </IconButton>
+                )}
               </Box>
+
 
               <Box sx={{ overflowX: 'auto' }}>
                 <Box sx={{ display: 'grid', gridTemplateColumns: ONAY_GRID, minWidth: 'max-content' }}>
@@ -879,11 +985,11 @@ export default function P_MetrajOnaylaCetvel() {
                   <Box sx={{ ...css_ohc, justifyContent: 'flex-start' }}>Açıklama</Box>
                   {NUM_ONAY_LABELS.map(lbl => <Box key={lbl} sx={{ ...css_ohc }}>{lbl}</Box>)}
                   <Box sx={{ ...css_ohc }}>Metraj</Box>
-                  <Box sx={{ ...css_ohc }}>Hazırlayan</Box>
-                  <Box sx={{ ...css_ohc }}>Onaylayan</Box>
+                  {showHazırlayan && <Box sx={{ ...css_ohc }}>Hazırlayan</Box>}
+                  {showOnaylayan  && <Box sx={{ ...css_ohc }}>Onaylayan</Box>}
                   <Box sx={{ ...css_ohc }}></Box>
 
-                  {approvalTree.map((rootNode, idx) => (
+                  {approvalTree.filter(n => showAllOriginals || n.status !== 'ignored').map((rootNode, idx) => (
                     <React.Fragment key={rootNode.id}>
                       {idx > 0 && <Box sx={{ gridColumn: '1 / -1', borderTop: '2px solid #9e9e9e' }} />}
                       {renderOnayRow(rootNode)}
@@ -895,24 +1001,24 @@ export default function P_MetrajOnaylaCetvel() {
               {/* Onaylı Metraj Statü Kutuları */}
               <Box sx={{ backgroundColor: '#1b5e20', color: '#fff', px: '1rem', py: '8px', display: 'flex', justifyContent: 'space-between', flexWrap: 'wrap', gap: '8px', borderTop: '1px solid rgba(67, 160, 71, 0.5)' }}>
                 <Box sx={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
-                  <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', borderRadius: '50%', backgroundColor: '#FFE0B2', width: 26, height: 26, flexShrink: 0 }}>
-                    <HourglassFullIcon sx={{ fontSize: 16, color: '#E65100', filter: 'drop-shadow(0 0 0.4px #E65100)' }} />
+                  <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', borderRadius: '50%', backgroundColor: '#BBDEFB', width: 26, height: 26, flexShrink: 0 }}>
+                    <CheckIcon sx={{ fontSize: 16, color: '#1565C0', filter: 'drop-shadow(0 0 0.4px #1565C0)' }} />
                   </Box>
                   <Box component="span" sx={{ fontSize: '0.82rem', color: 'rgba(255,255,255,0.75)' }}>Revize Talebi</Box>
                   <Box component="span" sx={{ fontSize: '0.95rem', fontWeight: 700, color: totalRevizeTalebi === 0 ? 'rgba(255,255,255,0.55)' : '#e0e1dd', ml: '2px' }}>{ikiHane(totalRevizeTalebi)}</Box>
                   {pozBirim && <Box component="span" sx={{ fontSize: '0.78rem', color: 'rgba(255,255,255,0.55)' }}>{pozBirim}</Box>}
                 </Box>
                 <Box sx={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
-                  <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', borderRadius: '50%', backgroundColor: '#BBDEFB', width: 26, height: 26, flexShrink: 0 }}>
-                    <CheckIcon sx={{ fontSize: 16, color: '#1565C0', filter: 'drop-shadow(0 0 0.4px #1565C0)' }} />
+                  <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', borderRadius: '50%', backgroundColor: '#BDBDBD', width: 26, height: 26, flexShrink: 0 }}>
+                    <DoNotDisturbIcon sx={{ fontSize: 16, color: '#424242', filter: 'drop-shadow(0 0 0.4px #424242)' }} />
                   </Box>
                   <Box component="span" sx={{ fontSize: '0.82rem', color: 'rgba(255,255,255,0.75)' }}>Ret Edilen</Box>
                   <Box component="span" sx={{ fontSize: '0.95rem', fontWeight: 700, color: totalRetEdilen === 0 ? 'rgba(255,255,255,0.55)' : '#e0e1dd', ml: '2px' }}>{ikiHane(totalRetEdilen)}</Box>
                   {pozBirim && <Box component="span" sx={{ fontSize: '0.78rem', color: 'rgba(255,255,255,0.55)' }}>{pozBirim}</Box>}
                 </Box>
                 <Box sx={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
-                  <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', borderRadius: '50%', backgroundColor: '#BDBDBD', width: 26, height: 26, flexShrink: 0 }}>
-                    <RemoveCircleIcon sx={{ fontSize: 16, color: '#424242', filter: 'drop-shadow(0 0 0.4px #424242)' }} />
+                  <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', borderRadius: '50%', backgroundColor: '#C8E6C9', width: 26, height: 26, flexShrink: 0 }}>
+                    <Typography sx={{ fontSize: '0.9rem', fontWeight: 900, color: '#2E7D32', lineHeight: 1, filter: 'drop-shadow(0 0 0.4px #2E7D32)' }}>R</Typography>
                   </Box>
                   <Box component="span" sx={{ fontSize: '0.82rem', color: 'rgba(255,255,255,0.75)' }}>Kabul Edilen</Box>
                   <Box component="span" sx={{ fontSize: '0.95rem', fontWeight: 700, color: totalKabulEdilen === 0 ? 'rgba(255,255,255,0.55)' : '#e0e1dd', ml: '2px' }}>{ikiHane(totalKabulEdilen)}</Box>
