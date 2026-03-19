@@ -1154,6 +1154,23 @@ export default function P_MetrajOlusturCetvel() {
       setPendingStatusForwards(prev => prev.filter(id => !wasForwarded.includes(id)))
     if (newToRevert.length > 0)
       setPendingStatusReverts(prev => [...new Set([...prev, ...newToRevert])])
+    // Reverted DB satırları için childEditValues initialize et (henüz yoksa)
+    setChildEditValues(prev => {
+      const updated = { ...prev }
+      toRevert.forEach(l => {
+        if (!updated[l.id]) {
+          updated[l.id] = {
+            description: l.description ?? '',
+            multiplier: (l.multiplier != null && Number(l.multiplier) !== 1) ? String(l.multiplier) : '',
+            count:  l.count  != null ? String(l.count)  : '',
+            length: l.length != null ? String(l.length) : '',
+            width:  l.width  != null ? String(l.width)  : '',
+            height: l.height != null ? String(l.height) : '',
+          }
+        }
+      })
+      return updated
+    })
     if (parentId) setRevizeForms(prev => {
       if (!prev[parentId]) return prev
       return { ...prev, [parentId]: prev[parentId].map(r => r.status === 'submitted_for_approval' ? { ...r, status: 'draft' } : r) }
@@ -1961,7 +1978,7 @@ export default function P_MetrajOlusturCetvel() {
                 {node.status === 'approved' && onayKartiEditMode && (
                   <IconButton size="small" sx={{ p: '2px' }} title="Alt satır ekle" onClick={() => {
                     setRevizeForms(prev => {
-                      const existing = prev[node.id] ?? []
+                      const existing = (prev[node.id] ?? []).map(r => r.status === 'submitted_for_approval' ? { ...r, status: 'draft' } : r)
                       return { ...prev, [node.id]: [...existing, { tempId: `tmp-${Date.now()}-${Math.random()}`, description: '', multiplier: '', count: '', length: '', width: '', height: '', status: 'draft' }] }
                     })
                     setExpandedApproved(prev => ({ ...prev, [node.id]: true }))
