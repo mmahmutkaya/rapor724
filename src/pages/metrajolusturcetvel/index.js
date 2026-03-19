@@ -1923,8 +1923,8 @@ export default function P_MetrajOlusturCetvel() {
                   <IconButton size="small" sx={{ color: 'rgba(224,225,221,0.9)', '&:hover': { color: '#fff' } }} onClick={() => setShowAllOriginals(prev => !prev)}>
                     {showAllOriginals ? <ExpandLessIcon sx={{ fontSize: 22, filter: 'drop-shadow(0 0 0.7px currentColor)' }} /> : <ExpandMoreIcon sx={{ fontSize: 22, filter: 'drop-shadow(0 0 0.7px currentColor)' }} />}
                   </IconButton>
-                  <IconButton size="small" disabled={!onayKartiEditMode} title="İptal"
-                    sx={{ p: '2px', color: '#ffcdd2', '&.Mui-disabled': { color: 'transparent' } }}
+                  <IconButton size="small" title="İptal"
+                    sx={{ p: '2px', color: '#ffcdd2', visibility: onayKartiEditMode ? 'visible' : 'hidden', pointerEvents: onayKartiEditMode ? 'auto' : 'none' }}
                     onClick={() => {
                       setOnayKartiEditMode(false)
                       setExpandedApproved({})
