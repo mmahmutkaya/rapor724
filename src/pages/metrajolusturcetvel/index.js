@@ -960,6 +960,27 @@ export default function P_MetrajOlusturCetvel() {
       setChildEditParents({})
     }
     if (Object.keys(revizeForms).length > 0) {
+      // Revize talebi yapılan satırların geçerliliğini kontrol et
+      const parentIds = Object.keys(revizeForms)
+      const { data: approvedChildren, error: checkErr } = await supabase
+        .from('measurement_lines')
+        .select('parent_line_id')
+        .in('parent_line_id', parentIds)
+        .eq('status', 'approved')
+        .limit(1)
+      if (checkErr) {
+        setDialogAlert({ dialogIcon: 'warning', dialogMessage: checkErr.message, onCloseAction: () => setDialogAlert() })
+        return
+      }
+      if (approvedChildren?.length > 0) {
+        setDialogAlert({
+          dialogIcon: 'warning',
+          dialogMessage: 'Revize talebi yapılan satır artık geçersiz kılınmıştır.',
+          detailText: 'Revize talebinde bulunduğunuz satır başka bir kullanıcı tarafından revize edilmiş; o satır artık güncel değildir ve yeni bir revize satırına dönüşmüştür. Mevcut revize taleplerinizin geçerliliği kalmamıştır. Lütfen güncel revize satırını kontrol ederek taleplerinizi o satıra yeniden yapınız.',
+          onCloseAction: () => setDialogAlert()
+        })
+        return
+      }
       await handleSendRevizeTalebi()
     }
     if (pendingStatusReverts.length > 0) {
@@ -1115,8 +1136,9 @@ export default function P_MetrajOlusturCetvel() {
   const handleRevertPendingToDraft = (lineId) => {
     const allLines = sessions.flatMap(s => s.lines ?? [])
     const targetLine = allLines.find(l => l.id === lineId)
+    const parentId = targetLine?.parent_line_id
     const toRevert = allLines.filter(l =>
-      l.parent_line_id === targetLine?.parent_line_id &&
+      l.parent_line_id === parentId &&
       l.status === 'pending' &&
       sessions.some(s => s.id === l.session_id && s.created_by === appUser?.id)
     )
@@ -1126,13 +1148,16 @@ export default function P_MetrajOlusturCetvel() {
       ...s,
       lines: s.lines.map(l => revertIds.includes(l.id) ? { ...l, status: 'draft' } : l)
     })))
-    // draft→pending olarak işaretlenmiş satırlar geri alınıyor — net değişiklik yok
     const wasForwarded = revertIds.filter(id => pendingStatusForwards.includes(id))
     const newToRevert   = revertIds.filter(id => !pendingStatusForwards.includes(id))
     if (wasForwarded.length > 0)
       setPendingStatusForwards(prev => prev.filter(id => !wasForwarded.includes(id)))
     if (newToRevert.length > 0)
       setPendingStatusReverts(prev => [...new Set([...prev, ...newToRevert])])
+    if (parentId) setRevizeForms(prev => {
+      if (!prev[parentId]) return prev
+      return { ...prev, [parentId]: prev[parentId].map(r => r.status === 'submitted_for_approval' ? { ...r, status: 'draft' } : r) }
+    })
   }
 
   const handleDeleteDraftChild = (lineId) => {
@@ -1146,8 +1171,9 @@ export default function P_MetrajOlusturCetvel() {
   const handleSubmitDraftChildToPending = (lineId) => {
     const allLines = sessions.flatMap(s => s.lines ?? [])
     const targetLine = allLines.find(l => l.id === lineId)
+    const parentId = targetLine?.parent_line_id
     const toMarkPending = allLines.filter(l =>
-      l.parent_line_id === targetLine?.parent_line_id &&
+      l.parent_line_id === parentId &&
       (!l.status || l.status === 'draft')
     )
     const pendingIds = toMarkPending.map(l => l.id)
@@ -1156,13 +1182,16 @@ export default function P_MetrajOlusturCetvel() {
       ...s,
       lines: s.lines.map(l => pendingIds.includes(l.id) ? { ...l, status: 'pending' } : l)
     })))
-    // pending→draft olarak işaretlenmiş satırlar geri alınıyor — net değişiklik yok
     const wasReverted   = pendingIds.filter(id => pendingStatusReverts.includes(id))
     const newToForward  = pendingIds.filter(id => !pendingStatusReverts.includes(id))
     if (wasReverted.length > 0)
       setPendingStatusReverts(prev => prev.filter(id => !wasReverted.includes(id)))
     if (newToForward.length > 0)
       setPendingStatusForwards(prev => [...new Set([...prev, ...newToForward])])
+    if (parentId) setRevizeForms(prev => {
+      if (!prev[parentId]) return prev
+      return { ...prev, [parentId]: prev[parentId].map(r => ({ ...r, status: 'submitted_for_approval' })) }
+    })
   }
 
   const handleApprovePendingLine = async (lineId) => {
@@ -1803,19 +1832,33 @@ export default function P_MetrajOlusturCetvel() {
                     <Box sx={{ ...css_oc, ...revizeCellBg, justifyContent: 'center', gap: '2px' }}>
                       {!isSubmitted && (
                         <IconButton size="small" sx={{ p: '2px' }} title="Onaya Sunulan"
-                          onClick={() => setRevizeForms(prev => {
-                            const rows = prev[node.id] ?? []
-                            return { ...prev, [node.id]: rows.map(r => r.status !== 'submitted_for_approval' ? { ...r, status: 'submitted_for_approval' } : r) }
-                          })}>
+                          onClick={() => {
+                            setRevizeForms(prev => {
+                              const rows = prev[node.id] ?? []
+                              return { ...prev, [node.id]: rows.map(r => ({ ...r, status: 'submitted_for_approval' })) }
+                            })
+                            const allLines = sessions.flatMap(s => s.lines ?? [])
+                            const draftDbChild = allLines.find(l => l.parent_line_id === node.id && (!l.status || l.status === 'draft'))
+                            if (draftDbChild) handleSubmitDraftChildToPending(draftDbChild.id)
+                          }}>
                           <HourglassFullIcon sx={{ fontSize: 16, color: '#E65100' }} />
                         </IconButton>
                       )}
                       {isSubmitted && (
                         <IconButton size="small" sx={{ p: '2px' }}
-                          onClick={() => setRevizeForms(prev => {
-                            const rows = prev[node.id] ?? []
-                            return { ...prev, [node.id]: rows.map(r => r.status === 'submitted_for_approval' ? { ...r, status: 'draft' } : r) }
-                          })}>
+                          onClick={() => {
+                            setRevizeForms(prev => {
+                              const rows = prev[node.id] ?? []
+                              return { ...prev, [node.id]: rows.map(r => r.status === 'submitted_for_approval' ? { ...r, status: 'draft' } : r) }
+                            })
+                            const allLines = sessions.flatMap(s => s.lines ?? [])
+                            const pendingDbChild = allLines.find(l =>
+                              l.parent_line_id === node.id &&
+                              l.status === 'pending' &&
+                              sessions.some(s => s.id === l.session_id && s.created_by === appUser?.id)
+                            )
+                            if (pendingDbChild) handleRevertPendingToDraft(pendingDbChild.id)
+                          }}>
                           <CheckIcon sx={{ fontSize: 16, color: '#1565C0' }} />
                         </IconButton>
                       )}
@@ -1922,6 +1965,14 @@ export default function P_MetrajOlusturCetvel() {
                       return { ...prev, [node.id]: [...existing, { tempId: `tmp-${Date.now()}-${Math.random()}`, description: '', multiplier: '', count: '', length: '', width: '', height: '', status: 'draft' }] }
                     })
                     setExpandedApproved(prev => ({ ...prev, [node.id]: true }))
+                    // Yeni draft satır eklendi — pending DB kardeşleri "hazırlanan"a döndür
+                    const allLines = sessions.flatMap(s => s.lines ?? [])
+                    const pendingSibling = allLines.find(l =>
+                      l.parent_line_id === node.id &&
+                      l.status === 'pending' &&
+                      sessions.some(s => s.id === l.session_id && s.created_by === appUser?.id)
+                    )
+                    if (pendingSibling) handleRevertPendingToDraft(pendingSibling.id)
                   }}>
                     <AddCircleOutlineIcon sx={{ fontSize: 20, color: '#1b5e20' }} />
                   </IconButton>
