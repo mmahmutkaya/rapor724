@@ -970,32 +970,29 @@ export default function P_MetrajOnaylaCetvel() {
                   sx={{ color: '#ef9a9a', visibility: onayKartiEditMode ? 'visible' : 'hidden', pointerEvents: onayKartiEditMode ? 'auto' : 'none' }}>
                   <CloseIcon sx={{ fontSize: 20 }} />
                 </IconButton>
-                {onayKartiEditMode ? (
-                  <IconButton size="small"
-                    disabled={Object.keys(draftLines).length === 0}
-                    onClick={saveOnayKartiEdits}
-                    sx={{ color: '#a5d6a7', '&.Mui-disabled': { color: 'rgba(255,255,255,0.65)' } }}
-                  >
-                    <SaveIcon sx={{ fontSize: 20 }} />
-                  </IconButton>
-                ) : (
-                  <IconButton size="small"
-                    disabled={!hasPendingInOnayKart}
-                    onClick={() => {
-                      const expand = {}
-                      function markExpand(node) {
-                        const kids = node.children ?? []
-                        if (kids.length > 0) { expand[node.id] = true; kids.forEach(markExpand) }
-                      }
-                      approvalTree.forEach(markExpand)
-                      setExpandedApproved(prev => ({ ...prev, ...expand }))
-                      setOnayKartiEditMode(true)
-                    }}
-                    sx={{ color: 'rgba(224,225,221,0.75)', '&:hover': { color: '#e0e1dd' }, '&.Mui-disabled': { color: 'rgba(255,255,255,0.28)' } }}
-                  >
-                    <EditIcon sx={{ fontSize: 20 }} />
-                  </IconButton>
-                )}
+                <IconButton size="small"
+                  disabled={Object.keys(draftLines).length === 0}
+                  onClick={saveOnayKartiEdits}
+                  sx={{ color: '#a5d6a7', '&.Mui-disabled': { color: 'rgba(255,255,255,0.65)' }, visibility: onayKartiEditMode ? 'visible' : 'hidden', pointerEvents: onayKartiEditMode ? 'auto' : 'none' }}
+                >
+                  <SaveIcon sx={{ fontSize: 20 }} />
+                </IconButton>
+                <IconButton size="small"
+                  disabled={!hasPendingInOnayKart}
+                  onClick={() => {
+                    const expand = {}
+                    function markExpand(node) {
+                      const kids = node.children ?? []
+                      if (kids.length > 0) { expand[node.id] = true; kids.forEach(markExpand) }
+                    }
+                    approvalTree.forEach(markExpand)
+                    setExpandedApproved(prev => ({ ...prev, ...expand }))
+                    setOnayKartiEditMode(true)
+                  }}
+                  sx={{ color: 'rgba(224,225,221,0.75)', '&:hover': { color: '#e0e1dd' }, '&.Mui-disabled': { color: 'rgba(255,255,255,0.28)' }, visibility: !onayKartiEditMode ? 'visible' : 'hidden', pointerEvents: !onayKartiEditMode ? 'auto' : 'none' }}
+                >
+                  <EditIcon sx={{ fontSize: 20 }} />
+                </IconButton>
                 </Box>
               </Box>
 
