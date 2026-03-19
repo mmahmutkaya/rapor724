@@ -164,7 +164,8 @@ export default function P_MetrajOnaylaCetvel() {
   const [openVisibilityDialog, setOpenVisibilityDialog] = useState(false)
   const [visibleOnayKarti, setVisibleOnayKarti]         = useState(true)
   const [visibleSessCards, setVisibleSessCards]         = useState({})
-  const [visibilityMode, setVisibilityMode]             = useState(2) // 0=sadece hazırlayan, 1=sadece onaylayan, 2=ikisi, 3=hiçbiri
+  const [showHazırlayan, setShowHazırlayan]             = useState(true)
+  const [showOnaylayan, setShowOnaylayan]               = useState(true)
   const [cardEditMode, setCardEditMode]                 = useState({})  // { [sessId]: boolean }
   const [draftLines, setDraftLines]                     = useState({})  // { [lineId]: { status, ... } }
   const [onayKartiEditMode, setOnayKartiEditMode]       = useState(false)
@@ -772,8 +773,6 @@ export default function P_MetrajOnaylaCetvel() {
 
       {/* ONAYLANAN METRAJ KARTI */}
       {!loading && visibleOnayKarti && approvalTree.length > 0 && (() => {
-        const showHazırlayan = visibilityMode === 0 || visibilityMode === 2
-        const showOnaylayan  = visibilityMode === 1 || visibilityMode === 2
         const ONAY_GRID = 'max-content 1fr 65px 65px 65px 65px 65px 80px'
           + (showHazırlayan ? ' max-content' : '')
           + (showOnaylayan  ? ' max-content' : '')
@@ -938,10 +937,16 @@ export default function P_MetrajOnaylaCetvel() {
               {/* Kart başlığı */}
               <Box sx={{ backgroundColor: '#1b5e20', color: '#fff', px: '1rem', minHeight: '44px', display: 'flex', alignItems: 'center', gap: '4px' }}>
                 <Typography variant="body2" sx={{ fontWeight: 700, flexGrow: 1 }}>Onaylı Metraj</Typography>
-                <IconButton size="small" onClick={() => setVisibilityMode(m => (m + 1) % 4)}
-                  sx={{ color: visibilityMode === 3 ? '#9e9e9e' : visibilityMode === 0 ? '#FF8F00' : visibilityMode === 1 ? '#a5d6a7' : 'rgba(224,225,221,0.75)', '&:hover': { color: '#fff' } }}>
-                  {visibilityMode === 3 ? <VisibilityOffIcon sx={{ fontSize: 20 }} /> : <VisibilityIcon sx={{ fontSize: 20 }} />}
-                </IconButton>
+                <Box component="span" onClick={() => setShowHazırlayan(prev => !prev)}
+                  sx={{ cursor: 'pointer', px: '6px', py: '2px', borderRadius: '10px', fontSize: '0.7rem', fontWeight: 600, border: '1px solid', userSelect: 'none',
+                    ...(showHazırlayan ? { backgroundColor: 'rgba(255,255,255,0.18)', borderColor: 'rgba(255,255,255,0.5)', color: '#fff' } : { backgroundColor: 'transparent', borderColor: 'rgba(255,255,255,0.25)', color: 'rgba(255,255,255,0.4)' }) }}>
+                  Hazırlayan
+                </Box>
+                <Box component="span" onClick={() => setShowOnaylayan(prev => !prev)}
+                  sx={{ cursor: 'pointer', px: '6px', py: '2px', borderRadius: '10px', fontSize: '0.7rem', fontWeight: 600, border: '1px solid', userSelect: 'none',
+                    ...(showOnaylayan ? { backgroundColor: 'rgba(255,255,255,0.18)', borderColor: 'rgba(255,255,255,0.5)', color: '#fff' } : { backgroundColor: 'transparent', borderColor: 'rgba(255,255,255,0.25)', color: 'rgba(255,255,255,0.4)' }) }}>
+                  Onaylayan
+                </Box>
                 <IconButton size="small" sx={{ color: 'rgba(224,225,221,0.75)', '&:hover': { color: '#fff' } }} onClick={() => setShowAllOriginals(prev => !prev)}>
                   {showAllOriginals ? <ExpandLessIcon sx={{ fontSize: 20, filter: 'drop-shadow(0 0 0.6px currentColor)' }} /> : <ExpandMoreIcon sx={{ fontSize: 20, filter: 'drop-shadow(0 0 0.6px currentColor)' }} />}
                 </IconButton>
