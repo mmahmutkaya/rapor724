@@ -522,28 +522,33 @@ export default function P_MetrajOnaylaCetvel() {
                       color: '#e0e1dd',
                     }}
                   >
-                    <Typography variant="body1" sx={{ fontWeight: 700, flexGrow: 1 }}>
-                      {sess.userName}
-                    </Typography>
                     {cardEditMode[sess.id] ? (
                       <>
-                        <Tooltip title="Kaydet">
-                          <IconButton size="small" sx={{ color: '#a5d6a7' }} onClick={() => saveCardEdits(sess.id)}>
-                            <SaveIcon sx={{ fontSize: 20 }} />
-                          </IconButton>
-                        </Tooltip>
+                        <Typography variant="body1" sx={{ fontWeight: 700, flexGrow: 1 }}>
+                          {sess.userName}
+                        </Typography>
                         <Tooltip title="İptal">
                           <IconButton size="small" sx={{ color: '#ef9a9a' }} onClick={() => cancelCardEdits(sess.id)}>
                             <CloseIcon sx={{ fontSize: 20 }} />
                           </IconButton>
                         </Tooltip>
+                        <Tooltip title="Kaydet">
+                          <IconButton size="small" sx={{ color: '#a5d6a7' }} onClick={() => saveCardEdits(sess.id)}>
+                            <SaveIcon sx={{ fontSize: 20 }} />
+                          </IconButton>
+                        </Tooltip>
                       </>
                     ) : (
-                      <Tooltip title="Düzenle">
-                        <IconButton size="small" sx={{ color: 'rgba(224,225,221,0.6)', '&:hover': { color: '#e0e1dd' } }} onClick={() => setCardEditMode(prev => ({ ...prev, [sess.id]: true }))}>
-                          <EditIcon sx={{ fontSize: 18 }} />
-                        </IconButton>
-                      </Tooltip>
+                      <>
+                        <Typography variant="body1" sx={{ fontWeight: 700, flexGrow: 1 }}>
+                          {sess.userName}
+                        </Typography>
+                        <Tooltip title="Düzenle">
+                          <IconButton size="small" sx={{ color: 'rgba(224,225,221,0.6)', '&:hover': { color: '#e0e1dd' } }} onClick={() => setCardEditMode(prev => ({ ...prev, [sess.id]: true }))}>
+                            <EditIcon sx={{ fontSize: 18 }} />
+                          </IconButton>
+                        </Tooltip>
+                      </>
                     )}
                   </Box>
 
@@ -618,7 +623,7 @@ export default function P_MetrajOnaylaCetvel() {
                               </Box>
 
                               {/* DURUM sütunu */}
-                              <Box sx={{ ...css_lineCell, ...cellBg, justifyContent: 'center', px: '2px' }}>
+                              <Box sx={{ ...css_lineCell, ...cellBg, justifyContent: 'center', px: '2px', gap: '6px' }}>
                                 {effStatus === 'approved' ? (
                                   <DoneAllIcon sx={{ fontSize: 18, color: '#2e7d32', fontWeight: 700 }} />
                                 ) : effStatus === 'ignored' ? (
@@ -638,7 +643,7 @@ export default function P_MetrajOnaylaCetvel() {
                                       </Tooltip>
                                     </>
                                   ) : (
-                                    <HourglassFullIcon sx={{ fontSize: 15, color: '#E65100' }} />
+                                    <CheckIcon sx={{ fontSize: 16, color: '#1565c0' }} />
                                   )
                                 ) : (!effStatus || effStatus === 'draft') ? (
                                   <HourglassFullIcon sx={{ fontSize: 15, color: '#E65100' }} />
