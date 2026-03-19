@@ -613,7 +613,7 @@ export default function P_MetrajOnaylaCetvel() {
                   <Box
                     sx={{
                       display: 'flex', alignItems: 'center', gap: '0.5rem',
-                      px: '1rem', height: '50px', flexWrap: 'nowrap', overflow: 'hidden',
+                      px: '1rem', minHeight: '44px', flexWrap: 'nowrap', overflow: 'hidden',
                       backgroundColor: cardColors.header,
                       color: '#e0e1dd',
                     }}

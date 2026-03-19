@@ -183,6 +183,8 @@ export default function P_MetrajOlusturCetvel() {
   const [childEditParents, setChildEditParents] = useState({}) // { parentLineId: bool } — onay kartında alt satır düzenleme modu
   const [childEditValues, setChildEditValues] = useState({})   // { lineId: {description,multiplier,count,length,width,height} }
   const [onayKartiEditMode, setOnayKartiEditMode] = useState(false)
+  const [expandedSessCards, setExpandedSessCards] = useState({})
+  const [expandedOnayKarti, setExpandedOnayKarti] = useState(true)
   const [pendingDeletes, setPendingDeletes] = useState([])     // { lineId: string }[] — henüz DB'ye yansıtılmamış silmeler
 
   const wpAreaId = selectedMahal?.wpAreaId
@@ -272,6 +274,17 @@ export default function P_MetrajOlusturCetvel() {
       setVisibleSessCards(prev => {
         const next = { ...prev }
         sorted.forEach(sess => { if (next[sess.id] === undefined) next[sess.id] = true })
+        return next
+      })
+
+      setExpandedSessCards(prev => {
+        const next = { ...prev }
+        sorted.forEach(sess => {
+          if (next[sess.id] === undefined) {
+            const hasPending = (linesBySession[sess.id] ?? []).some(l => !l.parent_line_id && l.status === 'pending')
+            next[sess.id] = hasPending
+          }
+        })
         return next
       })
     } catch (err) {
@@ -1317,12 +1330,18 @@ export default function P_MetrajOlusturCetvel() {
               <Box
                 sx={{
                   display: 'flex', alignItems: 'center', gap: '0.5rem',
-                  px: '1rem', height: '50px', flexWrap: 'nowrap', overflow: 'hidden',
+                  px: '1rem', minHeight: '44px', flexWrap: 'nowrap', overflow: 'hidden',
                   backgroundColor: cardColors.header,
                   color: '#e0e1dd',
                 }}
               >
-                <Typography variant="body1" sx={{ fontWeight: 700, flexGrow: 1 }}>
+                <IconButton size="small"
+                  sx={{ color: 'rgba(224,225,221,0.7)', flexShrink: 0, mr: '-4px' }}
+                  onClick={() => setExpandedSessCards(prev => ({ ...prev, [sess.id]: !prev[sess.id] }))}>
+                  {expandedSessCards[sess.id] ? <ExpandLessIcon sx={{ fontSize: 18 }} /> : <ExpandMoreIcon sx={{ fontSize: 18 }} />}
+                </IconButton>
+                <Typography variant="body1" sx={{ fontWeight: 700, flexGrow: 1, cursor: 'pointer' }}
+                  onClick={() => setExpandedSessCards(prev => ({ ...prev, [sess.id]: !prev[sess.id] }))}>
                   {sess.userName}
                   {!sess.isOwn && (
                     <Box component="span" sx={{ fontWeight: 400, fontSize: '0.78rem', ml: '6px', color: 'rgba(255,255,255,0.6)' }}>
@@ -1334,7 +1353,7 @@ export default function P_MetrajOlusturCetvel() {
 
                 {/* Kendi onaylı oturumu için revize düzenle */}
                 {isApproved && sess.isOwn && !sess.mode_edit && (
-                  <IconButton size="small" onClick={() => handleStartRevision(sess.id)}>
+                  <IconButton size="small" onClick={() => { setExpandedSessCards(prev => ({ ...prev, [sess.id]: true })); handleStartRevision(sess.id) }}>
                     <EditIcon sx={{ fontSize: 20, color: '#90CAF9' }} />
                   </IconButton>
                 )}
@@ -1356,7 +1375,7 @@ export default function P_MetrajOlusturCetvel() {
                 {/* Taslak veya onay bekleyen oturum — her zaman düzenleme ikonu */}
                 {(isDraft || isReady) && sess.isOwn && !sess.mode_edit && !sess.isRevisionEdit && (
                   <>
-                    <IconButton size="small" onClick={() => updateSess(sess.id, () => ({ mode_edit: true }))}>
+                    <IconButton size="small" onClick={() => { setExpandedSessCards(prev => ({ ...prev, [sess.id]: true })); updateSess(sess.id, () => ({ mode_edit: true })) }}>
                       <EditIcon sx={{ fontSize: 20, color: '#e0e1dd' }} />
                     </IconButton>
                     {isDraft && rootLines.length > 0 && (
@@ -1398,6 +1417,7 @@ export default function P_MetrajOlusturCetvel() {
                 )}
               </Box>
 
+              {(expandedSessCards[sess.id] || sess.mode_edit || sess.isRevisionEdit) && <>
               {/* Satır yok */}
               {rootLines.length === 0 && !sess.mode_edit && !canEdit && (
                 <Box sx={{ px: '1rem', py: '0.75rem', color: 'gray', fontSize: '0.85rem' }}>
@@ -1592,6 +1612,7 @@ export default function P_MetrajOlusturCetvel() {
                   </Box>
                 </Box>
               )}
+              </>}
             </Box>
           )
         })}
@@ -1908,7 +1929,13 @@ export default function P_MetrajOlusturCetvel() {
             <Box sx={{ border: '2px solid #43A047', overflow: 'hidden', boxShadow: 2 }}>
               {/* Kart başlığı */}
               <Box sx={{ backgroundColor: '#1b5e20', color: '#fff', px: '1rem', minHeight: '44px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                <Typography variant="body2" sx={{ fontWeight: 700 }}>Onaylı Metraj</Typography>
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: '2px', cursor: 'pointer' }}
+                  onClick={() => setExpandedOnayKarti(prev => !prev)}>
+                  <IconButton size="small" sx={{ color: 'rgba(255,255,255,0.8)', p: '2px' }}>
+                    {expandedOnayKarti ? <ExpandLessIcon sx={{ fontSize: 18 }} /> : <ExpandMoreIcon sx={{ fontSize: 18 }} />}
+                  </IconButton>
+                  <Typography variant="body2" sx={{ fontWeight: 700 }}>Onaylı Metraj</Typography>
+                </Box>
                 <Box sx={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                   <Box component="span" onClick={() => setShowHazırlayan(prev => !prev)}
                     sx={{ cursor: 'pointer', px: '6px', py: '2px', borderRadius: '10px', fontSize: '0.7rem', fontWeight: 600, border: '1px solid', userSelect: 'none',
@@ -1948,6 +1975,7 @@ export default function P_MetrajOlusturCetvel() {
                   )}
                   {!onayKartiEditMode && (
                     <IconButton size="small" sx={{ p: '2px', color: '#c8e6c9' }} title="Düzenle" onClick={() => {
+                      setExpandedOnayKarti(true)
                       setOnayKartiEditMode(true)
                       const newExpanded = {}
                       const expandAll = (nodes) => nodes.forEach(n => {
@@ -1979,6 +2007,7 @@ export default function P_MetrajOlusturCetvel() {
               </Box>
 
 
+              {expandedOnayKarti && <>
               <Box sx={{ overflowX: 'auto' }}>
                 <Box sx={{ display: 'grid', gridTemplateColumns: ONAY_GRID, minWidth: 'max-content' }}>
                   {/* Tablo başlığı */}
@@ -2031,6 +2060,7 @@ export default function P_MetrajOlusturCetvel() {
                   {pozBirim && <Box component="span" sx={{ fontSize: '0.78rem', color: 'rgba(255,255,255,0.55)' }}>{pozBirim}</Box>}
                 </Box>
               </Box>
+              </>}
             </Box>
           </Box>
         )
