@@ -37,6 +37,7 @@ import VisibilityOffIcon from '@mui/icons-material/VisibilityOff'
 import EditIcon from '@mui/icons-material/Edit'
 import SaveIcon from '@mui/icons-material/Save'
 import CloseIcon from '@mui/icons-material/Close'
+import UndoIcon from '@mui/icons-material/Undo'
 
 
 function computeQuantity(line) {
@@ -294,6 +295,10 @@ export default function P_MetrajOnaylaCetvel() {
       ...s,
       lines: s.lines.map(l => l.id === lineId ? { ...l, status: 'ignored' } : l),
     })))
+  }
+
+  const revertLine = (lineId) => {
+    setDraftLines(prev => ({ ...prev, [lineId]: { status: 'pending' } }))
   }
 
   // ── Düzenleme modu ────────────────────────────────────────────────────────────
@@ -625,9 +630,27 @@ export default function P_MetrajOnaylaCetvel() {
                               {/* DURUM sütunu */}
                               <Box sx={{ ...css_lineCell, ...cellBg, justifyContent: 'center', px: '2px', gap: '6px' }}>
                                 {effStatus === 'approved' ? (
-                                  <DoneAllIcon sx={{ fontSize: 18, color: '#2e7d32', fontWeight: 700 }} />
+                                  <>
+                                    <DoneAllIcon sx={{ fontSize: 18, color: '#2e7d32', fontWeight: 700 }} />
+                                    {cardEditMode[sess.id] && (
+                                      <Tooltip title="Geri Al">
+                                        <IconButton size="small" sx={{ p: '2px' }} onClick={() => revertLine(line.id)}>
+                                          <UndoIcon sx={{ fontSize: 16, color: '#9e9e9e' }} />
+                                        </IconButton>
+                                      </Tooltip>
+                                    )}
+                                  </>
                                 ) : effStatus === 'ignored' ? (
-                                  <DoneAllIcon sx={{ fontSize: 18, color: '#424242' }} />
+                                  <>
+                                    <DoneAllIcon sx={{ fontSize: 18, color: '#424242' }} />
+                                    {cardEditMode[sess.id] && (
+                                      <Tooltip title="Geri Al">
+                                        <IconButton size="small" sx={{ p: '2px' }} onClick={() => revertLine(line.id)}>
+                                          <UndoIcon sx={{ fontSize: 16, color: '#9e9e9e' }} />
+                                        </IconButton>
+                                      </Tooltip>
+                                    )}
+                                  </>
                                 ) : effStatus === 'pending' ? (
                                   cardEditMode[sess.id] ? (
                                     <>
