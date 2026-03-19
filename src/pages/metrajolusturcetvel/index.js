@@ -450,11 +450,14 @@ export default function P_MetrajOlusturCetvel() {
         const updatedLines = Object.values(insertedMap)
         const parentIds = new Set(updatedLines.filter(l => l.parent_line_id).map(l => l.parent_line_id))
         const total = updatedLines.filter(l => !parentIds.has(l.id)).reduce((sum, l) => sum + computeQuantity(l), 0)
-        await supabase.from('measurement_sessions').update({ total_quantity: total, updated_at: new Date().toISOString() }).eq('id', realSessId)
+        const anyPending = updatedLines.some(l => l.status === 'pending')
+        const newStatus = anyPending ? 'ready' : 'draft'
+        await supabase.from('measurement_sessions').update({ total_quantity: total, status: newStatus, updated_at: new Date().toISOString() }).eq('id', realSessId)
 
         setSessions(prev => prev.map(s => s.id === VIRTUAL_SESS_ID ? {
           ...newSessData,
-          visualStatus: 'draft',
+          status: newStatus,
+          visualStatus: newStatus,
           userName: s.userName,
           isOwn: true,
           isVirtual: false,
