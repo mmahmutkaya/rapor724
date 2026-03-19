@@ -15,7 +15,6 @@ import LinearProgress from '@mui/material/LinearProgress'
 import Alert from '@mui/material/Alert'
 import Stack from '@mui/material/Stack'
 import IconButton from '@mui/material/IconButton'
-import Tooltip from '@mui/material/Tooltip'
 import Dialog from '@mui/material/Dialog'
 import DialogTitle from '@mui/material/DialogTitle'
 import DialogContent from '@mui/material/DialogContent'
@@ -28,6 +27,7 @@ import ReplyIcon from '@mui/icons-material/Reply'
 import CheckCircleIcon from '@mui/icons-material/CheckCircle'
 import DoneAllIcon from '@mui/icons-material/DoneAll'
 import BlockIcon from '@mui/icons-material/Block'
+import RemoveCircleIcon from '@mui/icons-material/RemoveCircle'
 import HourglassFullIcon from '@mui/icons-material/HourglassFull'
 import CheckIcon from '@mui/icons-material/Check'
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore'
@@ -246,9 +246,11 @@ export default function P_MetrajOnaylaCetvel() {
   // ── Türetilmiş Veri ────────────────────────────────────────────────────────────
 
   const approvalTree = useMemo(() => {
-    const allLines = sessions.flatMap(s => s.lines ?? [])
+    const allLines = sessions.flatMap(s => s.lines ?? []).map(l =>
+      draftLines[l.id] ? { ...l, ...draftLines[l.id] } : l
+    )
     return buildApprovalTree(allLines, sessions, userMap)
-  }, [sessions, userMap])
+  }, [sessions, userMap, draftLines])
 
   const unitsMap = useMemo(() => {
     const m = {}
@@ -476,11 +478,9 @@ export default function P_MetrajOnaylaCetvel() {
             </Box>
           </Grid>
           <Grid item>
-            <Tooltip title="Kart görünürlüğü">
-              <IconButton onClick={() => setOpenVisibilityDialog(true)}>
-                <VisibilityIcon sx={{ color: '#455a64' }} />
-              </IconButton>
-            </Tooltip>
+            <IconButton onClick={() => setOpenVisibilityDialog(true)}>
+              <VisibilityIcon sx={{ color: '#455a64' }} />
+            </IconButton>
           </Grid>
         </Grid>
       </AppBar>
@@ -532,27 +532,21 @@ export default function P_MetrajOnaylaCetvel() {
                         <Typography variant="body1" sx={{ fontWeight: 700, flexGrow: 1 }}>
                           {sess.userName}
                         </Typography>
-                        <Tooltip title="İptal">
-                          <IconButton size="small" sx={{ color: '#ef9a9a' }} onClick={() => cancelCardEdits(sess.id)}>
-                            <CloseIcon sx={{ fontSize: 20 }} />
-                          </IconButton>
-                        </Tooltip>
-                        <Tooltip title="Kaydet">
-                          <IconButton size="small" sx={{ color: '#a5d6a7' }} onClick={() => saveCardEdits(sess.id)}>
-                            <SaveIcon sx={{ fontSize: 20 }} />
-                          </IconButton>
-                        </Tooltip>
+                        <IconButton size="small" sx={{ color: '#ef9a9a' }} onClick={() => cancelCardEdits(sess.id)}>
+                          <CloseIcon sx={{ fontSize: 20 }} />
+                        </IconButton>
+                        <IconButton size="small" sx={{ color: '#a5d6a7' }} onClick={() => saveCardEdits(sess.id)}>
+                          <SaveIcon sx={{ fontSize: 20 }} />
+                        </IconButton>
                       </>
                     ) : (
                       <>
                         <Typography variant="body1" sx={{ fontWeight: 700, flexGrow: 1 }}>
                           {sess.userName}
                         </Typography>
-                        <Tooltip title="Düzenle">
-                          <IconButton size="small" sx={{ color: 'rgba(224,225,221,0.6)', '&:hover': { color: '#e0e1dd' } }} onClick={() => setCardEditMode(prev => ({ ...prev, [sess.id]: true }))}>
-                            <EditIcon sx={{ fontSize: 18 }} />
-                          </IconButton>
-                        </Tooltip>
+                        <IconButton size="small" sx={{ color: 'rgba(224,225,221,0.6)', '&:hover': { color: '#e0e1dd' } }} onClick={() => setCardEditMode(prev => ({ ...prev, [sess.id]: true }))}>
+                          <EditIcon sx={{ fontSize: 18 }} />
+                        </IconButton>
                       </>
                     )}
                   </Box>
@@ -633,37 +627,29 @@ export default function P_MetrajOnaylaCetvel() {
                                   <>
                                     <DoneAllIcon sx={{ fontSize: 18, color: '#2e7d32', fontWeight: 700 }} />
                                     {cardEditMode[sess.id] && (
-                                      <Tooltip title="Geri Al">
-                                        <IconButton size="small" sx={{ p: '2px' }} onClick={() => revertLine(line.id)}>
-                                          <UndoIcon sx={{ fontSize: 16, color: '#9e9e9e' }} />
-                                        </IconButton>
-                                      </Tooltip>
+                                      <IconButton size="small" sx={{ p: '2px' }} onClick={() => revertLine(line.id)}>
+                                        <UndoIcon sx={{ fontSize: 16, color: '#e53935' }} />
+                                      </IconButton>
                                     )}
                                   </>
                                 ) : effStatus === 'ignored' ? (
                                   <>
-                                    <DoneAllIcon sx={{ fontSize: 18, color: '#424242' }} />
+                                    <RemoveCircleIcon sx={{ fontSize: 18, color: '#424242' }} />
                                     {cardEditMode[sess.id] && (
-                                      <Tooltip title="Geri Al">
-                                        <IconButton size="small" sx={{ p: '2px' }} onClick={() => revertLine(line.id)}>
-                                          <UndoIcon sx={{ fontSize: 16, color: '#9e9e9e' }} />
-                                        </IconButton>
-                                      </Tooltip>
+                                      <IconButton size="small" sx={{ p: '2px' }} onClick={() => revertLine(line.id)}>
+                                        <UndoIcon sx={{ fontSize: 16, color: '#e53935' }} />
+                                      </IconButton>
                                     )}
                                   </>
                                 ) : effStatus === 'pending' ? (
                                   cardEditMode[sess.id] ? (
                                     <>
-                                      <Tooltip title="Onayla">
-                                        <IconButton size="small" sx={{ p: '2px' }} onClick={() => approveLine(line.id, sess.id)}>
-                                          <CheckCircleIcon sx={{ fontSize: 18, color: '#2e7d32' }} />
-                                        </IconButton>
-                                      </Tooltip>
-                                      <Tooltip title="Ignore">
-                                        <IconButton size="small" sx={{ p: '2px' }} onClick={() => ignoreLine(line.id, sess.id)}>
-                                          <BlockIcon sx={{ fontSize: 18, color: '#607d8b' }} />
-                                        </IconButton>
-                                      </Tooltip>
+                                      <IconButton size="small" sx={{ p: '2px' }} onClick={() => approveLine(line.id, sess.id)}>
+                                        <CheckCircleIcon sx={{ fontSize: 18, color: '#2e7d32' }} />
+                                      </IconButton>
+                                      <IconButton size="small" sx={{ p: '2px' }} onClick={() => ignoreLine(line.id, sess.id)}>
+                                        <BlockIcon sx={{ fontSize: 18, color: '#607d8b' }} />
+                                      </IconButton>
                                     </>
                                   ) : (
                                     <CheckIcon sx={{ fontSize: 16, color: '#1565c0' }} />
@@ -696,7 +682,7 @@ export default function P_MetrajOnaylaCetvel() {
                           </Box>
                           <Box sx={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
                             <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', borderRadius: '50%', backgroundColor: '#BDBDBD', width: 26, height: 26, flexShrink: 0 }}>
-                              <DoneAllIcon sx={{ fontSize: 16, color: '#424242', filter: 'drop-shadow(0 0 0.4px #424242)' }} />
+                              <RemoveCircleIcon sx={{ fontSize: 16, color: '#424242', filter: 'drop-shadow(0 0 0.4px #424242)' }} />
                             </Box>
                             <Box component="span" sx={{ fontSize: '0.82rem', color: 'rgba(255,255,255,0.75)' }}>Ignore</Box>
                             <Box component="span" sx={{ fontSize: '0.95rem', fontWeight: 700, color: totalIgnored === 0 ? 'rgba(255,255,255,0.55)' : '#e0e1dd', ml: '2px' }}>{ikiHane(totalIgnored)}</Box>
@@ -821,16 +807,12 @@ export default function P_MetrajOnaylaCetvel() {
               <Box sx={{ ...css_oc, ...cellBg, justifyContent: 'center', gap: '2px' }}>
                 {node.status === 'pending' && (
                   <>
-                    <Tooltip title="Onayla">
-                      <IconButton size="small" sx={{ p: '2px' }} onClick={() => approveLine(node.id)}>
-                        <CheckCircleIcon sx={{ fontSize: 18, color: '#2e7d32' }} />
-                      </IconButton>
-                    </Tooltip>
-                    <Tooltip title="Ignore">
-                      <IconButton size="small" sx={{ p: '2px' }} onClick={() => ignoreLine(node.id)}>
-                        <BlockIcon sx={{ fontSize: 18, color: '#607d8b' }} />
-                      </IconButton>
-                    </Tooltip>
+                    <IconButton size="small" sx={{ p: '2px' }} onClick={() => approveLine(node.id)}>
+                      <CheckCircleIcon sx={{ fontSize: 18, color: '#2e7d32' }} />
+                    </IconButton>
+                    <IconButton size="small" sx={{ p: '2px' }} onClick={() => ignoreLine(node.id)}>
+                      <BlockIcon sx={{ fontSize: 18, color: '#607d8b' }} />
+                    </IconButton>
                   </>
                 )}
               </Box>
@@ -930,7 +912,7 @@ export default function P_MetrajOnaylaCetvel() {
                 </Box>
                 <Box sx={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
                   <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', borderRadius: '50%', backgroundColor: '#BDBDBD', width: 26, height: 26, flexShrink: 0 }}>
-                    <DoneAllIcon sx={{ fontSize: 16, color: '#424242', filter: 'drop-shadow(0 0 0.4px #424242)' }} />
+                    <RemoveCircleIcon sx={{ fontSize: 16, color: '#424242', filter: 'drop-shadow(0 0 0.4px #424242)' }} />
                   </Box>
                   <Box component="span" sx={{ fontSize: '0.82rem', color: 'rgba(255,255,255,0.75)' }}>Kabul Edilen</Box>
                   <Box component="span" sx={{ fontSize: '0.95rem', fontWeight: 700, color: totalKabulEdilen === 0 ? 'rgba(255,255,255,0.55)' : '#e0e1dd', ml: '2px' }}>{ikiHane(totalKabulEdilen)}</Box>
