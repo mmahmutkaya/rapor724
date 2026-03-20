@@ -1,6 +1,5 @@
 import { useState, useContext } from 'react';
 import { StoreContext } from './store.js'
-import { useApp } from "./useApp.js";
 import { DialogAlert } from './general/DialogAlert';
 
 import { useNavigate } from "react-router-dom";

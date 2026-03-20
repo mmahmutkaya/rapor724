@@ -1,194 +1,105 @@
-
-import { useState, useEffect, useContext } from 'react';
+import { useState, useContext } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { StoreContext } from '../../components/store'
-import FormFirmaCreate from '../../components/FormFirmaCreate'
-import { useNavigate } from "react-router-dom";
-import { useGetFirmalar } from '../../hooks/useMongo';
+import { useGetFirmalar } from '../../hooks/useMongo'
+import { supabase } from '../../lib/supabase'
 import { DialogAlert } from '../../components/general/DialogAlert'
 
-
-import Paper from '@mui/material/Paper';
-import Grid from '@mui/material/Grid';
-import Alert from '@mui/material/Alert';
-import Stack from '@mui/material/Stack';
-import { Typography } from '@mui/material';
-import List from '@mui/material/List';
-import Box from '@mui/material/Box';
-import LinearProgress from '@mui/material/LinearProgress';
-
-import FolderIcon from '@mui/icons-material/Folder';
-import IconButton from '@mui/material/IconButton';
-import DeleteIcon from '@mui/icons-material/Delete';
-import AddCircleOutlineIcon from '@mui/icons-material/AddCircleOutline';
-
-
+import Box from '@mui/material/Box'
+import Paper from '@mui/material/Paper'
+import Typography from '@mui/material/Typography'
+import LinearProgress from '@mui/material/LinearProgress'
+import Alert from '@mui/material/Alert'
+import IconButton from '@mui/material/IconButton'
+import Button from '@mui/material/Button'
+import TextField from '@mui/material/TextField'
+import AddCircleOutlineIcon from '@mui/icons-material/AddCircleOutline'
+import { useQueryClient } from '@tanstack/react-query'
 
 
 export default function P_Firmalar() {
 
-  const { appUser } = useContext(StoreContext)
-  const { setSelectedFirma } = useContext(StoreContext)
+  const navigate = useNavigate()
+  const queryClient = useQueryClient()
+  const { appUser, setSelectedFirma, setSelectedProje } = useContext(StoreContext)
 
+  const { data, isLoading, isError } = useGetFirmalar()
+  const firmalar = data?.firmalar ?? []
+
+  const [showCreate, setShowCreate] = useState(false)
+  const [newName, setNewName] = useState('')
+  const [saving, setSaving] = useState(false)
   const [dialogAlert, setDialogAlert] = useState()
 
-  const { data, error, isLoading } = useGetFirmalar()
 
-  const navigate = useNavigate()
+  const handleSelect = (firma) => {
+    setSelectedFirma(firma)
+    setSelectedProje()
+    navigate('/projeler')
+  }
 
-  const [show, setShow] = useState("Main")
 
-
-  useEffect(() => {
-
-    setSelectedFirma()
-
+  const handleCreate = async () => {
+    if (!newName.trim()) return
+    setSaving(true)
+    const { error } = await supabase.from('firms').insert({ name: newName.trim() })
+    setSaving(false)
     if (error) {
-      console.log("error", error)
-      setDialogAlert({
-        dialogIcon: "warning",
-        dialogMessage: "Beklenmedik hata, Rapor7/24 ile irtibata geçiniz..",
-        detailText: error?.message ? error.message : null
-      })
+      setDialogAlert({ dialogMessage: error.message, dialogIcon: 'warning', onCloseAction: () => setDialogAlert() })
+      return
     }
-
-  }, [error]);
-
-
-
-  const handleFirmaClick = (oneFirma) => {
-    setSelectedFirma(oneFirma)
-    navigate("/projeler")
+    setNewName('')
+    setShowCreate(false)
+    queryClient.invalidateQueries(['firmalar'])
   }
 
 
   return (
-    <Box>
+    <Box sx={{ p: 2 }}>
 
-      {dialogAlert &&
-        <DialogAlert
-          dialogIcon={dialogAlert.dialogIcon}
-          dialogMessage={dialogAlert.dialogMessage}
-          detailText={dialogAlert.detailText}
-          onCloseAction={dialogAlert.onCloseAction ? dialogAlert.onCloseAction : () => setDialogAlert()}
-        />
-      }
+      {dialogAlert && <DialogAlert {...dialogAlert} />}
 
+      <Box sx={{ display: 'flex', alignItems: 'center', mb: 2, gap: 1 }}>
+        <Typography variant="h6">Firmalar</Typography>
+        <IconButton onClick={() => setShowCreate(v => !v)} color="primary" size="small">
+          <AddCircleOutlineIcon />
+        </IconButton>
+      </Box>
 
-      {/* BAŞLIK */}
-      <Paper >
+      {showCreate && (
+        <Paper sx={{ p: 2, mb: 2, display: 'flex', gap: 1, alignItems: 'center' }}>
+          <TextField
+            size="small"
+            label="Firma adı"
+            value={newName}
+            onChange={e => setNewName(e.target.value)}
+            onKeyDown={e => e.key === 'Enter' && handleCreate()}
+            autoFocus
+          />
+          <Button variant="contained" size="small" onClick={handleCreate} disabled={saving || !newName.trim()}>
+            Kaydet
+          </Button>
+          <Button size="small" onClick={() => { setShowCreate(false); setNewName('') }}>İptal</Button>
+        </Paper>
+      )}
 
-        <Grid
-          container
-          justifyContent="space-between"
-          alignItems="center"
-          sx={{ padding: "0.5rem 1rem", maxHeight: "5rem" }}
+      {isLoading && <LinearProgress />}
+      {isError && <Alert severity="error">Veriler yüklenemedi.</Alert>}
+
+      {firmalar.map(firma => (
+        <Paper
+          key={firma.id}
+          onClick={() => handleSelect(firma)}
+          sx={{ p: 1.5, mb: 1, cursor: 'pointer', '&:hover': { backgroundColor: 'rgba(0,0,0,0.04)' } }}
         >
+          <Typography>{firma.name}</Typography>
+        </Paper>
+      ))}
 
-          {/* sol kısım (başlık) */}
-          <Grid item xs>
-            <Typography
-              // nowrap={true}
-              variant="h6"
-              fontWeight="bold"
-            >
-              Firmalar
-            </Typography>
-          </Grid>
-
-
-          {/* sağ kısım - (tuşlar)*/}
-          <Grid item xs="auto">
-            <Grid container spacing={1}>
-
-              {/* <Grid item>
-                <IconButton onClick={() => console.log("deleted clicked")} aria-label="addWbs">
-                  <DeleteIcon
-                    variant="contained" color="error"
-                  />
-                </IconButton>
-              </Grid> */}
-
-              <Grid item>
-                <IconButton onClick={() => setShow("FormFirmaCreate")} aria-label="addWbs">
-                  <AddCircleOutlineIcon variant="contained" color="success" />
-                </IconButton>
-              </Grid>
-
-            </Grid>
-          </Grid>
-
-        </Grid>
-      </Paper>
-
-
-
-      {show == "FormFirmaCreate" &&
-        <Box>
-          <FormFirmaCreate setShow={setShow} />
-        </Box>
-      }
-
-
-      {isLoading &&
-        <Box sx={{ m: "1rem", color: 'gray' }}>
-          <LinearProgress color='inherit' />
-        </Box>
-      }
-
-      {!isLoading && show == "Main" && !data?.firmalar?.length > 0 &&
-        <Stack sx={{ width: '100%', padding: "1rem" }} spacing={2}>
-          <Alert severity="info">
-            Dahil olduğunuz herhangi bir firma bulunamadı, menüler yardımı ile oluşturabilirsiniz.
-          </Alert>
-        </Stack>
-      }
-
-      {!isLoading && show == "Main" && data?.firmalar?.length > 0 &&
-        <Stack sx={{ width: '100%', padding: "1rem" }} spacing={0}>
-          {
-            data.firmalar.map((oneFirma, index) => (
-
-              <Box
-                key={index}
-                onClick={() => handleFirmaClick(oneFirma)}
-                sx={{
-                  display: "grid",
-                  gridTemplateColumns: "auto auto 1fr",
-                  "&:hover": {
-                    color: "black",
-                    "& .childClass": {
-                      color: "black",
-                    }
-                  },
-                  alignItems: "center",
-                  padding: "0.2rem 1rem",
-                  cursor: "pointer"
-                }}
-              >
-
-                <Box className="childClass" sx={{ pr: "1rem", color: "gray" }}>
-                  <FolderIcon />
-                </Box>
-
-                <Box className="childClass" sx={{ pr: "1rem", color: "gray" }}>
-                  <Typography>
-                    {oneFirma.name}
-                  </Typography>
-                </Box>
-
-              </Box>
-
-            ))
-          }
-
-
-        </Stack>
-      }
+      {!isLoading && firmalar.length === 0 && (
+        <Typography color="text.secondary" sx={{ mt: 2 }}>Henüz firma eklenmemiş.</Typography>
+      )}
 
     </Box>
-
   )
-
 }
-
-

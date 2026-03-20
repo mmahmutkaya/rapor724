@@ -1,195 +1,112 @@
-
-import { useState, useEffect, useContext } from 'react';
+import { useState, useContext, useEffect } from 'react'
+import { useNavigate } from 'react-router-dom'
+import { useQueryClient } from '@tanstack/react-query'
 import { StoreContext } from '../../components/store'
-import FormProjeCreate from '../../components/FormProjeCreate'
-import { useNavigate } from "react-router-dom";
-import { useGetProjeler_byFirma } from '../../hooks/useMongo';
+import { useGetProjeler_byFirma } from '../../hooks/useMongo'
+import { supabase } from '../../lib/supabase'
 import { DialogAlert } from '../../components/general/DialogAlert'
 
-
-import Paper from '@mui/material/Paper';
-import Grid from '@mui/material/Grid';
-import Alert from '@mui/material/Alert';
-import Stack from '@mui/material/Stack';
-import { Typography } from '@mui/material';
-import List from '@mui/material/List';
-import Box from '@mui/material/Box';
-
-import FolderIcon from '@mui/icons-material/Folder';
-import IconButton from '@mui/material/IconButton';
-import DeleteIcon from '@mui/icons-material/Delete';
-import AddCircleOutlineIcon from '@mui/icons-material/AddCircleOutline';
-import LinearProgress from '@mui/material/LinearProgress';
-
+import Box from '@mui/material/Box'
+import Paper from '@mui/material/Paper'
+import Typography from '@mui/material/Typography'
+import LinearProgress from '@mui/material/LinearProgress'
+import Alert from '@mui/material/Alert'
+import IconButton from '@mui/material/IconButton'
+import Button from '@mui/material/Button'
+import TextField from '@mui/material/TextField'
+import AddCircleOutlineIcon from '@mui/icons-material/AddCircleOutline'
 
 
 export default function P_Projeler() {
 
-  const { selectedFirma, setSelectedProje } = useContext(StoreContext)
-
-  const [dialogAlert, setDialogAlert] = useState()
-
   const navigate = useNavigate()
-
-  const [show, setShow] = useState("Main")
-
-  const { data, error, isLoading } = useGetProjeler_byFirma()
-
+  const queryClient = useQueryClient()
+  const { appUser, selectedFirma, setSelectedProje } = useContext(StoreContext)
 
   useEffect(() => {
+    if (!selectedFirma) navigate('/firmalar')
+  }, [selectedFirma, navigate])
 
-    if (!selectedFirma) navigate("/firmalar")
+  const { data, isLoading, isError } = useGetProjeler_byFirma()
+  const projeler = data?.projeler ?? []
 
-    setSelectedProje()
+  const [showCreate, setShowCreate] = useState(false)
+  const [newName, setNewName] = useState('')
+  const [saving, setSaving] = useState(false)
+  const [dialogAlert, setDialogAlert] = useState()
 
+
+  const handleSelect = (proje) => {
+    setSelectedProje(proje)
+    navigate('/pozlar')
+  }
+
+
+  const handleCreate = async () => {
+    if (!newName.trim()) return
+    setSaving(true)
+    const { error } = await supabase.from('projects').insert({ name: newName.trim(), firm_id: selectedFirma.id })
+    setSaving(false)
     if (error) {
-      console.log("error", error)
-      setDialogAlert({
-        dialogIcon: "warning",
-        dialogMessage: "Beklenmedik hata, Rapor7/24 ile irtibata geçiniz..",
-        detailText: error?.message ? error.message : null
-      })
-
+      setDialogAlert({ dialogMessage: error.message, dialogIcon: 'warning', onCloseAction: () => setDialogAlert() })
+      return
     }
-
-  }, [error]);
-
-
-
-
-
-  const handleProjeClick = (oneProje) => {
-    setSelectedProje(oneProje)
-    navigate("/wbs")
+    setNewName('')
+    setShowCreate(false)
+    queryClient.invalidateQueries(['dataProjeler', selectedFirma?.id])
   }
 
 
   return (
-    <Box>
+    <Box sx={{ p: 2 }}>
 
-      {dialogAlert &&
-        <DialogAlert
-          dialogIcon={dialogAlert.dialogIcon}
-          dialogMessage={dialogAlert.dialogMessage}
-          detailText={dialogAlert.detailText}
-          onCloseAction={dialogAlert.onCloseAction ? dialogAlert.onCloseAction : () => setDialogAlert()}
-        />
-      }
+      {dialogAlert && <DialogAlert {...dialogAlert} />}
 
-      {/* BAŞLIK */}
-      <Paper >
-        <Grid
-          container
-          justifyContent="space-between"
-          alignItems="center"
-          sx={{ padding: "0.5rem 1rem", maxHeight: "5rem" }}
+      <Typography variant="body2" color="text.secondary" sx={{ mb: 0.5 }}>
+        {selectedFirma?.name}
+      </Typography>
+
+      <Box sx={{ display: 'flex', alignItems: 'center', mb: 2, gap: 1 }}>
+        <Typography variant="h6">Projeler</Typography>
+        <IconButton onClick={() => setShowCreate(v => !v)} color="primary" size="small">
+          <AddCircleOutlineIcon />
+        </IconButton>
+      </Box>
+
+      {showCreate && (
+        <Paper sx={{ p: 2, mb: 2, display: 'flex', gap: 1, alignItems: 'center' }}>
+          <TextField
+            size="small"
+            label="Proje adı"
+            value={newName}
+            onChange={e => setNewName(e.target.value)}
+            onKeyDown={e => e.key === 'Enter' && handleCreate()}
+            autoFocus
+          />
+          <Button variant="contained" size="small" onClick={handleCreate} disabled={saving || !newName.trim()}>
+            Kaydet
+          </Button>
+          <Button size="small" onClick={() => { setShowCreate(false); setNewName('') }}>İptal</Button>
+        </Paper>
+      )}
+
+      {isLoading && <LinearProgress />}
+      {isError && <Alert severity="error">Veriler yüklenemedi.</Alert>}
+
+      {projeler.map(proje => (
+        <Paper
+          key={proje.id}
+          onClick={() => handleSelect(proje)}
+          sx={{ p: 1.5, mb: 1, cursor: 'pointer', '&:hover': { backgroundColor: 'rgba(0,0,0,0.04)' } }}
         >
+          <Typography>{proje.name}</Typography>
+        </Paper>
+      ))}
 
-          {/* sol kısım (başlık) */}
-          <Grid item xs>
-            <Typography
-              // nowrap={true}
-              variant="h6"
-              fontWeight="bold"
-            >
-              Projeler
-            </Typography>
-          </Grid>
-
-
-          {/* sağ kısım - (tuşlar)*/}
-          <Grid item xs="auto">
-            <Grid container spacing={1}>
-
-              <Grid item>
-                <IconButton onClick={() => console.log("deleted clicked")} aria-label="addWbs">
-                  <DeleteIcon
-                    variant="contained" color="error"
-                  />
-                </IconButton>
-              </Grid>
-
-              <Grid item>
-                <IconButton onClick={() => setShow("FormProjeCreate")} aria-label="addWbs">
-                  <AddCircleOutlineIcon variant="contained" color="success" />
-                </IconButton>
-              </Grid>
-
-            </Grid>
-          </Grid>
-
-        </Grid>
-      </Paper>
-
-
-
-      {show == "FormProjeCreate" &&
-        <Box>
-          <FormProjeCreate setShow={setShow} />
-        </Box>
-      }
-
-      {isLoading &&
-        <Box sx={{ m: "1rem", color: 'gray' }}>
-          <LinearProgress color='inherit' />
-        </Box>
-      }
-
-      {!isLoading && show == "Main" && !data?.projeler?.length > 0 &&
-        <Stack sx={{ width: '100%', padding: "1rem" }} spacing={2}>
-          <Alert severity="info">
-            Firmaya ait proje oluşturmak için menüyü kullanabilirsiniz.
-          </Alert>
-        </Stack>
-      }
-
-      {!isLoading && show == "Main" && data?.projeler?.length > 0 &&
-        <Stack sx={{ width: '100%', padding: "1rem" }} spacing={0}>
-          {
-            data?.projeler.map((oneProje, index) => (
-
-              <Box
-                key={index}
-                onClick={() => handleProjeClick(oneProje)}
-                sx={{
-                  display: "grid",
-                  gridTemplateColumns: "auto 1fr",
-                  "&:hover": {
-                    color: "black",
-                    "& .childClass": {
-                      color: "black",
-                    }
-                  },
-                  alignItems: "center",
-                  padding: "0.2rem 1rem",
-                  cursor: "pointer"
-                }}
-              >
-
-                <Box className="childClass" sx={{ pr: "1rem", color: "gray" }}>
-                  <FolderIcon />
-                </Box>
-
-                <Box className="childClass" sx={{ pr: "1rem", color: "gray" }}>
-                  <Typography>
-                    {oneProje.name}
-                  </Typography>
-                </Box>
-
-
-              </Box>
-
-            ))
-          }
-
-
-        </Stack>
-      }
+      {!isLoading && projeler.length === 0 && (
+        <Typography color="text.secondary" sx={{ mt: 2 }}>Henüz proje eklenmemiş.</Typography>
+      )}
 
     </Box>
-
   )
-
 }
-
-
