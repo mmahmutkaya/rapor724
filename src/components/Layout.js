@@ -10,6 +10,7 @@ import { styled, alpha } from '@mui/material/styles';
 import AppBar from '@mui/material/AppBar';
 import Box from '@mui/material/Box';
 import CssBaseline from '@mui/material/CssBaseline';
+import GlobalStyles from '@mui/material/GlobalStyles';
 import Grid from '@mui/material/Grid';
 import Drawer from '@mui/material/Drawer';
 import IconButton from '@mui/material/IconButton';
@@ -320,23 +321,24 @@ export default function Layout({ window, children }) {
 
   return (
 
-    <Box sx={{ display: 'flex' }}>
+    <Box sx={{ display: 'flex', height: '100vh', overflow: 'hidden' }}>
       <CssBaseline />
+      <GlobalStyles styles={{ 'html, body': { overflow: 'hidden', height: '100%' } }} />
 
 
       {/* AppBar */}
-      <Box sx={{ display: 'flex' }}>
+      <Box sx={{ display: 'contents' }}>
         <AppBar
           position="fixed"
           sx={{
             backgroundColor: "#3D4849",
-            // width: { md: `calc(100% - ${drawerWidth}px)` },
-            width: { md: `calc(100% - ${drawerWidth}px)` },
-            ml: { md: `${drawerWidth}px` }
+            left: { xs: 0, md: `${drawerWidth}px` },
+            right: 0,
+            width: 'auto',
           }}
         >
 
-          <Grid sx={{ alignItems: "center", padding: "0rem 1rem", height: topBarHeight, display: "grid", gridTemplateColumns: "auto auto 1fr auto" }}>
+          <Grid sx={{ alignItems: "center", pl: '1rem', pr: '0.5rem', height: topBarHeight, display: "grid", gridTemplateColumns: "auto auto 1fr auto" }}>
 
             <Grid item>
               <IconButton
@@ -516,7 +518,7 @@ export default function Layout({ window, children }) {
         <Box
           component="main"
           name="Tanimalama_Main"
-          sx={{ flexGrow: 1, width: { md: `calc(100% - ${drawerWidth}px)` }, mt: topBarHeight }}
+          sx={{ flexGrow: 1, width: { md: `calc(100% - ${drawerWidth}px)` }, mt: topBarHeight, height: `calc(100vh - ${topBarHeight})`, overflow: 'auto' }}
         >
           {/* ToolBar koymamızın sebebi --> AppBAr kadar aşağı margin olması için dolgu */}
           {/* Yukarıda mt:topBarHeight ile çözdük */}

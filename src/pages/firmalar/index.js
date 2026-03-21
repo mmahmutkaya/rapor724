@@ -7,6 +7,7 @@ import { DialogAlert } from '../../components/general/DialogAlert'
 
 import Box from '@mui/material/Box'
 import Paper from '@mui/material/Paper'
+import Grid from '@mui/material/Grid'
 import Typography from '@mui/material/Typography'
 import LinearProgress from '@mui/material/LinearProgress'
 import Alert from '@mui/material/Alert'
@@ -55,16 +56,25 @@ export default function P_Firmalar() {
 
 
   return (
-    <Box sx={{ p: 2 }}>
+    <Box sx={{ m: '0rem' }}>
 
       {dialogAlert && <DialogAlert {...dialogAlert} />}
 
-      <Box sx={{ display: 'flex', alignItems: 'center', mb: 2, gap: 1 }}>
-        <Typography variant="h6">Firmalar</Typography>
-        <IconButton onClick={() => setShowCreate(v => !v)} color="primary" size="small">
-          <AddCircleOutlineIcon />
-        </IconButton>
-      </Box>
+      {/* BAŞLIK */}
+      <Paper sx={{ borderBottom: '2px solid rgba(0,0,0,0.15)' }}>
+        <Grid container justifyContent="space-between" alignItems="center" sx={{ px: '1rem', py: '0.5rem', maxHeight: '5rem' }}>
+          <Grid item>
+            <Typography variant="h6" fontWeight="bold">Firmalar</Typography>
+          </Grid>
+          <Grid item>
+            <IconButton onClick={() => setShowCreate(v => !v)}>
+              <AddCircleOutlineIcon />
+            </IconButton>
+          </Grid>
+        </Grid>
+      </Paper>
+
+      <Box sx={{ p: 2 }}>
 
       {showCreate && (
         <Paper sx={{ p: 2, mb: 2, display: 'flex', gap: 1, alignItems: 'center' }}>
@@ -100,6 +110,7 @@ export default function P_Firmalar() {
         <Typography color="text.secondary" sx={{ mt: 2 }}>Henüz firma eklenmemiş.</Typography>
       )}
 
+      </Box>
     </Box>
   )
 }
