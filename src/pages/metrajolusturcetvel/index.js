@@ -574,31 +574,6 @@ export default function P_MetrajOlusturCetvel() {
   }
 
   // ── Durum değişiklikleri ─────────────────────────────────────
-  const handleMarkReady = (sessId) => {
-    setDialogAlert({
-      dialogIcon: 'info',
-      dialogMessage: 'Metraj onay için gönderilsin mi?',
-      actionText1: 'Evet, Gönder',
-      action1: async () => {
-        setDialogAlert()
-        const sess = sessions.find(s => s.id === sessId)
-        if (!sess) return
-        const parentIds = new Set(sess.lines.filter(l => l.parent_line_id).map(l => l.parent_line_id))
-        const total = sess.lines.filter(l => !parentIds.has(l.id)).reduce((sum, l) => sum + computeQuantity(l), 0)
-        const { error } = await supabase
-          .from('measurement_sessions')
-          .update({ status: 'ready', total_quantity: total, updated_at: new Date().toISOString() })
-          .eq('id', sessId)
-        if (error) {
-          setDialogAlert({ dialogIcon: 'warning', dialogMessage: error.message, onCloseAction: () => setDialogAlert() })
-          return
-        }
-        updateSess(sessId, () => ({ status: 'ready', total_quantity: total }))
-      },
-      onCloseAction: () => setDialogAlert(),
-    })
-  }
-
   const handleBackToDraft = async (sessId) => {
     const { error } = await supabase
       .from('measurement_sessions')
@@ -1486,23 +1461,34 @@ export default function P_MetrajOlusturCetvel() {
 
                 {/* Taslak veya onay bekleyen oturum — her zaman düzenleme ikonu */}
                 {(isDraft || isReady) && sess.isOwn && !sess.mode_edit && !sess.isRevisionEdit && (
-                  <>
-                    <IconButton size="small" onClick={() => { setExpandedSessCards(prev => ({ ...prev, [sess.id]: true })); updateSess(sess.id, () => ({ mode_edit: true })) }}>
-                      <EditIcon sx={{ fontSize: 20, color: '#e0e1dd' }} />
-                    </IconButton>
-                    {isDraft && rootLines.length > 0 && (
-                      <IconButton size="small" onClick={() => handleMarkReady(sess.id)}>
-                        <CheckCircleIcon sx={{ fontSize: 24, color: '#A5D6A7' }} />
-                      </IconButton>
-                    )}
-                  </>
+                  <IconButton size="small" onClick={() => { setExpandedSessCards(prev => ({ ...prev, [sess.id]: true })); updateSess(sess.id, () => ({ mode_edit: true })) }}>
+                    <EditIcon sx={{ fontSize: 20, color: '#e0e1dd' }} />
+                  </IconButton>
                 )}
 
-                {/* Taslak düzenleme modu — iptal / kaydet */}
+                {/* Taslak düzenleme modu — iptal / tümünü onaya sun / kaydet */}
                 {(isDraft || isReady) && sess.isOwn && sess.mode_edit && (
                   <>
                     <IconButton size="small" onClick={() => handleCancelEdit(sess.id)}>
                       <ClearIcon sx={{ color: sess.isChanged ? '#FFCDD2' : 'rgba(255,255,255,0.3)', fontSize: 20 }} />
+                    </IconButton>
+                    <IconButton size="small"
+                      title={rootLines.some(l => !l.status || l.status === 'draft') ? 'Tümünü onaya sun' : 'Tümünü hazırlanana al'}
+                      disabled={!rootLines.some(l => !l.status || l.status === 'draft') && !rootLines.some(l => l.status === 'pending')}
+                      onClick={() => {
+                        const hasDraft = rootLines.some(l => !l.status || l.status === 'draft')
+                        if (hasDraft) {
+                          const ids = rootLines.filter(l => !l.status || l.status === 'draft').map(l => l.id)
+                          updateSess(sess.id, s => ({ isChanged: true, lines: s.lines.map(l => ids.includes(l.id) ? { ...l, status: 'pending' } : l) }))
+                        } else {
+                          const ids = rootLines.filter(l => l.status === 'pending').map(l => l.id)
+                          updateSess(sess.id, s => ({ isChanged: true, lines: s.lines.map(l => ids.includes(l.id) ? { ...l, status: 'draft' } : l) }))
+                        }
+                      }}>
+                      {rootLines.some(l => !l.status || l.status === 'draft')
+                        ? <CheckCircleIcon sx={{ fontSize: 22, color: '#A5D6A7' }} />
+                        : <HourglassFullIcon sx={{ fontSize: 22, color: rootLines.some(l => l.status === 'pending') ? '#FFE082' : 'rgba(255,255,255,0.2)' }} />
+                      }
                     </IconButton>
                     <IconButton size="small" onClick={() => handleSave(sess.id)} disabled={!sess.isChanged}>
                       <SaveIcon sx={{ color: sess.isChanged ? '#90CAF9' : 'rgba(255,255,255,0.25)', fontSize: 20 }} />

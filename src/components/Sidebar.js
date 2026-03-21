@@ -78,6 +78,14 @@ export default function Sidebar({ setMobileOpen }) {
             </ListItemButton>
 
             <ListItemButton
+              onClick={() => { navigate('/ispaketler'); setSelectedIsPaket() }}
+              sx={{ backgroundColor: pathname.includes('/ispaketler') ? seciliSayfaRengi : null, '&:hover': { backgroundColor: seciliSayfaRengi } }}
+            >
+              <ListItemIcon><SendIcon /></ListItemIcon>
+              <ListItemText primary="İş Paketleri" />
+            </ListItemButton>
+
+            <ListItemButton
               onClick={() => navigate('/metrajolustur')}
               sx={{ backgroundColor: pathname.includes('/metrajolustur') ? seciliSayfaRengi : null, '&:hover': { backgroundColor: seciliSayfaRengi } }}
             >
@@ -91,14 +99,6 @@ export default function Sidebar({ setMobileOpen }) {
             >
               <ListItemIcon><SendIcon /></ListItemIcon>
               <ListItemText primary="Metraj Onayla" />
-            </ListItemButton>
-
-            <ListItemButton
-              onClick={() => { navigate('/ispaketler'); setSelectedIsPaket() }}
-              sx={{ backgroundColor: pathname.includes('/ispaketler') ? seciliSayfaRengi : null, '&:hover': { backgroundColor: seciliSayfaRengi } }}
-            >
-              <ListItemIcon><SendIcon /></ListItemIcon>
-              <ListItemText primary="İş Paketleri" />
             </ListItemButton>
 
             <ListItemButton
