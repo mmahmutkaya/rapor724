@@ -984,8 +984,8 @@ export default function P_MetrajOnaylaCetvel() {
                     <UndoIcon sx={{ fontSize: 16, color: '#e53935' }} />
                   </IconButton>
                 )}
-                {(!onayKartiEditMode || !draftLines[node.id]) && node.status === 'ignored' && <DoNotDisturbIcon sx={{ fontSize: 16, color: '#424242' }} />}
-                {(!onayKartiEditMode || !draftLines[node.id]) && node.status === 'approved' && node.depth > 0 && <Typography sx={{ fontSize: '0.9rem', fontWeight: 900, color: '#2E7D32', lineHeight: 1 }}>R</Typography>}
+                {(!onayKartiEditMode || !draftLines[node.id]) && !(onayKartiEditMode && !!node.depth) && node.status === 'ignored' && <DoNotDisturbIcon sx={{ fontSize: 16, color: '#424242' }} />}
+                {(!onayKartiEditMode || !draftLines[node.id]) && !(onayKartiEditMode && !!node.depth) && node.status === 'approved' && node.depth > 0 && <Typography sx={{ fontSize: '0.9rem', fontWeight: 900, color: '#2E7D32', lineHeight: 1 }}>R</Typography>}
                 {(!onayKartiEditMode || !draftLines[node.id]) && node.status === 'approved' && !node.depth && <DoneAllIcon sx={{ fontSize: 18, color: '#2E7D32', filter: 'drop-shadow(0 0 0.6px #2E7D32)' }} />}
               </Box>
 
