@@ -185,7 +185,6 @@ export default function P_MetrajOlusturCetvel() {
   const [childEditValues, setChildEditValues] = useState({})   // { lineId: {description,multiplier,count,length,width,height} }
   const [onayKartiEditMode, setOnayKartiEditMode] = useState(false)
   const [expandedSessCards, setExpandedSessCards] = useState({})
-  const [expandedOnayKarti, setExpandedOnayKarti] = useState(true)
   const [pendingDeletes, setPendingDeletes] = useState([])     // { lineId: string }[] — henüz DB'ye yansıtılmamış silmeler
   const [pendingStatusReverts,  setPendingStatusReverts]  = useState([]) // lineId[] — pending→draft, save'e kadar DB'ye yazılmaz
   const [pendingStatusForwards, setPendingStatusForwards] = useState([]) // lineId[] — draft→pending, save'e kadar DB'ye yazılmaz
@@ -1872,7 +1871,7 @@ export default function P_MetrajOlusturCetvel() {
             const origCellBg = { backgroundColor: '#D5D5D5', borderBottom: '1px dashed #c8c8c8' }
             return (
               <>
-                {expandedOnayKarti && showAllOriginals && (
+                {showAllOriginals && (
                   <>
                     <Box sx={{ ...css_oc, ...origCellBg, justifyContent: 'flex-start', pl: '0.5rem', color: '#888', fontSize: '0.78rem' }}>{node.siraNo}</Box>
                     <Box sx={{ ...css_oc, ...origCellBg, color: '#777', fontStyle: 'italic', fontSize: '0.82rem' }}>{node.description ?? ''}</Box>
@@ -1895,10 +1894,10 @@ export default function P_MetrajOlusturCetvel() {
                     </Box>
                   </>
                 )}
-                {expandedOnayKarti && node.children.filter(c => (!c.status || c.status === 'draft' || c.status === 'pending') ? sessions.some(s => s.id === c.session_id && s.isOwn) : (showAllOriginals || c.status !== 'ignored')).map(child => (
+                {node.children.filter(c => (!c.status || c.status === 'draft' || c.status === 'pending') ? sessions.some(s => s.id === c.session_id && s.isOwn) : (showAllOriginals || c.status !== 'ignored')).map(child => (
                   <React.Fragment key={child.id}>{renderOnayRow(child)}</React.Fragment>
                 ))}
-                {expandedOnayKarti && revizeEditor}
+                {revizeEditor}
               </>
             )
           }
@@ -1994,11 +1993,11 @@ export default function P_MetrajOlusturCetvel() {
                 {!onayKartiEditMode && node.status === 'approved' && !node.depth && <DoneAllIcon sx={{ fontSize: 18, color: '#2E7D32', filter: 'drop-shadow(0 0 0.6px #2E7D32)' }} />}
               </Box>
 
-              {hasKids && expandedOnayKarti && node.children.filter(c => (!c.status || c.status === 'draft' || c.status === 'pending') ? sessions.some(s => s.id === c.session_id && s.isOwn) : (showAllOriginals || c.status !== 'ignored')).map(child => (
+              {hasKids && node.children.filter(c => (!c.status || c.status === 'draft' || c.status === 'pending') ? sessions.some(s => s.id === c.session_id && s.isOwn) : (showAllOriginals || c.status !== 'ignored')).map(child => (
                 <React.Fragment key={child.id}>{renderOnayRow(child)}</React.Fragment>
               ))}
 
-              {expandedOnayKarti && revizeEditor}
+              {revizeEditor}
             </>
           )
         }
@@ -2079,8 +2078,8 @@ export default function P_MetrajOlusturCetvel() {
                       ...(showOnaylayan ? { backgroundColor: 'rgba(255,255,255,0.18)', borderColor: 'rgba(255,255,255,0.5)', color: '#fff' } : { backgroundColor: 'transparent', borderColor: 'rgba(255,255,255,0.25)', color: 'rgba(255,255,255,0.4)' }) }}>
                     Onaylayan
                   </Box>
-                  <IconButton size="small" sx={{ color: 'rgba(224,225,221,0.9)', '&:hover': { color: '#fff' } }} onClick={() => setExpandedOnayKarti(prev => !prev)}>
-                    {expandedOnayKarti ? <ExpandLessIcon sx={{ fontSize: 22, filter: 'drop-shadow(0 0 0.7px currentColor)' }} /> : <ExpandMoreIcon sx={{ fontSize: 22, filter: 'drop-shadow(0 0 0.7px currentColor)' }} />}
+                  <IconButton size="small" sx={{ color: 'rgba(224,225,221,0.9)', '&:hover': { color: '#fff' } }} onClick={() => setShowAllOriginals(prev => !prev)}>
+                    {showAllOriginals ? <ExpandLessIcon sx={{ fontSize: 22, filter: 'drop-shadow(0 0 0.7px currentColor)' }} /> : <ExpandMoreIcon sx={{ fontSize: 22, filter: 'drop-shadow(0 0 0.7px currentColor)' }} />}
                   </IconButton>
                   <IconButton size="small" title="İptal"
                     sx={{ p: '2px', color: '#ffcdd2', visibility: onayKartiEditMode ? 'visible' : 'hidden', pointerEvents: onayKartiEditMode ? 'auto' : 'none' }}
@@ -2123,7 +2122,7 @@ export default function P_MetrajOlusturCetvel() {
                   )}
                   {!onayKartiEditMode && (
                     <IconButton size="small" disabled={approvalTree.length === 0} sx={{ p: '2px', color: '#c8e6c9', '&.Mui-disabled': { color: 'rgba(255,255,255,0.2)' } }} title="Düzenle" onClick={() => {
-                      setExpandedOnayKarti(true)
+                      setShowAllOriginals(true)
                       setOnayKartiEditMode(true)
                       const newExpanded = {}
                       const expandAll = (nodes) => nodes.forEach(n => {

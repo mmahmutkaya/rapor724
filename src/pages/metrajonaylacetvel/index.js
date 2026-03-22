@@ -170,7 +170,6 @@ export default function P_MetrajOnaylaCetvel() {
   const [draftLines, setDraftLines]                     = useState({})  // { [lineId]: { status, ... } }
   const [onayKartiEditMode, setOnayKartiEditMode]       = useState(false)
   const [expandedSessCards, setExpandedSessCards]       = useState({})
-  const [expandedOnayKarti, setExpandedOnayKarti]       = useState(true)
 
   const wpAreaId = selectedMahal_metraj?.wpAreaId
 
@@ -863,7 +862,7 @@ export default function P_MetrajOnaylaCetvel() {
             const origCellBg = { backgroundColor: '#D5D5D5', borderBottom: '1px dashed #c8c8c8' }
             return (
               <>
-                {expandedOnayKarti && showAllOriginals && (
+                {showAllOriginals && (
                   <>
                     <Box sx={{ ...css_oc, ...origCellBg, justifyContent: 'flex-start', pl: '0.5rem', color: '#888', fontSize: '0.78rem' }}>{node.siraNo}</Box>
                     <Box sx={{ ...css_oc, ...origCellBg, color: '#777', fontStyle: 'italic', fontSize: '0.82rem' }}>{node.description ?? ''}</Box>
@@ -886,7 +885,7 @@ export default function P_MetrajOnaylaCetvel() {
                     </Box>
                   </>
                 )}
-                {expandedOnayKarti && node.children.filter(c => (!c.status || c.status === 'draft') ? false : (showAllOriginals || c.status !== 'ignored')).map(child => (
+                {node.children.filter(c => (!c.status || c.status === 'draft') ? false : (showAllOriginals || c.status !== 'ignored')).map(child => (
                   <React.Fragment key={child.id}>{renderOnayRow(child)}</React.Fragment>
                 ))}
               </>
@@ -953,7 +952,7 @@ export default function P_MetrajOnaylaCetvel() {
                 {(!onayKartiEditMode || !draftLines[node.id]) && node.status === 'approved' && !node.depth && <DoneAllIcon sx={{ fontSize: 18, color: '#2E7D32', filter: 'drop-shadow(0 0 0.6px #2E7D32)' }} />}
               </Box>
 
-              {hasKids && expandedOnayKarti && node.children.filter(c => (!c.status || c.status === 'draft') ? false : (showAllOriginals || c.status !== 'ignored')).map(child => (
+              {hasKids && node.children.filter(c => (!c.status || c.status === 'draft') ? false : (showAllOriginals || c.status !== 'ignored')).map(child => (
                 <React.Fragment key={child.id}>{renderOnayRow(child)}</React.Fragment>
               ))}
             </>
@@ -1015,8 +1014,8 @@ export default function P_MetrajOnaylaCetvel() {
                     ...(showOnaylayan ? { backgroundColor: 'rgba(255,255,255,0.18)', borderColor: 'rgba(255,255,255,0.5)', color: '#fff' } : { backgroundColor: 'transparent', borderColor: 'rgba(255,255,255,0.25)', color: 'rgba(255,255,255,0.4)' }) }}>
                   Onaylayan
                 </Box>
-                <IconButton size="small" sx={{ color: 'rgba(224,225,221,0.75)', '&:hover': { color: '#fff' } }} onClick={() => setExpandedOnayKarti(prev => !prev)}>
-                  {expandedOnayKarti ? <ExpandLessIcon sx={{ fontSize: 20, filter: 'drop-shadow(0 0 0.6px currentColor)' }} /> : <ExpandMoreIcon sx={{ fontSize: 20, filter: 'drop-shadow(0 0 0.6px currentColor)' }} />}
+                <IconButton size="small" sx={{ color: 'rgba(224,225,221,0.75)', '&:hover': { color: '#fff' } }} onClick={() => setShowAllOriginals(prev => !prev)}>
+                  {showAllOriginals ? <ExpandLessIcon sx={{ fontSize: 20, filter: 'drop-shadow(0 0 0.6px currentColor)' }} /> : <ExpandMoreIcon sx={{ fontSize: 20, filter: 'drop-shadow(0 0 0.6px currentColor)' }} />}
                 </IconButton>
                 <IconButton size="small" onClick={cancelOnayKartiEdits}
                   sx={{ color: '#ef9a9a', visibility: onayKartiEditMode ? 'visible' : 'hidden', pointerEvents: onayKartiEditMode ? 'auto' : 'none' }}>
@@ -1041,7 +1040,6 @@ export default function P_MetrajOnaylaCetvel() {
                       approvalTree.forEach(markExpand)
                       setExpandedApproved(prev => ({ ...prev, ...expand }))
                       setShowAllOriginals(true)
-                      setExpandedOnayKarti(true)
                       setOnayKartiEditMode(true)
                     }}
                     sx={{ position: 'absolute', inset: 0, color: 'rgba(224,225,221,0.75)', '&:hover': { color: '#e0e1dd' }, '&.Mui-disabled': { color: 'rgba(255,255,255,0.28)' }, visibility: !onayKartiEditMode ? 'visible' : 'hidden', pointerEvents: !onayKartiEditMode ? 'auto' : 'none' }}
