@@ -280,14 +280,14 @@ export default function P_MetrajOnaylaCetvel() {
       const kids = node.children ?? []
       if (kids.length > 0) {
         const hasUndecidedPending = kids.some(c => c.status === 'pending')
-        const hasDecided = kids.some(c => draftLines[c.id]?.status && draftLines[c.id].status !== 'pending')
+        const hasDecided = kids.some(c => c.status === 'approved' || c.status === 'ignored')
         if (hasUndecidedPending && hasDecided) return true
         if (kids.some(check)) return true
       }
       return false
     }
     return approvalTree.some(check)
-  }, [approvalTree, draftLines])
+  }, [approvalTree])
 
   const hasSaveableChanges = useMemo(() => {
     const allLines = sessions.flatMap(s => s.lines ?? [])
