@@ -287,6 +287,13 @@ export default function P_MetrajOnaylaCetvel() {
     return approvalTree.some(check)
   }, [approvalTree, draftLines])
 
+  const hasSaveableChanges = useMemo(() => {
+    const allLines = sessions.flatMap(s => s.lines ?? [])
+    return Object.entries(draftLines).some(([id, draft]) =>
+      draft.status !== 'pending' || allLines.find(l => l.id === id)?.status !== 'pending'
+    )
+  }, [draftLines, sessions])
+
   const autoExpandDone = useRef(false)
   useEffect(() => {
     if (autoExpandDone.current || approvalTree.length === 0) return
@@ -393,7 +400,10 @@ export default function P_MetrajOnaylaCetvel() {
   }
 
   const saveOnayKartiEdits = async () => {
-    const changes = Object.entries(draftLines).filter(([, draft]) => draft.status !== 'pending')
+    const allLines = sessions.flatMap(s => s.lines ?? [])
+    const changes = Object.entries(draftLines).filter(([id, draft]) =>
+      draft.status !== 'pending' || allLines.find(l => l.id === id)?.status !== 'pending'
+    )
     if (changes.length === 0) { setOnayKartiEditMode(false); setExpandedApproved({}); setShowAllOriginals(false); return }
     for (const [lineId, draft] of changes) {
       const { error } = await supabase.from('measurement_lines').update(draft).eq('id', lineId)
@@ -942,7 +952,7 @@ export default function P_MetrajOnaylaCetvel() {
                     </IconButton>
                   </>
                 )}
-                {onayKartiEditMode && (node.status === 'approved' || node.status === 'ignored') && draftLines[node.id] && (
+                {onayKartiEditMode && (node.status === 'approved' || node.status === 'ignored') && !!node.depth && (
                   <IconButton size="small" sx={{ p: '2px' }} onClick={() => revertLine(node.id)}>
                     <UndoIcon sx={{ fontSize: 16, color: '#e53935' }} />
                   </IconButton>
@@ -961,6 +971,8 @@ export default function P_MetrajOnaylaCetvel() {
 
         const allApprovalLines = flattenAll(approvalTree)
         const hasPendingInOnayKart = allApprovalLines.some(n => n.status === 'pending')
+        const hasRevokableInOnayKart = allApprovalLines.some(n => (n.status === 'approved' || n.status === 'ignored') && n.depth > 0)
+        const canEditOnayKarti = hasPendingInOnayKart || hasRevokableInOnayKart
         const onayKartiTotal = allApprovalLines
           .filter(n => !(n.children?.length > 0))
           .reduce((s, n) => s + calcMetrajOnay(n), 0)
@@ -1023,14 +1035,14 @@ export default function P_MetrajOnaylaCetvel() {
                 </IconButton>
                 <Box sx={{ position: 'relative', width: '30px', height: '30px', flexShrink: 0 }}>
                   <IconButton size="small"
-                    disabled={!Object.values(draftLines).some(d => d.status !== 'pending') || hasPartiallyDecidedGroup}
+                    disabled={!hasSaveableChanges || hasPartiallyDecidedGroup}
                     onClick={saveOnayKartiEdits}
                     sx={{ position: 'absolute', inset: 0, color: '#a5d6a7', '&.Mui-disabled': { color: 'rgba(255,255,255,0.25)' }, visibility: onayKartiEditMode ? 'visible' : 'hidden', pointerEvents: onayKartiEditMode ? 'auto' : 'none' }}
                   >
                     <SaveIcon sx={{ fontSize: 20 }} />
                   </IconButton>
                   <IconButton size="small"
-                    disabled={!hasPendingInOnayKart}
+                    disabled={!canEditOnayKarti}
                     onClick={() => {
                       const expand = {}
                       function markExpand(node) {
