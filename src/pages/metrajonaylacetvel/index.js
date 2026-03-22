@@ -37,7 +37,6 @@ import VisibilityOffIcon from '@mui/icons-material/VisibilityOff'
 import EditIcon from '@mui/icons-material/Edit'
 import SaveIcon from '@mui/icons-material/Save'
 import CloseIcon from '@mui/icons-material/Close'
-import UndoIcon from '@mui/icons-material/Undo'
 
 
 function computeQuantity(line) {
@@ -761,24 +760,19 @@ export default function P_MetrajOnaylaCetvel() {
 
                               {/* DURUM sütunu */}
                               <Box sx={{ ...css_lineCell, ...cellBg, justifyContent: 'center', px: '2px', gap: '6px' }}>
-                                {effStatus === 'approved' ? (
-                                  <>
-                                    <DoneAllIcon sx={{ fontSize: 18, color: '#2e7d32', fontWeight: 700 }} />
-                                    {cardEditMode[sess.id] && (
-                                      <IconButton size="small" sx={{ p: '2px' }} onClick={() => revertLine(line.id)}>
-                                        <UndoIcon sx={{ fontSize: 16, color: '#e53935' }} />
-                                      </IconButton>
-                                    )}
-                                  </>
-                                ) : effStatus === 'ignored' ? (
-                                  <>
-                                    <DoNotDisturbIcon sx={{ fontSize: 18, color: '#424242' }} />
-                                    {cardEditMode[sess.id] && (
-                                      <IconButton size="small" sx={{ p: '2px' }} onClick={() => revertLine(line.id)}>
-                                        <UndoIcon sx={{ fontSize: 16, color: '#e53935' }} />
-                                      </IconButton>
-                                    )}
-                                  </>
+                                {(effStatus === 'approved' || effStatus === 'ignored') ? (
+                                  <Box onMouseEnter={() => cardEditMode[sess.id] && setRevertHoverId(line.id)}
+                                    onMouseLeave={() => setRevertHoverId(null)}
+                                    sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                                    {cardEditMode[sess.id] && revertHoverId === line.id
+                                      ? <IconButton size="small" sx={{ p: '2px' }} onClick={() => { revertLine(line.id); setRevertHoverId(null) }}>
+                                          <ReplyIcon sx={{ fontSize: 16, color: '#E65100' }} />
+                                        </IconButton>
+                                      : effStatus === 'approved'
+                                        ? <DoneAllIcon sx={{ fontSize: 18, color: '#2e7d32', fontWeight: 700 }} />
+                                        : <DoNotDisturbIcon sx={{ fontSize: 18, color: '#424242' }} />
+                                    }
+                                  </Box>
                                 ) : effStatus === 'pending' ? (
                                   cardEditMode[sess.id] ? (
                                     <>
@@ -876,7 +870,7 @@ export default function P_MetrajOnaylaCetvel() {
             const origCellBg = { backgroundColor: '#D5D5D5', borderBottom: '1px dashed #c8c8c8' }
             return (
               <>
-                {showAllOriginals && (
+                {showAllOriginals && showRevizeTalepleri && (
                   <>
                     <Box sx={{ ...css_oc, ...origCellBg, justifyContent: 'flex-start', pl: '0.5rem', color: '#888', fontSize: '0.78rem' }}>{node.siraNo}</Box>
                     <Box sx={{ ...css_oc, ...origCellBg, color: '#777', fontStyle: 'italic', fontSize: '0.82rem' }}>{node.description ?? ''}</Box>
@@ -1044,10 +1038,12 @@ export default function P_MetrajOnaylaCetvel() {
                 <Box sx={{ display: 'flex', alignItems: 'center', gap: '4px', flexShrink: 0 }}>
                 <Box component="span" onClick={() => setShowRevizeTalepleri(prev => !prev)}
                   sx={{ cursor: 'pointer', px: '6px', py: '2px', borderRadius: '10px', fontSize: '0.7rem', fontWeight: 600, border: '1px solid', userSelect: 'none',
-                    ...(hasPendingRevizeTalepleri
-                      ? (showRevizeTalepleri ? { backgroundColor: 'rgba(33,150,243,0.25)', borderColor: 'rgba(33,150,243,0.8)', color: '#90CAF9' } : { backgroundColor: 'transparent', borderColor: 'rgba(33,150,243,0.5)', color: 'rgba(144,202,249,0.6)' })
-                      : (showRevizeTalepleri ? { backgroundColor: 'rgba(255,255,255,0.18)', borderColor: 'rgba(255,255,255,0.5)', color: '#fff' } : { backgroundColor: 'transparent', borderColor: 'rgba(255,255,255,0.25)', color: 'rgba(255,255,255,0.4)' })) }}>
-                  Revize Talepleri
+                    ...(hasPendingRevizeTalepleri && !showRevizeTalepleri
+                      ? { backgroundColor: 'rgba(25,118,210,0.5)', borderColor: '#42A5F5', color: '#fff' }
+                      : showRevizeTalepleri
+                        ? { backgroundColor: 'rgba(255,255,255,0.18)', borderColor: 'rgba(255,255,255,0.5)', color: '#fff' }
+                        : { backgroundColor: 'transparent', borderColor: 'rgba(255,255,255,0.25)', color: 'rgba(255,255,255,0.4)' }) }}>
+                  Revize
                 </Box>
                 <Box component="span" onClick={() => setShowHazırlayan(prev => !prev)}
                   sx={{ cursor: 'pointer', px: '6px', py: '2px', borderRadius: '10px', fontSize: '0.7rem', fontWeight: 600, border: '1px solid', userSelect: 'none',

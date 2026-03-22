@@ -1872,7 +1872,7 @@ export default function P_MetrajOlusturCetvel() {
             const origCellBg = { backgroundColor: '#D5D5D5', borderBottom: '1px dashed #c8c8c8' }
             return (
               <>
-                {showAllOriginals && (
+                {showAllOriginals && showRevizeTalepleri && (
                   <>
                     <Box sx={{ ...css_oc, ...origCellBg, justifyContent: 'flex-start', pl: '0.5rem', color: '#888', fontSize: '0.78rem' }}>{node.siraNo}</Box>
                     <Box sx={{ ...css_oc, ...origCellBg, color: '#777', fontStyle: 'italic', fontSize: '0.82rem' }}>{node.description ?? ''}</Box>
@@ -2072,10 +2072,12 @@ export default function P_MetrajOlusturCetvel() {
                 <Box sx={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                   <Box component="span" onClick={() => setShowRevizeTalepleri(prev => !prev)}
                     sx={{ cursor: 'pointer', px: '6px', py: '2px', borderRadius: '10px', fontSize: '0.7rem', fontWeight: 600, border: '1px solid', userSelect: 'none',
-                      ...(hasPendingRevizeTalepleri
-                        ? (showRevizeTalepleri ? { backgroundColor: 'rgba(33,150,243,0.25)', borderColor: 'rgba(33,150,243,0.8)', color: '#90CAF9' } : { backgroundColor: 'transparent', borderColor: 'rgba(33,150,243,0.5)', color: 'rgba(144,202,249,0.6)' })
-                        : (showRevizeTalepleri ? { backgroundColor: 'rgba(255,255,255,0.18)', borderColor: 'rgba(255,255,255,0.5)', color: '#fff' } : { backgroundColor: 'transparent', borderColor: 'rgba(255,255,255,0.25)', color: 'rgba(255,255,255,0.4)' })) }}>
-                    Revize Talepleri
+                      ...(hasPendingRevizeTalepleri && !showRevizeTalepleri
+                        ? { backgroundColor: 'rgba(25,118,210,0.5)', borderColor: '#42A5F5', color: '#fff' }
+                        : showRevizeTalepleri
+                          ? { backgroundColor: 'rgba(255,255,255,0.18)', borderColor: 'rgba(255,255,255,0.5)', color: '#fff' }
+                          : { backgroundColor: 'transparent', borderColor: 'rgba(255,255,255,0.25)', color: 'rgba(255,255,255,0.4)' }) }}>
+                    Revize
                   </Box>
                   <Box component="span" onClick={() => setShowHazırlayan(prev => !prev)}
                     sx={{ cursor: 'pointer', px: '6px', py: '2px', borderRadius: '10px', fontSize: '0.7rem', fontWeight: 600, border: '1px solid', userSelect: 'none',
