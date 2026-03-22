@@ -979,13 +979,34 @@ export default function P_MetrajOnaylaCetvel() {
                     </IconButton>
                   </>
                 )}
-                {onayKartiEditMode && (node.status === 'approved' || node.status === 'ignored') && !!node.depth && (
-                  <IconButton size="small" sx={{ p: '2px' }} onClick={() => revertLine(node.id)}>
-                    <UndoIcon sx={{ fontSize: 16, color: '#e53935' }} />
-                  </IconButton>
+                {(node.status === 'approved' || node.status === 'ignored') && !!node.depth && (
+                  <Box onMouseEnter={() => setRevertHoverId(node.id)} onMouseLeave={() => setRevertHoverId(null)}
+                    sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                    {revertHoverId === node.id
+                      ? <IconButton size="small" sx={{ p: '2px' }} title="Onaya sun"
+                          onClick={() => {
+                            if (!onayKartiEditMode) {
+                              const expand = {}
+                              const markExpand = (n) => {
+                                const kids = n.children ?? []
+                                if (kids.length > 0) { expand[n.id] = true; kids.forEach(markExpand) }
+                              }
+                              approvalTree.forEach(markExpand)
+                              setExpandedApproved(prev => ({ ...prev, ...expand }))
+                              setShowAllOriginals(true)
+                              setOnayKartiEditMode(true)
+                            }
+                            revertLine(node.id)
+                            setRevertHoverId(null)
+                          }}>
+                          <ReplyIcon sx={{ fontSize: 16, color: '#E65100' }} />
+                        </IconButton>
+                      : node.status === 'ignored'
+                        ? <DoNotDisturbIcon sx={{ fontSize: 16, color: '#424242' }} />
+                        : <Typography sx={{ fontSize: '0.9rem', fontWeight: 900, color: '#2E7D32', lineHeight: 1 }}>R</Typography>
+                    }
+                  </Box>
                 )}
-                {(!onayKartiEditMode || !draftLines[node.id]) && !(onayKartiEditMode && !!node.depth) && node.status === 'ignored' && <DoNotDisturbIcon sx={{ fontSize: 16, color: '#424242' }} />}
-                {(!onayKartiEditMode || !draftLines[node.id]) && !(onayKartiEditMode && !!node.depth) && node.status === 'approved' && node.depth > 0 && <Typography sx={{ fontSize: '0.9rem', fontWeight: 900, color: '#2E7D32', lineHeight: 1 }}>R</Typography>}
                 {(!onayKartiEditMode || !draftLines[node.id]) && node.status === 'approved' && !node.depth && <DoneAllIcon sx={{ fontSize: 18, color: '#2E7D32', filter: 'drop-shadow(0 0 0.6px #2E7D32)' }} />}
               </Box>
 
