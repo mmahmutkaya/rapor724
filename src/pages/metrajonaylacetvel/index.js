@@ -169,6 +169,7 @@ export default function P_MetrajOnaylaCetvel() {
   const [cardEditMode, setCardEditMode]                 = useState({})  // { [sessId]: boolean }
   const [draftLines, setDraftLines]                     = useState({})  // { [lineId]: { status, ... } }
   const [onayKartiEditMode, setOnayKartiEditMode]       = useState(false)
+  const [revertHoverId, setRevertHoverId]                = useState(null)
   const [expandedSessCards, setExpandedSessCards]       = useState({})
 
   const wpAreaId = selectedMahal_metraj?.wpAreaId
@@ -420,6 +421,7 @@ export default function P_MetrajOnaylaCetvel() {
     setOnayKartiEditMode(false)
     setExpandedApproved({})
     setShowAllOriginals(false)
+    setRevertHoverId(null)
   }
 
   const cancelOnayKartiEdits = () => {
@@ -427,6 +429,7 @@ export default function P_MetrajOnaylaCetvel() {
     setOnayKartiEditMode(false)
     setExpandedApproved({})
     setShowAllOriginals(false)
+    setRevertHoverId(null)
   }
 
   const approveAllPending = (sessId) => {
@@ -890,8 +893,30 @@ export default function P_MetrajOnaylaCetvel() {
                     </Box>
                     {showHazırlayan && <Box sx={{ ...css_oc, ...origCellBg, justifyContent: 'center', fontSize: '0.78rem', color: '#666' }}>{node.hazırlayan}</Box>}
                     {showOnaylayan  && <Box sx={{ ...css_oc, ...origCellBg, justifyContent: 'center', fontSize: '0.78rem', color: '#666' }}>{node.onaylayan}</Box>}
-                    <Box sx={{ ...css_oc, ...origCellBg, justifyContent: 'center' }}>
-                      <DoneAllIcon sx={{ fontSize: 18, color: '#9e9e9e', filter: 'drop-shadow(0 0 0.6px #9e9e9e)' }} />
+                    <Box sx={{ ...css_oc, ...origCellBg, justifyContent: 'center' }}
+                      onMouseEnter={() => setRevertHoverId(node.id)}
+                      onMouseLeave={() => setRevertHoverId(null)}>
+                      {revertHoverId === node.id
+                        ? <IconButton size="small" sx={{ p: '2px' }} title="Tüm alt satırları onaya sun"
+                            onClick={() => {
+                              if (!onayKartiEditMode) {
+                                const expand = {}
+                                const markExpand = (n) => {
+                                  const kids = n.children ?? []
+                                  if (kids.length > 0) { expand[n.id] = true; kids.forEach(markExpand) }
+                                }
+                                approvalTree.forEach(markExpand)
+                                setExpandedApproved(prev => ({ ...prev, ...expand }))
+                                setShowAllOriginals(true)
+                                setOnayKartiEditMode(true)
+                              }
+                              ;(node.children ?? []).forEach(c => revertLine(c.id))
+                              setRevertHoverId(null)
+                            }}>
+                            <ReplyIcon sx={{ fontSize: 18, color: '#E65100' }} />
+                          </IconButton>
+                        : <DoneAllIcon sx={{ fontSize: 18, color: '#9e9e9e', filter: 'drop-shadow(0 0 0.6px #9e9e9e)' }} />
+                      }
                     </Box>
                   </>
                 )}
