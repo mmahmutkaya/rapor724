@@ -166,6 +166,7 @@ export default function P_MetrajOnaylaCetvel() {
   const [visibleSessCards, setVisibleSessCards]         = useState({})
   const [showHazırlayan, setShowHazırlayan]             = useState(true)
   const [showOnaylayan, setShowOnaylayan]               = useState(true)
+  const [showRevizeTalepleri, setShowRevizeTalepleri]   = useState(true)
   const [cardEditMode, setCardEditMode]                 = useState({})  // { [sessId]: boolean }
   const [draftLines, setDraftLines]                     = useState({})  // { [lineId]: { status, ... } }
   const [onayKartiEditMode, setOnayKartiEditMode]       = useState(false)
@@ -870,6 +871,7 @@ export default function P_MetrajOnaylaCetvel() {
           const isExp   = expandedApproved[node.id] ?? false
           const metraj  = calcMetrajOnay(node)
           const isRevised = node.status === 'approved' && hasKids && (node.children ?? []).some(c => c.status === 'approved')
+          const allChildrenDecided = hasKids && (node.children ?? []).filter(c => c.status && c.status !== 'draft').every(c => c.status === 'approved' || c.status === 'ignored')
 
           if (isRevised) {
             const origCellBg = { backgroundColor: '#D5D5D5', borderBottom: '1px dashed #c8c8c8' }
@@ -894,7 +896,7 @@ export default function P_MetrajOnaylaCetvel() {
                     {showHazırlayan && <Box sx={{ ...css_oc, ...origCellBg, justifyContent: 'center', fontSize: '0.78rem', color: '#666' }}>{node.hazırlayan}</Box>}
                     {showOnaylayan  && <Box sx={{ ...css_oc, ...origCellBg, justifyContent: 'center', fontSize: '0.78rem', color: '#666' }}>{node.onaylayan}</Box>}
                     <Box sx={{ ...css_oc, ...origCellBg, justifyContent: 'center' }}
-                      onMouseEnter={() => setRevertHoverId(node.id)}
+                      onMouseEnter={() => allChildrenDecided && setRevertHoverId(node.id)}
                       onMouseLeave={() => setRevertHoverId(null)}>
                       {revertHoverId === node.id
                         ? <IconButton size="small" sx={{ p: '2px' }} title="Tüm alt satırları onaya sun"
@@ -920,7 +922,7 @@ export default function P_MetrajOnaylaCetvel() {
                     </Box>
                   </>
                 )}
-                {node.children.filter(c => (!c.status || c.status === 'draft') ? false : (showAllOriginals || c.status !== 'ignored')).map(child => (
+                {node.children.filter(c => (!c.status || c.status === 'draft') ? false : (!showRevizeTalepleri && c.status === 'pending') ? false : (showAllOriginals || c.status !== 'ignored')).map(child => (
                   <React.Fragment key={child.id}>{renderOnayRow(child)}</React.Fragment>
                 ))}
               </>
@@ -987,7 +989,7 @@ export default function P_MetrajOnaylaCetvel() {
                 {(!onayKartiEditMode || !draftLines[node.id]) && node.status === 'approved' && !node.depth && <DoneAllIcon sx={{ fontSize: 18, color: '#2E7D32', filter: 'drop-shadow(0 0 0.6px #2E7D32)' }} />}
               </Box>
 
-              {hasKids && node.children.filter(c => (!c.status || c.status === 'draft') ? false : (showAllOriginals || c.status !== 'ignored')).map(child => (
+              {hasKids && node.children.filter(c => (!c.status || c.status === 'draft') ? false : (!showRevizeTalepleri && c.status === 'pending') ? false : (showAllOriginals || c.status !== 'ignored')).map(child => (
                 <React.Fragment key={child.id}>{renderOnayRow(child)}</React.Fragment>
               ))}
             </>
@@ -1041,6 +1043,11 @@ export default function P_MetrajOnaylaCetvel() {
                   <Typography variant="body2" sx={{ fontWeight: 700 }}>Onaylı Metraj</Typography>
                 </Box>
                 <Box sx={{ display: 'flex', alignItems: 'center', gap: '4px', flexShrink: 0 }}>
+                <Box component="span" onClick={() => setShowRevizeTalepleri(prev => !prev)}
+                  sx={{ cursor: 'pointer', px: '6px', py: '2px', borderRadius: '10px', fontSize: '0.7rem', fontWeight: 600, border: '1px solid', userSelect: 'none',
+                    ...(showRevizeTalepleri ? { backgroundColor: 'rgba(255,255,255,0.18)', borderColor: 'rgba(255,255,255,0.5)', color: '#fff' } : { backgroundColor: 'transparent', borderColor: 'rgba(255,255,255,0.25)', color: 'rgba(255,255,255,0.4)' }) }}>
+                  Revize Talepleri
+                </Box>
                 <Box component="span" onClick={() => setShowHazırlayan(prev => !prev)}
                   sx={{ cursor: 'pointer', px: '6px', py: '2px', borderRadius: '10px', fontSize: '0.7rem', fontWeight: 600, border: '1px solid', userSelect: 'none',
                     ...(showHazırlayan ? { backgroundColor: 'rgba(255,255,255,0.18)', borderColor: 'rgba(255,255,255,0.5)', color: '#fff' } : { backgroundColor: 'transparent', borderColor: 'rgba(255,255,255,0.25)', color: 'rgba(255,255,255,0.4)' }) }}>
