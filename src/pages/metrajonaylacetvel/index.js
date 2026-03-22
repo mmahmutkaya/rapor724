@@ -273,6 +273,21 @@ export default function P_MetrajOnaylaCetvel() {
     return buildApprovalTree(allLines, sessions, userMap)
   }, [sessions, userMap, draftLines, cardEditMode])
 
+  // Bir üst satırın alt revize taleplerinden bazısına karar verilip bazısına verilmemişse true döner
+  const hasPartiallyDecidedGroup = useMemo(() => {
+    function check(node) {
+      const kids = node.children ?? []
+      if (kids.length > 0) {
+        const hasUndecidedPending = kids.some(c => c.status === 'pending')
+        const hasDecided = kids.some(c => draftLines[c.id])
+        if (hasUndecidedPending && hasDecided) return true
+        if (kids.some(check)) return true
+      }
+      return false
+    }
+    return approvalTree.some(check)
+  }, [approvalTree, draftLines])
+
   const autoExpandDone = useRef(false)
   useEffect(() => {
     if (autoExpandDone.current || approvalTree.length === 0) return
@@ -871,7 +886,7 @@ export default function P_MetrajOnaylaCetvel() {
                     </Box>
                   </>
                 )}
-                {expandedOnayKarti && node.children.filter(c => showAllOriginals || c.status !== 'ignored').map(child => (
+                {expandedOnayKarti && node.children.filter(c => (!c.status || c.status === 'draft') ? sessions.some(s => s.id === c.session_id && s.created_by === currentUserId) : (showAllOriginals || c.status !== 'ignored')).map(child => (
                   <React.Fragment key={child.id}>{renderOnayRow(child)}</React.Fragment>
                 ))}
               </>
@@ -938,7 +953,7 @@ export default function P_MetrajOnaylaCetvel() {
                 {(!onayKartiEditMode || !draftLines[node.id]) && node.status === 'approved' && !node.depth && <DoneAllIcon sx={{ fontSize: 18, color: '#2E7D32', filter: 'drop-shadow(0 0 0.6px #2E7D32)' }} />}
               </Box>
 
-              {hasKids && expandedOnayKarti && node.children.filter(c => showAllOriginals || c.status !== 'ignored').map(child => (
+              {hasKids && expandedOnayKarti && node.children.filter(c => (!c.status || c.status === 'draft') ? sessions.some(s => s.id === c.session_id && s.created_by === currentUserId) : (showAllOriginals || c.status !== 'ignored')).map(child => (
                 <React.Fragment key={child.id}>{renderOnayRow(child)}</React.Fragment>
               ))}
             </>
@@ -1009,7 +1024,7 @@ export default function P_MetrajOnaylaCetvel() {
                 </IconButton>
                 <Box sx={{ position: 'relative', width: '30px', height: '30px', flexShrink: 0 }}>
                   <IconButton size="small"
-                    disabled={Object.keys(draftLines).length === 0}
+                    disabled={Object.keys(draftLines).length === 0 || hasPartiallyDecidedGroup}
                     onClick={saveOnayKartiEdits}
                     sx={{ position: 'absolute', inset: 0, color: '#a5d6a7', '&.Mui-disabled': { color: 'rgba(255,255,255,0.65)' }, visibility: onayKartiEditMode ? 'visible' : 'hidden', pointerEvents: onayKartiEditMode ? 'auto' : 'none' }}
                   >

@@ -886,6 +886,40 @@ export default function P_MetrajOlusturCetvel() {
 
   // ── Onaylı Metraj kartı — tüm düzenlemeleri kaydet ─────────
   const handleSaveAllEdits = async () => {
+    // Stale kontrolü: revize formu varsa, herhangi bir DB yazımı yapmadan önce
+    // target satırların hâlâ geçerli olup olmadığını kontrol et
+    if (Object.keys(revizeForms).length > 0) {
+      const parentIds = Object.keys(revizeForms)
+      const { data: approvedChildren, error: checkErr } = await supabase
+        .from('measurement_lines')
+        .select('parent_line_id')
+        .in('parent_line_id', parentIds)
+        .eq('status', 'approved')
+        .limit(1)
+      if (checkErr) {
+        setDialogAlert({ dialogIcon: 'warning', dialogMessage: checkErr.message, onCloseAction: () => setDialogAlert() })
+        return
+      }
+      if (approvedChildren?.length > 0) {
+        setOnayKartiEditMode(false)
+        setRevizeForms({})
+        setChildEditValues({})
+        setChildEditParents({})
+        setExpandedApproved({})
+        setPendingDeletes([])
+        setPendingStatusReverts([])
+        setPendingStatusForwards([])
+        autoExpandDone.current = false
+        loadSessions()
+        setDialogAlert({
+          dialogIcon: 'warning',
+          dialogMessage: 'Revize talebi yapılan satır artık geçersiz kılınmıştır.',
+          detailText: 'Revize talebinde bulunduğunuz satır başka bir kullanıcı tarafından revize edilmiş; o satır artık güncel değildir ve yeni bir revize satırına dönüşmüştür. Mevcut revize taleplerinizin geçerliliği kalmamıştır. Lütfen güncel revize satırını kontrol ederek taleplerinizi o satıra yeniden yapınız.',
+          onCloseAction: () => setDialogAlert()
+        })
+        return
+      }
+    }
     if (pendingDeletes.length > 0) {
       for (const lineId of pendingDeletes) {
         const { error } = await supabase.from('measurement_lines').delete().eq('id', lineId)
@@ -935,27 +969,6 @@ export default function P_MetrajOlusturCetvel() {
       setChildEditParents({})
     }
     if (Object.keys(revizeForms).length > 0) {
-      // Revize talebi yapılan satırların geçerliliğini kontrol et
-      const parentIds = Object.keys(revizeForms)
-      const { data: approvedChildren, error: checkErr } = await supabase
-        .from('measurement_lines')
-        .select('parent_line_id')
-        .in('parent_line_id', parentIds)
-        .eq('status', 'approved')
-        .limit(1)
-      if (checkErr) {
-        setDialogAlert({ dialogIcon: 'warning', dialogMessage: checkErr.message, onCloseAction: () => setDialogAlert() })
-        return
-      }
-      if (approvedChildren?.length > 0) {
-        setDialogAlert({
-          dialogIcon: 'warning',
-          dialogMessage: 'Revize talebi yapılan satır artık geçersiz kılınmıştır.',
-          detailText: 'Revize talebinde bulunduğunuz satır başka bir kullanıcı tarafından revize edilmiş; o satır artık güncel değildir ve yeni bir revize satırına dönüşmüştür. Mevcut revize taleplerinizin geçerliliği kalmamıştır. Lütfen güncel revize satırını kontrol ederek taleplerinizi o satıra yeniden yapınız.',
-          onCloseAction: () => setDialogAlert()
-        })
-        return
-      }
       await handleSendRevizeTalebi()
     }
     if (pendingStatusReverts.length > 0) {
@@ -1486,8 +1499,8 @@ export default function P_MetrajOlusturCetvel() {
                         }
                       }}>
                       {rootLines.some(l => !l.status || l.status === 'draft')
-                        ? <CheckCircleIcon sx={{ fontSize: 22, color: '#A5D6A7' }} />
-                        : <HourglassFullIcon sx={{ fontSize: 22, color: rootLines.some(l => l.status === 'pending') ? '#FFE082' : 'rgba(255,255,255,0.2)' }} />
+                        ? <CheckCircleIcon sx={{ fontSize: 18, color: '#A5D6A7' }} />
+                        : <HourglassFullIcon sx={{ fontSize: 18, color: rootLines.some(l => l.status === 'pending') ? '#FFE082' : 'rgba(255,255,255,0.2)' }} />
                       }
                     </IconButton>
                     <IconButton size="small" onClick={() => handleSave(sess.id)} disabled={!sess.isChanged}>
@@ -1882,7 +1895,7 @@ export default function P_MetrajOlusturCetvel() {
                     </Box>
                   </>
                 )}
-                {expandedOnayKarti && node.children.filter(c => showAllOriginals || c.status !== 'ignored').map(child => (
+                {expandedOnayKarti && node.children.filter(c => (!c.status || c.status === 'draft' || c.status === 'pending') ? sessions.some(s => s.id === c.session_id && s.isOwn) : (showAllOriginals || c.status !== 'ignored')).map(child => (
                   <React.Fragment key={child.id}>{renderOnayRow(child)}</React.Fragment>
                 ))}
                 {expandedOnayKarti && revizeEditor}
@@ -1981,7 +1994,7 @@ export default function P_MetrajOlusturCetvel() {
                 {!onayKartiEditMode && node.status === 'approved' && !node.depth && <DoneAllIcon sx={{ fontSize: 18, color: '#2E7D32', filter: 'drop-shadow(0 0 0.6px #2E7D32)' }} />}
               </Box>
 
-              {hasKids && expandedOnayKarti && node.children.filter(c => showAllOriginals || c.status !== 'ignored').map(child => (
+              {hasKids && expandedOnayKarti && node.children.filter(c => (!c.status || c.status === 'draft') ? sessions.some(s => s.id === c.session_id && s.isOwn) : (showAllOriginals || c.status !== 'ignored')).map(child => (
                 <React.Fragment key={child.id}>{renderOnayRow(child)}</React.Fragment>
               ))}
 
@@ -2109,7 +2122,7 @@ export default function P_MetrajOlusturCetvel() {
                     </IconButton>
                   )}
                   {!onayKartiEditMode && (
-                    <IconButton size="small" sx={{ p: '2px', color: '#c8e6c9' }} title="Düzenle" onClick={() => {
+                    <IconButton size="small" disabled={approvalTree.length === 0} sx={{ p: '2px', color: '#c8e6c9', '&.Mui-disabled': { color: 'rgba(255,255,255,0.2)' } }} title="Düzenle" onClick={() => {
                       setExpandedOnayKarti(true)
                       setOnayKartiEditMode(true)
                       const newExpanded = {}
