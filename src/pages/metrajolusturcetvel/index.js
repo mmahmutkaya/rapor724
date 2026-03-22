@@ -179,8 +179,9 @@ export default function P_MetrajOlusturCetvel() {
   const [openVisibilityDialog, setOpenVisibilityDialog] = useState(false)
   const [visibleOnayKarti, setVisibleOnayKarti] = useState(true)
   const [visibleSessCards, setVisibleSessCards] = useState({})  // { sessId: boolean }
-  const [showHazırlayan, setShowHazırlayan]     = useState(true)
-  const [showOnaylayan, setShowOnaylayan]       = useState(true)
+  const [showHazırlayan, setShowHazırlayan]         = useState(true)
+  const [showOnaylayan, setShowOnaylayan]           = useState(true)
+  const [showRevizeTalepleri, setShowRevizeTalepleri] = useState(true)
   const [childEditParents, setChildEditParents] = useState({}) // { parentLineId: bool } — onay kartında alt satır düzenleme modu
   const [childEditValues, setChildEditValues] = useState({})   // { lineId: {description,multiplier,count,length,width,height} }
   const [onayKartiEditMode, setOnayKartiEditMode] = useState(false)
@@ -1894,7 +1895,7 @@ export default function P_MetrajOlusturCetvel() {
                     </Box>
                   </>
                 )}
-                {node.children.filter(c => (!c.status || c.status === 'draft' || c.status === 'pending') ? sessions.some(s => s.id === c.session_id && s.isOwn) : (showAllOriginals || c.status !== 'ignored')).map(child => (
+                {node.children.filter(c => (!c.status || c.status === 'draft') ? false : !showRevizeTalepleri ? c.status === 'approved' : c.status === 'pending' ? sessions.some(s => s.id === c.session_id && s.isOwn) : true).map(child => (
                   <React.Fragment key={child.id}>{renderOnayRow(child)}</React.Fragment>
                 ))}
                 {revizeEditor}
@@ -1993,7 +1994,7 @@ export default function P_MetrajOlusturCetvel() {
                 {!onayKartiEditMode && node.status === 'approved' && !node.depth && <DoneAllIcon sx={{ fontSize: 18, color: '#2E7D32', filter: 'drop-shadow(0 0 0.6px #2E7D32)' }} />}
               </Box>
 
-              {hasKids && node.children.filter(c => (!c.status || c.status === 'draft' || c.status === 'pending') ? sessions.some(s => s.id === c.session_id && s.isOwn) : (showAllOriginals || c.status !== 'ignored')).map(child => (
+              {hasKids && node.children.filter(c => (!c.status || c.status === 'draft') ? false : !showRevizeTalepleri ? c.status === 'approved' : c.status === 'pending' ? sessions.some(s => s.id === c.session_id && s.isOwn) : true).map(child => (
                 <React.Fragment key={child.id}>{renderOnayRow(child)}</React.Fragment>
               ))}
 
@@ -2024,6 +2025,7 @@ export default function P_MetrajOlusturCetvel() {
         }
         // Revize Talebi = pending alt satırlar (tree + revizeForms) - üst satırları
         const pendingRevizeLines = allApprovalLines.filter(n => n.status === 'pending' && n.parent_line_id)
+        const hasPendingRevizeTalepleri = pendingRevizeLines.length > 0
         const a_tree = pendingRevizeLines.reduce((s, n) => s + calcMetrajOnay(n), 0)
         const pendingParentIds = new Set(pendingRevizeLines.map(n => String(n.parent_line_id)))
         const b_tree = allApprovalLines.filter(n => pendingParentIds.has(String(n.id))).reduce((s, n) => s + calcMetrajOnay(n), 0)
@@ -2068,6 +2070,13 @@ export default function P_MetrajOlusturCetvel() {
                   <Typography variant="body2" sx={{ fontWeight: 700 }}>Onaylı Metraj</Typography>
                 </Box>
                 <Box sx={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  <Box component="span" onClick={() => setShowRevizeTalepleri(prev => !prev)}
+                    sx={{ cursor: 'pointer', px: '6px', py: '2px', borderRadius: '10px', fontSize: '0.7rem', fontWeight: 600, border: '1px solid', userSelect: 'none',
+                      ...(hasPendingRevizeTalepleri
+                        ? (showRevizeTalepleri ? { backgroundColor: 'rgba(33,150,243,0.25)', borderColor: 'rgba(33,150,243,0.8)', color: '#90CAF9' } : { backgroundColor: 'transparent', borderColor: 'rgba(33,150,243,0.5)', color: 'rgba(144,202,249,0.6)' })
+                        : (showRevizeTalepleri ? { backgroundColor: 'rgba(255,255,255,0.18)', borderColor: 'rgba(255,255,255,0.5)', color: '#fff' } : { backgroundColor: 'transparent', borderColor: 'rgba(255,255,255,0.25)', color: 'rgba(255,255,255,0.4)' })) }}>
+                    Revize Talepleri
+                  </Box>
                   <Box component="span" onClick={() => setShowHazırlayan(prev => !prev)}
                     sx={{ cursor: 'pointer', px: '6px', py: '2px', borderRadius: '10px', fontSize: '0.7rem', fontWeight: 600, border: '1px solid', userSelect: 'none',
                       ...(showHazırlayan ? { backgroundColor: 'rgba(255,255,255,0.18)', borderColor: 'rgba(255,255,255,0.5)', color: '#fff' } : { backgroundColor: 'transparent', borderColor: 'rgba(255,255,255,0.25)', color: 'rgba(255,255,255,0.4)' }) }}>

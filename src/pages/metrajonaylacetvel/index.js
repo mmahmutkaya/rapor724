@@ -871,7 +871,6 @@ export default function P_MetrajOnaylaCetvel() {
           const isExp   = expandedApproved[node.id] ?? false
           const metraj  = calcMetrajOnay(node)
           const isRevised = node.status === 'approved' && hasKids && (node.children ?? []).some(c => c.status === 'approved')
-          const allChildrenDecided = hasKids && (node.children ?? []).filter(c => c.status && c.status !== 'draft').every(c => c.status === 'approved' || c.status === 'ignored')
 
           if (isRevised) {
             const origCellBg = { backgroundColor: '#D5D5D5', borderBottom: '1px dashed #c8c8c8' }
@@ -895,34 +894,12 @@ export default function P_MetrajOnaylaCetvel() {
                     </Box>
                     {showHazırlayan && <Box sx={{ ...css_oc, ...origCellBg, justifyContent: 'center', fontSize: '0.78rem', color: '#666' }}>{node.hazırlayan}</Box>}
                     {showOnaylayan  && <Box sx={{ ...css_oc, ...origCellBg, justifyContent: 'center', fontSize: '0.78rem', color: '#666' }}>{node.onaylayan}</Box>}
-                    <Box sx={{ ...css_oc, ...origCellBg, justifyContent: 'center' }}
-                      onMouseEnter={() => allChildrenDecided && setRevertHoverId(node.id)}
-                      onMouseLeave={() => setRevertHoverId(null)}>
-                      {revertHoverId === node.id
-                        ? <IconButton size="small" sx={{ p: '2px' }} title="Tüm alt satırları onaya sun"
-                            onClick={() => {
-                              if (!onayKartiEditMode) {
-                                const expand = {}
-                                const markExpand = (n) => {
-                                  const kids = n.children ?? []
-                                  if (kids.length > 0) { expand[n.id] = true; kids.forEach(markExpand) }
-                                }
-                                approvalTree.forEach(markExpand)
-                                setExpandedApproved(prev => ({ ...prev, ...expand }))
-                                setShowAllOriginals(true)
-                                setOnayKartiEditMode(true)
-                              }
-                              ;(node.children ?? []).forEach(c => revertLine(c.id))
-                              setRevertHoverId(null)
-                            }}>
-                            <ReplyIcon sx={{ fontSize: 18, color: '#E65100' }} />
-                          </IconButton>
-                        : <DoneAllIcon sx={{ fontSize: 18, color: '#9e9e9e', filter: 'drop-shadow(0 0 0.6px #9e9e9e)' }} />
-                      }
+                    <Box sx={{ ...css_oc, ...origCellBg, justifyContent: 'center' }}>
+                      <DoneAllIcon sx={{ fontSize: 18, color: '#9e9e9e', filter: 'drop-shadow(0 0 0.6px #9e9e9e)' }} />
                     </Box>
                   </>
                 )}
-                {node.children.filter(c => (!c.status || c.status === 'draft') ? false : (!showRevizeTalepleri && c.status === 'pending') ? false : (showAllOriginals || c.status !== 'ignored')).map(child => (
+                {node.children.filter(c => (!c.status || c.status === 'draft') ? false : (showRevizeTalepleri || c.status === 'approved')).map(child => (
                   <React.Fragment key={child.id}>{renderOnayRow(child)}</React.Fragment>
                 ))}
               </>
@@ -1010,7 +987,7 @@ export default function P_MetrajOnaylaCetvel() {
                 {(!onayKartiEditMode || !draftLines[node.id]) && node.status === 'approved' && !node.depth && <DoneAllIcon sx={{ fontSize: 18, color: '#2E7D32', filter: 'drop-shadow(0 0 0.6px #2E7D32)' }} />}
               </Box>
 
-              {hasKids && node.children.filter(c => (!c.status || c.status === 'draft') ? false : (!showRevizeTalepleri && c.status === 'pending') ? false : (showAllOriginals || c.status !== 'ignored')).map(child => (
+              {hasKids && node.children.filter(c => (!c.status || c.status === 'draft') ? false : (showRevizeTalepleri || c.status === 'approved')).map(child => (
                 <React.Fragment key={child.id}>{renderOnayRow(child)}</React.Fragment>
               ))}
             </>
@@ -1018,6 +995,7 @@ export default function P_MetrajOnaylaCetvel() {
         }
 
         const allApprovalLines = flattenAll(approvalTree)
+        const hasPendingRevizeTalepleri = allApprovalLines.some(n => n.status === 'pending' && n.parent_line_id)
         const hasPendingInOnayKart = allApprovalLines.some(n => n.status === 'pending')
         const hasRevokableInOnayKart = allApprovalLines.some(n => (n.status === 'approved' || n.status === 'ignored') && n.depth > 0)
         const canEditOnayKarti = hasPendingInOnayKart || hasRevokableInOnayKart
@@ -1066,7 +1044,9 @@ export default function P_MetrajOnaylaCetvel() {
                 <Box sx={{ display: 'flex', alignItems: 'center', gap: '4px', flexShrink: 0 }}>
                 <Box component="span" onClick={() => setShowRevizeTalepleri(prev => !prev)}
                   sx={{ cursor: 'pointer', px: '6px', py: '2px', borderRadius: '10px', fontSize: '0.7rem', fontWeight: 600, border: '1px solid', userSelect: 'none',
-                    ...(showRevizeTalepleri ? { backgroundColor: 'rgba(255,255,255,0.18)', borderColor: 'rgba(255,255,255,0.5)', color: '#fff' } : { backgroundColor: 'transparent', borderColor: 'rgba(255,255,255,0.25)', color: 'rgba(255,255,255,0.4)' }) }}>
+                    ...(hasPendingRevizeTalepleri
+                      ? (showRevizeTalepleri ? { backgroundColor: 'rgba(33,150,243,0.25)', borderColor: 'rgba(33,150,243,0.8)', color: '#90CAF9' } : { backgroundColor: 'transparent', borderColor: 'rgba(33,150,243,0.5)', color: 'rgba(144,202,249,0.6)' })
+                      : (showRevizeTalepleri ? { backgroundColor: 'rgba(255,255,255,0.18)', borderColor: 'rgba(255,255,255,0.5)', color: '#fff' } : { backgroundColor: 'transparent', borderColor: 'rgba(255,255,255,0.25)', color: 'rgba(255,255,255,0.4)' })) }}>
                   Revize Talepleri
                 </Box>
                 <Box component="span" onClick={() => setShowHazırlayan(prev => !prev)}
