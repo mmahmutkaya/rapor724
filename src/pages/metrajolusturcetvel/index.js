@@ -1994,7 +1994,7 @@ export default function P_MetrajOlusturCetvel() {
                 {!onayKartiEditMode && node.status === 'approved' && !node.depth && <DoneAllIcon sx={{ fontSize: 18, color: '#2E7D32', filter: 'drop-shadow(0 0 0.6px #2E7D32)' }} />}
               </Box>
 
-              {hasKids && expandedOnayKarti && node.children.filter(c => (!c.status || c.status === 'draft') ? sessions.some(s => s.id === c.session_id && s.isOwn) : (showAllOriginals || c.status !== 'ignored')).map(child => (
+              {hasKids && expandedOnayKarti && node.children.filter(c => (!c.status || c.status === 'draft' || c.status === 'pending') ? sessions.some(s => s.id === c.session_id && s.isOwn) : (showAllOriginals || c.status !== 'ignored')).map(child => (
                 <React.Fragment key={child.id}>{renderOnayRow(child)}</React.Fragment>
               ))}
 

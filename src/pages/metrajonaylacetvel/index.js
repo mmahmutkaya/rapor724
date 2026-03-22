@@ -279,7 +279,7 @@ export default function P_MetrajOnaylaCetvel() {
       const kids = node.children ?? []
       if (kids.length > 0) {
         const hasUndecidedPending = kids.some(c => c.status === 'pending')
-        const hasDecided = kids.some(c => draftLines[c.id])
+        const hasDecided = kids.some(c => draftLines[c.id]?.status && draftLines[c.id].status !== 'pending')
         if (hasUndecidedPending && hasDecided) return true
         if (kids.some(check)) return true
       }
@@ -394,7 +394,7 @@ export default function P_MetrajOnaylaCetvel() {
   }
 
   const saveOnayKartiEdits = async () => {
-    const changes = Object.entries(draftLines)
+    const changes = Object.entries(draftLines).filter(([, draft]) => draft.status !== 'pending')
     if (changes.length === 0) { setOnayKartiEditMode(false); setExpandedApproved({}); setShowAllOriginals(false); return }
     for (const [lineId, draft] of changes) {
       const { error } = await supabase.from('measurement_lines').update(draft).eq('id', lineId)
@@ -886,7 +886,7 @@ export default function P_MetrajOnaylaCetvel() {
                     </Box>
                   </>
                 )}
-                {expandedOnayKarti && node.children.filter(c => (!c.status || c.status === 'draft') ? sessions.some(s => s.id === c.session_id && s.created_by === currentUserId) : (showAllOriginals || c.status !== 'ignored')).map(child => (
+                {expandedOnayKarti && node.children.filter(c => (!c.status || c.status === 'draft') ? false : (showAllOriginals || c.status !== 'ignored')).map(child => (
                   <React.Fragment key={child.id}>{renderOnayRow(child)}</React.Fragment>
                 ))}
               </>
@@ -953,7 +953,7 @@ export default function P_MetrajOnaylaCetvel() {
                 {(!onayKartiEditMode || !draftLines[node.id]) && node.status === 'approved' && !node.depth && <DoneAllIcon sx={{ fontSize: 18, color: '#2E7D32', filter: 'drop-shadow(0 0 0.6px #2E7D32)' }} />}
               </Box>
 
-              {hasKids && expandedOnayKarti && node.children.filter(c => (!c.status || c.status === 'draft') ? sessions.some(s => s.id === c.session_id && s.created_by === currentUserId) : (showAllOriginals || c.status !== 'ignored')).map(child => (
+              {hasKids && expandedOnayKarti && node.children.filter(c => (!c.status || c.status === 'draft') ? false : (showAllOriginals || c.status !== 'ignored')).map(child => (
                 <React.Fragment key={child.id}>{renderOnayRow(child)}</React.Fragment>
               ))}
             </>
@@ -1024,9 +1024,9 @@ export default function P_MetrajOnaylaCetvel() {
                 </IconButton>
                 <Box sx={{ position: 'relative', width: '30px', height: '30px', flexShrink: 0 }}>
                   <IconButton size="small"
-                    disabled={Object.keys(draftLines).length === 0 || hasPartiallyDecidedGroup}
+                    disabled={!Object.values(draftLines).some(d => d.status !== 'pending') || hasPartiallyDecidedGroup}
                     onClick={saveOnayKartiEdits}
-                    sx={{ position: 'absolute', inset: 0, color: '#a5d6a7', '&.Mui-disabled': { color: 'rgba(255,255,255,0.65)' }, visibility: onayKartiEditMode ? 'visible' : 'hidden', pointerEvents: onayKartiEditMode ? 'auto' : 'none' }}
+                    sx={{ position: 'absolute', inset: 0, color: '#a5d6a7', '&.Mui-disabled': { color: 'rgba(255,255,255,0.25)' }, visibility: onayKartiEditMode ? 'visible' : 'hidden', pointerEvents: onayKartiEditMode ? 'auto' : 'none' }}
                   >
                     <SaveIcon sx={{ fontSize: 20 }} />
                   </IconButton>
