@@ -103,7 +103,7 @@ function buildApprovalTree(allLines, allSessions, userMap) {
       .sort((a, b) => {
         const oa = a.order_index ?? 0
         const ob = b.order_index ?? 0
-        if (oa < 0 && ob < 0) return a.id < b.id ? -1 : a.id > b.id ? 1 : 0
+        if (oa < 0 && ob < 0) return ob - oa
         return oa - ob
       })
     let normalChildIdx = 0
@@ -189,7 +189,8 @@ export default function P_MetrajOnaylaCetvel() {
   const [draftLines, setDraftLines]                     = useState({})  // { [lineId]: { status, ... } }
   const [onayKartiEditMode, setOnayKartiEditMode]       = useState(false)
   const [revertHoverId, setRevertHoverId]                = useState(null)
-  const [expandedSessCards, setExpandedSessCards]       = useState({})
+  const [hoveredRowId, setHoveredRowId]                  = useState(null)
+  const [expandedSessCards, setExpandedSessCards]        = useState({})
   const [selectedOnayRow, setSelectedOnayRow]           = useState(null)   // { id, siraNo, ... } seçili onaylı satır
   const [pendingNewLines, setPendingNewLines]           = useState({})     // { [parentLineId]: [{tempId, isEdit, rNum, description, ...}] }
 
@@ -473,6 +474,8 @@ export default function P_MetrajOnaylaCetvel() {
         let nextOI = existingChildren.length > 0
           ? Math.max(...existingChildren.map(l => l.order_index ?? 0)) + 1
           : 0
+        const existingRevCount = existingChildren.filter(l => (l.order_index ?? 0) < 0).length
+        let nextRevOI = existingRevCount + 1
         for (const row of newRows) {
           const { error: lineErr } = await supabase
             .from('measurement_lines')
@@ -485,7 +488,7 @@ export default function P_MetrajOnaylaCetvel() {
               length: row.length === '' ? null : Number(row.length),
               width:  row.width  === '' ? null : Number(row.width),
               height: row.height === '' ? null : Number(row.height),
-              order_index: row.isEdit ? -1 : nextOI++,
+              order_index: row.isEdit ? -(nextRevOI++) : nextOI++,
               status: 'pending',
               parent_line_id: parentLineId,
             })
@@ -1108,10 +1111,10 @@ export default function P_MetrajOnaylaCetvel() {
                   <React.Fragment key={child.id}>{renderOnayRow(child)}</React.Fragment>
                 ))}
                 {renderNewRows(true)}
+                {renderNewRows(false)}
                 {node.children.filter(c => (c.order_index ?? 0) >= 0 && ((!c.status || c.status === 'draft') ? false : (showRevizeTalepleri || c.status === 'approved'))).map(child => (
                   <React.Fragment key={child.id}>{renderOnayRow(child)}</React.Fragment>
                 ))}
-                {renderNewRows(false)}
               </>
             )
           }
@@ -1127,8 +1130,10 @@ export default function P_MetrajOnaylaCetvel() {
           const dimColor = node.isSupersededByLaterRevision ? '#888' : 'rgba(0,0,0,0.28)'
           const isDim = isIgnored || isSuperseded
           const isRevisionRow = (node.order_index ?? 0) < 0
-          const isClickable = node.status === 'approved' && !isSuperseded
-          const cellBg = { backgroundColor: rowBg, borderBottom: '1px dashed #c8c8c8', ...(isDim ? { color: dimColor } : {}), ...(isClickable ? { cursor: 'pointer' } : {}) }
+          const isClickable = node.status === 'approved' && !isSuperseded && !onayKartiEditMode
+          const isHovered = isClickable && hoveredRowId === node.id
+          const rowHandlers = isClickable ? { onMouseEnter: () => setHoveredRowId(node.id), onMouseLeave: () => setHoveredRowId(null) } : {}
+          const cellBg = { backgroundColor: rowBg, borderBottom: '1px dashed #c8c8c8', ...(isDim ? { color: dimColor } : {}), ...(isClickable ? { cursor: 'pointer', transition: 'filter 0.15s ease' } : {}), ...(isHovered ? { filter: 'brightness(1.07)' } : {}) }
           const negColor = isDim ? dimColor : (metraj < 0 ? '#c62828' : undefined)
           const revRColor = isDim ? dimColor : (node.status === 'pending' ? '#1565c0' : '#2E7D32')
           const onRowClick = isClickable ? () => handleSelectOnayRow(node) : undefined
@@ -1137,19 +1142,19 @@ export default function P_MetrajOnaylaCetvel() {
             <>
               {/* Sıra sütunu */}
               <Box sx={{ ...css_oc, ...cellBg, justifyContent: 'flex-start', pl: '0.5rem', display: 'flex', alignItems: 'center', gap: '2px', color: isDim ? dimColor : (node.depth > 0 ? '#1565c0' : '#555') }}
-                onClick={onRowClick}>
+                onClick={onRowClick} {...rowHandlers}>
                 {node.siraNo}
               </Box>
-              <Box sx={{ ...css_oc, ...cellBg, color: negColor, gap: '6px' }} onClick={onRowClick}>
+              <Box sx={{ ...css_oc, ...cellBg, color: negColor, gap: '6px' }} onClick={onRowClick} {...rowHandlers}>
                 <Box sx={{ width: 7, height: 7, borderRadius: '50%', backgroundColor: '#c62828', flexShrink: 0, alignSelf: 'center', visibility: isSelected ? 'visible' : 'hidden' }} />
                 {node.description ?? ''}
               </Box>
               {NUM_ONAY_FIELDS.map(f => (
-                <Box key={f} sx={{ ...css_oc, ...cellBg, justifyContent: 'flex-end', color: negColor }} onClick={onRowClick}>
+                <Box key={f} sx={{ ...css_oc, ...cellBg, justifyContent: 'flex-end', color: negColor }} onClick={onRowClick} {...rowHandlers}>
                   {f === 'multiplier' && Number(node[f]) === 1 ? '' : (node[f] != null ? ikiHane(node[f]) : '')}
                 </Box>
               ))}
-              <Box sx={{ ...css_oc, ...cellBg, justifyContent: 'flex-end', fontWeight: 700, color: negColor }} onClick={onRowClick}>
+              <Box sx={{ ...css_oc, ...cellBg, justifyContent: 'flex-end', fontWeight: 700, color: negColor }} onClick={onRowClick} {...rowHandlers}>
                 {metraj !== 0 ? ikiHane(metraj) : (() => {
                   const isEmpty = v => v === null || v === undefined || v === ''
                   const hasData = [(Number(node.multiplier) === 1 ? null : node.multiplier), node.count, node.length, node.width, node.height].some(v => !isEmpty(v))
@@ -1157,12 +1162,12 @@ export default function P_MetrajOnaylaCetvel() {
                 })()}
                 {pozBirim && metraj !== 0 && <Box component="span" sx={{ ml: '3px', fontWeight: 400, fontSize: '0.72rem', color: isDim ? dimColor : (metraj < 0 ? '#c62828' : '#555') }}>{pozBirim}</Box>}
               </Box>
-              {showHazırlayan && <Box sx={{ ...css_oc, ...cellBg, justifyContent: 'center', fontSize: '0.78rem', color: isDim ? '#666' : '#455a64' }} onClick={onRowClick}>{node.hazırlayan}</Box>}
-              {showOnaylayan  && <Box sx={{ ...css_oc, ...cellBg, justifyContent: 'center', fontSize: '0.78rem', color: isDim ? '#666' : (node.status === 'pending' ? '#1565c0' : '#1b5e20') }} onClick={onRowClick}>
+              {showHazırlayan && <Box sx={{ ...css_oc, ...cellBg, justifyContent: 'center', fontSize: '0.78rem', color: isDim ? '#666' : '#455a64' }} onClick={onRowClick} {...rowHandlers}>{node.hazırlayan}</Box>}
+              {showOnaylayan  && <Box sx={{ ...css_oc, ...cellBg, justifyContent: 'center', fontSize: '0.78rem', color: isDim ? '#666' : (node.status === 'pending' ? '#1565c0' : '#1b5e20') }} onClick={onRowClick} {...rowHandlers}>
                 {onaylayanText}
               </Box>}
 
-              <Box sx={{ ...css_oc, ...cellBg, justifyContent: 'center', gap: '2px' }}>
+              <Box sx={{ ...css_oc, ...cellBg, justifyContent: 'center', gap: '2px' }} {...rowHandlers}>
                 {onayKartiEditMode && node.status === 'pending' && (
                   <>
                     <IconButton size="small" sx={{ p: '2px' }} onClick={() => approveLine(node.id)}>
@@ -1174,7 +1179,7 @@ export default function P_MetrajOnaylaCetvel() {
                   </>
                 )}
                 {isRevisionRow && !(onayKartiEditMode && node.status === 'pending') ? (
-                  <Box onMouseEnter={() => setRevertHoverId(node.id)} onMouseLeave={() => setRevertHoverId(null)}
+                  <Box onMouseEnter={() => onayKartiEditMode && setRevertHoverId(node.id)} onMouseLeave={() => setRevertHoverId(null)}
                     sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                     {revertHoverId === node.id && (node.status === 'approved' || node.status === 'ignored')
                       ? <IconButton size="small" sx={{ p: '2px' }} title="Onaya sun"
@@ -1186,6 +1191,7 @@ export default function P_MetrajOnaylaCetvel() {
                               setExpandedApproved(prev => ({ ...prev, ...expand }))
                               setShowAllOriginals(true)
                               setOnayKartiEditMode(true)
+                              setSelectedOnayRow(null)
                             }
                             revertLine(node.id)
                             setRevertHoverId(null)
@@ -1198,7 +1204,7 @@ export default function P_MetrajOnaylaCetvel() {
                 ) : (
                   <>
                     {(node.status === 'approved' || node.status === 'ignored') && !!node.depth && (
-                      <Box onMouseEnter={() => setRevertHoverId(node.id)} onMouseLeave={() => setRevertHoverId(null)}
+                      <Box onMouseEnter={() => onayKartiEditMode && setRevertHoverId(node.id)} onMouseLeave={() => setRevertHoverId(null)}
                         sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                         {revertHoverId === node.id
                           ? <IconButton size="small" sx={{ p: '2px' }} title="Onaya sun"
@@ -1210,6 +1216,7 @@ export default function P_MetrajOnaylaCetvel() {
                                   setExpandedApproved(prev => ({ ...prev, ...expand }))
                                   setShowAllOriginals(true)
                                   setOnayKartiEditMode(true)
+                                  setSelectedOnayRow(null)
                                 }
                                 revertLine(node.id)
                                 setRevertHoverId(null)
@@ -1295,23 +1302,6 @@ export default function P_MetrajOnaylaCetvel() {
                   <Typography variant="body2" sx={{ fontWeight: 700 }}>Onaylı Metraj</Typography>
                 </Box>
                 <Box sx={{ display: 'flex', alignItems: 'center', gap: '4px', flexShrink: 0 }}>
-                {/* Düzenle ve + butonları — onayKartiEditMode değilken her zaman göster */}
-                {!onayKartiEditMode && (
-                  <>
-                    <IconButton size="small" title="Revize kopyası oluştur (.R1)"
-                      disabled={rBtnDisabled}
-                      onClick={handleDuzenleNew}
-                      sx={{ color: selectedOnayRow ? 'rgba(224,225,221,0.9)' : 'rgba(255,255,255,0.25)', '&:hover': { color: '#fff' }, '&.Mui-disabled': { color: 'rgba(255,255,255,0.2)' } }}>
-                      <Typography sx={{ fontSize: '0.9rem', fontWeight: 900, lineHeight: 1 }}>R</Typography>
-                    </IconButton>
-                    <IconButton size="small" title="Alt satır ekle"
-                      disabled={plusBtnDisabled}
-                      onClick={handleAddChildNew}
-                      sx={{ color: selectedOnayRow ? 'rgba(224,225,221,0.9)' : 'rgba(255,255,255,0.25)', '&:hover': { color: '#fff' }, '&.Mui-disabled': { color: 'rgba(255,255,255,0.2)' } }}>
-                      <AddCircleOutlineIcon sx={{ fontSize: 18 }} />
-                    </IconButton>
-                  </>
-                )}
                 <Box component="span" onClick={() => setShowRevizeTalepleri(prev => !prev)}
                   sx={{ cursor: 'pointer', px: '6px', py: '2px', borderRadius: '10px', fontSize: '0.7rem', fontWeight: 600, border: '1px solid', userSelect: 'none',
                     ...(hasPendingRevizeTalepleri && !showRevizeTalepleri
@@ -1334,6 +1324,25 @@ export default function P_MetrajOnaylaCetvel() {
                 <IconButton size="small" sx={{ color: 'rgba(224,225,221,0.75)', '&:hover': { color: '#fff' } }} onClick={() => setShowAllOriginals(prev => !prev)}>
                   {showAllOriginals ? <ExpandLessIcon sx={{ fontSize: 20, filter: 'drop-shadow(0 0 0.6px currentColor)' }} /> : <ExpandMoreIcon sx={{ fontSize: 20, filter: 'drop-shadow(0 0 0.6px currentColor)' }} />}
                 </IconButton>
+                {/* R ve + butonları */}
+                <>
+                    <IconButton size="small" title="Revize kopyası oluştur (.R1)"
+                      disabled={rBtnDisabled}
+                      onClick={handleDuzenleNew}
+                      sx={{ color: selectedOnayRow ? 'rgba(224,225,221,0.9)' : 'rgba(255,255,255,0.25)', '&:hover': { color: '#fff' }, '&.Mui-disabled': { color: 'rgba(255,255,255,0.2)' } }}>
+                      <Box sx={{ width: 20, height: 20, borderRadius: '50%', border: '2.5px solid currentColor', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                        <Typography sx={{ fontSize: '0.75rem', fontWeight: 900, lineHeight: 1 }}>R</Typography>
+                      </Box>
+                    </IconButton>
+                    <IconButton size="small" title="Alt satır ekle"
+                      disabled={plusBtnDisabled}
+                      onClick={handleAddChildNew}
+                      sx={{ color: selectedOnayRow ? 'rgba(224,225,221,0.9)' : 'rgba(255,255,255,0.25)', '&:hover': { color: '#fff' }, '&.Mui-disabled': { color: 'rgba(255,255,255,0.2)' } }}>
+                      <Box sx={{ width: 20, height: 20, borderRadius: '50%', border: '2.5px solid currentColor', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                        <Typography sx={{ fontSize: '1rem', fontWeight: 700, lineHeight: 1, mt: '-1px' }}>+</Typography>
+                      </Box>
+                    </IconButton>
+                  </>
                 <IconButton size="small" onClick={cancelOnayKartiEdits}
                   sx={{ color: '#ef9a9a', visibility: isOnayKartiActive ? 'visible' : 'hidden', pointerEvents: isOnayKartiActive ? 'auto' : 'none' }}>
                   <CloseIcon sx={{ fontSize: 20 }} />
@@ -1358,6 +1367,7 @@ export default function P_MetrajOnaylaCetvel() {
                       setExpandedApproved(prev => ({ ...prev, ...expand }))
                       setShowAllOriginals(true)
                       setOnayKartiEditMode(true)
+                      setSelectedOnayRow(null)
                     }}
                     sx={{ position: 'absolute', inset: 0, color: 'rgba(224,225,221,0.75)', '&:hover': { color: '#e0e1dd' }, '&.Mui-disabled': { color: 'rgba(255,255,255,0.28)' }, visibility: !isOnayKartiActive ? 'visible' : 'hidden', pointerEvents: !isOnayKartiActive ? 'auto' : 'none' }}
                   >
