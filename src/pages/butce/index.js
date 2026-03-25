@@ -21,32 +21,37 @@ import AddCircleOutlineIcon from "@mui/icons-material/AddCircleOutline";
 import DeleteOutlineIcon from "@mui/icons-material/DeleteOutline";
 import AddIcon from "@mui/icons-material/Add";
 
-export default function P_KesifButce() {
-  const {
-    appUser,
-    selectedProje,
-  } = useContext(StoreContext);
+// pozlar/index.js ile birebir aynı palet
+const NODE_PALETTE = [
+  { bg: "#8b0000", co: "#e6e6e6" },
+  { bg: "#330066", co: "#e6e6e6" },
+  { bg: "#005555", co: "#e6e6e6" },
+  { bg: "#737373", co: "#e6e6e6" },
+  { bg: "#8b008b", co: "#e6e6e6" },
+  { bg: "#2929bc", co: "#e6e6e6" },
+  { bg: "#00853E", co: "#e6e6e6" },
+  { bg: "#4B5320", co: "#e6e6e6" },
+];
 
+export default function P_KesifButce() {
+  const { appUser, selectedProje } = useContext(StoreContext);
   const navigate = useNavigate();
 
   const [show, setShow] = useState("Main");
-
-  const [formRows, setFormRows] = useState({});
+  // formNodes: [{ id, name, isFixed, collapsed, rows: [{id, name, isWp, butce}] }]
+  const [formNodes, setFormNodes] = useState([]);
   const [formAciklama, setFormAciklama] = useState("");
-
-  // Ekstra gruplar: [{ id, name, rows: [{id, name, butceTutar}] }]
-  const [customGroups, setCustomGroups] = useState([]);
 
   const [versiyonlar, setVersiyonlar] = useState([]);
   const [versiyonlarLoading, setVersiyonlarLoading] = useState(false);
 
   const [dialogAlert, setDialogAlert] = useState();
   const [isSaving, setIsSaving] = useState(false);
-  const [hoveredRow, setHoveredRow] = useState(null);
+  const [hoveredRowId, setHoveredRowId] = useState(null);
 
   const { data: workPackages = [], isFetching: wpLoading } = useGetWorkPackages();
 
-  const nextVersiyonNumber =
+  const nextVNum =
     (versiyonlar.reduce((acc, cur) => Math.max(acc, cur.versiyonNumber), 0) ?? 0) + 1;
 
   useEffect(() => {
@@ -56,269 +61,145 @@ export default function P_KesifButce() {
 
   const loadVersiyonlar = async () => {
     if (!selectedProje?.id) {
-      const fromStore = [...(selectedProje?.butceVersiyonlar ?? [])].sort(
-        (a, b) => b.versiyonNumber - a.versiyonNumber
+      setVersiyonlar(
+        [...(selectedProje?.butceVersiyonlar ?? [])].sort((a, b) => b.versiyonNumber - a.versiyonNumber)
       );
-      setVersiyonlar(fromStore);
       return;
     }
     setVersiyonlarLoading(true);
     const { data, error } = await supabase
-      .from("budget_versions")
-      .select("*")
+      .from("budget_versions").select("*")
       .eq("project_id", selectedProje.id)
       .order("versiyon_number", { ascending: false });
     setVersiyonlarLoading(false);
     if (!error && data) {
-      setVersiyonlar(
-        data.map((row) => ({
-          versiyonNumber: row.versiyon_number,
-          aciklama: row.aciklama ?? "",
-          tutar: row.total_butce_tutar,
-          createdAt: row.created_at,
-          olusturanEmail: row.created_by_email ?? null,
-        }))
-      );
+      setVersiyonlar(data.map((r) => ({
+        versiyonNumber: r.versiyon_number,
+        aciklama: r.aciklama ?? "",
+        tutar: r.total_butce_tutar,
+        createdAt: r.created_at,
+        olusturanEmail: r.created_by_email ?? null,
+      })));
     }
   };
 
   const openForm = () => {
-    const initial = {};
-    workPackages.forEach((wp) => {
-      initial[wp.id] = { kesifTutar: null, butceTutar: "" };
-    });
-    setFormRows(initial);
+    setFormNodes([{
+      id: "node_ispaketleri",
+      name: "İş Paketleri",
+      isFixed: true,
+      collapsed: false,
+      rows: workPackages.map((wp) => ({ id: wp.id, name: wp.name, isWp: true, butce: "" })),
+    }]);
     setFormAciklama("");
-    setCustomGroups([
-      { id: "grp_" + Date.now(), name: "Diğer Kalemler", rows: [] },
-    ]);
     setShow("Form");
   };
 
-  const cancelForm = () => {
-    setFormRows({});
-    setFormAciklama("");
-    setCustomGroups([]);
-    setShow("Main");
-  };
+  const cancelForm = () => { setFormNodes([]); setFormAciklama(""); setShow("Main"); };
 
-  const handleButceTutarChange = (id, value) => {
-    setFormRows((prev) => ({ ...prev, [id]: { ...prev[id], butceTutar: value } }));
-  };
+  // ── Düğüm işlemleri ────────────────────────────────────────────────────────
+  const toggleCollapse = (id) =>
+    setFormNodes((p) => p.map((n) => n.id === id ? { ...n, collapsed: !n.collapsed } : n));
 
-  // ── Custom grup yönetimi ────────────────────────────────────────────────────
+  const updateNodeName = (id, val) =>
+    setFormNodes((p) => p.map((n) => n.id === id ? { ...n, name: val } : n));
 
-  const updateGroupName = (groupId, value) => {
-    setCustomGroups((prev) =>
-      prev.map((g) => (g.id === groupId ? { ...g, name: value } : g))
-    );
-  };
+  const addSiblingNode = () =>
+    setFormNodes((p) => [...p, { id: "node_" + Date.now(), name: "Yeni Düğüm", isFixed: false, collapsed: false, rows: [] }]);
 
-  const addRowToGroup = (groupId) => {
-    setCustomGroups((prev) =>
-      prev.map((g) =>
-        g.id === groupId
-          ? { ...g, rows: [...g.rows, { id: "row_" + Date.now() + Math.random(), name: "", butceTutar: "" }] }
-          : g
-      )
-    );
-  };
+  const deleteNode = (id) =>
+    setFormNodes((p) => p.filter((n) => n.id !== id));
 
-  const updateGroupRow = (groupId, rowId, field, value) => {
-    setCustomGroups((prev) =>
-      prev.map((g) =>
-        g.id === groupId
-          ? { ...g, rows: g.rows.map((r) => (r.id === rowId ? { ...r, [field]: value } : r)) }
-          : g
-      )
-    );
-  };
+  // ── Satır işlemleri ────────────────────────────────────────────────────────
+  const addRow = (nodeId) =>
+    setFormNodes((p) => p.map((n) =>
+      n.id === nodeId
+        ? { ...n, rows: [...n.rows, { id: "row_" + Date.now() + "_" + Math.random(), name: "", isWp: false, butce: "" }] }
+        : n
+    ));
 
-  const removeGroupRow = (groupId, rowId) => {
-    setCustomGroups((prev) =>
-      prev.map((g) =>
-        g.id === groupId ? { ...g, rows: g.rows.filter((r) => r.id !== rowId) } : g
-      )
-    );
-  };
+  const updateRow = (nodeId, rowId, field, val) =>
+    setFormNodes((p) => p.map((n) =>
+      n.id === nodeId ? { ...n, rows: n.rows.map((r) => r.id === rowId ? { ...r, [field]: val } : r) } : n
+    ));
+
+  const deleteRow = (nodeId, rowId) =>
+    setFormNodes((p) => p.map((n) =>
+      n.id === nodeId ? { ...n, rows: n.rows.filter((r) => r.id !== rowId) } : n
+    ));
 
   // ── Toplamlar ──────────────────────────────────────────────────────────────
-
-  const totalKesif = workPackages.reduce(
-    (s, wp) => s + (formRows[wp.id]?.kesifTutar ?? 0), 0
-  );
-  const totalIsPaketButce = workPackages.reduce(
-    (s, wp) => s + (Number(formRows[wp.id]?.butceTutar) || 0), 0
-  );
-
-  const groupTotals = customGroups.map((g) => ({
-    id: g.id,
-    total: g.rows.reduce((s, r) => s + (Number(r.butceTutar) || 0), 0),
-  }));
-
-  const totalCustomAll = groupTotals.reduce((s, gt) => s + gt.total, 0);
-  const grandTotal = totalIsPaketButce + totalCustomAll;
-
-  const hasAnyButce =
-    workPackages.some((wp) => (formRows[wp.id]?.butceTutar ?? "") !== "") ||
-    customGroups.some((g) => g.rows.some((r) => (r.butceTutar ?? "") !== ""));
+  const nodeTotal = (node) => node.rows.reduce((s, r) => s + (Number(r.butce) || 0), 0);
+  const grandTotal = formNodes.reduce((s, n) => s + nodeTotal(n), 0);
+  const hasAnyButce = formNodes.some((n) => n.rows.some((r) => r.butce !== ""));
 
   // ── Kaydet ─────────────────────────────────────────────────────────────────
-
   const handleSave = async () => {
     setIsSaving(true);
     try {
-      const isPaketlerSatirlar = workPackages.map((wp) => {
-        const row = formRows[wp.id] ?? {};
-        return {
-          isPaketId: wp.id,
-          isPaketName: wp.name,
-          kesifTutar: row.kesifTutar ?? null,
-          butceTutar: row.butceTutar !== "" ? Number(row.butceTutar) || null : null,
-        };
+      const { error } = await supabase.from("budget_versions").insert({
+        project_id: selectedProje.id,
+        versiyon_number: nextVNum,
+        aciklama: formAciklama.trim() || null,
+        total_kesif_tutar: null,
+        total_butce_tutar: Math.round(grandTotal * 100) / 100 || null,
+        is_paketler_satirlar: {
+          nodes: formNodes.map((n) => ({
+            nodeId: n.id, nodeName: n.name, isFixed: n.isFixed,
+            rows: n.rows.map((r, i) => ({
+              sira: i + 1, rowId: r.id, name: r.name, isWp: r.isWp,
+              butce: r.butce !== "" ? Number(r.butce) || null : null,
+            })),
+            totalButce: Math.round(nodeTotal(n) * 100) / 100,
+          })),
+        },
+        created_by: appUser.id,
       });
-
-      const customGroupsSatirlar = customGroups.map((g) => ({
-        grupId: g.id,
-        grupName: g.name,
-        rows: g.rows.map((r, i) => ({
-          sira: i + 1,
-          name: r.name,
-          butceTutar: r.butceTutar !== "" ? Number(r.butceTutar) || null : null,
-        })),
-        totalButceTutar: Math.round(
-          g.rows.reduce((s, r) => s + (Number(r.butceTutar) || 0), 0) * 100
-        ) / 100,
-      }));
-
-      const totalKesifTutar = Math.round(
-        isPaketlerSatirlar.reduce((s, r) => s + (r.kesifTutar ?? 0), 0) * 100
-      ) / 100;
-      const totalButceTutar = Math.round(grandTotal * 100) / 100;
-
-      const { error } = await supabase
-        .from("budget_versions")
-        .insert({
-          project_id: selectedProje.id,
-          versiyon_number: nextVersiyonNumber,
-          aciklama: formAciklama.trim() || null,
-          total_kesif_tutar: totalKesifTutar || null,
-          total_butce_tutar: totalButceTutar || null,
-          is_paketler_satirlar: {
-            isPaketler: isPaketlerSatirlar,
-            customGroups: customGroupsSatirlar,
-          },
-          created_by: appUser.id,
-        });
-
       if (error) throw new Error(error.message);
-
       await loadVersiyonlar();
       cancelForm();
     } catch (err) {
-      setDialogAlert({
-        dialogIcon: "warning",
-        dialogMessage: "Kayıt sırasında hata oluştu.",
-        detailText: err?.message ?? null,
-        onCloseAction: () => setDialogAlert(),
-      });
+      setDialogAlert({ dialogIcon: "warning", dialogMessage: "Kayıt sırasında hata oluştu.", detailText: err?.message ?? null, onCloseAction: () => setDialogAlert() });
     } finally {
       setIsSaving(false);
     }
   };
 
   // ── Yardımcı ───────────────────────────────────────────────────────────────
-
   const fmt = (v) => {
     if (v == null || v === 0) return "—";
-    return new Intl.NumberFormat("tr-TR", {
-      minimumFractionDigits: 2,
-      maximumFractionDigits: 2,
-    }).format(v);
+    return new Intl.NumberFormat("tr-TR", { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(v);
   };
-
   const formatTarih = (d) => {
     if (!d) return "—";
-    try { return new Date(d).toLocaleDateString("tr-TR"); }
-    catch { return "—"; }
-  };
-
-  // ── CSS ────────────────────────────────────────────────────────────────────
-
-  const css_baslik = {
-    display: "flex", alignItems: "center",
-    px: "0.6rem", py: "0.3rem",
-    backgroundColor: "#c8c8c8",
-    fontWeight: 700, fontSize: "0.8rem",
-    textTransform: "uppercase",
-    borderBottom: "1px solid #aaa",
-    whiteSpace: "nowrap",
-  };
-  const css_grupBaslik = {
-    display: "flex", alignItems: "center",
-    px: "0.6rem", py: "0.35rem",
-    backgroundColor: "#9e9e9e",
-    fontWeight: 700, fontSize: "0.8rem",
-    textTransform: "uppercase",
-    borderBottom: "1px solid #888",
-    color: "white",
-    whiteSpace: "nowrap",
-  };
-  const css_satir = {
-    display: "flex", alignItems: "center",
-    px: "0.6rem", py: "0.4rem",
-    borderBottom: "1px solid #ddd",
-    fontSize: "0.875rem",
-  };
-  const css_araToplam = {
-    display: "flex", alignItems: "center",
-    px: "0.6rem", py: "0.4rem",
-    borderBottom: "1px solid #aaa",
-    backgroundColor: "#e0e0e0",
-    fontWeight: 600, fontSize: "0.875rem",
-  };
-  const css_toplam = {
-    display: "flex", alignItems: "center",
-    px: "0.6rem", py: "0.5rem",
-    borderTop: "2px solid #888",
-    borderBottom: "2px solid #888",
-    backgroundColor: "#c8c8c8",
-    fontWeight: 700, fontSize: "0.875rem",
+    try { return new Date(d).toLocaleDateString("tr-TR"); } catch { return "—"; }
   };
 
   const iconBtn_sx = { width: 40, height: 40 };
   const icon_sx = { fontSize: 24 };
 
-  // Tek ortak grid — tüm bölümler aynı sütun genişliklerini paylaşır
-  // col1: Sıra | col2: İş Paketi/Kalem Adı | col3: Açıklama | col4: Keşif | col5: Bütçe | col6: Aksiyon
-  const formCols = "max-content minmax(12rem, max-content) minmax(8rem, 1fr) max-content max-content max-content";
-
-  // Liste grid
+  // Liste grid sütunları
   const listCols = "max-content max-content minmax(10rem, 1fr) max-content max-content";
+  const css_lb = { display: "flex", alignItems: "center", px: "0.6rem", py: "0.3rem", backgroundColor: "#c8c8c8", fontWeight: 700, fontSize: "0.8rem", textTransform: "uppercase", borderBottom: "1px solid #aaa", whiteSpace: "nowrap" };
+  const css_ls = { display: "flex", alignItems: "center", px: "0.6rem", py: "0.4rem", borderBottom: "1px solid #ddd", fontSize: "0.875rem", backgroundColor: "#f2f2f2" };
 
   // ── Render ─────────────────────────────────────────────────────────────────
-
   return (
     <Box sx={{ minWidth: "40rem" }}>
       {dialogAlert && (
-        <DialogAlert
-          dialogIcon={dialogAlert.dialogIcon}
-          dialogMessage={dialogAlert.dialogMessage}
-          detailText={dialogAlert.detailText}
-          onCloseAction={dialogAlert.onCloseAction ?? (() => setDialogAlert())}
-        />
+        <DialogAlert dialogIcon={dialogAlert.dialogIcon} dialogMessage={dialogAlert.dialogMessage}
+          detailText={dialogAlert.detailText} onCloseAction={dialogAlert.onCloseAction ?? (() => setDialogAlert())} />
       )}
 
       {/* APP BAR */}
       <AppBar position="static" sx={{ backgroundColor: "white", color: "black", boxShadow: 4 }}>
-        <Grid container justifyContent="space-between" alignItems="center"
-          sx={{ px: "1rem", py: "0.25rem", minHeight: "3.5rem" }}>
+        <Grid container justifyContent="space-between" alignItems="center" sx={{ px: "1rem", py: "0.25rem", minHeight: "3.5rem" }}>
           <Grid item xs>
             <Typography variant="body1" sx={{ fontWeight: 600 }}>
               Keşif / Bütçe
               {show === "Form" && (
                 <Typography component="span" variant="body2" sx={{ ml: "0.5rem", color: "gray" }}>
-                  — v{nextVersiyonNumber} oluştur
+                  — v{nextVNum} oluştur
                 </Typography>
               )}
             </Typography>
@@ -330,15 +211,8 @@ export default function P_KesifButce() {
                   <IconButton onClick={cancelForm} disabled={isSaving} sx={iconBtn_sx}>
                     <ClearOutlined sx={{ ...icon_sx, color: "red" }} />
                   </IconButton>
-                  <IconButton
-                    onClick={handleSave}
-                    disabled={isSaving || !hasAnyButce}
-                    sx={iconBtn_sx}
-                    title="Versiyonu kaydet"
-                  >
-                    <SaveOutlined
-                      sx={{ ...icon_sx, color: (isSaving || !hasAnyButce) ? "#bbb" : "green" }}
-                    />
+                  <IconButton onClick={handleSave} disabled={isSaving || !hasAnyButce} sx={iconBtn_sx}>
+                    <SaveOutlined sx={{ ...icon_sx, color: (isSaving || !hasAnyButce) ? "#bbb" : "green" }} />
                   </IconButton>
                 </>
               ) : (
@@ -351,261 +225,249 @@ export default function P_KesifButce() {
         </Grid>
       </AppBar>
 
-      {(show === "Form" && wpLoading) && <LinearProgress />}
+      {show === "Form" && wpLoading && <LinearProgress />}
 
-      {/* İÇERİK */}
       <Box sx={{ p: "1rem" }}>
 
         {/* ── Yeni versiyon formu ── */}
         {show === "Form" && !wpLoading && (
           <>
-            {workPackages.length === 0 && (
-              <Stack spacing={2}>
-                <Alert severity="info">
-                  Bu projede henüz iş paketi tanımlanmamış.
-                </Alert>
-              </Stack>
-            )}
+            {/* ══ POZLAR WBS YAPISI ══
+                Dış grid: [1rem siyah ray] [içerik]
+                İçerik grid: [name 1fr] [bütçe 9rem] [aksiyonlar]
+            */}
+            <Box sx={{ width: "fit-content", minWidth: "34rem" }}>
 
-            {workPackages.length > 0 && (
-              <>
-                {/* ══ TEK ORTAK GRİD — tüm bölümler bu grid içinde ══ */}
-                <Box sx={{ display: "grid", gridTemplateColumns: formCols, width: "fit-content" }}>
+              {/* Proje adı başlık — pozlar ile aynı siyah bar */}
+              <Box sx={{ display: "grid", gridTemplateColumns: "1rem 1fr" }}>
+                <Box sx={{ backgroundColor: "black" }} />
+                <Box sx={{ backgroundColor: "black", color: "white", pl: "6px", py: "2px", display: "flex", alignItems: "center" }}>
+                  <Typography variant="body2" sx={{ fontWeight: 700 }}>
+                    {selectedProje?.name}
+                  </Typography>
+                </Box>
+              </Box>
 
-                  {/* ── İŞ PAKETLERİ grup başlığı ── */}
-                  <Box sx={{ ...css_grupBaslik, gridColumn: "1 / span 6" }}>
-                    İş Paketleri
-                  </Box>
+              {/* Sol siyah ray + ağaç içeriği */}
+              <Box sx={{ display: "grid", gridTemplateColumns: "1rem 1fr" }}>
 
-                  {/* Sütun başlıkları */}
-                  <Box sx={{ ...css_baslik, justifyContent: "center" }}>Sıra</Box>
-                  <Box sx={{ ...css_baslik }}>İş Paketi</Box>
-                  <Box sx={{ ...css_baslik }}>Açıklama</Box>
-                  <Box sx={{ ...css_baslik, justifyContent: "right" }}>Keşif</Box>
-                  <Box sx={{ ...css_baslik, justifyContent: "right" }}>Bütçe</Box>
-                  <Box sx={{ ...css_baslik }}></Box>
+                {/* Sürekli siyah sol ray — pozlar ile aynı */}
+                <Box sx={{ backgroundColor: "black" }} />
 
-                  {/* İş paketi satırları */}
-                  {workPackages.map((wp, index) => {
-                    const row = formRows[wp.id] ?? {};
-                    const isHovered = hoveredRow === wp.id;
-                    const bg = isHovered ? "#e8e8e8" : "#f2f2f2";
-                    const rh = {
-                      onMouseEnter: () => setHoveredRow(wp.id),
-                      onMouseLeave: () => setHoveredRow(null),
-                    };
+                {/* İç içerik: name | bütçe | aksiyonlar */}
+                <Box sx={{ display: "grid", gridTemplateColumns: "minmax(16rem, 1fr) 9rem max-content" }}>
+
+                  {formNodes.map((node, nodeIdx) => {
+                    const c = NODE_PALETTE[nodeIdx % NODE_PALETTE.length];
+                    const total = nodeTotal(node);
+
                     return (
-                      <React.Fragment key={wp.id}>
-                        <Box {...rh} sx={{ ...css_satir, justifyContent: "center", backgroundColor: bg }}>
-                          {index + 1}
-                        </Box>
-                        <Box {...rh} sx={{ ...css_satir, fontWeight: 500, backgroundColor: bg }}>
-                          {wp.name}
-                        </Box>
-                        <Box {...rh} sx={{ ...css_satir, color: "gray", backgroundColor: bg }}>
-                          {wp.description ?? ""}
-                        </Box>
-                        <Box {...rh} sx={{ ...css_satir, justifyContent: "right", color: "gray", backgroundColor: bg }}>
-                          {fmt(row.kesifTutar)}
-                        </Box>
-                        <Box {...rh} sx={{ ...css_satir, py: "0.2rem", backgroundColor: bg }}>
-                          <TextField
-                            variant="standard"
-                            size="small"
-                            placeholder="—"
-                            value={row.butceTutar ?? ""}
-                            onChange={(e) => handleButceTutarChange(wp.id, e.target.value)}
-                            autoComplete="off"
-                            inputProps={{
-                              style: { fontSize: "0.875rem", textAlign: "right", width: "7rem" },
-                              inputMode: "decimal",
-                            }}
-                          />
-                        </Box>
-                        <Box {...rh} sx={{ ...css_satir, backgroundColor: bg }}></Box>
-                      </React.Fragment>
-                    );
-                  })}
+                      <React.Fragment key={node.id}>
 
-                  {/* İş Paketleri ara toplam */}
-                  <Box sx={{ ...css_araToplam, gridColumn: "1 / span 3", justifyContent: "flex-end" }}>
-                    İş Paketleri Toplamı
-                  </Box>
-                  <Box sx={{ ...css_araToplam, justifyContent: "right" }}>
-                    {fmt(totalKesif)}
-                  </Box>
-                  <Box sx={{ ...css_araToplam, justifyContent: "right" }}>
-                    {totalIsPaketButce > 0 ? fmt(totalIsPaketButce) : "—"}
-                  </Box>
-                  <Box sx={{ ...css_araToplam }}></Box>
+                        {/* ── Düğüm başlık satırı ── */}
 
-                  {/* ── Bölümler arası ayraç ── */}
-                  <Box sx={{ gridColumn: "1 / span 6", height: "0.5rem", backgroundColor: "#f0f0f0" }} />
-
-                  {/* ── CUSTOM GRUPLAR ── */}
-                  {customGroups.map((group) => {
-                    const grpTotal = groupTotals.find((gt) => gt.id === group.id)?.total ?? 0;
-                    return (
-                      <React.Fragment key={group.id}>
-
-                        {/* Grup başlığı: col1-5 = düzenlenebilir ad, col6 = + butonu */}
-                        <Box sx={{ ...css_grupBaslik, gridColumn: "1 / span 5" }}>
-                          <TextField
-                            variant="standard"
-                            size="small"
-                            value={group.name}
-                            onChange={(e) => updateGroupName(group.id, e.target.value)}
-                            autoComplete="off"
-                            inputProps={{
-                              style: {
-                                fontSize: "0.8rem",
-                                fontWeight: 700,
-                                textTransform: "uppercase",
-                                color: "white",
-                                width: "16rem",
-                              },
-                            }}
-                            sx={{
-                              "& .MuiInput-underline:before": { borderBottomColor: "rgba(255,255,255,0.3)" },
-                              "& .MuiInput-underline:hover:before": { borderBottomColor: "rgba(255,255,255,0.7)" },
-                              "& .MuiInput-underline:after": { borderBottomColor: "white" },
-                            }}
-                          />
-                        </Box>
-                        <Box sx={{ ...css_grupBaslik, justifyContent: "center", px: "0.25rem" }}>
-                          <IconButton
-                            size="small"
-                            onClick={() => addRowToGroup(group.id)}
-                            title="Satır ekle"
-                            sx={{ color: "white", width: 28, height: 28 }}
-                          >
-                            <AddIcon sx={{ fontSize: 18 }} />
-                          </IconButton>
-                        </Box>
-
-                        {/* Sütun başlıkları — col2-3 birleşik "Kalem Adı", col4 boş */}
-                        <Box sx={{ ...css_baslik, justifyContent: "center" }}>Sıra</Box>
-                        <Box sx={{ ...css_baslik, gridColumn: "2 / span 2" }}>Kalem Adı</Box>
-                        {/* col3 col2/span2 tarafından kaplıyor, col4 boş */}
-                        <Box sx={{ ...css_baslik }}></Box>
-                        <Box sx={{ ...css_baslik, justifyContent: "right" }}>Bütçe</Box>
-                        <Box sx={{ ...css_baslik }}></Box>
-
-                        {/* Boş durum */}
-                        {group.rows.length === 0 && (
-                          <Box sx={{
-                            ...css_satir,
-                            gridColumn: "1 / span 6",
-                            color: "#aaa",
-                            backgroundColor: "#f2f2f2",
-                            justifyContent: "center",
-                          }}>
-                            Satır eklemek için + tuşuna basın
+                        {/* col1: chevron + ad */}
+                        <Box
+                          onClick={() => toggleCollapse(node.id)}
+                          sx={{
+                            pl: "6px", py: "2px",
+                            backgroundColor: c.bg, color: c.co,
+                            cursor: "pointer", userSelect: "none",
+                            display: "flex", alignItems: "center", gap: "0.4rem",
+                            "&:hover": { filter: "brightness(1.18)" },
+                          }}
+                        >
+                          <Box sx={{ fontSize: "0.65rem", flexShrink: 0, minWidth: "0.65rem" }}>
+                            {node.collapsed ? "▶" : "▼"}
                           </Box>
+                          {node.isFixed ? (
+                            <Typography variant="body2" sx={{ fontWeight: 700, color: c.co }}>
+                              {node.name}
+                            </Typography>
+                          ) : (
+                            <TextField
+                              variant="standard" size="small"
+                              value={node.name}
+                              onChange={(e) => { e.stopPropagation(); updateNodeName(node.id, e.target.value); }}
+                              onClick={(e) => e.stopPropagation()}
+                              autoComplete="off"
+                              inputProps={{ style: { fontSize: "0.875rem", fontWeight: 700, color: c.co, minWidth: "12rem" } }}
+                              sx={{
+                                "& .MuiInput-underline:before": { borderBottomColor: "rgba(255,255,255,0.25)" },
+                                "& .MuiInput-underline:hover:before": { borderBottomColor: "rgba(255,255,255,0.6)" },
+                                "& .MuiInput-underline:after": { borderBottomColor: "white" },
+                              }}
+                            />
+                          )}
+                        </Box>
+
+                        {/* col2: ara toplam */}
+                        <Box
+                          onClick={() => toggleCollapse(node.id)}
+                          sx={{
+                            backgroundColor: c.bg, color: c.co,
+                            display: "flex", alignItems: "center", justifyContent: "flex-end",
+                            pr: "0.6rem", py: "2px",
+                            cursor: "pointer", userSelect: "none",
+                            "&:hover": { filter: "brightness(1.18)" },
+                            fontSize: "0.8rem", fontWeight: 700,
+                          }}
+                        >
+                          {total > 0 ? fmt(total) : ""}
+                        </Box>
+
+                        {/* col3: düğüm aksiyonları */}
+                        <Box sx={{ backgroundColor: c.bg, display: "flex", alignItems: "center", px: "0.15rem" }}>
+                          {!node.isFixed && (
+                            <>
+                              <IconButton size="small" onClick={() => addRow(node.id)} title="Satır ekle"
+                                sx={{ color: c.co, opacity: 0.7, "&:hover": { opacity: 1 }, width: 26, height: 26 }}>
+                                <AddIcon sx={{ fontSize: 15 }} />
+                              </IconButton>
+                              <IconButton size="small" onClick={() => deleteNode(node.id)} title="Düğümü sil"
+                                sx={{ color: c.co, opacity: 0.4, "&:hover": { opacity: 1, color: "#ff8a80" }, width: 26, height: 26 }}>
+                                <DeleteOutlineIcon sx={{ fontSize: 15 }} />
+                              </IconButton>
+                            </>
+                          )}
+                        </Box>
+
+                        {/* ── Satırlar ── */}
+                        {!node.collapsed && (
+                          <>
+                            {/* Boş durum — sadece custom düğümler */}
+                            {!node.isFixed && node.rows.length === 0 && (
+                              <>
+                                <Box sx={{ display: "flex", borderBottom: `2px solid ${c.bg}` }}>
+                                  {/* Derinlik çubuğu — pozlar ile aynı renk */}
+                                  <Box sx={{ width: "1rem", backgroundColor: c.bg, flexShrink: 0 }} />
+                                  <Box sx={{ flex: 1, display: "flex", alignItems: "center", pl: "0.6rem", py: "0.4rem", backgroundColor: "#fafafa", color: "#bbb", fontSize: "0.8rem" }}>
+                                    + satır ekle butonuna basın
+                                  </Box>
+                                </Box>
+                                <Box sx={{ backgroundColor: "#fafafa", borderBottom: `2px solid ${c.bg}` }} />
+                                <Box sx={{ backgroundColor: "#fafafa", borderBottom: `2px solid ${c.bg}` }} />
+                              </>
+                            )}
+
+                            {node.rows.map((row, rowIdx) => {
+                              const isLast = rowIdx === node.rows.length - 1;
+                              const bb = isLast ? `2px solid ${c.bg}` : "1px solid #e8e8e8";
+                              const rowBg = hoveredRowId === row.id ? "#e8e8e8" : "#f5f5f5";
+                              const rh = {
+                                onMouseEnter: () => setHoveredRowId(row.id),
+                                onMouseLeave: () => setHoveredRowId(null),
+                              };
+
+                              return (
+                                <React.Fragment key={row.id}>
+                                  {/* col1: derinlik çubuğu + ad */}
+                                  <Box {...rh} sx={{ display: "flex", borderBottom: bb }}>
+                                    {/* Derinlik çubuğu (1rem) — pozlar'daki repeat(depth, 1rem) ile aynı */}
+                                    <Box sx={{ width: "1rem", backgroundColor: c.bg, flexShrink: 0 }} />
+                                    <Box sx={{
+                                      flex: 1, display: "flex", alignItems: "center",
+                                      pl: "0.5rem", py: row.isWp ? "0.3rem" : "0.12rem",
+                                      backgroundColor: rowBg,
+                                    }}>
+                                      {row.isWp ? (
+                                        <Typography variant="body2" sx={{ fontWeight: 500 }}>
+                                          {row.name}
+                                        </Typography>
+                                      ) : (
+                                        <TextField
+                                          variant="standard" size="small"
+                                          placeholder="Kalem adı"
+                                          value={row.name}
+                                          onChange={(e) => updateRow(node.id, row.id, "name", e.target.value)}
+                                          autoComplete="off"
+                                          inputProps={{ style: { fontSize: "0.875rem", minWidth: "13rem" } }}
+                                        />
+                                      )}
+                                    </Box>
+                                  </Box>
+
+                                  {/* col2: bütçe input */}
+                                  <Box {...rh} sx={{
+                                    display: "flex", alignItems: "center", justifyContent: "flex-end",
+                                    pr: "0.3rem", py: "0.12rem",
+                                    borderBottom: bb, backgroundColor: rowBg,
+                                  }}>
+                                    <TextField
+                                      variant="standard" size="small"
+                                      placeholder="—"
+                                      value={row.butce}
+                                      onChange={(e) => updateRow(node.id, row.id, "butce", e.target.value)}
+                                      autoComplete="off"
+                                      inputProps={{
+                                        style: { fontSize: "0.875rem", textAlign: "right", width: "7rem" },
+                                        inputMode: "decimal",
+                                      }}
+                                    />
+                                  </Box>
+
+                                  {/* col3: sil */}
+                                  <Box {...rh} sx={{
+                                    display: "flex", alignItems: "center",
+                                    px: "0.2rem", py: "0.1rem",
+                                    borderBottom: bb, backgroundColor: rowBg,
+                                  }}>
+                                    {!row.isWp && (
+                                      <IconButton size="small" onClick={() => deleteRow(node.id, row.id)}
+                                        sx={{ color: "#ccc", "&:hover": { color: "red" }, width: 26, height: 26 }}>
+                                        <DeleteOutlineIcon sx={{ fontSize: 16 }} />
+                                      </IconButton>
+                                    )}
+                                  </Box>
+                                </React.Fragment>
+                              );
+                            })}
+                          </>
                         )}
 
-                        {/* Grup satırları */}
-                        {group.rows.map((row, idx) => {
-                          const isHovered = hoveredRow === row.id;
-                          const bg = isHovered ? "#e8e8e8" : "#f2f2f2";
-                          const rh = {
-                            onMouseEnter: () => setHoveredRow(row.id),
-                            onMouseLeave: () => setHoveredRow(null),
-                          };
-                          return (
-                            <React.Fragment key={row.id}>
-                              {/* col1: sıra */}
-                              <Box {...rh} sx={{ ...css_satir, justifyContent: "center", backgroundColor: bg }}>
-                                {idx + 1}
-                              </Box>
-                              {/* col2-3: kalem adı input */}
-                              <Box {...rh} sx={{ ...css_satir, gridColumn: "2 / span 2", py: "0.2rem", backgroundColor: bg }}>
-                                <TextField
-                                  variant="standard"
-                                  size="small"
-                                  placeholder="Kalem adı"
-                                  value={row.name}
-                                  onChange={(e) => updateGroupRow(group.id, row.id, "name", e.target.value)}
-                                  autoComplete="off"
-                                  inputProps={{
-                                    style: { fontSize: "0.875rem", width: "18rem" },
-                                  }}
-                                />
-                              </Box>
-                              {/* col4: boş (keşif) */}
-                              <Box {...rh} sx={{ ...css_satir, backgroundColor: bg }}></Box>
-                              {/* col5: bütçe */}
-                              <Box {...rh} sx={{ ...css_satir, py: "0.2rem", backgroundColor: bg }}>
-                                <TextField
-                                  variant="standard"
-                                  size="small"
-                                  placeholder="—"
-                                  value={row.butceTutar}
-                                  onChange={(e) => updateGroupRow(group.id, row.id, "butceTutar", e.target.value)}
-                                  autoComplete="off"
-                                  inputProps={{
-                                    style: { fontSize: "0.875rem", textAlign: "right", width: "7rem" },
-                                    inputMode: "decimal",
-                                  }}
-                                />
-                              </Box>
-                              {/* col6: sil */}
-                              <Box {...rh} sx={{ ...css_satir, py: "0.1rem", px: "0.25rem", backgroundColor: bg }}>
-                                <IconButton
-                                  size="small"
-                                  onClick={() => removeGroupRow(group.id, row.id)}
-                                  sx={{ color: "#ccc", "&:hover": { color: "red" }, width: 28, height: 28 }}
-                                >
-                                  <DeleteOutlineIcon sx={{ fontSize: 18 }} />
-                                </IconButton>
-                              </Box>
-                            </React.Fragment>
-                          );
-                        })}
-
-                        {/* Grup ara toplam — col1-4 etiket, col5 bütçe, col6 boş */}
-                        <Box sx={{ ...css_araToplam, gridColumn: "1 / span 4", justifyContent: "flex-end" }}>
-                          {group.name} Toplamı
-                        </Box>
-                        <Box sx={{ ...css_araToplam, justifyContent: "right" }}>
-                          {grpTotal > 0 ? fmt(grpTotal) : "—"}
-                        </Box>
-                        <Box sx={{ ...css_araToplam }}></Box>
-
-                        {/* Bölümler arası ayraç */}
-                        <Box sx={{ gridColumn: "1 / span 6", height: "0.5rem", backgroundColor: "#f0f0f0" }} />
+                        {/* Düğümler arası ayraç */}
+                        <Box sx={{ gridColumn: "1 / span 3", height: "0.3rem", backgroundColor: "#e0e0e0" }} />
 
                       </React.Fragment>
                     );
                   })}
 
-                  {/* ── GENEL TOPLAM — col1-4 etiket, col5 değer (Bütçe sütunu ile hizalı) ── */}
-                  <Box sx={{ ...css_toplam, gridColumn: "1 / span 4", justifyContent: "flex-end" }}>
+                  {/* ── GENEL TOPLAM ── */}
+                  <Box sx={{ display: "flex", alignItems: "center", justifyContent: "flex-end", pr: "0.75rem", py: "0.4rem", backgroundColor: "#111", color: "white", fontWeight: 700, fontSize: "0.875rem", borderTop: "2px solid black" }}>
                     Genel Toplam Bütçe
                   </Box>
-                  <Box sx={{ ...css_toplam, justifyContent: "right" }}>
+                  <Box sx={{ display: "flex", alignItems: "center", justifyContent: "flex-end", pr: "0.5rem", py: "0.4rem", backgroundColor: "#111", color: "white", fontWeight: 700, fontSize: "0.875rem", borderTop: "2px solid black" }}>
                     {grandTotal > 0 ? fmt(grandTotal) : "—"}
                   </Box>
-                  <Box sx={{ ...css_toplam }}></Box>
+                  <Box sx={{ backgroundColor: "#111", borderTop: "2px solid black" }} />
 
                 </Box>
-                {/* ══ Grid sonu ══ */}
+              </Box>
 
-                {/* Açıklama */}
-                <Box sx={{ mt: "1.25rem", maxWidth: "28rem" }}>
-                  <TextField
-                    variant="outlined"
-                    label="Açıklama (isteğe bağlı)"
-                    size="small"
-                    fullWidth
-                    value={formAciklama}
-                    onChange={(e) => setFormAciklama(e.target.value)}
-                    multiline
-                    rows={2}
-                  />
-                </Box>
-              </>
-            )}
+              {/* + Düğüm Ekle */}
+              <Box
+                onClick={addSiblingNode}
+                sx={{
+                  mt: "0.5rem", display: "flex", alignItems: "center", gap: "0.4rem",
+                  cursor: "pointer", width: "fit-content", color: "#555",
+                  py: "0.3rem", px: "0.5rem", borderRadius: "4px",
+                  "&:hover": { backgroundColor: "#e8e8e8" },
+                }}
+              >
+                <AddIcon sx={{ fontSize: 16 }} />
+                <Typography variant="body2">Düğüm Ekle</Typography>
+              </Box>
+
+              {/* Açıklama */}
+              <Box sx={{ mt: "1rem", maxWidth: "28rem" }}>
+                <TextField
+                  variant="outlined" label="Açıklama (isteğe bağlı)" size="small"
+                  fullWidth value={formAciklama}
+                  onChange={(e) => setFormAciklama(e.target.value)}
+                  multiline rows={2}
+                />
+              </Box>
+            </Box>
           </>
         )}
 
@@ -613,59 +475,32 @@ export default function P_KesifButce() {
         {show === "Main" && (
           <>
             {versiyonlarLoading && <LinearProgress />}
-
             {!versiyonlarLoading && versiyonlar.length === 0 && (
               <Stack spacing={2}>
-                <Alert severity="info">
-                  Henüz bütçe versiyonu oluşturulmamış. (+) tuşuna basarak oluşturabilirsiniz.
-                </Alert>
+                <Alert severity="info">Henüz bütçe versiyonu oluşturulmamış. (+) tuşuna basarak oluşturabilirsiniz.</Alert>
               </Stack>
             )}
-
             {!versiyonlarLoading && versiyonlar.length > 0 && (
               <Box sx={{ display: "grid", gridTemplateColumns: listCols, width: "fit-content" }}>
-                <Box sx={{ ...css_baslik, justifyContent: "center" }}>Versiyon</Box>
-                <Box sx={{ ...css_baslik, justifyContent: "right" }}>Tutar</Box>
-                <Box sx={{ ...css_baslik }}>Açıklama</Box>
-                <Box sx={{ ...css_baslik }}>Onaylayan</Box>
-                <Box sx={{ ...css_baslik }}>Tarih</Box>
-
-                {versiyonlar.map((v) => {
-                  const isHovered = hoveredRow === v.versiyonNumber;
-                  const bg = isHovered ? "#e8e8e8" : "#f2f2f2";
-                  const rh = {
-                    onMouseEnter: () => setHoveredRow(v.versiyonNumber),
-                    onMouseLeave: () => setHoveredRow(null),
-                  };
-                  const tutar = v.tutar ?? v.butce?.totalButceTutar ?? null;
-                  const aciklama = v.aciklama ?? "";
-                  const onaylayan = v.olusturanEmail ?? "—";
-                  const tarih = formatTarih(v.createdAt ?? null);
-
-                  return (
-                    <React.Fragment key={v.versiyonNumber}>
-                      <Box {...rh} sx={{ ...css_satir, justifyContent: "center", fontWeight: 700, backgroundColor: bg }}>
-                        v{v.versiyonNumber}
-                      </Box>
-                      <Box {...rh} sx={{ ...css_satir, justifyContent: "right", fontWeight: tutar ? 600 : 400, backgroundColor: bg }}>
-                        {fmt(tutar)}
-                      </Box>
-                      <Box {...rh} sx={{ ...css_satir, backgroundColor: bg, color: aciklama ? "inherit" : "#aaa" }}>
-                        {aciklama || "—"}
-                      </Box>
-                      <Box {...rh} sx={{ ...css_satir, backgroundColor: bg }}>
-                        {onaylayan}
-                      </Box>
-                      <Box {...rh} sx={{ ...css_satir, backgroundColor: bg }}>
-                        {tarih}
-                      </Box>
-                    </React.Fragment>
-                  );
-                })}
+                <Box sx={{ ...css_lb, justifyContent: "center" }}>Versiyon</Box>
+                <Box sx={{ ...css_lb, justifyContent: "right" }}>Tutar</Box>
+                <Box sx={{ ...css_lb }}>Açıklama</Box>
+                <Box sx={{ ...css_lb }}>Onaylayan</Box>
+                <Box sx={{ ...css_lb }}>Tarih</Box>
+                {versiyonlar.map((v) => (
+                  <React.Fragment key={v.versiyonNumber}>
+                    <Box sx={{ ...css_ls, justifyContent: "center", fontWeight: 700 }}>v{v.versiyonNumber}</Box>
+                    <Box sx={{ ...css_ls, justifyContent: "right", fontWeight: v.tutar ? 600 : 400 }}>{fmt(v.tutar)}</Box>
+                    <Box sx={{ ...css_ls, color: v.aciklama ? "inherit" : "#aaa" }}>{v.aciklama || "—"}</Box>
+                    <Box sx={{ ...css_ls }}>{v.olusturanEmail ?? "—"}</Box>
+                    <Box sx={{ ...css_ls }}>{formatTarih(v.createdAt)}</Box>
+                  </React.Fragment>
+                ))}
               </Box>
             )}
           </>
         )}
+
       </Box>
     </Box>
   );

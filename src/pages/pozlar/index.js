@@ -15,6 +15,7 @@ import Grid from '@mui/material/Grid'
 import Typography from '@mui/material/Typography'
 import IconButton from '@mui/material/IconButton'
 import Button from '@mui/material/Button'
+import TextField from '@mui/material/TextField'
 import LinearProgress from '@mui/material/LinearProgress'
 import Alert from '@mui/material/Alert'
 import Chip from '@mui/material/Chip'
@@ -25,6 +26,10 @@ import DeleteIcon from '@mui/icons-material/Delete'
 import EditIcon from '@mui/icons-material/Edit'
 import CloseIcon from '@mui/icons-material/Close'
 import ViewAgendaIcon from '@mui/icons-material/ViewAgenda'
+import KeyboardArrowUpIcon from '@mui/icons-material/KeyboardArrowUp'
+import KeyboardArrowDownIcon from '@mui/icons-material/KeyboardArrowDown'
+import KeyboardArrowLeftIcon from '@mui/icons-material/KeyboardArrowLeft'
+import KeyboardArrowRightIcon from '@mui/icons-material/KeyboardArrowRight'
 
 
 // WBS sayfasından aynı yardımcılar
@@ -83,6 +88,8 @@ export default function P_Pozlar() {
   const [show, setShow] = useState('Main')
   const [dialogAlert, setDialogAlert] = useState()
   const [editingPoz, setEditingPoz] = useState(null)
+  const [wbsChildForm, setWbsChildForm] = useState({ name: '', codeName: '' })
+  const [wbsChildSaving, setWbsChildSaving] = useState(false)
 
   // Select modu
   const [selectMode, setSelectMode] = useState(false)
@@ -186,6 +193,98 @@ export default function P_Pozlar() {
   }, [rawPozlar, viewMode, filterWbsIds])
 
   const invalidate = () => queryClient.invalidateQueries(['projectPozlar', selectedProje?.id])
+  const invalidateWbs = () => queryClient.invalidateQueries(['wbsNodes', selectedProje?.id])
+
+  const selectedWbsNode = useMemo(() =>
+    rawWbsNodes.find(n => n.id === activeWbsNodeId) ?? null,
+    [rawWbsNodes, activeWbsNodeId]
+  )
+
+  const wbsSiblings = useMemo(() => {
+    if (!selectedWbsNode) return []
+    return rawWbsNodes
+      .filter(n => (n.parent_id ?? null) === (selectedWbsNode.parent_id ?? null))
+      .sort((a, b) => a.order_index - b.order_index)
+  }, [rawWbsNodes, selectedWbsNode])
+
+  const siblingIdx = useMemo(() =>
+    wbsSiblings.findIndex(n => n.id === activeWbsNodeId),
+    [wbsSiblings, activeWbsNodeId]
+  )
+
+  const canMoveUp = !!selectedWbsNode && siblingIdx > 0
+  const canMoveDown = !!selectedWbsNode && siblingIdx < wbsSiblings.length - 1
+  const canMoveLeft = !!selectedWbsNode && selectedWbsNode.parent_id != null
+  const canMoveRight = !!selectedWbsNode && siblingIdx > 0
+
+  const handleMoveUp = async () => {
+    if (!canMoveUp) return
+    const prev = wbsSiblings[siblingIdx - 1]
+    const curr = selectedWbsNode
+    await supabase.from('wbs_nodes').update({ order_index: prev.order_index }).eq('id', curr.id)
+    await supabase.from('wbs_nodes').update({ order_index: curr.order_index }).eq('id', prev.id)
+    invalidateWbs()
+  }
+
+  const handleMoveDown = async () => {
+    if (!canMoveDown) return
+    const next = wbsSiblings[siblingIdx + 1]
+    const curr = selectedWbsNode
+    await supabase.from('wbs_nodes').update({ order_index: next.order_index }).eq('id', curr.id)
+    await supabase.from('wbs_nodes').update({ order_index: curr.order_index }).eq('id', next.id)
+    invalidateWbs()
+  }
+
+  const handleMoveLeft = async () => {
+    if (!canMoveLeft) return
+    const parent = rawWbsNodes.find(n => n.id === selectedWbsNode.parent_id)
+    const grandparentId = parent?.parent_id ?? null
+    const parentSiblings = rawWbsNodes
+      .filter(n => (n.parent_id ?? null) === (grandparentId ?? null))
+      .sort((a, b) => a.order_index - b.order_index)
+    const parentIdx = parentSiblings.findIndex(n => n.id === parent.id)
+    const toShift = parentSiblings.filter((_, i) => i > parentIdx)
+    for (const sib of toShift) {
+      await supabase.from('wbs_nodes').update({ order_index: sib.order_index + 1 }).eq('id', sib.id)
+    }
+    await supabase.from('wbs_nodes').update({ parent_id: grandparentId, order_index: parent.order_index + 1 }).eq('id', selectedWbsNode.id)
+    invalidateWbs()
+  }
+
+  const handleMoveRight = async () => {
+    if (!canMoveRight) return
+    const newParent = wbsSiblings[siblingIdx - 1]
+    const newSiblings = rawWbsNodes.filter(n => n.parent_id === newParent.id)
+    const newOrderIndex = newSiblings.length > 0 ? Math.max(...newSiblings.map(n => n.order_index)) + 1 : 0
+    await supabase.from('wbs_nodes').update({ parent_id: newParent.id, order_index: newOrderIndex }).eq('id', selectedWbsNode.id)
+    setCollapsedIds(prev => { const next = new Set(prev); next.delete(newParent.id); return next })
+    invalidateWbs()
+  }
+
+  const handleAddWbsChild = async () => {
+    if (!wbsChildForm.name.trim()) {
+      setDialogAlert({ dialogIcon: 'warning', dialogMessage: 'Başlık adı boş olamaz.', onCloseAction: () => setDialogAlert() })
+      return
+    }
+    const siblings = rawWbsNodes.filter(n => (n.parent_id ?? null) === activeWbsNodeId)
+    const maxOrder = siblings.length > 0 ? Math.max(...siblings.map(s => s.order_index)) : -1
+    setWbsChildSaving(true)
+    const { error } = await supabase.from('wbs_nodes').insert({
+      project_id: selectedProje.id,
+      parent_id: activeWbsNodeId,
+      name: wbsChildForm.name.trim(),
+      code_name: wbsChildForm.codeName.trim() || null,
+      order_index: maxOrder + 1,
+    })
+    setWbsChildSaving(false)
+    if (error) {
+      setDialogAlert({ dialogIcon: 'warning', dialogMessage: 'Alt başlık kaydedilemedi.', detailText: error.message, onCloseAction: () => setDialogAlert() })
+      return
+    }
+    setWbsChildForm({ name: '', codeName: '' })
+    setShow('Main')
+    invalidateWbs()
+  }
 
   function toggleCollapse(nodeId) {
     setCollapsedIds(prev => {
@@ -264,6 +363,46 @@ export default function P_Pozlar() {
 
               {!selectMode && (
                 <>
+                  {activeWbsNodeId && (
+                    <>
+                      <Grid item>
+                        <Tooltip title="Yukarı taşı">
+                          <span>
+                            <IconButton size="small" onClick={handleMoveUp} disabled={!canMoveUp}>
+                              <KeyboardArrowUpIcon />
+                            </IconButton>
+                          </span>
+                        </Tooltip>
+                      </Grid>
+                      <Grid item>
+                        <Tooltip title="Aşağı taşı">
+                          <span>
+                            <IconButton size="small" onClick={handleMoveDown} disabled={!canMoveDown}>
+                              <KeyboardArrowDownIcon />
+                            </IconButton>
+                          </span>
+                        </Tooltip>
+                      </Grid>
+                      <Grid item>
+                        <Tooltip title="Sol'a taşı (üst seviyeye)">
+                          <span>
+                            <IconButton size="small" onClick={handleMoveLeft} disabled={!canMoveLeft}>
+                              <KeyboardArrowLeftIcon />
+                            </IconButton>
+                          </span>
+                        </Tooltip>
+                      </Grid>
+                      <Grid item>
+                        <Tooltip title="Sağ'a taşı (bir üst kardeşin altına)">
+                          <span>
+                            <IconButton size="small" onClick={handleMoveRight} disabled={!canMoveRight}>
+                              <KeyboardArrowRightIcon />
+                            </IconButton>
+                          </span>
+                        </Tooltip>
+                      </Grid>
+                    </>
+                  )}
                   <Grid item>
                     <IconButton
                       onClick={() => setSelectMode(true)}
@@ -274,15 +413,23 @@ export default function P_Pozlar() {
                   </Grid>
                   <Grid item>
                     <Tooltip title={
-                      !canAddPoz ? 'Önce Proje Ayarları\'ndan birim ekleyin'
-                      : viewMode === 'wbsOnly' ? 'Poz eklemek için sadece poz ya da WBS+Poz moduna geçin'
-                      : viewMode === 'wbsPoz' && !activeWbsNodeId ? 'Bir WBS yaprak düğümü seçin'
+                      viewMode === 'wbsOnly' ? 'Poz eklemek için WBS+Poz veya Poz moduna geçin'
+                      : viewMode === 'wbsPoz' && !activeWbsNodeId ? 'Bir WBS düğümü seçin'
+                      : viewMode === 'wbsPoz' && !isLeafSet.has(activeWbsNodeId) ? 'Alt başlık ekle'
+                      : !canAddPoz ? 'Önce Proje Ayarları\'ndan birim ekleyin'
                       : 'Poz ekle'
                     }>
                       <span>
                         <IconButton
-                          onClick={() => setShow('PozCreate')}
-                          disabled={!canAddPoz || viewMode === 'wbsOnly' || (viewMode === 'wbsPoz' && !activeWbsNodeId)}
+                          onClick={() => {
+                            if (viewMode === 'wbsPoz' && activeWbsNodeId && !isLeafSet.has(activeWbsNodeId)) {
+                              setWbsChildForm({ name: '', codeName: '' })
+                              setShow('WbsChildCreate')
+                            } else {
+                              setShow('PozCreate')
+                            }
+                          }}
+                          disabled={viewMode === 'wbsOnly' || (viewMode === 'wbsPoz' && !activeWbsNodeId) || (viewMode === 'wbsPoz' && isLeafSet.has(activeWbsNodeId) && !canAddPoz)}
                         >
                           <AddCircleOutlineIcon />
                         </IconButton>
@@ -358,6 +505,52 @@ export default function P_Pozlar() {
         />
       }
 
+      {show === 'WbsChildCreate' && selectedWbsNode &&
+        <Box sx={{ m: '1rem', maxWidth: '36rem' }}>
+          <Paper variant="outlined" sx={{ p: '1.25rem' }}>
+            <Typography variant="subtitle1" fontWeight="bold" sx={{ mb: '1rem' }}>
+              Alt Başlık Ekle — <em>{selectedWbsNode.name}</em>
+            </Typography>
+            <Grid container spacing={2}>
+              <Grid item xs={12} sm={4}>
+                <TextField
+                  variant="standard"
+                  label="Kod (isteğe bağlı)"
+                  fullWidth
+                  value={wbsChildForm.codeName}
+                  onChange={e => setWbsChildForm(f => ({ ...f, codeName: e.target.value }))}
+                  disabled={wbsChildSaving}
+                  inputProps={{ style: { fontFamily: 'monospace' } }}
+                />
+              </Grid>
+              <Grid item xs={12} sm={8}>
+                <TextField
+                  variant="standard"
+                  label="Başlık Adı"
+                  fullWidth
+                  required
+                  autoFocus
+                  value={wbsChildForm.name}
+                  onChange={e => setWbsChildForm(f => ({ ...f, name: e.target.value }))}
+                  disabled={wbsChildSaving}
+                  onKeyDown={e => e.key === 'Enter' && handleAddWbsChild()}
+                />
+              </Grid>
+              <Grid item xs={12}>
+                <Grid container spacing={1} justifyContent="flex-end">
+                  <Grid item>
+                    <Button variant="text" onClick={() => setShow('Main')} disabled={wbsChildSaving}>İptal</Button>
+                  </Grid>
+                  <Grid item>
+                    <Button variant="contained" onClick={handleAddWbsChild} disabled={wbsChildSaving}>Kaydet</Button>
+                  </Grid>
+                </Grid>
+              </Grid>
+            </Grid>
+          </Paper>
+        </Box>
+      }
+
       {editingPoz &&
         <FormPozEdit
           poz={editingPoz}
@@ -418,8 +611,8 @@ export default function P_Pozlar() {
 
                         <Box
                           onClick={() => {
-                            if (!isLeaf) { toggleCollapse(node.id); return }
                             setActiveWbsNodeId(prev => prev === node.id ? null : node.id)
+                            if (!isLeaf) toggleCollapse(node.id)
                           }}
                           sx={{
                             pl: '6px',
@@ -511,8 +704,8 @@ export default function P_Pozlar() {
                         ))}
                         <Box
                           onClick={() => {
-                            if (!isLeaf) { toggleCollapse(node.id); return }
                             setActiveWbsNodeId(prev => prev === node.id ? null : node.id)
+                            if (!isLeaf) toggleCollapse(node.id)
                           }}
                           sx={{
                             gridColumn: `span ${totalCols - depth}`,

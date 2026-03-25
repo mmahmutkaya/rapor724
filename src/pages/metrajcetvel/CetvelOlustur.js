@@ -2139,7 +2139,7 @@ export default function P_MetrajOlusturCetvel() {
                       {(() => {
                         const q = calcMetrajOnay(node)
                         const isEmpty = v => v === null || v === undefined || v === ''
-                        const hasData = !isEmpty(node.description) || [(Number(node.multiplier) === 1 ? null : node.multiplier), node.count, node.length, node.width, node.height].some(v => !isEmpty(v))
+                        const hasData = [(Number(node.multiplier) === 1 ? null : node.multiplier), node.count, node.length, node.width, node.height].some(v => !isEmpty(v))
                         return (q !== 0 || hasData) ? ikiHane(q) : ''
                       })()}
                       {pozBirim && calcMetrajOnay(node) !== 0 && <Box component="span" sx={{ ml: '3px', fontWeight: 400, fontSize: '0.72rem', color: '#888' }}>{pozBirim}</Box>}
@@ -2189,8 +2189,9 @@ export default function P_MetrajOlusturCetvel() {
                   <Box sx={{ ...css_oc, ...pBg, justifyContent: 'flex-start', pl: '0.5rem', color: '#6a1b9a', fontSize: '0.8rem', fontStyle: 'italic' }}>{newSiraNo}</Box>
                   <Box sx={{ ...css_oc, ...pBg, gap: '4px', pl: '4px', pr: 0, py: 0 }}>
                     <Box sx={{ width: 7, height: 7, borderRadius: '50%', flexShrink: 0, visibility: 'hidden' }} />
+                    {onayKartiEditMode && <Box sx={{ width: 16, flexShrink: 0 }} />}
                     <input className="metraj-num-input"
-                      style={{ border: 'none', background: 'transparent', flex: 1, minWidth: 0, fontFamily: 'inherit', fontSize: '0.85rem', outline: 'none', padding: 0, color: negClr }}
+                      style={{ border: 'none', background: 'transparent', flex: 1, minWidth: 0, fontFamily: 'inherit', fontSize: '0.85rem', outline: 'none', padding: (selectedRowEditMode || onayKartiEditMode) ? '2px 4px' : 0, color: negClr }}
                       value={row.description} onChange={e => handlePendingNewLineChange(node.id, row.tempId, 'description', e.target.value)} placeholder="Açıklama" />
                   </Box>
                   {NUM_ONAY_FIELDS.map(field => (
@@ -2223,7 +2224,8 @@ export default function P_MetrajOlusturCetvel() {
           if (selectedRowEditMode && selectedOnayRow?.id === node.id && node.status === 'approved') {
             const eBg = { backgroundColor: '#FFF8E1', borderBottom: '1px dashed #c8c8c8' }
             const childrenToRender = (node.children ?? []).filter(c =>
-              (!c.status || c.status === 'draft') ? false
+              c.id === existingRevisionId ? true  // düzenleme modundaki mevcut revize her zaman görünür
+              : (!c.status || c.status === 'draft') ? false
               : !showRevizeTalepleri ? c.status === 'approved'
               : c.status === 'pending' ? sessions.some(s => s.id === c.session_id && s.isOwn)
               : true
@@ -2368,7 +2370,7 @@ export default function P_MetrajOlusturCetvel() {
               <Box sx={{ ...css_oc, ...cellBg, justifyContent: 'flex-end', fontWeight: 700, color: negColor }} onClick={onRowClick} {...rowHandlers}>
                 {metraj !== 0 ? ikiHane(metraj) : (() => {
                   const isEmpty = v => v === null || v === undefined || v === ''
-                  const hasData = !isEmpty(node.description) ||
+                  const hasData =
                     [(Number(node.multiplier) === 1 ? null : node.multiplier), node.count, node.length, node.width, node.height].some(v => !isEmpty(v))
                   return hasData ? ikiHane(metraj) : ''
                 })()}
@@ -2421,6 +2423,7 @@ export default function P_MetrajOlusturCetvel() {
                 {!onayKartiEditMode && node.status === 'ignored' && <DoNotDisturbIcon sx={{ fontSize: 16, color: '#424242' }} />}
                 {!onayKartiEditMode && node.status === 'approved' && node.depth > 0 && <Typography sx={{ fontSize: '0.9rem', fontWeight: 900, color: '#2E7D32', lineHeight: 1 }}>R</Typography>}
                 {!onayKartiEditMode && node.status === 'approved' && !node.depth && <DoneAllIcon sx={{ fontSize: 18, color: '#2E7D32', filter: 'drop-shadow(0 0 0.6px #2E7D32)' }} />}
+                {!onayKartiEditMode && !isRowModeEditable && node.status === 'pending' && (node.order_index ?? 0) < 0 && <Typography sx={{ fontSize: '0.9rem', fontWeight: 900, color: '#1565c0', lineHeight: 1 }}>R</Typography>}
               </Box>
 
               {hasKids && node.children.filter(c => (!c.status || c.status === 'draft') ? false : !showRevizeTalepleri ? c.status === 'approved' : c.status === 'pending' ? sessions.some(s => s.id === c.session_id && s.isOwn) : true).map(child => (
@@ -2489,7 +2492,7 @@ export default function P_MetrajOlusturCetvel() {
           .reduce((s, n) => s + calcMetrajOnay(n), 0)
 
         const hasNewLines = Object.values(pendingNewLines).some(arr => arr.length > 0)
-        const approvedRowChanged = selectedRowEditMode && approvedRowEditValues != null && approvedRowEditInitial != null &&
+        const approvedRowChanged = !existingRevisionId && selectedRowEditMode && approvedRowEditValues != null && approvedRowEditInitial != null &&
           ['description','multiplier','count','length','width','height'].some(f => approvedRowEditValues[f] !== approvedRowEditInitial[f])
         const isChanged = selectedRowEditMode && (
           hasNewLines ||
@@ -2502,7 +2505,6 @@ export default function P_MetrajOlusturCetvel() {
             return ['description','multiplier','count','length','width','height'].some(f => cur[f] !== orig[f])
           })
         )
-        const rBtnDisabled = !selectedRowEditMode
         const plusBtnDisabled = !selectedRowEditMode
 
         return (
@@ -2584,14 +2586,6 @@ export default function P_MetrajOlusturCetvel() {
                     </>
                   ) : (
                     <Box sx={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                      <IconButton size="small" title="Revize talebi oluştur (.R1)"
-                        disabled={rBtnDisabled}
-                        onClick={handleDuzenleNew}
-                        sx={{ color: selectedRowEditMode ? 'rgba(224,225,221,0.9)' : 'rgba(255,255,255,0.25)', '&:hover': { color: '#fff' }, '&.Mui-disabled': { color: 'rgba(255,255,255,0.2)' } }}>
-                        <Box sx={{ width: 20, height: 20, borderRadius: '50%', border: '2.5px solid currentColor', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                          <Typography sx={{ fontSize: '0.75rem', fontWeight: 900, lineHeight: 1 }}>R</Typography>
-                        </Box>
-                      </IconButton>
                       <IconButton size="small" title="Alt satır ekle"
                         disabled={plusBtnDisabled}
                         onClick={handleAddChildNew}
@@ -2600,13 +2594,13 @@ export default function P_MetrajOlusturCetvel() {
                           <AddIcon sx={{ fontSize: 14 }} />
                         </Box>
                       </IconButton>
-                      {/* Sabit genişlik: normal modda Edit(24px), edit modda X+gap+Save(56px) → R/+ kaymaz */}
+                      {/* Sabit genişlik: normal modda Edit(24px), edit modda X+gap+Save(56px) → + kaymaz */}
                       <Box sx={{ display: 'flex', alignItems: 'center', gap: '8px', width: 56, justifyContent: 'center' }}>
                         {selectedRowEditMode ? (
                           <>
                             <IconButton size="small" title="İptal"
                               sx={{ p: '2px', color: '#ffcdd2' }}
-                              onClick={() => { setSelectedRowEditMode(false); setRowEditValues({}); setRowEditInitialValues({}); setRowEditDeletes([]); setPendingNewLines({}); setApprovedRowEditValues(null); setApprovedRowEditInitial(null); setSelectedOnayRow(null) }}>
+                              onClick={() => { setSelectedRowEditMode(false); setRowEditValues({}); setRowEditInitialValues({}); setRowEditDeletes([]); setPendingNewLines({}); setApprovedRowEditValues(null); setApprovedRowEditInitial(null); setExistingRevisionId(null); setSelectedOnayRow(null) }}>
                               <ClearIcon sx={{ fontSize: 20 }} />
                             </IconButton>
                             <IconButton size="small" disabled={!isChanged} title="Kaydet"
