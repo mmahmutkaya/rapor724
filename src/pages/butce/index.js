@@ -16,9 +16,8 @@ import TextField from "@mui/material/TextField";
 import Select from "@mui/material/Select";
 import MenuItem from "@mui/material/MenuItem";
 
-import EditIcon from "@mui/icons-material/Edit";
 import ClearOutlined from "@mui/icons-material/ClearOutlined";
-import SaveIcon from "@mui/icons-material/Save";
+import AddCircleOutlineIcon from "@mui/icons-material/AddCircleOutline";
 
 export default function P_KesifButce() {
   const {
@@ -32,6 +31,8 @@ export default function P_KesifButce() {
     setSelectedButceVersiyon,
     kesifWizardRows,
     setKesifWizardRows,
+    kesifWizardAciklama,
+    setKesifWizardAciklama,
     kesifWizardIsPaketVersiyonNumber,
     setKesifWizardIsPaketVersiyonNumber,
     setKesifWizardActiveIsPaketId,
@@ -41,10 +42,11 @@ export default function P_KesifButce() {
     setSelectedBirimFiyatVersiyon,
   } = useContext(StoreContext);
 
+  // "Main" → versiyon listesi | "Wizard" → yeni versiyon sihirbazı
+  const [show, setShow] = useState(mode_butceEdit ? "Wizard" : "Main");
   const [dialogAlert, setDialogAlert] = useState();
   const [isSaving, setIsSaving] = useState(false);
   const [hoveredRow, setHoveredRow] = useState(null);
-  const [isChanged, setIsChanged] = useState(false);
 
   const requestProjeAktifYetkiliKisi = useRequestProjeAktifYetkiliKisi();
   const deleteProjeAktifYetkiliKisi = useDeleteProjeAktifYetkiliKisi();
@@ -58,7 +60,6 @@ export default function P_KesifButce() {
     (a, b) => b.versiyonNumber - a.versiyonNumber
   );
   const hasIpVersions = (selectedProje?.isPaketVersiyonlar?.length ?? 0) > 0;
-  const hasButceVersiyonlar = butceVersiyonlar.length > 0;
 
   const nextVersiyonNumber =
     (butceVersiyonlar.reduce((acc, cur) => Math.max(acc, cur.versiyonNumber), 0) ?? 0) + 1;
@@ -68,10 +69,6 @@ export default function P_KesifButce() {
   );
   const isPaketList = (isPaketVersiyon?.isPaketler ?? []).filter((p) => p.isActive);
 
-  // View mode data
-  const viewButce = selectedButceVersiyon?.butce ?? null;
-  const viewIsPaketList = viewButce?.isPaketlerSatirlar ?? [];
-
   // Abort fetch on unmount
   useEffect(() => {
     return () => {
@@ -79,26 +76,17 @@ export default function P_KesifButce() {
     };
   }, []);
 
-  // On mount: guard + initialize
+  // Guard + returning from butcepozlar
   useEffect(() => {
     if (!selectedProje) { navigate("/projeler"); return; }
 
-    if (!mode_butceEdit) {
-      if (!selectedButceVersiyon && hasButceVersiyonlar) {
-        setSelectedButceVersiyon(butceVersiyonlar[0]);
-      }
-    } else {
-      // Coming back from butcepozlar — wizard already initialized
-      if (kesifWizardIsPaketVersiyonNumber !== null) {
-        // Recalculate any rows where version was changed but kesifTutar was cleared
-        Object.entries(kesifWizardRows).forEach(([isPaketId, row]) => {
-          if (row.kesifTutar === null && !row.isCalculating && row.metrajVersiyonNumber != null && row.birimFiyatVersiyonNumber != null) {
-            doCalculate(isPaketId, row.metrajVersiyonNumber, row.birimFiyatVersiyonNumber, kesifWizardIsPaketVersiyonNumber);
-          }
-        });
-        return;
-      }
-      initEditRows();
+    if (mode_butceEdit && kesifWizardIsPaketVersiyonNumber !== null) {
+      // Returning from butcepozlar — recalculate rows that lost their kesifTutar
+      Object.entries(kesifWizardRows).forEach(([isPaketId, row]) => {
+        if (row.kesifTutar === null && !row.isCalculating && row.metrajVersiyonNumber != null && row.birimFiyatVersiyonNumber != null) {
+          doCalculate(isPaketId, row.metrajVersiyonNumber, row.birimFiyatVersiyonNumber, kesifWizardIsPaketVersiyonNumber);
+        }
+      });
     }
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
@@ -106,48 +94,32 @@ export default function P_KesifButce() {
     (arr ?? []).reduce((acc, v) => Math.max(acc, v.versiyonNumber), 0) || null;
 
   const initEditRows = () => {
-    const butce = selectedProje?.butce;
     const maxIpVN = getLatestMaxVN(selectedProje?.isPaketVersiyonlar);
     const maxMetrajVN = getLatestMaxVN(metrajVersiyonlar);
     const maxBirimFiyatVN = getLatestMaxVN(birimFiyatVersiyonlar);
 
-    if (butce?.isPaketVersiyonNumber != null && (butce.isPaketlerSatirlar?.length ?? 0) > 0) {
-      setKesifWizardIsPaketVersiyonNumber(butce.isPaketVersiyonNumber);
+    setKesifWizardIsPaketVersiyonNumber(maxIpVN);
+    if (maxIpVN && maxMetrajVN && maxBirimFiyatVN) {
+      const ipV = selectedProje?.isPaketVersiyonlar?.find((v) => v.versiyonNumber === maxIpVN);
+      const activeList = (ipV?.isPaketler ?? []).filter((p) => p.isActive);
       const rowsInit = {};
-      (butce.isPaketlerSatirlar ?? []).forEach((s) => {
-        rowsInit[s.isPaketId] = {
-          metrajVersiyonNumber: s.metrajVersiyonNumber ?? null,
-          birimFiyatVersiyonNumber: s.birimFiyatVersiyonNumber ?? null,
-          kesifTutar: s.kesifTutar ?? null,
-          butceTutar: s.butceTutar != null ? String(s.butceTutar) : "",
+      activeList.forEach((p) => {
+        rowsInit[p._id] = {
+          metrajVersiyonNumber: maxMetrajVN,
+          birimFiyatVersiyonNumber: maxBirimFiyatVN,
+          kesifTutar: null,
+          butceTutar: "",
           isCalculating: false,
         };
       });
       setKesifWizardRows(rowsInit);
+      activeList.forEach((p) => doCalculate(p._id, maxMetrajVN, maxBirimFiyatVN, maxIpVN));
     } else {
-      setKesifWizardIsPaketVersiyonNumber(maxIpVN);
-      if (maxIpVN && maxMetrajVN && maxBirimFiyatVN) {
-        const ipV = selectedProje?.isPaketVersiyonlar?.find((v) => v.versiyonNumber === maxIpVN);
-        const activeList = (ipV?.isPaketler ?? []).filter((p) => p.isActive);
-        const rowsInit = {};
-        activeList.forEach((p) => {
-          rowsInit[p._id] = {
-            metrajVersiyonNumber: maxMetrajVN,
-            birimFiyatVersiyonNumber: maxBirimFiyatVN,
-            kesifTutar: null,
-            butceTutar: "",
-            isCalculating: false,
-          };
-        });
-        setKesifWizardRows(rowsInit);
-        activeList.forEach((p) => doCalculate(p._id, maxMetrajVN, maxBirimFiyatVN, maxIpVN));
-      } else {
-        setKesifWizardRows({});
-      }
+      setKesifWizardRows({});
     }
   };
 
-  const handleEnterEdit = async () => {
+  const handleEnterCreate = async () => {
     const checkAuth = await requestProjeAktifYetkiliKisi({
       projeId: selectedProje?._id,
       aktifYetki: "butceEdit",
@@ -155,13 +127,14 @@ export default function P_KesifButce() {
       setShow: () => {},
     });
     if (checkAuth?.ok) {
+      setKesifWizardAciklama("");
       initEditRows();
       setMode_butceEdit(true);
-      setIsChanged(false);
+      setShow("Wizard");
     }
   };
 
-  const handleCancelEdit = () => {
+  const handleCancelCreate = () => {
     deleteProjeAktifYetkiliKisi({
       projeId: selectedProje?._id,
       aktifYetki: "butceEdit",
@@ -172,11 +145,9 @@ export default function P_KesifButce() {
         abortControllersRef.current = {};
         setKesifWizardRows({});
         setKesifWizardIsPaketVersiyonNumber(null);
+        setKesifWizardAciklama("");
         setMode_butceEdit(false);
-        setIsChanged(false);
-        if (!selectedButceVersiyon && hasButceVersiyonlar) {
-          setSelectedButceVersiyon(butceVersiyonlar[0]);
-        }
+        setShow("Main");
       },
     });
   };
@@ -242,7 +213,6 @@ export default function P_KesifButce() {
     Object.values(abortControllersRef.current).forEach((ctrl) => ctrl.abort());
     abortControllersRef.current = {};
     setKesifWizardIsPaketVersiyonNumber(newVN);
-    setIsChanged(true);
 
     const maxMetrajVN = getLatestMaxVN(metrajVersiyonlar);
     const maxBirimFiyatVN = getLatestMaxVN(birimFiyatVersiyonlar);
@@ -271,7 +241,6 @@ export default function P_KesifButce() {
     const existing = kesifWizardRows[isPaketId] || {};
     const updated = { ...existing, metrajVersiyonNumber: value !== "" ? Number(value) : null, kesifTutar: null, isCalculating: false };
     setKesifWizardRows((prev) => ({ ...prev, [isPaketId]: updated }));
-    setIsChanged(true);
     if (value !== "" && updated.birimFiyatVersiyonNumber != null) {
       doCalculate(isPaketId, Number(value), updated.birimFiyatVersiyonNumber);
     }
@@ -281,7 +250,6 @@ export default function P_KesifButce() {
     const existing = kesifWizardRows[isPaketId] || {};
     const updated = { ...existing, birimFiyatVersiyonNumber: value !== "" ? Number(value) : null, kesifTutar: null, isCalculating: false };
     setKesifWizardRows((prev) => ({ ...prev, [isPaketId]: updated }));
-    setIsChanged(true);
     if (value !== "" && updated.metrajVersiyonNumber != null) {
       doCalculate(isPaketId, updated.metrajVersiyonNumber, Number(value));
     }
@@ -292,17 +260,16 @@ export default function P_KesifButce() {
       ...prev,
       [isPaketId]: { ...(prev[isPaketId] || {}), butceTutar: value },
     }));
-    setIsChanged(true);
   };
 
-  const handleClickIsPaketEdit = (onePaket) => {
+  const handleClickIsPaketInWizard = (onePaket) => {
     const row = kesifWizardRows[onePaket._id] || {};
     if (row.isCalculating) {
-      setDialogAlert({ dialogIcon: "info", dialogMessage: "Keşif tutarı hesaplanıyor, lütfen bekleyin." });
+      setDialogAlert({ dialogIcon: "info", dialogMessage: "Keşif tutarı hesaplanıyor, lütfen bekleyin.", onCloseAction: () => setDialogAlert() });
       return;
     }
     if (row.kesifTutar == null || row.kesifTutar === 0) {
-      setDialogAlert({ dialogIcon: "warning", dialogMessage: `"${onePaket.name}" iş paketinin bu versiyonda keşif tutarı bulunmuyor.` });
+      setDialogAlert({ dialogIcon: "warning", dialogMessage: `"${onePaket.name}" iş paketinin bu versiyonda keşif tutarı bulunmuyor.`, onCloseAction: () => setDialogAlert() });
       return;
     }
     setSelectedIsPaket(onePaket);
@@ -313,22 +280,7 @@ export default function P_KesifButce() {
     navigate("/butcepozlar");
   };
 
-  const handleClickIsPaketView = (satir) => {
-    const ipV = selectedProje?.isPaketVersiyonlar?.find(
-      (v) => v.versiyonNumber === viewButce?.isPaketVersiyonNumber
-    );
-    const paketObj = ipV?.isPaketler?.find(
-      (p) => p._id?.toString() === satir.isPaketId?.toString()
-    );
-    setSelectedIsPaket(paketObj ?? { _id: satir.isPaketId, name: satir.isPaketName });
-    setSelectedIsPaketVersiyon(ipV ?? null);
-    setKesifWizardActiveIsPaketId(satir.isPaketId);
-    if (satir.metrajVersiyonNumber != null) setSelectedMetrajVersiyon({ versiyonNumber: satir.metrajVersiyonNumber });
-    if (satir.birimFiyatVersiyonNumber != null) setSelectedBirimFiyatVersiyon({ versiyonNumber: satir.birimFiyatVersiyonNumber });
-    navigate("/butcepozlar");
-  };
-
-  // ── Save handlers ──────────────────────────────────────────────────────────
+  // ── Save ──────────────────────────────────────────────────────────────────
 
   const buildButceObject = () => {
     const isPaketlerSatirlar = isPaketList.map((p) => {
@@ -362,66 +314,90 @@ export default function P_KesifButce() {
     return json;
   };
 
-  const handleSaveDraft = async () => {
-    setIsSaving(true);
-    try {
-      const butce = buildButceObject();
-      const json = await authFetch("/api/projeler/updatebutce", { projeId: selectedProje._id, butce });
-      if (!json.ok) throw new Error("Bütçe kaydı gerçekleşmedi.");
-      setSelectedProje({ ...selectedProje, butce });
-      setIsChanged(false);
-    } catch (err) {
-      setDialogAlert({ dialogIcon: "warning", dialogMessage: "Kayıt sırasında hata oluştu.", detailText: err?.message ?? null, onCloseAction: () => setDialogAlert() });
-    } finally { setIsSaving(false); }
-  };
-
   const handleSaveVersiyon = async () => {
     setIsSaving(true);
     try {
       const butce = buildButceObject();
       const json1 = await authFetch("/api/projeler/updatebutce", { projeId: selectedProje._id, butce });
       if (!json1.ok) throw new Error("Bütçe kaydı gerçekleşmedi.");
-      const json2 = await authFetch("/api/versiyon/butce", { projeId: selectedProje._id, versiyonNumber: nextVersiyonNumber, aciklama: "" });
+      const json2 = await authFetch("/api/versiyon/butce", {
+        projeId: selectedProje._id,
+        versiyonNumber: nextVersiyonNumber,
+        aciklama: kesifWizardAciklama ?? "",
+      });
       if (!json2.ok) throw new Error("Versiyon kayıt işlemi gerçekleşmedi.");
       const newVersiyon = json2.butceVersiyonlar.find((v) => v.versiyonNumber === nextVersiyonNumber)
         ?? [...json2.butceVersiyonlar].sort((a, b) => b.versiyonNumber - a.versiyonNumber)[0];
       setSelectedProje({ ...selectedProje, butce, butceVersiyonlar: json2.butceVersiyonlar });
       setSelectedButceVersiyon(newVersiyon);
-      setMode_butceEdit(false);
       setKesifWizardRows({});
       setKesifWizardIsPaketVersiyonNumber(null);
+      setKesifWizardAciklama("");
+      setMode_butceEdit(false);
+      setShow("Main");
     } catch (err) {
       setDialogAlert({ dialogIcon: "warning", dialogMessage: "Kayıt sırasında hata oluştu.", detailText: err?.message ?? null, onCloseAction: () => setDialogAlert() });
     } finally { setIsSaving(false); }
   };
 
-  // ── Formatting / totals ────────────────────────────────────────────────────
+  // ── Formatting ─────────────────────────────────────────────────────────────
 
   const formatTutar = (v) => {
     if (v == null || v === 0) return "—";
     return new Intl.NumberFormat("tr-TR", { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(v);
   };
 
+  const formatTarih = (dateStr) => {
+    if (!dateStr) return "—";
+    try {
+      return new Date(dateStr).toLocaleDateString("tr-TR");
+    } catch { return "—"; }
+  };
+
   const totalKesif = isPaketList.reduce((s, p) => s + ((kesifWizardRows[p._id] || {}).kesifTutar ?? 0), 0);
   const totalButce = isPaketList.reduce((s, p) => s + (Number((kesifWizardRows[p._id] || {}).butceTutar) || 0), 0);
   const anyCalculating = isPaketList.some((p) => (kesifWizardRows[p._id] || {}).isCalculating);
 
-  const totalViewKesif = viewIsPaketList.reduce((s, r) => s + (r.kesifTutar ?? 0), 0);
-  const totalViewButce = viewIsPaketList.reduce((s, r) => s + (r.butceTutar ?? 0), 0);
+  // ── CSS ────────────────────────────────────────────────────────────────────
 
-  // ── CSS helpers ────────────────────────────────────────────────────────────
+  const css_list_baslik = {
+    display: "flex",
+    alignItems: "center",
+    px: "0.6rem",
+    py: "0.3rem",
+    backgroundColor: "#c8c8c8",
+    fontWeight: 700,
+    fontSize: "0.8rem",
+    textTransform: "uppercase",
+    borderBottom: "1px solid #aaa",
+    whiteSpace: "nowrap",
+  };
 
-  const css_baslik = { display: "grid", px: "0.5rem", py: "3px", border: "1px solid black", alignItems: "center", backgroundColor: "lightgray", fontWeight: 700, marginLeft: "-1px", marginTop: "-1px" };
-  const css_satir = { display: "grid", px: "0.5rem", border: "1px solid black", alignItems: "center", marginLeft: "-1px", marginTop: "-1px" };
-  const css_toplam = { display: "grid", px: "0.5rem", py: "3px", border: "1px solid black", alignItems: "center", backgroundColor: "rgb(240,240,240)", fontWeight: 700, marginLeft: "-1px", marginTop: "-1px" };
+  const css_list_satir = {
+    display: "flex",
+    alignItems: "center",
+    px: "0.6rem",
+    py: "0.4rem",
+    borderBottom: "1px solid #ddd",
+    backgroundColor: "#f2f2f2",
+    fontSize: "0.85rem",
+  };
+
+  const css_wizard_baslik = { display: "grid", px: "0.5rem", py: "3px", border: "1px solid black", alignItems: "center", backgroundColor: "lightgray", fontWeight: 700, marginLeft: "-1px", marginTop: "-1px" };
+  const css_wizard_satir = { display: "grid", px: "0.5rem", border: "1px solid black", alignItems: "center", marginLeft: "-1px", marginTop: "-1px" };
+  const css_wizard_toplam = { display: "grid", px: "0.5rem", py: "3px", border: "1px solid black", alignItems: "center", backgroundColor: "rgb(240,240,240)", fontWeight: 700, marginLeft: "-1px", marginTop: "-1px" };
+
   const iconBtn_sx = { width: 40, height: 40 };
   const icon_sx = { fontSize: 24 };
-  const gridCols = "max-content max-content max-content max-content max-content max-content";
+  const wizardGridCols = "max-content max-content max-content max-content max-content max-content";
+
+  // Versiyon listesi sütunları: Versiyon | Bütçe Tutar | Açıklama | Onaylayan | Tarih
+  const listGridCols = "max-content max-content minmax(8rem, 1fr) max-content max-content";
 
   // ── Render ─────────────────────────────────────────────────────────────────
 
   return (
-    <Box>
+    <Box sx={{ minWidth: "40rem" }}>
       {dialogAlert && (
         <DialogAlert
           dialogIcon={dialogAlert.dialogIcon}
@@ -432,89 +408,72 @@ export default function P_KesifButce() {
       )}
 
       {/* APP BAR */}
-      <AppBar
-        position="static"
-        sx={{ backgroundColor: "white", color: "black", boxShadow: 4 }}
-      >
+      <AppBar position="static" sx={{ backgroundColor: "white", color: "black", boxShadow: 4 }}>
         <Grid container justifyContent="space-between" alignItems="center" sx={{ padding: "0.5rem 1rem", maxHeight: "5rem" }}>
           <Grid item xs>
             <Box sx={{ display: "flex", alignItems: "center", gap: "0.5rem" }}>
-              <Typography variant="body1" sx={{ fontWeight: 600, whiteSpace: "nowrap"}}>
-                Bütçe
+              <Typography variant="body1" sx={{ fontWeight: 600, whiteSpace: "nowrap" }}>
+                Keşif / Bütçe
               </Typography>
+              {show === "Wizard" && (
+                <Typography variant="body2" sx={{ color: "gray" }}>
+                  — yeni versiyon
+                </Typography>
+              )}
             </Box>
           </Grid>
 
           <Grid item xs="auto">
             <Box sx={{ display: "grid", gridAutoFlow: "column", alignItems: "center", gap: "0.25rem" }}>
 
-              {/* View mode: bütçe versiyon seçici */}
-              {!mode_butceEdit && hasButceVersiyonlar && (
-                <Select
-                  size="small"
-                  value={selectedButceVersiyon?.versiyonNumber ?? ""}
-                  onChange={(e) => {
-                    const v = butceVersiyonlar.find((x) => x.versiyonNumber === e.target.value);
-                    setSelectedButceVersiyon(v ?? null);
-                  }}
-                  displayEmpty
-                  sx={{ fontSize: "0.75rem" }}
-                  MenuProps={{ PaperProps: { style: { maxHeight: "15rem" } } }}
-                >
-                  {butceVersiyonlar.map((v) => (
-                    <MenuItem key={v.versiyonNumber} value={v.versiyonNumber} sx={{ fontSize: "0.75rem" }}>
-                      BU{v.versiyonNumber}
-                    </MenuItem>
-                  ))}
-                </Select>
-              )}
-
-              {/* Edit mode: iş paketi versiyon seçici */}
-              {mode_butceEdit && hasIpVersions && (
-                <Select
-                  size="small"
-                  value={kesifWizardIsPaketVersiyonNumber ?? ""}
-                  onChange={(e) => handleIpVersiyonChange(e.target.value)}
-                  displayEmpty
-                  sx={{ fontSize: "0.75rem" }}
-                  MenuProps={{ PaperProps: { style: { maxHeight: "15rem" } } }}
-                >
-                  {[...(selectedProje?.isPaketVersiyonlar ?? [])]
-                    .sort((a, b) => b.versiyonNumber - a.versiyonNumber)
-                    .map((v) => (
-                      <MenuItem key={v.versiyonNumber} value={v.versiyonNumber} sx={{ fontSize: "0.75rem" }}>
-                        İP{v.versiyonNumber}
-                      </MenuItem>
-                    ))}
-                </Select>
-              )}
-
-              {mode_butceEdit ? (
+              {show === "Wizard" && (
                 <>
-                  <IconButton onClick={handleCancelEdit} disabled={isSaving} sx={iconBtn_sx}>
+                  {/* İP versiyon seçici */}
+                  {hasIpVersions && (
+                    <Select
+                      size="small"
+                      value={kesifWizardIsPaketVersiyonNumber ?? ""}
+                      onChange={(e) => handleIpVersiyonChange(e.target.value)}
+                      displayEmpty
+                      sx={{ fontSize: "0.75rem" }}
+                      MenuProps={{ PaperProps: { style: { maxHeight: "15rem" } } }}
+                    >
+                      {[...(selectedProje?.isPaketVersiyonlar ?? [])]
+                        .sort((a, b) => b.versiyonNumber - a.versiyonNumber)
+                        .map((v) => (
+                          <MenuItem key={v.versiyonNumber} value={v.versiyonNumber} sx={{ fontSize: "0.75rem" }}>
+                            İP{v.versiyonNumber}
+                          </MenuItem>
+                        ))}
+                    </Select>
+                  )}
+
+                  {/* İptal */}
+                  <IconButton onClick={handleCancelCreate} disabled={isSaving} sx={iconBtn_sx}>
                     <ClearOutlined sx={{ ...icon_sx, color: "red" }} />
                   </IconButton>
-                  <IconButton onClick={handleSaveDraft} disabled={isSaving || !isChanged} sx={iconBtn_sx} title="Taslak Kaydet">
-                    <SaveIcon sx={icon_sx} />
-                  </IconButton>
+
+                  {/* Versiyon kaydet butonu */}
                   <Box
-                    onClick={(!isSaving && !isChanged) ? handleSaveVersiyon : undefined}
+                    onClick={!isSaving ? handleSaveVersiyon : undefined}
                     sx={{
-                      cursor: (!isSaving && !isChanged) ? "pointer" : "default",
+                      cursor: !isSaving ? "pointer" : "default",
                       mx: "0.3rem", py: "0.2rem", px: "0.3rem",
-                      border: (isSaving || isChanged) ? "1px solid gray" : "1px solid red",
+                      border: isSaving ? "1px solid gray" : "1px solid red",
                       borderRadius: "0.5rem",
                       fontSize: "0.8rem",
                       fontWeight: "600",
-                      backgroundColor: (isSaving || isChanged) ? "#e0e0e0" : "yellow",
+                      backgroundColor: isSaving ? "#e0e0e0" : "yellow",
                     }}
                   >
-                    BU{nextVersiyonNumber}
+                    v{nextVersiyonNumber}
                   </Box>
                 </>
-              ) : (
-                <IconButton onClick={handleEnterEdit} sx={iconBtn_sx}>
-                  <EditIcon sx={icon_sx} />
+              )}
+
+              {show === "Main" && (
+                <IconButton sx={iconBtn_sx} onClick={handleEnterCreate}>
+                  <AddCircleOutlineIcon color="success" sx={icon_sx} />
                 </IconButton>
               )}
             </Box>
@@ -523,11 +482,82 @@ export default function P_KesifButce() {
       </AppBar>
 
       {/* İÇERİK */}
-      <Box sx={{ p: "1rem", borderTop: mode_butceEdit ? "4px solid #e53935" : "4px solid transparent", transition: "border-color 0.3s ease" }}>
+      <Box sx={{ p: "1rem", borderTop: show === "Wizard" ? "4px solid #e53935" : "4px solid transparent", transition: "border-color 0.3s ease" }}>
 
-        {/* ── Düzenleme modu ── */}
-        {mode_butceEdit && (
+        {/* ── Ana liste görünümü ── */}
+        {show === "Main" && (
           <>
+            {butceVersiyonlar.length === 0 && (
+              <Stack spacing={2}>
+                <Alert severity="info">
+                  Henüz bütçe versiyonu oluşturulmamış. (+) tuşuna basarak oluşturabilirsiniz.
+                </Alert>
+              </Stack>
+            )}
+
+            {butceVersiyonlar.length > 0 && (
+              <Box sx={{ display: "grid", gridTemplateColumns: listGridCols, width: "fit-content" }}>
+
+                {/* Başlık */}
+                <Box sx={{ ...css_list_baslik, justifyContent: "center" }}>Versiyon</Box>
+                <Box sx={{ ...css_list_baslik, justifyContent: "right" }}>Tutar</Box>
+                <Box sx={{ ...css_list_baslik }}>Açıklama</Box>
+                <Box sx={{ ...css_list_baslik }}>Onaylayan</Box>
+                <Box sx={{ ...css_list_baslik }}>Tarih</Box>
+
+                {/* Satırlar */}
+                {butceVersiyonlar.map((v) => {
+                  const isHovered = hoveredRow === v.versiyonNumber;
+                  const hoverBg = isHovered ? "#e8e8e8" : "#f2f2f2";
+                  const rowHandlers = {
+                    onMouseEnter: () => setHoveredRow(v.versiyonNumber),
+                    onMouseLeave: () => setHoveredRow(null),
+                  };
+                  const tutar = v.butce?.totalButceTutar ?? v.butce?.totalKesifTutar ?? null;
+                  const aciklama = v.aciklama ?? "";
+                  const onaylayan = v.olusturanEmail ?? v.createdByEmail ?? v.olusturanIsim ?? "—";
+                  const tarih = formatTarih(v.createdAt ?? v.olusturmaTarihi ?? null);
+
+                  return (
+                    <React.Fragment key={v.versiyonNumber}>
+                      <Box {...rowHandlers} sx={{ ...css_list_satir, justifyContent: "center", fontWeight: 700, backgroundColor: hoverBg }}>
+                        v{v.versiyonNumber}
+                      </Box>
+                      <Box {...rowHandlers} sx={{ ...css_list_satir, justifyContent: "right", fontWeight: tutar ? 600 : 400, backgroundColor: hoverBg }}>
+                        {formatTutar(tutar)}
+                      </Box>
+                      <Box {...rowHandlers} sx={{ ...css_list_satir, backgroundColor: hoverBg, color: aciklama ? "inherit" : "gray" }}>
+                        {aciklama || "—"}
+                      </Box>
+                      <Box {...rowHandlers} sx={{ ...css_list_satir, backgroundColor: hoverBg }}>
+                        {onaylayan}
+                      </Box>
+                      <Box {...rowHandlers} sx={{ ...css_list_satir, backgroundColor: hoverBg }}>
+                        {tarih}
+                      </Box>
+                    </React.Fragment>
+                  );
+                })}
+              </Box>
+            )}
+          </>
+        )}
+
+        {/* ── Yeni versiyon sihirbazı ── */}
+        {show === "Wizard" && (
+          <>
+            {/* Açıklama alanı */}
+            <Box sx={{ mb: "1rem", maxWidth: "32rem" }}>
+              <TextField
+                variant="standard"
+                label="Açıklama"
+                fullWidth
+                value={kesifWizardAciklama ?? ""}
+                onChange={(e) => setKesifWizardAciklama(e.target.value)}
+                placeholder="Bu versiyona ait not (isteğe bağlı)"
+              />
+            </Box>
+
             {!hasIpVersions && (
               <Stack spacing={2}><Alert severity="info">Bu proje için henüz iş paketi versiyonu oluşturulmamış.</Alert></Stack>
             )}
@@ -535,13 +565,13 @@ export default function P_KesifButce() {
               <Stack spacing={2}><Alert severity="info">Seçili iş paketi versiyonunda aktif iş paketi bulunmuyor.</Alert></Stack>
             )}
             {hasIpVersions && isPaketList.length > 0 && (
-              <Box sx={{ mt: "0.5rem", display: "grid", gridTemplateColumns: gridCols, ml: "1px", pt: "1px" }}>
-                <Box sx={css_baslik}>Sıra</Box>
-                <Box sx={css_baslik}>İş Paketi</Box>
-                <Box sx={{ ...css_baslik, textAlign: "center" }}>Metraj V.</Box>
-                <Box sx={{ ...css_baslik, textAlign: "center" }}>B.Fiyat V.</Box>
-                <Box sx={{ ...css_baslik, textAlign: "right" }}>Keşif Tutar</Box>
-                <Box sx={{ ...css_baslik, textAlign: "right" }}>Bütçe Tutar</Box>
+              <Box sx={{ display: "grid", gridTemplateColumns: wizardGridCols, ml: "1px", pt: "1px" }}>
+                <Box sx={css_wizard_baslik}>Sıra</Box>
+                <Box sx={css_wizard_baslik}>İş Paketi</Box>
+                <Box sx={{ ...css_wizard_baslik, textAlign: "center" }}>Metraj V.</Box>
+                <Box sx={{ ...css_wizard_baslik, textAlign: "center" }}>B.Fiyat V.</Box>
+                <Box sx={{ ...css_wizard_baslik, textAlign: "right" }}>Keşif Tutar</Box>
+                <Box sx={{ ...css_wizard_baslik, textAlign: "right" }}>Bütçe Tutar</Box>
 
                 {isPaketList.map((onePaket, index) => {
                   const row = kesifWizardRows[onePaket._id] || {};
@@ -553,11 +583,11 @@ export default function P_KesifButce() {
                   };
                   return (
                     <React.Fragment key={onePaket._id}>
-                      <Box {...rowHandlers} sx={{ ...css_satir, ...hoverSx, justifyContent: "center" }}>{index + 1}</Box>
-                      <Box {...rowHandlers} sx={{ ...css_satir, ...hoverSx, cursor: "pointer" }} onClick={() => handleClickIsPaketEdit(onePaket)}>
+                      <Box {...rowHandlers} sx={{ ...css_wizard_satir, ...hoverSx, justifyContent: "center" }}>{index + 1}</Box>
+                      <Box {...rowHandlers} sx={{ ...css_wizard_satir, ...hoverSx, cursor: "pointer" }} onClick={() => handleClickIsPaketInWizard(onePaket)}>
                         {onePaket.name}
                       </Box>
-                      <Box {...rowHandlers} sx={{ ...css_satir, ...hoverSx, py: "0.25rem" }}>
+                      <Box {...rowHandlers} sx={{ ...css_wizard_satir, ...hoverSx, py: "0.25rem" }}>
                         <Select variant="standard" size="small" displayEmpty value={row.metrajVersiyonNumber ?? ""} onChange={(e) => handleMetrajVChange(onePaket._id, e.target.value)} sx={{ fontSize: "0.875rem", minWidth: 60 }}>
                           <MenuItem value=""><em>—</em></MenuItem>
                           {[...metrajVersiyonlar].sort((a, b) => b.versiyonNumber - a.versiyonNumber).map((v) => (
@@ -565,7 +595,7 @@ export default function P_KesifButce() {
                           ))}
                         </Select>
                       </Box>
-                      <Box {...rowHandlers} sx={{ ...css_satir, ...hoverSx, py: "0.25rem" }}>
+                      <Box {...rowHandlers} sx={{ ...css_wizard_satir, ...hoverSx, py: "0.25rem" }}>
                         <Select variant="standard" size="small" displayEmpty value={row.birimFiyatVersiyonNumber ?? ""} onChange={(e) => handleBirimFiyatVChange(onePaket._id, e.target.value)} sx={{ fontSize: "0.875rem", minWidth: 60 }}>
                           <MenuItem value=""><em>—</em></MenuItem>
                           {[...birimFiyatVersiyonlar].sort((a, b) => b.versiyonNumber - a.versiyonNumber).map((v) => (
@@ -573,74 +603,19 @@ export default function P_KesifButce() {
                           ))}
                         </Select>
                       </Box>
-                      <Box {...rowHandlers} sx={{ ...css_satir, ...hoverSx, justifyContent: "right", fontWeight: row.kesifTutar != null ? 700 : 400, color: row.isCalculating ? "gray" : "inherit" }}>
+                      <Box {...rowHandlers} sx={{ ...css_wizard_satir, ...hoverSx, justifyContent: "right", fontWeight: row.kesifTutar != null ? 700 : 400, color: row.isCalculating ? "gray" : "inherit" }}>
                         {row.isCalculating ? "..." : formatTutar(row.kesifTutar)}
                       </Box>
-                      <Box {...rowHandlers} sx={{ ...css_satir, ...hoverSx, py: "0.25rem" }}>
+                      <Box {...rowHandlers} sx={{ ...css_wizard_satir, ...hoverSx, py: "0.25rem" }}>
                         <TextField variant="standard" size="small" placeholder="—" value={row.butceTutar ?? ""} onChange={(e) => handleButceTutarChange(onePaket._id, e.target.value)} inputProps={{ style: { fontSize: "0.875rem", textAlign: "right" } }} sx={{ width: 100 }} />
                       </Box>
                     </React.Fragment>
                   );
                 })}
 
-                <Box sx={{ ...css_toplam, gridColumn: "1 / span 4", justifyContent: "right" }}>Toplam</Box>
-                <Box sx={{ ...css_toplam, justifyContent: "right" }}>{anyCalculating ? "..." : formatTutar(totalKesif)}</Box>
-                <Box sx={{ ...css_toplam, justifyContent: "right" }}>{totalButce > 0 ? formatTutar(totalButce) : "—"}</Box>
-              </Box>
-            )}
-          </>
-        )}
-
-        {/* ── Görüntüleme modu ── */}
-        {!mode_butceEdit && (
-          <>
-            {!hasButceVersiyonlar && (
-              <Stack spacing={2}><Alert severity="info">Henüz bütçe versiyonu oluşturulmamış. Düzenle tuşuna basarak oluşturabilirsiniz.</Alert></Stack>
-            )}
-            {hasButceVersiyonlar && !viewButce && (
-              <Stack spacing={2}><Alert severity="info">Görüntülenecek versiyon bulunamadı.</Alert></Stack>
-            )}
-            {hasButceVersiyonlar && viewButce && (
-              <Box sx={{ mt: "0.5rem", display: "grid", gridTemplateColumns: gridCols, ml: "1px", pt: "1px" }}>
-                <Box sx={css_baslik}>Sıra</Box>
-                <Box sx={css_baslik}>İş Paketi</Box>
-                <Box sx={{ ...css_baslik, textAlign: "center" }}>Metraj V.</Box>
-                <Box sx={{ ...css_baslik, textAlign: "center" }}>B.Fiyat V.</Box>
-                <Box sx={{ ...css_baslik, textAlign: "right" }}>Keşif Tutar</Box>
-                <Box sx={{ ...css_baslik, textAlign: "right" }}>Bütçe Tutar</Box>
-
-                {viewIsPaketList.map((satir, index) => {
-                  const isHovered = hoveredRow === (satir.isPaketId ?? String(index));
-                  const hoverSx = isHovered ? { textShadow: "0 0 0.7px black, 0 0 0.7px black" } : {};
-                  const rowHandlers = {
-                    onMouseEnter: () => setHoveredRow(satir.isPaketId ?? String(index)),
-                    onMouseLeave: () => setHoveredRow(null),
-                  };
-                  return (
-                    <React.Fragment key={satir.isPaketId ?? index}>
-                      <Box {...rowHandlers} sx={{ ...css_satir, ...hoverSx, justifyContent: "center" }}>{index + 1}</Box>
-                      <Box {...rowHandlers} sx={{ ...css_satir, ...hoverSx, cursor: "pointer" }} onClick={() => handleClickIsPaketView(satir)}>
-                        {satir.isPaketName ?? "—"}
-                      </Box>
-                      <Box {...rowHandlers} sx={{ ...css_satir, ...hoverSx, justifyContent: "center" }}>
-                        {satir.metrajVersiyonNumber != null ? `M${satir.metrajVersiyonNumber}` : "—"}
-                      </Box>
-                      <Box {...rowHandlers} sx={{ ...css_satir, ...hoverSx, justifyContent: "center" }}>
-                        {satir.birimFiyatVersiyonNumber != null ? `BF${satir.birimFiyatVersiyonNumber}` : "—"}
-                      </Box>
-                      <Box {...rowHandlers} sx={{ ...css_satir, ...hoverSx, justifyContent: "right", fontWeight: satir.kesifTutar != null ? 700 : 400 }}>
-                        {formatTutar(satir.kesifTutar)}
-                      </Box>
-                      <Box {...rowHandlers} sx={{ ...css_satir, ...hoverSx, justifyContent: "right" }}>
-                        {formatTutar(satir.butceTutar)}
-                      </Box>
-                    </React.Fragment>
-                  );
-                })}
-
-                <Box sx={{ ...css_toplam, gridColumn: "1 / span 4", justifyContent: "right" }}>Toplam</Box>
-                <Box sx={{ ...css_toplam, justifyContent: "right" }}>{formatTutar(totalViewKesif)}</Box>
-                <Box sx={{ ...css_toplam, justifyContent: "right" }}>{totalViewButce > 0 ? formatTutar(totalViewButce) : "—"}</Box>
+                <Box sx={{ ...css_wizard_toplam, gridColumn: "1 / span 4", justifyContent: "right" }}>Toplam</Box>
+                <Box sx={{ ...css_wizard_toplam, justifyContent: "right" }}>{anyCalculating ? "..." : formatTutar(totalKesif)}</Box>
+                <Box sx={{ ...css_wizard_toplam, justifyContent: "right" }}>{totalButce > 0 ? formatTutar(totalButce) : "—"}</Box>
               </Box>
             )}
           </>

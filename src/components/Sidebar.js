@@ -86,19 +86,11 @@ export default function Sidebar({ setMobileOpen }) {
             </ListItemButton>
 
             <ListItemButton
-              onClick={() => navigate('/metrajolustur')}
-              sx={{ backgroundColor: pathname.includes('/metrajolustur') ? seciliSayfaRengi : null, '&:hover': { backgroundColor: seciliSayfaRengi } }}
+              onClick={() => navigate('/metraj')}
+              sx={{ backgroundColor: pathname.includes('/metraj') ? seciliSayfaRengi : null, '&:hover': { backgroundColor: seciliSayfaRengi } }}
             >
               <ListItemIcon><SendIcon /></ListItemIcon>
-              <ListItemText primary="Metraj Oluştur" />
-            </ListItemButton>
-
-            <ListItemButton
-              onClick={() => navigate('/metrajonayla')}
-              sx={{ backgroundColor: pathname.includes('/metrajonayla') ? seciliSayfaRengi : null, '&:hover': { backgroundColor: seciliSayfaRengi } }}
-            >
-              <ListItemIcon><SendIcon /></ListItemIcon>
-              <ListItemText primary="Metraj Onayla" />
+              <ListItemText primary="Metraj" />
             </ListItemButton>
 
             <ListItemButton

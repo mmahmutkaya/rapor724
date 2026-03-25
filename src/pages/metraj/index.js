@@ -1,9 +1,8 @@
-
 import React, { useState, useEffect, useContext } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useQueryClient } from '@tanstack/react-query'
 import { StoreContext } from '../../components/store.js'
-import { useGetWorkPackages, useGetUserSettings } from '../../hooks/useMongo.js'
+import { useGetMyWorkPackages, useGetUserSettings } from '../../hooks/useMongo.js'
 import { supabase } from '../../lib/supabase.js'
 import { DialogAlert } from '../../components/general/DialogAlert.js'
 
@@ -26,13 +25,13 @@ import NavigateNextIcon from '@mui/icons-material/NavigateNext'
 import VisibilityIcon from '@mui/icons-material/Visibility'
 
 
-const PAGE_KEY = 'metrajonayla'
+const PAGE_KEY = 'metraj'
 const DEFAULT_PAGE_SETTINGS = {
   showAciklama: true,
 }
 
 
-export default function P_MetrajOnayla() {
+export default function P_Metraj() {
   const navigate = useNavigate()
   const queryClient = useQueryClient()
 
@@ -42,7 +41,7 @@ export default function P_MetrajOnayla() {
   const [settingsOpen, setSettingsOpen] = useState(false)
   const [hoveredRowId, setHoveredRowId] = useState(null)
 
-  const { data: isPaketler = [], isFetching, error } = useGetWorkPackages()
+  const { data: isPaketler = [], isFetching, error } = useGetMyWorkPackages()
   const { data: userSettings = {} } = useGetUserSettings()
 
   const pageSettings = { ...DEFAULT_PAGE_SETTINGS, ...(userSettings[PAGE_KEY] ?? {}) }
@@ -141,7 +140,7 @@ export default function P_MetrajOnayla() {
           <Grid item xs>
             <Box sx={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
               <Typography variant="body1" sx={{ fontWeight: 700, whiteSpace: 'nowrap' }}>
-                Metraj Onayla
+                Metraj
               </Typography>
               <NavigateNextIcon sx={{ opacity: 0.3, fontSize: 18, mx: '0.1rem' }} />
               <Typography
@@ -172,13 +171,14 @@ export default function P_MetrajOnayla() {
       {!isFetching && !error && isPaketler.length === 0 && (
         <Stack sx={{ width: '100%', padding: '1rem' }}>
           <Alert severity="info">
-            Bu projede henüz iş paketi oluşturulmamış.
+            Metraj yapabileceğiniz iş paketi bulunmuyor. Proje yöneticisi sizi bir iş paketine üye etmelidir.
           </Alert>
         </Stack>
       )}
 
       {isPaketler.length > 0 && (
         <Box sx={{ padding: '1rem', width: 'fit-content', minWidth: '40rem', maxWidth: '60rem' }}>
+          {/* Tek grid konteyneri — başlık + tüm satırlar hizalı */}
           <Box sx={{ display: 'grid', gridTemplateColumns: columns }}>
 
             {/* Başlık hücreleri */}
@@ -222,7 +222,7 @@ export default function P_MetrajOnayla() {
                     }}
                     onClick={() => {
                       setSelectedIsPaket(paket)
-                      navigate('/metrajonaylapozlar')
+                      navigate('/metraj/pozlar')
                     }}
                   >
                     <Typography variant="body2">

@@ -9,15 +9,10 @@ import P_Pozlar from './pages/pozlar'
 import P_Mahaller from './pages/mahaller'
 import P_ProjeAyarlari from './pages/projeayarlari'
 
-import P_MetrajOlustur from './pages/metrajolustur'
-import P_MetrajOlusturPozlar from './pages/metrajolusturpozlar'
-import P_MetrajOlusturPozMahaller from './pages/metrajolusturpozmahaller'
-import P_MetrajOlusturCetvel from './pages/metrajolusturcetvel'
-
-import P_MetrajOnaylaPozlar from './pages/metrajonaylapozlar'
-import P_MetrajOnaylaPozMahaller from './pages/metrajonaylapozmahaller'
-import P_MetrajOnayla from './pages/metrajonayla'
-import P_MetrajOnaylaCetvel from './pages/metrajonaylacetvel'
+import P_Metraj from './pages/metraj'
+import P_MetrajPozlar from './pages/metrajpozlar'
+import P_MetrajPozMahaller from './pages/metrajpozmahaller'
+import P_MetrajCetvel from './pages/metrajcetvel'
 
 import P_IsPaketler from './pages/ispaketler'
 import P_isPaketPozlar from './pages/ispaketpozlar'
@@ -38,15 +33,10 @@ function App() {
       <Route path='/mahaller' element={<P_Mahaller />} />
       <Route path='/proje-ayarlari' element={<P_ProjeAyarlari />} />
 
-      <Route path='/metrajolustur' element={<P_MetrajOlustur />} />
-      <Route path='/metrajolusturpozlar' element={<P_MetrajOlusturPozlar />} />
-      <Route path='/metrajolusturpozmahaller' element={<P_MetrajOlusturPozMahaller />} />
-      <Route path='/metrajolusturcetvel' element={<P_MetrajOlusturCetvel />} />
-
-      <Route path='/metrajonaylapozlar' element={<P_MetrajOnaylaPozlar />} />
-      <Route path='/metrajonaylapozmahaller' element={<P_MetrajOnaylaPozMahaller />} />
-      <Route path='/metrajonayla' element={<P_MetrajOnayla />} />
-      <Route path='/metrajonaylacetvel' element={<P_MetrajOnaylaCetvel />} />
+      <Route path='/metraj' element={<P_Metraj />} />
+      <Route path='/metraj/pozlar' element={<P_MetrajPozlar />} />
+      <Route path='/metraj/pozlar/:pozId/mahaller' element={<P_MetrajPozMahaller />} />
+      <Route path='/metraj/cetvel' element={<P_MetrajCetvel />} />
 
       <Route path='/ispaketler' element={<P_IsPaketler />} />
       <Route path='/ispaketpozlar' element={<P_isPaketPozlar />} />

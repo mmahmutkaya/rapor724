@@ -81,7 +81,9 @@ export default ({ children }) => {
   const [showNodeMetraj, setShowNodeMetraj] = useState()
   const [nodeMetrajlar, setNodeMetrajlar] = useState()
 
-  const [mode_metrajOnayla, setMode_metrajOnayla] = useState()
+  const [metrajMode, setMetrajMode] = useState("prepare") // "prepare" | "approve"
+  const [metrajViewMode, setMetrajViewMode] = useState("pozOnly") // "pozOnly" | "wbsPoz"
+  const [metrajMahalViewMode, setMetrajMahalViewMode] = useState("lbsMahal") // "lbsOnly" | "mahalOnly" | "lbsMahal"
   const [mode_birimFiyatEdit, setMode_birimFiyatEdit] = useState()
   const [mode_isPaketEdit, setMode_isPaketEdit] = useState()
   const [mode_butceEdit, setMode_butceEdit] = useState()
@@ -143,7 +145,9 @@ export default ({ children }) => {
     showNodeMetraj, setShowNodeMetraj,
     nodeMetrajlar, setNodeMetrajlar,
 
-    mode_metrajOnayla, setMode_metrajOnayla,
+    metrajMode, setMetrajMode,
+    metrajViewMode, setMetrajViewMode,
+    metrajMahalViewMode, setMetrajMahalViewMode,
     mode_birimFiyatEdit, setMode_birimFiyatEdit,
     mode_isPaketEdit, setMode_isPaketEdit,
     mode_butceEdit, setMode_butceEdit,

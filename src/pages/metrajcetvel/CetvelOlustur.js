@@ -26,6 +26,7 @@ import SubdirectoryArrowRightIcon from '@mui/icons-material/SubdirectoryArrowRig
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore'
 import ExpandLessIcon from '@mui/icons-material/ExpandLess'
 import AddCircleOutlineIcon from '@mui/icons-material/AddCircleOutline'
+import AddIcon from '@mui/icons-material/Add'
 import HourglassFullIcon from '@mui/icons-material/HourglassFull'
 import CheckIcon from '@mui/icons-material/Check'
 import DoneAllIcon from '@mui/icons-material/DoneAll'
@@ -41,6 +42,8 @@ import ListItem from '@mui/material/ListItem'
 import ListItemIcon from '@mui/material/ListItemIcon'
 import ListItemText from '@mui/material/ListItemText'
 import Divider from '@mui/material/Divider'
+import ToggleButton from '@mui/material/ToggleButton'
+import ToggleButtonGroup from '@mui/material/ToggleButtonGroup'
 
 
 function computeQuantity(line) {
@@ -165,7 +168,7 @@ const VIRTUAL_SESS_ID = 'virtual-new'
 
 export default function P_MetrajOlusturCetvel() {
   const navigate = useNavigate()
-  const { selectedProje, selectedIsPaket, selectedPoz, selectedMahal, appUser } = useContext(StoreContext)
+  const { selectedProje, selectedIsPaket, selectedPoz, selectedMahal, appUser, metrajMode, setMetrajMode } = useContext(StoreContext)
   const { data: units = [] } = useGetPozUnits()
 
   const [dialogAlert, setDialogAlert] = useState()
@@ -189,6 +192,9 @@ export default function P_MetrajOlusturCetvel() {
   const [pendingDeletes, setPendingDeletes] = useState([])     // { lineId: string }[] — henüz DB'ye yansıtılmamış silmeler
   const [pendingStatusReverts,  setPendingStatusReverts]  = useState([]) // lineId[] — pending→draft, save'e kadar DB'ye yazılmaz
   const [pendingStatusForwards, setPendingStatusForwards] = useState([]) // lineId[] — draft→pending, save'e kadar DB'ye yazılmaz
+  const [selectedOnayRow, setSelectedOnayRow] = useState(null)           // onaylı satır seçimi (R/+ işlemleri için)
+  const [hoveredOnayRowId, setHoveredOnayRowId] = useState(null)         // hover satır ID
+  const [pendingNewLines, setPendingNewLines] = useState({})             // { [parentLineId]: [{tempId, isEdit, rNum, ...}] }
 
   const wpAreaId = selectedMahal?.wpAreaId
 
@@ -207,9 +213,9 @@ export default function P_MetrajOlusturCetvel() {
   }
 
   useEffect(() => {
-    if (!selectedProje || !selectedIsPaket) { navigate('/metrajolustur'); return }
-    if (!selectedPoz) { navigate('/metrajolusturpozlar'); return }
-    if (!wpAreaId) { navigate('/metrajolusturpozmahaller'); return }
+    if (!selectedProje || !selectedIsPaket) { navigate('/metraj'); return }
+    if (!selectedPoz) { navigate('/metraj/pozlar'); return }
+    if (!wpAreaId) { navigate(`/metraj/pozlar/${selectedPoz?.id}/mahaller`); return }
   }, [])
 
   const loadSessions = async () => {
@@ -988,6 +994,7 @@ export default function P_MetrajOlusturCetvel() {
       setPendingStatusForwards([])
     }
     setOnayKartiEditMode(false)
+    setSelectedOnayRow(null)
     setExpandedApproved({})
   }
 
@@ -1237,6 +1244,111 @@ export default function P_MetrajOlusturCetvel() {
     })
   }
 
+  // ── Onaylı Metraj kartı — yeni satır ekleme (hazırlayan, onaylı satıra revize talebi) ──────────
+
+  const handleSelectOnayRow = (node) => {
+    setSelectedOnayRow(prev => prev?.id === node.id ? null : node)
+  }
+
+  const handleDuzenleNew = () => {
+    if (!selectedOnayRow) return
+    const node = selectedOnayRow
+    const isRevisionRow = (node.order_index ?? 0) < 0
+    const targetParentId = isRevisionRow ? node.parent_line_id : node.id
+    const existing = pendingNewLines[targetParentId] ?? []
+    if (existing.some(r => r.isEdit)) return
+    const allLines = sessions.flatMap(s => s.lines ?? [])
+    const existingRevCount = allLines.filter(l => l.parent_line_id === targetParentId && (l.order_index ?? 0) < 0).length
+    const rNum = existingRevCount + 1
+    const newRow = {
+      tempId: `tmp-${Date.now()}-${Math.random()}`,
+      isEdit: true,
+      rNum,
+      description: node.description ?? '',
+      multiplier: (node.multiplier != null && Number(node.multiplier) !== 1) ? String(node.multiplier) : '',
+      count:  node.count  != null ? String(node.count)  : '',
+      length: node.length != null ? String(node.length) : '',
+      width:  node.width  != null ? String(node.width)  : '',
+      height: node.height != null ? String(node.height) : '',
+    }
+    setPendingNewLines(prev => ({ ...prev, [targetParentId]: [...(prev[targetParentId] ?? []), newRow] }))
+  }
+
+  const handleAddChildNew = () => {
+    if (!selectedOnayRow) return
+    const isRevisionRow = (selectedOnayRow.order_index ?? 0) < 0
+    const targetParentId = isRevisionRow ? selectedOnayRow.parent_line_id : selectedOnayRow.id
+    const newRow = {
+      tempId: `tmp-${Date.now()}-${Math.random()}`,
+      isEdit: false,
+      description: '', multiplier: '', count: '', length: '', width: '', height: '',
+    }
+    setPendingNewLines(prev => ({ ...prev, [targetParentId]: [...(prev[targetParentId] ?? []), newRow] }))
+  }
+
+  const handlePendingNewLineChange = (parentId, tempId, field, value) => {
+    setPendingNewLines(prev => ({
+      ...prev,
+      [parentId]: (prev[parentId] ?? []).map(r => r.tempId === tempId ? { ...r, [field]: value } : r),
+    }))
+  }
+
+  const handleRemovePendingNewLine = (parentId, tempId) => {
+    setPendingNewLines(prev => {
+      const remaining = (prev[parentId] ?? []).filter(r => r.tempId !== tempId)
+      if (remaining.length === 0) { const { [parentId]: _, ...rest } = prev; return rest }
+      return { ...prev, [parentId]: remaining }
+    })
+  }
+
+  const saveNewLines = async () => {
+    const allLines = sessions.flatMap(s => s.lines ?? [])
+    let mySessionId = sessions.find(s => s.isOwn)?.id
+    if (!mySessionId) {
+      const { data: newSess, error: sessErr } = await supabase
+        .from('measurement_sessions')
+        .insert({ work_package_poz_area_id: wpAreaId, created_by: appUser?.id, status: 'preparing' })
+        .select('id')
+        .single()
+      if (sessErr) {
+        setDialogAlert({ dialogIcon: 'warning', dialogMessage: 'Oturum oluşturulurken hata.', detailText: sessErr.message, onCloseAction: () => setDialogAlert() })
+        return
+      }
+      mySessionId = newSess.id
+    }
+    for (const [parentLineId, newRows] of Object.entries(pendingNewLines)) {
+      if (newRows.length === 0) continue
+      const existingChildren = allLines.filter(l => l.parent_line_id === parentLineId)
+      let nextOI = existingChildren.filter(l => (l.order_index ?? 0) >= 0).length
+      const existingRevCount = existingChildren.filter(l => (l.order_index ?? 0) < 0).length
+      let nextRevOI = existingRevCount + 1
+      for (const row of newRows) {
+        const { error: lineErr } = await supabase
+          .from('measurement_lines')
+          .insert({
+            session_id: mySessionId,
+            line_type: 'data',
+            description: row.description || null,
+            multiplier: row.multiplier === '' ? 1 : Number(row.multiplier),
+            count:  row.count  === '' ? null : Number(row.count),
+            length: row.length === '' ? null : Number(row.length),
+            width:  row.width  === '' ? null : Number(row.width),
+            height: row.height === '' ? null : Number(row.height),
+            order_index: row.isEdit ? -(nextRevOI++) : nextOI++,
+            status: 'pending',
+            parent_line_id: parentLineId,
+          })
+        if (lineErr) {
+          setDialogAlert({ dialogIcon: 'warning', dialogMessage: 'Satır kaydedilirken hata.', detailText: lineErr.message, onCloseAction: () => setDialogAlert() })
+          return
+        }
+      }
+    }
+    setPendingNewLines({})
+    setSelectedOnayRow(null)
+    await loadSessions()
+  }
+
   const pozBirim = unitsMap[selectedPoz?.unit_id] ?? ''
   const pozLabel = selectedPoz?.code
     ? `${selectedPoz.code} · ${selectedPoz.short_desc}`
@@ -1353,13 +1465,13 @@ export default function P_MetrajOlusturCetvel() {
         <Grid container alignItems="center" sx={{ px: '1rem', py: '0.5rem', maxHeight: '5rem' }}>
           <Grid item xs>
             <Box sx={{ display: 'flex', alignItems: 'center', gap: '0.3rem', flexWrap: 'nowrap', overflow: 'hidden' }}>
-              <IconButton sx={{ m: 0, p: 0 }} onClick={() => navGuard('/metrajolusturpozmahaller')}>
+              <IconButton sx={{ m: 0, p: 0 }} onClick={() => navGuard(`/metraj/pozlar/${selectedPoz?.id}/mahaller`)}>
                 <ReplyIcon sx={{ color: 'gray' }} />
               </IconButton>
               <Typography
                 variant="body1"
                 sx={{ fontWeight: 600, opacity: 0.4, cursor: 'pointer', whiteSpace: 'nowrap', '&:hover': { opacity: 0.9 } }}
-                onClick={() => navGuard('/metrajolusturpozlar')}
+                onClick={() => navGuard('/metraj/pozlar')}
               >
                 {selectedIsPaket?.name}
               </Typography>
@@ -1367,7 +1479,7 @@ export default function P_MetrajOlusturCetvel() {
               <Typography
                 variant="body1"
                 sx={{ fontWeight: 600, opacity: 0.4, cursor: 'pointer', whiteSpace: 'nowrap', maxWidth: '14rem', overflow: 'hidden', textOverflow: 'ellipsis', '&:hover': { opacity: 0.9 } }}
-                onClick={() => navGuard('/metrajolusturpozmahaller')}
+                onClick={() => navGuard(`/metraj/pozlar/${selectedPoz?.id}/mahaller`)}
               >
                 {pozLabel}
               </Typography>
@@ -1376,6 +1488,17 @@ export default function P_MetrajOlusturCetvel() {
                 {selectedMahal?.code ? `${selectedMahal.code} · ${selectedMahal.name}` : selectedMahal?.name}
               </Typography>
             </Box>
+          </Grid>
+          <Grid item sx={{ mx: '0.5rem' }}>
+            <ToggleButtonGroup
+              value={metrajMode}
+              exclusive
+              size="small"
+              onChange={(_, val) => { if (val) setMetrajMode(val) }}
+            >
+              <ToggleButton value="prepare" sx={{ px: '0.8rem', fontWeight: 600, fontSize: '0.75rem', textTransform: 'none' }}>Oluştur</ToggleButton>
+              <ToggleButton value="approve" sx={{ px: '0.8rem', fontWeight: 600, fontSize: '0.75rem', textTransform: 'none' }}>Onayla</ToggleButton>
+            </ToggleButtonGroup>
           </Grid>
           <Grid item>
             <Tooltip title="Kart görünürlüğü">
@@ -1875,7 +1998,10 @@ export default function P_MetrajOlusturCetvel() {
                 {showAllOriginals && showRevizeTalepleri && (
                   <>
                     <Box sx={{ ...css_oc, ...origCellBg, justifyContent: 'flex-start', pl: '0.5rem', color: '#888', fontSize: '0.78rem' }}>{node.siraNo}</Box>
-                    <Box sx={{ ...css_oc, ...origCellBg, color: '#777', fontStyle: 'italic', fontSize: '0.82rem' }}>{node.description ?? ''}</Box>
+                    <Box sx={{ ...css_oc, ...origCellBg, color: '#777', fontStyle: 'italic', fontSize: '0.82rem', gap: '4px' }}>
+                      <Box sx={{ width: 7, height: 7, borderRadius: '50%', flexShrink: 0, visibility: 'hidden' }} />
+                      {node.description ?? ''}
+                    </Box>
                     {NUM_ONAY_FIELDS.map(f => (
                       <Box key={f} sx={{ ...css_oc, ...origCellBg, justifyContent: 'flex-end', color: '#888' }}>{f === 'multiplier' && Number(node[f]) === 1 ? '' : (node[f] != null ? ikiHane(node[f]) : '')}</Box>
                     ))}
@@ -1911,16 +2037,71 @@ export default function P_MetrajOlusturCetvel() {
           const isIgnored = node.status === 'ignored'
           const dimColor = 'rgba(0,0,0,0.28)'
           const isDim = isIgnored || isSuperseded
-          const cellBg = { backgroundColor: rowBg, borderBottom: '1px dashed #c8c8c8', ...(isDim ? { color: dimColor } : {}) }
+          const isSelected = selectedOnayRow?.id === node.id
+          const newRowsForNode = pendingNewLines[node.id] ?? []
+          const isClickable = node.status === 'approved' && !isSuperseded && !onayKartiEditMode
+          const isHovered = isClickable && hoveredOnayRowId === node.id
+          const rowHandlers = isClickable ? { onMouseEnter: () => setHoveredOnayRowId(node.id), onMouseLeave: () => setHoveredOnayRowId(null) } : {}
+          const onRowClick = isClickable ? () => handleSelectOnayRow(node) : undefined
+          const renderNewRows = (editOnly) => {
+            let nonEditCount = (node.children ?? []).filter(c => (c.order_index ?? 0) >= 0).length
+            return newRowsForNode.filter(r => editOnly ? r.isEdit : !r.isEdit).map((row) => {
+              const newSiraNo = row.isEdit ? `${node.siraNo}.R${row.rNum}` : `${node.siraNo}.${++nonEditCount}`
+              const pBg = { backgroundColor: '#FFF8E1', borderBottom: '1px dashed #c8c8c8' }
+              const hasNumData = [row.count, row.length, row.width, row.height].some(v => v !== '')
+              const pendingMetraj = hasNumData ? [
+                row.multiplier === '' ? 1 : Number(row.multiplier),
+                ...[row.count, row.length, row.width, row.height].map(v => v === '' ? null : Number(v))
+              ].filter(v => v !== null && !isNaN(v)).reduce((p, v) => p * v, 1) : 0
+              const negClr = pendingMetraj < 0 ? '#c62828' : undefined
+              return (
+                <React.Fragment key={row.tempId}>
+                  <Box sx={{ ...css_oc, ...pBg, justifyContent: 'flex-start', pl: '0.5rem', color: '#6a1b9a', fontSize: '0.8rem', fontStyle: 'italic' }}>{newSiraNo}</Box>
+                  <Box sx={{ ...css_oc, ...pBg, gap: '4px', pl: '4px', pr: 0, py: 0 }}>
+                    <Box sx={{ width: 7, height: 7, borderRadius: '50%', flexShrink: 0, visibility: 'hidden' }} />
+                    <input className="metraj-num-input"
+                      style={{ border: 'none', background: 'transparent', flex: 1, minWidth: 0, fontFamily: 'inherit', fontSize: '0.85rem', outline: 'none', padding: 0, color: negClr }}
+                      value={row.description} onChange={e => handlePendingNewLineChange(node.id, row.tempId, 'description', e.target.value)} placeholder="Açıklama" />
+                  </Box>
+                  {NUM_ONAY_FIELDS.map(field => (
+                    <Box key={field} sx={{ ...css_oc, ...pBg, justifyContent: 'flex-end', p: 0 }}>
+                      <input className="metraj-num-input" type="number"
+                        style={{ border: 'none', background: 'transparent', width: '100%', textAlign: 'right', fontFamily: 'inherit', fontSize: '0.85rem', outline: 'none', padding: '0 4px', color: negClr }}
+                        value={row[field]} onChange={e => handlePendingNewLineChange(node.id, row.tempId, field, e.target.value)} placeholder="" />
+                    </Box>
+                  ))}
+                  <Box sx={{ ...css_oc, ...pBg, justifyContent: 'flex-end', color: negClr ?? '#6a1b9a', fontWeight: 700, fontSize: '0.82rem' }}>
+                    {hasNumData ? (
+                      <>
+                        {ikiHane(pendingMetraj)}
+                        {pozBirim && pendingMetraj !== 0 && <Box component="span" sx={{ ml: '3px', fontWeight: 400, fontSize: '0.72rem', color: negClr ?? '#6a1b9a' }}>{pozBirim}</Box>}
+                      </>
+                    ) : ''}
+                  </Box>
+                  {showHazırlayan && <Box sx={{ ...css_oc, ...pBg, justifyContent: 'center', fontSize: '0.72rem', color: '#455a64' }}>{userMap[appUser?.id] ?? sessions.find(s => s.isOwn)?.userName ?? appUser?.email ?? '?'}</Box>}
+                  {showOnaylayan && <Box sx={{ ...css_oc, ...pBg }} />}
+                  <Box sx={{ ...css_oc, ...pBg, justifyContent: 'center' }}>
+                    <IconButton size="small" sx={{ p: '2px' }} onClick={() => handleRemovePendingNewLine(node.id, row.tempId)}>
+                      <ClearIcon sx={{ fontSize: 16, color: '#c62828' }} />
+                    </IconButton>
+                  </Box>
+                </React.Fragment>
+              )
+            })
+          }
+          const cellBg = { backgroundColor: rowBg, borderBottom: '1px dashed #c8c8c8', ...(isDim ? { color: dimColor } : {}), ...(isClickable ? { cursor: 'pointer', transition: 'filter 0.15s ease' } : {}), ...(isHovered ? { filter: 'brightness(1.07)' } : {}) }
           const negColor = isDim ? dimColor : (metraj < 0 ? '#c62828' : undefined)
 
           return (
             <>
               {/* Sıra sütunu */}
-              <Box sx={{ ...css_oc, ...cellBg, justifyContent: 'flex-start', pl: '0.5rem', display: 'flex', alignItems: 'center', gap: '2px', color: isDim ? dimColor : (node.depth > 0 ? '#1565c0' : '#555') }}>
+              <Box sx={{ ...css_oc, ...cellBg, justifyContent: 'flex-start', pl: '0.5rem', display: 'flex', alignItems: 'center', gap: '2px', color: isDim ? dimColor : (node.depth > 0 ? '#1565c0' : '#555') }}
+                onClick={onRowClick} {...rowHandlers}>
                 {node.siraNo}
               </Box>
-              <Box sx={{ ...css_oc, ...cellBg, display: 'flex', alignItems: 'center', gap: '4px', color: negColor }}>
+              <Box sx={{ ...css_oc, ...cellBg, display: 'flex', alignItems: 'center', gap: '4px', color: negColor }}
+                onClick={onRowClick} {...rowHandlers}>
+                <Box sx={{ width: 7, height: 7, borderRadius: '50%', backgroundColor: '#c62828', flexShrink: 0, alignSelf: 'center', visibility: isSelected ? 'visible' : 'hidden' }} />
                 {isChildEditable && (
                   <IconButton size="small" sx={{ p: '1px', flexShrink: 0 }}
                     onClick={() => handleDeleteDraftChild(node.id)}>
@@ -1933,7 +2114,7 @@ export default function P_MetrajOlusturCetvel() {
                   : node.description ?? ''}
               </Box>
               {NUM_ONAY_FIELDS.map(f => (
-                <Box key={f} sx={{ ...css_oc, ...cellBg, justifyContent: 'flex-end', color: negColor }}>
+                <Box key={f} sx={{ ...css_oc, ...cellBg, justifyContent: 'flex-end', color: negColor }} onClick={onRowClick} {...rowHandlers}>
                   {isChildEditable && childVals
                     ? <input type="number" className={metraj < 0 ? 'metraj-num-input input-neg' : 'metraj-num-input'} style={{ ...inputOnay, textAlign: 'right', color: negColor }}
                         value={childVals[f]} placeholder="—"
@@ -1942,7 +2123,7 @@ export default function P_MetrajOlusturCetvel() {
                     : f === 'multiplier' && Number(node[f]) === 1 ? '' : (node[f] != null ? ikiHane(node[f]) : '')}
                 </Box>
               ))}
-              <Box sx={{ ...css_oc, ...cellBg, justifyContent: 'flex-end', fontWeight: 700, color: negColor }}>
+              <Box sx={{ ...css_oc, ...cellBg, justifyContent: 'flex-end', fontWeight: 700, color: negColor }} onClick={onRowClick} {...rowHandlers}>
                 {metraj !== 0 ? ikiHane(metraj) : (() => {
                   const isEmpty = v => v === null || v === undefined || v === ''
                   const hasData = !isEmpty(node.description) ||
@@ -1951,11 +2132,11 @@ export default function P_MetrajOlusturCetvel() {
                 })()}
                 {pozBirim && metraj !== 0 && <Box component="span" sx={{ ml: '3px', fontWeight: 400, fontSize: '0.72rem', color: isDim ? dimColor : (metraj < 0 ? '#c62828' : '#555') }}>{pozBirim}</Box>}
               </Box>
-              {showHazırlayan && <Box sx={{ ...css_oc, ...cellBg, justifyContent: 'center', fontSize: '0.78rem', color: isDim ? '#666' : '#455a64' }}>{node.hazırlayan}</Box>}
-              {showOnaylayan  && <Box sx={{ ...css_oc, ...cellBg, justifyContent: 'center', fontSize: '0.78rem', color: isDim ? '#666' : (node.status === 'pending' ? '#1565c0' : '#1b5e20') }}>
+              {showHazırlayan && <Box sx={{ ...css_oc, ...cellBg, justifyContent: 'center', fontSize: '0.78rem', color: isDim ? '#666' : '#455a64' }} onClick={onRowClick} {...rowHandlers}>{node.hazırlayan}</Box>}
+              {showOnaylayan  && <Box sx={{ ...css_oc, ...cellBg, justifyContent: 'center', fontSize: '0.78rem', color: isDim ? '#666' : (node.status === 'pending' ? '#1565c0' : '#1b5e20') }} onClick={onRowClick} {...rowHandlers}>
                 {onaylayanText}
               </Box>}
-              <Box sx={{ ...css_oc, ...cellBg, justifyContent: 'center', gap: '2px' }}>
+              <Box sx={{ ...css_oc, ...cellBg, justifyContent: 'center', gap: '2px' }} {...rowHandlers}>
                 {/* Onaylı satır — edit modda + ikonu */}
                 {node.status === 'approved' && onayKartiEditMode && (
                   <IconButton size="small" sx={{ p: '2px' }} title="Alt satır ekle" onClick={() => {
@@ -1998,6 +2179,8 @@ export default function P_MetrajOlusturCetvel() {
                 <React.Fragment key={child.id}>{renderOnayRow(child)}</React.Fragment>
               ))}
 
+              {renderNewRows(true)}
+              {renderNewRows(false)}
               {revizeEditor}
             </>
           )
@@ -2057,6 +2240,11 @@ export default function P_MetrajOlusturCetvel() {
           .filter(n => n.status === 'approved' && !(n.children?.some(c => c.status === 'approved')))
           .reduce((s, n) => s + calcMetrajOnay(n), 0)
 
+        const hasNewLines = Object.values(pendingNewLines).some(arr => arr.length > 0)
+        const isOnayKartiActive = onayKartiEditMode || hasNewLines
+        const rBtnDisabled = !selectedOnayRow
+        const plusBtnDisabled = !selectedOnayRow
+
         return (
           <Box sx={{ mt: '1.5rem', px: '1rem', maxWidth: '1100px', order: 0 }}>
             <Box sx={{ border: '2px solid #43A047', overflow: 'hidden', boxShadow: 2 }}>
@@ -2092,10 +2280,44 @@ export default function P_MetrajOlusturCetvel() {
                   <IconButton size="small" sx={{ color: 'rgba(224,225,221,0.9)', '&:hover': { color: '#fff' } }} onClick={() => setShowAllOriginals(prev => !prev)}>
                     {showAllOriginals ? <ExpandLessIcon sx={{ fontSize: 22, filter: 'drop-shadow(0 0 0.7px currentColor)' }} /> : <ExpandMoreIcon sx={{ fontSize: 22, filter: 'drop-shadow(0 0 0.7px currentColor)' }} />}
                   </IconButton>
+                  {/* R ve + butonları */}
+                  {!onayKartiEditMode && (
+                    <>
+                      <IconButton size="small" title="Revize talebi oluştur (.R1)"
+                        disabled={rBtnDisabled}
+                        onClick={handleDuzenleNew}
+                        sx={{ color: selectedOnayRow ? 'rgba(224,225,221,0.9)' : 'rgba(255,255,255,0.25)', '&:hover': { color: '#fff' }, '&.Mui-disabled': { color: 'rgba(255,255,255,0.2)' } }}>
+                        <Box sx={{ width: 20, height: 20, borderRadius: '50%', border: '2.5px solid currentColor', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                          <Typography sx={{ fontSize: '0.75rem', fontWeight: 900, lineHeight: 1 }}>R</Typography>
+                        </Box>
+                      </IconButton>
+                      <IconButton size="small" title="Alt satır ekle"
+                        disabled={plusBtnDisabled}
+                        onClick={handleAddChildNew}
+                        sx={{ color: selectedOnayRow ? 'rgba(224,225,221,0.9)' : 'rgba(255,255,255,0.25)', '&:hover': { color: '#fff' }, '&.Mui-disabled': { color: 'rgba(255,255,255,0.2)' } }}>
+                        <Box sx={{ width: 20, height: 20, borderRadius: '50%', border: '2.5px solid currentColor', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                          <AddIcon sx={{ fontSize: 14 }} />
+                        </Box>
+                      </IconButton>
+                    </>
+                  )}
+                  {/* Yeni satır save/cancel — hasNewLines */}
+                  {hasNewLines && !onayKartiEditMode && (
+                    <>
+                      <IconButton size="small" title="İptal" sx={{ p: '2px', color: '#ffcdd2' }}
+                        onClick={() => { setPendingNewLines({}); setSelectedOnayRow(null) }}>
+                        <ClearIcon sx={{ fontSize: 20 }} />
+                      </IconButton>
+                      <IconButton size="small" sx={{ p: '2px', color: '#c8e6c9' }} title="Kaydet" onClick={saveNewLines}>
+                        <SaveIcon sx={{ fontSize: 20 }} />
+                      </IconButton>
+                    </>
+                  )}
                   <IconButton size="small" title="İptal"
                     sx={{ p: '2px', color: '#ffcdd2', visibility: onayKartiEditMode ? 'visible' : 'hidden', pointerEvents: onayKartiEditMode ? 'auto' : 'none' }}
                     onClick={() => {
                       setOnayKartiEditMode(false)
+                      setSelectedOnayRow(null)
                       setExpandedApproved({})
                       setRevizeForms({})
                       setChildEditValues({})
@@ -2131,10 +2353,11 @@ export default function P_MetrajOlusturCetvel() {
                       <SaveIcon sx={{ fontSize: 20 }} />
                     </IconButton>
                   )}
-                  {!onayKartiEditMode && (
+                  {!isOnayKartiActive && (
                     <IconButton size="small" disabled={approvalTree.length === 0} sx={{ p: '2px', color: '#c8e6c9', '&.Mui-disabled': { color: 'rgba(255,255,255,0.2)' } }} title="Düzenle" onClick={() => {
                       setShowAllOriginals(true)
                       setOnayKartiEditMode(true)
+                      setSelectedOnayRow(null)
                       const newExpanded = {}
                       const expandAll = (nodes) => nodes.forEach(n => {
                         if ((n.children?.length ?? 0) > 0) { newExpanded[n.id] = true; expandAll(n.children) }

@@ -39,6 +39,8 @@ import SaveIcon from '@mui/icons-material/Save'
 import CloseIcon from '@mui/icons-material/Close'
 import AddCircleOutlineIcon from '@mui/icons-material/AddCircleOutline'
 import ClearIcon from '@mui/icons-material/Clear'
+import ToggleButton from '@mui/material/ToggleButton'
+import ToggleButtonGroup from '@mui/material/ToggleButtonGroup'
 
 
 function computeQuantity(line) {
@@ -169,7 +171,7 @@ function getCardColors(visualStatus, isOwn = true) {
 
 export default function P_MetrajOnaylaCetvel() {
   const navigate = useNavigate()
-  const { selectedProje, selectedIsPaket, selectedPoz, selectedMahal_metraj } = useContext(StoreContext)
+  const { selectedProje, selectedIsPaket, selectedPoz, selectedMahal_metraj, metrajMode, setMetrajMode } = useContext(StoreContext)
   const { data: units = [] } = useGetPozUnits()
 
   const [dialogAlert, setDialogAlert]       = useState()
@@ -197,9 +199,9 @@ export default function P_MetrajOnaylaCetvel() {
   const wpAreaId = selectedMahal_metraj?.wpAreaId
 
   useEffect(() => {
-    if (!selectedProje || !selectedIsPaket) { navigate('/metrajonayla'); return }
-    if (!selectedPoz)                        { navigate('/metrajonaylapozlar'); return }
-    if (!wpAreaId)                           { navigate('/metrajonaylapozmahaller'); return }
+    if (!selectedProje || !selectedIsPaket) { navigate('/metraj'); return }
+    if (!selectedPoz)                        { navigate('/metraj/pozlar'); return }
+    if (!wpAreaId)                           { navigate(`/metraj/pozlar/${selectedPoz?.id}/mahaller`); return }
   }, [])
 
   const loadData = async () => {
@@ -716,13 +718,13 @@ export default function P_MetrajOnaylaCetvel() {
         <Grid container alignItems="center" sx={{ px: '1rem', py: '0.5rem', maxHeight: '5rem' }}>
           <Grid item xs>
             <Box sx={{ display: 'flex', alignItems: 'center', gap: '0.3rem', flexWrap: 'nowrap', overflow: 'hidden' }}>
-              <IconButton sx={{ m: 0, p: 0 }} onClick={() => navigate('/metrajonaylapozmahaller')}>
+              <IconButton sx={{ m: 0, p: 0 }} onClick={() => navigate(`/metraj/pozlar/${selectedPoz?.id}/mahaller`)}>
                 <ReplyIcon sx={{ color: 'gray' }} />
               </IconButton>
               <Typography
                 variant="body1"
                 sx={{ fontWeight: 600, opacity: 0.4, cursor: 'pointer', whiteSpace: 'nowrap', '&:hover': { opacity: 0.9 } }}
-                onClick={() => navigate('/metrajonayla')}
+                onClick={() => navigate('/metraj')}
               >
                 Metraj Onayla
               </Typography>
@@ -730,7 +732,7 @@ export default function P_MetrajOnaylaCetvel() {
               <Typography
                 variant="body1"
                 sx={{ fontWeight: 600, opacity: 0.4, cursor: 'pointer', whiteSpace: 'nowrap', maxWidth: '10rem', overflow: 'hidden', textOverflow: 'ellipsis', '&:hover': { opacity: 0.9 } }}
-                onClick={() => navigate('/metrajonaylapozlar')}
+                onClick={() => navigate('/metraj/pozlar')}
               >
                 {selectedIsPaket?.name}
               </Typography>
@@ -738,7 +740,7 @@ export default function P_MetrajOnaylaCetvel() {
               <Typography
                 variant="body1"
                 sx={{ fontWeight: 600, opacity: 0.6, cursor: 'pointer', whiteSpace: 'nowrap', maxWidth: '14rem', overflow: 'hidden', textOverflow: 'ellipsis', '&:hover': { opacity: 0.9 } }}
-                onClick={() => navigate('/metrajonaylapozmahaller')}
+                onClick={() => navigate(`/metraj/pozlar/${selectedPoz?.id}/mahaller`)}
               >
                 {pozLabel}
               </Typography>
@@ -747,6 +749,17 @@ export default function P_MetrajOnaylaCetvel() {
                 {selectedMahal_metraj?.name ?? 'Mahal'}
               </Typography>
             </Box>
+          </Grid>
+          <Grid item sx={{ mx: '0.5rem' }}>
+            <ToggleButtonGroup
+              value={metrajMode}
+              exclusive
+              size="small"
+              onChange={(_, val) => { if (val) setMetrajMode(val) }}
+            >
+              <ToggleButton value="prepare" sx={{ px: '0.8rem', fontWeight: 600, fontSize: '0.75rem', textTransform: 'none' }}>Oluştur</ToggleButton>
+              <ToggleButton value="approve" sx={{ px: '0.8rem', fontWeight: 600, fontSize: '0.75rem', textTransform: 'none' }}>Onayla</ToggleButton>
+            </ToggleButtonGroup>
           </Grid>
           <Grid item>
             <IconButton onClick={() => setOpenVisibilityDialog(true)}>
