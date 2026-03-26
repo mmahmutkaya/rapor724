@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useContext } from "react";
+import React, { useState, useEffect, useContext, useMemo } from "react";
 import { StoreContext } from "../../components/store.js";
 import { useNavigate } from "react-router-dom";
 import { useGetWorkPackages } from "../../hooks/useMongo.js";
@@ -14,12 +14,18 @@ import Box from "@mui/material/Box";
 import IconButton from "@mui/material/IconButton";
 import TextField from "@mui/material/TextField";
 import LinearProgress from "@mui/material/LinearProgress";
+import Tooltip from "@mui/material/Tooltip";
 
 import ClearOutlined from "@mui/icons-material/ClearOutlined";
 import SaveOutlined from "@mui/icons-material/SaveOutlined";
 import AddCircleOutlineIcon from "@mui/icons-material/AddCircleOutline";
 import DeleteOutlineIcon from "@mui/icons-material/DeleteOutline";
 import AddIcon from "@mui/icons-material/Add";
+import SubdirectoryArrowRightIcon from "@mui/icons-material/SubdirectoryArrowRight";
+import KeyboardArrowUpIcon from "@mui/icons-material/KeyboardArrowUp";
+import KeyboardArrowDownIcon from "@mui/icons-material/KeyboardArrowDown";
+import KeyboardArrowLeftIcon from "@mui/icons-material/KeyboardArrowLeft";
+import KeyboardArrowRightIcon from "@mui/icons-material/KeyboardArrowRight";
 
 // pozlar/index.js ile birebir aynı palet
 const NODE_PALETTE = [
@@ -33,14 +39,28 @@ const NODE_PALETTE = [
   { bg: "#4B5320", co: "#e6e6e6" },
 ];
 
+// pozlar/index.js ile aynı yardımcılar
+function flattenTree(nodes, parentId = null, depth = 0) {
+  return nodes
+    .filter(n => (n.parent_id ?? null) === (parentId ?? null))
+    .sort((a, b) => a.order_index - b.order_index)
+    .flatMap(n => [{ ...n, depth }, ...flattenTree(nodes, n.id, depth + 1)]);
+}
+
+function nodeColor(depth) {
+  return NODE_PALETTE[depth % NODE_PALETTE.length];
+}
+
 export default function P_KesifButce() {
   const { appUser, selectedProje } = useContext(StoreContext);
   const navigate = useNavigate();
 
   const [show, setShow] = useState("Main");
-  // formNodes: [{ id, name, isFixed, collapsed, rows: [{id, name, isWp, butce}] }]
+  // formNodes: [{ id, parent_id, name, isFixed, order_index, rows: [{id, name, isWp, butce}] }]
   const [formNodes, setFormNodes] = useState([]);
   const [formAciklama, setFormAciklama] = useState("");
+  const [activeNodeId, setActiveNodeId] = useState(null);
+  const [collapsedIds, setCollapsedIds] = useState(new Set());
 
   const [versiyonlar, setVersiyonlar] = useState([]);
   const [versiyonlarLoading, setVersiyonlarLoading] = useState(false);
@@ -59,6 +79,98 @@ export default function P_KesifButce() {
     loadVersiyonlar();
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
+  // ── Tree hesaplamaları ──────────────────────────────────────────────────────
+  const flatNodes = useMemo(() => flattenTree(formNodes), [formNodes]);
+
+  const isLeafSet = useMemo(() => {
+    const s = new Set();
+    formNodes.forEach(n => {
+      if (!formNodes.some(c => c.parent_id === n.id)) s.add(n.id);
+    });
+    return s;
+  }, [formNodes]);
+
+  const maxLeafDepth = useMemo(() => {
+    const leaves = flatNodes.filter(n => isLeafSet.has(n.id));
+    return leaves.length > 0 ? Math.max(...leaves.map(n => n.depth)) : 0;
+  }, [flatNodes, isLeafSet]);
+
+  const totalDepthCols = maxLeafDepth + 1;
+  // totalCols = depth-bar sütunları + name + budget + delete + fill
+  const totalCols = totalDepthCols + 4;
+  const treeGridCols = `repeat(${totalDepthCols}, 1rem) minmax(16rem, max-content) 9rem max-content minmax(0, 1fr)`;
+
+  // ── Seçili düğüm / taşıma ──────────────────────────────────────────────────
+  const activeNode = useMemo(
+    () => formNodes.find(n => n.id === activeNodeId) ?? null,
+    [formNodes, activeNodeId]
+  );
+
+  const nodeSiblings = useMemo(() => {
+    if (!activeNode) return [];
+    return formNodes
+      .filter(n => (n.parent_id ?? null) === (activeNode.parent_id ?? null))
+      .sort((a, b) => a.order_index - b.order_index);
+  }, [formNodes, activeNode]);
+
+  const sibIdx = useMemo(
+    () => nodeSiblings.findIndex(n => n.id === activeNodeId),
+    [nodeSiblings, activeNodeId]
+  );
+
+  const canMoveUp    = !!activeNode && !activeNode.isFixed && sibIdx > 0;
+  const canMoveDown  = !!activeNode && !activeNode.isFixed && sibIdx < nodeSiblings.length - 1;
+  const canMoveLeft  = !!activeNode && !activeNode.isFixed && activeNode.parent_id != null;
+  const canMoveRight = !!activeNode && !activeNode.isFixed && sibIdx > 0;
+
+  const handleMoveUp = () => {
+    if (!canMoveUp) return;
+    const prev = nodeSiblings[sibIdx - 1];
+    setFormNodes(p => p.map(n => {
+      if (n.id === activeNode.id) return { ...n, order_index: prev.order_index };
+      if (n.id === prev.id)       return { ...n, order_index: activeNode.order_index };
+      return n;
+    }));
+  };
+
+  const handleMoveDown = () => {
+    if (!canMoveDown) return;
+    const next = nodeSiblings[sibIdx + 1];
+    setFormNodes(p => p.map(n => {
+      if (n.id === activeNode.id) return { ...n, order_index: next.order_index };
+      if (n.id === next.id)       return { ...n, order_index: activeNode.order_index };
+      return n;
+    }));
+  };
+
+  const handleMoveLeft = () => {
+    if (!canMoveLeft) return;
+    const parent = formNodes.find(n => n.id === activeNode.parent_id);
+    const grandparentId = parent?.parent_id ?? null;
+    const parentSiblings = formNodes
+      .filter(n => (n.parent_id ?? null) === (grandparentId ?? null))
+      .sort((a, b) => a.order_index - b.order_index);
+    const parentIdx = parentSiblings.findIndex(n => n.id === parent.id);
+    const toShift = parentSiblings.filter((_, i) => i > parentIdx);
+    setFormNodes(p => p.map(n => {
+      if (n.id === activeNode.id) return { ...n, parent_id: grandparentId, order_index: parent.order_index + 1 };
+      if (toShift.some(s => s.id === n.id)) return { ...n, order_index: n.order_index + 1 };
+      return n;
+    }));
+  };
+
+  const handleMoveRight = () => {
+    if (!canMoveRight) return;
+    const newParent = nodeSiblings[sibIdx - 1];
+    const newChildren = formNodes.filter(n => n.parent_id === newParent.id);
+    const newOrder = newChildren.length > 0 ? Math.max(...newChildren.map(n => n.order_index)) + 1 : 0;
+    setFormNodes(p => p.map(n =>
+      n.id === activeNode.id ? { ...n, parent_id: newParent.id, order_index: newOrder } : n
+    ));
+    setCollapsedIds(prev => { const next = new Set(prev); next.delete(newParent.id); return next; });
+  };
+
+  // ── Versiyonlar ─────────────────────────────────────────────────────────────
   const loadVersiyonlar = async () => {
     if (!selectedProje?.id) {
       setVersiyonlar(
@@ -73,7 +185,7 @@ export default function P_KesifButce() {
       .order("versiyon_number", { ascending: false });
     setVersiyonlarLoading(false);
     if (!error && data) {
-      setVersiyonlar(data.map((r) => ({
+      setVersiyonlar(data.map(r => ({
         versiyonNumber: r.versiyon_number,
         aciklama: r.aciklama ?? "",
         tutar: r.total_butce_tutar,
@@ -86,54 +198,132 @@ export default function P_KesifButce() {
   const openForm = () => {
     setFormNodes([{
       id: "node_ispaketleri",
+      parent_id: null,
       name: "İş Paketleri",
       isFixed: true,
-      collapsed: false,
-      rows: workPackages.map((wp) => ({ id: wp.id, name: wp.name, isWp: true, butce: "" })),
+      order_index: 0,
+      rows: workPackages.map(wp => ({ id: wp.id, name: wp.name, isWp: true, butce: "" })),
     }]);
     setFormAciklama("");
+    setActiveNodeId(null);
+    setCollapsedIds(new Set());
     setShow("Form");
   };
 
-  const cancelForm = () => { setFormNodes([]); setFormAciklama(""); setShow("Main"); };
+  const cancelForm = () => {
+    setFormNodes([]);
+    setFormAciklama("");
+    setActiveNodeId(null);
+    setCollapsedIds(new Set());
+    setShow("Main");
+  };
 
-  // ── Düğüm işlemleri ────────────────────────────────────────────────────────
-  const toggleCollapse = (id) =>
-    setFormNodes((p) => p.map((n) => n.id === id ? { ...n, collapsed: !n.collapsed } : n));
+  // ── Collapse ────────────────────────────────────────────────────────────────
+  const toggleCollapse = id =>
+    setCollapsedIds(prev => {
+      const next = new Set(prev);
+      next.has(id) ? next.delete(id) : next.add(id);
+      return next;
+    });
 
+  function isHiddenByAncestor(node) {
+    let parentId = node.parent_id;
+    while (parentId) {
+      if (collapsedIds.has(parentId)) return true;
+      const parent = formNodes.find(n => n.id === parentId);
+      parentId = parent?.parent_id ?? null;
+    }
+    return false;
+  }
+
+  // ── Düğüm işlemleri ─────────────────────────────────────────────────────────
   const updateNodeName = (id, val) =>
-    setFormNodes((p) => p.map((n) => n.id === id ? { ...n, name: val } : n));
+    setFormNodes(p => p.map(n => n.id === id ? { ...n, name: val } : n));
 
-  const addSiblingNode = () =>
-    setFormNodes((p) => [...p, { id: "node_" + Date.now(), name: "Yeni Düğüm", isFixed: false, collapsed: false, rows: [] }]);
+  const addRootNode = () => {
+    const roots = formNodes.filter(n => n.parent_id == null);
+    const maxOrder = roots.length > 0 ? Math.max(...roots.map(n => n.order_index)) : -1;
+    const newNode = {
+      id: "node_" + Date.now(),
+      parent_id: null,
+      name: "Yeni Düğüm",
+      isFixed: false,
+      order_index: maxOrder + 1,
+      rows: [],
+    };
+    setFormNodes(p => [...p, newNode]);
+    setActiveNodeId(newNode.id);
+  };
 
-  const deleteNode = (id) =>
-    setFormNodes((p) => p.filter((n) => n.id !== id));
+  const addChildNode = parentId => {
+    const siblings = formNodes.filter(n => n.parent_id === parentId);
+    const maxOrder = siblings.length > 0 ? Math.max(...siblings.map(n => n.order_index)) : -1;
+    const newNode = {
+      id: "node_" + Date.now(),
+      parent_id: parentId,
+      name: "Yeni Alt Düğüm",
+      isFixed: false,
+      order_index: maxOrder + 1,
+      rows: [],
+    };
+    setFormNodes(p => [...p, newNode]);
+    setCollapsedIds(prev => { const next = new Set(prev); next.delete(parentId); return next; });
+    setActiveNodeId(newNode.id);
+  };
 
-  // ── Satır işlemleri ────────────────────────────────────────────────────────
-  const addRow = (nodeId) =>
-    setFormNodes((p) => p.map((n) =>
+  const deleteNodeRecursive = id => {
+    // Düğüm + tüm torunları toplayarak sil
+    const toDelete = new Set([id]);
+    let changed = true;
+    while (changed) {
+      changed = false;
+      formNodes.forEach(n => {
+        if (n.parent_id && toDelete.has(n.parent_id) && !toDelete.has(n.id)) {
+          toDelete.add(n.id);
+          changed = true;
+        }
+      });
+    }
+    setFormNodes(p => p.filter(n => !toDelete.has(n.id)));
+    if (toDelete.has(activeNodeId)) setActiveNodeId(null);
+  };
+
+  // ── Satır işlemleri ─────────────────────────────────────────────────────────
+  const addRow = nodeId =>
+    setFormNodes(p => p.map(n =>
       n.id === nodeId
         ? { ...n, rows: [...n.rows, { id: "row_" + Date.now() + "_" + Math.random(), name: "", isWp: false, butce: "" }] }
         : n
     ));
 
   const updateRow = (nodeId, rowId, field, val) =>
-    setFormNodes((p) => p.map((n) =>
-      n.id === nodeId ? { ...n, rows: n.rows.map((r) => r.id === rowId ? { ...r, [field]: val } : r) } : n
+    setFormNodes(p => p.map(n =>
+      n.id === nodeId ? { ...n, rows: n.rows.map(r => r.id === rowId ? { ...r, [field]: val } : r) } : n
     ));
 
   const deleteRow = (nodeId, rowId) =>
-    setFormNodes((p) => p.map((n) =>
-      n.id === nodeId ? { ...n, rows: n.rows.filter((r) => r.id !== rowId) } : n
+    setFormNodes(p => p.map(n =>
+      n.id === nodeId ? { ...n, rows: n.rows.filter(r => r.id !== rowId) } : n
     ));
 
-  // ── Toplamlar ──────────────────────────────────────────────────────────────
-  const nodeTotal = (node) => node.rows.reduce((s, r) => s + (Number(r.butce) || 0), 0);
-  const grandTotal = formNodes.reduce((s, n) => s + nodeTotal(n), 0);
-  const hasAnyButce = formNodes.some((n) => n.rows.some((r) => r.butce !== ""));
+  // ── Toplamlar ───────────────────────────────────────────────────────────────
+  const nodeRowTotal = node => node.rows.reduce((s, r) => s + (Number(r.butce) || 0), 0);
 
-  // ── Kaydet ─────────────────────────────────────────────────────────────────
+  const subtreeTotal = nodeId => {
+    const node = formNodes.find(n => n.id === nodeId);
+    if (!node) return 0;
+    return nodeRowTotal(node) + formNodes
+      .filter(n => n.parent_id === nodeId)
+      .reduce((s, child) => s + subtreeTotal(child.id), 0);
+  };
+
+  const grandTotal = formNodes
+    .filter(n => n.parent_id == null)
+    .reduce((s, n) => s + subtreeTotal(n.id), 0);
+
+  const hasAnyButce = formNodes.some(n => n.rows.some(r => r.butce !== ""));
+
+  // ── Kaydet ──────────────────────────────────────────────────────────────────
   const handleSave = async () => {
     setIsSaving(true);
     try {
@@ -144,13 +334,14 @@ export default function P_KesifButce() {
         total_kesif_tutar: null,
         total_butce_tutar: Math.round(grandTotal * 100) / 100 || null,
         is_paketler_satirlar: {
-          nodes: formNodes.map((n) => ({
+          nodes: formNodes.map(n => ({
             nodeId: n.id, nodeName: n.name, isFixed: n.isFixed,
+            parentId: n.parent_id, orderIndex: n.order_index,
             rows: n.rows.map((r, i) => ({
               sira: i + 1, rowId: r.id, name: r.name, isWp: r.isWp,
               butce: r.butce !== "" ? Number(r.butce) || null : null,
             })),
-            totalButce: Math.round(nodeTotal(n) * 100) / 100,
+            totalButce: Math.round(nodeRowTotal(n) * 100) / 100,
           })),
         },
         created_by: appUser.id,
@@ -165,12 +356,12 @@ export default function P_KesifButce() {
     }
   };
 
-  // ── Yardımcı ───────────────────────────────────────────────────────────────
-  const fmt = (v) => {
+  // ── Yardımcı formatter'lar ──────────────────────────────────────────────────
+  const fmt = v => {
     if (v == null || v === 0) return "—";
     return new Intl.NumberFormat("tr-TR", { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(v);
   };
-  const formatTarih = (d) => {
+  const formatTarih = d => {
     if (!d) return "—";
     try { return new Date(d).toLocaleDateString("tr-TR"); } catch { return "—"; }
   };
@@ -178,17 +369,20 @@ export default function P_KesifButce() {
   const iconBtn_sx = { width: 40, height: 40 };
   const icon_sx = { fontSize: 24 };
 
-  // Liste grid sütunları
   const listCols = "max-content max-content minmax(10rem, 1fr) max-content max-content";
   const css_lb = { display: "flex", alignItems: "center", px: "0.6rem", py: "0.3rem", backgroundColor: "#c8c8c8", fontWeight: 700, fontSize: "0.8rem", textTransform: "uppercase", borderBottom: "1px solid #aaa", whiteSpace: "nowrap" };
   const css_ls = { display: "flex", alignItems: "center", px: "0.6rem", py: "0.4rem", borderBottom: "1px solid #ddd", fontSize: "0.875rem", backgroundColor: "#f2f2f2" };
 
-  // ── Render ─────────────────────────────────────────────────────────────────
+  // ── Render ──────────────────────────────────────────────────────────────────
   return (
     <Box sx={{ minWidth: "40rem" }}>
       {dialogAlert && (
-        <DialogAlert dialogIcon={dialogAlert.dialogIcon} dialogMessage={dialogAlert.dialogMessage}
-          detailText={dialogAlert.detailText} onCloseAction={dialogAlert.onCloseAction ?? (() => setDialogAlert())} />
+        <DialogAlert
+          dialogIcon={dialogAlert.dialogIcon}
+          dialogMessage={dialogAlert.dialogMessage}
+          detailText={dialogAlert.detailText}
+          onCloseAction={dialogAlert.onCloseAction ?? (() => setDialogAlert())}
+        />
       )}
 
       {/* APP BAR */}
@@ -208,6 +402,36 @@ export default function P_KesifButce() {
             <Box sx={{ display: "flex", alignItems: "center", gap: "0.25rem" }}>
               {show === "Form" ? (
                 <>
+                  {/* Seçili düğüm varsa taşıma + alt düğüm ekleme butonları */}
+                  {activeNodeId && (
+                    <>
+                      <Tooltip title="Yukarı taşı"><span>
+                        <IconButton size="small" onClick={handleMoveUp} disabled={!canMoveUp}>
+                          <KeyboardArrowUpIcon />
+                        </IconButton>
+                      </span></Tooltip>
+                      <Tooltip title="Aşağı taşı"><span>
+                        <IconButton size="small" onClick={handleMoveDown} disabled={!canMoveDown}>
+                          <KeyboardArrowDownIcon />
+                        </IconButton>
+                      </span></Tooltip>
+                      <Tooltip title="Sol'a taşı (üst seviyeye)"><span>
+                        <IconButton size="small" onClick={handleMoveLeft} disabled={!canMoveLeft}>
+                          <KeyboardArrowLeftIcon />
+                        </IconButton>
+                      </span></Tooltip>
+                      <Tooltip title="Sağ'a taşı (bir üst kardeşin altına)"><span>
+                        <IconButton size="small" onClick={handleMoveRight} disabled={!canMoveRight}>
+                          <KeyboardArrowRightIcon />
+                        </IconButton>
+                      </span></Tooltip>
+                      <Tooltip title="Alt düğüm ekle"><span>
+                        <IconButton size="small" onClick={() => addChildNode(activeNodeId)}>
+                          <SubdirectoryArrowRightIcon />
+                        </IconButton>
+                      </span></Tooltip>
+                    </>
+                  )}
                   <IconButton onClick={cancelForm} disabled={isSaving} sx={iconBtn_sx}>
                     <ClearOutlined sx={{ ...icon_sx, color: "red" }} />
                   </IconButton>
@@ -232,10 +456,6 @@ export default function P_KesifButce() {
         {/* ── Yeni versiyon formu ── */}
         {show === "Form" && !wpLoading && (
           <>
-            {/* ══ POZLAR WBS YAPISI ══
-                Dış grid: [1rem siyah ray] [içerik]
-                İçerik grid: [name 1fr] [bütçe 9rem] [aksiyonlar]
-            */}
             <Box sx={{ width: "fit-content", minWidth: "34rem" }}>
 
               {/* Proje adı başlık — pozlar ile aynı siyah bar */}
@@ -250,38 +470,56 @@ export default function P_KesifButce() {
 
               {/* Sol siyah ray + ağaç içeriği */}
               <Box sx={{ display: "grid", gridTemplateColumns: "1rem 1fr" }}>
-
-                {/* Sürekli siyah sol ray — pozlar ile aynı */}
                 <Box sx={{ backgroundColor: "black" }} />
 
-                {/* İç içerik: name | bütçe | aksiyonlar */}
-                <Box sx={{ display: "grid", gridTemplateColumns: "minmax(16rem, 1fr) 9rem max-content" }}>
+                {/* Dinamik grid — pozlar wbsPoz modu ile aynı yapı */}
+                <Box sx={{ display: "grid", gridTemplateColumns: treeGridCols }}>
 
-                  {formNodes.map((node, nodeIdx) => {
-                    const c = NODE_PALETTE[nodeIdx % NODE_PALETTE.length];
-                    const total = nodeTotal(node);
+                  {flatNodes.map(node => {
+                    if (isHiddenByAncestor(node)) return null;
+                    const { depth } = node;
+                    const isLeaf = isLeafSet.has(node.id);
+                    const isSelected = activeNodeId === node.id;
+                    const isCollapsed = collapsedIds.has(node.id);
+                    const c = nodeColor(depth);
+                    const total = subtreeTotal(node.id);
 
                     return (
                       <React.Fragment key={node.id}>
 
-                        {/* ── Düğüm başlık satırı ── */}
+                        {/* Derinlik çubukları (0..depth-1) */}
+                        {Array.from({ length: depth }).map((_, i) => (
+                          <Box key={i} sx={{ backgroundColor: nodeColor(i).bg }} />
+                        ))}
 
-                        {/* col1: chevron + ad */}
+                        {/* Düğüm başlık — geri kalan tüm sütunları kapsar */}
                         <Box
-                          onClick={() => toggleCollapse(node.id)}
+                          onClick={() => {
+                            setActiveNodeId(prev => prev === node.id ? null : node.id);
+                            if (!isLeaf) toggleCollapse(node.id);
+                          }}
                           sx={{
+                            gridColumn: `span ${totalCols - depth}`,
                             pl: "6px", py: "2px",
-                            backgroundColor: c.bg, color: c.co,
-                            cursor: "pointer", userSelect: "none",
+                            backgroundColor: isSelected ? "#1a3a5c" : c.bg,
+                            color: c.co,
+                            cursor: "pointer",
                             display: "flex", alignItems: "center", gap: "0.4rem",
-                            "&:hover": { filter: "brightness(1.18)" },
+                            userSelect: "none",
+                            "&:hover": { filter: "brightness(1.2)" },
                           }}
                         >
-                          <Box sx={{ fontSize: "0.65rem", flexShrink: 0, minWidth: "0.65rem" }}>
-                            {node.collapsed ? "▶" : "▼"}
-                          </Box>
+                          {!isLeaf && (
+                            <Box sx={{ fontSize: "0.7rem", flexShrink: 0 }}>
+                              {isCollapsed ? "▶" : "▼"}
+                            </Box>
+                          )}
+                          {isLeaf && (
+                            <Box sx={{ width: "0.45rem", height: "0.45rem", borderRadius: "50%", backgroundColor: "#65FF00", flexShrink: 0 }} />
+                          )}
+
                           {node.isFixed ? (
-                            <Typography variant="body2" sx={{ fontWeight: 700, color: c.co }}>
+                            <Typography variant="body2" sx={{ fontWeight: 700, color: c.co, flex: 1 }}>
                               {node.name}
                             </Typography>
                           ) : (
@@ -293,63 +531,38 @@ export default function P_KesifButce() {
                               autoComplete="off"
                               inputProps={{ style: { fontSize: "0.875rem", fontWeight: 700, color: c.co, minWidth: "12rem" } }}
                               sx={{
+                                flex: 1,
                                 "& .MuiInput-underline:before": { borderBottomColor: "rgba(255,255,255,0.25)" },
                                 "& .MuiInput-underline:hover:before": { borderBottomColor: "rgba(255,255,255,0.6)" },
                                 "& .MuiInput-underline:after": { borderBottomColor: "white" },
                               }}
                             />
                           )}
-                        </Box>
 
-                        {/* col2: ara toplam */}
-                        <Box
-                          onClick={() => toggleCollapse(node.id)}
-                          sx={{
-                            backgroundColor: c.bg, color: c.co,
-                            display: "flex", alignItems: "center", justifyContent: "flex-end",
-                            pr: "0.6rem", py: "2px",
-                            cursor: "pointer", userSelect: "none",
-                            "&:hover": { filter: "brightness(1.18)" },
-                            fontSize: "0.8rem", fontWeight: 700,
-                          }}
-                        >
-                          {total > 0 ? fmt(total) : ""}
-                        </Box>
+                          {total > 0 && (
+                            <Box sx={{ fontSize: "0.8rem", fontWeight: 700, mx: "0.4rem", flexShrink: 0 }}>
+                              {fmt(total)}
+                            </Box>
+                          )}
 
-                        {/* col3: düğüm aksiyonları */}
-                        <Box sx={{ backgroundColor: c.bg, display: "flex", alignItems: "center", px: "0.15rem" }}>
+                          {isSelected && (
+                            <Box sx={{ width: "0.4rem", height: "0.4rem", borderRadius: "50%", backgroundColor: "yellow", flexShrink: 0 }} />
+                          )}
+
+                          {/* Sil butonu — sadece özel düğümler */}
                           {!node.isFixed && (
-                            <>
-                              <IconButton size="small" onClick={() => addRow(node.id)} title="Satır ekle"
-                                sx={{ color: c.co, opacity: 0.7, "&:hover": { opacity: 1 }, width: 26, height: 26 }}>
-                                <AddIcon sx={{ fontSize: 15 }} />
+                            <Box onClick={e => e.stopPropagation()} sx={{ flexShrink: 0 }}>
+                              <IconButton size="small" onClick={() => deleteNodeRecursive(node.id)}
+                                sx={{ color: c.co, opacity: 0.35, "&:hover": { opacity: 1, color: "#ff8a80" }, width: 22, height: 22 }}>
+                                <DeleteOutlineIcon sx={{ fontSize: 14 }} />
                               </IconButton>
-                              <IconButton size="small" onClick={() => deleteNode(node.id)} title="Düğümü sil"
-                                sx={{ color: c.co, opacity: 0.4, "&:hover": { opacity: 1, color: "#ff8a80" }, width: 26, height: 26 }}>
-                                <DeleteOutlineIcon sx={{ fontSize: 15 }} />
-                              </IconButton>
-                            </>
+                            </Box>
                           )}
                         </Box>
 
-                        {/* ── Satırlar ── */}
-                        {!node.collapsed && (
+                        {/* ── Satırlar — sadece leaf ve collapse değilse ── */}
+                        {isLeaf && !isCollapsed && (
                           <>
-                            {/* Boş durum — sadece custom düğümler */}
-                            {!node.isFixed && node.rows.length === 0 && (
-                              <>
-                                <Box sx={{ display: "flex", borderBottom: `2px solid ${c.bg}` }}>
-                                  {/* Derinlik çubuğu — pozlar ile aynı renk */}
-                                  <Box sx={{ width: "1rem", backgroundColor: c.bg, flexShrink: 0 }} />
-                                  <Box sx={{ flex: 1, display: "flex", alignItems: "center", pl: "0.6rem", py: "0.4rem", backgroundColor: "#fafafa", color: "#bbb", fontSize: "0.8rem" }}>
-                                    + satır ekle butonuna basın
-                                  </Box>
-                                </Box>
-                                <Box sx={{ backgroundColor: "#fafafa", borderBottom: `2px solid ${c.bg}` }} />
-                                <Box sx={{ backgroundColor: "#fafafa", borderBottom: `2px solid ${c.bg}` }} />
-                              </>
-                            )}
-
                             {node.rows.map((row, rowIdx) => {
                               const isLast = rowIdx === node.rows.length - 1;
                               const bb = isLast ? `2px solid ${c.bg}` : "1px solid #e8e8e8";
@@ -361,33 +574,37 @@ export default function P_KesifButce() {
 
                               return (
                                 <React.Fragment key={row.id}>
-                                  {/* col1: derinlik çubuğu + ad */}
-                                  <Box {...rh} sx={{ display: "flex", borderBottom: bb }}>
-                                    {/* Derinlik çubuğu (1rem) — pozlar'daki repeat(depth, 1rem) ile aynı */}
-                                    <Box sx={{ width: "1rem", backgroundColor: c.bg, flexShrink: 0 }} />
-                                    <Box sx={{
-                                      flex: 1, display: "flex", alignItems: "center",
-                                      pl: "0.5rem", py: row.isWp ? "0.3rem" : "0.12rem",
-                                      backgroundColor: rowBg,
-                                    }}>
-                                      {row.isWp ? (
-                                        <Typography variant="body2" sx={{ fontWeight: 500 }}>
-                                          {row.name}
-                                        </Typography>
-                                      ) : (
-                                        <TextField
-                                          variant="standard" size="small"
-                                          placeholder="Kalem adı"
-                                          value={row.name}
-                                          onChange={(e) => updateRow(node.id, row.id, "name", e.target.value)}
-                                          autoComplete="off"
-                                          inputProps={{ style: { fontSize: "0.875rem", minWidth: "13rem" } }}
-                                        />
-                                      )}
-                                    </Box>
+                                  {/* totalDepthCols adet derinlik çubuğu — pozlar ile aynı */}
+                                  {Array.from({ length: totalDepthCols }).map((_, i) => (
+                                    <Box key={i} {...rh} sx={{
+                                      backgroundColor: i <= depth ? nodeColor(i).bg : "transparent",
+                                      borderBottom: bb,
+                                    }} />
+                                  ))}
+
+                                  {/* ad */}
+                                  <Box {...rh} sx={{
+                                    display: "flex", alignItems: "center",
+                                    pl: "0.5rem", py: row.isWp ? "0.3rem" : "0.12rem",
+                                    backgroundColor: rowBg, borderBottom: bb,
+                                  }}>
+                                    {row.isWp ? (
+                                      <Typography variant="body2" sx={{ fontWeight: 500 }}>
+                                        {row.name}
+                                      </Typography>
+                                    ) : (
+                                      <TextField
+                                        variant="standard" size="small"
+                                        placeholder="Kalem adı"
+                                        value={row.name}
+                                        onChange={(e) => updateRow(node.id, row.id, "name", e.target.value)}
+                                        autoComplete="off"
+                                        inputProps={{ style: { fontSize: "0.875rem", minWidth: "13rem" } }}
+                                      />
+                                    )}
                                   </Box>
 
-                                  {/* col2: bütçe input */}
+                                  {/* bütçe */}
                                   <Box {...rh} sx={{
                                     display: "flex", alignItems: "center", justifyContent: "flex-end",
                                     pr: "0.3rem", py: "0.12rem",
@@ -406,7 +623,7 @@ export default function P_KesifButce() {
                                     />
                                   </Box>
 
-                                  {/* col3: sil */}
+                                  {/* sil */}
                                   <Box {...rh} sx={{
                                     display: "flex", alignItems: "center",
                                     px: "0.2rem", py: "0.1rem",
@@ -419,20 +636,45 @@ export default function P_KesifButce() {
                                       </IconButton>
                                     )}
                                   </Box>
+
+                                  {/* fill */}
+                                  <Box {...rh} sx={{ borderBottom: bb, backgroundColor: rowBg }} />
                                 </React.Fragment>
                               );
                             })}
+
+                            {/* + Satır Ekle */}
+                            <>
+                              {Array.from({ length: totalDepthCols }).map((_, i) => (
+                                <Box key={i} sx={{ backgroundColor: i <= depth ? nodeColor(i).bg : "transparent", borderBottom: `1px dashed ${c.bg}` }} />
+                              ))}
+                              <Box
+                                onClick={() => addRow(node.id)}
+                                sx={{
+                                  gridColumn: `span 4`,
+                                  display: "flex", alignItems: "center", gap: "0.3rem",
+                                  pl: "0.4rem", py: "0.25rem",
+                                  color: "#aaa", fontSize: "0.8rem",
+                                  borderBottom: `1px dashed ${c.bg}`,
+                                  cursor: "pointer",
+                                  "&:hover": { backgroundColor: "#ebebeb", color: "#555" },
+                                }}
+                              >
+                                <AddIcon sx={{ fontSize: 14 }} />
+                                satır ekle
+                              </Box>
+                            </>
                           </>
                         )}
-
-                        {/* Düğümler arası ayraç */}
-                        <Box sx={{ gridColumn: "1 / span 3", height: "0.3rem", backgroundColor: "#e0e0e0" }} />
 
                       </React.Fragment>
                     );
                   })}
 
                   {/* ── GENEL TOPLAM ── */}
+                  {Array.from({ length: totalDepthCols }).map((_, i) => (
+                    <Box key={i} sx={{ backgroundColor: "#111", borderTop: "2px solid black" }} />
+                  ))}
                   <Box sx={{ display: "flex", alignItems: "center", justifyContent: "flex-end", pr: "0.75rem", py: "0.4rem", backgroundColor: "#111", color: "white", fontWeight: 700, fontSize: "0.875rem", borderTop: "2px solid black" }}>
                     Genel Toplam Bütçe
                   </Box>
@@ -440,13 +682,14 @@ export default function P_KesifButce() {
                     {grandTotal > 0 ? fmt(grandTotal) : "—"}
                   </Box>
                   <Box sx={{ backgroundColor: "#111", borderTop: "2px solid black" }} />
+                  <Box sx={{ backgroundColor: "#111", borderTop: "2px solid black" }} />
 
                 </Box>
               </Box>
 
-              {/* + Düğüm Ekle */}
+              {/* + Kök Düğüm Ekle */}
               <Box
-                onClick={addSiblingNode}
+                onClick={addRootNode}
                 sx={{
                   mt: "0.5rem", display: "flex", alignItems: "center", gap: "0.4rem",
                   cursor: "pointer", width: "fit-content", color: "#555",
@@ -487,7 +730,7 @@ export default function P_KesifButce() {
                 <Box sx={{ ...css_lb }}>Açıklama</Box>
                 <Box sx={{ ...css_lb }}>Onaylayan</Box>
                 <Box sx={{ ...css_lb }}>Tarih</Box>
-                {versiyonlar.map((v) => (
+                {versiyonlar.map(v => (
                   <React.Fragment key={v.versiyonNumber}>
                     <Box sx={{ ...css_ls, justifyContent: "center", fontWeight: 700 }}>v{v.versiyonNumber}</Box>
                     <Box sx={{ ...css_ls, justifyContent: "right", fontWeight: v.tutar ? 600 : 400 }}>{fmt(v.tutar)}</Box>

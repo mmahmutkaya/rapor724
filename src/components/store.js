@@ -82,7 +82,7 @@ export default ({ children }) => {
   const [nodeMetrajlar, setNodeMetrajlar] = useState()
 
   const [metrajMode, setMetrajMode] = useState("prepare") // "prepare" | "approve"
-  const [metrajViewMode, setMetrajViewMode] = useState("pozOnly") // "pozOnly" | "wbsPoz"
+  const [metrajViewMode, setMetrajViewMode] = useState("wbsPoz") // "pozOnly" | "wbsPoz"
   const [metrajMahalViewMode, setMetrajMahalViewMode] = useState("lbsMahal") // "lbsOnly" | "mahalOnly" | "lbsMahal"
   const [mode_birimFiyatEdit, setMode_birimFiyatEdit] = useState()
   const [mode_isPaketEdit, setMode_isPaketEdit] = useState()

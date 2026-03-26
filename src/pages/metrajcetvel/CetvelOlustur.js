@@ -1312,11 +1312,23 @@ export default function P_MetrajOlusturCetvel() {
   }
 
   const handleRemovePendingNewLine = (parentId, tempId) => {
+    const rowToRemove = (pendingNewLines[parentId] ?? []).find(r => r.tempId === tempId)
     setPendingNewLines(prev => {
       const remaining = (prev[parentId] ?? []).filter(r => r.tempId !== tempId)
       if (remaining.length === 0) { const { [parentId]: _, ...rest } = prev; return rest }
       return { ...prev, [parentId]: remaining }
     })
+    // Silinen satır bir R (isEdit) satırıysa, bu parent için R satırı kalmadıysa ve
+    // DB'de mevcut pending revize yoksa → orijinal değerlere sıfırla, edit modda kal
+    if (rowToRemove?.isEdit && !existingRevisionId) {
+      const remainingEditRows = (pendingNewLines[parentId] ?? []).filter(r => r.tempId !== tempId && r.isEdit)
+      if (remainingEditRows.length === 0) {
+        setApprovedRowEditValues(approvedRowEditInitial)
+        setRowEditValues({})
+        setRowEditInitialValues({})
+        setRowEditDeletes([])
+      }
+    }
   }
 
   const saveNewLines = async () => {
@@ -2187,11 +2199,10 @@ export default function P_MetrajOlusturCetvel() {
               return (
                 <React.Fragment key={row.tempId}>
                   <Box sx={{ ...css_oc, ...pBg, justifyContent: 'flex-start', pl: '0.5rem', color: '#6a1b9a', fontSize: '0.8rem', fontStyle: 'italic' }}>{newSiraNo}</Box>
-                  <Box sx={{ ...css_oc, ...pBg, gap: '4px', pl: '4px', pr: 0, py: 0 }}>
+                  <Box sx={{ ...css_oc, ...pBg, gap: '4px', pl: '4px', pr: 0 }}>
                     <Box sx={{ width: 7, height: 7, borderRadius: '50%', flexShrink: 0, visibility: 'hidden' }} />
-                    {onayKartiEditMode && <Box sx={{ width: 16, flexShrink: 0 }} />}
                     <input className="metraj-num-input"
-                      style={{ border: 'none', background: 'transparent', flex: 1, minWidth: 0, fontFamily: 'inherit', fontSize: '0.85rem', outline: 'none', padding: (selectedRowEditMode || onayKartiEditMode) ? '2px 4px' : 0, color: negClr }}
+                      style={{ border: 'none', background: 'transparent', flex: 1, minWidth: 0, fontFamily: 'inherit', fontSize: '0.85rem', outline: 'none', padding: '0 4px', color: negClr }}
                       value={row.description} onChange={e => handlePendingNewLineChange(node.id, row.tempId, 'description', e.target.value)} placeholder="Açıklama" />
                   </Box>
                   {NUM_ONAY_FIELDS.map(field => (
@@ -2290,10 +2301,10 @@ export default function P_MetrajOlusturCetvel() {
                   fontStyle: approvedRowChanged ? 'italic' : undefined }}>
                   {editSiraNo}
                 </Box>
-                <Box sx={{ ...css_oc, ...eBg, gap: '4px', pl: '4px', pr: 0, py: 0, color: eNegClr }}>
-                  <Box sx={{ width: 7, height: 7, borderRadius: '50%', backgroundColor: '#c62828', flexShrink: 0, alignSelf: 'center' }} />
+                <Box sx={{ ...css_oc, ...eBg, gap: '4px', pl: '4px', pr: 0, color: eNegClr }}>
+                  <Box sx={{ width: 7, height: 7, borderRadius: '50%', backgroundColor: '#c62828', flexShrink: 0, alignSelf: 'center', visibility: 'hidden' }} />
                   <input className="metraj-num-input"
-                    style={{ border: 'none', background: 'transparent', flex: 1, minWidth: 0, fontFamily: 'inherit', fontSize: '0.85rem', outline: 'none', padding: 0, color: eNegClr }}
+                    style={{ border: 'none', background: 'transparent', flex: 1, minWidth: 0, fontFamily: 'inherit', fontSize: '0.85rem', outline: 'none', padding: '0 4px', color: eNegClr }}
                     value={approvedRowEditValues?.description ?? ''}
                     placeholder="Açıklama"
                     onChange={e => setApprovedRowEditValues(prev => ({ ...prev, description: e.target.value }))} />
@@ -2316,7 +2327,12 @@ export default function P_MetrajOlusturCetvel() {
                 </Box>
                 {showHazırlayan && <Box sx={{ ...css_oc, ...eBg, justifyContent: 'center', fontSize: '0.78rem', color: '#455a64' }}>{node.hazırlayan}</Box>}
                 {showOnaylayan  && <Box sx={{ ...css_oc, ...eBg, justifyContent: 'center', fontSize: '0.78rem', color: '#1b5e20' }}>{node.onaylayan}</Box>}
-                <Box sx={{ ...css_oc, ...eBg }} />
+                <Box sx={{ ...css_oc, ...eBg, justifyContent: 'center' }}>
+                  <IconButton size="small" sx={{ p: '2px' }}
+                    onClick={() => { setApprovedRowEditValues(approvedRowEditInitial); setRowEditValues({}); setRowEditInitialValues({}); setRowEditDeletes([]); setPendingNewLines(prev => { const { [node.id]: _, ...rest } = prev; return rest }) }}>
+                    <ClearIcon sx={{ fontSize: 16, color: '#c62828' }} />
+                  </IconButton>
+                </Box>
                 {childrenToRender.map(child => (
                   <React.Fragment key={child.id}>{renderOnayRow(child)}</React.Fragment>
                 ))}
@@ -2383,7 +2399,22 @@ export default function P_MetrajOlusturCetvel() {
               <Box sx={{ ...css_oc, ...cellBg, justifyContent: 'center', gap: '2px' }} {...rowHandlers}>
                 {/* Satır düzenleme modunda X sil butonu */}
                 {isRowModeEditable && (
-                  <IconButton size="small" sx={{ p: '2px' }} onClick={() => setRowEditDeletes(prev => [...prev, node.id])}>
+                  <IconButton size="small" sx={{ p: '2px' }} onClick={() => {
+                    setRowEditDeletes(prev => [...prev, node.id])
+                    if (node.id === existingRevisionId) {
+                      setExistingRevisionId(null)
+                      const initApproved = {
+                        description: selectedOnayRow.description ?? '',
+                        multiplier: (selectedOnayRow.multiplier != null && Number(selectedOnayRow.multiplier) !== 1) ? String(selectedOnayRow.multiplier) : '',
+                        count:  selectedOnayRow.count  != null ? String(selectedOnayRow.count)  : '',
+                        length: selectedOnayRow.length != null ? String(selectedOnayRow.length) : '',
+                        width:  selectedOnayRow.width  != null ? String(selectedOnayRow.width)  : '',
+                        height: selectedOnayRow.height != null ? String(selectedOnayRow.height) : '',
+                      }
+                      setApprovedRowEditValues(initApproved)
+                      setApprovedRowEditInitial(_.cloneDeep(initApproved))
+                    }
+                  }}>
                     <ClearIcon sx={{ fontSize: 16, color: '#c62828' }} />
                   </IconButton>
                 )}
@@ -2600,7 +2631,7 @@ export default function P_MetrajOlusturCetvel() {
                           <>
                             <IconButton size="small" title="İptal"
                               sx={{ p: '2px', color: '#ffcdd2' }}
-                              onClick={() => { setSelectedRowEditMode(false); setRowEditValues({}); setRowEditInitialValues({}); setRowEditDeletes([]); setPendingNewLines({}); setApprovedRowEditValues(null); setApprovedRowEditInitial(null); setExistingRevisionId(null); setSelectedOnayRow(null) }}>
+                              onClick={() => { setSelectedRowEditMode(false); setRowEditValues({}); setRowEditInitialValues({}); setRowEditDeletes([]); setPendingNewLines({}); setApprovedRowEditValues(null); setApprovedRowEditInitial(null); setExistingRevisionId(null) }}>
                               <ClearIcon sx={{ fontSize: 20 }} />
                             </IconButton>
                             <IconButton size="small" disabled={!isChanged} title="Kaydet"
