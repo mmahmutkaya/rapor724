@@ -610,45 +610,49 @@ export default function P_Pozlar() {
                         ))}
 
                         <Box
-                          onClick={() => {
-                            setActiveWbsNodeId(prev => prev === node.id ? null : node.id)
-                            if (!isLeaf) toggleCollapse(node.id)
-                          }}
                           sx={{
                             pl: '6px',
                             py: '1px',
-                            backgroundColor: isSelected ? '#1a3a5c' : c.bg,
+                            backgroundColor: c.bg,
                             color: c.co,
-                            cursor: 'pointer',
                             display: 'flex',
-                            alignItems: 'center',
-                            gap: '0.4rem',
+                            alignItems: 'stretch',
                             userSelect: 'none',
                             '&:hover': { filter: 'brightness(1.2)' }
                           }}
                         >
-                          {!isLeaf &&
-                            <Box sx={{ fontSize: '0.7rem', flexShrink: 0 }}>
-                              {collapsedIds.has(node.id) ? '▶' : '▼'}
-                            </Box>
-                          }
-                          {isLeaf &&
-                            <Box sx={{
-                              width: '0.45rem', height: '0.45rem', borderRadius: '50%',
-                              backgroundColor: '#65FF00', flexShrink: 0
-                            }} />
-                          }
-
-                          <Typography variant="body2">
-                            {node.code_name ? `(${node.code_name}) ` : ''}{node.name}
-                          </Typography>
-
-                          {isSelected &&
-                            <Box sx={{
-                              ml: '0.3rem', width: '0.4rem', height: '0.4rem',
-                              borderRadius: '50%', backgroundColor: 'yellow'
-                            }} />
-                          }
+                          {/* İsim alanı: tıklama = expand/collapse */}
+                          <Box
+                            onClick={() => { if (!isLeaf) toggleCollapse(node.id) }}
+                            sx={{ display: 'flex', alignItems: 'center', gap: '0.4rem', cursor: isLeaf ? 'default' : 'pointer', flexShrink: 0 }}
+                          >
+                            {!isLeaf &&
+                              <Box sx={{ fontSize: '0.7rem', flexShrink: 0 }}>
+                                {collapsedIds.has(node.id) ? '▶' : '▼'}
+                              </Box>
+                            }
+                            {isLeaf &&
+                              <Box sx={{
+                                width: '0.45rem', height: '0.45rem', borderRadius: '50%',
+                                backgroundColor: '#65FF00', flexShrink: 0
+                              }} />
+                            }
+                            <Typography variant="body2">
+                              {node.code_name ? `(${node.code_name}) ` : ''}{node.name}
+                            </Typography>
+                          </Box>
+                          {/* Sağ alan: tıklama = satır seç/iptal */}
+                          <Box
+                            onClick={() => setActiveWbsNodeId(prev => prev === node.id ? null : node.id)}
+                            sx={{ flex: 1, cursor: 'pointer', display: 'flex', alignItems: 'center', pl: '0.3rem' }}
+                          >
+                            {isSelected &&
+                              <Box sx={{
+                                width: '0.4rem', height: '0.4rem',
+                                borderRadius: '50%', backgroundColor: 'yellow'
+                              }} />
+                            }
+                          </Box>
                         </Box>
                       </Box>
                     )
@@ -703,40 +707,47 @@ export default function P_Pozlar() {
                           <Box key={i} sx={{ backgroundColor: nodeColor(i).bg }} />
                         ))}
                         <Box
-                          onClick={() => {
-                            setActiveWbsNodeId(prev => prev === node.id ? null : node.id)
-                            if (!isLeaf) toggleCollapse(node.id)
-                          }}
                           sx={{
                             gridColumn: `span ${totalCols - depth}`,
                             pl: '6px', py: '1px',
-                            backgroundColor: isSelected ? '#1a3a5c' : c.bg,
+                            backgroundColor: c.bg,
                             color: c.co,
-                            cursor: 'pointer',
-                            display: 'flex', alignItems: 'center', gap: '0.4rem',
+                            display: 'flex', alignItems: 'stretch',
                             userSelect: 'none',
                             '&:hover': { filter: 'brightness(1.2)' }
                           }}
                         >
-                          {!isLeaf &&
-                            <Box sx={{ fontSize: '0.7rem', flexShrink: 0 }}>
-                              {collapsedIds.has(node.id) ? '▶' : '▼'}
-                            </Box>
-                          }
-                          {isLeaf &&
-                            <Box sx={{ width: '0.45rem', height: '0.45rem', borderRadius: '50%', backgroundColor: '#65FF00', flexShrink: 0 }} />
-                          }
-                          <Typography variant="body2">
-                            {node.code_name ? `(${node.code_name}) ` : ''}{node.name}
-                          </Typography>
-                          {isSelected &&
-                            <Box sx={{ ml: '0.3rem', width: '0.4rem', height: '0.4rem', borderRadius: '50%', backgroundColor: 'yellow' }} />
-                          }
-                          {isLeaf && pozlarOfNode.length > 0 &&
-                            <Box sx={{ ml: 'auto', pr: '0.5rem', fontSize: '0.75rem', opacity: 0.5, flexShrink: 0 }}>
-                              {pozlarOfNode.length} poz
-                            </Box>
-                          }
+                          {/* İsim alanı: tıklama = expand/collapse */}
+                          <Box
+                            onClick={() => { if (!isLeaf) toggleCollapse(node.id) }}
+                            sx={{ display: 'flex', alignItems: 'center', gap: '0.4rem', cursor: isLeaf ? 'default' : 'pointer', flexShrink: 0 }}
+                          >
+                            {!isLeaf &&
+                              <Box sx={{ fontSize: '0.7rem', flexShrink: 0 }}>
+                                {collapsedIds.has(node.id) ? '▶' : '▼'}
+                              </Box>
+                            }
+                            {isLeaf &&
+                              <Box sx={{ width: '0.45rem', height: '0.45rem', borderRadius: '50%', backgroundColor: '#65FF00', flexShrink: 0 }} />
+                            }
+                            <Typography variant="body2">
+                              {node.code_name ? `(${node.code_name}) ` : ''}{node.name}
+                            </Typography>
+                          </Box>
+                          {/* Sağ alan: tıklama = satır seç/iptal */}
+                          <Box
+                            onClick={() => setActiveWbsNodeId(prev => prev === node.id ? null : node.id)}
+                            sx={{ flex: 1, cursor: 'pointer', display: 'flex', alignItems: 'center', pl: '0.3rem', pr: '0.5rem' }}
+                          >
+                            {isSelected &&
+                              <Box sx={{ width: '0.4rem', height: '0.4rem', borderRadius: '50%', backgroundColor: 'yellow' }} />
+                            }
+                            {isLeaf && pozlarOfNode.length > 0 &&
+                              <Box sx={{ ml: 'auto', fontSize: '0.75rem', opacity: 0.5, flexShrink: 0 }}>
+                                {pozlarOfNode.length} poz
+                              </Box>
+                            }
+                          </Box>
                         </Box>
 
                         {/* Poz satırları — totalDepthCols adet bar (bazıları saydam) + 4 veri hücresi */}

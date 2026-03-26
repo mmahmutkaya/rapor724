@@ -96,9 +96,7 @@ export default function P_KesifButce() {
   }, [flatNodes, isLeafSet]);
 
   const totalDepthCols = maxLeafDepth + 1;
-  // totalCols = depth-bar sütunları + name + budget + delete + fill
-  const totalCols = totalDepthCols + 4;
-  const treeGridCols = `repeat(${totalDepthCols}, 1rem) minmax(16rem, max-content) 9rem max-content minmax(0, 1fr)`;
+  const treeGridCols = `repeat(${totalDepthCols}, 1rem) minmax(16rem, max-content) 0.5rem 9rem max-content minmax(0, 1fr)`;
 
   // ── Seçili düğüm / taşıma ──────────────────────────────────────────────────
   const activeNode = useMemo(
@@ -402,6 +400,18 @@ export default function P_KesifButce() {
             <Box sx={{ display: "flex", alignItems: "center", gap: "0.25rem" }}>
               {show === "Form" ? (
                 <>
+                  {/* Her zaman görünen Düğüm Ekle butonu */}
+                  <Tooltip title="Düğüm Ekle"><span>
+                    <IconButton
+                      size="small"
+                      onClick={addRootNode}
+                      disabled={Boolean(activeNodeId) && (
+                        (activeNode?.rows?.length ?? 0) > 0 || !isLeafSet.has(activeNodeId)
+                      )}
+                    >
+                      <AddCircleOutlineIcon sx={{ fontSize: 20 }} />
+                    </IconButton>
+                  </span></Tooltip>
                   {/* Seçili düğüm varsa taşıma + alt düğüm ekleme butonları */}
                   {activeNodeId && (
                     <>
@@ -430,6 +440,13 @@ export default function P_KesifButce() {
                           <SubdirectoryArrowRightIcon />
                         </IconButton>
                       </span></Tooltip>
+                      {isLeafSet.has(activeNodeId) && (
+                        <Tooltip title="Satır ekle"><span>
+                          <IconButton size="small" onClick={() => addRow(activeNodeId)}>
+                            <AddIcon />
+                          </IconButton>
+                        </span></Tooltip>
+                      )}
                     </>
                   )}
                   <IconButton onClick={cancelForm} disabled={isSaving} sx={iconBtn_sx}>
@@ -458,22 +475,51 @@ export default function P_KesifButce() {
           <>
             <Box sx={{ width: "fit-content", minWidth: "34rem" }}>
 
-              {/* Proje adı başlık — pozlar ile aynı siyah bar */}
-              <Box sx={{ display: "grid", gridTemplateColumns: "1rem 1fr" }}>
-                <Box sx={{ backgroundColor: "black" }} />
-                <Box sx={{ backgroundColor: "black", color: "white", pl: "6px", py: "2px", display: "flex", alignItems: "center" }}>
-                  <Typography variant="body2" sx={{ fontWeight: 700 }}>
-                    {selectedProje?.name}
-                  </Typography>
-                </Box>
-              </Box>
-
               {/* Sol siyah ray + ağaç içeriği */}
               <Box sx={{ display: "grid", gridTemplateColumns: "1rem 1fr" }}>
                 <Box sx={{ backgroundColor: "black" }} />
 
                 {/* Dinamik grid — pozlar wbsPoz modu ile aynı yapı */}
                 <Box sx={{ display: "grid", gridTemplateColumns: treeGridCols }}>
+
+                  {/* ── Satır 1: BÜTÇE sütun başlığı ── */}
+                  <Box sx={{ gridColumn: `1 / span ${totalDepthCols + 1}`, backgroundColor: "black" }} />
+                  <Box sx={{ backgroundColor: "white" }} />
+                  <Box sx={{
+                    gridColumn: `${totalDepthCols + 3} / span 3`,
+                    backgroundColor: "#1e1e1e",
+                    color: "#e0e0e0",
+                    display: "flex", alignItems: "center", justifyContent: "center",
+                    fontWeight: 700, fontSize: "0.72rem",
+                    textTransform: "uppercase",
+                    letterSpacing: "0.08em",
+                    py: "0.25rem",
+                  }}>
+                    Bütçe
+                  </Box>
+
+                  {/* ── Satır 2: Proje adı (sol) + genel toplam (sağ) ── */}
+                  <Box sx={{
+                    gridColumn: `1 / span ${totalDepthCols + 1}`,
+                    backgroundColor: "black", color: "white",
+                    pl: "6px", py: "2px",
+                    display: "flex", alignItems: "center",
+                  }}>
+                    <Typography variant="body2" sx={{ fontWeight: 700 }}>
+                      {selectedProje?.name}
+                    </Typography>
+                  </Box>
+                  <Box sx={{ backgroundColor: "white" }} />
+                  <Box sx={{
+                    gridColumn: `${totalDepthCols + 3} / span 3`,
+                    backgroundColor: "#1e1e1e",
+                    color: "#e0e0e0",
+                    display: "flex", alignItems: "center", justifyContent: "flex-end",
+                    fontWeight: 700, fontSize: "0.8rem",
+                    px: "0.5rem", py: "2px",
+                  }}>
+                    {grandTotal > 0 ? fmt(grandTotal) : "—"}
+                  </Box>
 
                   {flatNodes.map(node => {
                     if (isHiddenByAncestor(node)) return null;
@@ -492,14 +538,14 @@ export default function P_KesifButce() {
                           <Box key={i} sx={{ backgroundColor: nodeColor(i).bg }} />
                         ))}
 
-                        {/* Düğüm başlık — geri kalan tüm sütunları kapsar */}
+                        {/* Düğüm başlık SOL — ad sütunu (gap dahil değil) */}
                         <Box
                           onClick={() => {
                             setActiveNodeId(prev => prev === node.id ? null : node.id);
                             if (!isLeaf) toggleCollapse(node.id);
                           }}
                           sx={{
-                            gridColumn: `span ${totalCols - depth}`,
+                            gridColumn: `span ${totalDepthCols - depth + 1}`,
                             pl: "6px", py: "2px",
                             backgroundColor: isSelected ? "#1a3a5c" : c.bg,
                             color: c.co,
@@ -539,12 +585,6 @@ export default function P_KesifButce() {
                             />
                           )}
 
-                          {total > 0 && (
-                            <Box sx={{ fontSize: "0.8rem", fontWeight: 700, mx: "0.4rem", flexShrink: 0 }}>
-                              {fmt(total)}
-                            </Box>
-                          )}
-
                           {isSelected && (
                             <Box sx={{ width: "0.4rem", height: "0.4rem", borderRadius: "50%", backgroundColor: "yellow", flexShrink: 0 }} />
                           )}
@@ -556,6 +596,36 @@ export default function P_KesifButce() {
                                 sx={{ color: c.co, opacity: 0.35, "&:hover": { opacity: 1, color: "#ff8a80" }, width: 22, height: 22 }}>
                                 <DeleteOutlineIcon sx={{ fontSize: 14 }} />
                               </IconButton>
+                            </Box>
+                          )}
+                        </Box>
+
+                        {/* Gap sütunu — boydan boya beyaz şerit */}
+                        <Box sx={{ backgroundColor: "white" }} onClick={() => {
+                          setActiveNodeId(prev => prev === node.id ? null : node.id);
+                          if (!isLeaf) toggleCollapse(node.id);
+                        }} />
+
+                        {/* Düğüm başlık SAĞ — bütçe + sil + fill sütunları */}
+                        <Box
+                          onClick={() => {
+                            setActiveNodeId(prev => prev === node.id ? null : node.id);
+                            if (!isLeaf) toggleCollapse(node.id);
+                          }}
+                          sx={{
+                            gridColumn: `span 3`,
+                            py: "2px", px: "0.4rem",
+                            backgroundColor: isSelected ? "#1a3a5c" : c.bg,
+                            color: c.co,
+                            cursor: "pointer",
+                            display: "flex", alignItems: "center", justifyContent: "flex-end",
+                            userSelect: "none",
+                            "&:hover": { filter: "brightness(1.2)" },
+                          }}
+                        >
+                          {total > 0 && (
+                            <Box sx={{ fontSize: "0.8rem", fontWeight: 700, flexShrink: 0 }}>
+                              {fmt(total)}
                             </Box>
                           )}
                         </Box>
@@ -604,11 +674,15 @@ export default function P_KesifButce() {
                                     )}
                                   </Box>
 
+                                  {/* 0.5rem boşluk sütunu */}
+                                  <Box {...rh} sx={{ borderBottom: bb, backgroundColor: "white" }} />
+
                                   {/* bütçe */}
                                   <Box {...rh} sx={{
                                     display: "flex", alignItems: "center", justifyContent: "flex-end",
                                     pr: "0.3rem", py: "0.12rem",
                                     borderBottom: bb, backgroundColor: rowBg,
+                                    borderLeft: "2px solid #555",
                                   }}>
                                     <TextField
                                       variant="standard" size="small"
@@ -642,28 +716,6 @@ export default function P_KesifButce() {
                                 </React.Fragment>
                               );
                             })}
-
-                            {/* + Satır Ekle */}
-                            <>
-                              {Array.from({ length: totalDepthCols }).map((_, i) => (
-                                <Box key={i} sx={{ backgroundColor: i <= depth ? nodeColor(i).bg : "transparent", borderBottom: `1px dashed ${c.bg}` }} />
-                              ))}
-                              <Box
-                                onClick={() => addRow(node.id)}
-                                sx={{
-                                  gridColumn: `span 4`,
-                                  display: "flex", alignItems: "center", gap: "0.3rem",
-                                  pl: "0.4rem", py: "0.25rem",
-                                  color: "#aaa", fontSize: "0.8rem",
-                                  borderBottom: `1px dashed ${c.bg}`,
-                                  cursor: "pointer",
-                                  "&:hover": { backgroundColor: "#ebebeb", color: "#555" },
-                                }}
-                              >
-                                <AddIcon sx={{ fontSize: 14 }} />
-                                satır ekle
-                              </Box>
-                            </>
                           </>
                         )}
 
@@ -671,34 +723,8 @@ export default function P_KesifButce() {
                     );
                   })}
 
-                  {/* ── GENEL TOPLAM ── */}
-                  {Array.from({ length: totalDepthCols }).map((_, i) => (
-                    <Box key={i} sx={{ backgroundColor: "#111", borderTop: "2px solid black" }} />
-                  ))}
-                  <Box sx={{ display: "flex", alignItems: "center", justifyContent: "flex-end", pr: "0.75rem", py: "0.4rem", backgroundColor: "#111", color: "white", fontWeight: 700, fontSize: "0.875rem", borderTop: "2px solid black" }}>
-                    Genel Toplam Bütçe
-                  </Box>
-                  <Box sx={{ display: "flex", alignItems: "center", justifyContent: "flex-end", pr: "0.5rem", py: "0.4rem", backgroundColor: "#111", color: "white", fontWeight: 700, fontSize: "0.875rem", borderTop: "2px solid black" }}>
-                    {grandTotal > 0 ? fmt(grandTotal) : "—"}
-                  </Box>
-                  <Box sx={{ backgroundColor: "#111", borderTop: "2px solid black" }} />
-                  <Box sx={{ backgroundColor: "#111", borderTop: "2px solid black" }} />
 
                 </Box>
-              </Box>
-
-              {/* + Kök Düğüm Ekle */}
-              <Box
-                onClick={addRootNode}
-                sx={{
-                  mt: "0.5rem", display: "flex", alignItems: "center", gap: "0.4rem",
-                  cursor: "pointer", width: "fit-content", color: "#555",
-                  py: "0.3rem", px: "0.5rem", borderRadius: "4px",
-                  "&:hover": { backgroundColor: "#e8e8e8" },
-                }}
-              >
-                <AddIcon sx={{ fontSize: 16 }} />
-                <Typography variant="body2">Düğüm Ekle</Typography>
               </Box>
 
               {/* Açıklama */}

@@ -205,6 +205,8 @@ export default function P_MetrajOlusturCetvel() {
   const [selectedOnayRow, setSelectedOnayRow] = useState(null)           // onaylı satır seçimi (R/+ işlemleri için)
   const [hoveredOnayRowId, setHoveredOnayRowId] = useState(null)         // hover satır ID
   const [pendingNewLines, setPendingNewLines] = useState({})             // { [parentLineId]: [{tempId, isEdit, rNum, ...}] }
+  const [insertAfterTempId, setInsertAfterTempId] = useState(null)      // + butonunun hangi satırdan sonra ekleyeceği (pending new line)
+  const [insertAfterDbRowId, setInsertAfterDbRowId] = useState(null)    // + butonunun hangi DB satırından sonra ekleyeceği
   const [selectedRowEditMode, setSelectedRowEditMode] = useState(false)  // satır düzenleme modu
   const [rowEditValues, setRowEditValues] = useState({})                  // { [lineId]: {description, multiplier, count, length, width, height} }
   const [rowEditInitialValues, setRowEditInitialValues] = useState({})    // başlangıç değerleri (değişiklik tespiti için)
@@ -1024,9 +1026,9 @@ export default function P_MetrajOlusturCetvel() {
   // Tüm session satırlarından onaylanan ağacı türet
   const approvalTree = useMemo(() => {
     const allLines = sessions.flatMap(s => s.lines ?? [])
-      .filter(l => !l._pendingDelete && !rowEditDeletes.includes(l.id))
+      .filter(l => !l._pendingDelete)
     return buildApprovalTree(allLines, sessions, userMap)
-  }, [sessions, userMap, rowEditDeletes])
+  }, [sessions, userMap])
 
   const autoExpandDone = useRef(false)
   useEffect(() => {
@@ -1266,6 +1268,8 @@ export default function P_MetrajOlusturCetvel() {
 
   const handleSelectOnayRow = (node) => {
     setSelectedOnayRow(prev => prev?.id === node.id ? null : node)
+    setInsertAfterTempId(null)
+    setInsertAfterDbRowId(null)
   }
 
   const handleDuzenleNew = () => {
@@ -1276,8 +1280,9 @@ export default function P_MetrajOlusturCetvel() {
     const existing = pendingNewLines[targetParentId] ?? []
     if (existing.some(r => r.isEdit)) return
     const allLines = sessions.flatMap(s => s.lines ?? [])
-    const existingRevCount = allLines.filter(l => l.parent_line_id === targetParentId && (l.order_index ?? 0) < 0).length
-    const rNum = existingRevCount + 1
+    const takenRevOIs = new Set(allLines.filter(l => l.parent_line_id === targetParentId && (l.order_index ?? 0) < 0 && !rowEditDeletes.includes(l.id)).map(l => l.order_index))
+    let nextRevOI = -1; while (takenRevOIs.has(nextRevOI)) nextRevOI--
+    const rNum = Math.abs(nextRevOI)
     const newRow = {
       tempId: `tmp-${Date.now()}-${Math.random()}`,
       isEdit: true,
@@ -1296,12 +1301,32 @@ export default function P_MetrajOlusturCetvel() {
     if (!selectedOnayRow) return
     const isRevisionRow = (selectedOnayRow.order_index ?? 0) < 0
     const targetParentId = isRevisionRow ? selectedOnayRow.parent_line_id : selectedOnayRow.id
-    const newRow = {
-      tempId: `tmp-${Date.now()}-${Math.random()}`,
-      isEdit: false,
-      description: '', multiplier: '', count: '', length: '', width: '', height: '',
-    }
-    setPendingNewLines(prev => ({ ...prev, [targetParentId]: [...(prev[targetParentId] ?? []), newRow] }))
+    const baseRow = { tempId: `tmp-${Date.now()}-${Math.random()}`, isEdit: false, description: '', multiplier: '', count: '', length: '', width: '', height: '' }
+    setPendingNewLines(prev => {
+      const existing = prev[targetParentId] ?? []
+      if (insertAfterDbRowId) {
+        // DB satırından sonra ekle: o DB satırına ait pending satırların sonuna splice et
+        const newRow = { ...baseRow, _insertAfterDbRow: insertAfterDbRowId }
+        const sameDbGroup = existing.filter(r => !r.isEdit && r._insertAfterDbRow === insertAfterDbRowId)
+        const otherRows = existing.filter(r => r.isEdit || r._insertAfterDbRow !== insertAfterDbRowId)
+        return { ...prev, [targetParentId]: [...otherRows, ...sameDbGroup, newRow] }
+      }
+      const nonEditRows = existing.filter(r => !r.isEdit)
+      const insertIdx = insertAfterTempId ? nonEditRows.findIndex(r => r.tempId === insertAfterTempId) : -1
+      if (insertIdx >= 0) {
+        // Seçili satırın _insertAfterDbRow değerini miras al (DB grubunda kalması için)
+        const inheritedDbRef = nonEditRows[insertIdx]._insertAfterDbRow
+        const newRow = { ...baseRow, _insertAfterDbRow: inheritedDbRef }
+        const nonEditInserted = [...nonEditRows.slice(0, insertIdx + 1), newRow, ...nonEditRows.slice(insertIdx + 1)]
+        const editRows = existing.filter(r => r.isEdit)
+        return { ...prev, [targetParentId]: [...editRows, ...nonEditInserted] }
+      }
+      const newRow = { ...baseRow }
+      return { ...prev, [targetParentId]: [...existing, newRow] }
+    })
+    // insertAfterTempId'yi yeni satırın tempId'sine güncelle (ardışık + ile sıralı ekleme için)
+    setInsertAfterTempId(baseRow.tempId)
+    setInsertAfterDbRowId(null)
   }
 
   const handlePendingNewLineChange = (parentId, tempId, field, value) => {
@@ -1318,15 +1343,15 @@ export default function P_MetrajOlusturCetvel() {
       if (remaining.length === 0) { const { [parentId]: _, ...rest } = prev; return rest }
       return { ...prev, [parentId]: remaining }
     })
+    if (tempId === insertAfterTempId) setInsertAfterTempId(null)
     // Silinen satır bir R (isEdit) satırıysa, bu parent için R satırı kalmadıysa ve
     // DB'de mevcut pending revize yoksa → orijinal değerlere sıfırla, edit modda kal
     if (rowToRemove?.isEdit && !existingRevisionId) {
       const remainingEditRows = (pendingNewLines[parentId] ?? []).filter(r => r.tempId !== tempId && r.isEdit)
       if (remainingEditRows.length === 0) {
         setApprovedRowEditValues(approvedRowEditInitial)
-        setRowEditValues({})
-        setRowEditInitialValues({})
-        setRowEditDeletes([])
+        // rowEditValues, rowEditInitialValues, rowEditDeletes korunur — DB pending çocukların düzenleme
+        // değerleri ve silinmiş satır listesi geçerliliğini korur
       }
     }
   }
@@ -1349,32 +1374,61 @@ export default function P_MetrajOlusturCetvel() {
     for (const [parentLineId, newRows] of Object.entries(pendingNewLines)) {
       if (newRows.length === 0) continue
       const existingChildren = allLines.filter(l => l.parent_line_id === parentLineId)
-      let nextOI = existingChildren.filter(l => (l.order_index ?? 0) >= 0).length
-      const existingRevCount = existingChildren.filter(l => (l.order_index ?? 0) < 0).length
-      let nextRevOI = existingRevCount + 1
-      for (const row of newRows) {
-        const { error: lineErr } = await supabase
-          .from('measurement_lines')
-          .insert({
-            session_id: mySessionId,
-            line_type: 'data',
+      const dbNonEdit = existingChildren.filter(l => (l.order_index ?? 0) >= 0).sort((a, b) => (a.order_index ?? 0) - (b.order_index ?? 0))
+      const nonEditNewRows = newRows.filter(r => !r.isEdit)
+      const editNewRows = newRows.filter(r => r.isEdit)
+      const dbIds = new Set(dbNonEdit.map(c => c.id))
+      // Birleşik sıra: DB satırları + aralarına eklenen pending satırlar
+      const combined = []
+      for (const dbChild of dbNonEdit) {
+        combined.push({ type: 'db', item: dbChild })
+        for (const nr of nonEditNewRows.filter(r => r._insertAfterDbRow === dbChild.id)) combined.push({ type: 'new', item: nr })
+      }
+      for (const nr of nonEditNewRows.filter(r => !r._insertAfterDbRow || !dbIds.has(r._insertAfterDbRow))) combined.push({ type: 'new', item: nr })
+      // Sırasal order_index hesapla; değişen DB satırlarını güncelle
+      let newOI = 0
+      for (const entry of combined) {
+        if (entry.type === 'db') {
+          if ((entry.item.order_index ?? 0) !== newOI) {
+            const { error: upErr } = await supabase.from('measurement_lines').update({ order_index: newOI }).eq('id', entry.item.id)
+            if (upErr) { setDialogAlert({ dialogIcon: 'warning', dialogMessage: 'Sıralama güncellenirken hata.', detailText: upErr.message, onCloseAction: () => setDialogAlert() }); return }
+          }
+        } else {
+          const row = entry.item
+          const { error: lineErr } = await supabase.from('measurement_lines').insert({
+            session_id: mySessionId, line_type: 'data',
             description: row.description || null,
             multiplier: row.multiplier === '' ? 1 : Number(row.multiplier),
             count:  row.count  === '' ? null : Number(row.count),
             length: row.length === '' ? null : Number(row.length),
             width:  row.width  === '' ? null : Number(row.width),
             height: row.height === '' ? null : Number(row.height),
-            order_index: row.isEdit ? -(nextRevOI++) : nextOI++,
-            status: 'pending',
-            parent_line_id: parentLineId,
+            order_index: newOI, status: 'pending', parent_line_id: parentLineId,
           })
-        if (lineErr) {
-          setDialogAlert({ dialogIcon: 'warning', dialogMessage: 'Satır kaydedilirken hata.', detailText: lineErr.message, onCloseAction: () => setDialogAlert() })
-          return
+          if (lineErr) { setDialogAlert({ dialogIcon: 'warning', dialogMessage: 'Satır kaydedilirken hata.', detailText: lineErr.message, onCloseAction: () => setDialogAlert() }); return }
         }
+        newOI++
+      }
+      // R (isEdit) satırlarını revize olarak ekle
+      const existingRevCount = existingChildren.filter(l => (l.order_index ?? 0) < 0).length
+      let nextRevOI = existingRevCount + 1
+      for (const row of editNewRows) {
+        const { error: lineErr } = await supabase.from('measurement_lines').insert({
+          session_id: mySessionId, line_type: 'data',
+          description: row.description || null,
+          multiplier: row.multiplier === '' ? 1 : Number(row.multiplier),
+          count:  row.count  === '' ? null : Number(row.count),
+          length: row.length === '' ? null : Number(row.length),
+          width:  row.width  === '' ? null : Number(row.width),
+          height: row.height === '' ? null : Number(row.height),
+          order_index: -(nextRevOI++), status: 'pending', parent_line_id: parentLineId,
+        })
+        if (lineErr) { setDialogAlert({ dialogIcon: 'warning', dialogMessage: 'Revize satırı kaydedilirken hata.', detailText: lineErr.message, onCloseAction: () => setDialogAlert() }); return }
       }
     }
     setPendingNewLines({})
+    setInsertAfterTempId(null)
+    setInsertAfterDbRowId(null)
     setSelectedOnayRow(null)
     await loadSessions()
   }
@@ -1415,35 +1469,83 @@ export default function P_MetrajOlusturCetvel() {
         for (const [parentLineId, newRows] of Object.entries(pendingNewLines)) {
           if (newRows.length === 0) continue
           const existingChildren = allLines.filter(l => l.parent_line_id === parentLineId)
-          let nextOI = existingChildren.filter(l => (l.order_index ?? 0) >= 0).length
-          const existingRevCount = existingChildren.filter(l => (l.order_index ?? 0) < 0).length
-          let nextRevOI = existingRevCount + 1
-          for (const row of newRows) {
-            const { error: lineErr } = await supabase
-              .from('measurement_lines')
-              .insert({
-                session_id: mySessionId,
-                line_type: 'data',
+          const dbNonEdit = existingChildren.filter(l => (l.order_index ?? 0) >= 0).sort((a, b) => (a.order_index ?? 0) - (b.order_index ?? 0))
+          const nonEditNewRows = newRows.filter(r => !r.isEdit)
+          const editNewRows = newRows.filter(r => r.isEdit)
+          const dbIds = new Set(dbNonEdit.map(c => c.id))
+          const combined = []
+          for (const dbChild of dbNonEdit) {
+            combined.push({ type: 'db', item: dbChild })
+            for (const nr of nonEditNewRows.filter(r => r._insertAfterDbRow === dbChild.id)) combined.push({ type: 'new', item: nr })
+          }
+          for (const nr of nonEditNewRows.filter(r => !r._insertAfterDbRow || !dbIds.has(r._insertAfterDbRow))) combined.push({ type: 'new', item: nr })
+          let newOI = 0
+          for (const entry of combined) {
+            if (entry.type === 'db') {
+              if ((entry.item.order_index ?? 0) !== newOI) {
+                const { error: upErr } = await supabase.from('measurement_lines').update({ order_index: newOI }).eq('id', entry.item.id)
+                if (upErr) throw upErr
+              }
+            } else {
+              const row = entry.item
+              const { error: lineErr } = await supabase.from('measurement_lines').insert({
+                session_id: mySessionId, line_type: 'data',
                 description: row.description || null,
                 multiplier: row.multiplier === '' ? 1 : Number(row.multiplier),
                 count:  row.count  === '' ? null : Number(row.count),
                 length: row.length === '' ? null : Number(row.length),
                 width:  row.width  === '' ? null : Number(row.width),
                 height: row.height === '' ? null : Number(row.height),
-                order_index: row.isEdit ? -(nextRevOI++) : nextOI++,
-                status: 'pending',
-                parent_line_id: parentLineId,
+                order_index: newOI, status: 'pending', parent_line_id: parentLineId,
               })
+              if (lineErr) throw lineErr
+            }
+            newOI++
+          }
+          const takenEditRevOIs = new Set(existingChildren.filter(l => (l.order_index ?? 0) < 0 && !rowEditDeletes.includes(l.id)).map(l => l.order_index))
+          let curEditRevOI = -1; while (takenEditRevOIs.has(curEditRevOI)) curEditRevOI--
+          for (const row of editNewRows) {
+            const { error: lineErr } = await supabase.from('measurement_lines').insert({
+              session_id: mySessionId, line_type: 'data',
+              description: row.description || null,
+              multiplier: row.multiplier === '' ? 1 : Number(row.multiplier),
+              count:  row.count  === '' ? null : Number(row.count),
+              length: row.length === '' ? null : Number(row.length),
+              width:  row.width  === '' ? null : Number(row.width),
+              height: row.height === '' ? null : Number(row.height),
+              order_index: curEditRevOI, status: 'pending', parent_line_id: parentLineId,
+            })
             if (lineErr) throw lineErr
+            takenEditRevOIs.add(curEditRevOI); curEditRevOI--; while (takenEditRevOIs.has(curEditRevOI)) curEditRevOI--
           }
         }
       }
       // 4. Seçili onaylı satır değiştiyse yeni revize satır (pending) ekle
-      //    (Mevcut pending revize varsa bölüm 2'de güncellendi — burası atlanır)
+      //    Zaten kendi R satırımız varsa (pending veya draft) INSERT değil UPDATE — çift R önlemi
+      const allLinesForRev = sessions.flatMap(s => s.lines ?? [])
       const savedApprovedRowChanged = !existingRevisionId && approvedRowEditValues != null && approvedRowEditInitial != null &&
         ['description','multiplier','count','length','width','height'].some(f => approvedRowEditValues[f] !== approvedRowEditInitial[f])
       if (savedApprovedRowChanged) {
-        const allLinesForRev = sessions.flatMap(s => s.lines ?? [])
+        const vals = approvedRowEditValues
+        const ownExistingR = allLinesForRev.find(l =>
+          l.parent_line_id === selectedOnayRow.id &&
+          (l.order_index ?? 0) < 0 &&
+          !rowEditDeletes.includes(l.id) &&
+          sessions.some(s => s.id === l.session_id && s.isOwn)
+        )
+        if (ownExistingR) {
+          // Mevcut R satırını yeni değerlerle güncelle, pending'e çek (draft→pending dahil)
+          const { error: revErr } = await supabase.from('measurement_lines').update({
+            description: vals.description || null,
+            multiplier: vals.multiplier === '' ? 1 : Number(vals.multiplier),
+            count:  vals.count  === '' ? null : Number(vals.count),
+            length: vals.length === '' ? null : Number(vals.length),
+            width:  vals.width  === '' ? null : Number(vals.width),
+            height: vals.height === '' ? null : Number(vals.height),
+            status: 'pending',
+          }).eq('id', ownExistingR.id)
+          if (revErr) throw revErr
+        } else {
         let myRevSessionId = sessions.find(s => s.isOwn)?.id
         if (!myRevSessionId) {
           const { data: newSess, error: sessErr } = await supabase
@@ -1454,8 +1556,8 @@ export default function P_MetrajOlusturCetvel() {
           if (sessErr) throw sessErr
           myRevSessionId = newSess.id
         }
-        const existingRevCount = allLinesForRev.filter(l => l.parent_line_id === selectedOnayRow.id && (l.order_index ?? 0) < 0).length
-        const vals = approvedRowEditValues
+        const takenRevOIs = new Set(allLinesForRev.filter(l => l.parent_line_id === selectedOnayRow.id && (l.order_index ?? 0) < 0 && !rowEditDeletes.includes(l.id)).map(l => l.order_index))
+        let newRevOI = -1; while (takenRevOIs.has(newRevOI)) newRevOI--
         const { error: revErr } = await supabase.from('measurement_lines').insert({
           session_id: myRevSessionId,
           line_type: 'data',
@@ -1465,17 +1567,20 @@ export default function P_MetrajOlusturCetvel() {
           length: vals.length === '' ? null : Number(vals.length),
           width:  vals.width  === '' ? null : Number(vals.width),
           height: vals.height === '' ? null : Number(vals.height),
-          order_index: -(existingRevCount + 1),
+          order_index: newRevOI,
           status: 'pending',
           parent_line_id: selectedOnayRow.id,
         })
         if (revErr) throw revErr
+        }
       }
       setSelectedRowEditMode(false)
       setRowEditValues({})
       setRowEditInitialValues({})
       setRowEditDeletes([])
       setPendingNewLines({})
+      setInsertAfterTempId(null)
+      setInsertAfterDbRowId(null)
       setApprovedRowEditValues(null)
       setApprovedRowEditInitial(null)
       setExistingRevisionId(null)
@@ -2021,7 +2126,7 @@ export default function P_MetrajOlusturCetvel() {
         }
 
         // Plain function (not component) — prevents React unmount/remount on state change
-        function renderOnayRow(node) {
+        function renderOnayRow(node, overrideSiraNo = undefined) {
           const hasKids = (node.children?.length ?? 0) > 0
           const isExp   = expandedApproved[node.id] ?? false
           const isChildEditable = onayKartiEditMode && !!node.parent_line_id && (node.status === 'draft' || !node.status) && sessions.some(s => s.id === node.session_id && s.created_by === appUser?.id)
@@ -2133,7 +2238,7 @@ export default function P_MetrajOlusturCetvel() {
             </>
           ) : null
 
-          if (isRevised) {
+          if (isRevised && showRevizeTalepleri) {
             const origCellBg = { backgroundColor: '#D5D5D5', borderBottom: '1px dashed #c8c8c8' }
             return (
               <>
@@ -2171,7 +2276,7 @@ export default function P_MetrajOlusturCetvel() {
             )
           }
 
-          const isSuperseded = node.status === 'approved' && node.children?.some(c => c.status === 'approved')
+          const isSuperseded = showRevizeTalepleri && node.status === 'approved' && node.children?.some(c => c.status === 'approved')
           const rowBg = node.status !== 'approved'
             ? (node.status === 'pending' ? '#BBDEFB' : (!node.status || node.status === 'draft') ? 'rgba(255,250,180,0.6)' : node.status === 'ignored' ? '#D5D5D5' : 'rgba(236,239,241,0.5)')
             : (isSuperseded ? '#c5e1a5' : '#C8E6C9')
@@ -2185,9 +2290,12 @@ export default function P_MetrajOlusturCetvel() {
           const isHovered = isClickable && hoveredOnayRowId === node.id
           const rowHandlers = isClickable ? { onMouseEnter: () => setHoveredOnayRowId(node.id), onMouseLeave: () => setHoveredOnayRowId(null) } : {}
           const onRowClick = isClickable ? () => handleSelectOnayRow(node) : undefined
-          const renderNewRows = (editOnly) => {
-            let nonEditCount = (node.children ?? []).filter(c => (c.order_index ?? 0) >= 0).length
-            return newRowsForNode.filter(r => editOnly ? r.isEdit : !r.isEdit).map((row) => {
+          const renderNewRows = (editOnly, filterFn, startAt) => {
+            let nonEditCount = startAt !== undefined ? startAt : (node.children ?? []).filter(c => (c.order_index ?? 0) >= 0).length
+            return newRowsForNode
+              .filter(r => editOnly ? r.isEdit : !r.isEdit)
+              .filter(r => filterFn ? filterFn(r) : true)
+              .map((row) => {
               const newSiraNo = row.isEdit ? `${node.siraNo}.R${row.rNum}` : `${node.siraNo}.${++nonEditCount}`
               const pBg = { backgroundColor: '#FFF8E1', borderBottom: '1px dashed #c8c8c8' }
               const hasNumData = [row.count, row.length, row.width, row.height].some(v => v !== '')
@@ -2198,18 +2306,21 @@ export default function P_MetrajOlusturCetvel() {
               const negClr = pendingMetraj < 0 ? '#c62828' : undefined
               return (
                 <React.Fragment key={row.tempId}>
-                  <Box sx={{ ...css_oc, ...pBg, justifyContent: 'flex-start', pl: '0.5rem', color: '#6a1b9a', fontSize: '0.8rem', fontStyle: 'italic' }}>{newSiraNo}</Box>
+                  <Box onClick={() => { if (!row.isEdit) { setInsertAfterTempId(row.tempId); setInsertAfterDbRowId(null) } }}
+                    sx={{ ...css_oc, ...pBg, justifyContent: 'flex-start', pl: '0.5rem', color: '#6a1b9a', fontSize: '0.8rem', fontStyle: 'italic', cursor: !row.isEdit ? 'pointer' : undefined }}>{newSiraNo}</Box>
                   <Box sx={{ ...css_oc, ...pBg, gap: '4px', pl: '4px', pr: 0 }}>
                     <Box sx={{ width: 7, height: 7, borderRadius: '50%', flexShrink: 0, visibility: 'hidden' }} />
                     <input className="metraj-num-input"
                       style={{ border: 'none', background: 'transparent', flex: 1, minWidth: 0, fontFamily: 'inherit', fontSize: '0.85rem', outline: 'none', padding: '0 4px', color: negClr }}
-                      value={row.description} onChange={e => handlePendingNewLineChange(node.id, row.tempId, 'description', e.target.value)} placeholder="Açıklama" />
+                      value={row.description} onChange={e => handlePendingNewLineChange(node.id, row.tempId, 'description', e.target.value)}
+                      onFocus={() => { if (!row.isEdit) { setInsertAfterTempId(row.tempId); setInsertAfterDbRowId(null) } }} placeholder="Açıklama" />
                   </Box>
                   {NUM_ONAY_FIELDS.map(field => (
                     <Box key={field} sx={{ ...css_oc, ...pBg, justifyContent: 'flex-end', p: 0 }}>
                       <input className="metraj-num-input" type="number"
                         style={{ border: 'none', background: 'transparent', width: '100%', textAlign: 'right', fontFamily: 'inherit', fontSize: '0.85rem', outline: 'none', padding: '0 4px', color: negClr }}
-                        value={row[field]} onChange={e => handlePendingNewLineChange(node.id, row.tempId, field, e.target.value)} placeholder="" />
+                        value={row[field]} onChange={e => handlePendingNewLineChange(node.id, row.tempId, field, e.target.value)}
+                        onFocus={() => { if (!row.isEdit) { setInsertAfterTempId(row.tempId); setInsertAfterDbRowId(null) } }} placeholder="" />
                     </Box>
                   ))}
                   <Box sx={{ ...css_oc, ...pBg, justifyContent: 'flex-end', color: negClr ?? '#6a1b9a', fontWeight: 700, fontSize: '0.82rem' }}>
@@ -2235,8 +2346,10 @@ export default function P_MetrajOlusturCetvel() {
           if (selectedRowEditMode && selectedOnayRow?.id === node.id && node.status === 'approved') {
             const eBg = { backgroundColor: '#FFF8E1', borderBottom: '1px dashed #c8c8c8' }
             const childrenToRender = (node.children ?? []).filter(c =>
-              c.id === existingRevisionId ? true  // düzenleme modundaki mevcut revize her zaman görünür
+              rowEditDeletes.includes(c.id) ? false  // soft-silinmiş satırları kesinlikle hariç tut
+              : c.id === existingRevisionId ? true  // düzenleme modundaki mevcut revize her zaman görünür
               : (!c.status || c.status === 'draft') ? false
+              : (c.order_index ?? 0) < 0 && !existingRevisionId && c.status === 'pending' && sessions.some(s => s.id === c.session_id && s.isOwn) ? false  // kendi pending R: existingRevisionId yolunda göster, burada değil
               : !showRevizeTalepleri ? c.status === 'approved'
               : c.status === 'pending' ? sessions.some(s => s.id === c.session_id && s.isOwn)
               : true
@@ -2269,19 +2382,37 @@ export default function P_MetrajOlusturCetvel() {
                       </Box>
                     </>
                   )}
-                  {childrenToRender.map(child => (
+                  {childrenToRender.filter(c => (c.order_index ?? 0) < 0).map(child => (
                     <React.Fragment key={child.id}>{renderOnayRow(child)}</React.Fragment>
                   ))}
                   {renderNewRows(true)}
-                  {renderNewRows(false)}
+                  {(() => {
+                    const dbNonEdit = childrenToRender.filter(c => (c.order_index ?? 0) >= 0)
+                    const noDbRef = r => !r._insertAfterDbRow || !dbNonEdit.some(c => c.id === r._insertAfterDbRow)
+                    let seqN = 0
+                    return <>
+                      {dbNonEdit.flatMap(dbChild => {
+                        const dbSeqN = ++seqN
+                        const pendingForThis = newRowsForNode.filter(r => !r.isEdit && r._insertAfterDbRow === dbChild.id)
+                        const startAt = seqN
+                        seqN += pendingForThis.length
+                        return [
+                          <React.Fragment key={dbChild.id}>{renderOnayRow(dbChild, `${node.siraNo}.${dbSeqN}`)}</React.Fragment>,
+                          ...renderNewRows(false, r => r._insertAfterDbRow === dbChild.id, startAt)
+                        ]
+                      })}
+                      {renderNewRows(false, noDbRef, seqN)}
+                    </>
+                  })()}
                 </>
               )
             }
 
             // Mevcut pending revize yok — onaylı satır doğrudan düzenlenebilir
             const allLinesForEdit = sessions.flatMap(s => s.lines ?? [])
-            const existingRevCount = allLinesForEdit.filter(l => l.parent_line_id === node.id && (l.order_index ?? 0) < 0).length
-            const nextRNum = existingRevCount + 1
+            const takenRevOIsEdit = new Set(allLinesForEdit.filter(l => l.parent_line_id === node.id && (l.order_index ?? 0) < 0 && !rowEditDeletes.includes(l.id)).map(l => l.order_index))
+            let nextRevOIEdit = -1; while (takenRevOIsEdit.has(nextRevOIEdit)) nextRevOIEdit--
+            const nextRNum = Math.abs(nextRevOIEdit)
             const editedMetraj = approvedRowEditValues ? calcMetrajOnay({
               ...node,
               multiplier: approvedRowEditValues.multiplier === '' ? null : approvedRowEditValues.multiplier,
@@ -2329,30 +2460,55 @@ export default function P_MetrajOlusturCetvel() {
                 {showOnaylayan  && <Box sx={{ ...css_oc, ...eBg, justifyContent: 'center', fontSize: '0.78rem', color: '#1b5e20' }}>{node.onaylayan}</Box>}
                 <Box sx={{ ...css_oc, ...eBg, justifyContent: 'center' }}>
                   <IconButton size="small" sx={{ p: '2px' }}
-                    onClick={() => { setApprovedRowEditValues(approvedRowEditInitial); setRowEditValues({}); setRowEditInitialValues({}); setRowEditDeletes([]); setPendingNewLines(prev => { const { [node.id]: _, ...rest } = prev; return rest }) }}>
+                    onClick={() => { setApprovedRowEditValues(approvedRowEditInitial); setRowEditValues({}); setRowEditInitialValues({}); setRowEditDeletes([]); setPendingNewLines(prev => { const remaining = (prev[node.id] ?? []).filter(r => !r.isEdit); if (remaining.length === 0) { const { [node.id]: _, ...rest } = prev; return rest } return { ...prev, [node.id]: remaining } }) }}>
                     <ClearIcon sx={{ fontSize: 16, color: '#c62828' }} />
                   </IconButton>
                 </Box>
-                {childrenToRender.map(child => (
+                {childrenToRender.filter(c => (c.order_index ?? 0) < 0).map(child => (
                   <React.Fragment key={child.id}>{renderOnayRow(child)}</React.Fragment>
                 ))}
                 {renderNewRows(true)}
-                {renderNewRows(false)}
+                {(() => {
+                  const dbNonEdit = childrenToRender.filter(c => (c.order_index ?? 0) >= 0)
+                  const noDbRef = r => !r._insertAfterDbRow || !dbNonEdit.some(c => c.id === r._insertAfterDbRow)
+                  let seqN = 0
+                  return <>
+                    {dbNonEdit.flatMap(dbChild => {
+                      const dbSeqN = ++seqN
+                      const pendingForThis = newRowsForNode.filter(r => !r.isEdit && r._insertAfterDbRow === dbChild.id)
+                      const startAt = seqN
+                      seqN += pendingForThis.length
+                      return [
+                        <React.Fragment key={dbChild.id}>{renderOnayRow(dbChild, `${node.siraNo}.${dbSeqN}`)}</React.Fragment>,
+                        ...renderNewRows(false, r => r._insertAfterDbRow === dbChild.id, startAt)
+                      ]
+                    })}
+                    {renderNewRows(false, noDbRef, seqN)}
+                  </>
+                })()}
               </>
             )
           }
-          const cellBg = { backgroundColor: isRowModeEditable ? '#FFF8E1' : rowBg, borderBottom: '1px dashed #c8c8c8', ...(isDim ? { color: dimColor } : {}), ...(isClickable ? { cursor: 'pointer', transition: 'filter 0.15s ease' } : {}), ...(isHovered ? { filter: 'brightness(1.07)' } : {}) }
           const negColor = isDim ? dimColor : (metraj < 0 ? '#c62828' : undefined)
+          // selectedRowEditMode'da bu node'un üst satırı seçili ise → DB satırını insert-after noktası yapar
+          const isDbInsertTarget = selectedRowEditMode && selectedOnayRow?.id === node.parent_line_id && (node.order_index ?? 0) >= 0
+          const isInsertAfterTarget = isDbInsertTarget && insertAfterDbRowId === node.id
+          const onInsertAfterClick = isDbInsertTarget
+            ? () => { setInsertAfterDbRowId(prev => prev === node.id ? null : node.id); setInsertAfterTempId(null) }
+            : undefined
+          // isRowModeEditable olsa da olmasa da tüm hücreler insert-after hedefi olabilir
+          const onCellClick = isDbInsertTarget ? onInsertAfterClick : onRowClick
+          const cellBg = { backgroundColor: isRowModeEditable ? '#FFF8E1' : rowBg, borderBottom: isInsertAfterTarget ? '2px solid #1565c0' : '1px dashed #c8c8c8', ...(isDim ? { color: dimColor } : {}), ...(isClickable || isDbInsertTarget ? { cursor: 'pointer', transition: 'filter 0.15s ease' } : {}), ...(isHovered ? { filter: 'brightness(1.07)' } : {}) }
 
           return (
             <>
               {/* Sıra sütunu */}
-              <Box sx={{ ...css_oc, ...cellBg, justifyContent: 'flex-start', pl: '0.5rem', display: 'flex', alignItems: 'center', gap: '2px', color: isDim ? dimColor : (node.depth > 0 ? '#1565c0' : '#555') }}
-                onClick={onRowClick} {...rowHandlers}>
-                {node.siraNo}
+              <Box sx={{ ...css_oc, ...cellBg, justifyContent: 'flex-start', pl: '0.5rem', display: 'flex', alignItems: 'center', gap: '2px', color: isDim ? dimColor : (node.depth > 0 ? '#1565c0' : '#555'), cursor: isDbInsertTarget ? 'pointer' : undefined }}
+                onClick={onInsertAfterClick ?? onRowClick} {...rowHandlers}>
+                {overrideSiraNo ?? node.siraNo}
               </Box>
               <Box sx={{ ...css_oc, ...cellBg, display: 'flex', alignItems: 'center', gap: '4px', color: negColor }}
-                onClick={onRowClick} {...rowHandlers}>
+                onClick={onCellClick} {...rowHandlers}>
                 <Box sx={{ width: 7, height: 7, borderRadius: '50%', backgroundColor: '#c62828', flexShrink: 0, alignSelf: 'center', visibility: isSelected ? 'visible' : 'hidden' }} />
                 {!isRowModeEditable && isChildEditable && (
                   <IconButton size="small" sx={{ p: '1px', flexShrink: 0 }}
@@ -2369,7 +2525,7 @@ export default function P_MetrajOlusturCetvel() {
                     : node.description ?? ''}
               </Box>
               {NUM_ONAY_FIELDS.map(f => (
-                <Box key={f} sx={{ ...css_oc, ...cellBg, justifyContent: 'flex-end', color: negColor }} onClick={onRowClick} {...rowHandlers}>
+                <Box key={f} sx={{ ...css_oc, ...cellBg, justifyContent: 'flex-end', color: negColor }} onClick={onCellClick} {...rowHandlers}>
                   {isRowModeEditable && rowVals
                     ? <input type="number" className={metraj < 0 ? 'metraj-num-input input-neg' : 'metraj-num-input'} style={{ ...inputOnay, textAlign: 'right', color: negColor }}
                         value={rowVals[f]} placeholder=""
@@ -2383,7 +2539,7 @@ export default function P_MetrajOlusturCetvel() {
                       : f === 'multiplier' && Number(node[f]) === 1 ? '' : (node[f] != null ? ikiHane(node[f]) : '')}
                 </Box>
               ))}
-              <Box sx={{ ...css_oc, ...cellBg, justifyContent: 'flex-end', fontWeight: 700, color: negColor }} onClick={onRowClick} {...rowHandlers}>
+              <Box sx={{ ...css_oc, ...cellBg, justifyContent: 'flex-end', fontWeight: 700, color: negColor }} onClick={onCellClick} {...rowHandlers}>
                 {metraj !== 0 ? ikiHane(metraj) : (() => {
                   const isEmpty = v => v === null || v === undefined || v === ''
                   const hasData =
@@ -2392,8 +2548,8 @@ export default function P_MetrajOlusturCetvel() {
                 })()}
                 {pozBirim && metraj !== 0 && <Box component="span" sx={{ ml: '3px', fontWeight: 400, fontSize: '0.72rem', color: isDim ? dimColor : (metraj < 0 ? '#c62828' : '#555') }}>{pozBirim}</Box>}
               </Box>
-              {showHazırlayan && <Box sx={{ ...css_oc, ...cellBg, justifyContent: 'center', fontSize: '0.78rem', color: isDim ? '#666' : '#455a64' }} onClick={onRowClick} {...rowHandlers}>{node.hazırlayan}</Box>}
-              {showOnaylayan  && <Box sx={{ ...css_oc, ...cellBg, justifyContent: 'center', fontSize: '0.78rem', color: isDim ? '#666' : (node.status === 'pending' ? '#1565c0' : '#1b5e20') }} onClick={onRowClick} {...rowHandlers}>
+              {showHazırlayan && <Box sx={{ ...css_oc, ...cellBg, justifyContent: 'center', fontSize: '0.78rem', color: isDim ? '#666' : '#455a64' }} onClick={onCellClick} {...rowHandlers}>{node.hazırlayan}</Box>}
+              {showOnaylayan  && <Box sx={{ ...css_oc, ...cellBg, justifyContent: 'center', fontSize: '0.78rem', color: isDim ? '#666' : (node.status === 'pending' ? '#1565c0' : '#1b5e20') }} onClick={onCellClick} {...rowHandlers}>
                 {onaylayanText}
               </Box>}
               <Box sx={{ ...css_oc, ...cellBg, justifyContent: 'center', gap: '2px' }} {...rowHandlers}>
@@ -2570,9 +2726,6 @@ export default function P_MetrajOlusturCetvel() {
                       ...(showOnaylayan ? { backgroundColor: 'rgba(255,255,255,0.18)', borderColor: 'rgba(255,255,255,0.5)', color: '#fff' } : { backgroundColor: 'transparent', borderColor: 'rgba(255,255,255,0.25)', color: 'rgba(255,255,255,0.4)' }) }}>
                     Onaylayan
                   </Box>
-                  <IconButton size="small" sx={{ color: 'rgba(224,225,221,0.9)', '&:hover': { color: '#fff' } }} onClick={() => setShowAllOriginals(prev => !prev)}>
-                    {showAllOriginals ? <ExpandLessIcon sx={{ fontSize: 22, filter: 'drop-shadow(0 0 0.7px currentColor)' }} /> : <ExpandMoreIcon sx={{ fontSize: 22, filter: 'drop-shadow(0 0 0.7px currentColor)' }} />}
-                  </IconButton>
                   {/* Sağ buton grubu: onayKartiEditMode ve selectedRowEditMode birbirini dışlar */}
                   {onayKartiEditMode ? (
                     <>
@@ -2631,7 +2784,7 @@ export default function P_MetrajOlusturCetvel() {
                           <>
                             <IconButton size="small" title="İptal"
                               sx={{ p: '2px', color: '#ffcdd2' }}
-                              onClick={() => { setSelectedRowEditMode(false); setRowEditValues({}); setRowEditInitialValues({}); setRowEditDeletes([]); setPendingNewLines({}); setApprovedRowEditValues(null); setApprovedRowEditInitial(null); setExistingRevisionId(null) }}>
+                              onClick={() => { setSelectedRowEditMode(false); setRowEditValues({}); setRowEditInitialValues({}); setRowEditDeletes([]); setPendingNewLines({}); setApprovedRowEditValues(null); setApprovedRowEditInitial(null); setExistingRevisionId(null); setInsertAfterTempId(null); setInsertAfterDbRowId(null) }}>
                               <ClearIcon sx={{ fontSize: 20 }} />
                             </IconButton>
                             <IconButton size="small" disabled={!isChanged} title="Kaydet"
