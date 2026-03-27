@@ -61,6 +61,9 @@ export default function P_KesifButce() {
   const [formAciklama, setFormAciklama] = useState("");
   const [activeNodeId, setActiveNodeId] = useState(null);
   const [collapsedIds, setCollapsedIds] = useState(new Set());
+  const [draftInfo, setDraftInfo] = useState(null); // { savedAt: ISO string } | null
+
+  const draftKey = selectedProje ? `butce_draft_${selectedProje.id}` : null;
 
   const [versiyonlar, setVersiyonlar] = useState([]);
   const [versiyonlarLoading, setVersiyonlarLoading] = useState(false);
@@ -76,8 +79,26 @@ export default function P_KesifButce() {
 
   useEffect(() => {
     if (!selectedProje) { navigate("/projeler"); return; }
+    // Taslak varsa bilgi state'ini güncelle
+    if (draftKey) {
+      try {
+        const saved = localStorage.getItem(draftKey);
+        if (saved) setDraftInfo({ savedAt: JSON.parse(saved).savedAt });
+      } catch {}
+    }
     loadVersiyonlar();
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // Auto-save: form açıkken her değişiklikte taslağı localStorage'a kaydet
+  useEffect(() => {
+    if (show !== "Form" || !draftKey || formNodes.length === 0) return;
+    const timer = setTimeout(() => {
+      const draft = { formNodes, formAciklama, savedAt: new Date().toISOString() };
+      localStorage.setItem(draftKey, JSON.stringify(draft));
+      setDraftInfo({ savedAt: draft.savedAt });
+    }, 600);
+    return () => clearTimeout(timer);
+  }, [formNodes, formAciklama, show, draftKey]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // ── Tree hesaplamaları ──────────────────────────────────────────────────────
   const flatNodes = useMemo(() => flattenTree(formNodes), [formNodes]);
@@ -194,26 +215,60 @@ export default function P_KesifButce() {
   };
 
   const openForm = () => {
-    setFormNodes([{
-      id: "node_ispaketleri",
-      parent_id: null,
-      name: "İş Paketleri",
-      isFixed: true,
-      order_index: 0,
-      rows: workPackages.map(wp => ({ id: wp.id, name: wp.name, isWp: true, butce: "" })),
-    }]);
-    setFormAciklama("");
+    // Güncel iş paketi satırları — butce değerlerini taslaktan koru
+    const buildWpRows = (draftFixedNode) =>
+      workPackages.map(wp => ({
+        id: wp.id, name: wp.name, isWp: true,
+        butce: draftFixedNode?.rows.find(r => r.id === wp.id)?.butce ?? "",
+      }));
+
+    let nodes = null;
+    let savedAciklama = "";
+
+    if (draftKey) {
+      try {
+        const saved = localStorage.getItem(draftKey);
+        if (saved) {
+          const draft = JSON.parse(saved);
+          const draftFixedNode = draft.formNodes?.find(n => n.isFixed);
+          nodes = draft.formNodes.map(n =>
+            n.isFixed ? { ...n, rows: buildWpRows(draftFixedNode) } : n
+          );
+          savedAciklama = draft.formAciklama || "";
+        }
+      } catch {}
+    }
+
+    if (!nodes) {
+      nodes = [{
+        id: "node_ispaketleri",
+        parent_id: null,
+        name: "İş Paketleri",
+        isFixed: true,
+        order_index: 0,
+        rows: buildWpRows(null),
+      }];
+    }
+
+    setFormNodes(nodes);
+    setFormAciklama(savedAciklama);
     setActiveNodeId(null);
     setCollapsedIds(new Set());
     setShow("Form");
   };
 
   const cancelForm = () => {
+    // Taslağı localStorage'da bırak — kullanıcı kaldığı yerden devam edebilir
     setFormNodes([]);
     setFormAciklama("");
     setActiveNodeId(null);
     setCollapsedIds(new Set());
     setShow("Main");
+  };
+
+  const discardDraft = () => {
+    if (draftKey) localStorage.removeItem(draftKey);
+    setDraftInfo(null);
   };
 
   // ── Collapse ────────────────────────────────────────────────────────────────
@@ -345,6 +400,9 @@ export default function P_KesifButce() {
         created_by: appUser.id,
       });
       if (error) throw new Error(error.message);
+      // Versiyon kaydedildi — taslağı temizle
+      if (draftKey) localStorage.removeItem(draftKey);
+      setDraftInfo(null);
       await loadVersiyonlar();
       cancelForm();
     } catch (err) {
@@ -440,7 +498,7 @@ export default function P_KesifButce() {
                           <SubdirectoryArrowRightIcon />
                         </IconButton>
                       </span></Tooltip>
-                      {isLeafSet.has(activeNodeId) && (
+                      {isLeafSet.has(activeNodeId) && !activeNode?.isFixed && (
                         <Tooltip title="Satır ekle"><span>
                           <IconButton size="small" onClick={() => addRow(activeNodeId)}>
                             <AddIcon />
@@ -538,21 +596,18 @@ export default function P_KesifButce() {
                           <Box key={i} sx={{ backgroundColor: nodeColor(i).bg }} />
                         ))}
 
-                        {/* Düğüm başlık SOL — ad sütunu (gap dahil değil) */}
+                        {/* Düğüm başlık SOL — sadece collapse toggle (text tıklaması) */}
                         <Box
-                          onClick={() => {
-                            setActiveNodeId(prev => prev === node.id ? null : node.id);
-                            if (!isLeaf) toggleCollapse(node.id);
-                          }}
+                          onClick={() => { if (!isLeaf) toggleCollapse(node.id); }}
                           sx={{
                             gridColumn: `span ${totalDepthCols - depth + 1}`,
                             pl: "6px", py: "2px",
-                            backgroundColor: isSelected ? "#1a3a5c" : c.bg,
+                            backgroundColor: c.bg,
                             color: c.co,
-                            cursor: "pointer",
+                            cursor: isLeaf ? "default" : "pointer",
                             display: "flex", alignItems: "center", gap: "0.4rem",
                             userSelect: "none",
-                            "&:hover": { filter: "brightness(1.2)" },
+                            "&:hover": isLeaf ? {} : { filter: "brightness(1.2)" },
                           }}
                         >
                           {!isLeaf && (
@@ -584,48 +639,43 @@ export default function P_KesifButce() {
                               }}
                             />
                           )}
-
-                          {isSelected && (
-                            <Box sx={{ width: "0.4rem", height: "0.4rem", borderRadius: "50%", backgroundColor: "yellow", flexShrink: 0 }} />
-                          )}
-
-                          {/* Sil butonu — sadece özel düğümler */}
-                          {!node.isFixed && (
-                            <Box onClick={e => e.stopPropagation()} sx={{ flexShrink: 0 }}>
-                              <IconButton size="small" onClick={() => deleteNodeRecursive(node.id)}
-                                sx={{ color: c.co, opacity: 0.35, "&:hover": { opacity: 1, color: "#ff8a80" }, width: 22, height: 22 }}>
-                                <DeleteOutlineIcon sx={{ fontSize: 14 }} />
-                              </IconButton>
-                            </Box>
-                          )}
                         </Box>
 
-                        {/* Gap sütunu — boydan boya beyaz şerit */}
-                        <Box sx={{ backgroundColor: "white" }} onClick={() => {
-                          setActiveNodeId(prev => prev === node.id ? null : node.id);
-                          if (!isLeaf) toggleCollapse(node.id);
-                        }} />
+                        {/* Gap sütunu */}
+                        <Box sx={{ backgroundColor: "white" }} />
 
-                        {/* Düğüm başlık SAĞ — bütçe + sil + fill sütunları */}
+                        {/* Düğüm başlık SAĞ — selection toggle, sarı nokta, sil */}
                         <Box
-                          onClick={() => {
-                            setActiveNodeId(prev => prev === node.id ? null : node.id);
-                            if (!isLeaf) toggleCollapse(node.id);
-                          }}
+                          onClick={() => setActiveNodeId(prev => prev === node.id ? null : node.id)}
                           sx={{
                             gridColumn: `span 3`,
                             py: "2px", px: "0.4rem",
-                            backgroundColor: isSelected ? "#1a3a5c" : c.bg,
+                            backgroundColor: c.bg,
                             color: c.co,
                             cursor: "pointer",
-                            display: "flex", alignItems: "center", justifyContent: "flex-end",
+                            display: "flex", alignItems: "center",
                             userSelect: "none",
                             "&:hover": { filter: "brightness(1.2)" },
                           }}
                         >
                           {total > 0 && (
-                            <Box sx={{ fontSize: "0.8rem", fontWeight: 700, flexShrink: 0 }}>
+                            <Box sx={{ fontSize: "0.8rem", fontWeight: 700, flexShrink: 0, mr: "auto" }}>
                               {fmt(total)}
+                            </Box>
+                          )}
+
+                          {/* Sarı seçim noktası */}
+                          {isSelected && (
+                            <Box sx={{ width: "0.55rem", height: "0.55rem", borderRadius: "50%", backgroundColor: "yellow", flexShrink: 0, ml: "auto" }} />
+                          )}
+
+                          {/* Sil butonu — sadece özel düğümler */}
+                          {!node.isFixed && (
+                            <Box onClick={e => e.stopPropagation()} sx={{ flexShrink: 0, ml: isSelected ? "0.3rem" : "auto" }}>
+                              <IconButton size="small" onClick={() => deleteNodeRecursive(node.id)}
+                                sx={{ color: c.co, opacity: 0.35, "&:hover": { opacity: 1, color: "#ff8a80" }, width: 22, height: 22 }}>
+                                <DeleteOutlineIcon sx={{ fontSize: 14 }} />
+                              </IconButton>
                             </Box>
                           )}
                         </Box>

@@ -1030,6 +1030,14 @@ export default function P_MetrajOlusturCetvel() {
     return buildApprovalTree(allLines, sessions, userMap)
   }, [sessions, userMap])
 
+  // Düz ağaç listesi — renderOnayRow içinde "ghost" satırları elemek için
+  const flatApprovalTree = useMemo(() => {
+    const result = []
+    const flatten = (nodes) => { nodes.forEach(n => { result.push(n); flatten(n.children ?? []) }) }
+    flatten(approvalTree)
+    return result
+  }, [approvalTree])
+
   const autoExpandDone = useRef(false)
   useEffect(() => {
     if (autoExpandDone.current || approvalTree.length === 0) return
@@ -1454,9 +1462,11 @@ export default function P_MetrajOlusturCetvel() {
         if (error) throw error
       }
       // 3. Yeni satırları ekle (pendingNewLines)
+      // Bölüm 3 ve 4 arasında aynı session paylaşılsın — stale state'ten iki kez session açılmasın
+      let ownSessionId = sessions.find(s => s.isOwn && !s.isVirtual)?.id
       if (Object.values(pendingNewLines).some(arr => arr.length > 0)) {
         const allLines = sessions.flatMap(s => s.lines ?? [])
-        let mySessionId = sessions.find(s => s.isOwn && !s.isVirtual)?.id
+        let mySessionId = ownSessionId
         if (!mySessionId) {
           const { data: newSess, error: sessErr } = await supabase
             .from('measurement_sessions')
@@ -1465,6 +1475,7 @@ export default function P_MetrajOlusturCetvel() {
             .single()
           if (sessErr) throw sessErr
           mySessionId = newSess.id
+          ownSessionId = mySessionId
         }
         for (const [parentLineId, newRows] of Object.entries(pendingNewLines)) {
           if (newRows.length === 0) continue
@@ -1522,15 +1533,19 @@ export default function P_MetrajOlusturCetvel() {
       }
       // 4. Seçili onaylı satır değiştiyse yeni revize satır (pending) ekle
       //    Zaten kendi R satırımız varsa (pending veya draft) INSERT değil UPDATE — çift R önlemi
+      //    Revize satırı seçiliyse (order_index < 0): kardeş revize (üst satırın altına) oluştur
       const allLinesForRev = sessions.flatMap(s => s.lines ?? [])
+      const isRevRowSave = (selectedOnayRow.order_index ?? 0) < 0
+      const revParentIdSave = isRevRowSave ? selectedOnayRow.parent_line_id : selectedOnayRow.id
       const savedApprovedRowChanged = !existingRevisionId && approvedRowEditValues != null && approvedRowEditInitial != null &&
         ['description','multiplier','count','length','width','height'].some(f => approvedRowEditValues[f] !== approvedRowEditInitial[f])
       if (savedApprovedRowChanged) {
         const vals = approvedRowEditValues
         const ownExistingR = allLinesForRev.find(l =>
-          l.parent_line_id === selectedOnayRow.id &&
+          l.parent_line_id === revParentIdSave &&
           (l.order_index ?? 0) < 0 &&
           !rowEditDeletes.includes(l.id) &&
+          (l.status === 'pending' || l.status === 'submitted_for_approval') &&
           sessions.some(s => s.id === l.session_id && s.isOwn)
         )
         if (ownExistingR) {
@@ -1546,7 +1561,7 @@ export default function P_MetrajOlusturCetvel() {
           }).eq('id', ownExistingR.id)
           if (revErr) throw revErr
         } else {
-        let myRevSessionId = sessions.find(s => s.isOwn && !s.isVirtual)?.id
+        let myRevSessionId = ownSessionId
         if (!myRevSessionId) {
           const { data: newSess, error: sessErr } = await supabase
             .from('measurement_sessions')
@@ -1556,7 +1571,7 @@ export default function P_MetrajOlusturCetvel() {
           if (sessErr) throw sessErr
           myRevSessionId = newSess.id
         }
-        const takenRevOIs = new Set(allLinesForRev.filter(l => l.parent_line_id === selectedOnayRow.id && (l.order_index ?? 0) < 0 && !rowEditDeletes.includes(l.id)).map(l => l.order_index))
+        const takenRevOIs = new Set(allLinesForRev.filter(l => l.parent_line_id === revParentIdSave && (l.order_index ?? 0) < 0 && !rowEditDeletes.includes(l.id)).map(l => l.order_index))
         let newRevOI = -1; while (takenRevOIs.has(newRevOI)) newRevOI--
         const { error: revErr } = await supabase.from('measurement_lines').insert({
           session_id: myRevSessionId,
@@ -1569,7 +1584,7 @@ export default function P_MetrajOlusturCetvel() {
           height: vals.height === '' ? null : Number(vals.height),
           order_index: newRevOI,
           status: 'pending',
-          parent_line_id: selectedOnayRow.id,
+          parent_line_id: revParentIdSave,
         })
         if (revErr) throw revErr
         }
@@ -1736,7 +1751,20 @@ export default function P_MetrajOlusturCetvel() {
               value={metrajMode}
               exclusive
               size="small"
-              onChange={(_, val) => { if (val) setMetrajMode(val) }}
+              onChange={(_, val) => {
+                if (!val) return
+                if (anyChanged) {
+                  setDialogAlert({
+                    dialogIcon: 'warning',
+                    dialogMessage: 'Kaydedilmemiş değişiklikler var. Mod değiştirilirse bu değişiklikler kaybolacak.',
+                    actionText1: 'Yine de Geç',
+                    action1: () => setMetrajMode(val),
+                    onCloseAction: () => setDialogAlert(),
+                  })
+                  return
+                }
+                setMetrajMode(val)
+              }}
             >
               <ToggleButton value="prepare" sx={{ px: '0.8rem', fontWeight: 600, fontSize: '0.75rem', textTransform: 'none' }}>Oluştur</ToggleButton>
               <ToggleButton value="approve" sx={{ px: '0.8rem', fontWeight: 600, fontSize: '0.75rem', textTransform: 'none' }}>Onayla</ToggleButton>
@@ -2131,7 +2159,8 @@ export default function P_MetrajOlusturCetvel() {
           const isExp   = expandedApproved[node.id] ?? false
           const isChildEditable = onayKartiEditMode && !!node.parent_line_id && (node.status === 'draft' || !node.status) && sessions.some(s => s.id === node.session_id && s.created_by === appUser?.id)
           const childVals = childEditValues[node.id] ?? null
-          const isRowModeEditable = selectedRowEditMode && !!selectedOnayRow && !!node.parent_line_id && node.status === 'pending' && node.siraNo.startsWith(selectedOnayRow.siraNo + '.') && sessions.some(s => s.id === node.session_id && s.created_by === appUser?.id)
+          const selSiraNoBase = selectedOnayRow ? ((selectedOnayRow.order_index ?? 0) < 0 ? (selectedOnayRow.siraNo ?? '').replace(/\.R\d+$/, '') : selectedOnayRow.siraNo) : null
+          const isRowModeEditable = selectedRowEditMode && !!selectedOnayRow && !!node.parent_line_id && node.status === 'pending' && selSiraNoBase != null && (node.siraNo?.startsWith(selSiraNoBase + '.') ?? false) && sessions.some(s => s.id === node.session_id && s.created_by === appUser?.id)
           const rowVals = rowEditValues[node.id] ?? null
           if (isRowModeEditable && rowEditDeletes.includes(node.id)) return null
           const metraj = (isRowModeEditable && rowVals)
@@ -2140,7 +2169,7 @@ export default function P_MetrajOlusturCetvel() {
               ? calcMetrajOnay({ ...node, multiplier: childVals.multiplier === '' ? null : childVals.multiplier, count: childVals.count === '' ? null : childVals.count, length: childVals.length === '' ? null : childVals.length, width: childVals.width === '' ? null : childVals.width, height: childVals.height === '' ? null : childVals.height })
               : calcMetrajOnay(node)
           const isRevizeOpen = !!(revizeForms[node.id]?.length)
-          const isRevised = node.status === 'approved' && hasKids && (node.children ?? []).some(c => c.status === 'approved')
+          const isRevised = node.status === 'approved' && hasKids && (node.children ?? []).some(c => c.status === 'approved' && (c.order_index ?? 0) < 0)
 
           // Çoklu satır revize editörü (metrajonaylacetvel ile aynı)
           const nodeRevizeRows = revizeForms[node.id] ?? []
@@ -2238,58 +2267,7 @@ export default function P_MetrajOlusturCetvel() {
             </>
           ) : null
 
-          if (isRevised && showRevizeTalepleri) {
-            const origCellBg = { backgroundColor: '#D5D5D5', borderBottom: '1px dashed #c8c8c8' }
-            return (
-              <>
-                {showAllOriginals && showRevizeTalepleri && (
-                  <>
-                    <Box sx={{ ...css_oc, ...origCellBg, justifyContent: 'flex-start', pl: '0.5rem', color: '#888', fontSize: '0.78rem' }}>{node.siraNo}</Box>
-                    <Box sx={{ ...css_oc, ...origCellBg, color: '#777', fontStyle: 'italic', fontSize: '0.82rem', gap: '4px' }}>
-                      <Box sx={{ width: 7, height: 7, borderRadius: '50%', flexShrink: 0, visibility: 'hidden' }} />
-                      {node.description ?? ''}
-                    </Box>
-                    {NUM_ONAY_FIELDS.map(f => (
-                      <Box key={f} sx={{ ...css_oc, ...origCellBg, justifyContent: 'flex-end', color: '#888' }}>{f === 'multiplier' && Number(node[f]) === 1 ? '' : (node[f] != null ? ikiHane(node[f]) : '')}</Box>
-                    ))}
-                    <Box sx={{ ...css_oc, ...origCellBg, justifyContent: 'flex-end', fontWeight: 700, color: '#888' }}>
-                      {(() => {
-                        const q = calcMetrajOnay(node)
-                        const isEmpty = v => v === null || v === undefined || v === ''
-                        const hasData = [(Number(node.multiplier) === 1 ? null : node.multiplier), node.count, node.length, node.width, node.height].some(v => !isEmpty(v))
-                        return (q !== 0 || hasData) ? ikiHane(q) : ''
-                      })()}
-                      {pozBirim && calcMetrajOnay(node) !== 0 && <Box component="span" sx={{ ml: '3px', fontWeight: 400, fontSize: '0.72rem', color: '#888' }}>{pozBirim}</Box>}
-                    </Box>
-                    {showHazırlayan && <Box sx={{ ...css_oc, ...origCellBg, justifyContent: 'center', fontSize: '0.78rem', color: '#666' }}>{node.hazırlayan}</Box>}
-                    {showOnaylayan  && <Box sx={{ ...css_oc, ...origCellBg, justifyContent: 'center', fontSize: '0.78rem', color: '#666' }}>{node.onaylayan}</Box>}
-                    <Box sx={{ ...css_oc, ...origCellBg, justifyContent: 'center' }}>
-                      <DoneAllIcon sx={{ fontSize: 18, color: '#9e9e9e', filter: 'drop-shadow(0 0 0.6px #9e9e9e)' }} />
-                    </Box>
-                  </>
-                )}
-                {node.children.filter(c => (!c.status || c.status === 'draft') ? false : !showRevizeTalepleri ? c.status === 'approved' : c.status === 'pending' ? sessions.some(s => s.id === c.session_id && s.isOwn) : true).map(child => (
-                  <React.Fragment key={child.id}>{renderOnayRow(child)}</React.Fragment>
-                ))}
-                {revizeEditor}
-              </>
-            )
-          }
-
-          const isSuperseded = showRevizeTalepleri && node.status === 'approved' && node.children?.some(c => c.status === 'approved')
-          const rowBg = node.status !== 'approved'
-            ? (node.status === 'pending' ? '#BBDEFB' : (!node.status || node.status === 'draft') ? 'rgba(255,250,180,0.6)' : node.status === 'ignored' ? '#D5D5D5' : 'rgba(236,239,241,0.5)')
-            : (isSuperseded ? '#c5e1a5' : '#C8E6C9')
-          const onaylayanText = node.status === 'pending' ? '' : (node.onaylayan ?? '')
-          const isIgnored = node.status === 'ignored'
-          const dimColor = 'rgba(0,0,0,0.28)'
-          const isDim = isIgnored || isSuperseded
-          const isSelected = selectedOnayRow?.id === node.id
           const newRowsForNode = pendingNewLines[node.id] ?? []
-          const isClickable = node.status === 'approved' && !isSuperseded && !onayKartiEditMode && !selectedRowEditMode
-          const isHovered = isClickable && hoveredOnayRowId === node.id
-          const rowHandlers = isClickable ? { onMouseEnter: () => setHoveredOnayRowId(node.id), onMouseLeave: () => setHoveredOnayRowId(null) } : {}
-          const onRowClick = isClickable ? () => handleSelectOnayRow(node) : undefined
           const renderNewRows = (editOnly, filterFn, startAt) => {
             let nonEditCount = startAt !== undefined ? startAt : (node.children ?? []).filter(c => (c.order_index ?? 0) >= 0).length
             return newRowsForNode
@@ -2297,7 +2275,7 @@ export default function P_MetrajOlusturCetvel() {
               .filter(r => filterFn ? filterFn(r) : true)
               .map((row) => {
               const newSiraNo = row.isEdit ? `${node.siraNo}.R${row.rNum}` : `${node.siraNo}.${++nonEditCount}`
-              const pBg = { backgroundColor: '#FFF8E1', borderBottom: 'none' }
+              const pBg = { backgroundColor: '#FFF8E1', borderBottom: '1px dashed #d4b84a' }
               const hasNumData = [row.count, row.length, row.width, row.height].some(v => v !== '')
               const pendingMetraj = hasNumData ? [
                 row.multiplier === '' ? 1 : Number(row.multiplier),
@@ -2342,6 +2320,95 @@ export default function P_MetrajOlusturCetvel() {
               )
             })
           }
+
+          if (isRevised && !showRevizeTalepleri) {
+            // Revizeleri gizle modunda: orijinal geçersiz kılınmış satır yerine en son onaylı revizeyi göster
+            const activeRev = [...(node.children ?? [])]
+              .filter(c => c.status === 'approved' && (c.order_index ?? 0) < 0)
+              .sort((a, b) => (a.order_index ?? 0) - (b.order_index ?? 0))[0]
+            return activeRev ? renderOnayRow(activeRev) : null
+          }
+
+          if (isRevised && showRevizeTalepleri) {
+            const origCellBg = { backgroundColor: '#D5D5D5', borderBottom: '1px dashed #c8c8c8' }
+            return (
+              <>
+                <>
+                  <Box sx={{ ...css_oc, ...origCellBg, justifyContent: 'flex-start', pl: '0.5rem', color: '#888', fontSize: '0.78rem' }}>{node.siraNo}</Box>
+                    <Box sx={{ ...css_oc, ...origCellBg, color: '#777', fontStyle: 'italic', fontSize: '0.82rem', gap: '4px' }}>
+                      <Box sx={{ width: 7, height: 7, borderRadius: '50%', flexShrink: 0, visibility: 'hidden' }} />
+                      {node.description ?? ''}
+                    </Box>
+                    {NUM_ONAY_FIELDS.map(f => (
+                      <Box key={f} sx={{ ...css_oc, ...origCellBg, justifyContent: 'flex-end', color: '#888' }}>{f === 'multiplier' && Number(node[f]) === 1 ? '' : (node[f] != null ? ikiHane(node[f]) : '')}</Box>
+                    ))}
+                    <Box sx={{ ...css_oc, ...origCellBg, justifyContent: 'flex-end', fontWeight: 700, color: '#888' }}>
+                      {(() => {
+                        const q = calcMetrajOnay(node)
+                        const isEmpty = v => v === null || v === undefined || v === ''
+                        const hasData = [(Number(node.multiplier) === 1 ? null : node.multiplier), node.count, node.length, node.width, node.height].some(v => !isEmpty(v))
+                        return (q !== 0 || hasData) ? ikiHane(q) : ''
+                      })()}
+                      {pozBirim && calcMetrajOnay(node) !== 0 && <Box component="span" sx={{ ml: '3px', fontWeight: 400, fontSize: '0.72rem', color: '#888' }}>{pozBirim}</Box>}
+                    </Box>
+                    {showHazırlayan && <Box sx={{ ...css_oc, ...origCellBg, justifyContent: 'center', fontSize: '0.78rem', color: '#666' }}>{node.hazırlayan}</Box>}
+                    {showOnaylayan  && <Box sx={{ ...css_oc, ...origCellBg, justifyContent: 'center', fontSize: '0.78rem', color: '#666' }}>{node.onaylayan}</Box>}
+                    <Box sx={{ ...css_oc, ...origCellBg, justifyContent: 'center' }}>
+                      <DoneAllIcon sx={{ fontSize: 18, color: '#9e9e9e', filter: 'drop-shadow(0 0 0.6px #9e9e9e)' }} />
+                    </Box>
+                </>
+                {(() => {
+                  const filteredKids = node.children.filter(c => (!c.status || c.status === 'draft') ? false : !showRevizeTalepleri ? c.status === 'approved' : c.status === 'pending' ? sessions.some(s => s.id === c.session_id && s.isOwn) : true)
+                  const isInEditMode = selectedRowEditMode && node.children?.some(c => c.id === selectedOnayRow?.id && (c.order_index ?? 0) < 0)
+                  if (!isInEditMode) return filteredKids.map(child => (<React.Fragment key={child.id}>{renderOnayRow(child)}</React.Fragment>))
+                  let revKids = filteredKids.filter(c => (c.order_index ?? 0) < 0)
+                  const normKids = filteredKids.filter(c => (c.order_index ?? 0) >= 0)
+                  // Kendi pending kardeş revizesi varsa (ownSiblingRev), seçili satırın konumuna taşı
+                  const ownSiblingRev = revKids.find(c =>
+                    c.id !== selectedOnayRow?.id &&
+                    !rowEditDeletes.includes(c.id) && c.status !== 'approved' &&
+                    sessions.some(s => s.id === c.session_id && s.isOwn)
+                  )
+                  if (ownSiblingRev && selectedOnayRow) {
+                    const selIdx = revKids.findIndex(c => c.id === selectedOnayRow.id)
+                    if (selIdx >= 0) {
+                      const withoutBoth = revKids.filter(c => c.id !== selectedOnayRow.id && c.id !== ownSiblingRev.id)
+                      const posBeforeSel = revKids.slice(0, selIdx).filter(c => c.id !== ownSiblingRev.id).length
+                      revKids = [...withoutBoth.slice(0, posBeforeSel), ownSiblingRev, ...withoutBoth.slice(posBeforeSel)]
+                    }
+                  }
+                  const noDbRef = r => !r._insertAfterDbRow || !normKids.some(c => c.id === r._insertAfterDbRow)
+                  let seqN = 0
+                  return [
+                    ...revKids.map(child => (<React.Fragment key={child.id}>{renderOnayRow(child)}</React.Fragment>)),
+                    ...normKids.flatMap(dbChild => {
+                      ++seqN
+                      return [
+                        <React.Fragment key={dbChild.id}>{renderOnayRow(dbChild)}</React.Fragment>,
+                        ...renderNewRows(false, r => r._insertAfterDbRow === dbChild.id, seqN)
+                      ]
+                    }),
+                    ...renderNewRows(false, noDbRef, seqN),
+                  ]
+                })()}
+                {revizeEditor}
+              </>
+            )
+          }
+
+          const isSuperseded = showRevizeTalepleri && node.status === 'approved' && node.children?.some(c => c.status === 'approved' && (c.order_index ?? 0) < 0)
+          const rowBg = node.status !== 'approved'
+            ? (node.status === 'pending' ? '#BBDEFB' : (!node.status || node.status === 'draft') ? 'rgba(255,250,180,0.6)' : node.status === 'ignored' ? '#D5D5D5' : 'rgba(236,239,241,0.5)')
+            : (isSuperseded ? '#c5e1a5' : '#C8E6C9')
+          const onaylayanText = node.status === 'pending' ? '' : (node.onaylayan ?? '')
+          const isIgnored = node.status === 'ignored'
+          const dimColor = 'rgba(0,0,0,0.28)'
+          const isDim = isIgnored || isSuperseded
+          const isSelected = selectedOnayRow?.id === node.id
+          const isClickable = node.status === 'approved' && !isSuperseded && !onayKartiEditMode && !selectedRowEditMode
+          const isHovered = isClickable && hoveredOnayRowId === node.id
+          const rowHandlers = isClickable ? { onMouseEnter: () => setHoveredOnayRowId(node.id), onMouseLeave: () => setHoveredOnayRowId(null) } : {}
+          const onRowClick = isClickable ? () => handleSelectOnayRow(node) : undefined
           // ── Seçili onaylı satır: düzenleme modu ─────────────────────────────
           if (selectedRowEditMode && selectedOnayRow?.id === node.id && node.status === 'approved') {
             const eBg = { backgroundColor: '#FFF8E1', borderBottom: '1px dashed #c8c8c8' }
@@ -2409,8 +2476,18 @@ export default function P_MetrajOlusturCetvel() {
             }
 
             // Mevcut pending revize yok — onaylı satır doğrudan düzenlenebilir
+            // Revize satırı seçiliyse: kardeş revize oluşturulacak (üst satırın parent_line_id'si)
+            const isRevisionNodeEdit = (node.order_index ?? 0) < 0
+            const revisionParentIdEdit = isRevisionNodeEdit ? node.parent_line_id : node.id
             const allLinesForEdit = sessions.flatMap(s => s.lines ?? [])
-            const takenRevOIsEdit = new Set(allLinesForEdit.filter(l => l.parent_line_id === node.id && (l.order_index ?? 0) < 0 && !rowEditDeletes.includes(l.id)).map(l => l.order_index))
+            // Mevcut kendi pending kardeş/çocuk revizesi — approvalTree'de gerçekten görünen satırda ara
+            // (ham session lines'da "ghost" satır olabilir; yalnızca görünen ağaç düğümleri dikkate alınmalı)
+            const ownExistingRevEdit = flatApprovalTree.find(l =>
+              l.parent_line_id === revisionParentIdEdit && (l.order_index ?? 0) < 0 &&
+              !rowEditDeletes.includes(l.id) && (l.status === 'pending' || l.status === 'submitted_for_approval') && sessions.some(s => s.id === l.session_id && s.isOwn)
+            )
+            if (isRevisionNodeEdit && ownExistingRevEdit) return null
+            const takenRevOIsEdit = new Set(allLinesForEdit.filter(l => l.parent_line_id === revisionParentIdEdit && (l.order_index ?? 0) < 0 && !rowEditDeletes.includes(l.id) && l.id !== ownExistingRevEdit?.id).map(l => l.order_index))
             let nextRevOIEdit = -1; while (takenRevOIsEdit.has(nextRevOIEdit)) nextRevOIEdit--
             const nextRNum = Math.abs(nextRevOIEdit)
             const editedMetraj = approvedRowEditValues ? calcMetrajOnay({
@@ -2422,7 +2499,8 @@ export default function P_MetrajOlusturCetvel() {
               height: approvedRowEditValues.height === '' ? null : approvedRowEditValues.height,
             }) : metraj
             const eNegClr = editedMetraj < 0 ? '#c62828' : undefined
-            const editSiraNo = approvedRowChanged ? `${node.siraNo}.R${nextRNum}` : node.siraNo
+            const parentBaseSiraNo = isRevisionNodeEdit ? node.siraNo.replace(/\.R\d+$/, '') : node.siraNo
+            const editSiraNo = approvedRowChanged ? `${parentBaseSiraNo}.R${nextRNum}` : node.siraNo
             const editSiraColor = approvedRowChanged ? '#6a1b9a' : '#555'
             return (
               <>
@@ -2463,7 +2541,7 @@ export default function P_MetrajOlusturCetvel() {
                     onClick={() => {
                       setApprovedRowEditValues(approvedRowEditInitial)
                       setRowEditValues(rowEditInitialValues)
-                      setPendingNewLines(prev => { const remaining = (prev[node.id] ?? []).filter(r => !r.isEdit); if (remaining.length === 0) { const { [node.id]: _, ...rest } = prev; return rest } return { ...prev, [node.id]: remaining } })
+                      setPendingNewLines(prev => { const remaining = (prev[revisionParentIdEdit] ?? []).filter(r => !r.isEdit); if (remaining.length === 0) { const { [revisionParentIdEdit]: _, ...rest } = prev; return rest } return { ...prev, [revisionParentIdEdit]: remaining } })
                     }}>
                     <ClearIcon sx={{ fontSize: 16, color: '#c62828' }} />
                   </IconButton>
@@ -2494,15 +2572,16 @@ export default function P_MetrajOlusturCetvel() {
             )
           }
           const negColor = isDim ? dimColor : (metraj < 0 ? '#c62828' : undefined)
-          // selectedRowEditMode'da bu node'un üst satırı seçili ise → DB satırını insert-after noktası yapar
-          const isDbInsertTarget = selectedRowEditMode && selectedOnayRow?.id === node.parent_line_id && (node.order_index ?? 0) >= 0
+          // selectedRowEditMode'da bu node'un üst satırı (veya seçili revize satırın ebeveyni) seçili ise → DB satırını insert-after noktası yapar
+          const editModeParentId = selectedOnayRow ? ((selectedOnayRow.order_index ?? 0) < 0 ? selectedOnayRow.parent_line_id : selectedOnayRow.id) : null
+          const isDbInsertTarget = selectedRowEditMode && editModeParentId != null && editModeParentId === node.parent_line_id && (node.order_index ?? 0) >= 0 && !isIgnored && node.status !== 'approved'
           const isInsertAfterTarget = isDbInsertTarget && insertAfterDbRowId === node.id
           const onInsertAfterClick = isDbInsertTarget
             ? () => { setInsertAfterDbRowId(prev => prev === node.id ? null : node.id); setInsertAfterTempId(null) }
             : undefined
           // isRowModeEditable olsa da olmasa da tüm hücreler insert-after hedefi olabilir
           const onCellClick = isDbInsertTarget ? onInsertAfterClick : onRowClick
-          const cellBg = { backgroundColor: (isRowModeEditable || isDbInsertTarget) ? '#FFF8E1' : rowBg, borderBottom: (isRowModeEditable || isDbInsertTarget) ? 'none' : isInsertAfterTarget ? '2px solid #1565c0' : '1px dashed #c8c8c8', ...(isDim ? { color: dimColor } : {}), ...(isClickable || isDbInsertTarget ? { cursor: 'pointer', transition: 'filter 0.15s ease' } : {}), ...(isHovered ? { filter: 'brightness(1.07)' } : {}) }
+          const cellBg = { backgroundColor: (isRowModeEditable || isDbInsertTarget) ? '#FFF8E1' : rowBg, borderBottom: isInsertAfterTarget ? '2px solid #1565c0' : (isRowModeEditable || isDbInsertTarget) ? '1px dashed #d4b84a' : '1px dashed #c8c8c8', ...(isDim ? { color: dimColor } : {}), ...(isClickable || isDbInsertTarget ? { cursor: 'pointer', transition: 'filter 0.15s ease' } : {}), ...(isHovered ? { filter: 'brightness(1.07)' } : {}) }
 
           return (
             <>
@@ -2612,8 +2691,8 @@ export default function P_MetrajOlusturCetvel() {
                 )}
                 {/* Statü ikonları — edit mod kapalıyken */}
                 {!onayKartiEditMode && node.status === 'ignored' && <DoNotDisturbIcon sx={{ fontSize: 16, color: '#424242' }} />}
-                {!onayKartiEditMode && node.status === 'approved' && node.depth > 0 && <Typography sx={{ fontSize: '0.9rem', fontWeight: 900, color: '#2E7D32', lineHeight: 1 }}>R</Typography>}
-                {!onayKartiEditMode && node.status === 'approved' && !node.depth && <DoneAllIcon sx={{ fontSize: 18, color: '#2E7D32', filter: 'drop-shadow(0 0 0.6px #2E7D32)' }} />}
+                {!onayKartiEditMode && node.status === 'approved' && (node.order_index ?? 0) < 0 && <Typography sx={{ fontSize: '0.9rem', fontWeight: 900, color: '#2E7D32', lineHeight: 1 }}>R</Typography>}
+                {!onayKartiEditMode && node.status === 'approved' && (node.order_index ?? 0) >= 0 && <DoneAllIcon sx={{ fontSize: 18, color: '#2E7D32', filter: 'drop-shadow(0 0 0.6px #2E7D32)' }} />}
                 {!onayKartiEditMode && !isRowModeEditable && node.status === 'pending' && (node.order_index ?? 0) < 0 && <Typography sx={{ fontSize: '0.9rem', fontWeight: 900, color: '#1565c0', lineHeight: 1 }}>R</Typography>}
               </Box>
 
@@ -2679,7 +2758,7 @@ export default function P_MetrajOlusturCetvel() {
 
         // Onaylanan = onaylanan satırlar, onaylanmış alt satırı olanlar (geçersiz kılınanlar) hariç
         const totalOnaylanan = allApprovalLines
-          .filter(n => n.status === 'approved' && !(n.children?.some(c => c.status === 'approved')))
+          .filter(n => n.status === 'approved' && !(n.children?.some(c => c.status === 'approved' && (c.order_index ?? 0) < 0)))
           .reduce((s, n) => s + calcMetrajOnay(n), 0)
 
         const hasNewLines = Object.values(pendingNewLines).some(arr => arr.length > 0)
@@ -2804,17 +2883,21 @@ export default function P_MetrajOlusturCetvel() {
                               setSelectedRowEditMode(true)
                               setExpandedApproved(prev => ({ ...prev, [selectedOnayRow.id]: true }))
                               const allLines = sessions.flatMap(s => s.lines ?? [])
-                              // Mevcut pending revize satırını bul (aktif kullanıcı tarafından oluşturulmuş)
+                              const isRevRow = (selectedOnayRow.order_index ?? 0) < 0
+                              const revParentId = isRevRow ? selectedOnayRow.parent_line_id : selectedOnayRow.id
+                              // Mevcut pending revize satırını bul — revize satırı için kardeş, kök için çocuk
                               const existingPendingRev = allLines.find(l =>
-                                l.parent_line_id === selectedOnayRow.id &&
+                                l.parent_line_id === revParentId &&
                                 (l.order_index ?? 0) < 0 &&
-                                l.status === 'pending' &&
+                                (l.status === 'pending' || l.status === 'submitted_for_approval') &&
                                 sessions.some(s => s.id === l.session_id && s.created_by === appUser?.id)
                               )
-                              setExistingRevisionId(existingPendingRev?.id ?? null)
+                              // Revize satırı için existingRevisionId kullanılmaz (kardeş, çocuk değil)
+                              setExistingRevisionId(isRevRow ? null : (existingPendingRev?.id ?? null))
+                              const editSiraNoBase = isRevRow ? selectedOnayRow.siraNo.replace(/\.R\d+$/, '') : selectedOnayRow.siraNo
                               const initVals = {}
                               const initNode = (nodes) => nodes.forEach(n => {
-                                if (n.siraNo.startsWith(selectedOnayRow.siraNo + '.') &&
+                                if (n.siraNo.startsWith(editSiraNoBase + '.') &&
                                     n.status === 'pending' &&
                                     sessions.some(s => s.id === n.session_id && s.created_by === appUser?.id)) {
                                   initVals[n.id] = {
@@ -2831,18 +2914,19 @@ export default function P_MetrajOlusturCetvel() {
                               initNode(approvalTree)
                               setRowEditValues(initVals)
                               setRowEditInitialValues(_.cloneDeep(initVals))
-                              if (!existingPendingRev) {
-                                // Mevcut pending revize yoksa onaylı satırı doğrudan düzenle
+                              if (isRevRow || !existingPendingRev) {
+                                // Revize satırı seçiliyse VEYA pending revize yoksa: seçili satırı doğrudan düzenle
+                                const src = selectedOnayRow
                                 const initApproved = {
-                                  description: selectedOnayRow.description ?? '',
-                                  multiplier: (selectedOnayRow.multiplier != null && Number(selectedOnayRow.multiplier) !== 1) ? String(selectedOnayRow.multiplier) : '',
-                                  count:  selectedOnayRow.count  != null ? String(selectedOnayRow.count)  : '',
-                                  length: selectedOnayRow.length != null ? String(selectedOnayRow.length) : '',
-                                  width:  selectedOnayRow.width  != null ? String(selectedOnayRow.width)  : '',
-                                  height: selectedOnayRow.height != null ? String(selectedOnayRow.height) : '',
+                                  description: src.description ?? '',
+                                  multiplier: (src.multiplier != null && Number(src.multiplier) !== 1) ? String(src.multiplier) : '',
+                                  count:  src.count  != null ? String(src.count)  : '',
+                                  length: src.length != null ? String(src.length) : '',
+                                  width:  src.width  != null ? String(src.width)  : '',
+                                  height: src.height != null ? String(src.height) : '',
                                 }
                                 setApprovedRowEditValues(initApproved)
-                                setApprovedRowEditInitial(initApproved)
+                                setApprovedRowEditInitial(_.cloneDeep(initApproved))
                               } else {
                                 setApprovedRowEditValues(null)
                                 setApprovedRowEditInitial(null)

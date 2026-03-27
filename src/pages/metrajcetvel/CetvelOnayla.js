@@ -755,7 +755,20 @@ export default function P_MetrajOnaylaCetvel() {
               value={metrajMode}
               exclusive
               size="small"
-              onChange={(_, val) => { if (val) setMetrajMode(val) }}
+              onChange={(_, val) => {
+                if (!val) return
+                if (hasSaveableChanges) {
+                  setDialogAlert({
+                    dialogIcon: 'warning',
+                    dialogMessage: 'Kaydedilmemiş değişiklikler var. Mod değiştirilirse bu değişiklikler kaybolacak.',
+                    actionText1: 'Yine de Geç',
+                    action1: () => { cancelOnayKartiEdits(); setMetrajMode(val) },
+                    onCloseAction: () => setDialogAlert(),
+                  })
+                  return
+                }
+                setMetrajMode(val)
+              }}
             >
               <ToggleButton value="prepare" sx={{ px: '0.8rem', fontWeight: 600, fontSize: '0.75rem', textTransform: 'none' }}>Oluştur</ToggleButton>
               <ToggleButton value="approve" sx={{ px: '0.8rem', fontWeight: 600, fontSize: '0.75rem', textTransform: 'none' }}>Onayla</ToggleButton>
