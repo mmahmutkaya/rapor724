@@ -1358,11 +1358,11 @@ export default function P_MetrajOlusturCetvel() {
 
   const saveNewLines = async () => {
     const allLines = sessions.flatMap(s => s.lines ?? [])
-    let mySessionId = sessions.find(s => s.isOwn)?.id
+    let mySessionId = sessions.find(s => s.isOwn && !s.isVirtual)?.id
     if (!mySessionId) {
       const { data: newSess, error: sessErr } = await supabase
         .from('measurement_sessions')
-        .insert({ work_package_poz_area_id: wpAreaId, created_by: appUser?.id, status: 'preparing' })
+        .insert({ work_package_poz_area_id: wpAreaId, created_by: appUser?.id, status: 'draft' })
         .select('id')
         .single()
       if (sessErr) {
@@ -1456,11 +1456,11 @@ export default function P_MetrajOlusturCetvel() {
       // 3. Yeni satırları ekle (pendingNewLines)
       if (Object.values(pendingNewLines).some(arr => arr.length > 0)) {
         const allLines = sessions.flatMap(s => s.lines ?? [])
-        let mySessionId = sessions.find(s => s.isOwn)?.id
+        let mySessionId = sessions.find(s => s.isOwn && !s.isVirtual)?.id
         if (!mySessionId) {
           const { data: newSess, error: sessErr } = await supabase
             .from('measurement_sessions')
-            .insert({ work_package_poz_area_id: wpAreaId, created_by: appUser?.id, status: 'preparing' })
+            .insert({ work_package_poz_area_id: wpAreaId, created_by: appUser?.id, status: 'draft' })
             .select('id')
             .single()
           if (sessErr) throw sessErr
@@ -1546,11 +1546,11 @@ export default function P_MetrajOlusturCetvel() {
           }).eq('id', ownExistingR.id)
           if (revErr) throw revErr
         } else {
-        let myRevSessionId = sessions.find(s => s.isOwn)?.id
+        let myRevSessionId = sessions.find(s => s.isOwn && !s.isVirtual)?.id
         if (!myRevSessionId) {
           const { data: newSess, error: sessErr } = await supabase
             .from('measurement_sessions')
-            .insert({ work_package_poz_area_id: wpAreaId, created_by: appUser?.id, status: 'preparing' })
+            .insert({ work_package_poz_area_id: wpAreaId, created_by: appUser?.id, status: 'draft' })
             .select('id')
             .single()
           if (sessErr) throw sessErr
@@ -2297,7 +2297,7 @@ export default function P_MetrajOlusturCetvel() {
               .filter(r => filterFn ? filterFn(r) : true)
               .map((row) => {
               const newSiraNo = row.isEdit ? `${node.siraNo}.R${row.rNum}` : `${node.siraNo}.${++nonEditCount}`
-              const pBg = { backgroundColor: '#FFF8E1', borderBottom: '1px dashed #c8c8c8' }
+              const pBg = { backgroundColor: '#FFF8E1', borderBottom: 'none' }
               const hasNumData = [row.count, row.length, row.width, row.height].some(v => v !== '')
               const pendingMetraj = hasNumData ? [
                 row.multiplier === '' ? 1 : Number(row.multiplier),
@@ -2309,7 +2309,7 @@ export default function P_MetrajOlusturCetvel() {
                   <Box onClick={() => { if (!row.isEdit) { setInsertAfterTempId(row.tempId); setInsertAfterDbRowId(null) } }}
                     sx={{ ...css_oc, ...pBg, justifyContent: 'flex-start', pl: '0.5rem', color: '#6a1b9a', fontSize: '0.8rem', fontStyle: 'italic', cursor: !row.isEdit ? 'pointer' : undefined }}>{newSiraNo}</Box>
                   <Box sx={{ ...css_oc, ...pBg, gap: '4px', pl: '4px', pr: 0 }}>
-                    <Box sx={{ width: 7, height: 7, borderRadius: '50%', flexShrink: 0, visibility: 'hidden' }} />
+                    <Box sx={{ width: 7, height: 7, borderRadius: '50%', backgroundColor: '#e65100', flexShrink: 0, alignSelf: 'center', visibility: insertAfterTempId === row.tempId ? 'visible' : 'hidden' }} />
                     <input className="metraj-num-input"
                       style={{ border: 'none', background: 'transparent', flex: 1, minWidth: 0, fontFamily: 'inherit', fontSize: '0.85rem', outline: 'none', padding: '0 4px', color: negClr }}
                       value={row.description} onChange={e => handlePendingNewLineChange(node.id, row.tempId, 'description', e.target.value)}
@@ -2331,7 +2331,7 @@ export default function P_MetrajOlusturCetvel() {
                       </>
                     ) : ''}
                   </Box>
-                  {showHazırlayan && <Box sx={{ ...css_oc, ...pBg, justifyContent: 'center', fontSize: '0.72rem', color: '#455a64' }}>{userMap[appUser?.id] ?? sessions.find(s => s.isOwn)?.userName ?? appUser?.email ?? '?'}</Box>}
+                  {showHazırlayan && <Box sx={{ ...css_oc, ...pBg, justifyContent: 'center', fontSize: '0.78rem', color: '#455a64' }}>{userMap[appUser?.id] ?? sessions.find(s => s.isOwn)?.userName ?? appUser?.email ?? '?'}</Box>}
                   {showOnaylayan && <Box sx={{ ...css_oc, ...pBg }} />}
                   <Box sx={{ ...css_oc, ...pBg, justifyContent: 'center' }}>
                     <IconButton size="small" sx={{ p: '2px' }} onClick={() => handleRemovePendingNewLine(node.id, row.tempId)}>
@@ -2460,7 +2460,11 @@ export default function P_MetrajOlusturCetvel() {
                 {showOnaylayan  && <Box sx={{ ...css_oc, ...eBg, justifyContent: 'center', fontSize: '0.78rem', color: '#1b5e20' }}>{node.onaylayan}</Box>}
                 <Box sx={{ ...css_oc, ...eBg, justifyContent: 'center' }}>
                   <IconButton size="small" sx={{ p: '2px' }}
-                    onClick={() => { setApprovedRowEditValues(approvedRowEditInitial); setRowEditValues({}); setRowEditInitialValues({}); setRowEditDeletes([]); setPendingNewLines(prev => { const remaining = (prev[node.id] ?? []).filter(r => !r.isEdit); if (remaining.length === 0) { const { [node.id]: _, ...rest } = prev; return rest } return { ...prev, [node.id]: remaining } }) }}>
+                    onClick={() => {
+                      setApprovedRowEditValues(approvedRowEditInitial)
+                      setRowEditValues(rowEditInitialValues)
+                      setPendingNewLines(prev => { const remaining = (prev[node.id] ?? []).filter(r => !r.isEdit); if (remaining.length === 0) { const { [node.id]: _, ...rest } = prev; return rest } return { ...prev, [node.id]: remaining } })
+                    }}>
                     <ClearIcon sx={{ fontSize: 16, color: '#c62828' }} />
                   </IconButton>
                 </Box>
@@ -2498,7 +2502,7 @@ export default function P_MetrajOlusturCetvel() {
             : undefined
           // isRowModeEditable olsa da olmasa da tüm hücreler insert-after hedefi olabilir
           const onCellClick = isDbInsertTarget ? onInsertAfterClick : onRowClick
-          const cellBg = { backgroundColor: isRowModeEditable ? '#FFF8E1' : rowBg, borderBottom: isInsertAfterTarget ? '2px solid #1565c0' : '1px dashed #c8c8c8', ...(isDim ? { color: dimColor } : {}), ...(isClickable || isDbInsertTarget ? { cursor: 'pointer', transition: 'filter 0.15s ease' } : {}), ...(isHovered ? { filter: 'brightness(1.07)' } : {}) }
+          const cellBg = { backgroundColor: (isRowModeEditable || isDbInsertTarget) ? '#FFF8E1' : rowBg, borderBottom: (isRowModeEditable || isDbInsertTarget) ? 'none' : isInsertAfterTarget ? '2px solid #1565c0' : '1px dashed #c8c8c8', ...(isDim ? { color: dimColor } : {}), ...(isClickable || isDbInsertTarget ? { cursor: 'pointer', transition: 'filter 0.15s ease' } : {}), ...(isHovered ? { filter: 'brightness(1.07)' } : {}) }
 
           return (
             <>
@@ -2509,7 +2513,7 @@ export default function P_MetrajOlusturCetvel() {
               </Box>
               <Box sx={{ ...css_oc, ...cellBg, display: 'flex', alignItems: 'center', gap: '4px', color: negColor }}
                 onClick={onCellClick} {...rowHandlers}>
-                <Box sx={{ width: 7, height: 7, borderRadius: '50%', backgroundColor: '#c62828', flexShrink: 0, alignSelf: 'center', visibility: isSelected ? 'visible' : 'hidden' }} />
+                <Box sx={{ width: 7, height: 7, borderRadius: '50%', backgroundColor: (isRowModeEditable || isDbInsertTarget) ? '#e65100' : '#c62828', flexShrink: 0, alignSelf: 'center', visibility: (isSelected || isInsertAfterTarget) ? 'visible' : 'hidden' }} />
                 {!isRowModeEditable && isChildEditable && (
                   <IconButton size="small" sx={{ p: '1px', flexShrink: 0 }}
                     onClick={() => handleDeleteDraftChild(node.id)}>
