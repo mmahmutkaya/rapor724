@@ -20,8 +20,6 @@ import ClearOutlined from "@mui/icons-material/ClearOutlined";
 import SaveOutlined from "@mui/icons-material/SaveOutlined";
 import AddCircleOutlineIcon from "@mui/icons-material/AddCircleOutline";
 import DeleteOutlineIcon from "@mui/icons-material/DeleteOutline";
-import AddIcon from "@mui/icons-material/Add";
-import SubdirectoryArrowRightIcon from "@mui/icons-material/SubdirectoryArrowRight";
 import KeyboardArrowUpIcon from "@mui/icons-material/KeyboardArrowUp";
 import KeyboardArrowDownIcon from "@mui/icons-material/KeyboardArrowDown";
 import KeyboardArrowLeftIcon from "@mui/icons-material/KeyboardArrowLeft";
@@ -62,6 +60,7 @@ export default function P_KesifButce() {
   const [activeNodeId, setActiveNodeId] = useState(null);
   const [collapsedIds, setCollapsedIds] = useState(new Set());
   const [draftInfo, setDraftInfo] = useState(null); // { savedAt: ISO string } | null
+  const [viewMode, setViewMode] = useState("wbsPoz"); // 'wbsOnly' | 'wbsPoz'
 
   const draftKey = selectedProje ? `butce_draft_${selectedProje.id}` : null;
 
@@ -309,6 +308,8 @@ export default function P_KesifButce() {
   };
 
   const addChildNode = parentId => {
+    const parent = formNodes.find(n => n.id === parentId);
+    if (parent?.rows?.length > 0) return; // satırı olan düğüme alt düğüm eklenemez
     const siblings = formNodes.filter(n => n.parent_id === parentId);
     const maxOrder = siblings.length > 0 ? Math.max(...siblings.map(n => n.order_index)) : -1;
     const newNode = {
@@ -429,6 +430,49 @@ export default function P_KesifButce() {
   const css_lb = { display: "flex", alignItems: "center", px: "0.6rem", py: "0.3rem", backgroundColor: "#c8c8c8", fontWeight: 700, fontSize: "0.8rem", textTransform: "uppercase", borderBottom: "1px solid #aaa", whiteSpace: "nowrap" };
   const css_ls = { display: "flex", alignItems: "center", px: "0.6rem", py: "0.4rem", borderBottom: "1px solid #ddd", fontSize: "0.875rem", backgroundColor: "#f2f2f2" };
 
+  // ── Akıllı + butonu — pozlar wbs-poz mantığının aynısı ────────────────────
+  const activeIsLeaf = activeNodeId ? isLeafSet.has(activeNodeId) : false;
+  const activeHasRows = (activeNode?.rows?.length ?? 0) > 0;
+
+  let addLabel, addDisabled = false;
+  if (viewMode === "wbsOnly") {
+    if (!activeNodeId)       addLabel = "Kök başlık ekle";
+    else if (activeHasRows)  { addLabel = "Satırı olan düğüme alt başlık eklenemez"; addDisabled = true; }
+    else                     addLabel = "Alt başlık ekle";
+  } else {
+    if (!activeNodeId)           { addLabel = "Bir düğüm seçin"; addDisabled = true; }
+    else if (!activeIsLeaf) {
+      if (activeHasRows)         { addLabel = "Satırı olan düğüme alt başlık eklenemez"; addDisabled = true; }
+      else                       addLabel = "Alt başlık ekle";
+    } else {
+      if (activeNode?.isFixed)   { addLabel = "Bu düğümün satırları otomatik gelir"; addDisabled = true; }
+      else                       addLabel = "Bütçe satırı ekle";
+    }
+  }
+
+  const handleSmartAdd = () => {
+    if (viewMode === "wbsOnly") {
+      if (!activeNodeId) { addRootNode(); return; }
+      if (activeHasRows) {
+        setDialogAlert({ dialogIcon: "warning", dialogMessage: "Bu düğümün altında bütçe satırları olduğundan alt başlık eklenemez.", detailText: "Bütçe satırları yalnızca yaprak düğümlere bağlıdır.", onCloseAction: () => setDialogAlert() });
+        return;
+      }
+      addChildNode(activeNodeId);
+    } else {
+      if (!activeNodeId) return;
+      if (!activeIsLeaf) {
+        if (activeHasRows) {
+          setDialogAlert({ dialogIcon: "warning", dialogMessage: "Bu düğümün altında bütçe satırları olduğundan alt başlık eklenemez.", detailText: "Bütçe satırları yalnızca yaprak düğümlere bağlıdır.", onCloseAction: () => setDialogAlert() });
+          return;
+        }
+        addChildNode(activeNodeId);
+      } else {
+        if (activeNode?.isFixed) return;
+        addRow(activeNodeId);
+      }
+    }
+  };
+
   // ── Render ──────────────────────────────────────────────────────────────────
   return (
     <Box sx={{ minWidth: "40rem" }}>
@@ -452,25 +496,26 @@ export default function P_KesifButce() {
                   — v{nextVNum} oluştur
                 </Typography>
               )}
+              {show === "Form" && draftInfo && (
+                <Typography component="span" variant="caption" sx={{ ml: "0.75rem", color: "#bbb" }}>
+                  • taslak kaydedildi
+                </Typography>
+              )}
             </Typography>
           </Grid>
           <Grid item xs="auto">
             <Box sx={{ display: "flex", alignItems: "center", gap: "0.25rem" }}>
               {show === "Form" ? (
                 <>
-                  {/* Her zaman görünen Düğüm Ekle butonu */}
-                  <Tooltip title="Düğüm Ekle"><span>
-                    <IconButton
-                      size="small"
-                      onClick={addRootNode}
-                      disabled={Boolean(activeNodeId) && (
-                        (activeNode?.rows?.length ?? 0) > 0 || !isLeafSet.has(activeNodeId)
-                      )}
-                    >
-                      <AddCircleOutlineIcon sx={{ fontSize: 20 }} />
+                  {/* Görünüm modu toggle — pozlar cycleViewMode ile aynı */}
+                  <Tooltip title={viewMode === "wbsOnly" ? "WBS görünümü — Bütçe+Başlık görünümüne geç" : "Başlık+Bütçe görünümü — WBS görünümüne geç"}>
+                    <IconButton size="small" onClick={() => setViewMode(v => v === "wbsOnly" ? "wbsPoz" : "wbsOnly")}
+                      sx={{ border: "1px solid #ccc", borderRadius: "4px", px: "0.4rem", height: 28, fontWeight: 800, color: "black", fontSize: "0.65rem" }}>
+                      {viewMode === "wbsOnly" ? "WBS" : "W+B"}
                     </IconButton>
-                  </span></Tooltip>
-                  {/* Seçili düğüm varsa taşıma + alt düğüm ekleme butonları */}
+                  </Tooltip>
+
+                  {/* Taşıma butonları — sadece düğüm seçiliyken */}
                   {activeNodeId && (
                     <>
                       <Tooltip title="Yukarı taşı"><span>
@@ -493,20 +538,16 @@ export default function P_KesifButce() {
                           <KeyboardArrowRightIcon />
                         </IconButton>
                       </span></Tooltip>
-                      <Tooltip title="Alt düğüm ekle"><span>
-                        <IconButton size="small" onClick={() => addChildNode(activeNodeId)}>
-                          <SubdirectoryArrowRightIcon />
-                        </IconButton>
-                      </span></Tooltip>
-                      {isLeafSet.has(activeNodeId) && !activeNode?.isFixed && (
-                        <Tooltip title="Satır ekle"><span>
-                          <IconButton size="small" onClick={() => addRow(activeNodeId)}>
-                            <AddIcon />
-                          </IconButton>
-                        </span></Tooltip>
-                      )}
                     </>
                   )}
+
+                  {/* Akıllı + — pozlar mantığıyla aynı */}
+                  <Tooltip title={addLabel}><span>
+                    <IconButton onClick={handleSmartAdd} disabled={addDisabled} sx={iconBtn_sx}>
+                      <AddCircleOutlineIcon color={addDisabled ? "disabled" : "success"} sx={icon_sx} />
+                    </IconButton>
+                  </span></Tooltip>
+
                   <IconButton onClick={cancelForm} disabled={isSaving} sx={iconBtn_sx}>
                     <ClearOutlined sx={{ ...icon_sx, color: "red" }} />
                   </IconButton>
@@ -616,11 +657,11 @@ export default function P_KesifButce() {
                             </Box>
                           )}
                           {isLeaf && (
-                            <Box sx={{ width: "0.45rem", height: "0.45rem", borderRadius: "50%", backgroundColor: "#65FF00", flexShrink: 0 }} />
+                            <Box sx={{ width: "0.45rem", height: "0.45rem", borderRadius: "50%", backgroundColor: viewMode === "wbsOnly" && node.rows.length === 0 ? "rgba(255,255,255,0.25)" : "#65FF00", flexShrink: 0 }} />
                           )}
 
                           {node.isFixed ? (
-                            <Typography variant="body2" sx={{ fontWeight: 700, color: c.co, flex: 1 }}>
+                            <Typography variant="body2" sx={{ fontWeight: 700, color: c.co, flex: 1, textTransform: "uppercase" }}>
                               {node.name}
                             </Typography>
                           ) : (
@@ -630,7 +671,7 @@ export default function P_KesifButce() {
                               onChange={(e) => { e.stopPropagation(); updateNodeName(node.id, e.target.value); }}
                               onClick={(e) => e.stopPropagation()}
                               autoComplete="off"
-                              inputProps={{ style: { fontSize: "0.875rem", fontWeight: 700, color: c.co, minWidth: "12rem" } }}
+                              inputProps={{ style: { fontSize: "0.875rem", fontWeight: 700, color: c.co, minWidth: "12rem", textTransform: "uppercase" } }}
                               sx={{
                                 flex: 1,
                                 "& .MuiInput-underline:before": { borderBottomColor: "rgba(255,255,255,0.25)" },
@@ -680,8 +721,8 @@ export default function P_KesifButce() {
                           )}
                         </Box>
 
-                        {/* ── Satırlar — sadece leaf ve collapse değilse ── */}
-                        {isLeaf && !isCollapsed && (
+                        {/* ── Satırlar — sadece leaf, collapse değilse ve wbsPoz modundaysa ── */}
+                        {isLeaf && !isCollapsed && viewMode === "wbsPoz" && (
                           <>
                             {node.rows.map((row, rowIdx) => {
                               const isLast = rowIdx === node.rows.length - 1;
@@ -709,7 +750,7 @@ export default function P_KesifButce() {
                                     backgroundColor: rowBg, borderBottom: bb,
                                   }}>
                                     {row.isWp ? (
-                                      <Typography variant="body2" sx={{ fontWeight: 500 }}>
+                                      <Typography variant="body2" sx={{ fontWeight: 500, textTransform: "uppercase" }}>
                                         {row.name}
                                       </Typography>
                                     ) : (
@@ -719,7 +760,7 @@ export default function P_KesifButce() {
                                         value={row.name}
                                         onChange={(e) => updateRow(node.id, row.id, "name", e.target.value)}
                                         autoComplete="off"
-                                        inputProps={{ style: { fontSize: "0.875rem", minWidth: "13rem" } }}
+                                        inputProps={{ style: { fontSize: "0.875rem", minWidth: "13rem", textTransform: "uppercase" } }}
                                       />
                                     )}
                                   </Box>
@@ -793,6 +834,36 @@ export default function P_KesifButce() {
         {/* ── Versiyon listesi ── */}
         {show === "Main" && (
           <>
+            {/* Taslak banner */}
+            {draftInfo && !versiyonlarLoading && (
+              <Box sx={{
+                mb: "1rem", p: "0.6rem 1rem",
+                backgroundColor: "#fff8e1", border: "1px solid #ffe082",
+                borderRadius: "6px",
+                display: "flex", alignItems: "center", gap: "1rem", flexWrap: "wrap",
+              }}>
+                <Typography variant="body2" sx={{ color: "#795548", flex: 1 }}>
+                  ✏️ Kaydedilmemiş taslak var
+                  {draftInfo.savedAt && (
+                    <Typography component="span" variant="caption" sx={{ ml: "0.5rem", color: "#aaa" }}>
+                      ({new Date(draftInfo.savedAt).toLocaleTimeString("tr-TR")})
+                    </Typography>
+                  )}
+                </Typography>
+                <Box
+                  onClick={openForm}
+                  sx={{ px: "0.75rem", py: "0.25rem", borderRadius: "4px", border: "1px solid #ffa000", color: "#e65100", cursor: "pointer", fontSize: "0.8rem", fontWeight: 600, "&:hover": { backgroundColor: "#ffe082" } }}
+                >
+                  Devam Et
+                </Box>
+                <Box
+                  onClick={discardDraft}
+                  sx={{ px: "0.75rem", py: "0.25rem", borderRadius: "4px", border: "1px solid #e0e0e0", color: "#999", cursor: "pointer", fontSize: "0.8rem", "&:hover": { backgroundColor: "#fbe9e7", color: "red" } }}
+                >
+                  Sil
+                </Box>
+              </Box>
+            )}
             {versiyonlarLoading && <LinearProgress />}
             {!versiyonlarLoading && versiyonlar.length === 0 && (
               <Stack spacing={2}>

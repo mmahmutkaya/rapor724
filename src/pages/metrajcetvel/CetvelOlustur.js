@@ -2372,9 +2372,14 @@ export default function P_MetrajOlusturCetvel() {
                   if (ownSiblingRev && selectedOnayRow) {
                     const selIdx = revKids.findIndex(c => c.id === selectedOnayRow.id)
                     if (selIdx >= 0) {
-                      const withoutBoth = revKids.filter(c => c.id !== selectedOnayRow.id && c.id !== ownSiblingRev.id)
-                      const posBeforeSel = revKids.slice(0, selIdx).filter(c => c.id !== ownSiblingRev.id).length
-                      revKids = [...withoutBoth.slice(0, posBeforeSel), ownSiblingRev, ...withoutBoth.slice(posBeforeSel)]
+                      // selectedOnayRow yerinde kalır (edit formu için); ownSiblingRev onun hemen ardına taşınır
+                      const withoutSibling = revKids.filter(c => c.id !== ownSiblingRev.id)
+                      const newSelIdx = withoutSibling.findIndex(c => c.id === selectedOnayRow.id)
+                      revKids = [
+                        ...withoutSibling.slice(0, newSelIdx + 1),
+                        ownSiblingRev,
+                        ...withoutSibling.slice(newSelIdx + 1),
+                      ]
                     }
                   }
                   const noDbRef = r => !r._insertAfterDbRow || !normKids.some(c => c.id === r._insertAfterDbRow)
@@ -2486,7 +2491,9 @@ export default function P_MetrajOlusturCetvel() {
               l.parent_line_id === revisionParentIdEdit && (l.order_index ?? 0) < 0 &&
               !rowEditDeletes.includes(l.id) && (l.status === 'pending' || l.status === 'submitted_for_approval') && sessions.some(s => s.id === l.session_id && s.isOwn)
             )
-            if (isRevisionNodeEdit && ownExistingRevEdit) return null
+            // isRevisionNodeEdit durumunda (1.R1 gibi seçili revize satır) return null ETMEMELİ —
+            // pending kardeş, parent'ın kendi children döngüsünde render edilir
+            if (!isRevisionNodeEdit && ownExistingRevEdit) return null
             const takenRevOIsEdit = new Set(allLinesForEdit.filter(l => l.parent_line_id === revisionParentIdEdit && (l.order_index ?? 0) < 0 && !rowEditDeletes.includes(l.id) && l.id !== ownExistingRevEdit?.id).map(l => l.order_index))
             let nextRevOIEdit = -1; while (takenRevOIsEdit.has(nextRevOIEdit)) nextRevOIEdit--
             const nextRNum = Math.abs(nextRevOIEdit)

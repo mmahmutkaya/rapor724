@@ -158,6 +158,10 @@ export default function P_Pozlar() {
     if (!selectedProje) navigate('/projeler')
   }, [selectedProje, navigate])
 
+  useEffect(() => {
+    if (!wbsLoading && rawWbsNodes.length === 0) setViewMode('wbsOnly')
+  }, [wbsLoading, rawWbsNodes.length])
+
   const flatNodes = useMemo(() => flattenTree(rawWbsNodes), [rawWbsNodes])
 
   const isLeafSet = useMemo(() => {
@@ -265,6 +269,18 @@ export default function P_Pozlar() {
     if (!wbsChildForm.name.trim()) {
       setDialogAlert({ dialogIcon: 'warning', dialogMessage: 'Başlık adı boş olamaz.', onCloseAction: () => setDialogAlert() })
       return
+    }
+    if (activeWbsNodeId) {
+      const hasPoz = rawPozlar.some(p => p.wbs_node_id === activeWbsNodeId)
+      if (hasPoz) {
+        setDialogAlert({
+          dialogIcon: 'warning',
+          dialogMessage: 'Bu düğümün altında pozlar mevcut olduğundan alt başlık eklenemez.',
+          detailText: 'Pozlar yalnızca yaprak (en alt) düğümlere bağlıdır. Alt başlık eklemek istiyorsanız önce bu düğümdeki pozları, pozlarını oluşturacağınız bir WBS düğümüne taşıyın.',
+          onCloseAction: () => setDialogAlert(),
+        })
+        return
+      }
     }
     const siblings = rawWbsNodes.filter(n => (n.parent_id ?? null) === activeWbsNodeId)
     const maxOrder = siblings.length > 0 ? Math.max(...siblings.map(s => s.order_index)) : -1
@@ -413,7 +429,8 @@ export default function P_Pozlar() {
                   </Grid>
                   <Grid item>
                     <Tooltip title={
-                      viewMode === 'wbsOnly' ? 'Poz eklemek için WBS+Poz veya Poz moduna geçin'
+                      viewMode === 'wbsOnly' && !activeWbsNodeId ? 'WBS kök başlık ekle'
+                      : viewMode === 'wbsOnly' ? 'WBS alt başlık ekle'
                       : viewMode === 'wbsPoz' && !activeWbsNodeId ? 'Bir WBS düğümü seçin'
                       : viewMode === 'wbsPoz' && !isLeafSet.has(activeWbsNodeId) ? 'Alt başlık ekle'
                       : !canAddPoz ? 'Önce Proje Ayarları\'ndan birim ekleyin'
@@ -422,14 +439,23 @@ export default function P_Pozlar() {
                       <span>
                         <IconButton
                           onClick={() => {
-                            if (viewMode === 'wbsPoz' && activeWbsNodeId && !isLeafSet.has(activeWbsNodeId)) {
+                            if (viewMode === 'wbsOnly' || (viewMode === 'wbsPoz' && activeWbsNodeId && !isLeafSet.has(activeWbsNodeId))) {
+                              if (activeWbsNodeId && rawPozlar.some(p => p.wbs_node_id === activeWbsNodeId)) {
+                                setDialogAlert({
+                                  dialogIcon: 'warning',
+                                  dialogMessage: 'Bu düğümün altında pozlar mevcut olduğundan alt başlık eklenemez.',
+                                  detailText: 'Pozlar yalnızca yaprak (en alt) düğümlere bağlıdır. Alt başlık eklemek istiyorsanız önce bu düğümdeki pozları, pozlarını oluşturacağınız bir WBS düğümüne taşıyın.',
+                                  onCloseAction: () => setDialogAlert(),
+                                })
+                                return
+                              }
                               setWbsChildForm({ name: '', codeName: '' })
                               setShow('WbsChildCreate')
                             } else {
                               setShow('PozCreate')
                             }
                           }}
-                          disabled={viewMode === 'wbsOnly' || (viewMode === 'wbsPoz' && !activeWbsNodeId) || (viewMode === 'wbsPoz' && isLeafSet.has(activeWbsNodeId) && !canAddPoz)}
+                          disabled={(viewMode === 'wbsPoz' && !activeWbsNodeId) || (viewMode === 'wbsPoz' && isLeafSet.has(activeWbsNodeId) && !canAddPoz)}
                         >
                           <AddCircleOutlineIcon />
                         </IconButton>
@@ -437,11 +463,13 @@ export default function P_Pozlar() {
                     </Tooltip>
                   </Grid>
                   <Grid item>
-                    <Tooltip title={`Görünüm: ${viewModeLabel} (tıkla: sonraki mod)`}>
+                    <Tooltip title={rawWbsNodes.length === 0 ? 'Önce WBS başlıkları oluşturun' : `Görünüm: ${viewModeLabel} (tıkla: sonraki mod)`}>
+                      <span>
                       <Button
                         size="small"
                         variant="outlined"
                         onClick={cycleViewMode}
+                        disabled={rawWbsNodes.length === 0}
                         startIcon={<ViewAgendaIcon />}
                         sx={{
                           textTransform: 'none',
@@ -457,6 +485,7 @@ export default function P_Pozlar() {
                       >
                         {viewModeLabel}
                       </Button>
+                      </span>
                     </Tooltip>
                   </Grid>
                 </>
@@ -505,11 +534,11 @@ export default function P_Pozlar() {
         />
       }
 
-      {show === 'WbsChildCreate' && selectedWbsNode &&
+      {show === 'WbsChildCreate' &&
         <Box sx={{ m: '1rem', maxWidth: '36rem' }}>
           <Paper variant="outlined" sx={{ p: '1.25rem' }}>
             <Typography variant="subtitle1" fontWeight="bold" sx={{ mb: '1rem' }}>
-              Alt Başlık Ekle — <em>{selectedWbsNode.name}</em>
+              {selectedWbsNode ? <>Alt Başlık Ekle — <em>{selectedWbsNode.name}</em></> : 'WBS Kök Başlık Ekle'}
             </Typography>
             <Grid container spacing={2}>
               <Grid item xs={12} sm={4}>
@@ -634,7 +663,8 @@ export default function P_Pozlar() {
                             {isLeaf &&
                               <Box sx={{
                                 width: '0.45rem', height: '0.45rem', borderRadius: '50%',
-                                backgroundColor: '#65FF00', flexShrink: 0
+                                backgroundColor: rawPozlar.some(p => p.wbs_node_id === node.id) ? '#FF4444' : '#65FF00',
+                                flexShrink: 0
                               }} />
                             }
                             <Typography variant="body2">
@@ -719,17 +749,12 @@ export default function P_Pozlar() {
                         >
                           {/* İsim alanı: tıklama = expand/collapse */}
                           <Box
-                            onClick={() => { if (!isLeaf) toggleCollapse(node.id) }}
-                            sx={{ display: 'flex', alignItems: 'center', gap: '0.4rem', cursor: isLeaf ? 'default' : 'pointer', flexShrink: 0 }}
+                            onClick={() => toggleCollapse(node.id)}
+                            sx={{ display: 'flex', alignItems: 'center', gap: '0.4rem', cursor: 'pointer', flexShrink: 0 }}
                           >
-                            {!isLeaf &&
-                              <Box sx={{ fontSize: '0.7rem', flexShrink: 0 }}>
-                                {collapsedIds.has(node.id) ? '▶' : '▼'}
-                              </Box>
-                            }
-                            {isLeaf &&
-                              <Box sx={{ width: '0.45rem', height: '0.45rem', borderRadius: '50%', backgroundColor: '#65FF00', flexShrink: 0 }} />
-                            }
+                            <Box sx={{ fontSize: '0.7rem', flexShrink: 0 }}>
+                              {collapsedIds.has(node.id) ? '▶' : '▼'}
+                            </Box>
                             <Typography variant="body2">
                               {node.code_name ? `(${node.code_name}) ` : ''}{node.name}
                             </Typography>

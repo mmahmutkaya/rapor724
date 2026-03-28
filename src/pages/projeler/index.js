@@ -85,7 +85,7 @@ export default function P_Projeler() {
             size="small"
             label="Proje adı"
             value={newName}
-            onChange={e => setNewName(e.target.value)}
+            onChange={e => setNewName(e.target.value.toUpperCase())}
             onKeyDown={e => e.key === 'Enter' && handleCreate()}
             autoFocus
           />

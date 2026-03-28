@@ -1,0 +1,53 @@
+-- ============================================================
+-- TÜM VERİLERİ SİL — geliştirme sırasında temiz başlangıç için
+-- Supabase SQL Editor'da çalıştır
+-- UYARI: Bu işlem geri alınamaz!
+-- ============================================================
+
+TRUNCATE TABLE
+  report_definitions,
+  budget_snapshots,
+  ev_snapshots,
+  hakedis_deductions,
+  hakedis_approvals,
+  hakedis_items,
+  hakedisler,
+  planned_progress,
+  progress_entries,
+  contract_advances,
+  contract_financial_terms,
+  contract_amendment_items,
+  contract_amendments,
+  contract_approvals,
+  contract_items,
+  contracts,
+  tender_bid_items,
+  tender_bids,
+  tender_invitations,
+  tenders,
+  measurement_approvals,
+  measurement_lines,
+  measurement_sessions,
+  work_package_poz_areas,
+  work_package_pozlar,
+  work_package_members,
+  work_packages,
+  poz_analysis_items,
+  poz_analyses,
+  resource_prices,
+  resources,
+  poz_unit_prices,
+  price_versions,
+  project_pozlar,
+  project_poz_units,
+  firm_poz_templates,
+  work_areas,
+  lbs_nodes,
+  wbs_nodes,
+  approval_template_steps,
+  approval_templates,
+  project_users,
+  projects,
+  firm_users,
+  firms
+CASCADE;
