@@ -331,7 +331,7 @@ export default function P_MetrajOnaylaCetvel() {
     if (hasPending) setShowAllOriginals(true)
   }, [approvalTree])
 
-  useEffect(() => { if (onayKartiEditMode) setShowRevizeTalepleri(true) }, [onayKartiEditMode])
+  useEffect(() => { if (onayKartiEditMode) { setShowRevizeTalepleri(true); setShowGeçersiz(false) } }, [onayKartiEditMode])
 
   const unitsMap = useMemo(() => {
     const m = {}
@@ -968,10 +968,10 @@ export default function P_MetrajOnaylaCetvel() {
                     </Box>
                   </>
                 )}
-                {node.children.filter(c => (c.order_index ?? 0) < 0 && ((!c.status || c.status === 'draft') ? false : (showRevizeTalepleri || c.status === 'approved' || (showGeçersiz && c.status === 'ignored')))).map(child => (
+                {node.children.filter(c => (c.order_index ?? 0) < 0 && ((!c.status || c.status === 'draft') ? false : (c.status === 'approved' || (c.status === 'pending' && showRevizeTalepleri) || (c.status === 'ignored' && showGeçersiz)))).map(child => (
                   <React.Fragment key={child.id}>{renderOnayRow(child)}</React.Fragment>
                 ))}
-                {node.children.filter(c => (c.order_index ?? 0) >= 0 && ((!c.status || c.status === 'draft') ? false : (showRevizeTalepleri || c.status === 'approved' || (showGeçersiz && c.status === 'ignored')))).map(child => (
+                {node.children.filter(c => (c.order_index ?? 0) >= 0 && ((!c.status || c.status === 'draft') ? false : (c.status === 'approved' || (c.status === 'pending' && showRevizeTalepleri) || (c.status === 'ignored' && showGeçersiz)))).map(child => (
                   <React.Fragment key={child.id}>{renderOnayRow(child)}</React.Fragment>
                 ))}
               </>
@@ -1085,10 +1085,10 @@ export default function P_MetrajOnaylaCetvel() {
                 )}
               </Box>
 
-              {hasKids && node.children.filter(c => (c.order_index ?? 0) < 0 && ((!c.status || c.status === 'draft') ? false : (showRevizeTalepleri || c.status === 'approved' || (showGeçersiz && c.status === 'ignored')))).map(child => (
+              {hasKids && node.children.filter(c => (c.order_index ?? 0) < 0 && ((!c.status || c.status === 'draft') ? false : (c.status === 'approved' || (c.status === 'pending' && showRevizeTalepleri) || (c.status === 'ignored' && showGeçersiz)))).map(child => (
                 <React.Fragment key={child.id}>{renderOnayRow(child)}</React.Fragment>
               ))}
-              {hasKids && node.children.filter(c => (c.order_index ?? 0) >= 0 && ((!c.status || c.status === 'draft') ? false : (showRevizeTalepleri || c.status === 'approved' || (showGeçersiz && c.status === 'ignored')))).map(child => (
+              {hasKids && node.children.filter(c => (c.order_index ?? 0) >= 0 && ((!c.status || c.status === 'draft') ? false : (c.status === 'approved' || (c.status === 'pending' && showRevizeTalepleri) || (c.status === 'ignored' && showGeçersiz)))).map(child => (
                 <React.Fragment key={child.id}>{renderOnayRow(child)}</React.Fragment>
               ))}
             </>
@@ -1145,7 +1145,7 @@ export default function P_MetrajOnaylaCetvel() {
                   <Typography variant="body2" sx={{ fontWeight: 700 }}>Onaylı Metraj</Typography>
                 </Box>
                 <Box sx={{ display: 'flex', alignItems: 'center', gap: '4px', flexShrink: 0 }}>
-                <Box component="span" onClick={() => setShowRevizeTalepleri(prev => !prev)}
+                <Box component="span" onClick={() => setShowRevizeTalepleri(prev => { if (showGeçersiz) setShowGeçersiz(false); return !prev })}
                   sx={{ cursor: 'pointer', px: '6px', py: '2px', borderRadius: '10px', fontSize: '0.7rem', fontWeight: 600, border: '1px solid', userSelect: 'none',
                     ...(hasPendingRevizeTalepleri && !showRevizeTalepleri
                       ? { backgroundColor: 'rgba(25,118,210,0.5)', borderColor: '#42A5F5', color: '#fff' }
@@ -1161,6 +1161,7 @@ export default function P_MetrajOnaylaCetvel() {
                       : { backgroundColor: 'transparent', borderColor: 'rgba(255,255,255,0.25)', color: 'rgba(255,255,255,0.4)' }) }}>
                   Geçersiz
                 </Box>
+                <Box sx={{ borderLeft: '1px solid rgba(255,255,255,0.2)', height: '14px', mx: '2px' }} />
                 <Box component="span" onClick={() => setShowHazırlayan(prev => !prev)}
                   sx={{ cursor: 'pointer', px: '6px', py: '2px', borderRadius: '10px', fontSize: '0.7rem', fontWeight: 600, border: '1px solid', userSelect: 'none',
                     ...(showHazırlayan ? { backgroundColor: 'rgba(255,255,255,0.18)', borderColor: 'rgba(255,255,255,0.5)', color: '#fff' } : { backgroundColor: 'transparent', borderColor: 'rgba(255,255,255,0.25)', color: 'rgba(255,255,255,0.4)' }) }}>

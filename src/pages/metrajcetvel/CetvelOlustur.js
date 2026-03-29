@@ -51,7 +51,7 @@ function computeQuantity(line) {
   const isEmpty = (val) => val === null || val === undefined || val === ''
   // multiplier=1 is the neutral default (shown as blank in UI), treat as not-set for allEmpty check
   const vals = [
-    (Number(line.multiplier) === 1 ? null : line.multiplier),
+    (line.multiplier === 1 ? null : line.multiplier),
     line.count, line.length, line.width, line.height,
   ]
   const allEmpty = vals.every(isEmpty)
@@ -195,6 +195,7 @@ export default function P_MetrajOlusturCetvel() {
   const [showHazırlayan, setShowHazırlayan]         = useState(true)
   const [showOnaylayan, setShowOnaylayan]           = useState(true)
   const [showRevizeTalepleri, setShowRevizeTalepleri] = useState(true)
+  const [showGeçersiz, setShowGeçersiz]               = useState(false)
   const [childEditParents, setChildEditParents] = useState({}) // { parentLineId: bool } — onay kartında alt satır düzenleme modu
   const [childEditValues, setChildEditValues] = useState({})   // { lineId: {description,multiplier,count,length,width,height} }
   const [onayKartiEditMode, setOnayKartiEditMode] = useState(false)
@@ -2017,7 +2018,7 @@ export default function P_MetrajOlusturCetvel() {
                                   type="number"
                                   className="metraj-num-input"
                                   style={{ ...inputSx, color: deductionColor }}
-                                  value={field === 'multiplier' && Number(line[field]) === 1 ? '' : (line[field] ?? '')}
+                                  value={field === 'multiplier' && line[field] === 1 ? '' : (line[field] ?? '')}
                                   placeholder="—"
                                   onChange={e => handleLineChange(sess.id, line.id, field, e.target.value)}
                                   onKeyDown={e => ['e', 'E', '+'].includes(e.key) && e.preventDefault()}
@@ -2358,7 +2359,7 @@ export default function P_MetrajOlusturCetvel() {
                     </Box>
                 </>
                 {(() => {
-                  const filteredKids = node.children.filter(c => (!c.status || c.status === 'draft') ? false : !showRevizeTalepleri ? c.status === 'approved' : c.status === 'pending' ? sessions.some(s => s.id === c.session_id && s.isOwn) : true)
+                  const filteredKids = node.children.filter(c => (!c.status || c.status === 'draft') ? false : c.status === 'approved' ? true : c.status === 'pending' ? (showRevizeTalepleri && sessions.some(s => s.id === c.session_id && s.isOwn)) : c.status === 'ignored' ? showGeçersiz : false)
                   const isInEditMode = selectedRowEditMode && node.children?.some(c => c.id === selectedOnayRow?.id && (c.order_index ?? 0) < 0)
                   if (!isInEditMode) return filteredKids.map(child => (<React.Fragment key={child.id}>{renderOnayRow(child)}</React.Fragment>))
                   let revKids = filteredKids.filter(c => (c.order_index ?? 0) < 0)
@@ -2422,9 +2423,9 @@ export default function P_MetrajOlusturCetvel() {
               : c.id === existingRevisionId ? true  // düzenleme modundaki mevcut revize her zaman görünür
               : (!c.status || c.status === 'draft') ? false
               : (c.order_index ?? 0) < 0 && !existingRevisionId && c.status === 'pending' && sessions.some(s => s.id === c.session_id && s.isOwn) ? false  // kendi pending R: existingRevisionId yolunda göster, burada değil
-              : !showRevizeTalepleri ? c.status === 'approved'
-              : c.status === 'pending' ? sessions.some(s => s.id === c.session_id && s.isOwn)
-              : true
+              : c.status === 'approved' ? true
+              : c.status === 'pending' ? (showRevizeTalepleri && sessions.some(s => s.id === c.session_id && s.isOwn))
+              : c.status === 'ignored' ? showGeçersiz : false
             )
 
             if (existingRevisionId) {
@@ -2703,7 +2704,7 @@ export default function P_MetrajOlusturCetvel() {
                 {!onayKartiEditMode && !isRowModeEditable && node.status === 'pending' && (node.order_index ?? 0) < 0 && <Typography sx={{ fontSize: '0.9rem', fontWeight: 900, color: '#1565c0', lineHeight: 1 }}>R</Typography>}
               </Box>
 
-              {hasKids && node.children.filter(c => (!c.status || c.status === 'draft') ? false : !showRevizeTalepleri ? c.status === 'approved' : c.status === 'pending' ? sessions.some(s => s.id === c.session_id && s.isOwn) : true).map(child => (
+              {hasKids && node.children.filter(c => (!c.status || c.status === 'draft') ? false : c.status === 'approved' ? true : c.status === 'pending' ? (showRevizeTalepleri && sessions.some(s => s.id === c.session_id && s.isOwn)) : c.status === 'ignored' ? showGeçersiz : false).map(child => (
                 <React.Fragment key={child.id}>{renderOnayRow(child)}</React.Fragment>
               ))}
 
@@ -2796,8 +2797,8 @@ export default function P_MetrajOlusturCetvel() {
                   </IconButton>
                   <Typography variant="body2" sx={{ fontWeight: 700 }}>Onaylı Metraj</Typography>
                 </Box>
-                <Box sx={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                  <Box component="span" onClick={() => setShowRevizeTalepleri(prev => !prev)}
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                  <Box component="span" onClick={() => setShowRevizeTalepleri(prev => { if (showGeçersiz) setShowGeçersiz(false); return !prev })}
                     sx={{ cursor: 'pointer', px: '6px', py: '2px', borderRadius: '10px', fontSize: '0.7rem', fontWeight: 600, border: '1px solid', userSelect: 'none',
                       ...(hasPendingRevizeTalepleri && !showRevizeTalepleri
                         ? { backgroundColor: 'rgba(25,118,210,0.5)', borderColor: '#42A5F5', color: '#fff' }
@@ -2806,6 +2807,14 @@ export default function P_MetrajOlusturCetvel() {
                           : { backgroundColor: 'transparent', borderColor: 'rgba(255,255,255,0.25)', color: 'rgba(255,255,255,0.4)' }) }}>
                     Revize
                   </Box>
+                  <Box component="span" onClick={() => setShowGeçersiz(prev => !prev)}
+                    sx={{ cursor: 'pointer', px: '6px', py: '2px', borderRadius: '10px', fontSize: '0.7rem', fontWeight: 600, border: '1px solid', userSelect: 'none',
+                      ...(showGeçersiz
+                        ? { backgroundColor: 'rgba(255,255,255,0.18)', borderColor: 'rgba(255,255,255,0.5)', color: '#fff' }
+                        : { backgroundColor: 'transparent', borderColor: 'rgba(255,255,255,0.25)', color: 'rgba(255,255,255,0.4)' }) }}>
+                    Geçersiz
+                  </Box>
+                  <Box sx={{ borderLeft: '1px solid rgba(255,255,255,0.2)', height: '14px', mx: '2px' }} />
                   <Box component="span" onClick={() => setShowHazırlayan(prev => !prev)}
                     sx={{ cursor: 'pointer', px: '6px', py: '2px', borderRadius: '10px', fontSize: '0.7rem', fontWeight: 600, border: '1px solid', userSelect: 'none',
                       ...(showHazırlayan ? { backgroundColor: 'rgba(255,255,255,0.18)', borderColor: 'rgba(255,255,255,0.5)', color: '#fff' } : { backgroundColor: 'transparent', borderColor: 'rgba(255,255,255,0.25)', color: 'rgba(255,255,255,0.4)' }) }}>
@@ -2961,7 +2970,7 @@ export default function P_MetrajOlusturCetvel() {
                   {showOnaylayan  && <Box sx={{ ...css_ohc }}>Onaylayan</Box>}
                   <Box sx={{ ...css_ohc }}></Box>
 
-                  {approvalTree.filter(n => showAllOriginals || n.status !== 'ignored').map(rootNode => (
+                  {approvalTree.filter(n => showAllOriginals || showGeçersiz || n.status !== 'ignored').map(rootNode => (
                     <React.Fragment key={rootNode.id}>{renderOnayRow(rootNode)}</React.Fragment>
                   ))}
                 </Box>
@@ -2982,7 +2991,7 @@ export default function P_MetrajOlusturCetvel() {
                   <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', borderRadius: '50%', backgroundColor: '#BDBDBD', width: 26, height: 26, flexShrink: 0 }}>
                     <DoNotDisturbIcon sx={{ fontSize: 16, color: '#424242', filter: 'drop-shadow(0 0 0.4px #424242)' }} />
                   </Box>
-                  <Box component="span" sx={{ fontSize: '0.82rem', color: 'rgba(255,255,255,0.75)' }}>Ret Edilen</Box>
+                  <Box component="span" sx={{ fontSize: '0.82rem', color: 'rgba(255,255,255,0.75)' }}>Geçersiz</Box>
                   <Box component="span" sx={{ fontSize: '0.95rem', fontWeight: 700, color: totalRetEdilen === 0 ? 'rgba(255,255,255,0.55)' : '#e0e1dd', ml: '2px' }}>{ikiHane(totalRetEdilen)}</Box>
                   {pozBirim && <Box component="span" sx={{ fontSize: '0.78rem', color: 'rgba(255,255,255,0.55)' }}>{pozBirim}</Box>}
                 </Box>

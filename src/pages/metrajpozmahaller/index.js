@@ -516,8 +516,8 @@ export default function P_MetrajPozMahaller() {
   const COL_SEP_ON_DARK  = '1px dotted rgba(255,255,255,0.35)'  // sütun ayırıcı — koyu arka plan
   const COL_SEP_ON_LIGHT = '1px dotted rgba(0,0,0,0.28)'        // sütun ayırıcı — açık arka plan
 
-  const css_satir_bg = '#c8cdd4'
-  const css_satir_hover = '#a8b0bb'
+  const css_satir_bg    = '#b2bfcc'
+  const css_satir_hover = '#8fa0b0'
 
   return (
     <Box sx={{ overflow: 'hidden', height: '100%' }}>
@@ -675,9 +675,9 @@ export default function P_MetrajPozMahaller() {
           {metrajMahalViewMode === 'mahalOnly' && !wpAreasError && (
             <Box sx={{ display: 'grid', gridTemplateColumns: treeGridCols, gap: '0px', width: 'fit-content', minWidth: '100%' }}>
               {/* Headers */}
-              <Box sx={{ ...css_baslik, borderRight: COL_SEP_ON_DARK }}>Kod</Box>
-              <Box sx={{ ...css_baslik, borderRight: COL_SEP_ON_DARK }}>Mahal Adı</Box>
-              <Box sx={{ ...css_baslik }}>Alan</Box>
+              <Box sx={{ ...css_baslik }}>Kod</Box>
+              <Box sx={{ ...css_baslik }}>Mahal Adı</Box>
+              <Box sx={{ ...css_baslik, borderLeft: COL_SEP_ON_DARK }}>Alan</Box>
               <Box sx={{ ...css_baslik_onaylanan }}>Onaylanan</Box>
               {preparersList.length === 0
                 ? <Box sx={{ ...css_baslik_hazirlanlan }}>Hazırlanan</Box>
@@ -690,7 +690,7 @@ export default function P_MetrajPozMahaller() {
                 const mahalTs = isHovered ? '0 0 0.65px #333, 0 0 0.65px #333' : 'none'
                 return (
                   <React.Fragment key={mahal.id}>
-                    <Box onMouseEnter={() => setHoveredMahalId(mahal.id)} onMouseLeave={() => setHoveredMahalId(null)} onClick={() => handleMahalClick(mahal)} sx={{ backgroundColor: rowBg, px: '4px', py: '2px', fontSize: '0.75rem', display: 'flex', alignItems: 'center', gap: '4px', cursor: 'pointer', textShadow: mahalTs, borderRight: COL_SEP_ON_LIGHT }}>
+                    <Box onMouseEnter={() => setHoveredMahalId(mahal.id)} onMouseLeave={() => setHoveredMahalId(null)} onClick={() => handleMahalClick(mahal)} sx={{ backgroundColor: rowBg, px: '4px', py: '2px', fontSize: '0.75rem', display: 'flex', alignItems: 'center', gap: '4px', cursor: 'pointer', textShadow: mahalTs }}>
                       {mahal.code}
                     </Box>
                     <Box onMouseEnter={() => setHoveredMahalId(mahal.id)} onMouseLeave={() => setHoveredMahalId(null)} onClick={() => handleMahalClick(mahal)} sx={{ backgroundColor: rowBg, px: '4px', py: '2px', fontSize: '0.75rem', cursor: 'pointer', textDecoration: 'none', textShadow: mahalTs, borderRight: COL_SEP_ON_LIGHT }}>
@@ -724,9 +724,9 @@ export default function P_MetrajPozMahaller() {
             <Box sx={{ display: 'grid', gridTemplateColumns: treeGridCols, gap: '0px', width: 'fit-content', minWidth: '100%' }}>
               {/* Headers */}
               {Array.from({ length: totalDepthCols }).map((_, i) => <Box key={`h-depth-${i}`} sx={{ ...css_baslik }} />)}
-              <Box sx={{ ...css_baslik, borderRight: COL_SEP_ON_DARK }}>Kod</Box>
-              <Box sx={{ ...css_baslik, borderRight: COL_SEP_ON_DARK }}>Mahal Adı</Box>
-              <Box sx={{ ...css_baslik }}>Alan</Box>
+              <Box sx={{ ...css_baslik }}>Kod</Box>
+              <Box sx={{ ...css_baslik }}>Mahal Adı</Box>
+              <Box sx={{ ...css_baslik, borderLeft: COL_SEP_ON_DARK }}>Alan</Box>
               <Box sx={{ ...css_baslik_onaylanan }}>Onaylanan</Box>
               {preparersList.length === 0
                 ? <Box sx={{ ...css_baslik_hazirlanlan }}>Hazırlanan</Box>
@@ -807,6 +807,7 @@ export default function P_MetrajPozMahaller() {
                         display: 'flex', alignItems: 'center', justifyContent: 'flex-end',
                         whiteSpace: 'nowrap',
                         cursor: 'pointer',
+                        borderLeft: COL_SEP_ON_DARK,
                         borderRight: COL_SEP_ON_DARK,
                       }}>
                       {nodeAreaTotals[node.id] ? `${ikiHane(nodeAreaTotals[node.id])} m²` : ''}
@@ -829,9 +830,11 @@ export default function P_MetrajPozMahaller() {
                         onMouseEnter={() => setHoveredNodeId(node.id)}
                         onMouseLeave={() => setHoveredNodeId(null)}
                         onClick={() => setActiveNodeId(prev => prev === node.id ? null : node.id)}
-                        sx={{ backgroundColor: c.bg, color: c.co, px: '4px', py: '1px', fontSize: '0.75rem', display: 'flex', alignItems: 'center', justifyContent: 'flex-end', whiteSpace: 'nowrap', cursor: 'pointer', borderLeft: COL_SEP_ON_DARK, filter: 'brightness(0.82)' }}
+                        sx={{ backgroundColor: c.bg, px: '4px', py: '1px', fontSize: '0.75rem', display: 'flex', alignItems: 'center', justifyContent: 'flex-end', whiteSpace: 'nowrap', cursor: 'pointer', borderLeft: COL_SEP_ON_DARK }}
                       >
-                        {ph.totals[node.id] ? `${ikiHane(ph.totals[node.id])}${pozBirim ? ` ${pozBirim}` : ''}` : ''}
+                        <Box component="span" sx={{ color: c.co }}>
+                          {ph.totals[node.id] ? `${ikiHane(ph.totals[node.id])}${pozBirim ? ` ${pozBirim}` : ''}` : ''}
+                        </Box>
                       </Box>
                     ))}
 
@@ -863,7 +866,7 @@ export default function P_MetrajPozMahaller() {
                             onMouseEnter={() => setHoveredMahalId(mahal.id)}
                             onMouseLeave={() => setHoveredMahalId(null)}
                             onClick={() => handleMahalClick(mahal)}
-                            sx={{ backgroundColor: rowBg, px: '4px', py: '2px', fontSize: '0.75rem', display: 'flex', alignItems: 'center', gap: '4px', cursor: 'pointer', textShadow: mahalTs, borderRight: COL_SEP_ON_LIGHT }}
+                            sx={{ backgroundColor: rowBg, px: '4px', py: '2px', fontSize: '0.75rem', display: 'flex', alignItems: 'center', gap: '4px', cursor: 'pointer', textShadow: mahalTs }}
                           >
                             {mahal.code}
                           </Box>

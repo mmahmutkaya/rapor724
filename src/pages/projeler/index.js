@@ -46,7 +46,7 @@ export default function P_Projeler() {
   const handleCreate = async () => {
     if (!newName.trim()) return
     setSaving(true)
-    const { error } = await supabase.from('projects').insert({ name: newName.trim(), firm_id: selectedFirma.id })
+    const { error } = await supabase.from('projects').insert({ name: newName.trim(), firm_id: selectedFirma.id, created_by_email: appUser?.email ?? null })
     setSaving(false)
     if (error) {
       setDialogAlert({ dialogMessage: error.message, dialogIcon: 'warning', onCloseAction: () => setDialogAlert() })
