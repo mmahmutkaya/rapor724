@@ -48,6 +48,28 @@ function nodeColor(depth) {
   return palette[depth % palette.length]
 }
 
+function ikiHane(v) {
+  if (v === null || v === undefined || v === '') return ''
+  const n = Number(v)
+  if (isNaN(n)) return ''
+  return new Intl.NumberFormat('de-DE', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(n)
+}
+
+function getSubtreeArea(nodeId, allNodes, mahaller, cache) {
+  if (cache[nodeId] !== undefined) return cache[nodeId]
+  const children = allNodes.filter(n => n.parent_id === nodeId)
+  if (children.length === 0) {
+    cache[nodeId] = mahaller
+      .filter(m => m.lbs_node_id === nodeId)
+      .reduce((sum, m) => sum + (Number(m.area) || 0), 0)
+  } else {
+    cache[nodeId] = children.reduce(
+      (sum, child) => sum + getSubtreeArea(child.id, allNodes, mahaller, cache), 0
+    )
+  }
+  return cache[nodeId]
+}
+
 
 export default function P_Mahaller() {
   const navigate = useNavigate()
@@ -120,6 +142,12 @@ export default function P_Mahaller() {
     }
     return rawMahaller
   }, [rawMahaller, viewMode, filterLbsIds])
+
+  const nodeAreaTotals = useMemo(() => {
+    const cache = {}
+    rawLbsNodes.forEach(n => getSubtreeArea(n.id, rawLbsNodes, rawMahaller, cache))
+    return cache
+  }, [rawLbsNodes, rawMahaller])
 
   const invalidate = () => queryClient.invalidateQueries(['workAreas', selectedProje?.id])
   const invalidateLbs = () => queryClient.invalidateQueries(['lbsNodes', selectedProje?.id])
@@ -260,7 +288,8 @@ export default function P_Mahaller() {
 
               <Grid item>
                 <Tooltip title={
-                  viewMode === 'lbsOnly' && !activeLbsNodeId ? 'LBS kök başlık ekle'
+                  viewMode === 'mahalOnly' ? 'Mahal modunda eklenemez — L+M moduna geçin'
+                  : viewMode === 'lbsOnly' && !activeLbsNodeId ? 'LBS kök başlık ekle'
                   : viewMode === 'lbsOnly' && rawMahaller.some(m => m.lbs_node_id === activeLbsNodeId) ? 'Bu düğümde mahaller var — alt başlık eklenemez'
                   : viewMode === 'lbsOnly' ? 'LBS alt başlık ekle'
                   : viewMode === 'lbsMahal' && !activeLbsNodeId ? 'Bir LBS yaprak düğümü seçin'
@@ -285,7 +314,7 @@ export default function P_Mahaller() {
                           setShow('MahalCreate')
                         }
                       }}
-                      disabled={viewMode === 'lbsMahal' && !activeLbsNodeId}
+                      disabled={viewMode === 'mahalOnly' || (viewMode === 'lbsMahal' && !activeLbsNodeId)}
                     >
                       <AddCircleOutlineIcon />
                     </IconButton>
@@ -439,37 +468,40 @@ export default function P_Mahaller() {
                         ))}
 
                         <Box
-                          onClick={() => {
-                            if (!isLeaf) { toggleCollapse(node.id); return }
-                            setActiveLbsNodeId(prev => prev === node.id ? null : node.id)
-                          }}
                           sx={{
-                            pl: '6px',
-                            py: '1px',
-                            backgroundColor: isSelected ? '#3a1a00' : c.bg,
+                            backgroundColor: c.bg,
                             color: c.co,
-                            cursor: 'pointer',
-                            display: 'flex',
-                            alignItems: 'center',
-                            gap: '0.4rem',
+                            display: 'flex', alignItems: 'stretch',
                             userSelect: 'none',
                             '&:hover': { filter: 'brightness(1.2)' }
                           }}
                         >
-                          {!isLeaf &&
-                            <Box sx={{ fontSize: '0.7rem', flexShrink: 0 }}>
-                              {collapsedIds.has(node.id) ? '▶' : '▼'}
-                            </Box>
-                          }
-                          {isLeaf &&
-                            <Box sx={{ width: '0.45rem', height: '0.45rem', borderRadius: '50%', backgroundColor: rawMahaller.some(m => m.lbs_node_id === node.id) ? '#FF4444' : '#65FF00', flexShrink: 0 }} />
-                          }
-                          <Typography variant="body2">
-                            {node.code_name ? `(${node.code_name}) ` : ''}{node.name}
-                          </Typography>
-                          {isSelected &&
-                            <Box sx={{ ml: '0.3rem', width: '0.4rem', height: '0.4rem', borderRadius: '50%', backgroundColor: 'yellow' }} />
-                          }
+                          {/* İsim alanı: tıklama = expand/collapse */}
+                          <Box
+                            onClick={() => toggleCollapse(node.id)}
+                            sx={{ display: 'flex', alignItems: 'center', gap: '0.4rem', cursor: 'pointer', flexShrink: 0, pl: '6px', py: '1px' }}
+                          >
+                            {!isLeaf &&
+                              <Box sx={{ fontSize: '0.7rem', flexShrink: 0 }}>
+                                {collapsedIds.has(node.id) ? '▶' : '▼'}
+                              </Box>
+                            }
+                            {isLeaf &&
+                              <Box sx={{ width: '0.45rem', height: '0.45rem', borderRadius: '50%', backgroundColor: rawMahaller.some(m => m.lbs_node_id === node.id) ? '#FF4444' : '#65FF00', flexShrink: 0 }} />
+                            }
+                            <Typography variant="body2">
+                              {node.code_name ? `(${node.code_name}) ` : ''}{node.name}
+                            </Typography>
+                          </Box>
+                          {/* Sağ alan: tıklama = seç/iptal */}
+                          <Box
+                            onClick={() => setActiveLbsNodeId(prev => prev === node.id ? null : node.id)}
+                            sx={{ flex: 1, cursor: 'pointer', display: 'flex', alignItems: 'center', pl: '0.3rem', py: '1px' }}
+                          >
+                            {isSelected &&
+                              <Box sx={{ width: '0.4rem', height: '0.4rem', borderRadius: '50%', backgroundColor: 'yellow' }} />
+                            }
+                          </Box>
                         </Box>
                       </Box>
                     )
@@ -487,7 +519,6 @@ export default function P_Mahaller() {
         (() => {
           // Tüm LBS + mahal satırları için tek ortak grid sütun tanımı
           const totalDepthCols = maxLeafDepth + 1
-          const totalCols = totalDepthCols + 5    // +5: kod, ad, alan, sil, esnek dolgu
           const treeGridCols = `repeat(${totalDepthCols}, 1rem) max-content minmax(20rem, max-content) max-content max-content minmax(0, 1fr)`
 
           return (
@@ -523,10 +554,11 @@ export default function P_Mahaller() {
                         {Array.from({ length: depth }).map((_, i) => (
                           <Box key={i} sx={{ backgroundColor: nodeColor(i).bg }} />
                         ))}
+                        {/* Main content */}
                         <Box
                           sx={{
-                            gridColumn: `span ${totalCols - depth}`,
-                            backgroundColor: isSelected ? '#3a1a00' : c.bg,
+                            gridColumn: `span ${totalDepthCols + 2 - depth}`,
+                            backgroundColor: c.bg,
                             color: c.co,
                             display: 'flex', alignItems: 'stretch',
                             userSelect: 'none',
@@ -544,15 +576,15 @@ export default function P_Mahaller() {
                             <Typography variant="body2">
                               {node.code_name ? `(${node.code_name}) ` : ''}{node.name}
                             </Typography>
+                            {isSelected &&
+                              <Box sx={{ width: '0.4rem', height: '0.4rem', borderRadius: '50%', backgroundColor: 'yellow', ml: '0.3rem' }} />
+                            }
                           </Box>
                           {/* Sağ alan: tıklama = seç/iptal (leaf) */}
                           <Box
                             onClick={() => isLeaf && setActiveLbsNodeId(prev => prev === node.id ? null : node.id)}
                             sx={{ flex: 1, cursor: isLeaf ? 'pointer' : 'default', display: 'flex', alignItems: 'center', pl: '0.3rem', pr: '0.5rem' }}
                           >
-                            {isSelected &&
-                              <Box sx={{ width: '0.4rem', height: '0.4rem', borderRadius: '50%', backgroundColor: 'yellow' }} />
-                            }
                             {isLeaf && mahallerOfNode.length > 0 &&
                               <Box sx={{ ml: 'auto', fontSize: '0.75rem', opacity: 0.5, flexShrink: 0 }}>
                                 {mahallerOfNode.length} mahal
@@ -560,6 +592,18 @@ export default function P_Mahaller() {
                             }
                           </Box>
                         </Box>
+                        {/* Alan toplamı */}
+                        <Box sx={{
+                          backgroundColor: c.bg, color: c.co,
+                          px: '6px', py: '1px', fontSize: '0.8rem', fontWeight: 600,
+                          display: 'flex', alignItems: 'center', justifyContent: 'flex-end',
+                          whiteSpace: 'nowrap',
+                          '&:hover': { filter: 'brightness(1.2)' }
+                        }}>
+                          {nodeAreaTotals[node.id] ? `${ikiHane(nodeAreaTotals[node.id])} m²` : ''}
+                        </Box>
+                        {/* Tail (butonlar + doldurma sütunları) */}
+                        <Box sx={{ gridColumn: 'span 2', backgroundColor: c.bg }} />
 
                         {/* Mahal satırları */}
                         {isLeaf && !collapsedIds.has(node.id) && mahallerOfNode.map(mahal => (

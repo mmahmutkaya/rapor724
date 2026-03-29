@@ -94,6 +94,7 @@ export default function P_Pozlar() {
   // Select modu
   const [selectMode, setSelectMode] = useState(false)
   const [selectedIds, setSelectedIds] = useState(new Set())
+  const [hoveredPozId, setHoveredPozId] = useState(null)
 
   const exitSelectMode = () => {
     setSelectMode(false)
@@ -429,7 +430,8 @@ export default function P_Pozlar() {
                   </Grid>
                   <Grid item>
                     <Tooltip title={
-                      viewMode === 'wbsOnly' && !activeWbsNodeId ? 'WBS kök başlık ekle'
+                      viewMode === 'pozOnly' ? 'Poz modunda eklenemez — W+P moduna geçin'
+                      : viewMode === 'wbsOnly' && !activeWbsNodeId ? 'WBS kök başlık ekle'
                       : viewMode === 'wbsOnly' ? 'WBS alt başlık ekle'
                       : viewMode === 'wbsPoz' && !activeWbsNodeId ? 'Bir WBS düğümü seçin'
                       : viewMode === 'wbsPoz' && !isLeafSet.has(activeWbsNodeId) ? 'Alt başlık ekle'
@@ -455,7 +457,7 @@ export default function P_Pozlar() {
                               setShow('PozCreate')
                             }
                           }}
-                          disabled={(viewMode === 'wbsPoz' && !activeWbsNodeId) || (viewMode === 'wbsPoz' && isLeafSet.has(activeWbsNodeId) && !canAddPoz)}
+                          disabled={viewMode === 'pozOnly' || (viewMode === 'wbsPoz' && !activeWbsNodeId) || (viewMode === 'wbsPoz' && isLeafSet.has(activeWbsNodeId) && !canAddPoz)}
                         >
                           <AddCircleOutlineIcon />
                         </IconButton>
@@ -647,7 +649,11 @@ export default function P_Pozlar() {
                             display: 'flex',
                             alignItems: 'stretch',
                             userSelect: 'none',
-                            '&:hover': { filter: 'brightness(1.2)' }
+                            transition: 'filter 0.12s ease',
+                            '&:hover': {
+                              filter: 'brightness(1.32)',
+                              '& .MuiTypography-root': { textShadow: '0 0 0.6px currentColor, 0 0 0.6px currentColor' },
+                            }
                           }}
                         >
                           {/* İsim alanı: tıklama = expand/collapse */}
@@ -744,7 +750,11 @@ export default function P_Pozlar() {
                             color: c.co,
                             display: 'flex', alignItems: 'stretch',
                             userSelect: 'none',
-                            '&:hover': { filter: 'brightness(1.2)' }
+                            transition: 'filter 0.12s ease',
+                            '&:hover': {
+                              filter: 'brightness(1.32)',
+                              '& .MuiTypography-root': { textShadow: '0 0 0.6px currentColor, 0 0 0.6px currentColor' },
+                            }
                           }}
                         >
                           {/* İsim alanı: tıklama = expand/collapse */}
@@ -778,19 +788,26 @@ export default function P_Pozlar() {
                         {/* Poz satırları — totalDepthCols adet bar (bazıları saydam) + 4 veri hücresi */}
                         {isLeaf && !collapsedIds.has(node.id) && pozlarOfNode.map(poz => {
                           const isChecked = selectedIds.has(poz.id)
+                          const isHovered = hoveredPozId === poz.id
                           const selectedBg = isChecked ? '#e3f2fd' : '#f0f0f0'
+                          const cellBg = isHovered ? (isChecked ? '#bbdefb' : '#dde3ea') : selectedBg
+                          const boldShadow = isHovered ? '0 0 0.65px #333, 0 0 0.65px #333' : 'none'
+                          const hover = { onMouseEnter: () => setHoveredPozId(poz.id), onMouseLeave: () => setHoveredPozId(null) }
                           return (
                           <React.Fragment key={poz.id}>
 
                             {/* Derinlik çubukları: depth+1 adedi renkli, kalanı saydam dolgu */}
                             {Array.from({ length: totalDepthCols }).map((_, i) => (
-                              <Box key={i} sx={{
+                              <Box key={i} {...hover} sx={{
                                 backgroundColor: i <= depth ? nodeColor(i).bg : 'transparent',
+                                filter: isHovered && i <= depth ? 'brightness(1.2)' : 'none',
+                                transition: 'filter 0.12s ease',
                               }} />
                             ))}
 
                             {/* Poz kodu */}
                             <Box
+                              {...hover}
                               onClick={() => selectMode && toggleSelect(poz.id)}
                               sx={{
                                 px: '6px', py: '2px',
@@ -798,45 +815,54 @@ export default function P_Pozlar() {
                                 borderLeft: '1px solid #aaa',
                                 fontFamily: 'monospace', fontSize: '0.8rem', fontWeight: 600,
                                 display: 'flex', alignItems: 'center', whiteSpace: 'nowrap',
-                                backgroundColor: selectedBg,
+                                backgroundColor: cellBg,
+                                transition: 'background-color 0.12s ease',
                                 cursor: selectMode ? 'pointer' : 'default',
+                                textShadow: boldShadow,
                               }}>
                               {poz.code || '—'}
                             </Box>
 
                             {/* Açıklama */}
                             <Box
+                              {...hover}
                               onClick={() => selectMode && toggleSelect(poz.id)}
                               sx={{
                                 px: '6px', py: '2px',
                                 borderBottom: '0.5px solid #ddd',
                                 fontSize: '0.875rem',
                                 display: 'flex', alignItems: 'center',
-                                backgroundColor: selectedBg,
+                                backgroundColor: cellBg,
+                                transition: 'background-color 0.12s ease',
                                 cursor: selectMode ? 'pointer' : 'default',
+                                textShadow: boldShadow,
                               }}>
                               {poz.short_desc}
                             </Box>
 
                             {/* Birim */}
                             <Box
+                              {...hover}
                               onClick={() => selectMode && toggleSelect(poz.id)}
                               sx={{
                                 px: '6px', py: '2px',
                                 borderBottom: '0.5px solid #ddd',
                                 fontSize: '0.8rem',
                                 display: 'flex', alignItems: 'center',
-                                backgroundColor: selectedBg, whiteSpace: 'nowrap',
+                                backgroundColor: cellBg, whiteSpace: 'nowrap',
+                                transition: 'background-color 0.12s ease',
                                 cursor: selectMode ? 'pointer' : 'default',
+                                textShadow: boldShadow,
                               }}>
                               {unitsMap[poz.unit_id] ?? '—'}
                             </Box>
 
                             {/* Checkbox (selectMode) */}
-                            <Box sx={{
+                            <Box {...hover} sx={{
                               borderBottom: '0.5px solid #ddd',
                               display: 'flex', alignItems: 'center', justifyContent: 'center',
-                              backgroundColor: selectedBg,
+                              backgroundColor: cellBg,
+                              transition: 'background-color 0.12s ease',
                             }}>
                               {selectMode && (
                                 <Checkbox
@@ -849,9 +875,10 @@ export default function P_Pozlar() {
                             </Box>
 
                             {/* Esnek dolgu sütunu: satırı proje başlığı genişliğine kadar uzatır */}
-                            <Box sx={{
+                            <Box {...hover} sx={{
                               borderBottom: '0.5px solid #ddd',
-                              backgroundColor: selectedBg,
+                              backgroundColor: cellBg,
+                              transition: 'background-color 0.12s ease',
                             }} />
 
                           </React.Fragment>
@@ -926,22 +953,25 @@ export default function P_Pozlar() {
 
             {displayedPozlar.map(poz => {
               const isChecked = selectedIds.has(poz.id)
-              const selectedBg = isChecked ? { backgroundColor: '#e3f2fd' } : {}
+              const isHovered = hoveredPozId === poz.id
+              const cellBg = isHovered ? (isChecked ? '#bbdefb' : '#dde3ea') : (isChecked ? '#e3f2fd' : undefined)
+              const boldShadow = isHovered ? '0 0 0.65px #333, 0 0 0.65px #333' : 'none'
+              const hover = { onMouseEnter: () => setHoveredPozId(poz.id), onMouseLeave: () => setHoveredPozId(null) }
               return (
               <React.Fragment key={poz.id}>
-                <Box sx={{ ...pozCellCss, fontFamily: 'monospace', fontWeight: 600, justifyContent: 'center', cursor: selectMode ? 'pointer' : 'default', ...selectedBg }}
+                <Box {...hover} sx={{ ...pozCellCss, fontFamily: 'monospace', fontWeight: 600, justifyContent: 'center', cursor: selectMode ? 'pointer' : 'default', backgroundColor: cellBg, transition: 'background-color 0.12s ease', textShadow: boldShadow }}
                   onClick={() => selectMode && toggleSelect(poz.id)}>
                   {poz.code || '—'}
                 </Box>
-                <Box sx={{ ...pozCellCss, cursor: selectMode ? 'pointer' : 'default', ...selectedBg }}
+                <Box {...hover} sx={{ ...pozCellCss, cursor: selectMode ? 'pointer' : 'default', backgroundColor: cellBg, transition: 'background-color 0.12s ease', textShadow: boldShadow }}
                   onClick={() => selectMode && toggleSelect(poz.id)}>
                   {poz.short_desc}
                 </Box>
-                <Box sx={{ ...pozCellCss, justifyContent: 'center', cursor: selectMode ? 'pointer' : 'default', ...selectedBg }}
+                <Box {...hover} sx={{ ...pozCellCss, justifyContent: 'center', cursor: selectMode ? 'pointer' : 'default', backgroundColor: cellBg, transition: 'background-color 0.12s ease', textShadow: boldShadow }}
                   onClick={() => selectMode && toggleSelect(poz.id)}>
                   {unitsMap[poz.unit_id] ?? '—'}
                 </Box>
-                <Box sx={{ ...pozCellCss, justifyContent: 'center', ...selectedBg }}>
+                <Box {...hover} sx={{ ...pozCellCss, justifyContent: 'center', backgroundColor: cellBg, transition: 'background-color 0.12s ease' }}>
                   {selectMode && (
                     <Checkbox
                       size="small"

@@ -109,30 +109,41 @@ export default function Sidebar({ setMobileOpen }) {
               <ListItemText primary="Proje Ayarları" />
             </ListItemButton>
 
-            {pathname.includes('/proje-ayarlari') &&
-              <Box sx={{ mb: '0.25rem', borderLeft: '2px solid rgba(0,0,0,0.12)', ml: '2.75rem' }}>
-                <ListItemButton
-                  onClick={() => navigate('/proje-ayarlari')}
-                  sx={{
-                    pl: '1rem', py: '0.3rem', borderRadius: '0 6px 6px 0',
-                    backgroundColor: !search.includes('s=sil') ? 'rgba(0,0,0,0.08)' : null,
-                    '&:hover': { backgroundColor: 'rgba(0,0,0,0.08)' }
-                  }}
-                >
-                  <ListItemText primary="Birimler" primaryTypographyProps={{ fontSize: '0.82rem', fontWeight: !search.includes('s=sil') ? 600 : 400 }} />
-                </ListItemButton>
-                <ListItemButton
-                  onClick={() => navigate('/proje-ayarlari?s=sil')}
-                  sx={{
-                    pl: '1rem', py: '0.3rem', borderRadius: '0 6px 6px 0',
-                    backgroundColor: search.includes('s=sil') ? 'rgba(211,47,47,0.08)' : null,
-                    '&:hover': { backgroundColor: 'rgba(211,47,47,0.08)' }
-                  }}
-                >
-                  <ListItemText primary="Projeyi Sil" primaryTypographyProps={{ fontSize: '0.82rem', color: 'error.main', fontWeight: search.includes('s=sil') ? 600 : 400 }} />
-                </ListItemButton>
-              </Box>
-            }
+            {pathname.includes('/proje-ayarlari') && (() => {
+              const subItems = [
+                { label: 'Profil',         route: '/proje-ayarlari',                  active: !search.includes('s=')  },
+                { label: 'Para Birimleri', route: '/proje-ayarlari?s=parabirimleri',  active: search.includes('s=parabirimleri') },
+                { label: 'Poz Birimleri',  route: '/proje-ayarlari?s=birimler',       active: search.includes('s=birimler') },
+                { label: 'Projeyi Sil',    route: '/proje-ayarlari?s=sil',            active: search.includes('s=sil'), danger: true },
+              ]
+              return (
+                <Box sx={{ mb: '0.25rem', mx: 0, display: 'flex', flexDirection: 'column', gap: '2px' }}>
+                  {subItems.map(item => (
+                    <ListItemButton key={item.label} onClick={() => navigate(item.route)} sx={{
+                      py: '0.35rem', pl: '2rem', pr: '0.75rem', borderRadius: 0,
+                      backgroundColor: 'rgba(0,0,0,0.08)',
+                      '&:hover': {
+                        backgroundColor: 'rgba(0,0,0,0.08)',
+                        '& .MuiSvgIcon-root': { color: item.danger ? 'error.main' : 'rgba(0,0,0,0.7)' },
+                        '& .MuiListItemText-primary': { fontWeight: 700 },
+                      },
+                    }}>
+                      <ListItemIcon sx={{ minWidth: '36px' }}>
+                        <SendIcon sx={{
+                          fontSize: '0.75rem',
+                          color: item.danger ? 'error.main' : item.active ? 'rgba(0,0,0,0.7)' : 'rgba(0,0,0,0.3)',
+                          transition: 'color 0.15s ease',
+                        }} />
+                      </ListItemIcon>
+                      <ListItemText primary={item.label} primaryTypographyProps={{
+                        fontSize: '0.8rem',
+                        color: item.danger ? 'error.main' : 'text.secondary',
+                      }} />
+                    </ListItemButton>
+                  ))}
+                </Box>
+              )
+            })()}
 
           </List>
         </Grid>

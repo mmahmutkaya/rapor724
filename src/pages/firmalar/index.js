@@ -43,7 +43,7 @@ export default function P_Firmalar() {
   const handleCreate = async () => {
     if (!newName.trim()) return
     setSaving(true)
-    const { error } = await supabase.from('firms').insert({ name: newName.trim() })
+    const { error } = await supabase.from('firms').insert({ name: newName.trim().toUpperCase() })
     setSaving(false)
     if (error) {
       setDialogAlert({ dialogMessage: error.message, dialogIcon: 'warning', onCloseAction: () => setDialogAlert() })
@@ -82,7 +82,7 @@ export default function P_Firmalar() {
             size="small"
             label="Firma adı"
             value={newName}
-            onChange={e => setNewName(e.target.value)}
+            onChange={e => setNewName(e.target.value.toUpperCase())}
             onKeyDown={e => e.key === 'Enter' && handleCreate()}
             autoFocus
           />

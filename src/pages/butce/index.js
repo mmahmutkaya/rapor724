@@ -11,10 +11,17 @@ import Alert from "@mui/material/Alert";
 import Stack from "@mui/material/Stack";
 import Typography from "@mui/material/Typography";
 import Box from "@mui/material/Box";
+import Button from "@mui/material/Button";
+import Dialog from "@mui/material/Dialog";
+import DialogTitle from "@mui/material/DialogTitle";
+import DialogContent from "@mui/material/DialogContent";
+import DialogActions from "@mui/material/DialogActions";
 import IconButton from "@mui/material/IconButton";
+import Switch from "@mui/material/Switch";
 import TextField from "@mui/material/TextField";
 import LinearProgress from "@mui/material/LinearProgress";
 import Tooltip from "@mui/material/Tooltip";
+import ViewAgendaIcon from "@mui/icons-material/ViewAgenda";
 
 import ClearOutlined from "@mui/icons-material/ClearOutlined";
 import SaveOutlined from "@mui/icons-material/SaveOutlined";
@@ -24,6 +31,10 @@ import KeyboardArrowUpIcon from "@mui/icons-material/KeyboardArrowUp";
 import KeyboardArrowDownIcon from "@mui/icons-material/KeyboardArrowDown";
 import KeyboardArrowLeftIcon from "@mui/icons-material/KeyboardArrowLeft";
 import KeyboardArrowRightIcon from "@mui/icons-material/KeyboardArrowRight";
+import CurrencyExchangeIcon from "@mui/icons-material/CurrencyExchange";
+
+const CURRENCIES = ["TRY", "USD", "EUR"];
+const CURRENCY_SYMBOL = { TRY: "₺", USD: "$", EUR: "€" };
 
 // pozlar/index.js ile birebir aynı palet
 const NODE_PALETTE = [
@@ -49,18 +60,25 @@ function nodeColor(depth) {
   return NODE_PALETTE[depth % NODE_PALETTE.length];
 }
 
+function emptyRow(overrides = {}) {
+  return { butceTRY: "", butceUSD: "", butceEUR: "", ...overrides };
+}
+
 export default function P_KesifButce() {
   const { appUser, selectedProje } = useContext(StoreContext);
   const navigate = useNavigate();
 
   const [show, setShow] = useState("Main");
-  // formNodes: [{ id, parent_id, name, isFixed, order_index, rows: [{id, name, isWp, butce}] }]
+  // formNodes: [{ id, parent_id, name, isFixed, order_index, rows: [{id, name, isWp, butceTRY, butceUSD, butceEUR}] }]
   const [formNodes, setFormNodes] = useState([]);
   const [formAciklama, setFormAciklama] = useState("");
   const [activeNodeId, setActiveNodeId] = useState(null);
   const [collapsedIds, setCollapsedIds] = useState(new Set());
-  const [draftInfo, setDraftInfo] = useState(null); // { savedAt: ISO string } | null
-  const [viewMode, setViewMode] = useState("wbsPoz"); // 'wbsOnly' | 'wbsPoz'
+  const [draftInfo, setDraftInfo] = useState(null);
+  const [viewMode, setViewMode] = useState("wbsPoz");
+
+  const [visibleCurrencies, setVisibleCurrencies] = useState({ TRY: true, USD: false, EUR: false });
+  const [showCurrencyDialog, setShowCurrencyDialog] = useState(false);
 
   const draftKey = selectedProje ? `butce_draft_${selectedProje.id}` : null;
 
@@ -70,6 +88,8 @@ export default function P_KesifButce() {
   const [dialogAlert, setDialogAlert] = useState();
   const [isSaving, setIsSaving] = useState(false);
   const [hoveredRowId, setHoveredRowId] = useState(null);
+  const [showSaveDialog, setShowSaveDialog] = useState(false);
+  const [saveDialogAciklama, setSaveDialogAciklama] = useState("");
 
   const { data: workPackages = [], isFetching: wpLoading } = useGetWorkPackages();
 
@@ -78,7 +98,6 @@ export default function P_KesifButce() {
 
   useEffect(() => {
     if (!selectedProje) { navigate("/projeler"); return; }
-    // Taslak varsa bilgi state'ini güncelle
     if (draftKey) {
       try {
         const saved = localStorage.getItem(draftKey);
@@ -88,7 +107,6 @@ export default function P_KesifButce() {
     loadVersiyonlar();
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
-  // Auto-save: form açıkken her değişiklikte taslağı localStorage'a kaydet
   useEffect(() => {
     if (show !== "Form" || !draftKey || formNodes.length === 0) return;
     const timer = setTimeout(() => {
@@ -115,8 +133,18 @@ export default function P_KesifButce() {
     return leaves.length > 0 ? Math.max(...leaves.map(n => n.depth)) : 0;
   }, [flatNodes, isLeafSet]);
 
+  const visibleCurrencyList = useMemo(
+    () => CURRENCIES.filter(c => visibleCurrencies[c]),
+    [visibleCurrencies]
+  );
+
   const totalDepthCols = maxLeafDepth + 1;
-  const treeGridCols = `repeat(${totalDepthCols}, 1rem) minmax(16rem, max-content) 0.5rem 9rem max-content minmax(0, 1fr)`;
+  const treeGridCols = useMemo(() => {
+    const budgetCols = visibleCurrencyList.length > 0
+      ? visibleCurrencyList.map(() => "9rem").join(" ") + " "
+      : "";
+    return `repeat(${totalDepthCols}, 1rem) minmax(16rem, max-content) 0.5rem ${budgetCols}max-content minmax(0, 1fr)`;
+  }, [totalDepthCols, visibleCurrencyList]);
 
   // ── Seçili düğüm / taşıma ──────────────────────────────────────────────────
   const activeNode = useMemo(
@@ -214,12 +242,16 @@ export default function P_KesifButce() {
   };
 
   const openForm = () => {
-    // Güncel iş paketi satırları — butce değerlerini taslaktan koru
     const buildWpRows = (draftFixedNode) =>
-      workPackages.map(wp => ({
-        id: wp.id, name: wp.name, isWp: true,
-        butce: draftFixedNode?.rows.find(r => r.id === wp.id)?.butce ?? "",
-      }));
+      workPackages.map(wp => {
+        const prev = draftFixedNode?.rows.find(r => r.id === wp.id);
+        return {
+          id: wp.id, name: wp.name, isWp: true,
+          butceTRY: prev?.butceTRY ?? "",
+          butceUSD: prev?.butceUSD ?? "",
+          butceEUR: prev?.butceEUR ?? "",
+        };
+      });
 
     let nodes = null;
     let savedAciklama = "";
@@ -257,7 +289,6 @@ export default function P_KesifButce() {
   };
 
   const cancelForm = () => {
-    // Taslağı localStorage'da bırak — kullanıcı kaldığı yerden devam edebilir
     setFormNodes([]);
     setFormAciklama("");
     setActiveNodeId(null);
@@ -309,7 +340,7 @@ export default function P_KesifButce() {
 
   const addChildNode = parentId => {
     const parent = formNodes.find(n => n.id === parentId);
-    if (parent?.rows?.length > 0) return; // satırı olan düğüme alt düğüm eklenemez
+    if (parent?.rows?.length > 0) return;
     const siblings = formNodes.filter(n => n.parent_id === parentId);
     const maxOrder = siblings.length > 0 ? Math.max(...siblings.map(n => n.order_index)) : -1;
     const newNode = {
@@ -326,7 +357,6 @@ export default function P_KesifButce() {
   };
 
   const deleteNodeRecursive = id => {
-    // Düğüm + tüm torunları toplayarak sil
     const toDelete = new Set([id]);
     let changed = true;
     while (changed) {
@@ -346,7 +376,7 @@ export default function P_KesifButce() {
   const addRow = nodeId =>
     setFormNodes(p => p.map(n =>
       n.id === nodeId
-        ? { ...n, rows: [...n.rows, { id: "row_" + Date.now() + "_" + Math.random(), name: "", isWp: false, butce: "" }] }
+        ? { ...n, rows: [...n.rows, emptyRow({ id: "row_" + Date.now() + "_" + Math.random(), name: "", isWp: false }) ] }
         : n
     ));
 
@@ -360,48 +390,61 @@ export default function P_KesifButce() {
       n.id === nodeId ? { ...n, rows: n.rows.filter(r => r.id !== rowId) } : n
     ));
 
-  // ── Toplamlar ───────────────────────────────────────────────────────────────
-  const nodeRowTotal = node => node.rows.reduce((s, r) => s + (Number(r.butce) || 0), 0);
+  // ── Toplamlar (per-currency) ─────────────────────────────────────────────────
+  const nodeRowTotal = (node, cur) =>
+    node.rows.reduce((s, r) => s + (Number(r[`butce${cur}`]) || 0), 0);
 
-  const subtreeTotal = nodeId => {
+  const subtreeTotal = (nodeId, cur) => {
     const node = formNodes.find(n => n.id === nodeId);
     if (!node) return 0;
-    return nodeRowTotal(node) + formNodes
+    return nodeRowTotal(node, cur) + formNodes
       .filter(n => n.parent_id === nodeId)
-      .reduce((s, child) => s + subtreeTotal(child.id), 0);
+      .reduce((s, child) => s + subtreeTotal(child.id, cur), 0);
   };
 
-  const grandTotal = formNodes
-    .filter(n => n.parent_id == null)
-    .reduce((s, n) => s + subtreeTotal(n.id), 0);
+  const grandTotal = useMemo(() =>
+    Object.fromEntries(CURRENCIES.map(c => [
+      c, formNodes.filter(n => n.parent_id == null).reduce((s, n) => s + subtreeTotal(n.id, c), 0)
+    ])),
+    [formNodes] // eslint-disable-line react-hooks/exhaustive-deps
+  );
 
-  const hasAnyButce = formNodes.some(n => n.rows.some(r => r.butce !== ""));
+  const hasAnyButce = formNodes.some(n =>
+    n.rows.some(r => CURRENCIES.some(c => r[`butce${c}`] !== ""))
+  );
 
   // ── Kaydet ──────────────────────────────────────────────────────────────────
-  const handleSave = async () => {
+  const handleSaveClick = () => {
+    setSaveDialogAciklama(formAciklama);
+    setShowSaveDialog(true);
+  };
+
+  const handleSaveConfirm = async () => {
+    setShowSaveDialog(false);
     setIsSaving(true);
     try {
       const { error } = await supabase.from("budget_versions").insert({
         project_id: selectedProje.id,
         versiyon_number: nextVNum,
-        aciklama: formAciklama.trim() || null,
+        aciklama: saveDialogAciklama.trim() || null,
         total_kesif_tutar: null,
-        total_butce_tutar: Math.round(grandTotal * 100) / 100 || null,
+        total_butce_tutar: Math.round((grandTotal["TRY"] ?? 0) * 100) / 100 || null,
         is_paketler_satirlar: {
           nodes: formNodes.map(n => ({
             nodeId: n.id, nodeName: n.name, isFixed: n.isFixed,
             parentId: n.parent_id, orderIndex: n.order_index,
             rows: n.rows.map((r, i) => ({
               sira: i + 1, rowId: r.id, name: r.name, isWp: r.isWp,
-              butce: r.butce !== "" ? Number(r.butce) || null : null,
+              butceTRY: r.butceTRY !== "" ? Number(r.butceTRY) || null : null,
+              butceUSD: r.butceUSD !== "" ? Number(r.butceUSD) || null : null,
+              butceEUR: r.butceEUR !== "" ? Number(r.butceEUR) || null : null,
             })),
-            totalButce: Math.round(nodeRowTotal(n) * 100) / 100,
+            totalButceTRY: Math.round(nodeRowTotal(n, "TRY") * 100) / 100,
           })),
         },
         created_by: appUser.id,
       });
       if (error) throw new Error(error.message);
-      // Versiyon kaydedildi — taslağı temizle
       if (draftKey) localStorage.removeItem(draftKey);
       setDraftInfo(null);
       await loadVersiyonlar();
@@ -430,7 +473,7 @@ export default function P_KesifButce() {
   const css_lb = { display: "flex", alignItems: "center", px: "0.6rem", py: "0.3rem", backgroundColor: "#c8c8c8", fontWeight: 700, fontSize: "0.8rem", textTransform: "uppercase", borderBottom: "1px solid #aaa", whiteSpace: "nowrap" };
   const css_ls = { display: "flex", alignItems: "center", px: "0.6rem", py: "0.4rem", borderBottom: "1px solid #ddd", fontSize: "0.875rem", backgroundColor: "#f2f2f2" };
 
-  // ── Akıllı + butonu — pozlar wbs-poz mantığının aynısı ────────────────────
+  // ── Akıllı + butonu ────────────────────────────────────────────────────────
   const activeIsLeaf = activeNodeId ? isLeafSet.has(activeNodeId) : false;
   const activeHasRows = (activeNode?.rows?.length ?? 0) > 0;
 
@@ -485,6 +528,51 @@ export default function P_KesifButce() {
         />
       )}
 
+      {/* Kaydet dialog */}
+      <Dialog open={showSaveDialog} onClose={() => setShowSaveDialog(false)} maxWidth="xs" fullWidth>
+        <DialogTitle sx={{ pb: "0.5rem" }}>
+          Versiyonu Kaydet <Typography component="span" variant="body2" sx={{ color: "gray" }}>— v{nextVNum}</Typography>
+        </DialogTitle>
+        <DialogContent>
+          <TextField
+            autoFocus
+            variant="outlined"
+            label="Açıklama (isteğe bağlı)"
+            fullWidth
+            size="small"
+            value={saveDialogAciklama}
+            onChange={e => setSaveDialogAciklama(e.target.value)}
+            multiline
+            rows={2}
+            sx={{ mt: "0.5rem" }}
+            onKeyDown={e => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); handleSaveConfirm(); } }}
+          />
+        </DialogContent>
+        <DialogActions sx={{ px: "1.5rem", pb: "1rem" }}>
+          <Button onClick={() => setShowSaveDialog(false)}>İptal</Button>
+          <Button variant="contained" onClick={handleSaveConfirm} disabled={isSaving}>
+            Kaydet
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      {/* Para birimi dialog */}
+      <Dialog open={showCurrencyDialog} onClose={() => setShowCurrencyDialog(false)} maxWidth="xs" fullWidth>
+        <DialogTitle sx={{ pb: "0.5rem" }}>Görünüm Ayarları</DialogTitle>
+        <DialogContent>
+          {CURRENCIES.map(c => (
+            <Box key={c} sx={{ display: "flex", alignItems: "center", justifyContent: "space-between", py: "0.4rem" }}>
+              <Typography variant="body2">{c} bütçe sütunu</Typography>
+              <Switch
+                size="small"
+                checked={visibleCurrencies[c]}
+                onChange={e => setVisibleCurrencies(prev => ({ ...prev, [c]: e.target.checked }))}
+              />
+            </Box>
+          ))}
+        </DialogContent>
+      </Dialog>
+
       {/* APP BAR */}
       <AppBar position="static" sx={{ backgroundColor: "white", color: "black", boxShadow: 4 }}>
         <Grid container justifyContent="space-between" alignItems="center" sx={{ px: "1rem", py: "0.25rem", minHeight: "3.5rem" }}>
@@ -507,15 +595,6 @@ export default function P_KesifButce() {
             <Box sx={{ display: "flex", alignItems: "center", gap: "0.25rem" }}>
               {show === "Form" ? (
                 <>
-                  {/* Görünüm modu toggle — pozlar cycleViewMode ile aynı */}
-                  <Tooltip title={viewMode === "wbsOnly" ? "WBS görünümü — Bütçe+Başlık görünümüne geç" : "Başlık+Bütçe görünümü — WBS görünümüne geç"}>
-                    <IconButton size="small" onClick={() => setViewMode(v => v === "wbsOnly" ? "wbsPoz" : "wbsOnly")}
-                      sx={{ border: "1px solid #ccc", borderRadius: "4px", px: "0.4rem", height: 28, fontWeight: 800, color: "black", fontSize: "0.65rem" }}>
-                      {viewMode === "wbsOnly" ? "WBS" : "W+B"}
-                    </IconButton>
-                  </Tooltip>
-
-                  {/* Taşıma butonları — sadece düğüm seçiliyken */}
                   {activeNodeId && (
                     <>
                       <Tooltip title="Yukarı taşı"><span>
@@ -541,7 +620,6 @@ export default function P_KesifButce() {
                     </>
                   )}
 
-                  {/* Akıllı + — pozlar mantığıyla aynı */}
                   <Tooltip title={addLabel}><span>
                     <IconButton onClick={handleSmartAdd} disabled={addDisabled} sx={iconBtn_sx}>
                       <AddCircleOutlineIcon color={addDisabled ? "disabled" : "success"} sx={icon_sx} />
@@ -551,9 +629,36 @@ export default function P_KesifButce() {
                   <IconButton onClick={cancelForm} disabled={isSaving} sx={iconBtn_sx}>
                     <ClearOutlined sx={{ ...icon_sx, color: "red" }} />
                   </IconButton>
-                  <IconButton onClick={handleSave} disabled={isSaving || !hasAnyButce} sx={iconBtn_sx}>
+                  <IconButton onClick={handleSaveClick} disabled={isSaving || !hasAnyButce} sx={iconBtn_sx}>
                     <SaveOutlined sx={{ ...icon_sx, color: (isSaving || !hasAnyButce) ? "#bbb" : "green" }} />
                   </IconButton>
+
+                  {/* Görünüm modu toggle */}
+                  <Tooltip title={`Görünüm: ${viewMode === "wbsOnly" ? "WBS" : "W+B"} (tıkla: değiştir)`}>
+                    <Button
+                      size="small"
+                      variant="outlined"
+                      onClick={() => setViewMode(v => v === "wbsOnly" ? "wbsPoz" : "wbsOnly")}
+                      startIcon={<ViewAgendaIcon />}
+                      sx={{
+                        textTransform: "none",
+                        minWidth: "5.25rem",
+                        px: "0.5rem",
+                        color: "text.secondary",
+                        borderColor: "grey.400",
+                        "&:hover": { borderColor: "grey.600", backgroundColor: "grey.100" },
+                      }}
+                    >
+                      {viewMode === "wbsOnly" ? "WBS" : "W+B"}
+                    </Button>
+                  </Tooltip>
+
+                  {/* Para birimi sütun ayarları */}
+                  <Tooltip title="Para birimi sütunları">
+                    <IconButton size="small" onClick={() => setShowCurrencyDialog(true)} sx={{ ml: "0.25rem", color: visibleCurrencyList.length > 0 ? "#1565c0" : "inherit" }}>
+                      <CurrencyExchangeIcon sx={{ fontSize: 20 }} />
+                    </IconButton>
+                  </Tooltip>
                 </>
               ) : (
                 <IconButton onClick={openForm} sx={iconBtn_sx}>
@@ -578,26 +683,35 @@ export default function P_KesifButce() {
               <Box sx={{ display: "grid", gridTemplateColumns: "1rem 1fr" }}>
                 <Box sx={{ backgroundColor: "black" }} />
 
-                {/* Dinamik grid — pozlar wbsPoz modu ile aynı yapı */}
+                {/* Dinamik grid */}
                 <Box sx={{ display: "grid", gridTemplateColumns: treeGridCols }}>
 
-                  {/* ── Satır 1: BÜTÇE sütun başlığı ── */}
+                  {/* ── Satır 1: sütun başlıkları ── */}
                   <Box sx={{ gridColumn: `1 / span ${totalDepthCols + 1}`, backgroundColor: "black" }} />
                   <Box sx={{ backgroundColor: "white" }} />
-                  <Box sx={{
-                    gridColumn: `${totalDepthCols + 3} / span 3`,
-                    backgroundColor: "#1e1e1e",
-                    color: "#e0e0e0",
-                    display: "flex", alignItems: "center", justifyContent: "center",
-                    fontWeight: 700, fontSize: "0.72rem",
-                    textTransform: "uppercase",
-                    letterSpacing: "0.08em",
-                    py: "0.25rem",
-                  }}>
-                    Bütçe
-                  </Box>
+                  {visibleCurrencyList.length === 0 ? (
+                    <Box sx={{ gridColumn: "span 2", backgroundColor: "#1e1e1e" }} />
+                  ) : (
+                    <>
+                      {visibleCurrencyList.map(c => (
+                        <Box key={c} sx={{
+                          backgroundColor: "#1e1e1e", color: "#e0e0e0",
+                          display: "flex", alignItems: "center", justifyContent: "center",
+                          flexDirection: "column", px: "0.5rem", py: "0.15rem", gap: 0,
+                        }}>
+                          <Typography sx={{ fontWeight: 700, fontSize: "0.62rem", textTransform: "uppercase", letterSpacing: "0.08em", lineHeight: 1.2, opacity: 0.6 }}>
+                            Bütçe
+                          </Typography>
+                          <Typography sx={{ fontSize: "0.72rem", fontWeight: 700, lineHeight: 1.2 }}>
+                            {c}
+                          </Typography>
+                        </Box>
+                      ))}
+                      <Box sx={{ gridColumn: "span 2", backgroundColor: "#1e1e1e" }} />
+                    </>
+                  )}
 
-                  {/* ── Satır 2: Proje adı (sol) + genel toplam (sağ) ── */}
+                  {/* ── Satır 2: Proje adı (sol) + grand totals (sağ) ── */}
                   <Box sx={{
                     gridColumn: `1 / span ${totalDepthCols + 1}`,
                     backgroundColor: "black", color: "white",
@@ -609,16 +723,27 @@ export default function P_KesifButce() {
                     </Typography>
                   </Box>
                   <Box sx={{ backgroundColor: "white" }} />
-                  <Box sx={{
-                    gridColumn: `${totalDepthCols + 3} / span 3`,
-                    backgroundColor: "#1e1e1e",
-                    color: "#e0e0e0",
-                    display: "flex", alignItems: "center", justifyContent: "flex-end",
-                    fontWeight: 700, fontSize: "0.8rem",
-                    px: "0.5rem", py: "2px",
-                  }}>
-                    {grandTotal > 0 ? fmt(grandTotal) : "—"}
-                  </Box>
+                  {visibleCurrencyList.length === 0 ? (
+                    <Box sx={{ gridColumn: "span 2", backgroundColor: "#1e1e1e" }} />
+                  ) : (
+                    <>
+                      {visibleCurrencyList.map(c => (
+                        <Box key={c} sx={{
+                          backgroundColor: "#1e1e1e", color: "#e0e0e0",
+                          display: "flex", alignItems: "center", gap: "0.25rem",
+                          pl: "0.3rem", pr: "0.25rem", py: "2px",
+                        }}>
+                          <Box sx={{ flex: 1, textAlign: "right", fontWeight: 700, fontSize: "0.8rem" }}>
+                            {grandTotal[c] > 0 ? fmt(grandTotal[c]) : "—"}
+                          </Box>
+                          <Typography sx={{ fontSize: "0.68rem", color: "#e0e0e0", opacity: 0.55, fontWeight: 600, flexShrink: 0 }}>
+                            {CURRENCY_SYMBOL[c] ?? c}
+                          </Typography>
+                        </Box>
+                      ))}
+                      <Box sx={{ gridColumn: "span 2", backgroundColor: "#1e1e1e" }} />
+                    </>
+                  )}
 
                   {flatNodes.map(node => {
                     if (isHiddenByAncestor(node)) return null;
@@ -627,17 +752,16 @@ export default function P_KesifButce() {
                     const isSelected = activeNodeId === node.id;
                     const isCollapsed = collapsedIds.has(node.id);
                     const c = nodeColor(depth);
-                    const total = subtreeTotal(node.id);
 
                     return (
                       <React.Fragment key={node.id}>
 
-                        {/* Derinlik çubukları (0..depth-1) */}
+                        {/* Derinlik çubukları */}
                         {Array.from({ length: depth }).map((_, i) => (
                           <Box key={i} sx={{ backgroundColor: nodeColor(i).bg }} />
                         ))}
 
-                        {/* Düğüm başlık SOL — sadece collapse toggle (text tıklaması) */}
+                        {/* Düğüm başlık SOL */}
                         <Box
                           onClick={() => { if (!isLeaf) toggleCollapse(node.id); }}
                           sx={{
@@ -685,43 +809,84 @@ export default function P_KesifButce() {
                         {/* Gap sütunu */}
                         <Box sx={{ backgroundColor: "white" }} />
 
-                        {/* Düğüm başlık SAĞ — selection toggle, sarı nokta, sil */}
-                        <Box
-                          onClick={() => setActiveNodeId(prev => prev === node.id ? null : node.id)}
-                          sx={{
-                            gridColumn: `span 3`,
-                            py: "2px", px: "0.4rem",
-                            backgroundColor: c.bg,
-                            color: c.co,
-                            cursor: "pointer",
-                            display: "flex", alignItems: "center",
-                            userSelect: "none",
-                            "&:hover": { filter: "brightness(1.2)" },
-                          }}
-                        >
-                          {total > 0 && (
-                            <Box sx={{ fontSize: "0.8rem", fontWeight: 700, flexShrink: 0, mr: "auto" }}>
-                              {fmt(total)}
+                        {/* Düğüm subtotal — per visible currency */}
+                        {visibleCurrencyList.length === 0 ? (
+                          <Box
+                            onClick={() => setActiveNodeId(prev => prev === node.id ? null : node.id)}
+                            sx={{
+                              gridColumn: "span 2", py: "2px", px: "0.4rem",
+                              backgroundColor: c.bg, color: c.co,
+                              cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "flex-end", gap: "0.25rem",
+                              userSelect: "none", "&:hover": { filter: "brightness(1.2)" },
+                            }}
+                          >
+                            {isSelected && (
+                              <Box sx={{ width: "0.55rem", height: "0.55rem", borderRadius: "50%", backgroundColor: "yellow", flexShrink: 0 }} />
+                            )}
+                            {!node.isFixed && (
+                              <Box onClick={e => e.stopPropagation()} sx={{ flexShrink: 0 }}>
+                                <IconButton size="small" onClick={() => deleteNodeRecursive(node.id)}
+                                  sx={{ color: c.co, opacity: 0.35, "&:hover": { opacity: 1, color: "#ff8a80" }, width: 22, height: 22 }}>
+                                  <DeleteOutlineIcon sx={{ fontSize: 14 }} />
+                                </IconButton>
+                              </Box>
+                            )}
+                          </Box>
+                        ) : (
+                          <>
+                            {visibleCurrencyList.map(cur => {
+                              const total = subtreeTotal(node.id, cur);
+                              return (
+                                <Box
+                                  key={cur}
+                                  onClick={() => setActiveNodeId(prev => prev === node.id ? null : node.id)}
+                                  sx={{
+                                    py: "2px", pl: "0.3rem", pr: "0.25rem",
+                                    backgroundColor: c.bg, color: c.co,
+                                    cursor: "pointer",
+                                    display: "flex", alignItems: "center", gap: "0.25rem",
+                                    userSelect: "none",
+                                    "&:hover": { filter: "brightness(1.2)" },
+                                  }}
+                                >
+                                  <Box sx={{ flex: 1, textAlign: "right", fontSize: "0.8rem", fontWeight: 700 }}>
+                                    {total > 0 ? fmt(total) : "—"}
+                                  </Box>
+                                  <Typography sx={{ fontSize: "0.68rem", color: c.co, opacity: 0.55, fontWeight: 600, flexShrink: 0 }}>
+                                    {CURRENCY_SYMBOL[cur] ?? cur}
+                                  </Typography>
+                                </Box>
+                              );
+                            })}
+                            {/* actions cell: selection dot + delete */}
+                            <Box
+                              onClick={() => setActiveNodeId(prev => prev === node.id ? null : node.id)}
+                              sx={{
+                                gridColumn: "span 2",
+                                py: "2px", px: "0.4rem",
+                                backgroundColor: c.bg, color: c.co,
+                                cursor: "pointer",
+                                display: "flex", alignItems: "center", justifyContent: "flex-end", gap: "0.25rem",
+                                userSelect: "none",
+                                "&:hover": { filter: "brightness(1.2)" },
+                              }}
+                            >
+                              {isSelected && (
+                                <Box sx={{ width: "0.55rem", height: "0.55rem", borderRadius: "50%", backgroundColor: "yellow", flexShrink: 0 }} />
+                              )}
+                              {!node.isFixed && (
+                                <Box onClick={e => e.stopPropagation()} sx={{ flexShrink: 0 }}>
+                                  <IconButton size="small" onClick={() => deleteNodeRecursive(node.id)}
+                                    sx={{ color: c.co, opacity: 0.35, "&:hover": { opacity: 1, color: "#ff8a80" }, width: 22, height: 22 }}>
+                                    <DeleteOutlineIcon sx={{ fontSize: 14 }} />
+                                  </IconButton>
+                                </Box>
+                              )}
                             </Box>
-                          )}
+                          </>
+                        )}
 
-                          {/* Sarı seçim noktası */}
-                          {isSelected && (
-                            <Box sx={{ width: "0.55rem", height: "0.55rem", borderRadius: "50%", backgroundColor: "yellow", flexShrink: 0, ml: "auto" }} />
-                          )}
-
-                          {/* Sil butonu — sadece özel düğümler */}
-                          {!node.isFixed && (
-                            <Box onClick={e => e.stopPropagation()} sx={{ flexShrink: 0, ml: isSelected ? "0.3rem" : "auto" }}>
-                              <IconButton size="small" onClick={() => deleteNodeRecursive(node.id)}
-                                sx={{ color: c.co, opacity: 0.35, "&:hover": { opacity: 1, color: "#ff8a80" }, width: 22, height: 22 }}>
-                                <DeleteOutlineIcon sx={{ fontSize: 14 }} />
-                              </IconButton>
-                            </Box>
-                          )}
-                        </Box>
-
-                        {/* ── Satırlar — sadece leaf, collapse değilse ve wbsPoz modundaysa ── */}
+                        {/* ── Satırlar ── */}
                         {isLeaf && !isCollapsed && viewMode === "wbsPoz" && (
                           <>
                             {node.rows.map((row, rowIdx) => {
@@ -735,7 +900,6 @@ export default function P_KesifButce() {
 
                               return (
                                 <React.Fragment key={row.id}>
-                                  {/* totalDepthCols adet derinlik çubuğu — pozlar ile aynı */}
                                   {Array.from({ length: totalDepthCols }).map((_, i) => (
                                     <Box key={i} {...rh} sx={{
                                       backgroundColor: i <= depth ? nodeColor(i).bg : "transparent",
@@ -765,28 +929,36 @@ export default function P_KesifButce() {
                                     )}
                                   </Box>
 
-                                  {/* 0.5rem boşluk sütunu */}
+                                  {/* gap */}
                                   <Box {...rh} sx={{ borderBottom: bb, backgroundColor: "white" }} />
 
-                                  {/* bütçe */}
-                                  <Box {...rh} sx={{
-                                    display: "flex", alignItems: "center", justifyContent: "flex-end",
-                                    pr: "0.3rem", py: "0.12rem",
-                                    borderBottom: bb, backgroundColor: rowBg,
-                                    borderLeft: "2px solid #555",
-                                  }}>
-                                    <TextField
-                                      variant="standard" size="small"
-                                      placeholder="—"
-                                      value={row.butce}
-                                      onChange={(e) => updateRow(node.id, row.id, "butce", e.target.value)}
-                                      autoComplete="off"
-                                      inputProps={{
-                                        style: { fontSize: "0.875rem", textAlign: "right", width: "7rem" },
-                                        inputMode: "decimal",
-                                      }}
-                                    />
-                                  </Box>
+                                  {/* per-currency budget inputs */}
+                                  {visibleCurrencyList.map(cur => (
+                                      <Box key={cur} {...rh} sx={{
+                                        display: "flex", alignItems: "center",
+                                        pl: "0.3rem", pr: "0.25rem", py: "0.12rem",
+                                        borderBottom: bb, backgroundColor: rowBg,
+                                        borderLeft: "2px solid #555",
+                                        gap: "0.25rem",
+                                      }}>
+                                        <TextField
+                                          variant="standard" size="small"
+                                          placeholder="—"
+                                          value={row[`butce${cur}`] ?? ""}
+                                          onChange={(e) => updateRow(node.id, row.id, `butce${cur}`, e.target.value)}
+                                          autoComplete="off"
+                                          inputProps={{
+                                            style: { fontSize: "0.875rem", textAlign: "right" },
+                                            inputMode: "decimal",
+                                          }}
+                                          sx={{ flex: 1, minWidth: 0 }}
+                                        />
+                                        <Typography sx={{ fontSize: "0.68rem", color: "#888", fontWeight: 600, flexShrink: 0 }}>
+                                          {CURRENCY_SYMBOL[cur] ?? cur}
+                                        </Typography>
+                                      </Box>
+                                    ))
+                                  }
 
                                   {/* sil */}
                                   <Box {...rh} sx={{
@@ -814,19 +986,9 @@ export default function P_KesifButce() {
                     );
                   })}
 
-
                 </Box>
               </Box>
 
-              {/* Açıklama */}
-              <Box sx={{ mt: "1rem", maxWidth: "28rem" }}>
-                <TextField
-                  variant="outlined" label="Açıklama (isteğe bağlı)" size="small"
-                  fullWidth value={formAciklama}
-                  onChange={(e) => setFormAciklama(e.target.value)}
-                  multiline rows={2}
-                />
-              </Box>
             </Box>
           </>
         )}
@@ -834,7 +996,6 @@ export default function P_KesifButce() {
         {/* ── Versiyon listesi ── */}
         {show === "Main" && (
           <>
-            {/* Taslak banner */}
             {draftInfo && !versiyonlarLoading && (
               <Box sx={{
                 mb: "1rem", p: "0.6rem 1rem",

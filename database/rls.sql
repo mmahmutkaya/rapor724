@@ -17,6 +17,8 @@
 
 alter table firms               enable row level security;
 alter table projects            enable row level security;
+alter table project_name_history enable row level security;
+alter table project_currencies  enable row level security;
 alter table wbs_nodes           enable row level security;
 alter table lbs_nodes           enable row level security;
 alter table project_poz_units   enable row level security;
@@ -41,6 +43,16 @@ create policy "dev_firms_all"
 -- projects
 create policy "dev_projects_all"
   on projects for all to authenticated
+  using (true) with check (true);
+
+-- project_name_history
+create policy "dev_project_name_history_all"
+  on project_name_history for all to authenticated
+  using (true) with check (true);
+
+-- project_currencies
+create policy "dev_project_currencies_all"
+  on project_currencies for all to authenticated
   using (true) with check (true);
 
 -- wbs_nodes

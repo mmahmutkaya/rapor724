@@ -100,6 +100,56 @@ export const useGetPozUnits = () => {
 
 }
 
+export const useGetProjeNameHistory = () => {
+
+  const { appUser, selectedProje } = useContext(StoreContext)
+
+  return useQuery({
+    queryKey: ['projeNameHistory', selectedProje?.id],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('project_name_history')
+        .select('id, old_name, new_name, changed_by_email, changed_at')
+        .eq('project_id', selectedProje.id)
+        .order('changed_at', { ascending: false })
+
+      if (error) throw new Error(error.message)
+
+      return data ?? []
+    },
+    enabled: !!appUser && !!selectedProje,
+    retry: false,
+    refetchOnMount: true,
+    refetchOnWindowFocus: false
+  })
+
+}
+
+export const useGetProjectCurrencies = () => {
+
+  const { appUser, selectedProje } = useContext(StoreContext)
+
+  return useQuery({
+    queryKey: ['projectCurrencies', selectedProje?.id],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('project_currencies')
+        .select('id, code, name, symbol, created_at')
+        .eq('project_id', selectedProje.id)
+        .order('created_at')
+
+      if (error) throw new Error(error.message)
+
+      return data ?? []
+    },
+    enabled: !!appUser && !!selectedProje,
+    retry: false,
+    refetchOnMount: true,
+    refetchOnWindowFocus: false
+  })
+
+}
+
 export const useGetProjectPozlar = () => {
 
   const { appUser, selectedProje } = useContext(StoreContext)
