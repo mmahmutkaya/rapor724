@@ -77,7 +77,7 @@ export default function P_Pozlar() {
   const queryClient = useQueryClient()
   const { selectedProje } = useContext(StoreContext)
 
-  const { data: rawWbsNodes = [], isLoading: wbsLoading } = useGetWbsNodes()
+  const { data: rawWbsNodes = [], isLoading: wbsLoading, error: wbsError } = useGetWbsNodes()
   const { data: rawPozlar = [], isLoading: pozLoading, error: pozError } = useGetProjectPozlar()
   const { data: units = [], isLoading: unitsLoading, error: unitsError } = useGetPozUnits()
 
@@ -138,7 +138,7 @@ export default function P_Pozlar() {
   }
 
   const isLoading = wbsLoading || pozLoading || unitsLoading
-  const queryError = pozError || unitsError
+  const queryError = pozError || unitsError || wbsError
   const modeMinWidth = '40rem'
 
   const cycleViewMode = () => {
@@ -649,9 +649,7 @@ export default function P_Pozlar() {
                             display: 'flex',
                             alignItems: 'stretch',
                             userSelect: 'none',
-                            transition: 'filter 0.12s ease',
                             '&:hover': {
-                              filter: 'brightness(1.32)',
                               '& .MuiTypography-root': { textShadow: '0 0 0.6px currentColor, 0 0 0.6px currentColor' },
                             }
                           }}
@@ -750,11 +748,6 @@ export default function P_Pozlar() {
                             color: c.co,
                             display: 'flex', alignItems: 'stretch',
                             userSelect: 'none',
-                            transition: 'filter 0.12s ease',
-                            '&:hover': {
-                              filter: 'brightness(1.32)',
-                              '& .MuiTypography-root': { textShadow: '0 0 0.6px currentColor, 0 0 0.6px currentColor' },
-                            }
                           }}
                         >
                           {/* İsim alanı: tıklama = expand/collapse */}

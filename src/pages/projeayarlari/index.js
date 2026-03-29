@@ -3,7 +3,7 @@ import { useNavigate, useSearchParams } from 'react-router-dom'
 import { useQueryClient } from '@tanstack/react-query'
 
 import { StoreContext } from '../../components/store'
-import { useGetPozUnits, useGetProjeNameHistory, useGetProjectCurrencies } from '../../hooks/useMongo'
+import { useGetPozUnits, useGetProjeNameHistory, useGetProjectCurrencies, useGetCurrencyDeletions } from '../../hooks/useMongo'
 import { supabase } from '../../lib/supabase'
 import { DialogAlert } from '../../components/general/DialogAlert'
 
@@ -52,6 +52,7 @@ export default function P_ProjeAyarlari() {
   const { data: units = [], isLoading: unitsLoading } = useGetPozUnits()
   const { data: nameHistory = [], isLoading: historyLoading } = useGetProjeNameHistory()
   const { data: currencies = [], isLoading: currLoading } = useGetProjectCurrencies()
+  const { data: currencyDeletions = [] } = useGetCurrencyDeletions()
 
   const [dialogAlert, setDialogAlert] = useState()
 
@@ -129,12 +130,20 @@ export default function P_ProjeAyarlari() {
   }
 
   async function handleDeleteCurrency(curr) {
+    await supabase.from('project_currency_deletions').insert({
+      project_id: selectedProje.id,
+      code: curr.code,
+      symbol: curr.symbol,
+      name: curr.name ?? null,
+      deleted_by_email: appUser?.email,
+    })
     const { error } = await supabase.from('project_currencies').delete().eq('id', curr.id)
     if (error) {
       setDialogAlert({ dialogIcon: 'warning', dialogMessage: 'Para birimi silinemedi.', detailText: error.message, onCloseAction: () => setDialogAlert() })
       return
     }
     queryClient.invalidateQueries(['projectCurrencies', selectedProje?.id])
+    queryClient.invalidateQueries(['currencyDeletions', selectedProje?.id])
   }
 
 
@@ -308,7 +317,7 @@ export default function P_ProjeAyarlari() {
       {/* ── PARA BİRİMLERİ ────────────────────────────────────── */}
       {section === 'parabirimleri' &&
         <Box sx={{ m: '1rem', maxWidth: '36rem' }}>
-          <Paper variant="outlined" sx={{ p: '1.25rem' }}>
+          <Paper variant="outlined" sx={{ p: '1.25rem', mb: '1rem' }}>
             <Typography variant="subtitle1" fontWeight="bold" sx={{ mb: '0.75rem' }}>Para Birimleri</Typography>
 
             {currLoading && <LinearProgress sx={{ mb: 1 }} />}
@@ -352,6 +361,57 @@ export default function P_ProjeAyarlari() {
               </IconButton>
             </Box>
           </Paper>
+
+          {/* Silinen Para Birimleri — log accordion */}
+          <Accordion disableGutters elevation={0}
+            sx={{ border: '1px solid', borderColor: 'divider', borderRadius: '4px !important', '&:before': { display: 'none' } }}
+          >
+            <AccordionSummary expandIcon={<ExpandMoreIcon sx={{ fontSize: '1rem', color: 'text.disabled' }} />}
+              sx={{ minHeight: '2.25rem', px: '1rem', '& .MuiAccordionSummary-content': { my: '0.4rem' } }}
+            >
+              <Typography variant="body2" color="text.secondary">
+                Silinen Para Birimleri
+                {currencyDeletions.length > 0 && (
+                  <Box component="span" sx={{
+                    ml: '0.5rem', fontSize: '0.72rem', color: 'text.disabled',
+                    backgroundColor: 'rgba(0,0,0,0.06)', px: '0.4rem', py: '0.1rem', borderRadius: '10px'
+                  }}>
+                    {currencyDeletions.length}
+                  </Box>
+                )}
+              </Typography>
+            </AccordionSummary>
+            <AccordionDetails sx={{ px: '1rem', pt: 0, pb: '0.75rem', backgroundColor: 'rgba(0,0,0,0.015)' }}>
+              {currencyDeletions.length === 0 && (
+                <Typography variant="caption" color="text.disabled">Henüz silinmiş para birimi yok.</Typography>
+              )}
+              {currencyDeletions.length > 0 && (
+                <Box sx={{ overflowX: 'auto' }}>
+                  <Box sx={{ display: 'flex', gap: '1.5rem', pb: '0.3rem', borderBottom: '1px solid', borderColor: 'divider', minWidth: 'max-content' }}>
+                    {['Sembol', 'Kod', 'Ad', 'Tarih', 'Kişi'].map(col => (
+                      <Typography key={col} variant="caption" fontWeight={600} color="text.disabled"
+                        sx={{ minWidth: col === 'Sembol' ? '36px' : col === 'Kod' ? '52px' : col === 'Ad' ? '120px' : col === 'Tarih' ? '160px' : 'auto' }}>
+                        {col}
+                      </Typography>
+                    ))}
+                  </Box>
+                  {currencyDeletions.map(log => (
+                    <Box key={log.id} sx={{
+                      display: 'flex', gap: '1.5rem', alignItems: 'center',
+                      py: '0.35rem', borderBottom: '1px solid', borderColor: 'divider', minWidth: 'max-content',
+                      '&:last-child': { borderBottom: 'none' }
+                    }}>
+                      <Typography variant="caption" sx={{ minWidth: '36px', whiteSpace: 'nowrap', color: 'rgba(0,0,0,0.5)' }}>{log.symbol}</Typography>
+                      <Typography variant="caption" sx={{ minWidth: '52px', whiteSpace: 'nowrap', color: 'rgba(0,0,0,0.5)', textDecoration: 'line-through' }}>{log.code}</Typography>
+                      <Typography variant="caption" sx={{ minWidth: '120px', whiteSpace: 'nowrap', color: 'rgba(0,0,0,0.5)' }}>{log.name ?? '—'}</Typography>
+                      <Typography variant="caption" sx={{ minWidth: '160px', whiteSpace: 'nowrap' }} color="text.secondary">{formatDate(log.deleted_at)}</Typography>
+                      <Typography variant="caption" sx={{ whiteSpace: 'nowrap' }} color="text.secondary">{log.deleted_by_email ?? '—'}</Typography>
+                    </Box>
+                  ))}
+                </Box>
+              )}
+            </AccordionDetails>
+          </Accordion>
         </Box>
       }
 

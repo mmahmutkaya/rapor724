@@ -124,20 +124,28 @@ export default function Sidebar({ setMobileOpen }) {
                       backgroundColor: 'rgba(0,0,0,0.08)',
                       '&:hover': {
                         backgroundColor: 'rgba(0,0,0,0.08)',
-                        '& .MuiSvgIcon-root': { color: item.danger ? 'error.main' : 'rgba(0,0,0,0.7)' },
-                        '& .MuiListItemText-primary': { fontWeight: 700 },
+                        '& .MuiSvgIcon-root': { color: 'rgba(0,0,0,0.7)' },
+                        '& .MuiListItemText-primary': { fontWeight: '700 !important' },
                       },
                     }}>
                       <ListItemIcon sx={{ minWidth: '36px' }}>
                         <SendIcon sx={{
                           fontSize: '0.75rem',
-                          color: item.danger ? 'error.main' : item.active ? 'rgba(0,0,0,0.7)' : 'rgba(0,0,0,0.3)',
+                          color: item.active ? 'rgba(0,0,0,0.7)' : 'rgba(0,0,0,0.3)',
                           transition: 'color 0.15s ease',
                         }} />
                       </ListItemIcon>
                       <ListItemText primary={item.label} primaryTypographyProps={{
                         fontSize: '0.8rem',
+                        fontWeight: item.active ? 700 : 400,
                         color: item.danger ? 'error.main' : 'text.secondary',
+                        sx: {
+                          '&::before': {
+                            content: `"${item.label}"`,
+                            display: 'block', height: 0,
+                            overflow: 'hidden', fontWeight: 700, visibility: 'hidden',
+                          }
+                        }
                       }} />
                     </ListItemButton>
                   ))}

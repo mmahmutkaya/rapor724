@@ -37,8 +37,6 @@ import VisibilityOffIcon from '@mui/icons-material/VisibilityOff'
 import EditIcon from '@mui/icons-material/Edit'
 import SaveIcon from '@mui/icons-material/Save'
 import CloseIcon from '@mui/icons-material/Close'
-import AddCircleOutlineIcon from '@mui/icons-material/AddCircleOutline'
-import ClearIcon from '@mui/icons-material/Clear'
 import ToggleButton from '@mui/material/ToggleButton'
 import ToggleButtonGroup from '@mui/material/ToggleButtonGroup'
 
@@ -192,7 +190,6 @@ export default function P_MetrajOnaylaCetvel() {
   const [onayKartiEditMode, setOnayKartiEditMode]       = useState(false)
   const [revertHoverId, setRevertHoverId]                = useState(null)
   const [expandedSessCards, setExpandedSessCards]        = useState({})
-  const [pendingNewLines, setPendingNewLines]           = useState({})     // { [parentLineId]: [{tempId, isEdit, rNum, description, ...}] }
 
   const wpAreaId = selectedMahal_metraj?.wpAreaId
 
@@ -312,11 +309,10 @@ export default function P_MetrajOnaylaCetvel() {
 
   const hasSaveableChanges = useMemo(() => {
     const allLines = sessions.flatMap(s => s.lines ?? [])
-    const hasChanges = Object.entries(draftLines).some(([id, draft]) =>
+    return Object.entries(draftLines).some(([id, draft]) =>
       draft.status !== 'pending' || allLines.find(l => l.id === id)?.status !== 'pending'
     )
-    return hasChanges || Object.values(pendingNewLines).some(arr => arr.length > 0)
-  }, [draftLines, sessions, pendingNewLines])
+  }, [draftLines, sessions])
 
   const autoExpandDone = useRef(false)
   useEffect(() => {
@@ -433,6 +429,8 @@ export default function P_MetrajOnaylaCetvel() {
     const lineIds = new Set(sess.lines.map(l => l.id))
     setDraftLines(prev => { const next = { ...prev }; lineIds.forEach(id => delete next[id]); return next })
     setCardEditMode(prev => ({ ...prev, [sessId]: false }))
+    const hasRootLines = sess.lines.some(l => !l.parent_line_id)
+    if (!hasRootLines) setExpandedSessCards(prev => ({ ...prev, [sessId]: false }))
   }
 
   const saveOnayKartiEdits = async () => {
@@ -440,9 +438,8 @@ export default function P_MetrajOnaylaCetvel() {
     const changes = Object.entries(draftLines).filter(([id, draft]) =>
       draft.status !== 'pending' || allLines.find(l => l.id === id)?.status !== 'pending'
     )
-    const hasNewLines = Object.values(pendingNewLines).some(arr => arr.length > 0)
 
-    if (changes.length === 0 && !hasNewLines) {
+    if (changes.length === 0) {
       setOnayKartiEditMode(false); setExpandedApproved({}); setShowAllOriginals(false)
       return
     }
@@ -455,53 +452,6 @@ export default function P_MetrajOnaylaCetvel() {
       }
     }
 
-    if (hasNewLines) {
-      let approverSessId = sessions.find(s => s.created_by === currentUserId)?.id
-      if (!approverSessId) {
-        const { data: newSess, error: sessErr } = await supabase
-          .from('measurement_sessions')
-          .insert({ work_package_poz_area_id: wpAreaId, created_by: currentUserId, status: 'ready' })
-          .select('id')
-          .single()
-        if (sessErr) {
-          setDialogAlert({ dialogIcon: 'warning', dialogMessage: 'Oturum oluşturulurken hata.', detailText: sessErr.message, onCloseAction: () => setDialogAlert() })
-          return
-        }
-        approverSessId = newSess.id
-      }
-
-      for (const [parentLineId, newRows] of Object.entries(pendingNewLines)) {
-        if (newRows.length === 0) continue
-        const existingChildren = allLines.filter(l => l.parent_line_id === parentLineId)
-        let nextOI = existingChildren.length > 0
-          ? Math.max(...existingChildren.map(l => l.order_index ?? 0)) + 1
-          : 0
-        const existingRevCount = existingChildren.filter(l => (l.order_index ?? 0) < 0).length
-        let nextRevOI = existingRevCount + 1
-        for (const row of newRows) {
-          const { error: lineErr } = await supabase
-            .from('measurement_lines')
-            .insert({
-              session_id: approverSessId,
-              line_type: 'data',
-              description: row.description || null,
-              multiplier: row.multiplier === '' ? 1 : Number(row.multiplier),
-              count:  row.count  === '' ? null : Number(row.count),
-              length: row.length === '' ? null : Number(row.length),
-              width:  row.width  === '' ? null : Number(row.width),
-              height: row.height === '' ? null : Number(row.height),
-              order_index: row.isEdit ? -(nextRevOI++) : nextOI++,
-              status: 'pending',
-              parent_line_id: parentLineId,
-            })
-          if (lineErr) {
-            setDialogAlert({ dialogIcon: 'warning', dialogMessage: 'Satır kaydedilirken hata.', detailText: lineErr.message, onCloseAction: () => setDialogAlert() })
-            return
-          }
-        }
-      }
-    }
-
     setSessions(prev => prev.map(s => ({
       ...s,
       lines: s.lines.map(l => draftLines[l.id] ? { ...l, ...draftLines[l.id] } : l),
@@ -511,8 +461,6 @@ export default function P_MetrajOnaylaCetvel() {
     setExpandedApproved({})
     setShowAllOriginals(false)
     setRevertHoverId(null)
-    setPendingNewLines({})
-    if (hasNewLines) await loadData()
   }
 
   const cancelOnayKartiEdits = () => {
@@ -521,57 +469,6 @@ export default function P_MetrajOnaylaCetvel() {
     setExpandedApproved({})
     setShowAllOriginals(false)
     setRevertHoverId(null)
-    setPendingNewLines({})
-  }
-
-  // ── Yeni revize satır oluşturma (Onaylı Metraj kartı) ─────────────────────────
-
-  const handleDuzenleNew = (node) => {
-    const isRevisionRow = (node.order_index ?? 0) < 0
-    const targetParentId = isRevisionRow ? node.parent_line_id : node.id
-    const existing = pendingNewLines[targetParentId] ?? []
-    if (existing.some(r => r.isEdit)) return  // tek revize satırına izin ver
-    const allLines = sessions.flatMap(s => s.lines ?? [])
-    const existingRevCount = allLines.filter(l => l.parent_line_id === targetParentId && (l.order_index ?? 0) < 0).length
-    const rNum = existingRevCount + 1
-    const newRow = {
-      tempId: `tmp-${Date.now()}-${Math.random()}`,
-      isEdit: true,
-      rNum,
-      description: node.description ?? '',
-      multiplier: (node.multiplier != null && Number(node.multiplier) !== 1) ? String(node.multiplier) : '',
-      count:  node.count  != null ? String(node.count)  : '',
-      length: node.length != null ? String(node.length) : '',
-      width:  node.width  != null ? String(node.width)  : '',
-      height: node.height != null ? String(node.height) : '',
-    }
-    setPendingNewLines(prev => ({ ...prev, [targetParentId]: [...(prev[targetParentId] ?? []), newRow] }))
-  }
-
-  const handleAddChildNew = (node) => {
-    const isRevisionRow = (node.order_index ?? 0) < 0
-    const targetParentId = isRevisionRow ? node.parent_line_id : node.id
-    const newRow = {
-      tempId: `tmp-${Date.now()}-${Math.random()}`,
-      isEdit: false,
-      description: '', multiplier: '', count: '', length: '', width: '', height: '',
-    }
-    setPendingNewLines(prev => ({ ...prev, [targetParentId]: [...(prev[targetParentId] ?? []), newRow] }))
-  }
-
-  const handlePendingNewLineChange = (parentId, tempId, field, value) => {
-    setPendingNewLines(prev => ({
-      ...prev,
-      [parentId]: (prev[parentId] ?? []).map(r => r.tempId === tempId ? { ...r, [field]: value } : r),
-    }))
-  }
-
-  const handleRemovePendingNewLine = (parentId, tempId) => {
-    setPendingNewLines(prev => {
-      const remaining = (prev[parentId] ?? []).filter(r => r.tempId !== tempId)
-      if (remaining.length === 0) { const { [parentId]: _, ...rest } = prev; return rest }
-      return { ...prev, [parentId]: remaining }
-    })
   }
 
   const approveAllPending = (sessId) => {
@@ -824,15 +721,19 @@ export default function P_MetrajOnaylaCetvel() {
                         <IconButton size="small" sx={{ color: '#ef9a9a' }} onClick={() => cancelCardEdits(sess.id)}>
                           <CloseIcon sx={{ fontSize: 20 }} />
                         </IconButton>
-                        <IconButton size="small" sx={{ color: '#a5d6a7' }} onClick={() => approveAllPending(sess.id)}>
-                          <CheckCircleIcon sx={{ fontSize: 20 }} />
-                        </IconButton>
-                        <IconButton size="small" sx={{ color: '#b0bec5' }} onClick={() => ignoreAllPending(sess.id)}>
-                          <DoNotDisturbIcon sx={{ fontSize: 20 }} />
-                        </IconButton>
-                        <IconButton size="small" sx={{ color: '#a5d6a7' }} onClick={() => saveCardEdits(sess.id)}>
-                          <SaveIcon sx={{ fontSize: 20 }} />
-                        </IconButton>
+                        {rootLines.length > 0 && (
+                          <>
+                            <IconButton size="small" sx={{ color: '#a5d6a7' }} onClick={() => approveAllPending(sess.id)}>
+                              <CheckCircleIcon sx={{ fontSize: 20 }} />
+                            </IconButton>
+                            <IconButton size="small" sx={{ color: '#b0bec5' }} onClick={() => ignoreAllPending(sess.id)}>
+                              <DoNotDisturbIcon sx={{ fontSize: 20 }} />
+                            </IconButton>
+                            <IconButton size="small" sx={{ color: '#a5d6a7' }} onClick={() => saveCardEdits(sess.id)}>
+                              <SaveIcon sx={{ fontSize: 20 }} />
+                            </IconButton>
+                          </>
+                        )}
                       </>
                     ) : (
                       <>
@@ -1031,64 +932,7 @@ export default function P_MetrajOnaylaCetvel() {
           const isExp   = expandedApproved[node.id] ?? false
           const metraj  = calcMetrajOnay(node)
           const isRevised = node.status === 'approved' && hasKids && (node.children ?? []).some(c => c.status === 'approved' && (c.order_index ?? 0) < 0)
-          const newRowsForNode = pendingNewLines[node.id] ?? []
 
-          const renderNewRows = (editOnly) => {
-            let nonEditCount = (node.children ?? []).filter(c => (c.order_index ?? 0) >= 0).length
-            return newRowsForNode.filter(r => editOnly ? r.isEdit : !r.isEdit).map((row) => {
-            const newSiraNo = row.isEdit ? `${node.siraNo}.R${row.rNum}` : `${node.siraNo}.${++nonEditCount}`
-            const pBg = { backgroundColor: '#FFF8E1', borderBottom: '1px dashed #c8c8c8' }
-            const hasNumData = [row.count, row.length, row.width, row.height].some(v => v !== '')
-            const pendingMetraj = hasNumData ? [
-              row.multiplier === '' ? 1 : Number(row.multiplier),
-              ...[row.count, row.length, row.width, row.height].map(v => v === '' ? null : Number(v))
-            ].filter(v => v !== null && !isNaN(v)).reduce((p, v) => p * v, 1) : 0
-            const negClr = pendingMetraj < 0 ? '#c62828' : undefined
-            return (
-              <React.Fragment key={row.tempId}>
-                <Box sx={{ ...css_oc, ...pBg, justifyContent: 'flex-start', pl: '0.5rem', color: '#6a1b9a', fontSize: '0.8rem', fontStyle: 'italic' }}>
-                  {newSiraNo}
-                </Box>
-                <Box sx={{ ...css_oc, ...pBg, gap: '4px', pl: '4px', pr: 0, py: 0 }}>
-                  <Box sx={{ width: 7, height: 7, borderRadius: '50%', flexShrink: 0, visibility: 'hidden' }} />
-                  <input
-                    className="metraj-num-input"
-                    style={{ border: 'none', background: 'transparent', flex: 1, minWidth: 0, fontFamily: 'inherit', fontSize: '0.85rem', outline: 'none', padding: 0, color: negClr }}
-                    value={row.description}
-                    onChange={e => handlePendingNewLineChange(node.id, row.tempId, 'description', e.target.value)}
-                    placeholder="Açıklama"
-                  />
-                </Box>
-                {NUM_ONAY_FIELDS.map(field => (
-                  <Box key={field} sx={{ ...css_oc, ...pBg, justifyContent: 'flex-end', p: 0 }}>
-                    <input
-                      className="metraj-num-input"
-                      type="number"
-                      style={{ border: 'none', background: 'transparent', width: '100%', textAlign: 'right', fontFamily: 'inherit', fontSize: '0.85rem', outline: 'none', padding: '0 4px', color: negClr }}
-                      value={row[field]}
-                      onChange={e => handlePendingNewLineChange(node.id, row.tempId, field, e.target.value)}
-                      placeholder=""
-                    />
-                  </Box>
-                ))}
-                <Box sx={{ ...css_oc, ...pBg, justifyContent: 'flex-end', color: negClr ?? '#6a1b9a', fontWeight: 700, fontSize: '0.82rem' }}>
-                  {hasNumData ? (
-                    <>
-                      {ikiHane(pendingMetraj)}
-                      {pozBirim && pendingMetraj !== 0 && <Box component="span" sx={{ ml: '3px', fontWeight: 400, fontSize: '0.72rem', color: negClr ?? '#6a1b9a' }}>{pozBirim}</Box>}
-                    </>
-                  ) : ''}
-                </Box>
-                {showHazırlayan && <Box sx={{ ...css_oc, ...pBg, justifyContent: 'center', fontSize: '0.72rem', color: '#455a64' }}>{userMap[currentUserId] ?? '?'}</Box>}
-                {showOnaylayan && <Box sx={{ ...css_oc, ...pBg }} />}
-                <Box sx={{ ...css_oc, ...pBg, justifyContent: 'center' }}>
-                  <IconButton size="small" sx={{ p: '2px' }} onClick={() => handleRemovePendingNewLine(node.id, row.tempId)}>
-                    <ClearIcon sx={{ fontSize: 16, color: '#c62828' }} />
-                  </IconButton>
-                </Box>
-              </React.Fragment>
-            )
-          })}
           if (isRevised) {
             const origCellBg = { backgroundColor: '#D5D5D5', borderBottom: '1px dashed #c8c8c8' }
             const origColor = '#888'
@@ -1126,8 +970,6 @@ export default function P_MetrajOnaylaCetvel() {
                 {node.children.filter(c => (c.order_index ?? 0) < 0 && ((!c.status || c.status === 'draft') ? false : (showRevizeTalepleri || c.status === 'approved'))).map(child => (
                   <React.Fragment key={child.id}>{renderOnayRow(child)}</React.Fragment>
                 ))}
-                {renderNewRows(true)}
-                {renderNewRows(false)}
                 {node.children.filter(c => (c.order_index ?? 0) >= 0 && ((!c.status || c.status === 'draft') ? false : (showRevizeTalepleri || c.status === 'approved'))).map(child => (
                   <React.Fragment key={child.id}>{renderOnayRow(child)}</React.Fragment>
                 ))}
@@ -1240,32 +1082,14 @@ export default function P_MetrajOnaylaCetvel() {
                     {!onayKartiEditMode && node.status === 'approved' && !node.depth && <DoneAllIcon sx={{ fontSize: 18, color: '#2E7D32', filter: 'drop-shadow(0 0 0.6px #2E7D32)' }} />}
                   </>
                 )}
-                {onayKartiEditMode && node.status === 'approved' && !isSuperseded && (
-                  <>
-                    <IconButton size="small" title="Revize kopyası oluştur" onClick={() => handleDuzenleNew(node)}
-                      sx={{ p: '2px', color: '#1565c0' }}>
-                      <Box sx={{ width: 16, height: 16, borderRadius: '50%', border: '2px solid currentColor', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                        <Typography sx={{ fontSize: '0.65rem', fontWeight: 900, lineHeight: 1 }}>R</Typography>
-                      </Box>
-                    </IconButton>
-                    <IconButton size="small" title="Alt satır ekle" onClick={() => handleAddChildNew(node)}
-                      sx={{ p: '2px', color: '#1565c0' }}>
-                      <Box sx={{ width: 16, height: 16, borderRadius: '50%', border: '2px solid currentColor', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                        <Typography sx={{ fontSize: '0.75rem', fontWeight: 700, lineHeight: 1, mt: '-1px' }}>+</Typography>
-                      </Box>
-                    </IconButton>
-                  </>
-                )}
               </Box>
 
               {hasKids && node.children.filter(c => (c.order_index ?? 0) < 0 && ((!c.status || c.status === 'draft') ? false : (showRevizeTalepleri || c.status === 'approved'))).map(child => (
                 <React.Fragment key={child.id}>{renderOnayRow(child)}</React.Fragment>
               ))}
-              {renderNewRows(true)}
               {hasKids && node.children.filter(c => (c.order_index ?? 0) >= 0 && ((!c.status || c.status === 'draft') ? false : (showRevizeTalepleri || c.status === 'approved'))).map(child => (
                 <React.Fragment key={child.id}>{renderOnayRow(child)}</React.Fragment>
               ))}
-              {renderNewRows(false)}
             </>
           )
         }
@@ -1305,8 +1129,7 @@ export default function P_MetrajOnaylaCetvel() {
           .filter(n => n.status === 'approved' && !(n.children?.some(c => c.status === 'approved' && (c.order_index ?? 0) < 0)) && !n.isSupersededByLaterRevision)
           .reduce((s, n) => s + calcMetrajOnay(n), 0)
 
-        const hasNewLines = Object.values(pendingNewLines).some(arr => arr.length > 0)
-        const isOnayKartiActive = onayKartiEditMode || hasNewLines
+        const isOnayKartiActive = onayKartiEditMode
 
         return (
           <Box sx={{ mt: '1.5rem', px: '1rem', maxWidth: '1100px', order: 0 }}>

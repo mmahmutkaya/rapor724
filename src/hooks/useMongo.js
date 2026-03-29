@@ -45,6 +45,7 @@ export const useGetWbsNodes = () => {
     },
     enabled: !!appUser && !!selectedProje,
     retry: false,
+    staleTime: 60000,
     refetchOnMount: true,
     refetchOnWindowFocus: false
   })
@@ -69,6 +70,7 @@ export const useGetLbsNodes = () => {
     },
     enabled: !!appUser && !!selectedProje,
     retry: false,
+    staleTime: 60000,
     refetchOnMount: true,
     refetchOnWindowFocus: false
   })
@@ -124,6 +126,33 @@ export const useGetProjeNameHistory = () => {
   })
 
 }
+
+export const useGetCurrencyDeletions = () => {
+
+  const { appUser, selectedProje } = useContext(StoreContext)
+
+  return useQuery({
+    queryKey: ['currencyDeletions', selectedProje?.id],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('project_currency_deletions')
+        .select('id, code, symbol, name, deleted_by_email, deleted_at')
+        .eq('project_id', selectedProje.id)
+        .order('deleted_at', { ascending: false })
+
+      if (error) throw new Error(error.message)
+
+      return data ?? []
+    },
+    enabled: !!appUser && !!selectedProje,
+    retry: false,
+    refetchOnMount: true,
+    refetchOnWindowFocus: false
+  })
+
+}
+
+
 
 export const useGetProjectCurrencies = () => {
 
@@ -350,6 +379,7 @@ export const useGetWorkPackagePozAreas = () => {
     },
     enabled: !!appUser && !!selectedProje && !!selectedIsPaket && !!selectedPoz,
     retry: false,
+    staleTime: 60000,
     refetchOnMount: true,
     refetchOnWindowFocus: false
   })

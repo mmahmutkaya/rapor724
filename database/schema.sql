@@ -5,14 +5,14 @@
 -- Tablolar bağımlılık sırasına göre sıralanmıştır.
 -- Supabase SQL editöründe tek seferde çalıştırılabilir.
 --
--- Faz 1 : Kullanıcı, Firma, Proje, Yetki, Onay Şablonları    (9 tablo)
+-- Faz 1 : Kullanıcı, Firma, Proje, Yetki, Onay Şablonları    (10 tablo)
 -- Faz 2 : WBS, LBS, İş Alanları, POZ, Birim Fiyat            (7 tablo)
 -- Faz 3 : Kaynak Havuzu, Birim Fiyat Analizi                  (4 tablo)
 -- Faz 4 : İş Paketi, Metraj, Onay                            (6 tablo)
 -- Faz 5 : İhale, Teklif, Sözleşme                            (9 tablo)
 -- Faz 6 : İlerleme Takibi, Hakediş, Finansal Kesintiler       (8 tablo)
 -- Faz 7 : Raporlama, Earn Value Analizi                       (3 tablo)
---                                                       TOPLAM: 46 tablo
+--                                                       TOPLAM: 47 tablo
 -- ============================================================
 
 
@@ -139,6 +139,17 @@ create table project_currencies (
   created_at timestamptz not null default now()
 );
 
+-- Para birimi silme geçmişi
+create table project_currency_deletions (
+  id               uuid primary key default gen_random_uuid(),
+  project_id       uuid not null references projects(id) on delete cascade,
+  code             text not null,
+  symbol           text not null,
+  name             text,
+  deleted_by_email text,
+  deleted_at       timestamptz not null default now()
+);
+
 create index on firm_users (firm_id);
 create index on firm_users (user_id);
 create index on projects (firm_id);
@@ -148,6 +159,7 @@ create index on approval_templates (project_id);
 create index on approval_template_steps (template_id);
 create index on project_name_history (project_id);
 create index on project_currencies (project_id);
+create index on project_currency_deletions (project_id);
 
 
 -- ============================================================
