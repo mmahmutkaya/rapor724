@@ -5,14 +5,14 @@
 -- Tablolar bağımlılık sırasına göre sıralanmıştır.
 -- Supabase SQL editöründe tek seferde çalıştırılabilir.
 --
--- Faz 1 : Kullanıcı, Firma, Proje, Yetki, Onay Şablonları    (10 tablo)
+-- Faz 1 : Kullanıcı, Firma, Proje, Yetki, Onay Şablonları    (11 tablo)
 -- Faz 2 : WBS, LBS, İş Alanları, POZ, Birim Fiyat            (7 tablo)
 -- Faz 3 : Kaynak Havuzu, Birim Fiyat Analizi                  (4 tablo)
 -- Faz 4 : İş Paketi, Metraj, Onay                            (6 tablo)
 -- Faz 5 : İhale, Teklif, Sözleşme                            (9 tablo)
 -- Faz 6 : İlerleme Takibi, Hakediş, Finansal Kesintiler       (8 tablo)
 -- Faz 7 : Raporlama, Earn Value Analizi                       (3 tablo)
---                                                       TOPLAM: 47 tablo
+--                                                       TOPLAM: 48 tablo
 -- ============================================================
 
 
@@ -62,6 +62,7 @@ create table projects (
   description text,
   status      text not null default 'active'
                 check (status in ('active', 'archived', 'completed')),
+  created_by_email text,
   created_by  uuid references users(id),
   created_at  timestamptz not null default now(),
   updated_at  timestamptz not null default now()
@@ -131,12 +132,13 @@ create table project_name_history (
 
 -- Proje para birimleri (₺ TRY, $ USD, € EUR vb.)
 create table project_currencies (
-  id         uuid primary key default gen_random_uuid(),
-  project_id uuid not null references projects(id) on delete cascade,
-  code       text not null,    -- TRY, USD, EUR
-  symbol     text not null,    -- ₺, $, €
-  name       text,             -- Türk Lirası (opsiyonel)
-  created_at timestamptz not null default now()
+  id               uuid primary key default gen_random_uuid(),
+  project_id       uuid not null references projects(id) on delete cascade,
+  code             text not null,    -- TRY, USD, EUR
+  symbol           text not null,    -- ₺, $, €
+  name             text,             -- Türk Lirası (opsiyonel)
+  created_by_email text,
+  created_at       timestamptz not null default now()
 );
 
 -- Para birimi silme geçmişi
@@ -146,6 +148,15 @@ create table project_currency_deletions (
   code             text not null,
   symbol           text not null,
   name             text,
+  deleted_by_email text,
+  deleted_at       timestamptz not null default now()
+);
+
+-- Poz birimi silme geçmişi
+create table project_poz_unit_deletions (
+  id               uuid primary key default gen_random_uuid(),
+  project_id       uuid not null references projects(id) on delete cascade,
+  name             text not null,
   deleted_by_email text,
   deleted_at       timestamptz not null default now()
 );
@@ -160,6 +171,7 @@ create index on approval_template_steps (template_id);
 create index on project_name_history (project_id);
 create index on project_currencies (project_id);
 create index on project_currency_deletions (project_id);
+create index on project_poz_unit_deletions (project_id);
 
 
 -- ============================================================

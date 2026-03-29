@@ -3,7 +3,7 @@ import { useNavigate, useSearchParams } from 'react-router-dom'
 import { useQueryClient } from '@tanstack/react-query'
 
 import { StoreContext } from '../../components/store'
-import { useGetPozUnits, useGetProjeNameHistory, useGetProjectCurrencies, useGetCurrencyDeletions } from '../../hooks/useMongo'
+import { useGetPozUnits, useGetProjeNameHistory, useGetProjectCurrencies, useGetCurrencyDeletions, useGetPozUnitDeletions } from '../../hooks/useMongo'
 import { supabase } from '../../lib/supabase'
 import { DialogAlert } from '../../components/general/DialogAlert'
 
@@ -16,6 +16,10 @@ import Button from '@mui/material/Button'
 import TextField from '@mui/material/TextField'
 import Divider from '@mui/material/Divider'
 import LinearProgress from '@mui/material/LinearProgress'
+import Dialog from '@mui/material/Dialog'
+import DialogTitle from '@mui/material/DialogTitle'
+import DialogContent from '@mui/material/DialogContent'
+import DialogActions from '@mui/material/DialogActions'
 import Accordion from '@mui/material/Accordion'
 import AccordionSummary from '@mui/material/AccordionSummary'
 import AccordionDetails from '@mui/material/AccordionDetails'
@@ -53,6 +57,7 @@ export default function P_ProjeAyarlari() {
   const { data: nameHistory = [], isLoading: historyLoading } = useGetProjeNameHistory()
   const { data: currencies = [], isLoading: currLoading } = useGetProjectCurrencies()
   const { data: currencyDeletions = [] } = useGetCurrencyDeletions()
+  const { data: pozUnitDeletions = [] } = useGetPozUnitDeletions()
 
   const [dialogAlert, setDialogAlert] = useState()
 
@@ -66,6 +71,7 @@ export default function P_ProjeAyarlari() {
   const [newCurrSymbol, setNewCurrSymbol] = useState('')
   const [newCurrName, setNewCurrName] = useState('')
   const [currSaving, setCurrSaving] = useState(false)
+  const [currAddMode, setCurrAddMode] = useState(false)
 
   // Poz birimleri
   const [newUnitName, setNewUnitName] = useState('')
@@ -126,6 +132,7 @@ export default function P_ProjeAyarlari() {
     setNewCurrCode('')
     setNewCurrSymbol('')
     setNewCurrName('')
+    setCurrAddMode(false)
     queryClient.invalidateQueries(['projectCurrencies', selectedProje?.id])
   }
 
@@ -165,10 +172,16 @@ export default function P_ProjeAyarlari() {
 
   async function handleDeleteUnit(unit) {
     setSaving(true)
+    await supabase.from('project_poz_unit_deletions').insert({
+      project_id: selectedProje.id,
+      name: unit.name,
+      deleted_by_email: appUser?.email,
+    })
     const { error } = await supabase.from('project_poz_units').delete().eq('id', unit.id)
     setSaving(false)
     if (error) { setDialogAlert({ dialogIcon: 'warning', dialogMessage: 'Bu birim kullanımda olduğundan silinemez.', detailText: error.message }); return }
     invalidateUnits()
+    queryClient.invalidateQueries(['pozUnitDeletions', selectedProje?.id])
   }
 
   async function handleMove(unit, direction) {
@@ -209,8 +222,13 @@ export default function P_ProjeAyarlari() {
       }
 
       <Paper>
-        <Box sx={{ px: '1rem', py: '0.75rem' }}>
-          <Typography variant="h6" fontWeight="bold">Proje Ayarları</Typography>
+        <Box sx={{ px: '1rem', py: '0.75rem', display: 'flex', alignItems: 'center' }}>
+          <Typography variant="h6" fontWeight="bold" sx={{ flex: 1 }}>Proje Ayarları</Typography>
+          {section === 'parabirimleri' && (
+              <IconButton size="small" onClick={() => setCurrAddMode(true)}>
+                <AddCircleOutlineIcon fontSize="small" />
+              </IconButton>
+          )}
         </Box>
       </Paper>
 
@@ -255,9 +273,14 @@ export default function P_ProjeAyarlari() {
               )}
             </Box>
 
-            <Box sx={{ display: 'flex', alignItems: 'center' }}>
-              <Typography variant="body2" color="text.secondary" sx={{ minWidth: '130px' }}>Oluşturulma</Typography>
+            <Box sx={{ display: 'flex', alignItems: 'center', mb: '0.75rem' }}>
+              <Typography variant="body2" color="text.secondary" sx={{ minWidth: '130px' }}>Oluşturma Tarihi</Typography>
               <Typography variant="body2">{formatDate(selectedProje?.created_at)}</Typography>
+            </Box>
+
+            <Box sx={{ display: 'flex', alignItems: 'center' }}>
+              <Typography variant="body2" color="text.secondary" sx={{ minWidth: '130px' }}>Oluşturan Kişi</Typography>
+              <Typography variant="body2">—</Typography>
             </Box>
           </Paper>
 
@@ -316,8 +339,9 @@ export default function P_ProjeAyarlari() {
 
       {/* ── PARA BİRİMLERİ ────────────────────────────────────── */}
       {section === 'parabirimleri' &&
-        <Box sx={{ m: '1rem', maxWidth: '36rem' }}>
-          <Paper variant="outlined" sx={{ p: '1.25rem', mb: '1rem' }}>
+        <Box sx={{ m: '1rem' }}>
+          <Paper variant="outlined" sx={{ p: '1.25rem', mb: '1rem', maxWidth: '36rem' }}>
+
             <Typography variant="subtitle1" fontWeight="bold" sx={{ mb: '0.75rem' }}>Para Birimleri</Typography>
 
             {currLoading && <LinearProgress sx={{ mb: 1 }} />}
@@ -330,6 +354,8 @@ export default function P_ProjeAyarlari() {
                 <Typography variant="body2" sx={{ minWidth: '28px', fontWeight: 600 }}>{curr.symbol}</Typography>
                 <Typography variant="body2" sx={{ minWidth: '48px', color: 'text.secondary' }}>{curr.code}</Typography>
                 <Typography variant="body2" sx={{ flex: 1 }}>{curr.name ?? ''}</Typography>
+                <Typography variant="caption" color="text.disabled" sx={{ whiteSpace: 'nowrap' }}>{formatDate(curr.created_at)}</Typography>
+                <Typography variant="caption" color="text.disabled" sx={{ whiteSpace: 'nowrap', minWidth: '120px', textAlign: 'right' }}>—</Typography>
                 <IconButton size="small" onClick={() => handleDeleteCurrency(curr)}>
                   <DeleteIcon fontSize="small" />
                 </IconButton>
@@ -339,32 +365,11 @@ export default function P_ProjeAyarlari() {
             {!currLoading && currencies.length === 0 &&
               <Typography variant="body2" color="text.secondary" sx={{ mb: '0.5rem' }}>Henüz para birimi eklenmedi.</Typography>
             }
-
-            <Divider sx={{ my: '0.75rem' }} />
-
-            <Box sx={{ display: 'flex', gap: '0.5rem', alignItems: 'center', flexWrap: 'wrap' }}>
-              <TextField size="small" label="Sembol" placeholder="₺"
-                value={newCurrSymbol} onChange={e => setNewCurrSymbol(e.target.value)}
-                sx={{ width: '80px' }} disabled={currSaving}
-              />
-              <TextField size="small" label="Kod" placeholder="TRY"
-                value={newCurrCode} onChange={e => setNewCurrCode(e.target.value.toUpperCase())}
-                sx={{ width: '88px' }} disabled={currSaving}
-              />
-              <TextField size="small" label="Ad (opsiyonel)" placeholder="Türk Lirası"
-                value={newCurrName} onChange={e => setNewCurrName(e.target.value)}
-                onKeyDown={e => e.key === 'Enter' && handleAddCurrency()}
-                sx={{ width: '160px' }} disabled={currSaving}
-              />
-              <IconButton onClick={handleAddCurrency} disabled={!newCurrCode.trim() || !newCurrSymbol.trim() || currSaving}>
-                <AddCircleOutlineIcon />
-              </IconButton>
-            </Box>
           </Paper>
 
           {/* Silinen Para Birimleri — log accordion */}
           <Accordion disableGutters elevation={0}
-            sx={{ border: '1px solid', borderColor: 'divider', borderRadius: '4px !important', '&:before': { display: 'none' } }}
+            sx={{ maxWidth: '56rem', border: '1px solid', borderColor: 'divider', borderRadius: '4px !important', '&:before': { display: 'none' } }}
           >
             <AccordionSummary expandIcon={<ExpandMoreIcon sx={{ fontSize: '1rem', color: 'text.disabled' }} />}
               sx={{ minHeight: '2.25rem', px: '1rem', '& .MuiAccordionSummary-content': { my: '0.4rem' } }}
@@ -386,26 +391,26 @@ export default function P_ProjeAyarlari() {
                 <Typography variant="caption" color="text.disabled">Henüz silinmiş para birimi yok.</Typography>
               )}
               {currencyDeletions.length > 0 && (
-                <Box sx={{ overflowX: 'auto' }}>
-                  <Box sx={{ display: 'flex', gap: '1.5rem', pb: '0.3rem', borderBottom: '1px solid', borderColor: 'divider', minWidth: 'max-content' }}>
+                <Box>
+                  <Box sx={{ display: 'flex', pb: '0.3rem', borderBottom: '1px solid', borderColor: 'divider' }}>
                     {['Sembol', 'Kod', 'Ad', 'Tarih', 'Kişi'].map(col => (
                       <Typography key={col} variant="caption" fontWeight={600} color="text.disabled"
-                        sx={{ minWidth: col === 'Sembol' ? '36px' : col === 'Kod' ? '52px' : col === 'Ad' ? '120px' : col === 'Tarih' ? '160px' : 'auto' }}>
+                        sx={{ flex: 1, textAlign: 'center' }}>
                         {col}
                       </Typography>
                     ))}
                   </Box>
                   {currencyDeletions.map(log => (
                     <Box key={log.id} sx={{
-                      display: 'flex', gap: '1.5rem', alignItems: 'center',
-                      py: '0.35rem', borderBottom: '1px solid', borderColor: 'divider', minWidth: 'max-content',
+                      display: 'flex', alignItems: 'center',
+                      py: '0.35rem', borderBottom: '1px solid', borderColor: 'divider',
                       '&:last-child': { borderBottom: 'none' }
                     }}>
-                      <Typography variant="caption" sx={{ minWidth: '36px', whiteSpace: 'nowrap', color: 'rgba(0,0,0,0.5)' }}>{log.symbol}</Typography>
-                      <Typography variant="caption" sx={{ minWidth: '52px', whiteSpace: 'nowrap', color: 'rgba(0,0,0,0.5)', textDecoration: 'line-through' }}>{log.code}</Typography>
-                      <Typography variant="caption" sx={{ minWidth: '120px', whiteSpace: 'nowrap', color: 'rgba(0,0,0,0.5)' }}>{log.name ?? '—'}</Typography>
-                      <Typography variant="caption" sx={{ minWidth: '160px', whiteSpace: 'nowrap' }} color="text.secondary">{formatDate(log.deleted_at)}</Typography>
-                      <Typography variant="caption" sx={{ whiteSpace: 'nowrap' }} color="text.secondary">{log.deleted_by_email ?? '—'}</Typography>
+                      <Typography variant="caption" sx={{ flex: 1, textAlign: 'center', color: 'rgba(0,0,0,0.5)' }}>{log.symbol}</Typography>
+                      <Typography variant="caption" sx={{ flex: 1, textAlign: 'center', color: 'rgba(0,0,0,0.5)', textDecoration: 'line-through' }}>{log.code}</Typography>
+                      <Typography variant="caption" sx={{ flex: 1, textAlign: 'center', color: 'rgba(0,0,0,0.5)' }}>{log.name ?? '—'}</Typography>
+                      <Typography variant="caption" sx={{ flex: 1, textAlign: 'center' }} color="text.secondary">{formatDate(log.deleted_at)}</Typography>
+                      <Typography variant="caption" sx={{ flex: 1, textAlign: 'center' }} color="text.secondary">{log.deleted_by_email ?? '—'}</Typography>
                     </Box>
                   ))}
                 </Box>
@@ -417,9 +422,9 @@ export default function P_ProjeAyarlari() {
 
       {/* ── POZ BİRİMLERİ ─────────────────────────────────────── */}
       {section === 'birimler' &&
-        <Box sx={{ m: '1rem', maxWidth: '36rem' }}>
+        <Box sx={{ m: '1rem' }}>
           {unitsLoading && <LinearProgress color="inherit" sx={{ mb: 1 }} />}
-          <Paper variant="outlined" sx={{ p: '1rem' }}>
+          <Paper variant="outlined" sx={{ p: '1rem', maxWidth: '36rem', mb: '1rem' }}>
             <Typography variant="subtitle1" fontWeight="bold" sx={{ mb: '0.75rem' }}>Poz Birimleri</Typography>
 
             {units.map((unit, idx) => (
@@ -465,6 +470,55 @@ export default function P_ProjeAyarlari() {
               </Grid>
             </Grid>
           </Paper>
+
+          {/* Silinen Poz Birimleri — log accordion */}
+          <Accordion disableGutters elevation={0}
+            sx={{ border: '1px solid', borderColor: 'divider', borderRadius: '4px !important', '&:before': { display: 'none' } }}
+          >
+            <AccordionSummary expandIcon={<ExpandMoreIcon sx={{ fontSize: '1rem', color: 'text.disabled' }} />}
+              sx={{ minHeight: '2.25rem', px: '1rem', '& .MuiAccordionSummary-content': { my: '0.4rem' } }}
+            >
+              <Typography variant="body2" color="text.secondary">
+                Silinen Poz Birimleri
+                {pozUnitDeletions.length > 0 && (
+                  <Box component="span" sx={{
+                    ml: '0.5rem', fontSize: '0.72rem', color: 'text.disabled',
+                    backgroundColor: 'rgba(0,0,0,0.06)', px: '0.4rem', py: '0.1rem', borderRadius: '10px'
+                  }}>
+                    {pozUnitDeletions.length}
+                  </Box>
+                )}
+              </Typography>
+            </AccordionSummary>
+            <AccordionDetails sx={{ px: '1rem', pt: 0, pb: '0.75rem', backgroundColor: 'rgba(0,0,0,0.015)' }}>
+              {pozUnitDeletions.length === 0 && (
+                <Typography variant="caption" color="text.disabled">Henüz silinmiş poz birimi yok.</Typography>
+              )}
+              {pozUnitDeletions.length > 0 && (
+                <Box>
+                  <Box sx={{ display: 'flex', pb: '0.3rem', borderBottom: '1px solid', borderColor: 'divider' }}>
+                    {['Birim Adı', 'Tarih', 'Kişi'].map(col => (
+                      <Typography key={col} variant="caption" fontWeight={600} color="text.disabled"
+                        sx={{ flex: 1, textAlign: 'center' }}>
+                        {col}
+                      </Typography>
+                    ))}
+                  </Box>
+                  {pozUnitDeletions.map(log => (
+                    <Box key={log.id} sx={{
+                      display: 'flex', alignItems: 'center',
+                      py: '0.35rem', borderBottom: '1px solid', borderColor: 'divider',
+                      '&:last-child': { borderBottom: 'none' }
+                    }}>
+                      <Typography variant="caption" sx={{ flex: 1, textAlign: 'center', color: 'rgba(0,0,0,0.5)', textDecoration: 'line-through' }}>{log.name}</Typography>
+                      <Typography variant="caption" sx={{ flex: 1, textAlign: 'center' }} color="text.secondary">{formatDate(log.deleted_at)}</Typography>
+                      <Typography variant="caption" sx={{ flex: 1, textAlign: 'center' }} color="text.secondary">{log.deleted_by_email ?? '—'}</Typography>
+                    </Box>
+                  ))}
+                </Box>
+              )}
+            </AccordionDetails>
+          </Accordion>
         </Box>
       }
 
@@ -519,6 +573,37 @@ export default function P_ProjeAyarlari() {
 
         </Box>
       }
+
+      {/* ── PARA BİRİMİ EKLEME DIALOG ─────────────────────────── */}
+      <Dialog open={currAddMode} onClose={() => { setCurrAddMode(false); setNewCurrCode(''); setNewCurrSymbol(''); setNewCurrName('') }} maxWidth="xs" fullWidth>
+        <DialogTitle>Yeni Para Birimi</DialogTitle>
+        <DialogContent>
+          <Box sx={{ display: 'flex', flexDirection: 'column', gap: '1rem', pt: '0.5rem' }}>
+            <Box sx={{ display: 'flex', gap: '0.75rem' }}>
+              <TextField size="small" label="Sembol" placeholder="₺"
+                value={newCurrSymbol} onChange={e => setNewCurrSymbol(e.target.value)}
+                sx={{ width: '90px' }} disabled={currSaving} autoFocus
+              />
+              <TextField size="small" label="Kod" placeholder="TRY"
+                value={newCurrCode} onChange={e => setNewCurrCode(e.target.value.toUpperCase())}
+                sx={{ flex: 1 }} disabled={currSaving}
+              />
+            </Box>
+            <TextField size="small" label="Ad (opsiyonel)" placeholder="Türk Lirası"
+              value={newCurrName} onChange={e => setNewCurrName(e.target.value)}
+              onKeyDown={e => e.key === 'Enter' && handleAddCurrency()}
+              fullWidth disabled={currSaving}
+            />
+          </Box>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => { setCurrAddMode(false); setNewCurrCode(''); setNewCurrSymbol(''); setNewCurrName('') }} disabled={currSaving}>İptal</Button>
+          <Button variant="contained" onClick={handleAddCurrency}
+            disabled={!newCurrCode.trim() || !newCurrSymbol.trim() || currSaving}>
+            {currSaving ? 'Kaydediliyor...' : 'Kaydet'}
+          </Button>
+        </DialogActions>
+      </Dialog>
     </Box>
   )
 }

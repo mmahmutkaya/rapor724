@@ -179,6 +179,31 @@ export const useGetProjectCurrencies = () => {
 
 }
 
+export const useGetPozUnitDeletions = () => {
+
+  const { appUser, selectedProje } = useContext(StoreContext)
+
+  return useQuery({
+    queryKey: ['pozUnitDeletions', selectedProje?.id],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('project_poz_unit_deletions')
+        .select('id, name, deleted_by_email, deleted_at')
+        .eq('project_id', selectedProje.id)
+        .order('deleted_at', { ascending: false })
+
+      if (error) throw new Error(error.message)
+
+      return data ?? []
+    },
+    enabled: !!appUser && !!selectedProje,
+    retry: false,
+    refetchOnMount: true,
+    refetchOnWindowFocus: false
+  })
+
+}
+
 export const useGetProjectPozlar = () => {
 
   const { appUser, selectedProje } = useContext(StoreContext)

@@ -62,6 +62,14 @@ export default function Sidebar({ setMobileOpen }) {
           <List>
 
             <ListItemButton
+              onClick={() => navigate('/wbs')}
+              sx={{ backgroundColor: pathname === '/wbs' ? seciliSayfaRengi : null, '&:hover': { backgroundColor: seciliSayfaRengi } }}
+            >
+              <ListItemIcon><SendIcon /></ListItemIcon>
+              <ListItemText primary="WBS" />
+            </ListItemButton>
+
+            <ListItemButton
               onClick={() => navigate('/pozlar')}
               sx={{ backgroundColor: pathname === '/pozlar' ? seciliSayfaRengi : null, '&:hover': { backgroundColor: seciliSayfaRengi } }}
             >
@@ -106,12 +114,12 @@ export default function Sidebar({ setMobileOpen }) {
               sx={{ backgroundColor: pathname.includes('/proje-ayarlari') ? seciliSayfaRengi : null, '&:hover': { backgroundColor: seciliSayfaRengi } }}
             >
               <ListItemIcon><SendIcon /></ListItemIcon>
-              <ListItemText primary="Proje Ayarları" />
+              <ListItemText primary="Ayarlar" />
             </ListItemButton>
 
             {pathname.includes('/proje-ayarlari') && (() => {
               const subItems = [
-                { label: 'Profil',         route: '/proje-ayarlari',                  active: !search.includes('s=')  },
+                { label: 'Profil Bilgileri', route: '/proje-ayarlari',                  active: !search.includes('s=')  },
                 { label: 'Para Birimleri', route: '/proje-ayarlari?s=parabirimleri',  active: search.includes('s=parabirimleri') },
                 { label: 'Poz Birimleri',  route: '/proje-ayarlari?s=birimler',       active: search.includes('s=birimler') },
                 { label: 'Projeyi Sil',    route: '/proje-ayarlari?s=sil',            active: search.includes('s=sil'), danger: true },

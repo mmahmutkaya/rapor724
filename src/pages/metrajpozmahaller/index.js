@@ -162,10 +162,12 @@ export default function P_MetrajPozMahaller() {
       const userHazMaps = {} // { userId: { areaId: qty } }
       const onayMap = {}
 
+      // Build lineById for delta computation on revision requests
+      const lineById = {}
+      lines.forEach(l => { lineById[l.id] = l })
+
       // Build parent→children map to detect superseded approved lines
-      const linesById = {}
       const approvedChildrenOf = {} // parentId → true if any approved child exists
-      lines.forEach(l => { linesById[l.id] = l })
       lines.forEach(l => {
         if (l.parent_line_id && l.status === 'approved') {
           approvedChildrenOf[l.parent_line_id] = true
@@ -182,9 +184,15 @@ export default function P_MetrajPozMahaller() {
           if (!approvedChildrenOf[line.id]) {
             onayMap[areaId] = (onayMap[areaId] ?? 0) + qty
           }
-        } else {
+        } else if (line.status === 'pending') {
           if (!userHazMaps[userId]) userHazMaps[userId] = {}
-          userHazMaps[userId][areaId] = (userHazMaps[userId][areaId] ?? 0) + qty
+          // For revision requests (has parent_line_id), show net delta not raw value
+          let delta = qty
+          if (line.parent_line_id) {
+            const parentLine = lineById[line.parent_line_id]
+            if (parentLine) delta = qty - computeQty(parentLine)
+          }
+          userHazMaps[userId][areaId] = (userHazMaps[userId][areaId] ?? 0) + delta
         }
       })
 
@@ -194,8 +202,7 @@ export default function P_MetrajPozMahaller() {
       nameRows?.forEach(r => { nameMap[r.id] = r.display_name })
 
       const preparers = uniqueUserIds
-        .filter(uid => userHazMaps[uid])
-        .map(uid => ({ id: uid, display_name: nameMap[uid] ?? uid.slice(0, 8), map: userHazMaps[uid] }))
+        .map(uid => ({ id: uid, display_name: nameMap[uid] ?? uid.slice(0, 8), map: userHazMaps[uid] ?? {} }))
 
       setPreparersList(preparers)
       setMahalOnayMap(onayMap)
@@ -502,7 +509,12 @@ export default function P_MetrajPozMahaller() {
   const css_baslik_hazirlanlan = {
     ...css_baslik,
     px: '4px',
+    backgroundColor: '#111',
+    borderLeft: '1px solid rgba(255,255,255,0.1)',
   }
+
+  const COL_SEP_ON_DARK  = '1px dotted rgba(255,255,255,0.35)'  // sütun ayırıcı — koyu arka plan
+  const COL_SEP_ON_LIGHT = '1px dotted rgba(0,0,0,0.28)'        // sütun ayırıcı — açık arka plan
 
   const css_satir_bg = '#c8cdd4'
   const css_satir_hover = '#a8b0bb'
@@ -534,71 +546,71 @@ export default function P_MetrajPozMahaller() {
             <NavigateNextIcon sx={{ opacity: 0.3, fontSize: 16 }} />
             <Typography variant="caption" sx={{ opacity: 0.5 }}>Mahaller</Typography>
           </Box>
-          <Tooltip title={`Görünüm: ${viewModeLabel} (tıkla: sonraki mod)`}>
-            <Button
-              size="small"
-              variant="outlined"
-              onClick={cycleViewMode}
-              startIcon={<ViewAgendaIcon />}
-              sx={{
-                textTransform: 'none',
-                minWidth: '5.25rem',
-                px: '0.5rem',
-                color: 'text.secondary',
-                borderColor: 'grey.400',
-                '&:hover': { borderColor: 'grey.600', backgroundColor: 'grey.100' },
-              }}
-            >
-              {viewModeLabel}
-            </Button>
-          </Tooltip>
-        </Box>
-
-        {/* Node action row — shown inline when a LBS node is selected */}
-        {activeNodeId && metrajMahalViewMode === 'lbsMahal' && (
-          <Box sx={{ display: 'flex', alignItems: 'center', gap: '0.25rem', mt: '0.25rem', pt: '0.25rem', borderTop: '1px solid #e0e0e0' }}>
-            <Box sx={{ width: '0.5rem', height: '0.5rem', borderRadius: '50%', backgroundColor: nodeColor(selectedLbsNode?.depth ?? 0).bg, flexShrink: 0 }} />
-            <Typography variant="caption" sx={{ fontWeight: 700, mr: '0.25rem', flexShrink: 0 }}>{selectedLbsNode?.name}</Typography>
-            <Tooltip title="Yukarı taşı"><span>
-              <IconButton size="small" onClick={handleMoveUp} disabled={!canMoveUp} sx={{ p: '2px' }}>
-                <KeyboardArrowUpIcon fontSize="small" />
-              </IconButton>
-            </span></Tooltip>
-            <Tooltip title="Aşağı taşı"><span>
-              <IconButton size="small" onClick={handleMoveDown} disabled={!canMoveDown} sx={{ p: '2px' }}>
-                <KeyboardArrowDownIcon fontSize="small" />
-              </IconButton>
-            </span></Tooltip>
-            <Tooltip title="Sol'a taşı (üst seviyeye)"><span>
-              <IconButton size="small" onClick={handleMoveLeft} disabled={!canMoveLeft} sx={{ p: '2px' }}>
-                <KeyboardArrowLeftIcon fontSize="small" />
-              </IconButton>
-            </span></Tooltip>
-            <Tooltip title="Sağ'a taşı (bir üst kardeşin altına)"><span>
-              <IconButton size="small" onClick={handleMoveRight} disabled={!canMoveRight} sx={{ p: '2px' }}>
-                <KeyboardArrowRightIcon fontSize="small" />
-              </IconButton>
-            </span></Tooltip>
-            <Tooltip title={isLeafSet.has(activeNodeId) ? 'Mahal ekle' : 'Alt LBS başlık ekle'}>
-              <IconButton size="small" sx={{ p: '2px' }} onClick={() => {
-                if (isLeafSet.has(activeNodeId)) {
-                  setMahalForm({ code: '', name: '', area: '' })
-                  setShow('MahalCreate')
-                } else {
-                  setLbsChildForm({ name: '', codeName: '' })
-                  setShow('LbsChildCreate')
-                }
-              }}>
-                <AddCircleOutlineIcon fontSize="small" />
-              </IconButton>
-            </Tooltip>
-            <Tooltip title="Seçili düğümü sil">
-              <IconButton size="small" sx={{ p: '2px' }} onClick={handleDeleteLbsNode}>
-                <DeleteIcon fontSize="small" />
-              </IconButton>
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
+            {activeNodeId && metrajMahalViewMode === 'lbsMahal' && (
+              <>
+                <Box sx={{ width: '0.5rem', height: '0.5rem', borderRadius: '50%', backgroundColor: nodeColor(selectedLbsNode?.depth ?? 0).bg, flexShrink: 0 }} />
+                <Typography variant="caption" sx={{ fontWeight: 700, mr: '0.25rem', flexShrink: 0 }}>{selectedLbsNode?.name}</Typography>
+                <Tooltip title="Yukarı taşı"><span>
+                  <IconButton size="small" onClick={handleMoveUp} disabled={!canMoveUp} sx={{ p: '2px' }}>
+                    <KeyboardArrowUpIcon fontSize="small" />
+                  </IconButton>
+                </span></Tooltip>
+                <Tooltip title="Aşağı taşı"><span>
+                  <IconButton size="small" onClick={handleMoveDown} disabled={!canMoveDown} sx={{ p: '2px' }}>
+                    <KeyboardArrowDownIcon fontSize="small" />
+                  </IconButton>
+                </span></Tooltip>
+                <Tooltip title="Sol'a taşı (üst seviyeye)"><span>
+                  <IconButton size="small" onClick={handleMoveLeft} disabled={!canMoveLeft} sx={{ p: '2px' }}>
+                    <KeyboardArrowLeftIcon fontSize="small" />
+                  </IconButton>
+                </span></Tooltip>
+                <Tooltip title="Sağ'a taşı (bir üst kardeşin altına)"><span>
+                  <IconButton size="small" onClick={handleMoveRight} disabled={!canMoveRight} sx={{ p: '2px' }}>
+                    <KeyboardArrowRightIcon fontSize="small" />
+                  </IconButton>
+                </span></Tooltip>
+                <Tooltip title={isLeafSet.has(activeNodeId) ? 'Mahal ekle' : 'Alt LBS başlık ekle'}>
+                  <IconButton size="small" sx={{ p: '2px' }} onClick={() => {
+                    if (isLeafSet.has(activeNodeId)) {
+                      setMahalForm({ code: '', name: '', area: '' })
+                      setShow('MahalCreate')
+                    } else {
+                      setLbsChildForm({ name: '', codeName: '' })
+                      setShow('LbsChildCreate')
+                    }
+                  }}>
+                    <AddCircleOutlineIcon fontSize="small" />
+                  </IconButton>
+                </Tooltip>
+                <Tooltip title="Seçili düğümü sil">
+                  <IconButton size="small" sx={{ p: '2px' }} onClick={handleDeleteLbsNode}>
+                    <DeleteIcon fontSize="small" />
+                  </IconButton>
+                </Tooltip>
+              </>
+            )}
+            <Tooltip title={`Görünüm: ${viewModeLabel} (tıkla: sonraki mod)`}>
+              <Button
+                size="small"
+                variant="outlined"
+                onClick={cycleViewMode}
+                startIcon={<ViewAgendaIcon />}
+                sx={{
+                  textTransform: 'none',
+                  minWidth: '5.25rem',
+                  px: '0.5rem',
+                  color: 'text.secondary',
+                  borderColor: 'grey.400',
+                  '&:hover': { borderColor: 'grey.600', backgroundColor: 'grey.100' },
+                }}
+              >
+                {viewModeLabel}
+              </Button>
             </Tooltip>
           </Box>
-        )}
+        </Box>
       </Paper>
 
       {/* LBS child create form */}
@@ -663,8 +675,8 @@ export default function P_MetrajPozMahaller() {
           {metrajMahalViewMode === 'mahalOnly' && !wpAreasError && (
             <Box sx={{ display: 'grid', gridTemplateColumns: treeGridCols, gap: '0px', width: 'fit-content', minWidth: '100%' }}>
               {/* Headers */}
-              <Box sx={{ ...css_baslik }}>Kod</Box>
-              <Box sx={{ ...css_baslik }}>Mahal Adı</Box>
+              <Box sx={{ ...css_baslik, borderRight: COL_SEP_ON_DARK }}>Kod</Box>
+              <Box sx={{ ...css_baslik, borderRight: COL_SEP_ON_DARK }}>Mahal Adı</Box>
               <Box sx={{ ...css_baslik }}>Alan</Box>
               <Box sx={{ ...css_baslik_onaylanan }}>Onaylanan</Box>
               {preparersList.length === 0
@@ -678,10 +690,10 @@ export default function P_MetrajPozMahaller() {
                 const mahalTs = isHovered ? '0 0 0.65px #333, 0 0 0.65px #333' : 'none'
                 return (
                   <React.Fragment key={mahal.id}>
-                    <Box onMouseEnter={() => setHoveredMahalId(mahal.id)} onMouseLeave={() => setHoveredMahalId(null)} onClick={() => handleMahalClick(mahal)} sx={{ backgroundColor: rowBg, px: '4px', py: '2px', fontSize: '0.75rem', display: 'flex', alignItems: 'center', gap: '4px', cursor: 'pointer', textShadow: mahalTs }}>
+                    <Box onMouseEnter={() => setHoveredMahalId(mahal.id)} onMouseLeave={() => setHoveredMahalId(null)} onClick={() => handleMahalClick(mahal)} sx={{ backgroundColor: rowBg, px: '4px', py: '2px', fontSize: '0.75rem', display: 'flex', alignItems: 'center', gap: '4px', cursor: 'pointer', textShadow: mahalTs, borderRight: COL_SEP_ON_LIGHT }}>
                       {mahal.code}
                     </Box>
-                    <Box onMouseEnter={() => setHoveredMahalId(mahal.id)} onMouseLeave={() => setHoveredMahalId(null)} onClick={() => handleMahalClick(mahal)} sx={{ backgroundColor: rowBg, px: '4px', py: '2px', fontSize: '0.75rem', cursor: 'pointer', textDecoration: 'none', textShadow: mahalTs }}>
+                    <Box onMouseEnter={() => setHoveredMahalId(mahal.id)} onMouseLeave={() => setHoveredMahalId(null)} onClick={() => handleMahalClick(mahal)} sx={{ backgroundColor: rowBg, px: '4px', py: '2px', fontSize: '0.75rem', cursor: 'pointer', textDecoration: 'none', textShadow: mahalTs, borderRight: COL_SEP_ON_LIGHT }}>
                       {mahal.name}
                     </Box>
                     <Box onMouseEnter={() => setHoveredMahalId(mahal.id)} onMouseLeave={() => setHoveredMahalId(null)} onClick={() => handleMahalClick(mahal)} sx={{ backgroundColor: rowBg, px: '4px', py: '2px', fontSize: '0.75rem', display: 'flex', alignItems: 'center', justifyContent: 'flex-end', cursor: 'pointer', textShadow: mahalTs }}>
@@ -712,8 +724,8 @@ export default function P_MetrajPozMahaller() {
             <Box sx={{ display: 'grid', gridTemplateColumns: treeGridCols, gap: '0px', width: 'fit-content', minWidth: '100%' }}>
               {/* Headers */}
               {Array.from({ length: totalDepthCols }).map((_, i) => <Box key={`h-depth-${i}`} sx={{ ...css_baslik }} />)}
-              <Box sx={{ ...css_baslik }}>Kod</Box>
-              <Box sx={{ ...css_baslik }}>Mahal Adı</Box>
+              <Box sx={{ ...css_baslik, borderRight: COL_SEP_ON_DARK }}>Kod</Box>
+              <Box sx={{ ...css_baslik, borderRight: COL_SEP_ON_DARK }}>Mahal Adı</Box>
               <Box sx={{ ...css_baslik }}>Alan</Box>
               <Box sx={{ ...css_baslik_onaylanan }}>Onaylanan</Box>
               {preparersList.length === 0
@@ -779,11 +791,6 @@ export default function P_MetrajPozMahaller() {
                         onClick={() => setActiveNodeId(prev => prev === node.id ? null : node.id)}
                         sx={{ flex: 1, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'flex-end', pr: '0.5rem', gap: '0.4rem' }}
                       >
-                        {isLeaf && isActiveNode && mahallersOfNode.length > 0 && (
-                          <Box sx={{ fontSize: '0.65rem', opacity: 0.7, flexShrink: 0 }}>
-                            {mahallersOfNode.length} mahal
-                          </Box>
-                        )}
                       </Box>
                     </Box>
 
@@ -800,6 +807,7 @@ export default function P_MetrajPozMahaller() {
                         display: 'flex', alignItems: 'center', justifyContent: 'flex-end',
                         whiteSpace: 'nowrap',
                         cursor: 'pointer',
+                        borderRight: COL_SEP_ON_DARK,
                       }}>
                       {nodeAreaTotals[node.id] ? `${ikiHane(nodeAreaTotals[node.id])} m²` : ''}
                     </Box>
@@ -821,7 +829,7 @@ export default function P_MetrajPozMahaller() {
                         onMouseEnter={() => setHoveredNodeId(node.id)}
                         onMouseLeave={() => setHoveredNodeId(null)}
                         onClick={() => setActiveNodeId(prev => prev === node.id ? null : node.id)}
-                        sx={{ backgroundColor: c.bg, color: c.co, px: '4px', py: '1px', fontSize: '0.75rem', display: 'flex', alignItems: 'center', justifyContent: 'flex-end', whiteSpace: 'nowrap', cursor: 'pointer' }}
+                        sx={{ backgroundColor: c.bg, color: c.co, px: '4px', py: '1px', fontSize: '0.75rem', display: 'flex', alignItems: 'center', justifyContent: 'flex-end', whiteSpace: 'nowrap', cursor: 'pointer', borderLeft: COL_SEP_ON_DARK, filter: 'brightness(0.82)' }}
                       >
                         {ph.totals[node.id] ? `${ikiHane(ph.totals[node.id])}${pozBirim ? ` ${pozBirim}` : ''}` : ''}
                       </Box>
@@ -855,7 +863,7 @@ export default function P_MetrajPozMahaller() {
                             onMouseEnter={() => setHoveredMahalId(mahal.id)}
                             onMouseLeave={() => setHoveredMahalId(null)}
                             onClick={() => handleMahalClick(mahal)}
-                            sx={{ backgroundColor: rowBg, px: '4px', py: '2px', fontSize: '0.75rem', display: 'flex', alignItems: 'center', gap: '4px', cursor: 'pointer', textShadow: mahalTs }}
+                            sx={{ backgroundColor: rowBg, px: '4px', py: '2px', fontSize: '0.75rem', display: 'flex', alignItems: 'center', gap: '4px', cursor: 'pointer', textShadow: mahalTs, borderRight: COL_SEP_ON_LIGHT }}
                           >
                             {mahal.code}
                           </Box>
@@ -865,7 +873,7 @@ export default function P_MetrajPozMahaller() {
                             onMouseEnter={() => setHoveredMahalId(mahal.id)}
                             onMouseLeave={() => setHoveredMahalId(null)}
                             onClick={() => handleMahalClick(mahal)}
-                            sx={{ backgroundColor: rowBg, px: '4px', py: '2px', fontSize: '0.75rem', cursor: 'pointer', textDecoration: 'none', textShadow: mahalTs }}
+                            sx={{ backgroundColor: rowBg, px: '4px', py: '2px', fontSize: '0.75rem', cursor: 'pointer', textDecoration: 'none', textShadow: mahalTs, borderRight: COL_SEP_ON_LIGHT }}
                           >
                             {mahal.name}
                           </Box>

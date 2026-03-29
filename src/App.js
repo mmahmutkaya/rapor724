@@ -5,6 +5,7 @@ import Home from './pages'
 import P_Firmalar from './pages/firmalar'
 import P_Projeler from './pages/projeler'
 
+import P_Wbs from './pages/wbs'
 import P_Pozlar from './pages/pozlar'
 import P_Mahaller from './pages/mahaller'
 import P_ProjeAyarlari from './pages/projeayarlari'
@@ -29,6 +30,7 @@ function App() {
       <Route path='/firmalar' element={<P_Firmalar />} />
       <Route path='/projeler' element={<P_Projeler />} />
 
+      <Route path='/wbs' element={<P_Wbs />} />
       <Route path='/pozlar' element={<P_Pozlar />} />
       <Route path='/mahaller' element={<P_Mahaller />} />
       <Route path='/proje-ayarlari' element={<P_ProjeAyarlari />} />

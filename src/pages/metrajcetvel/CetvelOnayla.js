@@ -185,6 +185,7 @@ export default function P_MetrajOnaylaCetvel() {
   const [showHazırlayan, setShowHazırlayan]             = useState(true)
   const [showOnaylayan, setShowOnaylayan]               = useState(true)
   const [showRevizeTalepleri, setShowRevizeTalepleri]   = useState(false)
+  const [showGeçersiz, setShowGeçersiz]                 = useState(false)
   const [cardEditMode, setCardEditMode]                 = useState({})  // { [sessId]: boolean }
   const [draftLines, setDraftLines]                     = useState({})  // { [lineId]: { status, ... } }
   const [onayKartiEditMode, setOnayKartiEditMode]       = useState(false)
@@ -967,10 +968,10 @@ export default function P_MetrajOnaylaCetvel() {
                     </Box>
                   </>
                 )}
-                {node.children.filter(c => (c.order_index ?? 0) < 0 && ((!c.status || c.status === 'draft') ? false : (showRevizeTalepleri || c.status === 'approved'))).map(child => (
+                {node.children.filter(c => (c.order_index ?? 0) < 0 && ((!c.status || c.status === 'draft') ? false : (showRevizeTalepleri || c.status === 'approved' || (showGeçersiz && c.status === 'ignored')))).map(child => (
                   <React.Fragment key={child.id}>{renderOnayRow(child)}</React.Fragment>
                 ))}
-                {node.children.filter(c => (c.order_index ?? 0) >= 0 && ((!c.status || c.status === 'draft') ? false : (showRevizeTalepleri || c.status === 'approved'))).map(child => (
+                {node.children.filter(c => (c.order_index ?? 0) >= 0 && ((!c.status || c.status === 'draft') ? false : (showRevizeTalepleri || c.status === 'approved' || (showGeçersiz && c.status === 'ignored')))).map(child => (
                   <React.Fragment key={child.id}>{renderOnayRow(child)}</React.Fragment>
                 ))}
               </>
@@ -1084,10 +1085,10 @@ export default function P_MetrajOnaylaCetvel() {
                 )}
               </Box>
 
-              {hasKids && node.children.filter(c => (c.order_index ?? 0) < 0 && ((!c.status || c.status === 'draft') ? false : (showRevizeTalepleri || c.status === 'approved'))).map(child => (
+              {hasKids && node.children.filter(c => (c.order_index ?? 0) < 0 && ((!c.status || c.status === 'draft') ? false : (showRevizeTalepleri || c.status === 'approved' || (showGeçersiz && c.status === 'ignored')))).map(child => (
                 <React.Fragment key={child.id}>{renderOnayRow(child)}</React.Fragment>
               ))}
-              {hasKids && node.children.filter(c => (c.order_index ?? 0) >= 0 && ((!c.status || c.status === 'draft') ? false : (showRevizeTalepleri || c.status === 'approved'))).map(child => (
+              {hasKids && node.children.filter(c => (c.order_index ?? 0) >= 0 && ((!c.status || c.status === 'draft') ? false : (showRevizeTalepleri || c.status === 'approved' || (showGeçersiz && c.status === 'ignored')))).map(child => (
                 <React.Fragment key={child.id}>{renderOnayRow(child)}</React.Fragment>
               ))}
             </>
@@ -1110,7 +1111,7 @@ export default function P_MetrajOnaylaCetvel() {
         const b_pend = allApprovalLines.filter(n => pendingParentIds.has(String(n.id))).reduce((s, n) => s + calcMetrajOnay(n), 0)
         const totalRevizeTalebi = a_pend - b_pend
 
-        // Ret Edilen = ignore alt satırlar - üst satırları
+        // Geçersiz = ignore alt satırlar - üst satırları
         const ignoredRevizeLines = allApprovalLines.filter(n => n.status === 'ignored' && n.parent_line_id)
         const a_ign = ignoredRevizeLines.reduce((s, n) => s + calcMetrajOnay(n), 0)
         const ignoredParentIds = new Set(ignoredRevizeLines.map(n => String(n.parent_line_id)))
@@ -1152,6 +1153,13 @@ export default function P_MetrajOnaylaCetvel() {
                         ? { backgroundColor: 'rgba(255,255,255,0.18)', borderColor: 'rgba(255,255,255,0.5)', color: '#fff' }
                         : { backgroundColor: 'transparent', borderColor: 'rgba(255,255,255,0.25)', color: 'rgba(255,255,255,0.4)' }) }}>
                   Revize
+                </Box>
+                <Box component="span" onClick={() => setShowGeçersiz(prev => !prev)}
+                  sx={{ cursor: 'pointer', px: '6px', py: '2px', borderRadius: '10px', fontSize: '0.7rem', fontWeight: 600, border: '1px solid', userSelect: 'none',
+                    ...(showGeçersiz
+                      ? { backgroundColor: 'rgba(255,255,255,0.18)', borderColor: 'rgba(255,255,255,0.5)', color: '#fff' }
+                      : { backgroundColor: 'transparent', borderColor: 'rgba(255,255,255,0.25)', color: 'rgba(255,255,255,0.4)' }) }}>
+                  Geçersiz
                 </Box>
                 <Box component="span" onClick={() => setShowHazırlayan(prev => !prev)}
                   sx={{ cursor: 'pointer', px: '6px', py: '2px', borderRadius: '10px', fontSize: '0.7rem', fontWeight: 600, border: '1px solid', userSelect: 'none',
@@ -1212,7 +1220,7 @@ export default function P_MetrajOnaylaCetvel() {
                   {showOnaylayan  && <Box sx={{ ...css_ohc }}>Onaylayan</Box>}
                   <Box sx={{ ...css_ohc }}></Box>
 
-                  {approvalTree.filter(n => showAllOriginals || n.status !== 'ignored').map((rootNode, idx) => (
+                  {approvalTree.filter(n => showAllOriginals || showGeçersiz || n.status !== 'ignored').map((rootNode, idx) => (
                     <React.Fragment key={rootNode.id}>
                       {idx > 0 && <Box sx={{ gridColumn: '1 / -1', borderTop: '2px solid #9e9e9e' }} />}
                       {renderOnayRow(rootNode)}
@@ -1236,7 +1244,7 @@ export default function P_MetrajOnaylaCetvel() {
                   <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', borderRadius: '50%', backgroundColor: '#BDBDBD', width: 26, height: 26, flexShrink: 0 }}>
                     <DoNotDisturbIcon sx={{ fontSize: 16, color: '#424242', filter: 'drop-shadow(0 0 0.4px #424242)' }} />
                   </Box>
-                  <Box component="span" sx={{ fontSize: '0.82rem', color: 'rgba(255,255,255,0.75)' }}>Ret Edilen</Box>
+                  <Box component="span" sx={{ fontSize: '0.82rem', color: 'rgba(255,255,255,0.75)' }}>Geçersiz</Box>
                   <Box component="span" sx={{ fontSize: '0.95rem', fontWeight: 700, color: totalRetEdilen === 0 ? 'rgba(255,255,255,0.55)' : '#e0e1dd', ml: '2px' }}>{ikiHane(totalRetEdilen)}</Box>
                   {pozBirim && <Box component="span" sx={{ fontSize: '0.78rem', color: 'rgba(255,255,255,0.55)' }}>{pozBirim}</Box>}
                 </Box>

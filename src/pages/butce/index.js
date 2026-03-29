@@ -236,7 +236,7 @@ export default function P_KesifButce() {
         aciklama: r.aciklama ?? "",
         tutar: r.total_butce_tutar,
         createdAt: r.created_at,
-        olusturanEmail: r.created_by_email ?? null,
+        olusturanEmail: null,
       })));
     }
   };
