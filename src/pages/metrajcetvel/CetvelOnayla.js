@@ -784,9 +784,9 @@ export default function P_MetrajOnaylaCetvel() {
                           const rowBg = isIgnoredLocked
                             ? '#BDBDBD'
                             : effStatus === 'pending' && !isApproved
-                            ? '#BBDEFB'
-                            : (!effStatus || effStatus === 'draft') && !isApproved
                             ? '#FFE0B2'
+                            : (!effStatus || effStatus === 'draft') && !isApproved
+                            ? '#BBDEFB'
                             : effStatus === 'approved'
                             ? '#C8E6C9'
                             : isApproved
@@ -852,10 +852,10 @@ export default function P_MetrajOnaylaCetvel() {
                                       </IconButton>
                                     </>
                                   ) : (
-                                    <CheckIcon sx={{ fontSize: 16, color: '#1565c0' }} />
+                                    <CheckIcon sx={{ fontSize: 16, color: '#E65100' }} />
                                   )
                                 ) : (!effStatus || effStatus === 'draft') ? (
-                                  <HourglassFullIcon sx={{ fontSize: 15, color: '#E65100' }} />
+                                  <HourglassFullIcon sx={{ fontSize: 15, color: '#1565C0' }} />
                                 ) : null}
                               </Box>
                             </React.Fragment>
@@ -868,16 +868,16 @@ export default function P_MetrajOnaylaCetvel() {
                   </>}
                   <Box sx={{ backgroundColor: cardColors.header, borderTop: '2px solid', borderTopColor: cardColors.border, display: 'flex', justifyContent: 'space-between', flexWrap: 'wrap', px: '14px', py: '8px', minHeight: '44px' }}>
                       <Box sx={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
-                        <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', borderRadius: '50%', backgroundColor: '#FFE0B2', width: 26, height: 26, flexShrink: 0 }}>
-                          <HourglassFullIcon sx={{ fontSize: 16, color: '#E65100', filter: 'drop-shadow(0 0 0.4px #E65100)' }} />
+                        <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', borderRadius: '50%', backgroundColor: '#BBDEFB', width: 26, height: 26, flexShrink: 0 }}>
+                          <HourglassFullIcon sx={{ fontSize: 16, color: '#1565C0', filter: 'drop-shadow(0 0 0.4px #1565C0)' }} />
                         </Box>
                         <Box component="span" sx={{ fontSize: '0.82rem', color: 'rgba(255,255,255,0.75)' }}>Hazırlanan</Box>
                         <Box component="span" sx={{ fontSize: '0.95rem', fontWeight: 700, color: totalDraft === 0 ? 'rgba(255,255,255,0.55)' : '#e0e1dd', ml: '2px' }}>{ikiHane(totalDraft)}</Box>
                         {pozBirim && <Box component="span" sx={{ fontSize: '0.78rem', color: 'rgba(255,255,255,0.55)' }}>{pozBirim}</Box>}
                       </Box>
                       <Box sx={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
-                        <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', borderRadius: '50%', backgroundColor: '#BBDEFB', width: 26, height: 26, flexShrink: 0 }}>
-                          <CheckIcon sx={{ fontSize: 16, color: '#1565C0', filter: 'drop-shadow(0 0 0.4px #1565C0)' }} />
+                        <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', borderRadius: '50%', backgroundColor: '#FFE0B2', width: 26, height: 26, flexShrink: 0 }}>
+                          <CheckIcon sx={{ fontSize: 16, color: '#E65100', filter: 'drop-shadow(0 0 0.4px #E65100)' }} />
                         </Box>
                         <Box component="span" sx={{ fontSize: '0.82rem', color: 'rgba(255,255,255,0.75)' }}>Onaya Sunulan</Box>
                         <Box component="span" sx={{ fontSize: '0.95rem', fontWeight: 700, color: totalPending === 0 ? 'rgba(255,255,255,0.55)' : '#e0e1dd', ml: '2px' }}>{ikiHane(totalPending)}</Box>
@@ -981,7 +981,7 @@ export default function P_MetrajOnaylaCetvel() {
           const isSuperseded = (node.status === 'approved' && node.children?.some(c => c.status === 'approved' && (c.order_index ?? 0) < 0))
             || !!node.isSupersededByLaterRevision
           const rawBg = node.status !== 'approved'
-            ? (node.status === 'pending' ? '#BBDEFB' : (!node.status || node.status === 'draft') ? 'rgba(255,250,180,0.6)' : node.status === 'ignored' ? '#D5D5D5' : 'rgba(236,239,241,0.5)')
+            ? (node.status === 'pending' ? '#FFE0B2' : (!node.status || node.status === 'draft') ? 'rgba(187,222,251,0.4)' : node.status === 'ignored' ? '#D5D5D5' : 'rgba(236,239,241,0.5)')
             : (node.isSupersededByLaterRevision ? '#D5D5D5' : isSuperseded ? '#c5e1a5' : '#C8E6C9')
           const rowBg = rawBg
           const onaylayanText = node.status === 'pending' ? '' : (node.onaylayan ?? '')
@@ -991,7 +991,7 @@ export default function P_MetrajOnaylaCetvel() {
           const isRevisionRow = (node.order_index ?? 0) < 0
           const cellBg = { backgroundColor: rowBg, borderBottom: '1px dashed #c8c8c8', ...(isDim ? { color: dimColor } : {}) }
           const negColor = isDim ? dimColor : (metraj < 0 ? '#c62828' : undefined)
-          const revRColor = isDim ? dimColor : (node.status === 'pending' ? '#1565c0' : '#2E7D32')
+          const revRColor = isDim ? dimColor : (node.status === 'pending' ? '#E65100' : '#2E7D32')
 
           return (
             <>
@@ -1016,7 +1016,7 @@ export default function P_MetrajOnaylaCetvel() {
                 {pozBirim && metraj !== 0 && <Box component="span" sx={{ ml: '3px', fontWeight: 400, fontSize: '0.72rem', color: isDim ? dimColor : (metraj < 0 ? '#c62828' : '#555') }}>{pozBirim}</Box>}
               </Box>
               {showHazırlayan && <Box sx={{ ...css_oc, ...cellBg, justifyContent: 'center', fontSize: '0.78rem', color: isDim ? '#666' : '#455a64' }}>{node.hazırlayan}</Box>}
-              {showOnaylayan  && <Box sx={{ ...css_oc, ...cellBg, justifyContent: 'center', fontSize: '0.78rem', color: isDim ? '#666' : (node.status === 'pending' ? '#1565c0' : '#1b5e20') }}>
+              {showOnaylayan  && <Box sx={{ ...css_oc, ...cellBg, justifyContent: 'center', fontSize: '0.78rem', color: isDim ? '#666' : (node.status === 'pending' ? '#E65100' : '#1b5e20') }}>
                 {onaylayanText}
               </Box>}
 
@@ -1234,8 +1234,8 @@ export default function P_MetrajOnaylaCetvel() {
               {/* Onaylı Metraj Statü Kutuları */}
               <Box sx={{ backgroundColor: '#1b5e20', color: '#fff', px: '1rem', py: '8px', display: 'flex', justifyContent: 'space-between', flexWrap: 'wrap', gap: '8px', borderTop: '1px solid rgba(67, 160, 71, 0.5)' }}>
                 <Box sx={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
-                  <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', borderRadius: '50%', backgroundColor: '#BBDEFB', width: 26, height: 26, flexShrink: 0 }}>
-                    <CheckIcon sx={{ fontSize: 16, color: '#1565C0', filter: 'drop-shadow(0 0 0.4px #1565C0)' }} />
+                  <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', borderRadius: '50%', backgroundColor: '#FFE0B2', width: 26, height: 26, flexShrink: 0 }}>
+                    <CheckIcon sx={{ fontSize: 16, color: '#E65100', filter: 'drop-shadow(0 0 0.4px #E65100)' }} />
                   </Box>
                   <Box component="span" sx={{ fontSize: '0.82rem', color: 'rgba(255,255,255,0.75)' }}>Revize Talebi</Box>
                   <Box component="span" sx={{ fontSize: '0.95rem', fontWeight: 700, color: totalRevizeTalebi === 0 ? 'rgba(255,255,255,0.55)' : '#e0e1dd', ml: '2px' }}>{ikiHane(totalRevizeTalebi)}</Box>
