@@ -1608,9 +1608,7 @@ export default function P_MetrajOlusturCetvel() {
   }
 
   const pozBirim = unitsMap[selectedPoz?.unit_id] ?? ''
-  const pozLabel = selectedPoz?.code
-    ? `${selectedPoz.code} · ${selectedPoz.short_desc}`
-    : selectedPoz?.short_desc
+  const pozLabel = selectedPoz?.short_desc
 
   return (
     <Box>
@@ -1720,30 +1718,32 @@ export default function P_MetrajOlusturCetvel() {
 
       {/* BAŞLIK */}
       <AppBar position="static" sx={{ backgroundColor: 'white', color: 'black', boxShadow: 4 }}>
-        <Grid container alignItems="center" sx={{ px: '1rem', py: '0.5rem', maxHeight: '5rem' }}>
+        <Grid container alignItems="center" sx={{ px: '1rem', minHeight: '3.5rem', maxHeight: '5rem' }}>
           <Grid item xs>
             <Box sx={{ display: 'flex', alignItems: 'center', gap: '0.3rem', flexWrap: 'nowrap', overflow: 'hidden' }}>
-              <IconButton sx={{ m: 0, p: 0 }} onClick={() => navGuard(`/metraj/pozlar/${selectedPoz?.id}/mahaller`)}>
-                <ReplyIcon sx={{ color: 'gray' }} />
-              </IconButton>
               <Typography
-                variant="body1"
-                sx={{ fontWeight: 600, opacity: 0.4, cursor: 'pointer', whiteSpace: 'nowrap', '&:hover': { opacity: 0.9 } }}
+                onClick={() => navGuard('/metraj')}
+                sx={{ fontSize: '0.78rem', fontWeight: 600, opacity: 0.4, cursor: 'pointer', whiteSpace: 'nowrap', textTransform: 'uppercase', '&:hover': { opacity: 0.9 } }}
+              >
+                Metraj
+              </Typography>
+              <NavigateNextIcon sx={{ opacity: 0.4, fontSize: 16, flexShrink: 0 }} />
+              <Typography
+                sx={{ fontSize: '0.78rem', fontWeight: 600, opacity: 0.4, cursor: 'pointer', whiteSpace: 'nowrap', maxWidth: '10rem', overflow: 'hidden', textOverflow: 'ellipsis', textTransform: 'uppercase', '&:hover': { opacity: 0.9 } }}
                 onClick={() => navGuard('/metraj/pozlar')}
               >
                 {selectedIsPaket?.name}
               </Typography>
-              <NavigateNextIcon sx={{ opacity: 0.4, fontSize: 18, flexShrink: 0 }} />
+              <NavigateNextIcon sx={{ opacity: 0.4, fontSize: 16, flexShrink: 0 }} />
               <Typography
-                variant="body1"
-                sx={{ fontWeight: 600, opacity: 0.4, cursor: 'pointer', whiteSpace: 'nowrap', maxWidth: '14rem', overflow: 'hidden', textOverflow: 'ellipsis', '&:hover': { opacity: 0.9 } }}
+                sx={{ fontSize: '0.78rem', fontWeight: 600, opacity: 0.4, cursor: 'pointer', whiteSpace: 'nowrap', maxWidth: '14rem', overflow: 'hidden', textOverflow: 'ellipsis', textTransform: 'uppercase', '&:hover': { opacity: 0.9 } }}
                 onClick={() => navGuard(`/metraj/pozlar/${selectedPoz?.id}/mahaller`)}
               >
                 {pozLabel}
               </Typography>
-              <NavigateNextIcon sx={{ opacity: 0.4, fontSize: 18, flexShrink: 0 }} />
-              <Typography variant="body1" sx={{ fontWeight: 700, whiteSpace: 'nowrap' }}>
-                {selectedMahal?.code ? `${selectedMahal.code} · ${selectedMahal.name}` : selectedMahal?.name}
+              <NavigateNextIcon sx={{ opacity: 0.4, fontSize: 16, flexShrink: 0 }} />
+              <Typography sx={{ fontSize: '0.78rem', fontWeight: 700, whiteSpace: 'nowrap', textTransform: 'uppercase' }}>
+                {selectedMahal?.name}
               </Typography>
             </Box>
           </Grid>
@@ -2084,37 +2084,37 @@ export default function P_MetrajOlusturCetvel() {
               )}
               </>}
               <Box sx={{ backgroundColor: cardColors.header, borderTop: '2px solid', borderTopColor: cardColors.border, display: 'flex', justifyContent: 'space-between', flexWrap: 'wrap', px: '14px', py: '8px', minHeight: '44px' }}>
-                  <Box sx={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
+                  <Box sx={{ display: 'flex', alignItems: 'center', gap: '5px', opacity: totalDraft === 0 ? 0.22 : 1 }}>
                     <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', borderRadius: '50%', backgroundColor: '#BBDEFB', width: 26, height: 26, flexShrink: 0 }}>
                       <HourglassFullIcon sx={{ fontSize: 16, color: '#1565C0', filter: 'drop-shadow(0 0 0.4px #1565C0)' }} />
                     </Box>
-                    <Box component="span" sx={{ fontSize: '0.82rem', color: 'rgba(255,255,255,0.75)' }}>Hazırlanan</Box>
-                    <Box component="span" sx={{ fontSize: '0.95rem', fontWeight: 700, color: totalDraft === 0 ? 'rgba(255,255,255,0.55)' : '#e0e1dd', ml: '2px' }}>{ikiHane(totalDraft)}</Box>
-                    {pozBirim && <Box component="span" sx={{ fontSize: '0.78rem', color: 'rgba(255,255,255,0.55)' }}>{pozBirim}</Box>}
+                    <Box component="span" sx={{ fontSize: '0.82rem', color: '#e0e1dd' }}>Hazırlanan</Box>
+                    <Box component="span" sx={{ fontSize: '0.95rem', fontWeight: 700, color: '#e0e1dd', ml: '2px' }}>{ikiHane(totalDraft)}</Box>
+                    {pozBirim && <Box component="span" sx={{ fontSize: '0.78rem', color: 'rgba(255,255,255,0.7)' }}>{pozBirim}</Box>}
                   </Box>
-                  <Box sx={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
+                  <Box sx={{ display: 'flex', alignItems: 'center', gap: '5px', opacity: totalPending === 0 ? 0.22 : 1 }}>
                     <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', borderRadius: '50%', backgroundColor: '#FFE0B2', width: 26, height: 26, flexShrink: 0 }}>
                       <CheckIcon sx={{ fontSize: 16, color: '#E65100', filter: 'drop-shadow(0 0 0.4px #E65100)' }} />
                     </Box>
-                    <Box component="span" sx={{ fontSize: '0.82rem', color: 'rgba(255,255,255,0.75)' }}>Onaya Sunulan</Box>
-                    <Box component="span" sx={{ fontSize: '0.95rem', fontWeight: 700, color: totalPending === 0 ? 'rgba(255,255,255,0.55)' : '#e0e1dd', ml: '2px' }}>{ikiHane(totalPending)}</Box>
-                    {pozBirim && <Box component="span" sx={{ fontSize: '0.78rem', color: 'rgba(255,255,255,0.55)' }}>{pozBirim}</Box>}
+                    <Box component="span" sx={{ fontSize: '0.82rem', color: '#e0e1dd' }}>Onaya Sunulan</Box>
+                    <Box component="span" sx={{ fontSize: '0.95rem', fontWeight: 700, color: '#e0e1dd', ml: '2px' }}>{ikiHane(totalPending)}</Box>
+                    {pozBirim && <Box component="span" sx={{ fontSize: '0.78rem', color: 'rgba(255,255,255,0.7)' }}>{pozBirim}</Box>}
                   </Box>
-                  <Box sx={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
+                  <Box sx={{ display: 'flex', alignItems: 'center', gap: '5px', opacity: totalIgnored === 0 ? 0.22 : 0.42 }}>
                     <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', borderRadius: '50%', backgroundColor: '#BDBDBD', width: 26, height: 26, flexShrink: 0 }}>
                       <DoneAllIcon sx={{ fontSize: 16, color: '#424242', filter: 'drop-shadow(0 0 0.4px #424242)' }} />
                     </Box>
-                    <Box component="span" sx={{ fontSize: '0.82rem', color: 'rgba(255,255,255,0.75)' }}>Ignore</Box>
-                    <Box component="span" sx={{ fontSize: '0.95rem', fontWeight: 700, color: totalIgnored === 0 ? 'rgba(255,255,255,0.55)' : '#e0e1dd', ml: '2px' }}>{ikiHane(totalIgnored)}</Box>
-                    {pozBirim && <Box component="span" sx={{ fontSize: '0.78rem', color: 'rgba(255,255,255,0.55)' }}>{pozBirim}</Box>}
+                    <Box component="span" sx={{ fontSize: '0.82rem', color: '#e0e1dd' }}>Geçersiz</Box>
+                    <Box component="span" sx={{ fontSize: '0.95rem', fontWeight: 700, color: '#e0e1dd', ml: '2px' }}>{ikiHane(totalIgnored)}</Box>
+                    {pozBirim && <Box component="span" sx={{ fontSize: '0.78rem', color: 'rgba(255,255,255,0.7)' }}>{pozBirim}</Box>}
                   </Box>
-                  <Box sx={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
+                  <Box sx={{ display: 'flex', alignItems: 'center', gap: '5px', opacity: totalApproved === 0 ? 0.22 : 1 }}>
                     <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', borderRadius: '50%', backgroundColor: '#C8E6C9', width: 26, height: 26, flexShrink: 0 }}>
                       <DoneAllIcon sx={{ fontSize: 16, color: '#2E7D32', filter: 'drop-shadow(0 0 0.4px #2E7D32)' }} />
                     </Box>
-                    <Box component="span" sx={{ fontSize: '0.82rem', color: 'rgba(255,255,255,0.75)' }}>Onaylanan</Box>
-                    <Box component="span" sx={{ fontSize: '0.95rem', fontWeight: 700, color: totalApproved === 0 ? 'rgba(255,255,255,0.55)' : '#e0e1dd', ml: '2px' }}>{ikiHane(totalApproved)}</Box>
-                    {pozBirim && <Box component="span" sx={{ fontSize: '0.78rem', color: 'rgba(255,255,255,0.55)' }}>{pozBirim}</Box>}
+                    <Box component="span" sx={{ fontSize: '0.82rem', color: '#e0e1dd' }}>Onaylanan</Box>
+                    <Box component="span" sx={{ fontSize: '0.95rem', fontWeight: 700, color: '#e0e1dd', ml: '2px' }}>{ikiHane(totalApproved)}</Box>
+                    {pozBirim && <Box component="span" sx={{ fontSize: '0.78rem', color: 'rgba(255,255,255,0.7)' }}>{pozBirim}</Box>}
                   </Box>
                 </Box>
             </Box>
@@ -2801,7 +2801,7 @@ export default function P_MetrajOlusturCetvel() {
                   <Box component="span" onClick={() => setShowRevizeTalepleri(prev => { if (showGeçersiz) setShowGeçersiz(false); return !prev })}
                     sx={{ cursor: 'pointer', px: '6px', py: '2px', borderRadius: '10px', fontSize: '0.7rem', fontWeight: 600, border: '1px solid', userSelect: 'none',
                       ...(hasPendingRevizeTalepleri && !showRevizeTalepleri
-                        ? { backgroundColor: 'rgba(25,118,210,0.5)', borderColor: '#42A5F5', color: '#fff' }
+                      ? { backgroundColor: 'rgba(230,81,0,0.5)', borderColor: '#FFA726', color: '#fff' }
                         : showRevizeTalepleri
                           ? { backgroundColor: 'rgba(255,255,255,0.18)', borderColor: 'rgba(255,255,255,0.5)', color: '#fff' }
                           : { backgroundColor: 'transparent', borderColor: 'rgba(255,255,255,0.25)', color: 'rgba(255,255,255,0.4)' }) }}>
@@ -2979,37 +2979,37 @@ export default function P_MetrajOlusturCetvel() {
 
               {/* Onaylı Metraj Statü Kutuları */}
               <Box sx={{ backgroundColor: '#1b5e20', color: '#fff', px: '1rem', py: '8px', display: 'flex', justifyContent: 'space-between', flexWrap: 'wrap', gap: '8px', borderTop: '1px solid rgba(67, 160, 71, 0.5)' }}>
-                <Box sx={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: '5px', opacity: totalRevizeTalebi === 0 ? 0.22 : 1 }}>
                   <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', borderRadius: '50%', backgroundColor: '#FFE0B2', width: 26, height: 26, flexShrink: 0 }}>
                     <CheckIcon sx={{ fontSize: 16, color: '#E65100', filter: 'drop-shadow(0 0 0.4px #E65100)' }} />
                   </Box>
-                  <Box component="span" sx={{ fontSize: '0.82rem', color: 'rgba(255,255,255,0.75)' }}>Revize Talebi</Box>
-                  <Box component="span" sx={{ fontSize: '0.95rem', fontWeight: 700, color: totalRevizeTalebi === 0 ? 'rgba(255,255,255,0.55)' : '#e0e1dd', ml: '2px' }}>{ikiHane(totalRevizeTalebi)}</Box>
-                  {pozBirim && <Box component="span" sx={{ fontSize: '0.78rem', color: 'rgba(255,255,255,0.55)' }}>{pozBirim}</Box>}
+                  <Box component="span" sx={{ fontSize: '0.82rem', color: '#e0e1dd' }}>Revize Talebi</Box>
+                  <Box component="span" sx={{ fontSize: '0.95rem', fontWeight: 700, color: '#e0e1dd', ml: '2px' }}>{ikiHane(totalRevizeTalebi)}</Box>
+                  {pozBirim && <Box component="span" sx={{ fontSize: '0.78rem', color: 'rgba(255,255,255,0.7)' }}>{pozBirim}</Box>}
                 </Box>
-                <Box sx={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: '5px', opacity: totalRetEdilen === 0 ? 0.22 : 0.42 }}>
                   <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', borderRadius: '50%', backgroundColor: '#BDBDBD', width: 26, height: 26, flexShrink: 0 }}>
                     <DoNotDisturbIcon sx={{ fontSize: 16, color: '#424242', filter: 'drop-shadow(0 0 0.4px #424242)' }} />
                   </Box>
-                  <Box component="span" sx={{ fontSize: '0.82rem', color: 'rgba(255,255,255,0.75)' }}>Geçersiz</Box>
-                  <Box component="span" sx={{ fontSize: '0.95rem', fontWeight: 700, color: totalRetEdilen === 0 ? 'rgba(255,255,255,0.55)' : '#e0e1dd', ml: '2px' }}>{ikiHane(totalRetEdilen)}</Box>
-                  {pozBirim && <Box component="span" sx={{ fontSize: '0.78rem', color: 'rgba(255,255,255,0.55)' }}>{pozBirim}</Box>}
+                  <Box component="span" sx={{ fontSize: '0.82rem', color: '#e0e1dd' }}>Geçersiz</Box>
+                  <Box component="span" sx={{ fontSize: '0.95rem', fontWeight: 700, color: '#e0e1dd', ml: '2px' }}>{ikiHane(totalRetEdilen)}</Box>
+                  {pozBirim && <Box component="span" sx={{ fontSize: '0.78rem', color: 'rgba(255,255,255,0.7)' }}>{pozBirim}</Box>}
                 </Box>
-                <Box sx={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: '5px', opacity: totalKabulEdilen === 0 ? 0.22 : 1 }}>
                   <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', borderRadius: '50%', backgroundColor: '#C8E6C9', width: 26, height: 26, flexShrink: 0 }}>
                     <Typography sx={{ fontSize: '0.9rem', fontWeight: 900, color: '#2E7D32', lineHeight: 1, filter: 'drop-shadow(0 0 0.4px #2E7D32)' }}>R</Typography>
                   </Box>
-                  <Box component="span" sx={{ fontSize: '0.82rem', color: 'rgba(255,255,255,0.75)' }}>Kabul Edilen</Box>
-                  <Box component="span" sx={{ fontSize: '0.95rem', fontWeight: 700, color: totalKabulEdilen === 0 ? 'rgba(255,255,255,0.55)' : '#e0e1dd', ml: '2px' }}>{ikiHane(totalKabulEdilen)}</Box>
-                  {pozBirim && <Box component="span" sx={{ fontSize: '0.78rem', color: 'rgba(255,255,255,0.55)' }}>{pozBirim}</Box>}
+                  <Box component="span" sx={{ fontSize: '0.82rem', color: '#e0e1dd' }}>Kabul Edilen</Box>
+                  <Box component="span" sx={{ fontSize: '0.95rem', fontWeight: 700, color: '#e0e1dd', ml: '2px' }}>{ikiHane(totalKabulEdilen)}</Box>
+                  {pozBirim && <Box component="span" sx={{ fontSize: '0.78rem', color: 'rgba(255,255,255,0.7)' }}>{pozBirim}</Box>}
                 </Box>
-                <Box sx={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: '5px', opacity: totalOnaylanan === 0 ? 0.22 : 1 }}>
                   <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', borderRadius: '50%', backgroundColor: '#C8E6C9', width: 26, height: 26, flexShrink: 0 }}>
                     <DoneAllIcon sx={{ fontSize: 16, color: '#2E7D32', filter: 'drop-shadow(0 0 0.4px #2E7D32)' }} />
                   </Box>
-                  <Box component="span" sx={{ fontSize: '0.82rem', color: 'rgba(255,255,255,0.75)' }}>Onaylanan</Box>
-                  <Box component="span" sx={{ fontSize: '0.95rem', fontWeight: 700, color: totalOnaylanan === 0 ? 'rgba(255,255,255,0.55)' : '#e0e1dd', ml: '2px' }}>{ikiHane(totalOnaylanan)}</Box>
-                  {pozBirim && <Box component="span" sx={{ fontSize: '0.78rem', color: 'rgba(255,255,255,0.55)' }}>{pozBirim}</Box>}
+                  <Box component="span" sx={{ fontSize: '0.82rem', color: '#e0e1dd' }}>Onaylanan</Box>
+                  <Box component="span" sx={{ fontSize: '0.95rem', fontWeight: 700, color: '#e0e1dd', ml: '2px' }}>{ikiHane(totalOnaylanan)}</Box>
+                  {pozBirim && <Box component="span" sx={{ fontSize: '0.78rem', color: 'rgba(255,255,255,0.7)' }}>{pozBirim}</Box>}
                 </Box>
               </Box>
             </Box>

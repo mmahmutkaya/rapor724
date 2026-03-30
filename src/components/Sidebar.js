@@ -62,14 +62,6 @@ export default function Sidebar({ setMobileOpen }) {
           <List>
 
             <ListItemButton
-              onClick={() => navigate('/wbs')}
-              sx={{ backgroundColor: pathname === '/wbs' ? seciliSayfaRengi : null, '&:hover': { backgroundColor: seciliSayfaRengi } }}
-            >
-              <ListItemIcon><SendIcon /></ListItemIcon>
-              <ListItemText primary="WBS" />
-            </ListItemButton>
-
-            <ListItemButton
               onClick={() => navigate('/pozlar')}
               sx={{ backgroundColor: pathname === '/pozlar' ? seciliSayfaRengi : null, '&:hover': { backgroundColor: seciliSayfaRengi } }}
             >

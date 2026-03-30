@@ -19,7 +19,6 @@ import TextField from '@mui/material/TextField'
 import LinearProgress from '@mui/material/LinearProgress'
 import Alert from '@mui/material/Alert'
 import Chip from '@mui/material/Chip'
-import Tooltip from '@mui/material/Tooltip'
 import Checkbox from '@mui/material/Checkbox'
 import AddCircleOutlineIcon from '@mui/icons-material/AddCircleOutline'
 import DeleteIcon from '@mui/icons-material/Delete'
@@ -383,40 +382,24 @@ export default function P_Pozlar() {
                   {activeWbsNodeId && (
                     <>
                       <Grid item>
-                        <Tooltip title="Yukarı taşı">
-                          <span>
-                            <IconButton size="small" onClick={handleMoveUp} disabled={!canMoveUp}>
-                              <KeyboardArrowUpIcon />
-                            </IconButton>
-                          </span>
-                        </Tooltip>
+                        <IconButton size="small" onClick={handleMoveUp} disabled={!canMoveUp}>
+                          <KeyboardArrowUpIcon />
+                        </IconButton>
                       </Grid>
                       <Grid item>
-                        <Tooltip title="Aşağı taşı">
-                          <span>
-                            <IconButton size="small" onClick={handleMoveDown} disabled={!canMoveDown}>
-                              <KeyboardArrowDownIcon />
-                            </IconButton>
-                          </span>
-                        </Tooltip>
+                        <IconButton size="small" onClick={handleMoveDown} disabled={!canMoveDown}>
+                          <KeyboardArrowDownIcon />
+                        </IconButton>
                       </Grid>
                       <Grid item>
-                        <Tooltip title="Sol'a taşı (üst seviyeye)">
-                          <span>
-                            <IconButton size="small" onClick={handleMoveLeft} disabled={!canMoveLeft}>
-                              <KeyboardArrowLeftIcon />
-                            </IconButton>
-                          </span>
-                        </Tooltip>
+                        <IconButton size="small" onClick={handleMoveLeft} disabled={!canMoveLeft}>
+                          <KeyboardArrowLeftIcon />
+                        </IconButton>
                       </Grid>
                       <Grid item>
-                        <Tooltip title="Sağ'a taşı (bir üst kardeşin altına)">
-                          <span>
-                            <IconButton size="small" onClick={handleMoveRight} disabled={!canMoveRight}>
-                              <KeyboardArrowRightIcon />
-                            </IconButton>
-                          </span>
-                        </Tooltip>
+                        <IconButton size="small" onClick={handleMoveRight} disabled={!canMoveRight}>
+                          <KeyboardArrowRightIcon />
+                        </IconButton>
                       </Grid>
                     </>
                   )}
@@ -429,66 +412,50 @@ export default function P_Pozlar() {
                     </IconButton>
                   </Grid>
                   <Grid item>
-                    <Tooltip title={
-                      viewMode === 'pozOnly' ? 'Poz modunda eklenemez — W+P moduna geçin'
-                      : viewMode === 'wbsOnly' && !activeWbsNodeId ? 'WBS kök başlık ekle'
-                      : viewMode === 'wbsOnly' ? 'WBS alt başlık ekle'
-                      : viewMode === 'wbsPoz' && !activeWbsNodeId ? 'Bir WBS düğümü seçin'
-                      : viewMode === 'wbsPoz' && !isLeafSet.has(activeWbsNodeId) ? 'Alt başlık ekle'
-                      : !canAddPoz ? 'Önce Proje Ayarları\'ndan birim ekleyin'
-                      : 'Poz ekle'
-                    }>
-                      <span>
-                        <IconButton
-                          onClick={() => {
-                            if (viewMode === 'wbsOnly' || (viewMode === 'wbsPoz' && activeWbsNodeId && !isLeafSet.has(activeWbsNodeId))) {
-                              if (activeWbsNodeId && rawPozlar.some(p => p.wbs_node_id === activeWbsNodeId)) {
-                                setDialogAlert({
-                                  dialogIcon: 'warning',
-                                  dialogMessage: 'Bu düğümün altında pozlar mevcut olduğundan alt başlık eklenemez.',
-                                  detailText: 'Pozlar yalnızca yaprak (en alt) düğümlere bağlıdır. Alt başlık eklemek istiyorsanız önce bu düğümdeki pozları, pozlarını oluşturacağınız bir WBS düğümüne taşıyın.',
-                                  onCloseAction: () => setDialogAlert(),
-                                })
-                                return
-                              }
-                              setWbsChildForm({ name: '', codeName: '' })
-                              setShow('WbsChildCreate')
-                            } else {
-                              setShow('PozCreate')
-                            }
-                          }}
-                          disabled={viewMode === 'pozOnly' || (viewMode === 'wbsPoz' && !activeWbsNodeId) || (viewMode === 'wbsPoz' && isLeafSet.has(activeWbsNodeId) && !canAddPoz)}
-                        >
-                          <AddCircleOutlineIcon />
-                        </IconButton>
-                      </span>
-                    </Tooltip>
+                    <IconButton
+                      onClick={() => {
+                        if (viewMode === 'wbsOnly' || (viewMode === 'wbsPoz' && activeWbsNodeId && !isLeafSet.has(activeWbsNodeId))) {
+                          if (activeWbsNodeId && rawPozlar.some(p => p.wbs_node_id === activeWbsNodeId)) {
+                            setDialogAlert({
+                              dialogIcon: 'warning',
+                              dialogMessage: 'Bu düğümün altında pozlar mevcut olduğundan alt başlık eklenemez.',
+                              detailText: 'Pozlar yalnızca yaprak (en alt) düğümlere bağlıdır. Alt başlık eklemek istiyorsanız önce bu düğümdeki pozları, pozlarını oluşturacağınız bir WBS düğümüne taşıyın.',
+                              onCloseAction: () => setDialogAlert(),
+                            })
+                            return
+                          }
+                          setWbsChildForm({ name: '', codeName: '' })
+                          setShow('WbsChildCreate')
+                        } else {
+                          setShow('PozCreate')
+                        }
+                      }}
+                      disabled={viewMode === 'pozOnly' || (viewMode === 'wbsPoz' && !activeWbsNodeId) || (viewMode === 'wbsPoz' && isLeafSet.has(activeWbsNodeId) && !canAddPoz)}
+                    >
+                      <AddCircleOutlineIcon />
+                    </IconButton>
                   </Grid>
                   <Grid item>
-                    <Tooltip title={rawWbsNodes.length === 0 ? 'Önce WBS başlıkları oluşturun' : `Görünüm: ${viewModeLabel} (tıkla: sonraki mod)`}>
-                      <span>
-                      <Button
-                        size="small"
-                        variant="outlined"
-                        onClick={cycleViewMode}
-                        disabled={rawWbsNodes.length === 0}
-                        startIcon={<ViewAgendaIcon />}
-                        sx={{
-                          textTransform: 'none',
-                          minWidth: '5.25rem',
-                          px: '0.5rem',
-                          color: 'text.secondary',
-                          borderColor: 'grey.400',
-                          '&:hover': {
-                            borderColor: 'grey.600',
-                            backgroundColor: 'grey.100',
-                          },
-                        }}
-                      >
-                        {viewModeLabel}
-                      </Button>
-                      </span>
-                    </Tooltip>
+                    <Button
+                      size="small"
+                      variant="outlined"
+                      onClick={cycleViewMode}
+                      disabled={rawWbsNodes.length === 0}
+                      startIcon={<ViewAgendaIcon />}
+                      sx={{
+                        textTransform: 'none',
+                        minWidth: '5.25rem',
+                        px: '0.5rem',
+                        color: 'text.secondary',
+                        borderColor: 'grey.400',
+                        '&:hover': {
+                          borderColor: 'grey.600',
+                          backgroundColor: 'grey.100',
+                        },
+                      }}
+                    >
+                      {viewModeLabel}
+                    </Button>
                   </Grid>
                 </>
               )}
