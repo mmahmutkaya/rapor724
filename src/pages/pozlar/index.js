@@ -185,7 +185,7 @@ export default function P_Pozlar() {
 
   const unitsMap = useMemo(() => {
     const m = {}
-    units.forEach(u => { m[u.id] = u.name })
+    units.forEach(u => { m[u.id] = (u.name || '').replace(/²/g, '2').replace(/³/g, '3') })
     return m
   }, [units])
 
@@ -627,7 +627,7 @@ export default function P_Pozlar() {
                             sx={{ display: 'flex', alignItems: 'center', gap: '0.4rem', cursor: isLeaf ? 'default' : 'pointer', flexShrink: 0 }}
                           >
                             {!isLeaf &&
-                              <Box sx={{ fontSize: '0.7rem', flexShrink: 0 }}>
+                              <Box sx={{ fontSize: '0.7rem', flexShrink: 0, color: collapsedIds.has(node.id) ? '#ff4444' : 'inherit' }}>
                                 {collapsedIds.has(node.id) ? '▶' : '▼'}
                               </Box>
                             }
@@ -722,7 +722,7 @@ export default function P_Pozlar() {
                             onClick={() => toggleCollapse(node.id)}
                             sx={{ display: 'flex', alignItems: 'center', gap: '0.4rem', cursor: 'pointer', flexShrink: 0 }}
                           >
-                            <Box sx={{ fontSize: '0.7rem', flexShrink: 0 }}>
+                            <Box sx={{ fontSize: '0.7rem', flexShrink: 0, color: (collapsedIds.has(node.id) && (!isLeaf || pozlarOfNode.length > 0)) ? '#ff4444' : 'inherit' }}>
                               {collapsedIds.has(node.id) ? '▶' : '▼'}
                             </Box>
                             <Typography variant="body2">
@@ -736,11 +736,6 @@ export default function P_Pozlar() {
                           >
                             {isSelected &&
                               <Box sx={{ width: '0.4rem', height: '0.4rem', borderRadius: '50%', backgroundColor: 'yellow' }} />
-                            }
-                            {isLeaf && pozlarOfNode.length > 0 &&
-                              <Box sx={{ ml: 'auto', fontSize: '0.75rem', opacity: 0.5, flexShrink: 0 }}>
-                                {pozlarOfNode.length} poz
-                              </Box>
                             }
                           </Box>
                         </Box>

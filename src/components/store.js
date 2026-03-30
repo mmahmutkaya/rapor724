@@ -81,6 +81,7 @@ export default ({ children }) => {
   const [showNodeMetraj, setShowNodeMetraj] = useState()
   const [nodeMetrajlar, setNodeMetrajlar] = useState()
 
+  const [hiddenMetrajUsers, setHiddenMetrajUsers] = useState(new Set())
   const [metrajMode, setMetrajMode] = useState("approve") // "prepare" | "approve"
   const [metrajViewMode, setMetrajViewMode] = useState("wbsPoz") // "pozOnly" | "wbsPoz"
   const [metrajMahalViewMode, setMetrajMahalViewMode] = useState("lbsMahal") // "lbsOnly" | "mahalOnly" | "lbsMahal"
@@ -145,6 +146,7 @@ export default ({ children }) => {
     showNodeMetraj, setShowNodeMetraj,
     nodeMetrajlar, setNodeMetrajlar,
 
+    hiddenMetrajUsers, setHiddenMetrajUsers,
     metrajMode, setMetrajMode,
     metrajViewMode, setMetrajViewMode,
     metrajMahalViewMode, setMetrajMahalViewMode,

@@ -44,6 +44,9 @@ import ListItemText from '@mui/material/ListItemText'
 import Divider from '@mui/material/Divider'
 import ToggleButton from '@mui/material/ToggleButton'
 import ToggleButtonGroup from '@mui/material/ToggleButtonGroup'
+import Badge from '@mui/material/Badge'
+import Switch from '@mui/material/Switch'
+import PersonIcon from '@mui/icons-material/Person'
 
 
 function computeQuantity(line) {
@@ -178,7 +181,7 @@ const VIRTUAL_SESS_ID = 'virtual-new'
 
 export default function P_MetrajOlusturCetvel() {
   const navigate = useNavigate()
-  const { selectedProje, selectedIsPaket, selectedPoz, selectedMahal, appUser, metrajMode, setMetrajMode } = useContext(StoreContext)
+  const { selectedProje, selectedIsPaket, selectedPoz, selectedMahal, appUser, metrajMode, setMetrajMode, hiddenMetrajUsers, setHiddenMetrajUsers } = useContext(StoreContext)
   const { data: units = [] } = useGetPozUnits()
 
   const [dialogAlert, setDialogAlert] = useState()
@@ -200,6 +203,7 @@ export default function P_MetrajOlusturCetvel() {
   const [childEditValues, setChildEditValues] = useState({})   // { lineId: {description,multiplier,count,length,width,height} }
   const [onayKartiEditMode, setOnayKartiEditMode] = useState(false)
   const [expandedSessCards, setExpandedSessCards] = useState({})
+  const [personDialogOpen, setPersonDialogOpen] = useState(false)
   const [pendingDeletes, setPendingDeletes] = useState([])     // { lineId: string }[] — henüz DB'ye yansıtılmamış silmeler
   const [pendingStatusReverts,  setPendingStatusReverts]  = useState([]) // lineId[] — pending→draft, save'e kadar DB'ye yazılmaz
   const [pendingStatusForwards, setPendingStatusForwards] = useState([]) // lineId[] — draft→pending, save'e kadar DB'ye yazılmaz
@@ -1020,7 +1024,7 @@ export default function P_MetrajOlusturCetvel() {
 
   const unitsMap = useMemo(() => {
     const m = {}
-    units.forEach(u => { m[u.id] = u.name })
+    units.forEach(u => { m[u.id] = (u.name || '').replace(/²/g, '2').replace(/³/g, '3') })
     return m
   }, [units])
 
@@ -1716,6 +1720,33 @@ export default function P_MetrajOlusturCetvel() {
         </DialogContent>
       </Dialog>
 
+      {/* KİŞİ GÖRÜNÜRLÜĞÜ DİALOG */}
+      <Dialog open={personDialogOpen} onClose={() => setPersonDialogOpen(false)}>
+        <DialogTitle>Görünen Kullanıcılar</DialogTitle>
+        <DialogContent sx={{ minWidth: 300 }}>
+          <List>
+            {[...new Map(sessions.map(s => [s.created_by, s.userName])).entries()].map(([uid, name]) => (
+              <ListItem
+                key={uid}
+                secondaryAction={
+                  <Switch
+                    edge="end"
+                    checked={!hiddenMetrajUsers.has(uid)}
+                    onChange={(e) => {
+                      const newHidden = new Set(hiddenMetrajUsers)
+                      if (e.target.checked) { newHidden.delete(uid) } else { newHidden.add(uid) }
+                      setHiddenMetrajUsers(newHidden)
+                    }}
+                  />
+                }
+              >
+                <ListItemText primary={name} />
+              </ListItem>
+            ))}
+          </List>
+        </DialogContent>
+      </Dialog>
+
       {/* BAŞLIK */}
       <AppBar position="static" sx={{ backgroundColor: 'white', color: 'black', boxShadow: 4 }}>
         <Grid container alignItems="center" sx={{ px: '1rem', minHeight: '3.5rem', maxHeight: '5rem' }}>
@@ -1772,6 +1803,19 @@ export default function P_MetrajOlusturCetvel() {
             </ToggleButtonGroup>
           </Grid>
           <Grid item>
+            <Tooltip title="Kullanıcıları göster/gizle">
+              <IconButton
+                size="small"
+                onClick={() => setPersonDialogOpen(true)}
+                sx={{ border: '1px solid', borderColor: 'grey.400', borderRadius: '50%', '&:hover': { borderColor: 'grey.600', backgroundColor: 'grey.100' } }}
+              >
+                <Badge badgeContent={hiddenMetrajUsers.size} color="error">
+                  <PersonIcon fontSize="small" />
+                </Badge>
+              </IconButton>
+            </Tooltip>
+          </Grid>
+          <Grid item>
             <Tooltip title="Kart görünürlüğü">
               <IconButton onClick={() => setOpenVisibilityDialog(true)}>
                 <VisibilityIcon sx={{ color: '#455a64' }} />
@@ -1792,7 +1836,7 @@ export default function P_MetrajOlusturCetvel() {
       <Box sx={{ display: 'flex', flexDirection: 'column' }}>
       {/* SESSION KARTLARI */}
       {(() => {
-        const visibleSessions = sessions.filter(sess => visibleSessCards[sess.id] ?? true)
+        const visibleSessions = sessions.filter(sess => (visibleSessCards[sess.id] ?? true) && !hiddenMetrajUsers.has(sess.created_by))
         return visibleSessions.length > 0 ? (
           <Box sx={{ mt: '1.5rem', px: '1rem', display: 'flex', flexDirection: 'column', gap: '1.5rem', maxWidth: '1100px', order: 1 }}>
             {visibleSessions

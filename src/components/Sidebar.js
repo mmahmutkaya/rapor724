@@ -125,7 +125,7 @@ export default function Sidebar({ setMobileOpen }) {
                       '&:hover': {
                         backgroundColor: 'rgba(0,0,0,0.08)',
                         '& .MuiSvgIcon-root': { color: 'rgba(0,0,0,0.7)' },
-                        '& .MuiListItemText-primary': { fontWeight: '700 !important' },
+                        '& .MuiListItemText-primary': { textShadow: '0 0 0.6px currentColor' },
                       },
                     }}>
                       <ListItemIcon sx={{ minWidth: '36px' }}>
@@ -139,13 +139,6 @@ export default function Sidebar({ setMobileOpen }) {
                         fontSize: '0.8rem',
                         fontWeight: item.active ? 700 : 400,
                         color: item.danger ? 'error.main' : 'text.secondary',
-                        sx: {
-                          '&::before': {
-                            content: `"${item.label}"`,
-                            display: 'block', height: 0,
-                            overflow: 'hidden', fontWeight: 700, visibility: 'hidden',
-                          }
-                        }
                       }} />
                     </ListItemButton>
                   ))}

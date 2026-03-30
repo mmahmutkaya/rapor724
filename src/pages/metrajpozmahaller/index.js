@@ -21,6 +21,15 @@ import DeleteIcon from '@mui/icons-material/Delete'
 import KeyboardArrowUpIcon from '@mui/icons-material/KeyboardArrowUp'
 import KeyboardArrowDownIcon from '@mui/icons-material/KeyboardArrowDown'
 import KeyboardArrowLeftIcon from '@mui/icons-material/KeyboardArrowLeft'
+import Badge from '@mui/material/Badge'
+import Dialog from '@mui/material/Dialog'
+import DialogTitle from '@mui/material/DialogTitle'
+import DialogContent from '@mui/material/DialogContent'
+import List from '@mui/material/List'
+import ListItem from '@mui/material/ListItem'
+import ListItemText from '@mui/material/ListItemText'
+import Switch from '@mui/material/Switch'
+import PersonIcon from '@mui/icons-material/Person'
 import KeyboardArrowRightIcon from '@mui/icons-material/KeyboardArrowRight'
 
 const EMPTY_ARRAY = []
@@ -30,6 +39,10 @@ function ikiHane(v) {
   const n = Number(v)
   if (isNaN(n)) return ''
   return new Intl.NumberFormat('de-DE', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(n)
+}
+
+function negStyle(v) {
+  return v != null && Number(v) < 0 ? { color: '#8b0000', fontWeight: 700 } : {}
 }
 
 function flattenTree(nodes, parentId = null, depth = 0) {
@@ -86,7 +99,7 @@ function nodeColor(depth) {
 export default function P_MetrajPozMahaller() {
   const navigate = useNavigate()
   const queryClient = useQueryClient()
-  const { selectedProje, selectedIsPaket, selectedPoz, setSelectedMahal, setSelectedMahal_metraj, appUser, metrajMahalViewMode, setMetrajMahalViewMode } = useContext(StoreContext)
+  const { selectedProje, selectedIsPaket, selectedPoz, setSelectedMahal, setSelectedMahal_metraj, appUser, metrajMahalViewMode, setMetrajMahalViewMode, hiddenMetrajUsers, setHiddenMetrajUsers } = useContext(StoreContext)
 
   useEffect(() => {
     if (!selectedProje) navigate('/projeler')
@@ -101,6 +114,7 @@ export default function P_MetrajPozMahaller() {
   const [hoveredMahalId, setHoveredMahalId] = useState(null)
   const [hoveredNodeId, setHoveredNodeId] = useState(null)
   const [activeNodeId, setActiveNodeId] = useState(null)
+  const [userVisDialogOpen, setUserVisDialogOpen] = useState(false)
 
   const [collapsedIds, setCollapsedIds] = useState(new Set())
   const [show, setShow] = useState('Main')
@@ -456,7 +470,7 @@ export default function P_MetrajPozMahaller() {
 
   const unitsMap = useMemo(() => {
     const m = {}
-    units.forEach(u => { m[u.id] = u.name })
+    units.forEach(u => { m[u.id] = (u.name || '').replace(/²/g, '2').replace(/³/g, '3') })
     return m
   }, [units])
 
@@ -474,6 +488,14 @@ export default function P_MetrajPozMahaller() {
     () => preparersList.map(p => Object.values(p.map).reduce((sum, v) => sum + v, 0)),
     [preparersList]
   )
+  const visibleNodeHazTotalsPerPreparer = useMemo(
+    () => nodeHazTotalsPerPreparer.filter(ph => !hiddenMetrajUsers.has(ph.id)),
+    [nodeHazTotalsPerPreparer, hiddenMetrajUsers]
+  )
+  const visibleProjectTotalHaz = useMemo(
+    () => visiblePreparers.map(p => Object.values(p.map).reduce((sum, v) => sum + v, 0)),
+    [visiblePreparers]
+  )
 
   const handleMahalClick = (mahal) => {
     setSelectedMahal(mahal)
@@ -481,9 +503,14 @@ export default function P_MetrajPozMahaller() {
     navigate('/metraj/cetvel')
   }
 
+  const visiblePreparers = useMemo(
+    () => preparersList.filter(p => !hiddenMetrajUsers.has(p.id)),
+    [preparersList, hiddenMetrajUsers]
+  )
+
   const getGridColsTemplate = () => {
     const depthCols = `repeat(${totalDepthCols}, 1rem)`
-    const hazCount = Math.max(1, preparersList.length)
+    const hazCount = Math.max(1, visiblePreparers.length)
     const hazCols = Array(hazCount).fill('8rem').join(' ')
 
     if (metrajMahalViewMode === 'mahalOnly') {
@@ -527,6 +554,8 @@ export default function P_MetrajPozMahaller() {
 
   const COL_SEP_ON_DARK  = '1px dotted rgba(255,255,255,0.35)'  // sütun ayırıcı — koyu arka plan
   const COL_SEP_ON_LIGHT = '1px dotted rgba(0,0,0,0.28)'        // sütun ayırıcı — açık arka plan
+  const ALAN_SEP_DARK    = '1px dotted rgba(255,255,255,0.6)'   // alan sütunu sol kenar — koyu arka plan
+  const ALAN_SEP_LIGHT   = '1px dotted rgba(0,0,0,0.5)'         // alan sütunu sol kenar — açık arka plan (mahal)
 
   const css_satir_bg    = '#c8d4dd'
   const css_satir_hover = '#a5b8c8'
@@ -558,6 +587,19 @@ export default function P_MetrajPozMahaller() {
             <Typography sx={{ fontSize: '0.78rem', fontWeight: 700, maxWidth: '12rem', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', textTransform: 'uppercase' }}>{selectedPoz?.short_desc}</Typography>
           </Box>
           <Box sx={{ display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
+            {preparersList.length > 0 && (
+              <Tooltip title="Kullanıcıları göster/gizle">
+                <IconButton
+                  size="small"
+                  onClick={() => setUserVisDialogOpen(true)}
+                  sx={{ border: '1px solid', borderColor: 'grey.400', borderRadius: '50%', '&:hover': { borderColor: 'grey.600', backgroundColor: 'grey.100' } }}
+                >
+                  <Badge badgeContent={hiddenMetrajUsers.size} color="error">
+                    <PersonIcon fontSize="small" />
+                  </Badge>
+                </IconButton>
+              </Tooltip>
+            )}
             <Tooltip title={`Görünüm: ${viewModeLabel} (tıkla: sonraki mod)`}>
               <Button
                 size="small"
@@ -579,6 +621,33 @@ export default function P_MetrajPozMahaller() {
           </Box>
         </Box>
       </Paper>
+
+      {/* User visibility dialog */}
+      <Dialog open={userVisDialogOpen} onClose={() => setUserVisDialogOpen(false)}>
+        <DialogTitle>Görünen Kullanıcılar</DialogTitle>
+        <DialogContent sx={{ minWidth: 300 }}>
+          <List>
+            {preparersList.map(p => (
+              <ListItem
+                key={p.id}
+                secondaryAction={
+                  <Switch
+                    edge="end"
+                    checked={!hiddenMetrajUsers.has(p.id)}
+                    onChange={(e) => {
+                      const newHidden = new Set(hiddenMetrajUsers)
+                      if (e.target.checked) { newHidden.delete(p.id) } else { newHidden.add(p.id) }
+                      setHiddenMetrajUsers(newHidden)
+                    }}
+                  />
+                }
+              >
+                <ListItemText primary={p.display_name} />
+              </ListItem>
+            ))}
+          </List>
+        </DialogContent>
+      </Dialog>
 
       {/* LBS child create form */}
       {show === 'LbsChildCreate' && (
@@ -645,25 +714,25 @@ export default function P_MetrajPozMahaller() {
               <Box sx={{ ...css_baslik }} />
               <Box sx={{ ...css_baslik }} />
               <Box sx={{ ...css_baslik }} />
-              <Box sx={{ ...css_baslik, borderLeft: '0.5rem solid white' }}>Alan</Box>
+              <Box sx={{ ...css_baslik, borderLeft: ALAN_SEP_DARK }}>Alan</Box>
               <Box sx={{ ...css_baslik_onaylanan }}>Onaylanan</Box>
-              {preparersList.length === 0
+              {visiblePreparers.length === 0
                 ? <Box sx={{ ...css_baslik_hazirlanlan }}>Hazırlanan</Box>
-                : preparersList.map(p => <Box key={p.id} sx={{ ...css_baslik_hazirlanlan }}>{p.display_name}</Box>)}
+                : visiblePreparers.map(p => <Box key={p.id} sx={{ ...css_baslik_hazirlanlan }}>{p.display_name}</Box>)}
 
               {/* Project name row */}
               <Box sx={{ backgroundColor: 'black' }} />
               <Box sx={{ gridColumn: 'span 2', backgroundColor: 'black', color: 'white', pl: '6px', py: '2px', display: 'flex', alignItems: 'center' }}>
                 <Typography variant="body2" sx={{ fontSize: '0.75rem', fontWeight: 700 }}>{selectedProje?.name}</Typography>
               </Box>
-              <Box sx={{ backgroundColor: 'black', borderLeft: '0.5rem solid white', color: 'white', px: '4px', py: '2px', fontSize: '0.75rem', display: 'flex', alignItems: 'center', justifyContent: 'flex-end', whiteSpace: 'nowrap' }}>
+              <Box sx={{ backgroundColor: 'black', borderLeft: ALAN_SEP_DARK, color: 'white', px: '4px', py: '2px', fontSize: '0.75rem', display: 'flex', alignItems: 'center', justifyContent: 'flex-end', whiteSpace: 'nowrap' }}>
                 {projectTotalArea ? `${ikiHane(projectTotalArea)} m²` : ''}
               </Box>
               <Box sx={{ backgroundColor: 'black', ml: '0.5rem', mr: '0.5rem', color: 'white', px: '4px', py: '2px', fontSize: '0.75rem', display: 'flex', alignItems: 'center', justifyContent: 'flex-end', whiteSpace: 'nowrap' }}>
                 {projectTotalOnay ? `${ikiHane(projectTotalOnay)}${pozBirim ? ` ${pozBirim}` : ''}` : ''}
               </Box>
-              {(preparersList.length === 0 ? [null] : preparersList).map((p, i) => {
-                const tot = p ? projectTotalHaz[i] : 0
+              {(visiblePreparers.length === 0 ? [null] : visiblePreparers).map((p, i) => {
+                const tot = p ? visibleProjectTotalHaz[i] : 0
                 return (
                   <Box key={`pn-mo-${i}`} sx={{ backgroundColor: 'black', color: 'white', px: '4px', py: '2px', fontSize: '0.75rem', display: 'flex', alignItems: 'center', justifyContent: 'flex-end', whiteSpace: 'nowrap' }}>
                     {tot ? `${ikiHane(tot)}${pozBirim ? ` ${pozBirim}` : ''}` : ''}
@@ -685,18 +754,18 @@ export default function P_MetrajPozMahaller() {
                     <Box onMouseEnter={() => setHoveredMahalId(mahal.id)} onMouseLeave={() => setHoveredMahalId(null)} onClick={() => handleMahalClick(mahal)} sx={{ backgroundColor: rowBg, px: '4px', py: '2px', fontSize: '0.75rem', cursor: 'pointer', textDecoration: 'none', textShadow: mahalTs, borderRight: COL_SEP_ON_LIGHT }}>
                       {mahal.name}
                     </Box>
-                    <Box onMouseEnter={() => setHoveredMahalId(mahal.id)} onMouseLeave={() => setHoveredMahalId(null)} onClick={() => handleMahalClick(mahal)} sx={{ backgroundColor: rowBg, px: '4px', py: '2px', fontSize: '0.75rem', display: 'flex', alignItems: 'center', justifyContent: 'flex-end', cursor: 'pointer', textShadow: mahalTs, borderLeft: '0.5rem solid white' }}>
+                    <Box onMouseEnter={() => setHoveredMahalId(mahal.id)} onMouseLeave={() => setHoveredMahalId(null)} onClick={() => handleMahalClick(mahal)} sx={{ backgroundColor: rowBg, px: '4px', py: '2px', fontSize: '0.75rem', display: 'flex', alignItems: 'center', justifyContent: 'flex-end', cursor: 'pointer', textShadow: mahalTs, borderLeft: ALAN_SEP_LIGHT }}>
                       {ikiHane(mahal.area)}{mahal.area != null && mahal.area !== '' ? ' m²' : ''}
                     </Box>
                     {/* Onaylanan */}
-                    <Box onMouseEnter={() => setHoveredMahalId(mahal.id)} onMouseLeave={() => setHoveredMahalId(null)} onClick={() => handleMahalClick(mahal)} sx={{ backgroundColor: rowBg, ml: '0.5rem', mr: '0.5rem', px: '4px', py: '2px', fontSize: '0.75rem', display: 'flex', alignItems: 'center', justifyContent: 'flex-end', whiteSpace: 'nowrap', overflow: 'hidden', cursor: 'pointer', textShadow: mahalTs }}>
+                    <Box onMouseEnter={() => setHoveredMahalId(mahal.id)} onMouseLeave={() => setHoveredMahalId(null)} onClick={() => handleMahalClick(mahal)} sx={{ backgroundColor: rowBg, ml: '0.5rem', mr: '0.5rem', px: '4px', py: '2px', fontSize: '0.75rem', display: 'flex', alignItems: 'center', justifyContent: 'flex-end', whiteSpace: 'nowrap', overflow: 'hidden', cursor: 'pointer', textShadow: mahalTs, ...negStyle(mahalOnayMap[mahal.wpAreaId]) }}>
                       {mahalOnayMap[mahal.wpAreaId]
                         ? `${ikiHane(mahalOnayMap[mahal.wpAreaId])}${pozBirim ? ` ${pozBirim}` : ''}`
                         : '—'}
                     </Box>
                     {/* Hazırlanan — per preparer */}
-                    {(preparersList.length === 0 ? [null] : preparersList).map((p) => (
-                      <Box key={p?.id ?? 'haz'} onMouseEnter={() => setHoveredMahalId(mahal.id)} onMouseLeave={() => setHoveredMahalId(null)} onClick={() => handleMahalClick(mahal)} sx={{ backgroundColor: rowBg, px: '4px', py: '2px', fontSize: '0.75rem', display: 'flex', alignItems: 'center', justifyContent: 'flex-end', whiteSpace: 'nowrap', overflow: 'hidden', cursor: 'pointer', textShadow: mahalTs }}>
+                    {(visiblePreparers.length === 0 ? [null] : visiblePreparers).map((p) => (
+                      <Box key={p?.id ?? 'haz'} onMouseEnter={() => setHoveredMahalId(mahal.id)} onMouseLeave={() => setHoveredMahalId(null)} onClick={() => handleMahalClick(mahal)} sx={{ backgroundColor: rowBg, px: '4px', py: '2px', fontSize: '0.75rem', display: 'flex', alignItems: 'center', justifyContent: 'flex-end', whiteSpace: 'nowrap', overflow: 'hidden', cursor: 'pointer', textShadow: mahalTs, ...negStyle(p?.map[mahal.wpAreaId]) }}>
                         {p?.map[mahal.wpAreaId]
                           ? `${ikiHane(p.map[mahal.wpAreaId])}${pozBirim ? ` ${pozBirim}` : ''}`
                           : '—'}
@@ -716,25 +785,25 @@ export default function P_MetrajPozMahaller() {
               {Array.from({ length: totalDepthCols }).map((_, i) => <Box key={`h-depth-${i}`} sx={{ ...css_baslik }} />)}
               <Box sx={{ ...css_baslik }} />
               <Box sx={{ ...css_baslik }} />
-              <Box sx={{ ...css_baslik, borderLeft: '0.5rem solid white' }}>Alan</Box>
+              <Box sx={{ ...css_baslik, borderLeft: ALAN_SEP_DARK }}>Alan</Box>
               <Box sx={{ ...css_baslik_onaylanan }}>Onaylanan</Box>
-              {preparersList.length === 0
+              {visiblePreparers.length === 0
                 ? <Box sx={{ ...css_baslik_hazirlanlan }}>Hazırlanan</Box>
-                : preparersList.map(p => <Box key={p.id} sx={{ ...css_baslik_hazirlanlan }}>{p.display_name}</Box>)}
+                : visiblePreparers.map(p => <Box key={p.id} sx={{ ...css_baslik_hazirlanlan }}>{p.display_name}</Box>)}
 
               {/* Project name row */}
               <Box sx={{ backgroundColor: 'black' }} />
               <Box sx={{ gridColumn: `span ${totalDepthCols + 2}`, backgroundColor: 'black', color: 'white', pl: '6px', py: '2px', display: 'flex', alignItems: 'center' }}>
                 <Typography variant="body2" sx={{ fontSize: '0.75rem', fontWeight: 700 }}>{selectedProje?.name}</Typography>
               </Box>
-              <Box sx={{ backgroundColor: 'black', borderLeft: '0.5rem solid white', color: 'white', px: '4px', py: '2px', fontSize: '0.75rem', display: 'flex', alignItems: 'center', justifyContent: 'flex-end', whiteSpace: 'nowrap' }}>
+              <Box sx={{ backgroundColor: 'black', borderLeft: ALAN_SEP_DARK, color: 'white', px: '4px', py: '2px', fontSize: '0.75rem', display: 'flex', alignItems: 'center', justifyContent: 'flex-end', whiteSpace: 'nowrap' }}>
                 {projectTotalArea ? `${ikiHane(projectTotalArea)} m²` : ''}
               </Box>
               <Box sx={{ backgroundColor: 'black', ml: '0.5rem', mr: '0.5rem', color: 'white', px: '4px', py: '2px', fontSize: '0.75rem', display: 'flex', alignItems: 'center', justifyContent: 'flex-end', whiteSpace: 'nowrap' }}>
                 {projectTotalOnay ? `${ikiHane(projectTotalOnay)}${pozBirim ? ` ${pozBirim}` : ''}` : ''}
               </Box>
-              {(preparersList.length === 0 ? [null] : preparersList).map((p, i) => {
-                const tot = p ? projectTotalHaz[i] : 0
+              {(visiblePreparers.length === 0 ? [null] : visiblePreparers).map((p, i) => {
+                const tot = p ? visibleProjectTotalHaz[i] : 0
                 return (
                   <Box key={`pn-lbs-${i}`} sx={{ backgroundColor: 'black', color: 'white', px: '4px', py: '2px', fontSize: '0.75rem', display: 'flex', alignItems: 'center', justifyContent: 'flex-end', whiteSpace: 'nowrap' }}>
                     {tot ? `${ikiHane(tot)}${pozBirim ? ` ${pozBirim}` : ''}` : ''}
@@ -808,7 +877,7 @@ export default function P_MetrajPozMahaller() {
                         fontSize: '0.75rem',
                         display: 'flex', alignItems: 'center', justifyContent: 'flex-end',
                         whiteSpace: 'nowrap',
-                        borderLeft: '0.5rem solid white',
+                        borderLeft: ALAN_SEP_DARK,
                       }}>
                       {nodeAreaTotals[node.id] ? `${ikiHane(nodeAreaTotals[node.id])} m²` : ''}
                     </Box>
@@ -823,7 +892,7 @@ export default function P_MetrajPozMahaller() {
                     </Box>
 
                     {/* Hazırlanan toplamı — per preparer */}
-                    {(nodeHazTotalsPerPreparer.length === 0 ? [{ id: 'haz', totals: {} }] : nodeHazTotalsPerPreparer).map(ph => (
+                    {(visibleNodeHazTotalsPerPreparer.length === 0 ? [{ id: 'haz', totals: {} }] : visibleNodeHazTotalsPerPreparer).map(ph => (
                       <Box
                         key={ph.id}
                         onMouseEnter={() => setHoveredNodeId(node.id)}
@@ -891,7 +960,7 @@ export default function P_MetrajPozMahaller() {
                             onMouseEnter={() => setHoveredMahalId(mahal.id)}
                             onMouseLeave={() => setHoveredMahalId(null)}
                             onClick={() => handleMahalClick(mahal)}
-                            sx={{ backgroundColor: rowBg, px: '4px', py: '2px', fontSize: '0.75rem', display: 'flex', alignItems: 'center', justifyContent: 'flex-end', cursor: 'pointer', textShadow: mahalTs, borderLeft: '0.5rem solid white' }}
+                            sx={{ backgroundColor: rowBg, px: '4px', py: '2px', fontSize: '0.75rem', display: 'flex', alignItems: 'center', justifyContent: 'flex-end', cursor: 'pointer', textShadow: mahalTs, borderLeft: ALAN_SEP_LIGHT }}
                           >
                             {ikiHane(mahal.area)}{mahal.area != null && mahal.area !== '' ? ' m²' : ''}
                           </Box>
@@ -901,7 +970,7 @@ export default function P_MetrajPozMahaller() {
                             onMouseEnter={() => setHoveredMahalId(mahal.id)}
                             onMouseLeave={() => setHoveredMahalId(null)}
                             onClick={() => handleMahalClick(mahal)}
-                            sx={{ backgroundColor: rowBg, ml: '0.5rem', mr: '0.5rem', px: '4px', py: '2px', fontSize: '0.75rem', display: 'flex', alignItems: 'center', justifyContent: 'flex-end', whiteSpace: 'nowrap', overflow: 'hidden', cursor: 'pointer', textShadow: mahalTs }}
+                            sx={{ backgroundColor: rowBg, ml: '0.5rem', mr: '0.5rem', px: '4px', py: '2px', fontSize: '0.75rem', display: 'flex', alignItems: 'center', justifyContent: 'flex-end', whiteSpace: 'nowrap', overflow: 'hidden', cursor: 'pointer', textShadow: mahalTs, ...negStyle(mahalOnayMap[mahal.wpAreaId]) }}
                           >
                             {mahalOnayMap[mahal.wpAreaId]
                               ? `${ikiHane(mahalOnayMap[mahal.wpAreaId])}${pozBirim ? ` ${pozBirim}` : ''}`
@@ -909,13 +978,13 @@ export default function P_MetrajPozMahaller() {
                           </Box>
 
                           {/* Hazırlanan — per preparer */}
-                          {(preparersList.length === 0 ? [null] : preparersList).map((p) => (
+                          {(visiblePreparers.length === 0 ? [null] : visiblePreparers).map((p) => (
                             <Box
                               key={p?.id ?? 'haz'}
                               onMouseEnter={() => setHoveredMahalId(mahal.id)}
                               onMouseLeave={() => setHoveredMahalId(null)}
                               onClick={() => handleMahalClick(mahal)}
-                              sx={{ backgroundColor: rowBg, px: '4px', py: '2px', fontSize: '0.75rem', display: 'flex', alignItems: 'center', justifyContent: 'flex-end', whiteSpace: 'nowrap', overflow: 'hidden', cursor: 'pointer', textShadow: mahalTs }}
+                              sx={{ backgroundColor: rowBg, px: '4px', py: '2px', fontSize: '0.75rem', display: 'flex', alignItems: 'center', justifyContent: 'flex-end', whiteSpace: 'nowrap', overflow: 'hidden', cursor: 'pointer', textShadow: mahalTs, ...negStyle(p?.map[mahal.wpAreaId]) }}
                             >
                               {p?.map[mahal.wpAreaId]
                                 ? `${ikiHane(p.map[mahal.wpAreaId])}${pozBirim ? ` ${pozBirim}` : ''}`

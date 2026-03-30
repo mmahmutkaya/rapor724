@@ -21,10 +21,11 @@ import DialogContent from '@mui/material/DialogContent'
 import List from '@mui/material/List'
 import ListItem from '@mui/material/ListItem'
 import ListItemText from '@mui/material/ListItemText'
-import Checkbox from '@mui/material/Checkbox'
+import Switch from '@mui/material/Switch'
 import Button from '@mui/material/Button'
 import Tooltip from '@mui/material/Tooltip'
 import ViewAgendaIcon from '@mui/icons-material/ViewAgenda'
+import PersonIcon from '@mui/icons-material/Person'
 
 const EMPTY_ARRAY = []
 
@@ -33,6 +34,10 @@ function ikiHane(v) {
   const n = Number(v)
   if (isNaN(n)) return ''
   return new Intl.NumberFormat('de-DE', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(n)
+}
+
+function negStyle(v) {
+  return v != null && Number(v) < 0 ? { color: '#8b0000', fontWeight: 700 } : {}
 }
 
 function flattenTree(nodes, parentId = null, depth = 0) {
@@ -59,7 +64,7 @@ function nodeColor(depth) {
 export default function P_MetrajPozlar() {
   const navigate = useNavigate()
   const {
-    selectedProje, selectedIsPaket, setSelectedPoz, appUser, metrajMode, metrajViewMode, setMetrajViewMode, topBarHeight, subHeaderHeight, drawerWidth
+    selectedProje, selectedIsPaket, setSelectedPoz, appUser, metrajMode, metrajViewMode, setMetrajViewMode, topBarHeight, subHeaderHeight, drawerWidth, hiddenMetrajUsers, setHiddenMetrajUsers
   } = useContext(StoreContext)
 
   const isApproveMode = metrajMode === 'approve'
@@ -95,7 +100,6 @@ export default function P_MetrajPozlar() {
 
   // Approve-mode state
   const [userVisDialogOpen, setUserVisDialogOpen] = useState(false)
-  const [hiddenUsers, setHiddenUsers] = useState(new Set())
   const [sessionMap, setSessionMap] = useState(null)
   const [userMap, setUserMap] = useState({})
   const [columnUsers, setColumnUsers] = useState([])
@@ -344,11 +348,6 @@ export default function P_MetrajPozlar() {
     })()
   }, [wpPozlar, isApproveMode])
 
-  // Clear hidden users on mode switch
-  useEffect(() => {
-    setHiddenUsers(new Set())
-  }, [metrajMode])
-
   const isLoading = isApproveMode
     ? sessionMap === null
     : pozWithAreasSet === null
@@ -373,7 +372,7 @@ export default function P_MetrajPozlar() {
 
   const unitsMap = useMemo(() => {
     const m = {}
-    units.forEach(u => { m[u.id] = u.name })
+    units.forEach(u => { m[u.id] = (u.name || '').replace(/²/g, '2').replace(/³/g, '3') })
     return m
   }, [units])
 
@@ -384,8 +383,8 @@ export default function P_MetrajPozlar() {
   }, [wpPozlar, sessionMap, pozWithAreasSet, isApproveMode])
 
   const visibleColumnUsers = useMemo(
-    () => columnUsers.filter(uid => !hiddenUsers.has(uid)),
-    [columnUsers, hiddenUsers]
+    () => columnUsers.filter(uid => !hiddenMetrajUsers.has(uid)),
+    [columnUsers, hiddenMetrajUsers]
   )
 
   const totalDepthCols = maxLeafDepth + 1
@@ -495,6 +494,17 @@ export default function P_MetrajPozlar() {
               </Box>
             </Grid>
             <Grid item xs="auto" sx={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
+              <Tooltip title="Kullanıcıları göster/gizle">
+                <IconButton
+                  size="small"
+                  onClick={() => setUserVisDialogOpen(true)}
+                  sx={{ border: '1px solid', borderColor: 'grey.400', borderRadius: '50%', '&:hover': { borderColor: 'grey.600', backgroundColor: 'grey.100' } }}
+                >
+                  <Badge badgeContent={hiddenMetrajUsers.size} color="error">
+                    <PersonIcon fontSize="small" />
+                  </Badge>
+                </IconButton>
+              </Tooltip>
               <Tooltip title={`Görünüm: ${viewModeLabel} (tıkla: sonraki mod)`}>
                 <Button
                   size="small"
@@ -513,15 +523,6 @@ export default function P_MetrajPozlar() {
                   {viewModeLabel}
                 </Button>
               </Tooltip>
-              <IconButton
-                size="small"
-                onClick={() => setUserVisDialogOpen(true)}
-                sx={{ '&:hover': { backgroundColor: '#e0e0e0' } }}
-              >
-                <Badge badgeContent={hiddenUsers.size} color="error">
-                  Kullanıcılar
-                </Badge>
-              </IconButton>
             </Grid>
           </Grid>
         </AppBar>
@@ -579,17 +580,17 @@ export default function P_MetrajPozlar() {
                 <ListItem
                   key={uid}
                   secondaryAction={
-                    <Checkbox
+                    <Switch
                       edge="end"
-                      checked={!hiddenUsers.has(uid)}
+                      checked={!hiddenMetrajUsers.has(uid)}
                       onChange={(e) => {
-                        const newHidden = new Set(hiddenUsers)
+                        const newHidden = new Set(hiddenMetrajUsers)
                         if (e.target.checked) {
                           newHidden.delete(uid)
                         } else {
                           newHidden.add(uid)
                         }
-                        setHiddenUsers(newHidden)
+                        setHiddenMetrajUsers(newHidden)
                       }}
                     />
                   }
@@ -618,8 +619,8 @@ export default function P_MetrajPozlar() {
               <Box sx={{ ...css_baslik_onaylanan }}>Onaylanan</Box>
 
               {isApproveMode ? (
-                visibleColumnUsers.map(uid => (
-                  <Box key={uid} sx={{ ...css_baslik, justifyContent: 'center', alignItems: 'center', fontSize: '0.65rem' }}>
+                visibleColumnUsers.map((uid, idx) => (
+                  <Box key={uid} sx={{ ...css_baslik, justifyContent: 'center', alignItems: 'center', fontSize: '0.65rem', ...(idx > 0 ? { borderLeft: '1px dotted rgba(255,255,255,0.5)' } : {}) }}>
                     {userMap[uid]?.display_name ?? uid.slice(0, 8)}
                   </Box>
                 ))
@@ -666,7 +667,7 @@ export default function P_MetrajPozlar() {
                       onMouseEnter={() => setHoveredPozId(poz.id)}
                       onMouseLeave={() => setHoveredPozId(null)}
                       onClick={() => handlePozClick(poz)}
-                      sx={{ backgroundColor: rowBg, px: '4px', py: '2px', fontSize: '0.75rem', cursor: 'pointer', textDecoration: 'underline' }}
+                      sx={{ backgroundColor: rowBg, px: '4px', py: '2px', fontSize: '0.75rem', cursor: 'pointer' }}
                     >
                       {poz.short_desc}
                     </Box>
@@ -689,7 +690,8 @@ export default function P_MetrajPozlar() {
                         gap: '0.3rem',
                         whiteSpace: 'nowrap',
                         overflow: 'hidden',
-                        cursor: 'pointer'
+                        cursor: 'pointer',
+                        ...negStyle(isApproveMode ? sessionMap?.[poz.id]?.approvedSum : pozOnayMap[poz.id])
                       }}
                     >
                       {isApproveMode && sessionMap?.[poz.id]?.approvedSum != null
@@ -705,14 +707,14 @@ export default function P_MetrajPozlar() {
 
                     {/* Mode-specific columns */}
                     {isApproveMode ? (
-                      visibleColumnUsers.map(uid => {
+                      visibleColumnUsers.map((uid, idx) => {
                         const ud = sessionMap?.[poz.id]?.byUser?.[uid]
                         return (
                           <Box
                             key={uid}
                             onMouseEnter={() => setHoveredPozId(poz.id)}
                             onMouseLeave={() => setHoveredPozId(null)}
-                            sx={{ backgroundColor: rowBg, px: '6px', py: '2px', fontSize: '0.75rem', fontWeight: 600, display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: '0.3rem', whiteSpace: 'nowrap', overflow: 'hidden', cursor: 'pointer' }}
+                            sx={{ backgroundColor: rowBg, px: '6px', py: '2px', fontSize: '0.75rem', fontWeight: 600, display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: '0.3rem', whiteSpace: 'nowrap', overflow: 'hidden', cursor: 'pointer', ...(idx > 0 ? { borderLeft: '1px dotted rgba(0,0,0,0.3)' } : {}), ...negStyle(ud?.pendingSum) }}
                           >
                             {ud?.pendingSum != null
                               ? <>
@@ -728,7 +730,7 @@ export default function P_MetrajPozlar() {
                           key={p?.id ?? 'haz'}
                           onMouseEnter={() => setHoveredPozId(poz.id)}
                           onMouseLeave={() => setHoveredPozId(null)}
-                          sx={{ backgroundColor: rowBg, px: '6px', py: '2px', fontSize: '0.75rem', fontWeight: 600, display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: '0.3rem', whiteSpace: 'nowrap', overflow: 'hidden', cursor: 'pointer' }}
+                          sx={{ backgroundColor: rowBg, px: '6px', py: '2px', fontSize: '0.75rem', fontWeight: 600, display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: '0.3rem', whiteSpace: 'nowrap', overflow: 'hidden', cursor: 'pointer', ...negStyle(p?.map[poz.id]) }}
                         >
                           {p?.map[poz.id] != null
                             ? <>
@@ -756,8 +758,8 @@ export default function P_MetrajPozlar() {
               <Box sx={{ ...css_baslik_onaylanan }}>Onaylanan</Box>
 
               {isApproveMode ? (
-                visibleColumnUsers.map(uid => (
-                  <Box key={uid} sx={{ ...css_baslik, justifyContent: 'center', alignItems: 'center', fontSize: '0.65rem' }}>
+                visibleColumnUsers.map((uid, idx) => (
+                  <Box key={uid} sx={{ ...css_baslik, justifyContent: 'center', alignItems: 'center', fontSize: '0.65rem', ...(idx > 0 ? { borderLeft: '1px dotted rgba(255,255,255,0.5)' } : {}) }}>
                     {userMap[uid]?.display_name ?? uid.slice(0, 8)}
                   </Box>
                 ))
@@ -847,8 +849,8 @@ export default function P_MetrajPozlar() {
 
                     {/* Spacing for preparer columns */}
                     {isApproveMode ? (
-                      visibleColumnUsers.map(uid => (
-                        <Box key={`space-${node.id}-${uid}`} onMouseEnter={() => setHoveredNodeId(node.id)} onMouseLeave={() => setHoveredNodeId(null)} sx={{ backgroundColor: c.bg }} />
+                      visibleColumnUsers.map((uid, idx) => (
+                        <Box key={`space-${node.id}-${uid}`} onMouseEnter={() => setHoveredNodeId(node.id)} onMouseLeave={() => setHoveredNodeId(null)} sx={{ backgroundColor: c.bg, ...(idx > 0 ? { borderLeft: '1px dotted rgba(255,255,255,0.5)' } : {}) }} />
                       ))
                     ) : (
                       (preparersList.length === 0 ? [null] : preparersList).map((_, i) => (
@@ -892,7 +894,7 @@ export default function P_MetrajPozlar() {
                             onMouseEnter={() => setHoveredPozId(poz.id)}
                             onMouseLeave={() => setHoveredPozId(null)}
                             onClick={() => handlePozClick(poz)}
-                            sx={{ backgroundColor: rowBg, px: '4px', py: '2px', fontSize: '0.75rem', cursor: 'pointer', textDecoration: 'underline' }}
+                            sx={{ backgroundColor: rowBg, px: '4px', py: '2px', fontSize: '0.75rem', cursor: 'pointer' }}
                           >
                             {poz.short_desc}
                           </Box>
@@ -914,7 +916,8 @@ export default function P_MetrajPozlar() {
                               justifyContent: 'flex-end',
                               gap: '0.3rem',
                               whiteSpace: 'nowrap',
-                              overflow: 'hidden'
+                              overflow: 'hidden',
+                              ...negStyle(isApproveMode ? sessionMap?.[poz.id]?.approvedSum : pozOnayMap[poz.id])
                             }}
                           >
                             {isApproveMode && sessionMap?.[poz.id]?.approvedSum != null
@@ -930,14 +933,14 @@ export default function P_MetrajPozlar() {
 
                           {/* Mode-specific columns */}
                           {isApproveMode ? (
-                            visibleColumnUsers.map(uid => {
+                            visibleColumnUsers.map((uid, idx) => {
                               const ud = sessionMap?.[poz.id]?.byUser?.[uid]
                               return (
                                 <Box
                                   key={uid}
                                   onMouseEnter={() => setHoveredPozId(poz.id)}
                                   onMouseLeave={() => setHoveredPozId(null)}
-                                  sx={{ backgroundColor: rowBg, px: '6px', py: '2px', fontSize: '0.75rem', fontWeight: 600, display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: '0.3rem', whiteSpace: 'nowrap', overflow: 'hidden', cursor: 'pointer' }}
+                                  sx={{ backgroundColor: rowBg, px: '6px', py: '2px', fontSize: '0.75rem', fontWeight: 600, display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: '0.3rem', whiteSpace: 'nowrap', overflow: 'hidden', cursor: 'pointer', ...(idx > 0 ? { borderLeft: '1px dotted rgba(0,0,0,0.3)' } : {}), ...negStyle(ud?.pendingSum) }}
                                 >
                                   {ud?.pendingSum != null
                                     ? <>
@@ -953,7 +956,7 @@ export default function P_MetrajPozlar() {
                                 key={p?.id ?? 'haz'}
                                 onMouseEnter={() => setHoveredPozId(poz.id)}
                                 onMouseLeave={() => setHoveredPozId(null)}
-                                sx={{ backgroundColor: rowBg, px: '6px', py: '2px', fontSize: '0.75rem', fontWeight: 600, display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: '0.3rem', whiteSpace: 'nowrap', overflow: 'hidden', cursor: 'pointer' }}
+                                sx={{ backgroundColor: rowBg, px: '6px', py: '2px', fontSize: '0.75rem', fontWeight: 600, display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: '0.3rem', whiteSpace: 'nowrap', overflow: 'hidden', cursor: 'pointer', ...negStyle(p?.map[poz.id]) }}
                               >
                                 {p?.map[poz.id] != null
                                   ? <>

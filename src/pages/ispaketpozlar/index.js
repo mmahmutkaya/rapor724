@@ -74,7 +74,7 @@ export default function P_isPaketPozlar() {
 
   const unitsMap = useMemo(() => {
     const m = {}
-    units.forEach(u => { m[u.id] = u.name })
+    units.forEach(u => { m[u.id] = (u.name || '').replace(/²/g, '2').replace(/³/g, '3') })
     return m
   }, [units])
 
