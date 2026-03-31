@@ -25,6 +25,8 @@ import Switch from '@mui/material/Switch'
 import Button from '@mui/material/Button'
 import Tooltip from '@mui/material/Tooltip'
 import ViewAgendaIcon from '@mui/icons-material/ViewAgenda'
+import UnfoldMoreIcon from '@mui/icons-material/UnfoldMore'
+import UnfoldLessIcon from '@mui/icons-material/UnfoldLess'
 import PersonIcon from '@mui/icons-material/Person'
 
 const EMPTY_ARRAY = []
@@ -413,6 +415,9 @@ export default function P_MetrajPozlar() {
     })
   }
 
+  const handleExpandAll = () => setCollapsedIds(new Set())
+  const handleCollapseAll = () => setCollapsedIds(new Set(flatNodes.filter(n => !isLeafSet.has(n.id)).map(n => n.id)))
+
   const getGridColsTemplate = () => {
     const statusColWidth = '8rem'
     const depthCols = `repeat(${totalDepthCols}, 1rem)`
@@ -494,13 +499,22 @@ export default function P_MetrajPozlar() {
               </Box>
             </Grid>
             <Grid item xs="auto" sx={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
+              <Tooltip title={collapsedIds.size > 0 ? 'Tümünü Aç' : 'Tümünü Özetle'}>
+                <IconButton
+                  size="small"
+                  onClick={collapsedIds.size > 0 ? handleExpandAll : handleCollapseAll}
+                  sx={{ border: '1px solid', borderColor: 'grey.400', borderRadius: '4px', '&:hover': { borderColor: 'grey.600', backgroundColor: 'grey.100' } }}
+                >
+                  {collapsedIds.size > 0 ? <UnfoldMoreIcon fontSize="small" /> : <UnfoldLessIcon fontSize="small" />}
+                </IconButton>
+              </Tooltip>
               <Tooltip title="Kullanıcıları göster/gizle">
                 <IconButton
                   size="small"
                   onClick={() => setUserVisDialogOpen(true)}
-                  sx={{ border: '1px solid', borderColor: 'grey.400', borderRadius: '50%', '&:hover': { borderColor: 'grey.600', backgroundColor: 'grey.100' } }}
+                  sx={{ border: '1px solid', borderColor: 'grey.400', borderRadius: '4px', ...(hiddenMetrajUsers.size > 0 ? { pl: '0.4rem', pr: '0.85rem' } : {}), '&:hover': { borderColor: 'grey.600', backgroundColor: 'grey.100' } }}
                 >
-                  <Badge badgeContent={hiddenMetrajUsers.size} color="error">
+                  <Badge badgeContent={hiddenMetrajUsers.size} color="error" sx={{ '& .MuiBadge-badge': { right: -8 } }}>
                     <PersonIcon fontSize="small" />
                   </Badge>
                 </IconButton>
@@ -534,7 +548,17 @@ export default function P_MetrajPozlar() {
               <NavigateNextIcon sx={{ opacity: 0.3, fontSize: 16 }} />
               <Typography sx={{ fontSize: '0.78rem', fontWeight: 700, maxWidth: '12rem', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', textTransform: 'uppercase' }}>{selectedIsPaket?.name}</Typography>
             </Box>
-            <Tooltip title={`Görünüm: ${viewModeLabel} (tıkla: sonraki mod)`}>
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
+              <Tooltip title={collapsedIds.size > 0 ? 'Tümünü Aç' : 'Tümünü Özetle'}>
+                <IconButton
+                  size="small"
+                  onClick={collapsedIds.size > 0 ? handleExpandAll : handleCollapseAll}
+                  sx={{ border: '1px solid', borderColor: 'grey.400', borderRadius: '4px', '&:hover': { borderColor: 'grey.600', backgroundColor: 'grey.100' } }}
+                >
+                  {collapsedIds.size > 0 ? <UnfoldMoreIcon fontSize="small" /> : <UnfoldLessIcon fontSize="small" />}
+                </IconButton>
+              </Tooltip>
+              <Tooltip title={`Görünüm: ${viewModeLabel} (tıkla: sonraki mod)`}>
               <Button
                 size="small"
                 variant="outlined"
@@ -552,6 +576,7 @@ export default function P_MetrajPozlar() {
                 {viewModeLabel}
               </Button>
             </Tooltip>
+            </Box>
           </Box>
         </Paper>
       )}

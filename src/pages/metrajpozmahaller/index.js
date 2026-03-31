@@ -16,6 +16,8 @@ import Button from '@mui/material/Button'
 import TextField from '@mui/material/TextField'
 import Tooltip from '@mui/material/Tooltip'
 import ViewAgendaIcon from '@mui/icons-material/ViewAgenda'
+import UnfoldMoreIcon from '@mui/icons-material/UnfoldMore'
+import UnfoldLessIcon from '@mui/icons-material/UnfoldLess'
 import AddCircleOutlineIcon from '@mui/icons-material/AddCircleOutline'
 import DeleteIcon from '@mui/icons-material/Delete'
 import KeyboardArrowUpIcon from '@mui/icons-material/KeyboardArrowUp'
@@ -240,6 +242,9 @@ export default function P_MetrajPozMahaller() {
       return newSet
     })
   }
+
+  const handleExpandAll = () => setCollapsedIds(new Set())
+  const handleCollapseAll = () => setCollapsedIds(new Set(flatNodes.filter(n => !isLeafSet.has(n.id)).map(n => n.id)))
 
   const viewModeLabel = useMemo(() => {
     if (metrajMahalViewMode === 'mahalOnly') return 'Mahal'
@@ -492,6 +497,10 @@ export default function P_MetrajPozMahaller() {
     () => nodeHazTotalsPerPreparer.filter(ph => !hiddenMetrajUsers.has(ph.id)),
     [nodeHazTotalsPerPreparer, hiddenMetrajUsers]
   )
+  const visiblePreparers = useMemo(
+    () => preparersList.filter(p => !hiddenMetrajUsers.has(p.id)),
+    [preparersList, hiddenMetrajUsers]
+  )
   const visibleProjectTotalHaz = useMemo(
     () => visiblePreparers.map(p => Object.values(p.map).reduce((sum, v) => sum + v, 0)),
     [visiblePreparers]
@@ -503,14 +512,10 @@ export default function P_MetrajPozMahaller() {
     navigate('/metraj/cetvel')
   }
 
-  const visiblePreparers = useMemo(
-    () => preparersList.filter(p => !hiddenMetrajUsers.has(p.id)),
-    [preparersList, hiddenMetrajUsers]
-  )
 
   const getGridColsTemplate = () => {
     const depthCols = `repeat(${totalDepthCols}, 1rem)`
-    const hazCount = Math.max(1, visiblePreparers.length)
+    const hazCount = visiblePreparers.length
     const hazCols = Array(hazCount).fill('8rem').join(' ')
 
     if (metrajMahalViewMode === 'mahalOnly') {
@@ -587,14 +592,25 @@ export default function P_MetrajPozMahaller() {
             <Typography sx={{ fontSize: '0.78rem', fontWeight: 700, maxWidth: '12rem', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', textTransform: 'uppercase' }}>{selectedPoz?.short_desc}</Typography>
           </Box>
           <Box sx={{ display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
+            {metrajMahalViewMode === 'lbsMahal' && (
+              <Tooltip title={collapsedIds.size > 0 ? 'Tümünü Aç' : 'Tümünü Özetle'}>
+                <IconButton
+                  size="small"
+                  onClick={collapsedIds.size > 0 ? handleExpandAll : handleCollapseAll}
+                  sx={{ border: '1px solid', borderColor: 'grey.400', borderRadius: '4px', '&:hover': { borderColor: 'grey.600', backgroundColor: 'grey.100' } }}
+                >
+                  {collapsedIds.size > 0 ? <UnfoldMoreIcon fontSize="small" /> : <UnfoldLessIcon fontSize="small" />}
+                </IconButton>
+              </Tooltip>
+            )}
             {preparersList.length > 0 && (
               <Tooltip title="Kullanıcıları göster/gizle">
                 <IconButton
                   size="small"
                   onClick={() => setUserVisDialogOpen(true)}
-                  sx={{ border: '1px solid', borderColor: 'grey.400', borderRadius: '50%', '&:hover': { borderColor: 'grey.600', backgroundColor: 'grey.100' } }}
+                  sx={{ border: '1px solid', borderColor: 'grey.400', borderRadius: '4px', ...(hiddenMetrajUsers.size > 0 ? { pl: '0.4rem', pr: '0.85rem' } : {}), '&:hover': { borderColor: 'grey.600', backgroundColor: 'grey.100' } }}
                 >
-                  <Badge badgeContent={hiddenMetrajUsers.size} color="error">
+                  <Badge badgeContent={hiddenMetrajUsers.size} color="error" sx={{ '& .MuiBadge-badge': { right: -8 } }}>
                     <PersonIcon fontSize="small" />
                   </Badge>
                 </IconButton>
@@ -716,9 +732,7 @@ export default function P_MetrajPozMahaller() {
               <Box sx={{ ...css_baslik }} />
               <Box sx={{ ...css_baslik, borderLeft: ALAN_SEP_DARK }}>Alan</Box>
               <Box sx={{ ...css_baslik_onaylanan }}>Onaylanan</Box>
-              {visiblePreparers.length === 0
-                ? <Box sx={{ ...css_baslik_hazirlanlan }}>Hazırlanan</Box>
-                : visiblePreparers.map(p => <Box key={p.id} sx={{ ...css_baslik_hazirlanlan }}>{p.display_name}</Box>)}
+              {visiblePreparers.map(p => <Box key={p.id} sx={{ ...css_baslik_hazirlanlan }}>{p.display_name}</Box>)}
 
               {/* Project name row */}
               <Box sx={{ backgroundColor: 'black' }} />
@@ -731,7 +745,7 @@ export default function P_MetrajPozMahaller() {
               <Box sx={{ backgroundColor: 'black', ml: '0.5rem', mr: '0.5rem', color: 'white', px: '4px', py: '2px', fontSize: '0.75rem', display: 'flex', alignItems: 'center', justifyContent: 'flex-end', whiteSpace: 'nowrap' }}>
                 {projectTotalOnay ? `${ikiHane(projectTotalOnay)}${pozBirim ? ` ${pozBirim}` : ''}` : ''}
               </Box>
-              {(visiblePreparers.length === 0 ? [null] : visiblePreparers).map((p, i) => {
+              {visiblePreparers.map((p, i) => {
                 const tot = p ? visibleProjectTotalHaz[i] : 0
                 return (
                   <Box key={`pn-mo-${i}`} sx={{ backgroundColor: 'black', color: 'white', px: '4px', py: '2px', fontSize: '0.75rem', display: 'flex', alignItems: 'center', justifyContent: 'flex-end', whiteSpace: 'nowrap' }}>
@@ -764,7 +778,7 @@ export default function P_MetrajPozMahaller() {
                         : '—'}
                     </Box>
                     {/* Hazırlanan — per preparer */}
-                    {(visiblePreparers.length === 0 ? [null] : visiblePreparers).map((p) => (
+                    {visiblePreparers.map((p) => (
                       <Box key={p?.id ?? 'haz'} onMouseEnter={() => setHoveredMahalId(mahal.id)} onMouseLeave={() => setHoveredMahalId(null)} onClick={() => handleMahalClick(mahal)} sx={{ backgroundColor: rowBg, px: '4px', py: '2px', fontSize: '0.75rem', display: 'flex', alignItems: 'center', justifyContent: 'flex-end', whiteSpace: 'nowrap', overflow: 'hidden', cursor: 'pointer', textShadow: mahalTs, ...negStyle(p?.map[mahal.wpAreaId]) }}>
                         {p?.map[mahal.wpAreaId]
                           ? `${ikiHane(p.map[mahal.wpAreaId])}${pozBirim ? ` ${pozBirim}` : ''}`
@@ -787,9 +801,7 @@ export default function P_MetrajPozMahaller() {
               <Box sx={{ ...css_baslik }} />
               <Box sx={{ ...css_baslik, borderLeft: ALAN_SEP_DARK }}>Alan</Box>
               <Box sx={{ ...css_baslik_onaylanan }}>Onaylanan</Box>
-              {visiblePreparers.length === 0
-                ? <Box sx={{ ...css_baslik_hazirlanlan }}>Hazırlanan</Box>
-                : visiblePreparers.map(p => <Box key={p.id} sx={{ ...css_baslik_hazirlanlan }}>{p.display_name}</Box>)}
+              {visiblePreparers.map(p => <Box key={p.id} sx={{ ...css_baslik_hazirlanlan }}>{p.display_name}</Box>)}
 
               {/* Project name row */}
               <Box sx={{ backgroundColor: 'black' }} />
@@ -802,7 +814,7 @@ export default function P_MetrajPozMahaller() {
               <Box sx={{ backgroundColor: 'black', ml: '0.5rem', mr: '0.5rem', color: 'white', px: '4px', py: '2px', fontSize: '0.75rem', display: 'flex', alignItems: 'center', justifyContent: 'flex-end', whiteSpace: 'nowrap' }}>
                 {projectTotalOnay ? `${ikiHane(projectTotalOnay)}${pozBirim ? ` ${pozBirim}` : ''}` : ''}
               </Box>
-              {(visiblePreparers.length === 0 ? [null] : visiblePreparers).map((p, i) => {
+              {visiblePreparers.map((p, i) => {
                 const tot = p ? visibleProjectTotalHaz[i] : 0
                 return (
                   <Box key={`pn-lbs-${i}`} sx={{ backgroundColor: 'black', color: 'white', px: '4px', py: '2px', fontSize: '0.75rem', display: 'flex', alignItems: 'center', justifyContent: 'flex-end', whiteSpace: 'nowrap' }}>
@@ -892,7 +904,7 @@ export default function P_MetrajPozMahaller() {
                     </Box>
 
                     {/* Hazırlanan toplamı — per preparer */}
-                    {(visibleNodeHazTotalsPerPreparer.length === 0 ? [{ id: 'haz', totals: {} }] : visibleNodeHazTotalsPerPreparer).map(ph => (
+                    {visibleNodeHazTotalsPerPreparer.map(ph => (
                       <Box
                         key={ph.id}
                         onMouseEnter={() => setHoveredNodeId(node.id)}
@@ -978,7 +990,7 @@ export default function P_MetrajPozMahaller() {
                           </Box>
 
                           {/* Hazırlanan — per preparer */}
-                          {(visiblePreparers.length === 0 ? [null] : visiblePreparers).map((p) => (
+                          {visiblePreparers.map((p) => (
                             <Box
                               key={p?.id ?? 'haz'}
                               onMouseEnter={() => setHoveredMahalId(mahal.id)}
