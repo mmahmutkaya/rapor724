@@ -1,5 +1,5 @@
 import React, { useState, useContext, useEffect, useMemo, useRef } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate, useSearchParams } from 'react-router-dom'
 import _ from 'lodash'
 
 import { StoreContext } from '../../components/store.js'
@@ -181,6 +181,8 @@ const VIRTUAL_SESS_ID = 'virtual-new'
 
 export default function P_MetrajOlusturCetvel() {
   const navigate = useNavigate()
+  const [searchParams] = useSearchParams()
+  const fromModule = searchParams.get('from') === 'ihale' ? 'ihale' : 'metraj'
   const { selectedProje, selectedIsPaket, selectedPoz, selectedMahal, appUser, metrajMode, setMetrajMode, hiddenMetrajUsers, setHiddenMetrajUsers } = useContext(StoreContext)
   const { data: units = [] } = useGetPozUnits()
 
@@ -237,9 +239,9 @@ export default function P_MetrajOlusturCetvel() {
   }
 
   useEffect(() => {
-    if (!selectedProje || !selectedIsPaket) { navigate('/metraj'); return }
-    if (!selectedPoz) { navigate('/metraj/pozlar'); return }
-    if (!wpAreaId) { navigate(`/metraj/pozlar/${selectedPoz?.id}/mahaller`); return }
+    if (!selectedProje || !selectedIsPaket) { navigate(`/${fromModule}`); return }
+    if (!selectedPoz) { navigate(`/${fromModule}/pozlar`); return }
+    if (!wpAreaId) { navigate(`/metraj/pozlar/${selectedPoz?.id}/mahaller` + (fromModule === 'ihale' ? '?from=ihale' : '')); return }
   }, [])
 
   const loadSessions = async () => {
@@ -1753,22 +1755,22 @@ export default function P_MetrajOlusturCetvel() {
           <Grid item xs>
             <Box sx={{ display: 'flex', alignItems: 'center', gap: '0.3rem', flexWrap: 'nowrap', overflow: 'hidden' }}>
               <Typography
-                onClick={() => navGuard('/metraj')}
+                onClick={() => navGuard(`/${fromModule}`)}
                 sx={{ fontSize: '0.78rem', fontWeight: 600, opacity: 0.4, cursor: 'pointer', whiteSpace: 'nowrap', textTransform: 'uppercase', '&:hover': { opacity: 0.9 } }}
               >
-                Metraj
+                {fromModule === 'ihale' ? 'İhale' : 'Metraj'}
               </Typography>
               <NavigateNextIcon sx={{ opacity: 0.4, fontSize: 16, flexShrink: 0 }} />
               <Typography
                 sx={{ fontSize: '0.78rem', fontWeight: 600, opacity: 0.4, cursor: 'pointer', whiteSpace: 'nowrap', maxWidth: '10rem', overflow: 'hidden', textOverflow: 'ellipsis', textTransform: 'uppercase', '&:hover': { opacity: 0.9 } }}
-                onClick={() => navGuard('/metraj/pozlar')}
+                onClick={() => navGuard(`/${fromModule}/pozlar`)}
               >
                 {selectedIsPaket?.name}
               </Typography>
               <NavigateNextIcon sx={{ opacity: 0.4, fontSize: 16, flexShrink: 0 }} />
               <Typography
                 sx={{ fontSize: '0.78rem', fontWeight: 600, opacity: 0.4, cursor: 'pointer', whiteSpace: 'nowrap', maxWidth: '14rem', overflow: 'hidden', textOverflow: 'ellipsis', textTransform: 'uppercase', '&:hover': { opacity: 0.9 } }}
-                onClick={() => navGuard(`/metraj/pozlar/${selectedPoz?.id}/mahaller`)}
+                onClick={() => navGuard(`/metraj/pozlar/${selectedPoz?.id}/mahaller` + (fromModule === 'ihale' ? '?from=ihale' : ''))}
               >
                 {pozLabel}
               </Typography>

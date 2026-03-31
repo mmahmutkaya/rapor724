@@ -1,5 +1,5 @@
 import React, { useState, useContext, useEffect, useMemo } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate, useSearchParams } from 'react-router-dom'
 import { useQueryClient } from '@tanstack/react-query'
 import { StoreContext } from '../../components/store'
 import { useGetLbsNodes, useGetWorkPackagePozAreas, useGetPozUnits } from '../../hooks/useMongo'
@@ -18,6 +18,7 @@ import Tooltip from '@mui/material/Tooltip'
 import ViewAgendaIcon from '@mui/icons-material/ViewAgenda'
 import UnfoldMoreIcon from '@mui/icons-material/UnfoldMore'
 import UnfoldLessIcon from '@mui/icons-material/UnfoldLess'
+import CheckIcon from '@mui/icons-material/Check'
 import AddCircleOutlineIcon from '@mui/icons-material/AddCircleOutline'
 import DeleteIcon from '@mui/icons-material/Delete'
 import KeyboardArrowUpIcon from '@mui/icons-material/KeyboardArrowUp'
@@ -100,6 +101,8 @@ function nodeColor(depth) {
 
 export default function P_MetrajPozMahaller() {
   const navigate = useNavigate()
+  const [searchParams] = useSearchParams()
+  const fromModule = searchParams.get('from') === 'ihale' ? 'ihale' : 'metraj'
   const queryClient = useQueryClient()
   const { selectedProje, selectedIsPaket, selectedPoz, setSelectedMahal, setSelectedMahal_metraj, appUser, metrajMahalViewMode, setMetrajMahalViewMode, hiddenMetrajUsers, setHiddenMetrajUsers } = useContext(StoreContext)
 
@@ -509,7 +512,7 @@ export default function P_MetrajPozMahaller() {
   const handleMahalClick = (mahal) => {
     setSelectedMahal(mahal)
     setSelectedMahal_metraj({ wpAreaId: mahal.wpAreaId, name: mahal.name, code: mahal.code })
-    navigate('/metraj/cetvel')
+    navigate('/metraj/cetvel' + (fromModule === 'ihale' ? '?from=ihale' : ''))
   }
 
 
@@ -585,9 +588,9 @@ export default function P_MetrajPozMahaller() {
       <Paper sx={{ px: '1rem', boxShadow: 2 }}>
         <Box sx={{ display: 'flex', alignItems: 'center', gap: '0.5rem', justifyContent: 'space-between', minHeight: '3.5rem' }}>
           <Box sx={{ display: 'flex', alignItems: 'center', gap: '0.3rem' }}>
-            <Typography onClick={() => navigate('/metraj')} sx={{ fontSize: '0.78rem', fontWeight: 600, opacity: 0.5, whiteSpace: 'nowrap', textTransform: 'uppercase', cursor: 'pointer', '&:hover': { opacity: 0.9 } }}>Metraj</Typography>
+            <Typography onClick={() => navigate(`/${fromModule}`)} sx={{ fontSize: '0.78rem', fontWeight: 600, opacity: 0.5, whiteSpace: 'nowrap', textTransform: 'uppercase', cursor: 'pointer', '&:hover': { opacity: 0.9 } }}>{fromModule === 'ihale' ? 'İhale' : 'Metraj'}</Typography>
             <NavigateNextIcon sx={{ opacity: 0.3, fontSize: 16 }} />
-            <Typography onClick={() => navigate('/metraj/pozlar')} sx={{ fontSize: '0.78rem', fontWeight: 600, opacity: 0.5, maxWidth: '10rem', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', textTransform: 'uppercase', cursor: 'pointer', '&:hover': { opacity: 0.9 } }}>{selectedIsPaket?.name}</Typography>
+            <Typography onClick={() => navigate(`/${fromModule}/pozlar`)} sx={{ fontSize: '0.78rem', fontWeight: 600, opacity: 0.5, maxWidth: '10rem', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', textTransform: 'uppercase', cursor: 'pointer', '&:hover': { opacity: 0.9 } }}>{selectedIsPaket?.name}</Typography>
             <NavigateNextIcon sx={{ opacity: 0.3, fontSize: 16 }} />
             <Typography sx={{ fontSize: '0.78rem', fontWeight: 700, maxWidth: '12rem', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', textTransform: 'uppercase' }}>{selectedPoz?.short_desc}</Typography>
           </Box>
@@ -608,7 +611,7 @@ export default function P_MetrajPozMahaller() {
                 <IconButton
                   size="small"
                   onClick={() => setUserVisDialogOpen(true)}
-                  sx={{ border: '1px solid', borderColor: 'grey.400', borderRadius: '4px', ...(hiddenMetrajUsers.size > 0 ? { pl: '0.4rem', pr: '0.85rem' } : {}), '&:hover': { borderColor: 'grey.600', backgroundColor: 'grey.100' } }}
+                  sx={{ border: '1px solid', borderColor: 'grey.400', borderRadius: '4px', ...(hiddenMetrajUsers.size > 0 ? { pl: '0.4rem', pr: '0.9rem' } : {}), '&:hover': { borderColor: 'grey.600', backgroundColor: 'grey.100' } }}
                 >
                   <Badge badgeContent={hiddenMetrajUsers.size} color="error" sx={{ '& .MuiBadge-badge': { right: -8 } }}>
                     <PersonIcon fontSize="small" />
@@ -640,7 +643,24 @@ export default function P_MetrajPozMahaller() {
 
       {/* User visibility dialog */}
       <Dialog open={userVisDialogOpen} onClose={() => setUserVisDialogOpen(false)}>
-        <DialogTitle>Görünen Kullanıcılar</DialogTitle>
+        <DialogTitle sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', pr: 2 }}>
+          <Box component="span" sx={{ fontSize: '1.125rem', fontWeight: 700 }}>Metraj Yapanlar</Box>
+          <Tooltip title={hiddenMetrajUsers.size === 0 ? 'Hepsini Kaldır' : 'Hepsini Seç'}>
+            <IconButton
+              size="small"
+              color="default"
+              sx={{ mr: 0 }}
+              onClick={hiddenMetrajUsers.size === 0
+                ? () => setHiddenMetrajUsers(new Set(preparersList.map(p => p.id)))
+                : () => setHiddenMetrajUsers(new Set())}
+            >
+              <Box component="span" sx={{ display: 'inline-flex', alignItems: 'center' }}>
+                <CheckIcon sx={{ fontSize: 20, color: hiddenMetrajUsers.size >= preparersList.length ? 'text.secondary' : 'primary.main', ...(hiddenMetrajUsers.size < preparersList.length && { filter: 'drop-shadow(0 0 1px currentColor)' }) }} />
+                <CheckIcon sx={{ fontSize: 20, ml: '-8px', color: hiddenMetrajUsers.size === 0 ? 'primary.main' : 'text.secondary', ...(hiddenMetrajUsers.size === 0 && { filter: 'drop-shadow(0 0 1px currentColor)' }) }} />
+              </Box>
+            </IconButton>
+          </Tooltip>
+        </DialogTitle>
         <DialogContent sx={{ minWidth: 300 }}>
           <List>
             {preparersList.map(p => (

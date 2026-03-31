@@ -3,7 +3,10 @@ import { StoreContext } from '../components/store'
 import PropTypes from 'prop-types';
 // import { useApp } from "../components/useApp.js";
 import { useNavigate } from "react-router-dom";
-
+import Snackbar from '@mui/material/Snackbar';
+import Alert from '@mui/material/Alert';
+import WifiOffIcon from '@mui/icons-material/WifiOff';
+import WifiIcon from '@mui/icons-material/Wifi';
 
 //material
 import { styled, alpha } from '@mui/material/styles';
@@ -48,7 +51,7 @@ import FormNewUserNecessaryData from "./FormNewUserNecessaryData.js"
 import FormProfileUpdate from "./FormProfileUpdate.js"
 import { supabase } from '../lib/supabase.js'
 
-
+const _window = window // global window — component prop'u tarafından gölgelenmeden önce sakla
 
 
 export default function Layout({ window, children }) {
@@ -77,6 +80,27 @@ export default function Layout({ window, children }) {
 
   const isMenuOpen = Boolean(anchorEl);
   const isMobileMenuOpen = Boolean(mobileMoreAnchorEl);
+
+  // İnternet bağlantısı takibi
+  const [isOffline, setIsOffline] = useState(!navigator.onLine)
+  const [showBackOnline, setShowBackOnline] = useState(false)
+
+  useEffect(() => {
+    const handleOffline = () => {
+      setIsOffline(true)
+      setShowBackOnline(false)
+    }
+    const handleOnline = () => {
+      setIsOffline(false)
+      setShowBackOnline(true)
+    }
+    _window.addEventListener('offline', handleOffline)
+    _window.addEventListener('online', handleOnline)
+    return () => {
+      _window.removeEventListener('offline', handleOffline)
+      _window.removeEventListener('online', handleOnline)
+    }
+  }, [])
 
 
 
@@ -562,6 +586,52 @@ export default function Layout({ window, children }) {
         </Typography>
       </Box> */}
 
+
+      {/* İnternet bağlantısı yok bildirimi */}
+      <Snackbar
+        open={isOffline}
+        anchorOrigin={{ vertical: 'top', horizontal: 'center' }}
+        sx={{ top: { xs: '1rem', sm: '1rem' } }}
+      >
+        <Alert
+          icon={<WifiOffIcon />}
+          severity="error"
+          variant="filled"
+          sx={{
+            width: '100%',
+            fontWeight: 600,
+            fontSize: '0.95rem',
+            boxShadow: 4,
+            alignItems: 'center',
+          }}
+        >
+          İnternet bağlantısı yok — veriler yüklenemeyebilir
+        </Alert>
+      </Snackbar>
+
+      {/* Bağlantı geri geldi bildirimi */}
+      <Snackbar
+        open={showBackOnline}
+        autoHideDuration={3000}
+        onClose={() => setShowBackOnline(false)}
+        anchorOrigin={{ vertical: 'top', horizontal: 'center' }}
+        sx={{ top: { xs: '1rem', sm: '1rem' } }}
+      >
+        <Alert
+          icon={<WifiIcon />}
+          severity="success"
+          variant="filled"
+          sx={{
+            width: '100%',
+            fontWeight: 600,
+            fontSize: '0.95rem',
+            boxShadow: 4,
+            alignItems: 'center',
+          }}
+        >
+          İnternet bağlantısı yeniden kuruldu
+        </Alert>
+      </Snackbar>
 
     </Box >
   );

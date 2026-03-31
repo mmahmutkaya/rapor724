@@ -1,5 +1,5 @@
 import React, { useState, useContext, useEffect, useMemo, useRef } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate, useSearchParams } from 'react-router-dom'
 
 import { StoreContext } from '../../components/store.js'
 import { supabase } from '../../lib/supabase.js'
@@ -173,6 +173,8 @@ function getCardColors(visualStatus, isOwn = true) {
 
 export default function P_MetrajOnaylaCetvel() {
   const navigate = useNavigate()
+  const [searchParams] = useSearchParams()
+  const fromModule = searchParams.get('from') === 'ihale' ? 'ihale' : 'metraj'
   const { selectedProje, selectedIsPaket, selectedPoz, selectedMahal_metraj, metrajMode, setMetrajMode, hiddenMetrajUsers, setHiddenMetrajUsers } = useContext(StoreContext)
   const { data: units = [] } = useGetPozUnits()
 
@@ -200,9 +202,9 @@ export default function P_MetrajOnaylaCetvel() {
   const wpAreaId = selectedMahal_metraj?.wpAreaId
 
   useEffect(() => {
-    if (!selectedProje || !selectedIsPaket) { navigate('/metraj'); return }
-    if (!selectedPoz)                        { navigate('/metraj/pozlar'); return }
-    if (!wpAreaId)                           { navigate(`/metraj/pozlar/${selectedPoz?.id}/mahaller`); return }
+    if (!selectedProje || !selectedIsPaket) { navigate(`/${fromModule}`); return }
+    if (!selectedPoz)                        { navigate(`/${fromModule}/pozlar`); return }
+    if (!wpAreaId)                           { navigate(`/metraj/pozlar/${selectedPoz?.id}/mahaller` + (fromModule === 'ihale' ? '?from=ihale' : '')); return }
   }, [])
 
   const loadData = async () => {
@@ -607,7 +609,27 @@ export default function P_MetrajOnaylaCetvel() {
 
       {/* KİŞİ GÖRÜNÜRLÜĞÜ DİALOG */}
       <Dialog open={personDialogOpen} onClose={() => setPersonDialogOpen(false)}>
-        <DialogTitle>Görünen Kullanıcılar</DialogTitle>
+        <DialogTitle sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', pr: 2 }}>
+          <Box component="span" sx={{ fontSize: '1.125rem', fontWeight: 700 }}>Metraj Yapanlar</Box>
+          <Tooltip title={hiddenMetrajUsers.size === 0 ? 'Hepsini Kaldır' : 'Hepsini Seç'}>
+            <IconButton
+              size="small"
+              color="default"
+              sx={{ mr: 0 }}
+              onClick={() => {
+                const allUserIds = [...new Map(sessions.map(s => [s.created_by, s.userName])).keys()]
+                hiddenMetrajUsers.size === 0
+                  ? setHiddenMetrajUsers(new Set(allUserIds))
+                  : setHiddenMetrajUsers(new Set())
+              }}
+            >
+              <Box component="span" sx={{ display: 'inline-flex', alignItems: 'center' }}>
+                <CheckIcon sx={{ fontSize: 20, color: hiddenMetrajUsers.size > 0 ? 'text.secondary' : 'primary.main', ...(hiddenMetrajUsers.size === 0 && { filter: 'drop-shadow(0 0 1px currentColor)' }) }} />
+                <CheckIcon sx={{ fontSize: 20, ml: '-8px', color: hiddenMetrajUsers.size === 0 ? 'primary.main' : 'text.secondary', ...(hiddenMetrajUsers.size === 0 && { filter: 'drop-shadow(0 0 1px currentColor)' }) }} />
+              </Box>
+            </IconButton>
+          </Tooltip>
+        </DialogTitle>
         <DialogContent sx={{ minWidth: 300 }}>
           <List>
             {[...new Map(sessions.map(s => [s.created_by, s.userName])).entries()].map(([uid, name]) => (
@@ -638,22 +660,22 @@ export default function P_MetrajOnaylaCetvel() {
           <Grid item xs>
             <Box sx={{ display: 'flex', alignItems: 'center', gap: '0.3rem', flexWrap: 'nowrap', overflow: 'hidden' }}>
               <Typography
-                onClick={() => navigate('/metraj')}
+                onClick={() => navigate(`/${fromModule}`)}
                 sx={{ fontSize: '0.78rem', fontWeight: 600, opacity: 0.4, cursor: 'pointer', whiteSpace: 'nowrap', textTransform: 'uppercase', '&:hover': { opacity: 0.9 } }}
               >
-                Metraj
+                {fromModule === 'ihale' ? 'İhale' : 'Metraj'}
               </Typography>
               <NavigateNextIcon sx={{ opacity: 0.4, fontSize: 16, flexShrink: 0 }} />
               <Typography
                 sx={{ fontSize: '0.78rem', fontWeight: 600, opacity: 0.4, cursor: 'pointer', whiteSpace: 'nowrap', maxWidth: '10rem', overflow: 'hidden', textOverflow: 'ellipsis', textTransform: 'uppercase', '&:hover': { opacity: 0.9 } }}
-                onClick={() => navigate('/metraj/pozlar')}
+                onClick={() => navigate(`/${fromModule}/pozlar`)}
               >
                 {selectedIsPaket?.name}
               </Typography>
               <NavigateNextIcon sx={{ opacity: 0.4, fontSize: 16, flexShrink: 0 }} />
               <Typography
                 sx={{ fontSize: '0.78rem', fontWeight: 600, opacity: 0.6, cursor: 'pointer', whiteSpace: 'nowrap', maxWidth: '14rem', overflow: 'hidden', textOverflow: 'ellipsis', textTransform: 'uppercase', '&:hover': { opacity: 0.9 } }}
-                onClick={() => navigate(`/metraj/pozlar/${selectedPoz?.id}/mahaller`)}
+                onClick={() => navigate(`/metraj/pozlar/${selectedPoz?.id}/mahaller` + (fromModule === 'ihale' ? '?from=ihale' : ''))}
               >
                 {pozLabel}
               </Typography>

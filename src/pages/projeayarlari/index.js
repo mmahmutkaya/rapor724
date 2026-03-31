@@ -33,6 +33,7 @@ import EditIcon from '@mui/icons-material/Edit'
 import CheckIcon from '@mui/icons-material/Check'
 import CloseIcon from '@mui/icons-material/Close'
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore'
+import RecyclingIcon from '@mui/icons-material/Recycling'
 
 
 function formatDate(dateStr) {
@@ -197,6 +198,31 @@ export default function P_ProjeAyarlari() {
     setSaving(false)
     if (r1.error || r2.error) { setDialogAlert({ dialogIcon: 'warning', dialogMessage: 'Sıralama güncellenemedi.' }); return }
     invalidateUnits()
+  }
+
+  async function handleRestoreCurrency(log) {
+    const { error } = await supabase.from('project_currencies').insert({
+      project_id: selectedProje.id, code: log.code, symbol: log.symbol, name: log.name ?? null,
+    })
+    if (error) { setDialogAlert({ dialogIcon: 'warning', dialogMessage: 'Para birimi geri yüklenemedi.', detailText: error.message, onCloseAction: () => setDialogAlert() }); return }
+    await supabase.from('project_currency_deletions')
+      .update({ restored_at: new Date().toISOString(), restored_by_email: appUser?.email })
+      .eq('id', log.id)
+    queryClient.invalidateQueries(['projectCurrencies', selectedProje?.id])
+    queryClient.invalidateQueries(['currencyDeletions', selectedProje?.id])
+  }
+
+  async function handleRestoreUnit(log) {
+    const maxOrder = units.length > 0 ? Math.max(...units.map(u => u.order_index)) : 0
+    const { error } = await supabase.from('project_poz_units').insert({
+      project_id: selectedProje.id, name: log.name, order_index: maxOrder + 1,
+    })
+    if (error) { setDialogAlert({ dialogIcon: 'warning', dialogMessage: 'Birim geri yüklenemedi.', detailText: error.message, onCloseAction: () => setDialogAlert() }); return }
+    await supabase.from('project_poz_unit_deletions')
+      .update({ restored_at: new Date().toISOString(), restored_by_email: appUser?.email })
+      .eq('id', log.id)
+    invalidateUnits()
+    queryClient.invalidateQueries(['pozUnitDeletions', selectedProje?.id])
   }
 
   async function handleDeleteProject() {
@@ -369,48 +395,69 @@ export default function P_ProjeAyarlari() {
 
           {/* Silinen Para Birimleri — log accordion */}
           <Accordion disableGutters elevation={0}
-            sx={{ maxWidth: '56rem', border: '1px solid', borderColor: 'divider', borderRadius: '4px !important', '&:before': { display: 'none' } }}
+            sx={{ border: '1px solid', borderColor: 'divider', borderRadius: '4px !important', '&:before': { display: 'none' } }}
           >
-            <AccordionSummary expandIcon={<ExpandMoreIcon sx={{ fontSize: '1rem', color: 'text.disabled' }} />}
+            <AccordionSummary expandIcon={<ExpandMoreIcon sx={{ fontSize: '1rem', color: 'text.secondary' }} />}
               sx={{ minHeight: '2.25rem', px: '1rem', '& .MuiAccordionSummary-content': { my: '0.4rem' } }}
             >
-              <Typography variant="body2" color="text.secondary">
+              <Typography variant="body2" fontWeight={600} color="text.primary">
                 Silinen Para Birimleri
                 {currencyDeletions.length > 0 && (
                   <Box component="span" sx={{
-                    ml: '0.5rem', fontSize: '0.72rem', color: 'text.disabled',
-                    backgroundColor: 'rgba(0,0,0,0.06)', px: '0.4rem', py: '0.1rem', borderRadius: '10px'
+                    ml: '0.5rem', fontSize: '0.72rem', color: 'white',
+                    backgroundColor: 'text.secondary', px: '0.4rem', py: '0.1rem', borderRadius: '10px'
                   }}>
                     {currencyDeletions.length}
                   </Box>
                 )}
               </Typography>
             </AccordionSummary>
-            <AccordionDetails sx={{ px: '1rem', pt: 0, pb: '0.75rem', backgroundColor: 'rgba(0,0,0,0.015)' }}>
+            <AccordionDetails sx={{ px: '1rem', pt: 0, pb: '0.75rem', backgroundColor: 'rgba(0,0,0,0.03)' }}>
               {currencyDeletions.length === 0 && (
-                <Typography variant="caption" color="text.disabled">Henüz silinmiş para birimi yok.</Typography>
+                <Typography variant="body2" color="text.secondary">Henüz silinmiş para birimi yok.</Typography>
               )}
               {currencyDeletions.length > 0 && (
                 <Box>
-                  <Box sx={{ display: 'flex', pb: '0.3rem', borderBottom: '1px solid', borderColor: 'divider' }}>
-                    {['Sembol', 'Kod', 'Ad', 'Tarih', 'Kişi'].map(col => (
-                      <Typography key={col} variant="caption" fontWeight={600} color="text.disabled"
-                        sx={{ flex: 1, textAlign: 'center' }}>
-                        {col}
+                  <Box sx={{ display: 'flex', py: '0.4rem', borderBottom: '2px solid', borderColor: 'divider', backgroundColor: 'rgba(0,0,0,0.03)' }}>
+                    {[
+                      { label: 'Sembol', sx: { width: '56px', flexShrink: 0 } },
+                      { label: 'Kod',    sx: { width: '70px', flexShrink: 0 } },
+                      { label: 'Ad',     sx: { flex: 0.8 } },
+                      { label: 'Silinme',       sx: { flex: 1 } },
+                      { label: 'Silen',         sx: { flex: 1.1 } },
+                      { label: 'Geri Yüklenme', sx: { flex: 1 } },
+                      { label: 'Geri Yükleyen', sx: { flex: 1.1 } },
+                    ].map(col => (
+                      <Typography key={col.label} variant="body2" fontWeight={700} color="text.primary"
+                        sx={{ textAlign: 'center', fontSize: '0.75rem', whiteSpace: 'nowrap', px: '0.25rem', ...col.sx }}>
+                        {col.label}
                       </Typography>
                     ))}
                   </Box>
                   {currencyDeletions.map(log => (
                     <Box key={log.id} sx={{
                       display: 'flex', alignItems: 'center',
-                      py: '0.35rem', borderBottom: '1px solid', borderColor: 'divider',
+                      py: '0.45rem', borderBottom: '1px solid', borderColor: 'divider',
                       '&:last-child': { borderBottom: 'none' }
                     }}>
-                      <Typography variant="caption" sx={{ flex: 1, textAlign: 'center', color: 'rgba(0,0,0,0.5)' }}>{log.symbol}</Typography>
-                      <Typography variant="caption" sx={{ flex: 1, textAlign: 'center', color: 'rgba(0,0,0,0.5)', textDecoration: 'line-through' }}>{log.code}</Typography>
-                      <Typography variant="caption" sx={{ flex: 1, textAlign: 'center', color: 'rgba(0,0,0,0.5)' }}>{log.name ?? '—'}</Typography>
-                      <Typography variant="caption" sx={{ flex: 1, textAlign: 'center' }} color="text.secondary">{formatDate(log.deleted_at)}</Typography>
-                      <Typography variant="caption" sx={{ flex: 1, textAlign: 'center' }} color="text.secondary">{log.deleted_by_email ?? '—'}</Typography>
+                      <Typography variant="body2" sx={{ width: '56px', flexShrink: 0, textAlign: 'center', fontSize: '0.8rem', color: 'text.secondary', whiteSpace: 'nowrap' }}>{log.symbol}</Typography>
+                      <Typography variant="body2" sx={{ width: '70px', flexShrink: 0, textAlign: 'center', fontSize: '0.8rem', color: 'text.secondary', textDecoration: 'line-through', whiteSpace: 'nowrap' }}>{log.code}</Typography>
+                      <Typography variant="body2" sx={{ flex: 0.8, textAlign: 'center', fontSize: '0.8rem', color: 'text.secondary', whiteSpace: 'nowrap', px: '0.25rem' }}>{log.name ?? '—'}</Typography>
+                      <Typography variant="body2" sx={{ flex: 1, textAlign: 'center', fontSize: '0.8rem', whiteSpace: 'nowrap', px: '0.25rem' }} color="text.primary">{formatDate(log.deleted_at)}</Typography>
+                      <Typography variant="body2" sx={{ flex: 1.1, textAlign: 'center', fontSize: '0.8rem', whiteSpace: 'nowrap', px: '0.25rem' }} color="text.primary">{log.deleted_by_email ?? '—'}</Typography>
+                      <Box sx={{ flex: 1, display: 'flex', justifyContent: 'center', alignItems: 'center', px: '0.25rem' }}>
+                        {log.restored_at &&
+                          <Typography variant="body2" color="text.secondary" sx={{ fontSize: '0.8rem', whiteSpace: 'nowrap' }}>{formatDate(log.restored_at)}</Typography>
+                        }
+                      </Box>
+                      <Box sx={{ flex: 1.1, display: 'flex', justifyContent: 'center', alignItems: 'center', px: '0.25rem' }}>
+                        {log.restored_at
+                          ? <Typography variant="body2" color="success.main" sx={{ fontSize: '0.8rem', whiteSpace: 'nowrap' }}>{log.restored_by_email ?? '—'}</Typography>
+                          : <IconButton size="small" onClick={() => handleRestoreCurrency(log)} title="Geri Yükle">
+                              <RecyclingIcon fontSize="small" />
+                            </IconButton>
+                        }
+                      </Box>
                     </Box>
                   ))}
                 </Box>
@@ -475,44 +522,63 @@ export default function P_ProjeAyarlari() {
           <Accordion disableGutters elevation={0}
             sx={{ border: '1px solid', borderColor: 'divider', borderRadius: '4px !important', '&:before': { display: 'none' } }}
           >
-            <AccordionSummary expandIcon={<ExpandMoreIcon sx={{ fontSize: '1rem', color: 'text.disabled' }} />}
+            <AccordionSummary expandIcon={<ExpandMoreIcon sx={{ fontSize: '1rem', color: 'text.secondary' }} />}
               sx={{ minHeight: '2.25rem', px: '1rem', '& .MuiAccordionSummary-content': { my: '0.4rem' } }}
             >
-              <Typography variant="body2" color="text.secondary">
+              <Typography variant="body2" fontWeight={600} color="text.primary">
                 Silinen Poz Birimleri
                 {pozUnitDeletions.length > 0 && (
                   <Box component="span" sx={{
-                    ml: '0.5rem', fontSize: '0.72rem', color: 'text.disabled',
-                    backgroundColor: 'rgba(0,0,0,0.06)', px: '0.4rem', py: '0.1rem', borderRadius: '10px'
+                    ml: '0.5rem', fontSize: '0.72rem', color: 'white',
+                    backgroundColor: 'text.secondary', px: '0.4rem', py: '0.1rem', borderRadius: '10px'
                   }}>
                     {pozUnitDeletions.length}
                   </Box>
                 )}
               </Typography>
             </AccordionSummary>
-            <AccordionDetails sx={{ px: '1rem', pt: 0, pb: '0.75rem', backgroundColor: 'rgba(0,0,0,0.015)' }}>
+            <AccordionDetails sx={{ px: '1rem', pt: 0, pb: '0.75rem', backgroundColor: 'rgba(0,0,0,0.03)' }}>
               {pozUnitDeletions.length === 0 && (
-                <Typography variant="caption" color="text.disabled">Henüz silinmiş poz birimi yok.</Typography>
+                <Typography variant="body2" color="text.secondary">Henüz silinmiş poz birimi yok.</Typography>
               )}
               {pozUnitDeletions.length > 0 && (
                 <Box>
-                  <Box sx={{ display: 'flex', pb: '0.3rem', borderBottom: '1px solid', borderColor: 'divider' }}>
-                    {['Birim Adı', 'Tarih', 'Kişi'].map(col => (
-                      <Typography key={col} variant="caption" fontWeight={600} color="text.disabled"
-                        sx={{ flex: 1, textAlign: 'center' }}>
-                        {col}
+                  <Box sx={{ display: 'flex', py: '0.4rem', borderBottom: '2px solid', borderColor: 'divider', backgroundColor: 'rgba(0,0,0,0.03)' }}>
+                    {[
+                      { label: 'Birim Adı',     sx: { flex: 0.8 } },
+                      { label: 'Silinme',        sx: { flex: 1 } },
+                      { label: 'Silen',          sx: { flex: 1.1 } },
+                      { label: 'Geri Yüklenme',  sx: { flex: 1 } },
+                      { label: 'Geri Yükleyen',  sx: { flex: 1.1 } },
+                    ].map(col => (
+                      <Typography key={col.label} variant="body2" fontWeight={700} color="text.primary"
+                        sx={{ textAlign: 'center', fontSize: '0.75rem', whiteSpace: 'nowrap', px: '0.25rem', ...col.sx }}>
+                        {col.label}
                       </Typography>
                     ))}
                   </Box>
                   {pozUnitDeletions.map(log => (
                     <Box key={log.id} sx={{
                       display: 'flex', alignItems: 'center',
-                      py: '0.35rem', borderBottom: '1px solid', borderColor: 'divider',
+                      py: '0.45rem', borderBottom: '1px solid', borderColor: 'divider',
                       '&:last-child': { borderBottom: 'none' }
                     }}>
-                      <Typography variant="caption" sx={{ flex: 1, textAlign: 'center', color: 'rgba(0,0,0,0.5)', textDecoration: 'line-through' }}>{log.name}</Typography>
-                      <Typography variant="caption" sx={{ flex: 1, textAlign: 'center' }} color="text.secondary">{formatDate(log.deleted_at)}</Typography>
-                      <Typography variant="caption" sx={{ flex: 1, textAlign: 'center' }} color="text.secondary">{log.deleted_by_email ?? '—'}</Typography>
+                      <Typography variant="body2" sx={{ flex: 0.8, textAlign: 'center', fontSize: '0.8rem', color: 'text.secondary', textDecoration: 'line-through', whiteSpace: 'nowrap', px: '0.25rem' }}>{log.name}</Typography>
+                      <Typography variant="body2" sx={{ flex: 1, textAlign: 'center', fontSize: '0.8rem', whiteSpace: 'nowrap', px: '0.25rem' }} color="text.primary">{formatDate(log.deleted_at)}</Typography>
+                      <Typography variant="body2" sx={{ flex: 1.1, textAlign: 'center', fontSize: '0.8rem', whiteSpace: 'nowrap', px: '0.25rem' }} color="text.primary">{log.deleted_by_email ?? '—'}</Typography>
+                      <Box sx={{ flex: 1, display: 'flex', justifyContent: 'center', alignItems: 'center', px: '0.25rem' }}>
+                        {log.restored_at &&
+                          <Typography variant="body2" color="text.secondary" sx={{ fontSize: '0.8rem', whiteSpace: 'nowrap' }}>{formatDate(log.restored_at)}</Typography>
+                        }
+                      </Box>
+                      <Box sx={{ flex: 1.1, display: 'flex', justifyContent: 'center', alignItems: 'center', px: '0.25rem' }}>
+                        {log.restored_at
+                          ? <Typography variant="body2" color="success.main" sx={{ fontSize: '0.8rem', whiteSpace: 'nowrap' }}>{log.restored_by_email ?? '—'}</Typography>
+                          : <IconButton size="small" onClick={() => handleRestoreUnit(log)} title="Geri Yükle">
+                              <RecyclingIcon fontSize="small" />
+                            </IconButton>
+                        }
+                      </Box>
                     </Box>
                   ))}
                 </Box>
@@ -579,17 +645,15 @@ export default function P_ProjeAyarlari() {
         <DialogTitle>Yeni Para Birimi</DialogTitle>
         <DialogContent>
           <Box sx={{ display: 'flex', flexDirection: 'column', gap: '1rem', pt: '0.5rem' }}>
-            <Box sx={{ display: 'flex', gap: '0.75rem' }}>
-              <TextField size="small" label="Sembol" placeholder="₺"
-                value={newCurrSymbol} onChange={e => setNewCurrSymbol(e.target.value)}
-                sx={{ width: '90px' }} disabled={currSaving} autoFocus
-              />
-              <TextField size="small" label="Kod" placeholder="TRY"
-                value={newCurrCode} onChange={e => setNewCurrCode(e.target.value.toUpperCase())}
-                sx={{ flex: 1 }} disabled={currSaving}
-              />
-            </Box>
-            <TextField size="small" label="Ad (opsiyonel)" placeholder="Türk Lirası"
+            <TextField size="small" label="Birim" placeholder="TRY"
+              value={newCurrCode} onChange={e => setNewCurrCode(e.target.value.toUpperCase())}
+              fullWidth disabled={currSaving} autoFocus
+            />
+            <TextField size="small" label="Sembol" placeholder="₺"
+              value={newCurrSymbol} onChange={e => setNewCurrSymbol(e.target.value)}
+              fullWidth disabled={currSaving}
+            />
+            <TextField size="small" label="Ülke ve Birim Tam İsim" placeholder="Türk Lirası"
               value={newCurrName} onChange={e => setNewCurrName(e.target.value)}
               onKeyDown={e => e.key === 'Enter' && handleAddCurrency()}
               fullWidth disabled={currSaving}

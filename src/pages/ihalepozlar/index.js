@@ -64,7 +64,7 @@ function nodeColor(depth) {
   return palette[depth % palette.length]
 }
 
-export default function P_MetrajPozlar() {
+export default function P_IhalePozlar() {
   const navigate = useNavigate()
   const {
     selectedProje, selectedIsPaket, setSelectedPoz, appUser, metrajMode, metrajViewMode, setMetrajViewMode, topBarHeight, subHeaderHeight, drawerWidth, hiddenMetrajUsers, setHiddenMetrajUsers
@@ -75,7 +75,7 @@ export default function P_MetrajPozlar() {
   // Guards
   useEffect(() => {
     if (!selectedProje) navigate('/projeler')
-    else if (!selectedIsPaket) navigate('/metraj')
+    else if (!selectedIsPaket) navigate('/ihale')
   }, [selectedProje, selectedIsPaket, navigate])
 
   useEffect(() => {
@@ -451,7 +451,7 @@ export default function P_MetrajPozlar() {
 
   const handlePozClick = (poz) => {
     setSelectedPoz(poz)
-    navigate(`/metraj/pozlar/${poz.id}/mahaller`)
+    navigate(`/metraj/pozlar/${poz.id}/mahaller?from=ihale`)
   }
 
   const css_baslik = {
@@ -494,7 +494,7 @@ export default function P_MetrajPozlar() {
           <Grid container alignItems="center" sx={{ px: '1rem', minHeight: '3.5rem' }}>
             <Grid item xs>
               <Box sx={{ display: 'flex', alignItems: 'center', gap: '0.3rem' }}>
-                <Typography onClick={() => navigate('/metraj')} sx={{ fontSize: '0.78rem', fontWeight: 600, opacity: 0.5, whiteSpace: 'nowrap', textTransform: 'uppercase', cursor: 'pointer', '&:hover': { opacity: 0.9 } }}>Metraj</Typography>
+                <Typography onClick={() => navigate('/ihale')} sx={{ fontSize: '0.78rem', fontWeight: 600, opacity: 0.5, whiteSpace: 'nowrap', textTransform: 'uppercase', cursor: 'pointer', '&:hover': { opacity: 0.9 } }}>İhale</Typography>
                 <NavigateNextIcon sx={{ opacity: 0.3, fontSize: 16 }} />
                 <Typography sx={{ fontSize: '0.78rem', fontWeight: 700, maxWidth: '12rem', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', textTransform: 'uppercase' }}>{selectedIsPaket?.name}</Typography>
               </Box>
@@ -545,7 +545,7 @@ export default function P_MetrajPozlar() {
         <Paper sx={{ px: '1rem', boxShadow: 2 }}>
           <Box sx={{ display: 'flex', alignItems: 'center', gap: '0.5rem', justifyContent: 'space-between', minHeight: '3.5rem' }}>
             <Box sx={{ display: 'flex', alignItems: 'center', gap: '0.3rem' }}>
-              <Typography onClick={() => navigate('/metraj')} sx={{ fontSize: '0.78rem', fontWeight: 600, opacity: 0.5, whiteSpace: 'nowrap', textTransform: 'uppercase', cursor: 'pointer', '&:hover': { opacity: 0.9 } }}>Metraj</Typography>
+              <Typography onClick={() => navigate('/ihale')} sx={{ fontSize: '0.78rem', fontWeight: 600, opacity: 0.5, whiteSpace: 'nowrap', textTransform: 'uppercase', cursor: 'pointer', '&:hover': { opacity: 0.9 } }}>İhale</Typography>
               <NavigateNextIcon sx={{ opacity: 0.3, fontSize: 16 }} />
               <Typography sx={{ fontSize: '0.78rem', fontWeight: 700, maxWidth: '12rem', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', textTransform: 'uppercase' }}>{selectedIsPaket?.name}</Typography>
             </Box>
@@ -738,13 +738,9 @@ export default function P_MetrajPozlar() {
                       }}
                     >
                       {isApproveMode && sessionMap?.[poz.id]?.approvedSum != null
-                        ? <>
-                                                        {ikiHane(sessionMap[poz.id].approvedSum)}{pozBirim ? ` ${pozBirim}` : ''}
-                          </>
+                        ? <>{ikiHane(sessionMap[poz.id].approvedSum)}{pozBirim ? ` ${pozBirim}` : ''}</>
                         : pozOnayMap[poz.id] != null
-                          ? <>
-                                                            {ikiHane(pozOnayMap[poz.id])}{pozBirim ? ` ${pozBirim}` : ''}
-                            </>
+                          ? <>{ikiHane(pozOnayMap[poz.id])}{pozBirim ? ` ${pozBirim}` : ''}</>
                           : ''}
                     </Box>
 
@@ -759,11 +755,7 @@ export default function P_MetrajPozlar() {
                             onMouseLeave={() => setHoveredPozId(null)}
                             sx={{ backgroundColor: rowBg, px: '6px', py: '2px', fontSize: '0.75rem', fontWeight: 600, display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: '0.3rem', whiteSpace: 'nowrap', overflow: 'hidden', cursor: 'pointer', ...(idx > 0 ? { borderLeft: '1px dotted rgba(0,0,0,0.3)' } : {}), ...negStyle(ud?.pendingSum) }}
                           >
-                            {ud?.pendingSum != null
-                              ? <>
-                                                                    {ikiHane(ud.pendingSum)}{pozBirim ? ` ${pozBirim}` : ''}
-                                </>
-                              : ''}
+                            {ud?.pendingSum != null ? <>{ikiHane(ud.pendingSum)}{pozBirim ? ` ${pozBirim}` : ''}</> : ''}
                           </Box>
                         )
                       })
@@ -775,11 +767,7 @@ export default function P_MetrajPozlar() {
                           onMouseLeave={() => setHoveredPozId(null)}
                           sx={{ backgroundColor: rowBg, px: '6px', py: '2px', fontSize: '0.75rem', fontWeight: 600, display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: '0.3rem', whiteSpace: 'nowrap', overflow: 'hidden', cursor: 'pointer', ...negStyle(p?.map[poz.id]) }}
                         >
-                          {p?.map[poz.id] != null
-                            ? <>
-                                                                {ikiHane(p.map[poz.id])}{pozBirim ? ` ${pozBirim}` : ''}
-                              </>
-                            : ''}
+                          {p?.map[poz.id] != null ? <>{ikiHane(p.map[poz.id])}{pozBirim ? ` ${pozBirim}` : ''}</> : ''}
                         </Box>
                       ))
                     )}
@@ -824,13 +812,12 @@ export default function P_MetrajPozlar() {
               }
 
               {/* WBS nodes and poz rows with tree structure */}
-              {flatNodes.map((node, nodeIdx) => {
+              {flatNodes.map((node) => {
                 const isLeaf = isLeafSet.has(node.id)
                 const isCollapsed = collapsedIds.has(node.id)
                 const pozlarOfNode = rawPozlar.filter(p => p.wbs_node_id === node.id)
                 const c = nodeColor(node.depth)
 
-                // Herhangi bir atanın collapse edilmiş olup olmadığını kontrol et
                 let ancestorParentId = node.parent_id
                 let isAncestorCollapsed = false
                 while (ancestorParentId) {
@@ -908,10 +895,8 @@ export default function P_MetrajPozlar() {
                       const pozBirim = unitsMap[poz.unit_id] || ''
                       return (
                         <React.Fragment key={poz.id}>
-                          {/* Indicator */}
                           <Box sx={{ backgroundColor: 'black', cursor: 'pointer' }} />
 
-                          {/* Depth bars */}
                           {Array.from({ length: totalDepthCols }).map((_, i) => (
                             <Box
                               key={`d-${poz.id}-${i}`}
@@ -923,7 +908,6 @@ export default function P_MetrajPozlar() {
                             />
                           ))}
 
-                          {/* Kod */}
                           <Box
                             onMouseEnter={() => setHoveredPozId(poz.id)}
                             onMouseLeave={() => setHoveredPozId(null)}
@@ -932,7 +916,6 @@ export default function P_MetrajPozlar() {
                             {poz.code}
                           </Box>
 
-                          {/* Açıklama */}
                           <Box
                             onMouseEnter={() => setHoveredPozId(poz.id)}
                             onMouseLeave={() => setHoveredPozId(null)}
@@ -964,13 +947,9 @@ export default function P_MetrajPozlar() {
                             }}
                           >
                             {isApproveMode && sessionMap?.[poz.id]?.approvedSum != null
-                              ? <>
-                                                                    {ikiHane(sessionMap[poz.id].approvedSum)}{pozBirim ? ` ${pozBirim}` : ''}
-                                </>
+                              ? <>{ikiHane(sessionMap[poz.id].approvedSum)}{pozBirim ? ` ${pozBirim}` : ''}</>
                               : pozOnayMap[poz.id] != null
-                                ? <>
-                                                                        {ikiHane(pozOnayMap[poz.id])}{pozBirim ? ` ${pozBirim}` : ''}
-                                  </>
+                                ? <>{ikiHane(pozOnayMap[poz.id])}{pozBirim ? ` ${pozBirim}` : ''}</>
                                 : ''}
                           </Box>
 
@@ -985,11 +964,7 @@ export default function P_MetrajPozlar() {
                                   onMouseLeave={() => setHoveredPozId(null)}
                                   sx={{ backgroundColor: rowBg, px: '6px', py: '2px', fontSize: '0.75rem', fontWeight: 600, display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: '0.3rem', whiteSpace: 'nowrap', overflow: 'hidden', cursor: 'pointer', ...(idx > 0 ? { borderLeft: '1px dotted rgba(0,0,0,0.3)' } : {}), ...negStyle(ud?.pendingSum) }}
                                 >
-                                  {ud?.pendingSum != null
-                                    ? <>
-                                                                                {ikiHane(ud.pendingSum)}{pozBirim ? ` ${pozBirim}` : ''}
-                                      </>
-                                    : ''}
+                                  {ud?.pendingSum != null ? <>{ikiHane(ud.pendingSum)}{pozBirim ? ` ${pozBirim}` : ''}</> : ''}
                                 </Box>
                               )
                             })
@@ -1001,11 +976,7 @@ export default function P_MetrajPozlar() {
                                 onMouseLeave={() => setHoveredPozId(null)}
                                 sx={{ backgroundColor: rowBg, px: '6px', py: '2px', fontSize: '0.75rem', fontWeight: 600, display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: '0.3rem', whiteSpace: 'nowrap', overflow: 'hidden', cursor: 'pointer', ...negStyle(p?.map[poz.id]) }}
                               >
-                                {p?.map[poz.id] != null
-                                  ? <>
-                                                                            {ikiHane(p.map[poz.id])}{pozBirim ? ` ${pozBirim}` : ''}
-                                    </>
-                                  : ''}
+                                {p?.map[poz.id] != null ? <>{ikiHane(p.map[poz.id])}{pozBirim ? ` ${pozBirim}` : ''}</> : ''}
                               </Box>
                             ))
                           )}
@@ -1019,8 +990,6 @@ export default function P_MetrajPozlar() {
           )}
         </Box>
       )}
-
-      {/* Dialogs */}
     </Box>
   )
 }

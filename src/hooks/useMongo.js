@@ -136,7 +136,7 @@ export const useGetCurrencyDeletions = () => {
     queryFn: async () => {
       const { data, error } = await supabase
         .from('project_currency_deletions')
-        .select('id, code, symbol, name, deleted_by_email, deleted_at')
+        .select('id, code, symbol, name, deleted_by_email, deleted_at, restored_at, restored_by_email')
         .eq('project_id', selectedProje.id)
         .order('deleted_at', { ascending: false })
 
@@ -188,7 +188,7 @@ export const useGetPozUnitDeletions = () => {
     queryFn: async () => {
       const { data, error } = await supabase
         .from('project_poz_unit_deletions')
-        .select('id, name, deleted_by_email, deleted_at')
+        .select('id, name, deleted_by_email, deleted_at, restored_at, restored_by_email')
         .eq('project_id', selectedProje.id)
         .order('deleted_at', { ascending: false })
 

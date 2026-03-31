@@ -87,7 +87,7 @@ export default function Sidebar({ setMobileOpen }) {
 
             <ListItemButton
               onClick={() => navigate('/metraj')}
-              sx={{ backgroundColor: pathname.includes('/metraj') ? seciliSayfaRengi : null, '&:hover': { backgroundColor: seciliSayfaRengi } }}
+              sx={{ backgroundColor: pathname.includes('/metraj') && !search.includes('from=ihale') ? seciliSayfaRengi : null, '&:hover': { backgroundColor: seciliSayfaRengi } }}
             >
               <ListItemIcon><SendIcon /></ListItemIcon>
               <ListItemText primary="Metraj" />
@@ -99,6 +99,14 @@ export default function Sidebar({ setMobileOpen }) {
             >
               <ListItemIcon><SendIcon /></ListItemIcon>
               <ListItemText primary="Keşif / Bütçe" />
+            </ListItemButton>
+
+            <ListItemButton
+              onClick={() => navigate('/ihale')}
+              sx={{ backgroundColor: pathname.includes('/ihale') || search.includes('from=ihale') ? seciliSayfaRengi : null, '&:hover': { backgroundColor: seciliSayfaRengi } }}
+            >
+              <ListItemIcon><SendIcon /></ListItemIcon>
+              <ListItemText primary="İhale" />
             </ListItemButton>
 
             <ListItemButton
@@ -125,7 +133,7 @@ export default function Sidebar({ setMobileOpen }) {
                       '&:hover': {
                         backgroundColor: 'rgba(0,0,0,0.08)',
                         '& .MuiSvgIcon-root': { color: 'rgba(0,0,0,0.7)' },
-                        '& .MuiListItemText-primary': { textShadow: '0 0 0.6px currentColor' },
+                        '& .MuiListItemText-primary': { textShadow: '0 0 0.8px currentColor, 0 0 0.8px currentColor' },
                       },
                     }}>
                       <ListItemIcon sx={{ minWidth: '36px' }}>
@@ -137,8 +145,9 @@ export default function Sidebar({ setMobileOpen }) {
                       </ListItemIcon>
                       <ListItemText primary={item.label} primaryTypographyProps={{
                         fontSize: '0.8rem',
-                        fontWeight: item.active ? 700 : 400,
+                        fontWeight: 400,
                         color: item.danger ? 'error.main' : 'text.secondary',
+                        sx: item.active ? { textShadow: '0 0 0.8px currentColor, 0 0 0.8px currentColor' } : undefined,
                       }} />
                     </ListItemButton>
                   ))}
