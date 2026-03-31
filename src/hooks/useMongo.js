@@ -436,3 +436,24 @@ export const useGetProjeler_byFirma = () => {
 
 }
 
+export const useGetIhaleBids = () => {
+  const { appUser, selectedProje, selectedIsPaket } = useContext(StoreContext)
+
+  return useQuery({
+    queryKey: ['ihaleBids', selectedIsPaket?.id],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('ihale_bids')
+        .select('id, project_poz_id, bidder_user_id, unit_price')
+        .eq('work_package_id', selectedIsPaket.id)
+
+      if (error) throw new Error(error.message)
+      return data ?? []
+    },
+    enabled: !!appUser && !!selectedProje && !!selectedIsPaket,
+    retry: false,
+    refetchOnMount: true,
+    refetchOnWindowFocus: false
+  })
+}
+

@@ -624,8 +624,15 @@ export default function P_MetrajOnaylaCetvel() {
               }}
             >
               <Box component="span" sx={{ display: 'inline-flex', alignItems: 'center' }}>
-                <CheckIcon sx={{ fontSize: 20, color: hiddenMetrajUsers.size > 0 ? 'text.secondary' : 'primary.main', ...(hiddenMetrajUsers.size === 0 && { filter: 'drop-shadow(0 0 1px currentColor)' }) }} />
-                <CheckIcon sx={{ fontSize: 20, ml: '-8px', color: hiddenMetrajUsers.size === 0 ? 'primary.main' : 'text.secondary', ...(hiddenMetrajUsers.size === 0 && { filter: 'drop-shadow(0 0 1px currentColor)' }) }} />
+                {(() => {
+                  const total = new Set(sessions.map(s => s.created_by)).size
+                  const allHidden = hiddenMetrajUsers.size >= total
+                  const allVisible = hiddenMetrajUsers.size === 0
+                  return (<>
+                    <CheckIcon sx={{ fontSize: 20, color: allHidden ? 'text.secondary' : 'primary.main', ...(!allHidden && { filter: 'drop-shadow(0 0 1px currentColor)' }) }} />
+                    <CheckIcon sx={{ fontSize: 20, ml: '-8px', color: allVisible ? 'primary.main' : 'text.secondary', ...(allVisible && { filter: 'drop-shadow(0 0 1px currentColor)' }) }} />
+                  </>)
+                })()}
               </Box>
             </IconButton>
           </Tooltip>
