@@ -46,12 +46,26 @@ export default function P_Projeler() {
   const handleCreate = async () => {
     if (!newName.trim()) return
     setSaving(true)
-    const { error } = await supabase.from('projects').insert({ name: newName.trim(), firm_id: selectedFirma.id, created_by_email: appUser?.email ?? null })
-    setSaving(false)
+    const { data: newProject, error } = await supabase
+      .from('projects')
+      .insert({ name: newName.trim(), firm_id: selectedFirma.id })
+      .select('id')
+      .single()
     if (error) {
+      setSaving(false)
       setDialogAlert({ dialogMessage: error.message, dialogIcon: 'warning', onCloseAction: () => setDialogAlert() })
       return
     }
+
+    await supabase.from('project_members').insert({
+      project_id: newProject.id,
+      email: appUser.email,
+      role: 'admin',
+      work_package_id: null,
+      user_id: appUser.id,
+      invited_by: appUser.id,
+    })
+    setSaving(false)
     setNewName('')
     setShowCreate(false)
     queryClient.invalidateQueries(['dataProjeler', selectedFirma?.id])

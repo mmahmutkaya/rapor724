@@ -21,6 +21,10 @@ import P_isPaketPozMahaller from './pages/ispaketpozmahaller'
 import P_KesifButce from './pages/butce'
 import P_Ihale from './pages/ihale'
 import P_IhalePozlar from './pages/ihalepozlar'
+import P_Ekip from './pages/ekip'
+import P_FirmaKadro from './pages/firmakadro'
+import P_FirmaYetki from './pages/firmayetki'
+import P_Davet from './pages/davet'
 
 
 function App() {
@@ -48,6 +52,10 @@ function App() {
       <Route path='/butce' element={<P_KesifButce />} />
       <Route path='/ihale' element={<P_Ihale />} />
       <Route path='/ihale/pozlar' element={<P_IhalePozlar />} />
+      <Route path='/ekip' element={<P_Ekip />} />
+      <Route path='/firma-kadro' element={<P_FirmaKadro />} />
+      <Route path='/firma-yetki' element={<P_FirmaYetki />} />
+      <Route path='/davet' element={<P_Davet />} />
 
     </Routes>
   );

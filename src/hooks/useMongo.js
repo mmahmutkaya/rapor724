@@ -457,3 +457,57 @@ export const useGetIhaleBids = () => {
   })
 }
 
+export const useGetProjectMembers = () => {
+  const { appUser, selectedProje } = useContext(StoreContext)
+
+  return useQuery({
+    queryKey: ['projectMembers', selectedProje?.id],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('project_members')
+        .select('id, email, role, work_package_id, user_id, created_at')
+        .eq('project_id', selectedProje.id)
+        .order('created_at')
+
+      if (error) throw new Error(error.message)
+      return data ?? []
+    },
+    enabled: !!appUser && !!selectedProje,
+    retry: false,
+    refetchOnMount: true,
+    refetchOnWindowFocus: false
+  })
+}
+
+export const useGetIhaleInvitations = () => {
+  const { appUser, selectedProje } = useContext(StoreContext)
+
+  return useQuery({
+    queryKey: ['ihaleInvitations', selectedProje?.id],
+    queryFn: async () => {
+      const { data: wps, error: wpsError } = await supabase
+        .from('work_packages')
+        .select('id')
+        .eq('project_id', selectedProje.id)
+
+      if (wpsError) throw new Error(wpsError.message)
+      if (!wps || wps.length === 0) return []
+
+      const wpIds = wps.map(w => w.id)
+
+      const { data, error } = await supabase
+        .from('ihale_invitations')
+        .select('id, email, token, work_package_id, accepted_at, created_at, work_packages(name)')
+        .in('work_package_id', wpIds)
+        .order('created_at', { ascending: false })
+
+      if (error) throw new Error(error.message)
+      return data ?? []
+    },
+    enabled: !!appUser && !!selectedProje,
+    retry: false,
+    refetchOnMount: true,
+    refetchOnWindowFocus: false
+  })
+}
+

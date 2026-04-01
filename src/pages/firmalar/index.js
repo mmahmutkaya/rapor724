@@ -43,12 +43,28 @@ export default function P_Firmalar() {
   const handleCreate = async () => {
     if (!newName.trim()) return
     setSaving(true)
-    const { error } = await supabase.from('firms').insert({ name: newName.trim().toUpperCase() })
-    setSaving(false)
+    const { data: newFirma, error } = await supabase
+      .from('firms')
+      .insert({ name: newName.trim().toUpperCase() })
+      .select('id')
+      .single()
     if (error) {
+      setSaving(false)
       setDialogAlert({ dialogMessage: error.message, dialogIcon: 'warning', onCloseAction: () => setDialogAlert() })
       return
     }
+    // Firmayı kuran kişiyi kadro listesine otomatik ekle
+    await supabase.from('firma_members').insert({
+      firma_id: newFirma.id,
+      email: appUser.email,
+      name: `${appUser.isim} ${appUser.soyisim}`.trim(),
+      title: 'Firma Yöneticisi',
+      status: 'active',
+      invited_by: appUser.id,
+      approved_by: appUser.id,
+      approved_at: new Date().toISOString(),
+    })
+    setSaving(false)
     setNewName('')
     setShowCreate(false)
     queryClient.invalidateQueries(['firmalar'])
