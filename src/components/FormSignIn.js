@@ -48,6 +48,28 @@ export default function SignIn() {
   const [subtextError, setSubtextError] = useState()
 
   const [dialogAlert, setDialogAlert] = useState()
+  const [magicLinkSent, setMagicLinkSent] = useState(false)
+
+  async function handleMagicLink() {
+    const email = document.getElementById('email')?.value?.trim()
+    if (!email) {
+      setEmailError("Önce email adresinizi girin")
+      return
+    }
+    const { error } = await supabase.auth.signInWithOtp({
+      email,
+      options: { emailRedirectTo: window.location.origin }
+    })
+    if (error) {
+      setDialogAlert({
+        dialogIcon: "warning",
+        dialogMessage: "Link gönderilemedi, lütfen tekrar deneyin.",
+        detailText: error.message
+      })
+      return
+    }
+    setMagicLinkSent(true)
+  }
 
 
   async function handleGoogleSignIn() {
@@ -300,6 +322,28 @@ export default function SignIn() {
               Google ile Giriş Yap
             </Button>
 
+            <Divider sx={{ my: 2, fontSize: '0.75rem', color: '#aaa' }}>veya</Divider>
+
+            {magicLinkSent ? (
+              <Typography sx={{ textAlign: 'center', fontSize: '0.88rem', color: '#3D4849', border: '1px solid #d0e8d0', bgcolor: '#f6fff6', p: 1.5, borderRadius: 1 }}>
+                Mailinize giriş linki gönderdik — kutunuzu kontrol edin.
+              </Typography>
+            ) : (
+              <Button
+                fullWidth
+                variant="outlined"
+                onClick={handleMagicLink}
+                sx={{
+                  textTransform: 'none',
+                  color: '#3D4849',
+                  borderColor: '#ccc',
+                  fontSize: '0.9rem',
+                  '&:hover': { borderColor: '#3D4849', bgcolor: '#f5f5f5' }
+                }}
+              >
+                Şifresiz link ile giriş yap
+              </Button>
+            )}
 
           </Box>
         </Box>
