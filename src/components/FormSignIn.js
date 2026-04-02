@@ -13,6 +13,7 @@ import Checkbox from '@mui/material/Checkbox';
 import Link from '@mui/material/Link';
 import Grid from '@mui/material/Grid';
 import Box from '@mui/material/Box';
+import Divider from '@mui/material/Divider';
 import LockOutlinedIcon from '@mui/icons-material/LockOutlined';
 import Typography from '@mui/material/Typography';
 import Container from '@mui/material/Container';
@@ -48,6 +49,20 @@ export default function SignIn() {
 
   const [dialogAlert, setDialogAlert] = useState()
 
+
+  async function handleGoogleSignIn() {
+    const { error } = await supabase.auth.signInWithOAuth({
+      provider: 'google',
+      options: { redirectTo: window.location.origin }
+    })
+    if (error) {
+      setDialogAlert({
+        dialogIcon: "warning",
+        dialogMessage: "Google ile giriş yapılamadı, lütfen tekrar deneyin.",
+        detailText: error.message
+      })
+    }
+  }
 
   async function handleSubmit(event) {
 
@@ -256,6 +271,22 @@ export default function SignIn() {
               </Grid>
 
             </Grid>
+
+            <Divider sx={{ my: 2, fontSize: '0.75rem', color: '#aaa' }}>veya</Divider>
+
+            <Button
+              fullWidth
+              variant="outlined"
+              onClick={handleGoogleSignIn}
+              sx={{
+                textTransform: 'none',
+                color: '#444',
+                borderColor: '#ddd',
+                '&:hover': { borderColor: '#aaa', bgcolor: '#fafafa' }
+              }}
+            >
+              Google ile Giriş Yap
+            </Button>
 
 
           </Box>
