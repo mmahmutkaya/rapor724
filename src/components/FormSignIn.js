@@ -15,6 +15,7 @@ import Grid from '@mui/material/Grid';
 import Box from '@mui/material/Box';
 import Divider from '@mui/material/Divider';
 import LockOutlinedIcon from '@mui/icons-material/LockOutlined';
+import MailOutlineIcon from '@mui/icons-material/MailOutline';
 import Typography from '@mui/material/Typography';
 import Container from '@mui/material/Container';
 import { ThemeProvider } from '@mui/material/styles';
@@ -332,15 +333,19 @@ export default function SignIn() {
                 fullWidth
                 variant="outlined"
                 onClick={handleMagicLink}
+                startIcon={<MailOutlineIcon style={{ color: '#0077B6' }} />}
                 sx={{
                   textTransform: 'none',
-                  color: '#3D4849',
-                  borderColor: '#ccc',
+                  color: '#3c4043',
+                  borderColor: '#dadce0',
+                  bgcolor: '#fff',
+                  fontWeight: 500,
                   fontSize: '0.9rem',
-                  '&:hover': { borderColor: '#3D4849', bgcolor: '#f5f5f5' }
+                  letterSpacing: '0.01em',
+                  '&:hover': { borderColor: '#0077B6', bgcolor: '#f0f7ff' }
                 }}
               >
-                Şifresiz link ile giriş yap
+                E-posta linki ile giriş yap
               </Button>
             )}
 
