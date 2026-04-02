@@ -49,6 +49,7 @@ export default function SignIn() {
 
   const [dialogAlert, setDialogAlert] = useState()
   const [magicLinkSent, setMagicLinkSent] = useState(false)
+  const [passwordValue, setPasswordValue] = useState('')
 
   async function handleMagicLink() {
     const email = document.getElementById('email')?.value?.trim()
@@ -239,25 +240,53 @@ export default function SignIn() {
             // onChange={(e) => setEmail(e.target.value)}
             />
 
-            <TextField
-              // onClick={() => setPasswordError()}
-              error={passwordError ? true : false}
-              margin="normal"
-              required
-              fullWidth
-              name="password"
-              label={"Şifre"}
-              helperText={passwordError ? passwordError : null}
-              type="password"
-              id="password"
-              // value={password}
-              onKeyDown={() => {
-                setPasswordError()
-                setSubtextError()
-              }}
-            // onChange={(e) => setPassword(e.target.value)}
-            // autoComplete="current-password"
-            />
+            <Box sx={{ display: 'flex', gap: 1, alignItems: 'flex-start', mt: 1, mb: 0.5 }}>
+              <TextField
+                error={passwordError ? true : false}
+                required
+                sx={{ flex: 7 }}
+                name="password"
+                label={"Şifre"}
+                helperText={passwordError ? passwordError : null}
+                type="password"
+                id="password"
+                value={passwordValue}
+                onChange={(e) => {
+                  setPasswordValue(e.target.value)
+                  setPasswordError()
+                  setSubtextError()
+                }}
+              />
+              <Button
+                variant="outlined"
+                onClick={handleMagicLink}
+                disabled={passwordValue.length > 0}
+                sx={{
+                  flex: 3,
+                  height: 56,
+                  textTransform: 'none',
+                  lineHeight: 1.3,
+                  fontSize: '0.78rem',
+                  minWidth: 0,
+                  px: 1,
+                  borderColor: '#ccc',
+                  color: '#3D4849',
+                  '&:hover': { borderColor: '#3D4849', bgcolor: '#f5f5f5' },
+                  '&.Mui-disabled': { color: '#ccc', borderColor: '#eee' }
+                }}
+              >
+                <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+                  <span>E-posta</span>
+                  <span>Link</span>
+                </Box>
+              </Button>
+            </Box>
+
+            {magicLinkSent && (
+              <Typography sx={{ textAlign: 'center', fontSize: '0.82rem', color: '#3D4849', border: '1px solid #d0e8d0', bgcolor: '#f6fff6', p: 1, borderRadius: 1, mt: 0.5, mb: 0.5 }}>
+                Mailinize giriş linki gönderdik — kutunuzu kontrol edin.
+              </Typography>
+            )}
 
             <Typography sx={{ ml: "0.5rem", color: subtextError ? "red" : "white", fontSize: "0.9rem" }}>
               *Kullanıcı adı veya şifre hatalı
@@ -321,29 +350,6 @@ export default function SignIn() {
             >
               Google ile Giriş Yap
             </Button>
-
-            <Divider sx={{ my: 2, fontSize: '0.75rem', color: '#aaa' }}>veya</Divider>
-
-            {magicLinkSent ? (
-              <Typography sx={{ textAlign: 'center', fontSize: '0.88rem', color: '#3D4849', border: '1px solid #d0e8d0', bgcolor: '#f6fff6', p: 1.5, borderRadius: 1 }}>
-                Mailinize giriş linki gönderdik — kutunuzu kontrol edin.
-              </Typography>
-            ) : (
-              <Button
-                fullWidth
-                variant="outlined"
-                onClick={handleMagicLink}
-                sx={{
-                  textTransform: 'none',
-                  color: '#3D4849',
-                  borderColor: '#ccc',
-                  fontSize: '0.9rem',
-                  '&:hover': { borderColor: '#3D4849', bgcolor: '#f5f5f5' }
-                }}
-              >
-                Şifresiz link ile giriş yap
-              </Button>
-            )}
 
           </Box>
         </Box>
