@@ -24,7 +24,8 @@ serve(async (req) => {
     const inviteUrl  = `${baseUrl}/davet?token=${inviteToken}`
     const greeting   = proposedName ? `Merhaba ${proposedName},` : 'Merhaba,'
 
-    const html = `
+    const html = `<!DOCTYPE html>
+      <html><head><meta charset="utf-8" /></head><body>
       <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 24px;">
         <h2 style="color: #1565c0; margin-bottom: 8px;">${firmaName} — Kadro Davetiyesi</h2>
         <p style="color: #555;">${greeting}</p>
@@ -42,7 +43,7 @@ serve(async (req) => {
           Bu bağlantı yalnızca <strong>${to}</strong> adresine gönderilmiştir.
           Başkasıyla paylaşmayınız.
         </p>
-      </div>`
+      </div></body></html>`
 
     const res = await fetch('https://api.resend.com/emails', {
       method: 'POST',

@@ -92,6 +92,11 @@ export default function P_Davet() {
     setMember(data)
     setName(data.name  || `${appUser.isim ?? ''} ${appUser.soyisim ?? ''}`.trim())
     setTitle(data.title || '')
+
+    // Davet okundu olarak işaretle
+    if (data.status === 'invited') {
+      await supabase.from('firma_members').update({ status: 'invite_read' }).eq('id', data.id)
+    }
   }
 
 

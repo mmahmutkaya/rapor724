@@ -53,6 +53,10 @@ function formatDate(dateStr) {
 function DurumChip({ status }) {
   if (status === 'active')
     return <Chip size="small" label="Aktif" color="success" variant="outlined" sx={{ fontSize: '0.7rem', height: '20px' }} />
+  if (status === 'inactive')
+    return <Chip size="small" label="Pasif" color="error" variant="outlined" sx={{ fontSize: '0.7rem', height: '20px' }} />
+  if (status === 'invite_read')
+    return <Chip size="small" label="Daveti Okudu" color="info" variant="outlined" sx={{ fontSize: '0.7rem', height: '20px' }} />
   if (status === 'pending')
     return <Chip size="small" label="Onay Bekliyor" color="warning" variant="outlined" sx={{ fontSize: '0.7rem', height: '20px' }} />
   return <Chip size="small" label="Davet Gönderildi" variant="outlined" sx={{ fontSize: '0.7rem', height: '20px', color: 'text.disabled', borderColor: 'divider' }} />
@@ -87,6 +91,7 @@ export default function P_FirmaKadro() {
   const [dialogAlert, setDialogAlert] = useState()
   const [inviteEmail, setInviteEmail] = useState('')
   const [inviteName, setInviteName]   = useState('')
+  const [inviteTitle, setInviteTitle] = useState('')
   const [saving, setSaving] = useState(false)
 
   // satır düzenleme
@@ -142,7 +147,7 @@ export default function P_FirmaKadro() {
         name: inviteName.trim(),
         status: 'invited',
         invited_by: appUser.id,
-        title: '',
+        title: inviteTitle.trim(),
       })
       .select('invite_token, name')
       .single()
@@ -155,7 +160,7 @@ export default function P_FirmaKadro() {
       }
       return
     }
-    setInviteEmail(''); setInviteName('')
+    setInviteEmail(''); setInviteName(''); setInviteTitle('')
     queryClient.invalidateQueries(['firmaMembers', selectedFirma.id])
     if (inserted?.invite_token) {
       await sendInvitationEmail(email, inserted.invite_token, inserted.name)
@@ -206,6 +211,18 @@ export default function P_FirmaKadro() {
     setSaving(false)
     if (error) {
       setDialogAlert({ dialogIcon: 'warning', dialogMessage: 'İşlem başarısız.', detailText: error.message, onCloseAction: () => setDialogAlert() })
+      return
+    }
+    queryClient.invalidateQueries(['firmaMembers', selectedFirma.id])
+  }
+
+  async function handleToggleActive(member) {
+    const newStatus = member.status === 'inactive' ? 'active' : 'inactive'
+    setSaving(true)
+    const { error } = await supabase.from('firma_members').update({ status: newStatus }).eq('id', member.id)
+    setSaving(false)
+    if (error) {
+      setDialogAlert({ dialogIcon: 'warning', dialogMessage: 'Durum güncellenemedi.', detailText: error.message, onCloseAction: () => setDialogAlert() })
       return
     }
     queryClient.invalidateQueries(['firmaMembers', selectedFirma.id])
@@ -494,6 +511,15 @@ export default function P_FirmaKadro() {
                                 <EditIcon fontSize="small" />
                               </IconButton>
                             </Tooltip>
+                            {(m.status === 'active' || m.status === 'inactive') && (
+                              <Tooltip title={m.status === 'inactive' ? 'Aktifleştir' : 'Pasifleştir'}>
+                                <span>
+                                  <IconButton size="small" color={m.status === 'inactive' ? 'success' : 'default'} onClick={() => handleToggleActive(m)} disabled={saving}>
+                                    {m.status === 'inactive' ? <CheckCircleOutlineIcon fontSize="small" /> : <CloseIcon fontSize="small" />}
+                                  </IconButton>
+                                </span>
+                              </Tooltip>
+                            )}
                             <Tooltip title={m.status === 'active' ? 'Kadrodan Çıkar' : 'Daveti İptal Et'}>
                               <span>
                                 <IconButton size="small" onClick={() => handleRemove(m.id)} disabled={saving}>
@@ -523,6 +549,11 @@ export default function P_FirmaKadro() {
               size="small" variant="standard" label="İsim Soyisim (opsiyonel)"
               value={inviteName} onChange={e => setInviteName(e.target.value)}
               disabled={saving} sx={{ minWidth: '180px' }}
+            />
+            <TextField
+              size="small" variant="standard" label="Ünvan (opsiyonel)"
+              value={inviteTitle} onChange={e => setInviteTitle(e.target.value)}
+              disabled={saving} sx={{ minWidth: '160px' }}
             />
             <TextField
               size="small" variant="standard" label="E-posta adresi"
