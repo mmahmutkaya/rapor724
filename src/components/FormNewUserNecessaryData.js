@@ -15,12 +15,13 @@ import Box from '@mui/material/Box';
 import Person2Icon from '@mui/icons-material/Person2';
 import Typography from '@mui/material/Typography';
 import Container from '@mui/material/Container';
-import { createTheme, ThemeProvider } from '@mui/material/styles';
+import { ThemeProvider } from '@mui/material/styles';
+import grayTheme from '../lib/muiTheme.js'
 import Checkbox from '@mui/material/Checkbox';
 
 
 
-const theme = createTheme();
+const theme = grayTheme
 
 
 export default function FormSifreYenileme() {

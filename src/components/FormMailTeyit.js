@@ -17,7 +17,8 @@ import Box from '@mui/material/Box';
 import LockOutlinedIcon from '@mui/icons-material/LockOutlined';
 import Typography from '@mui/material/Typography';
 import Container from '@mui/material/Container';
-import { createTheme, ThemeProvider } from '@mui/material/styles';
+import { ThemeProvider } from '@mui/material/styles';
+import grayTheme from '../lib/muiTheme.js'
 // icons
 import Button from '@mui/material/Button';
 import Avatar from '@mui/material/Avatar';
@@ -37,7 +38,7 @@ function Copyright(props) {
   );
 }
 
-const theme = createTheme();
+const theme = grayTheme
 
 
 // pagesituation 0 - mail göndermeye hazır olduğunda
