@@ -56,9 +56,8 @@ export default function SignIn() {
       setEmailError("Önce email adresinizi girin")
       return
     }
-    const { error } = await supabase.auth.signInWithOtp({
-      email,
-      options: { emailRedirectTo: window.location.origin }
+    const { error } = await supabase.functions.invoke('send-magic-link', {
+      body: { email }
     })
     if (error) {
       setDialogAlert({
