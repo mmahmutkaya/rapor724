@@ -49,6 +49,7 @@ import FormSifreYenileme from "./FormSifreYenileme.js"
 import FormMailTeyit from "./FormMailTeyit.js"
 import FormNewUserNecessaryData from "./FormNewUserNecessaryData.js"
 import FormProfileUpdate from "./FormProfileUpdate.js"
+import LandingPage from "./LandingPage.js"
 import { supabase } from '../lib/supabase.js'
 
 const _window = window // global window — component prop'u tarafından gölgelenmeden önce sakla
@@ -111,6 +112,10 @@ export default function Layout({ window, children }) {
   //   )
   // }
 
+
+  if (!appUser && Layout_Show === "landing") {
+    return <LandingPage />
+  }
 
   if (!appUser && Layout_Show === "login") {
     return (

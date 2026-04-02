@@ -56,7 +56,7 @@ export default ({ children }) => {
     })
     return () => subscription.unsubscribe()
   }, [])
-  const [Layout_Show, setLayout_Show] = useState("login")
+  const [Layout_Show, setLayout_Show] = useState("landing")
 
   const [selectedLbs, setSelectedLbs] = useState()
   const [selectedMahal, setSelectedMahal] = useState()

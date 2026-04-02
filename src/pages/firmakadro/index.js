@@ -122,18 +122,6 @@ export default function P_FirmaKadro() {
   const currentUserInList = members.some(m => m.email?.toLowerCase() === appUser?.email?.toLowerCase())
 
 
-  // ── EMAIL GÖNDER (Edge Function) ──────────────────────
-  async function sendInvitationEmail(to, inviteToken, proposedName) {
-    try {
-      await supabase.functions.invoke('hyper-api', {
-        body: { to, firmaName: selectedFirma.name, inviteToken, proposedName },
-      })
-    } catch {
-      // Email başarısız olursa sessizce geç — kayıt DB'de kaldı
-    }
-  }
-
-
   // ── TEK DAVET ─────────────────────────────────────────
   async function handleInvite() {
     const email = inviteEmail.trim().toLowerCase()
@@ -162,9 +150,6 @@ export default function P_FirmaKadro() {
     }
     setInviteEmail(''); setInviteName(''); setInviteTitle('')
     queryClient.invalidateQueries(['firmaMembers', selectedFirma.id])
-    if (inserted?.invite_token) {
-      await sendInvitationEmail(email, inserted.invite_token, inserted.name)
-    }
   }
 
 
@@ -360,14 +345,6 @@ export default function P_FirmaKadro() {
     setImportPreview(null)
     setImportResult({ added: data?.length ?? rows.length, skipped: importPreview.invalid.length })
     queryClient.invalidateQueries(['firmaMembers', selectedFirma.id])
-    // Email'leri gönder (DB işlemi tamamlandıktan sonra)
-    if (data?.length) {
-      for (const m of data) {
-        if (m.invite_token) {
-          await sendInvitationEmail(m.email, m.invite_token, m.name)
-        }
-      }
-    }
   }
 
 

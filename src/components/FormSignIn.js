@@ -167,6 +167,12 @@ export default function SignIn() {
 
           }}
         >
+          <Typography
+            onClick={() => setLayout_Show('landing')}
+            sx={{ cursor: 'pointer', fontSize: '0.8rem', color: '#bbb', mb: 2, alignSelf: 'flex-start', '&:hover': { color: '#333' }, transition: 'color 0.15s' }}
+          >
+            ← Rapor7/24
+          </Typography>
           <Avatar sx={{ m: 1, bgcolor: 'secondary.main' }}>
             <LockOutlinedIcon />
           </Avatar>
