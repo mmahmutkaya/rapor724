@@ -3,15 +3,9 @@ import { StoreContext } from './store.js'
 import { DialogAlert } from './general/DialogAlert.js';
 import { supabase } from '../lib/supabase.js'
 
-import Avatar from '@mui/material/Avatar';
 import Button from '@mui/material/Button';
-
-// import CssBaseline from '@mui/material/CssBaseline';
 import TextField from '@mui/material/TextField';
-import FormControlLabel from '@mui/material/FormControlLabel';
-import Checkbox from '@mui/material/Checkbox';
 import Link from '@mui/material/Link';
-import Grid from '@mui/material/Grid';
 import Box from '@mui/material/Box';
 import Divider from '@mui/material/Divider';
 import LockOutlinedIcon from '@mui/icons-material/LockOutlined';
@@ -20,57 +14,33 @@ import Typography from '@mui/material/Typography';
 import Container from '@mui/material/Container';
 import { ThemeProvider } from '@mui/material/styles';
 import grayTheme from '../lib/muiTheme.js'
-// import backgroundPicture from '../public/background_image_PM.png';
-
-
-
-function Copyright(props) {
-  return (
-    <Typography variant="body2" color="text.secondary" align="center" {...props}>
-      {'Copyright © '}
-      <Link color="inherit" href="https://mui.com/">
-        Your Website
-      </Link>{' '}
-      {new Date().getFullYear()}
-      {'.'}
-    </Typography>
-  );
-}
 
 const theme = grayTheme
 
+const validateEmail = (email) =>
+  /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(String(email).toLowerCase())
 
 export default function SignIn() {
 
   const { setLayout_Show } = useContext(StoreContext)
 
-  const [emailError, setEmailError] = useState()
+  const [emailValue, setEmailValue] = useState('')
+  const [emailValid, setEmailValid] = useState(false)
+  const [showPassword, setShowPassword] = useState(false)
+  const [passwordValue, setPasswordValue] = useState('')
   const [passwordError, setPasswordError] = useState()
   const [subtextError, setSubtextError] = useState()
-
   const [dialogAlert, setDialogAlert] = useState()
   const [magicLinkSent, setMagicLinkSent] = useState(false)
+  const [loading, setLoading] = useState(false)
 
-  async function handleMagicLink() {
-    const email = document.getElementById('email')?.value?.trim()
-    if (!email) {
-      setEmailError("Önce email adresinizi girin")
-      return
-    }
-    const { error } = await supabase.functions.invoke('send-magic-link', {
-      body: { email }
-    })
-    if (error) {
-      setDialogAlert({
-        dialogIcon: "warning",
-        dialogMessage: "Link gönderilemedi, lütfen tekrar deneyin.",
-        detailText: error.message
-      })
-      return
-    }
-    setMagicLinkSent(true)
+  function handleEmailChange(e) {
+    const val = e.target.value
+    setEmailValue(val)
+    setEmailValid(validateEmail(val))
+    setSubtextError()
+    setPasswordError()
   }
-
 
   async function handleGoogleSignIn() {
     const { error } = await supabase.auth.signInWithOAuth({
@@ -79,283 +49,197 @@ export default function SignIn() {
     })
     if (error) {
       setDialogAlert({
-        dialogIcon: "warning",
-        dialogMessage: "Google ile giriş yapılamadı, lütfen tekrar deneyin.",
+        dialogIcon: 'warning',
+        dialogMessage: 'Google ile giriş yapılamadı, lütfen tekrar deneyin.',
         detailText: error.message
       })
     }
   }
 
-  async function handleSubmit(event) {
+  async function handleMagicLink() {
+    setLoading(true)
+    const { error } = await supabase.functions.invoke('send-magic-link', {
+      body: { email: emailValue }
+    })
+    setLoading(false)
+    if (error) {
+      setDialogAlert({
+        dialogIcon: 'warning',
+        dialogMessage: 'Link gönderilemedi, lütfen tekrar deneyin.',
+        detailText: error.message
+      })
+      return
+    }
+    setMagicLinkSent(true)
+  }
 
-    event.preventDefault();
-
-    let isError = false
-
+  async function handlePasswordSubmit(e) {
+    e.preventDefault()
+    if (passwordValue.length < 8) {
+      setPasswordError('En az 8 karakter olmalı')
+      return
+    }
+    setLoading(true)
     try {
-
-      const data = new FormData(event.currentTarget);
-      const email = data.get('email')
-      const password = data.get('password')
-
-
-      let emailError
-      let passwordError
-
-
-      //  Email frontend kontrolü
-      const validateEmail = (email) => {
-        return String(email)
-          .toLowerCase()
-          .match(
-            /^(([^<>()[\]\\.,;:\s@"]+(\.[^<>()[\]\\.,;:\s@"]+)*)|.(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/
-          );
-      };
-
-      if (!validateEmail(email) && !emailError) {
-        setEmailError("Email adresinizi kontrol ediniz")
-        emailError = true
-        isError = true
-      }
-
-      if (!email.length && !emailError) {
-        setEmailError("Boş bırakılamaz")
-        emailError = true
-        isError = true
-      }
-
-      //  Password frontend kontrolü
-      if (password.length < 8 && !passwordError) {
-        setPasswordError("En az 8 karakter kullanmalısınız")
-        passwordError = true
-        isError = true
-      }
-
-      if (!password.length && !passwordError) {
-        setPasswordError("Boş bırakılamaz")
-        passwordError = true
-        isError = true
-      }
-
-      if (isError) return
-
-      // Supabase Auth ile giriş
-      const { error } = await supabase.auth.signInWithPassword({ email, password })
-
+      const { error } = await supabase.auth.signInWithPassword({
+        email: emailValue,
+        password: passwordValue
+      })
       if (error) {
-        if (error.message.toLowerCase().includes('invalid login credentials') ||
-            error.message.toLowerCase().includes('invalid')) {
+        if (error.message.toLowerCase().includes('invalid')) {
           setSubtextError(true)
         } else {
           throw error
         }
       }
-      // Başarılı girişte store.js'deki onAuthStateChange appUser'ı otomatik günceller
-
     } catch (err) {
-
-      console.log(err)
-
       setDialogAlert({
-        dialogIcon: "warning",
-        dialogMessage: "Beklenmedik hata, sayfayı yenileyiniz, sorun devam ederse Rapor7/24 ile irtibata geçiniz..",
-        detailText: err?.message ? err.message : null
+        dialogIcon: 'warning',
+        dialogMessage: 'Beklenmedik hata oluştu.',
+        detailText: err?.message
       })
-
     }
-
+    setLoading(false)
   }
-
 
   return (
     <ThemeProvider theme={theme}>
 
-      {dialogAlert &&
+      {dialogAlert && (
         <DialogAlert
           dialogIcon={dialogAlert.dialogIcon}
           dialogMessage={dialogAlert.dialogMessage}
           detailText={dialogAlert.detailText}
-          onCloseAction={dialogAlert.onCloseAction ? dialogAlert.onCloseAction : () => setDialogAlert()}
+          onCloseAction={() => setDialogAlert()}
         />
-      }
+      )}
 
-      {/* <Grid container  > */}
-      {/* 
-        <Grid item sx={{ zIndex: "-1", }} >
-          <Image
-            src={backgroundPicture}
-            fill
-            // width={500}
-            // height={500}
-
-            alt="Background Image"
-          />
-        </Grid> */}
-
-      {/* <Grid item sx={{ border: "2px solid red", borderRadius: "25px" }}> */}
       <Container component="main" maxWidth="xs">
-        {/* <CssBaseline /> */}
-        <Box
-          sx={{
-            marginTop: 8,
-            display: 'flex',
-            flexDirection: 'column',
-            alignItems: 'center',
-            backgroundColor: "white",
+        <Box sx={{ marginTop: 8, display: 'flex', flexDirection: 'column', alignItems: 'center', backgroundColor: 'white' }}>
 
-          }}
-        >
           <Typography
             onClick={() => setLayout_Show('landing')}
-            sx={{ cursor: 'pointer', fontSize: '0.8rem', color: '#bbb', mb: 2, alignSelf: 'flex-start', '&:hover': { color: '#333' }, transition: 'color 0.15s' }}
+            sx={{ cursor: 'pointer', fontSize: '0.8rem', color: '#bbb', mb: 3, alignSelf: 'flex-start', '&:hover': { color: '#333' }, transition: 'color 0.15s' }}
           >
             ← Rapor7/24
           </Typography>
-          <Avatar sx={{ m: 1, bgcolor: 'secondary.main' }}>
-            <LockOutlinedIcon />
-          </Avatar>
-          <Typography component="h1" variant="h5">
-            Mevcut Kullanıcı Girişi
+
+          <Typography component="h1" variant="h5" sx={{ mb: 3, fontWeight: 500 }}>
+            Giriş Yap
           </Typography>
-          <Box component="form" onSubmit={handleSubmit} noValidate sx={{ mt: 1 }}>
 
-            <TextField
-              // onClick={() => setEmailError()}
-              error={emailError ? true : false}
-              margin="normal"
-              required
-              fullWidth
-              id="email"
-              label={"Email"}
-              helperText={emailError ? emailError : null}
-              name="email"
-              autoComplete="email"
-              autoFocus
-              // value={email}
-              onKeyDown={() => {
-                setEmailError()
-                setSubtextError()
-              }}
-            // onChange={(e) => setEmail(e.target.value)}
-            />
+          {/* Google */}
+          <Button
+            fullWidth
+            variant="outlined"
+            onClick={handleGoogleSignIn}
+            startIcon={
+              <svg width="18" height="18" viewBox="0 0 18 18">
+                <path fill="#4285F4" d="M17.64 9.2c0-.637-.057-1.251-.164-1.84H9v3.481h4.844c-.209 1.125-.843 2.078-1.796 2.717v2.258h2.908c1.702-1.567 2.684-3.874 2.684-6.615z"/>
+                <path fill="#34A853" d="M9 18c2.43 0 4.467-.806 5.956-2.184l-2.908-2.258c-.806.54-1.837.86-3.048.86-2.344 0-4.328-1.584-5.036-3.711H.957v2.332C2.438 15.983 5.482 18 9 18z"/>
+                <path fill="#FBBC05" d="M3.964 10.707c-.18-.54-.282-1.117-.282-1.707s.102-1.167.282-1.707V4.961H.957C.347 6.175 0 7.55 0 9s.348 2.825.957 4.039l3.007-2.332z"/>
+                <path fill="#EA4335" d="M9 3.58c1.321 0 2.508.454 3.44 1.345l2.582-2.58C13.463.891 11.426 0 9 0 5.482 0 2.438 2.017.957 4.961L3.964 7.293C4.672 5.166 6.656 3.58 9 3.58z"/>
+              </svg>
+            }
+            sx={{ textTransform: 'none', color: '#3c4043', borderColor: '#dadce0', bgcolor: '#fff', fontWeight: 500, fontSize: '0.9rem', '&:hover': { borderColor: '#aaa', bgcolor: '#f8f9fa' } }}
+          >
+            Google ile Giriş Yap
+          </Button>
 
-            <TextField
-              // onClick={() => setPasswordError()}
-              error={passwordError ? true : false}
-              margin="normal"
-              required
-              fullWidth
-              name="password"
-              label={"Şifre"}
-              helperText={passwordError ? passwordError : null}
-              type="password"
-              id="password"
-              // value={password}
-              onKeyDown={() => {
-                setPasswordError()
-                setSubtextError()
-              }}
-            // onChange={(e) => setPassword(e.target.value)}
-            // autoComplete="current-password"
-            />
+          <Divider sx={{ width: '100%', my: 2.5, fontSize: '0.75rem', color: '#aaa' }}>veya</Divider>
 
-            <Typography sx={{ ml: "0.5rem", color: subtextError ? "red" : "white", fontSize: "0.9rem" }}>
-              *Kullanıcı adı veya şifre hatalı
-            </Typography>
+          {/* Email input */}
+          <TextField
+            fullWidth
+            label="E-posta"
+            id="email"
+            name="email"
+            type="email"
+            autoComplete="email"
+            autoFocus
+            value={emailValue}
+            onChange={handleEmailChange}
+            size="small"
+          />
 
-
-            {/* <FormControlLabel
-              control={<Checkbox value="remember" color="primary" />}
-              label="Remember me"
-            /> */}
-
-            <Button
-              type="submit"
-              fullWidth
-              variant="contained"
-              sx={{ mt: 1, mb: 2 }}
-            >
-              GİRİŞ
-            </Button>
-
-            <Grid container>
-
-              <Grid item xs>
-                <Link onClick={() => setLayout_Show("sifreYenileme")} href="#" variant="body2">
-                  Şifre Yenileme
-                </Link>
-              </Grid>
-
-              <Grid item>
-                <Link onClick={() => setLayout_Show("newUser")} href="#" variant="body2">
-                  Yeni Kullanıcı Kaydı
-                </Link>
-              </Grid>
-
-            </Grid>
-
-            <Divider sx={{ my: 2, fontSize: '0.75rem', color: '#aaa' }}>veya</Divider>
-
-            <Button
-              fullWidth
-              variant="outlined"
-              onClick={handleGoogleSignIn}
-              startIcon={
-                <svg width="18" height="18" viewBox="0 0 18 18">
-                  <path fill="#4285F4" d="M17.64 9.2c0-.637-.057-1.251-.164-1.84H9v3.481h4.844c-.209 1.125-.843 2.078-1.796 2.717v2.258h2.908c1.702-1.567 2.684-3.874 2.684-6.615z"/>
-                  <path fill="#34A853" d="M9 18c2.43 0 4.467-.806 5.956-2.184l-2.908-2.258c-.806.54-1.837.86-3.048.86-2.344 0-4.328-1.584-5.036-3.711H.957v2.332C2.438 15.983 5.482 18 9 18z"/>
-                  <path fill="#FBBC05" d="M3.964 10.707c-.18-.54-.282-1.117-.282-1.707s.102-1.167.282-1.707V4.961H.957C.347 6.175 0 7.55 0 9s.348 2.825.957 4.039l3.007-2.332z"/>
-                  <path fill="#EA4335" d="M9 3.58c1.321 0 2.508.454 3.44 1.345l2.582-2.58C13.463.891 11.426 0 9 0 5.482 0 2.438 2.017.957 4.961L3.964 7.293C4.672 5.166 6.656 3.58 9 3.58z"/>
-                </svg>
-              }
-              sx={{
-                textTransform: 'none',
-                color: '#3c4043',
-                borderColor: '#dadce0',
-                bgcolor: '#fff',
-                fontWeight: 500,
-                fontSize: '0.9rem',
-                letterSpacing: '0.01em',
-                '&:hover': { borderColor: '#aaa', bgcolor: '#f8f9fa' }
-              }}
-            >
-              Google ile Giriş Yap
-            </Button>
-
-            <Divider sx={{ my: 2, fontSize: '0.75rem', color: '#aaa' }}>veya</Divider>
+          {/* İki aksiyon butonu */}
+          <Box sx={{ display: 'flex', gap: 1, width: '100%', mt: 1.5 }}>
 
             {magicLinkSent ? (
-              <Typography sx={{ textAlign: 'center', fontSize: '0.88rem', color: '#3D4849', border: '1px solid #d0e8d0', bgcolor: '#f6fff6', p: 1.5, borderRadius: 1 }}>
-                Mailinize giriş linki gönderdik — kutunuzu kontrol edin.
-              </Typography>
+              <Box sx={{ flex: 1, textAlign: 'center', fontSize: '0.85rem', color: '#3D4849', border: '1px solid #d0e8d0', bgcolor: '#f6fff6', p: 1.5, borderRadius: 1 }}>
+                <Typography sx={{ fontSize: '0.85rem' }}>Giriş linki gönderildi — e-posta kutunuzu kontrol edin.</Typography>
+              </Box>
             ) : (
               <Button
-                fullWidth
                 variant="outlined"
+                disabled={!emailValid || loading}
                 onClick={handleMagicLink}
-                startIcon={<MailOutlineIcon style={{ color: '#0077B6' }} />}
-                sx={{
-                  textTransform: 'none',
-                  color: '#3c4043',
-                  borderColor: '#dadce0',
-                  bgcolor: '#fff',
-                  fontWeight: 500,
-                  fontSize: '0.9rem',
-                  letterSpacing: '0.01em',
-                  '&:hover': { borderColor: '#0077B6', bgcolor: '#f0f7ff' }
-                }}
+                startIcon={<MailOutlineIcon style={{ color: emailValid ? '#0077B6' : undefined, fontSize: 17 }} />}
+                sx={{ flex: 1, textTransform: 'none', color: '#3c4043', borderColor: '#dadce0', fontSize: '0.82rem', fontWeight: 500, '&:hover': { borderColor: '#0077B6', bgcolor: '#f0f7ff' }, '&:disabled': { borderColor: '#eee' } }}
               >
-                E-posta linki ile giriş yap
+                E-posta linki gönder
               </Button>
             )}
 
-          </Box>
-        </Box>
-        {/* <Copyright sx={{ mt: 8, mb: 4 }} /> */}
-      </Container>
-      {/* </Grid> */}
+            <Button
+              variant="outlined"
+              disabled={!emailValid}
+              onClick={() => setShowPassword(v => !v)}
+              startIcon={<LockOutlinedIcon style={{ color: emailValid ? '#3D4849' : undefined, fontSize: 17 }} />}
+              sx={{ flex: 1, textTransform: 'none', color: '#3c4043', borderColor: showPassword ? '#3D4849' : '#dadce0', fontSize: '0.82rem', fontWeight: 500, bgcolor: showPassword ? '#f5f5f5' : '#fff', '&:hover': { borderColor: '#3D4849', bgcolor: '#f5f5f5' }, '&:disabled': { borderColor: '#eee' } }}
+            >
+              Şifre ile devam
+            </Button>
 
-      {/* </Grid> */}
+          </Box>
+
+          {/* Şifre alanı */}
+          {showPassword && (
+            <Box component="form" onSubmit={handlePasswordSubmit} sx={{ width: '100%', mt: 1.5 }}>
+
+              <TextField
+                fullWidth
+                label="Şifre"
+                name="password"
+                type="password"
+                autoComplete="current-password"
+                autoFocus
+                value={passwordValue}
+                onChange={(e) => { setPasswordValue(e.target.value); setPasswordError(); setSubtextError() }}
+                error={!!passwordError || !!subtextError}
+                helperText={
+                  passwordError ? passwordError :
+                  subtextError ? (
+                    <span>
+                      Şifre hatalı. <Link onClick={() => setLayout_Show('sifreYenileme')} href="#" sx={{ fontSize: '0.82rem' }}>Şifremi unuttum</Link>
+                    </span>
+                  ) : null
+                }
+                size="small"
+              />
+
+              <Button
+                type="submit"
+                fullWidth
+                variant="contained"
+                disabled={loading}
+                sx={{ mt: 1.5, mb: 1, textTransform: 'none' }}
+              >
+                Giriş Yap
+              </Button>
+
+              <Box sx={{ display: 'flex', justifyContent: 'flex-end' }}>
+                <Link onClick={() => setLayout_Show('newUser')} href="#" variant="body2">
+                  Yeni kullanıcı kaydı
+                </Link>
+              </Box>
+
+            </Box>
+          )}
+
+        </Box>
+      </Container>
+
     </ThemeProvider>
-  );
+  )
 }
