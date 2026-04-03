@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react'
+import { useSearchParams } from 'react-router-dom'
 import { supabase } from '../lib/supabase.js'
 import { DialogAlert } from './general/DialogAlert.js'
 import { ThemeProvider } from '@mui/material/styles'
@@ -16,6 +17,7 @@ import BusinessIcon from '@mui/icons-material/Business'
 
 
 export default function FormDavetKayit() {
+  const [searchParams] = useSearchParams()
   const [step, setStep] = useState('loading') // loading | form | magicSent | confirmSent | invalid
   const [email, setEmail] = useState('')
   const [firmaName, setFirmaName] = useState('')
@@ -26,18 +28,17 @@ export default function FormDavetKayit() {
   const [dialogAlert, setDialogAlert] = useState()
 
   useEffect(() => {
-    const token = sessionStorage.getItem('pendingInviteToken')
+    // URL'den oku (race condition yok), fallback olarak sessionStorage
+    const token = searchParams.get('token') || sessionStorage.getItem('pendingInviteToken')
     if (!token) { setStep('invalid'); return }
+    // İlerideki sayfa yenileme için kaydet
+    sessionStorage.setItem('pendingInviteToken', token)
 
-    supabase
-      .from('firma_members')
-      .select('email, firms(name)')
-      .eq('invite_token', token)
-      .single()
+    supabase.functions.invoke('get-invite-info', { body: { token } })
       .then(({ data, error }) => {
-        if (error || !data) { setStep('invalid'); return }
+        if (error || data?.error) { setStep('invalid'); return }
         setEmail(data.email ?? '')
-        setFirmaName(data.firms?.name ?? '')
+        setFirmaName(data.firma_name ?? '')
         setStep('form')
       })
   }, [])

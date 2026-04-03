@@ -152,6 +152,11 @@ export default function P_FirmaKadro() {
     }
     setInviteEmail(''); setInviteName(''); setInviteTitle('')
     queryClient.invalidateQueries(['firmaMembers', selectedFirma.id])
+    if (inserted?.invite_token) {
+      supabase.functions.invoke('firma-kadro-invite', {
+        body: { invite_token: inserted.invite_token, name: inserted.name, origin: window.location.origin }
+      })
+    }
   }
 
 
@@ -347,6 +352,13 @@ export default function P_FirmaKadro() {
     setImportPreview(null)
     setImportResult({ added: data?.length ?? rows.length, skipped: importPreview.invalid.length })
     queryClient.invalidateQueries(['firmaMembers', selectedFirma.id])
+    data?.forEach(row => {
+      if (row.invite_token) {
+        supabase.functions.invoke('firma-kadro-invite', {
+          body: { invite_token: row.invite_token, name: row.name, origin: window.location.origin }
+        })
+      }
+    })
   }
 
 
@@ -526,20 +538,23 @@ export default function P_FirmaKadro() {
           <Box sx={{ display: 'flex', gap: '0.75rem', alignItems: 'flex-end', flexWrap: 'wrap' }}>
             <TextField
               size="small" variant="standard" label="İsim Soyisim (opsiyonel)"
+              name="kadro-isim"
               value={inviteName} onChange={e => setInviteName(e.target.value)}
-              disabled={saving} sx={{ minWidth: '180px' }} inputProps={{ spellCheck: false }}
+              disabled={saving} sx={{ minWidth: '180px' }} inputProps={{ autoComplete: 'on', spellCheck: false }}
             />
             <TextField
               size="small" variant="standard" label="Ünvan (opsiyonel)"
+              name="kadro-unvan"
               value={inviteTitle} onChange={e => setInviteTitle(e.target.value)}
-              disabled={saving} sx={{ minWidth: '160px' }} inputProps={{ spellCheck: false }}
+              disabled={saving} sx={{ minWidth: '160px' }} inputProps={{ autoComplete: 'on', spellCheck: false }}
             />
             <TextField
               size="small" variant="standard" label="E-posta adresi"
+              name="kadro-email"
               value={inviteEmail}
               onChange={e => setInviteEmail(e.target.value)}
               onKeyDown={e => { if (e.key === 'Enter') handleInvite() }}
-              disabled={saving} sx={{ flex: 1, minWidth: '200px' }} inputProps={{ spellCheck: false }}
+              disabled={saving} sx={{ flex: 1, minWidth: '200px' }} inputProps={{ autoComplete: 'email', spellCheck: false }}
             />
             <Tooltip title="Davet Gönder">
               <span>
