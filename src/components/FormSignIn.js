@@ -8,7 +8,6 @@ import TextField from '@mui/material/TextField';
 import Link from '@mui/material/Link';
 import Box from '@mui/material/Box';
 import Divider from '@mui/material/Divider';
-import LockOutlinedIcon from '@mui/icons-material/LockOutlined';
 import MailOutlineIcon from '@mui/icons-material/MailOutline';
 import Typography from '@mui/material/Typography';
 import Container from '@mui/material/Container';
@@ -22,24 +21,23 @@ const validateEmail = (email) =>
 
 export default function SignIn() {
 
-  const { setLayout_Show } = useContext(StoreContext)
+  const { setLayout_Show, setSifreYenilemeEmail } = useContext(StoreContext)
 
   const [emailValue, setEmailValue] = useState('')
   const [emailValid, setEmailValid] = useState(false)
-  const [showPassword, setShowPassword] = useState(false)
   const [passwordValue, setPasswordValue] = useState('')
   const [passwordError, setPasswordError] = useState()
-  const [subtextError, setSubtextError] = useState()
   const [dialogAlert, setDialogAlert] = useState()
   const [magicLinkSent, setMagicLinkSent] = useState(false)
+  const [autoLinkSent, setAutoLinkSent] = useState(false)
   const [loading, setLoading] = useState(false)
 
   function handleEmailChange(e) {
     const val = e.target.value
     setEmailValue(val)
     setEmailValid(validateEmail(val))
-    setSubtextError()
     setPasswordError()
+    setAutoLinkSent(false)
   }
 
   async function handleGoogleSignIn() {
@@ -73,7 +71,7 @@ export default function SignIn() {
     setMagicLinkSent(true)
   }
 
-  async function handlePasswordSubmit(e) {
+  async function handleCombinedSubmit(e) {
     e.preventDefault()
     if (passwordValue.length < 8) {
       setPasswordError('En az 8 karakter olmalı')
@@ -87,7 +85,7 @@ export default function SignIn() {
       })
       if (error) {
         if (error.message.toLowerCase().includes('invalid')) {
-          setSubtextError(true)
+          setPasswordError('E-posta veya şifre hatalı')
         } else {
           throw error
         }
@@ -124,9 +122,75 @@ export default function SignIn() {
             ← Rapor7/24
           </Typography>
 
+          <Box sx={{ width: 60, height: 60, bgcolor: '#424242', borderRadius: '50%', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', mb: 1.5, boxShadow: '0 4px 14px rgba(0,0,0,0.25)' }}>
+            <Box component="span" sx={{ fontWeight: 700, fontSize: '0.45rem', letterSpacing: '0.2em', color: 'rgba(255,255,255,0.65)', display: 'block', lineHeight: 1 }}>RAPOR</Box>
+            <Box component="span" sx={{ fontWeight: 900, fontSize: '1.3rem', color: '#fff', letterSpacing: '-0.5px', display: 'block', lineHeight: 1.1 }}>7/24</Box>
+          </Box>
+
           <Typography component="h1" variant="h5" sx={{ mb: 3, fontWeight: 500 }}>
             Giriş Yap
           </Typography>
+
+          {/* Klasik form */}
+          {autoLinkSent ? (
+            <Box sx={{ width: '100%', textAlign: 'center', border: '1px solid #d0e8d0', bgcolor: '#f6fff6', p: 2, borderRadius: 1 }}>
+              <Typography sx={{ fontSize: '0.85rem', color: '#3D4849' }}>
+                E-posta adresinize bir link gönderdik.<br />
+                Linke tıkladığınızda giriş yapılmış veya üyeliğiniz tamamlanmış olacaktır.
+              </Typography>
+            </Box>
+          ) : (
+          <Box component="form" onSubmit={handleCombinedSubmit} sx={{ width: '100%' }}>
+
+            <TextField
+              fullWidth
+              label="E-posta"
+              id="email"
+              name="email"
+              type="email"
+              autoComplete="email"
+              autoFocus
+              value={emailValue}
+              onChange={handleEmailChange}
+              size="small"
+              inputProps={{ spellCheck: false }}
+              sx={{ '& input:-webkit-autofill, & input:-webkit-autofill:hover, & input:-webkit-autofill:focus': { WebkitBoxShadow: '0 0 0 1000px #fff inset' } }}
+            />
+
+            <TextField
+              fullWidth
+              label="Şifre"
+              name="password"
+              type="password"
+              autoComplete="current-password"
+              value={passwordValue}
+              onChange={(e) => { setPasswordValue(e.target.value); setPasswordError() }}
+              error={!!passwordError}
+              helperText={passwordError || null}
+              size="small"
+              sx={{ mt: 1.5, '& input:-webkit-autofill, & input:-webkit-autofill:hover, & input:-webkit-autofill:focus': { WebkitBoxShadow: '0 0 0 1000px #fff inset' } }}
+            />
+
+            <Box sx={{ display: 'flex', justifyContent: 'flex-end', mt: 0.5 }}>
+              <Link onClick={() => { setSifreYenilemeEmail(emailValue); setLayout_Show('sifreYenileme') }} href="#" variant="body2" sx={{ fontSize: '0.8rem' }}>
+                Şifremi unuttum
+              </Link>
+            </Box>
+
+            <Button
+              type="submit"
+              fullWidth
+              variant="contained"
+              disabled={loading || !emailValid}
+              sx={{ mt: 1.5, mb: 1, textTransform: 'none' }}
+            >
+              Giriş Yap / Üye Ol
+            </Button>
+
+          </Box>
+          )}
+
+          <Divider sx={{ width: '100%', my: 2.5, fontSize: '0.75rem', color: '#aaa' }}>veya</Divider>
 
           {/* Google */}
           <Button
@@ -146,96 +210,25 @@ export default function SignIn() {
             Google ile Giriş Yap
           </Button>
 
-          <Divider sx={{ width: '100%', my: 2.5, fontSize: '0.75rem', color: '#aaa' }}>veya</Divider>
-
-          {/* Email input */}
-          <TextField
-            fullWidth
-            label="E-posta"
-            id="email"
-            name="email"
-            type="email"
-            autoComplete="email"
-            autoFocus
-            value={emailValue}
-            onChange={handleEmailChange}
-            size="small"
-          />
-
-          {/* İki aksiyon butonu */}
-          <Box sx={{ display: 'flex', gap: 1, width: '100%', mt: 1.5 }}>
-
+          {/* Magic link */}
+          <Box sx={{ width: '100%', mt: 1.5 }}>
             {magicLinkSent ? (
-              <Box sx={{ flex: 1, textAlign: 'center', fontSize: '0.85rem', color: '#3D4849', border: '1px solid #d0e8d0', bgcolor: '#f6fff6', p: 1.5, borderRadius: 1 }}>
-                <Typography sx={{ fontSize: '0.85rem' }}>Giriş linki gönderildi — e-posta kutunuzu kontrol edin.</Typography>
+              <Box sx={{ textAlign: 'center', fontSize: '0.85rem', color: '#3D4849', border: '1px solid #d0e8d0', bgcolor: '#f6fff6', p: 1.5, borderRadius: 1 }}>
+                <Typography sx={{ fontSize: '0.85rem' }}>E-posta'nıza gelen linke tıklayınız.</Typography>
               </Box>
             ) : (
               <Button
+                fullWidth
                 variant="outlined"
                 disabled={!emailValid || loading}
                 onClick={handleMagicLink}
                 startIcon={<MailOutlineIcon style={{ color: emailValid ? '#0077B6' : undefined, fontSize: 17 }} />}
-                sx={{ flex: 1, textTransform: 'none', color: '#3c4043', borderColor: '#dadce0', fontSize: '0.82rem', fontWeight: 500, '&:hover': { borderColor: '#0077B6', bgcolor: '#f0f7ff' }, '&:disabled': { borderColor: '#eee' } }}
+                sx={{ textTransform: 'none', color: '#3c4043', borderColor: '#dadce0', fontSize: '0.9rem', fontWeight: 500, '&:hover': { borderColor: '#0077B6', bgcolor: '#f0f7ff' }, '&:disabled': { borderColor: '#eee' } }}
               >
-                E-posta linki gönder
+                E-Posta Link ile Giriş Yap
               </Button>
             )}
-
-            <Button
-              variant="outlined"
-              disabled={!emailValid}
-              onClick={() => setShowPassword(v => !v)}
-              startIcon={<LockOutlinedIcon style={{ color: emailValid ? '#3D4849' : undefined, fontSize: 17 }} />}
-              sx={{ flex: 1, textTransform: 'none', color: '#3c4043', borderColor: showPassword ? '#3D4849' : '#dadce0', fontSize: '0.82rem', fontWeight: 500, bgcolor: showPassword ? '#f5f5f5' : '#fff', '&:hover': { borderColor: '#3D4849', bgcolor: '#f5f5f5' }, '&:disabled': { borderColor: '#eee' } }}
-            >
-              Şifre ile devam
-            </Button>
-
           </Box>
-
-          {/* Şifre alanı */}
-          {showPassword && (
-            <Box component="form" onSubmit={handlePasswordSubmit} sx={{ width: '100%', mt: 1.5 }}>
-
-              <TextField
-                fullWidth
-                label="Şifre"
-                name="password"
-                type="password"
-                autoComplete="current-password"
-                autoFocus
-                value={passwordValue}
-                onChange={(e) => { setPasswordValue(e.target.value); setPasswordError(); setSubtextError() }}
-                error={!!passwordError || !!subtextError}
-                helperText={
-                  passwordError ? passwordError :
-                  subtextError ? (
-                    <span>
-                      Şifre hatalı. <Link onClick={() => setLayout_Show('sifreYenileme')} href="#" sx={{ fontSize: '0.82rem' }}>Şifremi unuttum</Link>
-                    </span>
-                  ) : null
-                }
-                size="small"
-              />
-
-              <Button
-                type="submit"
-                fullWidth
-                variant="contained"
-                disabled={loading}
-                sx={{ mt: 1.5, mb: 1, textTransform: 'none' }}
-              >
-                Giriş Yap
-              </Button>
-
-              <Box sx={{ display: 'flex', justifyContent: 'flex-end' }}>
-                <Link onClick={() => setLayout_Show('newUser')} href="#" variant="body2">
-                  Yeni kullanıcı kaydı
-                </Link>
-              </Box>
-
-            </Box>
-          )}
 
         </Box>
       </Container>

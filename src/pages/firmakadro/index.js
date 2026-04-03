@@ -142,7 +142,9 @@ export default function P_FirmaKadro() {
     setSaving(false)
     if (error) {
       if (error.code === '23505') {
-        setDialogAlert({ dialogIcon: 'info', dialogMessage: 'Bu e-posta adresi zaten kadrodaki.', onCloseAction: () => setDialogAlert() })
+        const existing = members.find(m => m.email?.toLowerCase() === email)
+        const unvan = existing?.title ? ` ${existing.title} olarak` : ''
+        setDialogAlert({ dialogIcon: 'info', dialogMessage: `Bu kişi zaten ${selectedFirma?.name} firmasının kadrosunda${unvan} yer almakta.`, onCloseAction: () => setDialogAlert() })
       } else {
         setDialogAlert({ dialogIcon: 'warning', dialogMessage: 'Davet gönderilemedi.', detailText: error.message, onCloseAction: () => setDialogAlert() })
       }
@@ -525,19 +527,19 @@ export default function P_FirmaKadro() {
             <TextField
               size="small" variant="standard" label="İsim Soyisim (opsiyonel)"
               value={inviteName} onChange={e => setInviteName(e.target.value)}
-              disabled={saving} sx={{ minWidth: '180px' }}
+              disabled={saving} sx={{ minWidth: '180px' }} inputProps={{ spellCheck: false }}
             />
             <TextField
               size="small" variant="standard" label="Ünvan (opsiyonel)"
               value={inviteTitle} onChange={e => setInviteTitle(e.target.value)}
-              disabled={saving} sx={{ minWidth: '160px' }}
+              disabled={saving} sx={{ minWidth: '160px' }} inputProps={{ spellCheck: false }}
             />
             <TextField
               size="small" variant="standard" label="E-posta adresi"
               value={inviteEmail}
               onChange={e => setInviteEmail(e.target.value)}
               onKeyDown={e => { if (e.key === 'Enter') handleInvite() }}
-              disabled={saving} sx={{ flex: 1, minWidth: '200px' }}
+              disabled={saving} sx={{ flex: 1, minWidth: '200px' }} inputProps={{ spellCheck: false }}
             />
             <Tooltip title="Davet Gönder">
               <span>

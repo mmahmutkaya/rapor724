@@ -2,7 +2,7 @@ import { useState, useContext, useEffect } from 'react';
 import { StoreContext } from '../components/store'
 import PropTypes from 'prop-types';
 // import { useApp } from "../components/useApp.js";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import Snackbar from '@mui/material/Snackbar';
 import Alert from '@mui/material/Alert';
 import WifiOffIcon from '@mui/icons-material/WifiOff';
@@ -49,6 +49,7 @@ import FormSifreYenileme from "./FormSifreYenileme.js"
 import FormMailTeyit from "./FormMailTeyit.js"
 import FormNewUserNecessaryData from "./FormNewUserNecessaryData.js"
 import FormProfileUpdate from "./FormProfileUpdate.js"
+import FormDavetKayit from "./FormDavetKayit.js"
 import LandingPage from "./LandingPage.js"
 import { supabase } from '../lib/supabase.js'
 
@@ -58,6 +59,8 @@ const _window = window // global window — component prop'u tarafından gölgel
 export default function Layout({ window, children }) {
 
   const navigate = useNavigate()
+  const location = useLocation()
+  const urlInviteToken = (location.pathname === '/davet') ? new URLSearchParams(location.search).get('token') : null
 
   const { drawerWidth, topBarHeight } = useContext(StoreContext)
   const { Layout_Show, setLayout_Show } = useContext(StoreContext)
@@ -78,6 +81,7 @@ export default function Layout({ window, children }) {
   const [mobileOpen, setMobileOpen] = useState(false);
   const [anchorEl, setAnchorEl] = useState(null);
   const [mobileMoreAnchorEl, setMobileMoreAnchorEl] = useState(null);
+  const [isPasswordRecovery, setIsPasswordRecovery] = useState(false)
 
   const isMenuOpen = Boolean(anchorEl);
   const isMobileMenuOpen = Boolean(mobileMoreAnchorEl);
@@ -103,6 +107,31 @@ export default function Layout({ window, children }) {
     }
   }, [])
 
+  useEffect(() => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event) => {
+      if (event === 'PASSWORD_RECOVERY') {
+        setIsPasswordRecovery(true)
+        setLayout_Show('sifreYenileme')
+      } else if (event === 'USER_UPDATED' || event === 'SIGNED_OUT') {
+        setIsPasswordRecovery(false)
+      }
+    })
+    return () => subscription.unsubscribe()
+  }, [])
+
+  // Davet token'ı URL'den sessionStorage'a kaydet
+  useEffect(() => {
+    if (urlInviteToken) sessionStorage.setItem('pendingInviteToken', urlInviteToken)
+  }, [urlInviteToken])
+
+  // Giriş yapıldıktan sonra bekleyen davet varsa /davet'e yönlendir
+  useEffect(() => {
+    if (appUser && sessionStorage.getItem('pendingInviteToken') && location.pathname !== '/davet') {
+      navigate('/davet')
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [appUser])
+
 
 
 
@@ -112,6 +141,16 @@ export default function Layout({ window, children }) {
   //   )
   // }
 
+
+  if (isPasswordRecovery) {
+    return <FormSifreYenileme />
+  }
+
+  const pendingInviteToken = urlInviteToken || sessionStorage.getItem('pendingInviteToken') || null
+
+  if (!appUser && pendingInviteToken) {
+    return <FormDavetKayit />
+  }
 
   if (!appUser && Layout_Show === "landing") {
     return <LandingPage />
@@ -139,7 +178,7 @@ export default function Layout({ window, children }) {
 
 
   // mongo realm bu fonksiyonu name değeri yoksa bile name:$undefined:true gibi birşey oluşturuyor sonuçta $undefined:true olarak döndürüyor
-  if (appUser?.email && !appUser?.mailTeyit) {
+  if (appUser?.email && !appUser?.mailTeyit && !pendingInviteToken) {
     return (
       <FormMailTeyit />
     )

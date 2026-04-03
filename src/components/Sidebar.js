@@ -68,6 +68,51 @@ export default function Sidebar({ setMobileOpen }) {
               <ListItemIcon><SendIcon /></ListItemIcon>
               <ListItemText primary="Yetki" />
             </ListItemButton>
+
+            <ListItemButton
+              onClick={() => navigate('/firma-ayarlari')}
+              sx={{ backgroundColor: pathname.includes('/firma-ayarlari') ? seciliSayfaRengi : null, '&:hover': { backgroundColor: seciliSayfaRengi } }}
+            >
+              <ListItemIcon><SendIcon /></ListItemIcon>
+              <ListItemText primary="Ayarlar" />
+            </ListItemButton>
+
+            {pathname.includes('/firma-ayarlari') && (() => {
+              const subItems = [
+                { label: 'Profil Bilgileri', route: '/firma-ayarlari',         active: !search.includes('s=') },
+                { label: 'Firmayı Sil',      route: '/firma-ayarlari?s=sil',   active: search.includes('s=sil'), danger: true },
+              ]
+              return (
+                <Box sx={{ mb: '0.25rem', mx: 0, display: 'flex', flexDirection: 'column', gap: '2px' }}>
+                  {subItems.map(item => (
+                    <ListItemButton key={item.label} onClick={() => navigate(item.route)} sx={{
+                      py: '0.35rem', pl: '2rem', pr: '0.75rem', borderRadius: 0,
+                      backgroundColor: 'rgba(0,0,0,0.08)',
+                      '&:hover': {
+                        backgroundColor: 'rgba(0,0,0,0.08)',
+                        '& .MuiSvgIcon-root': { color: 'rgba(0,0,0,0.7)' },
+                        '& .MuiListItemText-primary': { textShadow: '0 0 0.8px currentColor, 0 0 0.8px currentColor' },
+                      },
+                    }}>
+                      <ListItemIcon sx={{ minWidth: '36px' }}>
+                        <SendIcon sx={{
+                          fontSize: '0.75rem',
+                          color: item.active ? 'rgba(0,0,0,0.7)' : 'rgba(0,0,0,0.3)',
+                          transition: 'color 0.15s ease',
+                        }} />
+                      </ListItemIcon>
+                      <ListItemText primary={item.label} primaryTypographyProps={{
+                        fontSize: '0.8rem',
+                        fontWeight: 400,
+                        color: item.danger ? 'error.main' : 'text.secondary',
+                        sx: item.active ? { textShadow: '0 0 0.8px currentColor, 0 0 0.8px currentColor' } : undefined,
+                      }} />
+                    </ListItemButton>
+                  ))}
+                </Box>
+              )
+            })()}
+
           </List>
         </Grid>
       }

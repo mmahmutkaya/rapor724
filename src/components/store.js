@@ -57,6 +57,7 @@ export default ({ children }) => {
     return () => subscription.unsubscribe()
   }, [])
   const [Layout_Show, setLayout_Show] = useState("landing")
+  const [sifreYenilemeEmail, setSifreYenilemeEmail] = useState('')
 
   const [selectedLbs, setSelectedLbs] = useState()
   const [selectedMahal, setSelectedMahal] = useState()
@@ -120,6 +121,7 @@ export default ({ children }) => {
 
     appUser, setAppUser,
     Layout_Show, setLayout_Show,
+    sifreYenilemeEmail, setSifreYenilemeEmail,
 
     selectedLbs, setSelectedLbs,
     selectedMahal, setSelectedMahal,

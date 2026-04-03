@@ -3,6 +3,7 @@ import { Routes, Route } from 'react-router-dom';
 import Home from './pages'
 
 import P_Firmalar from './pages/firmalar'
+import P_FirmaAyarlari from './pages/firmaayarlari'
 import P_Projeler from './pages/projeler'
 
 import P_Wbs from './pages/wbs'
@@ -34,6 +35,7 @@ function App() {
       <Route path='/' element={<Home />} />
 
       <Route path='/firmalar' element={<P_Firmalar />} />
+      <Route path='/firma-ayarlari' element={<P_FirmaAyarlari />} />
       <Route path='/projeler' element={<P_Projeler />} />
 
       <Route path='/wbs' element={<P_Wbs />} />

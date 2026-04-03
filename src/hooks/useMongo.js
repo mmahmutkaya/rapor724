@@ -27,6 +27,31 @@ export const useGetFirmalar = () => {
 
 }
 
+export const useGetFirmaNameHistory = () => {
+
+  const { appUser, selectedFirma } = useContext(StoreContext)
+
+  return useQuery({
+    queryKey: ['firmaNameHistory', selectedFirma?.id],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('firm_name_history')
+        .select('id, old_name, new_name, changed_by_email, changed_at')
+        .eq('firm_id', selectedFirma.id)
+        .order('changed_at', { ascending: false })
+
+      if (error) throw new Error(error.message)
+
+      return data ?? []
+    },
+    enabled: !!appUser && !!selectedFirma,
+    retry: false,
+    refetchOnMount: true,
+    refetchOnWindowFocus: false
+  })
+
+}
+
 export const useGetWbsNodes = () => {
 
   const { appUser, selectedProje } = useContext(StoreContext)

@@ -7,6 +7,14 @@ import Button from '@mui/material/Button'
 export default function LandingPage() {
   const { setLayout_Show } = useContext(StoreContext)
 
+  const goToApp = () => {
+    if (window.location.hostname === 'localhost' && window.location.port !== '3000') {
+      window.location.href = 'http://localhost:3000'
+    } else {
+      setLayout_Show('login')
+    }
+  }
+
   return (
     <Box
       sx={{
@@ -40,7 +48,7 @@ export default function LandingPage() {
         </Typography>
 
         <Typography
-          onClick={() => setLayout_Show('login')}
+          onClick={() => goToApp()}
           sx={{
             fontSize: '0.85rem',
             color: '#666',
@@ -110,7 +118,7 @@ export default function LandingPage() {
 
         {/* The portal */}
         <Button
-          onClick={() => setLayout_Show('login')}
+          onClick={() => goToApp()}
           disableElevation
           disableRipple
           sx={{
