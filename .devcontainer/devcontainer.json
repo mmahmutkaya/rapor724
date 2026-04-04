@@ -1,0 +1,32 @@
+{
+  "name": "rapor724",
+  "image": "mcr.microsoft.com/devcontainers/javascript-node:20",
+  "forwardPorts": [3000],
+  "portsAttributes": {
+    "3000": {
+      "label": "React App",
+      "onAutoForward": "openPreview"
+    }
+  },
+  "postCreateCommand": "npm install",
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        "dbaeumer.vscode-eslint",
+        "esbenp.prettier-vscode",
+        "dsznajder.es7-react-js-snippets"
+      ],
+      "settings": {
+        "editor.formatOnSave": true
+      }
+    }
+  },
+  "secrets": {
+    "REACT_APP_SUPABASE_URL": {
+      "description": "Supabase project URL"
+    },
+    "REACT_APP_SUPABASE_ANON_KEY": {
+      "description": "Supabase anon public key"
+    }
+  }
+}
