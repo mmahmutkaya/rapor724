@@ -112,8 +112,11 @@ export default function Layout({ window, children }) {
       if (event === 'PASSWORD_RECOVERY') {
         setIsPasswordRecovery(true)
         setLayout_Show('sifreYenileme')
-      } else if (event === 'USER_UPDATED' || event === 'SIGNED_OUT') {
+      } else if (event === 'USER_UPDATED') {
         setIsPasswordRecovery(false)
+      } else if (event === 'SIGNED_OUT') {
+        setIsPasswordRecovery(false)
+        setLayout_Show('login')
       }
     })
     return () => subscription.unsubscribe()
@@ -246,6 +249,7 @@ export default function Layout({ window, children }) {
     await supabase.auth.signOut()
     setAppUser(null)
     setBegan(prev => !prev)
+    _window.location.href = process.env.REACT_APP_MARKETING_URL || 'http://localhost:3001'
   }
 
   const container = window !== undefined ? () => window().document.body : undefined;
