@@ -1,16 +1,9 @@
-import { useEffect, useState, useContext } from 'react';
+import { useState, useContext } from 'react';
 import { StoreContext } from './store.js'
-
-
-import { useNavigate } from "react-router-dom";
-
 import { DialogAlert } from './general/DialogAlert';
+import { supabase } from '../lib/supabase.js'
 
-
-// import CssBaseline from '@mui/material/CssBaseline';
 import TextField from '@mui/material/TextField';
-import FormControlLabel from '@mui/material/FormControlLabel';
-import Checkbox from '@mui/material/Checkbox';
 import Link from '@mui/material/Link';
 import Grid from '@mui/material/Grid';
 import Box from '@mui/material/Box';
@@ -19,211 +12,96 @@ import Typography from '@mui/material/Typography';
 import Container from '@mui/material/Container';
 import { ThemeProvider } from '@mui/material/styles';
 import grayTheme from '../lib/muiTheme.js'
-// icons
 import Button from '@mui/material/Button';
 import Avatar from '@mui/material/Avatar';
 
-
-
-function Copyright(props) {
-  return (
-    <Typography variant="body2" color="text.secondary" align="center" {...props}>
-      {'Copyright © '}
-      <Link color="inherit" href="https://mui.com/">
-        Your Website
-      </Link>{' '}
-      {new Date().getFullYear()}
-      {'.'}
-    </Typography>
-  );
-}
-
 const theme = grayTheme
 
-
-// pagesituation 0 - mail göndermeye hazır olduğunda
-// pagesituation 1 - mail gönderme tuşuna bastıktan hemen sonra - loading
-// pagesituation 2 - sonuç hatalı gelince - error
-
-// pagesituation 3 - mail kodu gönderilmiş, code girme için hazır olduğunda
-// pagesituation 4 - mail kodu doğrulama tuşuna bastıktan hemen sonra - loading
-
+// pagesituation 0 - mail göndermeye hazır
+// pagesituation 1 - mail gönderiliyor - loading
+// pagesituation 3 - kod gönderildi, code girme için hazır
+// pagesituation 4 - kod doğrulanıyor - loading
 
 export default function FormMailTeyit() {
 
-  const navigate = useNavigate()
-  const { RealmApp, selectedProje, setSelectedProje } = useContext(StoreContext)
-  const { Layout_Show, setLayout_Show } = useContext(StoreContext)
   const { appUser, setAppUser } = useContext(StoreContext)
-
 
   const [dialogAlert, setDialogAlert] = useState()
   const [pageSituation, setPageSituation] = useState(0)
-
   const [mailCodeError, setMailCodeError] = useState()
-  const [detailText, setDetailText] = useState()
-
-  const [email, setEmail] = useState()
-
-
-  useEffect(() => {
-    RealmApp?.currentUser && setEmail(RealmApp?.currentUser?._profile?.data?.email)
-  }, [RealmApp?.currentUser])
-
 
 
   async function handleSubmit(event) {
-
     event.preventDefault();
     let isError = false
 
-    if (pageSituation == 0) {
+    if (pageSituation === 0) {
       try {
-
-
-        // buton da "kod gönderiliyor" yazıyor ve inaktif
         setPageSituation(1)
-        // const resultMailSended = await RealmApp.currentUser.callFunction("auth_SendConfirmationCode")
-        // console.log("resultMailSended", resultMailSended)
 
-        const response = await fetch(process.env.REACT_APP_BASE_URL + '/api/user/sendmailcode', {
-          method: 'POST',
-          headers: {
-            'email': appUser.email,
-            'token': appUser.token,
-            'Content-Type': 'application/json'
-          }
+        const { error } = await supabase.auth.signInWithOtp({
+          email: appUser.email,
+          options: { shouldCreateUser: false }
         })
 
+        if (error) throw error
 
-        if (!response.ok) {
-          const responseJson = await response.json()
-          throw new Error(responseJson.error);
-        }
-
-        if (response.ok) {
-          // const responseJson = await response.json()
-          // console.log("responseJson", responseJson)
-
-          // buton da "kod gönder" yazıyor, boton aktif
-          setPageSituation(3)
-          return
-        }
-
+        setPageSituation(3)
 
       } catch (error) {
-
-        console.log("error", error)
-
         setDialogAlert({
           dialogIcon: "warning",
           dialogMessage: "Beklenmedik hata, sayfayı yenileyiniz, sorun devam ederse Rapor7/24 ile irtibata geçiniz..",
-          detailText: error?.message ? error.message : null,
+          detailText: error?.message || null,
           onCloseAction: () => {
             setDialogAlert()
             setPageSituation(0)
           }
         })
-
-        // console.log("error", error)
-        // setDetailText(error.message)
-        // console.log("mongo fonksiyon - auth_SendConfirmationCode")
-        // setPageSituation(2)
-        // return
-
       }
     }
 
-    // buton da "kod gönder" yazarken basılmışsa
-    if (pageSituation == 3) {
-
+    if (pageSituation === 3) {
       try {
-
         const data = new FormData(event.currentTarget);
         const mailCode = data.get('mailCode')
-
-
-        // //  Mail code frontend kontrolü
-        // if (mailCode.length < 6) {
-        //   setMailCodeError("En az 6 karakter kullanmalısınız") // biz kabul etsek mongodb oluşturmuyor kullanıcıyı 6 haneden az şifre ile
-        //   isError = true
-        // }
 
         if (!mailCode.length) {
           setMailCodeError("Mailinize gelen kodu giriniz")
           isError = true
         }
 
+        if (isError) return
 
-        // yukarıda hata varsa ilgili useState değerlerini error olarak belirledik fakat henüz react render tazelenmediği için değişmediler kontrol edemiyoruz
-        // bu sebeple başlangıçta false değerine sahip isError diye bir js değişkeni oluşturduk, bu işi görmeye çalışıyoruz
-        if (isError) {
-          console.log("Hata var ve alt satırda durduruldu")
-          return
-        }
-
-        // buton da "kod doğrulanıyor" yazıyor ve inaktif
         setPageSituation(4)
 
-        const response = await fetch(process.env.REACT_APP_BASE_URL + '/api/user/confirmmailcode', {
-          method: 'POST',
-          headers: {
-            'email': appUser.email,
-            'token': appUser.token,
-            'Content-Type': 'application/json'
-          },
-          body: JSON.stringify({ mailCode })
+        const { error } = await supabase.auth.verifyOtp({
+          email: appUser.email,
+          token: mailCode,
+          type: 'email'
         })
 
-
-        const responseJson = await response.json()
-        // console.log("responseJson", responseJson)
-
-
-        if (!response.ok) {
-          throw new Error(responseJson.error);
+        if (error) {
+          if (error.message?.toLowerCase().includes('token') || error.message?.toLowerCase().includes('otp')) {
+            setMailCodeError("Geçersiz veya süresi dolmuş kod")
+            setPageSituation(3)
+          } else {
+            throw error
+          }
         }
 
-
-        if (responseJson.errorObject) {
-          setMailCodeError(responseJson.errorObject.mailCodeError)
-          setPageSituation(3)
-        }
-
-
-        if (responseJson.user) {
-
-          // save the user to local storage
-          localStorage.setItem('appUser', JSON.stringify(responseJson.user))
-
-          // save the user to react context
-          setAppUser(responseJson.user)
-          // navigate(0)
-        }
-
-        return
-
+        // Başarılı: store.js onAuthStateChange otomatik appUser'ı güncelleyecek
 
       } catch (error) {
-
-        console.log("error", error)
-
         setDialogAlert({
           dialogIcon: "warning",
           dialogMessage: "Beklenmedik hata, sayfayı yenileyiniz, sorun devam ederse Rapor7/24 ile irtibata geçiniz..",
-          detailText: error?.message ? error.message : null,
+          detailText: error?.message || null,
           onCloseAction: () => {
             setPageSituation(3)
             setDialogAlert()
           }
         })
-
-        // console.log("error", error)
-        // setDetailText(error.message)
-        // console.log("Giriş esnasında hata oluştu, sayfayı yenileyiniz, sorun devam ederse lütfen iletişime geçiniz..")
-        // setPageSituation(2)
-        // return
-
       }
     }
   }
@@ -231,15 +109,6 @@ export default function FormMailTeyit() {
 
   return (
     <>
-      {/* {pageSituation === 2 &&
-        < DialogAlert
-          dialogIcon={"warning"}
-          dialogMessage={"Mail adresine kod gönderirken beklenmedik bir hata oluştu, sorun devam ederse bizimle irtibata geçiniz."}
-          onCloseAction={() => navigate(0)}
-          detailText={detailText}
-        />
-      } */}
-
       {dialogAlert &&
         <DialogAlert
           dialogIcon={dialogAlert.dialogIcon}
@@ -250,22 +119,7 @@ export default function FormMailTeyit() {
       }
 
       <ThemeProvider theme={theme}>
-        {/* <Grid container  > */}
-        {/* 
-        <Grid item sx={{ zIndex: "-1", }} >
-          <Image
-            src={backgroundPicture}
-            fill
-            // width={500}
-            // height={500}
-
-            alt="Background Image"
-          />
-        </Grid> */}
-
-        {/* <Grid item sx={{ border: "2px solid red", borderRadius: "25px" }}> */}
         <Container component="main" maxWidth="xs">
-          {/* <CssBaseline /> */}
           <Box
             sx={{
               marginTop: 8,
@@ -273,7 +127,6 @@ export default function FormMailTeyit() {
               flexDirection: 'column',
               alignItems: 'center',
               backgroundColor: "white",
-
             }}
           >
             <Avatar sx={{ m: 1, bgcolor: 'secondary.main' }}>
@@ -285,20 +138,11 @@ export default function FormMailTeyit() {
             <Box component="form" onSubmit={handleSubmit} noValidate sx={{ mt: 1 }}>
 
               <TextField
-                // onClick={() => setEmailError()}
-                // error={emailError ? true : false}
                 margin="normal"
-                // required
                 fullWidth
-                // id="email"
-                // label={emailError ? emailError : "Email"}
-                // name="email"
-                // autoComplete="email"
-                // autoFocus
                 disabled={true}
                 defaultValue={appUser?.email}
               />
-
 
               <TextField
                 onKeyDown={() => setMailCodeError()}
@@ -318,7 +162,6 @@ export default function FormMailTeyit() {
                 *Mail gönderildi, 'spam' kutusunu da kontrol ediniz
               </Typography>
 
-
               <Button
                 type="submit"
                 fullWidth
@@ -332,16 +175,12 @@ export default function FormMailTeyit() {
                 {pageSituation === 4 && "Kod Doğrulanıyor"}
               </Button>
 
-
               <Grid container sx={{ display: "grid", justifyContent: "end" }}>
-
                 <Grid item sx={{ display: "grid", justifyContent: "end" }}>
                   <Link
-                    onClick={() => {
-                      setAppUser()
-                      localStorage.removeItem('appUser')
-                      // setLayout_Show("newUser")
-                      // navigate(0)
+                    onClick={async () => {
+                      await supabase.auth.signOut()
+                      setAppUser(null)
                     }}
                     sx={{}}
                     href="#"
@@ -350,18 +189,12 @@ export default function FormMailTeyit() {
                     Çıkış
                   </Link>
                 </Grid>
-
               </Grid>
 
             </Box>
           </Box>
-          {/* <Copyright sx={{ mt: 8, mb: 4 }} /> */}
         </Container>
-        {/* </Grid> */}
-
-        {/* </Grid> */}
       </ThemeProvider>
-
     </>
   );
 }
