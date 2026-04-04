@@ -56,7 +56,7 @@ export default ({ children }) => {
     })
     return () => subscription.unsubscribe()
   }, [])
-  const [Layout_Show, setLayout_Show] = useState("landing")
+  const [Layout_Show, setLayout_Show] = useState("login")
   const [sifreYenilemeEmail, setSifreYenilemeEmail] = useState('')
 
   const [selectedLbs, setSelectedLbs] = useState()

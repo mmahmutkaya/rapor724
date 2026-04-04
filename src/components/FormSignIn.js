@@ -1,4 +1,4 @@
-import { useState, useContext } from 'react';
+import { useState, useContext, useRef } from 'react';
 import { StoreContext } from './store.js'
 import { DialogAlert } from './general/DialogAlert.js';
 import { supabase } from '../lib/supabase.js'
@@ -23,20 +23,18 @@ export default function SignIn() {
 
   const { setLayout_Show, setSifreYenilemeEmail } = useContext(StoreContext)
 
-  const [emailValue, setEmailValue] = useState('')
-  const [emailValid, setEmailValid] = useState(false)
-  const [passwordValue, setPasswordValue] = useState('')
+  const emailRef = useRef()
+  const passwordRef = useRef()
+
+  const [emailError, setEmailError] = useState()
   const [passwordError, setPasswordError] = useState()
   const [dialogAlert, setDialogAlert] = useState()
   const [magicLinkSent, setMagicLinkSent] = useState(false)
   const [autoLinkSent, setAutoLinkSent] = useState(false)
   const [loading, setLoading] = useState(false)
 
-  function handleEmailChange(e) {
-    const val = e.target.value
-    setEmailValue(val)
-    setEmailValid(validateEmail(val))
-    setPasswordError()
+  function handleEmailChange() {
+    setEmailError()
     setAutoLinkSent(false)
   }
 
@@ -55,9 +53,14 @@ export default function SignIn() {
   }
 
   async function handleMagicLink() {
+    const email = emailRef.current?.value || ''
+    if (!validateEmail(email)) {
+      setEmailError('Geçerli bir e-posta adresi girin')
+      return
+    }
     setLoading(true)
     const { error } = await supabase.functions.invoke('send-magic-link', {
-      body: { email: emailValue }
+      body: { email }
     })
     setLoading(false)
     if (error) {
@@ -73,15 +76,21 @@ export default function SignIn() {
 
   async function handleCombinedSubmit(e) {
     e.preventDefault()
-    if (passwordValue.length < 8) {
+    const email = emailRef.current?.value || ''
+    const password = passwordRef.current?.value || ''
+    if (!validateEmail(email)) {
+      setEmailError('Geçerli bir e-posta adresi girin')
+      return
+    }
+    if (password.length < 8) {
       setPasswordError('En az 8 karakter olmalı')
       return
     }
     setLoading(true)
     try {
       const { error } = await supabase.auth.signInWithPassword({
-        email: emailValue,
-        password: passwordValue
+        email,
+        password
       })
       if (error) {
         if (error.message.toLowerCase().includes('invalid')) {
@@ -116,7 +125,7 @@ export default function SignIn() {
         <Box sx={{ marginTop: 8, display: 'flex', flexDirection: 'column', alignItems: 'center', backgroundColor: 'white' }}>
 
           <Typography
-            onClick={() => setLayout_Show('landing')}
+            onClick={() => { window.location.href = process.env.REACT_APP_MARKETING_URL || 'http://localhost:3001' }}
             sx={{ cursor: 'pointer', fontSize: '0.8rem', color: '#bbb', mb: 3, alignSelf: 'flex-start', '&:hover': { color: '#333' }, transition: 'color 0.15s' }}
           >
             ← Rapor7/24
@@ -150,8 +159,10 @@ export default function SignIn() {
               type="email"
               autoComplete="email"
               autoFocus
-              value={emailValue}
+              inputRef={emailRef}
               onChange={handleEmailChange}
+              error={!!emailError}
+              helperText={emailError || null}
               size="small"
               inputProps={{ spellCheck: false }}
               sx={{ '& input:-webkit-autofill, & input:-webkit-autofill:hover, & input:-webkit-autofill:focus': { WebkitBoxShadow: '0 0 0 1000px #fff inset' } }}
@@ -163,8 +174,8 @@ export default function SignIn() {
               name="password"
               type="password"
               autoComplete="current-password"
-              value={passwordValue}
-              onChange={(e) => { setPasswordValue(e.target.value); setPasswordError() }}
+              inputRef={passwordRef}
+              onChange={() => setPasswordError()}
               error={!!passwordError}
               helperText={passwordError || null}
               size="small"
@@ -172,7 +183,7 @@ export default function SignIn() {
             />
 
             <Box sx={{ display: 'flex', justifyContent: 'flex-end', mt: 0.5 }}>
-              <Link onClick={() => { setSifreYenilemeEmail(emailValue); setLayout_Show('sifreYenileme') }} href="#" variant="body2" sx={{ fontSize: '0.8rem' }}>
+              <Link onClick={() => { setSifreYenilemeEmail(emailRef.current?.value || ''); setLayout_Show('sifreYenileme') }} href="#" variant="body2" sx={{ fontSize: '0.8rem' }}>
                 Şifremi unuttum
               </Link>
             </Box>
@@ -181,7 +192,7 @@ export default function SignIn() {
               type="submit"
               fullWidth
               variant="contained"
-              disabled={loading || !emailValid}
+              disabled={loading}
               sx={{ mt: 1.5, mb: 1, textTransform: 'none' }}
             >
               Giriş Yap / Üye Ol
@@ -220,9 +231,9 @@ export default function SignIn() {
               <Button
                 fullWidth
                 variant="outlined"
-                disabled={!emailValid || loading}
+                disabled={loading}
                 onClick={handleMagicLink}
-                startIcon={<MailOutlineIcon style={{ color: emailValid ? '#0077B6' : undefined, fontSize: 17 }} />}
+                startIcon={<MailOutlineIcon style={{ color: '#0077B6', fontSize: 17 }} />}
                 sx={{ textTransform: 'none', color: '#3c4043', borderColor: '#dadce0', fontSize: '0.9rem', fontWeight: 500, '&:hover': { borderColor: '#0077B6', bgcolor: '#f0f7ff' }, '&:disabled': { borderColor: '#eee' } }}
               >
                 E-Posta Link ile Giriş Yap

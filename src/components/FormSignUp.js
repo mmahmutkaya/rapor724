@@ -200,7 +200,7 @@ export default function FormSignUp() {
           }}
         >
           <Typography
-            onClick={() => setLayout_Show('landing')}
+            onClick={() => { window.location.href = process.env.REACT_APP_MARKETING_URL || 'http://localhost:3001' }}
             sx={{ cursor: 'pointer', fontSize: '0.8rem', color: '#bbb', mb: 2, alignSelf: 'flex-start', '&:hover': { color: '#333' }, transition: 'color 0.15s' }}
           >
             ← Rapor7/24
